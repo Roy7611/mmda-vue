@@ -1,0 +1,130 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+  color: var(--p-text-color, #334155);
+  background: var(--p-surface-50, #f4f7fb);
+  font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.mmda-app-page {
+  padding: 0.75rem;
+  background: var(--p-content-background, #fff);
+}
+
+.mmda-list-view {
+  height: 100%;
+}
+
+.mmda-list-scroll {
+  min-height: 0;
+}
+
+.mmda-change-password label {
+  display: grid;
+  gap: 4px;
+}
+
+.mmda-change-password input {
+  padding: 8px;
+}
+
+.mmda-app-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.15rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mmda-app-logo__img,
+.mmda-app-logo__img img,
+.mmda-app-logo img {
+  width: auto;
+  max-height: 64px;
+  height: auto;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.mmda-app-logo__title {
+  color: #4dbfff;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.mmda-user-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.mmda-user-footer__avatar {
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.mmda-user-footer__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--p-text-color);
+  font-size: 0.875rem;
+}
+
+.mmda-user-footer__actions {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.125rem;
+  margin-left: auto;
+}
+
+.mmda-user-footer__actions .p-button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--p-content-border-color);
+  color: var(--p-text-color);
+}
+
+.mmda-user-footer__todo {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.mmda-user-footer__todo .p-badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.45rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1.5rem;
+  font-size: 0.7rem;
+  pointer-events: none;
+}

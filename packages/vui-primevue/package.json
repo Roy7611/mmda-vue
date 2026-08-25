@@ -1,0 +1,111 @@
+{
+  "name": "@mmda/vui-primevue",
+  "description": "PrimeVue skin for the MMDA Vue UI runtime",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "main": "./dist/mmda-vui-primevue.es.js",
+  "module": "./dist/mmda-vui-primevue.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-vui-primevue.es.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./fontawesome.css": {
+      "import": "./dist/fontawesome.css",
+      "default": "./src/fontawesome.css"
+    }
+  },
+  "files": [
+    "dist",
+    "src/assets/fa"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json && node scripts/copy-fa.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/core": "workspace:^",
+    "@mmda/vui": "workspace:^"
+  },
+  "peerDependencies": {
+    "@bpmn-io/properties-panel": "^3.51.2",
+    "@primevue/themes": "^4.5.4",
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
+    "bpmn-js": "^18.25.1",
+    "bpmn-js-properties-panel": "^5.65.0",
+    "camunda-bpmn-moddle": "^7.0.1",
+    "chart.js": "^4.5.1",
+    "jsbarcode": "^3.12.3",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.5",
+    "qrcode": "^1.5.4",
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.0.0",
+    "vue-router": "^4.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@bpmn-io/properties-panel": {
+      "optional": true
+    },
+    "@vue-office/docx": {
+      "optional": true
+    },
+    "@vue-office/excel": {
+      "optional": true
+    },
+    "bpmn-js": {
+      "optional": true
+    },
+    "bpmn-js-properties-panel": {
+      "optional": true
+    },
+    "camunda-bpmn-moddle": {
+      "optional": true
+    },
+    "chart.js": {
+      "optional": true
+    },
+    "jsbarcode": {
+      "optional": true
+    },
+    "qrcode": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@bpmn-io/properties-panel": "^3.51.2",
+    "@primevue/themes": "4.5.4",
+    "@types/jsbarcode": "^3.11.4",
+    "@types/node": "^20.19.0",
+    "@types/qrcode": "^1.5.6",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
+    "bpmn-js": "^18.25.1",
+    "bpmn-js-properties-panel": "^5.65.0",
+    "camunda-bpmn-moddle": "^7.0.1",
+    "chart.js": "^4.5.1",
+    "jsbarcode": "^3.12.3",
+    "jsdom": "^30.0.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.5",
+    "qrcode": "^1.5.4",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.25",
+    "vue-i18n": "^11.1.11",
+    "vue-router": "^4.5.1"
+  }
+}

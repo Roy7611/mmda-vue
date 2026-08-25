@@ -1,0 +1,165 @@
+:root {
+  color: #182230;
+  background: #f4f7fb;
+  font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.playground {
+  width: min(1120px, calc(100% - 32px));
+  margin: 32px auto;
+}
+
+.playground-title,
+.mmda-toolbar,
+.mmda-paginator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playground-title h1 {
+  margin: 4px 0 24px;
+}
+
+.mmda-container,
+.mmda-group {
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  background: white;
+}
+
+.mmda-container {
+  overflow: hidden;
+}
+
+.mmda-container > header,
+.mmda-container > main,
+.mmda-container > footer,
+.mmda-group {
+  padding: 16px;
+}
+
+.mmda-toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mmda-button,
+button {
+  cursor: pointer;
+  border: 1px solid #b8c6d9;
+  border-radius: 7px;
+  padding: 7px 12px;
+  background: white;
+}
+
+.mmda-button.is-primary,
+.mmda-button.is-success {
+  border-color: #2563eb;
+  color: white;
+  background: #2563eb;
+}
+
+.mmda-button.is-danger {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.mmda-searchbar {
+  display: flex;
+  gap: 8px;
+}
+
+.mmda-searchbar input {
+  flex: 1;
+}
+
+.mmda-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mmda-field input,
+.mmda-field select,
+.mmda-searchbar input {
+  min-height: 38px;
+  border: 1px solid #bdc9d8;
+  border-radius: 7px;
+  padding: 7px 10px;
+}
+
+.mmda-field-error {
+  color: #dc2626;
+}
+
+.mmda-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mmda-table th,
+.mmda-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px;
+  text-align: left;
+}
+
+.mmda-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.mmda-paginator {
+  justify-content: center;
+}
+
+.mmda-toast,
+.mmda-notification {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1001;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: white;
+  background: #166534;
+}
+
+.mmda-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgb(15 23 42 / 45%);
+}
+
+.mmda-dialog {
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 12px;
+  padding: 18px;
+  background: white;
+}
+
+.mmda-dialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}

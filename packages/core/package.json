@@ -1,0 +1,44 @@
+{
+  "name": "@mmda/core",
+  "description": "Metadata Model Driven Architecture Core Lib",
+  "author": "roshion luo",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "sideEffects": [
+    "./src/extensions/*.ts"
+  ],
+  "main": "./dist/mmda-core.es.js",
+  "module": "./dist/mmda-core.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-core.es.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@types/pluralize": "^0.0.30",
+    "luxon": "^3.5.0",
+    "pluralize": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^20.19.0",
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11"
+  }
+}
