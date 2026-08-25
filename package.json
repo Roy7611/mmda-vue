@@ -1,0 +1,27 @@
+{
+  "name": "mmda",
+  "version": "5.0.0",
+  "description": "Metadata Model Driven Architecture for Vue 3",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@9.7.1",
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/playground --filter @mmda/base build",
+    "dev:vui": "pnpm --filter @mmda/playground dev",
+    "dev:base": "pnpm --filter @mmda/base dev",
+    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue test",
+    "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
+    "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11"
+  }
+}
