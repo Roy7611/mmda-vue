@@ -103,7 +103,7 @@ di.inject<Logger>(Logger)
 | `'transient'` | 每次 `inject` 都 `new` | 无状态小对象、测试桩 |
 
 ```ts
-di.provide(ApiToken, () => new OAuthApiClient(...))           // 单例
+di.provide(ApiToken, () => new OAuth2ApiClient(...))           // 单例
 di.provide(EditorLogicToken, () => new EditorLogic(), 'scoped')
 di.provide(IdToken, () => ({ id: crypto.randomUUID() }), 'transient')
 ```

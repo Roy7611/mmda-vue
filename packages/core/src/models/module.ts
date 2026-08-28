@@ -1,11 +1,16 @@
 import { hasBit } from "../extensions/number_extensions";
+
+/**
+ * 三级模块类型：系统、模块、功能
+ */
 export type ModuleType = "SYSTEM" | "MODULE" | "FEATURE";
 /**
  * 模块标准操作枚举
  *
  * @remarks
  *
- * 定义：0;NONE;无|1;READ;读取|2;EDIT;编辑|4;CREATE;创建|8;DELETE;删除|16;PRINT;打印|32;EXPORT;导出|64;IMPORT;导入
+ * 定义：0;NONE;无|1;READ;读取|2;EDIT;编辑|4;CREATE;创建|8;DELETE;删除|15;CRUD;增删改查|16;REPORT;统计报表|32;IMPORT;导入|64;EXPORT;导出|128;UPLOAD;上传模板|255;ALL;所有
+ *
  */
 export const enum ModuleOp {
   NONE = 0, //0 无
@@ -13,7 +18,7 @@ export const enum ModuleOp {
   EDIT = 2, //0000 0010 编辑
   CREATE = 4, //0000 0100 创建
   DELETE = 8, //0000 1000 删除
-  PRINT = 16, //0001 0000 打印
+  PRINT = 16, //0001 0000 打印 => 统计报表
   EXPORT = 32, //0010 0000 导出
   IMPORT = 64, //0100 0000 导入
   UPLOAD = 128, //1000 0000 上传模版
@@ -47,7 +52,7 @@ export const enum ModuleStatus {
 }
 
 /**
- * 模块操作按钮应用界面
+ * 模块操作按钮应用在哪些界面
  * 0;NONE;无|1;READ;详情|2;EDIT;编辑|4;LIST;列表
  */
 export const enum ModuleActionMode {
@@ -122,7 +127,7 @@ export interface Module {
   /** 元对象名称*/
   objName?: string;
 
-  /** 允许操作：0;无|1;编辑|2;创建|4;删除|7;增删改|8;打印|15;所有|16;导出|32;导入*/
+  /** 允许操作：0;NONE;无|1;READ;读取|2;EDIT;编辑|4;CREATE;创建|8;DELETE;删除|15;CRUD;增删改查|16;REPORT;统计报表|32;IMPORT;导入|64;EXPORT;导出|128;UPLOAD;上传模板|255;ALL;所有*/
   allowOp: ModuleOp;
 
   /** 模块Url*/
@@ -190,6 +195,11 @@ export interface ModuleAuth {
   authorizedActions?: ModuleAction[];
 }
 
+/**
+ * 将ModuleOp按位拆解出模块标准权限结构
+ * @param allowOp
+ * @returns ModuleAuth
+ */
 export function auth(allowOp: ModuleOp): ModuleAuth {
   return {
     allowRead: hasBit(allowOp, ModuleOp.READ),
@@ -203,6 +213,10 @@ export function auth(allowOp: ModuleOp): ModuleAuth {
   };
 }
 
+/**
+ * 模块工厂管理系统功能模块，提供构建三级模块树和按Url查找
+ * @see {@link MetaUiService} 使用
+ */
 export class ModuleFactory {
   readonly urlModules: Record<string, Module>;
   readonly entityModules: Record<string, Module>;

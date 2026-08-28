@@ -188,6 +188,22 @@ playground 已改用 `PrimeVueUiBuilder`。
 
 ---
 
+## net 栈（FetchApi / ApiProblem / OAuth2）
+
+旧仓与本仓早期 net 是 `FetchClient`（继承 `HttpClient`）+ `OAuthApiClient`（拦截器打 Bearer）+ 一律 `ApiError`。这次把传输、错误、认证拆开，**不删旧类**。
+
+| | 旧 | 新（推荐） |
+|---|---|---|
+| 传输 | `FetchClient` | 独立 `FetchApi`（标准 Fetch / Streams / Abort，不继承 `HttpClient`） |
+| 错误 | `ApiError` | RFC 9457 `ApiProblem`；固定扩展仅 `validationErrors` |
+| 认证 | `setAuthenticator` + `refreshHandler` | `FetchAuthProvider`；`OAuth2ApiClient` 安装 `OAuthBearerAuthProvider` |
+| 接到 CRUD | `OAuthApiClient(http)` | `OAuth2ApiClient(fetchApi)` → 内部 `FetchApiHttp(applyFetchAuth)` |
+| 应用壳 | `MmdaApplication` 建 `FetchClient` | 已改为 `FetchApi` + `OAuth2ApiClient` |
+
+细节、对照表与测试写法见 [packages/core/docs/net.md](packages/core/docs/net.md)。
+
+---
+
 ## 后续路径
 
 ### 近期（把皮肤用到业务）

@@ -12,8 +12,7 @@ export type LooseRequired<T> = { [P in keyof (T & Required<T>)]: T[P] };
  * 实体状态
  */
 export const enum EntityState {
-  /** @deprecated 使用 EntityState.DEFAULT */
-  DEFUALT = 0,
+  //默认前端未修改
   DEFAULT = 0,
 
   //客户端已修改
@@ -37,26 +36,9 @@ export interface ValueObject {
   label: string;
 }
 
-/**
- * 实体接口，从服务器获取的Json数据
- */
-export abstract class Entity {
-  [index: string]: any;
-  rowNum: string;
-  editable: boolean;
-  deletable: boolean;
-  entityState: EntityState;
-  actions?: EntityAction[];
-  customProperties?: Record<string, any>;
-}
 
 /**
- * 实体构造函数
- */
-export type EntityCtor<E> = (o: object) => E;
-
-/**
- * 实体抽象基类
+ * 实体抽象基类，从服务器获取的Json数据
  *
  * @example 举例，你的贸易伙伴实体类
  * ```ts
@@ -73,6 +55,21 @@ export type EntityCtor<E> = (o: object) => E;
  * }
  * ```
  */
+
+export abstract class Entity {
+  [index: string]: any;
+  rowNum: string;
+  editable: boolean;
+  deletable: boolean;
+  entityState: EntityState;
+  actions?: EntityAction[];
+  customProperties?: Record<string, any>;
+}
+
+/**
+ * 实体构造函数
+ */
+export type EntityCtor<E> = (o: object) => E;
 
 // export abstract class Entity {
 //   // [index: string]: any;
@@ -95,7 +92,7 @@ export type EntityCtor<E> = (o: object) => E;
 //       return (this.entityState & EntityState.DELETED) > 0;
 //   }
 //   get isDirty(){
-//       return this.entityState != EntityState.DEFUALT;
+//       return this.entityState != EntityState.DEFAULT;
 //   }
 
 //   setModified(){ this.entityState |= EntityState.MODIFIED; }
@@ -227,7 +224,4 @@ export interface EntitySelectParam<E> {
   /** 已选面板 label 格式化函数，传入选中行返回显示文本，仅多选模式生效。不传则从 group a1 首个 field 自动推导 */
   labelFn?: (item: any) => string;
 }
-// 工厂方法，不好用
-// export function createEntity<E extends Entity>(c: new(o?: any) => E): E {
-//   return new c();
-// }
+

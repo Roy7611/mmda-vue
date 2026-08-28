@@ -6,15 +6,15 @@ import {
 } from "../models/entity_search";
 import {
   type Pagination,
+  type PagedList,
   NO_PAGINATION,
   pagedList,
-  type PagedList,
 } from "../models/pagination";
 /**
  * Http服务 / Web API 客户端
  * （1）要求使用Fetch API @see{@link https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API}
- * （2）不支持Fetch API的浏览器使用axios
- * （3）实现基础的get, post, put, delete函数，提供成功和失败回调函数传入
+ * （2）不支持Fetch API的浏览器使用axios（目前不适用）
+ * （3）HttpClient实现基础的get, post, put, delete函数，提供成功和失败回调函数传入
  *      // request(config)
         // get(url[, config])
         // delete(url[, config])
@@ -25,18 +25,25 @@ import {
         // patch(url[, data[, config]])
  * （4）自动管理访问令牌
  * （5）基于实体框架实现实体数据访问快捷方式
- *      getOne( whID[,'Warehouse']) 
+ *      getOne( whID[,'Warehouse'])
  *      getAll(['Warehouse'])
  *      createOne('Warehouse'[, {}])
- *      save('Warehouse', w) 
+ *      save('Warehouse', w)
  *      saveAll('Warehouse', [])
- *      delete('Warehouse', whID) 
+ *      delete('Warehouse', whID)
  *      deleteAll('Warehouse', [])
- * 
+ *
  */
 import type { HttpClient } from "./http";
 import { toApiError } from "./api_error";
-export interface ApiConfig {
+import { ApiProblem } from "./api_problem";
+
+/**
+ * API 客户端配置
+ *
+ * {@link ApiClient}的构造选项
+ */
+export interface ApiClientConfig {
   service: string;
   repository?: string;
   accessToken?: string;
@@ -46,25 +53,53 @@ export interface ApiConfig {
   expiryInterval?: string;
 }
 
+/**
+ * 实体仓储用来定义API URL
+ * @example 例如
+ * ```ts
+ * const repo = {
+ *    repository: "Warehouses",
+ *    service: "wms"
+ * }
+ * ```
+ **/
 export interface EntityRepository {
+  /** 仓储为实体名称复数，如`Warehouses` */
   repository?: string;
-  service?: string;
-}
-export interface EntityUrlParam {
-  path?: string;
-  action?: string;
-  queryParams?: Record<string, any>;
-  repository?: string;
-  redirection?: string; // 重定向 设置后替代repository
+  /** 服务为云端微服务名称，如`wms` */
   service?: string;
 }
 
+/**
+ * 实体URL参数
+ *
+ * 定义访问云端服务接口的传参规范，
+ * 它是一个{@link EntityRepository | 实体仓储}，
+ * 用来构建云端接口访问URL
+ *
+ * @see {@link ApiClient.buildEntityURL}
+ */
+export interface EntityUrlParam extends EntityRepository {
+  /** 路径 */
+  path?: string;
+  /** 动作 */
+  action?: string;
+  /** 查询参数 */
+  queryParams?: Record<string, any>;
+
+  redirection?: string; // 重定向 设置后替代repository
+}
+
+/** 分页结果放HTTP Headers中的键值 */
 export const PAGINATION_HEADER = "x-pager";
 
+/**
+ * API 客户端
+ */
 export class ApiClient {
   constructor(
     public readonly http: HttpClient,
-    public readonly config: ApiConfig,
+    public readonly config: ApiClientConfig,
   ) {
     this.http.errorHandler = (err, req) => this.handleApiError(err, req);
   }
@@ -104,6 +139,7 @@ export class ApiClient {
   }
 
   handleApiError(err: unknown, req: Request): never {
+    if (err instanceof ApiProblem) throw err;
     throw toApiError(err, req);
   }
 

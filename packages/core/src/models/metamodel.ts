@@ -241,7 +241,7 @@ const entity: Entity = {
   rowNum: "0",
   editable: true,
   deletable: true,
-  entityState: EntityState.DEFUALT,
+  entityState: EntityState.DEFAULT,
 };
 //待试验，性能与new Entity()比较
 export function defineEntity<T = any>(o?: object): T {
@@ -500,7 +500,7 @@ function assign<E extends Entity>(metaui: MetaUi, model: E, data: any) {
     }
   });
   model.actions = data.actions;
-  model.entityState = data.entityState ?? EntityState.DEFUALT;
+  model.entityState = data.entityState ?? EntityState.DEFAULT;
   model.editable = data.editable ?? true;
   model.deletable = data.deletable ?? true;
 }

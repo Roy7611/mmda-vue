@@ -71,4 +71,4 @@ models ─┘
 ```
 
 `metaui` 和 `models` 不反向依赖 `logic`。交互入口是 `logic/ui_logic`。
-旧的 `metaui/metaui_logic`、`logic/metaui_logic`、`models/validation` 路径仅作兼容转发。
+旧的 `models/validation` 路径仅作兼容转发。

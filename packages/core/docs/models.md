@@ -3,6 +3,10 @@
 `models` 保存按界面元数据创建、查询和提交的数据结构。概念上先有
 `MetaUi`，再由 `MetaModel` 依据它生成和操作实体。
 
+```text
+MetaUi -> MetaModel -> Models
+```
+
 ## 主要内容
 
 - `Entity` / `EntityState`：实体数据和客户端状态。

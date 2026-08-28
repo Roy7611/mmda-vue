@@ -66,7 +66,7 @@ export interface HttpRequestParam {
 }
 /**
  * Http客户端
- * @abstract
+ * @abstract 
  */
 export abstract class HttpClient {
   readonly signal: AbortSignal;
@@ -78,6 +78,13 @@ export abstract class HttpClient {
   private readonly beforeRequestInterceptors: BeforeRequest[] = [];
   private refreshInFlight?: Promise<boolean>;
 
+  /**
+   * 构造一个HttpClient实例
+   * @param baseUrl 基础网址
+   * @param initialBeforeRequest 初始化请求拦截器 
+   * @param includeCredentials 控制是否在跨域请求（CORS）中发送 Cookie、授权标头或 TLS 客户端证书
+   * @param unauthorizedErrorHandler 未授权访问错误处理器
+   */
   constructor(
     public baseUrl?: string,
     initialBeforeRequest?: BeforeRequest,
@@ -481,8 +488,8 @@ export abstract class HttpClient {
 export const supportFetch = typeof fetch === "function";
 
 /**
- * 使用FetchAPI实现的网络客户端
- * @see {@link https://www.cnblogs.com/wonyun/p/fetch_polyfill_timeout_jsonp_cookie_progress.html|fetch使用的常见问题及解决办法}
+ * 使用FetchAPI实现的{@link HttpClient | Http客户端}
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API|Fetch API官方文档}
  */
 export class FetchClient extends HttpClient {
   static canAbort = typeof AbortController === "function";

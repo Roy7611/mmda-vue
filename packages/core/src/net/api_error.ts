@@ -93,6 +93,30 @@ export function toApiError(data: unknown, req?: Request): ApiError {
     }
     return data;
   }
+  if (data instanceof Error && data.name === "ApiProblem") {
+    const problem = data as Error & {
+      type?: string;
+      title?: string;
+      status?: number;
+      detail?: string;
+      cause?: unknown;
+      validationErrors?: ValidationError[];
+      request?: Request;
+    };
+    const code =
+      typeof problem.type === "string" && problem.type !== "about:blank"
+        ? problem.type
+        : undefined;
+    return new ApiError(
+      code,
+      problem.title,
+      problem.detail ?? problem.message,
+      typeof problem.cause === "string" ? problem.cause : undefined,
+      problem.status,
+      problem.validationErrors,
+      req ?? problem.request,
+    );
+  }
   if (data instanceof Error) {
     return new ApiError(undefined, undefined, data.message, undefined, undefined, undefined, req);
   }

@@ -18,9 +18,10 @@ const logicOr =
     value => a(value) || b(value)
 
 /**
- * ????????
- * @typeParam E ??????? `BOM`
- * @typeParam G ??????? `BOMItem`
+ * 子表界面组内域逻辑
+ * @typeParam E 主表类型，例如 `BOM`
+ * @typeParam G 子表类型，例如 `BOMItem`
+ * @remarks 例如 BOM.items 组内字段 `materialName` 的可见、只读和自定义渲染器
  */
 export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
   constructor(
@@ -41,48 +42,59 @@ export type UiGroupRenderer = (
 ) => any
 
 /**
- * ????????
- * @typeParam E ??????? `BOM`
- * @typeParam G ??????? `BOMItem`
+ * 子表界面组逻辑
+ * @typeParam E 主表类型，例如 `BOM`
+ * @typeParam G 子表类型，例如 `BOMItem`
  */
 export class MetaUiGroupLogic<E, G> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
-  /** ?????? */
+  /** 自定义渲染器 */
   customRenderer?: Function
-  /** ?????????????? */
+  /** 表格顶部自定义内容（查看态） */
   customPrepend?: Function
-  /** ?????????????? */
+  /** 表格底部自定义内容（查看态） */
   customAppend?: Function
-  /** ?? */
+  /** 水印内容 */
   watermark?: Watermark
-  /** ?????? */
+  /** 水印生成函数 */
   watermarkFn?: UiGroupWatermark
-  /** ?????? */
+  /** 是否启用聚合 */
   _aggregate?: boolean
-  /** ????? */
+  /** 自定义聚合函数 */
   customAggregator?: Function
-  /** ??????????? */
+  /** 自定义编辑器（编辑态） */
   customEditor?: Function
-  /** ??????????? */
+  /** 编辑态表格前自定义内容 */
   customEditPrepend?: Function
-  /** ??????????? */
+  /** 编辑态表格后自定义内容 */
   customEditAppend?: Function
-  /** ?????????? */
+  /** 是否需要处理文件导入导出 */
   needHandlerFile: boolean
-  /** ?????? */
+  /** 导入导出属性函数 */
   importOrExportPropsFn?: ImportGroupItemsFn
-  /** ??????? */
+  /** 自定义操作按钮列表 */
   customActions?: Array<EntityAction>
+  /** 只读条件函数 */
   readonlyFn?: Predicate
+  /** 隐藏条件函数 */
   hiddenFn?: Predicate
+  /** 清空条件函数 */
   clearIfFn?: Predicate
+  /** 可编辑条件函数 */
   editIfFn?: Predicate
+  /** 可删除条件函数 */
   deleteIfFn?: Predicate
+  /** 可导入条件函数 */
   importIfFn?: Predicate
+  /** 可导出条件函数 */
   exportIfFn?: Predicate
+  /** 筛选函数 */
   filterFn?: GroupFilterFn
+  /** 默认添加函数 */
   defaultAddFn?: ActionCallback
+  /** 添加前回调函数 */
   beforeAddFn?: CreateGroupItemsFn
+  /** 变更回调函数 */
   onChangeFn?: OnChangeGroupFn
 
   constructor(public readonly group: MetaUiGroup) {
@@ -130,7 +142,7 @@ export class MetaUiGroupLogic<E, G> {
     return this
   }
 
-  /** ???????????????? */
+  /** 设置子表行筛选条件 */
   setFilter(filterFn: GroupFilterFn<E, G>) {
     this.filterFn = filterFn
     return this
@@ -213,7 +225,7 @@ export class MetaUiGroupLogic<E, G> {
   }
 
   /**
-   * ??????????????
+   * 获取并注册子表组内字段的逻辑配置。
    */
   field(fieldName: string) {
     const field = this.group.groupUi.getField(fieldName)

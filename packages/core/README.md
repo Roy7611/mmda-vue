@@ -9,7 +9,7 @@ import {
   MetaUi,
   MetaModel,
   MetaUiFieldLogic,
-  OAuthApiClient,
+  OAuth2ApiClient,
   createDependencyContainer,
 } from '@mmda/core'
 ```
@@ -75,14 +75,13 @@ auth(ModuleOp.READ | ModuleOp.EXPORT)
 | [界面元数据](./docs/metaui.md) | `MetaUi` / Field / Group / Action / `MetaUiService` |
 | [数据模型](./docs/models.md) | `Entity`、`MetaModel`、分页、`Module` |
 | [前端交互逻辑](./docs/logic.md) | `UiContext`、Field/Group Logic、`FieldSearchOptions`、校验 |
-| [HTTP / OAuth](./docs/net.md) | Fetch → 实体 REST → OAuth，错误为 `ApiError` |
+| [HTTP / OAuth](./docs/net.md) | FetchApi → 实体 REST → OAuth2；错误为 `ApiProblem`（旧栈仍为 `ApiError`） |
 | [依赖注入](./docs/dependency-injection.md) | token、生命周期；与 Vue provide/inject 的分工 |
 | [工具函数](./docs/utils.md) | `is` / `localdb` / `pluralize` / `dateTimeRange` / 格式化 |
 | [原型扩展](./docs/extensions.md) | Date/String 实例方法、`hasBit`、`toPrecise` |
 
 新代码从 `@mmda/core` 顶层导入。下列源码路径仅兼容转发，后续会删：
 
-- `metaui/metaui_logic`、`logic/metaui_logic` → `logic/ui_logic`
 - `models/validation` → `logic/validation`
 - `metaui/pagination` → `models/pagination`
 - `MetaUiFieldOptions` → `FieldSearchOptions`

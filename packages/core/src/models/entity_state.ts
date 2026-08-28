@@ -40,7 +40,7 @@ export const deleted = (e: any) =>
  * @param e 实体对象
  * @returns 如果实体已更改则返回 true，否则返回 false
  */
-export const dirty = (e: any) => e.entityState !== EntityState.DEFUALT;
+export const dirty = (e: any) => e.entityState !== EntityState.DEFAULT;
 
 /**
  * 通过将实体的entityState 设置为MODIFIED 将实体标记为已修改 

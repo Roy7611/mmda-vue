@@ -4,7 +4,7 @@
 
 ## 主要内容
 
-- `MmdaApplication`：OAuth 客户端、`MetaUiService`、模块目录、登录态。
+- `MmdaApplication`：`OAuth2ApiClient`（`FetchApi`）、`MetaUiService`、模块目录、登录态。
 - `setupI18n`：vue-i18n 实例；内置 zh / en / zh-Hant。
 - inject keys：`UI_APP_KEY`、`UI_BUILDER_KEY`、`UI_CONTEXT_KEY`。
 - 弹层 API：`toast` / `confirm` / `confirmDialog`，实现在 Builder，不在 core。
@@ -29,6 +29,8 @@ vueApp.provide(UI_BUILDER_KEY, builder)
 await mmda.signinAuto()
 vueApp.mount('#app')
 ```
+
+HTTP 走 `FetchApi` + `OAuth2ApiClient`，错误为 `ApiProblem`。详见 [core net 文档](../../core/docs/net.md)。
 
 `vueApp.use(mmda)` 会：
 

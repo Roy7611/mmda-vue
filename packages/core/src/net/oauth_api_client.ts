@@ -1,4 +1,9 @@
-import { ApiClient, type ApiConfig } from "./api_client";
+import { ApiClient, type ApiClientConfig } from "./api_client";
+import {
+  OAuthBearerAuthProvider,
+  type FetchApi,
+} from "./fetch_api";
+import { FetchApiHttp } from "./fetch_api_http";
 import type { HttpClient, HttpErrorHandler } from "./http";
 
 export interface OAuthUser {
@@ -16,23 +21,59 @@ export interface OAuthUser {
   expiryOn?: number;
 }
 
+function applyTokenResponse(
+  config: ApiClientConfig,
+  data: Record<string, any>,
+) {
+  config.accessToken = data.access_token;
+  if (data.refresh_token) config.refreshToken = data.refresh_token;
+  const expiresInSec = Number(data.expires_in) || 24 * 60 * 60 * 1000;
+  const expiryAt = Date.now() + expiresInSec * 1000;
+  config.expiresIn = expiryAt;
+}
+
+function oauthUserFromToken(data: Record<string, any>): OAuthUser {
+  const now = Date.now();
+  const expiresInSec = Number(data.expires_in) || 0;
+  return {
+    userId: data.userID,
+    username: encodeURIComponent(data.username),
+    userType: data.acct_type,
+    mobile: data.mobile,
+    portrait: data.portrait,
+    orgId: data.org_id,
+    deptId: data.dept_id,
+    email: data.email,
+    scope: data.scope,
+    signOn: now,
+    expiryOn: now + expiresInSec * 1000,
+    tenantId: data.tenantID,
+  };
+}
+
+function requireOAuthClient(clientId: string, clientSecret: string) {
+  if (!clientId?.trim() || !clientSecret?.trim()) {
+    return Promise.reject(
+      new Error("OAuth clientId and clientSecret are required"),
+    );
+  }
+  return Promise.resolve();
+}
+
 /**
- * 支持OAuth认证的API客户端
+ * 支持OAuth认证的API客户端（HttpClient 拦截器：追加 Bearer，401 由
+ * {@link HttpClient.refreshHandler} 刷新）。
  */
 export class OAuthApiClient extends ApiClient {
   private authenticatorInstalled = false;
   private refreshInFlight?: Promise<boolean>;
 
-  constructor(http: HttpClient, config: ApiConfig) {
+  constructor(http: HttpClient, config: ApiClientConfig) {
     super(http, config);
   }
 
   private applyTokenResponse(data: Record<string, any>) {
-    this.config.accessToken = data.access_token;
-    if (data.refresh_token) this.config.refreshToken = data.refresh_token;
-    const expiresInSec = Number(data.expires_in) || 24 * 60 * 60 * 1000;
-    const expiryAt = Date.now() + expiresInSec * 1000;
-    this.config.expiresIn = expiryAt;
+    applyTokenResponse(this.config, data);
   }
 
   /**
@@ -77,23 +118,7 @@ export class OAuthApiClient extends ApiClient {
       .then((data) => {
         this.applyTokenResponse(data);
         this.setAuthenticator();
-        const now = Date.now();
-        const expiresInSec = Number(data.expires_in) || 0;
-        const user: OAuthUser = {
-          userId: data.userID,
-          username: encodeURIComponent(data.username),
-          userType: data.acct_type,
-          mobile: data.mobile,
-          portrait: data.portrait,
-          orgId: data.org_id,
-          deptId: data.dept_id,
-          email: data.email,
-          scope: data.scope,
-          signOn: now,
-          expiryOn: now + expiresInSec * 1000,
-          tenantId: data.tenantID,
-        };
-        return user;
+        return oauthUserFromToken(data);
       });
   }
 
@@ -171,6 +196,134 @@ export class OAuthApiClient extends ApiClient {
    * })
    * apiClient.setUnauthorizedErrorHandler()
    */
+  setUnauthorizedErrorHandler(handleFn: HttpErrorHandler) {
+    this.http.unauthorizedErrorHandler = handleFn;
+  }
+}
+
+/**
+ * 走 {@link FetchApi} + {@link OAuthBearerAuthProvider} 的 OAuth 客户端。
+ *
+ * 构造时把 Bearer 注入与并发 401 单飞刷新装到 `fetchApi.auth`。登录 / refresh
+ * 设 `skipAuthRefresh`，适配器映射为 `auth: false`，避免 token 请求再走刷新。
+ * 业务 CRUD 仍用 {@link ApiClient}（经 {@link FetchApiHttp}）。
+ *
+ * 传入的 {@link FetchApi} 不能已有 `auth`；也不要再叠 {@link OAuthApiClient} 拦截器。
+ *
+ * @example
+ * ```ts
+ * const fetchApi = new FetchApi({
+ *   baseUrl: 'https://api.example.com/',
+ *   credentials: 'include',
+ * })
+ * const api = new OAuth2ApiClient(fetchApi, { service: 'wms' })
+ * await api.authenticate('alice', 'p', 'cid', 'csec')
+ * const item = await api.getOne('1', { repository: 'items' })
+ * ```
+ */
+export class OAuth2ApiClient extends ApiClient {
+  readonly fetchApi: FetchApi;
+  private refreshInFlight?: Promise<boolean>;
+
+  constructor(fetchApi: FetchApi, config: ApiClientConfig) {
+    if (fetchApi.auth) {
+      throw new Error(
+        "OAuth2ApiClient installs OAuthBearerAuthProvider on FetchApi; pass a FetchApi without auth",
+      );
+    }
+    super(
+      new FetchApiHttp(fetchApi, undefined, undefined, undefined, true),
+      config,
+    );
+    this.fetchApi = fetchApi;
+    fetchApi.auth = new OAuthBearerAuthProvider({
+      getAccessToken: () => this.config.accessToken,
+      refreshAccessToken: () => this.refreshToken(),
+    });
+  }
+
+  /**
+   * OAuth 认证，提供用户名和密码获取访问令牌。
+   * Token 请求不带全局 Bearer（`auth: false`）。
+   */
+  authenticate(
+    username: string,
+    password: string,
+    clientId: string,
+    clientSecret: string,
+    redirectUris?: string,
+  ) {
+    return requireOAuthClient(clientId, clientSecret).then(() => {
+      const url = this.buildEntityURL({
+        service: "auth",
+        repository: "authorize",
+      });
+      return this.http
+        .postJson(
+          url,
+          {
+            grant_type: "password",
+            username,
+            password,
+            scope: "Inbound,Outbound",
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirectUris,
+          },
+          {
+            beforeSend: (ctx) => {
+              ctx.skipAuthRefresh = true;
+            },
+          },
+        )
+        .then((data) => {
+          applyTokenResponse(this.config, data);
+          return oauthUserFromToken(data);
+        });
+    });
+  }
+
+  /**
+   * 用 refresh_token 换新的 access_token。并发调用合并为一次请求。
+   * 由 {@link OAuthBearerAuthProvider} 在 401 时调用。
+   */
+  refreshToken(): Promise<boolean> {
+    if (!this.config.refreshToken) {
+      return Promise.resolve(false);
+    }
+    if (!this.refreshInFlight) {
+      this.refreshInFlight = this.doRefresh().finally(() => {
+        this.refreshInFlight = undefined;
+      });
+    }
+    return this.refreshInFlight;
+  }
+
+  private doRefresh(): Promise<boolean> {
+    const url = this.buildEntityURL({
+      service: "auth",
+      repository: "authorize",
+    });
+    return this.http
+      .postJson(
+        url,
+        {
+          grant_type: "refresh_token",
+          refresh_token: this.config.refreshToken,
+        },
+        {
+          beforeSend: (ctx) => {
+            ctx.skipAuthRefresh = true;
+          },
+        },
+      )
+      .then((data) => {
+        applyTokenResponse(this.config, data);
+        return true;
+      })
+      .catch(() => false);
+  }
+
   setUnauthorizedErrorHandler(handleFn: HttpErrorHandler) {
     this.http.unauthorizedErrorHandler = handleFn;
   }

@@ -1,8 +1,8 @@
 import { isRef, reactive, ref, type App, type Ref, type VNode } from "vue";
 import type { I18n } from "vue-i18n";
 import {
-  FetchClient,
-  OAuthApiClient,
+  FetchApi,
+  OAuth2ApiClient,
   createDependencyContainer,
   defaultMetaUiService,
   isString,
@@ -107,7 +107,7 @@ export interface MmdaApplicationOptions {
  */
 export class MmdaApplication {
   readonly name: string;
-  readonly api: OAuthApiClient;
+  readonly api: OAuth2ApiClient;
   readonly meta: MetaUiService;
   readonly di: DependencyContainer;
   readonly context: MmdaApplicationContext;
@@ -181,10 +181,16 @@ export class MmdaApplication {
     const locale = (
       isRef(i18n.global.locale) ? i18n.global.locale.value : i18n.global.locale
     ) as string;
-    this.api = new OAuthApiClient(new FetchClient(baseUrl), {
-      service,
-      locale,
-    });
+    this.api = new OAuth2ApiClient(
+      new FetchApi({
+        baseUrl: resolveFetchBaseUrl(baseUrl),
+        credentials: "include",
+      }),
+      {
+        service,
+        locale,
+      },
+    );
     this.api.setUnauthorizedErrorHandler(() => {
       this.signOut().then(() => {
         if (typeof window === "undefined") return;
@@ -324,7 +330,6 @@ export class MmdaApplication {
         });
       }
       this.writeAuthCookies(this.user);
-      this.api.setAuthenticator();
       try {
         this.context.modules = await this.meta.getModules(false);
         await this.getSystems();
@@ -530,6 +535,16 @@ export class MmdaApplication {
       await this.localDb.put("config", { ...this.api.config, ...config });
     }
   }
+}
+
+function resolveFetchBaseUrl(baseUrl: string): string | URL {
+  if (/^[a-z][a-z\d+\-.]*:/i.test(baseUrl) || baseUrl.startsWith("//")) {
+    return baseUrl;
+  }
+  if (typeof globalThis.location !== "undefined") {
+    return new URL(baseUrl, globalThis.location.origin);
+  }
+  return baseUrl;
 }
 
 function readFlag(key: string, fallback: boolean) {
