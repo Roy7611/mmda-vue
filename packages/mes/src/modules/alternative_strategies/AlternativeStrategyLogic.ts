@@ -1,0 +1,170 @@
+/**
+ * Copyright (c) 2006, 2024, www.mmda.cloud All rights reserved.
+ * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * 
+ * Please don't modify any code between GENERATED PARTS BEGIN and END
+ * 
+ */
+import { Router } from 'vue-router';
+import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
+import { defaultSearchOps, getSearchOp, MetaModel } from '@mmda/core';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type AlternativeStrategy, defineAlternativeStrategy } from '@/models/AlternativeStrategy';
+import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/models/AlternativeStrategyItem';
+import type { UiViewContext } from '@mmda/vui';
+/**
+ * 替代料策略交互逻辑
+ * @author mmda codebot
+ * @since 2025-09-27 16:32:04.0
+ * @revision 2025-09-27 16:32:04.0
+ */
+//#region ~GENERATED PARTS BEGIN
+/**
+ * 替代料策略交互逻辑
+ */
+export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
+	constructor(init: UiLogicInit) {
+		super(defineAlternativeStrategy, init);
+		this.addRelativeLogic<AlternativeStrategyItem>('items', (master) => new AlternativeStrategyItemLogic(this, master));
+	}
+
+	beforeIndex(): UiLogicFnResult<AlternativeStrategy> {
+		const { fields, groups, customActions } = super.beforeIndex();
+
+		if (fields.length == 0) {
+			fields.push(
+				this.field('allowMixed').searchable(true),
+				this.field('status').searchable(true),
+				this.field('mixedByProbability').searchable(true)
+			)
+		}
+
+		return { fields, groups, customActions };
+	}
+
+	/**
+	 * 设置编辑交互逻辑
+	 */
+	beforeEdit() {
+		const { fields, groups, customActions } = super.beforeEdit();
+		if (fields.length == 0) {
+			/**
+			fields.push(
+				this.field('fldName')
+					.lockIf(model=>model.prop1)
+					.hideIf(model=>model.prop2)
+					.onChange<string>((ctx,model,newVal,oldVal)=>{ })
+					.onValidate<string>((value,model)=>{ })
+			);
+			 */
+		}
+		if (groups.length == 0) {
+			groups.push(
+				this.group<AlternativeStrategyItem>('items')
+					.clearIf(model => true)
+					.addCustomAction({
+						name: 'createAlternativeStrategyItem',
+						label: '创建',
+						icon: 'far fa-plus-circle',
+						role: 'info',
+						onAction: this.newAlternativeStrategyItem,
+						view: UiViewOne.Edit,
+					})
+			);
+		}
+		return { fields, groups, customActions };
+	}
+
+	/**
+	 * 创建替代料策略项
+	 */
+	newAlternativeStrategyItem(ctx: UiContext<AlternativeStrategy>, model: AlternativeStrategy) {
+		ctx.newSubGroupItem<AlternativeStrategyItem>({
+			group: 'items',
+			sequenceKey: 'priority',
+			target: model,
+			propsMapper: {
+				strategyID: () => model.strategyID,
+				priority: () => model.items ? model.items.length + 1 : 1,
+			}
+		}).then(item => {
+			if (item) {
+				// 重复物料检查
+				const isDuplicate = model.items.some((i: AlternativeStrategyItem) => i.materialID === item.materialID);
+				if (isDuplicate) {
+					ctx.uiBuilder.toast(ctx, {
+						severity: 'warn',           // warn 提示
+						summary: '重复物料',
+						detail: `物料 ${item.materialID} 已存在，无法添加重复项`,
+						group: 'br',
+						life: 3000,
+					});
+					return;
+				}
+				model.items.push(item);
+			}
+		});
+	}
+	//设置详情逻辑
+	//beforeDetails(){}
+}
+
+/**
+ * 构造替代料策略交互逻辑
+ * @param metaUiService 元数据服务
+ * @param router 路由
+ * @param module 模块
+ * @returns 
+ */
+export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new AlternativeStrategyLogic({
+	service: metaUiService,
+	repository: 'AlternativeStrategies',
+	router,
+	module: module || metaUiService.findModule('AlternativeStrategy'),
+})
+/**
+ * 替代料清单交互逻辑
+ */
+export class AlternativeStrategyItemLogic extends UiGroupLogic<AlternativeStrategyItem, AlternativeStrategy> {
+	constructor(parent: AlternativeStrategyLogic, master: AlternativeStrategy) {
+		super(defineAlternativeStrategyItem, parent, master, 'items')
+	}
+
+	beforeEdit(): UiLogicFnResult<AlternativeStrategyItem> {
+		const { fields, groups, customActions } = super.beforeEdit();
+
+		if (fields.length == 0) {
+			fields.push(
+				this.field('materialID')
+					.setSearchParam((context: UiContext<AlternativeStrategyItem>, model: AlternativeStrategyItem, field: MetaUiField) => ({
+						status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
+					}))
+					.setSelectable((context: UiViewContext<any> & any, field: MetaUiField, row: any) => {
+						const rootModel = context.root.model as AlternativeStrategy;
+						return !(rootModel.items && rootModel.items.filter((r: AlternativeStrategyItem) => !MetaModel.deleted(r)).find((r: AlternativeStrategyItem) => r.materialID === row.materialID))
+					}
+					),
+				this.field('usageProbability')
+					.onValidate<number>((val) => {
+						if (val !== undefined && val !== null && val > 100) {
+							return { message: 'invalid.maxValue', param: { it: 100 } };
+						}
+						if (val !== undefined && val !== null && val < 0) {
+							return { message: 'invalid.minValue', param: { it: 0 } };
+						}
+						return '';
+					}),
+				this.field('priority')
+					.onValidate<number>((val) => {
+						if (val !== undefined && val !== null && val <= 0) {
+							return { message: 'invalid.minValue', param: { it: 1 } }; // 优先级通常从1开始，必须大于0
+						}
+						return '';
+					})
+			)
+		}
+
+		return { fields, groups, customActions };
+	}
+}
+//#endregion ~GENERATED PARTS END

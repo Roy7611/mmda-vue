@@ -7,7 +7,7 @@
  */
 import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, EntityAction, ApiClient } from '@mmda/core';
-import { SortOrder, defaultSearchOps, pluralize, UiContext } from '@mmda/core';
+import { SortOrder, defaultSearchOps, pluralize, type UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Notification, defineNotification } from '../../models/Notification';
 import { UrgencyEnum, Urgency, urgencyLevel, urgencyIcon, urgencyList } from "../../enums/Urgency";
@@ -62,7 +62,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 		}
 		return { fields, groups, customActions };
 	}
-	async readAll(context: UiContext) {
+	async readAll(context: UiContext<Notification>) {
 		const { $toast: toast, $t: t } = context.globalProps
 		// 过滤掉已读/已办，仅提交未读消息
 		const unreadItems = (context.selectedItems ?? []).filter(
@@ -90,7 +90,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('todo').searchable(true),
-				this.field('noticeContent').setCustomRenderer((fld, ctx) => {
+				this.field('noticeContent').setCustomRenderer((fld, ctx: UiContext<Notification>) => {
 					const content = ctx.model.noticeContent ?? '';
 					return ctx.uiBuilder.factory.textSpan(content || '-', {
 						title: content || undefined,
@@ -106,13 +106,13 @@ export class NotificationLogic extends UiLogic<Notification> {
 						},
 					});
 				}),
-				this.field('emergency').setCustomRenderer((fld, ctx,) => {
+				this.field('emergency').setCustomRenderer((fld, ctx: UiContext<Notification>,) => {
 					const { model } = ctx
 					const { factory } = ctx.uiBuilder;
 					// urgencyIcon(model[fld.fieldName])
 					return factory.icon('pi pi-exclamation-circle', { severity: urgencyLevel(model[fld.fieldName]), size: 'xlarge' })
 				}),
-				this.field('importance').setCustomRenderer((fld, ctx,) => {
+				this.field('importance').setCustomRenderer((fld, ctx: UiContext<Notification>,) => {
 					const { model } = ctx
 					const { factory } = ctx.uiBuilder;
 
@@ -149,7 +149,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 				label: '一键已读',
 				group: 'selectMany',
 				role: 'primary',
-				onAction: async (context: UiContext) => {
+				onAction: async (context: UiContext<Notification>) => {
 					context.toSelectManyIndex('readAll', async () => await this.readAll(context));
 				},
 			});
@@ -209,7 +209,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 				{
 					searchLabel: '状态',
 					searchParam: 'status',
-					renderer: (ctx, csf) => {
+					renderer: (ctx: UiContext<Notification>, csf) => {
 						const { factory } = ctx.uiBuilder;
 						return factory.tagSelector(csf.searchVal.value, notificationStatusList, {
 							// selectMode: 'moultiple',
@@ -226,7 +226,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 				{
 					searchLabel: '紧急程度',
 					searchParam: 'emergency',
-					renderer: (ctx, csf) => {
+					renderer: (ctx: UiContext<Notification>, csf) => {
 						const { factory } = ctx.uiBuilder;
 						return factory.tagSelector(csf.searchVal.value, urgencyList, {
 							onChange: async (val: any) => {
@@ -241,7 +241,7 @@ export class NotificationLogic extends UiLogic<Notification> {
 				{
 					searchLabel: '重要性',
 					searchParam: 'importance',
-					renderer: (ctx, csf) => {
+					renderer: (ctx: UiContext<Notification>, csf) => {
 						const { factory } = ctx.uiBuilder;
 						return factory.tagSelector(csf.searchVal.value, importanceList, {
 							onChange: async (val: any) => {

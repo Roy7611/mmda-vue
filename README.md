@@ -11,6 +11,7 @@ packages/
   vui-primevue/  @mmda/vui-primevue  PrimeVue 4.5 控件皮肤
   playground/    假数据对照
   base/          @mmda/base          基础数据人工验证应用（统一网关）
+  mes/           @mmda/mes           制造执行系统（统一网关）
 ```
 
 计划中：`rui`（React 运行时，只依赖 core）。
@@ -27,6 +28,7 @@ pnpm test
 pnpm build
 pnpm dev:vui    # playground 假数据
 pnpm dev:base   # 基础数据，需配置 packages/base/.env 的 VITE_BASE_API
+pnpm dev:mes    # 制造执行，需配置 packages/mes/.env 的 VITE_BASE_API
 ```
 
 ## 分层

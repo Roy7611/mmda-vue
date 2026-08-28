@@ -36,7 +36,7 @@ metaui → models → logic
 ## 字段逻辑
 
 `MetaUiField` 只保存字段声明。关联字段搜索过程中的状态使用
-`FieldSearchOptions`，由 `UiContext` 维护；字段行为使用
+`FieldSearchOptions`，由会话 `UiContext` 维护；字段行为使用
 `MetaUiFieldLogic` 配置。
 
 ## 快捷过滤与字段查询

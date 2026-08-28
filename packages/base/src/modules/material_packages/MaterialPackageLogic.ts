@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import type { EntitySearchParam, MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
+import type { EntitySearchParam, MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialPackage, defineMaterialPackage } from '../../models/MaterialPackage';
 import { UsageStatus } from '../../enums/UsageStatus';
@@ -31,8 +31,8 @@ export class MaterialPackageLogic extends UiLogic<MaterialPackage> {
 		};
 	}
 	// 列表搜索走 getAll，不走 afterLoad
-	async getAll(param: EntitySearchParam = { pager: { pageSize: 10 } }, context?: UiContext) {
-		const data = await super.getAll(param, context);
+	async getAll(param: EntitySearchParam = { pager: { pageSize: 10 } }) {
+		const data = await super.getAll(param);
 		data?.list?.forEach(disableEditIfUsed);
 		return data;
 	}

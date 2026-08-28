@@ -50,7 +50,7 @@ export class UnitLogic extends UiLogic<Unit> {
 			);
 			 */
 			fields.push(
-				this.field('roundMode').setCustomEditor((fld, ctx, props) => {
+				this.field('roundMode').setCustomEditor((fld, ctx: UiContext<Unit>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps
 					const fldRef = fld.reference
 					return ui.factory.select({
@@ -59,13 +59,13 @@ export class UnitLogic extends UiLogic<Unit> {
 						optionValue: 'id',
 						options: fldRef.refOptions,
 						onUpdate: (value: string) => {
-							ctx.model.roundMode = value
+							ctx.model.roundMode = value as any
 							// 状态改为已修改
 							MetaModel.modify(ctx.model);
 						},
 					})
 				}),
-				this.field('unitType').setCustomEditor((fld, ctx, props) => {
+				this.field('unitType').setCustomEditor((fld, ctx: UiContext<Unit>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps
 					const fldRef = fld.reference
 					return ui.factory.select({
@@ -74,7 +74,7 @@ export class UnitLogic extends UiLogic<Unit> {
 						optionValue: 'id',
 						options: fldRef.refOptions,
 						onUpdate: (value: string) => {
-							ctx.model.unitType = value
+							ctx.model.unitType = value as any
 							// 状态改为已修改
 							MetaModel.modify(ctx.model);
 						},
@@ -129,7 +129,7 @@ export class UnitLogic extends UiLogic<Unit> {
 			creator: defineUnitConversion
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('conversions', item)
+				context.addSubGroupItem('conversions', item as UnitConversion)
 			}
 		})
 	}

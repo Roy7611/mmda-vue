@@ -105,13 +105,13 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newClientAppModule(context: UiContext, target: ClientApp) {
+	newClientAppModule(context: UiContext<ClientApp>, target: ClientApp) {
 		// context.newSubGroupItem<ClientAppModule>({
 		// 	group: 'modules',
 		// 	target,
 		// }).then(item => {
 		// 	if (item) {
-		// 		context.addSubGroupItem('modules', item);
+		// 		context.addSubGroupItem('modules', item as ClientAppModule);
 		// 	}
 		// })
 		context.createSubGroupItems({
@@ -132,7 +132,7 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
 			creator: defineClientAppModule
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('modules', item)
+				context.addSubGroupItem('modules', item as ClientAppModule)
 			}
 		})
 	}
@@ -142,13 +142,13 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newClientAppRelease(context: UiContext, target: ClientApp) {
+	newClientAppRelease(context: UiContext<ClientApp>, target: ClientApp) {
 		// context.newSubGroupItem<ClientAppRelease>({
 		// 	group: 'releases',
 		// 	target,
 		// }).then(item => {
 		// 	if (item) {
-		// 		context.addSubGroupItem('releases', item);
+		// 		context.addSubGroupItem('releases', item as ClientAppRelease);
 		// 	}
 		// })
 		context.createSubGroupItems({
@@ -169,7 +169,7 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
 			creator: defineClientAppRelease
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('releases', item)
+				context.addSubGroupItem('releases', item as ClientAppRelease)
 			}
 		})
 	}

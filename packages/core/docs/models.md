@@ -57,7 +57,7 @@ const payload = MetaModel.savable(metaui, model)
 
 - `EntityAction`：按钮元数据，定义在 `metaui/metaui_action`；
 - `UiValidation`：界面校验状态，定义在 `logic/validation`；
-- `UiContext`：当前界面交互上下文，定义在 `logic`；
+- `UiContext`：跨场景最小宿主；具体模型由 Index/Editor/Details 上下文约定；
 - `DateRangeKind`：通用日期工具，定义在 `utils/date_range`。
 
 旧的 `models/validation`、`metaui/pagination` 等源码路径暂时保留兼容转发；

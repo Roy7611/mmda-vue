@@ -16,7 +16,6 @@ import {
   type Module,
   type ModuleAction,
   type ModuleAuth,
-  type UiContext,
 } from "@mmda/core";
 import {
   AbstractUiBuilder,
@@ -41,6 +40,7 @@ import {
   type UiNotificationProps,
   type UiSearchField,
   type UiSlots,
+  type UiViewContext,
 } from "@mmda/vui";
 import Breadcrumb from "primevue/breadcrumb";
 import Button from "primevue/button";
@@ -105,6 +105,8 @@ const breadcrumbItem = (item: {
       h("span", item.label),
     ],
   );
+
+type UiContext = UiViewContext<any>;
 
 const moduleOf = (context: UiContext): Module | undefined => {
   const runtime = context as any;

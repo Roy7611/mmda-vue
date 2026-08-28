@@ -7,6 +7,7 @@ import {
   MetaModel,
   defaultFieldSearchOptions,
   defaultSearchParam,
+  emptyPagedList,
   assignSearchParam,
   defineEntity,
   defineValidation,
@@ -26,12 +27,11 @@ import {
   type SubGroupItemTransformParam,
   type Translatable,
   type TranslateFn,
-  type UiContext,
   type UiSubGroupMode,
   type UiFieldValidation,
   type UiValidation,
 } from "@mmda/core";
-import { reactive, ref, type Ref } from "vue";
+import { reactive, ref, shallowReactive, type Ref } from "vue";
 import {
   UiViewMany,
   UiViewOne,
@@ -48,6 +48,7 @@ import {
 } from "./ui_filter";
 import type { UiBuilder } from "./ui_builder";
 
+type UiContext = UiViewContext<any>;
 type ContextCache = Map<string, UiViewContext<any>>;
 type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
 type GroupLogicMap = Record<string, MetaUiGroupLogic<any, any>>;
@@ -88,7 +89,7 @@ const identityTranslate: TranslateFn = (message) =>
  */
 export class UiViewContext<
   E extends object = Record<string, any>,
-> implements UiContext<any> {
+> {
   readonly model: E;
   readonly metaui: MetaUi;
   readonly view: UiViewType;
@@ -132,9 +133,15 @@ export class UiViewContext<
   private selectionModeValue: "single" | "multiple" | null = null;
 
   constructor(options: UiViewContextOptions<E>, child?: ChildContextOptions) {
-    this.model = reactive(options.model) as E;
-    this.metaui = options.metaui;
     this.view = options.view ?? UiViewOne.Details;
+    const editing =
+      this.view === UiViewOne.Edit ||
+      this.view === UiViewOne.Create ||
+      this.view === UiViewMany.EditMany;
+    this.model = (
+      editing ? reactive(options.model) : shallowReactive(options.model)
+    ) as E;
+    this.metaui = options.metaui;
     this.locale = options.locale ?? options.metaui.locale ?? "zh";
     const app = options.app ?? child?.parent?.app;
     this.translateFn =
@@ -158,8 +165,7 @@ export class UiViewContext<
     this.cache = child?.cache ?? new Map<string, UiViewContext<any>>();
     this.cachePath = child?.cachePath ?? "@root";
     this.validationState = reactive(
-      child?.validation ??
-        defineValidation(this.metaui, this.model as Entity),
+      child?.validation ?? defineValidation(this.metaui, this.model as Entity),
     );
     this.loading = ref(false);
     this.initializedState = ref(!this.loader);
@@ -182,7 +188,9 @@ export class UiViewContext<
     this.selectionModeValue = mode;
   }
 
-  getModuleAuth(entity: Record<string, any> = this.model as Record<string, any>): ModuleAuth | undefined {
+  getModuleAuth(
+    entity: Record<string, any> = this.model as Record<string, any>,
+  ): ModuleAuth | undefined {
     const authority = this.module?.authority;
     if (!authority) return undefined;
     return {
@@ -276,8 +284,7 @@ export class UiViewContext<
         this.translate(message, param),
       $router: this.logic?.router,
       $toast: {
-        add: (props: Record<string, any>) =>
-          this.app?.ui.toast(context, props),
+        add: (props: Record<string, any>) => this.app?.ui.toast(context, props),
       },
     };
   }
@@ -439,9 +446,17 @@ export class UiViewContext<
     this.groupLogics[logic.group.groupName] = logic;
   }
 
-  getFieldValue(field: MetaUiField | string) {
+  getFieldValue(field: MetaUiField | string, model: E = this.model) {
     const fld = this.resolveField(field);
-    return MetaModel.getFieldValue(this.model, fld);
+    return MetaModel.getFieldValue(model, fld);
+  }
+
+  beginEdit(item: object, cacheKey?: string) {
+    return this.with(item, cacheKey);
+  }
+
+  endEdit(item: object, cacheKey?: string) {
+    this.release(item, cacheKey);
   }
 
   setFieldValue(field: MetaUiField | string, value: any) {
@@ -471,9 +486,9 @@ export class UiViewContext<
     );
   }
 
-  displayField(field: MetaUiField | string) {
+  displayField(field: MetaUiField | string, model: E = this.model) {
     const fld = this.resolveField(field);
-    return MetaModel.displayField(this.model, fld);
+    return MetaModel.displayField(model, fld);
   }
 
   getFieldOptions(field: MetaUiField | string) {
@@ -835,6 +850,12 @@ export class UiViewContext<
     ) as UiViewContext<G>;
   }
 
+  /** 释放按需创建的行上下文（用于表格编辑结束或虚拟行卸载）。 */
+  release(model: object, cacheKey = "id") {
+    const rowKey = this.rowCacheKey(model, cacheKey, this.metaui.primaryKey);
+    this.cache.delete(`${this.cachePath}/@row/${rowKey}`);
+  }
+
   treeWith<G extends object>(model: G, cacheKey = "id") {
     return this.with(model, cacheKey);
   }
@@ -843,6 +864,11 @@ export class UiViewContext<
     return this.cache.get(
       cacheKey.startsWith("@") ? cacheKey : `${this.cachePath}/${cacheKey}`,
     );
+  }
+
+  /** 诊断上下文树规模；索引页渲染不应增加此计数。 */
+  get contextCount() {
+    return this.cache.size;
   }
 
   getCacheByID(id: string) {
@@ -988,7 +1014,7 @@ export class UiViewContext<
     });
     const selectionMode = param.selectionMode ?? "multiple";
     const selectCtx = new UiBuildContext({
-      model: { list: [] as T[] } as any,
+      model: emptyPagedList<T>() as any,
       metaui: pack.metaui,
       view:
         selectionMode === "single"

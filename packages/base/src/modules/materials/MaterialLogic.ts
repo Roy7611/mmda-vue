@@ -33,7 +33,7 @@ const isHide = ref(true)
 export class MaterialLogic extends UiLogic<Material> {
 	constructor(init: UiLogicInit) {
 		super(defineMaterial, init);
-		this.beforeSave = (context: UiContext, model: Material) => {
+		this.beforeSave = (context: UiContext<Material>, model: Material) => {
 			const category = context.getFieldCurrentOption('categoryID') ?? model.category;
 			if (category) {
 				(model as Material & { materialX?: string }).materialX = category.materialX ?? '';
@@ -88,7 +88,7 @@ export class MaterialLogic extends UiLogic<Material> {
 					}
 				}),
 				//customJson 字段暂显示图号信息
-				this.field('customJson').setCustomRenderer((fld, ctx, props) => {
+				this.field('customJson').setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
 					const drawing = JSON.parse(ctx.model.customJson || '{}').drawing;
 					return h('div', drawing);
 				}).lock(),
@@ -158,7 +158,7 @@ export class MaterialLogic extends UiLogic<Material> {
 	 * @param context 界面上下文
 	 * @param target 项目模板
 	*/
-	newMaterialFeature(context: UiContext, target: Material) {
+	newMaterialFeature(context: UiContext<Material>, target: Material) {
 		context.createSubGroupItems({
 			group: 'features',
 			target,
@@ -178,7 +178,7 @@ export class MaterialLogic extends UiLogic<Material> {
 			creator: defineMaterialFeature
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('features', item)
+				context.addSubGroupItem('features', item as MaterialFeature)
 			}
 		})
 	}
@@ -188,7 +188,7 @@ export class MaterialLogic extends UiLogic<Material> {
 	 * @param context 界面上下文
 	 * @param target 项目模板
 	*/
-	newMaterialMedia(context: UiContext, target: Material) {
+	newMaterialMedia(context: UiContext<Material>, target: Material) {
 		context.newSubGroupItem<MaterialMedia>({
 			group: 'medias',
 			sequenceKey: 'itemID',
@@ -205,7 +205,7 @@ export class MaterialLogic extends UiLogic<Material> {
 	 * @param context 界面上下文
 	 * @param target 项目模板
 	*/
-	newSku(context: UiContext, target: Material) {
+	newSku(context: UiContext<Material>, target: Material) {
 		context.newSubGroupItem<Sku>({
 			group: 'skus',
 			target,
@@ -221,7 +221,7 @@ export class MaterialLogic extends UiLogic<Material> {
 	 * @param context 界面上下文
 	 * @param target 项目模板
 	*/
-	newMaterialPartner(context: UiContext, target: Material) {
+	newMaterialPartner(context: UiContext<Material>, target: Material) {
 		context.select<Partner>({
 			repository: 'Partners',
 			searchParam: {
@@ -261,7 +261,7 @@ export class MaterialLogic extends UiLogic<Material> {
 		const drawingField = this.field('customJson'); (drawingField.field as any).displayLabel = '图号';
 		if (fields.length == 0) {
 			fields.push(
-				this.field('materialPic').setCustomRenderer((fld, ctx, props) => {
+				this.field('materialPic').setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (!fldVal) return null;
 					return h('div', { style: { display: 'flex', justifyContent: 'flex-start', alignItems: 'center', width: '100%', height: '100%' } }, [
@@ -276,7 +276,7 @@ export class MaterialLogic extends UiLogic<Material> {
 				}),
 
 				//customJson 字段暂显示图号信息
-				this.field('customJson').setCustomRenderer((fld, ctx, props) => {
+				this.field('customJson').setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
 					const drawing = JSON.parse(ctx.model.customJson || '{}').drawing;
 					return h('div', drawing);
 				}),

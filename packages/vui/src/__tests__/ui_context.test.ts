@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
+import { isReactive, isShallow, toRaw } from "vue";
 import { MetaUi, MetaUiField, MetaUiFieldLogic, SqlDataType } from "@mmda/core";
 import { UiViewContext } from "../ui/ui_context";
+import { HtmlUiBuilder } from "../ui/ui_html";
 
 const field = (fieldName: string, nullable = true, fieldIdx = 0) =>
   new MetaUiField({
@@ -54,6 +56,136 @@ const createOrderMetaUi = () => {
 };
 
 describe("UiViewContext", () => {
+  it("索引和详情使用浅响应，编辑页保留深层双向绑定", () => {
+    const { metaui } = createOrderMetaUi();
+    const details = new UiViewContext({
+      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
+      metaui,
+      view: "details",
+    });
+    const edit = new UiViewContext({
+      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
+      metaui,
+      view: "edit",
+    });
+
+    expect(isReactive(details.model)).toBe(true);
+    expect(isShallow(details.model)).toBe(true);
+    expect(isReactive(details.model.items)).toBe(false);
+    expect(isShallow(edit.model)).toBe(false);
+    expect(isReactive(edit.model.items)).toBe(true);
+  });
+
+  it("详情 setFieldValue 写入浅模型但不建立深层响应", () => {
+    const { metaui } = createOrderMetaUi();
+    const model = {
+      id: "o1",
+      orderNo: "SO-1",
+      items: [{ itemName: "A" }],
+    };
+    const ctx = new UiViewContext<any>({
+      model,
+      metaui,
+      view: "details",
+    });
+
+    ctx.setFieldValue("orderNo", "SO-2");
+
+    expect(model.orderNo).toBe("SO-2");
+    expect(isShallow(ctx.model)).toBe(true);
+    expect(isReactive(ctx.model.items)).toBe(false);
+  });
+
+  it("详情 in-place setFieldValue 触发 onChange", () => {
+    const { metaui } = createOrderMetaUi();
+    let changed = 0;
+    const ctx = new UiViewContext<any>({
+      model: { id: "o1", orderNo: "SO-1", items: [] },
+      metaui,
+      view: "details",
+    });
+    ctx.setupFieldLogic(
+      new MetaUiFieldLogic(metaui.getField("orderNo")!).onChange(() => {
+        changed++;
+      }),
+    );
+    ctx.setFieldValue("orderNo", "SO-2");
+    expect(changed).toBe(1);
+    expect(ctx.model.orderNo).toBe("SO-2");
+  });
+
+  it("索引单元格渲染不创建行上下文", () => {
+    const { metaui } = createOrderMetaUi();
+    const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
+    const ctx = new UiViewContext({
+      model: { list: [row], pagination: {} },
+      metaui,
+      view: "index",
+    });
+    const builder = new HtmlUiBuilder();
+
+    builder.displayCellFor(metaui.getField("orderNo")!, row, ctx);
+
+    expect(ctx.contextCount).toBe(1);
+  });
+
+  it("详情子表只创建集合上下文，不创建只读行上下文", () => {
+    const { metaui } = createOrderMetaUi();
+    const ctx = new UiViewContext({
+      model: {
+        id: "o1",
+        orderNo: "SO-1",
+        items: [
+          { id: "i1", itemName: "A" },
+          { id: "i2", itemName: "B" },
+        ],
+      },
+      metaui,
+      view: "details",
+    });
+
+    new HtmlUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+
+    expect(ctx.contextCount).toBe(2);
+  });
+
+  it("编辑子表复用既有行上下文，不产生嵌套行上下文", () => {
+    const { metaui } = createOrderMetaUi();
+    const ctx = new UiViewContext({
+      model: {
+        id: "o1",
+        orderNo: "SO-1",
+        items: [
+          { id: "i1", itemName: "A" },
+          { id: "i2", itemName: "B" },
+        ],
+      },
+      metaui,
+      view: "edit",
+    });
+
+    new HtmlUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+
+    expect(ctx.contextCount).toBe(4);
+  });
+
+  it("表格编辑只为 beginEdit 的行创建上下文并可释放", () => {
+    const { metaui } = createOrderMetaUi();
+    const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
+    const ctx = new UiViewContext<any>({
+      model: [row],
+      metaui,
+      view: "editMany",
+    });
+
+    const rowContext = ctx.beginEdit(row);
+    expect(toRaw(rowContext.model)).toBe(row);
+    expect(ctx.contextCount).toBe(2);
+
+    ctx.endEdit(row);
+    expect(ctx.contextCount).toBe(1);
+  });
+
   it("双向绑定当前实体，并执行该实体的字段逻辑", () => {
     const { metaui } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
@@ -167,15 +299,14 @@ describe("UiViewContext", () => {
     });
   });
 
-  it("routeToRelative 使用 refRepository 路径导航（通用 EntityPages 路由）", () => {
+  it("routeToRelative 使用 refRepository 路径导航（通用 EntityView 路由）", () => {
     const packField = new MetaUiField({
       fieldName: "packID",
       displayLabel: "包装规格",
       fieldIdx: 0,
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
-      selectOptions:
-        "HAS_ONE MaterialPackage(packID,packFullName) AS pack",
+      selectOptions: "HAS_ONE MaterialPackage(packID,packFullName) AS pack",
     });
     const metaui = new MetaUi({
       objName: "MaterialPartner",
@@ -200,7 +331,10 @@ describe("UiViewContext", () => {
       model: { packID: "25", pack: { packID: "25", packFullName: "塑料" } },
       metaui,
       view: "details",
-      app: { name: "base", api: { config: { service: "base" }, http: { baseUrl: "/api" } } } as any,
+      app: {
+        name: "base",
+        api: { config: { service: "base" }, http: { baseUrl: "/api" } },
+      } as any,
       logic: { router } as any,
     });
 

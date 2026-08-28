@@ -2,8 +2,14 @@ import { SqlDataType } from './datatype'
 import { sqlAnd } from './metaui_search'
 import { pluralize } from '../utils/pluralize'
 import { isFunction, isNullObject, isNullOrUndefined } from '../utils/is'
+import type { UiContext } from '../logic/ui_context'
 
 export type Predicate<T = any> = (t: T, context?: any) => boolean
+
+type UiReferenceSearchContext = UiContext<any> & {
+  searchFields?: any[]
+  _fieldOptions?: Record<string, any>
+}
 
 export interface Translatable {
   message: string
@@ -13,14 +19,13 @@ export interface Translatable {
 
 export type TranslateFn = (message: string | Translatable) => string
 
-type UiContext = any
 export type RefFilterFn<T = any> = (
   model: T,
-  ctx: UiContext,
-  fieldOptions: Record<string, any>,
+  ctx: UiContext<any>,
+  fieldOptions?: Record<string, any>,
 ) => string
 export type OnChangeFn<E = any, T = any> = (
-  context: any,
+  context: UiContext<E & object>,
   model: E,
   newVal: T,
   oldVal: T
@@ -37,7 +42,7 @@ export type setSelectableFn = (
   row: any
 ) => boolean
 export type setSearchParamFn<T = any> = (
-  context: UiContext,
+  context: UiContext<T & object>,
   model: T,
   field: MetaUiField
 ) => Record<string, any>
@@ -49,12 +54,12 @@ export type setAggregationFn<T = any> = (
 export type OnValidateFn<T = any, E = any> = (
   value: T,
   model: E,
-  ctx?: UiContext
+  ctx?: UiContext<any>
 ) => string | Translatable | undefined
 export type OnWarnFn<T = any, E = any> = (
   value: T,
   model: E,
-  ctx?: UiContext
+  ctx?: UiContext<any>
 ) => string
 export enum MetaUiFieldAlignment {
   LEFT = 'LEFT',
@@ -181,7 +186,7 @@ export interface MetaUiImageFormat {
 export interface FilterProps {
   searchWord?: string
   andCondition?: string
-  ctx: UiContext
+  ctx: UiReferenceSearchContext
   /** 来自 FieldLogic 的会话过滤器；不传则回退 reference.filterFn */
   filterFn?: RefFilterFn
 }

@@ -8,7 +8,7 @@ import {
   NoAuthorityView,
   OfficeOnlineView,
 } from './views/PlaceholderViews'
-import { EntityPages } from './pages/EntityPages'
+import { EntityView } from './views/EntityView'
 
 const PLACEHOLDERS = new Set(['DailyRecords', 'MaterialCats', 'PartnerCats'])
 
@@ -41,10 +41,10 @@ export function createBaseRouter(app: MmdaApplication): Router {
         path: `${prefix}/:repository(DailyRecords|MaterialCats|PartnerCats)`,
         component: Custompages,
       },
-      { path: `${prefix}/:repository/Create`, component: EntityPages },
-      { path: `${prefix}/:repository/Edit/:id`, component: EntityPages },
-      { path: `${prefix}/:repository/:id`, component: EntityPages },
-      { path: `${prefix}/:repository`, component: EntityPages },
+      { path: `${prefix}/:repository/Create`, component: EntityView },
+      { path: `${prefix}/:repository/Edit/:id`, component: EntityView },
+      { path: `${prefix}/:repository/:id`, component: EntityView },
+      { path: `${prefix}/:repository`, component: EntityView },
     ],
   })
 

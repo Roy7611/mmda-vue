@@ -222,9 +222,6 @@ export interface QrcodeProps {
  *
  * 0;NONE;-|1;CHANGED;修改|2;ADDED;增项|4;REMOVED;减项
  *
- * @author syclive code robot
- * @version 3.0.0
- *
  */
 export const enum ChangeType {
   //#region ~GENERATED PARTS BEGIN

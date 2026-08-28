@@ -63,6 +63,10 @@ export type UiLogicFnResult<E> = {
   customActions: EntityAction[];
 };
 export type UiLogicFn<E> = () => UiLogicFnResult<E>;
+export type UiViewLogicModule<E> =
+  | UiLogicFn<E>
+  | Record<string, UiLogicFn<E> | unknown>;
+export type UiViewLogicLoader<E> = () => Promise<UiViewLogicModule<E>>;
 
 export type UiLogicBeforeFn<E> = (
   context: UiContext,
@@ -110,6 +114,7 @@ export abstract class UiLogic<E extends Entity> {
   readonly isChild: boolean;
   readonly customPage: boolean;
   readonly transService?: string;
+  viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
 
   private readonly relativeLogics: Record<
     string,
@@ -129,6 +134,10 @@ export abstract class UiLogic<E extends Entity> {
   private selectManyFields?: MetaUiFieldLogic<E>[];
   private selectManyGroups?: MetaUiGroupLogic<E, any>[];
   private selectManyActions?: EntityAction[];
+  private readonly loadingViewLogics = new Map<
+    UiViewType,
+    Promise<void>
+  >();
 
   beforeLoad?: UiLogicBeforeFn<E>;
   afterLoad?: UiLogicAfterFn<E>;
@@ -231,6 +240,43 @@ export abstract class UiLogic<E extends Entity> {
     return (this as any)[
       type === "before" ? beforeView(view) : clearView(view)
     ];
+  }
+
+  private resolveLogicView(view: UiViewType): UiViewType {
+    if (view === "create" || view === "editMany") return "edit";
+    if (view === "selectOne") return "index";
+    if (
+      view === "selectMany" &&
+      !this.viewLogicLoaders.selectMany &&
+      this.beforeSelectMany === UiLogic.prototype.beforeSelectMany
+    ) {
+      return "index";
+    }
+    return view;
+  }
+
+  async ensureViewLogic(view: UiViewType): Promise<UiViewType> {
+    const logicView = this.resolveLogicView(view);
+    const loader = this.viewLogicLoaders[logicView];
+    if (!loader) return logicView;
+
+    let loading = this.loadingViewLogics.get(logicView);
+    if (!loading) {
+      loading = loader().then((loaded) => {
+        const methodName = beforeView(logicView);
+        if (typeof loaded === "function") {
+          (this as any)[methodName] = loaded;
+          return;
+        }
+        const method = loaded[methodName];
+        if (typeof method === "function") {
+          (this as any)[methodName] = method;
+        }
+      });
+      this.loadingViewLogics.set(logicView, loading);
+    }
+    await loading;
+    return logicView;
   }
 
   field(fldName: string) {
@@ -346,8 +392,9 @@ export abstract class UiLogic<E extends Entity> {
     this.selectManyActions = [];
   }
 
-  applyTo(context: UiViewContext, view: UiViewType = "edit") {
-    const fn = this.getLogicFn(view);
+  async applyTo(context: UiViewContext, view: UiViewType = "edit") {
+    const logicView = await this.ensureViewLogic(view);
+    const fn = this.getLogicFn(logicView);
     if (!fn) return;
     const { fields, groups, customActions } = fn.call(this);
     context.bindLogics(fields, groups, customActions);

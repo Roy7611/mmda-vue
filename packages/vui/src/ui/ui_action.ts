@@ -11,6 +11,7 @@ import { isPromise } from "@mmda/core";
 export type IconResolver = (icon: string) => string;
 
 export interface UiActionContext extends UiContext {
+  readonly model: Record<string, any>
   actionLoadings: Record<string, boolean>
   readonly executing: boolean
   uiBuilder: {

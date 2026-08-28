@@ -37,7 +37,7 @@ export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
 
 export type UiGroupRenderer = (
   grp: MetaUiGroup,
-  ctx: UiContext,
+  ctx: UiContext<any>,
   props: Record<string, any>,
 ) => any
 

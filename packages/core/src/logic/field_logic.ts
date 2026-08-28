@@ -24,13 +24,13 @@ const logicOr =
  */
 export type UiFieldRenderer = (
   fld: MetaUiField,
-  ctx: UiContext,
+  ctx: UiContext<any>,
   props: Record<string, any>,
 ) => any;
 
-export type UiCellRenderer<T = any> = (
+export type UiCellRenderer<T extends object = Record<string, any>> = (
   fld: MetaUiField,
-  ctx: UiContext,
+  ctx: UiContext<any>,
   props: Record<string, any>,
 ) => any;
 

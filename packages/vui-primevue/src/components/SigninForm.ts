@@ -105,8 +105,9 @@ export const SigninForm = defineComponent({
           : null,
         h('form', { class: 'mmda-prime-auth-form', onSubmit: withModifiers(() => {}, ['prevent']) }, [
           slots?.header?.(),
-          slots?.title?.() ??
-            h('h2', { class: 'mmda-signin-form__title' }, t('auth.signin')),
+          slots.title
+            ? slots.title()
+            : h('h2', { class: 'mmda-signin-form__title' }, t('auth.signin')),
           h('label', { class: 'mmda-signin-form__field', for: 'username' }, [
             t('auth.username'),
             h(InputText, {

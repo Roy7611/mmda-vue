@@ -155,8 +155,8 @@ describe('FieldLogic.filterFn', () => {
     const l2 = new MetaUiFieldLogic(fld)
     l1.refFilter(() => 'site=A')
     l2.refFilter(() => 'site=B')
-    expect(l1.filterFn?.({}, {}, {})).toBe('site=A')
-    expect(l2.filterFn?.({}, {}, {})).toBe('site=B')
+    expect(l1.filterFn?.({}, {} as any, {})).toBe('site=A')
+    expect(l2.filterFn?.({}, {} as any, {})).toBe('site=B')
     expect(
       fld.reference!.buildSearchFilter({}, {
         ctx: { _fieldOptions: {} },

@@ -1,0 +1,38 @@
+{
+  "name": "@mmda/mes",
+  "description": "制造执行系统（新仓移植）",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mmda/core": "workspace:^",
+    "@mmda/vui": "workspace:^",
+    "@mmda/vui-primevue": "workspace:^",
+    "@primevue/themes": "4.5.4",
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
+    "dhtmlx-gantt": "^9.0.1",
+    "echarts": "^5.5.1",
+    "lodash": "^4.17.21",
+    "primeicons": "7.0.0",
+    "primevue": "^4.5.5",
+    "vue": "^3.5.25",
+    "vue-i18n": "^11.1.11",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "less": "^4.2.0",
+    "sass": "^1.55.0",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2"
+  }
+}

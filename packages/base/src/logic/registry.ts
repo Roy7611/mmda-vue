@@ -1,95 +1,57 @@
 import type { UiLogic, UiLogicInit } from '@mmda/vui'
-import { AddressLogic } from '../modules/addresses/AddressLogic'
-import { AttachmentLogic } from '../modules/attachments/AttachmentLogic'
-import { BankLogic } from '../modules/banks/BankLogic'
-import { CapitalLogic } from '../modules/capitals/CapitalLogic'
-import { CarrierLogic } from '../modules/carriers/CarrierLogic'
-import { CarrierCatalogLogic } from '../modules/carrier_catalogs/CarrierCatalogLogic'
-import { CarrierNProdLogic } from '../modules/carrier_n_prods/CarrierNProdLogic'
-import { CarrierProductLogic } from '../modules/carrier_products/CarrierProductLogic'
-import { ClientAppLogic } from '../modules/client_apps/ClientAppLogic'
-import { ClientAppModuleLogic } from '../modules/client_app_modules/ClientAppModuleLogic'
-import { ClientAppReleaseLogic } from '../modules/client_app_releases/ClientAppReleaseLogic'
-import { CodeRuleLogic } from '../modules/code_rules/CodeRuleLogic'
-import { ContactorLogic } from '../modules/contactors/ContactorLogic'
-import { ContractTemplateLogic } from '../modules/contract_templates/ContractTemplateLogic'
-import { CountryLogic } from '../modules/countries/CountryLogic'
-import { CurrencyUnitLogic } from '../modules/currency_units/CurrencyUnitLogic'
-import { DepartmentLogic } from '../modules/departments/DepartmentLogic'
-import { EmployeeLogic } from '../modules/employees/EmployeeLogic'
-import { FeedbackLogic } from '../modules/feedbacks/FeedbackLogic'
-import { FlowTrailLogic } from '../modules/flow_trails/FlowTrailLogic'
-import { HolidayLogic } from '../modules/holidays/HolidayLogic'
-import { LabelTemplateLogic } from '../modules/label_templates/LabelTemplateLogic'
-import { MaterialCatLogic } from '../modules/materialCats/MaterialCatLogic'
-import { MaterialLogic } from '../modules/materials/MaterialLogic'
-import { MaterialNSkuLogic } from '../modules/material_n_skus/MaterialNSkuLogic'
-import { MaterialPackageLogic } from '../modules/material_packages/MaterialPackageLogic'
-import { ModuleAuditTrailLogic } from '../modules/module_audit_trails/ModuleAuditTrailLogic'
-import { ModuleBgTaskLogic } from '../modules/module_bg_tasks/ModuleBgTaskLogic'
-import { NoticeLogic } from '../modules/notices/NoticeLogic'
-import { NotificationLogic } from '../modules/notifications/NotificationLogic'
-import { OrganizationUnitLogic } from '../modules/organization_units/OrganizationUnitLogic'
-import { PartnerLogic } from '../modules/partners/PartnerLogic'
-import { PaymentMethodLogic } from '../modules/payment_methods/PaymentMethodLogic'
-import { PersonLogic } from '../modules/persons/PersonLogic'
-import { ProvinceNCityLogic } from '../modules/province_n_cities/ProvinceNCityLogic'
-import { QualityStandardLogic } from '../modules/quality_standards/QualityStandardLogic'
-import { RegionLogic } from '../modules/regions/RegionLogic'
-import { RoleLogic } from '../modules/roles/RoleLogic'
-import { SkuLogic } from '../modules/skus/SkuLogic'
-import { TenantLogic } from '../modules/tenants/TenantLogic'
-import { TrashLogic } from '../modules/trashes/TrashLogic'
-import { UnitLogic } from '../modules/units/UnitLogic'
-import { UserLogic } from '../modules/users/UserLogic'
 
-export const LOGIC_CTORS: Record<string, new (init: UiLogicInit) => UiLogic<any>> = {
-  Addresses: AddressLogic,
-  Attachments: AttachmentLogic,
-  Banks: BankLogic,
-  Capitals: CapitalLogic,
-  Carriers: CarrierLogic,
-  CarrierCatalogs: CarrierCatalogLogic,
-  CarrierNProds: CarrierNProdLogic,
-  CarrierProducts: CarrierProductLogic,
-  ClientApps: ClientAppLogic,
-  ClientAppModules: ClientAppModuleLogic,
-  ClientAppReleases: ClientAppReleaseLogic,
-  CodeRules: CodeRuleLogic,
-  Contactors: ContactorLogic,
-  ContractTemplates: ContractTemplateLogic,
-  Countries: CountryLogic,
-  CurrencyUnits: CurrencyUnitLogic,
-  Departments: DepartmentLogic,
-  Employees: EmployeeLogic,
-  Feedbacks: FeedbackLogic,
-  FlowTrails: FlowTrailLogic,
-  Holidays: HolidayLogic,
-  LabelTemplates: LabelTemplateLogic,
-  MaterialCats: MaterialCatLogic,
-  Materials: MaterialLogic,
-  MaterialNSkus: MaterialNSkuLogic,
-  MaterialPackages: MaterialPackageLogic,
-  ModuleAuditTrails: ModuleAuditTrailLogic,
-  ModuleBgTasks: ModuleBgTaskLogic,
-  Notices: NoticeLogic,
-  Notifications: NotificationLogic,
-  OrganizationUnits: OrganizationUnitLogic,
-  Partners: PartnerLogic,
-  PaymentMethods: PaymentMethodLogic,
-  Persons: PersonLogic,
-  ProvinceNCities: ProvinceNCityLogic,
-  QualityStandards: QualityStandardLogic,
-  Regions: RegionLogic,
-  Roles: RoleLogic,
-  Skus: SkuLogic,
-  Tenants: TenantLogic,
-  Trashes: TrashLogic,
-  Units: UnitLogic,
-  Users: UserLogic,
+type LogicCtor = new (init: UiLogicInit) => UiLogic<any>
+type LogicLoader = () => Promise<LogicCtor>
+const logic = <M>(load: () => Promise<M>, name: keyof M): LogicLoader =>
+  async () => (await load())[name] as LogicCtor
+
+export const LOGIC_LOADERS: Record<string, LogicLoader> = {
+  Addresses: logic(() => import('../modules/addresses/AddressLogic'), 'AddressLogic'),
+  Attachments: logic(() => import('../modules/attachments/AttachmentLogic'), 'AttachmentLogic'),
+  Banks: logic(() => import('../modules/banks/BankLogic'), 'BankLogic'),
+  Capitals: logic(() => import('../modules/capitals/CapitalLogic'), 'CapitalLogic'),
+  Carriers: logic(() => import('../modules/carriers/CarrierLogic'), 'CarrierLogic'),
+  CarrierCatalogs: logic(() => import('../modules/carrier_catalogs/CarrierCatalogLogic'), 'CarrierCatalogLogic'),
+  CarrierNProds: logic(() => import('../modules/carrier_n_prods/CarrierNProdLogic'), 'CarrierNProdLogic'),
+  CarrierProducts: logic(() => import('../modules/carrier_products/CarrierProductLogic'), 'CarrierProductLogic'),
+  ClientApps: logic(() => import('../modules/client_apps/ClientAppLogic'), 'ClientAppLogic'),
+  ClientAppModules: logic(() => import('../modules/client_app_modules/ClientAppModuleLogic'), 'ClientAppModuleLogic'),
+  ClientAppReleases: logic(() => import('../modules/client_app_releases/ClientAppReleaseLogic'), 'ClientAppReleaseLogic'),
+  CodeRules: logic(() => import('../modules/code_rules/CodeRuleLogic'), 'CodeRuleLogic'),
+  Contactors: logic(() => import('../modules/contactors/ContactorLogic'), 'ContactorLogic'),
+  ContractTemplates: logic(() => import('../modules/contract_templates/ContractTemplateLogic'), 'ContractTemplateLogic'),
+  Countries: logic(() => import('../modules/countries/CountryLogic'), 'CountryLogic'),
+  CurrencyUnits: logic(() => import('../modules/currency_units/CurrencyUnitLogic'), 'CurrencyUnitLogic'),
+  Departments: logic(() => import('../modules/departments/DepartmentLogic'), 'DepartmentLogic'),
+  Employees: logic(() => import('../modules/employees/EmployeeLogic'), 'EmployeeLogic'),
+  Feedbacks: logic(() => import('../modules/feedbacks/FeedbackLogic'), 'FeedbackLogic'),
+  FlowTrails: logic(() => import('../modules/flow_trails/FlowTrailLogic'), 'FlowTrailLogic'),
+  Holidays: logic(() => import('../modules/holidays/HolidayLogic'), 'HolidayLogic'),
+  LabelTemplates: logic(() => import('../modules/label_templates/LabelTemplateLogic'), 'LabelTemplateLogic'),
+  MaterialCats: logic(() => import('../modules/materialCats/MaterialCatLogic'), 'MaterialCatLogic'),
+  Materials: logic(() => import('../modules/materials/MaterialLogic'), 'MaterialLogic'),
+  MaterialNSkus: logic(() => import('../modules/material_n_skus/MaterialNSkuLogic'), 'MaterialNSkuLogic'),
+  MaterialPackages: logic(() => import('../modules/material_packages/MaterialPackageLogic'), 'MaterialPackageLogic'),
+  ModuleAuditTrails: logic(() => import('../modules/module_audit_trails/ModuleAuditTrailLogic'), 'ModuleAuditTrailLogic'),
+  ModuleBgTasks: logic(() => import('../modules/module_bg_tasks/ModuleBgTaskLogic'), 'ModuleBgTaskLogic'),
+  Notices: logic(() => import('../modules/notices/NoticeLogic'), 'NoticeLogic'),
+  Notifications: logic(() => import('../modules/notifications/NotificationLogic'), 'NotificationLogic'),
+  OrganizationUnits: logic(() => import('../modules/organization_units/OrganizationUnitLogic'), 'OrganizationUnitLogic'),
+  Partners: logic(() => import('../modules/partners/PartnerLogic'), 'PartnerLogic'),
+  PaymentMethods: logic(() => import('../modules/payment_methods/PaymentMethodLogic'), 'PaymentMethodLogic'),
+  Persons: logic(() => import('../modules/persons/PersonLogic'), 'PersonLogic'),
+  ProvinceNCities: logic(() => import('../modules/province_n_cities/ProvinceNCityLogic'), 'ProvinceNCityLogic'),
+  QualityStandards: logic(() => import('../modules/quality_standards/QualityStandardLogic'), 'QualityStandardLogic'),
+  Regions: logic(() => import('../modules/regions/RegionLogic'), 'RegionLogic'),
+  Roles: logic(() => import('../modules/roles/RoleLogic'), 'RoleLogic'),
+  Skus: logic(() => import('../modules/skus/SkuLogic'), 'SkuLogic'),
+  Tenants: logic(() => import('../modules/tenants/TenantLogic'), 'TenantLogic'),
+  Trashes: logic(() => import('../modules/trashes/TrashLogic'), 'TrashLogic'),
+  Units: logic(() => import('../modules/units/UnitLogic'), 'UnitLogic'),
+  Users: logic(() => import('../modules/users/UserLogic'), 'UserLogic'),
 }
 
-export function createRepositoryLogic(repository: string, init: UiLogicInit) {
-  const Ctor = LOGIC_CTORS[repository]
-  return Ctor ? new Ctor(init) : undefined
+export async function createRepositoryLogic(repository: string, init: UiLogicInit) {
+  const loader = LOGIC_LOADERS[repository]
+  return loader ? new (await loader())(init) : undefined
 }

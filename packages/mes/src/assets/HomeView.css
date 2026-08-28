@@ -1,0 +1,57 @@
+/* 待处理通知面板自动滚动动画 */
+@keyframes scrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.notify-scroll-container {
+  overflow: hidden;
+  height: 100%;
+}
+
+.notify-scroll-inner {
+  animation: scrollUp 30s linear infinite;
+}
+
+.notify-scroll-inner:hover {
+  animation-play-state: paused;
+}
+
+/* 隐藏 PrimeVue scrollable 表格的滚动条，保持干净外观 */
+.p-datatable-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* 自动滚动表格 sticky 表头 */
+.home-scroll-table .p-datatable-thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ===== 瀑布流布局 ===== */
+.home-waterfall {
+  column-count: 3;
+  column-gap: 12px;
+}
+
+.home-waterfall > * {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+
+/* 响应式断点：宽度 ≤1400px 改为 2 列 */
+@media (max-width: 1400px) {
+  .home-waterfall { column-count: 2; }
+}
+
+/* 宽度 ≤1000px 改为单列线性布局 */
+@media (max-width: 1000px) {
+  .home-waterfall {
+    column-count: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .home-waterfall > * { margin-bottom: 0; }
+}

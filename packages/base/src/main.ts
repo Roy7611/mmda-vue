@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import {
   MmdaApplication,
   UI_BUILDER_KEY,
+  resolveRepositoryModule,
   setupI18n,
   type UiLogicInit,
 } from '@mmda/vui'
@@ -11,9 +12,8 @@ import {
 } from '@mmda/vui-primevue'
 import 'primeicons/primeicons.css'
 import './style.css'
-import { LOGIC_CTORS } from './logic/registry'
-import { APP_NAME, MMDA_BASE_KEY } from './keys'
-import { resolveRepositoryModule } from './module_resolve'
+import { LOGIC_LOADERS } from './logic/registry'
+import { MMDA_BASE_KEY } from './keys'
 import { createBaseRouter } from './router'
 import { AppShell } from './App'
 import zh from './locales/zh'
@@ -32,14 +32,15 @@ const mmda = new MmdaApplication(apiUrl, 'base', builder, i18n, {
 })
 const router = createBaseRouter(mmda)
 
-for (const [repository, Ctor] of Object.entries(LOGIC_CTORS)) {
-  mmda.di.provide(`${repository}Logic`, () => {
+for (const [repository, load] of Object.entries(LOGIC_LOADERS)) {
+  mmda.di.provide(`${repository}Logic`, async () => {
     const init: UiLogicInit = {
       service: mmda.meta,
       repository,
       router,
       module: resolveRepositoryModule(mmda, repository),
     }
+    const Ctor = await load()
     return new Ctor(init)
   })
 }

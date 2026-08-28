@@ -40,7 +40,7 @@ const parmas = reactive({
 }) as any
 
 //修改密码
-const beforeChangePwd = async (context: UiContext, model: User, action: EntityAction) => {
+const beforeChangePwd = async (context: UiContext<User> & Required<Pick<UiContext<User>, 'reload'>>, model: User, action: EntityAction) => {
 	pwdData.data.newPwd = '';
 	try {
 		// 生成弹窗
@@ -143,7 +143,7 @@ const beforeChangePwd = async (context: UiContext, model: User, action: EntityAc
 }
 
 // 驳回
-const beforeDisapprove = async (context: UiContext, model: User, action: EntityAction) => {
+const beforeDisapprove = async (context: UiContext<User> & Required<Pick<UiContext<User>, 'reload'>>, model: User, action: EntityAction) => {
 	const { $ui: ui, $api: apiBox } = context.globalProps
 	await context.uiBuilder.confirmDialog(ui.factory.formItem({
 		name: 'disapproveReason',
@@ -219,7 +219,7 @@ export class UserLogic extends UiLogic<User> {
 		this.addRelativeLogic<UserDevice>('devices', (master) => new UserDeviceLogic(this, master));
 		this.addRelativeLogic<UserOpenIdentity>('openIdentities', (master) => new UserOpenIdentityLogic(this, master));
 		this.addRelativeLogic<UserRelation>('relations', (master) => new UserRelationLogic(this, master));
-		this.beforeAction = (context: UiContext, model: User, action: EntityAction) => {
+		this.beforeAction = (context: UiContext<User> & Required<Pick<UiContext<User>, 'reload'>>, model: User, action: EntityAction) => {
 			try {
 				if (action.name == 'changePwd') return beforeChangePwd(context, model, action);
 				else if (action.name === 'disapprove') return beforeDisapprove(context, model, action)
@@ -250,7 +250,7 @@ export class UserLogic extends UiLogic<User> {
 				this.field('status').searchable(true),
 				this.field('subscribedChannels').searchable(true),
 				this.field('staff').searchable(true),
-				this.field('deptID').setCustomCellRenderer((fld, ctx, props) => {
+				this.field('deptID').setCustomCellRenderer((fld, ctx: UiContext<User>, props) => {
 					if (isRefNone(ctx.model.deptID)) return h('div');
 					const { modules } = ctx.app;
 					const linkable = props?.linkable ?? true;
@@ -348,7 +348,7 @@ export class UserLogic extends UiLogic<User> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('deptID').setCustomRenderer((fld, ctx, props) => {
+				this.field('deptID').setCustomRenderer((fld, ctx: UiContext<User>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
 						h(
@@ -370,7 +370,7 @@ export class UserLogic extends UiLogic<User> {
 						),
 					]);
 				}),
-				this.field('personID').setCustomRenderer((fld, ctx, props) => {
+				this.field('personID').setCustomRenderer((fld, ctx: UiContext<User>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
 						h(
@@ -401,7 +401,7 @@ export class UserLogic extends UiLogic<User> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newUserRole(context: UiContext, target: User) {
+	newUserRole(context: UiContext<User>, target: User) {
 		context.select<UserRole>({
 			repository: 'Roles',
 			searchParam: {
@@ -458,13 +458,13 @@ export class UserLogic extends UiLogic<User> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newUserOpenIdentity(context: UiContext, target: User) {
+	newUserOpenIdentity(context: UiContext<User>, target: User) {
 		// context.newSubGroupItem<UserOpenIdentity>({
 		// 	group: 'openIdentities',
 		// 	target,
 		// }).then(item => {
 		// 	if (item) {
-		// 		context.addSubGroupItem('openIdentities', item);
+		// 		context.addSubGroupItem('openIdentities', item as UserOpenIdentity);
 		// 	}
 		// })
 		context.createSubGroupItems({
@@ -485,7 +485,7 @@ export class UserLogic extends UiLogic<User> {
 			creator: defineUserOpenIdentity
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('openIdentities', item)
+				context.addSubGroupItem('openIdentities', item as UserOpenIdentity)
 			}
 		})
 	}
@@ -495,7 +495,7 @@ export class UserLogic extends UiLogic<User> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newUserRelation(context: UiContext, target: User) {
+	newUserRelation(context: UiContext<User>, target: User) {
 		context.newSubGroupItem<UserRelation>({
 			group: 'relations',
 			target,

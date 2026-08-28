@@ -16,6 +16,7 @@ import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "./ui_view";
 import type { AppLayoutVariant, PropData } from "./ui_layout";
 import type { UiBuilder } from "./ui_builder";
+import type { UiViewContext } from "./ui_context";
 import type { UiAction } from "./ui_action";
 import type { CustomFilter } from "./ui_filter";
 import { UI_APP_KEY } from "./ui_keys";
@@ -403,11 +404,11 @@ export class MmdaApplication {
   }
 
   toast(context: UiContext, props: PropData) {
-    return this.ui.toast(context, props);
+    return this.ui.toast(context as UiViewContext<any>, props);
   }
 
   confirm(context: UiContext, props: Parameters<UiBuilder["confirm"]>[1]) {
-    return this.ui.confirm(context, props);
+    return this.ui.confirm(context as UiViewContext<any>, props);
   }
 
   confirmDialog(
@@ -415,7 +416,7 @@ export class MmdaApplication {
     context: UiContext,
     props: Parameters<UiBuilder["confirmDialog"]>[2],
   ) {
-    return this.ui.confirmDialog(content, context, props);
+    return this.ui.confirmDialog(content, context as UiViewContext<any>, props);
   }
 
   private async persistAuthSession(user: OAuthUser) {

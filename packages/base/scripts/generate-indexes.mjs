@@ -72,17 +72,19 @@ for (const file of logicFiles) {
 }
 
 const logicsTs = `import type { UiLogic, UiLogicInit } from '@mmda/vui'
-${logicEntries
-  .map((entry) => `import { ${entry.className} } from '${entry.importPath}'`)
-  .join('\n')}
 
-export const LOGIC_CTORS: Record<string, new (init: UiLogicInit) => UiLogic<any>> = {
-${logicEntries.map((entry) => `  ${entry.repository}: ${entry.className},`).join('\n')}
+type LogicCtor = new (init: UiLogicInit) => UiLogic<any>
+type LogicLoader = () => Promise<LogicCtor>
+const logic = <M>(load: () => Promise<M>, name: keyof M): LogicLoader =>
+  async () => (await load())[name] as LogicCtor
+
+export const LOGIC_LOADERS: Record<string, LogicLoader> = {
+${logicEntries.map((entry) => `  ${entry.repository}: logic(() => import('${entry.importPath}'), '${entry.className}'),`).join('\n')}
 }
 
-export function createRepositoryLogic(repository: string, init: UiLogicInit) {
-  const Ctor = LOGIC_CTORS[repository]
-  return Ctor ? new Ctor(init) : undefined
+export async function createRepositoryLogic(repository: string, init: UiLogicInit) {
+  const loader = LOGIC_LOADERS[repository]
+  return loader ? new (await loader())(init) : undefined
 }
 `
 

@@ -44,7 +44,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
 			batchCreateEmployeeAccounts: (item: Employee) => item.status !== EmployeeStatus.LEAVE && !item.hasUserAccount,
 		};
 	}
-	async batchCreateEmployeeAccounts(context: UiContext) {
+	async batchCreateEmployeeAccounts(context: UiContext<Employee>) {
 		//当前选中项
 		const { selectedItems, translate: t } = context;
 		if (!MetaModel.hasAny(selectedItems)) {
@@ -86,7 +86,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
                     group: 'br',
                     life: 3000
                 })
-				context.reload()
+				await context.refresh?.()
 			}
 		} catch (errorC: any) {
 			context.uiBuilder.toast(context, { severity: 'error', summary: '失败', group: 'br', detail: errorC.message, life: 3000 });
@@ -110,7 +110,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
 				label: '批量创建',
 				group: 'selectMany',
 				role: 'primary',
-				onAction: async (context: UiContext) => {
+				onAction: async (context: UiContext<Employee> & Pick<UiContext<Employee>, 'select'>) => {
 					const t = context.translate.bind(context)
 					const toast = (props: Record<string, unknown>) =>
 						context.uiBuilder?.toast(context, props)
@@ -161,7 +161,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
 								summary: t('dialog.success'),
 								life: 3000,
 							})
-							await (context as { reload?: () => Promise<unknown> }).reload?.()
+							await context.refresh?.()
 						}
 					} catch (error: any) {
 						toast({
@@ -178,7 +178,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
 				label: '批量生成账号',
 				group: 'selectMany',
 				role: 'primary',
-				onAction: async (context: UiContext) => {
+				onAction: async (context: UiContext<Employee>) => {
 					context.toSelectManyIndex('batchCreateEmployeeAccounts', async () => await this.batchCreateEmployeeAccounts(context));
 				},
 			});

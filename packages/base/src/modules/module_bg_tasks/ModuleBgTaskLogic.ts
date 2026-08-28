@@ -6,7 +6,7 @@
  * 
  */
 import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, SortOrder } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, SortOrder } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ModuleBgTask, defineModuleBgTask } from '../../models/ModuleBgTask';
 import { h } from 'vue';
@@ -64,9 +64,9 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('taskResult').setCustomRenderer((fld, ctx, props) => {
+				this.field('taskResult').setCustomRenderer((fld, ctx: UiContext<ModuleBgTask>, props) => {
 					const { $t: t } = ctx.globalProps
-					if (ctx.model.status == "SUCCESS") {
+					if ((ctx.model.status as unknown as string) == "SUCCESS") {
 						return ctx.uiBuilder.factory.button({
 							severity: 'success',
 							style: {
@@ -78,7 +78,7 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
 							}
 						})
 						//console.log('成功',ctx);
-					} else if (ctx.model.status === 'RUNNING' || ctx.model.status === 'NEW' || ctx.model.status === 'SUSPENDED') {
+					} else if ((ctx.model.status as unknown as string) === 'RUNNING' || (ctx.model.status as unknown as string) === 'NEW' || (ctx.model.status as unknown as string) === 'SUSPENDED') {
 						return ctx.uiBuilder.factory.button({
 							severity: 'danger',
 							label: ctx.globalProps.$t('action.cancel'),
@@ -106,7 +106,7 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
 							}
 						})
 					}
-					// else if (ctx.model.status === 'RUNNING' || ctx.model.status === 'NEW' || ctx.model.status === 'SUSPENDED') {
+					// else if ((ctx.model.status as unknown as string) === 'RUNNING' || (ctx.model.status as unknown as string) === 'NEW' || (ctx.model.status as unknown as string) === 'SUSPENDED') {
 					// 		return ctx.uiBuilder.factory.button({
 					// 			severity: 'danger',
 					// 			label: ctx.globalProps.$t('action.cancel'),

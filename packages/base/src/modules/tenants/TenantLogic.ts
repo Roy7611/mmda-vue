@@ -40,7 +40,7 @@ export class TenantLogic extends UiLogic<Tenant> {
 		if (fields.length === 0) {
 			fields.push(
 				this.field('status').searchable(true),
-				this.field('countryCode').setCustomCellRenderer((fld, ctx, props) => {
+				this.field('countryCode').setCustomCellRenderer((fld, ctx: UiContext<Tenant> & Pick<UiContext<Tenant>, 'getFieldCurrentOption'>, props) => {
 					if (isRefNone(ctx.model.countryCode)) return h('div');
 					const { modules } = ctx.app;
 					const linkable = props?.linkable ?? true;
@@ -115,7 +115,7 @@ export class TenantLogic extends UiLogic<Tenant> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('countryCode').setCustomRenderer((fld, ctx, props) => {
+				this.field('countryCode').setCustomRenderer((fld, ctx: UiContext<Tenant>, props) => {
 					if (isRefNone(ctx.model.countryCode)) return h('div');
 					const { modules } = ctx.app;
 					const linkable = props?.linkable ?? true;
@@ -151,13 +151,13 @@ export class TenantLogic extends UiLogic<Tenant> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newTenantModule(context: UiContext, target: Tenant) {
+	newTenantModule(context: UiContext<Tenant>, target: Tenant) {
 		// context.newSubGroupItem<TenantModule>({
 		// 	group: 'modules',
 		// 	target,
 		// }).then(item => {
 		// 	if (item) {
-		// 		context.addSubGroupItem('modules', item);
+		// 		context.addSubGroupItem('modules', item as TenantModule);
 		// 	}
 		// })
 		context.createSubGroupItems({
@@ -178,7 +178,7 @@ export class TenantLogic extends UiLogic<Tenant> {
 			creator: defineTenantModule
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('modules', item)
+				context.addSubGroupItem('modules', item as TenantModule)
 			}
 		})
 	}

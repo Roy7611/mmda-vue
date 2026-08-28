@@ -1,0 +1,170 @@
+/* You can add global styles to this file, and also import other style files */
+
+
+$gutter: 1rem; //for primeflex grid system
+// main.css
+// @use '@/assets/base.scss';
+@use '@mmda/vui-primevue/src/assets/base.scss';
+
+// //font awesome
+// @use '@/assets/fa/css/all.css'; //webfonts
+
+// @use '@/assets/layout/layout.scss';
+
+/* PrimeVue */
+// @use 'primevue/resources/primevue.min.css'; // version deplicated. You must open the command line if you are using < 3.29.00
+// @use 'primeflex/primeflex.scss';
+@use 'primeicons/primeicons.css';
+
+.logo-img {
+    max-width: 40px;
+}
+
+.layout-logo {
+    text-align: center;
+    padding: 5px;
+}
+
+.confirmCenter {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: 1.2rem;
+}
+
+
+.gantt_grid_editor_placeholder>div,
+.gantt_grid_editor_placeholder input,
+.gantt_grid_editor_placeholder select {
+    background: #ffffff;
+    color: #333333;
+}
+
+// .p-card .p-component{
+//     display: flex;
+//     flex: 1;
+// }
+
+// .p-datatable-table-container {
+//     max-height: none !important;
+// }
+
+.draggable {
+    position: absolute;
+    width: 255px;
+    height: 100px;
+    bottom: 12%;
+    right: 10px;
+    z-index: 1000;
+    cursor: move;
+    user-select: none;
+    /* 防止文字被选中 */
+    touch-action: none;
+    /* 防止触摸设备上的默认行为 */
+}
+
+/* BOM 物料清单 - 物料图片列（改回灰底+边框+42：size=42px, empty-show-frame=true） */
+$bom-material-pic-size: 64px;
+$bom-material-pic-icon-size: 40px;
+$bom-material-pic-empty-show-frame: false;
+$bom-material-pic-empty-bg: #fafbfc;
+$bom-material-pic-empty-border: #e4e7ed;
+$bom-material-pic-border-radius: 4px;
+
+@mixin bom-material-pic-fixed-box {
+    width: $bom-material-pic-size !important;
+    height: $bom-material-pic-size !important;
+    min-width: $bom-material-pic-size !important;
+    min-height: $bom-material-pic-size !important;
+    max-width: $bom-material-pic-size !important;
+    max-height: $bom-material-pic-size !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+table#items td.materialPic,
+#items td.materialPic,
+.p-treetable#items td.materialPic,
+.p-treetable td.materialPic {
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 4px 2px !important;
+    line-height: normal !important;
+
+    .bom-item-material-pic-box,
+    .bom-item-material-pic-box--empty,
+    .bom-item-material-pic-box--img,
+    > img,
+    img,
+    .p-image,
+    .p-image-preview-container,
+    .p-image img,
+    [role$='-image'] {
+        @include bom-material-pic-fixed-box;
+        object-fit: contain !important;
+        object-position: center center !important;
+        margin: 0 auto !important;
+    }
+
+    .bom-item-material-pic-box--empty,
+    [role$='-noimage'] {
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        color: gray !important;
+    }
+
+    .bom-item-material-pic-box--framed,
+    .bom-item-material-pic-box--empty.bom-item-material-pic-box--framed {
+        background-color: $bom-material-pic-empty-bg !important;
+        border: 1px solid $bom-material-pic-empty-border !important;
+        border-radius: $bom-material-pic-border-radius !important;
+    }
+
+    @if $bom-material-pic-empty-show-frame {
+        .bom-item-material-pic-box--empty,
+        [role$='-noimage'] {
+            background-color: $bom-material-pic-empty-bg !important;
+            border: 1px solid $bom-material-pic-empty-border !important;
+            border-radius: $bom-material-pic-border-radius !important;
+        }
+
+        .bom-item-material-pic-box--img,
+        img {
+            border-radius: $bom-material-pic-border-radius !important;
+        }
+    }
+
+    .bom-item-material-pic-box--empty i.fas.fa-image,
+    [role$='-noimage'],
+    i.fas.fa-image {
+        font-size: $bom-material-pic-icon-size !important;
+        width: $bom-material-pic-icon-size !important;
+        height: $bom-material-pic-icon-size !important;
+        line-height: $bom-material-pic-icon-size !important;
+        display: inline-block !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        color: gray !important;
+
+        &::before {
+            font-size: $bom-material-pic-icon-size !important;
+            line-height: $bom-material-pic-icon-size !important;
+        }
+    }
+}
+
+// .bodybox .p-tabs{
+//   height:100% !important;
+
+// }
+
+.p-image-preview {
+    width: max-content !important;
+}
+

@@ -60,7 +60,7 @@ const service = {
 } as any
 
 describe('UiLogic', () => {
-  it('beforeEdit 把 Field/Group Logic 挂到当前会话', () => {
+  it('beforeEdit 把 Field/Group Logic 挂到当前会话', async () => {
     const logic = new OrderLogic(o => o as any, {
       service,
       repository: 'Orders',
@@ -75,10 +75,54 @@ describe('UiLogic', () => {
       metaui,
       view: 'edit',
     })
-    logic.applyTo(ctx, 'edit')
+    await logic.applyTo(ctx, 'edit')
 
     expect(ctx.getFieldLogic('orderNo')?.readonlyFn).toBeTypeOf('function')
     expect(ctx.getGroupLogic('items')).toBeInstanceOf(MetaUiGroupLogic)
+  })
+
+  it('只加载并缓存当前视图的 Logic', async () => {
+    let indexLoads = 0
+    let editLoads = 0
+    const logic = new OrderLogic(o => o as any, {
+      service,
+      repository: 'Orders',
+      meta: { metaui },
+    })
+    logic.viewLogicLoaders = {
+      index: async () => {
+        indexLoads++
+        return {
+          beforeIndex(this: OrderLogic) {
+            const result = UiLogic.prototype.beforeIndex.call(this)
+            result.fields.push(this.field('orderNo').lock())
+            return result
+          },
+        }
+      },
+      edit: async () => {
+        editLoads++
+        return () => UiLogic.prototype.beforeEdit.call(logic)
+      },
+    }
+
+    const first = new UiViewContext({
+      model: [],
+      metaui,
+      view: 'index',
+    })
+    await logic.applyTo(first, 'index')
+    await logic.applyTo(first, 'index')
+    const create = new UiViewContext({
+      model: { id: '2' },
+      metaui,
+      view: 'create',
+    })
+    await logic.applyTo(create, 'create')
+
+    expect(indexLoads).toBe(1)
+    expect(editLoads).toBe(1)
+    expect(first.getFieldLogic('orderNo')?.readonlyFn).toBeTypeOf('function')
   })
 })
 

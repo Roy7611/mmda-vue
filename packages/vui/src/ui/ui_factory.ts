@@ -14,9 +14,9 @@ import {
   type PagedList,
   type Pagination,
   type TranslateFn,
-  type UiContext,
 } from '@mmda/core'
 import type { PropData, UiLayout, UiSlots } from './ui_layout'
+import type { UiViewContext } from './ui_context'
 import type {
   UiButtonProps,
   UiButtonSlots,
@@ -26,6 +26,8 @@ import type {
 } from './ui_button'
 import type { IconResolver, UiAction } from './ui_action'
 import type { UiDialogPropsType } from './ui_dialog'
+
+type UiContext = UiViewContext<any>
 import type {
   UiListColumnProps,
   UiListColumnSlots,
@@ -154,7 +156,8 @@ export const durationOfDays: UiRenderer<string[]> = (dates, props) =>
   h('span', props, () => daysBetween(dates[0], dates[1], props?.locale))
 export const pastTime: UiRenderer<string> = (sqlDateTime, props) =>
   h('span', props, () => relativeTime(sqlDateTime, props?.locale))
-export const label: UiRenderer<string> = (text, props) => h('label', props, text)
+export const label: UiRenderer<string> = (text, props) =>
+  h('label', props, text)
 export const faIcon: UiRenderer<string> = (iconClass, props) =>
   h('i', { class: iconClass, ...props })
 export const fasIcon: UiRenderer<string> = (name, props) =>
@@ -203,6 +206,8 @@ export const TABLE_CELL_PROP_KEYS = [
   'cacheKey',
   'isSearch',
   'isTree',
+  'readOnlyRows',
+  'row',
   'group',
   'enableSort',
   'showGridlines',
@@ -261,7 +266,7 @@ export const cleanProps = (
   props: PropData,
 ): PropData => {
   if (!props || isNullObject(props)) return {}
-  const cleaned = { ...props }
+  const cleaned = Object.assign({}, props) as PropData
   for (const key of unwantedKeys) {
     delete cleaned[key]
   }

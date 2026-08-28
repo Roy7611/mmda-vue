@@ -54,7 +54,7 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 
 ## 选择与勾选
 
-`EntityPages` 默认 Index 为多选（批量删除）。`SelectOne` 为单选。DataTable 的 `selection` 必须用 `context.selectedItems`，变更写回同一数组，避免每轮 render 新建 `ref` 导致递归更新。
+`EntityView` 默认 Index 为多选（批量删除）。`SelectOne` 为单选。DataTable 的 `selection` 必须用 `context.selectedItems`，变更写回同一数组，避免每轮 render 新建 `ref` 导致递归更新。
 
 ## UiSelector
 

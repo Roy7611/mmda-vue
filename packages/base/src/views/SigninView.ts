@@ -18,27 +18,31 @@ export const SigninView = defineComponent({
     const router = useRouter()
     const route = useRoute()
 
-    const signinForm = builder.buildSigninForm({
-      context: app,
-      onSubmit: async (user: SigninUser) => {
-        try {
-          await app.signin(user.username, user.password)
-          const redirect = String(
-            route.query.redirect ?? `/${app.name.toUpperCase()}/`,
-          )
-          await router.replace(redirect)
-        } catch (error: unknown) {
-          const message =
-            error instanceof Error ? error.message : String(error ?? '登录失败')
-          await app.toast({} as any, {
-            severity: 'error',
-            detail: message,
-            summary: '错误',
-            life: 3000,
-          })
-        }
+    const signinForm = builder.buildSigninForm(
+      {
+        context: app,
+        onSubmit: async (user: SigninUser) => {
+          try {
+            await app.signin(user.username, user.password)
+            const redirect = String(
+              route.query.redirect ?? `/${app.name.toUpperCase()}/`,
+            )
+            await router.replace(redirect)
+          } catch (error: unknown) {
+            const message =
+              error instanceof Error ? error.message : String(error ?? '登录失败')
+            await app.toast({} as any, {
+              severity: 'error',
+              detail: message,
+              summary: '错误',
+              life: 3000,
+            })
+          }
+        },
       },
-    })
+      // 页面已有「基础数据登录」标题，不再重复渲染表单内「登录」
+      { title: () => null },
+    )
 
     return () =>
       h(

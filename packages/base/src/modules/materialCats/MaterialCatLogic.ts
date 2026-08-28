@@ -67,9 +67,9 @@ export class MaterialCatLogic extends UiLogic<MaterialCat> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('materialX').lockIf((model, ctx) => !!model.parentID)
-				.setCustomRenderer((fld, ctx, props) => {
+				.setCustomRenderer((fld, ctx: UiContext<MaterialCat>, props) => {
 						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text : '-');
-					}).setCustomEditor((fld, ctx, props) => {
+					}).setCustomEditor((fld, ctx: UiContext<MaterialCat>, props) => {
 						return ctx.uiBuilder.factory.select({
 							options: this.materialXOptions,
 							optionLabel: 'text',

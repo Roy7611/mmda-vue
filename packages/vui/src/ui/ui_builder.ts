@@ -7,7 +7,6 @@ import type {
   MetaUiField,
   MetaUiGroup,
   Module,
-  UiContext,
 } from "@mmda/core";
 import {
   MetaModel,
@@ -67,6 +66,9 @@ import type {
 } from "./ui_filter";
 import { UiContextAction, type IconResolver } from "./ui_action";
 import type { UiViewContext } from "./ui_context";
+
+/** VUI 内部统一运行时；公开契约由各场景 context 接口约束。 */
+type UiContext = UiViewContext<any>;
 
 const hiddenDeletedSubRowStyle = (data: any) =>
   MetaModel.deleted(data) ? { display: "none" } : undefined;
@@ -302,13 +304,19 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     rows: any[],
     metaui: MetaUi,
     rowContext: (row: any) => UiContext,
-    tableProps: UiListPropsType = {},
+    tableProps: UiListPropsType<any> = {},
   ): VNode {
     const customRenderCell = tableProps.renderCell;
     const cellProps = cleanTableCellProps({
       tableMetaui: metaui,
       ...(tableProps as PropData),
     });
+    if ((tableProps as PropData).readOnlyRows !== undefined) {
+      Object.defineProperty(cellProps, "readOnlyRows", {
+        value: (tableProps as PropData).readOnlyRows,
+        enumerable: false,
+      });
+    }
     return this.factory.table(rows, metaui, {
       ...tableProps,
       renderCell: (field, row) =>
@@ -339,6 +347,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     props: PropData = {},
   ): VNode {
     const cellProps = { ...props } as PropData;
+    if (props.row !== undefined) {
+      Object.defineProperty(cellProps, "row", {
+        value: props.row,
+        enumerable: false,
+      });
+    }
     if (!field.renderer || this.fldFactory["textSpan"]) {
       cellProps.class =
         `${cellProps.class ? cellProps.class : ""} two-line-ellipsis`.trim();
@@ -346,7 +360,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
     const isLock = ctx.isFieldReadonly(field) || ctx.isFieldHidden(field);
     const fieldLogic = ctx.getFieldLogic(field) as any;
-    const model = ctx.model as { editable?: boolean };
+    const model = (props.row ?? ctx.model) as { editable?: boolean };
 
     if (inPlaceEdit && model?.editable && !isLock && !field.primaryKey) {
       const editor =
@@ -364,6 +378,28 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       this.fldFactory[field.renderer ?? "textSpan"] ??
       this.fldFactory.fallbackDisplay;
     return renderer(field, ctx, cellProps);
+  }
+
+  /**
+   * 兼容旧 customRenderer 的轻量只读行视图。
+   * 它不进入 context 树，也不创建响应式代理和校验状态。
+   */
+  protected readonlyRowContext(
+    context: UiContext,
+    row: Record<string, any>,
+  ): UiContext {
+    const rowContext = Object.create(context) as UiContext;
+    Object.defineProperty(rowContext, "model", {
+      value: row,
+      enumerable: true,
+    });
+    rowContext.getFieldValue = (field, model = row) =>
+      context.getFieldValue(field, model);
+    rowContext.displayField = (field, model = row) =>
+      context.displayField(field, model);
+    rowContext.routeToRelative = (field) =>
+      context.routeToRelative?.(field, row) ?? "";
+    return rowContext;
   }
 
   /** 对齐旧版 `_tableCellWithError` */
@@ -405,15 +441,22 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const isSearch = props?.isSearch;
     const useLink = isRoot && field.linkable;
 
-    const withRow = (data: any, cacheKey?: string) =>
-      context.with(isTree ? data : data, cacheKey);
-
-    if (fieldLogic?.customRenderer) {
-      return fieldLogic.customRenderer(
-        field,
-        withRow(row, props?.cacheKey ?? undefined),
-        props,
-      );
+    const readOnlyRoot =
+      !context.editing && (isRoot || props.readOnlyRows === true);
+    const customRenderer =
+      fieldLogic?.customCellRenderer ?? fieldLogic?.customRenderer;
+    if (customRenderer) {
+      const rowContext = readOnlyRoot
+        ? this.readonlyRowContext(context, row)
+        : context.model === row
+          ? context
+          : context.with(row, props?.cacheKey ?? undefined);
+      const rendererProps = { ...props };
+      Object.defineProperty(rendererProps, "row", {
+        value: row,
+        enumerable: false,
+      });
+      return customRenderer(field, rowContext, rendererProps);
     }
 
     if (useLink && !isSearch) {
@@ -446,10 +489,14 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       });
     }
 
+    if (readOnlyRoot) {
+      return this.tableCell(field, context, false, { ...props, row });
+    }
+
     if (isRoot) {
       return this.tableCell(
         field,
-        withRow(row, props?.cacheKey ?? undefined),
+        context.with(row, props?.cacheKey ?? undefined),
         useEditor,
         props,
       );
@@ -462,9 +509,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       cacheKey = props.groupUi.primaryKey;
     }
 
-    const rowCtx = isTree
-      ? context.treeWith(row, cacheKey ?? undefined)
-      : context.with(row, cacheKey ?? undefined);
+    const rowCtx =
+      context.model === row
+        ? context
+        : isTree
+          ? context.treeWith(row, cacheKey ?? undefined)
+          : context.with(row, cacheKey ?? undefined);
 
     return this.tableCellWithError(field, rowCtx, useEditor, props);
   }
@@ -511,13 +561,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         ((context.model as Record<string, any>)[group.groupName] as any[]) ??
         [];
       const groupCtx = (context as UiViewContext).subGroupContext(group);
+      const readOnlyRows = !context.editing;
       const table = this.tableWithCells(
         rows,
         group.groupUi,
-        (row) => groupCtx.with(row),
+        (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
         {
           enableSort: false,
           showGridlines: true,
+          readOnlyRows,
           rowStyle: hiddenDeletedSubRowStyle,
           onItemDoubleClick: (item) =>
             (context as any).subGroupItem?.(group, item),

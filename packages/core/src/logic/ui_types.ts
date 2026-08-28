@@ -24,6 +24,6 @@ export interface Watermark {
 
 export type UiGroupWatermark = (
   grp: any,
-  ctx: UiContext,
+  ctx: UiContext<any>,
   props?: Record<string, any>,
 ) => Watermark

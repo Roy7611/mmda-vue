@@ -7,7 +7,7 @@
  */
 import { Router } from 'vue-router';
 import { h, ref, unref, watch } from 'vue';
-import { MetaUiService, Module, MetaUiField, UiContext, defaultPager, MetaModel, EntityState, ApiClient, ModuleOp, ModuleAuth, auth, SearchOp, hasBit, isRefNone } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, MetaModel, EntityState, ApiClient, ModuleOp, ModuleAuth, auth, SearchOp, hasBit, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Role, defineRole } from '../../models/Role';
 import { type RoleModuleAuth, defineRoleModuleAuth } from '../../models/RoleModuleAuth';
@@ -92,7 +92,7 @@ export class RoleLogic extends UiLogic<Role> {
 				this.group<RoleModuleAuth>('moduleAuths')
 					.field('allowRead')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -154,7 +154,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowCreate')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -215,7 +215,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowEdit')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -276,7 +276,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowPrint')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -337,7 +337,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowDelete')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -398,7 +398,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowImport')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -459,7 +459,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowExport')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -520,7 +520,7 @@ export class RoleLogic extends UiLogic<Role> {
 					})
 					.nextField('allowUpload')
 					.inPlaceEdit()
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
 							const currentItem: any = ctx.model;
 							//判断是不是主菜单
@@ -612,7 +612,7 @@ export class RoleLogic extends UiLogic<Role> {
 					.nextField('authScope')
 					.inPlaceEdit()
 					.nextField('authActions')
-					.setCustomCellRenderer((fld, ctx, props) => {
+					.setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						if (ctx.model.authorizedActions && ctx.model.authorizedActions.length > 0) {
 							ctx.model.authActions = ctx.model.authorizedActions.map((obj: any) => obj.displayLabel).join(', ');
 						} else {
@@ -654,9 +654,9 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('moduleCode').setCustomRenderer((fld, ctx, props) =>
+				this.field('moduleCode').setCustomRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) =>
 					`${ctx.model.moduleLabel}`
-				).setCustomCellRenderer((fld, ctx, props) => {
+				).setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 					const currentItem: any = ctx.model;
 					//判断是不是主菜单
 					const secondCode = getSecondPart(currentItem.moduleCode);
@@ -678,9 +678,9 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('moduleCode').setCustomRenderer((fld, ctx, props) =>
+				this.field('moduleCode').setCustomRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) =>
 					`${ctx.model.moduleLabel}`
-				).setCustomCellRenderer((fld, ctx, props) => {
+				).setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 					const currentItem: any = ctx.model;
 					//判断是不是主菜单
 					const secondCode = getSecondPart(currentItem.moduleCode);
@@ -694,7 +694,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 					return `${ctx.model.moduleLabel}`
 				}),
 				this.field('authActions')
-					.setCustomEditor((fld, ctx, props) => {
+					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps
 						return ui.factory.multiSelect({
 							showClear: true,
@@ -728,7 +728,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 							},
 						});
 					})
-					.setCustomCellRenderer((fld, ctx, props) => {
+					.setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						if (ctx.model.authorizedActions && ctx.model.authorizedActions.length > 0) {
 							ctx.model.authActions = ctx.model.authorizedActions.map((obj: any) => obj.displayLabel).join(', ');
 						} else {

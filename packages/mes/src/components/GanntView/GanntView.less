@@ -1,0 +1,1576 @@
+.mainCon {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+}
+
+.searchTitle {
+    width: 100%;
+    overflow: hidden;
+}
+
+.ganttBoxStyle {
+    margin-top: 1rem;
+    width: 100%;
+    height: 65vh;
+    overflow: hidden;
+    padding-left: 1rem;
+}
+
+
+.ganttBoxStyle2 {
+    margin-top: 1rem;
+    width: 100%;
+    height: 70vh;
+    overflow: hidden;
+    padding-left: 1rem;
+}
+
+
+.showBoxStyle {
+    width: 98%;
+    height: 98%;
+    overflow: hidden;
+    position: fixed;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.highlighted-column {
+    background-color: #e8e8e8;
+}
+
+.gantt_task_scale .gantt_scale_cell {
+    cursor: pointer;
+}
+
+.gantt_task_scale .gantt_scale_cell.highlighted-column {
+    color: #454545;
+    font-weight: bold;
+}
+
+.opearBox {
+    width: 100%;
+    overflow: hidden;
+}
+
+.selfSpan {
+    display: block;
+    min-width: 8rem;
+    text-align: right;
+    padding-right: 1rem;
+}
+
+.selfdivLeftBox {
+    width: 60%;
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+
+// .w-2\/3{
+//     width: 80% !important; 
+// }
+.selfFulldivBox {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.scheduleViewModeToggle {
+    margin-left: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &--loading {
+        pointer-events: none;
+        opacity: 0.75;
+    }
+
+    // SelectButton（ToggleButton 组）：连点已选中项时避免 focus/active 样式错位
+    .p-selectbutton {
+        display: inline-flex;
+
+        .p-togglebutton,
+        .p-button {
+            position: relative;
+
+            &:focus,
+            &:focus-visible,
+            &:active {
+                outline: none;
+                box-shadow: none;
+            }
+
+            &:not(.p-togglebutton-checked):not(.p-highlight):focus,
+            &:not(.p-togglebutton-checked):not(.p-highlight):active {
+                background: var(--p-button-secondary-background, var(--p-button-background));
+                border-color: var(--p-button-secondary-border-color, var(--p-button-border-color));
+                color: var(--p-button-secondary-color, var(--p-button-color));
+            }
+
+            &.p-togglebutton-checked,
+            &.p-highlight {
+                z-index: 1;
+            }
+        }
+    }
+}
+
+// 暗黑模式：按项目 / 按生产订单切换（p-dark 下 ToggleButton 仍沿用浅色 surface 令牌，需局部覆盖）
+html.p-dark,
+:root[data-gantt-theme='dark'] {
+    .scheduleViewModeToggle {
+        .p-selectbutton {
+            .p-togglebutton {
+                background: rgba(255, 255, 255, 0.06);
+                border-color: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.55);
+
+                &:not(:disabled):not(.p-togglebutton-checked):hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.78);
+                }
+
+                &.p-togglebutton-checked {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(255, 255, 255, 0.16);
+                    color: rgba(255, 255, 255, 0.92);
+                }
+
+                &.p-togglebutton-checked .p-togglebutton-content {
+                    background: rgba(255, 255, 255, 0.14);
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+                }
+            }
+        }
+    }
+}
+
+.scheduleViewModeToggle__spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.loadingIndicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 17;
+}
+
+.selfdivBox {
+    max-width: 20rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.selfdivBox.project {
+    max-width: 26rem;
+}
+
+.selfButtonBox {
+    margin-right: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+
+}
+
+.selfButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+
+#searchButton {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+#resetButton {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.selfdivBox {
+    margin-bottom: .5rem;
+    margin-top: .5rem;
+}
+
+
+//进度条颜色
+.gantt_task_line.gantt_task_inline_color .gantt_task_progress {
+    background-color: rgba(0, 0, 0, .2) !important;
+    opacity: 1 !important;
+    text-align: left;
+    box-sizing: border-box;
+    color: white;
+    font-weight: bold;
+
+}
+.errorImportant{
+    color: #FF0033;
+}
+.waringImportant{
+color: #FF9933;
+}
+
+
+
+.loadingBox {
+    position: absolute;
+    z-index: 999999;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.gantt_task_line {
+    will-change: transform;
+    /* 提示浏览器这个元素将发生变化 */
+}
+
+.gantt_popup_controls {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.p-datepicker-buttonbar {
+    justify-content: flex-end !important;
+}
+
+.f-lable {
+    min-width: 8rem !important;
+}
+
+.selfPerson {
+    width: 82% !important;
+}
+
+.persons {
+    max-width: 84% !important;
+    // height: 5rem !important;
+}
+
+.tabsBox {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.tabsBox .p-tabs {
+    height: 100% !important;
+}
+
+.tabsBox .p-tabpanel {
+    height: 94% !important;
+    overflow: auto;
+}
+
+.tabsBox .p-tabpanel .overflow-y-scroll {
+    overflow: auto;
+}
+
+
+
+// .tabsBox .p-datatable-flex-scrollable{
+//     height: auto !important;
+// }
+
+// .tabsBox .p-tabview-panels.selectBox{
+//     overflow: hidden;
+// }
+
+// .tabsBox {
+
+// }
+
+.divBox {
+    width: 100%;
+    overflow: hidden;
+}
+
+.computeKittingBox {
+    width: 100%;
+    overflow: hidden;
+}
+
+.searchBottomBox {
+    margin-left: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.noDataTable {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2rem;
+    font-size: 1.2rem;
+}
+
+.ganttBoxWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.ganttBoxWrapper--schedule {
+    height: 70vh;
+    margin-top: 1rem;
+    padding-left: 1rem;
+}
+
+.ganttBoxWrapper--project {
+    height: 65vh;
+    margin-top: 1rem;
+    padding-left: 1rem;
+}
+
+.ganttBoxInner {
+    width: 100%;
+    height: 100%;
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    overflow: hidden;
+}
+
+.ganttLoadingState,
+.ganttEmptyState {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    pointer-events: none;
+}
+
+.ganttLoadingState {
+    z-index: 13;
+}
+
+.ganttEmptyState__icon {
+    font-size: 3rem;
+    color: #c0c4cc;
+    margin-bottom: 0.75rem;
+}
+
+.ganttEmptyState__text {
+    margin: 0;
+    font-size: 1rem;
+    color: #909399;
+    letter-spacing: 0.02em;
+}
+
+// 暗黑模式：暂无数据 / 加载遮罩（原浅色半透明底会与深色甘特表头叠在一起发灰）
+html.p-dark,
+:root[data-gantt-theme='dark'] {
+    .ganttEmptyState,
+    .ganttLoadingState {
+        background: rgba(34, 38, 48, 0.96);
+    }
+
+    .ganttEmptyState__icon {
+        color: rgba(255, 255, 255, 0.32);
+    }
+
+    .ganttEmptyState__text {
+        color: rgba(255, 255, 255, 0.62);
+    }
+
+    .noDataTable {
+        color: rgba(255, 255, 255, 0.62);
+    }
+}
+
+
+
+.gantt_task_line.gantt_project {
+    color: white;
+}
+
+.gantt_side_content {
+    // 时间轴任务条旁文字，随 dhtmlx 主题变量切换（暗黑见下方 order-schedule 强制浅色）
+    color: var(--dhx-gantt-base-colors-text-base, #333);
+}
+
+.summary-bar {
+    font-weight: bold;
+}
+
+
+.gantt_cell:nth-child(1) .gantt_tree_content {
+    border-radius: 16px;
+    width: 100%;
+    height: 80%;
+    margin: 5% 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+// 类型列父单元格：保持 height:100%，子元素 80% 圆角标签才能正常显示
+.order-schedule-view .gantt_grid .gantt_row .gantt_cell:nth-child(1),
+.order-schedule-view .gantt_grid .gantt_row .gantt_cell[data-column-name='refName'],
+.project-schedule-view .gantt_grid .gantt_row .gantt_cell:nth-child(1),
+.project-schedule-view .gantt_grid .gantt_row .gantt_cell[data-column-name='refName'] {
+    height: 100% !important;
+    min-height: 100%;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    align-items: center !important;
+    box-sizing: border-box;
+    overflow: visible !important;
+}
+
+// 按生产订单：主任务/子任务紧凑行高
+.order-schedule-view .gantt_grid_data .gantt_row:not(.gantt_resource_loadMore) {
+    line-height: normal !important;
+    overflow: hidden !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) {
+    line-height: normal !important;
+    overflow: hidden !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+    overflow: hidden !important;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    line-height: normal !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    box-sizing: border-box;
+    height: 100% !important;
+    min-height: 0;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+    overflow: hidden !important;
+    white-space: nowrap;
+    align-items: flex-start !important;
+    height: 100% !important;
+    min-height: 0;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) .gantt_cell_tree {
+    align-items: flex-start;
+    width: 100%;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_tree_icon {
+    flex-shrink: 0;
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    max-height: 18px !important;
+    flex: 0 0 18px !important;
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+    position: static !important;
+    background-position: center center;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_tree_indent {
+    align-self: flex-start !important;
+    height: 18px !important;
+    max-height: 18px !important;
+}
+
+// 订单/任务列：箭头 + 名称/PO 纵向排列（避免 grid + display:contents 把 PO 挤到右侧）
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'],
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) {
+    align-items: flex-start !important;
+
+    .gantt_cell_tree {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .gantt_tree_indent {
+        flex: 0 0 15px;
+        width: 15px !important;
+        height: 18px !important;
+        max-height: 18px !important;
+        align-self: flex-start !important;
+    }
+
+    .gantt_tree_icon.gantt_open,
+    .gantt_tree_icon.gantt_close,
+    .gantt_tree_icon.gantt_blank {
+        flex: 0 0 18px !important;
+        width: 18px !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        max-height: 18px !important;
+        min-height: 18px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-self: flex-start !important;
+        position: static !important;
+        background-position: center center !important;
+        overflow: hidden !important;
+    }
+
+    .gantt_cell_tree:not(:has(.gantt_tree_icon))::before {
+        content: '';
+        display: block;
+        flex: 0 0 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .gantt_tree_content {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        display: block !important;
+        height: auto !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        line-height: normal !important;
+    }
+}
+
+// 子任务行：箭头与单行文字垂直居中
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row {
+    .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+        align-items: center !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        height: 100% !important;
+    }
+
+    .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) .gantt_cell_tree {
+        align-items: center !important;
+    }
+
+    .gantt_cell[data-column-name='projectName'],
+    .gantt_cell:nth-child(2) {
+        .gantt_cell_tree {
+            display: flex;
+            flex-direction: row;
+            align-items: center !important;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .gantt_tree_indent {
+            flex-shrink: 0;
+            align-self: center !important;
+            height: 18px !important;
+        }
+
+        .gantt_tree_icon.gantt_open,
+        .gantt_tree_icon.gantt_close,
+        .gantt_tree_icon.gantt_blank {
+            align-self: center !important;
+            margin-top: 0 !important;
+        }
+
+        .gantt_cell_tree:not(:has(.gantt_tree_icon))::before {
+            content: '';
+            display: block;
+            width: 18px;
+            min-width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            flex-shrink: 0;
+        }
+
+        .gantt_tree_content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            align-self: center !important;
+        }
+    }
+
+    .gantt_cell[data-column-name='start_date'] .gantt_tree_content,
+    .gantt_cell[data-column-name='end_date'] .gantt_tree_content,
+    .gantt_cell[data-column-name='duration'] .gantt_tree_content,
+    .gantt_cell[data-column-name='priority'] .gantt_tree_content,
+    .gantt_cell[data-column-name='statusType'] .gantt_tree_content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+}
+
+// 按订单：类型列统一紧凑椭圆（订单行与任务行一致，覆盖全局 height:80%）
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_content {
+    border-radius: 16px;
+    width: auto !important;
+    min-width: 2.5rem;
+    height: auto !important;
+    line-height: 1.2;
+    margin: 0 !important;
+    padding: 4px 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1),
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_cell_tree,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_cell_tree {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    height: auto;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_icon,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_icon,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_icon.gantt_open,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_icon.gantt_close,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_icon.gantt_blank,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_icon.gantt_open,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_icon.gantt_close,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_icon.gantt_blank {
+    flex-shrink: 0;
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    align-self: center !important;
+    margin-top: 0 !important;
+    position: static !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .schedule-order-name-cell,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .schedule-order-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .schedule-order-name-line,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .schedule-order-name-line,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .schedule-order-name,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .schedule-order-name {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 18px !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .schedule-order-no-line,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .schedule-order-no-line,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .schedule-order-no,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .schedule-order-no {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 16px !important;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .errorImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .errorImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .waringImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .waringImportant {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell[data-column-name='projectName'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-summary-row .gantt_cell:nth-child(2) .gantt_tree_content {
+    display: block !important;
+    height: auto !important;
+    line-height: normal !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell[data-column-name='projectName'] .schedule-order-task-name-cell,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell:nth-child(2) .schedule-order-task-name-cell {
+    min-width: 0;
+    width: 100%;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell[data-column-name='projectName'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell:nth-child(2) .gantt_tree_content {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    height: auto !important;
+    line-height: 1.35 !important;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell[data-column-name='projectName']:has(.schedule-order-task-name-cell),
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell:nth-child(2):has(.schedule-order-task-name-cell) {
+    align-items: flex-start !important;
+
+    .gantt_cell_tree {
+        align-items: flex-start !important;
+    }
+
+    .gantt_tree_content {
+        overflow: hidden !important;
+        word-break: normal !important;
+    }
+
+    .schedule-order-name-line,
+    .schedule-order-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell[data-column-name='projectName'] .gantt_tree_content .errorImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell[data-column-name='projectName'] .gantt_tree_content .waringImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell:nth-child(2) .gantt_tree_content .errorImportant,
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-task-row .gantt_cell:nth-child(2) .gantt_tree_content .waringImportant {
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
+    display: block;
+    min-width: 0;
+}
+
+.order-schedule-view .gantt_grid,
+.project-schedule-view .gantt_grid {
+    overflow-x: auto;
+}
+
+// 列宽下限由 gantt 配置/拖拽保证；数据行勿设 min-width，否则会撑破行内列对齐
+.order-schedule-view .gantt_grid .gantt_row .gantt_cell[data-column-name='projectName'],
+.order-schedule-view .gantt_grid .gantt_row .gantt_cell:nth-child(2) {
+    line-height: normal !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+
+.order-schedule-view .gantt_grid_scale .gantt_grid_head_cell[data-column-name='projectName'],
+.order-schedule-view .gantt_grid_scale .gantt_grid_head_cell:nth-child(2) {
+    min-width: 240px;
+}
+
+.project-schedule-view .gantt_grid .gantt_row .gantt_cell[data-column-name='projectName'],
+.project-schedule-view .gantt_grid .gantt_row .gantt_cell:nth-child(2) {
+    line-height: normal !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+
+.project-schedule-view .gantt_grid_scale .gantt_grid_head_cell[data-column-name='projectName'],
+.project-schedule-view .gantt_grid_scale .gantt_grid_head_cell:nth-child(2) {
+    min-width: 220px;
+}
+
+// 单行名称（暂无数据 / 无编号项目订单）：覆盖 summary-row 的 flex-start，整行垂直居中
+.order-schedule-view .gantt_grid .gantt_row.schedule-order-single-line-row {
+    .gantt_cell:nth-child(1),
+    .gantt_cell[data-column-name='refName'] {
+        display: flex !important;
+        align-items: center !important;
+        height: 100% !important;
+    }
+
+    .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+        display: flex !important;
+        align-items: center !important;
+        overflow: hidden !important;
+        white-space: nowrap;
+        line-height: normal !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        box-sizing: border-box;
+        height: 100% !important;
+        min-height: 0;
+    }
+
+    .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) .gantt_cell_tree {
+        align-items: center !important;
+        width: 100%;
+    }
+
+    .gantt_cell[data-column-name='projectName'],
+    .gantt_cell:nth-child(2) {
+        align-items: center !important;
+
+        .gantt_cell_tree {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .gantt_tree_indent {
+            flex-shrink: 0;
+            align-self: center !important;
+            height: 18px !important;
+        }
+
+        .gantt_tree_icon,
+        .gantt_tree_icon.gantt_open,
+        .gantt_tree_icon.gantt_close,
+        .gantt_tree_icon.gantt_blank {
+            align-self: center !important;
+            margin-top: 0 !important;
+        }
+
+        .gantt_tree_content {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            text-overflow: ellipsis;
+            line-height: 1.35 !important;
+            height: auto !important;
+        }
+    }
+
+    .gantt_cell[data-column-name='start_date'] .gantt_tree_content,
+    .gantt_cell[data-column-name='end_date'] .gantt_tree_content,
+    .gantt_cell[data-column-name='duration'] .gantt_tree_content,
+    .gantt_cell[data-column-name='priority'] .gantt_tree_content,
+    .gantt_cell[data-column-name='statusType'] .gantt_tree_content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        white-space: nowrap;
+    }
+}
+
+.schedule-order-single-name-cell {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+// 第二列兜底：窄列时禁止逐字竖排，改为单行省略
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='projectName'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(2) .gantt_tree_content {
+    word-break: normal !important;
+}
+
+// 开始/结束/时长/优先级/状态列：随行动态高度垂直居中
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='start_date'],
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='end_date'],
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='duration'],
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='priority'],
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='statusType'] {
+    align-items: center !important;
+    justify-content: center;
+}
+
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='start_date'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='end_date'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='duration'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='priority'] .gantt_tree_content,
+.order-schedule-view .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='statusType'] .gantt_tree_content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+// 按订单：第二列由 formatScheduleNameCell 输出（名称 + PO 两行），浅色模式默认字色
+.schedule-order-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.schedule-order-name-line,
+.schedule-order-name {
+    font-size: 13px;
+    color: var(--dhx-gantt-base-colors-text-base, #1f2937);
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+}
+
+// 延期/警告：主行、副行（项目/订单/任务编号）均需显式覆盖独立 color
+.errorImportant .schedule-order-name-line,
+.errorImportant .schedule-order-name,
+.errorImportant .schedule-order-no-line,
+.errorImportant .schedule-order-no,
+.errorImportant .schedule-task-no-line,
+.errorImportant .schedule-task-no {
+    color: #FF0033 !important;
+}
+
+.waringImportant .schedule-order-name-line,
+.waringImportant .schedule-order-name,
+.waringImportant .schedule-order-no-line,
+.waringImportant .schedule-order-no,
+.waringImportant .schedule-task-no-line,
+.waringImportant .schedule-task-no {
+    color: #FF9933 !important;
+}
+
+.schedule-order-no-line,
+.schedule-order-no,
+.schedule-task-no-line,
+.schedule-task-no {
+    font-size: 12px;
+    color: var(--dhx-gantt-base-colors-text-light, #64748b);
+    line-height: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+}
+
+// 暗黑模式订单/任务列字色兼容（三处触发条件，避免「深底 + 深字」看不清）：
+// 1) html.p-dark：PrimeVue 全局暗黑，甘特背景已变深但 dhtmlx 变量可能仍是 material 浅色值
+// 2) .schedule-gantt-dark：GanntView 在 mes.context.isDark 时挂到 ganttBox，与 p-dark 双保险
+// 3) data-gantt-theme='dark'：dhtmlx setSkin('dark') 写入 documentElement 时生效
+// 使用 !important 覆盖自定义 HTML 内联继承及浅色主题变量
+html.p-dark .order-schedule-view,
+.order-schedule-view.schedule-gantt-dark,
+:root[data-gantt-theme='dark'] .order-schedule-view {
+    // 制品名 / 任务名主行
+    .schedule-order-name-line,
+    .schedule-order-name,
+    .gantt_grid .gantt_row .gantt_cell[data-column-name='projectName'] .gantt_tree_content,
+    .gantt_grid .gantt_row .gantt_cell:nth-child(2) .gantt_tree_content {
+        color: rgba(255, 255, 255, 0.92) !important;
+    }
+
+    // PO 订单号 / 任务编号副行，略降透明度区分层级
+    .schedule-order-no-line,
+    .schedule-order-no,
+    .schedule-task-no-line,
+    .schedule-task-no {
+        color: rgba(255, 255, 255, 0.58) !important;
+    }
+
+    // 延期：浅红，暗黑下仍可读（主行 + 编号副行）
+    .errorImportant .schedule-order-name-line,
+    .errorImportant .schedule-order-name,
+    .errorImportant .schedule-order-no-line,
+    .errorImportant .schedule-order-no,
+    .errorImportant .schedule-task-no-line,
+    .errorImportant .schedule-task-no {
+        color: #ff7b8e !important;
+    }
+
+    // 警告：浅橙（主行 + 编号副行）
+    .waringImportant .schedule-order-name-line,
+    .waringImportant .schedule-order-name,
+    .waringImportant .schedule-order-no-line,
+    .waringImportant .schedule-order-no,
+    .waringImportant .schedule-task-no-line,
+    .waringImportant .schedule-task-no {
+        color: #ffb84d !important;
+    }
+}
+
+// 项目排程 / 生产排程(按项目)：行高随内容，上下留白略增（不影响 order-schedule-view）
+.project-schedule-view:not(.order-schedule-view) {
+    .gantt_grid_data .gantt_row:not(.gantt_resource_loadMore) {
+        line-height: normal !important;
+        overflow: visible !important;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) {
+        line-height: normal !important;
+        overflow: visible !important;
+    }
+
+    // 类型列：紧凑椭圆标签（动态行高下不用 height:80%，避免撑满整行）
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_tree_content,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_tree_content {
+        border-radius: 16px;
+        width: auto;
+        min-width: 2.5rem;
+        height: auto;
+        line-height: 1.2;
+        margin: 0;
+        padding: 4px 10px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        font-size: 12px;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1),
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] {
+        display: flex !important;
+        justify-content: center;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(1) .gantt_cell_tree,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='refName'] .gantt_cell_tree {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: auto;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+        overflow: visible !important;
+        white-space: normal;
+        display: flex;
+        align-items: center;
+        line-height: normal !important;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+        box-sizing: border-box;
+        height: auto !important;
+        min-height: 100%;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) .gantt_cell_tree {
+        align-items: center;
+        width: 100%;
+    }
+
+    // 项目/阶段/工作包列：箭头与文字垂直居中对齐
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='projectName'],
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell:nth-child(2) {
+        .gantt_cell_tree {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2px;
+            width: 100%;
+        }
+
+        .gantt_tree_indent {
+            flex-shrink: 0;
+        }
+
+        .gantt_tree_icon,
+        .gantt_tree_icon.gantt_open,
+        .gantt_tree_icon.gantt_close,
+        .gantt_tree_icon.gantt_blank {
+            flex-shrink: 0;
+            width: 18px !important;
+            min-width: 18px !important;
+            height: 18px !important;
+            align-self: center;
+            margin-top: 0 !important;
+        }
+
+        .gantt_tree_content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis;
+            height: auto !important;
+            line-height: 1.4 !important;
+            word-break: normal !important;
+        }
+    }
+
+    // 行内「添加」按钮（勿用 dhtmlx 的 .gantt_add，否则会多出一个黑色图标 +）
+    .gantt_cell[data-column-name='add_above'] {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gantt-add-above-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        background: #fff;
+        color: #667085;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+
+        &:hover {
+            background: #f2f4f7;
+            color: #344054;
+        }
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='start_date'],
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='end_date'],
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='duration'],
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='statusType'],
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='ownerName'] {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='start_date'] .gantt_tree_content,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='end_date'] .gantt_tree_content,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='duration'] .gantt_tree_content,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='statusType'] .gantt_tree_content,
+    .gantt_grid .gantt_row:not(.gantt_resource_loadMore) .gantt_cell[data-column-name='ownerName'] .gantt_tree_content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        white-space: nowrap;
+        overflow: visible;
+    }
+
+    // 多行名称：顶部对齐
+    .gantt_row.schedule-project-multiline-row {
+        .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+            align-items: flex-start !important;
+            height: 100% !important;
+        }
+
+        .gantt_cell[data-column-name='projectName'],
+        .gantt_cell:nth-child(2) {
+            align-items: flex-start !important;
+
+            .gantt_cell_tree {
+                align-items: flex-start !important;
+            }
+
+            .gantt_tree_content {
+                white-space: normal !important;
+                overflow: hidden !important;
+                word-break: break-word;
+                align-items: flex-start !important;
+            }
+        }
+    }
+
+    // 单行（暂无数据 / 短名称）：整行垂直居中
+    .gantt_row.schedule-project-single-line-row {
+        .gantt_cell:nth-child(1),
+        .gantt_cell[data-column-name='refName'] {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) {
+            display: flex !important;
+            align-items: center !important;
+            overflow: hidden !important;
+            white-space: nowrap;
+            line-height: normal !important;
+            padding-top: 7px !important;
+            padding-bottom: 7px !important;
+            box-sizing: border-box;
+            height: 100% !important;
+            min-height: 0;
+        }
+
+        .gantt_cell:not(:nth-child(1)):not([data-column-name='refName']) .gantt_cell_tree {
+            align-items: center !important;
+            width: 100%;
+        }
+
+        .gantt_cell[data-column-name='projectName'],
+        .gantt_cell:nth-child(2) {
+            align-items: center !important;
+
+            .gantt_cell_tree {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 2px;
+                width: 100%;
+            }
+
+            .gantt_tree_indent,
+            .gantt_tree_icon,
+            .gantt_tree_icon.gantt_open,
+            .gantt_tree_icon.gantt_close,
+            .gantt_tree_icon.gantt_blank {
+                align-self: center !important;
+                margin-top: 0 !important;
+            }
+
+            .gantt_tree_content {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                overflow: hidden !important;
+                white-space: nowrap !important;
+                text-overflow: ellipsis;
+                line-height: 1.4 !important;
+                height: auto !important;
+            }
+        }
+
+        .gantt_cell[data-column-name='start_date'] .gantt_tree_content,
+        .gantt_cell[data-column-name='end_date'] .gantt_tree_content,
+        .gantt_cell[data-column-name='duration'] .gantt_tree_content,
+        .gantt_cell[data-column-name='statusType'] .gantt_tree_content,
+        .gantt_cell[data-column-name='ownerName'] .gantt_tree_content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            white-space: nowrap;
+        }
+    }
+
+    .schedule-project-single-name-cell {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .schedule-project-name-line {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: normal;
+        line-height: 1.4;
+    }
+}
+
+.loadBg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99999999;
+    background: rgba(0, 0, 0, .1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loadBgBox {
+    width: 10rem;
+    height: 10rem;
+    border-radius: 10%;
+    overflow: hidden;
+    opacity: .8;
+}
+
+.loadEffectBox {
+    border-radius: 1rem;
+    padding: 2rem;
+    background: rgba(0, 0, 0, .4);
+}
+
+.loadEffect {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.loadEffect span {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #00CCFF;
+    position: absolute;
+    -webkit-animation: load 1.04s ease infinite;
+}
+
+@-webkit-keyframes load {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.2;
+    }
+}
+
+.loadEffect span:nth-child(1) {
+    left: 0;
+    top: 50%;
+    margin-top: -8px;
+    -webkit-animation-delay: 0.13s;
+}
+
+.loadEffect span:nth-child(2) {
+    left: 14px;
+    top: 14px;
+    -webkit-animation-delay: 0.26s;
+}
+
+.loadEffect span:nth-child(3) {
+    left: 50%;
+    top: 0;
+    margin-left: -8px;
+    -webkit-animation-delay: 0.39s;
+}
+
+.loadEffect span:nth-child(4) {
+    top: 14px;
+    right: 14px;
+    -webkit-animation-delay: 0.52s;
+}
+
+.loadEffect span:nth-child(5) {
+    right: 0;
+    top: 50%;
+    margin-top: -8px;
+    -webkit-animation-delay: 0.65s;
+}
+
+.loadEffect span:nth-child(6) {
+    right: 14px;
+    bottom: 14px;
+    -webkit-animation-delay: 0.78s;
+}
+
+.loadEffect span:nth-child(7) {
+    bottom: 0;
+    left: 50%;
+    margin-left: -8px;
+    -webkit-animation-delay: 0.91s;
+}
+
+.loadEffect span:nth-child(8) {
+    bottom: 14px;
+    left: 14px;
+    -webkit-animation-delay: 1.04s;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+body.gantt-resize-dragging {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+/* 左侧到最小宽后继续左拖：时间轴覆盖左侧 */
+.gantt_container.gantt-timeline-cover-mode {
+    .gantt_grid,
+    .gantt_grid_scale,
+    .gantt_grid_data {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+.gantt-compact-view {
+    .gantt_grid_head_cell {
+        font-size: 12px;
+        padding: 0 4px;
+    }
+
+    .gantt_grid .gantt_cell {
+        font-size: 12px;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .gantt_task_scale .gantt_scale_cell {
+        font-size: 11px;
+    }
+
+    .gantt_task_line .gantt_task_content {
+        font-size: 12px;
+    }
+}
+
+// 小屏 PC（如 1080p）：左侧表格优先，横向可滚动兜底
+.gantt-small-pc-view {
+    .gantt_grid {
+        overflow-x: auto;
+    }
+
+    .gantt_grid .gantt_cell[data-column-name='projectName'],
+    .gantt_grid .gantt_cell:nth-child(2) {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+}
+
+.gantt_grid_scale .gantt_grid_head_cell {
+    position: relative;
+}
+
+// 甘特图 tooltip：每行 label 与 value 横向键值对应
+.gantt_tooltip {
+	max-width: 480px;
+	white-space: normal !important;
+	line-height: 1.45;
+}
+
+.gantt-tooltip-body {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.gantt-tooltip-header {
+	padding-bottom: 4px;
+	margin-bottom: 2px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gantt-tooltip-row {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.gantt-tooltip-label {
+	flex-shrink: 0;
+	font-weight: 600;
+	opacity: 0.92;
+
+	&::after {
+		content: '：';
+	}
+}
+
+.gantt-tooltip-value {
+	flex: 1;
+	min-width: 0;
+	word-break: break-word;
+}
+
+.gantt-group-single-label {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.5rem;
+	padding: 0 0.75rem;
+}
+
+// LightBox 视口居中（勿覆盖 display，否则遮罩无法隐藏）
+.gantt_cal_cover {
+	position: fixed !important;
+	inset: 0 !important;
+	z-index: 1000;
+}
+
+.gantt_cal_light {
+	position: fixed !important;
+	top: 50% !important;
+	left: 50% !important;
+	transform: translate(-50%, -50%) !important;
+	margin: 0 !important;
+}
+
+// Lightbox 底部按钮：material 为 --dhx-gantt-btn-order: row + push_right 靠右；dark 未覆盖该变量，默认为 row-reverse 导致保存/关闭挤在左侧
+:root[data-gantt-theme='dark'],
+html.p-dark {
+	--dhx-gantt-btn-order: row;
+}
+
+.gantt_cal_light .gantt_cal_lcontrols {
+	flex-direction: row !important;
+	justify-content: flex-start;
+
+	.gantt_cal_lcontrols_push_right {
+		margin-left: auto;
+	}
+}
+
+// .gantt_delete_btn_set{
+//     display: none !important;
+// }

@@ -11,9 +11,10 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/playground --filter @mmda/base build",
+    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/playground --filter @mmda/base --filter @mmda/mes build",
     "dev:vui": "pnpm --filter @mmda/playground dev",
     "dev:base": "pnpm --filter @mmda/base dev",
+    "dev:mes": "pnpm --filter @mmda/mes dev",
     "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue test",
     "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
     "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""

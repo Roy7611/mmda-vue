@@ -4,9 +4,15 @@ import {
   MetaModel,
   type MetaUiField,
   type Module,
-  type UiContext,
 } from '@mmda/core'
-import { cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type PropData, type UiFieldFactory } from '@mmda/vui'
+import {
+  cleanProps,
+  fasIcon,
+  TABLE_CELL_PROP_KEYS,
+  type PropData,
+  type UiFieldFactory,
+  type UiViewContext,
+} from '@mmda/vui'
 import Checkbox from 'primevue/checkbox'
 import ColorPicker from 'primevue/colorpicker'
 import DatePicker from 'primevue/datepicker'
@@ -24,6 +30,8 @@ import Slider from 'primevue/slider'
 import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import ToggleSwitch from 'primevue/toggleswitch'
+
+type UiContext = UiViewContext<any>
 
 const update = (field: MetaUiField, context: UiContext) => (value: any) =>
   context.setFieldValue(field, value)
@@ -58,10 +66,8 @@ const control = (
         props['onUpdate:modelValue'] ?? update(field, context),
     }),
     invalid &&
-      h(
-        Message,
-        { severity: 'error', size: 'small', variant: 'simple' },
-        () => (context as any).getInvalidMessage?.(field),
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
       ),
   ])
 }
@@ -73,37 +79,56 @@ const textArea = (field: MetaUiField, context: UiContext, props?: PropData) =>
   control(Textarea, field, context, props, { autoResize: true, rows: 3 })
 
 const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(Password, field, context, props, { feedback: true, toggleMask: true })
+  control(Password, field, context, props, {
+    feedback: true,
+    toggleMask: true,
+  })
 
 const dropdown = (field: MetaUiField, context: UiContext, props?: PropData) => {
   const reference = field.reference
   return control(Select, field, context, props, {
     options: reference?.refOptions ?? props?.options ?? [],
-    optionLabel: reference ? (option: any) => reference.labelOf(option) : props?.optionLabel,
+    optionLabel: reference
+      ? (option: any) => reference.labelOf(option)
+      : props?.optionLabel,
     optionValue: reference ? undefined : props?.optionValue,
     filter: true,
     showClear: field.nullable,
   })
 }
 
-const multiSelect = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const multiSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
   const reference = field.reference
   return control(MultiSelect, field, context, props, {
     options: reference?.refOptions ?? props?.options ?? [],
-    optionLabel: reference ? (option: any) => reference.labelOf(option) : props?.optionLabel,
+    optionLabel: reference
+      ? (option: any) => reference.labelOf(option)
+      : props?.optionLabel,
     filter: true,
     display: 'chip',
   })
 }
 
-const numberInput = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const numberInput = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
   control(InputNumber, field, context, props, {
     minFractionDigits: (field as any).scale,
     maxFractionDigits: (field as any).scale,
     useGrouping: false,
   })
 
-const percentInput = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const percentInput = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
   control(InputNumber, field, context, props, {
     mode: 'decimal',
     suffix: '%',
@@ -123,7 +148,11 @@ const datePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
     showIcon: true,
   })
 
-const dateTimePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const dateTimePicker = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
   control(DatePicker, field, context, props, {
     dateFormat: 'yy-mm-dd',
     showTime: true,
@@ -132,7 +161,11 @@ const dateTimePicker = (field: MetaUiField, context: UiContext, props?: PropData
     showIcon: true,
   })
 
-const monthPicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const monthPicker = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
   control(DatePicker, field, context, props, {
     view: 'month',
     dateFormat: 'yy-mm',
@@ -154,7 +187,7 @@ const fallbackDisplay = (
   h(
     'output',
     { class: 'mmda-prime-display', ...props },
-    String(context.displayField(field) ?? ''),
+    String(context.displayField(field, props.row) ?? ''),
   )
 
 const fallbackInput = (
@@ -162,16 +195,19 @@ const fallbackInput = (
   context: UiContext,
   props?: PropData,
 ): VNode => {
-  if (field.reference?.refOptions?.length) return dropdown(field, context, props)
+  if (field.reference?.refOptions?.length)
+    return dropdown(field, context, props)
   if (SqlDataType.isBool(field.dataType)) return checkbox(field, context, props)
-  if (SqlDataType.isNum(field.dataType)) return numberInput(field, context, props)
-  if (SqlDataType.isDate(field.dataType)) return datePicker(field, context, props)
+  if (SqlDataType.isNum(field.dataType))
+    return numberInput(field, context, props)
+  if (SqlDataType.isDate(field.dataType))
+    return datePicker(field, context, props)
   return textInput(field, context, props)
 }
 
 const tag = (field: MetaUiField, context: UiContext, props?: PropData) =>
   h(Tag, {
-    value: context.displayField(field),
+    value: context.displayField(field, props?.row),
     severity: props?.severity,
     ...props,
   })
@@ -180,28 +216,38 @@ const tags = (field: MetaUiField, context: UiContext, props?: PropData) =>
   h(
     'div',
     { class: 'mmda-prime-tags' },
-    (context.getFieldValue(field) ?? []).map((value: any) =>
-      h(Tag, { value: field.reference?.labelOf(value) ?? String(value), ...props }),
+    (context.getFieldValue(field, props?.row) ?? []).map((value: any) =>
+      h(Tag, {
+        value: field.reference?.labelOf(value) ?? String(value),
+        ...props,
+      }),
     ),
   )
 
 const cellDomProps = (props?: PropData) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
 
-const externalLink = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const externalLink = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
   const app = context.app
   if (!app) return fallbackDisplay(field, context, props)
 
-  const model = context.model as Record<string, any>
+  const model = (props?.row ?? context.model) as Record<string, any>
   const alias = field.reference?.alias
-  const fldVal =
-    model[field.fieldName] ?? (alias ? model[alias] : undefined)
+  const fldVal = model[field.fieldName] ?? (alias ? model[alias] : undefined)
   if (!fldVal) return fallbackDisplay(field, context, props)
 
   const fldText = MetaModel.displayField(model, field)
   const domProps = cellDomProps(props)
   if (!fldText) {
-    return h('span', { class: 'warning', name: field.fieldName, ...domProps }, 'N/A')
+    return h(
+      'span',
+      { class: 'warning', name: field.fieldName, ...domProps },
+      'N/A',
+    )
   }
 
   const linkable = props?.isSearch ? false : (props?.linkable ?? true)
@@ -217,11 +263,10 @@ const externalLink = (field: MetaUiField, context: UiContext, props?: PropData) 
     !reference.refDbName || reference.refDbName === api?.config.service
 
   const refMainModule = isCurrentSystem
-    ? modules.find(
-        (module: Module) =>
-          module?.subModules?.some(
-            (subModule) => subModule.objName === reference.refObjName,
-          ),
+    ? modules.find((module: Module) =>
+        module?.subModules?.some(
+          (subModule) => subModule.objName === reference.refObjName,
+        ),
       )
     : systemList.find((system: any) => system.service === reference.refDbName)
 
@@ -247,7 +292,7 @@ const externalLink = (field: MetaUiField, context: UiContext, props?: PropData) 
       event.stopPropagation()
       void (async () => {
         await context.app?.syncAuthState?.()
-        const url = context.routeToRelative?.(field)
+        const url = context.routeToRelative?.(field, model)
         if (url) window.open(url, '_blank', 'noopener,noreferrer')
       })()
     },
@@ -262,14 +307,17 @@ const externalLink = (field: MetaUiField, context: UiContext, props?: PropData) 
       ...domProps,
     },
     [
-      fasIcon("external-link", mergeProps(iconProps, { class: iconProps.class })),
+      fasIcon(
+        'external-link',
+        mergeProps(iconProps, { class: iconProps.class }),
+      ),
       h('span', fldText),
     ],
   )
 }
 
 const fileLink = (field: MetaUiField, context: UiContext, props?: PropData) => {
-  const value = context.getFieldValue(field)
+  const value = context.getFieldValue(field, props?.row)
   return h(
     'a',
     {
@@ -278,7 +326,7 @@ const fileLink = (field: MetaUiField, context: UiContext, props?: PropData) => {
       rel: 'noopener noreferrer',
       ...cellDomProps(props),
     },
-    context.displayField(field) || String(value ?? ''),
+    context.displayField(field, props?.row) || String(value ?? ''),
   )
 }
 
@@ -340,11 +388,22 @@ const factory: UiFieldFactory = {
       ...props,
     }),
   imagePicker: (field, context, props) =>
-    h(Image, { src: context.getFieldValue(field), preview: true, ...props }),
+    h(Image, {
+      src: context.getFieldValue(field, props?.row),
+      preview: true,
+      ...props,
+    }),
   image: (field, context, props) =>
-    h(Image, { src: context.getFieldValue(field), preview: true, ...props }),
+    h(Image, {
+      src: context.getFieldValue(field, props?.row),
+      preview: true,
+      ...props,
+    }),
   progressBar: (field, context, props) =>
-    h(ProgressBar, { value: Number(context.getFieldValue(field) ?? 0), ...props }),
+    h(ProgressBar, {
+      value: Number(context.getFieldValue(field, props?.row) ?? 0),
+      ...props,
+    }),
   tag,
   tags,
   enumSetTags: tags,
@@ -353,18 +412,30 @@ const factory: UiFieldFactory = {
   textSpan: fallbackDisplay,
   span: fallbackDisplay,
   multilineText: (field, context, props) =>
-    h('span', { style: { whiteSpace: 'pre-wrap' }, ...props }, context.displayField(field)),
+    h(
+      'span',
+      { style: { whiteSpace: 'pre-wrap' }, ...props },
+      context.displayField(field, props?.row),
+    ),
   percentage: (field, context, props) =>
-    h('span', props, `${Number(context.getFieldValue(field) ?? 0) * 100}%`),
+    h(
+      'span',
+      props,
+      `${Number(context.getFieldValue(field, props?.row) ?? 0) * 100}%`,
+    ),
   amountText: fallbackDisplay,
   checkIcon: (field, context, props) =>
     h('i', {
-      class: context.getFieldValue(field) ? 'pi pi-check' : 'pi pi-times',
+      class: context.getFieldValue(field, props?.row)
+        ? 'pi pi-check'
+        : 'pi pi-times',
       ...props,
     }),
   checkedIcon: (field, context, props) =>
     h('i', {
-      class: context.getFieldValue(field) ? 'pi pi-check-circle' : 'pi pi-circle',
+      class: context.getFieldValue(field, props?.row)
+        ? 'pi pi-check-circle'
+        : 'pi pi-circle',
       ...props,
     }),
   searchInput: textInput,
@@ -379,12 +450,14 @@ const factory: UiFieldFactory = {
   toSecondsInput: numberInput,
   colorBox: (field, context, props) =>
     h('span', {
-      title: String(context.getFieldValue(field) ?? ''),
+      title: String(context.getFieldValue(field, props?.row) ?? ''),
       style: {
         display: 'inline-block',
         width: '1.5rem',
         height: '1.5rem',
-        backgroundColor: String(context.getFieldValue(field) ?? 'transparent'),
+        backgroundColor: String(
+          context.getFieldValue(field, props?.row) ?? 'transparent',
+        ),
       },
       ...props,
     }),

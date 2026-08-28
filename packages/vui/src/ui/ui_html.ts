@@ -15,9 +15,9 @@ import {
   type MetaUiField,
   type Module,
   type Pagination,
-  type UiContext,
 } from "@mmda/core";
 import { AbstractUiBuilder } from "./ui_builder";
+import type { UiViewContext } from "./ui_context";
 import type {
   SigninFormProps,
   SigninFormSlots,
@@ -42,6 +42,8 @@ import type { UiFactory, UiFieldFactory } from "./ui_factory";
 import type { PropData, UiLayout, UiSlots } from "./ui_layout";
 import type { UiListPropsType, UiPaginatorPropsType } from "./ui_list";
 import type { SearchForRelativeProps, UiSearchField } from "./ui_filter";
+
+type UiContext = UiViewContext<any>;
 
 const invoke = (value: unknown): any =>
   typeof value === "function" ? (value as () => unknown)() : value;
@@ -483,12 +485,12 @@ export function createHtmlFieldFactory(): UiFieldFactory {
   const fallbackDisplay = (
     field: MetaUiField,
     context: UiContext,
-    props = {},
+    props: PropData = {},
   ) =>
     h(
       "output",
       { class: "mmda-field-display", ...props },
-      String(context.displayField(field) ?? ""),
+      String(context.displayField(field, props.row) ?? ""),
     );
 
   const fallbackInput = (

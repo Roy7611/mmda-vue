@@ -133,7 +133,7 @@ export const validateFieldByRules = <P, E>(fld: MetaUiField, value: P, model: E,
  * @param model 模型上下文
  * @returns 返回非法消息，客户端可通过`t`函数本地化翻译
  */
-export const validateField = <P = any, E = any>(fld: MetaUiField, value: P, model: E, ctx: UiContext): string => {
+export const validateField = <P = any, E = any>(fld: MetaUiField, value: P, model: E, ctx: UiContext<any>): string => {
   const onValidateFn = ctx.getFieldLogic?.(fld)?.onValidateFn
   if (isFunction(onValidateFn)) {
     return ctx.t(onValidateFn(value, model, ctx))

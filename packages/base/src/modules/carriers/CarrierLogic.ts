@@ -121,7 +121,7 @@ export class CarrierLogic extends UiLogic<Carrier> {
 		* @param context 界面上下文
 		* @param target 项目模板
 		*/
-	newCarrierProduct(context: UiContext, target: Carrier) {
+	newCarrierProduct(context: UiContext<Carrier>, target: Carrier) {
 		context.select<CarrierNProd>({
 			repository: 'CarrierNProds',
 			searchParam: {
@@ -150,7 +150,7 @@ export class CarrierLogic extends UiLogic<Carrier> {
 	* @param context 界面上下文
 	* @param target 项目模板
 	*/
-	newCarrierCatalog(context: UiContext, target: Carrier) {
+	newCarrierCatalog(context: UiContext<Carrier>, target: Carrier) {
 		context.select<CarrierNProd>({
 			repository: 'CarrierNProds',
 			searchParam: {

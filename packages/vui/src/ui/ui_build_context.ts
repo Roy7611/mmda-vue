@@ -42,15 +42,13 @@ export class UiBuildContext<
   constructor(options: UiBuildContextOptions<E>) {
     super(options);
     this.logic = options.logic;
-    // DI 里预创建的 Logic 往往还没有 pack；屏级会话若已带 metaui，先挂上再绑定字段逻辑
+    // DI 里预创建的 Logic 往往还没有 pack；屏级会话若已带 metaui，先挂上。
+    // 字段逻辑可能按视图异步加载，统一在 init() 中绑定。
     if (options.metaui) {
       this.logic.meta = {
         ...(this.logic.meta ?? {}),
         metaui: options.metaui,
       } as typeof this.logic.meta;
-    }
-    if (this.logic.meta?.metaui) {
-      this.logic.applyTo(this, this.view);
     }
   }
 
@@ -64,6 +62,7 @@ export class UiBuildContext<
   }
 
   get selectionMode(): "single" | "multiple" | null {
+    if (this.view === UiViewMany.SelectOne) return "single";
     if (
       this.view === UiViewMany.SelectMany ||
       this.view === UiViewMany.EditMany
@@ -80,7 +79,7 @@ export class UiBuildContext<
   async init(params?: EntityUrlParam) {
     await this.logic.initMetadata(false, params);
     // initMetadata 之后再 apply：定制 Logic 的 field()/group() 依赖 metaui
-    this.logic.applyTo(this, this.view);
+    await this.logic.applyTo(this, this.view);
     if (this.many) {
       this.configureSearch(this.logic.meta.filters, this.logic.beforeSearch());
     }
