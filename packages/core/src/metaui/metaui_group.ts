@@ -244,6 +244,8 @@ export interface MetaUiInit {
   uniqueKey?: string
   primaryKey?: string
   labelKey?: string
+  /** 后端旧名称：列表中作为详情链接的字段。 */
+  nameCol?: string
   locale?: string
   lastModified?: Date
   groups: any[]
@@ -265,6 +267,7 @@ export class MetaUi {
     uniqueKey,
     primaryKey,
     labelKey,
+    nameCol,
     locale,
     lastModified,
     groups,
@@ -275,6 +278,7 @@ export class MetaUi {
     this.uniqueKey = uniqueKey
     this.primaryKey = primaryKey
     this.labelKey = labelKey
+    this.nameCol = nameCol
     this.locale = locale
     this.lastModified = lastModified
     this.groups = groups.map(g => new MetaUiGroup(g))
@@ -308,6 +312,9 @@ export class MetaUi {
   // 链接标签字段，UI列表上渲染为超链接
   labelKey?: string
 
+  // 后端兼容字段；新元数据优先使用 labelKey
+  nameCol?: string
+
   // 语言区域，如en,zh-Hans,zh-Hant
   locale?: string
 
@@ -327,7 +334,7 @@ export class MetaUi {
    * 链接标签域，如果没设置`labelKey`则默认为`uniqueKey`
    */
   get labelField() {
-    return this.labelKey ?? this.uniqueKey
+    return this.labelKey ?? this.nameCol ?? this.uniqueKey
   }
   // 命名域查找
   private _namedFields: Record<string, MetaUiField>

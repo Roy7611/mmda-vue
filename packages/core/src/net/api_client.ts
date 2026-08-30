@@ -225,7 +225,13 @@ export class ApiClient {
     searchParam: any,
     { repository, queryParams, service }: EntityUrlParam = {},
   ): Promise<PagedList<unknown>> {
-    const url = this.buildEntityURL({ repository, queryParams, service });
+    // 与 create/save/deleteAll 一致：动作名进路径；列表仓储本身只接受 GET。
+    const url = this.buildEntityURL({
+      repository,
+      action: "searchAll",
+      queryParams,
+      service,
+    });
     return this.http.post(url, {
       options: {
         body: JSON.stringify(searchParam),

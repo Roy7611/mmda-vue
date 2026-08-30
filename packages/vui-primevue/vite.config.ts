@@ -26,6 +26,8 @@ export default defineConfig({
         id === 'vue-router' ||
         id === '@mmda/core' ||
         id === '@mmda/vui' ||
+        id === '@mmda/vui/fontawesome.css' ||
+        id === '@mmda/vui/theme.css' ||
         id === 'primevue' ||
         id.startsWith('primevue/') ||
         id.startsWith('@primevue/themes') ||

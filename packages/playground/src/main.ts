@@ -5,6 +5,7 @@ import {
   SqlDataType,
   type EntitySearchParam,
   type PagedList,
+  DEFAULT_PAGE_SIZE,
 } from '@mmda/core'
 import {
   MmdaApplication,
@@ -13,10 +14,10 @@ import {
   setupI18n,
 } from '@mmda/vui'
 import {
-  PrimeVueOverlayHost,
   PrimeVueUiBuilder,
   mmdaPrimeVue,
 } from '@mmda/vui-primevue'
+import { SyncfusionUiBuilder, mmdaSyncfusion } from '@mmda/vui-syncfusion'
 import 'primeicons/primeicons.css'
 import './style.css'
 
@@ -119,7 +120,7 @@ class ProductLogic extends UiLogic<Product> {
       list: list.map(item => ({ ...item })),
       pagination: {
         pageNo: 1,
-        pageSize: 10,
+        pageSize: DEFAULT_PAGE_SIZE,
         pageCount: 1,
         recordCount: list.length,
       },
@@ -183,7 +184,10 @@ const logic = new ProductLogic(value => value as Product, {
   router,
 })
 
-const builder = new PrimeVueUiBuilder()
+const useSyncfusion = import.meta.env.VITE_SKIN === 'syncfusion'
+const builder = useSyncfusion
+  ? new SyncfusionUiBuilder()
+  : new PrimeVueUiBuilder()
 const i18n = setupI18n({}, 'zh')
 const mmda = new MmdaApplication('/api', 'demo', builder, i18n)
 
@@ -231,10 +235,12 @@ const Root = defineComponent({
                   openView('edit', (item as Product).id),
               })
             : builder.buildView(current.value, { showToolbar: true })
-          : h('p', 'Loading…'),
-        h(PrimeVueOverlayHost),
+            : h('p', 'Loading…'),
       ])
   },
 })
 
-createApp(Root).use(mmdaPrimeVue, { locale: 'zh' }).use(mmda).mount('#app')
+createApp(Root)
+  .use(useSyncfusion ? mmdaSyncfusion : mmdaPrimeVue, { locale: 'zh' })
+  .use(mmda)
+  .mount('#app')

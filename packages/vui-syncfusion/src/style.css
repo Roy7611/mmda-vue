@@ -1,0 +1,1391 @@
+/* Syncfusion EJ2 主题：把下面全部 fluent2/material3 等文件名改成同一套即可切换。
+ * 现代主题（单文件含明暗，运行时加 e-dark-mode）：material3（默认）、fluent2、bootstrap5.3、tailwind3
+ * 旧主题（需另载 *-dark.css）：material、fluent、bootstrap5、bootstrap、fabric、tailwind…
+ * 不要用 *-lite.css；ej2-barcode-generator 的主题 CSS 是空文件，不要 import。
+ */
+@import '@syncfusion/ej2-base/styles/material3.css';
+@import '@syncfusion/ej2-buttons/styles/material3.css';
+@import '@syncfusion/ej2-splitbuttons/styles/material3.css';
+@import '@syncfusion/ej2-inputs/styles/material3.css';
+@import '@syncfusion/ej2-dropdowns/styles/material3.css';
+@import '@syncfusion/ej2-calendars/styles/material3.css';
+@import '@syncfusion/ej2-lists/styles/material3.css';
+@import '@syncfusion/ej2-navigations/styles/material3.css';
+@import '@syncfusion/ej2-popups/styles/material3.css';
+@import '@syncfusion/ej2-notifications/styles/material3.css';
+@import '@syncfusion/ej2-grids/styles/material3.css';
+@import '@syncfusion/ej2-diagrams/styles/material3.css';
+
+/*
+ * MD3：Theme Studio 种子 = light primary；accent + surface/outline 均跟色板。
+ */
+html[data-mmda-palette="indigo"] {
+  --color-sf-primary: 102, 16, 242;
+  --color-sf-primary-container: 232, 221, 255;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 34, 0, 93;
+  --color-sf-secondary: 98, 91, 113;
+  --color-sf-secondary-container: 232, 222, 248;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 30, 25, 43;
+  --color-sf-surface-tint-color: 102, 16, 242;
+  --color-sf-background: 247, 242, 247;
+  --color-sf-on-background: 28, 27, 30;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 28, 27, 30;
+  --color-sf-surface-variant: 231, 224, 236;
+  --color-sf-on-surface-variant: 73, 69, 78;
+  --color-sf-outline: 122, 117, 127;
+  --color-sf-outline-variant: 202, 196, 207;
+  --color-sf-inverse-surface: 49, 48, 51;
+  --color-sf-inverse-on-surface: 244, 239, 244;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="purple"] {
+  --color-sf-primary: 103, 80, 164;
+  --color-sf-primary-container: 233, 221, 255;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 34, 0, 93;
+  --color-sf-secondary: 98, 91, 113;
+  --color-sf-secondary-container: 232, 222, 248;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 30, 25, 43;
+  --color-sf-surface-tint-color: 103, 80, 164;
+  --color-sf-background: 247, 242, 247;
+  --color-sf-on-background: 28, 27, 30;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 28, 27, 30;
+  --color-sf-surface-variant: 231, 224, 235;
+  --color-sf-on-surface-variant: 73, 69, 78;
+  --color-sf-outline: 122, 117, 127;
+  --color-sf-outline-variant: 202, 196, 207;
+  --color-sf-inverse-surface: 49, 48, 51;
+  --color-sf-inverse-on-surface: 244, 239, 244;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="blue"] {
+  --color-sf-primary: 13, 110, 253;
+  --color-sf-primary-container: 218, 226, 255;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 0, 25, 70;
+  --color-sf-secondary: 88, 94, 113;
+  --color-sf-secondary-container: 220, 226, 249;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 21, 27, 44;
+  --color-sf-surface-tint-color: 13, 110, 253;
+  --color-sf-background: 245, 243, 247;
+  --color-sf-on-background: 27, 27, 31;
+  --color-sf-surface: 254, 251, 255;
+  --color-sf-on-surface: 27, 27, 31;
+  --color-sf-surface-variant: 225, 226, 236;
+  --color-sf-on-surface-variant: 68, 70, 79;
+  --color-sf-outline: 117, 119, 128;
+  --color-sf-outline-variant: 197, 198, 208;
+  --color-sf-inverse-surface: 48, 48, 52;
+  --color-sf-inverse-on-surface: 242, 240, 244;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="violet"] {
+  --color-sf-primary: 111, 66, 193;
+  --color-sf-primary-container: 235, 221, 255;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 37, 0, 89;
+  --color-sf-secondary: 99, 91, 112;
+  --color-sf-secondary-container: 233, 222, 248;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 31, 24, 43;
+  --color-sf-surface-tint-color: 111, 66, 193;
+  --color-sf-background: 248, 242, 247;
+  --color-sf-on-background: 29, 27, 30;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 29, 27, 30;
+  --color-sf-surface-variant: 231, 224, 235;
+  --color-sf-on-surface-variant: 73, 69, 78;
+  --color-sf-outline: 122, 117, 127;
+  --color-sf-outline-variant: 203, 196, 207;
+  --color-sf-inverse-surface: 50, 48, 51;
+  --color-sf-inverse-on-surface: 245, 239, 244;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="red"] {
+  --color-sf-primary: 220, 53, 69;
+  --color-sf-primary-container: 255, 218, 217;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 65, 0, 8;
+  --color-sf-secondary: 119, 86, 86;
+  --color-sf-secondary-container: 255, 218, 217;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 44, 21, 21;
+  --color-sf-surface-tint-color: 220, 53, 69;
+  --color-sf-background: 254, 241, 240;
+  --color-sf-on-background: 32, 26, 26;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 32, 26, 26;
+  --color-sf-surface-variant: 244, 221, 220;
+  --color-sf-on-surface-variant: 82, 67, 67;
+  --color-sf-outline: 133, 115, 114;
+  --color-sf-outline-variant: 215, 193, 193;
+  --color-sf-inverse-surface: 54, 47, 46;
+  --color-sf-inverse-on-surface: 251, 238, 237;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="orange"] {
+  --color-sf-primary: 253, 126, 20;
+  --color-sf-primary-container: 255, 219, 200;
+  --color-sf-on-primary: 50, 19, 0;
+  --color-sf-on-primary-container: 50, 19, 0;
+  --color-sf-secondary: 117, 88, 71;
+  --color-sf-secondary-container: 255, 219, 200;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 43, 23, 9;
+  --color-sf-surface-tint-color: 253, 126, 20;
+  --color-sf-background: 254, 241, 235;
+  --color-sf-on-background: 32, 26, 23;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 32, 26, 23;
+  --color-sf-surface-variant: 244, 222, 211;
+  --color-sf-on-surface-variant: 82, 68, 60;
+  --color-sf-outline: 133, 116, 107;
+  --color-sf-outline-variant: 215, 194, 184;
+  --color-sf-inverse-surface: 54, 47, 43;
+  --color-sf-inverse-on-surface: 251, 238, 233;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="yellow"] {
+  --color-sf-primary: 255, 193, 7;
+  --color-sf-primary-container: 255, 223, 158;
+  --color-sf-on-primary: 38, 26, 0;
+  --color-sf-on-primary-container: 38, 26, 0;
+  --color-sf-secondary: 107, 93, 63;
+  --color-sf-secondary-container: 245, 224, 187;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 36, 26, 4;
+  --color-sf-surface-tint-color: 255, 193, 7;
+  --color-sf-background: 250, 242, 233;
+  --color-sf-on-background: 30, 27, 22;
+  --color-sf-surface: 255, 251, 255;
+  --color-sf-on-surface: 30, 27, 22;
+  --color-sf-surface-variant: 237, 225, 207;
+  --color-sf-on-surface-variant: 77, 70, 57;
+  --color-sf-outline: 127, 118, 103;
+  --color-sf-outline-variant: 208, 197, 180;
+  --color-sf-inverse-surface: 51, 48, 42;
+  --color-sf-inverse-on-surface: 247, 239, 231;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="green"] {
+  --color-sf-primary: 25, 135, 84;
+  --color-sf-primary-container: 147, 247, 186;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 0, 33, 16;
+  --color-sf-secondary: 78, 99, 84;
+  --color-sf-secondary-container: 209, 232, 213;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 12, 31, 20;
+  --color-sf-surface-tint-color: 25, 135, 84;
+  --color-sf-background: 242, 244, 239;
+  --color-sf-on-background: 25, 28, 26;
+  --color-sf-surface: 251, 253, 248;
+  --color-sf-on-surface: 25, 28, 26;
+  --color-sf-surface-variant: 220, 229, 220;
+  --color-sf-on-surface-variant: 65, 73, 66;
+  --color-sf-outline: 113, 121, 114;
+  --color-sf-outline-variant: 192, 201, 192;
+  --color-sf-inverse-surface: 46, 49, 46;
+  --color-sf-inverse-on-surface: 240, 241, 236;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="teal"] {
+  --color-sf-primary: 32, 201, 151;
+  --color-sf-primary-container: 103, 252, 198;
+  --color-sf-on-primary: 0, 33, 22;
+  --color-sf-on-primary-container: 0, 33, 22;
+  --color-sf-secondary: 76, 99, 88;
+  --color-sf-secondary-container: 207, 233, 218;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 9, 32, 23;
+  --color-sf-surface-tint-color: 32, 201, 151;
+  --color-sf-background: 242, 244, 240;
+  --color-sf-on-background: 25, 28, 26;
+  --color-sf-surface: 251, 253, 249;
+  --color-sf-on-surface: 25, 28, 26;
+  --color-sf-surface-variant: 219, 229, 222;
+  --color-sf-on-surface-variant: 64, 73, 68;
+  --color-sf-outline: 112, 121, 115;
+  --color-sf-outline-variant: 191, 201, 194;
+  --color-sf-inverse-surface: 46, 49, 47;
+  --color-sf-inverse-on-surface: 239, 241, 238;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html[data-mmda-palette="cyan"] {
+  --color-sf-primary: 13, 202, 240;
+  --color-sf-primary-container: 177, 236, 255;
+  --color-sf-on-primary: 0, 31, 39;
+  --color-sf-on-primary-container: 0, 31, 39;
+  --color-sf-secondary: 75, 98, 106;
+  --color-sf-secondary-container: 206, 231, 240;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 6, 30, 37;
+  --color-sf-surface-tint-color: 13, 202, 240;
+  --color-sf-background: 242, 244, 245;
+  --color-sf-on-background: 25, 28, 29;
+  --color-sf-surface: 251, 252, 254;
+  --color-sf-on-surface: 25, 28, 29;
+  --color-sf-surface-variant: 219, 228, 232;
+  --color-sf-on-surface-variant: 64, 72, 75;
+  --color-sf-outline: 112, 120, 124;
+  --color-sf-outline-variant: 191, 200, 204;
+  --color-sf-inverse-surface: 46, 49, 50;
+  --color-sf-inverse-on-surface: 239, 241, 242;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="indigo"],
+html.mmda-dark[data-mmda-palette="indigo"] {
+  --color-sf-primary: 207, 189, 255;
+  --color-sf-primary-container: 83, 0, 205;
+  --color-sf-on-primary: 58, 0, 147;
+  --color-sf-on-primary-container: 232, 221, 255;
+  --color-sf-secondary: 203, 194, 220;
+  --color-sf-secondary-container: 74, 68, 88;
+  --color-sf-on-secondary: 51, 45, 65;
+  --color-sf-on-secondary-container: 232, 222, 248;
+  --color-sf-surface-tint-color: 207, 189, 255;
+  --color-sf-background: 28, 27, 30;
+  --color-sf-on-background: 230, 225, 230;
+  --color-sf-surface: 28, 27, 30;
+  --color-sf-on-surface: 230, 225, 230;
+  --color-sf-surface-variant: 73, 69, 78;
+  --color-sf-on-surface-variant: 202, 196, 207;
+  --color-sf-outline: 148, 143, 153;
+  --color-sf-outline-variant: 73, 69, 78;
+  --color-sf-inverse-surface: 230, 225, 230;
+  --color-sf-inverse-on-surface: 49, 48, 51;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="purple"],
+html.mmda-dark[data-mmda-palette="purple"] {
+  --color-sf-primary: 207, 188, 255;
+  --color-sf-primary-container: 79, 55, 138;
+  --color-sf-on-primary: 56, 30, 114;
+  --color-sf-on-primary-container: 233, 221, 255;
+  --color-sf-secondary: 203, 194, 219;
+  --color-sf-secondary-container: 74, 68, 88;
+  --color-sf-on-secondary: 51, 45, 65;
+  --color-sf-on-secondary-container: 232, 222, 248;
+  --color-sf-surface-tint-color: 207, 188, 255;
+  --color-sf-background: 28, 27, 30;
+  --color-sf-on-background: 230, 225, 230;
+  --color-sf-surface: 28, 27, 30;
+  --color-sf-on-surface: 230, 225, 230;
+  --color-sf-surface-variant: 73, 69, 78;
+  --color-sf-on-surface-variant: 202, 196, 207;
+  --color-sf-outline: 148, 143, 153;
+  --color-sf-outline-variant: 73, 69, 78;
+  --color-sf-inverse-surface: 230, 225, 230;
+  --color-sf-inverse-on-surface: 49, 48, 51;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="blue"],
+html.mmda-dark[data-mmda-palette="blue"] {
+  --color-sf-primary: 177, 197, 255;
+  --color-sf-primary-container: 0, 65, 158;
+  --color-sf-on-primary: 0, 44, 112;
+  --color-sf-on-primary-container: 218, 226, 255;
+  --color-sf-secondary: 192, 198, 220;
+  --color-sf-secondary-container: 64, 70, 89;
+  --color-sf-on-secondary: 42, 48, 66;
+  --color-sf-on-secondary-container: 220, 226, 249;
+  --color-sf-surface-tint-color: 177, 197, 255;
+  --color-sf-background: 27, 27, 31;
+  --color-sf-on-background: 228, 226, 230;
+  --color-sf-surface: 27, 27, 31;
+  --color-sf-on-surface: 228, 226, 230;
+  --color-sf-surface-variant: 68, 70, 79;
+  --color-sf-on-surface-variant: 197, 198, 208;
+  --color-sf-outline: 143, 144, 153;
+  --color-sf-outline-variant: 68, 70, 79;
+  --color-sf-inverse-surface: 228, 226, 230;
+  --color-sf-inverse-on-surface: 48, 48, 52;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="violet"],
+html.mmda-dark[data-mmda-palette="violet"] {
+  --color-sf-primary: 211, 187, 255;
+  --color-sf-primary-container: 87, 38, 168;
+  --color-sf-on-primary: 63, 0, 141;
+  --color-sf-on-primary-container: 235, 221, 255;
+  --color-sf-secondary: 205, 194, 219;
+  --color-sf-secondary-container: 75, 67, 88;
+  --color-sf-on-secondary: 52, 45, 64;
+  --color-sf-on-secondary-container: 233, 222, 248;
+  --color-sf-surface-tint-color: 211, 187, 255;
+  --color-sf-background: 29, 27, 30;
+  --color-sf-on-background: 230, 225, 230;
+  --color-sf-surface: 29, 27, 30;
+  --color-sf-on-surface: 230, 225, 230;
+  --color-sf-surface-variant: 73, 69, 78;
+  --color-sf-on-surface-variant: 203, 196, 207;
+  --color-sf-outline: 148, 143, 153;
+  --color-sf-outline-variant: 73, 69, 78;
+  --color-sf-inverse-surface: 230, 225, 230;
+  --color-sf-inverse-on-surface: 50, 48, 51;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="red"],
+html.mmda-dark[data-mmda-palette="red"] {
+  --color-sf-primary: 255, 179, 178;
+  --color-sf-primary-container: 146, 0, 31;
+  --color-sf-on-primary: 104, 0, 19;
+  --color-sf-on-primary-container: 255, 218, 217;
+  --color-sf-secondary: 230, 189, 187;
+  --color-sf-secondary-container: 93, 63, 63;
+  --color-sf-on-secondary: 68, 41, 41;
+  --color-sf-on-secondary-container: 255, 218, 217;
+  --color-sf-surface-tint-color: 255, 179, 178;
+  --color-sf-background: 32, 26, 26;
+  --color-sf-on-background: 236, 224, 223;
+  --color-sf-surface: 32, 26, 26;
+  --color-sf-on-surface: 236, 224, 223;
+  --color-sf-surface-variant: 82, 67, 67;
+  --color-sf-on-surface-variant: 215, 193, 193;
+  --color-sf-outline: 160, 140, 139;
+  --color-sf-outline-variant: 82, 67, 67;
+  --color-sf-inverse-surface: 236, 224, 223;
+  --color-sf-inverse-on-surface: 54, 47, 46;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="orange"],
+html.mmda-dark[data-mmda-palette="orange"] {
+  --color-sf-primary: 255, 182, 138;
+  --color-sf-primary-container: 116, 53, 0;
+  --color-sf-on-primary: 82, 35, 0;
+  --color-sf-on-primary-container: 255, 219, 200;
+  --color-sf-secondary: 229, 191, 169;
+  --color-sf-secondary-container: 92, 65, 49;
+  --color-sf-on-secondary: 67, 43, 28;
+  --color-sf-on-secondary-container: 255, 219, 200;
+  --color-sf-surface-tint-color: 255, 182, 138;
+  --color-sf-background: 32, 26, 23;
+  --color-sf-on-background: 236, 224, 219;
+  --color-sf-surface: 32, 26, 23;
+  --color-sf-on-surface: 236, 224, 219;
+  --color-sf-surface-variant: 82, 68, 60;
+  --color-sf-on-surface-variant: 215, 194, 184;
+  --color-sf-outline: 159, 141, 132;
+  --color-sf-outline-variant: 82, 68, 60;
+  --color-sf-inverse-surface: 236, 224, 219;
+  --color-sf-inverse-on-surface: 54, 47, 43;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="yellow"],
+html.mmda-dark[data-mmda-palette="yellow"] {
+  --color-sf-primary: 250, 189, 0;
+  --color-sf-primary-container: 91, 67, 0;
+  --color-sf-on-primary: 63, 46, 0;
+  --color-sf-on-primary-container: 255, 223, 158;
+  --color-sf-secondary: 216, 196, 160;
+  --color-sf-secondary-container: 82, 69, 42;
+  --color-sf-on-secondary: 58, 47, 21;
+  --color-sf-on-secondary-container: 245, 224, 187;
+  --color-sf-surface-tint-color: 250, 189, 0;
+  --color-sf-background: 30, 27, 22;
+  --color-sf-on-background: 233, 225, 216;
+  --color-sf-surface: 30, 27, 22;
+  --color-sf-on-surface: 233, 225, 216;
+  --color-sf-surface-variant: 77, 70, 57;
+  --color-sf-on-surface-variant: 208, 197, 180;
+  --color-sf-outline: 153, 143, 128;
+  --color-sf-outline-variant: 77, 70, 57;
+  --color-sf-inverse-surface: 233, 225, 216;
+  --color-sf-inverse-on-surface: 51, 48, 42;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="green"],
+html.mmda-dark[data-mmda-palette="green"] {
+  --color-sf-primary: 119, 218, 159;
+  --color-sf-primary-container: 0, 82, 47;
+  --color-sf-on-primary: 0, 57, 31;
+  --color-sf-on-primary-container: 147, 247, 186;
+  --color-sf-secondary: 181, 204, 186;
+  --color-sf-secondary-container: 55, 75, 61;
+  --color-sf-on-secondary: 33, 53, 40;
+  --color-sf-on-secondary-container: 209, 232, 213;
+  --color-sf-surface-tint-color: 119, 218, 159;
+  --color-sf-background: 25, 28, 26;
+  --color-sf-on-background: 225, 227, 222;
+  --color-sf-surface: 25, 28, 26;
+  --color-sf-on-surface: 225, 227, 222;
+  --color-sf-surface-variant: 65, 73, 66;
+  --color-sf-on-surface-variant: 192, 201, 192;
+  --color-sf-outline: 138, 147, 139;
+  --color-sf-outline-variant: 65, 73, 66;
+  --color-sf-inverse-surface: 225, 227, 222;
+  --color-sf-inverse-on-surface: 46, 49, 46;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="teal"],
+html.mmda-dark[data-mmda-palette="teal"] {
+  --color-sf-primary: 68, 223, 171;
+  --color-sf-primary-container: 0, 81, 58;
+  --color-sf-on-primary: 0, 56, 39;
+  --color-sf-on-primary-container: 103, 252, 198;
+  --color-sf-secondary: 179, 204, 191;
+  --color-sf-secondary-container: 53, 75, 65;
+  --color-sf-on-secondary: 31, 53, 43;
+  --color-sf-on-secondary-container: 207, 233, 218;
+  --color-sf-surface-tint-color: 68, 223, 171;
+  --color-sf-background: 25, 28, 26;
+  --color-sf-on-background: 225, 227, 223;
+  --color-sf-surface: 25, 28, 26;
+  --color-sf-on-surface: 225, 227, 223;
+  --color-sf-surface-variant: 64, 73, 68;
+  --color-sf-on-surface-variant: 191, 201, 194;
+  --color-sf-outline: 137, 147, 141;
+  --color-sf-outline-variant: 64, 73, 68;
+  --color-sf-inverse-surface: 225, 227, 223;
+  --color-sf-inverse-on-surface: 46, 49, 47;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+html.e-dark-mode[data-mmda-palette="cyan"],
+html.mmda-dark[data-mmda-palette="cyan"] {
+  --color-sf-primary: 51, 215, 254;
+  --color-sf-primary-container: 0, 78, 94;
+  --color-sf-on-primary: 0, 54, 66;
+  --color-sf-on-primary-container: 177, 236, 255;
+  --color-sf-secondary: 178, 202, 211;
+  --color-sf-secondary-container: 52, 74, 81;
+  --color-sf-on-secondary: 29, 52, 59;
+  --color-sf-on-secondary-container: 206, 231, 240;
+  --color-sf-surface-tint-color: 51, 215, 254;
+  --color-sf-background: 25, 28, 29;
+  --color-sf-on-background: 225, 227, 228;
+  --color-sf-surface: 25, 28, 29;
+  --color-sf-on-surface: 225, 227, 228;
+  --color-sf-surface-variant: 64, 72, 75;
+  --color-sf-on-surface-variant: 191, 200, 204;
+  --color-sf-outline: 137, 146, 150;
+  --color-sf-outline-variant: 64, 72, 75;
+  --color-sf-inverse-surface: 225, 227, 228;
+  --color-sf-inverse-on-surface: 46, 49, 50;
+  --color-sf-shadow: 0, 0, 0;
+  --color-sf-scrim: 0, 0, 0;
+}
+
+.mmda-sf-app {
+  min-height: 100%;
+  height: 100%;
+}
+
+.mmda-sf-container,
+.mmda-sf-main {
+  min-width: 0;
+}
+
+/* 只作用在 Grid 根节点。EJ2 会把 Grid.cssClass 复制到过滤弹窗按钮上，
+ * 若写成 .mmda-sf-table { width:100% }，筛选/清除会变成全宽竖排。 */
+.e-grid.mmda-sf-table {
+  width: 100%;
+}
+
+.mmda-sf-cell {
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-sf-cell--right {
+  text-align: right;
+}
+
+.mmda-sf-cell--left {
+  text-align: left;
+}
+
+.mmda-sf-cell--center {
+  text-align: center;
+}
+
+.mmda-sf-cell--justify {
+  text-align: justify;
+}
+
+.mmda-sf-control.is-invalid :is(input, textarea, .e-control) {
+  border-color: #c00;
+}
+
+.mmda-sf-control .e-error {
+  color: #c00;
+  font-size: 0.75rem;
+}
+
+.mmda-sf-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-sf-sidebar__header {
+  flex: 0 0 auto;
+}
+
+.mmda-sf-sidebar__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.mmda-sf-sidebar__footer {
+  flex: 0 0 auto;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  /* 与 Material 3 Grid 分页器同高，顶部与分页条对齐 */
+  min-height: 3rem;
+  height: 3rem;
+  padding: 0;
+  overflow: visible;
+  border-top: 1px solid var(--mmda-content-border-color, #e5e7eb);
+  background: var(--mmda-surface-card, #fff);
+}
+
+/*
+ * 侧栏底部菜单：强制不透明实底 + 高于表格复选框，
+ * 否则 Material3 的 rgba(var(--color-sf-surface)) 缺 alpha 时会“透”出表格。
+ * 注意：EJ2 会把按钮的 cssClass 复制到 popup，所以用 .e-popup/.e-dropdown-popup 限定，避免污染触发按钮。
+ */
+.e-dropdown-popup.mmda-sf-menu-popup-trigger,
+.e-popup.mmda-sf-menu-popup-trigger,
+.e-dropdown-popup.mmda-sf-menu-popup,
+.e-popup.mmda-sf-menu-popup {
+  z-index: 1400 !important;
+  box-sizing: border-box;
+  max-width: min(18rem, calc(100vw - 6rem));
+  background: var(--mmda-surface-card, #fffbfe) !important;
+  opacity: 1 !important;
+  border: 1px solid var(--mmda-content-border-color, #cac4d0);
+  border-radius: 8px;
+  box-shadow:
+    0 2px 6px 2px rgba(0, 0, 0, 0.12),
+    0 1px 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.e-dropdown-popup.mmda-sf-menu-popup-trigger ul,
+.e-popup.mmda-sf-menu-popup-trigger ul,
+.e-dropdown-popup.mmda-sf-menu-popup ul,
+.e-popup.mmda-sf-menu-popup ul {
+  background: transparent;
+}
+
+.e-dropdown-popup.mmda-sf-menu-popup-trigger .e-item,
+.e-popup.mmda-sf-menu-popup-trigger .e-item,
+.e-dropdown-popup.mmda-sf-menu-popup .e-item,
+.e-popup.mmda-sf-menu-popup .e-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.mmda-dark .e-dropdown-popup.mmda-sf-menu-popup-trigger,
+html.mmda-dark .e-popup.mmda-sf-menu-popup-trigger,
+html.mmda-dark .e-dropdown-popup.mmda-sf-menu-popup,
+html.mmda-dark .e-popup.mmda-sf-menu-popup,
+html.e-dark-mode .e-dropdown-popup.mmda-sf-menu-popup-trigger,
+html.e-dark-mode .e-popup.mmda-sf-menu-popup-trigger,
+html.e-dark-mode .e-dropdown-popup.mmda-sf-menu-popup,
+html.e-dark-mode .e-popup.mmda-sf-menu-popup {
+  background: var(--mmda-surface-card, #211f26) !important;
+  border-color: var(--mmda-content-border-color, #49454f);
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
+/* 登录表单：Outlined 输入 + 提交按钮 */
+.mmda-sf-auth-form.mmda-signin-form .e-outline,
+.mmda-sf-auth-form.mmda-signin-form .e-control-wrapper.e-outline,
+.mmda-sf-auth-form.mmda-signin-form .e-input-group.e-outline {
+  width: 100%;
+  border-radius: 0.75rem !important;
+}
+
+.mmda-sf-auth-form.mmda-signin-form .e-outline .e-input,
+.mmda-sf-auth-form.mmda-signin-form .e-input-group.e-outline .e-input,
+.mmda-sf-auth-form.mmda-signin-form input.e-input {
+  min-height: 2.5rem;
+  padding-block: 0.55rem;
+}
+
+.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill,
+.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill:hover,
+.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--mmda-text-color, #1c1b1f);
+  box-shadow: 0 0 0 1000px var(--mmda-surface-card, #fffbfe) inset;
+  transition: background-color 99999s ease-out;
+}
+
+.mmda-sf-auth-form.mmda-signin-form .mmda-signin-form__submit.e-btn {
+  width: 100%;
+}
+
+/*
+ * Official Sidebar shell (Target + Dock docs):
+ * Sidebar and main content are siblings; Push shrinks maincontent.
+ * Do NOT force position:relative on .e-sidebar — that broke dock width.
+ */
+.mmda-sf-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-sf-maincontent {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  /* 页面本身不滚动；列表由 Grid 内滚，表单由 .mmda-view 内滚 */
+  overflow: hidden;
+  /* 底边不加 padding，分页器与侧栏 footer 顶端对齐 */
+  padding: 0.75rem 1rem 0;
+  background-color: var(--mmda-surface-ground);
+  color: var(--mmda-text-color);
+}
+
+.mmda-sf-maincontent > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mmda-sf-maincontent .mmda-list-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-sf-maincontent .mmda-list-view .mmda-list-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.mmda-sf-maincontent .mmda-list-view .e-grid {
+  height: 100% !important;
+}
+
+.mmda-sf-maincontent .mmda-view {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Dock sample FOUC guard */
+#mmda-sf-dock-sidebar {
+  visibility: hidden;
+}
+
+#mmda-sf-dock-sidebar.e-sidebar {
+  visibility: visible;
+  height: 100%;
+  background: var(--mmda-surface-card, #fff);
+  overflow: hidden;
+}
+
+/* Official dock text rules */
+.mmda-sf-sidebar-dock.e-dock.e-close .e-text,
+.mmda-sf-sidebar-dock.e-dock.e-close .mmda-sf-dock-panel {
+  display: none !important;
+}
+
+.mmda-sf-sidebar-dock.e-dock.e-open .e-text {
+  display: inline-block;
+}
+
+.mmda-sf-sidebar-dock.e-dock.e-close .mmda-sf-system-chrome {
+  grid-template-columns: 72px;
+}
+
+.mmda-sf-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+}
+
+/* 工具栏默认左右两栏；有搜索中区时再三列均分 */
+.mmda-sf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+}
+
+.mmda-sf-toolbar--with-center {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  justify-content: initial;
+}
+
+.mmda-sf-toolbar__start,
+.mmda-sf-toolbar__center,
+.mmda-sf-toolbar__center-inner,
+.mmda-sf-toolbar__end {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mmda-sf-toolbar__start {
+  justify-content: flex-start;
+}
+
+.mmda-sf-toolbar__center,
+.mmda-sf-toolbar__center-inner {
+  justify-content: center;
+}
+
+.mmda-sf-toolbar__end {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.mmda-sf-toolbar--with-center .mmda-sf-toolbar__end {
+  margin-left: 0;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group,
+.mmda-sf-toolbar-actions {
+  display: inline-flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 0;
+  min-width: 0;
+}
+
+.mmda-sf-searchbar,
+.mmda-sf-relative-search {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mmda-sf-searchbar > .e-control-wrapper,
+.mmda-sf-searchbar > .e-input-group,
+.mmda-sf-searchbar .e-float-input {
+  width: 14rem;
+  max-width: 14rem;
+  flex: 0 0 14rem;
+}
+
+.mmda-sf-searchbar .e-btn,
+.mmda-sf-toolbar__center .e-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.mmda-sf-pagable-table {
+  min-width: 0;
+}
+
+.e-grid.mmda-sf-table .mmda-table-link {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  color: var(--mmda-primary-color, #6750a4);
+  text-align: inherit;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.e-grid.mmda-sf-table .mmda-table-link:hover {
+  text-decoration: underline;
+}
+
+/*
+ * 排序图标交给 Material 3 默认：升序 \e823、降序 \e87c（带方向的 A↕Z 形），
+ * 比单纯上下箭头更能看出当前是升还是降。未排序列弱化显示。
+ */
+.e-grid.mmda-sf-table
+  th.e-headercell:not([aria-sort="ascending"]):not([aria-sort="descending"])
+  .e-sortfilterdiv {
+  opacity: 0.4;
+}
+
+.e-grid.mmda-sf-table
+  th.e-headercell[aria-sort="ascending"]
+  .e-sortfilterdiv,
+.e-grid.mmda-sf-table
+  th.e-headercell[aria-sort="descending"]
+  .e-sortfilterdiv {
+  opacity: 1;
+}
+
+/* 分组拖放区：只压高度，颜色交给 material3（primary-container） */
+.e-grid.mmda-sf-table .e-groupdroparea,
+.e-grid.mmda-sf-table .e-groupdroparea.e-grouped {
+  min-height: 2rem;
+  margin: 0;
+}
+
+/*
+ * 分页器：不要改 background。
+ * transparent 会透出 --mmda-surface-ground（#f7f2fa），和表格白底脱节；
+ * Material 3 官方是 surface 白底 + primary-container 当前页。
+ * 高度与侧栏 .mmda-sf-sidebar__footer / .mmda-user-footer 对齐（3rem）。
+ */
+.mmda-sf-pagable-table .e-pager,
+.mmda-sf-pagable-table .e-gridpager,
+.mmda-list-view .e-pager,
+.e-grid.mmda-sf-table .e-pager {
+  box-sizing: border-box;
+  margin-top: 0;
+  min-height: 3rem;
+  height: 3rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.mmda-sf-app-menu__empty {
+  padding: 0.75rem 1rem;
+  color: var(--mmda-text-muted-color, #6b7280);
+  font-size: 0.875rem;
+}
+
+.mmda-sf-acc-empty {
+  padding: 0.5rem 0.75rem;
+  color: var(--mmda-text-muted-color, #6b7280);
+  font-size: 0.8125rem;
+}
+
+/* Logo / L1 rail = dockSize(72px)；标题与模块树为展开区 */
+.mmda-sf-system-chrome {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-sf-system-header__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  box-sizing: border-box;
+  grid-column: 1;
+  grid-row: 1;
+  width: 72px;
+  padding: 0.45rem 0.35rem;
+  min-height: 3.25rem;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-sf-system-header__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  padding: 0 0.35rem 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--mmda-text-color, #1c1b1f);
+}
+
+.mmda-sf-system-header__icon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.mmda-sf-system-header__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mmda-sf-system-collapse {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.mmda-sf-system-collapse:hover {
+  background: rgb(0 0 0 / 8%);
+}
+
+.mmda-sf-system-header__brand .mmda-sf-system-collapse {
+  margin-left: 0;
+  color: #fff;
+}
+
+.mmda-sf-system-header__brand .mmda-sf-system-collapse:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+html.mmda-dark .mmda-sf-system-header__title,
+html.e-dark-mode .mmda-sf-system-header__title {
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
+html.mmda-dark .mmda-sf-system-header__brand,
+html.mmda-dark .mmda-sf-system-rail,
+html.e-dark-mode .mmda-sf-system-header__brand,
+html.e-dark-mode .mmda-sf-system-rail {
+  color: var(--mmda-primary-color, #d0bcff);
+  background: var(--mmda-primary-soft, #4f378b);
+}
+
+html.mmda-dark .mmda-sf-system-collapse:hover,
+html.e-dark-mode .mmda-sf-system-collapse:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.mmda-sf-system-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-self: stretch;
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 0;
+  padding: 0.5rem 0.35rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #fff;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-sf-system-rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 3.75rem;
+  padding: 0.4rem 0.2rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-sf-system-rail__item:hover,
+.mmda-sf-system-rail__item--active {
+  background: rgb(255 255 255 / 18%);
+}
+
+.mmda-sf-system-rail__icon {
+  font-size: 1.15rem;
+}
+
+.mmda-sf-system-rail__code,
+.mmda-sf-system-rail__label {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.mmda-sf-system-rail__label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mmda-sf-system-modules {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.35rem 0.4rem 0.75rem;
+}
+
+.mmda-sf-app-menu__accordion {
+  padding: 0.35rem 0.5rem 0.75rem;
+}
+
+.mmda-sf-acc-item {
+  border-bottom: 1px solid var(--mmda-content-border-color, #e5e7eb);
+}
+
+.mmda-sf-acc-item__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-sf-acc-item__header:hover {
+  background: color-mix(in srgb, var(--mmda-primary-color, #6750a4) 8%, transparent);
+}
+
+.mmda-sf-acc-item__icon {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  text-align: center;
+}
+
+.mmda-sf-acc-item__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.mmda-sf-acc-item__chevron {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  opacity: 0.65;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mmda-sf-acc-item--open .mmda-sf-acc-item__chevron {
+  transform: rotate(180deg);
+}
+
+.mmda-sf-acc-item__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mmda-sf-acc-item--open .mmda-sf-acc-item__panel {
+  grid-template-rows: 1fr;
+}
+
+.mmda-sf-acc-item__panel-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mmda-sf-acc-item__panel-inner > .mmda-side-menu,
+.mmda-sf-acc-item__panel-inner > .mmda-sf-acc-empty {
+  padding-bottom: 0.35rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mmda-sf-acc-item__panel,
+  .mmda-sf-acc-item__chevron {
+    transition: none;
+  }
+}
+
+.mmda-sf-acc-item .mmda-side-menu__link,
+.mmda-sf-app-menu__leaves .mmda-side-menu__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem 0.45rem 1.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mmda-sf-app-menu__leaves .mmda-side-menu__link {
+  padding-left: 0.75rem;
+}
+
+.mmda-sf-acc-item .mmda-side-menu__link:hover,
+.mmda-sf-acc-item .mmda-side-menu__link--active,
+.mmda-sf-app-menu__leaves .mmda-side-menu__link:hover,
+.mmda-sf-app-menu__leaves .mmda-side-menu__link--active {
+  background: color-mix(in srgb, var(--mmda-primary-color, #6750a4) 12%, transparent);
+}
+
+/* 工具栏 ButtonGroup：贴合 EJ2 e-btn-group，去掉散开间距 */
+.mmda-sf-toolbar-actions.e-btn-group {
+  box-shadow: none;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group > .e-btn,
+.mmda-sf-toolbar-actions.e-btn-group > .e-dropdown-btn {
+  margin: 0;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group > .e-btn:not(:first-child),
+.mmda-sf-toolbar-actions.e-btn-group > .e-dropdown-btn:not(:first-child) {
+  margin-inline-start: -1px;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group > .e-btn:not(:first-child):not(:last-child),
+.mmda-sf-toolbar-actions.e-btn-group
+  > .e-dropdown-btn:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group > .e-btn:first-child:not(:last-child),
+.mmda-sf-toolbar-actions.e-btn-group
+  > .e-dropdown-btn:first-child:not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.mmda-sf-toolbar-actions.e-btn-group > .e-btn:last-child:not(:first-child),
+.mmda-sf-toolbar-actions.e-btn-group
+  > .e-dropdown-btn:last-child:not(:first-child) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+/* Material 3 tonal：次要操作（返回 / 更多）浅底无描边
+ * EJ2 Material3 用 background: linear-gradient(...)，必须覆盖 background 简写 */
+.e-btn.mmda-btn-tonal,
+.e-dropdown-btn.mmda-btn-tonal,
+.e-css.e-btn.mmda-btn-tonal {
+  background: rgb(var(--color-sf-secondary-container));
+  color: rgb(var(--color-sf-on-secondary-container));
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.e-btn.mmda-btn-tonal:hover,
+.e-dropdown-btn.mmda-btn-tonal:hover,
+.e-btn.mmda-btn-tonal:focus,
+.e-dropdown-btn.mmda-btn-tonal:focus,
+.e-css.e-btn.mmda-btn-tonal:hover,
+.e-css.e-btn.mmda-btn-tonal:focus {
+  background: color-mix(
+    in srgb,
+    rgb(var(--color-sf-secondary-container)) 88%,
+    rgb(var(--color-sf-on-secondary-container)) 12%
+  );
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/*
+ * 暗色：不用 filled secondary（发脏抢色）；用 surface 抬升（白 14%）。
+ * 比 secondary-container 更易认，又不抢 primary / danger。
+ */
+html.mmda-dark .e-btn.mmda-btn-tonal,
+html.e-dark-mode .e-btn.mmda-btn-tonal,
+html.mmda-dark .e-dropdown-btn.mmda-btn-tonal,
+html.e-dark-mode .e-dropdown-btn.mmda-btn-tonal,
+html.mmda-dark .e-css.e-btn.mmda-btn-tonal,
+html.e-dark-mode .e-css.e-btn.mmda-btn-tonal,
+html.mmda-dark .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal,
+html.mmda-dark .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal {
+  background: rgb(255 255 255 / 14%);
+  color: var(--mmda-text-color, #e6e1e5);
+  border-color: transparent;
+}
+
+html.mmda-dark .e-btn.mmda-btn-tonal:hover,
+html.e-dark-mode .e-btn.mmda-btn-tonal:hover,
+html.mmda-dark .e-dropdown-btn.mmda-btn-tonal:hover,
+html.e-dark-mode .e-dropdown-btn.mmda-btn-tonal:hover,
+html.mmda-dark .e-btn.mmda-btn-tonal:focus,
+html.e-dark-mode .e-btn.mmda-btn-tonal:focus,
+html.mmda-dark .e-dropdown-btn.mmda-btn-tonal:focus,
+html.e-dark-mode .e-dropdown-btn.mmda-btn-tonal:focus,
+html.mmda-dark .e-css.e-btn.mmda-btn-tonal:hover,
+html.e-dark-mode .e-css.e-btn.mmda-btn-tonal:hover,
+html.mmda-dark .e-css.e-btn.mmda-btn-tonal:focus,
+html.e-dark-mode .e-css.e-btn.mmda-btn-tonal:focus,
+html.mmda-dark .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal:hover,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal:hover,
+html.mmda-dark .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:hover,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:hover,
+html.mmda-dark .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal:focus,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-btn.mmda-btn-tonal:focus,
+html.mmda-dark .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus,
+html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
+  background: rgb(255 255 255 / 22%);
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
+/* 更多 / 批处理下拉：组内 tonal 按钮 */
+.mmda-sf-toolbar-actions .mmda-more-menu-button.e-dropdown-btn,
+.mmda-sf-toolbar-actions .mmda-batch-menu-button.e-dropdown-btn {
+  box-shadow: none;
+}
+
+.e-card.mmda-group-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.e-card.mmda-group-card .e-card-header,
+.e-card.mmda-group-card .e-card-content {
+  padding: 0;
+}
+
+/*
+ * Material3 单文件含明暗：靠 html.e-dark-mode / mmda-dark 切换。
+ * 色板相关 --color-sf-*（accent + surface）已由 data-mmda-palette 覆盖。
+ * 壳层仍跟 --mmda-* 走。
+ */
+html.mmda-dark .mmda-sf-pagable-table,
+html.mmda-dark .mmda-list-view,
+html.mmda-dark .mmda-list-scroll,
+html.mmda-dark .mmda-sf-main,
+html.mmda-dark .mmda-sf-maincontent {
+  background-color: var(--mmda-surface-ground, #1c1b1f);
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
+html.mmda-dark #mmda-sf-dock-sidebar.e-sidebar,
+html.mmda-dark .mmda-sf-sidebar__footer {
+  background: var(--mmda-surface-card, #211f26);
+  border-color: var(--mmda-content-border-color, #49454f);
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
+/* Grid：边框跟壳层 token；悬停/分页当前页交给 material3 + e-dark-mode */
+html.mmda-dark .e-grid,
+html.mmda-dark .e-grid .e-gridheader,
+html.mmda-dark .e-grid .e-gridcontent,
+html.mmda-dark .e-grid .e-content,
+html.mmda-dark .e-grid .e-table {
+  border-color: var(--mmda-content-border-color, #49454f);
+}
+
+.mmda-sf-filter-range {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 13rem;
+}
+
+.mmda-sf-filter-range__value {
+  min-width: 0;
+}
+
+.mmda-sf-filter-range__value--to {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mmda-sf-filter-range__value--to[hidden] {
+  display: none;
+}
+
+.mmda-sf-filter-range__separator {
+  color: var(--mmda-text-muted-color, #49454f);
+  white-space: nowrap;
+}
+
+.mmda-sf-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.mmda-sf-breadcrumb .mmda-breadcrumb__item,
+.mmda-sf-breadcrumb .mmda-breadcrumb__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mmda-sf-breadcrumb .mmda-breadcrumb__link:hover {
+  text-decoration: underline;
+}
+
+.mmda-breadcrumb__icon {
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.mmda-breadcrumb__sep {
+  opacity: 0.55;
+  user-select: none;
+}
+

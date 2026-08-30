@@ -13,7 +13,7 @@ import type { ChildSlot } from "./ui_view";
 import type { PropData, UiSlots } from "./ui_layout";
 
 export type UiButtonShape = "square" | "round" | "circle";
-export type UiButtonType = "filled" | "outlined" | "elevated" | "link" | "text";
+export type UiButtonType = "filled" | "outlined" | "elevated" | "tonal" | "link" | "text";
 export type UiButtonSize = "small" | "large";
 
 export interface UiButtonProps extends ButtonHTMLAttributes, UiAction {

@@ -1,4 +1,4 @@
-import { h, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
+import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
 import type {
   ActionCallback,
   EntityAction,
@@ -34,6 +34,7 @@ import type {
 } from "./ui_factory";
 import { cleanTableCellProps } from "./ui_factory";
 import type {
+  GridCellRenderContext,
   UiListPropsType,
   UiListViewPropsType,
   UiPaginatorPropsType,
@@ -47,6 +48,7 @@ import type {
   ModuleSearchbarProps,
   ModuleToolbarProps,
 } from "./ui_app";
+import { resolveColorPalette, type MmdaColorPalette } from "./ui_theme";
 import type {
   SigninFormProps,
   SigninFormSlots,
@@ -56,7 +58,7 @@ import type {
   UiDialogPropsType,
   UiMessageBoxProps,
   UiMessageBoxResult,
-  UiNotificationProps,
+  UiToastProps,
 } from "./ui_dialog";
 import type { QrcodeProps, UiViewPropsType } from "./ui_view";
 import type {
@@ -64,14 +66,37 @@ import type {
   SearchForRelativeProps,
   UiSearchField,
 } from "./ui_filter";
-import { UiContextAction, type IconResolver } from "./ui_action";
+import { UiContextAction, type IconResolver, type UiAction } from "./ui_action";
+import type { UiButtonProps } from "./ui_button";
 import type { UiViewContext } from "./ui_context";
+import { createHtmlOverlay, type UiOverlay } from "./ui_overlay";
+import { DocxFilePreview } from "./components/DocxFilePreview";
+import { MmdaGroupCard } from "./components/GroupCard";
+import { XlsxFilePreview } from "./components/XlsxFilePreview";
 
 /** VUI 内部统一运行时；公开契约由各场景 context 接口约束。 */
 type UiContext = UiViewContext<any>;
 
 const hiddenDeletedSubRowStyle = (data: any) =>
   MetaModel.deleted(data) ? { display: "none" } : undefined;
+
+const groupRegion = (group: MetaUiGroup) => {
+  if (group.isSecondary()) return "summary";
+  if (group.isTails()) return "tails";
+  return "primary";
+};
+
+/** 同区内：主表组（!many）在前并按 groupName；子表组按 groupIdx。 */
+const compareViewGroups = (a: MetaUiGroup, b: MetaUiGroup) => {
+  if (a.many !== b.many) return a.many ? 1 : -1;
+  if (a.many) {
+    return (a.groupIdx ?? 0) - (b.groupIdx ?? 0);
+  }
+  return a.groupName.localeCompare(b.groupName);
+};
+
+const sortViewGroups = (groups: MetaUiGroup[]) =>
+  [...groups].sort(compareViewGroups);
 
 export interface ImportOrExportParam extends EntityUrlParam {
   handlerFn?: (context: UiContext, response: any) => void;
@@ -163,8 +188,18 @@ export interface UiBuilder {
   buildField: UiFieldRenderer;
   buildResponsiveField: UiFieldRenderer;
   buildGroup: UiGroupRenderer;
+  buildGroupCard?: (
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props?: PropData,
+  ) => VNode;
+  buildGroupFieldSet?: (
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props?: PropData,
+  ) => VNode;
   buildGroupForm?: (context: UiContext, props?: UiViewPropsType) => VNode;
-  buildFlowToGroup: (
+  buildBpmnDiagram: (
     flowTrails: any[],
     context: UiContext,
     props?: PropData,
@@ -202,6 +237,8 @@ export interface UiBuilder {
   buildAppTopBar: (props?: AppTopBarProps) => VNode;
   buildAppSideBar: (props?: AppSideBarProps) => VNode;
   buildAppMenu: (modules: Module[], props?: PropData) => VNode;
+  setColorScheme: (dark: boolean) => void;
+  setColorPalette: (palette: MmdaColorPalette) => void;
   buildLoading: (context: UiContext, props?: PropData) => VNode;
   buildError: (context: UiContext, props?: PropData) => VNode;
   buildModuleBreadcrumb: (
@@ -213,6 +250,27 @@ export interface UiBuilder {
     props: ModuleToolbarProps,
     slots?: UiSlots,
   ) => VNode;
+  /**
+   * 统一下拉菜单按钮：默认 text（无描边），自带下拉箭头，不额外塞三点图标。
+   * 业务/皮肤共用，避免各处手写 menuButton 风格不一致。
+   */
+  dropdownMenuButton: (
+    props: UiButtonProps,
+    actions: UiAction[],
+    slots?: UiSlots,
+  ) => VNode;
+  /** 工具栏「更多」：无图标，仅文案 + 下拉箭头 */
+  moreMenuButton: (
+    context: UiContext,
+    items: Array<{
+      name?: string;
+      label?: string;
+      icon?: string;
+      command?: () => void;
+      onAction?: (...args: any[]) => any;
+      items?: any[];
+    }>,
+  ) => VNode[];
   buildSearchField: (
     field: UiSearchField,
     context: UiContext,
@@ -230,24 +288,38 @@ export interface UiBuilder {
   ) => VNode;
   buildSigninForm: (props: SigninFormProps, slots?: SigninFormSlots) => VNode;
   buildSignupForm: (props: SignupFormProps) => VNode;
-  toast: (context: UiContext, props: PropData) => Promise<any>;
-  notify: (props: UiNotificationProps, context?: UiContext) => void;
+  overlay: UiOverlay;
+  overlayHost?: Component;
+  toast: (context: UiContext, props: UiToastProps | PropData) => Promise<any>;
   confirm: (
     context: UiContext,
     props: UiMessageBoxProps,
   ) => Promise<UiMessageBoxResult> | any;
   confirmMessage: (context: UiContext, props: PropData) => Promise<boolean>;
-  confirmPopup: (context: UiContext, props: PropData) => Promise<any>;
+  dialog: (
+    content: VNode,
+    context: UiContext,
+    props: UiDialogPropsType,
+  ) => Promise<boolean>;
   confirmDialog: (
     content: VNode,
     context: UiContext,
     props: UiDialogPropsType,
   ) => Promise<any>;
+  buildDocxFilePreview: (
+    source: string | ArrayBuffer,
+    props?: PropData,
+  ) => VNode;
+  buildXlsxFilePreview: (
+    source: string | ArrayBuffer,
+    props?: PropData,
+  ) => VNode;
+  buildFilePreview: (source: string | ArrayBuffer, props?: PropData) => VNode;
 }
 
 const unimplemented = (name: string) => {
   throw new Error(
-    `UiBuilder.${name} requires @mmda/vui-primevue (or another skin).`,
+    `UiBuilder.${name} requires a skin package (@mmda/vui-primevue or @mmda/vui-syncfusion).`,
   );
 };
 
@@ -258,8 +330,72 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     public readonly factory: UiFactory,
     public readonly fldFactory: UiFieldFactory,
     public readonly layout: UiLayout,
+    public overlay: UiOverlay = createHtmlOverlay(),
   ) {
     this.actionFactory = new UiActionFactory(this, factory.resolveIcon);
+  }
+
+  get overlayHost(): Component | undefined {
+    return undefined;
+  }
+
+  setColorScheme(dark: boolean) {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("mmda-dark", dark);
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  }
+
+  setColorPalette(palette: MmdaColorPalette) {
+    if (typeof document === "undefined") return;
+    document.documentElement.dataset.mmdaPalette = resolveColorPalette(palette);
+  }
+
+  dropdownMenuButton(
+    props: UiButtonProps,
+    actions: UiAction[],
+    slots?: UiSlots,
+  ) {
+    return this.factory.menuButton(
+      {
+        // tonal：亮色 secondary-container；暗色皮肤内改为 surface 抬升
+        buttonType: "tonal",
+        colorRole: "secondary",
+        ...props,
+      },
+      actions,
+      slots,
+    );
+  }
+
+  moreMenuButton(
+    context: UiContext,
+    items: Array<{
+      name?: string;
+      label?: string;
+      icon?: string;
+      command?: () => void;
+      onAction?: (...args: any[]) => any;
+      items?: any[];
+    }>,
+  ) {
+    if (!items.length) return [];
+    return [
+      this.dropdownMenuButton(
+        {
+          label: context.t("action.more"),
+          tooltip: context.t("action.more"),
+          "aria-label": context.t("action.more"),
+          class: "mmda-more-menu-button",
+        },
+        items.map((item, index) => ({
+          name: item.name ?? `more-${index}`,
+          label: item.label,
+          icon: item.icon,
+          onAction: item.command ?? item.onAction,
+          items: item.items,
+        })),
+      ),
+    ];
   }
 
   labelFor(field: MetaUiField, props?: PropData) {
@@ -307,6 +443,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     tableProps: UiListPropsType<any> = {},
   ): VNode {
     const customRenderCell = tableProps.renderCell;
+    const customGridCellRenderer = tableProps.gridCellRenderer;
     const cellProps = cleanTableCellProps({
       tableMetaui: metaui,
       ...(tableProps as PropData),
@@ -322,6 +459,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       renderCell: (field, row) =>
         customRenderCell?.(field, row) ??
         this.displayCellFor(field, row, rowContext(row), cellProps),
+      gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
+        const fieldLogic = rowContext(renderContext.row).getFieldLogic(
+          renderContext.field,
+        ) as any;
+        return (
+          customGridCellRenderer?.(renderContext) ??
+          fieldLogic?.customGridCellRenderer?.(renderContext)
+        );
+      },
     });
   }
 
@@ -549,13 +695,90 @@ export abstract class AbstractUiBuilder implements UiBuilder {
   buildResponsiveField: UiFieldRenderer = (field, context, props = {}) =>
     this.buildField(field, context, props);
 
+  groupWrapClass(group: MetaUiGroup, props: PropData = {}) {
+    const region = String(props.region ?? groupRegion(group));
+    const many = props.many === true || group.many;
+    return [
+      "mmda-group",
+      `mmda-group--${region}`,
+      many ? "mmda-group--many mmda-group-many" : "mmda-group--master",
+      props.class,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  /** FieldSet 外壳：骑边 legend（经典） */
+  buildGroupFieldSet(
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props: PropData = {},
+  ) {
+    const {
+      container: _container,
+      region: _region,
+      many: _many,
+      direction: _direction,
+      cols: _cols,
+      class: _className,
+      ...rest
+    } = props;
+    return h("fieldset", { class: this.groupWrapClass(group, props), ...rest }, [
+      h("legend", { class: "mmda-group__title" }, group.groupLabel),
+      body,
+    ]);
+  }
+
+  /** Card 外壳：可折叠 header + body（默认） */
+  buildGroupCard(
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props: PropData = {},
+  ) {
+    const {
+      container: _container,
+      region: _region,
+      many: _many,
+      direction: _direction,
+      cols: _cols,
+      class: _className,
+      ...rest
+    } = props;
+    return h(
+      MmdaGroupCard,
+      {
+        title: group.groupLabel,
+        expanded: group.expanded !== false,
+        class: this.groupWrapClass(group, props),
+        ...rest,
+      },
+      () => body,
+    );
+  }
+
+  wrapGroup(group: MetaUiGroup, body: VNode | VNode[], props: PropData = {}) {
+    const shell = props.container ?? "card";
+    if (shell === "fieldset") {
+      return this.buildGroupFieldSet(group, body, props);
+    }
+    return this.buildGroupCard(group, body, props);
+  }
+
   buildGroup: UiGroupRenderer = (group, context, children, props = {}) => {
     if (context.isGroupHidden(group)) return h("span", { hidden: true });
     const {
       direction = group.isSecondary() ? "column" : "row",
       cols = group.isSecondary() ? 1 : 2,
-      ...groupProps
+      container = "card",
+      class: className,
+      ...fieldProps
     } = props;
+    const wrapProps = {
+      container,
+      class: className,
+      region: groupRegion(group),
+      many: group.many,
+    };
     if (group.many && group.groupUi) {
       const rows =
         ((context.model as Record<string, any>)[group.groupName] as any[]) ??
@@ -568,6 +791,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
         {
           enableSort: false,
+          enableGroup: false,
           showGridlines: true,
           readOnlyRows,
           rowStyle: hiddenDeletedSubRowStyle,
@@ -577,35 +801,33 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           groupUi: group.groupUi,
         },
       );
-      return h(
-        "fieldset",
-        { class: "mmda-group mmda-group-many", ...groupProps },
-        [
-          h("legend", group.groupLabel),
-          layoutFieldGroup({
-            fields: [table],
-            direction: "table",
-            cols: 1,
-          }),
-        ],
+      return this.wrapGroup(
+        group,
+        layoutFieldGroup({
+          fields: [table],
+          direction: "table",
+          cols: 1,
+        }),
+        wrapProps,
       );
     }
     const fields =
       children ??
       group.fields
         .filter((field) => !context.isFieldHidden(field))
-        .map((field) => this.buildField(field, context, groupProps));
-    return h("fieldset", { class: "mmda-group", ...groupProps }, [
-      h("legend", group.groupLabel),
+        .map((field) => this.buildField(field, context, fieldProps));
+    return this.wrapGroup(
+      group,
       layoutFieldGroup({
         fields,
         direction: direction as FieldGroupDirection,
         cols: cols as 1 | 2 | 3,
       }),
-    ]);
+      wrapProps,
+    );
   };
 
-  buildFlowToGroup(
+  buildBpmnDiagram(
     flowTrails: any[],
     _context: UiContext,
     props?: PropData,
@@ -621,15 +843,23 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const attachments =
       ((context.model as Record<string, any>).attachments as
         { fileName?: string }[] | undefined) ?? [];
-    return h("fieldset", { class: "mmda-group mmda-attachments", ...props }, [
-      h("legend", context.translate("attachments") || "Attachments"),
-      attachments.length
-        ? h(
-            "ul",
-            attachments.map((item) => h("li", item.fileName ?? "")),
-          )
-        : h("p", context.translate("empty.attachments") || "No attachments"),
-    ]);
+    const title = context.translate("attachments") || "Attachments";
+    const body = attachments.length
+      ? h(
+          "ul",
+          attachments.map((item) => h("li", item.fileName ?? "")),
+        )
+      : h("p", context.translate("empty.attachments") || "No attachments");
+    return this.wrapGroup(
+      {
+        groupLabel: title,
+        many: false,
+        isSecondary: () => true,
+        isTails: () => false,
+      } as MetaUiGroup,
+      body,
+      { region: "summary", class: "mmda-attachments", ...props },
+    );
   }
 
   buildView(context: UiContext, props: UiViewPropsType = {}): VNode {
@@ -637,34 +867,17 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       (group) => !context.isGroupHidden(group),
     );
     const primaryCols = props.primaryCols ?? 2;
-    const primary = groups
-      .filter((group) => group.isPrimary())
-      .map((group) =>
+    // 主区：主表组（按 groupName）→ 子表组（按 groupIdx）
+    const primary = sortViewGroups(groups.filter((group) => group.isPrimary())).map(
+      (group) =>
         this.buildGroup(group, context, undefined, {
           direction: "row",
           cols: primaryCols,
         }),
-      );
-    const summary =
-      props.showSecondaryGroup === false
-        ? []
-        : groups
-            .filter((group) => group.isSecondary())
-            .map((group) =>
-              this.buildGroup(group, context, undefined, {
-                direction: "column",
-                cols: 1,
-              }),
-            );
-    const tails = groups
-      .filter((group) => group.isTails())
-      .map((group) =>
-        this.buildGroup(group, context, undefined, {
-          direction: "row",
-          cols: primaryCols,
-        }),
-      );
+    );
+    const summary: VNode[] = [];
     const attachments = (context.model as Record<string, any>).attachments;
+    // 右边栏：附件等先渲染，概要分组始终放最后
     if (
       props.showAttachments !== false &&
       Array.isArray(attachments) &&
@@ -672,6 +885,25 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     ) {
       summary.push(this.buildAttachmentGroup(context));
     }
+    if (props.showSecondaryGroup !== false) {
+      summary.push(
+        ...sortViewGroups(groups.filter((group) => group.isSecondary())).map(
+          (group) =>
+            this.buildGroup(group, context, undefined, {
+              direction: "column",
+              cols: 1,
+            }),
+        ),
+      );
+    }
+    const tails = sortViewGroups(
+      groups.filter((group) => group.isTails()),
+    ).map((group) =>
+      this.buildGroup(group, context, undefined, {
+        direction: "row",
+        cols: primaryCols,
+      }),
+    );
     const runtime = context as any;
     const toolbar =
       props.showToolbar === false
@@ -744,13 +976,29 @@ export abstract class AbstractUiBuilder implements UiBuilder {
                 [searchbar, refreshButton].filter(Boolean) as VNode[],
             },
           ));
-    const list = props.content?.() ?? this.buildTable(context, props);
-    const paginator = this.buildPaginator(context, {
-      onPage: (pager) => {
-        Object.assign(runtime.searchParam.pager, pager);
-        void runtime.search?.();
-      },
-    });
+    const onPage = (pager: { pageNo?: number; pageSize?: number }) => {
+      const cur = runtime.searchParam.pager;
+      if (pager.pageNo === cur.pageNo && pager.pageSize === cur.pageSize) {
+        return;
+      }
+      Object.assign(cur, pager);
+      return runtime.search?.();
+    };
+    const integratedPaging = this.factory.integratedTablePaging === true;
+    const list =
+      props.content?.() ??
+      this.buildTable(context, {
+        ...props,
+        ...(integratedPaging
+          ? {
+              pagination: runtime.model?.pagination,
+              onPage,
+            }
+          : {}),
+      });
+    const paginator = integratedPaging
+      ? null
+      : this.buildPaginator(context, { onPage });
     return this.buildContainer(
       [
         toolbar ? this.buildHeader(toolbar) : null,
@@ -759,7 +1007,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           class: "mmda-list-scroll",
           style: { flex: "1 1 auto", minHeight: 0, overflow: "auto" },
         }),
-        this.buildFooter(paginator),
+        paginator ? this.buildFooter(paginator) : null,
       ].filter(Boolean) as VNode[],
       {
         class: "mmda-list-view",
@@ -808,7 +1056,10 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       context.metaui,
       () => context,
       {
-        filterDisplay: "none",
+        filterDisplay:
+          props.filterDisplay ??
+          this.factory.defaultFilterDisplay ??
+          "none",
         ...props,
         filterLabels: {
           all: context.translate("state.all"),
@@ -819,12 +1070,23 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           ...props.filterLabels,
         },
         filterModel: runtime.searchParam?.searchParams,
+        loadFilterOptions:
+          props.loadFilterOptions ??
+          ((field) => runtime.loadReferenceOptions(field)),
         onFilterModelChange: (filterModel) => {
           runtime.searchParam.searchParams =
             Object.keys(filterModel).length > 0 ? filterModel : undefined;
           runtime.searchParam.pager.pageNo = 1;
-          props.onFilterModelChange?.(filterModel);
-          if (!props.onFilterModelChange) void runtime.search?.();
+          if (props.onFilterModelChange) {
+            return props.onFilterModelChange(filterModel);
+          }
+          return runtime.search?.();
+        },
+        onSort: (sorts) => {
+          runtime.searchParam.pager.sorts = sorts;
+          runtime.searchParam.pager.pageNo = 1;
+          if (props.onSort) return props.onSort(sorts);
+          return runtime.search?.();
         },
         onSelect: (selection) => {
           context.selectedItems = selection;
@@ -937,22 +1199,86 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     slots?: SigninFormSlots,
   ): VNode;
   abstract buildSignupForm(props: SignupFormProps): VNode;
-  abstract toast(context: UiContext, props: PropData): Promise<any>;
-  abstract notify(props: UiNotificationProps, context?: UiContext): void;
-  abstract confirm(
-    context: UiContext,
-    props: UiMessageBoxProps,
-  ): Promise<UiMessageBoxResult> | any;
-  abstract confirmMessage(
-    context: UiContext,
-    props: PropData,
-  ): Promise<boolean>;
-  abstract confirmPopup(context: UiContext, props: PropData): Promise<any>;
-  abstract confirmDialog(
+
+  toast(_context: UiContext, props: UiToastProps | PropData) {
+    this.overlay.toast(props as UiToastProps);
+    return Promise.resolve();
+  }
+
+  confirm(_context: UiContext, props: UiMessageBoxProps) {
+    return this.overlay.confirm(props);
+  }
+
+  async confirmMessage(context: UiContext, props: PropData) {
+    return (await this.confirm(context, props as UiMessageBoxProps)) === "yes";
+  }
+
+  dialog(content: VNode, _context: UiContext, props: UiDialogPropsType) {
+    return this.overlay.dialog(content, props);
+  }
+
+  confirmDialog(
     content: VNode,
     context: UiContext,
     props: UiDialogPropsType,
-  ): Promise<any>;
+  ) {
+    return this.dialog(content, context, props);
+  }
+
+  buildDocxFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+    return h(DocxFilePreview, { source, ...props });
+  }
+
+  buildXlsxFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+    return h(XlsxFilePreview, { source, ...props });
+  }
+
+  buildFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+    const explicit = String(props.extension ?? "");
+    const raw =
+      typeof source === "string"
+        ? source.split(/[?#]/)[0]
+        : explicit;
+    const extension = (
+      explicit ||
+      raw.split(".").pop() ||
+      ""
+    )
+      .toLowerCase()
+      .replace(/^\./, "");
+    if (extension === "docx") return this.buildDocxFilePreview(source, props);
+    if (extension === "xlsx" || extension === "xls")
+      return this.buildXlsxFilePreview(source, props);
+    const style = {
+      width: "100%",
+      height:
+        typeof props.height === "number"
+          ? `${props.height}px`
+          : (props.height ?? "70vh"),
+    };
+    if (
+      typeof source === "string" &&
+      ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"].includes(extension)
+    ) {
+      return h("img", {
+        src: source,
+        alt: props.title ?? "",
+        style: { ...style, objectFit: "contain" },
+      });
+    }
+    if (typeof source === "string" && extension === "pdf") {
+      return h("iframe", {
+        src: source,
+        title: props.title ?? "PDF preview",
+        style,
+      });
+    }
+    return h(
+      "p",
+      { class: "mmda-file-preview-missing" },
+      `Preview is not available for .${extension || "unknown"} files.`,
+    );
+  }
 }
 
 const emptyNode = () => h("div");
@@ -973,7 +1299,7 @@ export function createStubUiBuilder(): UiBuilder {
     buildField: emptyNode,
     buildResponsiveField: emptyNode,
     buildGroup: emptyNode,
-    buildFlowToGroup: emptyNode,
+    buildBpmnDiagram: emptyNode,
     buildView: emptyNode,
     buildListView: emptyNode,
     buildCustomView: emptyNode,
@@ -990,22 +1316,30 @@ export function createStubUiBuilder(): UiBuilder {
     buildAppTopBar: emptyNode,
     buildAppSideBar: emptyNode,
     buildAppMenu: emptyNode,
+    setColorScheme: () => undefined,
+    setColorPalette: () => undefined,
     buildLoading: emptyNode,
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
     buildModuleToolbar: emptyNode,
+    dropdownMenuButton: emptyNode,
+    moreMenuButton: () => [],
     buildSearchField: emptyNode,
     buildSearchForm: emptyNode,
     buildModuleSearchbar: emptyNode,
     buildSearchForRelative: emptyNode,
     buildSigninForm: emptyNode,
     buildSignupForm: emptyNode,
+    overlay: createHtmlOverlay(),
+    overlayHost: undefined,
     toast: async () => undefined,
-    notify: () => undefined,
-    confirm: async () => "cancel",
+    confirm: async () => "no",
     confirmMessage: async () => false,
-    confirmPopup: async () => false,
+    dialog: async () => false,
     confirmDialog: async () => false,
+    buildDocxFilePreview: emptyNode,
+    buildXlsxFilePreview: emptyNode,
+    buildFilePreview: emptyNode,
   };
   return builder;
 }

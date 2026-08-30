@@ -99,6 +99,11 @@ export class MetaUiGroupLogic<E, G> {
 
   constructor(public readonly group: MetaUiGroup) {
     this.fields = []
+    // 元数据 canHave → 绑定组可见性（主表字段为假则隐藏整组）
+    if (group.canHave) {
+      const key = group.canHave
+      this.hiddenFn = (model: E) => !(model as Record<string, any>)?.[key]
+    }
   }
 
   lockIf(predicate: Predicate<E>) {
@@ -108,7 +113,10 @@ export class MetaUiGroupLogic<E, G> {
     return this
   }
   hideIf(predicate: Predicate<E>) {
-    this.hiddenFn = predicate
+    // 与 canHave 叠加：任一为真即隐藏
+    if (this.hiddenFn && this.hiddenFn != predicate)
+      this.hiddenFn = logicOr(predicate, this.hiddenFn)
+    else this.hiddenFn = predicate
     return this
   }
   clearIf(predicate: Predicate<E>) {

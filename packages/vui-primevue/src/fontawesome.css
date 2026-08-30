@@ -1,8 +1,5 @@
 /**
- * Font Awesome（与旧仓 vui-primevue/assets/fa 一致）。
- * 模块 menuIcon、Logic 里的 far fa-* 等依赖此字体。
- *
- * 一般无需单独引入：import '@mmda/vui-primevue' 或 app.use(mmdaPrimeVue) 已包含。
- * 若只用部分能力、需显式加载时可：import '@mmda/vui-primevue/fontawesome.css'
+ * 兼容旧路径 `import '@mmda/vui-primevue/fontawesome.css'`。
+ * 字体已下沉到 `@mmda/vui/fontawesome.css`。
  */
-@import './assets/fa/css/all.min.css';
+@import '@mmda/vui/fontawesome.css';

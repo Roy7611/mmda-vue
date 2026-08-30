@@ -8,6 +8,8 @@ import {
   defaultFieldSearchOptions,
   defaultSearchParam,
   emptyPagedList,
+  assignPagedList,
+  isPagedList,
   assignSearchParam,
   defineEntity,
   defineValidation,
@@ -32,6 +34,7 @@ import {
   type UiValidation,
 } from "@mmda/core";
 import { reactive, ref, shallowReactive, type Ref } from "vue";
+import { rx } from "../rx";
 import {
   UiViewMany,
   UiViewOne,
@@ -105,7 +108,8 @@ export class UiViewContext<
   executing = false;
   isEditDialog = false;
   showDialog = false;
-  searchParam = defaultSearchParam();
+  /** 与 Selector / beforeSearch 一致：pager、searchWord 等需可被视图追踪 */
+  searchParam = rx(defaultSearchParam());
   private readonly initializedState: Ref<boolean>;
 
   private readonly parent?: UiViewContext<any>;
@@ -118,6 +122,7 @@ export class UiViewContext<
   private readonly fieldOptions = reactive<Record<string, FieldSearchOptions>>(
     {},
   );
+  private readonly referenceOptionLoads = new Map<string, Promise<any[]>>();
   private readonly validationState: UiValidation;
   private baseFilter = "";
   private readonly unsavedRows = new WeakMap<object, string>();
@@ -138,9 +143,19 @@ export class UiViewContext<
       this.view === UiViewOne.Edit ||
       this.view === UiViewOne.Create ||
       this.view === UiViewMany.EditMany;
-    this.model = (
-      editing ? reactive(options.model) : shallowReactive(options.model)
-    ) as E;
+    // index 等列表：list/pagination 需可追踪，否则 splice 改分页后视图不更新；
+    // list 用 shallowReactive，避免行对象被深 Proxy（Syncfusion Grid 会空白）。
+    if (!editing && isPagedList(options.model)) {
+      const paged = options.model as { list: unknown[]; pagination: object };
+      this.model = shallowReactive({
+        list: shallowReactive([...paged.list]),
+        pagination: reactive({ ...paged.pagination }),
+      }) as E;
+    } else {
+      this.model = (
+        editing ? reactive(options.model) : shallowReactive(options.model)
+      ) as E;
+    }
     this.metaui = options.metaui;
     this.locale = options.locale ?? options.metaui.locale ?? "zh";
     const app = options.app ?? child?.parent?.app;
@@ -401,8 +416,12 @@ export class UiViewContext<
 
   setModel(model: E) {
     const target = this.model as Record<string, any>;
+    if (isPagedList(target) && isPagedList(model)) {
+      assignPagedList(target as any, model as any);
+      return;
+    }
     for (const key of Object.keys(target)) {
-      if (!(key in model)) delete target[key];
+      if (!(key in (model as object))) delete target[key];
     }
     Object.assign(target, model);
   }
@@ -654,7 +673,13 @@ export class UiViewContext<
 
   isGroupHidden(group: MetaUiGroup | string) {
     const grp = this.resolveGroup(group);
-    return this.getGroupLogic(grp)?.hiddenFn?.(this.model, this) ?? false;
+    if (this.getGroupLogic(grp)?.hiddenFn?.(this.model, this)) return true;
+    // 子表 canHave：按主表对应布尔字段控制整组可见（如 featuredSku）
+    if (grp.canHave) {
+      const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
+      return !master[grp.canHave];
+    }
+    return false;
   }
 
   isGroupEditable(group: MetaUiGroup | string) {
@@ -937,6 +962,56 @@ export class UiViewContext<
       return options;
     } finally {
       options.searching = false;
+    }
+  }
+
+  /**
+   * 为下拉类控件按需加载 REF / HAS_ONE 选项，并写回共享 refOptions。
+   * 与关联字段搜索使用相同的 repository、service、where 和字段逻辑参数。
+   */
+  async loadReferenceOptions(field: MetaUiField): Promise<any[]> {
+    const ref = field.reference;
+    if (!ref) return [];
+    if (ref.isEnum || ref.refOptions.length > 0) return ref.refOptions;
+    if ((!ref.isRef && !ref.hasOne) || !ref.refRepository || !this.app) {
+      return ref.refOptions;
+    }
+
+    const cacheKey = `${ref.service ?? ""}:${ref.refRepository}:${field.fieldName}`;
+    const pending = this.referenceOptionLoads.get(cacheKey);
+    if (pending) return pending;
+
+    const request = (async () => {
+      const searchParam = defaultSearchParam();
+      searchParam.pager.pageNo = 1;
+      searchParam.pager.pageSize = 1000;
+      const filter = ref.buildSearchFilter(this.model, {
+        ctx: this as any,
+        filterFn: this.getFieldLogic(field)?.filterFn ?? ref.filterFn,
+      });
+      const extra = this.getFieldLogic(field)?.setSearchParamFn?.(
+        this as unknown as UiContext,
+        this.model,
+        field,
+      );
+      searchParam.queryParams = {
+        ...(extra ?? {}),
+        ...(filter ? { filter } : {}),
+      };
+      const page = await this.app!.api.searchEntities(searchParam, {
+        repository: ref.refRepository,
+        service: ref.service,
+      });
+      ref.refOptions.splice(0, ref.refOptions.length, ...(page.list ?? []));
+      this.getFieldOptions(field).selectOptions = ref.refOptions;
+      return ref.refOptions;
+    })();
+
+    this.referenceOptionLoads.set(cacheKey, request);
+    try {
+      return await request;
+    } finally {
+      this.referenceOptionLoads.delete(cacheKey);
     }
   }
 

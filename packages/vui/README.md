@@ -14,7 +14,7 @@ import {
 } from '@mmda/vui'
 ```
 
-**不包含** PrimeVue 控件。包内 `HtmlUiBuilder` 是零 PrimeVue 依赖的 HTML 皮肤；PrimeVue 4.5 由 `@mmda/vui-primevue` 实现。
+**不包含** PrimeVue / Syncfusion 控件。包内 `HtmlUiBuilder` 是零控件库依赖的 HTML 皮肤；PrimeVue 4.5 由 `@mmda/vui-primevue` 实现，EJ2 由 `@mmda/vui-syncfusion` 实现。
 
 ## 分层
 
@@ -29,7 +29,7 @@ UiViewContext        一实体一份 Vue 会话（实现 core 的 UiContext）
         ↓
 UiBuildContext       屏级 CRUD、列表刷新、附件与导入导出
         ↓
-UiBuilder / Factory  拼屏契约；HtmlUiBuilder 或 vui-primevue 落地
+UiBuilder / Factory / Overlay  拼屏契约 + 弹层；Html / PrimeVue / Syncfusion
 ```
 
 约定：

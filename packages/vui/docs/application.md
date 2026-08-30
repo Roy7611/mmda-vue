@@ -73,5 +73,6 @@ Vue 的 `provide/inject` 管 **当前屏**：`UI_CONTEXT_KEY` 是这一次打开
 - 一屏字段只读/隐藏：`MetaUiFieldLogic`（core）+ `UiLogic.beforeEdit`；
 - 列表查询参数：`UiViewContext.searchParam`；
 - 控件怎么画：`UiBuilder` / 皮肤包。
+- 登录后布局：应用 `AppShell` 调用 `builder.buildAppScaffold` / `buildAppSideBar`。
 
 `MmdaApplication` 可以没有 PrimeVue；playground 用 `HtmlUiBuilder` 即可跑通登录以外的拼屏。

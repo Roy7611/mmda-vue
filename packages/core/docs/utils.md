@@ -107,6 +107,8 @@ const [a, b] = await db.getMany(['a', 'b'])
 
 `useLocalAsyncDb`：有 IndexedDB 用 `LocalIndexedDb`，否则 `LocalAsyncStorageDb`（包一层 `localStorage`）。两边都没有就抛错。
 
+登录态用 `useMmdaSsoDb()`，写入 `mmda/user`、`mmda/config`（优先 localStorage），与各模块的 `base` / `mes` 元数据缓存分开。
+
 物理 key 是 `{dbName}/{locale}/{key}`。`zh` 和 `en` 不会撞。
 
 只认 JSON：`put` 会 `JSON.stringify`，函数字段拿回来是 `undefined`。

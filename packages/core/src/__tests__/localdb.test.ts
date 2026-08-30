@@ -4,6 +4,7 @@ import {
   LocalAsyncStorageDb,
   LocalStorageDb,
   useLocalAsyncDb,
+  useMmdaSsoDb,
 } from '../utils/localdb'
 
 describe('LocalStorageDb', () => {
@@ -65,5 +66,19 @@ describe('useLocalAsyncDb', () => {
     expect((await db.get('m')).m).toBeUndefined()
     await db.delete('a')
     expect(await db.get('a')).toBeFalsy()
+  })
+})
+
+describe('useMmdaSsoDb', () => {
+  it('走 localStorage 且与模块库隔离', async () => {
+    const sso = useMmdaSsoDb()
+    const app = new LocalAsyncStorageDb('mes', 'zh')
+    await sso.put('user', { userId: '1' })
+    await app.put('user', { userId: 'app' })
+    expect(await sso.get('user')).toEqual({ userId: '1' })
+    expect(await app.get('user')).toEqual({ userId: 'app' })
+    expect(window.localStorage.getItem('mmda/user')).toContain('"userId":"1"')
+    await sso.delete('user')
+    await app.delete('user')
   })
 })

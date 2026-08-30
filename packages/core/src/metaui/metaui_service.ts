@@ -1,8 +1,6 @@
 import { MetaUi } from './metaui_group'
 import {
   type LocalAsyncDb,
-  supportLocalStorage,
-  supportIndexedDb,
   useLocalAsyncDb,
 } from '../utils/localdb'
 import { ApiClient, type EntityUrlParam } from '../net/api_client'
@@ -161,7 +159,12 @@ class MetaUiServiceImpl implements MetaUiService {
   async getModules(reload: boolean = false) {
     if (!this._moduleFactory || reload) {
       await this.apiClient.getAll({ repository: 'ModuleAuths', queryParams: { asTree: 1 } })
-        .then((m: any) => this._moduleFactory = new ModuleFactory(m.list as Module[]))
+        .then((m: any) => {
+          const list = (m?.list ?? []) as Module[]
+          this.logModuleTree('ModuleAuths?asTree=1', list)
+          this._moduleFactory = new ModuleFactory(list)
+          this.logModuleTree('ModuleFactory.modules', this._moduleFactory.modules)
+        })
 
     }
     return this._moduleFactory.modules
@@ -170,10 +173,46 @@ class MetaUiServiceImpl implements MetaUiService {
   async getOtherSystemModules(service: string, reload: boolean = false) {
     if (!this._otherSystemModuleFactory[service] || reload) {
       const modules = await this.apiClient.getAll({ service, repository: 'ModuleAuths', queryParams: { asTree: 1 } })
-      this._otherSystemModuleFactory[service] = new ModuleFactory(modules.list as Module[])
+      const list = (modules?.list ?? []) as Module[]
+      this.logModuleTree(`ModuleAuths?asTree=1&service=${service}`, list)
+      this._otherSystemModuleFactory[service] = new ModuleFactory(list)
     }
 
     return this._otherSystemModuleFactory[service].modules
+  }
+
+  /** Dev diagnostic: ModuleAuths tree (subModules / allowOps). */
+  private logModuleTree(tag: string, list: Module[]) {
+    const sample = (list ?? []).slice(0, 3).map((m: any) => ({
+      moduleCode: m.moduleCode,
+      moduleType: m.moduleType,
+      moduleLabel: m.moduleLabel,
+      allowOps: m.allowOps,
+      authorityAllowRead: m.authority?.allowRead,
+      subModulesLen: m.subModules?.length ?? 0,
+      child0: m.subModules?.[0]
+        ? {
+            moduleCode: m.subModules[0].moduleCode,
+            moduleType: m.subModules[0].moduleType,
+            allowOps: m.subModules[0].allowOps,
+            kids: m.subModules[0].subModules?.length ?? 0,
+          }
+        : null,
+    }))
+    let featureCount = 0
+    const walk = (nodes: Module[] = []) => {
+      for (const n of nodes as any[]) {
+        if (n.moduleType === 'FEATURE' || n.moduleType === 2) featureCount++
+        walk(n.subModules ?? [])
+      }
+    }
+    walk(list)
+    console.info(`[mmda:modules] ${tag}`, {
+      topCount: list?.length ?? 0,
+      featureCount,
+      sample,
+      rawFirst: list?.[0],
+    })
   }
 
   async getAllTemplate(repository: string): Promise<ReportTemplate[] | null> {

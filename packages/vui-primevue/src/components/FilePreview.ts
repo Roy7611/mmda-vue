@@ -1,8 +1,7 @@
-import { defineAsyncComponent, defineComponent, h, type PropType } from 'vue'
-import Message from 'primevue/message'
+import { DocxFilePreview, XlsxFilePreview } from '@mmda/vui'
+import { defineComponent, h, type PropType } from 'vue'
 
-const DocxPreview = defineAsyncComponent(() => import('@vue-office/docx'))
-const ExcelPreview = defineAsyncComponent(() => import('@vue-office/excel'))
+export { DocxFilePreview, XlsxFilePreview }
 
 const extensionOf = (source: string, explicit?: string) => {
   if (explicit) return explicit.toLowerCase().replace(/^\./, '')
@@ -10,44 +9,36 @@ const extensionOf = (source: string, explicit?: string) => {
   return pathname.split('.').pop()?.toLowerCase() ?? ''
 }
 
+/** @deprecated 请用 `builder.buildFilePreview` 或 vui 的 Docx/Xlsx 组件。 */
 export const FilePreview = defineComponent({
   name: 'MmdaFilePreview',
   props: {
-    source: { type: [String, ArrayBuffer] as PropType<string | ArrayBuffer>, required: true },
+    source: {
+      type: [String, ArrayBuffer] as PropType<string | ArrayBuffer>,
+      required: true,
+    },
     extension: String,
     title: String,
     height: { type: [String, Number], default: '70vh' },
   },
-  emits: ['rendered', 'error'],
-  setup(props, { emit }) {
+  setup(props) {
     return () => {
       const source = props.source
       const extension =
-        typeof source === 'string' ? extensionOf(source, props.extension) : props.extension
+        typeof source === 'string'
+          ? extensionOf(source, props.extension)
+          : (props.extension ?? '')
       const style = {
         width: '100%',
         height:
           typeof props.height === 'number' ? `${props.height}px` : props.height,
       }
-      if (extension === 'docx') {
-        return h(DocxPreview, {
-          src: source,
-          style,
-          onRendered: () => emit('rendered'),
-          onError: (error: unknown) => emit('error', error),
-        })
-      }
-      if (extension === 'xlsx' || extension === 'xls') {
-        return h(ExcelPreview, {
-          src: source,
-          style,
-          onRendered: () => emit('rendered'),
-          onError: (error: unknown) => emit('error', error),
-        })
-      }
+      if (extension === 'docx') return h(DocxFilePreview, { source, ...props })
+      if (extension === 'xlsx' || extension === 'xls')
+        return h(XlsxFilePreview, { source, ...props })
       if (
         typeof source === 'string' &&
-        ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(extension ?? '')
+        ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(extension)
       ) {
         return h('img', {
           src: source,
@@ -63,9 +54,9 @@ export const FilePreview = defineComponent({
         })
       }
       return h(
-        Message,
-        { severity: 'info' },
-        () => `Preview is not available for .${extension || 'unknown'} files.`,
+        'p',
+        { class: 'mmda-file-preview-missing' },
+        `Preview is not available for .${extension || 'unknown'} files.`,
       )
     }
   },

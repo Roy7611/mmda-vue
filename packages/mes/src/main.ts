@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import {
   MmdaApplication,
-  UI_BUILDER_KEY,
   resolveRepositoryModule,
   setupI18n,
   type UiLogicInit,
@@ -50,9 +49,8 @@ vueApp.use(i18n)
 vueApp.use(mmdaPrimeVue, { locale: 'zh' })
 vueApp.use(mmda)
 vueApp.use(router)
-vueApp.provide(UI_BUILDER_KEY, builder)
 vueApp.provide(MES_KEY, mmda)
 
-void mmda.signinAuto().then(() => {
+void mmda.signinAuto().finally(() => {
   vueApp.mount('#app')
 })

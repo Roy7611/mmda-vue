@@ -188,7 +188,7 @@ describe("Module.auth", () => {
         moduleLabel: "仓库",
         moduleType: "FEATURE",
         moduleVersion: ModuleVersion.TEAM,
-        allowOp: ModuleOp.READ | ModuleOp.EDIT,
+        allowOps: ModuleOp.READ | ModuleOp.EDIT,
         moduleUrl: "/wms/warehouse",
         requiredCreateParam: false,
         status: ModuleStatus.RELEASED,
@@ -200,9 +200,78 @@ describe("Module.auth", () => {
     expect(
       factory.findModuleByUrl("/wms/warehouse")?.authority?.allowEdit,
     ).toBe(true);
-    expect(
-      Object.isFrozen(factory.findModuleByName("Warehouse")?.authority),
-    ).toBe(true);
+    const authority = factory.findModuleByName("Warehouse")!.authority!;
+    expect(Object.isFrozen(authority)).toBe(true);
+    expect(Object.isFrozen(authority.authorizedActions)).toBe(true);
+    expect(() => {
+      (authority as { allowRead: boolean }).allowRead = false;
+    }).toThrow();
+  });
+
+  it("ModuleFactory 优先保留服务端 authority，缺省时按 allowOps 拆解，并遍历子模块", () => {
+    const factory = new ModuleFactory([
+      {
+        moduleCode: "B",
+        moduleLabel: "基础数据",
+        moduleType: "SYSTEM",
+        moduleVersion: ModuleVersion.TEAM,
+        allowOps: 255,
+        moduleUrl: "/BASE",
+        requiredCreateParam: false,
+        status: ModuleStatus.RELEASED,
+        divider: false,
+        subModules: [
+          {
+            moduleCode: "B.01",
+            moduleLabel: "组织",
+            moduleType: "MODULE",
+            moduleVersion: ModuleVersion.TEAM,
+            allowOps: 255,
+            moduleUrl: "/BASE/Org",
+            requiredCreateParam: false,
+            status: ModuleStatus.RELEASED,
+            divider: false,
+            subModules: [
+              {
+                moduleCode: "B.01.001",
+                moduleLabel: "部门",
+                moduleType: "FEATURE",
+                moduleVersion: ModuleVersion.TEAM,
+                allowOps: 255,
+                authority: {
+                  allowRead: true,
+                  allowEdit: false,
+                  allowCreate: false,
+                  allowDelete: false,
+                  allowPrint: false,
+                  allowExport: false,
+                  allowImport: false,
+                  allowUpload: false,
+                  authScope: "SELF",
+                  authorizedActions: [],
+                },
+                moduleUrl: "/BASE/Departments",
+                requiredCreateParam: false,
+                status: ModuleStatus.RELEASED,
+                divider: false,
+                objName: "Department",
+              } as any,
+            ],
+          } as any,
+        ],
+      } as any,
+    ]);
+    const root = factory.modules[0]!;
+    expect(root.allowOps).toBe(255);
+    expect(root.authority?.allowRead).toBe(true); // 无 authority → 按 allowOps
+    expect(root.subModules?.[0]?.moduleCode).toBe("B.01");
+    expect(root.subModules?.[0]?.subModules?.[0]?.moduleCode).toBe("B.01.001");
+    expect(factory.findModuleByName("Department")?.authority?.allowRead).toBe(
+      true,
+    );
+    expect(factory.findModuleByName("Department")?.authority?.allowEdit).toBe(
+      false,
+    ); // 服务端授权优先，不因 allowOps:255 抬权
   });
 });
 

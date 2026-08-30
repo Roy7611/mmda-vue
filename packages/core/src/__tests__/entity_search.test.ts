@@ -20,7 +20,7 @@ describe("ApiClient.searchEntities", () => {
     await api.searchAll(body, { repository: "Orders" });
 
     expect(http.post).toHaveBeenCalledWith(
-      expect.stringContaining("/Orders"),
+      expect.stringMatching(/\/Orders\/searchAll(?:\?|$)/),
       expect.objectContaining({
         options: { body: JSON.stringify(body) },
       }),
@@ -40,7 +40,7 @@ describe("ApiClient.searchEntities", () => {
       repository: "Warehouses",
       queryParams: expect.objectContaining({
         pageNo: 1,
-        pageSize: 10,
+        pageSize: 20,
         searchWord: "仓",
         ownerID: "u1",
       }),
@@ -70,7 +70,7 @@ describe("ApiClient.searchEntities", () => {
       queryParams: expect.objectContaining({
         filter: "status='OPEN'",
         pageNo: 1,
-        pageSize: 10,
+        pageSize: 20,
       }),
     });
     expect(api.getAll).not.toHaveBeenCalled();

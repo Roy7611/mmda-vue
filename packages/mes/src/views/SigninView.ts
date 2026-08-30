@@ -40,28 +40,23 @@ export const SigninView = defineComponent({
           }
         },
       },
-      // 页面已有「制造执行登录」标题，不再重复渲染表单内「登录」
       { title: () => null },
     )
 
     return () =>
-      h(
-        'div',
-        {
-          class: 'mmda-signin-page',
-          style: {
-            minHeight: '100vh',
-            display: 'grid',
-            placeItems: 'center',
-            padding: '24px',
-          },
-        },
-        [
-          h('div', { style: { width: 'min(420px, 100%)' } }, [
-            h('h1', { style: { marginBottom: '16px' } }, '制造执行登录'),
-            signinForm,
+      h('div', { class: 'mmda-signin-page' }, [
+        h('div', { class: 'mmda-signin-card' }, [
+          h('header', { class: 'mmda-signin-card__header' }, [
+            h('p', { class: 'mmda-signin-card__eyebrow' }, 'MMDA'),
+            h('h1', { class: 'mmda-signin-card__title' }, '制造执行登录'),
+            h(
+              'p',
+              { class: 'mmda-signin-card__subtitle' },
+              '使用账号密码登录，继续排产、报工与现场协同。',
+            ),
           ]),
-        ],
-      )
+          h('div', { class: 'mmda-signin-card__body' }, [signinForm]),
+        ]),
+      ])
   },
 })

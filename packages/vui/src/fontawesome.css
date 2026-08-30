@@ -1,0 +1,5 @@
+/**
+ * Font Awesome Pro 5.15.4 静态资源（模块 moduleIcon、Logic 里的 far fa-*）。
+ * vui 主入口不自动加载；皮肤插件或应用显式：import '@mmda/vui/fontawesome.css'
+ */
+@import './assets/fa/css/all.min.css';

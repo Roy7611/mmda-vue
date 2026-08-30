@@ -4,6 +4,9 @@ export const supportLocalStorage =
   isBrowser && window.localStorage !== undefined
 export const supportIndexedDb = isBrowser && window.indexedDB !== undefined
 
+/** 公共 SSO 库名：localStorage 为 `mmda/user`、`mmda/config` */
+export const MMDA_LOCAL_DB_NAME = 'mmda'
+
 /**
  * 本地数据库
  */
@@ -26,7 +29,7 @@ export class LocalStorageDb implements LocalDb {
     locale: string = 'zh',
     sessionOnly: boolean = false
   ) {
-    this.dbName = `${dbName}/${locale}`
+    this.dbName = locale ? `${dbName}/${locale}` : dbName
     this.storage = sessionOnly ? window.sessionStorage : window.localStorage
   }
 
@@ -145,15 +148,74 @@ export class LocalIndexedDb implements LocalAsyncDb {
   }
 
   protected createStore(storeName: string): UseIDbStore {
-    const request = window.indexedDB.open(this.dbName, this.version)
-    request.onupgradeneeded = () =>
-      request.result.createObjectStore(storeName, this.options)
-    const idb = promisifyRequest(request)
+    let dbPromise: Promise<IDBDatabase> | undefined
 
-    return (txMode, callback) =>
-      idb.then(db =>
-        callback(db.transaction(storeName, txMode).objectStore(storeName))
-      )
+    const openWithStore = (): Promise<IDBDatabase> =>
+      new Promise((resolve, reject) => {
+        const tryOpen = (version?: number) => {
+          const request = window.indexedDB.open(this.dbName, version)
+          request.onerror = () =>
+            reject(request.error ?? new Error(`IndexedDB open failed: ${this.dbName}`))
+          request.onupgradeneeded = () => {
+            const db = request.result
+            if (!db.objectStoreNames.contains(storeName)) {
+              db.createObjectStore(storeName, this.options)
+            }
+          }
+          request.onsuccess = () => {
+            const db = request.result
+            if (!db.objectStoreNames.contains(storeName)) {
+              const nextVersion = db.version + 1
+              db.close()
+              tryOpen(nextVersion)
+              return
+            }
+            db.onversionchange = () => {
+              db.close()
+              dbPromise = undefined
+            }
+            resolve(db)
+          }
+        }
+        tryOpen(this.version)
+      })
+
+    const getDb = () => {
+      if (!dbPromise) dbPromise = openWithStore()
+      return dbPromise
+    }
+
+    return async (txMode, callback) => {
+      const run = async (retried = false): Promise<any> => {
+        const db = await getDb()
+        try {
+          if (!db.objectStoreNames.contains(storeName)) {
+            throw new DOMException(
+              `Object store "${storeName}" not found in "${this.dbName}"`,
+              'NotFoundError',
+            )
+          }
+          return await callback(
+            db.transaction(storeName, txMode).objectStore(storeName),
+          )
+        } catch (error: any) {
+          const missingStore =
+            error?.name === 'NotFoundError' ||
+            error?.name === 'InvalidStateError'
+          if (!retried && missingStore) {
+            try {
+              db.close()
+            } catch {
+              /* ignore */
+            }
+            dbPromise = undefined
+            return run(true)
+          }
+          throw error
+        }
+      }
+      return run()
+    }
   }
 
   get(key: string): Promise<any> {
@@ -220,6 +282,22 @@ export class LocalIndexedDb implements LocalAsyncDb {
   getAllKeys(key: string): Promise<void> {
     return this.deleteKeysContaining(key)
   }
+}
+
+/**
+ * 公共 SSO 库（仅 `user` / `config`）。
+ * 优先 localStorage（`mmda/user`、`mmda/config`），避开 IndexedDB objectStore 升级竞态。
+ */
+export function useMmdaSsoDb(
+  options?: IDBObjectStoreParameters,
+): LocalAsyncDb {
+  if (supportLocalStorage) {
+    return new LocalAsyncStorageDb(MMDA_LOCAL_DB_NAME, '')
+  }
+  if (supportIndexedDb) {
+    return new LocalIndexedDb(MMDA_LOCAL_DB_NAME, 'sso', options)
+  }
+  throw new Error('Local db not supported!')
 }
 
 /**

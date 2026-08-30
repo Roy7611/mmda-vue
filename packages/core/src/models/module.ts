@@ -127,8 +127,11 @@ export interface Module {
   /** 元对象名称*/
   objName?: string;
 
-  /** 允许操作：0;NONE;无|1;READ;读取|2;EDIT;编辑|4;CREATE;创建|8;DELETE;删除|15;CRUD;增删改查|16;REPORT;统计报表|32;IMPORT;导入|64;EXPORT;导出|128;UPLOAD;上传模板|255;ALL;所有*/
-  allowOp: ModuleOp;
+  /**
+   * 允许的标准操作位掩码。
+   * 定义：0;NONE;无|1;READ;读取|2;EDIT;编辑|4;CREATE;创建|8;DELETE;删除|15;CRUD;增删改查|16;REPORT;统计报表|32;IMPORT;导入|64;EXPORT;导出|128;UPLOAD;上传模板|255;ALL;所有
+   */
+  allowOps: ModuleOp;
 
   /** 模块Url*/
   moduleUrl: string;
@@ -148,6 +151,7 @@ export interface Module {
   /** 描述*/
   description?: string;
 
+  /** 子模块树（asTree=1 时由服务端嵌套返回）*/
   subModules?: Module[];
 
   /**
@@ -155,6 +159,9 @@ export interface Module {
    */
   divider: boolean;
 
+  /**
+   * 用户授权（服务端 RoleModuleAuth 合并结果）；无 authority 时工厂按 allowOps 拆解。
+   */
   authority?: ModuleAuth;
 }
 
@@ -196,20 +203,20 @@ export interface ModuleAuth {
 }
 
 /**
- * 将ModuleOp按位拆解出模块标准权限结构
- * @param allowOp
+ * 将 allowOps 位掩码拆解为标准权限结构
+ * @param allowOps ModuleOp 位组合
  * @returns ModuleAuth
  */
-export function auth(allowOp: ModuleOp): ModuleAuth {
+export function auth(allowOps: ModuleOp): ModuleAuth {
   return {
-    allowRead: hasBit(allowOp, ModuleOp.READ),
-    allowEdit: hasBit(allowOp, ModuleOp.EDIT),
-    allowCreate: hasBit(allowOp, ModuleOp.CREATE),
-    allowDelete: hasBit(allowOp, ModuleOp.DELETE),
-    allowPrint: hasBit(allowOp, ModuleOp.PRINT),
-    allowExport: hasBit(allowOp, ModuleOp.EXPORT),
-    allowImport: hasBit(allowOp, ModuleOp.IMPORT),
-    allowUpload: hasBit(allowOp, ModuleOp.UPLOAD),
+    allowRead: hasBit(allowOps, ModuleOp.READ),
+    allowEdit: hasBit(allowOps, ModuleOp.EDIT),
+    allowCreate: hasBit(allowOps, ModuleOp.CREATE),
+    allowDelete: hasBit(allowOps, ModuleOp.DELETE),
+    allowPrint: hasBit(allowOps, ModuleOp.PRINT),
+    allowExport: hasBit(allowOps, ModuleOp.EXPORT),
+    allowImport: hasBit(allowOps, ModuleOp.IMPORT),
+    allowUpload: hasBit(allowOps, ModuleOp.UPLOAD),
   };
 }
 
@@ -233,8 +240,20 @@ export class ModuleFactory {
       },
       enumerable: true,
     });
-    const a = module.authority || auth(module.allowOp);
-    Object.defineProperty(module, "authority", { value: Object.freeze(a) });
+    // 优先使用服务端返回的用户授权；仅当未附带 authority 时才从 allowOps 拆解能力位。
+    // 冻结副本：属性槽不可替换，CRUD 标志与 authorizedActions 也不可改。
+    // Object.freeze 的 Readonly 与 ModuleAuth 可变声明不兼容，运行时已冻结，断言回 ModuleAuth。
+    const source = module.authority || auth(module.allowOps ?? 0);
+    const frozen = Object.freeze({
+      ...source,
+      authorizedActions: Object.freeze([...(source.authorizedActions ?? [])]),
+    }) as ModuleAuth;
+    Object.defineProperty(module, "authority", {
+      value: frozen,
+      writable: false,
+      configurable: false,
+      enumerable: true,
+    });
     Object.defineProperty(module, "parent", {
       get: function () {
         return parent;

@@ -30,19 +30,12 @@ app
 PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染，因此本包
 默认锁定最后的开源 PrimeVue 4 主线。
 
-应用根组件需渲染一次 `PrimeVueOverlayHost`，它承载 Toast、
-ConfirmDialog、ConfirmPopup、DynamicDialog 及 MMDA 自定义 Dialog。
-也可以直接使用 `MmdaPrimeApp`，它已包含该宿主。
+应用根组件不必再挂 Overlay Host：`MmdaApplication.install` 会把皮肤的 `overlayHost` 挂到 `document.body`。
 
 ## Font Awesome（菜单与业务图标）
 
 后端 `Module.moduleIcon` 及 Logic 里大量 `far fa-*` 使用 Font Awesome，**不是** PrimeIcons。
-字体文件以静态资源放在本包 `src/assets/fa/`（与旧仓一致），**不依赖 npm 上的 `@fortawesome/*` 包**。
-
-- 使用 `app.use(mmdaPrimeVue)` 或 `import '@mmda/vui-primevue'` 时会自动加载
-- 仅需字体、不装完整插件时可：`import '@mmda/vui-primevue/fontawesome.css'`
-
-base、mes 等业务应用共用 `@mmda/vui-primevue` 即可，无需各自拷贝 `fa` 目录。
+字体在 `@mmda/vui`（`import '@mmda/vui/fontawesome.css'`）。皮肤插件会加载；兼容路径 `import '@mmda/vui-primevue/fontawesome.css'` 仍可用。
 
 ## 可选能力
 

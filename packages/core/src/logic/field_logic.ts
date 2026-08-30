@@ -34,6 +34,23 @@ export type UiCellRenderer<T extends object = Record<string, any>> = (
   props: Record<string, any>,
 ) => any;
 
+/** Grid 控件可直接消费的轻量值；不包含框架相关的 VNode。 */
+export type GridCellValue = string | number | boolean | Date | null | undefined;
+
+export interface GridCellRenderContext<
+  T = Record<string, any>,
+> {
+  field: MetaUiField;
+  row: T;
+  rowIndex: number;
+  value: unknown;
+  displayValue: GridCellValue;
+}
+
+export type GridCellRenderer<
+  T = Record<string, any>,
+> = (context: GridCellRenderContext<T>) => GridCellValue;
+
 /**
  * 元域逻辑，包括只读、隐藏、修改值监视以及设置自定义渲染和编辑器函数。
  *
@@ -52,6 +69,8 @@ export class MetaUiFieldLogic<E> {
   customRenderer?: Function
   /** 自定义表格单元格渲染器 */
   customCellRenderer?: Function
+  /** Grid 专用轻量单元格渲染器 */
+  customGridCellRenderer?: GridCellRenderer<E>
   /** 是否冻结列（None/Left/Right） */
   frozen?: MetaUiFieldFrozen
   /** 只读条件函数 */
@@ -219,6 +238,11 @@ export class MetaUiFieldLogic<E> {
 
   setCustomCellRenderer(renderFn: UiCellRenderer) {
     this.customCellRenderer = renderFn
+    return this
+  }
+
+  setGridCellRenderer(renderFn: GridCellRenderer<E>) {
+    this.customGridCellRenderer = renderFn
     return this
   }
 

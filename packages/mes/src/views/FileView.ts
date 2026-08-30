@@ -1,11 +1,12 @@
-import { FilePreview } from '@mmda/vui-primevue'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import { UI_BUILDER_KEY, type UiBuilder } from '@mmda/vui'
 
 export const FileView = defineComponent({
   name: 'FileView',
   setup() {
     const route = useRoute()
+    const builder = inject(UI_BUILDER_KEY) as UiBuilder | undefined
     return () => {
       const fileUrl =
         (route.query.fileUrl as string) ||
@@ -20,7 +21,9 @@ export const FileView = defineComponent({
         { style: { height: '100vh', display: 'flex', flexDirection: 'column' } },
         [
           h('div', { style: { flex: 1, overflow: 'hidden' } }, [
-            h(FilePreview, { source: fileUrl, height: '100%' }),
+            builder
+              ? builder.buildFilePreview(fileUrl, { height: '100%' })
+              : h('iframe', { src: fileUrl, style: { width: '100%', height: '100%' } }),
           ]),
         ],
       )

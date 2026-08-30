@@ -12,7 +12,7 @@
 
 - 标准 CRUD 走元数据路由 `/MES/:repository`、`/Create`、`/Edit/:id`、`/:id`，交互逻辑在 `src/modules/**/*Logic.ts`。
 - 编译期可引用 `@mmda/base/src/...`（枚举与跨服务模型类型），不引用 `@mmda/iot` / `@mmda/srm`（仅 `src/compat` 桩）。
-- 旧 `HeaderView` / 逐仓库 ListView·Editor 未迁入；壳是 `MmdaPrimeApp`。
+- 旧 `HeaderView` / 逐仓库 ListView·Editor 未迁入；壳是 `AppShell` → `builder.buildAppScaffold`。
 - 生产/质量看板、甘特、工位门户源码在 `src/components`，路由上仍为占位页，后续再接到新 `UiBuildContext`。
 
 ## 分层约束

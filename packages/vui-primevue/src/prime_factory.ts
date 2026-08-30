@@ -19,6 +19,7 @@ import type {
   UiPaginatorPropsType,
   UiSlots,
 } from "@mmda/vui";
+import Badge from "primevue/badge";
 import Button from "primevue/button";
 import ButtonGroup from "primevue/buttongroup";
 import Chart from "primevue/chart";
@@ -112,7 +113,11 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         type: props.type ?? "button",
         label: props.label,
         icon: props.icon,
-        severity: severity(props.colorRole ?? props.severity),
+        severity: severity(
+          props.colorRole ??
+            props.severity ??
+            (props.buttonType === "tonal" ? "secondary" : undefined),
+        ),
         variant:
           props.buttonType === "outlined"
             ? "outlined"
@@ -435,6 +440,12 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     image: (src, props) => h(Image, { src, preview: props?.preview, ...props }),
     icon: (name, props) =>
       h("i", { class: factory.resolveIcon(name), ...props }),
+    badge: (props) =>
+      h(Badge, {
+        value: props.value,
+        severity: props.severity,
+        class: props.class,
+      }),
     title: (text, props) => h("h2", props, text),
     subtitle: (text, props) => h("h3", props, text),
     link: (props, slots) =>
@@ -486,16 +497,41 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         },
         slots,
       ),
-    menuButton: (props, actions, slots) =>
-      h(
+    menuButton: (props, actions, slots) => {
+      const hideCaret =
+        props.hideCaret === true ||
+        props.shape === "circle" ||
+        (!props.label && Boolean(props.icon));
+      const isText = hideCaret || props.buttonType === "text";
+      // icon-only：用下拉半边承载图标，避免 SplitButton 双段把 footer 撑乱
+      return h(
         SplitButton as any,
         {
           ...props,
+          label: hideCaret ? undefined : props.label,
+          icon: hideCaret ? undefined : props.icon,
+          dropdownIcon: hideCaret ? props.icon : props.dropdownIcon,
+          rounded: hideCaret || props.shape === "circle" || props.shape === "round",
+          text: isText,
+          outlined: props.buttonType === "outlined",
+          severity: severity(
+            props.colorRole ??
+              props.severity ??
+              (props.buttonType === "tonal" ? "secondary" : undefined),
+          ),
+          class: [
+            props.class,
+            hideCaret ? "mmda-menu-button--icon-only" : "",
+            props.buttonType === "tonal" ? "mmda-btn-tonal" : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
           model: actions.map((action) => normalizeAction(action)),
           onClick: props.onAction ?? props.command,
         },
         slots,
-      ),
+      );
+    },
     floatingActionButton: (props) =>
       button({
         ...props,

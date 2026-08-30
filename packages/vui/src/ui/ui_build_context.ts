@@ -171,9 +171,14 @@ export class UiBuildContext<
   async search(param?: EntitySearchParam) {
     if (param) this.applySearchParam(param);
     this.syncSearchState();
-    const page = await this.logic.getAll(this.searchParam);
-    if (page) this.setModel(page as unknown as E);
-    return page;
+    this.loading.value = true;
+    try {
+      const page = await this.logic.getAll(this.searchParam);
+      if (page) this.setModel(page as unknown as E);
+      return page;
+    } finally {
+      this.loading.value = false;
+    }
   }
 
   async resetFilters() {

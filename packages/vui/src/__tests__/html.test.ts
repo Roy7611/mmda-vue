@@ -55,13 +55,13 @@ describe("HtmlUiBuilder", () => {
     expect(context.model.name).toBe("新名称");
   });
 
-  it("原生确认框返回统一的 yes/no 结果", () => {
+  it("原生确认框返回统一的 yes/no 结果", async () => {
     const context = new UiViewContext({ model: {}, metaui });
     const original = window.confirm;
     window.confirm = () => true;
-    expect(new HtmlUiBuilder().confirm(context, { message: "确认吗？" })).toBe(
-      "yes",
-    );
+    await expect(
+      new HtmlUiBuilder().confirm(context, { message: "确认吗？" }),
+    ).resolves.toBe("yes");
     window.confirm = original;
   });
 

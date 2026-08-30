@@ -142,8 +142,6 @@ export function assignPagedList<T>(model: PagedList<T>, pagedList: PagedList<T>)
   model.pagination.to = pagedList.pagination.to;
   model.pagination.recordCount = pagedList.pagination.recordCount;
   model.pagination.sorts = pagedList.pagination.sorts;
-
-  // Object.assign(model.pagination,pagedList.pagination);
 }
 
 const stringifySort = (sort: Sort) => `${sort.sortBy} ${sort.sortOrder}`

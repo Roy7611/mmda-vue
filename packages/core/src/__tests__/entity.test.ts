@@ -14,6 +14,7 @@ import {
   MetaUiField,
   type MetaUiFieldInit,
 } from '../metaui/metaui_field'
+import { MetaUi } from '../metaui/metaui_group'
 class Warehouse extends Entity {
   whID!: string
   whName!: string
@@ -78,5 +79,34 @@ describe('entity factory', () => {
     const val = MetaModel.getFieldValue(entity, fld)
     const id = entity[fld.fieldName]
     const text = MetaModel.getRefProp(entity, 'parentCatID')
+  })
+})
+
+describe('MetaUi name column', () => {
+  it('marks the legacy nameCol field as the list details link', () => {
+    const metaui = new MetaUi({
+      objName: 'Material',
+      displayLabel: '物料',
+      primaryKey: 'materialID',
+      nameCol: 'materialCode',
+      groups: [
+        {
+          groupName: 'basic',
+          groupLabel: '基础信息',
+          many: false,
+          fields: [
+            {
+              ...fldInit,
+              fieldName: 'materialCode',
+              displayLabel: '物料编码',
+              selectOptions: undefined,
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(metaui.labelField).toBe('materialCode')
+    expect(metaui.getField('materialCode')?.linkable).toBe(true)
   })
 })

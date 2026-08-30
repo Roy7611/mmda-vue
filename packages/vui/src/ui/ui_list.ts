@@ -1,8 +1,10 @@
 import type { VNode, VNodeArrayChildren, VNodeChild } from "vue";
 import type {
   EntityFilterModel,
+  GridCellRenderer,
   MetaUiField,
   Pager,
+  Pagination,
   Sort,
   UiSelectionMode,
 } from "@mmda/core";
@@ -15,6 +17,12 @@ export type UiTableCellRenderer<T = any> = (
   row: T,
   props?: Record<string, any>,
 ) => VNode;
+
+export type {
+  GridCellRenderer,
+  GridCellRenderContext,
+  GridCellValue,
+} from "@mmda/core";
 
 export type { UiSlots } from "./ui_layout";
 
@@ -31,9 +39,23 @@ export interface UiListProps<T = any> {
   linkField?: string;
   loading?: boolean;
   inplaceEdit?: boolean;
+  resizableColumns?: boolean;
+  /** 列排序；默认开启。 */
+  enableSort?: boolean;
+  /** 列分组（拖到分组区）；默认开启，子表建议关闭。 */
+  enableGroup?: boolean;
+  pagination?: Pagination;
+  pageSizeOptions?: number[];
+  onPage?: (
+    pager: { pageSize?: number; pageNo?: number },
+  ) => void | Promise<unknown>;
   filterDisplay?: "menu" | "row" | "none";
   filterModel?: EntityFilterModel;
-  onFilterModelChange?: (model: EntityFilterModel) => void;
+  onFilterModelChange?: (
+    model: EntityFilterModel,
+  ) => void | Promise<unknown>;
+  /** 首次打开引用字段过滤器时加载并缓存可选项。 */
+  loadFilterOptions?: (field: MetaUiField) => Promise<unknown[]>;
   filterLabels?: Partial<
     Record<"all" | "yes" | "no" | "apply" | "clear", string>
   >;
@@ -45,6 +67,9 @@ export interface UiListProps<T = any> {
     row: T,
     props?: Record<string, any>,
   ) => VNode | VNode[];
+  gridCellRenderer?: GridCellRenderer<T>;
+  /** 可按 fieldName 或 MetaUiField.renderer 名称注册。 */
+  gridCellRenderers?: Record<string, GridCellRenderer<T>>;
 }
 
 export interface UiListEmits<T = any> {
@@ -55,7 +80,8 @@ export interface UiListEmits<T = any> {
   onSelectAll?: (selection: T[]) => void;
   onSelectionChange?: (selection: T[]) => void;
   onItemContextMenu?: (item: T) => void;
-  onSort?: (sorts: Sort[]) => void;
+  /** 可返回 Promise：Syncfusion 自定义绑定时需等查询结束再回写 dataSource。 */
+  onSort?: (sorts: Sort[]) => void | Promise<unknown>;
   onSearch?: (searchWord: string) => void;
 }
 

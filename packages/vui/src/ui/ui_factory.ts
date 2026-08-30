@@ -26,6 +26,8 @@ import type {
 } from './ui_button'
 import type { IconResolver, UiAction } from './ui_action'
 import type { UiDialogPropsType } from './ui_dialog'
+import type { SearchForRelativeProps } from './ui_filter'
+import type { UiMenuItem } from './ui_menu'
 
 type UiContext = UiViewContext<any>
 import type {
@@ -51,6 +53,11 @@ export type UiButtonRenderer = (
   props: UiButtonProps,
   slots?: UiButtonSlots,
 ) => VNode
+
+export interface UiBadgeProps extends PropData {
+  value: string | number
+  severity?: 'info' | 'success' | 'warning' | 'danger'
+}
 
 export interface CustomColumn {
   field: string
@@ -83,6 +90,9 @@ export const previewList = ['xlsx', 'docx', 'pdf', 'bmp', 'jpg', 'png', 'gif']
 export interface UiFactory {
   [index: string]: any
   layout: UiLayout
+  /** 表格控件本身承载分页器，buildListView 不再创建独立 paginator。 */
+  integratedTablePaging?: boolean
+  defaultFilterDisplay?: 'menu' | 'row' | 'none'
   actionIcons: Record<string, string>
   viewIcons: Record<string, string>
   dialogIcons: Record<string, string>
@@ -91,6 +101,7 @@ export interface UiFactory {
   label: UiRenderer<string>
   image: UiRenderer<string>
   icon: UiRenderer<string>
+  badge: (props: UiBadgeProps) => VNode
   title: UiRenderer<string>
   subtitle: UiRenderer<string>
   link: (props: UiLinkProps, slots?: UiLinkSlots) => VNode
@@ -127,18 +138,9 @@ export interface UiFactory {
   ) => VNode
   loading?: (props?: PropData, slots?: any) => VNode
   scrollbar: UiRenderer<VNodeChild>
-}
-
-export interface TabsSlots {
-  tabs: VNode[]
-  tabPanels: VNode[]
-}
-
-/** PrimeVue 皮肤包实现此扩展；vui 运行时不依赖 PrimeVue。 */
-export interface PrimeVueUiFactory extends UiFactory {
-  menu: UiRenderer<any[]>
-  panelMenu: UiRenderer<any[]>
-  menubar: UiRenderer<any[]>
+  menu: UiRenderer<UiMenuItem[] | any[]>
+  panelMenu: UiRenderer<UiMenuItem[] | any[]>
+  menubar: UiRenderer<UiMenuItem[] | any[]>
   dialog: (
     props: PropData & {
       visible: boolean
@@ -147,8 +149,20 @@ export interface PrimeVueUiFactory extends UiFactory {
     slots?: UiSlots,
   ) => VNode
   drawer: (props: PropData, slots?: UiSlots) => VNode
-  searchForRelative: (props: PropData, slots?: any) => VNode
+  searchForRelative: (
+    props: SearchForRelativeProps | PropData,
+    slots?: UiSlots,
+  ) => VNode
 }
+
+export interface TabsSlots {
+  tabs: VNode[]
+  tabPanels: VNode[]
+}
+
+/** @deprecated 使用 UiFactory；chrome 方法已并入基接口。 */
+export type PrimeVueUiFactory = UiFactory
+export type SyncfusionUiFactory = UiFactory
 
 export const durationOfSeconds: UiRenderer<number> = (seconds, props) =>
   h('span', props, () => friendlySeconds(seconds, props?.locale))
@@ -212,6 +226,8 @@ export const TABLE_CELL_PROP_KEYS = [
   'enableSort',
   'showGridlines',
   'renderCell',
+  'gridCellRenderer',
+  'gridCellRenderers',
   'tableMetaui',
   'onItemDoubleClick',
   'customCellRenderers',
@@ -233,6 +249,9 @@ export const TABLE_CELL_PROP_KEYS = [
   'stripedRows',
   'loading',
   'resizableColumns',
+  'pagination',
+  'pageSizeOptions',
+  'onPage',
   'scrollable',
   'scrollHeight',
   'height',

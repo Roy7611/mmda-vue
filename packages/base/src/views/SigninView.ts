@@ -40,28 +40,24 @@ export const SigninView = defineComponent({
           }
         },
       },
-      // 页面已有「基础数据登录」标题，不再重复渲染表单内「登录」
+      // 页面品牌标题已展示，表单内不再重复「登录」
       { title: () => null },
     )
 
     return () =>
-      h(
-        'div',
-        {
-          class: 'mmda-signin-page',
-          style: {
-            minHeight: '100vh',
-            display: 'grid',
-            placeItems: 'center',
-            padding: '24px',
-          },
-        },
-        [
-          h('div', { style: { width: 'min(420px, 100%)' } }, [
-            h('h1', { style: { marginBottom: '16px' } }, '基础数据登录'),
-            signinForm,
+      h('div', { class: 'mmda-signin-page' }, [
+        h('div', { class: 'mmda-signin-card' }, [
+          h('header', { class: 'mmda-signin-card__header' }, [
+            h('p', { class: 'mmda-signin-card__eyebrow' }, 'MMDA'),
+            h('h1', { class: 'mmda-signin-card__title' }, '基础数据登录'),
+            h(
+              'p',
+              { class: 'mmda-signin-card__subtitle' },
+              '使用账号密码登录，继续管理组织、物料与基础档案。',
+            ),
           ]),
-        ],
-      )
+          h('div', { class: 'mmda-signin-card__body' }, [signinForm]),
+        ]),
+      ])
   },
 })

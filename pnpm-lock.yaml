@@ -29,18 +29,51 @@ importers:
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
-      '@mmda/vui-primevue':
+      '@mmda/vui-syncfusion':
         specifier: workspace:^
-        version: link:../vui-primevue
-      '@primevue/themes':
-        specifier: 4.5.4
-        version: 4.5.4
-      primeicons:
-        specifier: 7.0.0
-        version: 7.0.0
-      primevue:
-        specifier: ^4.5.5
-        version: 4.5.5(vue@3.5.41(typescript@5.9.3))
+        version: link:../vui-syncfusion
+      '@syncfusion/ej2-vue-barcode-generator':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-buttons':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-calendars':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-charts':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-diagrams':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-dropdowns':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-grids':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-inputs':
+        specifier: ^31.2.3
+        version: 31.2.15
+      '@syncfusion/ej2-vue-lists':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-navigations':
+        specifier: ^31.2.3
+        version: 31.2.16
+      '@syncfusion/ej2-vue-notifications':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-popups':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-progressbar':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-splitbuttons':
+        specifier: ^31.2.3
+        version: 31.2.12
       vue:
         specifier: ^3.5.25
         version: 3.5.41(typescript@5.9.3)
@@ -54,6 +87,12 @@ importers:
       '@types/node':
         specifier: ^20.19.0
         version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -173,9 +212,54 @@ importers:
       '@mmda/vui-primevue':
         specifier: workspace:^
         version: link:../vui-primevue
+      '@mmda/vui-syncfusion':
+        specifier: workspace:^
+        version: link:../vui-syncfusion
       '@primevue/themes':
         specifier: 4.5.4
         version: 4.5.4
+      '@syncfusion/ej2-vue-barcode-generator':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-buttons':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-calendars':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-charts':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-diagrams':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-dropdowns':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-grids':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-inputs':
+        specifier: ^31.2.3
+        version: 31.2.15
+      '@syncfusion/ej2-vue-lists':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-navigations':
+        specifier: ^31.2.3
+        version: 31.2.16
+      '@syncfusion/ej2-vue-notifications':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-popups':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-progressbar':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-splitbuttons':
+        specifier: ^31.2.3
+        version: 31.2.12
       primeicons:
         specifier: 7.0.0
         version: 7.0.0
@@ -192,6 +276,12 @@ importers:
         specifier: ^4.5.1
         version: 4.6.4(vue@3.5.41(typescript@5.9.3))
     devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -204,7 +294,16 @@ importers:
       '@mmda/core':
         specifier: workspace:^
         version: link:../core
+      '@vue-office/docx':
+        specifier: ^1.6.3
+        version: 1.6.3(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
+      '@vue-office/excel':
+        specifier: ^1.7.14
+        version: 1.7.14(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
     devDependencies:
+      '@material/material-color-utilities':
+        specifier: ^0.2.7
+        version: 0.2.7
       '@types/node':
         specifier: ^20.19.0
         version: 20.19.43
@@ -302,6 +401,136 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+      vue-i18n:
+        specifier: ^11.1.11
+        version: 11.4.9(vue@3.5.41(typescript@5.9.3))
+      vue-router:
+        specifier: ^4.5.1
+        version: 4.6.4(vue@3.5.41(typescript@5.9.3))
+
+  packages/vui-syncfusion:
+    dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+      '@syncfusion/ej2-barcode-generator':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-base':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-buttons':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-calendars':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-charts':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-diagrams':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-dropdowns':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-grids':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-inputs':
+        specifier: ^31.2.3
+        version: 31.2.15
+      '@syncfusion/ej2-lists':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-locale':
+        specifier: 31.1.17
+        version: 31.1.17
+      '@syncfusion/ej2-navigations':
+        specifier: ^31.2.3
+        version: 31.2.16
+      '@syncfusion/ej2-notifications':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-popups':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-progressbar':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-splitbuttons':
+        specifier: ^31.2.3
+        version: 31.2.12
+    devDependencies:
+      '@syncfusion/ej2-vue-barcode-generator':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-buttons':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-calendars':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-charts':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-diagrams':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-dropdowns':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-grids':
+        specifier: ^31.2.3
+        version: 31.2.18
+      '@syncfusion/ej2-vue-inputs':
+        specifier: ^31.2.3
+        version: 31.2.15
+      '@syncfusion/ej2-vue-lists':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-navigations':
+        specifier: ^31.2.3
+        version: 31.2.16
+      '@syncfusion/ej2-vue-notifications':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-popups':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-progressbar':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@syncfusion/ej2-vue-splitbuttons':
+        specifier: ^31.2.3
+        version: 31.2.12
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -629,6 +858,9 @@ packages:
   '@marijn/find-cluster-break@1.0.4':
     resolution: {integrity: sha512-Wy0V7+SGUjnF9/TkiM1hKVDPj7jKXduPNboMVtHTA8dySMURWqfg/JZ9E2Sq8JgSJmkl7k7Qe9FLeMSrSraWmQ==}
 
+  '@material/material-color-utilities@0.2.7':
+    resolution: {integrity: sha512-0FCeqG6WvK4/Cc06F/xXMd/pv4FeisI0c1tUpBbfhA2n9Y8eZEv4Karjbmf2ZqQCPUWMrGp8A571tCjizxoTiQ==}
+
   '@noble/hashes@2.2.0':
     resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
     engines: {node: '>= 20.19.0'}
@@ -848,6 +1080,122 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@syncfusion/ej2-barcode-generator@31.2.12':
+    resolution: {integrity: sha512-N2MJenwqsuYAS3Cg3Jt6rHssHfMPKtVjphCdX2FnJ5Os7lJ8L54+G9LM4tfOPoQT5zMvGbbRdCkYxaX5gxSMoA==}
+
+  '@syncfusion/ej2-base@31.2.18':
+    resolution: {integrity: sha512-sZyoftjdPyP1rM/0CxHKxt/2p+FGXtqxqFb6I2E7lWVVt5uQfs31mCWjCI0nWV0AmqbGw7uHa+1NFA8iKiUauQ==}
+    hasBin: true
+
+  '@syncfusion/ej2-buttons@31.2.18':
+    resolution: {integrity: sha512-EWlj9f1dTzyVL8hrmEyidKPhmkamEqvZp3qR/aTM2b3conkOGm8/rTSSZSz3SkHBLmW0PaIb4DkpIlFZlfGRfQ==}
+
+  '@syncfusion/ej2-calendars@31.2.18':
+    resolution: {integrity: sha512-sej3hSKOXhiLR3znOWSbJFsgMeZKCPDlWCV3I9CzApDSbCN3nr6PCho1wQ9YgcofzZ1tsVcrRv4ZXCseoGsX8g==}
+
+  '@syncfusion/ej2-charts@31.2.18':
+    resolution: {integrity: sha512-Asg4gIpkQje/aig5DHLVf3ODvI7n4FaKqPXmOYcVDpYP7zFl64lWdEpm2kvloG+NLq1ec2laNty/DJPGc004tw==}
+
+  '@syncfusion/ej2-compression@31.2.12':
+    resolution: {integrity: sha512-kE7smjWSQ4YVgDMIBjE1A0K63NwXU80AzBEwt+ls6x8TeP5Fia5b0gSK8IIPusniZJc2Iy4u0OikG6tRc5IVyg==}
+
+  '@syncfusion/ej2-data@31.2.18':
+    resolution: {integrity: sha512-CtsLfXPvXT1WmidwyyJiRxC++QxQrkWvhl8Nt+lay/nsN2t3ztOTYX6lN5rtPdFOkTtPBpNfPjJm0oli+bLhCw==}
+
+  '@syncfusion/ej2-diagrams@31.2.18':
+    resolution: {integrity: sha512-v7gx4v4GFY0jMcFlKMPayD6Ef6MvKFEzOVQdOZ2ejBU2YTlh4wtsyvvUq1JpYK1OzGAurNOmjE+P5wXv2GT5CQ==}
+
+  '@syncfusion/ej2-dropdowns@31.2.18':
+    resolution: {integrity: sha512-KFY+Vy9cLAfJUIAKs4pk6SjPX0jcYkeUscDqiF2HjdgBDM0+G5n3mlj8cq9mPevMtoQcef+TaRqc7N4SgL2ueA==}
+
+  '@syncfusion/ej2-excel-export@31.2.12':
+    resolution: {integrity: sha512-+UiH3E/GSfvB9e/OdRJq9ZV89tF3+E/ApCz1U/yEk0l32ZlV7p03KOhDAFm5oGsoW8jAZ1TD+vWu5ZGrLESPQA==}
+
+  '@syncfusion/ej2-file-utils@31.2.12':
+    resolution: {integrity: sha512-7IjF5P0+UbPPjDcnA2TQiOjdEtkmr4/dW8oKn+k88bchttC23GNgdENV19eE8Rs+9lr2iRPQid/RTbI8l2VEQA==}
+
+  '@syncfusion/ej2-grids@31.2.18':
+    resolution: {integrity: sha512-olsrxbMNRJXG2TQ5ydcVYjwRsGbFQ/835c6NVclxCXmuLnK8hvpV9Ao9d5aJnj/53z0bIXCngIbIKCjT2c/qpA==}
+
+  '@syncfusion/ej2-icons@31.2.12':
+    resolution: {integrity: sha512-hunyEoMWV5a40qCCURN5ggmjMM7srqMMlaUqRT1YBDRu4yDbKpJDeiA1QpAr2hHmEOwCKHkWX/L7WWQ2YRXqKg==}
+
+  '@syncfusion/ej2-inputs@31.2.15':
+    resolution: {integrity: sha512-1aDfcjMln2vZzaSguU4k6yug1gLOyOv7Jp9Hx1g3mzVp712oDEhBsr8yWtyWtkDmkgCjetV2d2Bcih0K45lXaw==}
+
+  '@syncfusion/ej2-lists@31.2.12':
+    resolution: {integrity: sha512-cxrrpv9aQf2li9iC0uWsIqXqVYmYZMiROo0WwXZrz/cGBe59tXhqkTnLjVScZ7mZtZJNEjovF+fxUGWwb6lu3w==}
+
+  '@syncfusion/ej2-locale@31.1.17':
+    resolution: {integrity: sha512-0OmEuS6HU5veDMSMcCI8OQPJhskBqG9IAQHsbM0huZqAkQ6K2AJ/vynk2Zv/zZn9IM2+xrwR4e/FlBD5t4/Q+g==}
+    bundledDependencies: []
+
+  '@syncfusion/ej2-navigations@31.2.16':
+    resolution: {integrity: sha512-V1l/utJYcTALLJkgMnh106r/o2Td2gznH8N3319mNSZ5raKIVVj1zZrDOksFsK7JZxCF8BBjNaB1TAvcl/7Tbw==}
+
+  '@syncfusion/ej2-notifications@31.2.12':
+    resolution: {integrity: sha512-ltzlR5DVTe4fIFxI5zHhBs2K1A0HGVHGebahGQrEaM8JNqmQGWVExq1Djfsb1GYADrDQz8SuYUIZzlSQWA6JEw==}
+
+  '@syncfusion/ej2-pdf-export@31.2.12':
+    resolution: {integrity: sha512-S9AYD2cyQ/V1Yg6X3XexLVqSsMnFp7DAmF/UN9A8VOx1wRD5L4lwCqCEEuhbNW3NLBZtwR73vhFGX8eXuSCIxw==}
+
+  '@syncfusion/ej2-popups@31.2.12':
+    resolution: {integrity: sha512-3UnKISEkFhv0tAo7Q/fVpc3UHv0a9sVN4K3kQwklU+LNtFUia58Fbu5gJf/sRiYGZgb0BYdpKbJvSI0Cktet+Q==}
+
+  '@syncfusion/ej2-progressbar@31.2.12':
+    resolution: {integrity: sha512-+LiKMbhy2VlNJ+Zo9L9oguBNZ4EW6SDrriEJPuvkBsTFl7+ax+g2GF/dHsQrNN2qEW91r0ns4oKDpzgN9Q5CCg==}
+
+  '@syncfusion/ej2-splitbuttons@31.2.12':
+    resolution: {integrity: sha512-Zel8IIeKqIPpYe3EaLd8KCcu0aJKzbgaTuH0oXzWSWE7iSffTgNZh8LHoeBbCOWOS6EPlCFYgWDHqZgjUajFdA==}
+
+  '@syncfusion/ej2-svg-base@31.2.12':
+    resolution: {integrity: sha512-hW291pTWPOxe7EWpPKbBXtTvLq7cjktqq6p9Bvbe7ydbMFeGsU7zQOlrQ5olA16rj4NRmgmrBqVz+J660gWwhQ==}
+
+  '@syncfusion/ej2-vue-barcode-generator@31.2.12':
+    resolution: {integrity: sha512-jtyneA/cX3aF5JMbdMqQfvIIjy3ysAhbTCgxKvsbuRpqNApFdbMOmrne7o4SD/2wW05pv00RVCkHp890osjw6A==}
+
+  '@syncfusion/ej2-vue-base@31.2.12':
+    resolution: {integrity: sha512-vTxl+wrqNc9Mg+DzJVMY/4PJzEuypPdPt+mQRwP16Bi/zvqlbYdRho1vj9w1q22Pri11LLv1hm0zWqNIwNwAkw==}
+
+  '@syncfusion/ej2-vue-buttons@31.2.18':
+    resolution: {integrity: sha512-9ETzr1xGZeYOIunJboeoKUQALnJaVRgkLQZ3FcgVJejPo5F9EkMrtuCjSvktpAO+1018MnbJ37hcmZafeiWWbg==}
+
+  '@syncfusion/ej2-vue-calendars@31.2.18':
+    resolution: {integrity: sha512-rxgPkYqJquG3hOrOnTHGdxyJiOTnbdLe3CsmtCSNoSMlp5QuZGYQsGwcpSy5pOrR16PZj8G+ZkVhN5g0ZxKrYg==}
+
+  '@syncfusion/ej2-vue-charts@31.2.18':
+    resolution: {integrity: sha512-PrqwDh7M2wRfal/6l+CwmXICfpKeYr/u018nPSithaTZefNxQJ2zxheZ8Ai5fUF83fn9T6G9KNsWjHtqSkIoJg==}
+
+  '@syncfusion/ej2-vue-diagrams@31.2.18':
+    resolution: {integrity: sha512-OS3AN2sfi2l9ysE+tvRxvsZxNuYzYWHRI/NKTbs4amn1jQ82AkKzYklarm2E9/mAu7uZ0AEQkKt58Qpyr1YgDw==}
+
+  '@syncfusion/ej2-vue-dropdowns@31.2.18':
+    resolution: {integrity: sha512-oCUbr58DQr6hHm96MkSKfZIYhc7GUVgIbb0PIirx26hmjgSaViZv8O2EC2sJpxdIlKBeqGRNqNWBmWNPIyPM8Q==}
+
+  '@syncfusion/ej2-vue-grids@31.2.18':
+    resolution: {integrity: sha512-EM2AxSyGqcHibBJQb+iFhBa2joha94AoDMqaFzewOr92wK+NjnH1vR5FOiOM6MByVO898YxnQca5g9vwpuCJSw==}
+
+  '@syncfusion/ej2-vue-inputs@31.2.15':
+    resolution: {integrity: sha512-9bb55Padq9fzRHp+HV2LJYAX0AWrJ3oztM254Ley0pYIxoRhYuoZe5alA7NMv0fzVM0SJhFBHZKNhxXZPQpQLQ==}
+
+  '@syncfusion/ej2-vue-lists@31.2.12':
+    resolution: {integrity: sha512-74ouIGMy4EqVi2xwzA5M45wXR3TqFVOqPqrn3ApcMwPfggNvAJxxKJJxgqouDUYCqsxuYPgrYTnWtE6/vbw1lA==}
+
+  '@syncfusion/ej2-vue-navigations@31.2.16':
+    resolution: {integrity: sha512-T90g85NNL0xDXgUMr4tR812ZGFDbIh7LY2gWsQ3bU0ycxy0xew+ZCytnyrkjaAAZ+axXwc63sJQJwJpU0oflKw==}
+
+  '@syncfusion/ej2-vue-notifications@31.2.12':
+    resolution: {integrity: sha512-x+/FnHLDg7kndqQfgj89uXGrmM3taGbQUJVFMMI6B7cdqYcV1QAHOMROLgeOTdoI6b8887kIQzkxx1I6w3/C8g==}
+
+  '@syncfusion/ej2-vue-popups@31.2.12':
+    resolution: {integrity: sha512-Oi+EY+eYQuJ5PTry8bh60Wd7iFdB7Zc7onp5t2YO/IKnWRkngCZu7GpoLmlbsFvLL7Q/sEEl33M8BE4KTAFfSg==}
+
+  '@syncfusion/ej2-vue-progressbar@31.2.12':
+    resolution: {integrity: sha512-HxG4Iyv0U6WEn6WWcPHsToAVcl3a8HZkBF1b/ZRYiFCrMti+gmd49WSaz+QabMn1IJuHtFs7yqVDPy4yZsAKvA==}
+
+  '@syncfusion/ej2-vue-splitbuttons@31.2.12':
+    resolution: {integrity: sha512-POa/x1nrB0j0FuLjPYIfOHtubkwDy/g07sOwlFY2hN45hnSH3GjC8386ZaqkupN3QaHJilf/kD+MJXeNlHA9gw==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -2371,6 +2719,8 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.4': {}
 
+  '@material/material-color-utilities@0.2.7': {}
+
   '@noble/hashes@2.2.0':
     optional: true
 
@@ -2513,6 +2863,235 @@ snapshots:
   '@rolldown/pluginutils@1.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@syncfusion/ej2-barcode-generator@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+
+  '@syncfusion/ej2-base@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-icons': 31.2.12
+
+  '@syncfusion/ej2-buttons@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+
+  '@syncfusion/ej2-calendars@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-charts@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-calendars': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-excel-export': 31.2.12
+      '@syncfusion/ej2-navigations': 31.2.16
+      '@syncfusion/ej2-pdf-export': 31.2.12
+      '@syncfusion/ej2-svg-base': 31.2.12
+
+  '@syncfusion/ej2-compression@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-file-utils': 31.2.12
+
+  '@syncfusion/ej2-data@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+
+  '@syncfusion/ej2-diagrams@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-navigations': 31.2.16
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-dropdowns@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-navigations': 31.2.16
+      '@syncfusion/ej2-notifications': 31.2.12
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-excel-export@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-compression': 31.2.12
+
+  '@syncfusion/ej2-file-utils@31.2.12': {}
+
+  '@syncfusion/ej2-grids@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-calendars': 31.2.18
+      '@syncfusion/ej2-compression': 31.2.12
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-dropdowns': 31.2.18
+      '@syncfusion/ej2-excel-export': 31.2.12
+      '@syncfusion/ej2-file-utils': 31.2.12
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-navigations': 31.2.16
+      '@syncfusion/ej2-notifications': 31.2.12
+      '@syncfusion/ej2-pdf-export': 31.2.12
+      '@syncfusion/ej2-popups': 31.2.12
+      '@syncfusion/ej2-splitbuttons': 31.2.12
+
+  '@syncfusion/ej2-icons@31.2.12': {}
+
+  '@syncfusion/ej2-inputs@31.2.15':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-popups': 31.2.12
+      '@syncfusion/ej2-splitbuttons': 31.2.12
+
+  '@syncfusion/ej2-lists@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-locale@31.1.17': {}
+
+  '@syncfusion/ej2-navigations@31.2.16':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-notifications@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-pdf-export@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-compression': 31.2.12
+
+  '@syncfusion/ej2-popups@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+
+  '@syncfusion/ej2-progressbar@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-data': 31.2.18
+      '@syncfusion/ej2-svg-base': 31.2.12
+
+  '@syncfusion/ej2-splitbuttons@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-popups': 31.2.12
+
+  '@syncfusion/ej2-svg-base@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+
+  '@syncfusion/ej2-vue-barcode-generator@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-barcode-generator': 31.2.12
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-base@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+
+  '@syncfusion/ej2-vue-buttons@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-buttons': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-calendars@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-calendars': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-charts@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-charts': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-diagrams@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-diagrams': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-dropdowns@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-dropdowns': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-grids@31.2.18':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-grids': 31.2.18
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-inputs@31.2.15':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-inputs': 31.2.15
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-lists@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-lists': 31.2.12
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-navigations@31.2.16':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-navigations': 31.2.16
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-notifications@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-notifications': 31.2.12
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-popups@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-popups': 31.2.12
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-progressbar@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-progressbar': 31.2.12
+      '@syncfusion/ej2-vue-base': 31.2.12
+
+  '@syncfusion/ej2-vue-splitbuttons@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
+      '@syncfusion/ej2-splitbuttons': 31.2.12
+      '@syncfusion/ej2-vue-base': 31.2.12
 
   '@types/chai@5.2.3':
     dependencies:

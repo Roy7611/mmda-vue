@@ -1,12 +1,14 @@
-import { computed, defineComponent, h, inject, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, h, inject, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Button from 'primevue/button'
-import Menu from 'primevue/menu'
-import Badge from 'primevue/badge'
-import { useToast } from 'primevue/usetoast'
-import { UI_APP_KEY, UI_BUILDER_KEY, type MmdaApplication } from '@mmda/vui'
+import {
+  ColorPalettePicker,
+  UI_APP_KEY,
+  UI_BUILDER_KEY,
+  writeMmdaPref,
+  type MmdaApplication,
+  type UiBuilder,
+} from '@mmda/vui'
 import type { UiContext } from '@mmda/core'
-import type { PrimeVueUiBuilder } from '@mmda/vui-primevue'
 import { ChangePasswordForm } from './ChangePasswordForm'
 import { APP_NAME } from '../keys'
 
@@ -14,20 +16,26 @@ export const AppUserFooter = defineComponent({
   name: 'AppUserFooter',
   setup() {
     const app = inject(UI_APP_KEY)! as MmdaApplication
-    const builder = inject(UI_BUILDER_KEY)! as PrimeVueUiBuilder
+    const builder = inject(UI_BUILDER_KEY)! as UiBuilder
     const router = useRouter()
     const route = useRoute()
-    const toast = useToast()
-    const userMenu = ref<InstanceType<typeof Menu>>()
     const password = reactive({ newPwd: '', newPwdAgain: '' })
 
     const username = computed(() => app.user?.username || '游客')
     const todoCount = computed(() => Number(app.context.todoCount ?? 0))
+    const icon = (name: string) => builder.factory.resolveIcon(name)
+
+    const toast = (
+      severity: string,
+      summary: string,
+      detail: string,
+      life = 3000,
+    ) => void app.toast({} as any, { severity, summary, detail, life })
 
     const setDark = (dark: boolean) => {
       app.context.isDark = dark
-      document.documentElement.classList.toggle('p-dark', dark)
-      localStorage.setItem('isDark', JSON.stringify(dark))
+      builder.setColorScheme(dark)
+      writeMmdaPref('isDark', JSON.stringify(dark))
     }
 
     const signOut = async () => {
@@ -52,16 +60,11 @@ export const AppUserFooter = defineComponent({
           width: 'min(90vw, 30rem)',
           accept: async () => {
             if (!password.newPwd) {
-              toast.add({ severity: 'error', summary: '错误', detail: '请填写新密码', life: 3000 })
+              toast('error', '错误', '请填写新密码')
               return false
             }
             if (password.newPwd !== password.newPwdAgain) {
-              toast.add({
-                severity: 'error',
-                summary: '错误',
-                detail: '两次输入的密码不一致',
-                life: 3000,
-              })
+              toast('error', '错误', '两次输入的密码不一致')
               return false
             }
             try {
@@ -74,38 +77,21 @@ export const AppUserFooter = defineComponent({
                 },
                 { payload: { newPwd: password.newPwd } },
               )
-              toast.add({ severity: 'success', summary: '成功', detail: '修改密码成功', life: 2000 })
+              toast('success', '成功', '修改密码成功', 2000)
               await signOut()
               return true
             } catch (error) {
-              toast.add({
-                severity: 'error',
-                summary: '错误',
-                detail: error instanceof Error ? error.message : String(error),
-                life: 3000,
-              })
+              toast(
+                'error',
+                '错误',
+                error instanceof Error ? error.message : String(error),
+              )
               return false
             }
           },
         },
       )
     }
-
-    const menuItems = [
-      {
-        label: '修改密码',
-        icon: 'pi pi-key',
-        command: changePassword,
-      },
-      {
-        separator: true,
-      },
-      {
-        label: '注销',
-        icon: 'pi pi-sign-out',
-        command: () => void signOut(),
-      },
-    ]
 
     onMounted(() => {
       setDark(Boolean(app.context.isDark))
@@ -114,7 +100,9 @@ export const AppUserFooter = defineComponent({
 
     return () =>
       h('div', { class: 'mmda-user-footer' }, [
-        h('i', { class: 'pi pi-user mmda-user-footer__avatar' }),
+        h('span', { class: 'mmda-user-footer__avatar' }, [
+          builder.factory.icon('fas fa-user'),
+        ]),
         h('span', { class: 'mmda-user-footer__name', title: username.value }, username.value),
         h('div', { class: 'mmda-user-footer__actions' }, [
           h(
@@ -125,41 +113,56 @@ export const AppUserFooter = defineComponent({
               onClick: () => void router.push(`/${APP_NAME}/Notifications`),
             },
             [
-              h(Button, {
-                icon: 'pi pi-bell',
-                text: true,
-                rounded: true,
-                ariaLabel: '待办提醒',
+              builder.factory.button({
+                icon: icon('fas fa-bell'),
+                class: 'mmda-user-footer__button',
+                buttonType: 'text',
+                shape: 'circle',
+                tooltip: '待办提醒',
               }),
               todoCount.value > 0
-                ? h(Badge, {
+                ? builder.factory.badge({
                     value: todoCount.value > 99 ? '99+' : String(todoCount.value),
                     severity: 'danger',
+                    class: 'mmda-user-footer__badge',
                   })
                 : null,
             ],
           ),
-          h(Button, {
-            icon: app.context.isDark ? 'pi pi-sun' : 'pi pi-moon',
-            text: true,
-            rounded: true,
-            ariaLabel: '暗黑模式',
-            title: app.context.isDark ? '切换到明亮模式' : '切换到暗黑模式',
+          builder.factory.button({
+            icon: icon(app.context.isDark ? 'fas fa-sun' : 'fas fa-moon'),
+            class: 'mmda-user-footer__button',
+            buttonType: 'text',
+            shape: 'circle',
+            tooltip: app.context.isDark ? '切换到明亮模式' : '切换到暗黑模式',
             onClick: () => setDark(!app.context.isDark),
           }),
-          h(Button, {
-            icon: 'pi pi-ellipsis-v',
-            text: true,
-            rounded: true,
-            ariaLabel: '用户操作',
-            title: '用户操作',
-            onClick: (event: Event) => userMenu.value?.toggle(event),
-          }),
-          h(Menu, {
-            ref: userMenu,
-            model: menuItems,
-            popup: true,
-          }),
+          h(ColorPalettePicker),
+          builder.factory.menuButton(
+            {
+              icon: icon('more'),
+              class: 'mmda-user-footer__button',
+              buttonType: 'text',
+              shape: 'circle',
+              hideCaret: true,
+              popupPlacement: 'top-end',
+              tooltip: '用户操作',
+            },
+            [
+              {
+                name: 'changePassword',
+                label: '修改密码',
+                icon: icon('fas fa-key'),
+                onAction: changePassword,
+              },
+              {
+                name: 'signOut',
+                label: '注销',
+                icon: icon('fas fa-sign-out-alt'),
+                onAction: () => void signOut(),
+              },
+            ],
+          ),
         ]),
       ])
   },

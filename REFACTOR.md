@@ -216,7 +216,7 @@ playground 已改用 `PrimeVueUiBuilder`。
 
 ### 中期（能力补齐）
 
-- BPMN：properties panel、Camunda moddle 与 `buildFlowToGroup` 的只读/可编分流。
+- BPMN：properties panel、Camunda moddle 与 `buildBpmnDiagram` 的只读/可编分流。
 - 文件预览：docx/xlsx/pdf 与附件点击；继续禁止 Office Online。
 - 图表：Chart.js + PrimeVue Chart；不引入 echarts，除非业务包自己装。
 - 国际化：列过滤操作符走 vui `matcher.*`，不要只显示英文 `Starts with`。

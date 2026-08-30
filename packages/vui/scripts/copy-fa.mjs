@@ -17,5 +17,6 @@ cpSync(src, dest, { recursive: true })
 // 供 package exports ./fontawesome.css 指向 dist
 const cssDest = join(root, 'dist', 'fontawesome.css')
 cpSync(join(root, 'src', 'fontawesome.css'), cssDest)
+cpSync(join(root, 'src', 'theme.css'), join(root, 'dist', 'theme.css'))
 
-console.log('Copied Font Awesome assets to dist/assets/fa')
+console.log('Copied shared CSS and Font Awesome assets to dist')

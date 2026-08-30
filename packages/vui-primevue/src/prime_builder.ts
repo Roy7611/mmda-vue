@@ -1,7 +1,6 @@
 import {
   h,
   reactive,
-  ref,
   unref,
   type VNode,
   type VNodeArrayChildren,
@@ -13,13 +12,16 @@ import {
   SqlDataType,
   pluralize,
   type MetaUiField,
+  type MetaUiGroup,
   type Module,
   type ModuleAction,
   type ModuleAuth,
 } from "@mmda/core";
 import {
   AbstractUiBuilder,
+  AppSideMenu,
   UiViewMany,
+  assembleMenuItems,
   type AppSideBarProps,
   type AppTopBarProps,
   type ImportAndExportActionProps,
@@ -33,17 +35,14 @@ import {
   type SigninFormSlots,
   type SignupFormProps,
   type UiAction,
-  type UiDialogPropsType,
   type UiFieldFactory,
-  type UiMessageBoxProps,
-  type UiMessageBoxResult,
-  type UiNotificationProps,
   type UiSearchField,
   type UiSlots,
   type UiViewContext,
 } from "@mmda/vui";
 import Breadcrumb from "primevue/breadcrumb";
 import Button from "primevue/button";
+import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
 import InputNumber from "primevue/inputnumber";
@@ -55,16 +54,11 @@ import ProgressSpinner from "primevue/progressspinner";
 import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
 import Toolbar from "primevue/toolbar";
-import {
-  getPrimeConfirmService,
-  getPrimeToastService,
-  openPrimeDialog,
-} from "./components/PrimeVueOverlayHost";
+import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
+import { createPrimeOverlay } from "./prime_overlay";
 import { BpmnModeler } from "./components/BpmnModeler";
 import { CodeImage } from "./components/CodeImage";
-import { FilePreview } from "./components/FilePreview";
 import { SigninForm } from "./components/SigninForm";
-import { AppSideMenu, assembleMenuItems } from "./components/AppSideMenu";
 import { createPrimeVueFieldFactory } from "./prime_field_factory";
 import { createPrimeVueUiFactory } from "./prime_factory";
 import { primeLayout } from "./prime_layout";
@@ -126,7 +120,52 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
     factory = createPrimeVueUiFactory(),
     fieldFactory: UiFieldFactory = createPrimeVueFieldFactory(),
   ) {
-    super(factory, fieldFactory, factory.layout ?? primeLayout);
+    super(
+      factory,
+      fieldFactory,
+      factory.layout ?? primeLayout,
+      createPrimeOverlay(),
+    );
+  }
+
+  get overlayHost() {
+    return PrimeVueOverlayHost;
+  }
+
+  override setColorScheme(dark: boolean) {
+    super.setColorScheme(dark);
+    if (typeof document !== "undefined")
+      document.documentElement.classList.toggle("p-dark", dark);
+  }
+
+  override buildGroupCard(
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props: PropData = {},
+  ) {
+    const {
+      container: _container,
+      region: _region,
+      many: _many,
+      direction: _direction,
+      cols: _cols,
+      class: _className,
+      ...rest
+    } = props;
+    return h(
+      Card,
+      {
+        class: [this.groupWrapClass(group, props), "mmda-group-card"],
+        ...rest,
+      },
+      {
+        header: () =>
+          h("header", { class: "mmda-group__header" }, [
+            h("h2", { class: "mmda-group__title" }, group.groupLabel),
+          ]),
+        content: () => h("div", { class: "mmda-group__body" }, body),
+      },
+    );
   }
 
   buildContainer(content: VNode | VNodeArrayChildren, props?: PropData) {
@@ -178,26 +217,22 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
 
   buildAppMenu(modules: Module[], props?: PropData) {
     const { item, expand, ...rest } = props ?? {};
-    const menuItems = assembleMenuItems(modules);
-    if (expand !== false) {
-      return this.factory.panelMenu(
+    if (expand === false) {
+      const menuItems = assembleMenuItems(modules);
+      return this.factory.menubar(
         menuItems,
         {
-          multiple: true,
           class: "mmda-prime-app-menu",
           ...rest,
         },
         item ? { item } : undefined,
       );
     }
-    return this.factory.menubar(
-      menuItems,
-      {
-        class: "mmda-prime-app-menu",
-        ...rest,
-      },
-      item ? { item } : undefined,
-    );
+    return h(AppSideMenu, {
+      modules,
+      class: "mmda-prime-app-menu",
+      ...rest,
+    });
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
@@ -355,22 +390,7 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
   }
 
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
-    if (!items.length) return [];
-    const menu = ref();
-    return [
-      this.toolbarActionButton(
-        context,
-        {
-          name: "more",
-          icon: "pi pi-ellipsis-v",
-          colorRole: "secondary",
-          tooltip: context.t("action.more"),
-          onAction: (event: Event) => menu.value?.toggle(event),
-        },
-        { label: undefined, "aria-label": context.t("action.more") },
-      ),
-      this.factory.menu(items, { ref: menu, popup: true }),
-    ];
+    return this.moreMenuButton(context, items);
   }
 
   private assembleMultipleSelectionButtons(
@@ -393,24 +413,21 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
 
     if (actions.length === 1) return [render(actions[0]!)];
 
-    const menu = ref();
     return [
-      this.toolbarActionButton(context, {
-        name: "multipleSelect",
-        label: context.t("action.batchOperation"),
-        colorRole: "secondary",
-        onAction: (event: Event) => menu.value?.toggle(event),
-      }),
-      this.factory.menu(
+      this.dropdownMenuButton(
+        {
+          label: context.t("action.batchOperation"),
+          class: "mmda-batch-menu-button",
+        },
         actions.map((action) => ({
+          name: action.name,
           label: action.label,
           icon: action.icon,
-          command: () => {
+          onAction: () => {
             if (action.onAction) action.onAction();
             else (context as any).doAction?.(action, context.model);
           },
         })),
-        { ref: menu, popup: true },
       ),
     ];
   }
@@ -585,11 +602,12 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
     const children: VNode[] = [
       this.toolbarActionButton(context, this.actionFactory.back(context)),
     ];
+    const moreItems: any[] = [];
     if (!entityAuth) return children;
 
-    if (entityAuth.allowExport) {
+    if (entityAuth.allowEdit && model?.editable !== false) {
       children.push(
-        this.buildImportOrExportAction(context, { role: "export" }),
+        this.toolbarActionButton(context, this.actionFactory.edit(context)),
       );
     }
     if (entityAuth.allowCreate) {
@@ -597,19 +615,9 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
         this.toolbarActionButton(context, this.actionFactory.create(context)),
       );
     }
-    if (entityAuth.allowEdit && model?.editable !== false) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.edit(context)),
-      );
-    }
     if (entityAuth.allowDelete && model?.deletable !== false) {
       children.push(
         this.toolbarActionButton(context, this.actionFactory.delete(context)),
-      );
-    }
-    if (entityAuth.allowPrint) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.print(context)),
       );
     }
     if (model?.actions?.length) {
@@ -644,6 +652,21 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
           ),
       );
     }
+    if (entityAuth.allowPrint) {
+      const action = this.actionFactory.print(context);
+      moreItems.push({
+        label: action.label,
+        icon: this.factory.resolveIcon(action.icon ?? "print"),
+        command: action.onAction,
+      });
+    }
+    if (entityAuth.allowExport) {
+      moreItems.push(this.importOrExportMenuItem(context, "export"));
+    }
+    if (entityAuth.allowImport) {
+      moreItems.push(this.importOrExportMenuItem(context, "import"));
+    }
+    children.push(...this.assembleMoreButton(context, moreItems));
     return children;
   }
 
@@ -701,10 +724,16 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
   ) {
     const runtime = context as any;
     const module = moduleOf(context);
+    const hasCenter = !!slots?.center;
 
     return h(
       Toolbar,
-      { class: "mmda-prime-toolbar" },
+      {
+        class: [
+          "mmda-prime-toolbar",
+          hasCenter && "mmda-prime-toolbar--with-center",
+        ],
+      },
       {
         start: () => {
           if (props.showBreadcrumb === false) return undefined;
@@ -718,8 +747,8 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
           return h("strong", context.title);
         },
         center: () =>
-          slots?.center
-            ? h("div", { class: "mmda-prime-toolbar-center" }, slots.center())
+          hasCenter
+            ? h("div", { class: "mmda-prime-toolbar-center" }, slots!.center!())
             : undefined,
         end: () =>
           props.showActions === false
@@ -895,7 +924,7 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
     ]);
   }
 
-  buildFlowToGroup(
+  buildBpmnDiagram(
     flowTrails: any[],
     _context: UiContext,
     props: PropData = {},
@@ -931,10 +960,6 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
 
   buildBarcode(value: string, props: PropData = {}) {
     return h(CodeImage, { value, type: "barcode", ...props });
-  }
-
-  buildFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
-    return h(FilePreview, { source, ...props });
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
@@ -976,77 +1001,5 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
         h(Button, { type: "submit", label: "Sign up" }),
       ],
     );
-  }
-
-  async toast(_context: UiContext, props: PropData) {
-    getPrimeToastService()?.add({
-      severity: props.severity ?? "info",
-      summary: props.summary,
-      detail: props.detail ?? props.message,
-      group: props.group,
-      life: props.life ?? 3000,
-    });
-  }
-
-  notify(props: UiNotificationProps) {
-    getPrimeToastService()?.add({
-      severity: props.type || "info",
-      summary: props.title,
-      detail: props.message,
-      group: "notification",
-      life: 3000,
-    });
-  }
-
-  confirm(
-    _context: UiContext,
-    props: UiMessageBoxProps,
-  ): Promise<UiMessageBoxResult> {
-    const service = getPrimeConfirmService();
-    if (!service) {
-      const accepted =
-        typeof window !== "undefined" &&
-        window.confirm(String(props.message ?? "Confirm?"));
-      return Promise.resolve(accepted ? "yes" : "no");
-    }
-    return new Promise((resolve) => {
-      service.require({
-        message: String(props.message ?? ""),
-        header: props.header,
-        icon: props.icon,
-        rejectProps: props.rejectProps,
-        acceptProps: props.acceptProps,
-        accept: () => {
-          props.accept?.();
-          resolve("yes");
-        },
-        reject: () => {
-          props.reject?.();
-          resolve("no");
-        },
-      });
-    });
-  }
-
-  async confirmMessage(context: UiContext, props: PropData) {
-    return (await this.confirm(context, props as UiMessageBoxProps)) === "yes";
-  }
-
-  confirmPopup(_context: UiContext, props: PropData) {
-    const service = getPrimeConfirmService();
-    if (!service) return Promise.resolve(false);
-    return new Promise<boolean>((resolve) => {
-      service.require({
-        ...props,
-        group: "ConfirmPopup",
-        target: props.target,
-        accept: () => resolve(true),
-        reject: () => resolve(false),
-      });
-    });
-  }
-
-  confirmDialog(content: VNode, _context: UiContext, props: UiDialogPropsType) {
-    return openPrimeDialog(content, props);
   }
 }

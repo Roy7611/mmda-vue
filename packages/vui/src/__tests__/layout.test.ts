@@ -165,6 +165,106 @@ describe("AbstractUiBuilder layout wiring", () => {
     ],
   });
 
+  /** 元数据故意把子表插在主表前；渲染主表按 groupName，子表按 groupIdx */
+  const interleavedMetaui = new MetaUi({
+    objName: "Material",
+    displayLabel: "物料",
+    groups: [
+      {
+        groupName: "skus",
+        groupLabel: "SKU",
+        many: true,
+        groupIdx: 33,
+        relObjName: "Sku",
+        joinOn: "materialID=@materialID",
+        groupUi: {
+          objName: "Sku",
+          displayLabel: "SKU",
+          groups: [
+            {
+              groupName: "a1",
+              groupLabel: "行",
+              many: false,
+              fields: [field("skuCode", "Sku编码")],
+            },
+          ],
+        },
+      },
+      {
+        groupName: "partNos",
+        groupLabel: "供货号",
+        many: true,
+        groupIdx: 30,
+        relObjName: "MaterialPartner",
+        joinOn: "materialID=@materialID",
+        groupUi: {
+          objName: "MaterialPartner",
+          displayLabel: "供货号",
+          groups: [
+            {
+              groupName: "a1",
+              groupLabel: "行",
+              many: false,
+              fields: [field("partnerName", "伙伴")],
+            },
+          ],
+        },
+      },
+      {
+        groupName: "a2",
+        groupLabel: "质检追踪",
+        many: false,
+        fields: [field("qcRatio", "质检比例")],
+      },
+      {
+        groupName: "features",
+        groupLabel: "特征",
+        many: true,
+        groupIdx: 31,
+        relObjName: "MaterialFeature",
+        joinOn: "materialID=@materialID",
+        groupUi: {
+          objName: "MaterialFeature",
+          displayLabel: "特征",
+          groups: [
+            {
+              groupName: "a1",
+              groupLabel: "行",
+              many: false,
+              fields: [field("featureCode", "特征码")],
+            },
+          ],
+        },
+      },
+      {
+        groupName: "a1",
+        groupLabel: "基本信息",
+        many: false,
+        fields: [field("materialCode", "物料编码")],
+      },
+      {
+        groupName: "medias",
+        groupLabel: "媒体文件",
+        many: true,
+        groupIdx: 32,
+        relObjName: "MaterialMedia",
+        joinOn: "materialID=@materialID",
+        groupUi: {
+          objName: "MaterialMedia",
+          displayLabel: "媒体文件",
+          groups: [
+            {
+              groupName: "a1",
+              groupLabel: "行",
+              many: false,
+              fields: [field("mediaUrl", "文件")],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   it("按 primary / summary / tails 分区并应用组内列数", () => {
     const context = new UiViewContext({
       model: { name: "N", code: "C", state: "启用", remark: "R" },
@@ -197,7 +297,86 @@ describe("AbstractUiBuilder layout wiring", () => {
         ".mmda-page-summary .mmda-field-group-layout",
       )?.dataset.cols,
     ).toBe("1");
+    expect(host.querySelector(".mmda-page-primary .mmda-group--primary")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-primary .mmda-group-card")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-primary fieldset.mmda-group")).toBeNull();
+    expect(host.querySelector(".mmda-page-summary .mmda-group--summary")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-tails .mmda-group--tails")).not.toBeNull();
     expect(host.querySelector("form")).toBeNull();
+  });
+
+  it("主区主表按 groupName、子表按 groupIdx", () => {
+    const context = new UiViewContext({
+      model: {
+        materialCode: "M1",
+        qcRatio: 1,
+        partNos: [],
+        features: [],
+        medias: [],
+        skus: [],
+      },
+      metaui: interleavedMetaui,
+      view: "details",
+    });
+    const host = mount(
+      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+    );
+    const labels = [
+      ...host.querySelectorAll(".mmda-page-primary .mmda-group__title"),
+    ].map((el) => el.textContent);
+    expect(labels).toEqual([
+      "基本信息",
+      "质检追踪",
+      "供货号",
+      "特征",
+      "媒体文件",
+      "SKU",
+    ]);
+  });
+
+  it("默认用 card；props.container 为 fieldset 时用 legend", () => {
+    const context = new UiViewContext({
+      model: { name: "N", code: "C", state: "启用", remark: "R" },
+      metaui,
+      view: "details",
+    });
+    const cardHost = mount(
+      new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context),
+    );
+    expect(
+      cardHost.querySelector("article.mmda-group-card.mmda-group--primary"),
+    ).not.toBeNull();
+    expect(cardHost.querySelector("fieldset.mmda-group")).toBeNull();
+
+    const fieldsetHost = mount(
+      new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
+        container: "fieldset",
+      }),
+    );
+    expect(fieldsetHost.querySelector("fieldset.mmda-group")).not.toBeNull();
+    expect(fieldsetHost.querySelector(".mmda-group-card")).toBeNull();
+  });
+
+  it("右边栏概要分组排在附件之后", () => {
+    const context = new UiViewContext({
+      model: {
+        name: "N",
+        code: "C",
+        state: "启用",
+        remark: "R",
+        attachments: [],
+      },
+      metaui,
+      view: "details",
+    });
+    const host = mount(
+      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+    );
+
+    const summary = host.querySelector(".mmda-page-summary")!;
+    const children = [...summary.children];
+    expect(children[0]?.classList.contains("mmda-attachments")).toBe(true);
+    expect(children.at(-1)?.textContent).toContain("概要");
   });
 
   it("HTML 皮肤通过 FieldLayout 显示校验消息且不重复标签", () => {

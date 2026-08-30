@@ -1,7 +1,6 @@
 import {
   h,
   reactive,
-  render,
   unref,
   type VNode,
   type VNodeArrayChildren,
@@ -17,6 +16,7 @@ import {
   type Pagination,
 } from "@mmda/core";
 import { AbstractUiBuilder } from "./ui_builder";
+import { AppSideMenu } from "./components/AppSideMenu";
 import type { UiViewContext } from "./ui_context";
 import type {
   SigninFormProps,
@@ -32,12 +32,6 @@ import type {
   ModuleToolbarProps,
 } from "./ui_app";
 import type { UiAction } from "./ui_action";
-import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
-  UiMessageBoxResult,
-  UiNotificationProps,
-} from "./ui_dialog";
 import type { UiFactory, UiFieldFactory } from "./ui_factory";
 import type { PropData, UiLayout, UiSlots } from "./ui_layout";
 import type { UiListPropsType, UiPaginatorPropsType } from "./ui_list";
@@ -380,6 +374,15 @@ export function createHtmlUiFactory(layout: UiLayout = htmlLayout): UiFactory {
     label: (text, props) => h("label", props, text),
     image: (src, props) => h("img", { src, ...props }),
     icon: (icon, props) => h("span", { class: ["mmda-icon", icon], ...props }),
+    badge: ({ value, severity = "info", class: className, ...props }) =>
+      h(
+        "span",
+        {
+          ...props,
+          class: ["mmda-badge", `mmda-badge--${severity}`, className],
+        },
+        String(value),
+      ),
     title: (text, props) => h("h1", props, text),
     subtitle: (text, props) => h("h2", props, text),
     link: (props, slots) =>
@@ -478,6 +481,70 @@ export function createHtmlUiFactory(layout: UiLayout = htmlLayout): UiFactory {
       h("div", { class: "mmda-loading", ...props }, "Loading…"),
     scrollbar: (content, props) =>
       h("div", { style: { overflow: "auto" }, ...props }, content as any),
+    menu: (items, props) =>
+      h(
+        "ul",
+        { class: "mmda-menu", ...props },
+        (items ?? []).map((item: any) =>
+          h("li", { onClick: item.command ?? item.onAction }, item.label),
+        ),
+      ),
+    panelMenu: (items, props, slots) =>
+      h(
+        "ul",
+        { class: "mmda-panel-menu", ...props },
+        (items ?? []).map((item: any) =>
+          h("li", [
+            h("span", item.label),
+            item.items?.length
+              ? h(
+                  "ul",
+                  item.items.map((child: any) => h("li", child.label)),
+                )
+              : null,
+          ]),
+        ),
+      ),
+    menubar: (items, props) =>
+      h(
+        "nav",
+        { class: "mmda-menubar", ...props },
+        (items ?? []).map((item: any) => h("a", { href: item.url }, item.label)),
+      ),
+    dialog: (props, slots) =>
+      h(
+        "dialog",
+        {
+          open: props.visible,
+          class: "mmda-dialog",
+          onClose: () => props.onUpdateVisible?.(false),
+          ...props,
+        },
+        [
+          slots?.header?.(),
+          slots?.default?.(),
+          slots?.footer?.(),
+        ],
+      ),
+    drawer: (props, slots) =>
+      h(
+        "aside",
+        {
+          class: "mmda-drawer",
+          hidden: props.visible === false,
+          ...props,
+        },
+        [slots?.default?.()],
+      ),
+    searchForRelative: (props, slots) =>
+      h(
+        "dialog",
+        {
+          open: props.visible,
+          class: "mmda-search-relative",
+        },
+        [h("header", props.title), slots?.default?.()],
+      ),
   } as UiFactory;
 }
 
@@ -605,11 +672,7 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
   }
 
   buildAppMenu(modules: Module[], props?: PropData) {
-    return h(
-      "nav",
-      props,
-      modules.map((module) => h("a", { href: module.url }, module.moduleName)),
-    );
+    return h(AppSideMenu, { modules, ...props });
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
@@ -655,24 +718,37 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
         this.actionFactory.action(context, action),
       ),
     ];
-    return h("div", { class: "mmda-toolbar" }, [
-      props.showBreadcrumb !== false &&
-        h("strong", null, (slots?.default?.() ?? context.title) as any),
-      slots?.center &&
-        h("div", { class: "mmda-toolbar-center" }, slots.center()),
-      props.showActions !== false &&
-        h(
-          "div",
-          { class: "mmda-toolbar-actions" },
-          (actions.length ? actions : defaults)
-            .filter((action) => action.visible == null || unref(action.visible))
-            .map((action) =>
-              this.factory.actionButton(action, (message) =>
-                context.t(message),
+    const hasCenter = !!slots?.center;
+    return h(
+      "div",
+      {
+        class: ["mmda-toolbar", hasCenter && "mmda-toolbar--with-center"],
+      },
+      [
+        props.showBreadcrumb !== false &&
+          h(
+            "div",
+            { class: "mmda-toolbar__start" },
+            h("strong", null, (slots?.default?.() ?? context.title) as any),
+          ),
+        hasCenter &&
+          h("div", { class: "mmda-toolbar__center" }, slots!.center!()),
+        props.showActions !== false &&
+          h(
+            "div",
+            { class: "mmda-toolbar__end mmda-toolbar-actions" },
+            (actions.length ? actions : defaults)
+              .filter(
+                (action) => action.visible == null || unref(action.visible),
+              )
+              .map((action) =>
+                this.factory.actionButton(action, (message) =>
+                  context.t(message),
+                ),
               ),
-            ),
-        ),
-    ]);
+          ),
+      ],
+    );
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
@@ -887,84 +963,5 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
         h("button", { type: "submit" }, "Sign up"),
       ],
     );
-  }
-
-  async toast(_context: UiContext, props: PropData) {
-    if (typeof document === "undefined") return;
-    const node = document.createElement("div");
-    node.className = `mmda-toast is-${props.severity ?? "info"}`;
-    node.textContent = props.detail ?? props.message ?? props.summary ?? "";
-    document.body.append(node);
-    setTimeout(() => node.remove(), props.life ?? 3000);
-  }
-
-  notify(props: UiNotificationProps) {
-    if (typeof document === "undefined") return;
-    const node = document.createElement("div");
-    node.className = `mmda-notification is-${props.type}`;
-    node.textContent = `${props.title}: ${String(props.message)}`;
-    document.body.append(node);
-    setTimeout(() => node.remove(), 3000);
-  }
-
-  confirm(_context: UiContext, props: UiMessageBoxProps): UiMessageBoxResult {
-    if (typeof window === "undefined") return "no";
-    return window.confirm(String(props.message ?? "Confirm?")) ? "yes" : "no";
-  }
-
-  async confirmMessage(context: UiContext, props: PropData) {
-    return this.confirm(context, props as UiMessageBoxProps) === "yes";
-  }
-
-  confirmPopup(context: UiContext, props: PropData) {
-    return this.confirmMessage(context, props);
-  }
-
-  confirmDialog(
-    content: VNode,
-    _context: UiContext,
-    props: UiDialogPropsType,
-  ): Promise<boolean> {
-    if (typeof document === "undefined") return Promise.resolve(false);
-    return new Promise((resolve) => {
-      const host = document.createElement("div");
-      document.body.append(host);
-      const close = (accepted: boolean) => {
-        render(null, host);
-        host.remove();
-        props.onClose?.();
-        resolve(accepted);
-      };
-      const accept = async () => {
-        if (props.accept && (await props.accept()) === false) return;
-        props.onConfirm?.();
-        close(true);
-      };
-      const reject = async () => {
-        if (props.reject && (await props.reject()) === false) return;
-        close(false);
-      };
-      render(
-        h("div", { class: "mmda-dialog-backdrop" }, [
-          h(
-            "section",
-            {
-              class: "mmda-dialog",
-              style: { width: props.width ?? "min(90vw, 60rem)" },
-            },
-            [
-              h("header", props.title ?? props.name),
-              h("main", [content]),
-              h("footer", [
-                h("button", { type: "button", onClick: reject }, "Cancel"),
-                h("button", { type: "button", onClick: accept }, "OK"),
-              ]),
-            ],
-          ),
-        ]),
-        host,
-      );
-      props.onOpen?.();
-    });
   }
 }

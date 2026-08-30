@@ -1,24 +1,45 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import { syncfusionThemeAliases } from '@mmda/vui-syncfusion/vite'
 
 const pkg = (name: string) =>
   fileURLToPath(new URL(`../${name}/src/index.ts`, import.meta.url))
 
+const vuiFa = fileURLToPath(
+  new URL('../vui/src/fontawesome.css', import.meta.url),
+)
+const vuiTheme = fileURLToPath(
+  new URL('../vui/src/theme.css', import.meta.url),
+)
 export default defineConfig({
+  plugins: [vue(), vueJsx()],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@mmda/core': pkg('core'),
-      '@mmda/vui': pkg('vui'),
-      '@mmda/vui-primevue': pkg('vui-primevue'),
-      '@mmda/vui-primevue/fontawesome.css': fileURLToPath(
-        new URL('../vui-primevue/src/fontawesome.css', import.meta.url),
-      ),
-    },
+    alias: [
+      {
+        find: '@',
+        replacement: fileURLToPath(new URL('./src', import.meta.url)),
+      },
+      { find: '@mmda/vui/fontawesome.css', replacement: vuiFa },
+      { find: '@mmda/vui/theme.css', replacement: vuiTheme },
+      {
+        find: '@mmda/vui-syncfusion/fontawesome.css',
+        replacement: vuiFa,
+      },
+      {
+        find: '@mmda/vui-primevue/fontawesome.css',
+        replacement: vuiFa,
+      },
+      ...syncfusionThemeAliases,
+      { find: '@mmda/core', replacement: pkg('core') },
+      { find: '@mmda/vui-primevue', replacement: pkg('vui-primevue') },
+      { find: '@mmda/vui-syncfusion', replacement: pkg('vui-syncfusion') },
+      { find: '@mmda/vui', replacement: pkg('vui') },
+    ],
   },
   server: {
     port: 5174,
     host: '127.0.0.1',
   },
 })
-

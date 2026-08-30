@@ -103,16 +103,16 @@ export const SigninForm = defineComponent({
               h(ProgressSpinner as any, { strokeWidth: '4' }),
             )
           : null,
-        h('form', { class: 'mmda-prime-auth-form', onSubmit: withModifiers(() => {}, ['prevent']) }, [
+        h('form', { class: 'mmda-prime-auth-form mmda-signin-form', onSubmit: withModifiers(() => {}, ['prevent']) }, [
           slots?.header?.(),
           slots.title
             ? slots.title()
             : h('h2', { class: 'mmda-signin-form__title' }, t('auth.signin')),
-          h('label', { class: 'mmda-signin-form__field', for: 'username' }, [
-            t('auth.username'),
+          h('div', { class: 'mmda-signin-form__field' }, [
+            h('label', { class: 'mmda-signin-form__label', for: 'username' }, t('auth.username')),
             h(InputText, {
               id: 'username',
-              class: 'w-full',
+              class: 'w-full mmda-signin-form__control',
               autocomplete: 'username',
               modelValue: user.username,
               placeholder: t('auth.username'),
@@ -126,11 +126,11 @@ export const SigninForm = defineComponent({
               ? h('small', { class: 'mmda-signin-form__error' }, v.username.message)
               : null,
           ]),
-          h('label', { class: 'mmda-signin-form__field', for: 'password' }, [
-            t('auth.password'),
+          h('div', { class: 'mmda-signin-form__field' }, [
+            h('label', { class: 'mmda-signin-form__label', for: 'password' }, t('auth.password')),
             h(Password, {
               inputId: 'password',
-              class: 'w-full',
+              class: 'w-full mmda-signin-form__control',
               feedback: false,
               toggleMask: true,
               modelValue: user.password,
@@ -165,14 +165,14 @@ export const SigninForm = defineComponent({
               },
               onBlur: requiredAgreed,
             } as VNodeProps),
-            t('auth.agreeTermsRequired'),
+            h('span', { class: 'mmda-signin-form__agreed-text' }, t('auth.agreeTermsRequired')),
           ]),
           v.agreed.message
             ? h('small', { class: 'mmda-signin-form__error' }, v.agreed.message)
             : null,
           h(Button, {
             type: 'button',
-            class: 'w-full',
+            class: 'w-full mmda-signin-form__submit',
             label: loading ? t('auth.signingIn') : t('auth.signin'),
             loading,
             icon: 'pi pi-sign-in',

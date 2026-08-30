@@ -91,4 +91,16 @@ export interface UiNotificationProps {
   title: string;
   icon?: UiColorRole;
 }
+
+export interface UiToastProps {
+  severity?: string;
+  type?: MessageType;
+  summary?: string;
+  title?: string;
+  detail?: string;
+  message?: string | VNode;
+  life?: number;
+  group?: string;
+  position?: string;
+}
 //#endregion

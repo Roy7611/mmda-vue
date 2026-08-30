@@ -311,7 +311,7 @@ URL 形状：
 |---|---|---|
 | `getOne(id)` | `GET .../{id}` | 单条 |
 | `getAll({ queryParams })` | `GET ...` | 分页列表，读响应头 `x-pager` |
-| `searchAll(body)` | POST JSON body | 带搜索条件的列表 |
+| `searchAll(body)` | POST `.../searchAll` + JSON body | 带搜索条件的列表 |
 | `createOne(data)` | `.../create` | |
 | `saveOne(entity)` | `.../save` | 会去掉 `rowNum`、`actions` |
 | `saveAll(list)` | `.../saveAll` | |

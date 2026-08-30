@@ -59,9 +59,14 @@ export const HomeView = defineComponent({
       if (user?.username && total === 0)
         return h('div', { class: 'p-6' }, '暂无可用模块')
 
-      const groups = modules.filter(
-        (m: Module) => m.moduleType === 'MODULE' && m.subModules?.length,
-      )
+      const groups = modules.flatMap((m: Module) => {
+        if (m.moduleType === 'SYSTEM') {
+          return (m.subModules ?? []).filter(
+            (c) => c.moduleType === 'MODULE' && c.subModules?.length,
+          )
+        }
+        return m.moduleType === 'MODULE' && m.subModules?.length ? [m] : []
+      })
 
       const cardStyle = {
         background: 'var(--p-surface-card, var(--p-content-background))',
@@ -219,7 +224,7 @@ export const HomeView = defineComponent({
             groups
               .map((g: Module) => {
                 const features = (g.subModules || []).filter(
-                  (s: Module) => s.moduleType === 'FEATURE' && s.allowOp !== 0,
+                  (s: Module) => s.moduleType === 'FEATURE' && s.allowOps !== 0,
                 )
                 if (!features.length) return null
                 return h('div', { style: { marginBottom: '20px' } }, [

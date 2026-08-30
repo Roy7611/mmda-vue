@@ -103,17 +103,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowRead = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowRead = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowRead = val
 									})
 									//获取主表的M.01这样的字段
@@ -145,7 +145,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -164,17 +164,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowCreate = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowCreate = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowCreate = val
 									})
 									//获取主表的M.01这样的字段
@@ -206,7 +206,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -225,17 +225,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowEdit = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowEdit = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowEdit = val
 									})
 									//获取主表的M.01这样的字段
@@ -267,7 +267,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -286,17 +286,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowPrint = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowPrint = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowPrint = val
 									})
 									//获取主表的M.01这样的字段
@@ -328,7 +328,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -347,17 +347,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowDelete = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowDelete = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowDelete = val
 									})
 									//获取主表的M.01这样的字段
@@ -389,7 +389,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -408,17 +408,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowImport = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowImport = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowImport = val
 									})
 									//获取主表的M.01这样的字段
@@ -450,7 +450,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -469,17 +469,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowExport = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowExport = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowExport = val
 									})
 									//获取主表的M.01这样的字段
@@ -511,7 +511,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -530,17 +530,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowUpload = val
-										if (!item.children) {
-											item.children = []
+										if (!item.subModules) {
+											item.subModules = []
 										}
-										item.children.forEach((v: any) => {
+										item.subModules.forEach((v: any) => {
 											v.allowUpload = val
 										})
 									})
 								} else {
-									currentItem.children.forEach((item: any) => {
+									currentItem.subModules.forEach((item: any) => {
 										item.allowUpload = val
 									})
 									//获取主表的M.01这样的字段
@@ -572,7 +572,7 @@ export class RoleLogic extends UiLogic<Role> {
 							}
 						};
 						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOp) ? auth(ctx.model.allowOp.value) : '';
+						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
 						if (!(mA as any)[fld.fieldName]) {
 							return h('div', {}, null);
 						} else {
@@ -714,7 +714,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 								const str = name.split(',')
 								const arr1 = str[1].split('.')
 								this.master.moduleAuths.forEach((item: any) => {
-									item.children.forEach((value: any) => {
+									item.subModules.forEach((value: any) => {
 										if (item.moduleCode === arr1[0]) {
 											MetaModel.modify(item);
 										}

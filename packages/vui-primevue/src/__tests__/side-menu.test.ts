@@ -15,7 +15,7 @@ const sampleModules = new ModuleFactory([
     moduleType: 'MODULE',
     moduleVersion: ModuleVersion.TEAM,
     moduleIcon: 'far fa-sitemap',
-    allowOp: 0,
+    allowOps: 0,
     moduleUrl: '/BASE/org',
     requiredCreateParam: false,
     status: ModuleStatus.RELEASED,
@@ -26,7 +26,7 @@ const sampleModules = new ModuleFactory([
         moduleLabel: '部门',
         moduleType: 'FEATURE',
         moduleVersion: ModuleVersion.TEAM,
-        allowOp: ModuleOp.READ | ModuleOp.EDIT,
+        allowOps: ModuleOp.READ | ModuleOp.EDIT,
         moduleUrl: '/BASE/Departments',
         requiredCreateParam: false,
         status: ModuleStatus.RELEASED,
@@ -39,7 +39,7 @@ const sampleModules = new ModuleFactory([
     moduleLabel: '商业贸易',
     moduleType: 'MODULE',
     moduleVersion: ModuleVersion.TEAM,
-    allowOp: ModuleOp.READ,
+    allowOps: ModuleOp.READ,
     moduleUrl: '/BASE/trade',
     requiredCreateParam: false,
     status: ModuleStatus.RELEASED,
@@ -50,7 +50,7 @@ const sampleModules = new ModuleFactory([
         moduleLabel: '合作伙伴',
         moduleType: 'FEATURE',
         moduleVersion: ModuleVersion.TEAM,
-        allowOp: ModuleOp.READ,
+        allowOps: ModuleOp.READ,
         moduleUrl: '/BASE/Partners',
         requiredCreateParam: false,
         status: ModuleStatus.RELEASED,
@@ -72,7 +72,10 @@ describe('AppSideMenu', () => {
   it('buildAppMenu passes item template as slot, not PanelMenu prop', () => {
     const builder = new PrimeVueUiBuilder()
     const item = () => null
-    const vnode = builder.buildAppMenu(sampleModules.slice(0, 1), { item })
+    const vnode = builder.buildAppMenu(sampleModules.slice(0, 1), {
+      item,
+      expand: false,
+    })
     expect(vnode.props?.item).toBeUndefined()
     expect(vnode.children?.item).toBe(item)
   })

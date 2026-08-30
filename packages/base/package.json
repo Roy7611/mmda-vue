@@ -12,16 +12,29 @@
   "dependencies": {
     "@mmda/core": "workspace:^",
     "@mmda/vui": "workspace:^",
-    "@mmda/vui-primevue": "workspace:^",
-    "@primevue/themes": "4.5.4",
-    "primeicons": "7.0.0",
-    "primevue": "^4.5.5",
+    "@mmda/vui-syncfusion": "workspace:^",
+    "@syncfusion/ej2-vue-barcode-generator": "^31.2.3",
+    "@syncfusion/ej2-vue-buttons": "^31.2.3",
+    "@syncfusion/ej2-vue-calendars": "^31.2.3",
+    "@syncfusion/ej2-vue-charts": "^31.2.3",
+    "@syncfusion/ej2-vue-diagrams": "^31.2.3",
+    "@syncfusion/ej2-vue-dropdowns": "^31.2.3",
+    "@syncfusion/ej2-vue-grids": "^31.2.3",
+    "@syncfusion/ej2-vue-inputs": "^31.2.3",
+    "@syncfusion/ej2-vue-lists": "^31.2.3",
+    "@syncfusion/ej2-vue-navigations": "^31.2.3",
+    "@syncfusion/ej2-vue-notifications": "^31.2.3",
+    "@syncfusion/ej2-vue-popups": "^31.2.3",
+    "@syncfusion/ej2-vue-progressbar": "^31.2.3",
+    "@syncfusion/ej2-vue-splitbuttons": "^31.2.3",
     "vue": "^3.5.25",
     "vue-i18n": "^11.1.11",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
     "typescript": "~5.9.3",
     "vite": "8.2.2"
   }

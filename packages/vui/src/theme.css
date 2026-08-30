@@ -1,0 +1,859 @@
+/*
+ * 应用壳层色板（MD3）：accent + surface/outline/文字均跟 data-mmda-palette。
+ *   生成：pnpm --filter @mmda/vui palette:generate
+ * EJ2 读 --color-sf-*；壳层 / 表单 / 菜单读 --mmda-*。
+ */
+:root {
+  --mmda-text-color: #1c1b1e;
+  --mmda-text-muted-color: #49454e;
+  --mmda-surface-ground: #f7f2f7;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #cac4cf;
+  --mmda-border-radius-lg: 12px;
+  --mmda-primary-color: #6750a4;
+  --mmda-primary-soft: #e9ddff;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #22005d;
+  --mmda-secondary-color: #625b71;
+  --mmda-secondary-soft: #e8def8;
+  --mmda-warning-color: #914c00;
+  --mmda-info-color: #01579b;
+  --mmda-danger-color: #b3261e;
+}
+
+/* MD3：accent + surface 均跟色板；soft = primaryContainer / secondaryContainer */
+html[data-mmda-palette="indigo"] {
+  --mmda-text-color: #1c1b1e;
+  --mmda-text-muted-color: #49454e;
+  --mmda-surface-ground: #f7f2f7;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #cac4cf;
+  --mmda-primary-color: #6610f2;
+  --mmda-primary-soft: #e8ddff;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #22005d;
+  --mmda-secondary-color: #625b71;
+  --mmda-secondary-soft: #e8def8;
+}
+
+html[data-mmda-palette="blue"] {
+  --mmda-text-color: #1b1b1f;
+  --mmda-text-muted-color: #44464f;
+  --mmda-surface-ground: #f5f3f7;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #c5c6d0;
+  --mmda-primary-color: #0d6efd;
+  --mmda-primary-soft: #dae2ff;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #001946;
+  --mmda-secondary-color: #585e71;
+  --mmda-secondary-soft: #dce2f9;
+}
+
+html[data-mmda-palette="violet"] {
+  --mmda-text-color: #1d1b1e;
+  --mmda-text-muted-color: #49454e;
+  --mmda-surface-ground: #f8f2f7;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #cbc4cf;
+  --mmda-primary-color: #6f42c1;
+  --mmda-primary-soft: #ebddff;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #250059;
+  --mmda-secondary-color: #635b70;
+  --mmda-secondary-soft: #e9def8;
+}
+
+html[data-mmda-palette="red"] {
+  --mmda-text-color: #201a1a;
+  --mmda-text-muted-color: #524343;
+  --mmda-surface-ground: #fef1f0;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #d7c1c1;
+  --mmda-primary-color: #dc3545;
+  --mmda-primary-soft: #ffdad9;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #410008;
+  --mmda-secondary-color: #775656;
+  --mmda-secondary-soft: #ffdad9;
+}
+
+html[data-mmda-palette="orange"] {
+  --mmda-text-color: #201a17;
+  --mmda-text-muted-color: #52443c;
+  --mmda-surface-ground: #fef1eb;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #d7c2b8;
+  --mmda-primary-color: #fd7e14;
+  --mmda-primary-soft: #ffdbc8;
+  --mmda-on-primary: #321300;
+  --mmda-on-primary-container: #321300;
+  --mmda-secondary-color: #755847;
+  --mmda-secondary-soft: #ffdbc8;
+}
+
+html[data-mmda-palette="yellow"] {
+  --mmda-text-color: #1e1b16;
+  --mmda-text-muted-color: #4d4639;
+  --mmda-surface-ground: #faf2e9;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #d0c5b4;
+  --mmda-primary-color: #ffc107;
+  --mmda-primary-soft: #ffdf9e;
+  --mmda-on-primary: #261a00;
+  --mmda-on-primary-container: #261a00;
+  --mmda-secondary-color: #6b5d3f;
+  --mmda-secondary-soft: #f5e0bb;
+}
+
+html[data-mmda-palette="green"] {
+  --mmda-text-color: #191c1a;
+  --mmda-text-muted-color: #414942;
+  --mmda-surface-ground: #f2f4ef;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #c0c9c0;
+  --mmda-primary-color: #198754;
+  --mmda-primary-soft: #93f7ba;
+  --mmda-on-primary: #ffffff;
+  --mmda-on-primary-container: #002110;
+  --mmda-secondary-color: #4e6354;
+  --mmda-secondary-soft: #d1e8d5;
+}
+
+html[data-mmda-palette="teal"] {
+  --mmda-text-color: #191c1a;
+  --mmda-text-muted-color: #404944;
+  --mmda-surface-ground: #f2f4f0;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #bfc9c2;
+  --mmda-primary-color: #20c997;
+  --mmda-primary-soft: #67fcc6;
+  --mmda-on-primary: #002116;
+  --mmda-on-primary-container: #002116;
+  --mmda-secondary-color: #4c6358;
+  --mmda-secondary-soft: #cfe9da;
+}
+
+html[data-mmda-palette="cyan"] {
+  --mmda-text-color: #191c1d;
+  --mmda-text-muted-color: #40484b;
+  --mmda-surface-ground: #f2f4f5;
+  --mmda-surface-card: #ffffff;
+  --mmda-surface-group: #ffffff;
+  --mmda-content-border-color: #bfc8cc;
+  --mmda-primary-color: #0dcaf0;
+  --mmda-primary-soft: #b1ecff;
+  --mmda-on-primary: #001f27;
+  --mmda-on-primary-container: #001f27;
+  --mmda-secondary-color: #4b626a;
+  --mmda-secondary-soft: #cee7f0;
+}
+
+html.mmda-dark {
+  --mmda-text-color: #e6e1e6;
+  --mmda-text-muted-color: #cac4cf;
+  --mmda-surface-ground: #1c1b1e;
+  --mmda-surface-card: #201f22;
+  --mmda-surface-group: #2b292d;
+  --mmda-content-border-color: #49454e;
+  --mmda-primary-color: #cfbcff;
+  --mmda-primary-soft: #4f378a;
+  --mmda-on-primary: #381e72;
+  --mmda-on-primary-container: #e9ddff;
+  --mmda-secondary-color: #cbc2db;
+  --mmda-secondary-soft: #4a4458;
+  --mmda-warning-color: #f5b482;
+  --mmda-info-color: #47acfb;
+  --mmda-danger-color: #f2b8b5;
+}
+
+html.mmda-dark[data-mmda-palette="indigo"] {
+  --mmda-text-color: #e6e1e6;
+  --mmda-text-muted-color: #cac4cf;
+  --mmda-surface-ground: #1c1b1e;
+  --mmda-surface-card: #201f22;
+  --mmda-surface-group: #2b292d;
+  --mmda-content-border-color: #49454e;
+  --mmda-primary-color: #cfbdff;
+  --mmda-primary-soft: #5300cd;
+  --mmda-on-primary: #3a0093;
+  --mmda-on-primary-container: #e8ddff;
+  --mmda-secondary-color: #cbc2dc;
+  --mmda-secondary-soft: #4a4458;
+}
+
+html.mmda-dark[data-mmda-palette="blue"] {
+  --mmda-text-color: #e4e2e6;
+  --mmda-text-muted-color: #c5c6d0;
+  --mmda-surface-ground: #1b1b1f;
+  --mmda-surface-card: #1f1f23;
+  --mmda-surface-group: #292a2d;
+  --mmda-content-border-color: #44464f;
+  --mmda-primary-color: #b1c5ff;
+  --mmda-primary-soft: #00419e;
+  --mmda-on-primary: #002c70;
+  --mmda-on-primary-container: #dae2ff;
+  --mmda-secondary-color: #c0c6dc;
+  --mmda-secondary-soft: #404659;
+}
+
+html.mmda-dark[data-mmda-palette="violet"] {
+  --mmda-text-color: #e6e1e6;
+  --mmda-text-muted-color: #cbc4cf;
+  --mmda-surface-ground: #1d1b1e;
+  --mmda-surface-card: #211f22;
+  --mmda-surface-group: #2b292d;
+  --mmda-content-border-color: #49454e;
+  --mmda-primary-color: #d3bbff;
+  --mmda-primary-soft: #5726a8;
+  --mmda-on-primary: #3f008d;
+  --mmda-on-primary-container: #ebddff;
+  --mmda-secondary-color: #cdc2db;
+  --mmda-secondary-soft: #4b4358;
+}
+
+html.mmda-dark[data-mmda-palette="red"] {
+  --mmda-text-color: #ece0df;
+  --mmda-text-muted-color: #d7c1c1;
+  --mmda-surface-ground: #201a1a;
+  --mmda-surface-card: #251e1e;
+  --mmda-surface-group: #2f2828;
+  --mmda-content-border-color: #524343;
+  --mmda-primary-color: #ffb3b2;
+  --mmda-primary-soft: #92001f;
+  --mmda-on-primary: #680013;
+  --mmda-on-primary-container: #ffdad9;
+  --mmda-secondary-color: #e6bdbb;
+  --mmda-secondary-soft: #5d3f3f;
+}
+
+html.mmda-dark[data-mmda-palette="orange"] {
+  --mmda-text-color: #ece0db;
+  --mmda-text-muted-color: #d7c2b8;
+  --mmda-surface-ground: #201a17;
+  --mmda-surface-card: #241e1b;
+  --mmda-surface-group: #2f2925;
+  --mmda-content-border-color: #52443c;
+  --mmda-primary-color: #ffb68a;
+  --mmda-primary-soft: #743500;
+  --mmda-on-primary: #522300;
+  --mmda-on-primary-container: #ffdbc8;
+  --mmda-secondary-color: #e5bfa9;
+  --mmda-secondary-soft: #5c4131;
+}
+
+html.mmda-dark[data-mmda-palette="yellow"] {
+  --mmda-text-color: #e9e1d8;
+  --mmda-text-muted-color: #d0c5b4;
+  --mmda-surface-ground: #1e1b16;
+  --mmda-surface-card: #221f1a;
+  --mmda-surface-group: #2d2924;
+  --mmda-content-border-color: #4d4639;
+  --mmda-primary-color: #fabd00;
+  --mmda-primary-soft: #5b4300;
+  --mmda-on-primary: #3f2e00;
+  --mmda-on-primary-container: #ffdf9e;
+  --mmda-secondary-color: #d8c4a0;
+  --mmda-secondary-soft: #52452a;
+}
+
+html.mmda-dark[data-mmda-palette="green"] {
+  --mmda-text-color: #e1e3de;
+  --mmda-text-muted-color: #c0c9c0;
+  --mmda-surface-ground: #191c1a;
+  --mmda-surface-card: #1d201e;
+  --mmda-surface-group: #282b28;
+  --mmda-content-border-color: #414942;
+  --mmda-primary-color: #77da9f;
+  --mmda-primary-soft: #00522f;
+  --mmda-on-primary: #00391f;
+  --mmda-on-primary-container: #93f7ba;
+  --mmda-secondary-color: #b5ccba;
+  --mmda-secondary-soft: #374b3d;
+}
+
+html.mmda-dark[data-mmda-palette="teal"] {
+  --mmda-text-color: #e1e3df;
+  --mmda-text-muted-color: #bfc9c2;
+  --mmda-surface-ground: #191c1a;
+  --mmda-surface-card: #1d201e;
+  --mmda-surface-group: #272b29;
+  --mmda-content-border-color: #404944;
+  --mmda-primary-color: #44dfab;
+  --mmda-primary-soft: #00513a;
+  --mmda-on-primary: #003827;
+  --mmda-on-primary-container: #67fcc6;
+  --mmda-secondary-color: #b3ccbf;
+  --mmda-secondary-soft: #354b41;
+}
+
+html.mmda-dark[data-mmda-palette="cyan"] {
+  --mmda-text-color: #e1e3e4;
+  --mmda-text-muted-color: #bfc8cc;
+  --mmda-surface-ground: #191c1d;
+  --mmda-surface-card: #1d2021;
+  --mmda-surface-group: #272a2c;
+  --mmda-content-border-color: #40484b;
+  --mmda-primary-color: #33d7fe;
+  --mmda-primary-soft: #004e5e;
+  --mmda-on-primary: #003642;
+  --mmda-on-primary-container: #b1ecff;
+  --mmda-secondary-color: #b2cad3;
+  --mmda-secondary-soft: #344a51;
+}
+
+.mmda-app {
+  min-height: 100%;
+  height: 100%;
+  color: var(--mmda-text-color);
+  background: var(--mmda-surface-ground);
+}
+
+.mmda-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.mmda-badge--danger {
+  color: var(--mmda-on-primary, #fff);
+  background: var(--mmda-danger-color, #b3261e);
+}
+
+.mmda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-toolbar--with-center {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  justify-content: initial;
+  column-gap: 0.75rem;
+}
+
+.mmda-toolbar__start,
+.mmda-toolbar__center,
+.mmda-toolbar__end,
+.mmda-toolbar-actions {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.mmda-toolbar__start {
+  justify-content: flex-start;
+}
+
+.mmda-toolbar__center {
+  justify-content: center;
+}
+
+.mmda-toolbar__end,
+.mmda-toolbar-actions {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.mmda-toolbar--with-center .mmda-toolbar__end,
+.mmda-toolbar--with-center .mmda-toolbar-actions {
+  margin-left: 0;
+}
+
+.mmda-color-palette-picker {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.mmda-palette-swatch {
+  position: relative;
+  display: inline-grid !important;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: 50%;
+  color: #fff;
+  background: var(--mmda-palette-preview);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #fff 45%, transparent) inset;
+}
+
+html[data-mmda-palette="purple"] .mmda-palette-swatch--purple::before,
+html[data-mmda-palette="indigo"] .mmda-palette-swatch--indigo::before,
+html[data-mmda-palette="blue"] .mmda-palette-swatch--blue::before,
+html[data-mmda-palette="violet"] .mmda-palette-swatch--violet::before,
+html[data-mmda-palette="red"] .mmda-palette-swatch--red::before,
+html[data-mmda-palette="orange"] .mmda-palette-swatch--orange::before,
+html[data-mmda-palette="yellow"] .mmda-palette-swatch--yellow::before,
+html[data-mmda-palette="green"] .mmda-palette-swatch--green::before,
+html[data-mmda-palette="teal"] .mmda-palette-swatch--teal::before,
+html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
+  content: "\2713";
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.mmda-palette-swatch--indigo {
+  --mmda-palette-preview: #6610f2;
+}
+
+.mmda-palette-swatch--purple {
+  --mmda-palette-preview: #6750a4;
+}
+
+.mmda-palette-swatch--blue {
+  --mmda-palette-preview: #0d6efd;
+}
+
+.mmda-palette-swatch--violet {
+  --mmda-palette-preview: #6f42c1;
+}
+
+.mmda-palette-swatch--red {
+  --mmda-palette-preview: #dc3545;
+}
+
+.mmda-palette-swatch--orange {
+  --mmda-palette-preview: #fd7e14;
+}
+
+.mmda-palette-swatch--yellow {
+  --mmda-palette-preview: #ffc107;
+}
+
+.mmda-palette-swatch--green {
+  --mmda-palette-preview: #198754;
+}
+
+.mmda-palette-swatch--teal {
+  --mmda-palette-preview: #20c997;
+}
+
+.mmda-palette-swatch--cyan {
+  --mmda-palette-preview: #0dcaf0;
+}
+
+/* 侧栏用户栏：与列表页分页器同高，右侧留白 */
+.mmda-user-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 3rem;
+  height: 3rem;
+  padding: 0 0.75rem 0 0.5rem;
+}
+
+.mmda-user-footer__avatar {
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.mmda-user-footer__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mmda-text-color);
+  font-size: 0.875rem;
+}
+
+.mmda-user-footer__actions {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.125rem;
+  margin-left: auto;
+  padding-right: 0.15rem;
+}
+
+.mmda-user-footer__button {
+  box-sizing: border-box;
+  width: 2rem !important;
+  min-width: 2rem !important;
+  max-width: 2rem !important;
+  height: 2rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--mmda-text-color);
+}
+
+.mmda-user-footer__todo {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.mmda-user-footer__badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.45rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1.5rem;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.mmda-side-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem 0.75rem;
+}
+
+.mmda-side-menu__panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.mmda-side-menu__group,
+.mmda-side-menu__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-side-menu__group:hover,
+.mmda-side-menu__link:hover,
+.mmda-side-menu__link--active {
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #6750a4) 14%,
+    transparent
+  );
+}
+
+.mmda-side-menu__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mmda-side-menu__chevron {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.mmda-side-menu__icon {
+  width: 1.1rem;
+  flex: 0 0 1.1rem;
+  text-align: center;
+}
+
+.mmda-side-menu__children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.15rem 0 0.35rem 0.85rem;
+}
+
+/* 表单标签：On Surface Variant，略小于正文 */
+.mmda-field-label {
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.mmda-field-horizontal .mmda-field-label {
+  width: 100%;
+  max-width: 8rem;
+  padding-inline-end: 0.25rem;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  align-self: center;
+}
+
+fieldset.mmda-group,
+.mmda-group-card {
+  margin-top: 1rem;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
+  border-radius: var(--mmda-border-radius-lg, 12px);
+  background: var(--mmda-surface-group, #fff);
+}
+
+fieldset.mmda-group {
+  padding: 0.5rem 0.75rem 0.85rem;
+}
+
+fieldset.mmda-group > legend.mmda-group__title {
+  display: inline-block;
+  box-sizing: content-box;
+  min-width: 6em;
+  margin: 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 8px;
+  /* M3 tonal：primary-container / on-primary-container */
+  color: var(--mmda-on-primary-container, #21005d);
+  background: var(--mmda-primary-soft, #eaddff);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+}
+
+/* summary（附件 / 概要）：secondary-container，与主区分开 */
+fieldset.mmda-group--summary > legend.mmda-group__title {
+  color: var(--mmda-text-color, #1c1b1f);
+  background: var(--mmda-secondary-soft, #e8def8);
+}
+
+.mmda-group.mmda-group-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.mmda-group-card .mmda-group__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mmda-group-card .mmda-group__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.mmda-group-card .mmda-group__toggle {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  opacity: 0.72;
+}
+
+.mmda-group-card .mmda-group__body {
+  padding: 0.75rem 0.85rem 0.9rem;
+}
+
+.mmda-group-card.is-collapsed .mmda-group__header {
+  border-radius: inherit;
+}
+
+.mmda-group-card.mmda-group--primary .mmda-group__header,
+.mmda-group-card.mmda-group--tails .mmda-group__header {
+  color: var(--mmda-on-primary-container, #21005d);
+  background: var(--mmda-primary-soft, #eaddff);
+}
+
+.mmda-group-card.mmda-group--summary .mmda-group__header {
+  color: var(--mmda-text-muted-color, #49454f);
+  background: color-mix(
+    in srgb,
+    var(--mmda-text-muted-color, #49454f) 12%,
+    var(--mmda-surface-group, #fff)
+  );
+  border-radius: 0;
+}
+
+/* —— 登录页 —— */
+.mmda-signin-page {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  color: var(--mmda-text-color, #1c1b1f);
+  background:
+    radial-gradient(
+      120% 80% at 12% 0%,
+      color-mix(in srgb, var(--mmda-primary-soft, #eaddff) 70%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 70% at 100% 100%,
+      color-mix(in srgb, var(--mmda-secondary-soft, #e8def8) 55%, transparent),
+      transparent 50%
+    ),
+    var(--mmda-surface-ground, #f7f2fa);
+}
+
+.mmda-signin-card {
+  width: min(26rem, 100%);
+  overflow: hidden;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 70%,
+      transparent
+    );
+  border-radius: 1.25rem;
+  background: var(--mmda-surface-card, #fffbfe);
+  box-shadow:
+    0 1px 2px rgba(28, 27, 31, 0.04),
+    0 16px 40px rgba(28, 27, 31, 0.08);
+}
+
+.mmda-signin-card__header {
+  padding: 1.75rem 1.75rem 1.15rem;
+  border-bottom: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mmda-primary-soft, #eaddff) 42%, transparent),
+    transparent 100%
+  );
+}
+
+.mmda-signin-card__eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--mmda-primary-color, #6750a4);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mmda-signin-card__title {
+  margin: 0;
+  color: var(--mmda-text-color, #1c1b1f);
+  font-size: 1.65rem;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.mmda-signin-card__subtitle {
+  margin: 0.55rem 0 0;
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.mmda-signin-card__body {
+  padding: 1.35rem 1.75rem 1.75rem;
+}
+
+.mmda-signin-form-wrap {
+  position: relative;
+}
+
+.mmda-signin-form__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: color-mix(
+    in srgb,
+    var(--mmda-surface-card, #fffbfe) 72%,
+    transparent
+  );
+  backdrop-filter: blur(2px);
+}
+
+.mmda-signin-form__spinner {
+  font-size: 1.5rem;
+  color: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-signin-form__title {
+  margin: 0 0 1.15rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.mmda-signin-form__field {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1.05rem;
+}
+
+.mmda-signin-form__label {
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.mmda-signin-form__agreed {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.15rem 0 1.25rem;
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.mmda-signin-form__agreed-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mmda-signin-form__error {
+  color: var(--mmda-danger-color, #b3261e);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.mmda-signin-form__submit,
+.mmda-signin-form .e-btn.e-primary.e-block {
+  min-height: 2.75rem;
+  margin-top: 0.15rem;
+  border-radius: 0.75rem !important;
+  font-weight: 650;
+}

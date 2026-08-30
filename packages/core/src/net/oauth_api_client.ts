@@ -27,14 +27,22 @@ function applyTokenResponse(
 ) {
   config.accessToken = data.access_token;
   if (data.refresh_token) config.refreshToken = data.refresh_token;
-  const expiresInSec = Number(data.expires_in) || 24 * 60 * 60 * 1000;
-  const expiryAt = Date.now() + expiresInSec * 1000;
-  config.expiresIn = expiryAt;
+  // expires_in 为秒；缺省按 24h
+  const expiresInSec = Number(data.expires_in);
+  const seconds =
+    Number.isFinite(expiresInSec) && expiresInSec > 0
+      ? expiresInSec
+      : 24 * 60 * 60;
+  config.expiresIn = Date.now() + seconds * 1000;
 }
 
 function oauthUserFromToken(data: Record<string, any>): OAuthUser {
   const now = Date.now();
-  const expiresInSec = Number(data.expires_in) || 0;
+  const expiresInSec = Number(data.expires_in);
+  const seconds =
+    Number.isFinite(expiresInSec) && expiresInSec > 0
+      ? expiresInSec
+      : 24 * 60 * 60;
   return {
     userId: data.userID,
     username: encodeURIComponent(data.username),
@@ -46,7 +54,7 @@ function oauthUserFromToken(data: Record<string, any>): OAuthUser {
     email: data.email,
     scope: data.scope,
     signOn: now,
-    expiryOn: now + expiresInSec * 1000,
+    expiryOn: now + seconds * 1000,
     tenantId: data.tenantID,
   };
 }

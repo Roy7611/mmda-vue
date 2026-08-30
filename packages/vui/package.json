@@ -13,27 +13,51 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/mmda-vui.es.js"
+    },
+    "./fontawesome.css": {
+      "import": "./dist/fontawesome.css",
+      "default": "./src/fontawesome.css"
+    },
+    "./theme.css": {
+      "import": "./dist/theme.css",
+      "default": "./src/theme.css"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src/assets/fa"
+  ],
+  "sideEffects": [
+    "**/*.css"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json && node scripts/copy-fa.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
+    "palette:generate": "node scripts/generate-m3-palettes.mjs && node scripts/apply-m3-palettes.mjs",
     "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
   },
   "dependencies": {
     "@mmda/core": "workspace:^"
   },
   "peerDependencies": {
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
     "vue": "^3.5.0",
     "vue-i18n": "^9.14.0 || ^10 || ^11",
     "vue-router": "^4.3.0"
   },
+  "peerDependenciesMeta": {
+    "@vue-office/docx": {
+      "optional": true
+    },
+    "@vue-office/excel": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@material/material-color-utilities": "^0.2.7",
     "@types/node": "^20.19.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.1",

@@ -72,6 +72,15 @@ describe("MetaUiFieldLogic 属性隔离", () => {
     expect(logic.setSearchParamFn).toBe(fn2);
     expect(logic.customRenderer).toBe(fn3);
   });
+
+  it("setGridCellRenderer 注册轻量 Grid 单元格渲染器", () => {
+    const logic = new MetaUiFieldLogic(createMockField());
+    const renderer = ({ displayValue }: any) =>
+      String(displayValue).toUpperCase();
+
+    expect(logic.setGridCellRenderer(renderer)).toBe(logic);
+    expect(logic.customGridCellRenderer).toBe(renderer);
+  });
 });
 
 describe("MetaUiGroupLogic 属性隔离", () => {
@@ -100,6 +109,22 @@ describe("MetaUiGroupLogic 属性隔离", () => {
     // Then: readonlyFn 被设置，hiddenFn 仍为 undefined（修复后 hiddenFn 不被污染）
     expect(logic.readonlyFn).toBeDefined();
     expect(logic.hiddenFn).toBeUndefined();
+  });
+
+  it("canHave 自动绑定组 hiddenFn", () => {
+    const logic = new MetaUiGroupLogic({
+      groupName: "skus",
+      groupLabel: "SKU",
+      many: true,
+      canHave: "featuredSku",
+    } as any);
+    expect(logic.hiddenFn).toBeDefined();
+    expect(logic.hiddenFn!({ featuredSku: false } as any, null as any)).toBe(
+      true,
+    );
+    expect(logic.hiddenFn!({ featuredSku: true } as any, null as any)).toBe(
+      false,
+    );
   });
 
   // LI-08: editIf/deleteIf/clearIf 隔离

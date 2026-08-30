@@ -1,4 +1,4 @@
-import { isRef, reactive, ref, type App, type Ref, type VNode } from "vue";
+import { isRef, reactive, ref, h, render, type App, type Ref, type VNode } from "vue";
 import type { I18n } from "vue-i18n";
 import {
   FetchApi,
@@ -6,7 +6,9 @@ import {
   createDependencyContainer,
   defaultMetaUiService,
   isString,
+  useMmdaSsoDb,
   type DependencyContainer,
+  type LocalAsyncDb,
   type MetaUiService,
   type Module,
   type OAuthUser,
@@ -19,7 +21,13 @@ import type { UiBuilder } from "./ui_builder";
 import type { UiViewContext } from "./ui_context";
 import type { UiAction } from "./ui_action";
 import type { CustomFilter } from "./ui_filter";
-import { UI_APP_KEY } from "./ui_keys";
+import { UI_APP_KEY, UI_BUILDER_KEY } from "./ui_keys";
+import {
+  readMmdaPref,
+  readStoredColorPalette,
+  writeMmdaPref,
+  type MmdaColorPalette,
+} from "./ui_theme";
 
 export interface AppTopBarProps {
   modules: Module[];
@@ -84,6 +92,7 @@ export interface MmdaApplicationContext {
   expandUserMenu?: boolean;
   envMode?: string;
   isDark?: boolean;
+  colorPalette: MmdaColorPalette;
   systemList?: any[];
   todoCount?: number;
   theLatestTodoList?: any[];
@@ -116,6 +125,10 @@ export class MmdaApplication {
   readonly clientId: string;
   readonly clientSecret: string;
   readonly redirectUris?: string;
+  /** 启动恢复会话期间抑制 401→强制跳登录，交给 signinAuto 自行 refresh */
+  private restoringAuth = false;
+  /** 公共 SSO 库：仅 user / config，与模块 localDb 分离 */
+  private readonly ssoDb: LocalAsyncDb;
 
   get user() {
     return this.context.user;
@@ -134,28 +147,13 @@ export class MmdaApplication {
     return !!this.authenticated && !!this.user?.userId && expiry > Date.now();
   }
 
-  /** 将当前内存中的登录态写入 IndexedDB / Cookie，供 window.open 新标签恢复会话 */
+  /** 将当前内存中的登录态写入公共 SSO 库（mmda），供同域各应用恢复会话 */
   async syncAuthState(): Promise<void> {
     if (!this.canAccess) return;
     const user = this.user;
     const expiryOn = this.resolveAuthExpiry(null, user);
     if (expiryOn) user.expiryOn = expiryOn;
-    await this.localDb.putMany([
-      ["user", user],
-      [
-        "config",
-        {
-          ...this.api.config,
-          expiryOn: user.expiryOn,
-        },
-      ],
-    ]);
-    this.writeAuthCookies(user);
-  }
-
-  /** 与旧版一致：供跨应用 SSO 的 cookie domain 配置参考 */
-  get domain() {
-    return this.authCookieDomain() ?? location?.hostname ?? "";
+    await this.persistAuthSession(user);
   }
 
   get locale() {
@@ -193,12 +191,14 @@ export class MmdaApplication {
       },
     );
     this.api.setUnauthorizedErrorHandler(() => {
+      if (this.restoringAuth) return;
       this.signOut().then(() => {
         if (typeof window === "undefined") return;
         window.location.href = `/${this.name.toUpperCase()}/Signin?redirect=${window.location.pathname}`;
       });
     });
     this.meta = defaultMetaUiService(this.api);
+    this.ssoDb = useMmdaSsoDb();
     this.di = createDependencyContainer();
     this.loginLoading = ref(false);
     this.context = reactive({
@@ -208,11 +208,14 @@ export class MmdaApplication {
       envMode: opts.envMode,
       expandSidebar: readFlag("expandSidebar", true),
       isDark: readFlag("isDark", false),
+      colorPalette: readStoredColorPalette(),
       expandUserMenu: false,
       todoCount: 0,
       theLatestTodoList: [],
       systemList: [],
     });
+    this.ui.setColorScheme(Boolean(this.context.isDark));
+    this.ui.setColorPalette(this.context.colorPalette);
   }
 
   install(app: App): void {
@@ -222,6 +225,23 @@ export class MmdaApplication {
     app.config.globalProperties.$meta = this.meta;
     app.config.globalProperties.$ui = this.ui;
     app.provide(UI_APP_KEY, this);
+    app.provide(UI_BUILDER_KEY, this.ui);
+
+    const Host = this.ui.overlayHost;
+    if (Host && typeof document !== "undefined") {
+      const el = document.createElement("div");
+      el.className = "mmda-overlay-root";
+      document.body.append(el);
+      const vnode = h(Host);
+      vnode.appContext = app._context;
+      render(vnode, el);
+      const unmount = app.unmount.bind(app);
+      app.unmount = () => {
+        render(null, el);
+        el.remove();
+        unmount();
+      };
+    }
   }
 
   findModule(nameOrUrl: string) {
@@ -265,85 +285,101 @@ export class MmdaApplication {
     this.context.user.userId = "";
     this.context.modules = [];
     this.context.authenticated = false;
-    this.clearAuthCookies();
-    await this.localDb.deleteMany(["user", "config", "meta/systems"]);
+    await Promise.allSettled([
+      this.ssoDb.deleteMany(["user", "config"]),
+      this.localDb.deleteMany(["user", "config", "meta/systems"]),
+    ]);
     return true;
   }
 
   afterSignOut?: () => Promise<boolean>;
 
+  /** 从公共 SSO 库恢复登录态（不读写 Cookie） */
   async signinAuto() {
     if (typeof document === "undefined") return this.canAccess;
-
-    const cookies = document.cookie.split("; ").filter(Boolean);
-    const signOutFlag =
-      cookies
-        .find((item) => item.startsWith("signOut="))
-        ?.split("=")[1] === "true";
-
-    await this.hydrateFromCookies(cookies);
-
-    let [user, config] = await this.localDb.getMany(["user", "config"]);
-
-    // localDb 有有效会话时优先本地；仅在没有本地会话时才认 signOut cookie
-    if (signOutFlag && !user?.userId) {
-      return this.signOut();
-    }
-
-    if (!user) {
-      user = this.readUserFromCookies(cookies);
-      if (user) await this.localDb.put("user", user);
-    }
-
-    if (!config) {
-      const cookieConfig = this.readAuthConfigFromCookies(cookies);
-      if (Object.keys(cookieConfig).length) {
-        Object.assign(this.api.config, cookieConfig);
-        config = { ...this.api.config, ...cookieConfig };
-        await this.localDb.put("config", config);
+    this.restoringAuth = true;
+    try {
+      let user: any;
+      let config: any;
+      try {
+        ;[user, config] = await this.ssoDb.getMany(["user", "config"]);
+      } catch (error) {
+        console.error(error);
       }
-    }
+      if (!user?.userId || !config?.accessToken) {
+        try {
+          const fromApp = await this.localDb.getMany(["user", "config"]);
+          user = fromApp[0];
+          config = fromApp[1];
+          if (user?.userId && config?.accessToken) {
+            await this.ssoDb.putMany([
+              ["user", user],
+              ["config", config],
+            ]);
+            await this.localDb.deleteMany(["user", "config"]);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      if (!user?.userId || !config?.accessToken) {
+        this.context.authenticated = false;
+        return false;
+      }
 
-    if (user) {
       user.username = decodeURIComponent(user.username);
       this.context.user = user;
-    }
 
-    const expiryOn = this.resolveAuthExpiry(config, user);
-    if (user?.userId && expiryOn) {
-      user.expiryOn = expiryOn;
-      this.context.user = user;
-    }
-
-    this.context.authenticated = !!(
-      this.user.userId && expiryOn > Date.now()
-    );
-
-    if (this.canAccess) {
-      if (config) {
-        Object.assign(this.api.config, {
-          service: config.service ?? this.api.config.service,
-          locale: config.locale ?? this.api.config.locale,
-          accessToken: config.accessToken ?? this.api.config.accessToken,
-          refreshToken: config.refreshToken ?? this.api.config.refreshToken,
-          expiryInterval: config.expiryInterval ?? this.api.config.expiryInterval,
-          expiresIn: config.expiresIn ?? this.api.config.expiresIn,
-        });
+      const expiryOn = this.resolveAuthExpiry(config, user);
+      if (expiryOn) {
+        user.expiryOn = expiryOn;
+        this.context.user = user;
       }
-      this.writeAuthCookies(this.user);
+
+      this.context.authenticated = !!(user.userId && expiryOn > Date.now());
+      if (!this.canAccess) {
+        this.context.authenticated = false;
+        return false;
+      }
+
+      Object.assign(this.api.config, {
+        locale: config.locale ?? this.api.config.locale,
+        accessToken: config.accessToken,
+        refreshToken: config.refreshToken ?? this.api.config.refreshToken,
+        expiryInterval:
+          config.expiryInterval ?? this.api.config.expiryInterval,
+        expiresIn: config.expiresIn ?? this.api.config.expiresIn,
+      });
+      if (expiryOn) this.api.config.expiresIn = expiryOn;
+
       try {
         this.context.modules = await this.meta.getModules(false);
         await this.getSystems();
       } catch (error) {
         console.error(error);
-        this.context.authenticated = false;
-        return false;
+        const refreshed = await this.api.refreshToken();
+        if (!refreshed) {
+          this.context.authenticated = false;
+          return false;
+        }
+        try {
+          this.context.modules = await this.meta.getModules(true);
+          await this.getSystems(true);
+          await this.persistAuthSession(this.user);
+        } catch (retryError) {
+          console.error(retryError);
+          this.context.authenticated = false;
+          return false;
+        }
       }
-    } else {
+      return this.canAccess;
+    } catch (error) {
+      console.error(error);
       this.context.authenticated = false;
+      return false;
+    } finally {
+      this.restoringAuth = false;
     }
-
-    return this.canAccess;
   }
 
   changeLocale(locale: string) {
@@ -399,7 +435,7 @@ export class MmdaApplication {
       queryParams: { userID: this.user.userId },
     });
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem("todoCount", JSON.stringify(this.context.todoCount));
+      writeMmdaPref("todoCount", JSON.stringify(this.context.todoCount));
     }
   }
 
@@ -411,26 +447,42 @@ export class MmdaApplication {
     return this.ui.confirm(context as UiViewContext<any>, props);
   }
 
+  dialog(
+    content: Parameters<UiBuilder["dialog"]>[0],
+    context: UiContext,
+    props: Parameters<UiBuilder["dialog"]>[2],
+  ) {
+    return this.ui.dialog(content, context as UiViewContext<any>, props);
+  }
+
   confirmDialog(
     content: Parameters<UiBuilder["confirmDialog"]>[0],
     context: UiContext,
     props: Parameters<UiBuilder["confirmDialog"]>[2],
   ) {
-    return this.ui.confirmDialog(content, context as UiViewContext<any>, props);
+    return this.dialog(content, context, props);
   }
 
   private async persistAuthSession(user: OAuthUser) {
-    await this.localDb.putMany([
-      ["user", user],
-      [
-        "config",
-        {
-          ...this.api.config,
-          expiryOn: user.expiryOn,
-        },
-      ],
-    ]);
-    this.writeAuthCookies(user);
+    try {
+      await this.ssoDb.putMany([
+        ["user", user],
+        [
+          "config",
+          {
+            accessToken: this.api.config.accessToken,
+            refreshToken: this.api.config.refreshToken,
+            expiryInterval: this.api.config.expiryInterval,
+            expiresIn: this.api.config.expiresIn,
+            locale: this.api.config.locale,
+            expiryOn: user.expiryOn,
+          },
+        ],
+      ]);
+      await this.localDb.deleteMany(["user", "config"]);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private resolveAuthExpiry(
@@ -447,95 +499,6 @@ export class MmdaApplication {
       0;
     return Number(raw) || 0;
   }
-
-  /**
-   * Cookie domain：开发环境（localhost / IP）不写 domain；
-   * 生产环境使用父域（如 `.mmda.cloud`）以支持子域 SSO。
-   */
-  private authCookieDomain(): string | undefined {
-    if (typeof location === "undefined") return undefined;
-    const host = location.hostname;
-    if (host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) {
-      return undefined;
-    }
-    const parts = host.split(".");
-    if (parts.length >= 2) {
-      return `.${parts.slice(-2).join(".")}`;
-    }
-    return host;
-  }
-
-  private authCookieSuffix(): string {
-    const domain = this.authCookieDomain();
-    return domain ? `;domain=${domain}` : "";
-  }
-
-  private readUserFromCookies(cookies: string[]): OAuthUser | undefined {
-    const entry = cookies.find((item) => item.startsWith("user="));
-    if (!entry) return undefined;
-    const value = entry.slice("user=".length);
-    if (!value) return undefined;
-    try {
-      const parsedUser = JSON.parse(decodeURIComponent(value)) as OAuthUser;
-      parsedUser.username = decodeURIComponent(parsedUser.username);
-      return parsedUser;
-    } catch {
-      try {
-        const parsedUser = JSON.parse(value) as OAuthUser;
-        parsedUser.username = decodeURIComponent(parsedUser.username);
-        return parsedUser;
-      } catch {
-        return undefined;
-      }
-    }
-  }
-
-  private readAuthConfigFromCookies(
-    cookies: string[],
-  ): Record<string, string> {
-    const configKeys = ["accessToken", "refreshToken", "expiryOn"];
-    const config: Record<string, string> = {};
-    for (const item of cookies) {
-      const [key, ...rest] = item.split("=");
-      const value = rest.join("=");
-      if (!value || !configKeys.includes(key)) continue;
-      config[key] = value;
-    }
-    return config;
-  }
-
-  private writeAuthCookies(user: OAuthUser) {
-    if (typeof document === "undefined") return;
-    const suffix = this.authCookieSuffix();
-    const userJson = encodeURIComponent(JSON.stringify(user));
-    document.cookie = `accessToken=${this.api.config.accessToken};path=/${suffix};SameSite=Lax`;
-    document.cookie = `refreshToken=${this.api.config.refreshToken ?? ""};path=/${suffix};SameSite=Lax`;
-    document.cookie = `expiryOn=${user.expiryOn};path=/${suffix};SameSite=Lax`;
-    document.cookie = `signOut=false;path=/${suffix};SameSite=Lax`;
-    document.cookie = `user=${userJson};path=/${suffix};SameSite=Lax`;
-  }
-
-  private clearAuthCookies() {
-    if (typeof document === "undefined") return;
-    const suffix = this.authCookieSuffix();
-    const expired = `;path=/${suffix};expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-    document.cookie = `accessToken=${expired}`;
-    document.cookie = `refreshToken=${expired}`;
-    document.cookie = `expiryOn=${expired}`;
-    document.cookie = `user=${expired}`;
-    document.cookie = `signOut=true;path=/${suffix};SameSite=Lax`;
-  }
-
-  private async hydrateFromCookies(cookies: string[]) {
-    const user = this.readUserFromCookies(cookies);
-    if (user) {
-      await this.localDb.put("user", user);
-    }
-    const config = this.readAuthConfigFromCookies(cookies);
-    if (Object.keys(config).length) {
-      await this.localDb.put("config", { ...this.api.config, ...config });
-    }
-  }
 }
 
 function resolveFetchBaseUrl(baseUrl: string): string | URL {
@@ -550,7 +513,8 @@ function resolveFetchBaseUrl(baseUrl: string): string | URL {
 
 function readFlag(key: string, fallback: boolean) {
   if (typeof localStorage === "undefined") return fallback;
-  const raw = localStorage.getItem(key);
+  const raw =
+    key === "isDark" ? readMmdaPref(key) : localStorage.getItem(key);
   if (raw == null) return fallback;
   try {
     return JSON.parse(raw) as boolean;

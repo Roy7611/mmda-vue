@@ -70,6 +70,27 @@ export interface UiAction {
   view?: string; //显示在那几个视图，比如details,edit，若为空则全部显示
 }
 
+/** Normalize backend action roles before passing them to a UI skin. */
+export const normalizeActionColorRole = (
+  role?: string,
+): UiColorRole | undefined => {
+  const normalized = role?.trim().toLowerCase()
+  if (!normalized) return undefined
+  if (normalized === "warn") return "warning"
+  if (normalized === "error") return "danger"
+  if (
+    normalized === "primary" ||
+    normalized === "secondary" ||
+    normalized === "success" ||
+    normalized === "info" ||
+    normalized === "warning" ||
+    normalized === "danger"
+  ) {
+    return normalized
+  }
+  return undefined
+}
+
 /**
  * 界面动作构造函数，从实体动作行为创建（废弃）
  * @param callback 回调函数
@@ -96,7 +117,7 @@ export const UiActionCtor = (
     name: name,
     label: label ?? t(`action.${name}`),
     icon: i(icon ?? name),
-    colorRole: role as UiColorRole,
+    colorRole: normalizeActionColorRole(role),
     onAction,
     // visible,
     tooltip: description,
@@ -125,7 +146,7 @@ export const UiContextAction = (
     id,
     label: label ?? context.t(`action.${name}`),
     icon: i(icon ?? name),
-    colorRole: role as UiColorRole,
+    colorRole: normalizeActionColorRole(role),
     loading: unref(context.actionLoadings[name]),
     onAction: () => {
       if (context.executing) {

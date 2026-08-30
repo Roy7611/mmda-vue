@@ -4,11 +4,14 @@
 
 ## 启动
 
-1. 复制 `.env.example` 为 `.env`，配置 `VITE_BASE_API` 与 `VITE_OAUTH_CLIENT_ID` / `VITE_OAUTH_CLIENT_SECRET`（base 默认 clientId 为 `mmda-base`）。
+1. 复制 `.env.example` 为 `.env`，配置 `VITE_BASE_API` 与 `VITE_OAUTH_CLIENT_ID` / `VITE_OAUTH_CLIENT_SECRET`（base 默认 clientId 为 `mmda-base`）。皮肤为 `@mmda/vui-syncfusion`；可选填 `VITE_SYNCFUSION_LICENSE`，否则控件会带 Syncfusion 水印。
 2. 在仓库根目录：`pnpm install`，然后 `pnpm dev:base`（默认 http://127.0.0.1:5174/）。
 3. 打开 `/BASE/Signin` 登录；OAuth 凭据在 `MmdaApplication` 构造时注入，登录页无需再传。
 
 Playground（`pnpm dev:vui`）仍是假数据对照，不要改成 base。
+
+应用壳、页脚与样式 token 均不依赖具体控件库；`vite.config.ts` 已预留两套皮肤的
+source alias。后续切换皮肤只需调整 `main.ts` 的 Builder / Plugin 和 `package.json` 依赖。
 
 ## 验收清单（网关 + 真人）
 

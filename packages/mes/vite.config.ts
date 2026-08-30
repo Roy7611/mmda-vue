@@ -26,7 +26,19 @@ export default defineConfig({
       {
         find: '@mmda/vui-primevue/fontawesome.css',
         replacement: fileURLToPath(
-          new URL('../vui-primevue/src/fontawesome.css', import.meta.url),
+          new URL('../vui/src/fontawesome.css', import.meta.url),
+        ),
+      },
+      {
+        find: '@mmda/vui/fontawesome.css',
+        replacement: fileURLToPath(
+          new URL('../vui/src/fontawesome.css', import.meta.url),
+        ),
+      },
+      {
+        find: '@mmda/vui/theme.css',
+        replacement: fileURLToPath(
+          new URL('../vui/src/theme.css', import.meta.url),
         ),
       },
       {
