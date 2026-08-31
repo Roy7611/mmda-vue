@@ -42,7 +42,6 @@ import {
 } from "@mmda/vui";
 import Breadcrumb from "primevue/breadcrumb";
 import Button from "primevue/button";
-import Card from "primevue/card";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
 import InputNumber from "primevue/inputnumber";
@@ -54,6 +53,7 @@ import ProgressSpinner from "primevue/progressspinner";
 import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
 import Toolbar from "primevue/toolbar";
+import { PrimeGroupCard } from "./components/PrimeGroupCard";
 import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
 import { createPrimeOverlay } from "./prime_overlay";
 import { BpmnModeler } from "./components/BpmnModeler";
@@ -153,18 +153,14 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
       ...rest
     } = props;
     return h(
-      Card,
+      PrimeGroupCard,
       {
-        class: [this.groupWrapClass(group, props), "mmda-group-card"],
+        title: group.groupLabel,
+        expanded: group.expanded !== false,
+        class: this.groupWrapClass(group, props),
         ...rest,
       },
-      {
-        header: () =>
-          h("header", { class: "mmda-group__header" }, [
-            h("h2", { class: "mmda-group__title" }, group.groupLabel),
-          ]),
-        content: () => h("div", { class: "mmda-group__body" }, body),
-      },
+      () => this.wrapGroupContent(body),
     );
   }
 

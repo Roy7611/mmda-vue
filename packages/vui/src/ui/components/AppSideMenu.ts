@@ -26,6 +26,8 @@ export interface AppMenuItem {
   moduleType?: Module['moduleType']
   route: string
   url?: string
+  /** Feature leaf with create permission — show quick-create affordance. */
+  allowCreate?: boolean
   items?: AppMenuItem[]
 }
 
@@ -51,6 +53,7 @@ export function assembleMenuItems(modules: Module[] = []): AppMenuItem[] {
     }
 
     const route = module.moduleUrl ?? ''
+    const isLeaf = !items.length
     return [{
       key: module.moduleCode,
       label: module.moduleLabel ?? (module as { moduleName?: string }).moduleName ?? '',
@@ -58,7 +61,8 @@ export function assembleMenuItems(modules: Module[] = []): AppMenuItem[] {
       moduleCode: module.moduleCode,
       moduleType: module.moduleType,
       route,
-      url: route && !items.length ? route : undefined,
+      url: route && isLeaf ? route : undefined,
+      allowCreate: isLeaf && !!route && !!module.authority?.allowCreate,
       items: items.length ? items : undefined,
     }]
   })
@@ -117,23 +121,52 @@ export const AppSideMenu = defineComponent({
       const children = item.items ?? []
       const active = item.moduleCode === currentModuleCode.value
       if (item.route && !children.length) {
+        const createLink = item.allowCreate
+          ? h(
+              RouterLink,
+              {
+                class: 'mmda-side-menu__create',
+                to: `${item.route}/Create`,
+                title: '创建',
+                'aria-label': `创建${item.label}`,
+                onClick: (e: MouseEvent) => e.stopPropagation(),
+              },
+              () =>
+                h('i', {
+                  class: ['fas', 'fa-plus'],
+                  'aria-hidden': 'true',
+                }),
+            )
+          : null
         return h(
-          RouterLink,
+          'div',
           {
-            role: 'app-module-feature',
             class: {
-              'mmda-side-menu__link': true,
-              'mmda-side-menu__link--active': active,
+              'mmda-side-menu__row': true,
+              'mmda-side-menu__row--active': active,
             },
-            id: item.moduleCode,
             key: item.moduleCode,
-            to: item.route,
           },
-          () => [
-            item.icon
-              ? h('i', { class: [item.icon, 'mmda-side-menu__icon'] })
-              : null,
-            h('span', { class: 'mmda-side-menu__label' }, item.label),
+          [
+            h(
+              RouterLink,
+              {
+                role: 'app-module-feature',
+                class: {
+                  'mmda-side-menu__link': true,
+                  'mmda-side-menu__link--active': active,
+                },
+                id: item.moduleCode,
+                to: item.route,
+              },
+              () => [
+                item.icon
+                  ? h('i', { class: [item.icon, 'mmda-side-menu__icon'] })
+                  : null,
+                h('span', { class: 'mmda-side-menu__label' }, item.label),
+              ],
+            ),
+            createLink,
           ],
         )
       }

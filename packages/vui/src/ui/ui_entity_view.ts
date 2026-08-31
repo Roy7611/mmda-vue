@@ -151,8 +151,11 @@ export function createEntityView(options: EntityViewOptions) {
         }
         const context = current.value;
         if (!context) return h("p", "加载中…");
+        // 订阅 loading：分页/筛选时刷新；表格同时接收 Ref 以便 Syncfusion 遮罩响应
+        void context.loading.value;
         return context.many
           ? app.ui.buildListView(context, {
+              loading: context.loading,
               showToolbar: true,
               showSearchbar: true,
               selectionMode:

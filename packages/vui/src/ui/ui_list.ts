@@ -1,4 +1,4 @@
-import type { VNode, VNodeArrayChildren, VNodeChild } from "vue";
+import type { VNode, VNodeArrayChildren, VNodeChild, Ref } from "vue";
 import type {
   EntityFilterModel,
   GridCellRenderer,
@@ -11,6 +11,7 @@ import type {
 import type { ChildSlot } from "./ui_view";
 import type { UiSlots } from "./ui_layout";
 import type { CustomFilter } from "./ui_filter";
+import type { UiAction } from "./ui_action";
 
 export type UiTableCellRenderer<T = any> = (
   field: any,
@@ -32,12 +33,20 @@ export interface UiListProps<T = any> {
   showGridlines?: boolean;
   showSummary?: boolean;
   showColumnWithAction?: boolean;
+  /**
+   * 行操作列是否渲染「更多」下拉（业务 actions / 额外标准项）。
+   * 默认 false：仅编辑、删除、详情三个常用按钮。
+   */
+  showActions?: boolean;
+  /** 序号列右侧行操作菜单（详情/编辑/删除 + actions）。 */
+  rowMenu?: (row: T) => UiAction[];
   itemHeight?: "small" | "large";
   height?: string | number;
   maxHeight?: string | number;
   selectionMode?: UiSelectionMode;
   linkField?: string;
-  loading?: boolean;
+  /** 列表查询中；传 Ref 可响应式驱动表格 loading，不必整页重渲。 */
+  loading?: boolean | Ref<boolean>;
   inplaceEdit?: boolean;
   resizableColumns?: boolean;
   /** 列排序；默认开启。 */
@@ -141,7 +150,6 @@ export type UiPagableListPropsType<T> = UiPaginatorPropsType &
 export interface UiListViewProps<T> extends UiListProps<T> {
   showToolbar?: boolean;
   showBreadcrumb?: boolean;
-  showActions?: boolean;
   showSearchbar?: boolean;
   showMainHead?: boolean;
   linkField?: string;

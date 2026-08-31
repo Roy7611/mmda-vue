@@ -67,6 +67,38 @@ describe('AppSideMenu helpers', () => {
     const items = assembleMenuItems(sampleModules)
     expect(items.map(i => i.label)).toEqual(['组织架构', '商业贸易'])
     expect(items[0]?.items?.[0]?.label).toBe('部门')
+    expect(items[0]?.items?.[0]?.allowCreate).toBe(false)
+  })
+
+  it('assembleMenuItems sets allowCreate on leaf features with CREATE auth', () => {
+    const modules = new ModuleFactory([
+      {
+        moduleCode: 'B.01',
+        moduleLabel: '组织架构',
+        moduleType: 'MODULE',
+        moduleVersion: ModuleVersion.TEAM,
+        allowOps: 0,
+        moduleUrl: '/BASE/org',
+        requiredCreateParam: false,
+        status: ModuleStatus.RELEASED,
+        divider: false,
+        subModules: [
+          {
+            moduleCode: 'B.01.01',
+            moduleLabel: '部门',
+            moduleType: 'FEATURE',
+            moduleVersion: ModuleVersion.TEAM,
+            allowOps: ModuleOp.READ | ModuleOp.CREATE,
+            moduleUrl: '/BASE/Departments',
+            requiredCreateParam: false,
+            status: ModuleStatus.RELEASED,
+            divider: false,
+          },
+        ],
+      },
+    ]).modules
+    const items = assembleMenuItems(modules)
+    expect(items[0]?.items?.[0]?.allowCreate).toBe(true)
   })
 
   it('activeAncestorKeys expands parents for the active feature route', () => {

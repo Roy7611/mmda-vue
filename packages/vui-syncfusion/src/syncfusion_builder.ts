@@ -17,6 +17,7 @@ import {
 } from "@mmda/core";
 import {
   AbstractUiBuilder,
+  MmdaGroupCard,
   UiViewMany,
   hasSystemModules,
   type AppScaffoldProps,
@@ -153,23 +154,24 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       ...rest
     } = props;
     return h(
-      "div",
+      MmdaGroupCard,
       {
-        class: [this.groupWrapClass(group, props), "mmda-group-card", "e-card"],
+        tag: "div",
+        title: group.groupLabel,
+        expanded: group.expanded !== false,
+        class: [this.groupWrapClass(group, props), "e-card"],
+        headerClass: "e-card-header",
+        toggleIcon: "e-icons e-chevron-down",
         ...rest,
       },
-      [
-        h("div", { class: "e-card-header mmda-group__header" }, [
+      {
+        header: ({ title }: { title: string }) =>
           h("div", { class: "e-card-header-caption" }, [
-            h(
-              "div",
-              { class: "e-card-header-title mmda-group__title" },
-              group.groupLabel,
-            ),
+            h("div", { class: "e-card-header-title mmda-group__title" }, title),
           ]),
-        ]),
-        h("div", { class: "e-card-content mmda-group__body" }, body),
-      ],
+        // Card 只做壳；字段/表格布局由 .mmda-group__content 管
+        default: () => this.wrapGroupContent(body),
+      },
     );
   }
 

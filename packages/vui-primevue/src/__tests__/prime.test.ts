@@ -73,7 +73,8 @@ describe('PrimeVue skin', () => {
       fields: [],
     })
     const card = builder.wrapGroup(group, h('div', 'body'))
-    expect(String(card.props?.class)).toContain('mmda-group-card')
+    expect(card.type?.name ?? card.type?.__name).toBe('PrimeGroupCard')
+    expect(String(card.props?.class)).toContain('mmda-group--summary')
     const fieldset = builder.wrapGroup(group, h('div', 'body'), {
       container: 'fieldset',
     })

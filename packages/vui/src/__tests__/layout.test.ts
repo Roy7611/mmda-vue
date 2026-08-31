@@ -80,7 +80,7 @@ describe("default VUI layouts", () => {
     expect(groups[1].style.flexDirection).toBe("column");
   });
 
-  it("页面工具栏置顶，三区正文独立滚动", () => {
+  it("页面工具栏置顶，左右分栏且右侧可折叠", async () => {
     const host = mount(
       layoutPage({
         toolbar: h("button", "保存"),
@@ -97,8 +97,24 @@ describe("default VUI layouts", () => {
     expect(page.style.overflow).toBe("hidden");
     expect(toolbar.style.position).toBe("sticky");
     expect(scroll.style.overflow).toBe("auto");
-    expect(regions.style.gridTemplateColumns).toContain("3fr");
-    expect(host.querySelector(".mmda-page-tails")?.textContent).toBe("明细");
+    expect(regions.classList.contains("mmda-page-regions--with-summary")).toBe(
+      true,
+    );
+    expect(regions.classList.contains("is-summary-open")).toBe(true);
+    expect(host.querySelector(".mmda-page-main .mmda-page-primary")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-main .mmda-page-tails")?.textContent).toBe(
+      "明细",
+    );
+    expect(host.querySelector(".mmda-page-summary__body")?.textContent).toBe(
+      "概要",
+    );
+
+    const toggle = host.querySelector(
+      ".mmda-page-summary__toggle",
+    ) as HTMLElement;
+    toggle.click();
+    await Promise.resolve();
+    expect(regions.classList.contains("is-summary-collapsed")).toBe(true);
   });
 
   it("AppLayout 提供侧栏通高和顶栏通栏两种 grid", () => {
@@ -334,7 +350,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     ]);
   });
 
-  it("默认用 card；props.container 为 fieldset 时用 legend", () => {
+  it("默认用 card；props.container 为 fieldset 时用 legend", async () => {
     const context = new UiViewContext({
       model: { name: "N", code: "C", state: "启用", remark: "R" },
       metaui,
@@ -347,6 +363,19 @@ describe("AbstractUiBuilder layout wiring", () => {
       cardHost.querySelector("article.mmda-group-card.mmda-group--primary"),
     ).not.toBeNull();
     expect(cardHost.querySelector("fieldset.mmda-group")).toBeNull();
+    expect(cardHost.querySelector(".mmda-group__toggle")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
+
+    const header = cardHost.querySelector(".mmda-group__header") as HTMLElement;
+    header.click();
+    await Promise.resolve();
+    expect(cardHost.querySelector(".mmda-group-card.is-collapsed")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group__collapse")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
+    header.click();
+    await Promise.resolve();
+    expect(cardHost.querySelector(".mmda-group-card.is-expanded")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
 
     const fieldsetHost = mount(
       new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
@@ -373,8 +402,11 @@ describe("AbstractUiBuilder layout wiring", () => {
       new HtmlUiBuilder().buildView(context, { showToolbar: false }),
     );
 
+    const regions = host.querySelector(".mmda-page-regions")!;
+    expect(regions.querySelector(".mmda-page-summary__toggle")).not.toBeNull();
     const summary = host.querySelector(".mmda-page-summary")!;
-    const children = [...summary.children];
+    const body = summary.querySelector(".mmda-page-summary__body")!;
+    const children = [...body.children];
     expect(children[0]?.classList.contains("mmda-attachments")).toBe(true);
     expect(children.at(-1)?.textContent).toContain("概要");
   });

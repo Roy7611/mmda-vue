@@ -1,8 +1,8 @@
 import { defineComponent, h, ref, type PropType } from "vue";
 
 /**
- * Collapsible group shell: header + body, chevron toggle (matches legacy Panel).
- * Initial open state comes from MetaUiGroup.expanded.
+ * Collapsible group shell only — layout of fields/tables belongs in
+ * `.mmda-group__content` (see HtmlUiBuilder.wrapGroupContent).
  */
 export const MmdaGroupCard = defineComponent({
   name: "MmdaGroupCard",
@@ -15,10 +15,8 @@ export const MmdaGroupCard = defineComponent({
       type: [String, Array, Object] as PropType<unknown>,
       default: undefined,
     },
-    bodyClass: {
-      type: [String, Array, Object] as PropType<unknown>,
-      default: undefined,
-    },
+    /** Toggle icon classes (e.g. `e-icons e-chevron-down`); rotates when collapsed */
+    toggleIcon: { type: String, default: undefined },
   },
   setup(props, { slots, attrs }) {
     const open = ref(props.expanded !== false);
@@ -62,24 +60,24 @@ export const MmdaGroupCard = defineComponent({
               slots.header?.({ title: props.title, open: open.value }) ??
                 h("h2", { class: "mmda-group__title" }, props.title),
               props.toggleable
-                ? h("i", {
+                ? h("span", {
                     class: [
-                      "fa-solid",
-                      open.value ? "fa-chevron-down" : "fa-chevron-right",
                       "mmda-group__toggle",
+                      props.toggleIcon,
+                      !props.toggleIcon && "mmda-group__toggle--css",
                     ],
                     "aria-hidden": "true",
                   })
                 : null,
             ],
           ),
-          open.value
-            ? h(
-                "div",
-                { class: ["mmda-group__body", props.bodyClass] },
-                slots.default?.(),
-              )
-            : null,
+          h("div", { class: "mmda-group__collapse" }, [
+            h(
+              "div",
+              { class: "mmda-group__collapse-inner" },
+              slots.default?.(),
+            ),
+          ]),
         ],
       );
   },

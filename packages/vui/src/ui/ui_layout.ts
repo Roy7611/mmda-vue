@@ -1,5 +1,6 @@
 import { h, type VNode, type VNodeChild, type VNodeArrayChildren } from "vue";
 import type { ChildSlot } from "./ui_view";
+import { MmdaPageRegions } from "./components/PageRegions";
 
 export type PropData = Record<string, any>;
 export type CustomProps<T> = T & PropData;
@@ -150,6 +151,8 @@ export interface PageLayoutOptions {
   summary?: VNodeArrayChildren;
   tails?: VNodeArrayChildren;
   footer?: VNodeChild;
+  /** 右侧概要栏初始是否展开，默认 true */
+  summaryExpanded?: boolean;
   props?: PropData;
 }
 
@@ -249,8 +252,9 @@ export function layoutFieldGroup(options: FieldGroupLayoutOptions): VNode {
 }
 
 /**
- * 详情与编辑页共用的三区自动布局。
- * 工具栏位于独立行，正文区域自行滚动。
+ * 详情与编辑页共用布局。
+ * 先左右分栏：左主区（primary + tails 自上而下），右概要（可折叠以拉宽主区）。
+ * 工具栏独立行，正文区域自行滚动。
  */
 export function layoutPage(options: PageLayoutOptions): VNode {
   const {
@@ -260,29 +264,11 @@ export function layoutPage(options: PageLayoutOptions): VNode {
     summary = [],
     tails = [],
     footer,
+    summaryExpanded = true,
     props,
   } = options;
   const hasSummary = summary.length > 0;
-  const regions = [
-    h("div", { class: "mmda-page-primary", style: { minWidth: 0 } }, primary),
-    hasSummary
-      ? h(
-          "aside",
-          { class: "mmda-page-summary", style: { minWidth: 0 } },
-          summary,
-        )
-      : null,
-    tails.length
-      ? h(
-          "div",
-          {
-            class: "mmda-page-tails",
-            style: { gridColumn: "1 / -1", minWidth: 0 },
-          },
-          tails,
-        )
-      : null,
-  ];
+  const hasTails = tails.length > 0;
 
   return h(
     "section",
@@ -322,18 +308,16 @@ export function layoutPage(options: PageLayoutOptions): VNode {
         },
         [
           h(
-            "div",
+            MmdaPageRegions,
             {
-              class: "mmda-page-regions",
-              style: {
-                display: "grid",
-                gridTemplateColumns: hasSummary
-                  ? "minmax(0, 3fr) minmax(16rem, 1fr)"
-                  : "minmax(0, 1fr)",
-                gap: "1rem",
-              },
+              hasSummary,
+              summaryExpanded,
             },
-            regions,
+            {
+              primary: () => primary,
+              tails: hasTails ? () => tails : undefined,
+              summary: hasSummary ? () => summary : undefined,
+            },
           ),
           footer == null
             ? null

@@ -1,5 +1,16 @@
 // @ts-nocheck
-import { h, nextTick, toRaw, type VNode } from 'vue'
+import {
+  defineComponent,
+  h,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  toRaw,
+  unref,
+  watch,
+  type VNode,
+} from 'vue'
 import {
   MetaModel,
   MetaUiFieldAlignmentEnum,
@@ -23,6 +34,7 @@ import type {
 } from '@mmda/vui'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { NumericTextBox } from '@syncfusion/ej2-inputs'
+import { createSpinner, hideSpinner, showSpinner } from '@syncfusion/ej2-popups'
 import { ButtonComponent } from '@syncfusion/ej2-vue-buttons'
 import { DropDownListComponent } from '@syncfusion/ej2-vue-dropdowns'
 import {
@@ -40,6 +52,7 @@ import {
   Resize,
   Selection,
   Sort,
+  VirtualScroll,
   CheckBoxFilterBase,
 } from '@syncfusion/ej2-grids'
 import { TextBoxComponent } from '@syncfusion/ej2-vue-inputs'
@@ -54,11 +67,77 @@ import { DropDownButtonComponent, SplitButtonComponent } from '@syncfusion/ej2-v
 import { ChartComponent } from '@syncfusion/ej2-vue-charts'
 import { syncfusionLayout } from './syncfusion_layout'
 
-Grid.Inject(Sort, Filter, Group, Selection, Page, Resize)
+Grid.Inject(Sort, Filter, Group, Selection, Page, Resize, VirtualScroll)
 Pager.Inject(Page, PagerDropDown)
 
 /** 稳定引用，避免 Pager 因 pageSizes 新数组而销毁重建下拉 */
 const STABLE_PAGE_SIZE_OPTIONS = DEFAULT_PAGE_SIZE_OPTIONS.map(String)
+
+/**
+ * 行虚拟滚动的缓冲块大小（非服务端 pageSize）。
+ * EJ2：enableVirtualization 与 allowPaging 互斥，大页（如 1000）只能靠虚拟滚动减 DOM。
+ */
+const VIRTUAL_ROW_PAGE_SIZE = 50
+
+/**
+ * 绑定 context.loading（Ref 或 boolean）：查询中盖住表格并用 EJ2 Spinner。
+ * `e-icons e-spin` 不是有效字形，必须用 createSpinner/showSpinner。
+ */
+const MmdaSfGridLoadingHost = defineComponent({
+  name: 'MmdaSfGridLoadingHost',
+  props: {
+    loading: { type: [Boolean, Object], default: false },
+  },
+  setup(props, { slots }) {
+    const hostRef = ref<HTMLElement | null>(null)
+    let spinnerReady = false
+
+    const ensureSpinner = (el: HTMLElement) => {
+      if (spinnerReady) return
+      createSpinner({
+        target: el,
+        width: 42,
+        type: 'Material3',
+      })
+      spinnerReady = true
+    }
+
+    const sync = () => {
+      const el = hostRef.value
+      if (!el) return
+      ensureSpinner(el)
+      if (Boolean(unref(props.loading as any))) showSpinner(el)
+      else hideSpinner(el)
+    }
+
+    onMounted(() => {
+      void nextTick(sync)
+    })
+    onBeforeUnmount(() => {
+      const el = hostRef.value
+      if (el && spinnerReady) hideSpinner(el)
+    })
+    watch(
+      () => unref(props.loading as any),
+      () => {
+        void nextTick(sync)
+      },
+    )
+
+    return () =>
+      h(
+        'div',
+        {
+          ref: hostRef,
+          class: [
+            'mmda-sf-grid-loading-host',
+            Boolean(unref(props.loading as any)) ? 'is-loading' : null,
+          ],
+        },
+        slots.default?.(),
+      )
+  },
+})
 
 const EMPTY_SELECTION: unknown[] = []
 const invoke = (value: unknown) =>
@@ -389,7 +468,8 @@ const normalizeAction = (action: any, t?: (key: string) => string): any => ({
 const findAction = (actions: any[], id?: string): any => {
   if (!id) return undefined
   for (const action of actions) {
-    if (action.name === id || action.id === id) return action
+    if (action.name === id || action.id === id || action.label === id)
+      return action
     if (Array.isArray(action.items)) {
       const nested = findAction(action.items, id)
       if (nested) return nested
@@ -671,19 +751,32 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
 
     const gridColumns = [
       selectionMode === 'multiple'
-        ? { type: 'checkbox', width: '48', allowGrouping: false }
+        ? {
+            type: 'checkbox',
+            width: 48,
+            minWidth: 48,
+            maxWidth: 48,
+            textAlign: 'Center',
+            headerTextAlign: 'Center',
+            allowResizing: false,
+            allowGrouping: false,
+            freeze: 'Left',
+          }
         : null,
       {
         field: 'rowNum',
         headerText: rowNumField?.displayLabel ?? '序号',
-        width: rowNumField?.listSize ?? 72,
-        minWidth: 56,
-        textAlign: 'Center',
-        allowSorting: Boolean(rowNumField?.sortable),
+        width: rowNumField?.listSize ?? 60,
+        minWidth: 60,
+        textAlign: 'Left',
+        headerTextAlign: 'Left',
+        allowSorting: false,
         allowFiltering: false,
         allowGrouping: false,
-        valueAccessor: (_field: string, data: T) =>
-          String((data as any).rowNum ?? ''),
+        freeze: 'Left',
+        // EJ2 仍会插入排序/分组图标；用 class 藏掉（行号不可排、不可分组）
+        customAttributes: { class: 'mmda-sf-rownum-col' },
+        template: 'mmdaCell_rowNum',
       },
       ...dataFields.map(field => {
         const textAlign = gridTextAlign(field)
@@ -707,6 +800,25 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           template: cellSlotName(field.fieldName),
         }
       }),
+      typeof (props as any).rowMenu === 'function'
+        ? {
+            field: '__mmdaActions',
+            headerText: '操作',
+            // 三枚平铺按钮；showActions 时详情变为 SplitButton，略宽
+            width: props.showActions === true ? 124 : 108,
+            minWidth: props.showActions === true ? 124 : 108,
+            maxWidth: props.showActions === true ? 124 : 108,
+            textAlign: 'Right',
+            headerTextAlign: 'Right',
+            allowSorting: false,
+            allowFiltering: false,
+            allowGrouping: false,
+            allowResizing: false,
+            freeze: 'Right',
+            customAttributes: { class: 'mmda-sf-actions-col' },
+            template: 'mmdaCell_actions',
+          }
+        : null,
     ].filter(Boolean)
 
     const renderCellVNode = (field: MetaUiField, row: T) => {
@@ -741,6 +853,96 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       ]),
     )
 
+    cellSlots.mmdaCell_rowNum = (scope: { data?: T } | T) => {
+      const row = ((scope as any)?.data ?? scope) as T
+      return h(
+        'span',
+        { class: 'mmda-sf-rownum__index' },
+        String((row as any)?.rowNum ?? ''),
+      )
+    }
+
+    cellSlots.mmdaCell_actions = (scope: { data?: T } | T) => {
+      const row = ((scope as any)?.data ?? scope) as T
+      const actions = (props as any).rowMenu(row) as any[]
+      const showActionMenu = props.showActions === true
+      const dividerIndex = actions.findIndex(action => action?.divider)
+      const standard =
+        dividerIndex < 0 ? actions : actions.slice(0, dividerIndex)
+      const custom =
+        showActionMenu && dividerIndex >= 0
+          ? actions.slice(dividerIndex + 1)
+          : []
+      const edit = standard.find(action => action?.name === 'edit')
+      const remove = standard.find(action => action?.name === 'delete')
+      const details = standard.find(action => action?.name === 'details')
+      const remaining = showActionMenu
+        ? standard.filter(
+            action =>
+              action?.name !== 'edit' &&
+              action?.name !== 'delete' &&
+              action?.name !== 'details',
+          )
+        : []
+      const popupActions = [
+        ...remaining,
+        ...(remaining.length && custom.length ? [{ divider: true }] : []),
+        ...custom,
+      ]
+      const run = (action?: any) =>
+        action?.onAction?.() ?? action?.command?.()
+      const flatIconButton = (
+        action: any | undefined,
+        name: 'edit' | 'delete' | 'details',
+      ) =>
+        action
+          ? h(ButtonComponent as any, {
+              iconCss: action.icon || factory.resolveIcon(name),
+              cssClass: 'e-flat e-round mmda-sf-row-action',
+              title: action.label,
+              onClick: () => run(action),
+            })
+          : h('span', {
+              class:
+                name === 'details'
+                  ? 'mmda-sf-row-details-placeholder'
+                  : 'mmda-sf-row-action-placeholder',
+              'aria-hidden': 'true',
+            })
+
+      const detailsNode =
+        details && showActionMenu && popupActions.length
+          ? h(SplitButtonComponent as any, {
+              iconCss: details.icon || factory.resolveIcon('details'),
+              cssClass: 'e-flat e-caret-hide-primary mmda-sf-row-details',
+              title: details.label,
+              items: popupActions.map(action => normalizeAction(action)),
+              click: () => run(details),
+              select: (args: any) => {
+                const found = findAction(
+                  popupActions,
+                  args.item?.id ?? args.item?.text,
+                )
+                run(found)
+              },
+            })
+          : flatIconButton(details, 'details')
+
+      return h(
+        'div',
+        {
+          class: 'mmda-sf-row-actions',
+          onClick: (event: Event) => event.stopPropagation(),
+          onMousedown: (event: Event) => event.stopPropagation(),
+        },
+        [
+          flatIconButton(edit, 'edit'),
+          flatIconButton(remove, 'delete'),
+          detailsNode,
+        ],
+      )
+    }
+
     const syncSelection = (records: T[]) => {
       const current = (props.selectedItems ?? EMPTY_SELECTION) as T[]
       if (
@@ -761,7 +963,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     // 稳定 key：按页数据变化时只更新 dataSource，避免整表 remount 闪烁
     const gridKey = `mmda-sf-grid-${metaui.objName ?? primaryKey ?? 'list'}`
 
-    /** custom binding（result/count）在 dataStateChange 后会转圈等待 dataSource 回写。 */
+    /** custom binding（result/count）在 dataStateChange 后会转圈等待 dataSource 回写。
+     * 索引页用虚拟滚动时 count 必须是当前页行数（不是总记录数），否则会按总数撑虚拟高度。
+     */
     const resolveCustomBinding = async () => {
       if (!ej2Grid || !pagination) return
       await nextTick()
@@ -769,11 +973,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       const result = Array.isArray(current?.result)
         ? current.result
         : Array.from(rows)
-      const count =
-        typeof current?.count === 'number'
-          ? current.count
-          : (pagination.recordCount ?? result.length)
-      ej2Grid.dataSource = { result, count }
+      ej2Grid.dataSource = { result, count: result.length }
     }
 
     const runRemoteQuery = (work: unknown) => {
@@ -784,28 +984,28 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         })
     }
 
-    return h(
+    const gridVNode = h(
       GridComponent as any,
       {
         key: gridKey,
+        // 索引页：当前页本地数组 + 行虚拟滚动（与 allowPaging 互斥）。
+        // count=当前页长度，服务端总条数交给下方 Pager。
         dataSource: pagination
           ? {
               result: rows,
-              count: pagination.recordCount ?? rows.length,
+              count: rows.length,
             }
           : rows,
         locale: getSyncfusionCulture(),
-        allowPaging: Boolean(pagination),
+        allowPaging: false,
+        enableVirtualization: Boolean(pagination),
         // Material 3 Theme Studio 默认无斑马纹，交替行会让分页器/表体色阶显得碎
         enableAltRow: false,
         // 索引页：占满父容器，行区内部滚动，分页条贴底（避免撑出页面滚动）
         height: pagination ? '100%' : props.height,
         pageSettings: pagination
           ? {
-              currentPage: pagination.pageNo ?? 1,
-              pageSize: pagination.pageSize ?? DEFAULT_PAGE_SIZE,
-              totalRecordsCount: pagination.recordCount ?? rows.length,
-              pageSizes: props.pageSizeOptions ?? STABLE_PAGE_SIZE_OPTIONS,
+              pageSize: VIRTUAL_ROW_PAGE_SIZE,
             }
           : undefined,
         allowSorting: props.enableSort !== false,
@@ -815,7 +1015,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           ? {
               showDropArea: true,
               showGroupedColumn: false,
-              showToggleButton: true,
+              showToggleButton: false,
               // custom binding（result/count）下由客户端按当前页分组
               disablePageWiseAggregates: true,
             }
@@ -929,6 +1129,11 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         },
         dataStateChange: (state: any) => {
           const requestType = state?.action?.requestType
+          if (requestType === 'virtualscroll') {
+            // 当前页数据已在 result 中，回写解除 loading 即可。
+            void resolveCustomBinding()
+            return
+          }
           if (
             requestType === 'grouping' ||
             requestType === 'ungrouping'
@@ -937,22 +1142,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             if (pagination && ej2Grid) {
               ej2Grid.dataSource = {
                 result: Array.from(rows),
-                count: pagination.recordCount ?? rows.length,
+                count: rows.length,
               }
             }
-            return
-          }
-          if (requestType === 'paging') {
-            const pageSize =
-              Number(state.take) ||
-              pagination?.pageSize ||
-              DEFAULT_PAGE_SIZE
-            runRemoteQuery(
-              props.onPage?.({
-                pageNo: Math.floor(Number(state.skip ?? 0) / pageSize) + 1,
-                pageSize,
-              }),
-            )
             return
           }
           if (requestType === 'sorting' && props.enableSort !== false) {
@@ -1071,6 +1263,28 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       },
       cellSlots,
     )
+
+    const withLoading = (node: VNode) =>
+      h(
+        MmdaSfGridLoadingHost as any,
+        { loading: props.loading ?? false },
+        () => node,
+      )
+
+    if (!pagination) return withLoading(gridVNode)
+
+    // 服务端分页：Pager 与 Grid 分离（Grid 开虚拟滚动不能再用 allowPaging）
+    return h(
+      'div',
+      { class: 'mmda-sf-pagable-table' },
+      [
+        withLoading(gridVNode),
+        factory.paginator(pagination, {
+          onPage: props.onPage ?? (() => undefined),
+          pageSizeOptions: props.pageSizeOptions,
+        }),
+      ],
+    )
   }
 
   const factory: any = {
@@ -1078,6 +1292,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     integratedTablePaging: true,
     defaultFilterDisplay: 'menu',
     actionIcons: {
+      details: 'e-icons e-eye',
       create: 'e-icons e-plus',
       edit: 'e-icons e-edit',
       save: 'e-icons e-save',

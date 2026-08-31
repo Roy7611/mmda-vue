@@ -15,6 +15,7 @@
 @import '@syncfusion/ej2-notifications/styles/material3.css';
 @import '@syncfusion/ej2-grids/styles/material3.css';
 @import '@syncfusion/ej2-diagrams/styles/material3.css';
+@import '@syncfusion/ej2-layouts/styles/card/material3.css';
 
 /*
  * MD3：Theme Studio 种子 = light primary；accent + surface/outline 均跟色板。
@@ -731,8 +732,11 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
 #mmda-sf-dock-sidebar.e-sidebar {
   visibility: visible;
   height: 100%;
+  /* 亮色：菜单栏白底 + 右侧分隔线；主区 ground 带色相 */
   background: var(--mmda-surface-card, #fff);
-  overflow: hidden;
+  border-inline-end: 1px solid var(--mmda-content-border-color, #cac4d0);
+  /* 允许右缘悬浮折叠钮探出 */
+  overflow: visible;
 }
 
 /* Official dock text rules */
@@ -838,7 +842,50 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
 }
 
 .mmda-sf-pagable-table {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.mmda-sf-pagable-table > .mmda-sf-grid-loading-host,
+.mmda-sf-pagable-table > .e-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mmda-sf-grid-loading-host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.mmda-sf-grid-loading-host > .e-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100% !important;
+}
+
+/* EJ2 createSpinner 挂在 host 上；loading 时半透明挡操作 */
+.mmda-sf-grid-loading-host.is-loading > .e-grid {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.mmda-sf-grid-loading-host > .e-spinner-pane {
+  z-index: 4;
+}
+
+.mmda-sf-maincontent .mmda-list-view .mmda-sf-pagable-table {
+  height: 100%;
+}
+
+.mmda-sf-maincontent .mmda-list-view .e-grid {
+  height: 100% !important;
 }
 
 .e-grid.mmda-sf-table .mmda-table-link {
@@ -861,9 +908,23 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
 /*
  * 排序图标交给 Material 3 默认：升序 \e823、降序 \e87c（带方向的 A↕Z 形），
  * 比单纯上下箭头更能看出当前是升还是降。未排序列弱化显示。
+ * EJ2 对 allowSorting/allowGrouping:false 的列仍会插入图标节点，序号列需显式隐藏。
  */
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-rownum-col .e-sortfilterdiv,
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-rownum-col .e-filtermenudiv,
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-rownum-col .e-grptogglebtn,
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-actions-col .e-sortfilterdiv,
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-actions-col .e-filtermenudiv,
+.e-grid.mmda-sf-table th.e-headercell.mmda-sf-actions-col .e-grptogglebtn {
+  display: none !important;
+}
+
 .e-grid.mmda-sf-table
-  th.e-headercell:not([aria-sort="ascending"]):not([aria-sort="descending"])
+  th.e-headercell:not(.mmda-sf-rownum-col):not(.mmda-sf-actions-col):not(
+    [aria-sort="ascending"]
+  ):not(
+    [aria-sort="descending"]
+  )
   .e-sortfilterdiv {
   opacity: 0.4;
 }
@@ -918,13 +979,14 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
 
 /* Logo / L1 rail = dockSize(72px)；标题与模块树为展开区 */
 .mmda-sf-system-chrome {
+  position: relative;
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100%;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .mmda-sf-system-header__brand {
@@ -949,7 +1011,7 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
-  padding: 0 0.35rem 0 0.75rem;
+  padding: 0 0.75rem;
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.2;
@@ -970,34 +1032,52 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   text-overflow: ellipsis;
 }
 
+/*
+ * 折叠钮：贴在侧栏右缘、与标题行同高的半胶囊浮层（不占文档流）。
+ * left 与 Sidebar width / dockSize 对齐：展开 300px，收起 72px。
+ */
 .mmda-sf-system-collapse {
+  position: absolute;
+  top: calc(1.625rem + 8px);
+  left: 300px;
+  z-index: 6;
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-left: auto;
+  width: 1.15rem;
+  height: 2.75rem;
+  margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+  border-radius: 0 999px 999px 0;
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #6750a4) 28%,
+    var(--mmda-surface-card, #fff)
+  );
+  color: var(--mmda-on-primary-container, #21005d);
+  box-shadow: 1px 0 4px rgb(0 0 0 / 8%);
+  transform: translateY(-50%);
+  transition: left 0.3s ease;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
+}
+
+.mmda-sf-sidebar-dock.e-dock.e-close .mmda-sf-system-collapse {
+  left: 72px;
 }
 
 .mmda-sf-system-collapse:hover {
-  background: rgb(0 0 0 / 8%);
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #6750a4) 42%,
+    var(--mmda-surface-card, #fff)
+  );
 }
 
-.mmda-sf-system-header__brand .mmda-sf-system-collapse {
-  margin-left: 0;
-  color: #fff;
-}
-
-.mmda-sf-system-header__brand .mmda-sf-system-collapse:hover {
-  background: rgb(255 255 255 / 18%);
+.mmda-sf-system-collapse .e-icons {
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
 html.mmda-dark .mmda-sf-system-header__title,
@@ -1013,9 +1093,23 @@ html.e-dark-mode .mmda-sf-system-rail {
   background: var(--mmda-primary-soft, #4f378b);
 }
 
+html.mmda-dark .mmda-sf-system-collapse,
+html.e-dark-mode .mmda-sf-system-collapse {
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #d0bcff) 28%,
+    var(--mmda-surface-card, #211f26)
+  );
+  color: var(--mmda-on-primary-container, #e9ddff);
+}
+
 html.mmda-dark .mmda-sf-system-collapse:hover,
 html.e-dark-mode .mmda-sf-system-collapse:hover {
-  background: rgb(255 255 255 / 10%);
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #d0bcff) 42%,
+    var(--mmda-surface-card, #211f26)
+  );
 }
 
 .mmda-sf-system-rail {
@@ -1073,6 +1167,7 @@ html.e-dark-mode .mmda-sf-system-collapse:hover {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  word-break: break-all;
 }
 
 .mmda-sf-system-modules {
@@ -1169,17 +1264,42 @@ html.e-dark-mode .mmda-sf-system-collapse:hover {
   padding: 0.45rem 0.75rem 0.45rem 1.75rem;
   color: inherit;
   text-decoration: none;
+  font-size: 0.75rem; /* ~12px */
 }
 
 .mmda-sf-app-menu__leaves .mmda-side-menu__link {
   padding-left: 0.75rem;
 }
 
+.mmda-sf-acc-item .mmda-side-menu__row,
+.mmda-sf-app-menu__leaves .mmda-side-menu__row {
+  border-radius: 8px;
+}
+
+.mmda-sf-acc-item .mmda-side-menu__create,
+.mmda-sf-app-menu__leaves .mmda-side-menu__create {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-inline-end: 0.45rem;
+  font-size: 0.7rem;
+}
+
 .mmda-sf-acc-item .mmda-side-menu__link:hover,
 .mmda-sf-acc-item .mmda-side-menu__link--active,
 .mmda-sf-app-menu__leaves .mmda-side-menu__link:hover,
-.mmda-sf-app-menu__leaves .mmda-side-menu__link--active {
+.mmda-sf-app-menu__leaves .mmda-side-menu__link--active,
+.mmda-sf-acc-item .mmda-side-menu__row:hover,
+.mmda-sf-acc-item .mmda-side-menu__row--active,
+.mmda-sf-app-menu__leaves .mmda-side-menu__row:hover,
+.mmda-sf-app-menu__leaves .mmda-side-menu__row--active {
   background: color-mix(in srgb, var(--mmda-primary-color, #6750a4) 12%, transparent);
+}
+
+.mmda-sf-acc-item .mmda-side-menu__row:hover > .mmda-side-menu__link,
+.mmda-sf-acc-item .mmda-side-menu__row--active > .mmda-side-menu__link,
+.mmda-sf-app-menu__leaves .mmda-side-menu__row:hover > .mmda-side-menu__link,
+.mmda-sf-app-menu__leaves .mmda-side-menu__row--active > .mmda-side-menu__link {
+  background: transparent;
 }
 
 /* 工具栏 ButtonGroup：贴合 EJ2 e-btn-group，去掉散开间距 */
@@ -1293,13 +1413,44 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
 }
 
 .e-card.mmda-group-card {
-  padding: 0;
+  /* Card 只做壳：不要官方 center/line-height 干涉内部字段布局 */
+  justify-content: flex-start;
+  line-height: normal;
+  min-height: 0;
   overflow: hidden;
+  /* 亮色：卡片白底（跟菜单栏一致）；暗色走 surface-group */
+  background: var(--mmda-surface-group, #fff);
 }
 
-.e-card.mmda-group-card .e-card-header,
-.e-card.mmda-group-card .e-card-content {
-  padding: 0;
+.e-card.mmda-group-card > .mmda-group__header,
+.e-card.mmda-group-card > .mmda-group__collapse {
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.e-card.mmda-group-card .mmda-group__header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.e-card.mmda-group-card .mmda-group__title {
+  flex: 1 1 auto;
+}
+
+.e-card.mmda-group-card .e-card-header-caption {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-card.mmda-group-card .mmda-group__toggle.e-icons {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.72;
 }
 
 /*
@@ -1387,5 +1538,96 @@ html.mmda-dark .e-grid .e-table {
 .mmda-breadcrumb__sep {
   opacity: 0.55;
   user-select: none;
+}
+
+.mmda-sf-rownum__index {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+/* 最右侧行操作：编辑 / 删除固定槽位；详情为图标 SplitButton。 */
+.mmda-sf-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-sf-row-action-placeholder,
+.mmda-sf-row-details-placeholder,
+.e-btn.e-round.mmda-sf-row-action {
+  display: inline-flex;
+  flex: 0 0 1.65rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  min-width: 1.65rem;
+  padding: 0;
+}
+
+.e-btn.e-round.mmda-sf-row-action {
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  box-shadow: none;
+}
+
+.e-btn.e-round.mmda-sf-row-action .e-btn-icon {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.e-split-btn-wrapper.mmda-sf-row-details {
+  flex: 0 0 auto;
+  height: 1.65rem;
+  box-shadow: none;
+}
+
+.e-split-btn-wrapper.mmda-sf-row-details > .e-btn {
+  height: 1.65rem;
+  min-width: 1.4rem;
+  padding: 0 0.35rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.e-split-btn-wrapper.mmda-sf-row-details > .e-btn:hover {
+  background: color-mix(
+    in srgb,
+    var(--mmda-primary-color, #6750a4) 10%,
+    transparent
+  );
+}
+
+.e-split-btn-wrapper.mmda-sf-row-details .e-btn-icon,
+.e-split-btn-wrapper.mmda-sf-row-details .e-caret {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+/* 多选复选框列尽量窄，约 48px，居中 */
+.mmda-sf-table.e-grid .e-headercell.e-checkselectall,
+.mmda-sf-table.e-grid .e-rowcell.e-checkselect {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  padding-inline: 0 !important;
+  text-align: center !important;
+}
+
+.mmda-sf-table.e-grid .e-headercell.e-checkselectall .e-checkbox-wrapper,
+.mmda-sf-table.e-grid .e-rowcell.e-checkselect .e-checkbox-wrapper {
+  margin-inline: auto;
+}
+
+.mmda-sf-table.e-grid .e-headercell.e-checkselectall .e-headerchkcelldiv,
+.mmda-sf-table.e-grid .e-rowcell.e-checkselect .e-checkbox-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 

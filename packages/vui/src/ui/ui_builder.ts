@@ -66,7 +66,12 @@ import type {
   SearchForRelativeProps,
   UiSearchField,
 } from "./ui_filter";
-import { UiContextAction, type IconResolver, type UiAction } from "./ui_action";
+import {
+  UiActionDivider,
+  UiContextAction,
+  type IconResolver,
+  type UiAction,
+} from "./ui_action";
 import type { UiButtonProps } from "./ui_button";
 import type { UiViewContext } from "./ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./ui_overlay";
@@ -708,6 +713,11 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       .join(" ");
   }
 
+  /** 组内容容器：字段/表格布局归这里管，Card 只做外壳 */
+  wrapGroupContent(body: VNode | VNode[]) {
+    return h("div", { class: "mmda-group__content" }, body);
+  }
+
   /** FieldSet 外壳：骑边 legend（经典） */
   buildGroupFieldSet(
     group: MetaUiGroup,
@@ -725,11 +735,11 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     } = props;
     return h("fieldset", { class: this.groupWrapClass(group, props), ...rest }, [
       h("legend", { class: "mmda-group__title" }, group.groupLabel),
-      body,
+      this.wrapGroupContent(body),
     ]);
   }
 
-  /** Card 外壳：可折叠 header + body（默认） */
+  /** Card 外壳：可折叠 header；内容由 wrapGroupContent 自管布局 */
   buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
@@ -752,7 +762,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         class: this.groupWrapClass(group, props),
         ...rest,
       },
-      () => body,
+      () => this.wrapGroupContent(body),
     );
   }
 
@@ -1093,8 +1103,109 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           props.onSelect?.(selection);
         },
         selectedItems: runtime.selectedItems ?? [],
+        showActions: props.showActions === true,
+        loading: props.loading ?? runtime.loading,
+        rowMenu:
+          props.rowMenu ??
+          this.createListRowMenu(context, props.showActions === true),
       },
     );
+  }
+
+  /** 列表行菜单工厂：图标只解析一次，禁止 with(row)。 */
+  protected createListRowMenu(
+    context: UiContext,
+    includeExtras = false,
+  ): (row: any) => UiAction[] {
+    const icons = {
+      edit: this.factory.resolveIcon("edit"),
+      delete: this.factory.resolveIcon("delete"),
+      details: this.factory.resolveIcon("details"),
+    };
+    return (row) => this.listRowMenu(context, row, icons, includeExtras);
+  }
+
+  /** 列表行操作：编辑、删除、详情；扩展 actions 置于分隔线后。
+   * 禁止 with(row)：索引页千行时不能为每行建 rowContext。
+   */
+  protected listRowMenu(
+    context: UiContext,
+    row: any,
+    icons?: { edit: string; delete: string; details: string },
+    includeExtras = false,
+  ): UiAction[] {
+    const runtime = context as any;
+    const entityAuth = runtime.getModuleAuth?.(row);
+    const rowId =
+      row?.id ??
+      (context.metaui?.primaryKey
+        ? row?.[context.metaui.primaryKey]
+        : undefined);
+    const resolved = icons ?? {
+      edit: this.factory.resolveIcon("edit"),
+      delete: this.factory.resolveIcon("delete"),
+      details: this.factory.resolveIcon("details"),
+    };
+    const items: UiAction[] = [];
+
+    if (entityAuth ? entityAuth.allowEdit : row?.editable !== false) {
+      items.push({
+        name: "edit",
+        label: context.t("action.edit"),
+        icon: resolved.edit,
+        onAction: () => runtime.edit?.(rowId),
+      });
+    }
+    if (entityAuth ? entityAuth.allowDelete : row?.deletable !== false) {
+      items.push({
+        name: "delete",
+        label: context.t("action.delete"),
+        icon: resolved.delete,
+        onAction: async () => {
+          const result = await this.confirm(context, {
+            message:
+              runtime.translate?.("confirmation.delete", {
+                it: runtime.getModelTitle?.(row) ?? rowId,
+              }) ?? "Delete this item?",
+            buttons: ["yes", "no"],
+          });
+          if (result !== "yes") return;
+          if (runtime.logic?.beforeDelete) {
+            const ok = await runtime.logic.beforeDelete(runtime, row);
+            if (ok === false) return false;
+          }
+          const deleted = await runtime.logic?.delete?.(rowId);
+          await runtime.logic?.afterDelete?.(
+            runtime,
+            row,
+            undefined,
+            deleted,
+          );
+          return runtime.reload?.();
+        },
+      });
+    }
+    items.push({
+      name: "details",
+      label: context.t("action.details"),
+      icon: resolved.details,
+      onAction: () => runtime.details?.(row),
+    });
+
+    const extra =
+      includeExtras && Array.isArray(row?.actions) ? row.actions : [];
+    if (extra.length) {
+      items.push(UiActionDivider());
+      items.push(
+        ...extra.map((action: EntityAction) => ({
+          name: action.name,
+          label: action.label ?? context.t(`action.${action.name}`),
+          icon: this.factory.resolveIcon(action.icon ?? action.name),
+          onAction: () => runtime.logic?.doAction?.(row, action),
+        })),
+      );
+    }
+    return items;
   }
 
   buildColumns<T = any>(

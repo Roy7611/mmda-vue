@@ -455,6 +455,9 @@ importers:
       '@syncfusion/ej2-inputs':
         specifier: ^31.2.3
         version: 31.2.15
+      '@syncfusion/ej2-layouts':
+        specifier: 31.2.12
+        version: 31.2.12
       '@syncfusion/ej2-lists':
         specifier: ^31.2.3
         version: 31.2.12
@@ -1123,6 +1126,9 @@ packages:
 
   '@syncfusion/ej2-inputs@31.2.15':
     resolution: {integrity: sha512-1aDfcjMln2vZzaSguU4k6yug1gLOyOv7Jp9Hx1g3mzVp712oDEhBsr8yWtyWtkDmkgCjetV2d2Bcih0K45lXaw==}
+
+  '@syncfusion/ej2-layouts@31.2.12':
+    resolution: {integrity: sha512-BVkIq5ZRVuPocfzx6MLuUOK4LWhOhHiRHgmfQYHmMoIif0ht/+0zBj+pUu+EyDMwej1D7FhjDEbdIvdSnrSwOw==}
 
   '@syncfusion/ej2-lists@31.2.12':
     resolution: {integrity: sha512-cxrrpv9aQf2li9iC0uWsIqXqVYmYZMiROo0WwXZrz/cGBe59tXhqkTnLjVScZ7mZtZJNEjovF+fxUGWwb6lu3w==}
@@ -2956,6 +2962,10 @@ snapshots:
       '@syncfusion/ej2-buttons': 31.2.18
       '@syncfusion/ej2-popups': 31.2.12
       '@syncfusion/ej2-splitbuttons': 31.2.12
+
+  '@syncfusion/ej2-layouts@31.2.12':
+    dependencies:
+      '@syncfusion/ej2-base': 31.2.18
 
   '@syncfusion/ej2-lists@31.2.12':
     dependencies:

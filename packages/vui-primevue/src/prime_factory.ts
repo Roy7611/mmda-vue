@@ -1,4 +1,4 @@
-import { h, reactive, type VNode } from "vue";
+import { h, reactive, unref, type VNode } from "vue";
 import {
   SqlDataType,
   SortOrder,
@@ -347,7 +347,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       dataKey: metaui.primaryKey,
       stripedRows: props.striped ?? true,
       showGridlines: props.showGridlines ?? false,
-      loading: props.loading,
+      loading: unref(props.loading),
       resizableColumns: props.resizableColumns ?? true,
       scrollable: props.scrollable ?? true,
       scrollHeight:

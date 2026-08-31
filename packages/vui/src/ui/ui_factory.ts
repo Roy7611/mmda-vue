@@ -277,6 +277,8 @@ export const TABLE_CELL_PROP_KEYS = [
   'inplaceEdit',
   'showSummary',
   'showColumnWithAction',
+  'showActions',
+  'rowMenu',
   'itemHeight',
 ] as const
 

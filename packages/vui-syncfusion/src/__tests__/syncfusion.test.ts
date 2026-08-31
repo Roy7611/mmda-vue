@@ -20,6 +20,30 @@ import { createSyncfusionFieldFactory } from '../syncfusion_field_factory'
 import { createSyncfusionUiFactory } from '../syncfusion_factory'
 import { syncfusionLayout } from '../syncfusion_layout'
 
+/** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
+const gridOf = (vnode: any) => {
+  let node = vnode
+  if (node?.props?.class === 'mmda-sf-pagable-table') {
+    const kids = node.children
+    node = Array.isArray(kids) ? kids[0] : kids
+  }
+  if (node && !node.props?.columns) {
+    const kids = node.children
+    const slot = typeof kids === 'function' ? kids : kids?.default
+    const inner = typeof slot === 'function' ? slot() : slot
+    if (inner != null) {
+      node = Array.isArray(inner) ? inner[0] : inner
+    }
+  }
+  return node
+}
+
+const pagerOf = (vnode: any) => {
+  if (vnode?.props?.class !== 'mmda-sf-pagable-table') return null
+  const kids = vnode.children
+  return Array.isArray(kids) ? kids[1] : null
+}
+
 describe('Syncfusion skin', () => {
   it('maps all MMDA palettes to Material 3 accent and surface variables', () => {
     const css = readFileSync(resolve(process.cwd(), 'src/style.css'), 'utf8')
@@ -158,8 +182,9 @@ describe('Syncfusion skin', () => {
       fields: [],
     })
     const card = builder.wrapGroup(group, h('div', 'body'))
+    expect(card.type?.name ?? card.type?.__name).toBe('MmdaGroupCard')
     expect(String(card.props?.class)).toContain('e-card')
-    expect(String(card.props?.class)).toContain('mmda-group-card')
+    expect(String(card.props?.class)).toContain('mmda-group--primary')
     const fieldset = builder.wrapGroup(group, h('div', 'body'), {
       container: 'fieldset',
     })
@@ -247,10 +272,12 @@ describe('Syncfusion skin', () => {
       primaryKey: 'id',
     } as any
     const rows = [{ id: '1', name: 'a' }]
-    const vnode = factory.table(rows, metaui, {
-      selectedItems,
-      selectionMode: 'multiple',
-    })
+    const vnode = gridOf(
+      factory.table(rows, metaui, {
+        selectedItems,
+        selectionMode: 'multiple',
+      }),
+    )
     expect(vnode.props?.dataSource).toEqual(rows)
     expect(vnode.props?.dataSource).not.toBe(rows)
     expect(vnode.key).toContain('mmda-sf-grid-')
@@ -267,10 +294,13 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const enabled = factory.table([], metaui, {
+    const enabledHost = factory.table([], metaui, {
       pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
     })
+    const enabled = gridOf(enabledHost)
     expect(enabled.props?.allowGrouping).toBe(true)
+    expect(enabled.props?.enableVirtualization).toBe(true)
+    expect(enabled.props?.allowPaging).toBe(false)
     expect(enabled.props?.groupSettings).toEqual(
       expect.objectContaining({
         showDropArea: true,
@@ -283,12 +313,12 @@ describe('Syncfusion skin', () => {
     )
     expect(category?.allowGrouping).toBe(true)
 
-    const disabled = factory.table([], metaui, { enableGroup: false })
+    const disabled = gridOf(factory.table([], metaui, { enableGroup: false }))
     expect(disabled.props?.allowGrouping).toBe(false)
     expect(disabled.props?.groupSettings).toBeUndefined()
   })
 
-  it('uses Grid paging and maps metadata to columns', () => {
+  it('uses row virtualization and an external Pager for list pages', () => {
     const factory = createSyncfusionUiFactory()
     const onPage = vi.fn()
     const metaui = {
@@ -309,7 +339,7 @@ describe('Syncfusion skin', () => {
       primaryKey: 'id',
     } as any
     const rows = [{ id: '1', rowNum: '21', name: 'alpha' }]
-    const vnode = factory.table(rows, metaui, {
+    const host = factory.table(rows, metaui, {
       pagination: { pageNo: 3, pageSize: 10, recordCount: 45 },
       onPage,
       selectionMode: 'multiple',
@@ -317,28 +347,54 @@ describe('Syncfusion skin', () => {
       renderCell: (_field: any, row: any) => h('a', { href: `#${row.id}` }, row.name),
     })
 
-    expect(vnode.props?.allowPaging).toBe(true)
+    expect(host.props?.class).toBe('mmda-sf-pagable-table')
+    const vnode = gridOf(host)
+    expect(vnode.props?.allowPaging).toBe(false)
+    expect(vnode.props?.enableVirtualization).toBe(true)
     expect(vnode.props?.height).toBe('100%')
     expect(vnode.props?.allowResizing).toBe(true)
     expect(vnode.props?.allowFiltering).toBe(true)
     expect(vnode.props?.filterSettings).toEqual({ type: 'Menu' })
-    expect(vnode.props?.dataSource).toEqual({ result: rows, count: 45 })
+    expect(vnode.props?.dataSource).toEqual({ result: rows, count: 1 })
     expect(vnode.props?.pageSettings).toMatchObject({
+      pageSize: 50,
+    })
+
+    const pager = pagerOf(host)
+    expect(pager?.props).toMatchObject({
       currentPage: 3,
       pageSize: 10,
       totalRecordsCount: 45,
     })
-
-    vnode.props?.dataStateChange({ action: { requestType: 'paging' }, skip: 30, take: 10 })
+    pager.props.click({
+      isInteracted: true,
+      currentPage: 4,
+      pageSize: 10,
+    })
     expect(onPage).toHaveBeenCalledWith({ pageNo: 4, pageSize: 10 })
 
     const columns = vnode.props.columns
+    expect(columns[0]).toMatchObject({
+      type: 'checkbox',
+      width: 48,
+      minWidth: 48,
+      maxWidth: 48,
+      textAlign: 'Center',
+      freeze: 'Left',
+    })
     expect(columns.map((column: any) => column.field)).toEqual([
       undefined,
       'rowNum',
       'name',
     ])
-    expect(columns[1].valueAccessor('rowNum', rows[0])).toBe('21')
+    expect(columns[1]).toMatchObject({
+      allowSorting: false,
+      textAlign: 'Left',
+      headerTextAlign: 'Left',
+      template: 'mmdaCell_rowNum',
+      customAttributes: { class: 'mmda-sf-rownum-col' },
+      freeze: 'Left',
+    })
     expect(columns[2]).toMatchObject({
       width: 180,
       textAlign: 'Center',
@@ -354,6 +410,136 @@ describe('Syncfusion skin', () => {
     expect(link.type).toBe('a')
     expect(link.props.href).toBe('#1')
     expect(link.children).toBe('alpha')
+
+    const rowNumCell = slots.mmdaCell_rowNum({ data: rows[0] })
+    expect(rowNumCell.props.class).toBe('mmda-sf-rownum__index')
+    expect(rowNumCell.children).toBe('21')
+  })
+
+  it('renders three flat row actions by default without a dropdown', () => {
+    const factory = createSyncfusionUiFactory()
+    const metaui = {
+      objName: 'Product',
+      getListedFields: () => [
+        {
+          fieldName: 'name',
+          displayLabel: '名称',
+          dataType: 48,
+          nullable: false,
+        },
+      ],
+      groups: [],
+      primaryKey: 'id',
+    } as any
+    const details = vi.fn()
+    const edit = vi.fn()
+    const remove = vi.fn()
+    const custom = vi.fn()
+    const row = {
+      id: '1',
+      rowNum: '4',
+      name: 'alpha',
+      editable: true,
+      deletable: false,
+    }
+    const vnode = gridOf(
+      factory.table([row], metaui, {
+        rowMenu: (item: any) => [
+          ...(item.editable !== false
+            ? [{ name: 'edit', label: '编辑', onAction: edit }]
+            : []),
+          ...(item.deletable !== false
+            ? [{ name: 'delete', label: '删除', onAction: remove }]
+            : []),
+          { name: 'details', label: '详情', onAction: details },
+          { divider: true },
+          { name: 'custom', label: '派工', onAction: custom },
+        ],
+      }),
+    )
+    const columns = vnode.props.columns
+    expect(columns.at(-1)).toMatchObject({
+      field: '__mmdaActions',
+      headerText: '操作',
+      allowSorting: false,
+      allowFiltering: false,
+      allowGrouping: false,
+      freeze: 'Right',
+      template: 'mmdaCell_actions',
+      width: 108,
+    })
+    const slots = vnode.children as any
+    const cell = slots.mmdaCell_actions({ data: row })
+    expect(cell.props.class).toBe('mmda-sf-row-actions')
+    const [editButton, deletePlaceholder, detailsButton] = cell.children
+    expect(editButton.props.title).toBe('编辑')
+    expect(deletePlaceholder.props.class).toBe(
+      'mmda-sf-row-action-placeholder',
+    )
+    expect(detailsButton.props.title).toBe('详情')
+    expect(detailsButton.props.items).toBeUndefined()
+    editButton.props.onClick()
+    expect(edit).toHaveBeenCalledTimes(1)
+    expect(remove).not.toHaveBeenCalled()
+    detailsButton.props.onClick()
+    expect(details).toHaveBeenCalledTimes(1)
+    expect(custom).not.toHaveBeenCalled()
+  })
+
+  it('renders details SplitButton dropdown only when showActions is true', () => {
+    const factory = createSyncfusionUiFactory()
+    const metaui = {
+      objName: 'Product',
+      getListedFields: () => [
+        {
+          fieldName: 'name',
+          displayLabel: '名称',
+          dataType: 48,
+          nullable: false,
+        },
+      ],
+      groups: [],
+      primaryKey: 'id',
+    } as any
+    const details = vi.fn()
+    const edit = vi.fn()
+    const remove = vi.fn()
+    const custom = vi.fn()
+    const row = {
+      id: '1',
+      rowNum: '4',
+      name: 'alpha',
+      editable: true,
+      deletable: false,
+    }
+    const vnode = gridOf(
+      factory.table([row], metaui, {
+        showActions: true,
+        rowMenu: (item: any) => [
+          ...(item.editable !== false
+            ? [{ name: 'edit', label: '编辑', onAction: edit }]
+            : []),
+          ...(item.deletable !== false
+            ? [{ name: 'delete', label: '删除', onAction: remove }]
+            : []),
+          { name: 'details', label: '详情', onAction: details },
+          { divider: true },
+          { name: 'custom', label: '派工', onAction: custom },
+        ],
+      }),
+    )
+    expect(vnode.props.columns.at(-1).width).toBe(124)
+    const slots = vnode.children as any
+    const cell = slots.mmdaCell_actions({ data: row })
+    const [, , detailsSplit] = cell.children
+    expect(detailsSplit.props.title).toBe('详情')
+    expect(detailsSplit.props.items.map((item: any) => item.text)).toEqual([
+      '派工',
+    ])
+    detailsSplit.props.click()
+    expect(details).toHaveBeenCalledTimes(1)
+    detailsSplit.props.select({ item: { id: 'custom' } })
+    expect(custom).toHaveBeenCalledTimes(1)
   })
 
   it('defaults numeric columns to right and enum columns to left', () => {
@@ -385,7 +571,9 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([{ id: '1', qty: 12, status: 1, name: 'a' }], metaui, {})
+    const vnode = gridOf(
+      factory.table([{ id: '1', qty: 12, status: 1, name: 'a' }], metaui, {}),
+    )
     const columns = vnode.props.columns.filter(
       (column: any) => column?.field && column.field !== 'rowNum',
     )
@@ -434,11 +622,13 @@ describe('Syncfusion skin', () => {
       primaryKey: 'id',
     } as any
     const rows = [{ id: '1', category: 'RAW', name: 'a' }]
-    const vnode = factory.table(rows, metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
-      onFilterModelChange,
-    })
+    const vnode = gridOf(
+      factory.table(rows, metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+        onFilterModelChange,
+      }),
+    )
     expect(vnode.props?.filterSettings).toEqual({ type: 'Menu' })
     const columns = vnode.props.columns.filter(
       (column: any) => column?.field && column.field !== 'rowNum',
@@ -488,10 +678,12 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([], metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
-    })
+    const vnode = gridOf(
+      factory.table([], metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    )
     const column = vnode.props.columns.find(
       (item: any) => item?.field === 'materialType',
     )
@@ -527,10 +719,12 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([], metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
-    })
+    const vnode = gridOf(
+      factory.table([], metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    )
     const column = vnode.props.columns.find(
       (item: any) => item?.field === 'status',
     )
@@ -569,11 +763,13 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([], metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
-      onFilterModelChange,
-    })
+    const vnode = gridOf(
+      factory.table([], metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        onFilterModelChange,
+      }),
+    )
     const columns = vnode.props.columns.filter(
       (column: any) => column?.field && column.field !== 'rowNum',
     )
@@ -659,11 +855,13 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([], metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
-      onFilterModelChange,
-    })
+    const vnode = gridOf(
+      factory.table([], metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        onFilterModelChange,
+      }),
+    )
     const amountColumn = vnode.props.columns.find(
       (column: any) => column?.field === 'amount',
     )
@@ -763,10 +961,12 @@ describe('Syncfusion skin', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([], metaui, {
-      filterDisplay: 'menu',
-      pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
-    })
+    const vnode = gridOf(
+      factory.table([], metaui, {
+        filterDisplay: 'menu',
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    )
     const dateColumn = vnode.props.columns.find(
       (column: any) => column?.field === 'orderedAt',
     )

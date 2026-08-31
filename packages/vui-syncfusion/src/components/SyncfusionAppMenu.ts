@@ -24,15 +24,16 @@ type SlotFn = () => VNodeChild
  * Official dock sample:
  *   enableDock: true, dockSize: '72px', width: '220px'
  * Types / Target samples use type Push + target container.
+ * 展开总宽 ≈ 原 320px 减去一级轨 72px，二级区更紧凑。
  * @see https://ej2.syncfusion.com/documentation/sidebar/docking-sidebar
  * @see https://ej2.syncfusion.com/documentation/sidebar/custom-context
  */
-const DOCK_WIDTH = '320px'
+const DOCK_WIDTH = '300px'
 const DOCK_SIZE = '72px'
 const SHELL_TARGET = '.mmda-sf-shell'
 
 function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
-  const body = [
+  const label = [
     item.icon
       ? h('i', {
           class: [item.icon, 'mmda-side-menu__icon'],
@@ -42,18 +43,49 @@ function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
     h('span', { class: 'mmda-side-menu__label' }, item.label),
   ]
   if (!item.route) {
-    return h('span', { class: 'mmda-side-menu__link' }, body)
+    return h('span', { class: 'mmda-side-menu__link' }, label)
   }
+
+  const createLink = item.allowCreate
+    ? h(
+        RouterLink,
+        {
+          class: 'mmda-side-menu__create',
+          to: `${item.route}/Create`,
+          title: '创建',
+          'aria-label': `创建${item.label}`,
+          onClick: (e: MouseEvent) => e.stopPropagation(),
+        },
+        () =>
+          h('i', {
+            class: 'e-icons e-plus',
+            'aria-hidden': true,
+          }),
+      )
+    : null
+
   return h(
-    RouterLink,
+    'div',
     {
       class: {
-        'mmda-side-menu__link': true,
-        'mmda-side-menu__link--active': active,
+        'mmda-side-menu__row': true,
+        'mmda-side-menu__row--active': active,
       },
-      to: item.route,
     },
-    () => body,
+    [
+      h(
+        RouterLink,
+        {
+          class: {
+            'mmda-side-menu__link': true,
+            'mmda-side-menu__link--active': active,
+          },
+          to: item.route,
+        },
+        () => label,
+      ),
+      createLink,
+    ],
   )
 }
 
@@ -299,10 +331,10 @@ export const SyncfusionAppMenu = defineComponent({
                     { class: 'mmda-sf-system-rail__code' },
                     item.moduleCode,
                   ),
-              // Official: hide with `.e-dock.e-close span.e-text`
+              // 收起后仍显示一级系统名（不用 e-text，避免被 .e-dock.e-close 隐藏）
               h(
                 'span',
-                { class: 'e-text mmda-sf-system-rail__label' },
+                { class: 'mmda-sf-system-rail__label' },
                 item.label,
               ),
             ],
@@ -361,7 +393,6 @@ export const SyncfusionAppMenu = defineComponent({
               h('div', { class: 'mmda-sf-system-chrome' }, [
                 h('div', { class: 'mmda-sf-system-header__brand' }, [
                   props.logo?.() ?? null,
-                  !dockOpen.value ? renderCollapseToggle() : null,
                 ]),
                 h(
                   'div',
@@ -384,9 +415,9 @@ export const SyncfusionAppMenu = defineComponent({
                       },
                       selected?.label ?? '',
                     ),
-                    renderCollapseToggle(),
                   ],
                 ),
+                renderCollapseToggle(),
                 renderSystemRail(systems, selected),
                 renderModuleTree(
                   selected?.items ?? [],

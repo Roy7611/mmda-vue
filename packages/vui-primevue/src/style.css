@@ -487,10 +487,40 @@ html[data-mmda-palette="cyan"] {
   overflow: hidden;
 }
 
-.p-card.mmda-group-card .p-card-header,
-.p-card.mmda-group-card .p-card-body,
-.p-card.mmda-group-card .p-card-content {
+/* 折叠时用 grid 动画收起 content；body 常驻，高度只留 header */
+.p-card.mmda-group-card .p-card-body {
+  transition: padding 0.22s ease;
+}
+
+.p-card.mmda-group-card.is-collapsed .p-card-body {
+  padding-block: 0;
+}
+
+/* 只做标题行布局，不改写 p-card-header / p-card-content 的官方 padding */
+.p-card.mmda-group-card .mmda-group__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 0;
   padding: 0;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.p-card.mmda-group-card .mmda-group__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.p-card.mmda-group-card .mmda-group__toggle {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  line-height: 1;
+  opacity: 0.72;
 }
 
 .mmda-prime-sidebar {

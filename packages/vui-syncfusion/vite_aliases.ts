@@ -13,6 +13,7 @@ const themePackages = [
   'ej2-notifications',
   'ej2-grids',
   'ej2-diagrams',
+  'ej2-layouts',
 ]
 
 /** Vite aliases required when a workspace consumes the skin from source. */
