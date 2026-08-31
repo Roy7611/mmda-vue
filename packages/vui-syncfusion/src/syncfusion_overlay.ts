@@ -89,6 +89,10 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
         dialogs.push({ id: nextDialogId++, content, props, resolve })
       })
     },
+    async settleTopDialog(accepted: boolean) {
+      const top = dialogs[dialogs.length - 1]
+      if (top) await closeOverlayDialog(overlay, top, accepted)
+    },
   }
   return overlay
 }

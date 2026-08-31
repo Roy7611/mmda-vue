@@ -43,6 +43,7 @@ import {
 } from '@syncfusion/ej2-vue-grids'
 import { getSyncfusionCulture } from './syncfusion_i18n'
 import {
+  Edit,
   Filter,
   Grid,
   Group,
@@ -67,7 +68,7 @@ import { DropDownButtonComponent, SplitButtonComponent } from '@syncfusion/ej2-v
 import { ChartComponent } from '@syncfusion/ej2-vue-charts'
 import { syncfusionLayout } from './syncfusion_layout'
 
-Grid.Inject(Sort, Filter, Group, Selection, Page, Resize, VirtualScroll)
+Grid.Inject(Edit, Sort, Filter, Group, Selection, Page, Resize, VirtualScroll)
 Pager.Inject(Page, PagerDropDown)
 
 /** 稳定引用，避免 Pager 因 pageSizes 新数组而销毁重建下拉 */
@@ -445,8 +446,17 @@ const buttonRoleClass = (props: {
   buttonType?: string
   colorRole?: string
   severity?: string
+  shape?: string
 }) => {
-  if (props.buttonType === 'text' || props.buttonType === 'link') return ''
+  const flat = props.buttonType === 'text' || props.buttonType === 'link'
+  // 圆角图标按钮仍保留色相（如清除 danger / 添加 primary）
+  if (
+    flat &&
+    props.shape !== 'round' &&
+    props.shape !== 'circle'
+  ) {
+    return ''
+  }
   // outlined 只靠 e-outline，不要再叠 tonal
   if (props.buttonType === 'outlined') return ''
   return cssClassFor(props.colorRole ?? props.severity)
@@ -495,13 +505,38 @@ const normalizeMenuItem = (item: any): any => {
   }
 }
 
+/** 按钮点击（添加/清除）前先提交所有原位编辑单元格，避免 Batch 未落盘就被 dataSource 刷新冲掉。 */
+const flushAllInplaceEdits = () => {
+  if (typeof document === 'undefined') return
+  document.querySelectorAll('.e-grid.mmda-sf-table').forEach(element => {
+    const grid = (element as any).ej2_instances?.[0]
+    if (!grid) return
+    try {
+      grid.saveCell?.()
+      grid.editModule?.saveCell?.()
+    } catch {
+      /* ignore */
+    }
+  })
+}
+
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   patchCheckboxFilterChoiceOrder()
-  const button = (props: any, slots?: any) =>
-    h(
+  const button = (props: any, slots?: any) => {
+    const onClick = props.onClick ?? props.onAction ?? props.command
+    // EJ2 Vue Button 的 props 白名单不含 htmlAttributes；传对象会变成
+    // htmlattributes="[object Object]"。type / aria-label 用原生透传字符串即可。
+    const htmlAttributes =
+      props.htmlAttributes && typeof props.htmlAttributes === 'object'
+        ? props.htmlAttributes
+        : {}
+    return h(
       ButtonComponent as any,
       {
-        content: props.label ?? (typeof slots?.default === 'function' ? undefined : props.content),
+        id: props.id ?? htmlAttributes.id,
+        content:
+          props.label ??
+          (typeof slots?.default === 'function' ? undefined : props.content),
         iconCss: props.icon,
         cssClass: [
           buttonRoleClass(props),
@@ -513,12 +548,23 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           .join(' '),
         disabled: props.disabled === true || props.disabled === 'true',
         isPrimary: (props.colorRole ?? props.severity) === 'primary',
-        title: props.tooltip,
-        onClick: props.onClick ?? props.onAction ?? props.command,
-        ...props,
+        title: props.tooltip ?? htmlAttributes.title,
+        type: props.type ?? htmlAttributes.type ?? 'button',
+        'aria-label':
+          props['aria-label'] ??
+          htmlAttributes['aria-label'] ??
+          props.tooltip,
+        onClick: (event: Event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          // 添加/清除等会改 dataSource：先提交当前单元格到模型
+          flushAllInplaceEdits()
+          onClick?.(event)
+        },
       },
       slots,
     )
+  }
 
   const table = <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => {
     const fields = listedFields(metaui)
@@ -529,14 +575,164 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       props.filterDisplay === 'row' || props.filterDisplay === 'menu'
     const showGrouping = props.enableGroup !== false
     const pagination = props.pagination
+    const editableFields = new Set(props.editableFields ?? [])
+    const inplaceEdit =
+      props.inplaceEdit === true && !pagination && editableFields.size > 0
+    const inplaceEditStart = props.inplaceEditStart ?? 'excel'
 
-    // EJ2 Grid + Vue3: dataSource 用 plain 数组；富单元格走官方 slot template（非 valueAccessor）。
+    // dataSource 用快照（新引用才能驱动 EJ2 刷新）；写回用 sourceRows = 调用方传入的集合。
+    const sourceRows = Array.isArray(model) ? (model as T[]) : []
     const rows = Array.isArray(model)
       ? (Array.from(toRaw(model) as T[]) as T[])
       : []
 
     /** custom binding 分组时需回写 dataSource 解除 pending */
     let ej2Grid: any = null
+    let focusedEditCell: { rowIndex: number; field: string } | null = null
+    let contentTable: HTMLElement | null = null
+    let gridHost: HTMLElement | null = null
+
+    /** 原位编辑只认行号 → features[i]，不信任 Batch 的 rowData 副本。 */
+    const rowIndexFrom = (args?: any) => {
+      const candidates = [
+        focusedEditCell?.rowIndex,
+        args?.rowIndex,
+        args?.cellIndex?.rowIndex,
+        args?.cell?.closest?.('tr')?.getAttribute?.('data-rowindex'),
+        args?.cell && ej2Grid?.getRowInfo?.(args.cell)?.rowIndex,
+      ]
+      for (const value of candidates) {
+        const rowIndex = Number(value)
+        if (
+          Number.isFinite(rowIndex) &&
+          rowIndex >= 0 &&
+          rowIndex < sourceRows.length
+        ) {
+          return rowIndex
+        }
+      }
+      return -1
+    }
+
+    const sourceRowAt = (args?: any) => {
+      const rowIndex = rowIndexFrom(args)
+      return rowIndex >= 0 ? sourceRows[rowIndex] : undefined
+    }
+
+    const flushPendingCellEdit = () => {
+      if (!inplaceEdit || !ej2Grid) return
+      try {
+        ej2Grid.saveCell?.()
+        ej2Grid.editModule?.saveCell?.()
+      } catch {
+        /* 销毁中可能已不可用 */
+      }
+    }
+
+    const resolveCellTarget = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null
+      if (!el?.closest) return null
+      // 自定义 cell template 时点击落在内部节点，需回找 EJ2 单元格
+      return el.closest('.e-rowcell') as HTMLElement | null
+    }
+
+    const resolveCellEditTarget = (cell: HTMLElement | null) => {
+      if (!cell || !ej2Grid) return null
+      const row = cell.parentElement
+      const rowIndex = Number(
+        row?.getAttribute('data-rowindex') ??
+          cell.getAttribute('index') ??
+          cell.getAttribute('data-index') ??
+          NaN,
+      )
+      const dataCol = cell.getAttribute('data-colindex')
+      const ariaCol = cell.getAttribute('aria-colindex')
+      const colIndex =
+        dataCol != null
+          ? Number(dataCol)
+          : ariaCol != null
+            ? Number(ariaCol) - 1
+            : NaN
+      const columns = ej2Grid.getColumns?.() ?? []
+      const field = columns[colIndex]?.field as string | undefined
+      if (!Number.isFinite(rowIndex) || !field || !editableFields.has(field)) {
+        return null
+      }
+      return { rowIndex, field }
+    }
+
+    const beginCellEdit = (rowIndex: number, field: string, seed?: string) => {
+      if (!ej2Grid?.editModule?.editCell) return
+      ej2Grid.editModule.editCell(rowIndex, field)
+      if (seed == null) {
+        // 进入编辑后全选，便于继续键入时覆盖
+        queueMicrotask(() => {
+          const input = ej2Grid?.element?.querySelector?.(
+            '.e-editedbatchcell input, .e-editedbatchcell textarea, .e-input',
+          ) as HTMLInputElement | null
+          input?.select?.()
+          input?.focus?.()
+        })
+        return
+      }
+      queueMicrotask(() => {
+        const input = ej2Grid?.element?.querySelector?.(
+          '.e-editedbatchcell input, .e-editedbatchcell textarea, .e-input',
+        ) as HTMLInputElement | null
+        if (!input) return
+        input.focus()
+        input.value = seed
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    }
+
+    const onInplaceCellClick = (event: Event) => {
+      if (!inplaceEdit || inplaceEditStart === 'dblclick') return
+      const cell = resolveCellTarget(event.target)
+      const target = resolveCellEditTarget(cell)
+      if (!target) return
+      focusedEditCell = target
+      if (inplaceEditStart === 'excel') {
+        // 选中后把焦点留在表格，后续键入才能触发覆盖编辑
+        const host = ej2Grid?.element as HTMLElement | undefined
+        if (host && !host.hasAttribute('tabindex')) host.tabIndex = 0
+        host?.focus?.({ preventScroll: true })
+        return
+      }
+      beginCellEdit(target.rowIndex, target.field)
+    }
+
+    const onInplaceKeyDown = (event: KeyboardEvent) => {
+      if (!inplaceEdit || inplaceEditStart !== 'excel') return
+      if (ej2Grid?.isEdit) return
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      const target = focusedEditCell
+      if (!target) return
+      if (event.key === 'F2' || event.key === 'Enter') {
+        event.preventDefault()
+        beginCellEdit(target.rowIndex, target.field)
+        return
+      }
+      if (event.key.length !== 1) return
+      event.preventDefault()
+      beginCellEdit(target.rowIndex, target.field, event.key)
+    }
+
+    const bindInplaceEditTriggers = () => {
+      contentTable = ej2Grid?.getContentTable?.() ?? null
+      gridHost = ej2Grid?.element ?? null
+      contentTable?.addEventListener('click', onInplaceCellClick)
+      gridHost?.addEventListener('keydown', onInplaceKeyDown)
+    }
+
+    const unbindInplaceEditTriggers = () => {
+      contentTable?.removeEventListener('click', onInplaceCellClick)
+      gridHost?.removeEventListener('keydown', onInplaceKeyDown)
+      contentTable = null
+      gridHost = null
+      focusedEditCell = null
+    }
 
     type RangeValue = { min?: unknown; max?: unknown }
     const pendingRanges = new Map<string, RangeValue>()
@@ -773,6 +969,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         allowSorting: false,
         allowFiltering: false,
         allowGrouping: false,
+        allowEditing: false,
         freeze: 'Left',
         // EJ2 仍会插入排序/分组图标；用 class 藏掉（行号不可排、不可分组）
         customAttributes: { class: 'mmda-sf-rownum-col' },
@@ -792,6 +989,38 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             props.enableSort !== false && field.sortable !== false,
           allowFiltering: showColumnFilters,
           allowGrouping: showGrouping,
+          allowEditing:
+            inplaceEdit &&
+            editableFields.has(field.fieldName) &&
+            !field.readOnly,
+          editType: field.reference
+            ? 'dropdownedit'
+            : SqlDataType.isBool(field.dataType)
+              ? 'booleanedit'
+              : SqlDataType.isDateTime(field.dataType)
+                ? 'datetimepickeredit'
+                : SqlDataType.isDate(field.dataType)
+                  ? 'datepickeredit'
+                  : SqlDataType.isNum(field.dataType)
+                    ? 'numericedit'
+                    : 'defaultedit',
+          edit:
+            inplaceEdit &&
+            field.reference &&
+            field.reference.refFlds?.length
+            ? {
+                params: {
+                  dataSource: field.reference.refOptions,
+                  fields: {
+                    value: field.reference.refFlds[0],
+                    text:
+                      field.reference.refFlds[1] ??
+                      field.reference.refFlds[0],
+                  },
+                  allowFiltering: true,
+                },
+              }
+            : undefined,
           filter: columnFilter(field),
           width:
             field.listSize && field.listSize > 0
@@ -1011,6 +1240,16 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         allowSorting: props.enableSort !== false,
         allowFiltering: showColumnFilters,
         allowGrouping: showGrouping,
+        editSettings: inplaceEdit
+          ? {
+              allowEditing: true,
+              allowAdding: false,
+              allowDeleting: false,
+              mode: 'Batch',
+              showConfirmDialog: false,
+              allowNextRowEdit: true,
+            }
+          : undefined,
         groupSettings: showGrouping
           ? {
               showDropArea: true,
@@ -1025,17 +1264,29 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         // 用 columns 数组而非 ColumnDirective，避免 Vue 指令序列化丢掉 filter.ui 函数。
         columns: gridColumns,
         allowResizing: props.resizableColumns !== false,
-        allowSelection: Boolean(selectionMode),
+        allowSelection:
+          Boolean(selectionMode) ||
+          (inplaceEdit && inplaceEditStart === 'excel'),
         selectionSettings: selectionMode
           ? {
               type: selectionMode === 'multiple' ? 'Multiple' : 'Single',
               persistSelection: true,
               checkboxOnly: selectionMode === 'multiple',
             }
-          : { type: 'None' },
+          : inplaceEdit && inplaceEditStart === 'excel'
+            ? { mode: 'Cell', type: 'Single' }
+            : { type: 'None' },
         cssClass: ['mmda-sf-table', props.class].filter(Boolean).join(' '),
         ref: (comp: any) => {
           ej2Grid = comp?.ej2Instances ?? comp ?? null
+        },
+        created: () => {
+          // Vue EJ2 偶发 created 早于 ref 赋值，延后一拍再绑单击/键盘
+          queueMicrotask(() => bindInplaceEditTriggers())
+        },
+        destroyed: () => {
+          flushPendingCellEdit()
+          unbindInplaceEditTriggers()
         },
         rowSelected: (args: any) => {
           const grid = args.grid ?? args.sender
@@ -1047,6 +1298,57 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           const grid = args.grid ?? args.sender
           const records = (grid?.getSelectedRecords?.() ?? []) as T[]
           syncSelection(records)
+        },
+        cellSelected: (args: any) => {
+          if (!inplaceEdit || inplaceEditStart !== 'excel') return
+          const field = args?.columnName ?? args?.cellIndex?.cellIndex
+          const rowIndex = Number(args?.rowIndex ?? args?.cellIndex?.rowIndex)
+          const columns = ej2Grid?.getColumns?.() ?? []
+          const resolvedField =
+            typeof field === 'string'
+              ? field
+              : columns[Number(field)]?.field
+          if (
+            Number.isFinite(rowIndex) &&
+            resolvedField &&
+            editableFields.has(resolvedField)
+          ) {
+            focusedEditCell = { rowIndex, field: resolvedField }
+          }
+        },
+        cellEdit: (args: any) => {
+          if (!inplaceEdit) return
+          const fieldName = args?.column?.field ?? args?.columnName
+          const field = fields.find(value => value.fieldName === fieldName)
+          const rowIndex = rowIndexFrom(args)
+          const row = rowIndex >= 0 ? sourceRows[rowIndex] : args.rowData
+          if (rowIndex >= 0 && fieldName) {
+            focusedEditCell = { rowIndex, field: fieldName }
+          }
+          if (
+            !field ||
+            !editableFields.has(field.fieldName) ||
+            props.canEditCell?.(row, field) === false
+          ) {
+            args.cancel = true
+          }
+        },
+        cellSave: (args: any) => {
+          if (!inplaceEdit) return
+          const fieldName = args?.column?.field ?? args?.columnName
+          const field = fields.find(value => value.fieldName === fieldName)
+          const row = sourceRowAt(args)
+          if (!field || !row) return
+          if (
+            props.onCellSave?.(
+              row,
+              field,
+              args.value,
+              args.previousValue,
+            ) === false
+          ) {
+            args.cancel = true
+          }
         },
         actionBegin: (args: any) => {
           const requestType = args?.requestType
@@ -1257,9 +1559,19 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             )
           }
         },
-        recordDoubleClick: (args: any) =>
-          props.onItemDoubleClick?.(args.rowData),
-        recordClick: (args: any) => props.onItemClick?.(args.rowData),
+        recordDoubleClick: (args: any) => {
+          const fieldName = args?.column?.field ?? args?.columnName
+          // 可编辑单元格的双击交给 EJ2 Batch 编辑；其它单元格仍打开完整弹窗。
+          if (inplaceEdit && fieldName && editableFields.has(fieldName)) return
+          const rowIndex = rowIndexFrom(args)
+          const row = rowIndex >= 0 ? sourceRows[rowIndex] : args.rowData
+          props.onItemDoubleClick?.(row)
+        },
+        recordClick: (args: any) => {
+          const rowIndex = rowIndexFrom(args)
+          const row = rowIndex >= 0 ? sourceRows[rowIndex] : args.rowData
+          props.onItemClick?.(row)
+        },
       },
       cellSlots,
     )
@@ -1289,6 +1601,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
 
   const factory: any = {
     layout: syncfusionLayout,
+    nativeInplaceEdit: true,
     integratedTablePaging: true,
     defaultFilterDisplay: 'menu',
     actionIcons: {
@@ -1298,6 +1611,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       save: 'e-icons e-save',
       cancel: 'e-icons e-close',
       delete: 'e-icons e-trash',
+      // 清除 ≠ 删除：eraser 比垃圾桶更接近“清空子表”
+      clear: 'e-icons e-erase',
+      add: 'e-icons e-plus',
       refresh: 'e-icons e-refresh',
       search: 'e-icons e-search',
       reset: 'e-icons e-filter-clear',
@@ -1667,6 +1983,10 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           header: props.header ?? props.title ?? props.name,
           isModal: props.modal ?? true,
           width: props.width ?? 'min(90vw, 60rem)',
+          allowDragging: props.allowDragging ?? true,
+          enableResize: props.enableResize ?? true,
+          showCloseIcon: props.showCloseIcon ?? true,
+          closeOnEscape: props.closeOnEscape ?? true,
           close: () => props.onUpdateVisible(false),
           ...props,
           visible: props.visible,

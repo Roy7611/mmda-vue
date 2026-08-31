@@ -75,7 +75,7 @@ export class WbsLogic extends UiLogic<Wbs> {
 			})
 			.then(item => {
 				if (item) {
-					target.tasks.push(item);
+					if (!target.tasks.includes(item)) target.tasks.push(item);
 				}
 			});
 	}

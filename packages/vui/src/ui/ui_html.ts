@@ -111,15 +111,23 @@ export function createHtmlUiFactory(layout: UiLayout = htmlLayout): UiFactory {
     h(
       "button",
       {
+        id: props.id,
         type: props.type ?? "button",
         title: props.tooltip,
+        "aria-label": props["aria-label"] ?? props.tooltip,
         disabled: props.disabled === true || props.loading,
-        class: ["mmda-button", props.colorRole && `is-${props.colorRole}`],
+        class: [
+          "mmda-button",
+          props.colorRole && `is-${props.colorRole}`,
+          props.class,
+        ]
+          .filter(Boolean)
+          .join(" "),
         onClick: props.onClick ?? props.onAction ?? props.command,
       },
       slots?.default?.() ?? [
         props.icon && h("span", { class: ["mmda-icon", props.icon] }),
-        props.label,
+        props.label || null,
       ],
     );
 

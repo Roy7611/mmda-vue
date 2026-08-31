@@ -33,7 +33,7 @@ export function createPrimeOverlay(): PrimeOverlay {
   const dialogs = reactive<DialogRequest[]>([])
   const services: PrimeOverlayServices = {}
 
-  return {
+  const overlay: PrimeOverlay = {
     dialogs,
     services,
     toast(props: UiToastProps) {
@@ -76,7 +76,12 @@ export function createPrimeOverlay(): PrimeOverlay {
         dialogs.push({ id: nextDialogId++, content, props, resolve })
       })
     },
+    async settleTopDialog(accepted) {
+      const top = dialogs[dialogs.length - 1]
+      if (top) await closeOverlayDialog(overlay, top, accepted)
+    },
   }
+  return overlay
 }
 
 export async function closeOverlayDialog(

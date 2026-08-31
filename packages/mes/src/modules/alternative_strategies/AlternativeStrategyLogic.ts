@@ -89,9 +89,12 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 			}
 		}).then(item => {
 			if (item) {
-				// 重复物料检查
-				const isDuplicate = model.items.some((i: AlternativeStrategyItem) => i.materialID === item.materialID);
+				// 行已在 newSubGroupItem 入集；重复检查需排除自身
+				const isDuplicate = model.items.some(
+					(i: AlternativeStrategyItem) => i !== item && i.materialID === item.materialID,
+				);
 				if (isDuplicate) {
+					ctx.removeSubGroupItem('items', item);
 					ctx.uiBuilder.toast(ctx, {
 						severity: 'warn',           // warn 提示
 						summary: '重复物料',
@@ -99,9 +102,7 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 						group: 'br',
 						life: 3000,
 					});
-					return;
 				}
-				model.items.push(item);
 			}
 		});
 	}

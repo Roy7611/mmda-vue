@@ -125,7 +125,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 			})
 			.then(Photo => {
 				if (Photo) {
-					target.photos.push(Photo);
+					if (!target.photos.includes(Photo)) target.photos.push(Photo);
 				}
 			});
 	}

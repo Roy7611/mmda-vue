@@ -1346,7 +1346,7 @@ export class BomLogic extends UiLogic<Bom> {
 			})
 			.then(item => {
 				if (item) {
-					target.items.push(item);
+					if (!target.items.includes(item)) target.items.push(item);
 				}
 			})
 			.catch(e => {

@@ -76,7 +76,7 @@ export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
 			})
 			.then(item => {
 				if (item) {
-					target.items.push(item);
+					if (!target.items.includes(item)) target.items.push(item);
 				}
 			});
 	}

@@ -184,13 +184,9 @@ export function layoutField(options: FieldLayoutOptions): VNode {
     "div",
     layoutProps(
       `mmda-field-layout mmda-field-${direction}`,
+      // 横排不写 display：组内用 contents 参与父网格；独立时靠 CSS .mmda-field-horizontal
       horizontal
-        ? {
-            display: "grid",
-            gridTemplateColumns: "5.25rem minmax(0, 1fr)",
-            alignItems: "center",
-            gap: "0.5rem 0.75rem",
-          }
+        ? {}
         : {
             display: "flex",
             flexDirection: "column",
@@ -217,7 +213,9 @@ export function layoutField(options: FieldLayoutOptions): VNode {
   );
 }
 
-/** 在主表分组内排列多个字段。 */
+/** 在主表分组内排列多个字段。
+ * 列数 cols 为逻辑列（1/2/3）；若字段为 label|control 横排，CSS 用 2×cols 轨道对齐。
+ */
 export function layoutFieldGroup(options: FieldGroupLayoutOptions): VNode {
   const {
     fields,
@@ -225,28 +223,13 @@ export function layoutFieldGroup(options: FieldGroupLayoutOptions): VNode {
     cols = direction === "column" ? 1 : 2,
     props,
   } = options;
-  const column = direction === "column";
   return h(
     "div",
-    layoutProps(
-      `mmda-field-group-layout mmda-field-group-${direction}`,
-      column
-        ? {
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.75rem",
-          }
-        : {
-            display: "grid",
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gap: "0.75rem",
-          },
-      {
-        role: direction === "table" ? "table" : "group",
-        "data-cols": cols,
-        ...props,
-      },
-    ),
+    layoutProps(`mmda-field-group-layout mmda-field-group-${direction}`, {}, {
+      role: direction === "table" ? "table" : "group",
+      "data-cols": cols,
+      ...props,
+    }),
     fields,
   );
 }
@@ -301,28 +284,17 @@ export function layoutPage(options: PageLayoutOptions): VNode {
             toolbar as any,
           ),
       h(
-        "div",
+        MmdaPageRegions,
         {
-          class: "mmda-page-scroll",
-          style: { minHeight: 0, overflow: "auto" },
+          hasSummary,
+          summaryExpanded,
         },
-        [
-          h(
-            MmdaPageRegions,
-            {
-              hasSummary,
-              summaryExpanded,
-            },
-            {
-              primary: () => primary,
-              tails: hasTails ? () => tails : undefined,
-              summary: hasSummary ? () => summary : undefined,
-            },
-          ),
-          footer == null
-            ? null
-            : h("footer", { class: "mmda-page-footer" }, footer as any),
-        ],
+        {
+          primary: () => primary,
+          tails: hasTails ? () => tails : undefined,
+          summary: hasSummary ? () => summary : undefined,
+          footer: footer == null ? undefined : () => footer,
+        },
       ),
     ],
   );

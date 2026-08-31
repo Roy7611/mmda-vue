@@ -81,6 +81,12 @@ describe("MetaUiFieldLogic 属性隔离", () => {
     expect(logic.setGridCellRenderer(renderer)).toBe(logic);
     expect(logic.customGridCellRenderer).toBe(renderer);
   });
+
+  it("inPlaceEdit(false) 可关闭单个字段原位编辑", () => {
+    const logic = new MetaUiFieldLogic(createMockField());
+    expect(logic.inPlaceEdit(false)).toBe(logic);
+    expect(logic.cellEditable).toBe(false);
+  });
 });
 
 describe("MetaUiGroupLogic 属性隔离", () => {
@@ -125,6 +131,16 @@ describe("MetaUiGroupLogic 属性隔离", () => {
     expect(logic.hiddenFn!({ featuredSku: true } as any, null as any)).toBe(
       false,
     );
+  });
+
+  it("子表组默认开启 inplaceEdit，且可在组级关闭", () => {
+    const logic = new MetaUiGroupLogic(makeGroup());
+    expect(logic.inplaceEdit).toBe(true);
+    expect(logic.inplaceEditStart).toBe("excel");
+    expect(logic.inPlaceEdit(false)).toBe(logic);
+    expect(logic.inplaceEdit).toBe(false);
+    expect(logic.inPlaceEditStart("click")).toBe(logic);
+    expect(logic.inplaceEditStart).toBe("click");
   });
 
   // LI-08: editIf/deleteIf/clearIf 隔离

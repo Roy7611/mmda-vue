@@ -74,12 +74,13 @@ describe('PrimeVue skin', () => {
     })
     const card = builder.wrapGroup(group, h('div', 'body'))
     expect(card.type?.name ?? card.type?.__name).toBe('PrimeGroupCard')
-    expect(String(card.props?.class)).toContain('mmda-group--summary')
+    expect(String(card.props?.class)).toContain('secondary')
+    expect(String(card.props?.class)).toContain('master')
     const fieldset = builder.wrapGroup(group, h('div', 'body'), {
       container: 'fieldset',
     })
     expect(fieldset.type).toBe('fieldset')
-    expect(String(fieldset.props?.class)).toContain('mmda-group--summary')
+    expect(String(fieldset.props?.class)).toContain('secondary')
   })
 
   it('builds module breadcrumb from parent chain', () => {

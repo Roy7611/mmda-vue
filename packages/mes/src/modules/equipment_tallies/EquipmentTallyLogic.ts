@@ -169,7 +169,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 			})
 			.then(item => {
 				if (item) {
-					target.records.push(item);
+					if (!target.records.includes(item)) target.records.push(item);
 				}
 			});
 	}

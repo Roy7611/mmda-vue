@@ -474,30 +474,42 @@ html[data-mmda-palette="cyan"] {
   white-space: nowrap;
 }
 
-.mmda-group-many .mmda-field-group-layout {
+.mmda-group.sub .mmda-field-group-layout {
   width: 100%;
   min-width: 0;
 }
 
-.mmda-group-many .mmda-prime-table {
+.mmda-group.sub .mmda-prime-table {
   width: 100%;
 }
 
-.p-card.mmda-group-card {
+.p-card.mmda-group {
   overflow: hidden;
+  box-shadow: none; /* flat：Outlined/Filled，非 Elevated */
+}
+
+/* 默认 flat：按钮无 elevation（与 Syncfusion 皮肤一致） */
+.mmda-prime-app .p-button,
+.mmda-prime-app .p-button:hover,
+.mmda-prime-app .p-button:focus,
+.mmda-prime-app .p-button:active,
+.mmda-prime-app .p-splitbutton > .p-button,
+.mmda-prime-app .p-splitbutton > .p-button:hover,
+.mmda-prime-app .p-splitbutton > .p-button:focus {
+  box-shadow: none;
 }
 
 /* 折叠时用 grid 动画收起 content；body 常驻，高度只留 header */
-.p-card.mmda-group-card .p-card-body {
+.p-card.mmda-group .p-card-body {
   transition: padding 0.22s ease;
 }
 
-.p-card.mmda-group-card.is-collapsed .p-card-body {
+.p-card.mmda-group.is-collapsed .p-card-body {
   padding-block: 0;
 }
 
 /* 只做标题行布局，不改写 p-card-header / p-card-content 的官方 padding */
-.p-card.mmda-group-card .mmda-group__header {
+.p-card.mmda-group .mmda-group-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -508,7 +520,7 @@ html[data-mmda-palette="cyan"] {
   user-select: none;
 }
 
-.p-card.mmda-group-card .mmda-group__title {
+.p-card.mmda-group .mmda-group-title {
   flex: 1 1 auto;
   margin: 0;
   font-size: 0.9375rem;
@@ -516,7 +528,28 @@ html[data-mmda-palette="cyan"] {
   line-height: 1.35;
 }
 
-.p-card.mmda-group-card .mmda-group__toggle {
+.p-card.mmda-group .mmda-group-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.1rem;
+  margin-inline-start: auto;
+}
+
+.p-card.mmda-group .mmda-group-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.p-card.mmda-group .mmda-group-actions .p-button.mmda-group-action {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  box-shadow: none;
+}
+
+.p-card.mmda-group .mmda-group-toggle {
   flex: 0 0 auto;
   font-size: 0.75rem;
   line-height: 1;
@@ -624,6 +657,28 @@ html[data-mmda-palette="cyan"] {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.mmda-prime-dialog.p-dialog,
+.p-dialog.mmda-select-dialog {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mmda-prime-dialog .p-dialog-content,
+.mmda-prime-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mmda-prime-dialog .mmda-list-view {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .mmda-prime-fab {

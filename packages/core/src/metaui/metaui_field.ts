@@ -543,11 +543,15 @@ export class MetaUiFieldRef {
         this.refFlds.length > 2 &&
         this.refOptionsShape != MetaOptionsShape.TREE
       ) {
-        this._labelFn = (valueObject: any) =>
-          valueObject
-            // ? `${valueObject[this.refFlds[1]]} ${valueObject[this.refFlds[2]] ?? '' // old logic
-            ? this.refFlds.filter((f, i) => i > 0).map(it => valueObject[it]).join(' ')
-            : ''
+        // HAS_ONE 常带 parentXxx：拼 label 时跳过空值，避免出现字面量 "undefined"
+        this._labelFn = (valueObject: any) => {
+          if (!valueObject) return ''
+          return this.refFlds
+            .filter((_, i) => i > 0)
+            .map((f) => valueObject[f])
+            .filter((v) => v != null && v !== '')
+            .join(' ')
+        }
       } else if (this.refFlds.length > 1) {
         this._labelFn = (valueObject: any) =>
           valueObject ? valueObject[this.refFlds[1]] : ''

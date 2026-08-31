@@ -343,7 +343,11 @@ function createEntity<E>(
     // 配置实体修改/删除权限
     for (const key in e) {
       // new
-      if ((key === 'deletable' && !!mapper[key]) || (key === 'editable' && !!mapper[key])) {
+      if (
+        mapper &&
+        ((key === 'deletable' && !!mapper[key]) ||
+          (key === 'editable' && !!mapper[key]))
+      ) {
         e[key] = isString(mapper[key])
           ? proto[mapper[key] as string]
           : (mapper[key] as ((it: any) => any))(proto);

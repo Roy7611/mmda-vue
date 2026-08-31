@@ -147,7 +147,7 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
 		})
 			.then(item => {
 				if (item) {
-					target.steps.push(item);
+					if (!target.steps.includes(item)) target.steps.push(item);
 				}
 			});
 	}
@@ -161,7 +161,7 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
 		})
 			.then(item => {
 				if (item) {
-					target.relations.push(item);
+					if (!target.relations.includes(item)) target.relations.push(item);
 				}
 			});
 	}

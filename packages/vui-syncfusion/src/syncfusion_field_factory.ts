@@ -88,16 +88,92 @@ const textArea = (field: MetaUiField, context: UiContext, props?: PropData) =>
 const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
   control(TextBoxComponent as any, field, context, props, { type: 'password' })
 
+/** 对齐老代码 defineDropdownProps：用 refFlds 映射，整对象交给 setFieldValue。 */
+const referenceFieldKeys = (reference: NonNullable<MetaUiField['reference']>) => {
+  const refFlds = reference.refFlds?.length ? reference.refFlds : ['value', 'text']
+  return {
+    valueKey: refFlds[0] ?? 'value',
+    textKey: refFlds[1] ?? refFlds[0] ?? 'text',
+    refFlds,
+  }
+}
+
+/** getFieldValue 已区分 HAS_ONE 导航对象 / REF getRefObject / ENUM；EJ2 绑定主键。 */
+const referenceSelectedValue = (
+  field: MetaUiField,
+  context: UiContext,
+  reference: NonNullable<MetaUiField['reference']>,
+) => {
+  const current = context.getFieldValue(field)
+  if (current == null || current === '') return null
+  const raw =
+    typeof current === 'object' ? reference.valueOf(current) : current
+  // 与老代码一致：引用默认 0 视为未选
+  if (raw === 0 || raw === '0') return null
+  return raw
+}
+
+const resolveReferenceOption = (
+  reference: NonNullable<MetaUiField['reference']>,
+  value: unknown,
+  itemData?: any,
+) => {
+  if (value == null || value === '') return null
+  if (itemData && typeof itemData === 'object' && !('__mmdaOption' in itemData)) {
+    return itemData
+  }
+  const wrapped = itemData?.__mmdaOption
+  if (wrapped) return wrapped
+  return (
+    reference.refOptions.find(option => reference.valueOf(option) === value) ??
+    null
+  )
+}
+
+const referenceDataSource = (
+  reference: NonNullable<MetaUiField['reference']>,
+  fallback?: unknown[],
+) => {
+  const options = (reference.refOptions ?? fallback ?? []) as any[]
+  const { valueKey, textKey, refFlds } = referenceFieldKeys(reference)
+  // 多字段标签：EJ2 只有单一 text 字段，用 labelOf 组装
+  if (refFlds.length > 2) {
+    return options.map(option => ({
+      ...option,
+      [valueKey]: reference.valueOf(option),
+      [textKey]: String(reference.labelOf(option) ?? ''),
+      __mmdaOption: option,
+    }))
+  }
+  return options
+}
+
 const dropdown = (field: MetaUiField, context: UiContext, props?: PropData) => {
   const reference = field.reference
-  return control(DropDownListComponent as any, field, context, props, {
-    dataSource: reference?.refOptions ?? props?.options ?? [],
-    fields: reference
-      ? {
-          text: 'label',
-          value: 'value',
-        }
-      : props?.fields,
+  if (!reference) {
+    return control(DropDownListComponent as any, field, context, props, {
+      dataSource: props?.options ?? [],
+      fields: props?.fields,
+      allowFiltering: true,
+      showClearButton: field.nullable,
+    })
+  }
+
+  const { valueKey, textKey } = referenceFieldKeys(reference)
+  const dataSource = referenceDataSource(reference, props?.options)
+
+  return control(DropDownListComponent as any, field, context, {
+    ...props,
+    change: (args: any) => {
+      update(field, context)(
+        resolveReferenceOption(reference, args?.value, args?.itemData),
+      )
+    },
+  }, {
+    // 原始 refOptions（或组装后的行）；fields 指向 refFlds，与老 Prime optionLabel/dataKey 一致
+    dataSource,
+    fields: { text: textKey, value: valueKey },
+    value: referenceSelectedValue(field, context, reference),
     allowFiltering: true,
     showClearButton: field.nullable,
   })
@@ -109,8 +185,40 @@ const multiSelect = (
   props?: PropData,
 ) => {
   const reference = field.reference
-  return control(MultiSelectComponent as any, field, context, props, {
-    dataSource: reference?.refOptions ?? props?.options ?? [],
+  if (!reference) {
+    return control(MultiSelectComponent as any, field, context, props, {
+      dataSource: props?.options ?? [],
+      mode: 'CheckBox',
+    })
+  }
+
+  const { valueKey, textKey } = referenceFieldKeys(reference)
+  const dataSource = referenceDataSource(reference, props?.options)
+  const current = context.getFieldValue(field)
+  const selected = Array.isArray(current)
+    ? current
+        .map(item =>
+          item != null && typeof item === 'object'
+            ? reference.valueOf(item)
+            : item,
+        )
+        .filter(value => value !== 0 && value !== '0')
+    : current
+
+  return control(MultiSelectComponent as any, field, context, {
+    ...props,
+    change: (args: any) => {
+      const values = Array.isArray(args?.value) ? args.value : []
+      update(field, context)(
+        values.map((value: unknown) =>
+          resolveReferenceOption(reference, value),
+        ),
+      )
+    },
+  }, {
+    dataSource,
+    fields: { text: textKey, value: valueKey },
+    value: selected,
     mode: 'CheckBox',
   })
 }
@@ -188,11 +296,106 @@ const fallbackDisplay = (
     String(context.displayField(field, props.row) ?? ''),
   )
 
+/**
+ * HAS_ONE / 远程 REF：对齐老 SearchBox = 可编辑 ComboBox 联想 + 搜索按钮弹窗。
+ */
+const searchBox = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+): VNode => {
+  const reference = field.reference
+  if (!reference) {
+    return h('span', { class: 'warning' }, '不是引用字段')
+  }
+  const builder = context.uiBuilder
+  if (!builder?.buildSearchForRelative) {
+    return fallbackDisplay(field, context, props)
+  }
+
+  const valueKey = reference.refFlds?.[0] ?? 'value'
+  const labelKey = reference.refFlds?.[1] ?? valueKey
+  const fldOptions = context.getFieldOptions(field)
+  const searchOptions = context.getSearchForRelativeOptions(field)
+
+  let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
+    ? context.getFieldValue(field)
+    : null
+  if (
+    fieldValue &&
+    typeof fieldValue === 'object' &&
+    (fieldValue as Record<string, unknown>)[valueKey] == 0
+  ) {
+    fieldValue = null
+  }
+
+  if (fieldValue && typeof fieldValue === 'object') {
+    const key = reference.valueOf(fieldValue)
+    if (
+      !fldOptions.selectOptions.some(
+        item => reference.valueOf(item) === key,
+      )
+    ) {
+      fldOptions.selectOptions.unshift(fieldValue)
+    }
+    searchOptions.searchWord = fieldValue
+  }
+
+  // 选中对象才作为 ComboBox model；输入中的字符串不能写进 reactive searchWord，
+  // 否则重渲染会拆掉正在 filtering 的 EJ2（emitsOptions null）。
+  const selectedModel =
+    searchOptions.searchWord != null &&
+    typeof searchOptions.searchWord === 'object'
+      ? searchOptions.searchWord
+      : fieldValue
+
+  return builder.buildSearchForRelative(context, field, {
+    ...props,
+    modelValue: selectedModel,
+    showClear: Boolean(selectedModel),
+    options: fldOptions.selectOptions,
+    title: props?.title ?? field.displayLabel,
+    // EJ2 ComboBox fields.value / fields.text：必须是属性名，不能是 label 函数
+    dataKey: valueKey,
+    optionLabel: labelKey,
+    valueField: valueKey,
+    labelField: labelKey,
+    invalid: invalidOf(field, context),
+    onChange: (value: any) => {
+      searchOptions.searchWord = value || null
+      context.setFieldValue(field, value || null)
+      if (!value) {
+        const model = context.model as Record<string, any>
+        MetaModel.setRefProp(model, field.fieldName, null)
+        reference.refFlds.forEach((rf, index) => {
+          if (index > 0) MetaModel.delCustomProp(model, rf)
+        })
+        if (reference.hasOne && reference.alias) {
+          model[reference.alias] = null
+        }
+      }
+    },
+    toSearch: async () => {
+      const picked = await (context as any).pickRelative?.(field)
+      if (picked) searchOptions.searchWord = picked
+      return true
+    },
+  })
+}
+
 const fallbackInput = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
 ): VNode => {
+  // HAS_ONE / 远程 REF：走 SearchBox（ComboBox + 搜索），不是本地 dropdown
+  if (
+    field.reference &&
+    (field.reference.hasOne ||
+      (field.reference.isRef && field.reference.refRepository))
+  ) {
+    return searchBox(field, context, props)
+  }
   if (field.reference?.refOptions?.length)
     return dropdown(field, context, props)
   if (SqlDataType.isBool(field.dataType)) return checkbox(field, context, props)
@@ -425,7 +628,7 @@ const factory: UiFieldFactory = {
       ...props,
     }),
   searchInput: textInput,
-  searchBox: textInput,
+  searchBox,
   comboBox: dropdown,
   autoComplete: dropdown,
   associationTable: fallbackDisplay,

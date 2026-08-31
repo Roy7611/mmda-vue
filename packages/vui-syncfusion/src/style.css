@@ -515,6 +515,46 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   height: 100%;
 }
 
+/*
+ * 默认 flat（MD3 Filled / Outlined，非 Elevated）：
+ * Syncfusion Material3 给 .e-card / .e-btn 加了 elevation 阴影；整体关掉。
+ * 层级靠描边与 surface 色差表达，不靠投影。
+ */
+.mmda-sf-app .e-card,
+.e-card.mmda-group {
+  box-shadow: none;
+}
+
+.mmda-sf-app .e-card:hover,
+.mmda-sf-app .e-card:focus,
+.e-card.mmda-group:hover,
+.e-card.mmda-group:focus {
+  box-shadow: none;
+}
+
+.mmda-sf-app .e-btn,
+.mmda-sf-app .e-css.e-btn,
+.mmda-sf-app .e-dropdown-btn,
+.mmda-sf-app .e-split-btn,
+.mmda-sf-app .e-btn-group {
+  box-shadow: none;
+}
+
+.mmda-sf-app .e-btn:hover,
+.mmda-sf-app .e-btn:focus,
+.mmda-sf-app .e-btn:active,
+.mmda-sf-app .e-css.e-btn:hover,
+.mmda-sf-app .e-css.e-btn:focus,
+.mmda-sf-app .e-css.e-btn:active,
+.mmda-sf-app .e-dropdown-btn:hover,
+.mmda-sf-app .e-dropdown-btn:focus,
+.mmda-sf-app .e-dropdown-btn:active,
+.mmda-sf-app .e-split-btn:hover,
+.mmda-sf-app .e-split-btn:focus,
+.mmda-sf-app .e-split-btn:active {
+  box-shadow: none;
+}
+
 .mmda-sf-container,
 .mmda-sf-main {
   min-width: 0;
@@ -825,6 +865,17 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   flex-wrap: nowrap;
   gap: 0.5rem;
   min-width: 0;
+}
+
+/* SearchBox：单个 ComboBox，右侧为放大镜（点击打开选择对话框） */
+.mmda-sf-search-combo.e-control-wrapper,
+.mmda-sf-search-combo {
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-sf-search-combo .mmda-sf-search-pick {
+  cursor: pointer;
 }
 
 .mmda-sf-searchbar > .e-control-wrapper,
@@ -1412,45 +1463,123 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
   box-shadow: none;
 }
 
-.e-card.mmda-group-card {
-  /* Card 只做壳：不要官方 center/line-height 干涉内部字段布局 */
+.e-card.mmda-group {
+  /* Card 只做壳：不要官方 center 把内容左右挤成一团 */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: flex-start;
   line-height: normal;
   min-height: 0;
   overflow: hidden;
+  /* flat：无 elevation；靠描边与底色分层 */
+  box-shadow: none;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
   /* 亮色：卡片白底（跟菜单栏一致）；暗色走 surface-group */
   background: var(--mmda-surface-group, #fff);
 }
 
-.e-card.mmda-group-card > .mmda-group__header,
-.e-card.mmda-group-card > .mmda-group__collapse {
+.e-card.mmda-group > .mmda-group-header,
+.e-card.mmda-group > .e-collapse,
+.e-card.mmda-group > .mmda-group-footer {
   align-self: stretch;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
-.e-card.mmda-group-card .mmda-group__header {
+.e-card.mmda-group .e-collapse-inner,
+.e-card.mmda-group .mmda-group-body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.e-card.mmda-group .mmda-group-header {
   display: flex;
   align-items: center;
   cursor: pointer;
   user-select: none;
+  border-bottom: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
 }
 
-.e-card.mmda-group-card .mmda-group__title {
+.e-card.mmda-group .e-card-header .e-card-header-caption .mmda-group-title.e-card-header-title,
+.e-card.mmda-group .mmda-group-title {
   flex: 1 1 auto;
+  /* 只压过 Material3 .e-card-header-title 的 font-weight: normal */
+  font-weight: 700;
 }
 
-.e-card.mmda-group-card .e-card-header-caption {
+.e-card.mmda-group .e-card-header-caption {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.e-card.mmda-group-card .mmda-group__toggle.e-icons {
+.e-card.mmda-group .mmda-group-actions {
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: 0.1rem;
   margin-inline-start: auto;
+}
+
+.e-card.mmda-group .mmda-group-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action .e-btn-icon {
+  margin: 0;
+  font-size: 14px;
+}
+
+.e-card.mmda-group .mmda-group-toggle.e-icons {
+  flex: 0 0 auto;
+  margin-inline-start: 0;
   font-size: 12px;
   line-height: 1;
   opacity: 0.72;
+}
+
+/* 详情 Card 字段：强制 label 定宽右对齐，field 占满（与 theme 双列网格一致） */
+.e-card.mmda-group .mmda-field-group-layout.mmda-field-group-row[data-cols="2"] {
+  grid-template-columns:
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+}
+.e-card.mmda-group .mmda-field-group-layout.mmda-field-group-row[data-cols="3"] {
+  grid-template-columns:
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+}
+.e-card.mmda-group .mmda-field-group-layout > .mmda-field-horizontal {
+  display: contents !important;
+}
+.e-card.mmda-group .mmda-field-group-layout .mmda-field-label {
+  text-align: right;
 }
 
 /*
@@ -1629,5 +1758,74 @@ html.mmda-dark .e-grid .e-table {
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+/* 选择/确认对话框：限制视口高度，脚部确定/取消始终可见 */
+.e-dialog.mmda-sf-dialog {
+  display: flex !important;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+/* 缩放手柄需可点；勿被内容盖住 */
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-south-east,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-south-west,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-north-east,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-north-west,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-south,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-north,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-east,
+.e-dialog.mmda-sf-dialog.e-dlg-resizable .e-west {
+  z-index: 2;
+}
+
+.e-dialog.mmda-sf-dialog .e-dlg-header-content {
+  flex-shrink: 0;
+  cursor: move;
+}
+
+.e-dialog.mmda-sf-dialog .e-footer-content {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.e-dialog.mmda-sf-dialog .e-footer-content .e-btn {
+  margin-inline-start: 0.5rem;
+}
+
+.e-dialog.mmda-sf-dialog .e-dlg-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.e-dialog.mmda-sf-dialog .mmda-sf-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.e-dialog.mmda-sf-dialog .mmda-list-view {
+  flex: 1 1 auto;
+  height: 100% !important;
+  min-height: 0;
+}
+
+.e-dialog.mmda-sf-dialog .mmda-list-view .mmda-list-scroll,
+.e-dialog.mmda-sf-dialog .mmda-list-view .mmda-sf-pagable-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.e-dialog.mmda-sf-dialog .mmda-sf-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 

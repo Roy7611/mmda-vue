@@ -106,27 +106,13 @@ export class MaterialLogic extends UiLogic<Material> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<MaterialFeature>('features')
-					.addCustomAction({
-						name: 'createContractItem',
-						label: '创建',
-						icon: 'far fa-plus-circle',
-						role: 'info',
-						onAction: this.newMaterialFeature,
-						view: UiViewOne.Edit,
-					}),
+					.defaultAdder(this.newMaterialFeature),
 				this.group<MaterialMedia>('medias')
-					.addCustomAction({
-						name: 'createContractItem',
-						label: '创建',
-						icon: 'far fa-plus-circle',
-						role: 'info',
-						onAction: this.newMaterialMedia,
-						view: UiViewOne.Edit,
-					}),
+					.defaultAdder(this.newMaterialMedia),
 				this.group<MaterialPartner>('partNos').defaultAdder(this.newMaterialPartner),
 				this.group<Sku>('skus').addCustomAction({
 					name: 'createSku',
-					label: '创建',
+					label: '添加',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.newSku,

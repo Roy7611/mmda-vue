@@ -70,7 +70,7 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 			})
 				.then(item => {
 					if (item) {
-						target.feedings.push(item);
+						if (!target.feedings.includes(item)) target.feedings.push(item);
 					}
 				});
 		}

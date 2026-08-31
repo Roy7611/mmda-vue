@@ -47,7 +47,24 @@ export interface UiListProps<T = any> {
   linkField?: string;
   /** 列表查询中；传 Ref 可响应式驱动表格 loading，不必整页重渲。 */
   loading?: boolean | Ref<boolean>;
+  /** 使用组件库表格的单元格编辑能力（Syncfusion 为 Batch/Excel 模式）。 */
   inplaceEdit?: boolean;
+  /**
+   * 原位编辑启动方式（仅 Syncfusion 等原生 Grid 生效）：
+   * - `excel`：单击选中；键入可打印字符时进入并覆盖（子表默认）
+   * - `click`：单击进入编辑
+   * - `dblclick`：双击进入编辑（EJ2 默认）
+   */
+  inplaceEditStart?: "click" | "dblclick" | "excel";
+  /** 允许原位编辑的字段；未列出的字段继续作为弹窗编辑入口。 */
+  editableFields?: string[];
+  canEditCell?: (item: T, field: MetaUiField) => boolean;
+  onCellSave?: (
+    item: T,
+    field: MetaUiField,
+    value: unknown,
+    previousValue: unknown,
+  ) => boolean | void;
   resizableColumns?: boolean;
   /** 列排序；默认开启。 */
   enableSort?: boolean;

@@ -86,12 +86,26 @@ const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
 
 const dropdown = (field: MetaUiField, context: UiContext, props?: PropData) => {
   const reference = field.reference
+  if (!reference) {
+    return control(Select, field, context, props, {
+      options: props?.options ?? [],
+      optionLabel: props?.optionLabel,
+      optionValue: props?.optionValue,
+      filter: true,
+      showClear: field.nullable,
+    })
+  }
+  // 对齐老代码：不设 optionValue，modelValue 为 getFieldValue 整对象（HAS_ONE 导航 / REF getRefObject）
+  const refFlds = reference.refFlds?.length ? reference.refFlds : ['value', 'text']
+  const valueKey = refFlds[0] ?? 'value'
+  const labelKey = refFlds[1] ?? valueKey
   return control(Select, field, context, props, {
-    options: reference?.refOptions ?? props?.options ?? [],
-    optionLabel: reference
-      ? (option: any) => reference.labelOf(option)
-      : props?.optionLabel,
-    optionValue: reference ? undefined : props?.optionValue,
+    options: reference.refOptions ?? props?.options ?? [],
+    optionLabel:
+      refFlds.length > 2
+        ? (option: any) => reference.labelOf(option)
+        : labelKey,
+    dataKey: valueKey,
     filter: true,
     showClear: field.nullable,
   })
@@ -103,11 +117,24 @@ const multiSelect = (
   props?: PropData,
 ) => {
   const reference = field.reference
+  if (!reference) {
+    return control(MultiSelect, field, context, props, {
+      options: props?.options ?? [],
+      optionLabel: props?.optionLabel,
+      filter: true,
+      display: 'chip',
+    })
+  }
+  const refFlds = reference.refFlds?.length ? reference.refFlds : ['value', 'text']
+  const valueKey = refFlds[0] ?? 'value'
+  const labelKey = refFlds[1] ?? valueKey
   return control(MultiSelect, field, context, props, {
-    options: reference?.refOptions ?? props?.options ?? [],
-    optionLabel: reference
-      ? (option: any) => reference.labelOf(option)
-      : props?.optionLabel,
+    options: reference.refOptions ?? props?.options ?? [],
+    optionLabel:
+      refFlds.length > 2
+        ? (option: any) => reference.labelOf(option)
+        : labelKey,
+    dataKey: valueKey,
     filter: true,
     display: 'chip',
   })
@@ -195,6 +222,13 @@ const fallbackInput = (
   context: UiContext,
   props?: PropData,
 ): VNode => {
+  if (
+    field.reference &&
+    (field.reference.hasOne ||
+      (field.reference.isRef && field.reference.refRepository))
+  ) {
+    return searchBox(field, context, props)
+  }
   if (field.reference?.refOptions?.length)
     return dropdown(field, context, props)
   if (SqlDataType.isBool(field.dataType)) return checkbox(field, context, props)
@@ -203,6 +237,79 @@ const fallbackInput = (
   if (SqlDataType.isDate(field.dataType))
     return datePicker(field, context, props)
   return textInput(field, context, props)
+}
+
+/** HAS_ONE / 远程 REF：对齐老 SearchBox。 */
+const searchBox = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+): VNode => {
+  const reference = field.reference
+  if (!reference) {
+    return h('span', { class: 'warning' }, '不是引用字段')
+  }
+  const builder = context.uiBuilder
+  if (!builder?.buildSearchForRelative) {
+    return fallbackDisplay(field, context, props)
+  }
+  const valueKey = reference.refFlds?.[0] ?? 'value'
+  const labelKey = reference.refFlds?.[1] ?? valueKey
+  const fldOptions = context.getFieldOptions(field)
+  const searchOptions = context.getSearchForRelativeOptions(field)
+  let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
+    ? context.getFieldValue(field)
+    : null
+  if (
+    fieldValue &&
+    typeof fieldValue === 'object' &&
+    (fieldValue as Record<string, unknown>)[valueKey] == 0
+  ) {
+    fieldValue = null
+  }
+  if (fieldValue && typeof fieldValue === 'object') {
+    const key = reference.valueOf(fieldValue)
+    if (
+      !fldOptions.selectOptions.some(item => reference.valueOf(item) === key)
+    ) {
+      fldOptions.selectOptions.unshift(fieldValue)
+    }
+    searchOptions.searchWord = fieldValue
+  }
+  return builder.buildSearchForRelative(context, field, {
+    modelValue: searchOptions.searchWord ?? fieldValue,
+    showClear: Boolean(searchOptions.searchWord ?? fieldValue),
+    options: fldOptions.selectOptions,
+    title: props?.title ?? field.displayLabel,
+    dataKey: valueKey,
+    optionLabel:
+      reference.refFlds.length > 2
+        ? (data: any) => reference.labelOf(data)
+        : labelKey,
+    invalid: invalidOf(field, context),
+    onChange: (value: any) => {
+      searchOptions.searchWord = value || null
+      context.setFieldValue(field, value || null)
+      if (!value) {
+        const model = context.model as Record<string, any>
+        MetaModel.setRefProp(model, field.fieldName, null)
+        reference.refFlds.forEach((rf, index) => {
+          if (index > 0) MetaModel.delCustomProp(model, rf)
+        })
+        if (reference.hasOne && reference.alias) model[reference.alias] = null
+      }
+    },
+    onInput: (value: string) => {
+      if (searchOptions.isComposing) return
+      void context.searchRelative(field, value)
+    },
+    toSearch: async () => {
+      const picked = await (context as any).pickRelative?.(field)
+      if (picked) searchOptions.searchWord = picked
+      return true
+    },
+    ...props,
+  })
 }
 
 const tag = (field: MetaUiField, context: UiContext, props?: PropData) =>
@@ -439,7 +546,7 @@ const factory: UiFieldFactory = {
       ...props,
     }),
   searchInput: textInput,
-  searchBox: textInput,
+  searchBox,
   comboBox: dropdown,
   autoComplete: dropdown,
   associationTable: fallbackDisplay,

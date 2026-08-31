@@ -295,6 +295,24 @@ describe("MetaModel.createEntity / savable", () => {
     expect(MetaModel.created(created)).toBe(true);
   });
 
+  it("无 mapper 时也能从原型创建（select 弹窗列表）", () => {
+    const fld = new MetaUiField({
+      fieldIdx: 0,
+      fieldName: "categoryName",
+      displayLabel: "类别",
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+    });
+    const metaui = createMockMetaUi([fld]);
+    const created = MetaModel.createEntity(
+      metaui,
+      (o: object) => Object.assign({}, o) as any,
+      { categoryName: "砂箱", editable: true, deletable: false },
+    );
+    expect(created.categoryName).toBe("砂箱");
+    expect(MetaModel.created(created)).toBe(true);
+  });
+
   it("mapper 用源字段名填充目标字段", () => {
     const fld = new MetaUiField({
       fieldIdx: 0,

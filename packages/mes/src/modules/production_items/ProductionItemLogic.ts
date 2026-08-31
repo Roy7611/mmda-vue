@@ -155,7 +155,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 			})
 			.then(item => {
 				if (item) {
-					target.params.push(item);
+					if (!target.params.includes(item)) target.params.push(item);
 				}
 			});
 	}
@@ -173,7 +173,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 			})
 			.then(item => {
 				if (item) {
-					target.alarms.push(item);
+					if (!target.alarms.includes(item)) target.alarms.push(item);
 				}
 			});
 	}
@@ -192,7 +192,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 			})
 			.then(item => {
 				if (item) {
-					target.journals.push(item);
+					if (!target.journals.includes(item)) target.journals.push(item);
 				}
 			});
 	}

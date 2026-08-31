@@ -92,6 +92,8 @@ export interface UiFactory {
   layout: UiLayout
   /** 表格控件本身承载分页器，buildListView 不再创建独立 paginator。 */
   integratedTablePaging?: boolean
+  /** 表格组件原生支持单元格编辑（如 Syncfusion EJ2 Batch）。 */
+  nativeInplaceEdit?: boolean
   defaultFilterDisplay?: 'menu' | 'row' | 'none'
   actionIcons: Record<string, string>
   viewIcons: Record<string, string>
@@ -275,6 +277,10 @@ export const TABLE_CELL_PROP_KEYS = [
   'onSelectAll',
   'filterDisplay',
   'inplaceEdit',
+  'inplaceEditStart',
+  'editableFields',
+  'canEditCell',
+  'onCellSave',
   'showSummary',
   'showColumnWithAction',
   'showActions',

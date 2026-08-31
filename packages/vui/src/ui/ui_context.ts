@@ -33,7 +33,7 @@ import {
   type UiFieldValidation,
   type UiValidation,
 } from "@mmda/core";
-import { reactive, ref, shallowReactive, type Ref } from "vue";
+import { reactive, ref, shallowReactive, computed, toRaw, type Ref } from "vue";
 import { rx } from "../rx";
 import {
   UiViewMany,
@@ -50,6 +50,8 @@ import {
   type UiSearchField,
 } from "./ui_filter";
 import type { UiBuilder } from "./ui_builder";
+import type { UiAction } from "./ui_action";
+import type { UiColorRole } from "./ui_material";
 
 type UiContext = UiViewContext<any>;
 type ContextCache = Map<string, UiViewContext<any>>;
@@ -119,9 +121,15 @@ export class UiViewContext<
   private readonly loader?: () => Promise<E>;
   private fieldLogics: FieldLogicMap;
   private groupLogics: GroupLogicMap;
+  /** 编辑态子表 header 工具栏动作（add/clear/custom） */
+  private _groupActions: Record<string, UiAction[]> = {};
   private readonly fieldOptions = reactive<Record<string, FieldSearchOptions>>(
     {},
   );
+  private readonly searchForRelativeOptions: Record<
+    string,
+    { searchWord: any; isComposing: boolean }
+  > = reactive({});
   private readonly referenceOptionLoads = new Map<string, Promise<any[]>>();
   private readonly validationState: UiValidation;
   private baseFilter = "";
@@ -463,6 +471,108 @@ export class UiViewContext<
 
   setupGroupLogic(logic: MetaUiGroupLogic<any, any>) {
     this.groupLogics[logic.group.groupName] = logic;
+    // 逻辑变更后重建该组动作缓存
+    delete this._groupActions[logic.group.groupName];
+  }
+
+  /**
+   * 子表卡片 header 工具栏动作（对齐老代码 Panel icons 槽）。
+   * 仅在 edit/create 且组可编辑时返回 add/clear/customActions。
+   */
+  getGroupActions(grp: MetaUiGroup) {
+    this.setupGroupActions(grp);
+    return (this._groupActions[grp.groupName] ?? []).filter(
+      (a) =>
+        (!a.view ||
+          a.view === UiViewOne.Create ||
+          a.view === UiViewOne.Edit) &&
+        (a.visible?.value ?? true),
+    );
+  }
+
+  private setupGroupActions(grp: MetaUiGroup) {
+    const name = grp.groupName;
+    if (this._groupActions[name]) return;
+
+    const actions: UiAction[] = [];
+    this._groupActions[name] = actions;
+
+    if (!this.editing || this.isGroupReadonly(grp)) return;
+
+    const grpLogic = this.getGroupLogic(grp);
+    if (!grpLogic) return;
+
+    const visibles = this.logic?.groupActionVisibles?.[name];
+
+    if (typeof grpLogic.defaultAddFn === "function") {
+      const context = this;
+      actions.push(
+        {
+          name: "clear",
+          icon: "clear",
+          label: this.t("action.clear"),
+          colorRole: "danger",
+          onAction: () => this.removeSubGroupItems(grp),
+          view: UiViewOne.Edit,
+          visible: visibles?.["clear"]
+            ? computed(() => !!visibles["clear"]!(this.model, this))
+            : undefined,
+        },
+        {
+          name: "add",
+          role: "secondary",
+          icon: "plus",
+          label: this.t("action.add"),
+          colorRole: "primary",
+          onAction: () =>
+            grpLogic.defaultAddFn!.apply(this.logic, [context, context.model]),
+          view: UiViewOne.Edit,
+          visible: visibles?.["add"]
+            ? computed(() => !!visibles["add"]!(this.model, this))
+            : undefined,
+        },
+      );
+    }
+
+    if (typeof grpLogic.clearIfFn === "function") {
+      const clearIndex = actions.findIndex((a) => a.name === "clear");
+      const allowClear = !!grpLogic.clearIfFn(this.model, this);
+      if (allowClear && clearIndex === -1) {
+        actions.unshift({
+          name: "clear",
+          icon: "clear",
+          label: this.t("action.clear"),
+          colorRole: "danger",
+          onAction: () => this.removeSubGroupItems(grp),
+          view: UiViewOne.Edit,
+          visible: visibles?.["clear"]
+            ? computed(() => !!visibles["clear"]!(this.model, this))
+            : undefined,
+        });
+      } else if (!allowClear && clearIndex !== -1) {
+        actions.splice(clearIndex, 1);
+      }
+    }
+
+    if (grpLogic.customActions?.length) {
+      const context = this;
+      for (const a of grpLogic.customActions) {
+        const uiAction: UiAction = {
+          name: a.name,
+          icon: a.icon,
+          label: a.label,
+          colorRole: a.role as UiColorRole,
+          onAction: () =>
+            a.onAction!.apply(this.logic, [context, context.model]),
+          tooltip: a.description,
+          view: a.view ?? context.view,
+        };
+        if (a.visible) {
+          uiAction.visible = computed(() => !!a.visible!(context.model));
+        }
+        actions.push(uiAction);
+      }
+    }
   }
 
   getFieldValue(field: MetaUiField | string, model: E = this.model) {
@@ -539,10 +649,22 @@ export class UiViewContext<
   }
 
   clearFieldValue(field: MetaUiField | string) {
-    const options = this.getFieldOptions(field);
+    const fld = this.resolveField(field);
+    const options = this.getFieldOptions(fld);
     options.searchParam.searchWord = "";
     options.currentSelectOption = undefined;
-    this.setFieldValue(field, null);
+    const searchOptions = this.getSearchForRelativeOptions(fld);
+    searchOptions.searchWord = null;
+    this.setFieldValue(fld, null);
+    const ref = fld.reference;
+    if (ref) {
+      const model = this.model as Record<string, any>;
+      MetaModel.setRefProp(model, fld.fieldName, null);
+      ref.refFlds.forEach((rf, index) => {
+        if (index > 0) MetaModel.delCustomProp(model, rf);
+      });
+      if (ref.hasOne && ref.alias) model[ref.alias] = null;
+    }
   }
 
   resetFilters(): boolean | Promise<boolean> {
@@ -830,7 +952,18 @@ export class UiViewContext<
     const rows =
       ((this.model as Record<string, any>)[grp.groupName] as
         object[] | undefined) ?? [];
-    return this.createChild(rows, grp.groupUi, path, this.view);
+    const fieldLogics: FieldLogicMap = {};
+    const groupLogic = this.getGroupLogic(grp);
+    for (const fieldLogic of groupLogic?.fields ?? []) {
+      fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
+    }
+    return this.createChild(
+      rows,
+      grp.groupUi,
+      path,
+      this.view,
+      fieldLogics,
+    );
   }
 
   subGroupItemContext<G extends Entity>(
@@ -866,7 +999,14 @@ export class UiViewContext<
     const rowKey = this.rowCacheKey(model, cacheKey, this.metaui.primaryKey);
     const path = `${this.cachePath}/@row/${rowKey}`;
     const cached = this.cache.get(path);
-    if (cached) return cached as UiViewContext<G>;
+    if (cached) {
+      // 同一业务键若拿到不同对象（如 Grid Batch 副本），丢弃旧缓存，避免写到副本上
+      if (toRaw(cached.model as object) !== toRaw(model as object)) {
+        this.cache.delete(path);
+      } else {
+        return cached as UiViewContext<G>;
+      }
+    }
     return this.createChild(
       model,
       this.metaui,
@@ -911,6 +1051,7 @@ export class UiViewContext<
     model = this.model,
   ) {
     const options = this.getFieldOptions(field);
+    if (options.searching) return options;
     options.searching = true;
     options.searchParam.searchWord = searchWord;
     try {
@@ -919,7 +1060,7 @@ export class UiViewContext<
         return options;
       }
       const ref = field.reference;
-      if (!ref || !this.app) return options;
+      if (!ref || !this.app || !ref.refRepository) return options;
       const filter = ref.buildSearchFilter(model, {
         searchWord,
         ctx: this as any,
@@ -935,34 +1076,73 @@ export class UiViewContext<
         ...(extra ?? {}),
         ...(filter ? { filter } : {}),
       };
-      if (ref.refRepository) {
-        const picked = await this.select({
-          repository: ref.refRepository,
-          service: ref.service,
-          searchParam: options.searchParam,
-          selectionMode: "single",
-        });
-        if (Array.isArray(picked) && picked[0]) {
-          options.selectOptions = picked;
-          const item = picked[0] as Record<string, any>;
-          const valueKey = ref.refFlds?.[0];
-          if (valueKey) {
-            (model as Record<string, any>)[field.fieldName] =
-              item[valueKey] ?? item.id;
-          }
-        }
-        return options;
-      }
+      // 远程联想：调 API，不弹 select 对话框（对话框由 SearchBox 搜索按钮触发）
       const page = await this.app.api.searchEntities(options.searchParam, {
         repository: ref.refRepository,
         service: ref.service,
       });
-      options.selectOptions = page.list;
+      options.selectOptions = page.list ?? [];
       options.pagination = page.pagination;
       return options;
     } finally {
       options.searching = false;
     }
+  }
+
+  /** 弹窗选关联记录（SearchBox 放大镜）。 */
+  async pickRelative(field: MetaUiField | string) {
+    const fld = this.resolveField(field);
+    const ref = fld.reference;
+    if (!ref?.refRepository || !this.app) {
+      this.app?.ui.toast(this as unknown as UiContext, {
+        severity: "error",
+        summary: this.t("dialog.title.error"),
+        detail: `字段 ${fld.fieldName} 未配置 refRepository`,
+        group: "br",
+        life: 3000,
+      });
+      return false;
+    }
+    const options = this.getFieldOptions(fld);
+    try {
+      const picked = await this.select({
+        repository: ref.refRepository,
+        service: ref.service,
+        searchParam: options.searchParam,
+        selectionMode: "single",
+      });
+      if (!Array.isArray(picked) || !picked[0]) return false;
+      this.setFieldValue(fld, picked[0]);
+      options.currentSelectOption = picked[0];
+      if (
+        !options.selectOptions.some(
+          (item) => ref.valueOf(item) === ref.valueOf(picked[0]),
+        )
+      ) {
+        options.selectOptions.unshift(picked[0]);
+      }
+      const searchOptions = this.getSearchForRelativeOptions(fld);
+      searchOptions.searchWord = picked[0];
+      return picked[0];
+    } catch (error) {
+      console.error(error);
+      this.app.ui.toast(this as unknown as UiContext, {
+        severity: "error",
+        summary: this.t("dialog.title.error"),
+        detail: error instanceof Error ? error.message : String(error),
+        group: "br",
+        life: 3000,
+      });
+      return false;
+    }
+  }
+
+  getSearchForRelativeOptions(field: MetaUiField | string) {
+    const fld = this.resolveField(field);
+    return (this.searchForRelativeOptions[fld.fieldName] ??= {
+      searchWord: null as any,
+      isComposing: false,
+    });
   }
 
   /**
@@ -1018,6 +1198,8 @@ export class UiViewContext<
   addSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
     const grp = this.resolveGroup(group);
     const items = ((this.model as Record<string, any>)[grp.groupName] ??= []);
+    // 已在集合中则跳过（newSubGroupItem 会先入集，调用方 .then 里再 add 也不会重复）
+    if (items.includes(item)) return;
     items.push(item);
     MetaModel.modify(this.model as Entity);
     this.getGroupLogic(grp)?.onChangeFn?.(
@@ -1108,12 +1290,50 @@ export class UiViewContext<
     }
     selectCtx.selectedItems = [];
     await selectCtx.init();
-    const accepted = await this.app.confirmDialog(
-      this.app.ui.buildListView(selectCtx, { selectionMode }),
-      selectCtx as unknown as UiContext,
-      { name: "select" },
-    );
-    return accepted ? (selectCtx.selectedItems as T[]) : false;
+    this.root.showDialog = true;
+    // 对话框卸载时 Grid 可能 rowDeselected 清空 selectedItems，用本地副本承接结果
+    let picked: T[] = [];
+    try {
+      const accepted = await this.app.confirmDialog(
+        this.app.ui.buildListView(selectCtx, {
+          selectionMode,
+          showToolbar: true,
+          showSearchbar: true,
+          showBreadcrumb: false,
+          showActions: false,
+          showColumnWithAction: false,
+          onSelect: (selection: T[]) => {
+            selectCtx.selectedItems = selection ?? [];
+            // 忽略关闭时的清空，避免冲掉已选结果
+            if (selection?.length) picked = selection;
+          },
+          onItemDoubleClick:
+            selectionMode === "single"
+              ? (item: T) => {
+                  picked = item != null ? [item] : [];
+                  selectCtx.selectedItems = picked;
+                  void this.app?.ui.overlay.settleTopDialog?.(true);
+                }
+              : undefined,
+        }),
+        selectCtx as unknown as UiContext,
+        {
+          name: "select",
+          title: pack.metaui.displayLabel ?? param.repository,
+          width: "80vw",
+          height: "80vh",
+          maxHeight: "90vh",
+          cssClass: "mmda-select-dialog",
+        },
+      );
+      if (!accepted) return false;
+      if (!picked.length && selectCtx.selectedItems?.length) {
+        picked = selectCtx.selectedItems as T[];
+      }
+      return picked;
+    } finally {
+      this.root.showDialog = false;
+    }
   }
 
   async subGroupItem<G>(
@@ -1140,11 +1360,23 @@ export class UiViewContext<
     }
   }
 
+  /**
+   * 创建子表行并打开对话框。
+   * 先写入数据源，确定保留；取消则移除该行（与表格原位添加一样直接操作集合）。
+   */
   async newSubGroupItem<G extends Entity>(
     param: SubGroupItemTransformParam<G>,
   ) {
     const created = (await this.createSubGroupItems(param)) as G;
-    return this.subGroupItem(param.group, created, { groupMode: "create" });
+    this.addSubGroupItem(param.group, created);
+    const accepted = await this.subGroupItem(param.group, created, {
+      groupMode: "create",
+    });
+    if (!accepted) {
+      this.removeSubGroupItem(param.group, created);
+      return false;
+    }
+    return accepted;
   }
 
   private createChild<G extends object>(

@@ -48,6 +48,13 @@ export type UiGroupRenderer = (
  */
 export class MetaUiGroupLogic<E, G> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
+  /** 子表是否启用单元格原位编辑；默认开启。 */
+  inplaceEdit = true
+  /**
+   * 原位编辑启动方式（Syncfusion 原生 Grid）：
+   * `excel` 单击选中、键入覆盖（默认）/ `click` 单击进入 / `dblclick` 双击进入。
+   */
+  inplaceEditStart: "click" | "dblclick" | "excel" = "excel"
   /** 自定义渲染器 */
   customRenderer?: Function
   /** 表格顶部自定义内容（查看态） */
@@ -163,6 +170,18 @@ export class MetaUiGroupLogic<E, G> {
 
   defaultAdder(adder: AddGroupItemsFn<E>) {
     this.defaultAddFn = adder
+    return this
+  }
+
+  /** 开关整个子表组的单元格原位编辑。 */
+  inPlaceEdit(enabled = true) {
+    this.inplaceEdit = enabled
+    return this
+  }
+
+  /** 配置子表单元格如何进入编辑（默认 click）。 */
+  inPlaceEditStart(start: "click" | "dblclick" | "excel") {
+    this.inplaceEditStart = start
     return this
   }
 

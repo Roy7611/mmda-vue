@@ -61,9 +61,46 @@ describe('Syncfusion skin', () => {
   it('implements the vui factory and layout contracts', () => {
     const factory = createSyncfusionUiFactory()
     expect(factory.layout).toBe(syncfusionLayout)
+    expect(factory.nativeInplaceEdit).toBe(true)
     expect(factory.table).toBeTypeOf('function')
     expect(factory.dialog).toBeTypeOf('function')
     expect(factory.resolveIcon('save')).toBe('e-icons e-save')
+    expect(factory.resolveIcon('clear')).toBe('e-icons e-erase')
+    expect(factory.resolveIcon('add')).toBe('e-icons e-plus')
+  })
+
+  it('dialog defaults to draggable, resizable, and close icon', () => {
+    const factory = createSyncfusionUiFactory()
+    const vnode = factory.dialog(
+      { visible: true, onUpdateVisible: () => undefined, header: '选择' },
+      { default: () => null },
+    )
+    expect(vnode.props?.allowDragging).toBe(true)
+    expect(vnode.props?.enableResize).toBe(true)
+    expect(vnode.props?.showCloseIcon).toBe(true)
+  })
+
+  it('forces action buttons to type=button so form pages do not submit', () => {
+    const factory = createSyncfusionUiFactory()
+    const onAction = vi.fn()
+    const vnode = factory.actionButton(
+      { name: 'add', label: '添加', onAction },
+      (message) => message,
+      true,
+      { id: 'add-features-button' },
+    )
+    // EJ2 Vue Button 不认 htmlAttributes；type 作为原生透传
+    expect(vnode.props.type).toBe('button')
+    expect(vnode.props.htmlAttributes).toBeUndefined()
+    expect(vnode.props.id).toBe('add-features-button')
+    const event = {
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    }
+    vnode.props.onClick(event)
+    expect(event.preventDefault).toHaveBeenCalled()
+    expect(event.stopPropagation).toHaveBeenCalled()
+    expect(onAction).toHaveBeenCalledTimes(1)
   })
 
   it('registers old metadata editor aliases', () => {
@@ -72,6 +109,99 @@ describe('Syncfusion skin', () => {
     expect(fields.DropdownList).toBe(fields.dropdown)
     expect(fields.DatePicker).toBe(fields.datePicker)
     expect(fields.FileUpload).toBe(fields.fileUpload)
+  })
+
+  it('maps reference dropdown options to text/value instead of raw objects', () => {
+    const fields = createSyncfusionFieldFactory()
+    const category = {
+      categoryID: 'C1',
+      categoryName: '原料',
+    }
+    const reference = {
+      hasOne: true,
+      isRef: false,
+      alias: 'category',
+      refFlds: ['categoryID', 'categoryName'],
+      refOptions: [category],
+      valueOf: (option: any) => option?.categoryID,
+      labelOf: (option: any) => option?.categoryName,
+    }
+    const setFieldValue = vi.fn()
+    const context = {
+      model: { categoryID: 'C1', category },
+      // HAS_ONE：getFieldValue 返回导航属性
+      getFieldValue: () => category,
+      setFieldValue,
+      isFieldReadonly: () => false,
+      isInvalid: () => false,
+    } as any
+    const field = {
+      fieldName: 'categoryID',
+      displayLabel: '物料类别',
+      nullable: true,
+      placeholder: '',
+      reference,
+    } as any
+
+    const vnode = fields.dropdown(field, context)
+    const dropdown = vnode.children[0] as any
+    expect(dropdown.props.dataSource).toEqual([category])
+    expect(dropdown.props.fields).toEqual({
+      text: 'categoryName',
+      value: 'categoryID',
+    })
+    expect(dropdown.props.value).toBe('C1')
+
+    dropdown.props.change({ value: 'C1', itemData: category })
+    expect(setFieldValue).toHaveBeenCalledWith(field, category)
+  })
+
+  it('SearchBox uses relative search control instead of plain text input', () => {
+    const fields = createSyncfusionFieldFactory()
+    expect(fields.SearchBox).toBe(fields.searchBox)
+    expect(fields.searchBox).not.toBe(fields.textInput)
+
+    const category = { categoryID: 'C1', categoryName: '原料' }
+    const reference = {
+      hasOne: true,
+      isRef: false,
+      alias: 'category',
+      refFlds: ['categoryID', 'categoryName'],
+      refOptions: [] as any[],
+      refRepository: 'MaterialCats',
+      valueOf: (option: any) => option?.categoryID,
+      labelOf: (option: any) => option?.categoryName,
+    }
+    const buildSearchForRelative = vi.fn(() =>
+      h('div', { class: 'mmda-sf-relative-search' }),
+    )
+    const context = {
+      model: { categoryID: 'C1', category },
+      getFieldValue: () => category,
+      getFieldOptions: () => ({
+        selectOptions: [category],
+        searchParam: { searchWord: '' },
+      }),
+      getSearchForRelativeOptions: () => ({
+        searchWord: category,
+        isComposing: false,
+      }),
+      searchRelative: vi.fn(),
+      setFieldValue: vi.fn(),
+      uiBuilder: { buildSearchForRelative },
+      isFieldReadonly: () => false,
+      isInvalid: () => false,
+    } as any
+    const field = {
+      fieldName: 'categoryID',
+      displayLabel: '物料类别',
+      nullable: true,
+      reference,
+    } as any
+
+    fields.searchBox(field, context)
+    expect(buildSearchForRelative).toHaveBeenCalled()
+    expect(buildSearchForRelative.mock.calls[0][1]).toBe(field)
   })
 
   it('constructs the builder against the new AbstractUiBuilder contract', () => {
@@ -184,12 +314,14 @@ describe('Syncfusion skin', () => {
     const card = builder.wrapGroup(group, h('div', 'body'))
     expect(card.type?.name ?? card.type?.__name).toBe('MmdaGroupCard')
     expect(String(card.props?.class)).toContain('e-card')
-    expect(String(card.props?.class)).toContain('mmda-group--primary')
+    expect(String(card.props?.class)).toContain('primary')
+    expect(String(card.props?.class)).toContain('master')
     const fieldset = builder.wrapGroup(group, h('div', 'body'), {
       container: 'fieldset',
     })
     expect(fieldset.type).toBe('fieldset')
-    expect(String(fieldset.props?.class)).toContain('mmda-group--primary')
+    expect(String(fieldset.props?.class)).toContain('primary')
+    expect(String(fieldset.props?.class)).toContain('master')
   })
 
   it('uses EJ2 Sidebar dock menu when top-level module codes have no dot', () => {
@@ -587,6 +719,149 @@ describe('Syncfusion skin', () => {
     expect(
       slots.mmdaCell_status({ data: { status: 1 } }).props.style.textAlign,
     ).toBe('left')
+  })
+
+  it('uses EJ2 batch cell editing and keeps popup editing on readonly cells', async () => {
+    const factory = createSyncfusionUiFactory()
+    const onCellSave = vi.fn(() => true)
+    const onItemDoubleClick = vi.fn()
+    const editCell = vi.fn()
+    const row = { id: '1', name: '旧名称', code: 'P-1', editable: true }
+    const metaui = {
+      objName: 'Product',
+      getListedFields: () => [
+        { fieldName: 'name', displayLabel: '名称', dataType: 48 },
+        { fieldName: 'code', displayLabel: '编码', dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: 'id',
+    } as any
+    const vnode = gridOf(
+      factory.table([row], metaui, {
+        inplaceEdit: true,
+        inplaceEditStart: 'click',
+        editableFields: ['name'],
+        canEditCell: item => item.editable,
+        onCellSave,
+        onItemDoubleClick,
+      }),
+    )
+
+    expect(vnode.props.editSettings).toMatchObject({
+      allowEditing: true,
+      mode: 'Batch',
+      showConfirmDialog: false,
+    })
+    expect(
+      vnode.props.columns.find((column: any) => column.field === 'name'),
+    ).toMatchObject({ allowEditing: true, editType: 'defaultedit' })
+    expect(
+      vnode.props.columns.find((column: any) => column.field === 'code'),
+    ).toMatchObject({ allowEditing: false })
+
+    vnode.props.cellSave({
+      rowData: row,
+      column: { field: 'name' },
+      value: '新名称',
+      previousValue: '旧名称',
+    })
+    // 无行号时无法定位 features[i]，不回写（避免写到 Batch 副本）
+    expect(onCellSave).not.toHaveBeenCalled()
+
+    vnode.props.cellEdit({
+      rowData: row,
+      rowIndex: 0,
+      column: { field: 'name' },
+    })
+    vnode.props.cellSave({
+      rowData: { ...row, name: '旧名称' },
+      column: { field: 'name' },
+      value: '新名称',
+      previousValue: '旧名称',
+    })
+    expect(onCellSave).toHaveBeenCalledWith(
+      row,
+      expect.objectContaining({ fieldName: 'name' }),
+      '新名称',
+      '旧名称',
+    )
+    expect(onCellSave.mock.calls[0][0]).toBe(row)
+
+    vnode.props.recordDoubleClick({ rowData: row, column: { field: 'name' } })
+    expect(onItemDoubleClick).not.toHaveBeenCalled()
+    vnode.props.recordDoubleClick({ rowData: row, column: { field: 'code' } })
+    expect(onItemDoubleClick).toHaveBeenCalledWith(row)
+
+    const table = document.createElement('table')
+    const tr = document.createElement('tr')
+    tr.setAttribute('data-rowindex', '0')
+    const td = document.createElement('td')
+    td.className = 'e-rowcell'
+    td.setAttribute('data-colindex', '1')
+    tr.appendChild(td)
+    table.appendChild(tr)
+    vnode.props.ref({
+      ej2Instances: {
+        editModule: { editCell },
+        getContentTable: () => table,
+        getColumns: () => [
+          { field: 'rowNum' },
+          { field: 'name' },
+          { field: 'code' },
+        ],
+        element: document.createElement('div'),
+      },
+    })
+    vnode.props.created()
+    await Promise.resolve()
+    await Promise.resolve()
+    td.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(editCell).toHaveBeenCalledWith(0, 'name')
+    vnode.props.destroyed()
+  })
+
+  it('excel inplaceEditStart types over the focused cell', async () => {
+    const factory = createSyncfusionUiFactory()
+    const editCell = vi.fn()
+    const host = document.createElement('div')
+    const metaui = {
+      objName: 'Product',
+      getListedFields: () => [
+        { fieldName: 'name', displayLabel: '名称', dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: 'id',
+    } as any
+    const vnode = gridOf(
+      factory.table([{ id: '1', name: '旧' }], metaui, {
+        inplaceEdit: true,
+        inplaceEditStart: 'excel',
+        editableFields: ['name'],
+      }),
+    )
+    expect(vnode.props.selectionSettings).toMatchObject({
+      mode: 'Cell',
+      type: 'Single',
+    })
+    const table = document.createElement('table')
+    vnode.props.ref({
+      ej2Instances: {
+        isEdit: false,
+        editModule: { editCell },
+        getContentTable: () => table,
+        getColumns: () => [{ field: 'name' }],
+        element: host,
+      },
+    })
+    vnode.props.created()
+    await Promise.resolve()
+    await Promise.resolve()
+    vnode.props.cellSelected({ rowIndex: 0, columnName: 'name' })
+    host.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'A', bubbles: true }),
+    )
+    expect(editCell).toHaveBeenCalledWith(0, 'name')
+    vnode.props.destroyed()
   })
 
   it('uses CheckBox choices for enum columns and Menu for other fields', () => {

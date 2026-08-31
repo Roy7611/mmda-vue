@@ -156,9 +156,12 @@ export class MetaUiFieldLogic<E> {
     return this.requiredIf(() => true)
   }
 
-  /** 设置为表格单元格可直接编辑 */
-  inPlaceEdit() {
-    this.cellEditable = true
+  /**
+   * 设置表格单元格是否可直接编辑。
+   * 子表组默认开启 inplaceEdit；传 false 可关闭单个字段。
+   */
+  inPlaceEdit(enabled = true) {
+    this.cellEditable = enabled
     return this
   }
 

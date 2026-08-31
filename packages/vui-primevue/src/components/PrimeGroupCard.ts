@@ -3,9 +3,17 @@ import Card from "primevue/card";
 
 /**
  * PrimeVue Card group shell: body stays mounted; collapsed = header height only.
+ *
+ * Classes mirror Syncfusion shell (without e-*):
+ *   .p-card.mmda-group.master|sub.primary|secondary
+ *     .mmda-group-header
+ *       [title] [actions] [toggle]
+ *     .e-collapse > .e-collapse-inner > .mmda-group-body
+ *     .mmda-group-footer (optional)
  */
 export const PrimeGroupCard = defineComponent({
   name: "PrimeGroupCard",
+  inheritAttrs: false,
   props: {
     title: { type: String, required: true },
     expanded: { type: Boolean, default: true },
@@ -27,14 +35,16 @@ export const PrimeGroupCard = defineComponent({
       }
     };
 
-    return () =>
-      h(
+    return () => {
+      const slotArgs = { title: props.title, open: open.value };
+      const footer = slots.footer?.(slotArgs);
+      const actions = slots.actions?.(slotArgs);
+      return h(
         Card,
         {
           ...attrs,
           class: [
             attrs.class,
-            "mmda-group-card",
             open.value ? "is-expanded" : "is-collapsed",
           ],
         },
@@ -43,7 +53,7 @@ export const PrimeGroupCard = defineComponent({
             h(
               "div",
               {
-                class: "mmda-group__header",
+                class: "mmda-group-header",
                 role: props.toggleable ? "button" : undefined,
                 tabindex: props.toggleable ? 0 : undefined,
                 "aria-expanded": open.value,
@@ -51,24 +61,39 @@ export const PrimeGroupCard = defineComponent({
                 onKeydown: props.toggleable ? onKeydown : undefined,
               },
               [
-                h("h2", { class: "mmda-group__title" }, props.title),
+                h("h2", { class: "mmda-group-title" }, props.title),
+                actions
+                  ? h(
+                      "div",
+                      {
+                        class: "mmda-group-actions",
+                        onClick: (e: MouseEvent) => e.stopPropagation(),
+                        onKeydown: (e: KeyboardEvent) => e.stopPropagation(),
+                      },
+                      actions,
+                    )
+                  : null,
                 props.toggleable
                   ? h("span", {
-                      class: ["mmda-group__toggle", "pi", "pi-chevron-down"],
+                      class: ["mmda-group-toggle", "pi", "pi-chevron-down"],
                       "aria-hidden": "true",
                     })
                   : null,
               ],
             ),
           content: () =>
-            h("div", { class: "mmda-group__collapse" }, [
+            h("div", { class: "e-collapse" }, [
               h(
                 "div",
-                { class: "mmda-group__collapse-inner" },
-                slots.default?.(),
+                { class: "e-collapse-inner" },
+                slots.default?.(slotArgs),
               ),
             ]),
+          footer: footer
+            ? () => h("div", { class: "mmda-group-footer" }, footer)
+            : undefined,
         },
       );
+    };
   },
 });

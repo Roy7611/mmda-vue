@@ -60,6 +60,14 @@ export const PrimeVueOverlayHost = defineComponent({
         h(Toast, { group: 'notification', position: 'top-right' }),
         h(ConfirmDialog),
         ...dialogs.map(request => {
+          const height =
+            typeof request.props.height === 'number'
+              ? `${request.props.height}px`
+              : request.props.height
+          const maxHeight =
+            typeof request.props.maxHeight === 'number'
+              ? `${request.props.maxHeight}px`
+              : request.props.maxHeight ?? '90vh'
           const dialogProps = {
             visible: true,
             modal: request.props.modal ?? true,
@@ -69,6 +77,16 @@ export const PrimeVueOverlayHost = defineComponent({
                 typeof request.props.width === 'number'
                   ? `${request.props.width}px`
                   : request.props.width ?? 'min(90vw, 60rem)',
+              ...(height ? { height } : {}),
+              maxHeight,
+            },
+            pt: {
+              root: {
+                class: ['mmda-prime-dialog', request.props.cssClass]
+                  .filter(Boolean)
+                  .join(' '),
+              },
+              content: { class: 'mmda-prime-dialog__body' },
             },
             maximizable: true,
             onHide: () => closeOverlayDialog(overlay!, request, false),

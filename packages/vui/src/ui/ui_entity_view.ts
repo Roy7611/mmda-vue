@@ -153,6 +153,16 @@ export function createEntityView(options: EntityViewOptions) {
         if (!context) return h("p", "加载中…");
         // 订阅 loading：分页/筛选时刷新；表格同时接收 Ref 以便 Syncfusion 遮罩响应
         void context.loading.value;
+        // 订阅子表 length：push/clear 不会改写属性引用，必须显式依赖才能重渲
+        if (!context.many) {
+          for (const group of context.metaui.groups) {
+            if (!group.many) continue;
+            const items = (context.model as Record<string, unknown>)[
+              group.groupName
+            ];
+            if (Array.isArray(items)) void items.length;
+          }
+        }
         return context.many
           ? app.ui.buildListView(context, {
               loading: context.loading,

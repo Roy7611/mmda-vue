@@ -1,8 +1,8 @@
 import { defineComponent, h, ref } from "vue";
 
 /**
- * Detail page regions: left main (primary + tails stacked) | right summary.
- * Summary can collapse so main uses full width.
+ * Detail page body: scroll + left/right regions in one root.
+ * Left main stacks primary then tails; right summary collapses to free width.
  * Toggle is a sibling of the summary (anchored to regions) so its Y stays fixed while the panel slides.
  */
 export const MmdaPageRegions = defineComponent({
@@ -33,18 +33,16 @@ export const MmdaPageRegions = defineComponent({
           ],
         },
         [
-          h("div", { class: "mmda-page-main" }, [
-            h("div", { class: "mmda-page-primary" }, slots.primary?.()),
-            slots.tails?.()
-              ? h("div", { class: "mmda-page-tails" }, slots.tails())
-              : null,
+          h("main", { class: "mmda-page-main" }, [
+            slots.primary?.(),
+            slots.tails?.(),
           ]),
           props.hasSummary
             ? h(
                 "button",
                 {
                   type: "button",
-                  class: "mmda-page-summary__toggle",
+                  class: "mmda-page-summary-toggle",
                   title: summaryOpen.value ? "收起右侧" : "展开右侧",
                   "aria-label": summaryOpen.value
                     ? "收起右侧栏"
@@ -54,7 +52,7 @@ export const MmdaPageRegions = defineComponent({
                 },
                 [
                   h("span", {
-                    class: "mmda-page-summary__toggle-icon",
+                    class: "mmda-page-summary-toggle-icon",
                     "aria-hidden": "true",
                   }),
                 ],
@@ -70,11 +68,14 @@ export const MmdaPageRegions = defineComponent({
                 [
                   h(
                     "div",
-                    { class: "mmda-page-summary__body" },
+                    { class: "mmda-page-summary-body" },
                     slots.summary?.(),
                   ),
                 ],
               )
+            : null,
+          slots.footer?.()
+            ? h("footer", { class: "mmda-page-footer" }, slots.footer())
             : null,
         ],
       );

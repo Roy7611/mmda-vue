@@ -331,10 +331,52 @@ describe("UiViewContext", () => {
     const row = { id: "i1", itemName: "A", quantity: 1, rowNum: "1" } as any;
     root.addSubGroupItem("items", row);
     expect(model.items).toHaveLength(1);
+    root.addSubGroupItem("items", row);
+    expect(model.items).toHaveLength(1);
     root.removeSubGroupItem("items", row);
     expect(
       (model.items[0] as { entityState?: number }).entityState,
     ).toBeDefined();
+  });
+
+  it("newSubGroupItem 先入集，对话框取消则移除，确定则保留", async () => {
+    const { metaui } = createOrderMetaUi();
+    const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
+    const confirmDialog = vi
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const root = new UiViewContext({
+      model,
+      metaui,
+      view: "edit",
+      app: {
+        confirmDialog,
+        ui: { buildView: () => ({}) },
+      } as any,
+    });
+
+    await expect(
+      root.newSubGroupItem({
+        group: "items",
+        target: model,
+        creator: (o: object) => o as any,
+        source: { id: "i-new", itemName: "N", quantity: 1 },
+      }),
+    ).resolves.toBe(false);
+    expect(model.items).toHaveLength(0);
+
+    const kept = await root.newSubGroupItem({
+      group: "items",
+      target: model,
+      creator: (o: object) => o as any,
+      source: { id: "i-ok", itemName: "OK", quantity: 2 },
+    });
+    expect(kept).toBeTruthy();
+    expect(kept).toMatchObject({ itemName: "OK" });
+    expect(model.items).toHaveLength(1);
+    expect(toRaw(model.items[0])).toBe(toRaw(kept as object));
+    expect(confirmDialog).toHaveBeenCalledTimes(2);
   });
 
   it("批量字段赋值会校验，重置筛选保留固定 GET 查询参数", () => {

@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
-import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
 import {
   AppLayout,
   layoutField,
@@ -48,7 +48,7 @@ describe("default VUI layouts", () => {
 
     const fields = host.querySelectorAll<HTMLElement>(".mmda-field-layout");
     expect(fields[0].dataset.direction).toBe("horizontal");
-    expect(fields[0].style.gridTemplateColumns).toContain("5.25rem");
+    expect(fields[0].className).toContain("mmda-field-horizontal");
     expect(fields[0].querySelector(".mmda-field-message")?.textContent).toBe(
       "必填",
     );
@@ -75,9 +75,9 @@ describe("default VUI layouts", () => {
       ".mmda-field-group-layout",
     );
     expect(groups[0].dataset.cols).toBe("3");
-    expect(groups[0].style.gridTemplateColumns).toContain("repeat(3");
+    expect(groups[0].className).toContain("mmda-field-group-row");
     expect(groups[1].dataset.cols).toBe("1");
-    expect(groups[1].style.flexDirection).toBe("column");
+    expect(groups[1].className).toContain("mmda-field-group-column");
   });
 
   it("页面工具栏置顶，左右分栏且右侧可折叠", async () => {
@@ -87,30 +87,35 @@ describe("default VUI layouts", () => {
         primary: [h("section", "主信息")],
         summary: [h("section", "概要")],
         tails: [h("section", "明细")],
+        footer: h("div", "页脚"),
       }),
     );
 
     const page = host.querySelector<HTMLElement>(".mmda-page-layout")!;
     const toolbar = host.querySelector<HTMLElement>(".mmda-page-toolbar")!;
-    const scroll = host.querySelector<HTMLElement>(".mmda-page-scroll")!;
     const regions = host.querySelector<HTMLElement>(".mmda-page-regions")!;
+    const main = host.querySelector<HTMLElement>(".mmda-page-main")!;
     expect(page.style.overflow).toBe("hidden");
     expect(toolbar.style.position).toBe("sticky");
-    expect(scroll.style.overflow).toBe("auto");
     expect(regions.classList.contains("mmda-page-regions--with-summary")).toBe(
       true,
     );
     expect(regions.classList.contains("is-summary-open")).toBe(true);
-    expect(host.querySelector(".mmda-page-main .mmda-page-primary")).not.toBeNull();
-    expect(host.querySelector(".mmda-page-main .mmda-page-tails")?.textContent).toBe(
-      "明细",
-    );
-    expect(host.querySelector(".mmda-page-summary__body")?.textContent).toBe(
+    expect(host.querySelector(".mmda-page-scroll")).toBeNull();
+    expect(host.querySelector(".mmda-page-primary")).toBeNull();
+    expect(host.querySelector(".mmda-page-tails")).toBeNull();
+    expect(main.textContent).toContain("主信息");
+    expect(main.textContent).toContain("明细");
+    expect(host.querySelector(".mmda-page-summary-body")?.textContent).toBe(
       "概要",
+    );
+    expect(host.querySelector(".mmda-page-footer")?.textContent).toBe("页脚");
+    expect(regions.contains(host.querySelector(".mmda-page-footer")!)).toBe(
+      true,
     );
 
     const toggle = host.querySelector(
-      ".mmda-page-summary__toggle",
+      ".mmda-page-summary-toggle",
     ) as HTMLElement;
     toggle.click();
     await Promise.resolve();
@@ -242,12 +247,19 @@ describe("AbstractUiBuilder layout wiring", () => {
         groupUi: {
           objName: "MaterialFeature",
           displayLabel: "特征",
+          primaryKey: "featureCode",
           groups: [
             {
               groupName: "a1",
               groupLabel: "行",
               many: false,
-              fields: [field("featureCode", "特征码")],
+              fields: [
+                {
+                  ...field("featureCode", "特征码"),
+                  primaryKey: true,
+                },
+                field("featureName", "特征名称"),
+              ],
             },
           ],
         },
@@ -294,18 +306,18 @@ describe("AbstractUiBuilder layout wiring", () => {
       }),
     );
 
-    expect(host.querySelector(".mmda-page-primary")?.textContent).toContain(
+    expect(host.querySelector(".mmda-page-main")?.textContent).toContain(
       "基本信息",
+    );
+    expect(host.querySelector(".mmda-page-main")?.textContent).toContain(
+      "明细",
     );
     expect(host.querySelector(".mmda-page-summary")?.textContent).toContain(
       "概要",
     );
-    expect(host.querySelector(".mmda-page-tails")?.textContent).toContain(
-      "明细",
-    );
     expect(
       host.querySelector<HTMLElement>(
-        ".mmda-page-primary .mmda-field-group-layout",
+        ".mmda-page-main .mmda-field-group-layout",
       )?.dataset.cols,
     ).toBe("3");
     expect(
@@ -313,11 +325,10 @@ describe("AbstractUiBuilder layout wiring", () => {
         ".mmda-page-summary .mmda-field-group-layout",
       )?.dataset.cols,
     ).toBe("1");
-    expect(host.querySelector(".mmda-page-primary .mmda-group--primary")).not.toBeNull();
-    expect(host.querySelector(".mmda-page-primary .mmda-group-card")).not.toBeNull();
-    expect(host.querySelector(".mmda-page-primary fieldset.mmda-group")).toBeNull();
-    expect(host.querySelector(".mmda-page-summary .mmda-group--summary")).not.toBeNull();
-    expect(host.querySelector(".mmda-page-tails .mmda-group--tails")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-main .mmda-group.primary")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-main .mmda-group.master")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-main fieldset.mmda-group")).toBeNull();
+    expect(host.querySelector(".mmda-page-summary .mmda-group.secondary")).not.toBeNull();
     expect(host.querySelector("form")).toBeNull();
   });
 
@@ -338,7 +349,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       new HtmlUiBuilder().buildView(context, { showToolbar: false }),
     );
     const labels = [
-      ...host.querySelectorAll(".mmda-page-primary .mmda-group__title"),
+      ...host.querySelectorAll(".mmda-page-main .mmda-group-title"),
     ].map((el) => el.textContent);
     expect(labels).toEqual([
       "基本信息",
@@ -360,22 +371,26 @@ describe("AbstractUiBuilder layout wiring", () => {
       new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context),
     );
     expect(
-      cardHost.querySelector("article.mmda-group-card.mmda-group--primary"),
+      cardHost.querySelector("article.mmda-group.primary.master"),
     ).not.toBeNull();
     expect(cardHost.querySelector("fieldset.mmda-group")).toBeNull();
-    expect(cardHost.querySelector(".mmda-group__toggle")).not.toBeNull();
-    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group-toggle")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group-body")).not.toBeNull();
+    const cardClass = cardHost.querySelector("article.mmda-group")!.className;
+    expect(cardClass.match(/\bmmda-group\b/g)).toHaveLength(1);
+    expect(cardClass.match(/\bmaster\b/g)).toHaveLength(1);
+    expect(cardClass.match(/\bprimary\b/g)).toHaveLength(1);
 
-    const header = cardHost.querySelector(".mmda-group__header") as HTMLElement;
+    const header = cardHost.querySelector(".mmda-group-header") as HTMLElement;
     header.click();
     await Promise.resolve();
-    expect(cardHost.querySelector(".mmda-group-card.is-collapsed")).not.toBeNull();
-    expect(cardHost.querySelector(".mmda-group__collapse")).not.toBeNull();
-    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group.is-collapsed")).not.toBeNull();
+    expect(cardHost.querySelector(".e-collapse")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group-body")).not.toBeNull();
     header.click();
     await Promise.resolve();
-    expect(cardHost.querySelector(".mmda-group-card.is-expanded")).not.toBeNull();
-    expect(cardHost.querySelector(".mmda-group__content")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group.is-expanded")).not.toBeNull();
+    expect(cardHost.querySelector(".mmda-group-body")).not.toBeNull();
 
     const fieldsetHost = mount(
       new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
@@ -383,6 +398,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       }),
     );
     expect(fieldsetHost.querySelector("fieldset.mmda-group")).not.toBeNull();
+    expect(fieldsetHost.querySelector("article.mmda-group")).toBeNull();
     expect(fieldsetHost.querySelector(".mmda-group-card")).toBeNull();
   });
 
@@ -403,9 +419,9 @@ describe("AbstractUiBuilder layout wiring", () => {
     );
 
     const regions = host.querySelector(".mmda-page-regions")!;
-    expect(regions.querySelector(".mmda-page-summary__toggle")).not.toBeNull();
+    expect(regions.querySelector(".mmda-page-summary-toggle")).not.toBeNull();
     const summary = host.querySelector(".mmda-page-summary")!;
-    const body = summary.querySelector(".mmda-page-summary__body")!;
+    const body = summary.querySelector(".mmda-page-summary-body")!;
     const children = [...body.children];
     expect(children[0]?.classList.contains("mmda-attachments")).toBe(true);
     expect(children.at(-1)?.textContent).toContain("概要");
@@ -423,12 +439,165 @@ describe("AbstractUiBuilder layout wiring", () => {
     );
 
     const nameField = host.querySelector(
-      ".mmda-page-primary .mmda-field-layout",
+      ".mmda-page-main .mmda-field-layout",
     )!;
     expect(host.querySelector("form.mmda-form")).not.toBeNull();
     expect(nameField.querySelectorAll("label")).toHaveLength(1);
     expect(nameField.querySelector(".mmda-field-message")?.textContent).toBe(
       "名称必填",
     );
+  });
+
+  it("编辑页子表 header 渲染 actions 工具栏", () => {
+    const context = new UiViewContext({
+      model: {
+        materialCode: "M1",
+        qcRatio: 1,
+        partNos: [],
+        features: [],
+        medias: [],
+        skus: [],
+      },
+      metaui: interleavedMetaui,
+      view: "edit",
+    });
+    const skus = interleavedMetaui.getGroup("skus")!;
+    const grpLogic = new MetaUiGroupLogic(skus);
+    const add = vi.fn((ctx: UiViewContext) => {
+      ctx.addSubGroupItem("skus", {
+        skuCode: "S1",
+        editable: true,
+      } as any);
+    });
+    grpLogic.defaultAddFn = add as any;
+    context.setupGroupLogic(grpLogic);
+
+    const host = mount(
+      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+    );
+    const skuCard = [...host.querySelectorAll(".mmda-group.sub")].find((el) =>
+      el.textContent?.includes("SKU"),
+    ) as HTMLElement;
+    expect(skuCard).toBeTruthy();
+    expect(skuCard.querySelector(".mmda-group-actions")).not.toBeNull();
+    expect(skuCard.querySelector("#add-skus-button")).not.toBeNull();
+    expect(skuCard.querySelector("#clear-skus-button")).not.toBeNull();
+    const addBtn = skuCard.querySelector(
+      "#add-skus-button",
+    ) as HTMLButtonElement;
+    // 平面图标按钮：可见文案进 tooltip
+    expect(addBtn.title || addBtn.getAttribute("aria-label")).toBeTruthy();
+    expect(addBtn.textContent?.replace(/\s/g, "")).toBe("");
+    // 顺序：title | actions | toggle
+    const header = skuCard.querySelector(".mmda-group-header")!;
+    const children = [...header.children].map((el) => el.className);
+    expect(children.some((c) => c.includes("mmda-group-actions"))).toBe(true);
+    expect(children.at(-1)).toContain("mmda-group-toggle");
+
+    addBtn.click();
+    expect(add).toHaveBeenCalledTimes(1);
+    expect((context.model as any).skus).toHaveLength(1);
+  });
+
+  it("原生 Grid 子表默认整组可编辑，字段可单独关闭", () => {
+    const medias = interleavedMetaui.getGroup("medias")!;
+    const createBuilder = () => {
+      const builder = new HtmlUiBuilder();
+      let tableProps: any;
+      (builder.factory as any).nativeInplaceEdit = true;
+      (builder.factory as any).table = (
+        _rows: any[],
+        _metaui: MetaUi,
+        props: any,
+      ) => {
+        tableProps = props;
+        return h("div");
+      };
+      return { builder, getTableProps: () => tableProps };
+    };
+
+    const enabledContext = new UiViewContext({
+      model: { medias: [] },
+      metaui: interleavedMetaui,
+      view: "edit",
+    });
+    const enabled = createBuilder();
+    enabled.builder.buildGroup(medias, enabledContext);
+    expect(enabled.getTableProps().editableFields).toEqual(["mediaUrl"]);
+    expect(enabled.getTableProps().inplaceEditStart).toBe("excel");
+
+    const features = interleavedMetaui.getGroup("features")!;
+    const featureContext = new UiViewContext({
+      model: { features: [{ featureCode: "Color-1", editable: true }] },
+      metaui: interleavedMetaui,
+      view: "edit",
+    });
+    const featureBuilder = createBuilder();
+    featureBuilder.builder.buildGroup(features, featureContext);
+    // 主键字段只要行 editable 且字段未 lock，仍可原位编辑
+    expect(featureBuilder.getTableProps().editableFields).toEqual([
+      "featureCode",
+      "featureName",
+    ]);
+
+    const disabledContext = new UiViewContext({
+      model: { medias: [] },
+      metaui: interleavedMetaui,
+      view: "edit",
+    });
+    const groupLogic = new MetaUiGroupLogic(medias);
+    groupLogic.field("mediaUrl").inPlaceEdit(false);
+    disabledContext.setupGroupLogic(groupLogic);
+    const disabled = createBuilder();
+    disabled.builder.buildGroup(medias, disabledContext);
+    expect(disabled.getTableProps().editableFields).toEqual([]);
+
+    const groupDisabledContext = new UiViewContext({
+      model: { medias: [] },
+      metaui: interleavedMetaui,
+      view: "edit",
+    });
+    const disabledGroupLogic = new MetaUiGroupLogic(medias).inPlaceEdit(false);
+    groupDisabledContext.setupGroupLogic(disabledGroupLogic);
+    const groupDisabled = createBuilder();
+    groupDisabled.builder.buildGroup(medias, groupDisabledContext);
+    expect(groupDisabled.getTableProps().editableFields).toEqual([]);
+  });
+
+  it("编辑页只读字段走 display renderer 而非 editor", () => {
+    const dateField = new MetaUiField({
+      fieldName: "createdAt",
+      displayLabel: "创建日期",
+      fieldIdx: 0,
+      dataType: SqlDataType.DATETIME,
+      nullable: true,
+      readOnly: true,
+      editor: "DateTimePicker",
+      renderer: "textSpan",
+    });
+    const meta = new MetaUi({
+      objName: "Product",
+      displayLabel: "商品",
+      groups: [
+        {
+          groupName: "s1",
+          groupLabel: "概要",
+          many: false,
+          fields: [dateField],
+        },
+      ],
+    });
+    const context = new UiViewContext({
+      model: { createdAt: "2026-08-31 10:00:00" },
+      metaui: meta,
+      view: "edit",
+    });
+    const host = mount(
+      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+    );
+    const control = host.querySelector(".mmda-field-control")!;
+    expect(control.querySelector("input")).toBeNull();
+    expect(control.querySelector(".mmda-field-display, output")).not.toBeNull();
+    expect(control.textContent).toContain("2026");
   });
 });

@@ -235,7 +235,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 			})
 			.then(item => {
 				if (item) {
-					target.records.push(item);
+					if (!target.records.includes(item)) target.records.push(item);
 				}
 			});
 	}

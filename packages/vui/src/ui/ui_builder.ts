@@ -85,11 +85,9 @@ type UiContext = UiViewContext<any>;
 const hiddenDeletedSubRowStyle = (data: any) =>
   MetaModel.deleted(data) ? { display: "none" } : undefined;
 
-const groupRegion = (group: MetaUiGroup) => {
-  if (group.isSecondary()) return "summary";
-  if (group.isTails()) return "tails";
-  return "primary";
-};
+/** Card zone: primary (main column incl. tails) | secondary (summary/aside). */
+const groupZone = (group: MetaUiGroup) =>
+  group.isSecondary() ? "secondary" : "primary";
 
 /** 同区内：主表组（!many）在前并按 groupName；子表组按 groupIdx。 */
 const compareViewGroups = (a: MetaUiGroup, b: MetaUiGroup) => {
@@ -459,6 +457,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         enumerable: false,
       });
     }
+    if ((tableProps as PropData).inplaceEdit !== undefined) {
+      Object.defineProperty(cellProps, "inplaceEdit", {
+        value: (tableProps as PropData).inplaceEdit,
+        enumerable: false,
+      });
+    }
     return this.factory.table(rows, metaui, {
       ...tableProps,
       renderCell: (field, row) =>
@@ -513,7 +517,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const fieldLogic = ctx.getFieldLogic(field) as any;
     const model = (props.row ?? ctx.model) as { editable?: boolean };
 
-    if (inPlaceEdit && model?.editable && !isLock && !field.primaryKey) {
+    if (inPlaceEdit && model?.editable && !isLock) {
       const editor =
         fieldLogic?.customEditor ??
         this.fldFactory[field.editor ?? "textInput"] ??
@@ -585,6 +589,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const useEditor =
       Boolean(context.editing) &&
       !props?.isSearch &&
+      !props?.inplaceEdit &&
       fieldLogic?.cellEditable &&
       !context.isFieldReadonly(field);
     const isRoot = (context as { name?: string }).name == ".";
@@ -672,13 +677,17 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
   buildField: UiFieldRenderer = (field, context, props = {}) => {
     if (context.isFieldHidden(field)) return h("span", { hidden: true });
-    const { editing: editingProp, direction, ...controlProps } = props;
+    const { editing: editingProp, direction, isReadonly, ...controlProps } =
+      props;
     const editing = editingProp ?? context.editing;
-    const control = editing
+    // 对齐老代码：编辑页中只读字段走 renderer（文本），不用 editor
+    const useEditor =
+      editing && !context.isFieldReadonly(field) && !isReadonly;
+    const control = useEditor
       ? this.editFor(field, context, controlProps)
       : this.displayFor(field, context, controlProps);
     const runtime = context as any;
-    const invalid = editing && runtime.isInvalid?.(field);
+    const invalid = useEditor && runtime.isInvalid?.(field);
     const message =
       invalid && this.layout.fieldMessage
         ? h(
@@ -701,21 +710,23 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     this.buildField(field, context, props);
 
   groupWrapClass(group: MetaUiGroup, props: PropData = {}) {
-    const region = String(props.region ?? groupRegion(group));
+    const raw = String(props.region ?? groupZone(group));
+    // accept legacy region names from callers
+    const zone =
+      raw === "secondary" || raw === "summary" ? "secondary" : "primary";
     const many = props.many === true || group.many;
-    return [
-      "mmda-group",
-      `mmda-group--${region}`,
-      many ? "mmda-group--many mmda-group-many" : "mmda-group--master",
-      props.class,
-    ]
+    return ["mmda-group", many ? "sub" : "master", zone, props.class]
       .filter(Boolean)
       .join(" ");
   }
 
   /** 组内容容器：字段/表格布局归这里管，Card 只做外壳 */
-  wrapGroupContent(body: VNode | VNode[]) {
-    return h("div", { class: "mmda-group__content" }, body);
+  wrapGroupContent(body: VNode | VNode[], props: PropData = {}) {
+    return h(
+      "div",
+      { class: ["mmda-group-body", props.class].filter(Boolean) },
+      body,
+    );
   }
 
   /** FieldSet 外壳：骑边 legend（经典） */
@@ -734,7 +745,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       ...rest
     } = props;
     return h("fieldset", { class: this.groupWrapClass(group, props), ...rest }, [
-      h("legend", { class: "mmda-group__title" }, group.groupLabel),
+      h("legend", { class: "mmda-group-title" }, group.groupLabel),
       this.wrapGroupContent(body),
     ]);
   }
@@ -752,6 +763,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       direction: _direction,
       cols: _cols,
       class: _className,
+      headerActions,
       ...rest
     } = props;
     return h(
@@ -762,7 +774,36 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         class: this.groupWrapClass(group, props),
         ...rest,
       },
-      () => this.wrapGroupContent(body),
+      {
+        default: () => this.wrapGroupContent(body),
+        actions: headerActions ? () => headerActions : undefined,
+      },
+    );
+  }
+
+  /** 子表 header 工具栏（对齐老代码 Panel icons）— 平面图标，文案进 tooltip */
+  buildGroupHeaderActions(group: MetaUiGroup, context: UiContext) {
+    const runtime = context as UiViewContext;
+    const actions = runtime.getGroupActions?.(group) ?? [];
+    if (!actions.length) return undefined;
+    const t = (message: any) => context.t(message);
+    return h(
+      "div",
+      { class: "mmda-group-action-group" },
+      actions.map((action) => {
+        const label =
+          action.label ??
+          (action.name ? t(`action.${action.name}`) : action.name);
+        return this.factory.actionButton(action, t, true, {
+          id: `${action.name}-${group.groupName}-button`,
+          label: "",
+          tooltip: action.tooltip ?? label,
+          buttonType: "text",
+          shape: "round",
+          class: "mmda-group-action",
+          "aria-label": label,
+        });
+      }),
     );
   }
 
@@ -781,12 +822,13 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       cols = group.isSecondary() ? 1 : 2,
       container = "card",
       class: className,
+      showGroupActions = true,
       ...fieldProps
     } = props;
-    const wrapProps = {
+    const wrapProps: PropData = {
       container,
       class: className,
-      region: groupRegion(group),
+      region: groupZone(group),
       many: group.many,
     };
     if (group.many && group.groupUi) {
@@ -795,6 +837,29 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         [];
       const groupCtx = (context as UiViewContext).subGroupContext(group);
       const readOnlyRows = !context.editing;
+      const groupLogic = context.getGroupLogic(group) as any;
+      const nativeGridEditing = this.factory.nativeInplaceEdit === true;
+      const nativeInplaceEdit =
+        nativeGridEditing && groupLogic?.inplaceEdit !== false;
+      const listedFields = group.groupUi.getListedFields();
+      const tableFields = listedFields.length
+        ? listedFields
+        : group.groupUi.groups
+            .filter((childGroup) => !childGroup.many)
+            .flatMap((childGroup) => childGroup.fields);
+      const editableFields = tableFields
+        .filter((field) => {
+          const fieldLogic = groupCtx.getFieldLogic(field) as any;
+          return (
+            !readOnlyRows &&
+            (nativeGridEditing
+              ? nativeInplaceEdit && fieldLogic?.cellEditable !== false
+              : fieldLogic?.cellEditable === true) &&
+            !groupCtx.isFieldReadonly(field) &&
+            !groupCtx.isFieldHidden(field)
+          );
+        })
+        .map((field) => field.fieldName);
       const table = this.tableWithCells(
         rows,
         group.groupUi,
@@ -804,6 +869,37 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           enableGroup: false,
           showGridlines: true,
           readOnlyRows,
+          // 原生 Grid 路径始终屏蔽 VUI 的“整列常驻编辑器”；
+          // group 关闭时 editableFields 为空，仅保留双击弹窗编辑。
+          inplaceEdit: nativeGridEditing,
+          inplaceEditStart: groupLogic?.inplaceEditStart ?? "excel",
+          editableFields,
+          canEditCell: (item, field) => {
+            const rowCtx = groupCtx.with(item);
+            return (
+              nativeInplaceEdit &&
+              (item as { editable?: boolean }).editable !== false &&
+              !rowCtx.isFieldReadonly(field) &&
+              !rowCtx.isFieldHidden(field)
+            );
+          },
+          onCellSave: (item, field, value) => {
+            // item = features[i]（由 Grid 按行号解析）；直接写集合，添加只需 push。
+            let normalized = value;
+            if (
+              field.reference &&
+              (value == null || typeof value !== "object")
+            ) {
+              normalized =
+                field.reference.refOptions.find(
+                  (option) => field.reference!.valueOf(option) === value,
+                ) ?? value;
+            }
+            MetaModel.setFieldValue(item, field, normalized);
+            const rowCtx = groupCtx.with(item);
+            rowCtx.setFieldValue(field, normalized);
+            return !rowCtx.getFieldError?.(field);
+          },
           rowStyle: hiddenDeletedSubRowStyle,
           onItemDoubleClick: (item) =>
             (context as any).subGroupItem?.(group, item),
@@ -811,6 +907,9 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           groupUi: group.groupUi,
         },
       );
+      if (showGroupActions !== false) {
+        wrapProps.headerActions = this.buildGroupHeaderActions(group, context);
+      }
       return this.wrapGroup(
         group,
         layoutFieldGroup({
@@ -868,7 +967,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         isTails: () => false,
       } as MetaUiGroup,
       body,
-      { region: "summary", class: "mmda-attachments", ...props },
+      { region: "secondary", class: "mmda-attachments", ...props },
     );
   }
 
@@ -1106,8 +1205,10 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         showActions: props.showActions === true,
         loading: props.loading ?? runtime.loading,
         rowMenu:
-          props.rowMenu ??
-          this.createListRowMenu(context, props.showActions === true),
+          props.showColumnWithAction === false
+            ? undefined
+            : (props.rowMenu ??
+              this.createListRowMenu(context, props.showActions === true)),
       },
     );
   }

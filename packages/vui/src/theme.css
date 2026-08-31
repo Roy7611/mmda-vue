@@ -647,25 +647,119 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   line-height: 1.35;
 }
 
-.mmda-field-horizontal .mmda-field-label {
+/*
+ * 详情字段网格（目标效果）：
+ * 一行 N 个 field → 固定 2N 列：label(定宽右对齐) | field(1fr) | …
+ * 字段外壳 display:contents，label/control 直接进组网格，跨 Card 对齐。
+ */
+.mmda-page-main {
+  --mmda-field-label-col: 8rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mmda-page-summary {
+  --mmda-field-label-col: 7rem;
+}
+
+.mmda-field-group-layout.mmda-field-group-row,
+.mmda-field-group-layout.mmda-field-group-column {
+  display: grid;
+  gap: 0.65rem 0.75rem;
+  min-width: 0;
   width: 100%;
-  max-width: 8rem;
-  padding-inline-end: 0.25rem;
+}
+
+/* 2×逻辑列：label 定宽，field 吃满剩余（横排 label|field） */
+.mmda-field-group-layout.mmda-field-group-row[data-cols="1"] {
+  grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+}
+.mmda-field-group-layout.mmda-field-group-row[data-cols="2"] {
+  grid-template-columns:
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+}
+.mmda-field-group-layout.mmda-field-group-row[data-cols="3"] {
+  grid-template-columns:
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
+    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+}
+
+/* 竖排字段：仍按逻辑列分格（无 label/control 拆列） */
+.mmda-field-group-layout.mmda-field-group-row[data-cols="1"]:not(
+    :has(> .mmda-field-horizontal)
+  ) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.mmda-field-group-layout.mmda-field-group-row[data-cols="2"]:not(
+    :has(> .mmda-field-horizontal)
+  ) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mmda-field-group-layout.mmda-field-group-row[data-cols="3"]:not(
+    :has(> .mmda-field-horizontal)
+  ) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* summary：永远 1 逻辑列 */
+.mmda-field-group-layout.mmda-field-group-column,
+.mmda-page-summary .mmda-field-group-layout.mmda-field-group-row {
+  grid-template-columns: var(--mmda-field-label-col, 7rem) minmax(0, 1fr);
+}
+
+/* 仅横排字段拆开外壳；竖排保持整块 */
+.mmda-field-group-layout > .mmda-field-horizontal {
+  display: contents !important;
+}
+
+.mmda-field-group-layout .mmda-field-label {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding-inline-end: 0.4rem;
   overflow: hidden;
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
   align-self: center;
 }
 
-/* —— 详情页：先左右，再各自竖排；右侧可折叠（宽度滑动） —— */
+.mmda-field-group-layout .mmda-field-control {
+  min-width: 0;
+  align-self: center;
+}
+
+/* 不在组内的横排字段兜底 */
+.mmda-field-horizontal {
+  display: grid;
+  grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+.mmda-field-horizontal .mmda-field-label {
+  width: 100%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— 详情页：scroll + 左右分区合一；右侧可折叠（宽度滑动） —— */
 .mmda-page-regions {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
-  overflow: visible;
+  min-height: 0;
+  overflow: auto;
 }
 
 .mmda-page-regions--with-summary {
@@ -678,14 +772,8 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   gap: 0;
 }
 
-.mmda-page-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.mmda-page-primary,
-.mmda-page-tails {
+.mmda-page-footer {
+  grid-column: 1 / -1;
   min-width: 0;
 }
 
@@ -708,7 +796,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   pointer-events: none;
 }
 
-.mmda-page-summary__body {
+.mmda-page-summary-body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -718,13 +806,13 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
- * 锚在 .mmda-page-regions：纵向 top:50% 相对整页分区（高度由主区撑住，稳定）。
- * right 与 summary width 同步过渡，始终贴在概要栏左缘。
+ * 锚在 .mmda-page-regions：纵向 top:30% 相对整页分区（高度由主区撑住，稳定）。
+ * 始终贴页面内容区最右侧，不随概要栏宽度移动。
  */
-.mmda-page-summary__toggle {
+.mmda-page-summary-toggle {
   position: absolute;
-  top: 50%;
-  right: 18rem;
+  top: 30%;
+  right: 0;
   z-index: 4;
   display: inline-flex;
   align-items: center;
@@ -742,16 +830,11 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   );
   color: var(--mmda-on-primary-container, #21005d);
   box-shadow: -1px 0 4px rgb(0 0 0 / 8%);
-  transform: translate(-100%, -50%);
-  transition: right 0.28s ease;
+  transform: translateY(-50%);
   cursor: pointer;
 }
 
-.is-summary-collapsed .mmda-page-summary__toggle {
-  right: 0;
-}
-
-.mmda-page-summary__toggle:hover {
+.mmda-page-summary-toggle:hover {
   background: color-mix(
     in srgb,
     var(--mmda-primary-color, #6750a4) 42%,
@@ -759,22 +842,22 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   );
 }
 
-.mmda-page-summary__toggle-icon {
+.mmda-page-summary-toggle-icon {
   display: inline-block;
   width: 0.35rem;
   height: 0.35rem;
   border-inline-end: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
-  transform: rotate(135deg); /* ‹ 收起 */
+  transform: rotate(-45deg); /* › 展开态：箭头朝右 */
   transition: transform 0.2s ease;
 }
 
-.is-summary-collapsed .mmda-page-summary__toggle-icon {
-  transform: rotate(-45deg); /* › 展开 */
+.is-summary-collapsed .mmda-page-summary-toggle-icon {
+  transform: rotate(135deg); /* ‹ 折叠态：箭头朝左 */
 }
 
 fieldset.mmda-group,
-article.mmda-group-card {
+article.mmda-group {
   margin-top: 1rem;
   border: 1px solid
     color-mix(
@@ -784,18 +867,20 @@ article.mmda-group-card {
     );
   border-radius: var(--mmda-border-radius-lg, 12px);
   background: var(--mmda-surface-group, #fff);
+  box-shadow: none; /* flat：Outlined/Filled，非 Elevated */
 }
 
-/* Prime / Syncfusion Card：只保留间距，壳层外观交给官方组件样式 */
-.mmda-group-card:not(article) {
+/* Prime / Syncfusion Card：只保留间距；阴影在皮肤层关掉 */
+.mmda-group:not(article):not(fieldset) {
   margin-top: 1rem;
+  box-shadow: none;
 }
 
 fieldset.mmda-group {
   padding: 0.5rem 0.75rem 0.85rem;
 }
 
-fieldset.mmda-group > legend.mmda-group__title {
+fieldset.mmda-group > legend.mmda-group-title {
   display: inline-block;
   box-sizing: content-box;
   min-width: 6em;
@@ -811,13 +896,13 @@ fieldset.mmda-group > legend.mmda-group__title {
   text-align: left;
 }
 
-/* summary（附件 / 概要）：secondary-container，与主区分开 */
-fieldset.mmda-group--summary > legend.mmda-group__title {
+/* secondary（附件 / 概要）：secondary-container，与主区分开 */
+fieldset.mmda-group.secondary > legend.mmda-group-title {
   color: var(--mmda-text-color, #1c1b1f);
   background: var(--mmda-secondary-soft, #e8def8);
 }
 
-article.mmda-group.mmda-group-card {
+article.mmda-group {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -825,17 +910,23 @@ article.mmda-group.mmda-group-card {
 }
 
 /* html 外壳自带留白；Prime/SF Card 走官方 header/content padding，勿在此覆盖 */
-article.mmda-group-card .mmda-group__header {
+article.mmda-group > .mmda-group-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-height: 2.5rem;
   padding: 0.4rem 0.85rem;
+  border-bottom: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
   cursor: pointer;
   user-select: none;
 }
 
-article.mmda-group-card .mmda-group__title {
+article.mmda-group .mmda-group-title {
   flex: 1 1 auto;
   margin: 0;
   font-size: 0.9375rem;
@@ -843,14 +934,14 @@ article.mmda-group-card .mmda-group__title {
   line-height: 1.35;
 }
 
-article.mmda-group-card .mmda-group__toggle {
+article.mmda-group .mmda-group-toggle {
   flex: 0 0 auto;
   font-size: 0.75rem;
   opacity: 0.72;
 }
 
 /* html 皮肤：无 UI 库图标时用 CSS 箭头 */
-.mmda-group__toggle--css {
+.mmda-group-toggle--css {
   display: inline-block;
   width: 0.45rem;
   height: 0.45rem;
@@ -861,31 +952,37 @@ article.mmda-group-card .mmda-group__toggle {
   transition: transform 0.22s ease;
 }
 
-.mmda-group-card.is-collapsed > .mmda-group__header > .mmda-group__toggle--css {
+.mmda-group.is-collapsed > .mmda-group-header > .mmda-group-toggle--css {
   transform: rotate(-45deg);
 }
 
 /* 折叠高度动画：收起后只留 header；内容常驻，靠 0fr + overflow 裁切 */
-.mmda-group__collapse {
+.mmda-group > .e-collapse,
+.p-card.mmda-group .e-collapse {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 1fr;
+  width: 100%;
+  min-width: 0;
   transition: grid-template-rows 0.22s ease;
 }
 
-.mmda-group-card.is-collapsed > .mmda-group__collapse,
-.mmda-group-card.is-collapsed .p-card-body > .p-card-content > .mmda-group__collapse {
+.mmda-group.is-collapsed > .e-collapse,
+.mmda-group.is-collapsed .p-card-body > .p-card-content > .e-collapse {
   grid-template-rows: 0fr;
 }
 
-.mmda-group__collapse-inner {
+.e-collapse-inner {
   overflow: hidden;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 /*
  * 组内容容器：字段/表格布局归这里，不跟 Card header/body 抢样式。
  */
-.mmda-group__content {
+.mmda-group-body {
   box-sizing: border-box;
   width: 100%;
   max-width: none;
@@ -894,24 +991,23 @@ article.mmda-group-card .mmda-group__toggle {
 }
 
 /* fieldset 自身已有 padding，内层不再叠一层 */
-fieldset.mmda-group > .mmda-group__content {
+fieldset.mmda-group > .mmda-group-body {
   padding: 0;
 }
 
-.mmda-group--many > .mmda-group__collapse .mmda-group__content,
-.mmda-group-many > .mmda-group__collapse .mmda-group__content {
+.mmda-group.sub > .e-collapse .mmda-group-body {
   /* 子表：左右顶满 Card */
   padding: 0;
 }
 
-.mmda-group-card.is-collapsed .mmda-group__content {
+.mmda-group.is-collapsed .mmda-group-body {
   padding-block: 0;
 }
 
-.mmda-group-card.is-collapsed .mmda-group__content .e-grid,
-.mmda-group-card.is-collapsed .mmda-group__content .e-grid .e-gridheader,
-.mmda-group-card.is-collapsed .mmda-group__content .e-grid .e-gridcontent,
-.mmda-group-card.is-collapsed .mmda-group__content .e-grid .e-content {
+.mmda-group.is-collapsed .mmda-group-body .e-grid,
+.mmda-group.is-collapsed .mmda-group-body .e-grid .e-gridheader,
+.mmda-group.is-collapsed .mmda-group-body .e-grid .e-gridcontent,
+.mmda-group.is-collapsed .mmda-group-body .e-grid .e-content {
   min-height: 0 !important;
   height: 0 !important;
   max-height: 0 !important;
@@ -919,35 +1015,71 @@ fieldset.mmda-group > .mmda-group__content {
   overflow: hidden !important;
 }
 
-.mmda-group__toggle {
+.mmda-group-toggle {
   transition: transform 0.22s ease;
 }
 
-.mmda-group-card.is-collapsed .mmda-group__toggle:not(.mmda-group__toggle--css) {
+.mmda-group.is-collapsed .mmda-group-toggle:not(.mmda-group-toggle--css) {
   transform: rotate(-90deg);
 }
 
-article.mmda-group-card.is-collapsed .mmda-group__header {
+article.mmda-group.is-collapsed > .mmda-group-header {
   border-radius: inherit;
 }
 
-.mmda-group-card .mmda-group__header {
+.mmda-group > .mmda-group-header,
+.mmda-group .mmda-group-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.mmda-group-card .mmda-group__title {
+.mmda-group .mmda-group-title,
+.mmda-group .e-card-header-caption {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mmda-group-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.15rem;
+  margin-inline-start: auto;
+}
+
+.mmda-group-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.mmda-group-actions .mmda-group-action,
+.mmda-group-actions .mmda-button.mmda-group-action {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0.25rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mmda-group .mmda-group-title {
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.35;
 }
 
-.mmda-group-card .mmda-group__toggle {
+.mmda-group .mmda-group-toggle {
   flex: 0 0 auto;
   font-size: 0.75rem;
   opacity: 0.72;
+}
+
+.mmda-group-footer {
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* —— 登录页 —— */

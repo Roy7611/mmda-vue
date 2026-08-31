@@ -868,7 +868,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			.then(item => {
 				if (item) {
 					item.productID = null;
-					target.deliveryItems.push(item);
+					if (!target.deliveryItems.includes(item)) target.deliveryItems.push(item);
 				}
 			});
 	}
@@ -887,7 +887,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.materials.push(item);
+					if (!target.materials.includes(item)) target.materials.push(item);
 				}
 			});
 	}
@@ -907,7 +907,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.members.push(item);
+					if (!target.members.includes(item)) target.members.push(item);
 				}
 			});
 	}
@@ -1018,7 +1018,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.tasks.push(item);
+					if (!target.tasks.includes(item)) target.tasks.push(item);
 				}
 			});
 	}
@@ -1036,7 +1036,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.deliveryItems.push(item);
+					if (!target.deliveryItems.includes(item)) target.deliveryItems.push(item);
 				}
 			});
 	}
@@ -1054,7 +1054,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.taskRelations.push(item);
+					if (!target.taskRelations.includes(item)) target.taskRelations.push(item);
 				}
 			});
 	}
@@ -1072,7 +1072,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			})
 			.then(item => {
 				if (item) {
-					target.deliveryItemAmends.push(item);
+					if (!target.deliveryItemAmends.includes(item)) target.deliveryItemAmends.push(item);
 				}
 			});
 	}

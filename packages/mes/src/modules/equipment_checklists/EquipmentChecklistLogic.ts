@@ -94,7 +94,7 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 				})
 				.then(item => {
 					if (item) {
-						target.items.push(item);
+						if (!target.items.includes(item)) target.items.push(item);
 					}
 				});
 		}

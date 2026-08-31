@@ -37,6 +37,10 @@ export const SyncfusionOverlayHost = defineComponent({
           },
         }),
         ...dialogs.map(request => {
+          const height =
+            typeof request.props.height === 'number'
+              ? `${request.props.height}px`
+              : request.props.height
           const dialogProps = {
             visible: true,
             header: request.props.title ?? request.props.name,
@@ -44,33 +48,40 @@ export const SyncfusionOverlayHost = defineComponent({
               typeof request.props.width === 'number'
                 ? `${request.props.width}px`
                 : request.props.width ?? 'min(90vw, 60rem)',
+            height,
+            allowDragging: request.props.allowDragging ?? true,
+            enableResize: request.props.enableResize ?? true,
+            // 对齐老对话框：右上角关闭 + 底部取消/确认（EJ2 用 buttons，不是 footer slot）
+            showCloseIcon: request.props.showCloseIcon ?? true,
+            closeOnEscape: request.props.closeOnEscape ?? true,
+            buttons: [
+              {
+                click: () =>
+                  void closeOverlayDialog(overlay!, request, false),
+                buttonModel: {
+                  content: cancelLabel.value,
+                  cssClass: 'e-flat',
+                },
+              },
+              {
+                click: () =>
+                  void closeOverlayDialog(overlay!, request, true),
+                buttonModel: {
+                  content: okLabel.value,
+                  isPrimary: true,
+                },
+              },
+            ],
+            cssClass: ['mmda-sf-dialog', request.props.cssClass]
+              .filter(Boolean)
+              .join(' '),
             onUpdateVisible: (visible: boolean) => {
               if (!visible) void closeOverlayDialog(overlay!, request, false)
             },
           }
           const slots = {
-            default: () => request.content,
-            footer: () =>
-              h('div', { class: 'mmda-sf-dialog__footer' }, [
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'e-btn e-flat',
-                    onClick: () => closeOverlayDialog(overlay!, request, false),
-                  },
-                  cancelLabel.value,
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'e-btn e-primary',
-                    onClick: () => closeOverlayDialog(overlay!, request, true),
-                  },
-                  okLabel.value,
-                ),
-              ]),
+            default: () =>
+              h('div', { class: 'mmda-sf-dialog__body' }, [request.content]),
           }
           return factory?.dialog(dialogProps, slots)
         }),

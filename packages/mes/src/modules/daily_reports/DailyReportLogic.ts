@@ -128,7 +128,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
 			.then(Event => {
 				if (Event) {
 					Event.eventID = target?.eventID ?? '';
-					target.events.push(Event);
+					if (!target.events.includes(Event)) target.events.push(Event);
 				}
 			});
 	}
