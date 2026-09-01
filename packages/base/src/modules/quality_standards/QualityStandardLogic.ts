@@ -65,7 +65,7 @@ import { type QualityStandard, defineQualityStandard } from '../../models/Qualit
 	 * @returns 
 	 */
 	export const QualityStandardLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new QualityStandardLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'QualityStandards',
 		router,
 		module: module || metaUiService.findModule('QualityStandard'),

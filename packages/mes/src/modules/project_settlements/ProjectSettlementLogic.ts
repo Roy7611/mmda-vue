@@ -102,7 +102,7 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
  */
 export const ProjectSettlementLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectSettlementLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectSettlements',
 		router,
 		module: module || metaUiService.findModule('ProjectSettlement'),

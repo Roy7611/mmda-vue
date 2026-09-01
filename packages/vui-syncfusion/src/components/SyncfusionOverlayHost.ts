@@ -41,20 +41,32 @@ export const SyncfusionOverlayHost = defineComponent({
             typeof request.props.height === 'number'
               ? `${request.props.height}px`
               : request.props.height
-          const dialogProps = {
+          const title =
+            request.props.title ??
+            request.props.header ??
+            request.props.name
+          const dialogProps: Record<string, unknown> = {
             visible: true,
-            header: request.props.title ?? request.props.name,
+            header: title,
+            modal: request.props.modal,
             width:
               typeof request.props.width === 'number'
                 ? `${request.props.width}px`
                 : request.props.width ?? 'min(90vw, 60rem)',
-            height,
             allowDragging: request.props.allowDragging ?? true,
             enableResize: request.props.enableResize ?? true,
-            // 对齐老对话框：右上角关闭 + 底部取消/确认（EJ2 用 buttons，不是 footer slot）
             showCloseIcon: request.props.showCloseIcon ?? true,
             closeOnEscape: request.props.closeOnEscape ?? true,
-            buttons: [
+            cssClass: ['mmda-sf-dialog', request.props.cssClass]
+              .filter(Boolean)
+              .join(' '),
+            onUpdateVisible: (visible: boolean) => {
+              if (!visible) void closeOverlayDialog(overlay!, request, false)
+            },
+          }
+          if (height) dialogProps.height = height
+          if (request.props.showFooter !== false) {
+            dialogProps.buttons = [
               {
                 click: () =>
                   void closeOverlayDialog(overlay!, request, false),
@@ -71,13 +83,7 @@ export const SyncfusionOverlayHost = defineComponent({
                   isPrimary: true,
                 },
               },
-            ],
-            cssClass: ['mmda-sf-dialog', request.props.cssClass]
-              .filter(Boolean)
-              .join(' '),
-            onUpdateVisible: (visible: boolean) => {
-              if (!visible) void closeOverlayDialog(overlay!, request, false)
-            },
+            ]
           }
           const slots = {
             default: () =>

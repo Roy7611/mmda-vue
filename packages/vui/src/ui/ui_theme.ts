@@ -3,6 +3,11 @@
  * 均由 Material Color Utilities 按 MD3 推导（见 scripts/generate-m3-palettes.mjs）。
  * indigo / purple / blue / violet / red / orange / yellow / green / teal / cyan
  */
+import {
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_PAGE_SIZE_OPTIONS,
+} from "@mmda/core";
+
 export const MMDA_COLOR_PALETTE_IDS = [
   "indigo",
   "purple",
@@ -54,10 +59,38 @@ export function writeMmdaPref(
   storage?.setItem(mmdaPrefKey(key), value);
 }
 
+const PAGE_SIZE_OPTIONS = new Set<number>(DEFAULT_PAGE_SIZE_OPTIONS);
+
+/** 读本地保存的每页条数（`mmda/pageSize`），无效时回落默认值 */
+export function readStoredPageSize(
+  fallback = DEFAULT_PAGE_SIZE,
+  storage: Pick<Storage, "getItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): number {
+  const raw = readMmdaPref("pageSize", storage);
+  if (raw == null || raw === "") return fallback;
+  const size = Number.parseInt(raw, 10);
+  if (!Number.isFinite(size) || size <= 0) return fallback;
+  if (!PAGE_SIZE_OPTIONS.has(size)) return fallback;
+  return size;
+}
+
+/** 用户修改每页条数后写入本地（`mmda/pageSize`） */
+export function writeStoredPageSize(
+  size: number,
+  storage: Pick<Storage, "setItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): void {
+  const normalized = Math.trunc(Number(size));
+  if (!Number.isFinite(normalized) || normalized <= 0) return;
+  if (!PAGE_SIZE_OPTIONS.has(normalized)) return;
+  writeMmdaPref("pageSize", String(normalized), storage);
+}
+
 export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   {
     id: "indigo",
-    label: "靛蓝",
+    label: "palette.indigo",
     previewColor: "#6610f2",
     scale: {
       50: "#f6eeff",
@@ -75,7 +108,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "purple",
-    label: "紫色",
+    label: "palette.purple",
     previewColor: "#6750a4",
     scale: {
       50: "#f6eeff",
@@ -93,7 +126,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "blue",
-    label: "蓝色",
+    label: "palette.blue",
     previewColor: "#0d6efd",
     scale: {
       50: "#eef0ff",
@@ -111,7 +144,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "violet",
-    label: "紫罗兰",
+    label: "palette.violet",
     previewColor: "#6f42c1",
     scale: {
       50: "#f7edff",
@@ -129,7 +162,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "red",
-    label: "红色",
+    label: "palette.red",
     previewColor: "#dc3545",
     scale: {
       50: "#ffedec",
@@ -147,7 +180,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "orange",
-    label: "橙色",
+    label: "palette.orange",
     previewColor: "#fd7e14",
     scale: {
       50: "#ffede5",
@@ -165,7 +198,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "yellow",
-    label: "黄色",
+    label: "palette.yellow",
     previewColor: "#ffc107",
     scale: {
       50: "#ffefd4",
@@ -183,7 +216,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "green",
-    label: "绿色",
+    label: "palette.green",
     previewColor: "#198754",
     scale: {
       50: "#c1ffd4",
@@ -201,7 +234,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "teal",
-    label: "青绿",
+    label: "palette.teal",
     previewColor: "#20c997",
     scale: {
       50: "#bcffe0",
@@ -219,7 +252,7 @@ export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   },
   {
     id: "cyan",
-    label: "青色",
+    label: "palette.cyan",
     previewColor: "#0dcaf0",
     scale: {
       50: "#daf5ff",

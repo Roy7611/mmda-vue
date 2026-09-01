@@ -1,34 +1,14 @@
-import { defineComponent, h } from 'vue'
-
-export const NoAuthorityView = defineComponent({
-  name: 'NoAuthorityView',
-  setup() {
-    return () =>
-      h('div', { style: { padding: '32px' } }, [
-        h('h1', '无权限'),
-        h('p', '当前账号不能访问该模块。请联系管理员或返回首页。'),
-      ])
-  },
-})
+import { defineComponent, h } from "vue";
+import { useI18n } from "vue-i18n";
 
 export const Custompages = defineComponent({
-  name: 'Custompages',
+  name: "Custompages",
   setup() {
+    const { t } = useI18n();
     return () =>
-      h('div', { style: { padding: '32px' } }, [
-        h('h1', '自制页面'),
-        h('p', 'DailyRecords / MaterialCat / PartnerCat 仍为占位说明页，未接入通用 CRUD。'),
-      ])
+      h("div", { style: { padding: "32px" } }, [
+        h("h1", t("placeholder.custom")),
+        h("p", t("placeholder.customHint")),
+      ]);
   },
-})
-
-export const OfficeOnlineView = defineComponent({
-  name: 'OfficeOnlineView',
-  setup() {
-    return () =>
-      h('div', { style: { padding: '32px' } }, [
-        h('h1', 'Office Online'),
-        h('p', '本验证应用不嵌入旧版 Office Online / authority 深路径。请使用附件下载。'),
-      ])
-  },
-})
+});

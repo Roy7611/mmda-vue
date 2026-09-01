@@ -66,7 +66,7 @@ export class WorksiteLogic extends UiLogic<Worksite> {
  */
 export const WorksiteLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new WorksiteLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Worksites',
 		router,
 		module: module || metaUiService.findModule('Worksite'),

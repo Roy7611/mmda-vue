@@ -65,7 +65,7 @@ import { type Product, defineProduct } from '@/models/Product';
 	 * @returns 
 	 */
 	export const ProductLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Products',
 		router,
 		module: module || metaUiService.findModule('Product'),

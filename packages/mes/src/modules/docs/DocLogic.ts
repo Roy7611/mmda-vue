@@ -105,7 +105,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
 					ownerDeptID: selection.deptID,
 				};
 				action.param = submitBody;
-				$toast.add({ severity: 'success', summary: '提示', detail: $t('success.operationSuccessful'), group: 'br', life: 3000 });
+				$toast.add({ severity: 'success', summary: $t('dialog.title.prompt'), detail: $t('success.operationSuccessful'), group: 'br', life: 3000 });
 				return true;
 			}
 		});
@@ -118,7 +118,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
  * @returns
  */
 const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $toast, $api } = context.globalProps;
+	const { $toast, $api, $t } = context.globalProps;
 	// 列表页可能未加载 shares，需补拉文档详情
 	let shares = model.shares;
 	if (!shares?.length) {
@@ -133,8 +133,8 @@ const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: Entity
 	if (!shareeIDs.length) {
 		$toast.add({
 			severity: 'info',
-			summary: '提示',
-			detail: '该文档暂无分享记录',
+			summary: $t('dialog.title.prompt'),
+			detail: $t('doc.noShareRecords'),
 			group: 'br',
 			life: 3000,
 		});
@@ -412,25 +412,25 @@ export class DocLogic extends UiLogic<Doc> {
 	}
 	searchParam: Record<string, any> = {};
 	beforeSearch() {
-		const docType = [
+		const docType = (t: (key: string) => string) => [
 			{
-				label: '公开的',
+				label: t('doc.public'),
 				value: 'searchPublicDoc',
 			},
 			{
-				label: '我的',
+				label: t('doc.mine'),
 				value: 'searchMyDoc',
 			},
 			{
-				label: '分享的',
+				label: t('doc.shared'),
 				value: 'searchSharedDoc',
 			},
 			{
-				label: '回收站',
+				label: t('doc.recycleBin'),
 				value: 'searchReclaimedDoc',
 			},
 			{
-				label: '最近的',
+				label: t('doc.recent'),
 				value: 'searchDocAudit',
 			},
 		];
@@ -438,7 +438,7 @@ export class DocLogic extends UiLogic<Doc> {
 
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '文档类型',
+				searchLabel: 'doc.type',
 				searchParam: 'search',
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
 					if (!searchParam.queryParams) {
@@ -453,7 +453,7 @@ export class DocLogic extends UiLogic<Doc> {
 						ctx.addQueryParam('reclaimed', 'true');
 					}
 					const { factory } = ctx.uiBuilder;
-					return factory.tagSelector(csf.searchVal.value, docType, {
+					return factory.tagSelector(csf.searchVal.value, docType(ctx.t), {
 						onChange: async (val: any) => {
 							csf.searchVal.value = val;
 							// ctx.app.localDb.put(
@@ -488,7 +488,7 @@ export class DocLogic extends UiLogic<Doc> {
  */
 export const DocLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new DocLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Docs',
 		router,
 		module: module || metaUiService.findModule('Doc'),

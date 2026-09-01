@@ -62,26 +62,26 @@ export default defineComponent({
         const lockMsgColumns: CustomColumn[] = [
             {
                 field: 'materialCode',
-                header: '物料编码',
+                header: $t('view.materialCode'),
                 width: 150,
             },
             {
                 field: 'materialName',
-                header: '物料名称',
+                header: $t('view.materialName'),
             },
             {
                 field: 'unit',
-                header: '单位',
+                header: $t('inventory.unit'),
                 width: 50,
             },
             {
                 field: 'lockQty',
-                header: '锁定数量',
+                header: $t('inventory.lockedQuantity'),
                 aggregation: true,
             },
             {
                 field: 'unLockQty',
-                header: '可用数量',
+                header: $t('inventory.availableQuantity'),
                 aggregation: true,
             },
         ];

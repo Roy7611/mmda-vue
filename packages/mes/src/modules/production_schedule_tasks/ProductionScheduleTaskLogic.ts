@@ -65,7 +65,7 @@ import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/mod
 	 * @returns 
 	 */
 	export const ProductionScheduleTaskLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductionScheduleTaskLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionScheduleTasks',
 		router,
 		module: module || metaUiService.findModule('ProductionScheduleTask'),

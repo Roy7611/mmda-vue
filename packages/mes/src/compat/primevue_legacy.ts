@@ -1,10 +1,10 @@
 import { isObject, type MetaUiField } from '@mmda/core'
-import { createPrimeVueUiFactory } from '@mmda/vui-primevue'
+import { uiBuilder } from '@/mes'
 
-/** 旧仓全局 factory 单例；新皮肤改为每次 create，这里给业务 Logic 一个兼容入口。 */
-export const primeVueFactory = createPrimeVueUiFactory()
+/** 旧仓全局 factory 单例；现指向 Syncfusion 皮肤。 */
+export const primeVueFactory = uiBuilder.factory
 
-/** 旧 PrimeVue builder 的列合计；新皮肤未导出，MES 线边库仍在用。 */
+/** 列合计；无皮肤 helper。 */
 export function defaultSummaryMethod(filed: MetaUiField, data: any[]) {
   if (!filed?.aggregationSet || !Array.isArray(data) || data.length === 0) return ''
   const sum = data.reduce((prev: number, curr: any) => {

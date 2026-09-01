@@ -1,6 +1,7 @@
 import type { App, Plugin } from 'vue'
 import { registerLicense } from '@syncfusion/ej2-base'
 import '@mmda/vui/fontawesome.css'
+import '@mmda/vui/material-symbols.css'
 import '@mmda/vui/theme.css'
 import './style.css'
 import { installSyncfusionLocale } from './syncfusion_i18n'
@@ -13,11 +14,16 @@ export * from './syncfusion_overlay'
 export * from './syncfusion_i18n'
 export * from './components/SyncfusionOverlayHost'
 export * from './components/BpmnDiagram'
+// GanttChart is loaded lazily via SyncfusionUiBuilder.buildGanttChart
 export * from './components/Barcode'
 export * from './components/HelpPanel'
 export * from './components/SigninForm'
 export * from './components/AppSideMenu'
 export * from './components/SyncfusionAppMenu'
+export * from './components/DropupMenuButton'
+export * from './components/AttachmentPanel'
+export * from './components/PhotoGallery'
+export * from './components/FilesUploader'
 
 export interface MmdaSyncfusionOptions {
   licenseKey?: string

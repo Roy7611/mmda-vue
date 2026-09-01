@@ -68,7 +68,7 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 				groups.push(
 					this.group<EquipmentChecklist>('items').addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newEquipmentChecklist,
@@ -110,7 +110,7 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 	 * @returns 
 	 */
 	export const EquipmentChecklistLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new EquipmentChecklistLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'EquipmentChecklists',
 		router,
 		module: module || metaUiService.findModule('EquipmentChecklist'),

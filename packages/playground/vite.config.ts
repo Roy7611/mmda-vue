@@ -13,12 +13,24 @@ const vuiFa = fileURLToPath(
 const vuiTheme = fileURLToPath(
   new URL('../vui/src/theme.css', import.meta.url),
 )
+const vuiMaterialSymbols = fileURLToPath(
+  new URL('../vui/src/material-symbols.css', import.meta.url),
+)
 export default defineConfig({
   plugins: [vue(), vueJsx()],
   resolve: {
+    dedupe: [
+      '@syncfusion/ej2-base',
+      '@syncfusion/ej2-grids',
+      '@syncfusion/ej2-data',
+      '@syncfusion/ej2-vue-base',
+      '@syncfusion/ej2-vue-grids',
+      'vue',
+    ],
     alias: [
       { find: '@mmda/vui/fontawesome.css', replacement: vuiFa },
       { find: '@mmda/vui/theme.css', replacement: vuiTheme },
+      { find: '@mmda/vui/material-symbols.css', replacement: vuiMaterialSymbols },
       {
         find: '@mmda/vui-primevue/fontawesome.css',
         replacement: vuiFa,

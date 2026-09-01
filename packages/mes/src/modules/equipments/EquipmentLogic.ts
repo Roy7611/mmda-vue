@@ -220,9 +220,9 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 								ctx.setFieldValue('stationID', oldVal);
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'warn',
-									summary: '提示',
+									summary: ctx.t('dialog.title.prompt'),
 									group: 'br',
-									detail: '该工位已存在于工位子表中，请先在子表中删除后再清除。',
+									detail: ctx.t('equipment.stationAlreadyInList'),
 									life: 3000,
 								});
 								return;
@@ -349,9 +349,9 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							context.setFieldValue('movable', true);
 							context.uiBuilder.toast(context, {
 								severity: 'warn',
-								summary: '提示',
+								summary: context.t('dialog.title.prompt'),
 								group: 'br',
-								detail: '当前已设置可移动工位，请先清除后再关闭。',
+								detail: context.t('equipment.clearMovableStationsFirst'),
 								life: 3000,
 							});
 							return;
@@ -393,7 +393,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 					.hideIf(model => !model.movable)
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '添加',
+						label: 'action.add',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.addEquipmentStation,
@@ -534,7 +534,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
  */
 export const EquipmentLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new EquipmentLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Equipments',
 		router,
 		module: module || metaUiService.findModule('Equipment'),

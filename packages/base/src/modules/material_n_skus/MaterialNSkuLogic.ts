@@ -65,7 +65,7 @@ import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku
 	 * @returns 
 	 */
 	export const MaterialNSkuLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new MaterialNSkuLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaterialNSkus',
 		router,
 		module: module || metaUiService.findModule('MaterialNSku'),

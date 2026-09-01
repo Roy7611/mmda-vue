@@ -65,7 +65,7 @@ import { type ProjectInspection, defineProjectInspection } from '@/models/Projec
 	 * @returns 
 	 */
 	export const ProjectInspectionLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProjectInspectionLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectInspections',
 		router,
 		module: module || metaUiService.findModule('ProjectInspection'),

@@ -84,7 +84,7 @@ import { type MaintenancePlan, defineMaintenancePlan } from '@/models/Maintenanc
 	 * @returns 
 	 */
 	export const MaintenancePlanLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new MaintenancePlanLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaintenancePlans',
 		router,
 		module: module || metaUiService.findModule('MaintenancePlan'),

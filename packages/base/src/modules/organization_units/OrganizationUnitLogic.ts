@@ -65,7 +65,7 @@ import { type OrganizationUnit, defineOrganizationUnit } from '../../models/Orga
 	 * @returns 
 	 */
 	export const OrganizationUnitLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new OrganizationUnitLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'OrganizationUnits',
 		router,
 		module: module || metaUiService.findModule('OrganizationUnit'),

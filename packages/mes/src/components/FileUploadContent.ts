@@ -73,7 +73,7 @@ export const FileUploadContent = (context: any, props: PropData) => {
                                 icon: 'pi pi-download',
                                 buttonType: 'text',
                                 rounded: true,
-                                tooltip: '下载',
+                                tooltip: t('action.download'),
                                 size: 'small',
                                 tooltipPosition: 'bottom',
                                 ariaLabel: 'Download',
@@ -91,7 +91,7 @@ export const FileUploadContent = (context: any, props: PropData) => {
                                 severity: 'info',
                                 buttonType: 'text',
                                 rounded: true,
-                                tooltip: '预览',
+                                tooltip: t('action.preview'),
                                 tooltipPosition: 'bottom',
                                 ariaLabel: 'Preview',
                                 onAction: () => {

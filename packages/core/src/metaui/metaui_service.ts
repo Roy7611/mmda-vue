@@ -8,6 +8,7 @@ import type { MetaUiFilter } from './metaui_filter'
 import type { MetaUiSortSet } from './metaui_sort'
 import { type Module, ModuleFactory } from '../models/module'
 import type { ReportTemplate } from '../models/file'
+import type { MetaUiFieldFrozen } from './metaui_field'
 
 export interface MetaUiFilterNSorts {
   filters?: MetaUiFilter[]
@@ -16,6 +17,20 @@ export interface MetaUiFilterNSorts {
 
 export interface MetaUiPack extends MetaUiFilterNSorts {
   metaui: MetaUi
+}
+
+export interface ListSettingsField {
+  fieldName: string
+  listSize?: number
+  listed?: boolean
+  frozen?: MetaUiFieldFrozen | string
+  listPos?: number
+}
+
+export interface ListSettingsPayload {
+  service: string
+  repository: string
+  fields: ListSettingsField[]
 }
 
 /**
@@ -53,7 +68,7 @@ export interface MetaUiService {
 
   /**
    * 获取当前系统模块，需先身份认证后才可调用
-   * @param reload 为true时指示服务器刷新缓存
+   * @param reload 为 true 时请求服务器从数据库重新组装；Redis 为 readThru，默认为 false
    */
   getModules(reload?: boolean): Promise<Module[]>
 
@@ -75,7 +90,7 @@ export interface MetaUiService {
    * 获取元界面数据包，包含过滤器和排序设置
    * @param repository 仓储，通常是实体名称的复数形式，比如Warehouses
    * @param service 服务，例如`mes`, `wms`
-   * @param reload 是否从远端数据源重新加载
+   * @param reload `true` 时作为查询参数传给服务器：从数据库重新组装；Redis 为 readThru。不是先清 Redis。
    *
    * @remark
    *
@@ -88,6 +103,14 @@ export interface MetaUiService {
    * ```
    */
   getPack(
+    params?: EntityUrlParam,
+    reload?: boolean,
+  ): Promise<MetaUiPack>
+  /**
+   * 跳过本地 IndexedDB，从服务器拉取 pack 并写回本地缓存。
+   * @param reload `false` 走服务端 Redis；`true` 强制从数据库 readThru 后写 Redis
+   */
+  fetchPackFromServer(
     params?: EntityUrlParam,
     reload?: boolean,
   ): Promise<MetaUiPack>
@@ -107,10 +130,23 @@ export interface MetaUiService {
    * 获取元界面数据
    * @param repository 仓储，通常是实体名称的复数形式，比如Warehouses
    * @param service 服务，例如`mes`, `wms`
-   * @param reload 是否从远端数据源重新加载
+   * @param reload `true` 时请求服务器从数据库重新组装（Redis readThru）
    */
   get(repository: string, service?: string, reload?: boolean): Promise<MetaUi>
-  updateForCache(repository: string, meta: MetaUi): Promise<void>
+  /**
+   * 将当前元数据包写入 IndexedDB（metaui / filters / sorts）。
+   * `repository` 为实体复数名；`service` 参与缓存库隔离。
+   */
+  updateForCache(
+    repository: string,
+    pack: MetaUiPack,
+    service?: string,
+  ): Promise<void>
+  /**
+   * 将列表列设置永久保存到服务器（跨设备）。
+   * POST `{baseUrl}meta/listSettings/save`
+   */
+  saveListSettings(payload: ListSettingsPayload): Promise<unknown>
 }
 
 /**
@@ -285,6 +321,11 @@ class MetaUiServiceImpl implements MetaUiService {
       .then(meta => this.assemblePack(metaRepo, meta))
   }
 
+  /** Keep metadata from same-named repositories in different services apart. */
+  private cacheRepository(repository: string, service?: string) {
+    return `${service ?? this.apiClient.config.service}/${repository}`
+  }
+
   /**
    * 将元界面拆分成多个子对象
    * @param metaRepo 元界面存储的key
@@ -318,19 +359,32 @@ class MetaUiServiceImpl implements MetaUiService {
     return this._cache.putMany(assemblies).then(() => metaui)
   }
   /**
+   * 写入前对 metaui 做 JSON 快照，避免 disassemble 拆掉内存中正在用的 groupUi。
+   */
+  private snapshotMeta(meta: any) {
+    if (meta == null) return meta
+    return JSON.parse(
+      JSON.stringify(meta, (key, value) => {
+        if (typeof value === 'function') return undefined
+        if (String(key).startsWith('_')) return undefined
+        if (key === 'reference') return undefined
+        return value
+      }),
+    )
+  }
+
+  /**
    * 将元界面数据包（包含过滤器和排序设置）缓存在 _cache 中
-   * @param repository 仓储一般为实体的复数形式，例如`Putaways`
-   * @param metaPack 元界面数据包
-   * @returns 一个Promise对象，resolve时返回当前缓存的元界面数据包
    */
   private putPackToCache(repository: string, metaPack: any) {
-    const { metaui, filters, sorts } = metaPack
+    const { filters, sorts } = metaPack
+    const snapshot = this.snapshotMeta(metaPack.metaui)
     const metaUiPack: MetaUiPack = {
-      metaui: new MetaUi(metaui),
+      metaui: new MetaUi(snapshot),
       filters,
       sorts,
     }
-    const assemblies = this.disassemble(`meta/${repository}`, metaui)
+    const assemblies = this.disassemble(`meta/${repository}`, snapshot)
     assemblies.push([`meta/${repository}/filters`, filters])
     assemblies.push([`meta/${repository}/sorts`, sorts])
 
@@ -340,13 +394,15 @@ class MetaUiServiceImpl implements MetaUiService {
    * 从服务器获取元界面数据（不包含过滤器和排序设置）
    * @param repository 仓储一般为实体的复数形式，例如`Putaways`
    * @param service 服务，例如`mes`, `wms`
-   * @param reload 是否重新加载，`true`的时候服务器清除缓存并从数据库中加载和组装，默认为`false`
+   * @param reload `true` 时请求服务器从数据库重新组装；Redis 为 readThru。不是先清 Redis。
    * @returns
    */
   getFromServer(repository: string, service?: string, reload: boolean = false) {
     return this.apiClient
       .getMetaUi(reload, { repository, service })
-      .then(meta => this.putToCache(repository, meta))
+      .then(meta =>
+        this.putToCache(this.cacheRepository(repository, service), meta),
+      )
   }
 
   getPackFromServer(
@@ -356,14 +412,19 @@ class MetaUiServiceImpl implements MetaUiService {
     const { repository, redirection } = params
     return this.apiClient
       .getMetaUiPack(reload, params)
-      .then(meta => this.putPackToCache(redirection ?? repository, meta)) // 支持redirection参数指定重定向的repository
+      .then(meta =>
+        this.putPackToCache(
+          this.cacheRepository(redirection ?? repository, params.service),
+          meta,
+        ),
+      ) // 支持redirection参数指定重定向的repository
   }
   /**
    * 获取元界面，
    * 先尝试从本地缓存获取元数据，如果没有缓存则从服务器获取
    * @param repository 仓储一般为实体的复数形式，例如`Putaways`
    * @param service 服务，例如`mes`, `wms`，默认为当前app配置
-   * @param reload 是否重新加载，`true`的时候服务器清除缓存并从数据库中加载和组装，默认为`false`
+   * @param reload `true` 时请求服务器从数据库重新组装；Redis 为 readThru。不是先清 Redis。
    * @returns Promise<MetaUi>
    */
   get(
@@ -376,19 +437,33 @@ class MetaUiServiceImpl implements MetaUiService {
         metaPack => metaPack.metaui
       )
 
-    return this.getFromCache(repository).then(meta => {
+    return this.getFromCache(this.cacheRepository(repository, service)).then(meta => {
       if (meta) return new MetaUi(meta)
       return this.getPackFromServer(reload, { repository, service, }).then(
         metaPack => metaPack.metaui
       )
     })
   }
-  updateForCache(repository: string, meta: MetaUi) {
-    return this.putPackToCache(repository, meta).then(
-      (updateMeta: MetaUiPack) => {
-        updateMeta.metaui.getListedFields(true)
-      }
-    )
+  updateForCache(
+    repository: string,
+    pack: MetaUiPack,
+    service?: string,
+  ) {
+    return this.putPackToCache(
+      this.cacheRepository(repository, service),
+      pack,
+    ).then((updateMeta: MetaUiPack) => {
+      updateMeta.metaui.getListedFields(true)
+    })
+  }
+
+  saveListSettings(payload: ListSettingsPayload) {
+    const url = this.apiClient.buildEntityURL({
+      service: 'meta',
+      repository: 'listSettings',
+      action: 'save',
+    })
+    return this.apiClient.http.postJson(url, payload)
   }
   getFilterNSorts(
     repository: string,
@@ -397,7 +472,9 @@ class MetaUiServiceImpl implements MetaUiService {
   ): Promise<MetaUiFilterNSorts> {
     if (reload) return this.getPackFromServer(reload, { repository, service, })
 
-    return this.getFilterNSortsFromCache(repository)
+    return this.getFilterNSortsFromCache(
+      this.cacheRepository(repository, service),
+    )
   }
 
   getPack(
@@ -408,7 +485,9 @@ class MetaUiServiceImpl implements MetaUiService {
     if (reload) return this.getPackFromServer(reload, params)
 
     // 支持redirection参数指定重定向的repository
-    return this.getPackFromCache(redirection ?? repository).then(meta => {
+    return this.getPackFromCache(
+      this.cacheRepository(redirection ?? repository, params.service),
+    ).then(meta => {
       if (meta.metaui)
         return {
           module: this.findModule(repository), // redirection不影响模块查找，模块依然通过repository查找，因为redirection只是替换了repository来查找元界面数据，并不影响模块的repository
@@ -420,6 +499,13 @@ class MetaUiServiceImpl implements MetaUiService {
     })
   }
 
+  fetchPackFromServer(
+    params: EntityUrlParam = {},
+    reload: boolean = false,
+  ): Promise<MetaUiPack> {
+    return this.getPackFromServer(reload, params)
+  }
+
   getOtherSystemPack(
     repository: string,
     service: string,
@@ -427,7 +513,9 @@ class MetaUiServiceImpl implements MetaUiService {
   ): Promise<MetaUiPack> {
     if (reload) return this.getPackFromServer(reload, { repository, service, })
 
-    return this.getPackFromCache(repository).then(meta => {
+    return this.getPackFromCache(
+      this.cacheRepository(repository, service),
+    ).then(meta => {
       if (meta.metaui)
         return {
           module: this.findOtherSystemModule(service, repository),

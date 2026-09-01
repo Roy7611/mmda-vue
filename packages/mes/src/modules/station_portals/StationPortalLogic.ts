@@ -39,21 +39,21 @@ const searchParamtask = reactive({
 	searchParams: {},
 });
 const eventtypeoption = [
-	{ label: '信息', value: 'INFO', id: 0 },
-	{ label: '成功', value: 'SUCCESS', id: 1 },
-	{ label: '警告', value: 'WARNING', id: 2 },
-	{ label: '危险', value: 'DANGER', id: 4 },
+	{ label: 'stationlabel.eventLevelInfo', value: 'INFO', id: 0 },
+	{ label: 'stationlabel.eventLevelSuccess', value: 'SUCCESS', id: 1 },
+	{ label: 'stationlabel.eventLevelWarning', value: 'WARNING', id: 2 },
+	{ label: 'stationlabel.eventLevelDanger', value: 'DANGER', id: 4 },
 ];
 
 const eventcauseoption = [
 	{ lable: '-', name: 'NONE', value: 0 },
-	{ lable: '人', name: 'MAN', value: 1 },
-	{ lable: '设备', name: 'EQUIP', value: 2 },
-	{ lable: '材料', name: 'MATERIAL', value: 4 },
-	{ lable: '设计', name: 'DESIGN', value: 8 },
-	{ lable: '工艺', name: 'PROCESS', value: 16 },
-	{ lable: '质量', name: 'QC', value: 32 },
-	{ lable: '其他', name: 'OTHER', value: 128 },
+	{ lable: 'stationlabel.eventCauseMan', name: 'MAN', value: 1 },
+	{ lable: 'stationlabel.eventCauseEquipment', name: 'EQUIP', value: 2 },
+	{ lable: 'stationlabel.eventCauseMaterial', name: 'MATERIAL', value: 4 },
+	{ lable: 'stationlabel.eventCauseDesign', name: 'DESIGN', value: 8 },
+	{ lable: 'stationlabel.eventCauseProcess', name: 'PROCESS', value: 16 },
+	{ lable: 'stationlabel.eventCauseQuality', name: 'QC', value: 32 },
+	{ lable: 'stationlabel.eventCauseOther', name: 'OTHER', value: 128 },
 ];
 const reporteventparams = {
 	refID: '',
@@ -61,13 +61,13 @@ const reporteventparams = {
 	refItemKeys: <any>null,
 	refName: 'ProductionTask',
 };
-const QaStatus = [
-	{ label: '待检品', value: 'NI', id: 0 },
-	{ label: '良品', value: 'OK', id: 1 },
-	{ label: '瑕疵品', value: 'DG', id: 2 },
-	{ label: '让步接受', value: 'AUC', id: 3 },
-	{ label: '不良品', value: 'NG', id: 4 },
-	{ label: '废品', value: 'SCRAP', id: 8 },
+const qualityStatusOptions = (t: UiContext['t']) => [
+	{ label: t('stationlabel.qualityPending'), value: 'NI', id: 0 },
+	{ label: t('stationlabel.qualityGood'), value: 'OK', id: 1 },
+	{ label: t('stationlabel.qualityDefective'), value: 'DG', id: 2 },
+	{ label: t('stationlabel.qualityConcession'), value: 'AUC', id: 3 },
+	{ label: t('stationlabel.qualityBad'), value: 'NG', id: 4 },
+	{ label: t('stationlabel.qualityScrap'), value: 'SCRAP', id: 8 },
 ];
 const minDateexpiryDate = ref(new Date());
 const maxDateprodDate = ref(new Date());
@@ -100,10 +100,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 
 		const reportAction: EntityAction = {
 			name: "report",
-			label: "上报",
+			label: "action.report",
 			icon: null,
 			group: null,
-			description: "上报生产事件",
+			description: "action.reportProductionEvent",
 			param: {
 				type: "execute",
 				prompt: "FLOW_TO",
@@ -139,7 +139,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			),
 			context,
 			{
-				title: '生产事件',
+				title: context.t('stationlabel.productionEvent'),
 				height: '65vh',
 				width: '80vw',
 				accept: async () => {
@@ -301,7 +301,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								context.model.eventcause = 0;
 								context.model.eventtype = '';
 								context.model.eventtitle = '';
-								context.globalProps.$toast.add({ severity: 'success', summary: '成功', detail: '事件报告成功', life: 3000 });
+								context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.title.success'), detail: context.t('success.eventReported'), life: 3000 });
 
 								context.globalProps.$router.go(0);
 								return true;
@@ -310,7 +310,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						}
 						})
 						.catch((error: any) => {
-							context.globalProps.$toast.add({ severity: 'error', summary: '错误', group: 'br', detail: error.message, life: 3000 });
+							context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
 							return true;
 						})
 						.finally(() => {
@@ -318,12 +318,12 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						});
 				})
 				.catch((error: any) => {
-					context.globalProps.$toast.add({ severity: 'error', summary: '错误', group: 'br', detail: error.message, life: 3000 });
+					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
 					return true;
 				});
 			return true;
 		} else {
-			context.globalProps.$toast.add({ severity: 'error', summary: '错误', group: 'br', detail: '必填项不能为空', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: context.t('stationlabel.Requiredfieldscannotbeblank'), life: 3000 });
 		}
 	};
 	/**
@@ -443,7 +443,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			});
 			// 弹窗
 			context.uiBuilder.confirmDialog(h(ProductionLotdialog, {}), context, {
-				title: '生产批次报工',
+				title: context.t('stationlabel.batchReport'),
 				height: '18rem',
 				accept: async () => {
 					return await this.submitProductionLot(context, reportparams);
@@ -503,7 +503,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 	});
 		// }
 		else if (reportparamspath.objName == 'ProductionItem') {
-			context.globalProps.$toast.add({ severity: 'info', summary: '提示', detail: '该任务是生产单件报工,由设备自动计数报工', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'info', summary: context.t('dialog.title.prompt'), detail: context.t('stationlabel.singlePieceAutoReport'), life: 3000 });
 		} else if (reportparamspath.objName == 'ProductionPlate') {
 			context.model.quantity = null;
 			context.model.packQty = null;
@@ -557,7 +557,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 									default: () =>
 										context.uiBuilder.factory.select({
 											modelValue: context.model.qcResult,
-											options: QaStatus,
+											options: qualityStatusOptions(context.t),
 											dataKey: 'id',
 											placeholder: context.t('action.select'),
 											optionLabel: 'label',
@@ -572,7 +572,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				},
 			});
 			context.uiBuilder.confirmDialog(h(ProductionPlatedialog, {}), context, {
-				title: '生产货组报工',
+				title: context.t('stationlabel.lotReport'),
 				height: '15rem',
 				accept: async () => {
 					// console.log(context.model)
@@ -601,11 +601,11 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 */
 	async submitProductionLot(context: UiContext<any>, reportparams: any) {
 		if (!context.model.quantity || Number(context.model.quantity) <= 0) {
-			context.globalProps.$toast.add({ severity: 'error', summary: '提示', group: 'br', detail: '批次数量不能为空且必须大于0', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.batchQuantityPositive'), life: 3000 });
 			return false;
 		}
 		if (Number(context.model.goodQuantity) > Number(context.model.quantity)) {
-			context.globalProps.$toast.add({ severity: 'error', summary: '提示', group: 'br', detail: '优良品数量不能大于批次数量', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.goodQuantityTooLarge'), life: 3000 });
 			return false;
 		}
 		try {
@@ -625,7 +625,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{ action: 'save', service: 'mes', repository: 'ProductionLots' },
 				res
 			);
-			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: '报工成功', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: context.t('success.workReported'), life: 3000 });
 			context.globalProps.$router.go(0);
 			return true;
 		} catch (error: any) {
@@ -642,7 +642,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 */
 	async submitProductionPlate(context: UiContext<any>, reportparams: any) {
 		if (!context.model.quantity || Number(context.model.quantity) <= 0) {
-			context.globalProps.$toast.add({ severity: 'error', summary: '提示', group: 'br', detail: '产出数量不能为空且必须大于0', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.outputQuantityPositive'), life: 3000 });
 			return false;
 		}
 		try {
@@ -658,7 +658,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{ action: 'save', service: 'mes', repository: 'ProductionPlates' },
 				res
 			);
-			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: '报工成功', life: 3000 });
+			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: context.t('success.workReported'), life: 3000 });
 			context.globalProps.$router.go(0);
 			return true;
 		} catch (error: any) {
@@ -700,33 +700,33 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.confirmDialog(
 				h('div', { class: 'flex_wrap' }, [
 					context.uiBuilder.factory.formItem({
-						label: '物料名称',
+						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '物料编码',
+						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '投料数量',
+						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '追溯码',
+						label: context.t('stationlabel.traceCode'),
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
 						},
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '制造厂家',
+						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
@@ -734,7 +734,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					}),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '生产日期',
+							label: context.t('stationlabel.productionDate'),
 						},
 						{
 							default: () =>
@@ -749,7 +749,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '有效日期',
+							label: context.t('stationlabel.expiryDate'),
 						},
 						{
 							default: () =>
@@ -765,7 +765,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				]),
 				context,
 				{
-					title: '扫码投料',
+					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
 					accept: async () => {
 						return await this.confirmMaterialtrack(context);
@@ -797,26 +797,26 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.confirmDialog(
 				h('div', { class: 'flex_wrap' }, [
 					context.uiBuilder.factory.formItem({
-						label: '物料名称',
+						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '物料编码',
+						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '投料数量',
+						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '追溯码',
+						label: context.t('stationlabel.traceCode'),
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
@@ -830,7 +830,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						// },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '制造厂家',
+						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
@@ -838,7 +838,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					}),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '生产日期',
+							label: context.t('stationlabel.productionDate'),
 						},
 						{
 							default: () =>
@@ -853,7 +853,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '有效日期',
+							label: context.t('stationlabel.expiryDate'),
 						},
 						{
 							default: () =>
@@ -869,7 +869,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				]),
 				context,
 				{
-					title: '扫码投料',
+					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
 					accept: async () => {
 						return await this.confirmMaterialtrack(context);
@@ -901,26 +901,26 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.confirmDialog(
 				h('div', { class: 'flex_wrap' }, [
 					context.uiBuilder.factory.formItem({
-						label: '物料名称',
+						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '物料编码',
+						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '投料数量',
+						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '追溯码',
+						label: context.t('stationlabel.traceCode'),
 						id: 'scanInput',
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
 						onUpdate: (val: any) => {
@@ -938,7 +938,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						},
 					}),
 					context.uiBuilder.factory.formItem({
-						label: '制造厂家',
+						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
@@ -946,7 +946,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					}),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '生产日期',
+							label: context.t('stationlabel.productionDate'),
 						},
 						{
 							default: () =>
@@ -961,7 +961,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					),
 					context.uiBuilder.factory.formItem(
 						{
-							label: '有效日期',
+							label: context.t('stationlabel.expiryDate'),
 						},
 						{
 							default: () =>
@@ -977,7 +977,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				]),
 				context,
 				{
-					title: '扫码投料',
+					title: context.t('stationlabel.scanFeeding'),
 					height: '10rem',
 					accept: async () => {
 						return await this.confirmMaterialtrack(context);
@@ -1379,7 +1379,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
-					searchLabel: '生产计划',
+					searchLabel: 'stationlabel.productionPlan',
 					searchParam: 'planID',
 					valueFn: (v: any) => v.planID,
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -1432,11 +1432,11 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 										),
 										ctx,
 										{
-											title: '选择一个生产计划',
+											title: ctx.t('stationlabel.selectProductionPlan'),
 											style: { width: '80vw', maxHeight: '95%' },
 											accept: async () => {
 												if (!data?.planID) {
-													ctx.globalProps.$toast.add({ severity: 'error', summary: '提示', group: 'br', detail: '必须选择其中一项', life: 3000 });
+													ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 });
 													return false;
 											}
 												csf.searchWord.value = csf.searchVal.value = data;
@@ -1479,7 +1479,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					},
 				},
 				{
-					searchLabel: '生产任务',
+					searchLabel: 'stationlabel.productionTask',
 					searchParam: 'taskID',
 					valueFn: (v: any) => v.taskID,
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -1533,11 +1533,11 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 										),
 										ctx,
 										{
-											title: '选择一个生产任务',
+											title: ctx.t('stationlabel.selectProductionTask'),
 											style: { width: '80vw', maxHeight: '95%' },
 											accept: async () => {
 												if (!data?.taskID) {
-													ctx.globalProps.$toast.add({ severity: 'error', summary: '提示', group: 'br', detail: '必须选择其中一项', life: 3000 });
+													ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 });
 													return false;
 											}
 												csf.searchWord.value = csf.searchVal.value = data ?? null;
@@ -1639,7 +1639,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
  */
 export const StationPortalLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new StationPortalLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'StationPortals',
 		router,
 		module: module || metaUiService.findModule('StationPortal'),

@@ -109,7 +109,7 @@ const getCreateData = async (params: any, propData: any, context: UiBuildContext
 			{
 				severity: 'error',
 				summary: context.t('dialog.title.error'),
-				detail: error.message ?? '请求失败',
+				detail: error.message ?? context.t('invalid.requestFailed'),
 				group: 'br',
 				life: 3000
 			}
@@ -146,7 +146,7 @@ const beforeToolsLend = async (context: UiBuildContext<any>, model: Tool, action
 						toast.add({
 							severity: 'error',
 							detail: t('auth.selectASuperintendent'),
-							summary: '错误',
+							summary: context.t('dialog.title.error'),
 							group: 'br',
 							// position: 'bottom-right',
 							life: 3000,
@@ -220,7 +220,7 @@ const beforeToolsMove = async (context: UiBuildContext<any>, model: Tool, action
 						toast.add({
 							severity: 'error',
 							detail: t('auth.writetMoveTo'),
-							summary: '错误',
+							summary: context.t('dialog.title.error'),
 							group: 'br',
 							// position: 'bottom-right',
 							life: 3000,
@@ -293,7 +293,7 @@ const beforeToolsRepair = async (context: UiBuildContext<any>, model: Tool, acti
 						toast.add({
 							severity: 'error',
 							detail: t('auth.selectASuperintendent'),
-							summary: '错误',
+							summary: context.t('dialog.title.error'),
 							group: 'br',
 							// position: 'bottom-right',
 							life: 3000,
@@ -361,7 +361,7 @@ const beforeToolsReturn = async (context: UiBuildContext<any>, model: Tool, acti
 						toast.add({
 							severity: 'error',
 							detail: t('auth.writetMoveTo'),
-							summary: '错误',
+							summary: context.t('dialog.title.error'),
 							group: 'br',
 							// position: 'bottom-right',
 							life: 3000,
@@ -598,7 +598,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			customActions.push({
 				name: 'toolsPicking',
 				icon: 'pi pi-box',
-				label: '指定器具',
+				label: 'action.assignTools',
 				group: 'selectMany',
 				role: 'primary',
 				onAction: this.beforeToolsPicking,
@@ -623,7 +623,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					life: 3000,
 				})
 				.then(() => {
-					throw new Error("没有选择数据");
+					throw new Error(t('invalid.requiredSelectAny'));
 				});
 		}
 
@@ -644,7 +644,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
 						summary: t('dialog.success'),
-						detail: '批量入库成功',
+						detail: t('success.toolsStored'),
 						group: 'br',
 						life: 3000,
 					});
@@ -653,7 +653,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: t('dialog.title.error'),
-						detail: error.message ?? '请求失败',
+						detail: error.message ?? t('invalid.requestFailed'),
 						group: 'br',
 						life: 3000
 					})
@@ -679,8 +679,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		// 	return Promise.reject(new Error("没有选择数据"));
 		// }
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量启用选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量启用',
+			message: t('tool.confirmBatchEnable', { count: selectedItems.length }),
+			header: t('tool.batchEnable'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				try {
@@ -694,7 +694,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
 						summary: t('dialog.success'),
-						detail: '批量启用成功',
+						detail: t('success.toolsEnabled'),
 						group: 'br',
 						life: 3000,
 					});
@@ -704,7 +704,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: t('dialog.title.error'),
-						detail: error.message ?? '请求失败',
+						detail: error.message ?? t('invalid.requestFailed'),
 						group: 'br',
 						life: 3000,
 					});
@@ -728,11 +728,11 @@ export class ToolLogic extends UiLogic<Tool> {
 				detail: t('invalid.requiredSelectAny'),
 				life: 3000,
 			});
-			throw new Error("没有选择数据");
+			throw new Error(t('invalid.requiredSelectAny'));
 		}
 
 		const res = await this.createToolUseForm(context, context.model);
-		if (!res) throw new Error("取消操作");
+		if (!res) throw new Error(t('failure.canceloperation'));
 
 		return await this.apiClient.doAction({
 			action: 'batchLend',
@@ -746,7 +746,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			context.uiBuilder.toast(context, {
 				severity: 'success',
 				summary: t('dialog.success'),
-				detail: '批量借出成功',
+				detail: t('success.toolsLent'),
 				group: 'br',
 				life: 3000,
 			});
@@ -755,7 +755,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
 				summary: t('dialog.title.error'),
-				detail: error.message ?? '请求失败',
+				detail: error.message ?? t('invalid.requestFailed'),
 				group: 'br',
 				life: 3000,
 			});
@@ -780,7 +780,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		const res = await this.createToolUseForm(context, context.model);
-		if (!res) throw new Error("取消操作");
+		if (!res) throw new Error(t('failure.canceloperation'));
 
 		return await this.apiClient.doAction({
 			action: 'batchMove',
@@ -794,7 +794,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			context.uiBuilder.toast(context, {
 				severity: 'success',
 				summary: t('dialog.success'),
-				detail: '批量移动成功',
+				detail: t('success.toolsMoved'),
 				group: 'br',
 				life: 3000,
 			});
@@ -803,7 +803,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
 				summary: t('dialog.title.error'),
-				detail: error.message ?? '请求失败',
+				detail: error.message ?? t('invalid.requestFailed'),
 				group: 'br',
 				life: 3000,
 			});
@@ -853,7 +853,7 @@ export class ToolLogic extends UiLogic<Tool> {
 							return {
 								class: `${props.field}`,
 								style: {
-									background: 'var(--p-content-background)',
+									background: 'var(--mmda-content-background)',
 									'text-align': 'center',
 								}
 							}
@@ -921,7 +921,7 @@ export class ToolLogic extends UiLogic<Tool> {
 										return {
 											class: `${props.field}`,
 											style: {
-												background: 'var(--p-treetable-header-cell-background)',
+												background: 'var(--mmda-treetable-header-cell-background)',
 											}
 										}
 									},
@@ -979,7 +979,7 @@ export class ToolLogic extends UiLogic<Tool> {
 										return {
 											class: `${props.field}`,
 											style: {
-												background: 'var(--p-treetable-header-cell-background)',
+												background: 'var(--mmda-treetable-header-cell-background)',
 											}
 										}
 									},
@@ -1007,7 +1007,7 @@ export class ToolLogic extends UiLogic<Tool> {
 											invalid: isExceeded || undefined,
 											onUpdate: (value: number) => returnParmas.value[data.toolID] = value,
 										}),
-										isExceeded ? h('small', { style: { color: 'red' } }, '使用次数累计超过最大使用次数，该器具将不能继续使用！') : null,
+										isExceeded ? h('small', { style: { color: 'red' } }, t('tool.overMaxUseCount')) : null,
 									]);
 								},
 							}
@@ -1031,15 +1031,15 @@ export class ToolLogic extends UiLogic<Tool> {
 			{
 				id: 'BatchReturnDialog',
 				name: 'BatchReturnDialog',
-				title: '批量归还确认',
+				title: t('tool.batchReturnConfirm'),
 				style: {
 					width: '60%',
 					height: '70vh',
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				acceptLabel: '确认归还',
-				rejectLabel: '取消',
+				acceptLabel: t('tool.confirmReturn'),
+				rejectLabel: t('action.cancel'),
 				accept: async () => {
 					// 检查使用次数是否超限
 					const exceededTools = selectedItems.filter((item: any) => {
@@ -1050,8 +1050,8 @@ export class ToolLogic extends UiLogic<Tool> {
 						const toolNos = exceededTools.map((item: any) => item.toolNo).join('、');
 						context.uiBuilder.toast(context, {
 							severity: 'error',
-							summary: '提示',
-							detail: `器具 ${toolNos} 使用次数累计超过最大使用次数，该器具将不能继续使用！`,
+							summary: t('dialog.title.prompt'),
+							detail: t('tool.toolsOverMaxUseCount', { it: toolNos }),
 							group: 'br',
 							life: 3000,
 						});
@@ -1068,7 +1068,7 @@ export class ToolLogic extends UiLogic<Tool> {
 						context.uiBuilder.toast(context, {
 							severity: 'success',
 							summary: t('dialog.success'),
-							detail: '批量归还成功',
+							detail: t('success.toolsReturned'),
 							group: 'br',
 							life: 3000,
 						});
@@ -1078,7 +1078,7 @@ export class ToolLogic extends UiLogic<Tool> {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
 							summary: t('dialog.title.error'),
-							detail: error.message ?? '请求失败',
+							detail: error.message ?? t('invalid.requestFailed'),
 							group: 'br',
 							life: 3000,
 						});
@@ -1091,8 +1091,8 @@ export class ToolLogic extends UiLogic<Tool> {
 
 		// old logic 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量归还选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量归还',
+			message: t('tool.confirmBatchReturn', { count: selectedItems.length }),
+			header: t('tool.batchReturn'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				try {
@@ -1105,7 +1105,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
 						summary: t('dialog.success'),
-						detail: '批量归还成功',
+						detail: t('success.toolsReturned'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1115,7 +1115,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: t('dialog.title.error'),
-						detail: error.message ?? '请求失败',
+						detail: error.message ?? t('invalid.requestFailed'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1144,8 +1144,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量检修选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量检修',
+			message: t('tool.confirmBatchRepair', { count: selectedItems.length }),
+			header: t('tool.batchRepair'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				Overhaulparams.batchOverhaul.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
@@ -1155,7 +1155,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				context.uiBuilder.toast(context, {
 					severity: 'success',
 					summary: t('dialog.success'),
-					detail: '批量检修成功',
+					detail: t('success.toolsRepaired'),
 					group: 'br',
 					life: 3000,
 				});
@@ -1189,8 +1189,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量改制选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量改制',
+			message: t('tool.confirmBatchRemake', { count: selectedItems.length }),
+			header: t('tool.batchRemake'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				Retrofitparams.batchRetrofit.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
@@ -1200,7 +1200,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				context.uiBuilder.toast(context, {
 					severity: 'success',
 					summary: t('dialog.success'),
-					detail: '批量改制成功',
+					detail: t('success.toolsRemade'),
 					group: 'br',
 					life: 3000,
 				});
@@ -1234,8 +1234,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量维修选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量维修',
+			message: t('tool.confirmBatchMaintain', { count: selectedItems.length }),
+			header: t('tool.batchMaintain'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				Repairparams.batchRepair.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
@@ -1245,7 +1245,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				context.uiBuilder.toast(context, {
 					severity: 'success',
 					summary: t('dialog.success'),
-					detail: '批量维修成功',
+					detail: t('success.toolsMaintained'),
 					group: 'br',
 					life: 3000,
 				});
@@ -1278,8 +1278,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量报废选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量报废',
+			message: t('tool.confirmBatchScrap', { count: selectedItems.length }),
+			header: t('tool.batchScrap'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				try {
@@ -1292,7 +1292,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
 						summary: t('dialog.success'),
-						detail: '批量报废成功',
+						detail: t('success.toolsScrapped'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1302,7 +1302,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: t('dialog.title.error'),
-						detail: error.message ?? '请求失败',
+						detail: error.message ?? t('invalid.requestFailed'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1330,8 +1330,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		return await context.uiBuilder.confirmMessage(context, {
-			message: `确定要批量处置选中的 ${selectedItems.length} 个工装器具吗？`,
-			header: '批量处置',
+			message: t('tool.confirmBatchDispose', { count: selectedItems.length }),
+			header: t('tool.batchDispose'),
 			icon: "pi pi-exclamation-triangle",
 			accept: async () => {
 				try {
@@ -1344,7 +1344,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
 						summary: t('dialog.success'),
-						detail: '批量处置成功',
+						detail: t('success.toolsDisposed'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1353,7 +1353,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: t('dialog.title.error'),
-						detail: error.message ?? '请求失败',
+						detail: error.message ?? t('invalid.requestFailed'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1382,7 +1382,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				{
 					id: 'ToolsPicking',
 					name: 'ToolsPicking',
-					title: '指定器具',
+					title: context.t('action.assignTools'),
 					style: {
 						width: '80%',
 						height: '80vh',
@@ -1512,17 +1512,17 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('maxLifeCycles')
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0)
-					.onValidate((value, model) => {
+					.onValidate((value, model, ctx) => {
 						if (value < model.lifecycles) {
-							return '最大寿命必须大于或等于当前寿命';
+							return ctx?.t('tool.maxLifeBelowCurrent');
 						}
 					}),
 				this.field('lifecycles')
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0)
-					.onValidate((value, model) => {
+					.onValidate((value, model, ctx) => {
 						if (value > model.maxLifeCycles) {
-							return '当前寿命必须小于或等于最大寿命';
+							return ctx?.t('tool.currentLifeAboveMax');
 						}
 					}),
 				this.field('usedCycles')
@@ -1577,39 +1577,39 @@ export class ToolLogic extends UiLogic<Tool> {
 					.onChange((ctx: UiBuildContext<any>, model, newVal, oldVal) =>
 						ctx.setFieldValue('remainingLife', new Date().calculateDiff(new Date(), new Date(newVal), 'd'))
 					)
-					.onValidate((value, model) => {
+					.onValidate((value, model, ctx) => {
 						if (!value) return;
 						if (+new Date(value) <= +new Date(model.startWorkDate)) {
-							return '报废日期不能早于或等于投产日期';
+							return ctx?.t('tool.scrapDateBeforeStart');
 						} else if (+new Date(value) <= +new Date()) {
-							return '报废日期不能早于或等于当前日期';
+							return ctx?.t('tool.scrapDateBeforeNow');
 						}
 					})
 			);
 
 			if (this.currentCategory?.materialX === 'ToolFlask') {
 				fields.push(
-					this.field('length').onValidate((value, model) => {
+					this.field('length').onValidate((value, model, ctx) => {
 						if (value != null && value <= 0) {
-							return '长度必须大于0';
+							return ctx?.t('tool.lengthPositive');
 						}
 					}),
-					this.field('width').onValidate((value, model) => {
+					this.field('width').onValidate((value, model, ctx) => {
 						if (value != null && value <= 0) {
-							return '宽度必须大于0';
+							return ctx?.t('tool.widthPositive');
 						}
 					}),
-					this.field('height').onValidate((value, model) => {
+					this.field('height').onValidate((value, model, ctx) => {
 						if (value != null && value <= 0) {
-							return '高度必须大于0';
+							return ctx?.t('tool.heightPositive');
 						}
 					})
 				)
 			} else if (this.currentCategory?.materialX === 'ToolMeasure') {
 				fields.push(
-					this.field('scaleInterval').onValidate((value, model) => {
+					this.field('scaleInterval').onValidate((value, model, ctx) => {
 						if (value != null && value <= 0) {
-							return '刻度间距必须大于0';
+							return ctx?.t('tool.scaleIntervalPositive');
 						}
 					})
 				)
@@ -1623,24 +1623,24 @@ export class ToolLogic extends UiLogic<Tool> {
 							status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的客户
 						};
 					}),
-					this.field('length').onValidate((value, model) => {
+					this.field('length').onValidate((value, model, ctx) => {
 						if (value != null && value < 0) {
-							return '长度必须大于0';
+							return ctx?.t('tool.lengthPositive');
 						}
 					}),
-					this.field('width').onValidate((value, model) => {
+					this.field('width').onValidate((value, model, ctx) => {
 						if (value != null && value < 0) {
-							return '宽度必须大于0';
+							return ctx?.t('tool.widthPositive');
 						}
 					}),
-					this.field('coreBoxNum').onValidate((value, model) => {
+					this.field('coreBoxNum').onValidate((value, model, ctx) => {
 						if (value != null && value < 0) {
-							return '芯盒数必须大于0';
+							return ctx?.t('tool.coreBoxCountPositive');
 						}
 					}),
-					this.field('movableBlockNum').onValidate((value, model) => {
+					this.field('movableBlockNum').onValidate((value, model, ctx) => {
 						if (value != null && value < 0) {
-							return '活块数必须大于0';
+							return ctx?.t('tool.movableBlockCountPositive');
 						}
 					})
 				)
@@ -1808,14 +1808,14 @@ export class ToolLogic extends UiLogic<Tool> {
 
 		switch (key) {
 			case 'addRoot':
-				title = '添加根目录';
+				title = ctx.t('tool.addRootDirectory');
 				break;
 			case 'addSibling':
-				title = '添加兄弟目录';
+				title = ctx.t('tool.addSiblingDirectory');
 				parentCatID = node?.parentCatID;
 				break;
 			case 'addChild':
-				title = '添加子目录';
+				title = ctx.t('tool.addSubdirectory');
 				depth = depth + 1;
 				parentCatID = node?.categoryID;
 				break;
@@ -1879,7 +1879,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		try {
 			ctx.uiBuilder.confirmDialog(ctx.uiBuilder.factory.formItem(
 				{
-					label: '类别名称',
+					label: ctx.t('tool.categoryName'),
 					name: 'categoryName',
 					class: `flex_item_center`, // mr-rem-1
 					isEdit: true,
@@ -1889,7 +1889,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					onUpdate: (val: string) => this.categoryName.value = val,
 				},
 			), ctx, {
-				title: '编辑类别名称',
+				title: ctx.t('tool.editCategoryName'),
 				width: '30%',
 				height: '30%',
 				name: 'editDirectory',
@@ -1908,7 +1908,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',
 				summary: ctx.t('dialog.title.error'),
-				detail: error.message ?? '操作失败',
+				detail: error.message ?? ctx.t('auth.operationFailed'),
 				group: 'br',
 				life: 3000
 			})
@@ -1938,7 +1938,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
 					summary: ctx.t('dialog.title.error'),
-					detail: errmsg ?? '操作失败',
+					detail: errmsg ?? ctx.t('auth.operationFailed'),
 					group: 'br',
 					life: 3000
 				})
@@ -1954,8 +1954,8 @@ export class ToolLogic extends UiLogic<Tool> {
 	deleteFn(ctx: UiBuildContext<any>, childrenCount: number, params: any) {
 		try {
 			ctx.uiBuilder.confirmMessage(ctx, {
-				message: '确定要删除当前类别吗？',
-				header: '器具类别',
+				message: ctx.t('tool.deleteCategoryConfirm'),
+				header: ctx.t('tool.category'),
 				icon: "pi pi-exclamation-triangle",
 				rejectProps: {
 					id: "delete_no",
@@ -1982,7 +1982,7 @@ export class ToolLogic extends UiLogic<Tool> {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
 									summary: ctx.t('dialog.title.error'),
-									detail: err.message ?? '操作失败',
+									detail: err.message ?? ctx.t('auth.operationFailed'),
 									group: 'br',
 									life: 3000
 								})
@@ -2003,7 +2003,7 @@ export class ToolLogic extends UiLogic<Tool> {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
 									summary: ctx.t('dialog.title.error'),
-									detail: err.message ?? '操作失败',
+									detail: err.message ?? ctx.t('auth.operationFailed'),
 									group: 'br',
 									life: 3000
 								})
@@ -2016,7 +2016,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',
 				summary: ctx.t('dialog.title.error'),
-				detail: error.message ?? '操作失败',
+				detail: error.message ?? ctx.t('auth.operationFailed'),
 				group: 'br',
 				life: 3000
 			})
@@ -2092,7 +2092,7 @@ export class ToolLogic extends UiLogic<Tool> {
  */
 export const ToolLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ToolLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Tools',
 		router,
 		module: module || metaUiService.findModule('Tool'),
@@ -2111,7 +2111,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 			fields.push(
 				this.field('toSiteID').hideIf(() => actionName.value === 'return').onValidate((val, model, ctx: UiViewContext<any>) => {
 					if ((actionName.value === 'move' || actionName.value === 'lend' || actionName.value === 'store' || actionName.value === 'batchStore' || actionName.value === 'batchLend' || actionName.value === 'batchMove') && !val) {
-						return '变动至站点不能为空!';
+						return ctx.t('tool.destinationRequired');
 					}
 				}),
 				// 批量入库，仅隐藏「变动至」
@@ -2140,7 +2140,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 					.onValidate((val, model, ctx: UiViewContext<any>) => {  // 👈 改为 onValidate
 						const toolModel = ctx.root.model as Tool;
 						if (((toolModel.lifecycleModes as any) & 2) == 2 && (val + toolModel.usedCycles) > toolModel.maxLifeCycles) {
-							return '使用次数累计超过最大使用次数，该器具将不能继续使用！';  // 阻止提交
+							return ctx.t('tool.overMaxUseCount');  // 阻止提交
 						}
 					}),
 				this.field('remainedCycles').hideIf(() => {
@@ -2163,7 +2163,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 					})
 					.onValidate((val, model, ctx: UiViewContext<any>) => {
 						if (actionName.value === 'batchLend' && !val) {
-							return '借出人不能为空!';
+							return ctx.t('tool.borrowerRequired');
 						}
 					})
 					.onChange((ctx: UiBuildContext<any>, model, newVal) => {

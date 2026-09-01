@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { label, UI_CREATE } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 import ProjectTaskEditor from '@/modules/project_tasks/ProjectTaskEditor';
@@ -100,7 +100,7 @@ export default defineComponent({
 					),
 					props.ctx,
 					{
-						title: '创建',
+						title: $t('action.create'),
 						width: '80%',
 						// showFooter: false,
 						visible: display.value,

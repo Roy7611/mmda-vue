@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 
@@ -53,12 +53,12 @@ export default defineComponent({
 			{
 				id: 1,
 				value: 'IMPORTANT',
-				text: '重要',
+				text: $t('notice.important'),
 			},
 			{
 				id: 2,
 				value: 'VERY_IMPORTANT',
-				text: '非常重要',
+				text: $t('notice.veryImportant'),
 			},
 		];
 		//紧急性
@@ -66,17 +66,17 @@ export default defineComponent({
 			{
 				id: 0,
 				value: 'NORMAL',
-				text: '普通',
+				text: $t('notice.normal'),
 			},
 			{
 				id: 1,
 				value: 'SENIOR',
-				text: '优先',
+				text: $t('notice.priority'),
 			},
 			{
 				id: 2,
 				value: 'URGENT',
-				text: '紧急',
+				text: $t('notice.urgent'),
 			},
 		];
 		//人员下拉选择
@@ -115,7 +115,11 @@ export default defineComponent({
 							return {
 								ownerID: `${item.userID}`,
 								userName: `${item.username}`,
-								label: `姓名:${item.username ?? ''}     部门:${item.customProperties.$deptID ?? ''}     手机:${item.mobile ?? ''}`,
+								label: $t('notice.personDetail', {
+									name: item.username ?? '',
+									department: item.customProperties.$deptID ?? '',
+									mobile: item.mobile ?? '',
+								}),
 								deptName: `${item.customProperties.$deptID ?? ''}`,
 								deptID: `${item.deptID ?? ''}`,
 								mobile: `${item.mobile}`,

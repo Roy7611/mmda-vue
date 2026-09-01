@@ -59,6 +59,15 @@ export interface UiBadgeProps extends PropData {
   severity?: 'info' | 'success' | 'warning' | 'danger'
 }
 
+export interface UiPhotoGalleryItem {
+  src: string
+  thumbnail?: string
+  alt?: string
+  title?: string
+  description?: string
+  data?: unknown
+}
+
 export interface CustomColumn {
   field: string
   header: string
@@ -102,6 +111,8 @@ export interface UiFactory {
   textSpan: UiRenderer<string>
   label: UiRenderer<string>
   image: UiRenderer<string>
+  photoGallery?: UiRenderer<UiPhotoGalleryItem[]>
+  filesUploader?: (props: PropData) => VNode
   icon: UiRenderer<string>
   badge: (props: UiBadgeProps) => VNode
   title: UiRenderer<string>
@@ -155,6 +166,17 @@ export interface UiFactory {
     props: SearchForRelativeProps | PropData,
     slots?: UiSlots,
   ) => VNode
+  formItem?: (props: PropData, slots?: UiSlots) => VNode
+  column?: (props: PropData, slots?: UiSlots) => any
+  dataTable?: (data: any[], columns: any[], props?: PropData) => VNode
+  /** @deprecated 使用 dataTable */
+  primeVueTable?: (data: any[], columns: any[], props?: PropData) => VNode
+  datePicker?: (props: PropData) => VNode
+  numberInput?: (props: PropData) => VNode
+  select?: (props: PropData) => VNode
+  toggleSwitch?: (value: any, props?: PropData) => VNode
+  textarea?: (value: any, props?: PropData) => VNode
+  dataViewBox?: (props: PropData, slots?: UiSlots) => VNode
 }
 
 export interface TabsSlots {

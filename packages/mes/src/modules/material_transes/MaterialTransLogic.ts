@@ -176,7 +176,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 												context.uiBuilder.toast(context, {
 													severity: 'error',
 													summary: t('dialog.title.error'),
-													detail: error.message ?? '操作失败',
+													detail: error.message ?? t('auth.operationFailed'),
 													group: 'br',
 													life: 3000,
 												});
@@ -215,7 +215,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 								context.uiBuilder.toast(context, {
 									severity: 'error',
 									summary: t('dialog.title.error'),
-									detail: error.validationErrors && error.validationErrors.length ? getValidationErrors(context, error.validationErrors) : error.message ?? '操作失败',
+									detail: error.validationErrors && error.validationErrors.length ? getValidationErrors(context, error.validationErrors) : error.message ?? t('auth.operationFailed'),
 									group: 'br',
 									life: 3000,
 								});
@@ -283,7 +283,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 										context.uiBuilder.toast(context, {
 											severity: 'error',
 											summary: t('dialog.title.error'),
-											detail: error.message ?? '操作失败',
+											detail: error.message ?? t('auth.operationFailed'),
 											group: 'br',
 											life: 3000,
 										});
@@ -659,7 +659,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						// .defaultAdder(this.addMaterialTransItem)
 						.addCustomAction({
 							name: 'addContractItem',
-							label: '线边库存',
+							label: 'bom.linesideInventory',
 							icon: 'far fa-plus-circle',
 							role: 'info',
 							onAction: this.addMaterialTransItem,
@@ -668,7 +668,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						})
 						.addCustomAction({
 							name: 'addMaterialItem',
-							label: '物料',
+							label: 'view.material',
 							icon: 'far fa-plus-circle',
 							role: 'info',
 							onAction: this.addMaterialTransItemFormMaterial,
@@ -677,7 +677,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						})
 						.addCustomAction({
 							name: 'createContractItem',
-							label: '创建',
+							label: 'action.create',
 							icon: 'far fa-plus-circle',
 							role: 'info',
 							onAction: this.newMaterialTransItem,
@@ -685,7 +685,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 							visible: (t: MaterialTrans) => !isCompleteInspectionTrans(t) && !isRefNone(t.reason) && (t.reason.reasonCode === 'PURCHASE' || t.reason.reasonCode === 'PRODUCTION'),
 						});
 					Object.assign(itemsGroup.field('quantity').field, { listSize: 260 });
-					itemsGroup.field('quantity').inPlaceEdit().onValidate<number>(value => (value === 0 ? '数量不能为0' : null));
+					itemsGroup.field('quantity').inPlaceEdit().onValidate<number>((value, model, ctx) => (value === 0 ? ctx.t('materialTrans.quantityNonZero') : null));
 					itemsGroup.field('unit').inPlaceEdit();
 					return itemsGroup.clearIf(t => !isCompleteInspectionTrans(t))
 						// .addCustomAction({
@@ -863,7 +863,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 							materialName: m => m.skuName,
 							materialCode: m => m.skuCode,
 							quantity: m => m.quantity,
-							unit: m => '个',
+							unit: m => context.t('inventory.piece'),
 							projectID: m => m.projectID,
 						},
 					});
@@ -902,7 +902,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 							materialName: m => m.skuName,
 							materialCode: m => m.skuCode,
 							quantity: m => (m.receivableQuantity > 0 ? m.receivableQuantity : 1),
-							unit: m => '个',
+							unit: m => context.t('inventory.piece'),
 							projectID: m => m.projectID,
 						},
 					});
@@ -937,7 +937,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: context.globalProps.$t('dialog.title.error'),
-						detail: '请选择从站点',
+						detail: context.t('materialTrans.selectFromSite'),
 						group: 'br',
 						life: 3000,
 					});
@@ -949,7 +949,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// 	context.uiBuilder.toast(context, {
 				// 		severity: 'error',
 				// 		summary: context.globalProps.$t('dialog.title.error'),
-				// 		detail: '请选择从站点',
+				// 		detail: context.t('materialTrans.selectFromSite'),
 				// 		group: 'br',
 				// 		life: 3000
 				// 	})
@@ -972,7 +972,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
 				summary: context.globalProps.$t('dialog.title.error'),
-				detail: '请选择移料原因',
+				detail: context.t('materialTrans.selectReason'),
 				group: 'br',
 				life: 3000,
 			});
@@ -999,7 +999,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
  */
 export const MaterialTransLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new MaterialTransLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaterialTranses',
 		router,
 		module: module || metaUiService.findModule('MaterialTrans'),
@@ -1018,7 +1018,7 @@ export class MaterialTransItemLogic extends UiGroupLogic<MaterialTransItem, Mate
 				// 质量状态（移料原因为采购编辑可以修改）
 				this.field('qaStatus').lockIf(() => this.master.transReasonID !== '40'),
 				this.field('quantity')
-					.onValidate<number>(value => (value === 0 ? '数量不能为0' : null))
+					.onValidate<number>((value, model, ctx) => (value === 0 ? ctx.t('materialTrans.quantityNonZero') : null))
 					.onChange((context, model) => {
 						// 总数量计算
 						this.master.totalQuantity = Number(MetaModel.sum(this.master.items, items => items.quantity).toFixed(4));

@@ -1,4 +1,5 @@
 import { defineComponent, h, ref } from "vue";
+import { translateMessage } from "../../i18n/i18n";
 
 /**
  * Detail page body: scroll + left/right regions in one root.
@@ -27,9 +28,7 @@ export const MmdaPageRegions = defineComponent({
             "mmda-page-regions",
             props.hasSummary && "mmda-page-regions--with-summary",
             props.hasSummary &&
-              (summaryOpen.value
-                ? "is-summary-open"
-                : "is-summary-collapsed"),
+              (summaryOpen.value ? "is-summary-open" : "is-summary-collapsed"),
           ],
         },
         [
@@ -43,10 +42,12 @@ export const MmdaPageRegions = defineComponent({
                 {
                   type: "button",
                   class: "mmda-page-summary-toggle",
-                  title: summaryOpen.value ? "收起右侧" : "展开右侧",
+                  title: summaryOpen.value
+                    ? translateMessage("layout.collapseSummary")
+                    : translateMessage("layout.expandSummary"),
                   "aria-label": summaryOpen.value
-                    ? "收起右侧栏"
-                    : "展开右侧栏",
+                    ? translateMessage("layout.collapseSummaryBar")
+                    : translateMessage("layout.expandSummaryBar"),
                   "aria-expanded": summaryOpen.value,
                   onClick: toggleSummary,
                 },

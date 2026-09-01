@@ -19,6 +19,7 @@ import type {
   UiPaginatorPropsType,
   UiSlots,
 } from "@mmda/vui";
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from "@mmda/vui";
 import Badge from "primevue/badge";
 import Button from "primevue/button";
 import ButtonGroup from "primevue/buttongroup";
@@ -416,6 +417,12 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       back: "pi pi-arrow-left",
       import: "pi pi-upload",
       export: "pi pi-download",
+      "eye-slash": "pi pi-eye-slash",
+      "dnd-vert": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
+      "drag-indicator": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
+      "freeze-column-right": "pi pi-arrow-right",
+      "freeze-column-left": "pi pi-arrow-left",
+      unlock: "pi pi-lock-open",
     },
     viewIcons: {
       index: "pi pi-list",
@@ -438,8 +445,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     textSpan: (text, props) => h("span", props, text),
     label: (text, props) => h("label", props, text),
     image: (src, props) => h(Image, { src, preview: props?.preview, ...props }),
-    icon: (name, props) =>
-      h("i", { class: factory.resolveIcon(name), ...props }),
+    icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
     badge: (props) =>
       h(Badge, {
         value: props.value,

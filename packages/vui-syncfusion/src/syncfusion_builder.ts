@@ -1,6 +1,8 @@
 import {
+  defineAsyncComponent,
   h,
   reactive,
+  ref,
   unref,
   type VNode,
   type VNodeArrayChildren,
@@ -39,6 +41,7 @@ import {
   type UiSearchField,
   type UiSlots,
   type UiViewContext,
+  type UiGanttChartProps,
 } from "@mmda/vui";
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import {
@@ -56,11 +59,16 @@ import {
 import { SyncfusionOverlayHost } from "./components/SyncfusionOverlayHost";
 import { createSyncfusionOverlay } from "./syncfusion_overlay";
 import { BpmnDiagram } from "./components/BpmnDiagram";
+const GanttChart = defineAsyncComponent(() =>
+  import("./components/GanttChart").then((m) => m.GanttChart),
+);
 import { BarcodeGenerator, QRCodeGenerator } from "./components/Barcode";
 import { SigninForm } from "./components/SigninForm";
+import { MmdaSfPageLoading } from "./components/MmdaSfPageLoading";
 import { SyncfusionAppMenu } from "./components/SyncfusionAppMenu";
+import { AttachmentPanel } from "./components/AttachmentPanel";
 import { createSyncfusionFieldFactory } from "./syncfusion_field_factory";
-import { createSyncfusionUiFactory } from "./syncfusion_factory";
+import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "./syncfusion_factory";
 import { syncfusionLayout } from "./syncfusion_layout";
 
 const UI_NAME = "mmda";
@@ -153,6 +161,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       direction: _direction,
       cols: _cols,
       class: _className,
+      headerActions,
       ...rest
     } = props;
     return h(
@@ -169,10 +178,50 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       {
         header: ({ title }: { title: string }) =>
           h("div", { class: "e-card-header-caption" }, [
-            h("div", { class: "e-card-header-title mmda-group__title" }, title),
+            h("div", { class: "e-card-header-title mmda-group-title" }, title),
           ]),
         // Card 只做壳；字段/表格布局由 .mmda-group__content 管
         default: () => this.wrapGroupContent(body),
+        actions: headerActions ? () => headerActions : undefined,
+      },
+    );
+  }
+
+  override buildAttachmentGroup(
+    context: UiViewContext<any>,
+    props: PropData = {},
+  ): VNode {
+    const panel = ref<{ choose: () => void }>();
+    const title = context.translate("attachments") || "附件";
+    return this.wrapGroup(
+      {
+        groupLabel: title,
+        many: false,
+        expanded: true,
+        isSecondary: () => true,
+        isTails: () => false,
+      } as MetaUiGroup,
+      h(AttachmentPanel, {
+        ref: panel,
+        context: context as any,
+      }),
+      {
+        region: "secondary",
+        class: "mmda-attachments",
+        ...props,
+        headerActions: this.factory.button({
+          id: "attachment-upload-button",
+          icon: this.factory.resolveIcon("fas fa-paperclip"),
+          label: "",
+          tooltip:
+            context.translate("action.uploadAttachment") || "上传附件",
+          "aria-label":
+            context.translate("action.uploadAttachment") || "上传附件",
+          buttonType: "text",
+          shape: "round",
+          class: "mmda-group-action",
+          onClick: () => panel.value?.choose(),
+        }),
       },
     );
   }
@@ -259,7 +308,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return h("div", { class: "mmda-sf-loading e-icons e-spin", ...props });
+    return h(MmdaSfPageLoading, props);
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -486,6 +535,23 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
     );
   }
 
+  private listLayoutMenuItems(context: UiContext) {
+    return [
+      {
+        name: "autoFitColumns",
+        label: context.t("action.autoFitColumns"),
+        icon: this.factory.resolveIcon("auto-fit-columns"),
+        command: () => void autoFitSyncfusionListGrid(context),
+      },
+      {
+        name: "listSettings",
+        label: context.t("action.listSettings"),
+        icon: this.factory.resolveIcon("settings"),
+        command: () => void this.openListSettings(context),
+      },
+    ];
+  }
+
   private indexViewActionButtons(context: UiContext): VNode[] {
     const runtime = context as any;
     const { globalProps, selectionMode, customActions, view } = runtime;
@@ -507,7 +573,12 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       return children;
     }
 
-    if (!auth) return children;
+    if (!auth) {
+      children.push(
+        ...this.assembleMoreButton(context, this.listLayoutMenuItems(context)),
+      );
+      return children;
+    }
 
     if (auth.allowImport) {
       moreItems.push(this.importOrExportMenuItem(context, "import"));
@@ -630,6 +701,8 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         command: action.onAction,
       })),
     );
+    if (moreItems.length) moreItems.push({ divider: true });
+    moreItems.push(...this.listLayoutMenuItems(context));
     children.push(...this.assembleMoreButton(context, moreItems));
 
     return children;
@@ -881,6 +954,58 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
   buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {
     const runtime = context as any;
     const filters = runtime.filters ?? [];
+    const searchLabel = context.translate("action.search");
+    const refreshLabel = context.translate("action.refresh");
+    const submitFuzzySearch = () => {
+      const word = String(runtime.searchParam?.searchWord ?? "").trim();
+      runtime.searchParam.searchWord = word;
+      runtime.searchParam.pager.pageNo = 1;
+      if (!word) {
+        void runtime.resetFilters?.();
+        return;
+      }
+      props.onSearch?.(word);
+    };
+    const refreshSearch = () => {
+      if (props.onRefresh) {
+        props.onRefresh();
+        return;
+      }
+      void runtime.search?.();
+    };
+    const addonButton = (
+      icon: string,
+      title: string,
+      onClick: () => void,
+    ) =>
+      h(
+        "button",
+        {
+          type: "button",
+          class: "e-input-group-icon mmda-sf-searchbar__addon",
+          title,
+          "aria-label": title,
+          onClick: (event: Event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onClick();
+          },
+        },
+        [h("span", { class: icon, "aria-hidden": "true" })],
+      );
+    const searchAddons = () =>
+      h("span", { class: "mmda-sf-searchbar__addons" }, [
+        addonButton(
+          this.factory.resolveIcon("search"),
+          searchLabel,
+          submitFuzzySearch,
+        ),
+        addonButton(
+          this.factory.resolveIcon("refresh"),
+          refreshLabel,
+          refreshSearch,
+        ),
+      ]);
     const quickFilters = filters.map((filter: any) =>
       h("div", { class: "mmda-sf-quick-filter" }, [
         h("span", { class: "mmda-sf-quick-filter__label" }, filter.label),
@@ -915,7 +1040,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         class: "mmda-sf-searchbar",
         onSubmit: (event: Event) => {
           event.preventDefault();
-          props.onSearch?.(runtime.searchParam?.searchWord ?? "");
+          submitFuzzySearch();
         },
       },
       [
@@ -926,25 +1051,27 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         ...(runtime.customSearchFields ?? []).map((field: any) =>
           field.renderer(context, field),
         ),
-        h(TextBoxComponent as any, {
-          value: runtime.searchParam?.searchWord ?? "",
-          placeholder: context.translate("action.search"),
-          input: (args: any) => {
-            runtime.searchParam.searchWord = args.value;
+        h(
+          TextBoxComponent as any,
+          {
+            value: runtime.searchParam?.searchWord ?? "",
+            placeholder: searchLabel,
+            cssClass: "mmda-sf-searchbar__input",
+            showClearButton: true,
+            appendTemplate: "appendTemplate",
+            input: (args: any) => {
+              runtime.searchParam.searchWord = args.value ?? "";
+            },
+            keydown: (args: any) => {
+              const key = args?.event?.key ?? args?.key;
+              if (key === "Enter") {
+                args?.event?.preventDefault?.();
+                submitFuzzySearch();
+              }
+            },
           },
-        }),
-        h(ButtonComponent as any, {
-          content: context.translate("action.search"),
-          iconCss: this.factory.resolveIcon("search"),
-          isPrimary: true,
-        }),
-        (filters.length > 0 || runtime.searchFields?.length > 0) &&
-          h(ButtonComponent as any, {
-            content: context.translate("action.reset"),
-            iconCss: this.factory.resolveIcon("reset"),
-            cssClass: "e-outline",
-            onClick: () => void runtime.resetFilters?.(),
-          }),
+          { appendTemplate: searchAddons },
+        ),
       ],
     );
   }
@@ -1159,6 +1286,29 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         },
       },
     )
+  }
+
+  buildGanttChart(_context: UiContext, props: UiGanttChartProps) {
+    return h(GanttChart, {
+      tasks: props.tasks,
+      links: props.links,
+      columns: props.columns,
+      height: props.height ?? "100%",
+      readonly: props.readonly,
+      allowTaskDrag: props.allowTaskDrag ?? true,
+      allowTaskResize: props.allowTaskResize ?? true,
+      allowLinks: props.allowLinks ?? true,
+      allowRowReorder: props.allowRowReorder ?? false,
+      viewMode: props.viewMode ?? "week",
+      loading: props.loading,
+      locale: props.locale,
+      onReady: props.onReady,
+      onTaskChange: props.onTaskChange,
+      onLinkChange: props.onLinkChange,
+      onTaskSelect: props.onTaskSelect,
+      onTaskDblClick: props.onTaskDblClick,
+      onRowReorder: props.onRowReorder,
+    });
   }
 
   buildBpmnDiagram(

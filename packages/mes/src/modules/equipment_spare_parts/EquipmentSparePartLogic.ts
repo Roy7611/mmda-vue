@@ -88,7 +88,7 @@ const beforeRequest = async (context: UiContext, model: EquipmentSparePart, acti
 		context.uiBuilder.toast(context, {
 			severity: 'error',
 			summary: t('dialog.title.error'),
-			detail: error.message ?? '请求失败',
+			detail: error.message ?? context.t('invalid.requestFailed'),
 			group: 'br',
 			life: 3000
 		})
@@ -154,7 +154,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '请求失败',
+					detail: error.message ?? context.t('invalid.requestFailed'),
 					group: 'br',
 					life: 3000
 				})
@@ -185,7 +185,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '请求失败',
+					detail: error.message ?? context.t('invalid.requestFailed'),
 					group: 'br',
 					life: 3000
 				})
@@ -197,7 +197,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
-					searchLabel: '设备',
+					searchLabel: 'view.equipment',
 					searchParam: 'equipID',
 					valueFn: (v: any) => !isRefNone(v) ? v.equipID : '',
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -248,7 +248,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 									}),
 									ctx,
 									{
-										title: '设备',
+										title: ctx.t('view.equipment'),
 										style: { width: '80vw', maxHeight: '95%' },
 										accept: async () => {
 											csf.searchVal.value = csf.searchWord = data;
@@ -281,7 +281,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 			customActions.push({
 				name: 'request',
 				icon: 'pi pi-file-import',
-				label: '请购',
+				label: 'equipmentSparePart.purchaseRequest',
 				group: 'selectMany',
 				role: 'primary',
 				onAction: async (context: UiContext<EquipmentSparePart>) => {
@@ -291,7 +291,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 			}, {
 				name: 'withdrawMaterials',
 				icon: 'pi pi-file-import',
-				label: '领料',
+				label: 'stationlabel.requisition',
 				group: 'selectMany',
 				role: 'primary',
 				onAction: async (context: UiContext<EquipmentSparePart>) => {
@@ -343,7 +343,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
  * @returns 
  */
 export const EquipmentSparePartLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new EquipmentSparePartLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'EquipmentSpareParts',
 	router,
 	module: module || metaUiService.findModule('EquipmentSparePart'),

@@ -74,7 +74,7 @@ export class TrashLogic extends UiLogic<Trash> {
  * @returns 
  */
 export const TrashLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new TrashLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Trashes',
 	router,
 	module: module || metaUiService.findModule('Trash'),

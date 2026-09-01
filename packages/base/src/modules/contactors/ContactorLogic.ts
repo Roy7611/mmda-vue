@@ -100,7 +100,7 @@ export class ContactorLogic extends UiLogic<Contactor> {
  * @returns 
  */
 export const ContactorLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ContactorLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Contactors',
 	router,
 	module: module || metaUiService.findModule('Contactor'),

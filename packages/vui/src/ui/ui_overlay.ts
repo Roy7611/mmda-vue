@@ -74,10 +74,12 @@ export function createHtmlOverlay(): UiOverlay {
               [
                 h('header', props.title ?? props.name),
                 h('main', [content]),
-                h('footer', [
-                  h('button', { type: 'button', onClick: reject }, 'Cancel'),
-                  h('button', { type: 'button', onClick: accept }, 'OK'),
-                ]),
+                props.showFooter === false
+                  ? null
+                  : h('footer', [
+                      h('button', { type: 'button', onClick: reject }, 'Cancel'),
+                      h('button', { type: 'button', onClick: accept }, 'OK'),
+                    ]),
               ],
             ),
           ]),

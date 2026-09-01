@@ -204,7 +204,7 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
  * @returns 
  */
 export const ProjectTaskLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProjectTaskLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'ProjectTasks',
 	router,
 	module: module || metaUiService.findModule('ProjectTask'),

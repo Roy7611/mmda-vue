@@ -65,7 +65,7 @@ import { type CarrierCatalog, defineCarrierCatalog } from '../../models/CarrierC
 	 * @returns 
 	 */
 	export const CarrierCatalogLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new CarrierCatalogLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'CarrierCatalogs',
 		router,
 		module: module || metaUiService.findModule('CarrierCatalog'),

@@ -220,8 +220,8 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
         } catch (e: any) {
             console.error('QualityKanbanLogic.home() 数据加载失败:', e)
             // 提取后端返回的错误详情，回退到通用提示
-            const detail = e?.detail || e?.message || '数据加载失败，请稍后重试'
-            this.loadError.value = typeof detail === 'string' ? detail : '数据加载失败'
+            const detail = e?.detail || e?.message || ctx.t('dashboard.loadFailedRetry')
+            this.loadError.value = typeof detail === 'string' ? detail : ctx.t('dashboard.loadFailed')
             this.loaded.value = false
             return
         }
@@ -274,7 +274,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
             customSearchFields.push(
                 /* 生产站点搜索字段（searchForRelative 弹窗选择，只查已启用站点） */
                 {
-                    searchLabel: '生产站点',
+                    searchLabel: 'qualityKanban.productionSite',
                     searchParam: 'siteID',
                     valueFn: (v: any) => !isRefNone(v) ? v.siteID : '',
                     renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -315,7 +315,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                                     }),
                                     ctx,
                                     {
-                                        title: '生产站点',
+                                        title: ctx.t('qualityKanban.productionSite'),
                                         style: { width: '80vw', maxHeight: '95%' },
                                         accept: async () => {
                                             if (data.length === 0) {
@@ -344,7 +344,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 },
                 /* 制品类别搜索字段（searchForRelative 弹窗选择，来源 base.MaterialCat） */
                 {
-                    searchLabel: '制品类别',
+                    searchLabel: 'qualityKanban.productCategory',
                     searchParam: 'productCategoryID',
                     valueFn: (v: any) => !isRefNone(v) ? v.categoryID : '',
                     renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -385,7 +385,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                                     }),
                                     ctx,
                                     {
-                                        title: '制品类别',
+                                        title: ctx.t('qualityKanban.productCategory'),
                                         style: { width: '80vw', maxHeight: '95%' },
                                         accept: async () => {
                                             if (data.length === 0) {
@@ -414,10 +414,10 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 },
                 /* 产品编码搜索字段（文本输入，后端 productCode/productName LIKE 模糊匹配） */
                 {
-                    searchLabel: '产品编码',
+                    searchLabel: 'qualityKanban.productCode',
                     searchParam: 'productCode',
                     renderer: (ctx: UiBuildContext<any> & any, csf) => primeVueFactory.input(csf.searchVal.value, {
-                        placeholder: '产品编码',
+                        placeholder: ctx.t('qualityKanban.productCode'),
                         onValueChange: (val: string) => {
                             csf.searchVal.value = val
                             ctx.app.localDb.put(`search/${ctx.logic.repository}/productCode`, JSON.parse(JSON.stringify(val)))
@@ -426,7 +426,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 },
                 /* 生产时间段搜索字段（范围日期选择，选完拆成 startTime/endTime） */
                 {
-                    searchLabel: '生产时间段',
+                    searchLabel: 'qualityKanban.productionPeriod',
                     searchParam: 'startTime',
                     renderer: (ctx: UiBuildContext<any> & any, csf) => {
                         // localStorage 恢复的是 ISO 字符串数组，PrimeVue DatePicker 的 range 模式需要 Date 数组，
@@ -447,7 +447,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 },
                 /* 时间范围搜索字段（快捷下拉：今日/本周/本月/本季度/本年等） */
                 {
-                    searchLabel: '时间范围',
+                    searchLabel: 'view.timesRange',
                     searchParam: 'date',
                     renderer: (ctx: UiBuildContext<any> & any, csf) => {
                         const searchData = reactive({
@@ -507,7 +507,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
  */
 export const QualityKanbanLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
     new QualityKanbanLogic({
-        service: metaUiService,
+        metaUiService: metaUiService,
         repository: 'QualityKanban',
         router,
         module: module || metaUiService.findModule('QualityKanban'),

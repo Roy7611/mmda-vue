@@ -16,6 +16,7 @@
 @import '@syncfusion/ej2-grids/styles/material3.css';
 @import '@syncfusion/ej2-diagrams/styles/material3.css';
 @import '@syncfusion/ej2-layouts/styles/card/material3.css';
+/* ej2-gantt / ej2-treegrid CSS are loaded only by GanttChart (MES), not the shared skin. */
 
 /*
  * MD3：Theme Studio 种子 = light primary；accent + surface/outline 均跟色板。
@@ -596,6 +597,280 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   font-size: 0.75rem;
 }
 
+/* 表单控件占满字段列（尤其 TextArea 默认 e-auto-width 会缩成短条） */
+.mmda-field-control > .mmda-sf-control {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mmda-field-control > .mmda-sf-control > .e-control-wrapper,
+.mmda-field-control > .mmda-sf-control > .e-float-input,
+.mmda-field-control > .mmda-sf-control > .e-input-group,
+.mmda-field-control > .mmda-sf-control > .e-multi-line-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mmda-field-control > .mmda-sf-control textarea.e-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* NumberInput：appendTemplate 单位后缀 + 原生 spin */
+.mmda-sf-control .e-append-template .mmda-numeric-suffix,
+.mmda-sf-control .mmda-numeric-suffix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.35rem;
+  color: rgb(var(--color-sf-on-surface-variant, 73, 69, 78));
+  font-size: 0.875rem;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* PHOTO 子表：缩略图网格 + 全屏 Carousel */
+.mmda-photo-gallery {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 独立多文件上传：EJ2 Uploader 负责浏览/拖放，队列与进度由 MMDA 接管。 */
+.mmda-files-uploader {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+}
+
+.mmda-files-uploader__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 8rem;
+  padding: 1rem;
+  border: 1px dashed rgb(var(--color-sf-outline, 122, 117, 127));
+  border-radius: 0.65rem;
+  background: rgb(var(--color-sf-surface, 255, 251, 255));
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.mmda-files-uploader__drop:hover,
+.mmda-files-uploader__drop:focus-within {
+  border-color: rgb(var(--color-sf-primary, 103, 80, 164));
+  background: rgb(var(--color-sf-primary-container, 233, 221, 255) / 35%);
+}
+
+.mmda-files-uploader__control.e-upload {
+  width: auto;
+  border: 0;
+  background: transparent;
+}
+
+.mmda-files-uploader__control .e-file-select-wrap {
+  padding: 0;
+  border: 0;
+}
+
+.mmda-files-uploader__drop-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  color: rgb(var(--color-sf-on-surface-variant, 73, 69, 78));
+  text-align: center;
+}
+
+.mmda-files-uploader__drop-hint > .e-icons {
+  color: rgb(var(--color-sf-primary, 103, 80, 164));
+  font-size: 1.5rem;
+}
+
+.mmda-files-uploader__queue {
+  padding-top: 0.75rem;
+}
+
+.mmda-files-uploader__queue > ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mmda-files-uploader__queue > ul > li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.4rem;
+  background: rgb(var(--color-sf-surface-variant, 231, 224, 236) / 45%);
+}
+
+.mmda-files-uploader__file {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mmda-files-uploader__file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmda-files-uploader__file small {
+  color: rgb(var(--color-sf-on-surface-variant, 73, 69, 78));
+}
+
+.mmda-files-uploader__file small.is-success {
+  color: var(--mmda-success-color, #2e7d32);
+}
+
+.mmda-files-uploader__file small.is-error {
+  color: var(--mmda-danger-color, #b3261e);
+}
+
+.mmda-files-uploader__file .e-progressbar {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.mmda-files-uploader__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.65rem;
+}
+
+.mmda-photo-gallery--empty {
+  box-sizing: border-box;
+  padding: 1.25rem;
+  color: rgb(var(--color-sf-on-surface-variant, 73, 69, 78));
+  text-align: center;
+}
+
+.mmda-photo-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--mmda-photo-gallery-columns, 4),
+    minmax(0, 1fr)
+  );
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.mmda-photo-gallery__thumbnail {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  aspect-ratio: 4 / 3;
+  border: 1px solid rgb(var(--color-sf-outline-variant, 202, 196, 207));
+  border-radius: 0.5rem;
+  background: rgb(var(--color-sf-surface-variant, 231, 224, 236));
+  cursor: pointer;
+}
+
+.mmda-photo-gallery__thumbnail:focus-visible {
+  outline: 2px solid rgb(var(--color-sf-primary, 103, 80, 164));
+  outline-offset: 2px;
+}
+
+.mmda-photo-gallery__thumbnail > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.mmda-photo-gallery__thumbnail:hover > img {
+  transform: scale(1.035);
+}
+
+.mmda-photo-gallery__caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 0.35rem 0.5rem;
+  color: #fff;
+  background: linear-gradient(transparent, rgb(0 0 0 / 72%));
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-dialog.mmda-photo-gallery-dialog {
+  inset: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0;
+}
+
+.e-dialog.mmda-photo-gallery-dialog .e-dlg-content {
+  box-sizing: border-box;
+  height: calc(100vh - 3.5rem);
+  padding: 0;
+  overflow: hidden;
+  background: #111;
+}
+
+.mmda-photo-gallery__carousel,
+.mmda-photo-gallery__carousel .e-carousel-items,
+.mmda-photo-gallery__carousel .e-carousel-item {
+  height: 100%;
+}
+
+.mmda-photo-gallery__slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 1rem 4rem;
+}
+
+.mmda-photo-gallery__full-image {
+  display: block;
+  max-width: 100%;
+  min-height: 0;
+  max-height: calc(100% - 2.5rem);
+  object-fit: contain;
+}
+
+.mmda-photo-gallery__slide figcaption {
+  flex: 0 0 auto;
+  padding-top: 0.75rem;
+  color: #fff;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .mmda-photo-gallery__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mmda-photo-gallery__slide {
+    padding-inline: 2.5rem;
+  }
+}
+
 .mmda-sf-sidebar {
   display: flex;
   flex-direction: column;
@@ -679,6 +954,83 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   color: var(--mmda-text-color, #e6e1e5);
 }
 
+/* 自研 Dropup（侧栏色板 / 用户菜单）：Teleport + fixed，不走 EJ2 Popup */
+.mmda-sf-dropup-host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mmda-sf-dropup {
+  box-sizing: border-box;
+  min-width: 8.5rem;
+  max-width: min(18rem, calc(100vw - 6rem));
+  padding: 0.25rem 0;
+  background: var(--mmda-surface-card, #fffbfe);
+  border: 1px solid var(--mmda-content-border-color, #cac4d0);
+  border-radius: 8px;
+  box-shadow:
+    0 2px 6px 2px rgba(0, 0, 0, 0.12),
+    0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  color: var(--mmda-text-color, #1c1b1f);
+}
+
+.mmda-sf-dropup__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mmda-sf-dropup__item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  box-sizing: border-box;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mmda-sf-dropup__item:hover,
+.mmda-sf-dropup__item:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--mmda-text-color, #1c1b1f) 8%, transparent);
+}
+
+.mmda-sf-dropup__item.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.mmda-sf-dropup__icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+}
+
+.mmda-sf-dropup__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mmda-sf-dropup__separator {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: var(--mmda-content-border-color, #cac4d0);
+  list-style: none;
+}
+
+html.mmda-dark .mmda-sf-dropup,
+html.e-dark-mode .mmda-sf-dropup {
+  background: var(--mmda-surface-card, #211f26);
+  border-color: var(--mmda-content-border-color, #49454f);
+  color: var(--mmda-text-color, #e6e1e5);
+}
+
 /* 登录表单：Outlined 输入 + 提交按钮 */
 .mmda-sf-auth-form.mmda-signin-form .e-outline,
 .mmda-sf-auth-form.mmda-signin-form .e-control-wrapper.e-outline,
@@ -719,6 +1071,30 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   overflow: hidden;
 }
 
+/*
+ * Non-dock layout (no SYSTEM modules): buildAppSideBar renders a plain
+ * <aside class="mmda-sf-sidebar"> beside .mmda-sf-maincontent. Without a
+ * horizontal flex, the aside is height:100% / width:100% and the main pane
+ * stacks below it — then overflow:hidden clips it to a blank viewport.
+ * Dock mode uses EJ2 Sidebar (fixed/push) and must not use this flex path.
+ */
+.mmda-sf-shell:has(> .mmda-sf-sidebar) {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.mmda-sf-shell > .mmda-sf-sidebar {
+  flex: 0 0 17.5rem;
+  width: 17.5rem;
+  max-width: min(17.5rem, 40vw);
+}
+
+.mmda-sf-shell:has(> .mmda-sf-sidebar) > .mmda-sf-maincontent {
+  flex: 1 1 auto;
+  width: auto;
+}
+
 .mmda-sf-maincontent {
   box-sizing: border-box;
   display: flex;
@@ -738,6 +1114,26 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+}
+
+.mmda-sf-maincontent > .mmda-entity-page-loading {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  background-color: var(--mmda-surface-ground);
+}
+
+.mmda-sf-page-loading-host {
+  position: relative;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mmda-sf-page-loading-host > .e-spinner-pane {
+  position: absolute;
+  inset: 0;
 }
 
 .mmda-sf-maincontent .mmda-list-view {
@@ -880,10 +1276,41 @@ html.e-dark-mode .e-popup.mmda-sf-menu-popup {
 
 .mmda-sf-searchbar > .e-control-wrapper,
 .mmda-sf-searchbar > .e-input-group,
-.mmda-sf-searchbar .e-float-input {
-  width: 14rem;
-  max-width: 14rem;
-  flex: 0 0 14rem;
+.mmda-sf-searchbar .e-float-input,
+.mmda-sf-searchbar .mmda-sf-searchbar__input {
+  width: 20rem;
+  max-width: min(20rem, 100%);
+  flex: 0 1 20rem;
+}
+
+.mmda-sf-searchbar__addons {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+}
+
+.mmda-sf-searchbar__addon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  min-width: 2rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--color-sf-border, #e0e0e0);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mmda-sf-searchbar__addon:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mmda-sf-searchbar__addon .e-icons {
+  font-size: 14px;
 }
 
 .mmda-sf-searchbar .e-btn,
@@ -1414,6 +1841,41 @@ html.e-dark-mode .mmda-sf-system-collapse:hover {
   box-shadow: none;
 }
 
+/* MD3 Material3 无内置 e-secondary；flat 次要文字按钮对齐 e-flat.e-primary 模式 */
+.e-btn.e-flat.e-secondary,
+.e-css.e-btn.e-flat.e-secondary {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: rgb(var(--color-sf-on-secondary-container));
+}
+
+.e-btn.e-flat.e-secondary:hover,
+.e-css.e-btn.e-flat.e-secondary:hover {
+  background: rgba(var(--color-sf-secondary), 0.08);
+  border-color: transparent;
+  box-shadow: none;
+  color: rgb(var(--color-sf-on-secondary-container));
+}
+
+.e-btn.e-flat.e-secondary:focus,
+.e-css.e-btn.e-flat.e-secondary:focus {
+  background: rgba(var(--color-sf-secondary), 0.12);
+  border-color: transparent;
+  box-shadow: none;
+  color: rgb(var(--color-sf-on-secondary-container));
+}
+
+.e-btn.e-flat.e-secondary:active,
+.e-btn.e-flat.e-secondary.e-active,
+.e-css.e-btn.e-flat.e-secondary:active,
+.e-css.e-btn.e-flat.e-secondary.e-active {
+  background: rgba(var(--color-sf-secondary), 0.12);
+  border-color: transparent;
+  box-shadow: none;
+  color: rgb(var(--color-sf-on-secondary-container));
+}
+
 /*
  * 暗色：不用 filled secondary（发脏抢色）；用 surface 抬升（白 14%）。
  * 比 secondary-container 更易认，又不抢 primary / danger。
@@ -1518,7 +1980,7 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
 .e-card.mmda-group .e-card-header .e-card-header-caption .mmda-group-title.e-card-header-title,
 .e-card.mmda-group .mmda-group-title {
   flex: 1 1 auto;
-  /* 只压过 Material3 .e-card-header-title 的 font-weight: normal */
+  /* 压过 Material3 .e-card-header-title { font-weight: normal } */
   font-weight: 700;
 }
 
@@ -1553,6 +2015,113 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
 .e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action .e-btn-icon {
   margin: 0;
   font-size: 14px;
+}
+
+/* 详情页附件：上传进度、文件列表与行操作 */
+.mmda-sf-attachments {
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-sf-attachments__input {
+  display: none;
+}
+
+.mmda-sf-upload {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
+}
+
+.mmda-sf-upload__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-bottom: 0.35rem;
+  color: var(--mmda-text-muted, #6b7280);
+  font-size: 0.75rem;
+}
+
+.mmda-sf-upload__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmda-sf-attachment-list {
+  max-height: 18rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.mmda-sf-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid
+    color-mix(
+      in srgb,
+      var(--mmda-content-border-color, #cac4d0) 55%,
+      transparent
+    );
+}
+
+.mmda-sf-attachment:last-child {
+  border-bottom: 0;
+}
+
+.mmda-sf-attachment__file-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  color: var(--mmda-text-muted, #6b7280);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.mmda-sf-attachment__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mmda-sf-attachment__name {
+  overflow: hidden;
+  color: var(--mmda-text-color, #1c1b1f);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmda-sf-attachment__meta {
+  margin-top: 0.15rem;
+  color: var(--mmda-text-muted, #6b7280);
+  font-size: 0.7rem;
+}
+
+.mmda-sf-attachment__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.mmda-sf-attachment__action.e-btn {
+  width: 1.75rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+}
+
+.mmda-sf-attachments__empty {
+  margin: 0;
+  padding: 1rem 0.75rem;
+  color: var(--mmda-text-muted, #6b7280);
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
 .e-card.mmda-group .mmda-group-toggle.e-icons {
@@ -1705,13 +2274,40 @@ html.mmda-dark .e-grid .e-table {
 
 .e-btn.e-round.mmda-sf-row-action .e-btn-icon {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .e-split-btn-wrapper.mmda-sf-row-details {
   flex: 0 0 auto;
   height: 1.65rem;
   box-shadow: none;
+}
+
+/* SplitButton：cssClass 在外层 wrapper，flat/outline 需作用到内部 .e-split-btn / .e-dropdown-btn */
+.e-split-btn-wrapper.mmda-sf-split--flat {
+  box-shadow: none;
+}
+
+.e-split-btn-wrapper.mmda-sf-split--flat > .e-btn {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.e-split-btn-wrapper.mmda-sf-split--flat > .e-btn:hover,
+.e-split-btn-wrapper.mmda-sf-split--flat > .e-btn:focus,
+.e-split-btn-wrapper.mmda-sf-split--flat > .e-btn:active {
+  box-shadow: none;
+}
+
+.e-split-btn-wrapper.mmda-sf-split--flat.mmda-sf-split--secondary > .e-btn {
+  color: rgb(var(--color-sf-on-secondary-container));
+}
+
+.e-split-btn-wrapper.mmda-sf-split--flat.mmda-sf-split--secondary > .e-btn:hover,
+.e-split-btn-wrapper.mmda-sf-split--flat.mmda-sf-split--secondary > .e-btn:focus {
+  background: rgba(var(--color-sf-secondary), 0.08);
+  color: rgb(var(--color-sf-on-secondary-container));
 }
 
 .e-split-btn-wrapper.mmda-sf-row-details > .e-btn {
@@ -1784,6 +2380,15 @@ html.mmda-dark .e-grid .e-table {
   cursor: move;
 }
 
+.e-dialog.mmda-sf-dialog .e-dlg-header .mmda-sf-dialog__title {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
 .e-dialog.mmda-sf-dialog .e-footer-content {
   flex-shrink: 0;
   text-align: right;
@@ -1829,3 +2434,68 @@ html.mmda-dark .e-grid .e-table {
   gap: 0.5rem;
 }
 
+/* 布尔 CheckIcon / CheckedIcon：success 圈勾 / 灰色空心圆 */
+.mmda-bool-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.mmda-bool-icon--true {
+  color: #2e7d32;
+}
+
+.mmda-bool-icon--false {
+  color: rgb(var(--color-sf-outline, 122, 117, 127));
+}
+
+/* Tags → Chips：只读 chip 列表 */
+.mmda-chips.e-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.mmda-chips .e-chip {
+  margin: 0;
+  height: auto;
+  min-height: 1.5rem;
+}
+
+/* 表格设置：非模态、限宽限高 */
+.e-dialog.mmda-list-setting-dialog {
+  max-width: min(92vw, 30rem);
+  max-height: 80vh;
+}
+
+.e-dialog.mmda-list-setting-dialog .e-dlg-header-content {
+  flex-shrink: 0;
+}
+
+/* 表格设置：恢复默认 SplitButton 左右两段圆角衔接 */
+.e-dialog.mmda-list-setting-dialog
+  .e-split-btn-wrapper.mmda-list-setting__restore
+  > .e-split-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.e-dialog.mmda-list-setting-dialog
+  .e-split-btn-wrapper.mmda-list-setting__restore
+  > .e-dropdown-btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  min-width: 2rem;
+  padding-inline: 0.35rem;
+}
+
+.e-dialog.mmda-list-setting-dialog
+  .mmda-list-setting__row.is-hidden
+  .mmda-list-setting__visibility.e-btn,
+.e-dialog.mmda-list-setting-dialog
+  .mmda-list-setting__row.is-hidden
+  .mmda-list-setting__visibility
+  .e-btn-icon {
+  color: var(--mmda-text-muted-color);
+}

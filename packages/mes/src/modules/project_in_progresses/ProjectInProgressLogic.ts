@@ -65,7 +65,7 @@ import { type ProjectInProgress, defineProjectInProgress } from '@/models/Projec
 	 * @returns 
 	 */
 	export const ProjectInProgressLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProjectInProgressLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectInProgresses',
 		router,
 		module: module || metaUiService.findModule('ProjectInProgress'),

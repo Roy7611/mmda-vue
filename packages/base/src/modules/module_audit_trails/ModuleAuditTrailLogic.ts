@@ -65,7 +65,7 @@ import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/Modu
 	 * @returns 
 	 */
 	export const ModuleAuditTrailLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ModuleAuditTrailLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ModuleAuditTrails',
 		router,
 		module: module || metaUiService.findModule('ModuleAuditTrail'),

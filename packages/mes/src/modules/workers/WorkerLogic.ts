@@ -11,8 +11,6 @@ import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
 import { h, reactive } from 'vue';
-// import { type Employee, defineEmployee } from '@/models/Employee';
-import Toast from 'primevue/toast';
 import { WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 import { EmployeeStatus, EmployeeStatusEnum } from '@mmda/base/src/enums/EmployeeStatus';
 import { type Employee, defineEmployee } from '@mmda/base/src/models/Employee';
@@ -65,7 +63,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 			customActions.push({
 				name: 'importWorkerEmployees',
 				icon: 'pi pi-file-import',
-				label: '批量创建',
+				label: 'worker.batchCreate',
 				group: 'selectMany',
 				role: 'primary',
 				onAction: async (context: UiContext<Worker>) => {
@@ -134,7 +132,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 				detail: t('invalid.requiredSelectAny'),
 				life: 3000
 			})
-			throw new Error('未选数据');
+			throw new Error(t('invalid.requiredSelectAny'));
 		}
 		const rawSelection = reactive({
 			list: <any>[],
@@ -162,13 +160,13 @@ export class WorkerLogic extends UiLogic<Worker> {
 			//关闭窗口
 			if (res.code == 'success') {
 				if (res.data.errors <= 0) {
-					context.uiBuilder.toast({ severity: 'success', summary: '成功', detail: '成功:' + res.data.success + '条' + ' 失败:' + res.data.failed, life: 3000 });
+					context.uiBuilder.toast({ severity: 'success', summary: t('dialog.title.success'), detail: context.t({ message: 'worker.batchResult', param: { success: res.data.success, failed: res.data.failed } }), life: 3000 });
 				} else {
-					context.uiBuilder.toast({ severity: 'error', summary: '失败', group: 'br', detail: '失败提示:' + res.data.errors[0].workerNo + '工人' + res.data.errors[0].errors[0].error, life: 3000 });
+					context.uiBuilder.toast({ severity: 'error', summary: t('failure.failed'), group: 'br', detail: context.t({ message: 'worker.batchFailure', param: { it: res.data.errors[0].workerNo, message: res.data.errors[0].errors[0].error } }), life: 3000 });
 				}
 			}
 		} catch (errorC: any) {
-			context.uiBuilder.toast({ severity: 'error', summary: '失败', group: 'br', detail: errorC.message, life: 3000 });
+			context.uiBuilder.toast({ severity: 'error', summary: t('failure.failed'), group: 'br', detail: errorC.message, life: 3000 });
 
 			return false;
 		}
@@ -279,7 +277,7 @@ export class WorkerLogic extends UiLogic<Worker> {
  */
 export const WorkerLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new WorkerLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Workers',
 		router,
 		module: module || metaUiService.findModule('Worker'),

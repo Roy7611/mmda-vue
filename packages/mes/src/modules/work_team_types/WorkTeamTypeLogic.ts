@@ -44,16 +44,16 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('stdMemberCount')
-					.onValidate<number>((value, model) => {
+					.onValidate<number>((value, model, ctx) => {
 						if (value > 99999) {
-							return '标配人数不能超过99999人';
+							return ctx?.t('invalid.standardHeadcountMax');
 						}
 						return null;
 					}),
 				this.field('minMemberCount')
-					.onValidate<number>((value, model) => {
+					.onValidate<number>((value, model, ctx) => {
 						if (value > 99999) {
-							return '最低人数不能超过99999人';
+							return ctx?.t('invalid.minimumHeadcountMax');
 						}
 
 						// 标配人数为空或0时，不做比较
@@ -68,7 +68,7 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
 							value != null &&
 							value > model.stdMemberCount
 						) {
-							return '最低人数不能超过标配人数';
+							return ctx?.t('invalid.minimumAboveStandard');
 						}
 
 						return null;
@@ -90,7 +90,7 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
 				this.group<WorkTeamTypeCert>('workTeamTypeCerts')
 					.addCustomAction({
 						name: 'createCert',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newCert,
@@ -138,7 +138,7 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
  * @returns 
  */
 export const WorkTeamTypeLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkTeamTypeLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'WorkTeamTypes',
 	router,
 	module: module || metaUiService.findModule('WorkTeamType'),

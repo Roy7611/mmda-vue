@@ -193,8 +193,8 @@ const getBom = async (context: UiContext, model: ProductionOrder, value?: any) =
 					taskPhase: it.customProperties.$taskPhase,
 					riskLevel: it.customProperties.$riskLevel,
 					constraintType: it.customProperties.$constraintType,
-					critical: it.critical == false ? '否' : '是',
-					milestone: it.milestone == false ? '否' : '是',
+					critical: it.critical == false ? context.t('view.No') : context.t('view.Yes'),
+					milestone: it.milestone == false ? context.t('view.No') : context.t('view.Yes'),
 				};
 			});
 		});
@@ -209,7 +209,7 @@ const beforeLinkBom = async (context: UiBuildContext<any>, model: ProductionOrde
 			severity: 'info',
 			summary: context.t('dialog.title.prompt'),
 			group: 'br',
-			detail: '请先选择制品编码',
+			detail: context.t('productionOrder.selectProductCode'),
 			life: 3000,
 		});
 		return false;
@@ -222,7 +222,7 @@ const beforeLinkBom = async (context: UiBuildContext<any>, model: ProductionOrde
 			severity: 'warn',
 			summary: context.t('dialog.title.warning'),
 			group: 'br',
-			detail: '未找到可关联的配方(BOM)',
+			detail: context.t('productionOrder.noBom'),
 			life: 3000,
 		});
 		return false;
@@ -336,7 +336,7 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 			// 给提示并跳转齐料检查
 			context.uiBuilder.confirmMessage(context, {
 				header: context.t('action.confirm'),
-				message: context.t('检测到当前订单已缺料，是否去领料？'),
+				message: context.t('productionOrder.shortagePrompt'),
 				type: 'warn',
 				accept: () => {
 					const route = {
@@ -362,7 +362,7 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 		context.uiBuilder.toast(context, {
 			severity: 'error',
 			summary: context.t('dialog.title.error'),
-			detail: error.message ?? '操作失败',
+			detail: error.message ?? context.t('auth.operationFailed'),
 			group: 'br',
 			life: 3000
 		})
@@ -406,7 +406,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				if (result.list.length > 1) {
 					const isComfirm = await context.uiBuilder.confirmMessage(context, {
 						header: t('action.confirm'),
-						message: t('该制品存在多个BOM版本，请确定是否继续保存？'),
+						message: t('productionOrder.multipleBomPrompt'),
 						type: 'warn',
 						accept: () => {
 							return true;
@@ -451,7 +451,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '显示子订单',
+				searchLabel: 'productionOrder.showChildOrders',
 				searchParam: 'showSubOrders',
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
 					isClick.value = false
@@ -482,7 +482,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				// 交货日期
 				this.field('deliveryDate').onValidate((value, model, context) => {
 					if (new Date(value).isBefore(new Date())) {
-						return '交货日期必须大于当前日期';
+						return context?.t('productionOrder.deliveryDateFuture');
 					}
 				}),
 				this.field('expectedStart').onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
@@ -491,9 +491,9 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				this.field('expectedFinish')
 					.onValidate((value, model, context) => {
 						if (value && new Date(value).isBefore(new Date())) {
-							return '计划完工日期不能早于当前日期';
+							return context?.t('productionOrder.plannedFinishFuture');
 						} else if (value && new Date(value).isAfter(new Date(model.deliveryDate))) {
-							return '计划完工日期不能晚于交货日期';
+							return context?.t('productionOrder.plannedFinishBeforeDelivery');
 						}
 					})
 					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
@@ -510,9 +510,9 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 					}
 				}),
 				//限制日期
-				this.field('constraintDate').hideIf(model => shouldHideConstraintDate(model.constraintType)).onValidate((value, model) => {
+				this.field('constraintDate').hideIf(model => shouldHideConstraintDate(model.constraintType)).onValidate((value, model, ctx) => {
 					if (!shouldHideConstraintDate(model.constraintType) && isNullOrUndefined(value)) {
-						return '请输入限制日期'
+						return ctx?.t('productionOrder.enterConstraintDate')
 					}
 				}),
 				// 外协
@@ -728,7 +728,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
  */
 export const ProductionOrderLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionOrderLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionOrders',
 		router,
 		module: module || metaUiService.findModule('ProductionOrder'),

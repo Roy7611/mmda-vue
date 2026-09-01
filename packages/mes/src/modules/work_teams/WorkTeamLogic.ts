@@ -257,7 +257,7 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
  * @returns 
  */
 export const WorkTeamLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkTeamLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'WorkTeams',
 	router,
 	module: module || metaUiService.findModule('WorkTeam'),

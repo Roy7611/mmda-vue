@@ -1,0 +1,88 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+  color: var(--mmda-text-color, #1c1b1f);
+  background: var(--mmda-surface-ground, #f7f2fa);
+  font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.mmda-app,
+.mmda-list-view {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mmda-app-page {
+  padding: 0;
+  background: transparent;
+}
+
+.mmda-list-scroll {
+  min-height: 0;
+}
+
+.mmda-change-password label {
+  display: grid;
+  gap: 4px;
+}
+
+.mmda-change-password input {
+  padding: 8px;
+}
+
+.mmda-app-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mmda-app-logo__img,
+.mmda-app-logo__img img,
+.mmda-app-logo img {
+  width: 100%;
+  max-width: 100%;
+  max-height: 2.75rem;
+  height: auto;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.mmda-user-footer__button.e-btn,
+.mmda-user-footer__button.e-outline,
+.mmda-user-footer__actions .e-btn,
+.mmda-user-footer__actions .e-outline,
+.mmda-user-footer__actions .e-dropdown-btn,
+.mmda-user-footer__actions .e-dropdown-btn.e-btn {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.mmda-user-footer__actions .e-dropdown-btn .e-btn-icon {
+  margin: 0;
+}
+
+.mmda-user-footer__actions .e-dropdown-btn.e-caret-hide {
+  padding-inline: 0 !important;
+}

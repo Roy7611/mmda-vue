@@ -18,6 +18,9 @@ import {
   SortOrder,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
+  ensureListFieldVisibleWhenFrozen,
+  isListFrozen,
+  MetaUiFieldFrozen,
   type EntityFilterModel,
   type EntityFilterOperator,
   type MetaUi,
@@ -32,16 +35,20 @@ import type {
   UiPaginatorPropsType,
   UiSlots,
 } from '@mmda/vui'
-import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
+import { gridFreezeOf, isPersistableListColumn, readStoredPageSize, createIconVNode, MATERIAL_SYMBOL_PREFIX, persistListPack, type UiViewContext } from '@mmda/vui'
+import { resolveFieldUnit } from './syncfusion_field_factory'
 import { NumericTextBox } from '@syncfusion/ej2-inputs'
 import { createSpinner, hideSpinner, showSpinner } from '@syncfusion/ej2-popups'
-import { ButtonComponent } from '@syncfusion/ej2-vue-buttons'
+import { ButtonComponent, SwitchComponent } from '@syncfusion/ej2-vue-buttons'
+import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
+import { DatePickerComponent } from '@syncfusion/ej2-vue-calendars'
 import { DropDownListComponent } from '@syncfusion/ej2-vue-dropdowns'
 import {
   GridComponent,
   PagerComponent,
 } from '@syncfusion/ej2-vue-grids'
 import { getSyncfusionCulture } from './syncfusion_i18n'
+import { Component } from '@syncfusion/ej2-base'
 import {
   Edit,
   Filter,
@@ -56,7 +63,11 @@ import {
   VirtualScroll,
   CheckBoxFilterBase,
 } from '@syncfusion/ej2-grids'
-import { TextBoxComponent } from '@syncfusion/ej2-vue-inputs'
+import {
+  TextBoxComponent,
+  NumericTextBoxComponent,
+  TextAreaComponent,
+} from '@syncfusion/ej2-vue-inputs'
 import {
   MenuComponent,
   AppBarComponent,
@@ -67,9 +78,107 @@ import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
 import { DropDownButtonComponent, SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { ChartComponent } from '@syncfusion/ej2-vue-charts'
 import { syncfusionLayout } from './syncfusion_layout'
+import { DropupMenuButton } from './components/DropupMenuButton'
+import { PhotoGallery } from './components/PhotoGallery'
+import { FilesUploader } from './components/FilesUploader'
 
-Grid.Inject(Edit, Sort, Filter, Group, Selection, Page, Resize, VirtualScroll)
+/**
+ * Vue 属性 watcher 会在 appendTo/preRender 之前或 destroy 之后调用 dataBind→injectModules。
+ * 此时 Grid.serviceLocator 仍为空，Selection 构造里 locator.getService 会炸。
+ * Selection 是默认模块，只要 allowSelection 就会装载。
+ */
+const originalInjectModules = (Component.prototype as any).injectModules
+if (typeof originalInjectModules === 'function') {
+  ;(Component.prototype as any).injectModules = function injectModulesSafe(
+    this: any,
+  ) {
+    if (
+      typeof this.getModuleName === 'function' &&
+      this.getModuleName() === 'grid' &&
+      !this.serviceLocator
+    ) {
+      return
+    }
+    return originalInjectModules.call(this)
+  }
+}
+
+const SF_GRID_MODULES = [
+  Edit,
+  Sort,
+  Filter,
+  Group,
+  Selection,
+  Page,
+  Resize,
+  VirtualScroll,
+]
+
+Grid.Inject(...SF_GRID_MODULES)
 Pager.Inject(Page, PagerDropDown)
+
+/**
+ * 表单下拉有 fields.text，Grid CheckBox 筛选没有：
+ * 它把列值（enum 的 code / 引用 id）写成勾选文字，还会 getDistinct + 按值排序。
+ * 引用选项已经唯一且有顺序，这里只补两件事：用 labelOf 文本、保持 refOptions 原序。
+ */
+let choiceFilterPatched = false
+const patchChoiceFilter = () => {
+  if (choiceFilterPatched) return
+  choiceFilterPatched = true
+  const originalCreate = CheckBoxFilterBase.prototype.createCheckbox
+  CheckBoxFilterBase.prototype.createCheckbox = function (
+    value: unknown,
+    checked: boolean,
+    data: any,
+  ) {
+    const text = data?.text ?? data?.dataObj?.text
+    if (text != null && String(text).length) value = String(text)
+    return originalCreate.call(this, value, checked, data)
+  }
+  const originalDistinct = CheckBoxFilterBase.getDistinct
+  CheckBoxFilterBase.getDistinct = function (
+    json: any[],
+    field: string,
+    column: any,
+    foreignKeyData: any,
+    checkboxFilter: any,
+  ) {
+    if (
+      Array.isArray(json) &&
+      json.length > 0 &&
+      json.every(item => item?.__mmdaChoice)
+    ) {
+      return {
+        records: json.map(item => ({
+          ...item,
+          ejValue: item[field],
+          dataObj: item,
+        })),
+      }
+    }
+    return originalDistinct.call(
+      this,
+      json,
+      field,
+      column,
+      foreignKeyData,
+      checkboxFilter,
+    )
+  }
+}
+
+/** 程序化 h() 下用 provide 注入模块，对齐 Syncfusion Vue 文档写法。 */
+const MmdaSfGrid = defineComponent({
+  name: 'MmdaSfGrid',
+  inheritAttrs: false,
+  provide: {
+    grid: SF_GRID_MODULES,
+  },
+  setup(_, { attrs, slots }) {
+    return () => h(GridComponent as any, { ...attrs }, slots)
+  },
+})
 
 /** 稳定引用，避免 Pager 因 pageSizes 新数组而销毁重建下拉 */
 const STABLE_PAGE_SIZE_OPTIONS = DEFAULT_PAGE_SIZE_OPTIONS.map(String)
@@ -237,76 +346,24 @@ const isChoiceFilterField = (field: MetaUiField) => {
 const cellSlotName = (fieldName: string) =>
   `mmdaCell_${String(fieldName).replace(/[^\w]/g, '_')}`
 
-/** 把 `0;LABOR;劳动力` / JSON 枚举项规范成 { value, text }。 */
-const normalizeChoiceOption = (option: unknown, reference: NonNullable<MetaUiField['reference']>) => {
-  if (option != null && typeof option === 'object') {
-    return {
-      value: reference.valueOf(option),
-      text: String(reference.labelOf(option) ?? ''),
-    }
-  }
-  const raw = String(option ?? '')
-  const parts = raw.split(';')
-  if (parts.length >= 3) {
-    return { value: parts[1], text: parts.slice(2).join(';'), id: Number(parts[0]) }
-  }
-  if (parts.length === 2) {
-    return { value: parts[0], text: parts[1] }
-  }
-  return { value: raw, text: raw }
-}
-
-/** CheckBox / Menu 列表项：实际值字段 + 显示标签 + 原序。 */
-const choiceFilterDataSource = (field: MetaUiField) => {
-  const reference = field.reference
-  if (!reference) return []
-  return (reference.refOptions ?? []).map((option, index) => {
-    const normalized = normalizeChoiceOption(option, reference)
-    return {
-      [field.fieldName]: normalized.value,
-      mmdaFilterLabel: normalized.text,
-      // EJ2 CheckBox 过滤默认按字段值升序；用原序覆盖。
-      mmdaFilterOrder: index,
-    }
-  })
-}
+const isEnumReference = (
+  ref: NonNullable<MetaUiField['reference']>,
+) => Boolean(ref.isEnum || (ref as { refType?: string }).refType === 'ENUM')
 
 /**
- * EJ2 CheckBoxFilterBase.getDistinct 会 `while(len--)` 倒序再按 field 升序，
- * 导致枚举选项变成字母序。若 dataObj 带 mmdaFilterOrder，则恢复 refOptions 顺序。
+ * 三种引用与表单下拉同一套：
+ * - enum：本地 refOptions 已是数组
+ * - ref / hasOne：未查库时 refOptions 为空，打开筛选再 loadFilterOptions
+ * 主键唯一，值 / 标签只走 valueOf / labelOf，不要 getDistinct。
  */
-let choiceFilterOrderPatched = false
-const patchCheckboxFilterChoiceOrder = () => {
-  if (choiceFilterOrderPatched) return
-  choiceFilterOrderPatched = true
-  const original = CheckBoxFilterBase.getDistinct
-  CheckBoxFilterBase.getDistinct = function (
-    json: any[],
-    field: string,
-    column: any,
-    foreignKeyData: any,
-    checkboxFilter: any,
-  ) {
-    const grouped = original.call(
-      this,
-      json,
-      field,
-      column,
-      foreignKeyData,
-      checkboxFilter,
-    )
-    const records = grouped?.records
-    if (!Array.isArray(records) || !records.length) return grouped
-    const hasOrder = records.some(
-      (item: any) => typeof item?.dataObj?.mmdaFilterOrder === 'number',
-    )
-    if (!hasOrder) return grouped
-    records.sort(
-      (a: any, b: any) =>
-        (a?.dataObj?.mmdaFilterOrder ?? 0) - (b?.dataObj?.mmdaFilterOrder ?? 0),
-    )
-    return grouped
-  }
+const choiceFilterDataSource = (field: MetaUiField) => {
+  const ref = field.reference
+  if (!ref) return []
+  return (ref.refOptions ?? []).map(option => ({
+    [field.fieldName]: ref.valueOf(option),
+    text: String(ref.labelOf(option) ?? ''),
+    __mmdaChoice: true,
+  }))
 }
 
 const flattenFilterPredicates = (predicates: any[] | undefined): any[] => {
@@ -434,12 +491,50 @@ const cssClassFor = (role?: string) => {
   return role ? roles[role] : 'e-primary'
 }
 
-/** Syncfusion surface: text→flat；outlined→描边；tonal→浅底 */
+/** EJ2 Vue Dialog：纯文本 header 经 compile 会渲染为空，需包一层 HTML。 */
+const dialogHeaderHtml = (value?: string) => {
+  if (!value) return value
+  if (/<[^>]+>/.test(value)) return value
+  return `<span class="mmda-sf-dialog__title">${value}</span>`
+}
+
+/** Button：text→e-flat（EJ2 文档 cssClass）；outlined→e-outline；tonal→浅底 */
 const buttonSurfaceClass = (buttonType?: string) => {
   if (buttonType === 'text' || buttonType === 'link') return 'e-flat'
   if (buttonType === 'outlined') return 'e-outline'
   if (buttonType === 'tonal') return 'mmda-btn-tonal'
   return ''
+}
+
+/**
+ * SplitButton 的 cssClass 只加在外层 .e-split-btn-wrapper，不会传给内部按钮。
+ * e-flat / e-outline 对 SplitButton 无效，需用 wrapper 标记类 + CSS 选中 > .e-btn。
+ */
+const splitButtonSurfaceClass = (buttonType?: string) => {
+  if (buttonType === 'text' || buttonType === 'link') return 'mmda-sf-split--flat'
+  if (buttonType === 'outlined') return 'mmda-sf-split--outline'
+  if (buttonType === 'tonal') return 'mmda-sf-split--tonal'
+  return ''
+}
+
+const splitButtonRoleClass = (props: {
+  buttonType?: string
+  colorRole?: string
+  severity?: string
+  shape?: string
+}) => {
+  const flat = props.buttonType === 'text' || props.buttonType === 'link'
+  const role = props.colorRole ?? props.severity
+  if (
+    flat &&
+    props.shape !== 'round' &&
+    props.shape !== 'circle'
+  ) {
+    if (role === 'secondary') return 'mmda-sf-split--secondary'
+    return ''
+  }
+  if (props.buttonType === 'outlined') return ''
+  return cssClassFor(role)
 }
 
 const buttonRoleClass = (props: {
@@ -449,12 +544,14 @@ const buttonRoleClass = (props: {
   shape?: string
 }) => {
   const flat = props.buttonType === 'text' || props.buttonType === 'link'
+  const role = props.colorRole ?? props.severity
   // 圆角图标按钮仍保留色相（如清除 danger / 添加 primary）
   if (
     flat &&
     props.shape !== 'round' &&
     props.shape !== 'circle'
   ) {
+    if (role === 'secondary') return 'e-secondary'
     return ''
   }
   // outlined 只靠 e-outline，不要再叠 tonal
@@ -462,18 +559,23 @@ const buttonRoleClass = (props: {
   return cssClassFor(props.colorRole ?? props.severity)
 }
 
-const normalizeAction = (action: any, t?: (key: string) => string): any => ({
-  text:
-    action.label ??
-    (action.name && t ? t(`action.${action.name}`) : action.name),
-  iconCss: action.icon,
-  disabled: action.disabled === true || action.disabled === 'true',
-  separator: action.divider,
-  id: action.name,
-  items: Array.isArray(action.items)
-    ? action.items.map((child: any) => normalizeAction(child, t))
-    : undefined,
-})
+const normalizeAction = (action: any, t?: (key: string) => string): any => {
+  if (action.divider === true) {
+    return { separator: true }
+  }
+  return {
+    text:
+      action.label ??
+      (action.name && t ? t(`action.${action.name}`) : action.name),
+    iconCss: action.icon,
+    disabled: action.disabled === true || action.disabled === 'true',
+    separator: false,
+    id: action.name,
+    items: Array.isArray(action.items)
+      ? action.items.map((child: any) => normalizeAction(child, t))
+      : undefined,
+  }
+}
 
 const findAction = (actions: any[], id?: string): any => {
   if (!id) return undefined
@@ -520,8 +622,75 @@ const flushAllInplaceEdits = () => {
   })
 }
 
+/** EJ2 autoFit 会把 width 写成 `180px`；Number('180px') 是 NaN，listSize 就写不回去。 */
+const parseGridColumnWidth = (width: unknown): number | undefined => {
+  if (width == null || width === '') return undefined
+  const value = typeof width === 'number' ? width : parseFloat(String(width))
+  return Number.isFinite(value) && value > 0 ? Math.round(value) : undefined
+}
+
+const syncMetaUiFromGridColumns = (ej2Grid: any, metaui: MetaUi) => {
+  const columns = (ej2Grid.getColumns?.() ?? []).filter(
+    (column: any) =>
+      isPersistableListColumn(column.field) && column.type !== 'checkbox',
+  )
+  columns.forEach((column: any, index: number) => {
+    const field = metaui.getField(column.field)
+    if (!field) return
+    field.listPos = index
+    const width = parseGridColumnWidth(column.width)
+    if (width != null) field.listSize = width
+    const freeze = String(column.freeze ?? '')
+    if (freeze === 'Left') field.frozen = MetaUiFieldFrozen.Left
+    else if (freeze === 'Right') field.frozen = MetaUiFieldFrozen.Right
+    else field.frozen = MetaUiFieldFrozen.None
+    ensureListFieldVisibleWhenFrozen(field)
+    if (!isListFrozen(field.frozen)) {
+      field.listed = column.visible !== false
+    }
+  })
+  metaui.getListedFields(true)
+}
+
+const waitForGridPaint = async () => {
+  await nextTick()
+  await new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+  })
+}
+
+/** 工具栏「自动列宽」：EJ2 autoFitColumns + 回写 metaui.listSize 并缓存。 */
+export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
+  if (typeof document === 'undefined') return
+  const metaui = context.metaui
+  if (!metaui) return
+  const element = document.querySelector('.e-grid.mmda-sf-table')
+  const ej2Grid = (element as any)?.ej2_instances?.[0]
+  if (!ej2Grid) return
+
+  const fields = (ej2Grid.getColumns?.() ?? [])
+    .filter(
+      (column: any) =>
+        column.visible !== false &&
+        isPersistableListColumn(column.field) &&
+        column.type !== 'checkbox',
+    )
+    .map((column: any) => column.field)
+
+  try {
+    if (fields.length) ej2Grid.autoFitColumns(fields)
+    else ej2Grid.autoFitColumns()
+  } catch {
+    /* ignore */
+  }
+
+  await waitForGridPaint()
+  syncMetaUiFromGridColumns(ej2Grid, metaui)
+  await persistListPack(context)
+}
+
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
-  patchCheckboxFilterChoiceOrder()
+  patchChoiceFilter()
   const button = (props: any, slots?: any) => {
     const onClick = props.onClick ?? props.onAction ?? props.command
     // EJ2 Vue Button 的 props 白名单不含 htmlAttributes；传对象会变成
@@ -737,12 +906,44 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     type RangeValue = { min?: unknown; max?: unknown }
     const pendingRanges = new Map<string, RangeValue>()
 
-    /** 枚举/关联字段：全局 Menu 下按列覆盖为 CheckBox 多选（无需 filter.ui 函数）。 */
+    /** 引用列 CheckBox：数据与表单下拉相同（valueOf/labelOf）。
+     * EJ2 默认用列值当勾选文字，Vue 下 itemTemplate 会把 label 清空。
+     * 用 filter-cbox-value 把显示改成 labelOf 文本，勾选值仍是主键。 */
     const choiceCheckBoxFilter = (field: MetaUiField) => ({
       type: 'CheckBox',
       dataSource: choiceFilterDataSource(field),
-      itemTemplate: '${mmdaFilterLabel}',
     })
+
+    const onFilterCheckboxLabel = (args: any) => {
+      const fieldName = args?.column?.field
+      const field = fields.find(value => value.fieldName === fieldName)
+      const ref = field?.reference
+      const raw =
+        args?.data?.[fieldName] ??
+        args?.data?.dataObj?.[fieldName] ??
+        args?.value
+      const option = ref?.refOptions?.find(item => ref.valueOf(item) === raw)
+      const text = option != null ? ref.labelOf(option) : args?.data?.text
+      if (text != null && String(text).length) args.value = String(text)
+    }
+
+    /** 引用选项按主键已唯一，跳过 EJ2 getDistinct。 */
+    const onBeforeCheckboxRenderer = (args: any) => {
+      const field = fields.find(value => value.fieldName === args?.field)
+      if (!field || !isChoiceFilterField(field)) return
+      args.executeQuery = false
+      const items = choiceFilterDataSource(field)
+      const search = String(
+        ej2Grid?.element?.querySelector?.('.e-searchinput')?.value ?? '',
+      ).trim()
+      args.dataSource = search
+        ? items.filter(
+            item =>
+              String(item.text).includes(search) ||
+              String(item[field.fieldName] ?? '').includes(search),
+          )
+        : items
+    }
 
     /**
      * 数值/日期范围过滤：仍使用 EJ2 Menu 与原生输入控件；只有选择 BETWEEN
@@ -756,7 +957,11 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       let secondControl: NumericTextBox | DatePicker | DateTimePicker | undefined
       let secondWrap: HTMLElement | undefined
       let operatorDropDown: any
-      let previousOperatorChange: ((args?: any) => void) | undefined
+      const menuOperatorListeners: Array<{
+        el: HTMLElement
+        type: string
+        fn: EventListener
+      }> = []
 
       const setControlValue = (
         control: NumericTextBox | DatePicker | DateTimePicker | undefined,
@@ -849,14 +1054,16 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             firstControl = createControl(firstInput)
             secondControl = createControl(secondInput)
             operatorDropDown = args.getOptrInstance?.dropOptr
-            // DropDownList 的 removeEventListener 不能按 DOM 方式卸回调，会在
-            // Observer.off 里对 null 做 hasOwnProperty。改包装 change 属性。
-            if (operatorDropDown) {
-              previousOperatorChange = operatorDropDown.change
-              operatorDropDown.change = (changeArgs: any) => {
-                previousOperatorChange?.call(operatorDropDown, changeArgs)
-                syncBetweenVisibility()
-              }
+            // 不要改 dropOptr.change：Vue 代理 set 会走进 EJ2 Observer.off(null)。
+            const menu = args.target?.closest?.('.e-flmenu') ?? args.target
+            if (menu instanceof HTMLElement) {
+              const onOperatorUi = () => syncBetweenVisibility()
+              menu.addEventListener('click', onOperatorUi)
+              menu.addEventListener('change', onOperatorUi)
+              menuOperatorListeners.push(
+                { el: menu, type: 'click', fn: onOperatorUi },
+                { el: menu, type: 'change', fn: onOperatorUi },
+              )
             }
 
             const current = props.filterModel?.[field.fieldName]
@@ -914,17 +1121,23 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             )
           },
           destroy: () => {
-            if (operatorDropDown) {
-              operatorDropDown.change = previousOperatorChange
-              previousOperatorChange = undefined
-              operatorDropDown = undefined
+            for (const { el, type, fn } of menuOperatorListeners) {
+              el.removeEventListener(type, fn)
             }
-            if (firstControl && !firstControl.isDestroyed) {
-              firstControl.destroy()
+            menuOperatorListeners.length = 0
+            operatorDropDown = undefined
+            const safeDestroy = (
+              control?: NumericTextBox | DatePicker | DateTimePicker,
+            ) => {
+              if (!control || control.isDestroyed) return
+              try {
+                control.destroy()
+              } catch {
+                /* EJ2 已随筛选框拆掉 */
+              }
             }
-            if (secondControl && !secondControl.isDestroyed) {
-              secondControl.destroy()
-            }
+            safeDestroy(firstControl)
+            safeDestroy(secondControl)
             firstControl = undefined
             secondControl = undefined
             secondWrap = undefined
@@ -977,6 +1190,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       },
       ...dataFields.map(field => {
         const textAlign = gridTextAlign(field)
+        const freeze = gridFreezeOf(field)
         return {
           field: field.fieldName,
           headerText: field.displayLabel,
@@ -989,6 +1203,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             props.enableSort !== false && field.sortable !== false,
           allowFiltering: showColumnFilters,
           allowGrouping: showGrouping,
+          allowReordering: Boolean(props.onListLayoutChange),
+          visible: field.listed !== false,
+          freeze,
           allowEditing:
             inplaceEdit &&
             editableFields.has(field.fieldName) &&
@@ -1024,7 +1241,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           filter: columnFilter(field),
           width:
             field.listSize && field.listSize > 0
-              ? Math.min(field.listSize, 400)
+              ? field.listSize
               : undefined,
           template: cellSlotName(field.fieldName),
         }
@@ -1055,11 +1272,13 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       const custom = props.customCellRenderers?.[field.fieldName]
       if (custom) return custom(field, row)
       const text = MetaModel.displayField(row, field)
-      return String(
-        text == null || text === ''
-          ? (field.nullDisplayText ?? '')
-          : `${field.prefix ?? ''}${String(text)}${field.suffix ?? ''}`,
-      )
+      if (text == null || text === '') return String(field.nullDisplayText ?? '')
+      const prefix = field.prefix ?? ''
+      const unit = resolveFieldUnit(field)
+      if (field.renderer === 'QuantityUnit' && unit) {
+        return `${prefix}${String(text)} ${unit}`
+      }
+      return `${prefix}${String(text)}${unit}`
     }
 
     const cellSlots = Object.fromEntries(
@@ -1143,7 +1362,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         details && showActionMenu && popupActions.length
           ? h(SplitButtonComponent as any, {
               iconCss: details.icon || factory.resolveIcon('details'),
-              cssClass: 'e-flat e-caret-hide-primary mmda-sf-row-details',
+              cssClass:
+                'mmda-sf-split--flat e-caret-hide-primary mmda-sf-row-details',
               title: details.label,
               items: popupActions.map(action => normalizeAction(action)),
               click: () => run(details),
@@ -1189,8 +1409,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     }
 
     const primaryKey = metaui.primaryKey
-    // 稳定 key：按页数据变化时只更新 dataSource，避免整表 remount 闪烁
-    const gridKey = `mmda-sf-grid-${metaui.objName ?? primaryKey ?? 'list'}`
+    const layoutRev = unref(props.layoutRev as any) ?? 0
+    const gridKey = `mmda-sf-grid-${metaui.objName ?? primaryKey ?? 'list'}-${layoutRev}`
 
     /** custom binding（result/count）在 dataStateChange 后会转圈等待 dataSource 回写。
      * 索引页用虚拟滚动时 count 必须是当前页行数（不是总记录数），否则会按总数撑虚拟高度。
@@ -1213,8 +1433,14 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         })
     }
 
+    const persistLayoutFromGrid = () => {
+      if (!props.onListLayoutChange || !ej2Grid) return
+      syncMetaUiFromGridColumns(ej2Grid, metaui)
+      props.onListLayoutChange()
+    }
+
     const gridVNode = h(
-      GridComponent as any,
+      MmdaSfGrid,
       {
         key: gridKey,
         // 索引页：当前页本地数组 + 行虚拟滚动（与 allowPaging 互斥）。
@@ -1263,6 +1489,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         filterSettings: showColumnFilters ? { type: 'Menu' } : undefined,
         // 用 columns 数组而非 ColumnDirective，避免 Vue 指令序列化丢掉 filter.ui 函数。
         columns: gridColumns,
+        showColumnChooser: false,
+        allowReordering: Boolean(props.onListLayoutChange),
         allowResizing: props.resizableColumns !== false,
         allowSelection:
           Boolean(selectionMode) ||
@@ -1278,13 +1506,48 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             : { type: 'None' },
         cssClass: ['mmda-sf-table', props.class].filter(Boolean).join(' '),
         ref: (comp: any) => {
-          ej2Grid = comp?.ej2Instances ?? comp ?? null
+          const grid = comp?.ej2Instances ?? comp ?? null
+          if (ej2Grid && ej2Grid !== grid) {
+            ej2Grid.off?.('filter-cbox-value', onFilterCheckboxLabel)
+            ej2Grid.off?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
+          }
+          ej2Grid = grid
+          ej2Grid?.on?.('filter-cbox-value', onFilterCheckboxLabel)
+          ej2Grid?.on?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
         },
         created: () => {
-          // Vue EJ2 偶发 created 早于 ref 赋值，延后一拍再绑单击/键盘
+          ej2Grid?.on?.('filter-cbox-value', onFilterCheckboxLabel)
+          ej2Grid?.on?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
           queueMicrotask(() => bindInplaceEditTriggers())
+          if (!props.onListLayoutChange) return
+          queueMicrotask(() => {
+            void (async () => {
+              const missing = dataFields.filter(
+                field => !field.listSize || field.listSize <= 0,
+              )
+              if (!missing.length) return
+              try {
+                ej2Grid?.autoFitColumns?.(
+                  missing.map(field => field.fieldName),
+                )
+              } catch {
+                /* ignore */
+              }
+              await waitForGridPaint()
+              persistLayoutFromGrid()
+            })()
+          })
+        },
+        resizeStop: () => persistLayoutFromGrid(),
+        actionComplete: (args: any) => {
+          const requestType = args?.requestType
+          if (requestType === 'reorder' || requestType === 'columnstate') {
+            persistLayoutFromGrid()
+          }
         },
         destroyed: () => {
+          ej2Grid?.off?.('filter-cbox-value', onFilterCheckboxLabel)
+          ej2Grid?.off?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
           flushPendingCellEdit()
           unbindInplaceEditTriggers()
         },
@@ -1395,7 +1658,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
               }
               if (
                 field.reference &&
-                !field.reference.isEnum &&
+                !isEnumReference(field.reference) &&
                 field.reference.refOptions.length === 0 &&
                 props.loadFilterOptions
               ) {
@@ -1440,13 +1703,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             requestType === 'grouping' ||
             requestType === 'ungrouping'
           ) {
-            // custom binding 等待 dataSource 回写；当前页客户端分组即可。
-            if (pagination && ej2Grid) {
-              ej2Grid.dataSource = {
-                result: Array.from(rows),
-                count: rows.length,
-              }
-            }
+            void resolveCustomBinding()
             return
           }
           if (requestType === 'sorting' && props.enableSort !== false) {
@@ -1490,7 +1747,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
               }
               if (
                 field?.reference &&
-                !field.reference.isEnum &&
+                !isEnumReference(field.reference) &&
                 field.reference.refOptions.length === 0 &&
                 props.loadFilterOptions
               ) {
@@ -1620,8 +1877,16 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       back: 'e-icons e-chevron-left',
       import: 'e-icons e-upload-1',
       export: 'e-icons e-download',
+      'auto-fit-columns': 'e-icons e-auto-fit-all-column',
+      settings: 'e-icons e-settings',
       more: 'e-icons e-more-vertical-1',
       file: 'e-icons e-file',
+      'eye-slash': 'fas fa-eye-slash',
+      'dnd-vert': `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
+      'drag-indicator': `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
+      'freeze-column-right': 'e-icons e-spacing-before',
+      'freeze-column-left': 'e-icons e-spacing-after',
+      unlock: 'e-icons e-unlock',
     },
     viewIcons: {
       index: 'e-icons e-list-unordered',
@@ -1648,8 +1913,13 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     textSpan: (text, props) => h('span', props, text),
     label: (text, props) => h('label', props, text),
     image: (src, props) => h('img', { src, ...props }),
-    icon: (name, props) =>
-      h('i', { class: factory.resolveIcon(name), ...props }),
+    photoGallery: (items, props) =>
+      h(PhotoGallery, {
+        items,
+        ...props,
+      }),
+    filesUploader: props => h(FilesUploader, props),
+    icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
     badge: (props) =>
       h(
         'span',
@@ -1719,10 +1989,25 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         {
           content: props.label,
           iconCss: props.icon,
+          disabled: props.disabled === true || props.disabled === 'true',
+          cssClass: [
+            splitButtonRoleClass(props),
+            splitButtonSurfaceClass(props.buttonType),
+            props.class,
+          ]
+            .filter(Boolean)
+            .join(' '),
           items: (props.actions ?? []).map(action =>
             normalizeAction(action),
           ),
-          select: (args: any) => args.item?.command?.(),
+          select: (args: any) => {
+            const found = findAction(
+              props.actions ?? [],
+              args.item?.id ?? args.item?.text,
+            )
+            found?.onAction?.()
+            found?.command?.()
+          },
           onClick: props.onAction ?? props.command,
         },
         slots,
@@ -1735,96 +2020,47 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       const placement = String(props.popupPlacement ?? '')
       const openUp =
         placement === 'top' || placement === 'top-end'
-      let ej2: any = null
+      const cssClass = [
+        buttonRoleClass(props),
+        buttonSurfaceClass(props.buttonType),
+        props.shape === 'round' || props.shape === 'circle' ? 'e-round' : '',
+        hideCaret ? 'e-caret-hide' : '',
+        props.class,
+      ]
+        .filter(Boolean)
+        .join(' ')
+
+      // 向上弹：不用 EJ2 DropDownButton（无可靠 upward API，首次打开易错位）
+      if (openUp) {
+        return h(DropupMenuButton, {
+          label: props.label,
+          icon: props.icon,
+          cssClass,
+          title: props.tooltip,
+          ariaLabel: props['aria-label'] ?? props.tooltip,
+          hideCaret,
+          placement: placement === 'top' ? 'top' : 'top-end',
+          items: actions.map(action => ({
+            id: action.name,
+            label: action.label ?? action.name,
+            icon: action.icon,
+            disabled: action.disabled === true || action.disabled === 'true',
+            divider: action.divider === true,
+            onAction: action.onAction,
+            command: action.command,
+          })),
+        })
+      }
+
       return h(
         DropDownButtonComponent as any,
         {
           content: props.label,
           iconCss: props.icon,
           // icon-only / circle：隐藏箭头，避免把 2rem 圆形按钮撑破导致 footer 布局乱
-          cssClass: [
-            buttonRoleClass(props),
-            buttonSurfaceClass(props.buttonType),
-            props.shape === 'round' || props.shape === 'circle' ? 'e-round' : '',
-            hideCaret ? 'e-caret-hide' : '',
-            openUp ? 'mmda-sf-menu-popup-trigger' : '',
-            props.class,
-          ]
-            .filter(Boolean)
-            .join(' '),
+          cssClass,
           title: props.tooltip,
           items: actions.map(action => normalizeAction(action)),
-          ref: (comp: any) => {
-            ej2 = comp?.ej2Instances ?? comp ?? null
-          },
-          beforeOpen: () => {
-            if (!openUp) return
-            const popup = ej2?.dropDown
-            if (!popup) return
-            // EJ2 默认 left+bottom（往下弹）。Y:'top' 会「上边沿贴上边沿」，
-            // 真正往上弹要在 open 里按容器顶边手算；这里关掉 collision 避免又翻回去。
-            popup.position = { X: 'right', Y: 'top' }
-            popup.collision = { X: 'none', Y: 'none' }
-            popup.offsetY = 0
-            popup.offsetX = 0
-          },
-          open: (args: any) => {
-            if (!openUp) return
-            const placeAbove = (attempt = 0) => {
-              const popupEl = (args?.element as HTMLElement | undefined)
-                ?.closest?.('.e-popup') as HTMLElement | null
-              if (!popupEl) return
-              popupEl.classList.add('mmda-sf-menu-popup')
-              popupEl.style.width = ''
-              popupEl.style.minWidth = ''
-              if (popupEl.offsetHeight < 8 && attempt < 8) {
-                requestAnimationFrame(() => placeAbove(attempt + 1))
-                return
-              }
-              const btn = (ej2?.element as HTMLElement | undefined) ??
-                (document.querySelector(
-                  `[aria-owns="${popupEl.id}"], [aria-controls="${popupEl.id}"]`,
-                ) as HTMLElement | null)
-              if (!btn) return
-
-              // 容器 = 侧栏 footer（用户要：弹框下边沿 ↔ 容器上边沿）
-              const container = (btn.closest('.mmda-sf-sidebar__footer') ||
-                btn.closest('.mmda-user-footer') ||
-                btn) as HTMLElement
-              const chrome = btn.closest(
-                '.mmda-sf-system-chrome',
-              ) as HTMLElement | null
-              const panel = (chrome?.querySelector(
-                '.mmda-sf-system-modules',
-              ) ||
-                container.closest('#mmda-sf-dock-sidebar') ||
-                btn.closest('.mmda-sf-aside') ||
-                container) as HTMLElement
-
-              const pad = 8
-              const btnRect = btn.getBoundingClientRect()
-              const containerRect = container.getBoundingClientRect()
-              const panelRect = panel.getBoundingClientRect()
-              const height = popupEl.offsetHeight
-              const width = popupEl.offsetWidth
-
-              // 垂直：弹框底边 = 容器顶边（真正贴在 footer 上方）
-              const top = Math.max(8, containerRect.top - height)
-              // 水平：相对按钮右对齐，并夹在浅色栏内
-              let left = btnRect.right - width
-              const maxRight = panelRect.right - pad
-              const minLeft = panelRect.left + pad
-              if (left + width > maxRight) left = maxRight - width
-              if (left < minLeft) left = minLeft
-
-              popupEl.style.maxWidth = `${Math.max(120, panelRect.width - pad * 2)}px`
-              popupEl.style.left = `${left}px`
-              popupEl.style.top = `${top}px`
-              popupEl.style.transform = ''
-            }
-            // 不要 refreshPosition：会按 Y:top 重新贴回上边沿对齐
-            requestAnimationFrame(() => placeAbove(0))
-          },
           select: (args: any) => {
             const found = findAction(actions, args.item?.id ?? args.item?.text)
             found?.onAction?.()
@@ -1877,7 +2113,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         ? props.pageSizeOptions.map(String)
         : STABLE_PAGE_SIZE_OPTIONS
       const currentPage = pagination.pageNo ?? 1
-      const currentSize = pagination.pageSize ?? DEFAULT_PAGE_SIZE
+      const currentSize = pagination.pageSize ?? readStoredPageSize()
       const notifyPage = (pageNo: number, pageSize: number) => {
         const nextNo = Math.max(1, Number(pageNo) || 1)
         const nextSize = Number(pageSize) || currentSize
@@ -1976,23 +2212,50 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         onUpdateVisible: (value: boolean) => void
       },
       slots?: UiSlots,
-    ) =>
-      h(
+    ) => {
+      const {
+        visible,
+        onUpdateVisible,
+        header,
+        title,
+        name,
+        modal,
+        width,
+        allowDragging,
+        enableResize,
+        showCloseIcon,
+        closeOnEscape,
+        open,
+        ...rest
+      } = props
+      const headerText = String(header ?? title ?? name ?? '')
+      const dialogBodySlots = slots?.default
+        ? { default: slots.default }
+        : undefined
+      return h(
         DialogComponent as any,
         {
-          header: props.header ?? props.title ?? props.name,
-          isModal: props.modal ?? true,
-          width: props.width ?? 'min(90vw, 60rem)',
-          allowDragging: props.allowDragging ?? true,
-          enableResize: props.enableResize ?? true,
-          showCloseIcon: props.showCloseIcon ?? true,
-          closeOnEscape: props.closeOnEscape ?? true,
-          close: () => props.onUpdateVisible(false),
-          ...props,
-          visible: props.visible,
+          ...rest,
+          isModal: modal ?? true,
+          width: width ?? 'min(90vw, 60rem)',
+          allowDragging: allowDragging ?? true,
+          enableResize: enableResize ?? true,
+          showCloseIcon: showCloseIcon ?? true,
+          closeOnEscape: closeOnEscape ?? true,
+          close: () => onUpdateVisible(false),
+          visible,
+          header: dialogHeaderHtml(headerText),
+          open: (args: { element?: HTMLElement }) => {
+            const headerEl = args?.element?.querySelector?.('.e-dlg-header')
+            if (headerEl && headerText && !headerEl.textContent?.trim()) {
+              headerEl.textContent = headerText
+            }
+            open?.(args)
+          },
         },
-        slots,
-      ),
+        dialogBodySlots,
+      )
+    },
     drawer: (props, slots) =>
       h(
         SidebarComponent as any,
@@ -2027,6 +2290,118 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       h(ChartComponent as any, { ...chartProps(data, { ...props, type: 'Polar' }) }),
     radarChart: (data: any, props: PropData = {}) =>
       h(ChartComponent as any, { ...chartProps(data, { ...props, type: 'Radar' }) }),
+    formItem: (props: PropData = {}, slots?: UiSlots) =>
+      h(
+        'div',
+        { class: ['mmda-sf-form-item', props.class], style: props.style },
+        [
+          props.label
+            ? h('label', { class: 'mmda-sf-form-item__label' }, String(props.label))
+            : null,
+          slots?.default?.() ??
+            factory.input(props.modelValue, {
+              ...props,
+              onUpdate: props.onUpdate ?? props['onUpdate:modelValue'],
+            }),
+        ],
+      ),
+    column: (props: PropData = {}, slots?: UiSlots) => ({
+      ...props,
+      header: props.header,
+      field: props.field,
+      body: slots?.body ?? props.body,
+    }),
+    primeVueTable: (data: any[] = [], columns: any[] = [], props: PropData = {}) =>
+      factory.dataTable(data, columns, props),
+    dataTable: (data: any[] = [], columns: any[] = [], props: PropData = {}) =>
+      h(
+        'div',
+        { class: ['mmda-sf-data-table', 'e-grid', props.class], style: props.style },
+        [
+          h('table', { class: 'e-table' }, [
+            h(
+              'thead',
+              h(
+                'tr',
+                columns.map((col, i) =>
+                  h(
+                    'th',
+                    { key: col.field ?? i, style: col.style },
+                    typeof col.header === 'function' ? col.header() : col.header ?? col.field,
+                  ),
+                ),
+              ),
+            ),
+            h(
+              'tbody',
+              (data ?? []).map((row, index) =>
+                h(
+                  'tr',
+                  { key: row?.id ?? index, onDblclick: () => props.onItemDoubleClick?.(row) },
+                  columns.map((col, i) =>
+                    h(
+                      'td',
+                      { key: col.field ?? i, style: col.style },
+                      col.body
+                        ? col.body({ data: row, index })
+                        : row?.[col.field],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ],
+      ),
+    datePicker: (props: PropData = {}) =>
+      h(DatePickerComponent as any, {
+        value: props.modelValue ?? props.value,
+        change: (args: any) =>
+          (props.onUpdatePicker ?? props.onUpdate ?? props['onUpdate:modelValue'])?.(
+            args.value,
+          ),
+        ...props,
+      }),
+    numberInput: (props: PropData = {}) =>
+      h(NumericTextBoxComponent as any, {
+        value: props.modelValue ?? props.value,
+        change: (args: any) =>
+          (props.onUpdate ?? props['onUpdate:modelValue'])?.(args.value),
+        ...props,
+      }),
+    select: (props: PropData = {}) =>
+      factory.dropdown(props.modelValue, {
+        ...props,
+        fields: props.optionLabel
+          ? { text: props.optionLabel, value: props.dataKey ?? 'value' }
+          : props.fields,
+      }),
+    toggleSwitch: (value: any, props: PropData = {}) =>
+      h(SwitchComponent as any, {
+        checked: props.modelValue ?? value,
+        change: (args: any) =>
+          (props.onUpdate ?? props['onUpdate:modelValue'])?.(args.checked),
+        ...props,
+      }),
+    textarea: (value: any, props: PropData = {}) =>
+      h(TextAreaComponent as any, {
+        value: props.modelValue ?? value,
+        input: (args: any) =>
+          (props.onUpdate ?? props['onUpdate:modelValue'])?.(args.value),
+        ...props,
+      }),
+    dataViewBox: (props: PropData = {}, slots?: UiSlots) =>
+      h(
+        'div',
+        { class: ['mmda-sf-data-view', props.class], style: props.listStyle ?? props.style },
+        (props.value ?? []).map((item: any, index: number) =>
+          h(
+            'div',
+            { key: item?.id ?? index, class: 'mmda-sf-data-view__item' },
+            slots?.item?.(item, index) ?? String(item),
+          ),
+        ),
+      ),
   }
 
   return factory as SyncfusionUiFactory

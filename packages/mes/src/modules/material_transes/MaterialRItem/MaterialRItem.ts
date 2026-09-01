@@ -47,12 +47,12 @@ export const MaterialRItem = defineComponent({
         return () => props.ctx.uiBuilder.buildSearchForRelativeContent(
             [
                 ui.factory.column({ header: '#', field: 'rowNum', style: 'width: 100px' }),
-                ui.factory.column({ header: '物料类别', field: 'materialCategory', style: 'width: 100px' }),
-                ui.factory.column({ header: '物料编码', field: 'materialCode', style: 'width: 100px' }),
-                ui.factory.column({ header: '物料名称', field: 'materialName', style: 'width: 100px' }),
-                ui.factory.column({ header: '数量', field: 'quantity', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.materialCategory'), field: 'materialCategory', style: 'width: 100px' }),
+                ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
+                ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.quantity'), field: 'quantity', style: 'width: 100px' }),
                 ui.factory.column(
-                    { header: '实到数量', style: 'width: 240px' },
+                    { header: t('inventory.arrivedQuantity'), style: 'width: 240px' },
                     {
                         body: ({ data }: any, frozenRow: any, index: any) => ui.factory.numberInput({
                             style: { width: '140px' },
@@ -64,7 +64,7 @@ export const MaterialRItem = defineComponent({
                                     toast.add({
                                         severity: 'warn',
                                         summary: t('dialog.title.warning'),
-                                        detail: '实到数量不能小于等于0',
+                                        detail: t('inventory.arrivedQuantityPositive'),
                                         group: 'br',
                                         life: 3000,
                                     });
@@ -76,18 +76,18 @@ export const MaterialRItem = defineComponent({
                         })
                     }
                 ),
-                ui.factory.column({ header: '单位', field: 'unit', style: 'width: 100px' }),
-                ui.factory.column({ header: '品牌', field: 'brand', style: 'width: 100px' }),
-                ui.factory.column({ header: '规格', field: 'specs', style: 'width: 100px' }),
-                ui.factory.column({ header: '材质', field: 'modelType', style: 'width: 100px' }),
-                ui.factory.column({ header: '用途', field: 'usage', style: 'width: 100px' }),
-                ui.factory.column({ header: '剩余数量', field: 'leftOverQuantity', style: 'width: 100px' }),
-                ui.factory.column({ header: '单价', field: 'unitPrice', style: 'width: 100px' }),
-                ui.factory.column({ header: '金额', field: 'amount', style: 'width: 100px' }),
-                ui.factory.column({ header: '重量', field: 'weight', style: 'width: 100px' }),
-                ui.factory.column({ header: '质量状态', field: 'qaStatus', style: 'width: 100px' }),
-                ui.factory.column({ header: '包装尺寸', field: 'packSize', style: 'width: 100px' }),
-                ui.factory.column({ header: '备注', field: 'remark', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.unit'), field: 'unit', style: 'width: 100px' }),
+                ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
+                ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.materialTexture'), field: 'modelType', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.usage'), field: 'usage', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.remainingQuantity'), field: 'leftOverQuantity', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.unitPrice'), field: 'unitPrice', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.amount'), field: 'amount', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.weight'), field: 'weight', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.qualityStatus'), field: 'qaStatus', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.packageSize'), field: 'packSize', style: 'width: 100px' }),
+                ui.factory.column({ header: t('inventory.remark'), field: 'remark', style: 'width: 100px' }),
             ],
             {
                 dataKey: unref(tableDataKey),

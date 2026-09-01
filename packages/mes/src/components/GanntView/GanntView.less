@@ -113,9 +113,9 @@
 
             &:not(.p-togglebutton-checked):not(.p-highlight):focus,
             &:not(.p-togglebutton-checked):not(.p-highlight):active {
-                background: var(--p-button-secondary-background, var(--p-button-background));
-                border-color: var(--p-button-secondary-border-color, var(--p-button-border-color));
-                color: var(--p-button-secondary-color, var(--p-button-color));
+                background: var(--mmda-button-secondary-background, var(--mmda-button-background));
+                border-color: var(--mmda-button-secondary-border-color, var(--mmda-button-border-color));
+                color: var(--mmda-button-secondary-color, var(--mmda-button-color));
             }
 
             &.p-togglebutton-checked,
@@ -127,7 +127,7 @@
 }
 
 // 暗黑模式：按项目 / 按生产订单切换（p-dark 下 ToggleButton 仍沿用浅色 surface 令牌，需局部覆盖）
-html.p-dark,
+html.e-dark-mode,
 :root[data-gantt-theme='dark'] {
     .scheduleViewModeToggle {
         .p-selectbutton {
@@ -391,7 +391,7 @@ color: #FF9933;
 }
 
 // 暗黑模式：暂无数据 / 加载遮罩（原浅色半透明底会与深色甘特表头叠在一起发灰）
-html.p-dark,
+html.e-dark-mode,
 :root[data-gantt-theme='dark'] {
     .ganttEmptyState,
     .ganttLoadingState {
@@ -1004,11 +1004,11 @@ html.p-dark,
 }
 
 // 暗黑模式订单/任务列字色兼容（三处触发条件，避免「深底 + 深字」看不清）：
-// 1) html.p-dark：PrimeVue 全局暗黑，甘特背景已变深但 dhtmlx 变量可能仍是 material 浅色值
+// 1) html.e-dark-mode：PrimeVue 全局暗黑，甘特背景已变深但 dhtmlx 变量可能仍是 material 浅色值
 // 2) .schedule-gantt-dark：GanntView 在 mes.context.isDark 时挂到 ganttBox，与 p-dark 双保险
 // 3) data-gantt-theme='dark'：dhtmlx setSkin('dark') 写入 documentElement 时生效
 // 使用 !important 覆盖自定义 HTML 内联继承及浅色主题变量
-html.p-dark .order-schedule-view,
+html.e-dark-mode .order-schedule-view,
 .order-schedule-view.schedule-gantt-dark,
 :root[data-gantt-theme='dark'] .order-schedule-view {
     // 制品名 / 任务名主行
@@ -1558,7 +1558,7 @@ body.gantt-resize-dragging {
 
 // Lightbox 底部按钮：material 为 --dhx-gantt-btn-order: row + push_right 靠右；dark 未覆盖该变量，默认为 row-reverse 导致保存/关闭挤在左侧
 :root[data-gantt-theme='dark'],
-html.p-dark {
+html.e-dark-mode {
 	--dhx-gantt-btn-order: row;
 }
 

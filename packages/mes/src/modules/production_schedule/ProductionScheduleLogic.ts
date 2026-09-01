@@ -14,7 +14,6 @@ import { UiLogic } from '@mmda/vui';
 import { reactive, h, toRaw, ref, RendererElement, RendererNode, VNode, getCurrentInstance } from 'vue';
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
 import { applyScheduleGanttTaskDates } from '@/components/GanntView/ganttScheduleDateHelpers';
-import { $t } from '@primevue/themes';
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { getTaskData, getLinkRes, getPlanRes, getBreaks, getProSub } from '@/components/GanntView/ganntUpdate';
 import { TaskRelationship, TaskRelationshipEnum } from '@mmda/base/src/enums/TaskRelationship';
@@ -117,7 +116,7 @@ const submitPlan = async (planItem: any, content: any) => {
 		}
 		$toast.add({
 			severity: 'error',
-			title: $t('dialog.title.error'),
+			title: 'dialog.title.error',
 			summary: errorMessage ?? '',
 			group: 'br',
 			life: 3000,
@@ -183,7 +182,7 @@ const getSub = async (appContext: any, task: any) => {
 	} catch (error: any) {
 		$toast.add({
 			severity: 'error',
-			title: $t('dialog.title.error'),
+			title: 'dialog.title.error',
 			summary: error.detail ?? '',
 			group: 'br',
 			life: 3000,
@@ -305,7 +304,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	// 	} catch (error: any) {
 	// 		$toast.add({
 	// 			severity: 'error',
-	// 			title: $t('dialog.title.error'),
+	// 			title: 'dialog.title.error',
 	// 			summary: error.detail ?? '',
 	// 			life: 3000,
 	// 		});
@@ -404,7 +403,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		} catch (error: any) {
 			$toast.add({
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -443,7 +442,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		} catch (error: any) {
 			$toast.add({
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -466,7 +465,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 			}),
 			appContext,
 			{
-				title: '编制日计划',
+				title: appContext.t('ganttLabel.PrepareDaily'),
 				showFooter: false,
 				width: '50vw',
 				height: 'auto',
@@ -499,7 +498,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
  */
 export const ProductionScheduleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionScheduleLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionSchedule',
 		router,
 		module: module || metaUiService.findModule('ProductionSchedule'),

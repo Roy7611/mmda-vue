@@ -127,7 +127,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 				this.group('records')
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newEquipmentTallyRecord,
@@ -135,7 +135,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 					})
 					.addCustomAction({
 						name: 'oneClickNormal',
-						label: '一键正常',
+						label: 'equipmentTally.markAllNormal',
 						icon: 'far fa-plus-circle',
 						role: 'success',
 						onAction: this.oneClickNormal,
@@ -207,7 +207,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 				}
 			}
 		), context, {
-			title: '请选择点检记录',
+			title: context.t('equipmentTally.selectInspectionRecords'),
 			width: '80%',
 			accept: async () => {
 				target.records.forEach(value => {
@@ -264,7 +264,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
  */
 export const EquipmentTallyLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new EquipmentTallyLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'EquipmentTallies',
 		router,
 		module: module || metaUiService.findModule('EquipmentTally'),

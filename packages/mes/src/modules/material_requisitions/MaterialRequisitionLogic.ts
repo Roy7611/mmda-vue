@@ -78,7 +78,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 				.defaultAdder(this.newMaterialRequisitionItem)
 				.addCustomAction({
 					name: 'createProductionTaskFeeding',
-					label: '从生产任务投料中选择',
+					label: 'materialRequisition.selectFromTaskFeeding',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.addProductionTaskFeeding,
@@ -93,10 +93,10 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 							model.reqSummary = ''
 							break;
 						case 1:
-							model.reqSummary = newItems.map(v => `${v.material.materialName ?? ''}共${v.reqQuantity ?? 0}${v.unit ?? ''}`).join()
+							model.reqSummary = newItems.map(v => ctx.t('materialRequisition.itemSummary', { name: v.material.materialName ?? '', quantity: v.reqQuantity ?? 0, unit: v.unit ?? '' })).join()
 							break;
 						default:
-							model.reqSummary = newItems.map(v => `${v.material.materialName ?? ''}共${v.reqQuantity ?? 0}${v.unit ?? ''}...等共${newItems.length ?? 0}项`)[0]
+							model.reqSummary = newItems.map(v => ctx.t('materialRequisition.itemsSummary', { name: v.material.materialName ?? '', quantity: v.reqQuantity ?? 0, unit: v.unit ?? '', count: newItems.length ?? 0 }))[0]
 							break;
 					}
 					MetaModel.modify(model);
@@ -203,7 +203,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
  */
 export const MaterialRequisitionLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new MaterialRequisitionLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaterialRequisitions',
 		router,
 		module: module || metaUiService.findModule('MaterialRequisition'),

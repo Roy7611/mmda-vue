@@ -39,7 +39,7 @@ export class ProjectSkewersLogic extends UiLogic<CustomPage> {
  */
 export const ProjectSkewersLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
     new ProjectSkewersLogic({
-        service: metaUiService,
+        metaUiService: metaUiService,
         repository: 'StationPortals',
         router,
         module: module || metaUiService.findModule('StationPortal'),

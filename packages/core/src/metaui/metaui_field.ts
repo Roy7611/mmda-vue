@@ -126,13 +126,15 @@ export interface MetaUiFieldInit {
   listed?: boolean // 列出，桌面端列表显示
   mergeLabel?: string
   mergePrefix?: string
-  listSize?: number // 列显示宽度，字符数，通常用于计算列宽，基数是200
+  listSize?: number // 列显示宽度，像素；缺省按字段类型估算
+  listPos?: number // 列表列顺序；缺省按 fieldIdx。勿与详情 fieldIdx 混用
   align?: MetaUiFieldAlignment // 对齐方式
   sortable?: boolean // 可排序，通常是有索引的字段支持排序
   aggregationSet?: MetaAggregation // 聚合函数
 
   // 渲染
   hidden?: boolean // 隐藏
+  frozen?: MetaUiFieldFrozen // 冻结：'' | left | right
   readOnly?: boolean // 只读，只显示不能编辑
   renderer?: string // 渲染器
   formatter?: string // 显示格式，例如D为长日期，翻译为各种编
@@ -226,6 +228,37 @@ export enum MetaUiFieldFrozen {
   Right = 'right',
 }
 
+export const listColumnOrder = (field: {
+  listPos?: number
+  fieldIdx: number
+}) => field.listPos ?? field.fieldIdx
+
+export const listFreezeBand = (frozen?: string | MetaUiFieldFrozen): 0 | 1 | 2 => {
+  const value = String(frozen ?? '').toLowerCase()
+  if (value === MetaUiFieldFrozen.Left || value === 'left') return 0
+  if (value === MetaUiFieldFrozen.Right || value === 'right') return 2
+  return 1
+}
+
+export const compareListColumns = (
+  a: { listPos?: number; fieldIdx: number; frozen?: string | MetaUiFieldFrozen },
+  b: { listPos?: number; fieldIdx: number; frozen?: string | MetaUiFieldFrozen },
+) => {
+  const band = listFreezeBand(a.frozen) - listFreezeBand(b.frozen)
+  if (band) return band
+  return listColumnOrder(a) - listColumnOrder(b)
+}
+
+export const isListFrozen = (frozen?: string | MetaUiFieldFrozen) =>
+  listFreezeBand(frozen) !== 1
+
+/** 冻结列必须出现在列表：listed=true，hidden=false */
+export function ensureListFieldVisibleWhenFrozen(field: MetaUiField) {
+  if (!isListFrozen(field.frozen)) return
+  field.listed = true
+  field.hidden = false
+}
+
 /** 弹窗 Footer 操作按钮 */
 export interface FooterAction {
   /** 按钮文案 */
@@ -249,6 +282,7 @@ export interface FooterAction {
 export class MetaUiField {
   constructor(init: MetaUiFieldInit) {
     Object.assign(this, init);
+    if (this.frozen == null) this.frozen = MetaUiFieldFrozen.None
     if (this.selectOptions) {
       this.reference = MetaUiFieldRef.parse(this.selectOptions);
     }
@@ -261,16 +295,18 @@ export class MetaUiField {
   readonly nullable: boolean
 
   readonly emphasized?: boolean
-  readonly listed?: boolean
+  listed?: boolean
   readonly mergeLabel?: string
   readonly mergePrefix?: string
-  readonly listSize?: number
+  listSize?: number
+  listPos?: number
   readonly align?: MetaUiFieldAlignment
   readonly sortable?: boolean
   readonly aggregationSet?: MetaAggregation
 
-  readonly hidden?: boolean
+  hidden?: boolean
   readonly readOnly?: boolean
+  frozen: MetaUiFieldFrozen
   linkable?: boolean //是否超链接
   readonly renderer?: string
   readonly formatter?: string
@@ -394,11 +430,26 @@ export class MetaUiFieldRef {
         refOptionsShape: MetaOptionsShape.FLAT,
       })
     } else if (selectOptions.indexOf('|') != -1) {
-      const refOptions = selectOptions.split('|')
+      // `0;LABOR;劳动力`：value=数值, code=英文成员（实体存这个）, label=显示文本
+      const refOptions = selectOptions.split('|').map(raw => {
+        const parts = String(raw ?? '').split(';')
+        if (parts.length >= 3) {
+          const value = Number(parts[0])
+          return {
+            value: Number.isNaN(value) ? parts[0] : value,
+            code: parts[1],
+            label: parts.slice(2).join(';'),
+          }
+        }
+        if (parts.length === 2) {
+          return { value: parts[0], code: parts[0], label: parts[1] }
+        }
+        return { value: raw, code: raw, label: raw }
+      })
       return new MetaUiFieldRef({
         refType: MetaRelationType.ENUM,
         refObjName: 't',
-        refFlds: [],
+        refFlds: ['code', 'label'],
         refOptions: refOptions,
         refOptionsShape: MetaOptionsShape.FLAT,
       })
@@ -496,10 +547,10 @@ export class MetaUiFieldRef {
 
 
   /**
-   * 检索从“refOptions”中查找枚举项的函数 
-   *基于提供的值。如果 `refOptions` 不为空，则该函数 
-   *使用“refFlds[0]”作为键检查“refOptions”中是否存在该值 
-   *并返回匹配的枚举项，如果没有找到则返回原始值。 
+   * 检索从“refOptions”中查找枚举项的函数
+   *基于提供的值。如果 `refOptions` 不为空，则该函数
+   *使用“refFlds[0]”作为键检查“refOptions”中是否存在该值
+   *并返回匹配的枚举项，如果没有找到则返回原始值。
    *如果 `refOptions` 为空，则返回一个仅返回输入值的函数。
    */
   get enumFn() {

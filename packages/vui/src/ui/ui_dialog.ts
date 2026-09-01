@@ -32,6 +32,8 @@ export interface UiDialogProps {
   modal?: boolean;
   fullscreen?: boolean;
   width?: string | number;
+  /** 是否显示适配器提供的默认取消/确定页脚。 */
+  showFooter?: boolean;
   destroyOnClose?: boolean;
   appendToBody?: boolean;
   appendTo?: string;

@@ -38,6 +38,7 @@ import { rx } from "../rx";
 import {
   UiViewMany,
   UiViewOne,
+  createDefaultSearchParam,
   type UiViewOneType,
   type UiViewType,
 } from "./ui_view";
@@ -52,6 +53,7 @@ import {
 import type { UiBuilder } from "./ui_builder";
 import type { UiAction } from "./ui_action";
 import type { UiColorRole } from "./ui_material";
+import { applyCachedSorts, schedulePersistListPack } from "./list_layout";
 
 type UiContext = UiViewContext<any>;
 type ContextCache = Map<string, UiViewContext<any>>;
@@ -92,11 +94,9 @@ const identityTranslate: TranslateFn = (message) =>
  * 一个实例只绑定一个实体（或一个子表集合）。主表、子表集合和每一条子表行
  * 都有各自的实例；字段搜索状态与校验状态不跨实例共享。
  */
-export class UiViewContext<
-  E extends object = Record<string, any>,
-> {
+export class UiViewContext<E extends object = Record<string, any>> {
   readonly model: E;
-  readonly metaui: MetaUi;
+  metaui: MetaUi;
   readonly view: UiViewType;
   readonly locale: string;
   readonly loading: Ref<boolean>;
@@ -111,7 +111,9 @@ export class UiViewContext<
   isEditDialog = false;
   showDialog = false;
   /** 与 Selector / beforeSearch 一致：pager、searchWord 等需可被视图追踪 */
-  searchParam = rx(defaultSearchParam());
+  searchParam = rx(createDefaultSearchParam());
+  /** 列布局变更后递增，驱动 Index Grid 重建 */
+  listLayoutRev = ref(0);
   private readonly initializedState: Ref<boolean>;
 
   private readonly parent?: UiViewContext<any>;
@@ -366,7 +368,8 @@ export class UiViewContext<
     const repository = field.reference.refRepository;
     if (!repository) return null;
 
-    const appService = (this.app?.name ?? service).toUpperCase();
+    // Prefer the page's apiService (mes|base), never host app.name.
+    const appService = (this.logic?.apiService ?? service).toUpperCase();
     const idSegment = encodeURIComponent(String(relativeId));
     const path = `/${appService}/${repository}/${idSegment}`;
     const router = this.globalProps.$router;
@@ -483,9 +486,7 @@ export class UiViewContext<
     this.setupGroupActions(grp);
     return (this._groupActions[grp.groupName] ?? []).filter(
       (a) =>
-        (!a.view ||
-          a.view === UiViewOne.Create ||
-          a.view === UiViewOne.Edit) &&
+        (!a.view || a.view === UiViewOne.Create || a.view === UiViewOne.Edit) &&
         (a.visible?.value ?? true),
     );
   }
@@ -681,6 +682,8 @@ export class UiViewContext<
       delete this.getQueryParam()[customField.searchParam];
     }
     this.syncQuickFilters();
+    this.listLayoutRev.value += 1;
+    schedulePersistListPack(this);
     return true;
   }
 
@@ -697,7 +700,9 @@ export class UiViewContext<
     this.filters = filters.map((filter) => {
       const uiFilter = new UiFilter(filter);
       uiFilter.selectedConditions.value = filter.filterConditions.filter(
-        (condition) => condition.fallback,
+        (condition) =>
+          condition.active === true ||
+          (condition.active == null && condition.fallback),
       );
       return uiFilter;
     });
@@ -715,6 +720,7 @@ export class UiViewContext<
       this.baseFilter = String(this.searchParam.queryParams.filter);
     }
     this.syncSearchState();
+    applyCachedSorts(this);
   }
 
   setFieldFilter(field: MetaUiField | string, filter?: EntityFieldFilter) {
@@ -733,6 +739,7 @@ export class UiViewContext<
   ) {
     filter.toggle(condition, single);
     this.syncQuickFilters();
+    schedulePersistListPack(this);
   }
 
   syncQuickFilters() {
@@ -957,13 +964,7 @@ export class UiViewContext<
     for (const fieldLogic of groupLogic?.fields ?? []) {
       fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
     }
-    return this.createChild(
-      rows,
-      grp.groupUi,
-      path,
-      this.view,
-      fieldLogics,
-    );
+    return this.createChild(rows, grp.groupUi, path, this.view, fieldLogics);
   }
 
   subGroupItemContext<G extends Entity>(
@@ -1097,7 +1098,7 @@ export class UiViewContext<
       this.app?.ui.toast(this as unknown as UiContext, {
         severity: "error",
         summary: this.t("dialog.title.error"),
-        detail: `字段 ${fld.fieldName} 未配置 refRepository`,
+        detail: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
         group: "br",
         life: 3000,
       });
@@ -1263,11 +1264,11 @@ export class UiViewContext<
     const { GenericUiLogic } = await import("./ui_logic");
     const { UiBuildContext } = await import("./ui_build_context");
     const logic = new GenericUiLogic(ctor as any, {
-      service: this.app.meta,
+      metaUiService: this.app.meta,
       repository: param.repository,
       meta: pack,
       router: this.logic?.router,
-      transService: param.service,
+      apiService: param.service,
     });
     const selectionMode = param.selectionMode ?? "multiple";
     const selectCtx = new UiBuildContext({

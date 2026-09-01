@@ -54,6 +54,7 @@ describe("ApiClient.searchEntities", () => {
     api.searchAll = vi.fn(async () => ({ list: [], pagination: {} }) as any);
     const param = defaultSearchParam();
     param.queryParams = { filter: "status='OPEN'" };
+    param.searchWord = "仓";
     param.searchParams = {
       amount: {
         filterType: "number",
@@ -69,6 +70,7 @@ describe("ApiClient.searchEntities", () => {
       repository: "Orders",
       queryParams: expect.objectContaining({
         filter: "status='OPEN'",
+        searchWord: "仓",
         pageNo: 1,
         pageSize: 20,
       }),

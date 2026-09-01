@@ -14,6 +14,8 @@ const themePackages = [
   'ej2-grids',
   'ej2-diagrams',
   'ej2-layouts',
+  'ej2-gantt',
+  'ej2-treegrid',
 ]
 
 /** Vite aliases required when a workspace consumes the skin from source. */

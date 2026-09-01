@@ -116,7 +116,7 @@ export class ProductionLotLogic extends UiLogic<ProductionLot> {
  */
 export const ProductionLotLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionLotLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionLots',
 		router,
 		module: module || metaUiService.findModule('ProductionLot'),

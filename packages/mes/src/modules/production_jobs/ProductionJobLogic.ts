@@ -86,7 +86,7 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 	 * @returns 
 	 */
 	export const ProductionJobLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductionJobLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionJobs',
 		router,
 		module: module || metaUiService.findModule('ProductionJob'),

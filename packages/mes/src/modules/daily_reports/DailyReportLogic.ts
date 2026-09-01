@@ -85,7 +85,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
 			groups.push(
 				this.group<DailyReportEvent>('events').addCustomAction({
 					name: 'createDailyReportEvent',
-					label: '创建',
+					label: 'action.create',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.addDailyReportEvent,
@@ -178,7 +178,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
  */
 export const DailyReportLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new DailyReportLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'DailyReports',
 		router,
 		module: module || metaUiService.findModule('DailyReport'),
@@ -361,7 +361,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 									},
 								}
 							), ctx, {
-								title: '请选择关联任务',
+								title: t('dailyReport.selectRelatedTask'),
 								width: '80%',
 								accept: async () => {
 									if (!data) return false;

@@ -71,7 +71,7 @@ import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect'
 	 * @returns 
 	 */
 	export const QualityDefectLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new QualityDefectLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'QualityDefects',
 		router,
 		module: module || metaUiService.findModule('QualityDefect'),

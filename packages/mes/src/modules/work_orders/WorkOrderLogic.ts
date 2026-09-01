@@ -99,7 +99,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 					}
 				}),
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiViewContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.model.expectedDuration + '天' : '')
+					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
 				})
 			);
 
@@ -188,7 +188,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 		if (fields.length === 0) {
 			fields.push(
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiViewContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.model.expectedDuration + '天' : '')
+					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
 				})
 			)
 		}
@@ -204,7 +204,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
  * @returns 
  */
 export const WorkOrderLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkOrderLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'WorkOrders',
 	router,
 	module: module || metaUiService.findModule('WorkOrder'),

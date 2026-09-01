@@ -65,7 +65,7 @@ import { type ClientAppModule, defineClientAppModule } from '../../models/Client
 	 * @returns 
 	 */
 	export const ClientAppModuleLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ClientAppModuleLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ClientAppModules',
 		router,
 		module: module || metaUiService.findModule('ClientAppModule'),

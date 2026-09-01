@@ -86,7 +86,7 @@ export class RegionLogic extends UiLogic<Region> {
  * @returns 
  */
 export const RegionLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new RegionLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Regions',
 	router,
 	module: module || metaUiService.findModule('Region'),

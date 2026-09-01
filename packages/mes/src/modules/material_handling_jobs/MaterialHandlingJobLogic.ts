@@ -177,7 +177,7 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
  * @returns 
  */
 export const MaterialHandlingJobLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new MaterialHandlingJobLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'MaterialHandlingJobs',
 	router,
 	module: module || metaUiService.findModule('MaterialHandlingJob'),

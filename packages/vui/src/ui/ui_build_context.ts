@@ -112,6 +112,9 @@ export class UiBuildContext<
 
   async initMetadata(reload = false, params?: EntityUrlParam) {
     const meta = await this.logic.initMetadata(reload, params);
+    if (this.logic.meta?.metaui) {
+      this.metaui = this.logic.meta.metaui;
+    }
     if (this.many) {
       this.configureSearch(this.logic.meta.filters, this.logic.beforeSearch());
     }
@@ -447,7 +450,12 @@ export class UiBuildContext<
   routeTo(view: UiViewType, id?: string) {
     const router = this.logic.router;
     if (!router) return;
-    const service = (this.app?.name ?? "base").toUpperCase();
+    // Route by logic.apiService + repository only — never app.name.
+    const service = (
+      this.logic.apiService ??
+      this.logic.apiClient?.config?.service ??
+      "base"
+    ).toUpperCase();
     const repo = this.logic.repository;
     const root = `/${service}/${repo}`;
     if (view === UiViewMany.Index || view === UiViewMany.SelectMany) {

@@ -191,13 +191,13 @@ export default defineComponent({
 		const ensureOrderGroupOption = (options: { id: string; label: string }[]) => {
 			const found = findOrderGroupOption(options);
 			if (found) return found;
-			return { id: ORDER_GROUP_ID, label: '订单' };
+			return { id: ORDER_GROUP_ID, label: $t('view.order') };
 		};
 
 		const ensureProjectGroupOption = (options: { id: string; label: string }[]) => {
 			const found = findProjectGroupOption(options);
 			if (found) return found;
-			return { id: PROJECT_GROUP_ID, label: '项目' };
+			return { id: PROJECT_GROUP_ID, label: $t('ganttLabel.sProject') };
 		};
 
 		/** 按排程视图过滤分组选项：按项目藏订单，按订单藏项目 */
@@ -443,8 +443,8 @@ export default defineComponent({
 			if (!filterData.value.length)
 				return toast.add({
 					severity: 'error',
-					detail: '没有可以领料的数据',
-					summary: '操作失败',
+					detail: t('kitting.noRequisitionData'),
+					summary: t('auth.operationFailed'),
 					group: 'br',
 					life: 5000,
 				});
@@ -487,7 +487,7 @@ export default defineComponent({
 										ctx.uiBuilder.toast(ctx, {
 											severity: 'error',
 											summary: t('dialog.title.error'),
-											detail: error.message ?? '操作失败',
+											detail: error.message ?? t('auth.operationFailed'),
 											group: 'br',
 											life: 3000
 										})
@@ -521,7 +521,7 @@ export default defineComponent({
 						ctx,
 						{
 							name: 'createKittingMaterialTrans',
-							title: '创建领料单',
+							title: t('kitting.createRequisition'),
 							width: '80%',
 							accept: async () => {
 								return await materialTransCtx.save().then(() => {
@@ -551,7 +551,7 @@ export default defineComponent({
 				ctx.uiBuilder.toast(ctx, {
 					 severity: 'error',
                     summary: t('dialog.title.error'),
-                    detail: error.message ?? '操作失败',
+                    detail: error.message ?? t('auth.operationFailed'),
                     group: 'br',
 				})
 			}
@@ -581,7 +581,7 @@ export default defineComponent({
 				service: 'mes',
 			});
 			if (!pack?.metaui) {
-				throw new Error(`未加载到仓库元数据：${logic.repository}`);
+				throw new Error($t('invalid.repositoryMissing', { repository: logic.repository }));
 			}
 			logic.meta = pack;
 			ctx = new UiBuildContext({
@@ -746,11 +746,11 @@ export default defineComponent({
 		const getSingleGroupLabel = () => {
 			const options = groupOption.value;
 			if (!options?.length) {
-				return isGroupLockedToOrder.value ? '订单' : '';
+				return isGroupLockedToOrder.value ? $t('view.order') : '';
 			}
 			const selectedIds = Array.isArray(groupBy.value) ? groupBy.value : [groupBy.value];
 			const selected = options.find((option: any) => selectedIds.includes(option.id));
-			return selected?.label ?? options[0]?.label ?? (isGroupLockedToOrder.value ? '订单' : '');
+			return selected?.label ?? options[0]?.label ?? (isGroupLockedToOrder.value ? $t('view.order') : '');
 		};
 
 		const data = reactive({
@@ -933,7 +933,7 @@ export default defineComponent({
 																ctx,
 																{
 																	name: 'projectSearchForRelative',
-																	title: '选中一个项目',
+																	title: $t('ganttLabel.sProject'),
 																	width: '80%',
 																	accept: async () => {
 
@@ -1059,7 +1059,7 @@ export default defineComponent({
 																ctx,
 																{
 																	name: 'orderSearchForRelative',
-																	title: '选中一个生产订单',
+																	title: $t('ganttLabel.selectProductionOrder'),
 																	width: '80%',
 																	accept: async () => {
 																		if (data.orderID) {

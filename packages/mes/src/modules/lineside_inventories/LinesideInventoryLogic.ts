@@ -110,7 +110,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			context.uiBuilder.toast(context, {
 				severity: 'warn',
 				summary: context.translate('dialog.title.warning'),
-				detail: '请先选择线边库！',
+				detail: context.t('linesideInventory.selectWarehouseFirst'),
 				group: 'br',
 				life: 3000,
 			});
@@ -162,7 +162,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					}),
 					context,
 					{
-						title: '一键入库',
+						title: context.t('linesideInventory.oneClickStorage'),
 						width: '80%',
 						accept: async () => {
 							return await materialTransCtx.save().then(() => {
@@ -193,7 +193,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: context.t('dialog.title.error'),
-						detail: error.message ?? '操作失败',
+						detail: error.message ?? context.t('auth.operationFailed'),
 						group: 'br',
 						life: 3000
 					})
@@ -207,7 +207,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			context.uiBuilder.toast(context, {
 				severity: 'warn',
 				summary: context.translate('dialog.title.warning'),
-				detail: '请先选择线边库！',
+				detail: context.t('linesideInventory.selectWarehouseFirst'),
 				group: 'br',
 				life: 3000,
 			});
@@ -259,7 +259,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					}),
 					context,
 					{
-						title: '一键退料',
+						title: context.t('linesideInventory.oneClickReturn'),
 						width: '80%',
 						accept: async () => {
 							return await materialTransCtx.save().then(() => {
@@ -290,7 +290,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: context.t('dialog.title.error'),
-						detail: error.message ?? '操作失败',
+						detail: error.message ?? context.t('auth.operationFailed'),
 						group: 'br',
 						life: 3000
 					})
@@ -387,7 +387,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
 				summary: t('dialog.title.error'),
-				detail: error.message ?? '操作失败',
+				detail: error.message ?? context.t('auth.operationFailed'),
 				group: 'br',
 				life: 3000,
 			});
@@ -462,7 +462,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '项目',
+				searchLabel: 'ganttLabel.sProject',
 				searchParam: 'projectID',
 				valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -516,7 +516,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 								}),
 								ctx,
 								{
-									title: '项目',
+									title: ctx.t('ganttLabel.sProject'),
 									style: { width: '80vw', maxHeight: '95%' },
 									accept: async () => {
 										// //当前选中项
@@ -554,7 +554,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				},
 			});
 			customSearchFields.push({
-				searchLabel: '生产订单',
+				searchLabel: 'ganttLabel.sProductionOrder',
 				searchParam: 'orderID',
 				valueFn: (v: any) => (!isRefNone(v) ? v.orderID : ''),
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -608,7 +608,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 								}),
 								ctx,
 								{
-									title: '生产订单',
+									title: ctx.t('ganttLabel.sProductionOrder'),
 									style: { width: '80vw', maxHeight: '95%' },
 									accept: async () => {
 										// //当前选中项
@@ -655,7 +655,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 
 		try {
 			context.uiBuilder.confirmDialog(h(InventoryDialog, { context }), context, {
-				title: '查询库存',
+				title: $t('linesideInventory.queryInventory'),
 				width: '60vw',
 				accept: async () => { },
 			});
@@ -676,7 +676,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 
 		try {
 			context.uiBuilder.confirmDialog(h(CompleteShipment, { context }), context, {
-				title: '齐套发货',
+				title: $t('linesideInventory.completeShipment'),
 				width: '90vw',
 				showFooter: false,
 			});
@@ -707,21 +707,21 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				{
 					name: 'checkInventory',
 					icon: 'pi pi-search',
-					label: '查库存',
+					label: 'linesideInventory.queryInventory',
 					role: 'success',
 					onAction: this.checkInventory,
 				},
 				{
 					name: 'completeShipment',
 					icon: 'pi pi-car',
-					label: '齐套发货',
+					label: 'linesideInventory.completeShipment',
 					role: 'secondary',
 					onAction: this.completeShipment,
 				},
 				{
 					name: 'shipTrans',
 					icon: 'pi pi-file-import',
-					label: '一键发货',
+					label: 'linesideInventory.oneClickShipment',
 					group: 'selectMany',
 					role: 'primary',
 					onAction: (context: UiBuildContext<any>) => {
@@ -794,7 +794,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
  */
 export const LinesideInventoryLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new LinesideInventoryLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'LinesideInventories',
 		router,
 		module: module || metaUiService.findModule('LinesideInventory'),

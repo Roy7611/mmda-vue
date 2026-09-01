@@ -93,7 +93,7 @@ export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
  */
 export const ProjectCapitalLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectCapitalLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectCapitals',
 		router,
 		module: module || metaUiService.findModule('ProjectCapital'),

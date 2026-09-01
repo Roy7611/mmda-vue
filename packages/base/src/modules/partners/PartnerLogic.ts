@@ -127,7 +127,7 @@ export class PartnerLogic extends UiLogic<Partner> {
  * @returns 
  */
 export const PartnerLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new PartnerLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Partners',
 	router,
 	module: module || metaUiService.findModule('Partner'),

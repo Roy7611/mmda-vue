@@ -79,18 +79,18 @@ export const Tree = defineComponent({
 			let name: string = '';
 			switch (key) {
 				case 'addRootDirectory':
-					title = '添加根目录';
+					title = t('tool.addRootDirectory');
 					depth = 0;
 					parentID = '';
 					name = materialsName.list.RootDirectory;
 					break;
 				case 'addBrothers':
-					title = '添加兄弟目录';
+					title = t('tool.addSiblingDirectory');
 					parentID = parentCatID;
 					name = materialsName.list.Brothers;
 					break;
 				case 'addSubdirectory':
-					title = '添加子目录';
+					title = t('tool.addSubdirectory');
 					depth = depth + 1;
 					parentID = categoryID;
 					name = materialsName.list.Subdirectory;
@@ -108,7 +108,7 @@ export const Tree = defineComponent({
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '操作失败',
+					detail: error.message ?? t('auth.operationFailed'),
 					group: 'br',
 					life: 3000,
 				});
@@ -120,7 +120,7 @@ export const Tree = defineComponent({
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: '根目录，禁止删除',
+					detail: t('invalid.rootDirectoryCannotDelete'),
 					group: 'br',
 					life: 3000,
 				});
@@ -151,7 +151,7 @@ export const Tree = defineComponent({
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '操作失败',
+					detail: error.message ?? t('auth.operationFailed'),
 					group: 'br',
 					life: 3000,
 				});
@@ -179,7 +179,7 @@ export const Tree = defineComponent({
 						props.context.uiBuilder.toast(props.context, {
 							severity: 'error',
 							summary: t('dialog.title.error'),
-							detail: err.message ?? '操作失败',
+							detail: err.message ?? t('auth.operationFailed'),
 							group: 'br',
 							life: 3000,
 						});
@@ -189,7 +189,7 @@ export const Tree = defineComponent({
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '操作失败',
+					detail: error.message ?? t('auth.operationFailed'),
 					group: 'br',
 					life: 3000,
 				});
@@ -214,7 +214,7 @@ export const Tree = defineComponent({
 							props.context.uiBuilder.toast(props.context, {
                                 severity: 'error',
                                 summary: t('dialog.title.error'),
-                                detail: err.message ?? '操作失败',
+                                detail: err.message ?? t('auth.operationFailed'),
                                 group: 'br',
                                 life: 3000
                             })
@@ -238,7 +238,7 @@ export const Tree = defineComponent({
 							props.context.uiBuilder.toast(props.context, {
 								severity: 'error',
 								summary: t('dialog.title.error'),
-								detail: err.message ?? '操作失败',
+								detail: err.message ?? t('auth.operationFailed'),
 								group: 'br',
 								life: 3000,
 							});
@@ -250,7 +250,7 @@ export const Tree = defineComponent({
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: error.message ?? '操作失败',
+					detail: error.message ?? t('auth.operationFailed'),
 					group: 'br',
 					life: 3000,
 				});
@@ -294,7 +294,7 @@ export const Tree = defineComponent({
 					{ class: 'form' },
 					ui.factory.formItem(
 						{
-							label: '类别过滤',
+							label: t('tool.categoryFilter'),
 							class: 'flex_item_center',
 						},
 						{
@@ -353,19 +353,19 @@ export const Tree = defineComponent({
 							treeData.value.length > 0 && treeData.value[0].categoryID == '-1'
 								? [
 									{
-										label: '添加根目录',
+										label: t('tool.addRootDirectory'),
 										command: () => {
 											props.context.uiBuilder.confirmDialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
-														label: '添加根目录',
+														label: t('tool.addRootDirectory'),
 													},
 													onGetData: (value: string) => (materialsName.list.RootDirectory = value),
 												}),
 												props.context,
 												{
-													title: '添加根目录',
+													title: t('tool.addRootDirectory'),
 													width: '30%',
 													height: '30%',
 													showFooter: true,
@@ -387,19 +387,19 @@ export const Tree = defineComponent({
 								]
 								: [
 									{
-										label: '添加根目录',
+										label: t('tool.addRootDirectory'),
 										command: () => {
 											props.context.uiBuilder.confirmDialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
-														label: '添加根目录',
+														label: t('tool.addRootDirectory'),
 													},
 													onGetData: (value: string) => (materialsName.list.RootDirectory = value),
 												}),
 												props.context,
 												{
-													title: '添加根目录',
+													title: t('tool.addRootDirectory'),
 													width: '30%',
 													height: '30%',
 													showFooter: true,
@@ -419,19 +419,19 @@ export const Tree = defineComponent({
 										},
 									},
 									{
-										label: '添加兄弟目录',
+										label: t('tool.addSiblingDirectory'),
 										command: (node: any) => {
 											props.context.uiBuilder.confirmDialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
-														label: '添加兄弟目录',
+														label: t('tool.addSiblingDirectory'),
 													},
 													onGetData: (value: string) => (materialsName.list.Brothers = value),
 												}),
 												props.context,
 												{
-													title: '添加兄弟目录',
+													title: t('tool.addSiblingDirectory'),
 													width: '30%',
 													height: '30%',
 													showFooter: true,
@@ -451,19 +451,19 @@ export const Tree = defineComponent({
 										},
 									},
 									{
-										label: '添加子目录',
+										label: t('tool.addSubdirectory'),
 										command: () => {
 											props.context.uiBuilder.confirmDialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
-														label: '添加子目录',
+														label: t('tool.addSubdirectory'),
 													},
 													onGetData: (value: string) => (materialsName.list.Subdirectory = value),
 												}),
 												props.context,
 												{
-													title: '添加子目录',
+													title: t('tool.addSubdirectory'),
 													width: '30%',
 													height: '30%',
 													showFooter: true,
@@ -483,7 +483,7 @@ export const Tree = defineComponent({
 										},
 									},
 									{
-										label: '删除目录',
+										label: t('tool.deleteDirectory'),
 										key: 'delete',
 										command: () => {
 											props.context.uiBuilder.confirmMessage(props.context, {
@@ -498,20 +498,20 @@ export const Tree = defineComponent({
 										},
 									},
 									{
-										label: '重命名',
+										label: t('tool.rename'),
 										command: () => {
 											props.context.uiBuilder.confirmDialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
-														label: '重命名',
+														label: t('tool.rename'),
 														name: nodes.value.categoryName,
 													},
 													onGetData: (value: string) => (materialsName.list.rename = value),
 												}),
 												props.context,
 												{
-													title: '重命名',
+													title: t('tool.rename'),
 													width: '30%',
 													height: '30%',
 													showFooter: true,

@@ -86,7 +86,7 @@ export class MaterialPackageLogic extends UiLogic<MaterialPackage> {
  * @returns
  */
 export const MaterialPackageLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new MaterialPackageLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'MaterialPackages',
 	router,
 	module: module || metaUiService.findModule('MaterialPackage'),

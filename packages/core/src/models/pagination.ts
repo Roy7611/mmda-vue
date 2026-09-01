@@ -42,10 +42,7 @@ export interface Pager {
   sorts?: Sort[];
 }
 
-// declare var Pager: {
-//   prototype: Pager;
-//   new(init?: PagerInit): Pager;
-// };
+
 class PagerImpl implements Pager {
   constructor(public pageSize: number, public pageNo: number = 1, public sorts?: Sort[]) { }
   static fromJSON(o: { pageSize?: number, pageNo?: number, sort?: string, [index: string]: any }) {

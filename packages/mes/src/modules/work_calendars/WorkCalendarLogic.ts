@@ -51,7 +51,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 					// .beforeAdd(this.beforeCreateWorkCalendar)
 					.addCustomAction({
 						name: 'createWorkCalendar',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.addWorkCalendarDay,
@@ -60,7 +60,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 				this.group<WorkShift>('shifts')
 					.addCustomAction({
 						name: 'createWorkShift',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.creatWorkShift,
@@ -208,7 +208,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
  */
 export const WorkCalendarLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new WorkCalendarLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'WorkCalendars',
 		router,
 		module: module || metaUiService.findModule('WorkCalendar'),
@@ -225,9 +225,9 @@ export class WorkCalendarDayLogic extends UiGroupLogic<WorkCalendarDay, WorkCale
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('calendarDay').onValidate<string>(value => {
+				this.field('calendarDay').onValidate<string>((value, _model, ctx) => {
 					if (!value?.trim()) {
-						return '工作日不能为空';
+						return ctx?.t('invalid.workdayRequired');
 					}
 					return null;
 				}),

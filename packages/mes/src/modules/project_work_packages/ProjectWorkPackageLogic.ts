@@ -215,7 +215,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
-					searchLabel: '所属阶段',
+					searchLabel: 'projectWorkPackage.phase',
 					searchParam: 'taskPhase',
 					valueFn: (value: any) => `IN ${value.join(',')}`,
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -250,7 +250,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 				},
 
 				{
-					searchLabel: '工程项目',
+					searchLabel: 'ganttLabel.sProject',
 					searchParam: 'projectID',
 					valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -311,7 +311,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 									}),
 									ctx,
 									{
-										title: '项目',
+										title: t('ganttLabel.sProject'),
 										style: { width: '80vw', maxHeight: '95%' },
 										accept: async () => {
 											projectsData.project = data;
@@ -394,7 +394,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
  */
 export const ProjectWorkPackageLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectWorkPackageLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectWorkPackages',
 		router,
 		module: module || metaUiService.findModule('ProjectWorkPackage'),

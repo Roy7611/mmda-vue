@@ -65,7 +65,7 @@ import { type QualityInspectedMaterial, defineQualityInspectedMaterial } from '@
 	 * @returns 
 	 */
 	export const QualityInspectedMaterialLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new QualityInspectedMaterialLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'QualityInspectedMaterials',
 		router,
 		module: module || metaUiService.findModule('QualityInspectedMaterial'),

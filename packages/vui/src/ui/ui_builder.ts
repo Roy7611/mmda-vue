@@ -1,4 +1,10 @@
-import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
+import {
+  h,
+  type Component,
+  type VNode,
+  type VNodeArrayChildren,
+  type VNodeChild,
+} from "vue";
 import type {
   ActionCallback,
   EntityAction,
@@ -15,6 +21,9 @@ import {
   EntityActionType,
   DEFAULT_PAGE_SIZE,
 } from "@mmda/core";
+import { readStoredPageSize, writeStoredPageSize } from "./ui_theme";
+import { openListSettingDialog } from "./components/ListSettingView";
+import { schedulePersistListPack } from "./list_layout";
 import {
   AppLayout,
   layoutField,
@@ -39,6 +48,7 @@ import type {
   UiListViewPropsType,
   UiPaginatorPropsType,
 } from "./ui_list";
+import type { UiGanttChartProps } from "./ui_gantt";
 import type {
   AppScaffoldProps,
   AppSideBarProps,
@@ -78,6 +88,7 @@ import { createHtmlOverlay, type UiOverlay } from "./ui_overlay";
 import { DocxFilePreview } from "./components/DocxFilePreview";
 import { MmdaGroupCard } from "./components/GroupCard";
 import { XlsxFilePreview } from "./components/XlsxFilePreview";
+import { translateMessage } from "../i18n/i18n";
 
 /** VUI 内部统一运行时；公开契约由各场景 context 接口约束。 */
 type UiContext = UiViewContext<any>;
@@ -100,6 +111,39 @@ const compareViewGroups = (a: MetaUiGroup, b: MetaUiGroup) => {
 
 const sortViewGroups = (groups: MetaUiGroup[]) =>
   [...groups].sort(compareViewGroups);
+
+const uploadedFileName = (value: unknown) => {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") {
+    const file = value as Record<string, unknown>;
+    return String(file.fileName ?? file.fileUrl ?? file.url ?? file.path ?? "");
+  }
+  return String(value ?? "");
+};
+
+const uploadedFileNames = async (response: any): Promise<string[]> => {
+  if (response === false || response == null) return [];
+  if (Array.isArray(response)) return response.map(uploadedFileName);
+  if (Array.isArray(response.data)) return response.data.map(uploadedFileName);
+  if (typeof response === "string") return [response];
+  if (typeof response.text !== "function") return [];
+  if ("ok" in response && !response.ok) {
+    throw new Error(
+      translateMessage("upload.httpFail", { status: response.status }),
+    );
+  }
+  const text = await response.text();
+  if (!text) return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed.map(uploadedFileName);
+    if (Array.isArray(parsed?.data)) return parsed.data.map(uploadedFileName);
+    if (typeof parsed === "string") return [parsed];
+  } catch {
+    return [text];
+  }
+  return [];
+};
 
 export interface ImportOrExportParam extends EntityUrlParam {
   handlerFn?: (context: UiContext, response: any) => void;
@@ -207,6 +251,7 @@ export interface UiBuilder {
     context: UiContext,
     props?: PropData,
   ) => VNode;
+  buildGanttChart: (context: UiContext, props: UiGanttChartProps) => VNode;
   buildAttachmentGroup?: (context: UiContext, props?: PropData) => VNode;
   buildView: (context: UiContext, props?: UiViewPropsType) => VNode;
   buildListView: <T = any>(
@@ -272,8 +317,10 @@ export interface UiBuilder {
       command?: () => void;
       onAction?: (...args: any[]) => any;
       items?: any[];
+      divider?: boolean;
     }>,
   ) => VNode[];
+  openListSettings: (context: UiContext) => Promise<boolean>;
   buildSearchField: (
     field: UiSearchField,
     context: UiContext,
@@ -379,6 +426,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       command?: () => void;
       onAction?: (...args: any[]) => any;
       items?: any[];
+      divider?: boolean;
     }>,
   ) {
     if (!items.length) return [];
@@ -390,15 +438,23 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           "aria-label": context.t("action.more"),
           class: "mmda-more-menu-button",
         },
-        items.map((item, index) => ({
-          name: item.name ?? `more-${index}`,
-          label: item.label,
-          icon: item.icon,
-          onAction: item.command ?? item.onAction,
-          items: item.items,
-        })),
+        items.map((item, index) =>
+          item.divider
+            ? { divider: true }
+            : {
+                name: item.name ?? `more-${index}`,
+                label: item.label,
+                icon: item.icon,
+                onAction: item.command ?? item.onAction,
+                items: item.items,
+              },
+        ),
       ),
     ];
+  }
+
+  openListSettings(context: UiContext) {
+    return openListSettingDialog(this, context);
   }
 
   labelFor(field: MetaUiField, props?: PropData) {
@@ -677,12 +733,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
   buildField: UiFieldRenderer = (field, context, props = {}) => {
     if (context.isFieldHidden(field)) return h("span", { hidden: true });
-    const { editing: editingProp, direction, isReadonly, ...controlProps } =
-      props;
+    const {
+      editing: editingProp,
+      direction,
+      isReadonly,
+      ...controlProps
+    } = props;
     const editing = editingProp ?? context.editing;
     // 对齐老代码：编辑页中只读字段走 renderer（文本），不用 editor
-    const useEditor =
-      editing && !context.isFieldReadonly(field) && !isReadonly;
+    const useEditor = editing && !context.isFieldReadonly(field) && !isReadonly;
     const control = useEditor
       ? this.editFor(field, context, controlProps)
       : this.displayFor(field, context, controlProps);
@@ -744,10 +803,14 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       class: _className,
       ...rest
     } = props;
-    return h("fieldset", { class: this.groupWrapClass(group, props), ...rest }, [
-      h("legend", { class: "mmda-group-title" }, group.groupLabel),
-      this.wrapGroupContent(body),
-    ]);
+    return h(
+      "fieldset",
+      { class: this.groupWrapClass(group, props), ...rest },
+      [
+        h("legend", { class: "mmda-group-title" }, group.groupLabel),
+        this.wrapGroupContent(body),
+      ],
+    );
   }
 
   /** Card 外壳：可折叠 header；内容由 wrapGroupContent 自管布局 */
@@ -791,9 +854,11 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       "div",
       { class: "mmda-group-action-group" },
       actions.map((action) => {
-        const label =
-          action.label ??
-          (action.name ? t(`action.${action.name}`) : action.name);
+        const label = action.label
+          ? t(action.label)
+          : action.name
+            ? t(`action.${action.name}`)
+            : action.name;
         return this.factory.actionButton(action, t, true, {
           id: `${action.name}-${group.groupName}-button`,
           label: "",
@@ -837,6 +902,146 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         [];
       const groupCtx = (context as UiViewContext).subGroupContext(group);
       const readOnlyRows = !context.editing;
+      if (group.displayShape === "PHOTO" && this.factory.photoGallery) {
+        const shapeKey = group.shapeKey || "mediaFile";
+        const uploadMediaFiles = async (
+          files: File[],
+          control: {
+            signal: AbortSignal;
+            onProgress: (progress: number) => void;
+          },
+        ) => {
+          const runtime = context as any;
+          const fetchApi = runtime.app?.api?.fetchApi;
+          const apiClient = runtime.logic?.apiClient;
+          const modelId = runtime.model?.id;
+          let response: any;
+          if (runtime.uploading?.value != null) runtime.uploading.value = true;
+          try {
+            if (fetchApi?.uploadFiles && apiClient && modelId != null) {
+              const url = apiClient.buildEntityURL({
+                service: "files",
+                repository: runtime.logic.repository,
+                path: String(modelId),
+                action: "multi",
+              });
+              response = await fetchApi.uploadFiles(
+                url,
+                files.map((file) => ({
+                  fieldName: "files",
+                  data: file,
+                  fileName: file.name,
+                })),
+                {
+                  signal: control.signal,
+                  onUploadProgress: (event: {
+                    loaded: number;
+                    total?: number;
+                    progress?: number;
+                  }) => {
+                    const ratio =
+                      event.progress ??
+                      (event.total ? event.loaded / event.total : 0);
+                    control.onProgress(ratio * 100);
+                  },
+                },
+              );
+            } else if (typeof runtime.uploadFiles === "function") {
+              response = await runtime.uploadFiles(files, {
+                repository: runtime.logic?.repository,
+                path: modelId,
+                action: "multi",
+              });
+            } else {
+              throw new Error(translateMessage("upload.unsupported"));
+            }
+
+            const urls = await uploadedFileNames(response);
+            if (urls.length !== files.length || urls.some((url) => !url)) {
+              throw new Error(translateMessage("upload.fileCountMismatch"));
+            }
+            const added = [];
+            for (let index = 0; index < urls.length; index += 1) {
+              const item = await runtime.createSubGroupItems({
+                group,
+                source: {
+                  [shapeKey]: urls[index],
+                  mediaType: 0,
+                  description: files[index]?.name ?? "",
+                },
+                target: runtime.model,
+              });
+              runtime.addSubGroupItem(group, item);
+              added.push(item);
+            }
+            return added;
+          } finally {
+            if (runtime.uploading?.value != null)
+              runtime.uploading.value = false;
+          }
+        };
+        const gallery = this.factory.photoGallery(
+          rows
+            .map((row) => ({
+              src: String(row?.[shapeKey] ?? ""),
+              thumbnail: String(row?.thumbnail ?? row?.[shapeKey] ?? ""),
+              alt: String(row?.description ?? ""),
+              title: String(row?.description ?? ""),
+              description: String(row?.description ?? ""),
+              data: row,
+            }))
+            .filter((item) => item.src),
+          {
+            onItemDblclick: (item: { data?: unknown }) =>
+              (context as any).subGroupItem?.(group, item.data),
+          },
+        );
+        const uploader =
+          context.editing && this.factory.filesUploader
+            ? this.factory.filesUploader({
+                upload: uploadMediaFiles,
+                multiple: true,
+                autoUpload: true,
+                disabled: (context.model as any)?.id == null,
+                allowedExtensions: ".bmp,.gif,.jpeg,.jpg,.png,.webp",
+                dropText:
+                  (context.model as any)?.id == null
+                    ? (context.translate("upload.saveBeforeImage") as string)
+                    : (context.translate("upload.dropImages") as string),
+                chooseText: context.translate("action.chooseImage") as string,
+                onSuccess: () =>
+                  (context as any).app?.toast(context as any, {
+                    severity: "success",
+                    detail: context.translate("upload.imageSuccess"),
+                    life: 3000,
+                  }),
+                onError: (error: unknown) =>
+                  (context as any).app?.toast(context as any, {
+                    severity: "error",
+                    detail:
+                      error instanceof Error
+                        ? error.message
+                        : (context.translate("upload.imageFail") as string),
+                    life: 3000,
+                  }),
+              })
+            : undefined;
+        if (showGroupActions !== false) {
+          wrapProps.headerActions = this.buildGroupHeaderActions(
+            group,
+            context,
+          );
+        }
+        return this.wrapGroup(
+          group,
+          layoutFieldGroup({
+            fields: [uploader, gallery].filter(Boolean) as VNode[],
+            direction: "table",
+            cols: 1,
+          }),
+          wrapProps,
+        );
+      }
       const groupLogic = context.getGroupLogic(group) as any;
       const nativeGridEditing = this.factory.nativeInplaceEdit === true;
       const nativeInplaceEdit =
@@ -948,6 +1153,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     );
   }
 
+  buildGanttChart(_context: UiContext, props: UiGanttChartProps): VNode {
+    const count = props.tasks?.length ?? 0;
+    return h("section", { class: "mmda-gantt-stub", ...props }, [
+      count
+        ? h("p", `${count} tasks (skin required)`)
+        : h("p", "Gantt (skin required)"),
+    ]);
+  }
+
   buildAttachmentGroup(context: UiContext, props?: PropData): VNode {
     const attachments =
       ((context.model as Record<string, any>).attachments as
@@ -977,17 +1191,19 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     );
     const primaryCols = props.primaryCols ?? 2;
     // 主区：主表组（按 groupName）→ 子表组（按 groupIdx）
-    const primary = sortViewGroups(groups.filter((group) => group.isPrimary())).map(
-      (group) =>
-        this.buildGroup(group, context, undefined, {
-          direction: "row",
-          cols: primaryCols,
-        }),
+    const primary = sortViewGroups(
+      groups.filter((group) => group.isPrimary()),
+    ).map((group) =>
+      this.buildGroup(group, context, undefined, {
+        direction: "row",
+        cols: primaryCols,
+      }),
     );
     const summary: VNode[] = [];
     const attachments = (context.model as Record<string, any>).attachments;
     // 右边栏：附件等先渲染，概要分组始终放最后
     if (
+      !context.editing &&
       props.showAttachments !== false &&
       Array.isArray(attachments) &&
       this.buildAttachmentGroup
@@ -1005,13 +1221,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         ),
       );
     }
-    const tails = sortViewGroups(
-      groups.filter((group) => group.isTails()),
-    ).map((group) =>
-      this.buildGroup(group, context, undefined, {
-        direction: "row",
-        cols: primaryCols,
-      }),
+    const tails = sortViewGroups(groups.filter((group) => group.isTails())).map(
+      (group) =>
+        this.buildGroup(group, context, undefined, {
+          direction: "row",
+          cols: primaryCols,
+        }),
     );
     const runtime = context as any;
     const toolbar =
@@ -1063,13 +1278,8 @@ export abstract class AbstractUiBuilder implements UiBuilder {
               props.onSearch?.(text);
               if (!props.onSearch) void runtime.search?.();
             },
+            onRefresh: () => void runtime.search?.(),
           });
-    const refreshButton = this.factory.actionButton(
-      this.actionFactory.refresh(context),
-      (message) => context.t(message),
-      false,
-      { size: "small" },
-    );
     const toolbar =
       props.showToolbar === false
         ? null
@@ -1081,14 +1291,20 @@ export abstract class AbstractUiBuilder implements UiBuilder {
               showActions: props.showActions ?? true,
             },
             {
-              center: () =>
-                [searchbar, refreshButton].filter(Boolean) as VNode[],
+              center: () => (searchbar ? [searchbar] : []),
             },
           ));
     const onPage = (pager: { pageNo?: number; pageSize?: number }) => {
       const cur = runtime.searchParam.pager;
       if (pager.pageNo === cur.pageNo && pager.pageSize === cur.pageSize) {
         return;
+      }
+      if (
+        pager.pageSize != null &&
+        pager.pageSize > 0 &&
+        pager.pageSize !== cur.pageSize
+      ) {
+        writeStoredPageSize(pager.pageSize);
       }
       Object.assign(cur, pager);
       return runtime.search?.();
@@ -1166,9 +1382,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       () => context,
       {
         filterDisplay:
-          props.filterDisplay ??
-          this.factory.defaultFilterDisplay ??
-          "none",
+          props.filterDisplay ?? this.factory.defaultFilterDisplay ?? "none",
         ...props,
         filterLabels: {
           all: context.translate("state.all"),
@@ -1194,9 +1408,14 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         onSort: (sorts) => {
           runtime.searchParam.pager.sorts = sorts;
           runtime.searchParam.pager.pageNo = 1;
+          schedulePersistListPack(runtime);
           if (props.onSort) return props.onSort(sorts);
           return runtime.search?.();
         },
+        onListLayoutChange: () => {
+          schedulePersistListPack(runtime);
+        },
+        layoutRev: runtime.listLayoutRev,
         onSelect: (selection) => {
           context.selectedItems = selection;
           props.onSelect?.(selection);
@@ -1276,12 +1495,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
             if (ok === false) return false;
           }
           const deleted = await runtime.logic?.delete?.(rowId);
-          await runtime.logic?.afterDelete?.(
-            runtime,
-            row,
-            undefined,
-            deleted,
-          );
+          await runtime.logic?.afterDelete?.(runtime, row, undefined, deleted);
           return runtime.reload?.();
         },
       });
@@ -1300,7 +1514,9 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       items.push(
         ...extra.map((action: EntityAction) => ({
           name: action.name,
-          label: action.label ?? context.t(`action.${action.name}`),
+          label: action.label
+            ? context.t(action.label)
+            : context.t(`action.${action.name}`),
           icon: this.factory.resolveIcon(action.icon ?? action.name),
           onAction: () => runtime.logic?.doAction?.(row, action),
         })),
@@ -1338,7 +1554,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const pagination = runtime.model?.pagination ??
       runtime.pagination ?? {
         pageNo: runtime.searchParam?.pager?.pageNo ?? 1,
-        pageSize: runtime.searchParam?.pager?.pageSize ?? DEFAULT_PAGE_SIZE,
+        pageSize: runtime.searchParam?.pager?.pageSize ?? readStoredPageSize(),
         recordCount: runtime.model?.list?.length ?? 0,
       };
     return this.factory.paginator(pagination, props);
@@ -1429,11 +1645,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     return this.overlay.dialog(content, props);
   }
 
-  confirmDialog(
-    content: VNode,
-    context: UiContext,
-    props: UiDialogPropsType,
-  ) {
+  confirmDialog(content: VNode, context: UiContext, props: UiDialogPropsType) {
     return this.dialog(content, context, props);
   }
 
@@ -1447,15 +1659,8 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
   buildFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
     const explicit = String(props.extension ?? "");
-    const raw =
-      typeof source === "string"
-        ? source.split(/[?#]/)[0]
-        : explicit;
-    const extension = (
-      explicit ||
-      raw.split(".").pop() ||
-      ""
-    )
+    const raw = typeof source === "string" ? source.split(/[?#]/)[0] : explicit;
+    const extension = (explicit || raw.split(".").pop() || "")
       .toLowerCase()
       .replace(/^\./, "");
     if (extension === "docx") return this.buildDocxFilePreview(source, props);
@@ -1512,6 +1717,7 @@ export function createStubUiBuilder(): UiBuilder {
     buildResponsiveField: emptyNode,
     buildGroup: emptyNode,
     buildBpmnDiagram: emptyNode,
+    buildGanttChart: emptyNode,
     buildView: emptyNode,
     buildListView: emptyNode,
     buildCustomView: emptyNode,
@@ -1536,6 +1742,7 @@ export function createStubUiBuilder(): UiBuilder {
     buildModuleToolbar: emptyNode,
     dropdownMenuButton: emptyNode,
     moreMenuButton: () => [],
+    openListSettings: async () => false,
     buildSearchField: emptyNode,
     buildSearchForm: emptyNode,
     buildModuleSearchbar: emptyNode,
@@ -1604,7 +1811,20 @@ export class UiActionFactory {
   }
 
   save(context: UiContext) {
-    return this.createAction(context, "save", () => (context as any).save?.());
+    return this.createAction(context, "save", async () => {
+      const runtime = context as any;
+      const result = await runtime.save?.();
+      // 创建/编辑保存成功后进详情（对话框 confirm 走 confirmAction，不经此路径）
+      if (result !== false && result != null && runtime.editing) {
+        const key = runtime.metaui?.primaryKey as string | undefined;
+        const id =
+          result?.id ??
+          runtime.model?.id ??
+          (key ? (result?.[key] ?? runtime.model?.[key]) : undefined);
+        if (id != null && id !== "") runtime.details?.(String(id));
+      }
+      return result;
+    });
   }
 
   delete(context: UiContext) {

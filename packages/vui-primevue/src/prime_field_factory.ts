@@ -28,6 +28,7 @@ import ProgressBar from 'primevue/progressbar'
 import Select from 'primevue/select'
 import Slider from 'primevue/slider'
 import Tag from 'primevue/tag'
+import Chip from 'primevue/chip'
 import Textarea from 'primevue/textarea'
 import ToggleSwitch from 'primevue/toggleswitch'
 
@@ -323,13 +324,47 @@ const tags = (field: MetaUiField, context: UiContext, props?: PropData) =>
   h(
     'div',
     { class: 'mmda-prime-tags' },
-    (context.getFieldValue(field, props?.row) ?? []).map((value: any) =>
-      h(Tag, {
-        value: field.reference?.labelOf(value) ?? String(value),
-        ...props,
-      }),
+    tagLabels(field, context, props).map((label) =>
+      h(Tag, { value: label, ...props }),
     ),
   )
+
+const chips = (field: MetaUiField, context: UiContext, props?: PropData) =>
+  h(
+    'div',
+    { ...props, class: ['mmda-chips', props?.class] },
+    tagLabels(field, context, props).map((label) =>
+      h(Chip, { label }),
+    ),
+  )
+
+const tagLabels = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+): string[] => {
+  const raw = context.getFieldValue(field, props?.row)
+  const labelOf = (value: any) =>
+    String(
+      field.reference?.labelOf?.(value) ??
+        value?.label ??
+        value?.text ??
+        value ??
+        '',
+    ).trim()
+  if (raw == null || raw === '') return []
+  if (Array.isArray(raw)) return raw.map(labelOf).filter(Boolean)
+  if (typeof raw === 'number' && field.reference?.refOptions?.length) {
+    return field.reference.refOptions
+      .filter((item: any) => Number(field.reference!.valueOf(item)) & raw)
+      .map(labelOf)
+      .filter(Boolean)
+  }
+  return String(raw)
+    .split(/[,;|]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
 
 const cellDomProps = (props?: PropData) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
@@ -513,6 +548,7 @@ const factory: UiFieldFactory = {
     }),
   tag,
   tags,
+  chips,
   enumSetTags: tags,
   fileLink,
   externalLink,
@@ -531,6 +567,17 @@ const factory: UiFieldFactory = {
       `${Number(context.getFieldValue(field, props?.row) ?? 0) * 100}%`,
     ),
   amountText: fallbackDisplay,
+  quantityUnit: (field, context, props) => {
+    const value = context.getFieldValue(field, props?.row)
+    const unit = field.suffix?.trim()
+    const text =
+      value == null || value === ''
+        ? (field.nullDisplayText ?? '')
+        : unit
+          ? `${value} ${unit}`
+          : String(value)
+    return h('span', { ...props, class: ['mmda-quantity-unit', props?.class] }, text)
+  },
   checkIcon: (field, context, props) =>
     h('i', {
       class: context.getFieldValue(field, props?.row)
@@ -605,8 +652,10 @@ const aliases: Record<string, string> = {
   MultilineText: 'multilineText',
   Percentage: 'percentage',
   AmountText: 'amountText',
+  QuantityUnit: 'quantityUnit',
   Tag: 'tag',
   Tags: 'tags',
+  Chips: 'chips',
   BitTags: 'enumSetTags',
   BitChipSet: 'enumSetTags',
   EnumChipSet: 'enumSetTags',

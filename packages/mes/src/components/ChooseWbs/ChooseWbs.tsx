@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 
@@ -129,7 +129,7 @@ export default defineComponent({
 								class: 'w-full',
 								showClear: submitModel.refName !== '' ? true : false,
 								// filter: true,
-								placeholder: '选择一个工作分解结构', //$t('auth.selectAUser')
+								placeholder: $t('invalid.selectWbs'),
 								modelValue: selectModel.value,
 								options: userOptionsAll.value,
 								onUpdate: (value: any) => {

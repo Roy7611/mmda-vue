@@ -11,19 +11,28 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/playground --filter @mmda/base --filter @mmda/mes build",
+    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/playground --filter @mmda/app build",
     "dev:vui": "pnpm --filter @mmda/playground dev",
     "dev:vui:sf": "pnpm --filter @mmda/playground dev:sf",
-    "dev:base": "pnpm --filter @mmda/base dev",
-    "dev:mes": "pnpm --filter @mmda/mes dev",
-    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion test",
+    "dev:app": "pnpm --filter @mmda/app dev",
+    "dev:apps": "pnpm dev:app",
+    "dev:gateway": "node scripts/dev-gateway.mjs",
+    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/app test",
     "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
     "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""
   },
   "devDependencies": {
+    "concurrently": "^9.2.4",
     "prettier": "^3.3.3",
     "typescript": "~5.9.3",
     "vite": "8.2.2",
     "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "@syncfusion/ej2-base": "34.2.2",
+      "@syncfusion/ej2-data": "34.2.2",
+      "@syncfusion/ej2-vue-base": "34.2.2"
+    }
   }
 }

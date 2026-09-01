@@ -62,9 +62,9 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
 	}
 
 	private materialXOptions = [
-		{ id: 0, value: 'ToolFlask', text: '砂箱' },
-		{ id: 1, value: 'ToolMeasure', text: '量具' },
-		{ id: 2, value: 'ToolPattern', text: '模具' },
+		{ id: 0, value: 'ToolFlask', text: 'tool.flask' },
+		{ id: 1, value: 'ToolMeasure', text: 'tool.measuringInstrument' },
+		{ id: 2, value: 'ToolPattern', text: 'tool.pattern' },
 	]
 
 	/**
@@ -82,11 +82,11 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
 				this.field('materialX')
 					.lockIf((model, ctx) => !!model.parentCatID)
 					.setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
-						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text : '-');
+						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? ctx.t(this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text ?? '') : '-');
 					})
 					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
 						return ctx.uiBuilder.factory.select({
-							options: this.materialXOptions,
+							options: this.materialXOptions.map(option => ({ ...option, text: ctx.t(option.text) })),
 							optionLabel: 'text',
 							optionValue: 'value',
 							modelValue: ctx.model.materialX,
@@ -123,7 +123,7 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
  * @returns 
  */
 export const ToolCategoryLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ToolCategoryLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'ToolCategories',
 	router,
 	module: module || metaUiService.findModule('ToolCategories'),

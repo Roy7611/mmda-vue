@@ -65,7 +65,7 @@ import { type Attachment, defineAttachment } from '../../models/Attachment';
 	 * @returns 
 	 */
 	export const AttachmentLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new AttachmentLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Attachments',
 		router,
 		module: module || metaUiService.findModule('Attachment'),

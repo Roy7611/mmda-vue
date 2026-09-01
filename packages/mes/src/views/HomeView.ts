@@ -3,6 +3,7 @@ import { UI_APP_KEY, UI_BUILDER_KEY, type MmdaApplication, type UiBuilder } from
 import { defineComponent, h, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Module } from '@mmda/core'
+import { useI18n } from 'vue-i18n'
 
 function leafCount(modules: Module[]): number {
   let n = 0
@@ -15,11 +16,11 @@ function leafCount(modules: Module[]): number {
 
 function greeting(): string {
   const hh = new Date().getHours()
-  if (hh < 6) return '凌晨好'
-  if (hh < 12) return '上午好'
-  if (hh < 14) return '中午好'
-  if (hh < 18) return '下午好'
-  return '晚上好'
+  if (hh < 6) return 'home.dawn'
+  if (hh < 12) return 'home.morning'
+  if (hh < 14) return 'home.noon'
+  if (hh < 18) return 'home.afternoon'
+  return 'home.evening'
 }
 
 let styleInjected = false
@@ -44,6 +45,7 @@ function injectResponsiveCSS() {
 export const HomeView = defineComponent({
   name: 'HomeView',
   setup: () => {
+    const { t } = useI18n()
     const b = inject<UiBuilder>(UI_BUILDER_KEY)!
     const { factory } = b
     const app = (inject(MES_KEY) ?? inject(UI_APP_KEY)) as MmdaApplication
@@ -54,10 +56,10 @@ export const HomeView = defineComponent({
 
     return () => {
       if (!user?.username && !modules?.length)
-        return h('div', { class: 'p-6' }, '加载中…')
+        return h('div', { class: 'p-6' }, t('state.loading'))
       const total = leafCount(modules)
       if (user?.username && total === 0)
-        return h('div', { class: 'p-6' }, '暂无可用模块')
+        return h('div', { class: 'p-6' }, t('home.noModules'))
 
       const groups = modules.flatMap((m: Module) => {
         if (m.moduleType === 'SYSTEM') {
@@ -69,12 +71,12 @@ export const HomeView = defineComponent({
       })
 
       const cardStyle = {
-        background: 'var(--p-surface-card, var(--p-content-background))',
-        border: '1px solid var(--p-content-border-color, var(--p-surface-border))',
-        borderRadius: 'var(--p-border-radius-lg, 8px)',
+        background: 'var(--mmda-surface-card, var(--mmda-content-background))',
+        border: '1px solid var(--mmda-content-border-color, var(--mmda-surface-border))',
+        borderRadius: 'var(--mmda-border-radius-lg, 8px)',
       }
-      const mutedText = { color: 'var(--p-text-muted-color, #6b7280)' }
-      const normalText = { color: 'var(--p-text-color, #1f2937)' }
+      const mutedText = { color: 'var(--mmda-text-muted-color, #6b7280)' }
+      const normalText = { color: 'var(--mmda-text-color, #1f2937)' }
 
       return h(
         'div',
@@ -107,17 +109,17 @@ export const HomeView = defineComponent({
                         fontSize: '20px',
                         fontWeight: 700,
                         margin: '0 0 4px 0',
-                        color: 'var(--p-text-color)',
+                        color: 'var(--mmda-text-color)',
                       },
                     },
-                    '制造执行工作台',
+                    t('view.scheduleWorkspace'),
                   ),
                   h('p', { style: { fontSize: '14px', ...mutedText, margin: 0 } }, [
-                    `${greeting()}，`,
+                    `${t(greeting())}，`,
                     h(
                       'strong',
-                      { style: { color: 'var(--p-text-color)', fontWeight: 600 } },
-                      user?.username || '未知用户',
+                      { style: { color: 'var(--mmda-text-color)', fontWeight: 600 } },
+                      user?.username || t('home.unknownUser'),
                     ),
                   ]),
                 ]),
@@ -137,14 +139,14 @@ export const HomeView = defineComponent({
                 },
                 [
                   h('div', {}, [
-                    h('div', { style: { fontSize: '12px', ...mutedText } }, '模块总数'),
+                    h('div', { style: { fontSize: '12px', ...mutedText } }, t('home.moduleCount')),
                     h(
                       'div',
                       {
                         style: {
                           fontSize: '28px',
                           fontWeight: 700,
-                          color: 'var(--p-primary-color, #3b82f6)',
+                          color: 'var(--mmda-primary-color, #3b82f6)',
                           marginTop: '4px',
                         },
                       },
@@ -169,7 +171,7 @@ export const HomeView = defineComponent({
                       for (const m of list) {
                         if (
                           m.shortLabel === 'Notifications' ||
-                          m.moduleLabel?.includes('通知')
+                          m.moduleLabel?.includes(t('action.notice'))
                         )
                           return m
                         if (m.subModules?.length) {
@@ -185,14 +187,14 @@ export const HomeView = defineComponent({
                 },
                 [
                   h('div', {}, [
-                    h('div', { style: { fontSize: '12px', ...mutedText } }, '待办事项'),
+                    h('div', { style: { fontSize: '12px', ...mutedText } }, t('home.todos')),
                     h(
                       'div',
                       {
                         style: {
                           fontSize: '28px',
                           fontWeight: 700,
-                          color: 'var(--p-yellow-500, #f59e0b)',
+                          color: 'var(--mmda-yellow-500, #f59e0b)',
                           marginTop: '4px',
                         },
                       },
@@ -210,10 +212,10 @@ export const HomeView = defineComponent({
                 fontSize: '14px',
                 fontWeight: 600,
                 margin: '0 0 12px 24px',
-                color: 'var(--p-text-color)',
+                color: 'var(--mmda-text-color)',
               },
             },
-            '模块导航',
+            t('home.moduleNav'),
           ),
           h(
             'div',
@@ -235,7 +237,7 @@ export const HomeView = defineComponent({
                         fontSize: '11px',
                         fontWeight: 600,
                         letterSpacing: '0.8px',
-                        color: 'var(--p-text-muted-color)',
+                        color: 'var(--mmda-text-muted-color)',
                         marginBottom: '8px',
                       },
                     },
@@ -269,7 +271,7 @@ export const HomeView = defineComponent({
                                     width: '32px',
                                     height: '32px',
                                     borderRadius: '8px',
-                                    background: 'var(--p-primary-50)',
+                                    background: 'var(--mmda-primary-50)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -278,7 +280,7 @@ export const HomeView = defineComponent({
                                 },
                                 [
                                   factory.icon(sm.moduleIcon, {
-                                    style: { color: 'var(--p-primary-color)' },
+                                    style: { color: 'var(--mmda-primary-color)' },
                                   }),
                                 ],
                               )

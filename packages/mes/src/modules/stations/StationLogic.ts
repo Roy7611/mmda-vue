@@ -74,7 +74,7 @@ export class StationLogic extends UiLogic<Station> {
 				this.group<StationOperation>('operations')
 					.addCustomAction({
 						name: 'clearopcode',
-						label: '清除',
+						label: 'action.clear',
 						icon: 'pi pi-trash',
 						role: 'danger',
 						onAction: (ctx: UiContext<Station>) => ctx.removeSubGroupItems('operations'),
@@ -82,7 +82,7 @@ export class StationLogic extends UiLogic<Station> {
 					})
 					.addCustomAction({
 						name: 'addopcode',
-						label: '添加',
+						label: 'action.add',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.Addopcode,
@@ -100,10 +100,10 @@ export class StationLogic extends UiLogic<Station> {
 		// 1. 判断是否已选产线
 		if (isLineIDEmpty(target)) {
 			console.log('请先选择产线', context.model, target);
-			return ui.toast(context, { title: '警告', message: '请先选择产线', type: 'warn', life: 3000 });
+			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.selectLineFirst'), type: 'warn', life: 3000 });
 		}
 		if (target.multiOp == false) {
-			return ui.toast(context, { title: '警告', message: '请选择有多工序才可添加多道工序', type: 'warn', life: 3000 });
+			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.multiOperationRequired'), type: 'warn', life: 3000 });
 		}
 		// 2. 选择工序时加 lineID 过滤
 		context
@@ -126,7 +126,7 @@ export class StationLogic extends UiLogic<Station> {
 					const selectedOpcodes = context.model.operations.map((op: any) => op.opCode);
 					const hasIntersection = selectOpcodes.some(opCode => selectedOpcodes.includes(opCode));
 					if (hasIntersection) {
-						return ui.toast(context, { title: '警告', message: '请不要重复添加工序', type: 'warn', life: 3000 });
+						return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.duplicateOperation'), type: 'warn', life: 3000 });
 					}
 					context.addSubGroupItems<StationOperation>({
 						target,
@@ -154,7 +154,7 @@ export class StationLogic extends UiLogic<Station> {
  */
 export const StationLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new StationLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Stations',
 		router,
 		module: module || metaUiService.findModule('Station'),

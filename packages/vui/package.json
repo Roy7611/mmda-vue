@@ -21,6 +21,10 @@
     "./theme.css": {
       "import": "./dist/theme.css",
       "default": "./src/theme.css"
+    },
+    "./material-symbols.css": {
+      "import": "./src/material-symbols.css",
+      "default": "./src/material-symbols.css"
     }
   },
   "files": [

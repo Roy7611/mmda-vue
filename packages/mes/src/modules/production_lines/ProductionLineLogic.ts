@@ -85,7 +85,7 @@ export class ProductionLineLogic extends UiLogic<ProductionLine> {
  * @returns 
  */
 export const ProductionLineLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProductionLineLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'ProductionLines',
 	router,
 	module: module || metaUiService.findModule('ProductionLine'),

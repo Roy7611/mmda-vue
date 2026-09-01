@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 

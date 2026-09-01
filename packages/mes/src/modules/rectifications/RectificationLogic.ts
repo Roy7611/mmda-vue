@@ -131,7 +131,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
 					// .defaultAdder(this.newRectificationItem)
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newRectificationItem,
@@ -139,7 +139,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
 					})
 					.addCustomAction({
 						name: 'createRectifiableproduct',
-						label: '从待整改制品里选择',
+						label: 'rectification.selectPendingProducts',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newRectifiableproduct,
@@ -202,7 +202,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
 						summary: context.t('dialog.title.error'),
-						detail: '不能添加相同的待整改制品',
+						detail: context.t('rectification.duplicatePendingProduct'),
 						group: 'br',
 						life: 3000
 					})
@@ -235,7 +235,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
  * @returns 
  */
 export const RectificationLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new RectificationLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Rectifications',
 	router,
 	module: module || metaUiService.findModule('Rectification'),

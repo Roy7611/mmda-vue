@@ -65,7 +65,7 @@ import { type Holiday, defineHoliday } from '../../models/Holiday';
 	 * @returns 
 	 */
 	export const HolidayLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new HolidayLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Holidays',
 		router,
 		module: module || metaUiService.findModule('Holiday'),

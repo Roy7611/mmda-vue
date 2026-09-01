@@ -8,6 +8,7 @@ import Tooltip from 'primevue/tooltip'
 import Aura from '@primevue/themes/aura'
 import { primeVueI18n } from './prime_i18n'
 import '@mmda/vui/fontawesome.css'
+import '@mmda/vui/material-symbols.css'
 import '@mmda/vui/theme.css'
 import './style.css'
 

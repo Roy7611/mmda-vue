@@ -1,5 +1,5 @@
 @config "../../tailwind.config.js";
-@layer tailwind-base, primevue, framework, tailwind-utilities;
+@layer tailwind-base, framework, tailwind-utilities;
 
 @layer tailwind-base {
   @tailwind base;

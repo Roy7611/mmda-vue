@@ -7,7 +7,7 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { defineComponent, h, getCurrentInstance, unref, ref, onMounted, reactive } from 'vue';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 import { isRefNone } from '@mmda/core';
 export const ToolsLend = defineComponent({
 	name: 'ToolsLend',
@@ -40,7 +40,7 @@ export const ToolsLend = defineComponent({
 				toast.add({
 					severity: 'error',
 					detail: error.detail ?? '',
-					summary: '错误',
+					summary: t('dialog.title.error'),
 					// position: 'bottom-right',
 					group: 'br',
 					life: 3000,

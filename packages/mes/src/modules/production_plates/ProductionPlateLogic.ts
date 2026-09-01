@@ -120,7 +120,7 @@ export class ProductionPlateLogic extends UiLogic<ProductionPlate> {
  */
 export const ProductionPlateLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionPlateLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionPlates',
 		router,
 		module: module || metaUiService.findModule('ProductionPlate'),

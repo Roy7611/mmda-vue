@@ -65,7 +65,7 @@ import { type ClientAppRelease, defineClientAppRelease } from '../../models/Clie
 	 * @returns 
 	 */
 	export const ClientAppReleaseLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ClientAppReleaseLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ClientAppReleases',
 		router,
 		module: module || metaUiService.findModule('ClientAppRelease'),

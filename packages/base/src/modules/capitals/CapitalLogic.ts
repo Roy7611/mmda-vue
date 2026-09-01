@@ -73,7 +73,7 @@ export class CapitalLogic extends UiLogic<Capital> {
  * @returns 
  */
 export const CapitalLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new CapitalLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Capitals',
 	router,
 	module: module || metaUiService.findModule('Capital'),

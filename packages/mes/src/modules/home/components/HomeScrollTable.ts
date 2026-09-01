@@ -5,6 +5,7 @@
  */
 import { defineComponent, h, onMounted, onUnmounted, ref, nextTick, watch } from 'vue';
 import type { PropType } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export interface ScrollColumn {
 	key: string;
@@ -26,6 +27,7 @@ export const HomeScrollTable = defineComponent({
 		factory: { type: Object as PropType<any>, required: true },
 	},
 	setup(props) {
+		const { t } = useI18n();
 		const cloned = ref<any[]>([]);
 		const scrollRef = ref<HTMLElement | null>(null);
 		let intervalId: number | null = null;
@@ -101,9 +103,9 @@ export const HomeScrollTable = defineComponent({
 				return h('div', {
 					style: {
 						padding: '12px', textAlign: 'center',
-						color: 'var(--p-text-muted-color, #6B7280)', fontSize: '12px',
+						color: 'var(--mmda-text-muted-color, #6B7280)', fontSize: '12px',
 					},
-				}, '暂无数据');
+				}, t('view.noData'));
 			}
 
 			const cols = props.columns.map(col =>

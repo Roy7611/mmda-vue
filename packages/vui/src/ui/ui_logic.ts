@@ -1,5 +1,6 @@
 import type { Router } from "vue-router";
 import type { I18n } from "vue-i18n";
+import { translateMessage } from "../i18n/i18n";
 import type { WatchCallback, WatchOptions } from "vue";
 import {
   ApiClient,
@@ -12,7 +13,6 @@ import {
   NO_PAGINATION,
   DEFAULT_PAGE_SIZE,
   defaultEntitySimplifyOptions,
-  defaultSearchParam,
   defineEntityArray,
   MetaUiFieldLogic,
   MetaUiGroupLogic,
@@ -35,7 +35,7 @@ import {
 import { rx } from "../rx";
 import { UiCustomSearchField, UiSearchField } from "./ui_filter";
 import type { UniListViewProps } from "./ui_state";
-import type { UiViewType } from "./ui_view";
+import { createDefaultSearchParam, type UiViewType } from "./ui_view";
 import type { UiViewContext } from "./ui_context";
 
 export interface UiSearchForm {
@@ -64,8 +64,7 @@ export type UiLogicFnResult<E> = {
 };
 export type UiLogicFn<E> = () => UiLogicFnResult<E>;
 export type UiViewLogicModule<E> =
-  | UiLogicFn<E>
-  | Record<string, UiLogicFn<E> | unknown>;
+  UiLogicFn<E> | Record<string, UiLogicFn<E> | unknown>;
 export type UiViewLogicLoader<E> = () => Promise<UiViewLogicModule<E>>;
 
 export type UiLogicBeforeFn<E> = (
@@ -91,7 +90,8 @@ export type UiLogicManyAfterFn<E> = (
 ) => void;
 
 export interface UiLogicInit {
-  service: MetaUiService;
+  /** 元数据 / MetaUI 服务 */
+  metaUiService: MetaUiService;
   repository: string;
   router?: Router | any;
   meta?: MetaUiPack;
@@ -99,7 +99,8 @@ export interface UiLogicInit {
   isChild?: boolean;
   i18n?: I18n;
   customPage?: boolean;
-  transService?: string;
+  /** 后端功能模块名，如 `mes` | `base`；路由与 API 都用它 */
+  apiService?: string;
 }
 
 export abstract class UiLogic<E extends Entity> {
@@ -113,7 +114,8 @@ export abstract class UiLogic<E extends Entity> {
   readonly router?: Router | any;
   readonly isChild: boolean;
   readonly customPage: boolean;
-  readonly transService?: string;
+  /** 后端功能模块名，如 `mes` | `base` */
+  readonly apiService?: string;
   viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
 
   private readonly relativeLogics: Record<
@@ -134,10 +136,7 @@ export abstract class UiLogic<E extends Entity> {
   private selectManyFields?: MetaUiFieldLogic<E>[];
   private selectManyGroups?: MetaUiGroupLogic<E, any>[];
   private selectManyActions?: EntityAction[];
-  private readonly loadingViewLogics = new Map<
-    UiViewType,
-    Promise<void>
-  >();
+  private readonly loadingViewLogics = new Map<UiViewType, Promise<void>>();
 
   beforeLoad?: UiLogicBeforeFn<E>;
   afterLoad?: UiLogicAfterFn<E>;
@@ -195,14 +194,14 @@ export abstract class UiLogic<E extends Entity> {
     public readonly createEntity: EntityCtor<E>,
     init: UiLogicInit,
   ) {
-    this.metaUiService = init.service;
+    this.metaUiService = init.metaUiService;
     this.repository = init.repository;
     this.router = init.router;
     this.meta = init.meta ?? ({ metaui: undefined } as any);
     this.module = init.module;
     this.isChild = init.isChild ?? false;
     this.customPage = init.customPage ?? false;
-    this.transService = init.transService;
+    this.apiService = init.apiService;
     this.apiClient = this.metaUiService.getApiClient(this.repository);
     this.relativeLogics = {};
   }
@@ -283,13 +282,19 @@ export abstract class UiLogic<E extends Entity> {
     const metaui = this.meta?.metaui;
     if (!metaui) {
       throw new Error(
-        `UiLogic[${this.repository}] 尚未加载元数据，无法配置字段 ${fldName}`,
+        translateMessage("invalid.logicNoMetaField", {
+          repository: this.repository,
+          field: fldName,
+        }),
       );
     }
     const field = metaui.getField(fldName);
     if (!field) {
       throw new Error(
-        `UiLogic[${this.repository}] 元数据中不存在字段 ${fldName}`,
+        translateMessage("invalid.logicMissingField", {
+          repository: this.repository,
+          field: fldName,
+        }),
       );
     }
     return new MetaUiFieldLogic<E>(field);
@@ -299,13 +304,19 @@ export abstract class UiLogic<E extends Entity> {
     const metaui = this.meta?.metaui;
     if (!metaui) {
       throw new Error(
-        `UiLogic[${this.repository}] 尚未加载元数据，无法配置分组 ${groupName}`,
+        translateMessage("invalid.logicNoMetaGroup", {
+          repository: this.repository,
+          group: groupName,
+        }),
       );
     }
     const group = metaui.getGroup(groupName);
     if (!group) {
       throw new Error(
-        `UiLogic[${this.repository}] 元数据中不存在分组 ${groupName}`,
+        translateMessage("invalid.logicMissingGroup", {
+          repository: this.repository,
+          group: groupName,
+        }),
       );
     }
     return new MetaUiGroupLogic<E, G>(group);
@@ -317,7 +328,7 @@ export abstract class UiLogic<E extends Entity> {
 
   beforeSearch(): UiSearchForm {
     return (this.searchForm ??= {
-      searchParam: rx(defaultSearchParam()),
+      searchParam: rx(createDefaultSearchParam()),
       queryParams: rx({}),
       searchFields: [],
       customSearchFields: [],
@@ -415,7 +426,7 @@ export abstract class UiLogic<E extends Entity> {
     try {
       const data = await this.apiClient.searchEntities(param, {
         queryParams: { moduleCode: this.module?.moduleCode ?? "" },
-        service: this.transService,
+        service: this.apiService,
       });
       data.list = defineEntityArray<E>(
         this.createEntity,
@@ -433,7 +444,10 @@ export abstract class UiLogic<E extends Entity> {
       const data =
         isObject(param.entity) && !isNullObject(param.entity)
           ? param.entity
-          : await this.apiClient.createOne(param, entityUrlParam);
+          : await this.apiClient.createOne(param, {
+              service: this.apiService,
+              ...entityUrlParam,
+            });
       return this.createEntity(data);
     } catch (e) {
       this.error(e);
@@ -456,7 +470,7 @@ export abstract class UiLogic<E extends Entity> {
   async load(id: any) {
     try {
       const data = await this.apiClient.getOne(id, {
-        service: this.transService,
+        service: this.apiService,
       });
       return this.createEntity(data);
     } catch (e) {
@@ -466,7 +480,7 @@ export abstract class UiLogic<E extends Entity> {
 
   async delete(id: any) {
     try {
-      return await this.apiClient.deleteOne(id, { service: this.transService });
+      return await this.apiClient.deleteOne(id, { service: this.apiService });
     } catch (e) {
       this.error(e);
     }
@@ -474,7 +488,9 @@ export abstract class UiLogic<E extends Entity> {
 
   async deleteAll(idList: string[]) {
     try {
-      return await this.apiClient.deleteAll(idList);
+      return await this.apiClient.deleteAll(idList, {
+        service: this.apiService,
+      });
     } catch (e) {
       this.error(e);
     }
@@ -488,7 +504,7 @@ export abstract class UiLogic<E extends Entity> {
         this.getSimplifyOptions(),
       );
       return await this.apiClient.saveOne(savable, {
-        service: this.transService,
+        service: this.apiService,
       });
     } catch (e) {
       this.error(e);
@@ -500,7 +516,7 @@ export abstract class UiLogic<E extends Entity> {
       file,
       {
         repository: options.repository ?? this.repository,
-        service: options.service ?? this.transService,
+        service: options.service ?? this.apiService,
         ...options,
       },
       "file",
@@ -512,7 +528,7 @@ export abstract class UiLogic<E extends Entity> {
       files,
       {
         repository: options.repository ?? this.repository,
-        service: options.service ?? this.transService,
+        service: options.service ?? this.apiService,
         ...options,
       },
       "files",
@@ -522,7 +538,7 @@ export abstract class UiLogic<E extends Entity> {
   importFile(file: File, options: EntityUrlParam = {}) {
     return this.apiClient.importExcel(file, "file", {
       repository: options.repository ?? this.repository,
-      service: options.service ?? this.transService,
+      service: options.service ?? this.apiService,
       ...options,
     });
   }
@@ -530,7 +546,7 @@ export abstract class UiLogic<E extends Entity> {
   importFiles(files: File[], options: EntityUrlParam = {}) {
     return this.apiClient.importAll(files, "files", {
       repository: options.repository ?? this.repository,
-      service: options.service ?? this.transService,
+      service: options.service ?? this.apiService,
       ...options,
     });
   }
@@ -540,7 +556,7 @@ export abstract class UiLogic<E extends Entity> {
       id,
       {
         repository: options.repository ?? this.repository,
-        service: options.service ?? this.transService,
+        service: options.service ?? this.apiService,
         ...options,
       },
       body,
@@ -551,7 +567,7 @@ export abstract class UiLogic<E extends Entity> {
     return this.apiClient.exportAll(
       {
         repository: options.repository ?? this.repository,
-        service: options.service ?? this.transService,
+        service: options.service ?? this.apiService,
         ...options,
       },
       body,
@@ -566,7 +582,7 @@ export abstract class UiLogic<E extends Entity> {
         {
           path: model.id,
           action: a.name,
-          service: this.transService ?? this.apiClient.config.service,
+          service: this.apiService ?? this.apiClient.config.service,
         },
         params,
       );
@@ -582,7 +598,11 @@ export abstract class UiLogic<E extends Entity> {
   async initMetadata(reload = false, params?: EntityUrlParam) {
     if (this.customPage) return;
     this.meta = await this.metaUiService.getPack(
-      Object.assign({}, { repository: this.repository }, params),
+      Object.assign(
+        {},
+        { repository: this.repository, service: this.apiService },
+        params,
+      ),
       reload,
     );
     if (
@@ -622,10 +642,11 @@ export class UiGroupLogic<
     super(defineGroupItem, {
       module,
       meta: { metaui: metaUiGroup.groupUi! },
-      service: metaUiService,
+      metaUiService: metaUiService,
       repository: groupName,
       router,
       isChild: true,
+      apiService: parent.apiService,
     });
     this.items = master[groupName] ?? [];
     this.metaUiGroup = metaUiGroup;
@@ -672,7 +693,11 @@ export class UiGroupLogic<
   async initMetadata(reload = false, params?: EntityUrlParam) {
     if (params?.redirection) {
       this.meta = await this.metaUiService.getPack(
-        Object.assign({}, { repository: this.repository }, params),
+        Object.assign(
+          {},
+          { repository: this.repository, service: this.apiService },
+          params,
+        ),
         reload,
       );
     } else {

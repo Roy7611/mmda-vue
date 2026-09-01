@@ -1,26 +1,39 @@
 {
   "name": "@mmda/mes",
-  "description": "制造执行系统（新仓移植）",
+  "description": "制造执行业务插件（由 @mmda/app 宿主加载）",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@mmda/core": "workspace:^",
     "@mmda/vui": "workspace:^",
-    "@mmda/vui-primevue": "workspace:^",
-    "@primevue/themes": "4.5.4",
+    "@mmda/vui-syncfusion": "workspace:^",
+    "@syncfusion/ej2-vue-barcode-generator": "34.2.2",
+    "@syncfusion/ej2-vue-buttons": "34.2.2",
+    "@syncfusion/ej2-vue-calendars": "34.2.2",
+    "@syncfusion/ej2-vue-charts": "34.2.2",
+    "@syncfusion/ej2-vue-diagrams": "34.2.2",
+    "@syncfusion/ej2-vue-dropdowns": "34.2.2",
+    "@syncfusion/ej2-vue-gantt": "34.2.2",
+    "@syncfusion/ej2-vue-grids": "34.2.2",
+    "@syncfusion/ej2-vue-inputs": "34.2.2",
+    "@syncfusion/ej2-vue-lists": "34.2.2",
+    "@syncfusion/ej2-vue-navigations": "34.2.2",
+    "@syncfusion/ej2-vue-notifications": "34.2.2",
+    "@syncfusion/ej2-vue-popups": "34.2.2",
+    "@syncfusion/ej2-vue-progressbar": "34.2.2",
+    "@syncfusion/ej2-vue-splitbuttons": "34.2.2",
     "@vue-office/docx": "^1.6.3",
     "@vue-office/excel": "^1.7.14",
-    "dhtmlx-gantt": "^9.0.1",
+    "bpmn-js": "^18.25.1",
+    "bpmn-js-properties-panel": "^5.65.0",
+    "camunda-bpmn-moddle": "^7.0.1",
     "echarts": "^5.5.1",
     "lodash": "^4.17.21",
-    "primeicons": "7.0.0",
-    "primevue": "^4.5.5",
     "vue": "^3.5.25",
     "vue-i18n": "^11.1.11",
     "vue-router": "^4.5.1"
@@ -30,9 +43,11 @@
     "@types/node": "^20.19.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "jsdom": "^30.0.1",
     "less": "^4.2.0",
     "sass": "^1.55.0",
     "typescript": "~5.9.3",
-    "vite": "8.2.2"
+    "vite": "8.2.2",
+    "vitest": "^4.1.11"
   }
 }

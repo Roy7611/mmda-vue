@@ -9,7 +9,9 @@ import {
   DEFAULT_COLOR_PALETTE,
   MMDA_COLOR_PALETTES,
   readStoredColorPalette,
+  readStoredPageSize,
   resolveColorPalette,
+  writeStoredPageSize,
 } from "../ui/ui_theme";
 
 afterEach(() => {
@@ -42,6 +44,15 @@ describe("MMDA color palettes", () => {
     expect(readStoredColorPalette()).toBe("teal");
     localStorage.setItem("mmda/colorPalette", "brand-x");
     expect(readStoredColorPalette()).toBe("purple");
+  });
+
+  it("persists pageSize preference under mmda/pageSize", () => {
+    expect(readStoredPageSize()).toBe(20);
+    writeStoredPageSize(50);
+    expect(localStorage.getItem("mmda/pageSize")).toBe("50");
+    expect(readStoredPageSize()).toBe(50);
+    writeStoredPageSize(999);
+    expect(readStoredPageSize()).toBe(50);
   });
 
   it("switches the document palette attribute", () => {

@@ -8,6 +8,7 @@ import {
 import {
   activeAncestorKeys,
   assembleMenuItems,
+  isLocalAppModuleUrl,
 } from '../ui/components/AppSideMenu'
 
 const sampleModules = new ModuleFactory([
@@ -106,5 +107,12 @@ describe('AppSideMenu helpers', () => {
       'B.02',
       'B.02.01',
     ])
+  })
+
+  it('isLocalAppModuleUrl treats other SPA prefixes as foreign', () => {
+    expect(isLocalAppModuleUrl('base', '/BASE/Departments')).toBe(true)
+    expect(isLocalAppModuleUrl('base', '/MES/Stations')).toBe(false)
+    expect(isLocalAppModuleUrl('mes', '/MES/Stations')).toBe(true)
+    expect(isLocalAppModuleUrl('', '/MES/Stations')).toBe(true)
   })
 })

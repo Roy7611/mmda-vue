@@ -80,6 +80,8 @@ export interface ImportAndExportActionProps {
 export interface ModuleSearchbarProps {
   role?: string;
   onSearch?: (searchText: string) => void;
+  /** 用当前 searchWord + 字段过滤 + 分页再查一次，不清条件。 */
+  onRefresh?: () => void;
   defaultFilter?: () => VNode;
   customFilters?: CustomFilter[];
 }
@@ -87,6 +89,8 @@ export interface ModuleSearchbarProps {
 export interface MmdaApplicationContext {
   user: OAuthUser;
   modules: Module[];
+  /** Route prefixes handled by the current Vue Router (for example BASE/MES). */
+  localAppPrefixes?: string[];
   authenticated?: boolean;
   expandSidebar?: boolean;
   expandUserMenu?: boolean;
@@ -110,6 +114,8 @@ export interface MmdaApplicationOptions {
   clientId?: string;
   clientSecret?: string;
   redirectUris?: string;
+  /** 未登录 / 401 跳转路径。默认 `/${service}/Signin`。 */
+  signinPath?: string;
 }
 
 /**
@@ -125,6 +131,7 @@ export class MmdaApplication {
   readonly clientId: string;
   readonly clientSecret: string;
   readonly redirectUris?: string;
+  readonly signinPath: string;
   /** 启动恢复会话期间抑制 401→强制跳登录，交给 signinAuto 自行 refresh */
   private restoringAuth = false;
   /** 公共 SSO 库：仅 user / config，与模块 localDb 分离 */
@@ -177,6 +184,7 @@ export class MmdaApplication {
     this.clientSecret = opts.clientSecret ?? "";
     this.redirectUris = opts.redirectUris;
     this.name = service;
+    this.signinPath = opts.signinPath ?? `/${service.toUpperCase()}/Signin`;
     const locale = (
       isRef(i18n.global.locale) ? i18n.global.locale.value : i18n.global.locale
     ) as string;
@@ -194,7 +202,8 @@ export class MmdaApplication {
       if (this.restoringAuth) return;
       this.signOut().then(() => {
         if (typeof window === "undefined") return;
-        window.location.href = `/${this.name.toUpperCase()}/Signin?redirect=${window.location.pathname}`;
+        const redirect = encodeURIComponent(window.location.pathname);
+        window.location.href = `${this.signinPath}?redirect=${redirect}`;
       });
     });
     this.meta = defaultMetaUiService(this.api);
@@ -398,8 +407,27 @@ export class MmdaApplication {
     const { http } = this.api;
     const address = isString(systemInfo)
       ? `/${systemInfo.toUpperCase()}`
-      : systemInfo.moduleUrl;
-    let url = `${http.baseUrl.replace("/api", "")}${address}`;
+      : systemInfo.moduleUrl ||
+        `/${String(systemInfo.shortLabel ?? systemInfo.service ?? "").toUpperCase()}`;
+    // Prefer same-origin path links (`/MES`) so a relative `/api` or an absolute
+    // API host does not send system switches to the gateway machine.
+    const apiBase = String(http.baseUrl || "");
+    let origin = "";
+    if (apiBase.startsWith("/")) {
+      origin = "";
+    } else {
+      try {
+        const parsed = new URL(apiBase);
+        origin =
+          typeof window !== "undefined" &&
+          parsed.origin !== window.location.origin
+            ? ""
+            : parsed.origin;
+      } catch {
+        origin = apiBase.replace(/\/api\/?$/, "");
+      }
+    }
+    let url = `${origin}${address}`;
     if (props?.repository) url += `/${props.repository}`;
     if (props?.action) url += `/${props.action}`;
     return url;

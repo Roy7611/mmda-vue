@@ -1,0 +1,18 @@
+---
+description: MMDA 字段引用只有 enum / ref / hasOne 三种，下拉与筛选必须走 valueOf/labelOf
+alwaysApply: true
+---
+
+# 字段引用（enum / ref / hasOne）
+
+`MetaUiField.reference` 只有三种，取值/显示只走 `valueOf` / `labelOf`，主键唯一，不要对选项 `getDistinct`。
+
+| 类型 | 选项从哪来 | 主键 | 说明 |
+|------|------------|------|------|
+| **enum** | 本地 `refOptions`（`value;code;label` 解析成对象） | `valueOf` → code（英文成员） | `labelOf` → label（显示文本） |
+| **ref** | 服务端查，写回 `refOptions` | `id`（`refFlds[0]`） | 未加载时 `refOptions` 为空数组 |
+| **hasOne** | 同上 | `id` | 可能多显示字段或树，标签仍用 `labelOf` |
+
+表单下拉和列表 CheckBox 筛选同一套：`loadReferenceOptions` 填 `refOptions`，显示 `labelOf`，提交/过滤用 `valueOf`。
+
+不要：把列做成 EJ2 外键列、`itemTemplate` 猜字段、`mmdaFilterLabel`、从当前页行 distinct 凑选项。

@@ -1,4 +1,8 @@
-import { MetaUiField, MetaUiFieldRef } from './metaui_field'
+import {
+  compareListColumns,
+  MetaUiField,
+  MetaUiFieldRef,
+} from './metaui_field'
 
 type PropsMapper = Record<string, string | ((it: any) => any)>
 
@@ -205,10 +209,17 @@ export class MetaUiGroup {
   getListedFields(reset = false) {
     if (this._listedFields.length == 0 || reset) {
       this._listedFields = this.many
-        ? this.groupUi!.getListedFields()
+        ? this.groupUi!.getListedFields(reset)
         : this.fields!.filter(field => field.listed && !field.hidden)
+            .sort(compareListColumns)
     }
     return this._listedFields
+  }
+
+  getListLayoutFields() {
+    return (this.fields ?? [])
+      .filter(field => !field.hidden)
+      .sort(compareListColumns)
   }
 }
 
@@ -349,10 +360,17 @@ export class MetaUi {
       this._listedFields = this.groups
         .filter(g => !g.many)
         .reduce((prev, curr) => {
-          return prev.concat(curr.getListedFields())
-        }, []).sort((a, b) => a.fieldIdx - b.fieldIdx)
+          return prev.concat(curr.getListedFields(reset))
+        }, []).sort(compareListColumns)
     }
     return this._listedFields
+  }
+
+  getListLayoutFields() {
+    return this.groups
+      .filter(g => !g.many)
+      .reduce((prev, curr) => prev.concat(curr.getListLayoutFields()), [] as MetaUiField[])
+      .sort(compareListColumns)
   }
   /**
    * 获取元界面组

@@ -442,6 +442,52 @@ describe("UiViewContext", () => {
     expect(ctx.routeToRelative(packField)).toBe("/BASE/MaterialPackages/25");
   });
 
+  it("routeToRelative 优先使用 logic.apiService（统一宿主 app.name=base）", () => {
+    const orderField = new MetaUiField({
+      fieldName: "orderID",
+      displayLabel: "工单",
+      fieldIdx: 0,
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+      selectOptions: "HAS_ONE WorkOrder(orderID,orderNo) AS workOrder",
+    });
+    const metaui = new MetaUi({
+      objName: "ProductionTask",
+      displayLabel: "任务",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "a1",
+          groupLabel: "任务",
+          many: false,
+          fields: [orderField],
+        },
+      ],
+    });
+    const router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: "/MES/:repository/:id", component: { template: "<div/>" } },
+        { path: "/BASE/:repository/:id", component: { template: "<div/>" } },
+      ],
+    });
+    const ctx = new UiViewContext({
+      model: {
+        orderID: "9",
+        workOrder: { orderID: "9", orderNo: "WO-9" },
+      },
+      metaui,
+      view: "details",
+      app: {
+        name: "base",
+        api: { config: { service: "base" }, http: { baseUrl: "/api" } },
+      } as any,
+      logic: { router, apiService: "mes" } as any,
+    });
+
+    expect(ctx.routeToRelative(orderField)).toBe("/MES/WorkOrders/9");
+  });
+
   it("首次加载 REF 选项并缓存到 refOptions", async () => {
     const packField = new MetaUiField({
       fieldName: "packID",
@@ -515,5 +561,48 @@ describe("UiViewContext", () => {
     await expect(root.validate()).resolves.toBe(false);
     expect(root.hasGroupError("items")).toBe(true);
     expect(root.getCacheByID("i1")?.model).toMatchObject({ itemName: "" });
+  });
+
+  it("打开列表时勾选缓存的 active 过滤并应用排序", () => {
+    const { metaui } = createOrderMetaUi();
+    const ctx = new UiViewContext({
+      model: { list: [] },
+      metaui,
+      view: "index",
+      logic: {
+        meta: {
+          sorts: [
+            {
+              sortName: "defaultSort",
+              sortTitle: "默认",
+              sortSets: [
+                {
+                  sortLabel: "orderNo",
+                  sortSet: { sortBy: "orderNo", sortOrder: "DESC" },
+                  active: true,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    } as any);
+    ctx.configureSearch([
+      {
+        filterName: "st",
+        filterTitle: "状态",
+        fixed: false,
+        filterConditions: [
+          { displayLabel: "A", condition: "1=1", fallback: true, active: false },
+          { displayLabel: "B", condition: "1=0", fallback: false, active: true },
+        ],
+      },
+    ]);
+    expect(ctx.filters[0]?.selectedConditions.value.map((item) => item.displayLabel)).toEqual(
+      ["B"],
+    );
+    expect(ctx.searchParam.pager.sorts).toEqual([
+      { sortBy: "orderNo", sortOrder: "DESC" },
+    ]);
   });
 });

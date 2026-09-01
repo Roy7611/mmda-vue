@@ -64,7 +64,7 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 					.clearIf(model => true)
 					.addCustomAction({
 						name: 'createAlternativeStrategyItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newAlternativeStrategyItem,
@@ -97,8 +97,8 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 					ctx.removeSubGroupItem('items', item);
 					ctx.uiBuilder.toast(ctx, {
 						severity: 'warn',           // warn 提示
-						summary: '重复物料',
-						detail: `物料 ${item.materialID} 已存在，无法添加重复项`,
+						summary: ctx.t('invalid.duplicateMaterial'),
+						detail: ctx.t({ message: 'invalid.duplicateMaterialDetail', param: { it: item.materialID } }),
 						group: 'br',
 						life: 3000,
 					});
@@ -118,7 +118,7 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
  * @returns 
  */
 export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new AlternativeStrategyLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'AlternativeStrategies',
 	router,
 	module: module || metaUiService.findModule('AlternativeStrategy'),

@@ -1,17 +1,23 @@
 # @mmda/base
 
-么么哒基础数据系统，作为新仓的人工验证应用。通过 `VITE_BASE_API` 访问统一网关 `/api`，不直连 8000/8002，也不依赖 `@mmda/mes`。
+> BASE 现在是 `@mmda/app` 的基础数据业务插件，不再拥有生产环境
+> AppShell、登录页或 Router 实例。统一应用架构见
+> [`../../docs/unified-app.md`](../../docs/unified-app.md)。
+
+么么哒基础数据业务插件，不依赖 `@mmda/mes`。
 
 ## 启动
 
-1. 复制 `.env.example` 为 `.env`，配置 `VITE_BASE_API` 与 `VITE_OAUTH_CLIENT_ID` / `VITE_OAUTH_CLIENT_SECRET`（base 默认 clientId 为 `mmda-base`）。皮肤为 `@mmda/vui-syncfusion`；可选填 `VITE_SYNCFUSION_LICENSE`，否则控件会带 Syncfusion 水印。
-2. 在仓库根目录：`pnpm install`，然后 `pnpm dev:base`（默认 http://127.0.0.1:5174/）。
-3. 打开 `/BASE/Signin` 登录；OAuth 凭据在 `MmdaApplication` 构造时注入，登录页无需再传。
+统一入口：根目录 `pnpm dev:app` → http://127.0.0.1:5174/BASE/。
+
+1. 复制 `packages/app/.env.example` 为 `packages/app/.env`，配置 API、OAuth 与 Syncfusion license。
+2. 仓库根目录执行 `pnpm install`，然后执行 `pnpm dev:app`。
+3. 打开 `/Signin` 登录；OAuth 凭据在 `MmdaApplication` 构造时注入，登录页无需再传。
 
 Playground（`pnpm dev:vui`）仍是假数据对照，不要改成 base。
 
-应用壳、页脚与样式 token 均不依赖具体控件库；`vite.config.ts` 已预留两套皮肤的
-source alias。后续切换皮肤只需调整 `main.ts` 的 Builder / Plugin 和 `package.json` 依赖。
+应用壳、页脚与 Router 位于 `@mmda/app`；本包通过 `basePlugin` 贡献 Home、
+占位页和 Logic loaders。
 
 ## 验收清单（网关 + 真人）
 
@@ -25,7 +31,7 @@ source alias。后续切换皮肤只需调整 `main.ts` 的 Builder / Plugin 和
 6. Attachments 上传下载
 7. Notifications + todoCount
 
-占位页：`DailyRecords`、`MaterialCats`、`PartnerCats`。Office Online / 无权限为本地简单页。
+占位页：`DailyRecords`、`MaterialCats`、`PartnerCats`。Office Online / 无权限页由 `@mmda/app` 提供。
 
 ## 分层约束
 

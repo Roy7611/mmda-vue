@@ -82,6 +82,10 @@ export interface UiListProps<T = any> {
   ) => void | Promise<unknown>;
   /** 首次打开引用字段过滤器时加载并缓存可选项。 */
   loadFilterOptions?: (field: MetaUiField) => Promise<unknown[]>;
+  /** 列表列宽/显隐/冻结/顺序变更后回写元数据并缓存。 */
+  onListLayoutChange?: () => void;
+  /** 列布局版本；变化时重建表格。 */
+  layoutRev?: number | { value: number };
   filterLabels?: Partial<
     Record<"all" | "yes" | "no" | "apply" | "clear", string>
   >;

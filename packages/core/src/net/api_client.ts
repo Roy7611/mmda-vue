@@ -225,7 +225,8 @@ export class ApiClient {
     searchParam: any,
     { repository, queryParams, service }: EntityUrlParam = {},
   ): Promise<PagedList<unknown>> {
-    // 与 create/save/deleteAll 一致：动作名进路径；列表仓储本身只接受 GET。
+    // 与 create/save/deleteAll 一致：动作名进路径。
+    // 复杂列过滤走 POST JSON body；后端需开放 POST searchAll（GET 无法带 body）。
     const url = this.buildEntityURL({
       repository,
       action: "searchAll",
@@ -241,7 +242,11 @@ export class ApiClient {
     });
   }
 
-  /** 统一实体列表查询：简单条件走 GET，复杂 filterModel 走 body。 */
+  /**
+   * 统一实体列表查询。
+   * searchWord / 分页在 URL query；字段组合过滤在 searchAll body。
+   * 有字段过滤时 POST searchAll，query 里仍带 searchWord。
+   */
   searchEntities(
     param: EntitySearchParam,
     options: EntityUrlParam = {},

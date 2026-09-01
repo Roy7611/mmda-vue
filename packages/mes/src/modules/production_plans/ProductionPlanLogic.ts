@@ -141,7 +141,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
-					detail: err.message ?? '操作失败',
+					detail: err.message ?? context.t('auth.operationFailed'),
 					group: 'br',
 					// life: 3000
 				})
@@ -184,7 +184,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 							$toast.add({
 								severity: 'error',
 								detail: error.message,
-								summary: '错误',
+								summary: context.t('dialog.title.error'),
 								group: 'br',
 								life: 3000,
 							});
@@ -246,7 +246,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				// 				$toast.add({
 				// 					severity: 'error',
 				// 					detail: error.message,
-				// 					summary: '错误',
+				// 					summary: context.t('dialog.title.error'),
 				// 					group: 'br',
 				// 					life: 3000,
 				// 				});
@@ -303,7 +303,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 		const { searchFields, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '计划日期',
+				searchLabel: 'auth.PlanDate',
 				searchParam: 'planDate',
 				valueFn: (v: any) => (v.filter((item: any) => item !== null).length > 1 ? `BETWEEN '${v[0].toFormat('yyyy-MM-dd')}' AND '${v[1].toFormat('yyyy-MM-dd')}'` : ''),
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -532,7 +532,7 @@ const isDecimal = (num: number) => {
  */
 export const ProductionPlanLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionPlanLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionPlans',
 		router,
 		module: module || metaUiService.findModule('ProductionPlan'),
@@ -655,9 +655,9 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 				// 限制日期：不需日期的限制类型下隐藏且不参与必填校验
 				this.field('constraintDate')
 					.hideIf(model => shouldHideConstraintDate(model.constraintType))
-					.onValidate((value, model) => {
+					.onValidate((value, model, ctx) => {
 						if (!shouldHideConstraintDate(model.constraintType) && isNullOrUndefined(value)) {
-							return '请输入限制日期';
+							return ctx.t('productionOrder.enterConstraintDate');
 						}
 					}),
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {

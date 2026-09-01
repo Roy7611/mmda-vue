@@ -13,7 +13,6 @@ import type { UiLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
 import { reactive, h, toRaw, ref, RendererElement, RendererNode, VNode, getCurrentInstance } from 'vue';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
-import { $t } from '@primevue/themes';
 
 import { getTaskData, getLinkRes, getProSub, getPlanRes, getBreaks, getReflash, getReload } from '@/components/ProjectGanntView/ProjectGanttUpdate';
 import { TaskRelationship, TaskRelationshipEnum } from '@mmda/base/src/enums/TaskRelationship';
@@ -425,13 +424,13 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				{
 					width: '30vw',
 					height: '15vh',
-					title: '选择一个负责人',
+					title: t('ganttLabel.selectResponsiblePerson'),
 					accept: async () => {
 						console.log('chargePerson', chargePerson);
 						if (!chargePerson.data.userID) {
 							$toast.add({
 								severity: 'error',
-								summary: '请选择一个负责人',
+								summary: t('ganttLabel.selectResponsiblePerson'),
 								group: 'br',
 								life: 3000,
 							});
@@ -469,8 +468,8 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 									if (res) {
 										$toast.add({
 											severity: 'success',
-											detail: '操作成功',
-											summary: '成功',
+											detail: t('success.operationSuccessful'),
+											summary: t('dialog.success'),
 											life: 3000,
 										});
 										//成功后更新数据 放回去
@@ -489,7 +488,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 									$toast.add({
 										severity: 'error',
 										detail: error.message,
-										summary: '错误',
+										summary: t('dialog.title.error'),
 										group: 'br',
 										life: 3000,
 									});
@@ -504,7 +503,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		} catch (error: any) {
 			$toast.add({
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -519,7 +518,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '我的',
+				searchLabel: 'doc.mine',
 				searchParam: 'my',
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
 					const { $ui: ui } = ctx.globalProps;
@@ -633,7 +632,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		} catch (error: any) {
 			$toast.add({
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -729,7 +728,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		} catch (error: any) {
 			$toast.add({
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -837,7 +836,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				),
 				appContext,
 				{
-					title: '请选择项目交付物',
+					title: t('projectSchedule.selectProjectDeliverables'),
 					width: '90vw',
 					accept: async () => {
 						if (selectionRows.value.length > 0) {
@@ -882,7 +881,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 							} catch (error: any) {
 								appContext.uiBuilder.toast(appContext, {
 									severity: 'error',
-									title: $t('dialog.title.error'),
+									title: 'dialog.title.error',
 									summary: error.detail ?? '',
 									group: 'br',
 									life: 3000,
@@ -958,7 +957,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				),
 				appContext,
 				{
-					title: '请选择项目交付物',
+					title: t('projectSchedule.selectProjectDeliverables'),
 					width: '90vw',
 					accept: async () => {
 						if (selectionRows.value.length > 0) {
@@ -1003,7 +1002,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 							} catch (error: any) {
 								appContext.uiBuilder.toast(appContext, {
 									severity: 'error',
-									title: $t('dialog.title.error'),
+									title: 'dialog.title.error',
 									summary: error.detail ?? '',
 									group: 'br',
 									life: 3000,
@@ -1077,7 +1076,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 			),
 	// 			appContext,
 	// 			{
-	// 				title: '请选择项目交付物',
+	// 				title: t('projectSchedule.selectProjectDeliverables'),
 	// 				width: '90vw',
 	// 				accept: async () => {
 	// 					if (selectionRows.value.length > 0) {
@@ -1122,7 +1121,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 						} catch (error: any) {
 	// 							appContext.uiBuilder.toast(appContext, {
 	// 								severity: 'error',
-	// 								title: $t('dialog.title.error'),
+	// 								title: 'dialog.title.error',
 	// 								summary: error.detail ?? '',
 	// 								life: 3000,
 	// 							});
@@ -1185,7 +1184,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: error.detail ?? '',
 				group: 'br',
 				life: 3000,
@@ -1198,7 +1197,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	async subPlanning(planDate: any, appContext: any) {
 		dailyPlanning.data.date = planDate;
 		appContext.uiBuilder.confirm(appContext, {
-			title: '编制日计划',
+			title: appContext.t('ganttLabel.PrepareDaily'),
 			message: h(GanttPlanning, {
 				dataModel: dailyPlanning.data,
 				ctx: appContext,
@@ -1247,7 +1246,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			}
 			content.appContext.uiBuilder.toast(content.appContext, {
 				severity: 'error',
-				title: $t('dialog.title.error'),
+				title: 'dialog.title.error',
 				summary: errorMessage ?? '',
 				group: 'br',
 				life: 3000,
@@ -1279,7 +1278,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
  */
 export const ProjectScheduleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectScheduleLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectSchedule',
 		router,
 		module: module || metaUiService.findModule('ProjectSchedule'),

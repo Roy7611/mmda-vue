@@ -3,6 +3,7 @@ import {
   computed,
   defineComponent,
   h,
+  inject,
   ref,
   watch,
   type PropType,
@@ -15,7 +16,10 @@ import {
   assembleMenuItems,
   activeAncestorKeys,
   hasSystemModules,
+  isLocalAppModuleUrl,
+  UI_APP_KEY,
   type AppMenuItem,
+  type MmdaApplication,
 } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
@@ -32,7 +36,23 @@ const DOCK_WIDTH = '300px'
 const DOCK_SIZE = '72px'
 const SHELL_TARGET = '.mmda-sf-shell'
 
-function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
+function moduleHref(
+  url: string,
+  appName: string | string[],
+  linkProps: Record<string, unknown>,
+  children: () => any,
+): VNode {
+  if (isLocalAppModuleUrl(appName, url)) {
+    return h(RouterLink, { ...linkProps, to: url }, children)
+  }
+  return h('a', { ...linkProps, href: url }, children())
+}
+
+function renderFeatureLink(
+  item: AppMenuItem,
+  active: boolean,
+  appName: string | string[],
+): VNode {
   const label = [
     item.icon
       ? h('i', {
@@ -47,11 +67,11 @@ function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
   }
 
   const createLink = item.allowCreate
-    ? h(
-        RouterLink,
+    ? moduleHref(
+        `${item.route}/Create`,
+        appName,
         {
           class: 'mmda-side-menu__create',
-          to: `${item.route}/Create`,
           title: '创建',
           'aria-label': `创建${item.label}`,
           onClick: (e: MouseEvent) => e.stopPropagation(),
@@ -64,6 +84,21 @@ function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
       )
     : null
 
+  const children: VNode[] = [
+    moduleHref(
+      item.route,
+      appName,
+      {
+        class: {
+          'mmda-side-menu__link': true,
+          'mmda-side-menu__link--active': active,
+        },
+      },
+      () => label,
+    ),
+  ]
+  if (createLink) children.push(createLink)
+
   return h(
     'div',
     {
@@ -72,20 +107,7 @@ function renderFeatureLink(item: AppMenuItem, active: boolean): VNode {
         'mmda-side-menu__row--active': active,
       },
     },
-    [
-      h(
-        RouterLink,
-        {
-          class: {
-            'mmda-side-menu__link': true,
-            'mmda-side-menu__link--active': active,
-          },
-          to: item.route,
-        },
-        () => label,
-      ),
-      createLink,
-    ],
+    children,
   )
 }
 
@@ -139,6 +161,10 @@ export const SyncfusionAppMenu = defineComponent({
     },
   },
   setup(props) {
+    const app = inject(UI_APP_KEY, null as MmdaApplication | null)
+    const appName = computed(
+      () => app?.context.localAppPrefixes ?? app?.name ?? '',
+    )
     const route = useRoute()
     const selectedL1 = ref('')
     const expanded = ref<Record<string, boolean>>({})
@@ -229,7 +255,11 @@ export const SyncfusionAppMenu = defineComponent({
         'div',
         { class: 'mmda-side-menu' },
         items.map(item =>
-          renderFeatureLink(item, isActiveRoute(route.path, item.route)),
+          renderFeatureLink(
+            item,
+            isActiveRoute(route.path, item.route),
+            appName.value,
+          ),
         ),
       )
     }

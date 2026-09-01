@@ -90,7 +90,7 @@ const beforeMaterialTransCreateRedirect = async (
 		context.uiBuilder.toast(context, {
 			severity: 'error',
 			summary: context.t('dialog.title.error'),
-			detail: error.message ?? '操作失败',
+			detail: error.message ?? context.t('auth.operationFailed'),
 			group: 'br',
 			life: 3000,
 		});
@@ -422,7 +422,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 					// .defaultAdder(this.newQualityInspectionItem)
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newQualityInspectionItem,
@@ -431,7 +431,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 					})
 					.addCustomAction({
 						name: 'batchQualified',
-						label: '一键合格',
+						label: 'qualityInspection.batchQualified',
 						icon: 'far fa-check-circle',
 						role: 'success',
 						onAction: this.batchSetQualified,
@@ -442,7 +442,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 					// .defaultAdder(this.newQualityInspectionMaterial)
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newQualityInspectionMaterial,
@@ -554,7 +554,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			if (requestID !== this.taskMaterialRequestID) return;
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				detail: '生产任务物料加载失败',
+				detail: context.t('qualityInspection.taskMaterialsLoadFailed'),
 				summary: context.t('dialog.title.error'),
 				group: 'br',
 				life: 3000,
@@ -578,14 +578,14 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 		const { $ui: ui } = context.globalProps;
 		const pending = (target.items ?? []).filter(i => !MetaModel.deleted(i) && !i.qualified);
 		if (!pending.length) return;
-		const rows = pending.map(i => ({ ...i, qualifiedText: '不合格' }));
+		const rows = pending.map(i => ({ ...i, qualifiedText: context.t('qualityInspection.unqualified') }));
 		let selected: typeof rows = rows;
 		context.uiBuilder.confirmDialog(
 			context.uiBuilder.buildSearchForRelativeContent([
-				ui.factory.column({ header: '类别', field: 'category' }),
-				ui.factory.column({ header: '检查内容', field: 'itemName' }),
-				ui.factory.column({ header: '判定基准', field: 'criterion' }),
-				ui.factory.column({ header: '合格否', field: 'qualifiedText' }),
+				ui.factory.column({ header: context.t('qualityInspection.category'), field: 'category' }),
+				ui.factory.column({ header: context.t('qualityInspection.inspectionContent'), field: 'itemName' }),
+				ui.factory.column({ header: context.t('qualityInspection.criterion'), field: 'criterion' }),
+				ui.factory.column({ header: context.t('qualityInspection.qualified'), field: 'qualifiedText' }),
 			], {
 				dataKey: 'itemID',
 				selectionMode: 'multiple',
@@ -597,7 +597,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			}),
 			context,
 			{
-				title: '一键合格',
+				title: context.t('qualityInspection.batchQualified'),
 				style: { width: '75vw', maxHeight: '90%' },
 				accept: async () => {
 					const ids = new Set(selected.map(i => i.itemID));
@@ -677,7 +677,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
  */
 export const QualityInspectionLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new QualityInspectionLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'QualityInspections',
 		router,
 		module: module || metaUiService.findModule('QualityInspection'),
@@ -1102,7 +1102,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 					if (!this.master || isNullOrUndefined(val)) return
 					const maxQcQty = Math.max((model.quantity ?? 0) - (this.master.totalGood || 0), 0)
 					if (val > maxQcQty) {
-						return '质检数量不能大于总数量减去优良品数量'
+						return ctx?.t('invalid.inspectionQuantityTooLarge')
 					}
 				}),
 				this.field('unit').lockIf(v => !isRefNone(v.refName)),

@@ -208,7 +208,7 @@ playground 已改用 `PrimeVueUiBuilder`。
 
 ### 近期（把皮肤用到业务）
 
-1. 用 [`packages/base`](packages/base) 对人工业务验证：登录、字典 CRUD、Employees 跨服务选人（只拉 mes 元数据）、Users/Roles、Materials、附件、待办。`pnpm dev:base`，网关地址见 `packages/base/.env.example`。
+1. 用 [`packages/app`](packages/app) 对人工业务验证：登录、字典 CRUD、Employees 跨服务选人（只拉 mes 元数据）、Users/Roles、Materials、附件、待办。`pnpm dev:app`，网关地址见 `packages/app/.env.example`。
 2. 用 playground 对齐真实仓库的列表：快捷过滤、列过滤、分页、导入导出。
 3. `AssociationTable`、多文件/多图上传与附件组接到 `UiBuildContext`。
 4. 把产品 App 顶栏 / 系统切换接到 `MmdaPrimeApp`，而不是把 mes 的 `HeaderView` 整文件拷回皮肤。

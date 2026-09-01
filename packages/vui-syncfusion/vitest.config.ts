@@ -17,6 +17,9 @@ export default defineConfig({
       '@mmda/vui/theme.css': fileURLToPath(
         new URL('../vui/src/theme.css', import.meta.url),
       ),
+      '@mmda/vui/material-symbols.css': fileURLToPath(
+        new URL('../vui/src/material-symbols.css', import.meta.url),
+      ),
     },
   },
   test: {

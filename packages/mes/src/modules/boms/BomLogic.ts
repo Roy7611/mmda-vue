@@ -109,8 +109,8 @@ export const getProjectTask = async (context: UiContext<Bom>, value?: any) => {
 					taskPhase: it.customProperties.$taskPhase,
 					riskLevel: it.customProperties.$riskLevel,
 					constraintType: it.customProperties.$constraintType,
-					critical: it.critical == false ? '否' : '是',
-					milestone: it.milestone == false ? '否' : '是',
+					critical: it.critical == false ? context.t('boolean.no') : context.t('boolean.yes'),
+					milestone: it.milestone == false ? context.t('boolean.no') : context.t('boolean.yes'),
 				};
 			});
 		});
@@ -583,7 +583,7 @@ export const beforeapprove = async (context: UiBuildContext<any>, model: Bom, ac
 			),
 			context,
 			{
-				title: '选择一个项目任务',
+				title: t('bom.selectProjectTask'),
 				style: { width: '80vw', maxHeight: '95%' },
 				accept: async () => {
 					let refItemKeys = <any>[];
@@ -709,10 +709,10 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 
 	// 构建表格列
 	const columns = [
-		ui.factory.column({ header: '序号', field: 'rowNum', style: { width: '80px' } }),
+		ui.factory.column({ header: t('bom.sequence'), field: 'rowNum', style: { width: '80px' } }),
 		ui.factory.column(
 			{
-				header: '物料图片',
+				header: t('bom.materialImage'),
 				field: 'materialPic',
 				style: 'width: 100px',
 			},
@@ -725,15 +725,15 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 					}),
 			}
 		),
-		ui.factory.column({ header: '物料编码', field: 'materialCode', style: 'width: 100px' }),
-		ui.factory.column({ header: '物料名称', field: 'materialName', style: 'width: 100px' }),
-		ui.factory.column({ header: '品牌', field: 'brand', style: 'width: 100px' }),
-		ui.factory.column({ header: '规格', field: 'specs', style: 'width: 100px' }),
-		ui.factory.column({ header: '型号', field: 'modelType', style: 'width: 100px' }),
-		ui.factory.column({ header: '国标号', field: 'gbNo', style: 'width: 100px' }),
+		ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
+		ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
+		ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
+		ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
+		ui.factory.column({ header: t('bom.modelType'), field: 'modelType', style: 'width: 100px' }),
+		ui.factory.column({ header: t('bom.nationalStandardNo'), field: 'gbNo', style: 'width: 100px' }),
 		ui.factory.column(
 			{
-				header: '选择匹配标准件',
+				header: t('bom.selectMatchingStandardPart'),
 				style: 'width: 100px',
 			},
 			{
@@ -758,12 +758,12 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 							let data = [] as any;
 							// 获取物料列表的列定义
 							const materialColumns = [
-								ui.factory.column({ header: '物料编码', field: 'materialCode', style: 'width: 100px' }),
-								ui.factory.column({ header: '物料名称', field: 'materialName', style: 'width: 100px' }),
-								ui.factory.column({ header: '品牌', field: 'brand', style: 'width: 100px' }),
-								ui.factory.column({ header: '规格', field: 'specs', style: 'width: 100px' }),
-								ui.factory.column({ header: '型号', field: 'modelType', style: 'width: 100px' }),
-								ui.factory.column({ header: '国标号', field: 'gbNo', style: 'width: 100px' }),
+								ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
+								ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
+								ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
+								ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
+								ui.factory.column({ header: t('bom.modelType'), field: 'modelType', style: 'width: 100px' }),
+								ui.factory.column({ header: t('bom.nationalStandardNo'), field: 'gbNo', style: 'width: 100px' }),
 							];
 
 							context.uiBuilder.confirmDialog(
@@ -784,7 +784,7 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 								}),
 								context,
 								{
-									title: '选择物料',
+									title: t('bom.selectMaterial'),
 									style: { width: '80vw', maxHeight: '95%' },
 									accept: async () => {
 										if (data.length === 0) {
@@ -844,7 +844,7 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 		}),
 		context,
 		{
-			title: '匹配标准件',
+			title: t('bom.matchStandardParts'),
 			style: { width: '80vw', maxHeight: '95%' },
 			accept: async () => {
 				const refItemKeys: { refID: string; refItemID: string; refName: string }[] = [];
@@ -908,7 +908,7 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
  * 指派设计任务：筛选来源=自制且未绑定子件BOM的项次，弹窗多选后放行给FLOW_TO处理通知
  */
 export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
-	const { $ui: ui, $toast: Toast } = context.globalProps;
+	const { $ui: ui, $toast: Toast, $t: t } = context.globalProps;
 
 	// 过滤符合条件的 BomItem：来源=自制 且 未绑定子件BOM
 	const targetItems = (model.items || []).filter((item: BomItem) =>
@@ -921,7 +921,7 @@ export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model
 		Toast.add({
 			severity: 'warn',
 			summary: context.t('dialog.title.warning'),
-			detail: '没有可指派的子件，请确认子件来源为"自制"且未绑定子件BOM',
+			detail: context.t('bom.noAssignableParts'),
 			group: 'br',
 			life: 3000,
 		});
@@ -930,10 +930,10 @@ export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model
 
 	// 构建表格列定义
 	const columns = [
-		ui.factory.column({ header: '项次', field: 'itemID', style: { width: '80px' } }),
-		ui.factory.column({ header: '物料名称', field: 'materialName', style: { width: '150px' } }),
-		ui.factory.column({ header: '规格', field: 'specs', style: { width: '120px' } }),
-		ui.factory.column({ header: '用量', field: 'quantity', style: { width: '80px' } }),
+		ui.factory.column({ header: context.t('bom.itemNo'), field: 'itemID', style: { width: '80px' } }),
+		ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: { width: '150px' } }),
+		ui.factory.column({ header: t('bom.specification'), field: 'specs', style: { width: '120px' } }),
+		ui.factory.column({ header: context.t('bom.usageQuantity'), field: 'quantity', style: { width: '80px' } }),
 	];
 
 	let selectedItems: BomItem[] = [];
@@ -966,14 +966,14 @@ export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model
 		}),
 		context,
 		{
-			title: '选择待设计的子件',
+			title: context.t('bom.selectPartsForDesign'),
 			style: { width: '70vw' },
 			accept: async () => {
 				if (selectedItems.length === 0) {
 					Toast.add({
 						severity: 'error',
 						summary: context.t('dialog.title.error'),
-						detail: '请至少选择一项子件',
+						detail: context.t('bom.selectAtLeastOnePart'),
 						group: 'br',
 						life: 3000,
 					});
@@ -1365,7 +1365,7 @@ export class BomLogic extends UiLogic<Bom> {
  */
 export const BomLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new BomLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Boms',
 		router,
 		module: module || metaUiService.findModule('Bom'),
@@ -1393,7 +1393,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					const items = this.master.items.filter((items: BomItem) => items.entityState < 4 && model.itemID !== items.itemID)
 					const outputRateSum = ((MetaModel.sum(items, item => item.outputRate) * 10000) / 10000) + value;
 					if (outputRateSum > 1) {
-						return '所有物料的产出比率之和不能超过100%';
+						return ctx.t('bom.totalOutputRateMax');
 					}
 				}),
 				this.field('scrapPercentage').onValidate(value => {
@@ -1438,7 +1438,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					}),
 				this.field('partType').onValidate((value, model, ctx: UiViewContext<any>) => {
 					if (model.sourcingMode === SourcingMode.MAKE && value === MaterialType.LABOR) {
-						return '自制的子件不能为人力';
+						return ctx.t('bom.inHousePartCannotBeLabor');
 					}
 				}),
 				//  当sourcingMode自制MAKE/外协OUTSOURCE
@@ -1507,7 +1507,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					.lockIf(model => model.cuttingMode == 'NONE')
 					.onValidate((value, model, ctx: UiViewContext<any>) => {
 						if (model.cuttingMode !== CuttingMode.NONE && !value) {
-							return '切割规格不能为空';
+							return ctx.t('bom.cuttingSpecsRequired');
 						}
 					}),
 				this.field('formula').hideIf(model => model.formulaType !== FormulaType.FORMULA),
@@ -1520,9 +1520,9 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						// onClick: () => this.newBomItemOperation(ctx, ctx.model),
 					});
 				}),
-				this.field('drawingNo').onValidate<string>(value => {
+				this.field('drawingNo').onValidate<string>((value, model, ctx) => {
 					if (!isNullOrUndefined(value) && value.length > 50) {
-						return '个数必须在0和50之间';
+						return ctx.t('bom.drawingNoLengthRange');
 					}
 					return null;
 				})
@@ -1536,7 +1536,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					.clearIf(model => true)
 					.addCustomAction({
 						name: 'createBomItemOperation',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newBomItemOperation,
@@ -1719,21 +1719,21 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 					})
 					.onValidate((value, model, ctx: UiViewContext<any>) => {
 						const itemModel = ctx.prev.prev.model as BomItem;
-						if (!value) return '工序不能为空';
+						if (!value) return ctx.t('bom.operationRequired');
 						const endOprations = itemModel.operations?.filter(op => !MetaModel.deleted(op) && op.id !== model.id);
 						if ((MetaModel.createdForModified(model) || MetaModel.created(model)) && endOprations?.filter(op => op.opCode == value).length > 0) {
-							return `当前物料已包含此工序，请重新选择`;
+							return ctx.t('bom.duplicateOperation');
 						}
 						// if (ctx.model.id === model.id && itemModel.operations.length <= 1) return; // 判断是否为自己
 						// if ((MetaModel.createdForModified(model) || MetaModel.created(model)) && itemModel.operations?.filter(op => op.opCode == value).length > 0) {
-						// 	return `当前物料已包含此工序，请重新选择`;
+						// 	return ctx.t('bom.duplicateOperation');
 						// }
 					}),
-				this.field('setupTime').onValidate((value) => {
-					if (!value) return '准备时间不能为空';
+				this.field('setupTime').onValidate((value, model, ctx) => {
+					if (!value) return ctx.t('bom.setupTimeRequired');
 				}),
-				this.field('opTime').onValidate((value) => {
-					if (!value) return '加工工时不能为空';
+				this.field('opTime').onValidate((value, model, ctx) => {
+					if (!value) return ctx.t('bom.operationTimeRequired');
 				})
 
 				// this.field("setupTime").onValidate((value, model) => {

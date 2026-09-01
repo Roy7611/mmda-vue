@@ -1,10 +1,11 @@
 import {
-  defaultPager,
   emptyPagedList,
   type EntitySearchParam,
   type MetaUiPack,
   type PagedList,
 } from "@mmda/core";
+import { createDefaultSearchParam } from "../ui_view";
+import { writeStoredPageSize } from "../ui_theme";
 import {
   defineComponent,
   getCurrentInstance,
@@ -39,10 +40,7 @@ export const UiSelector = defineComponent({
 
     const loading = ref(false);
     const error = ref("");
-    const searchParam = rx<EntitySearchParam>({
-      pager: defaultPager(),
-      searchWord: props.searchWord,
-    });
+    const searchParam = rx<EntitySearchParam>(createDefaultSearchParam(props.searchWord));
     const model: Rx<PagedList<any>> = rx(emptyPagedList());
     const metadata = ref<MetaUiPack>();
 
@@ -101,8 +99,12 @@ export const UiSelector = defineComponent({
           [
             factory.paginator(model.pagination, {
               onPage(pager: { pageSize?: number; pageNo?: number }) {
-                if (pager.pageSize) searchParam.pager.pageSize = pager.pageSize;
-                else if (pager.pageNo) searchParam.pager.pageNo = pager.pageNo;
+                if (pager.pageSize) {
+                  searchParam.pager.pageSize = pager.pageSize;
+                  writeStoredPageSize(pager.pageSize);
+                } else if (pager.pageNo) {
+                  searchParam.pager.pageNo = pager.pageNo;
+                }
               },
             }),
             factory.input(searchParam.searchWord ?? "", {

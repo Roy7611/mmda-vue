@@ -1,10 +1,4 @@
-import {
-  h,
-  reactive,
-  unref,
-  type VNode,
-  type VNodeArrayChildren,
-} from "vue";
+import { h, reactive, unref, type VNode, type VNodeArrayChildren } from "vue";
 import {
   getFieldSearchOps,
   SqlDataType,
@@ -16,6 +10,7 @@ import {
   type Pagination,
 } from "@mmda/core";
 import { AbstractUiBuilder } from "./ui_builder";
+import { translateMessage } from "../i18n/i18n";
 import { AppSideMenu } from "./components/AppSideMenu";
 import type { UiViewContext } from "./ui_context";
 import type {
@@ -517,7 +512,9 @@ export function createHtmlUiFactory(layout: UiLayout = htmlLayout): UiFactory {
       h(
         "nav",
         { class: "mmda-menubar", ...props },
-        (items ?? []).map((item: any) => h("a", { href: item.url }, item.label)),
+        (items ?? []).map((item: any) =>
+          h("a", { href: item.url }, item.label),
+        ),
       ),
     dialog: (props, slots) =>
       h(
@@ -528,11 +525,7 @@ export function createHtmlUiFactory(layout: UiLayout = htmlLayout): UiFactory {
           onClose: () => props.onUpdateVisible?.(false),
           ...props,
         },
-        [
-          slots?.header?.(),
-          slots?.default?.(),
-          slots?.footer?.(),
-        ],
+        [slots?.header?.(), slots?.default?.(), slots?.footer?.()],
       ),
     drawer: (props, slots) =>
       h(
@@ -684,7 +677,14 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return h("div", { class: "mmda-loading", ...props }, "Loading…");
+    return h("div", { class: "mmda-loading", ...props }, [
+      h("span", { class: "mmda-loading__spinner", "aria-hidden": "true" }),
+      h(
+        "span",
+        { class: "mmda-loading__text" },
+        translateMessage("state.loading"),
+      ),
+    ]);
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -841,13 +841,23 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
         ),
       ),
     );
+    const submitFuzzySearch = () => {
+      const word = String(runtime.searchParam?.searchWord ?? "").trim();
+      runtime.searchParam.searchWord = word;
+      runtime.searchParam.pager.pageNo = 1;
+      if (!word) {
+        void runtime.resetFilters?.();
+        return;
+      }
+      props.onSearch?.(word);
+    };
     return h(
       "form",
       {
         class: "mmda-searchbar",
         onSubmit: (event: Event) => {
           event.preventDefault();
-          props.onSearch?.(runtime.searchParam?.searchWord ?? "");
+          submitFuzzySearch();
         },
       },
       [
@@ -858,26 +868,40 @@ export class HtmlUiBuilder extends AbstractUiBuilder {
         ...(runtime.customSearchFields ?? []).map((field: any) =>
           field.renderer(context, field),
         ),
-        h("input", {
-          type: "search",
-          value: runtime.searchParam?.searchWord ?? "",
-          placeholder: context.translate("action.search"),
-          onInput: (event: Event) => {
-            runtime.searchParam.searchWord = (
-              event.target as HTMLInputElement
-            ).value;
-          },
-        }),
-        h("button", { type: "submit" }, context.translate("action.search")),
-        (filters.length > 0 || runtime.searchFields?.length > 0) &&
+        h("div", { class: "mmda-searchbar__field" }, [
+          h("input", {
+            type: "search",
+            value: runtime.searchParam?.searchWord ?? "",
+            placeholder: context.translate("action.search"),
+            onInput: (event: Event) => {
+              runtime.searchParam.searchWord = (
+                event.target as HTMLInputElement
+              ).value;
+            },
+          }),
+          h(
+            "button",
+            {
+              type: "submit",
+              title: context.translate("action.search"),
+              "aria-label": context.translate("action.search"),
+            },
+            "🔍",
+          ),
           h(
             "button",
             {
               type: "button",
-              onClick: () => void runtime.resetFilters?.(),
+              title: context.translate("action.refresh"),
+              "aria-label": context.translate("action.refresh"),
+              onClick: () =>
+                props.onRefresh
+                  ? props.onRefresh()
+                  : void runtime.search?.(),
             },
-            context.translate("action.reset"),
+            "↻",
           ),
+        ]),
         activeFilters.length
           ? h("div", { class: "mmda-active-filters" }, activeFilters)
           : null,

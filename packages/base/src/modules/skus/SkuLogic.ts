@@ -113,7 +113,7 @@ export class SkuLogic extends UiLogic<Sku> {
  * @returns 
  */
 export const SkuLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new SkuLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Skus',
 	router,
 	module: module || metaUiService.findModule('Sku'),

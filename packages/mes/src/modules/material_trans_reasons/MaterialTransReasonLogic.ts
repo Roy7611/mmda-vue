@@ -65,7 +65,7 @@ import { type MaterialTransReason, defineMaterialTransReason } from '@/models/Ma
 	 * @returns 
 	 */
 	export const MaterialTransReasonLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new MaterialTransReasonLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaterialTransReasons',
 		router,
 		module: module || metaUiService.findModule('MaterialTransReason'),

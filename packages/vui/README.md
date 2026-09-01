@@ -104,5 +104,5 @@ pnpm --filter @mmda/vui test
 pnpm --filter @mmda/vui typecheck
 pnpm --filter @mmda/vui build
 pnpm dev:vui    # playground，假数据
-pnpm dev:base   # 基础数据应用，需配置 packages/base/.env
+pnpm dev:app    # 统一 SPA（BASE + MES）
 ```

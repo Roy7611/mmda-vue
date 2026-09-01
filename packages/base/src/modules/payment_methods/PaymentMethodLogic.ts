@@ -73,7 +73,7 @@ export class PaymentMethodLogic extends UiLogic<PaymentMethod> {
  * @returns 
  */
 export const PaymentMethodLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new PaymentMethodLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'PaymentMethods',
 	router,
 	module: module || metaUiService.findModule('PaymentMethod'),

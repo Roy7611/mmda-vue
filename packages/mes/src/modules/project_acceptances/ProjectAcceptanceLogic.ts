@@ -76,7 +76,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
 				this.group('items')
 					.addCustomAction({
 						name: 'addFromDeliverables',
-						label: '从交付物添加',
+						label: 'projectAcceptance.addFromDeliverables',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						visible: m => m.status === ProjectAcceptanceStatus.INITIAL,
@@ -85,7 +85,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
 									summary: ctx.globalProps.$t('dialog.title.error'),
-									detail: '请先选择项目',
+									detail: ctx.t('projectAcceptance.selectProjectFirst'),
 									group: 'br',
 									life: 3000,
 								});
@@ -127,7 +127,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
 					})
 					.addCustomAction({
 						name: 'addManually',
-						label: '手动创建',
+						label: 'projectAcceptance.createManually',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						visible: m => m.status === ProjectAcceptanceStatus.INITIAL,
@@ -182,7 +182,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
  */
 export const ProjectAcceptanceLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectAcceptanceLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProjectAcceptances',
 		router,
 		module: module || metaUiService.findModule('ProjectAcceptance'),

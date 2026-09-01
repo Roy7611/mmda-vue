@@ -93,7 +93,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'error',
 								summary: ctx.t('dialog.title.error'),
-								detail: `开始日期不能超过结束日期`,
+								detail: ctx.t('productionItem.startAfterEnd'),
 								group: 'br',
 							});
 						}
@@ -106,7 +106,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'error',
 								summary: ctx.t('dialog.title.error'),
-								detail: `结束日期不能早于开始日期`,
+								detail: ctx.t('productionItem.endBeforeStart'),
 								group: 'br',
 							});
 						}
@@ -209,7 +209,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
  */
 export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionItemLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionItems',
 		router,
 		module: module || metaUiService.findModule('ProductionItem'),

@@ -156,7 +156,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 			groups.push(this.group<MaterialReturnItem>('items').defaultAdder(this.newMaterialReturnItem)
 				.addCustomAction({
 					name: 'createLinesideInventoryItem',
-					label: '从线边库存项中选择',
+					label: 'materialReturn.selectFromLinesideInventory',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.addLinesideInventoryItem,
@@ -272,7 +272,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
  */
 export const MaterialReturnLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new MaterialReturnLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'MaterialReturns',
 		router,
 		module: module || metaUiService.findModule('MaterialReturn'),

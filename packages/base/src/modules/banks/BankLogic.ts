@@ -73,7 +73,7 @@ export class BankLogic extends UiLogic<Bank> {
  * @returns 
  */
 export const BankLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new BankLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Banks',
 	router,
 	module: module || metaUiService.findModule('Bank'),

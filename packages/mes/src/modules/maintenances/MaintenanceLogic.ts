@@ -79,7 +79,7 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 				this.field('priority').lockIf((model) => model.status === 'DISPATCHED'),
 				this.field('finishedTime').lockIf((model) => model.status === 'DISPATCHED').onValidate((value, model, ctx) => {
 					if (value && new Date(value).isBefore(new Date())) {
-						return '完成时间必须大于当前日期';
+						return ctx.t('maintenance.finishAfterNow');
 					}
 				}),
 				this.field('totalCost').lockIf((model) => model.status === 'DISPATCHED'),
@@ -94,9 +94,9 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 							context.setFieldValue('useParts', true);
 							context.uiBuilder.toast(context, {
 								severity: 'warn',
-								summary: '提示',
+								summary: context.t('dialog.title.prompt'),
 								group: 'br',
-								detail: '当前已添加配件清单，请先清除后再关闭',
+								detail: context.t('maintenance.clearPartsFirst'),
 								life: 3000,
 							});
 						}
@@ -125,7 +125,7 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 					const itemsGroup = this.group<MaintenanceItem>('items')
 						.addCustomAction({
 							name: 'createContractItem',
-							label: '创建',
+							label: 'action.create',
 							icon: 'far fa-plus-circle',
 							role: 'info',
 							onAction: this.addMaintenanceItem,
@@ -235,7 +235,7 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
  */
 export const MaintenanceLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new MaintenanceLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Maintenances',
 		router,
 		module: module || metaUiService.findModule('Maintenance'),

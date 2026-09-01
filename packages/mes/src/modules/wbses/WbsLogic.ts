@@ -48,7 +48,7 @@ export class WbsLogic extends UiLogic<Wbs> {
 				// .defaultAdder(this.newWbsTask)
 				.addCustomAction({
 					name: 'createContractItem',
-					label: '创建',
+					label: 'action.create',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.newWbsTask,
@@ -96,7 +96,7 @@ export class WbsLogic extends UiLogic<Wbs> {
  * @returns 
  */
 export const WbsLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WbsLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Wbses',
 	router,
 	module: module || metaUiService.findModule('Wbs'),

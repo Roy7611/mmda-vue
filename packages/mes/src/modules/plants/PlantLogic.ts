@@ -65,7 +65,7 @@ import { type Plant, definePlant } from '@/models/Plant';
 	 * @returns 
 	 */
 	export const PlantLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new PlantLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Plants',
 		router,
 		module: module || metaUiService.findModule('Plant'),

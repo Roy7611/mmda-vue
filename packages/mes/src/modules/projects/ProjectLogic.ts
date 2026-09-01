@@ -122,7 +122,7 @@ const beforeRequest = async (context: UiBuildContext<any>, model: Project, actio
 		),
 		context,
 		{
-			title: '请选择物料',
+			title: t('bom.selectMaterial'),
 		}
 	)
 		.then((res: any) => console.log('res', res))
@@ -168,7 +168,7 @@ const beforePurchase = async (context: UiBuildContext<any>, model: Project, acti
 		),
 		context,
 		{
-			title: '请选择物料',
+			title: t('bom.selectMaterial'),
 			footer: defineComponent({
 				name: 'DialogFooter',
 				setup: () => {
@@ -427,12 +427,12 @@ const beforeStage = async (context: UiBuildContext<any>, model: Project, action:
 			{
 				width: '30vw',
 				height: '15vh',
-				title: '选择一个工作分解结构',
+				title: $t('project.selectWbs'),
 				accept: async () => {
 					if (!wbsData.payload.refID) {
 						toast.add({
 							severity: 'error',
-							summary: '请选择一个工作分解结构',
+							summary: $t('invalid.selectWbs'),
 							group: 'br',
 							life: 3000,
 						});
@@ -487,7 +487,7 @@ const beforeStage = async (context: UiBuildContext<any>, model: Project, action:
 							toast.add({
 								severity: 'error',
 								detail: error.message,
-								summary: '错误',
+								summary: $t('dialog.title.error'),
 								group: 'br',
 								life: 3000,
 							});
@@ -563,7 +563,7 @@ export class ProjectLogic extends UiLogic<Project> {
 					.map((m: ProjectMember) => m.memberID)
 					.filter(Boolean);
 				if (new Set(activeMemberIds).size !== activeMemberIds.length) {
-					return Promise.reject(Error('团队成员不能重复'));
+					return Promise.reject(Error(t('project.duplicateTeamMember')));
 				}
 			}
 
@@ -641,7 +641,7 @@ export class ProjectLogic extends UiLogic<Project> {
 					.defaultAdder(this.addDeliveryItem)
 					.addCustomAction({
 						name: 'createDeliveryItems',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.createDeliveryItem,
@@ -973,7 +973,7 @@ export class ProjectLogic extends UiLogic<Project> {
 						context.uiBuilder.toast(context, {
 							severity: 'warn',
 							summary: context.globalProps.$t('dialog.title.prompt'),
-							detail: '所选成员均已在团队中',
+							detail: context.t('project.allMembersAlreadyAdded'),
 							group: 'br',
 							life: 3000,
 						});
@@ -984,7 +984,7 @@ export class ProjectLogic extends UiLogic<Project> {
 					context.uiBuilder.toast(context, {
 						severity: 'warn',
 						summary: context.globalProps.$t('dialog.title.prompt'),
-						detail: `已跳过 ${skipped} 名已在团队中的成员`,
+						detail: context.globalProps.$t('project.skippedExistingMembers', { count: skipped }),
 						group: 'br',
 						life: 3000,
 					});
@@ -1230,7 +1230,7 @@ export class ProjectLogic extends UiLogic<Project> {
  */
 export const ProjectLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProjectLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Projects',
 		router,
 		module: module || metaUiService.findModule('Project'),

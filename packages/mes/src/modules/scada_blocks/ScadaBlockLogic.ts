@@ -67,7 +67,7 @@ import { type ScadaCell, defineScadaCell } from '@/models/ScadaCell';
 	 * @returns 
 	 */
 	export const ScadaBlockLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ScadaBlockLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ScadaBlocks',
 		router,
 		module: module || metaUiService.findModule('ScadaBlock'),

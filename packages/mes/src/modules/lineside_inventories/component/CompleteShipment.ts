@@ -140,7 +140,7 @@ export default defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     summary: bomCtx.t('dialog.title.error'),
-                    detail: '请选择齐套数据',
+                    detail: $t('linesideInventory.selectKittingData'),
                     group: 'br',
                     life: 3000
                 })
@@ -243,7 +243,7 @@ export default defineComponent({
                                         `(${item.productCode})`
                                     ]),
                                     h('div', { class: 'text-sm text-gray-500 mt-1' }, [
-                                        `项目: ${item?.project?.projectName ?? '-'}`
+                                        $t('linesideInventory.projectName', { it: item?.project?.projectName ?? '-' })
                                     ]),
                                 ]),
 
@@ -277,7 +277,7 @@ export default defineComponent({
                                                 id: `select-${item.bomID}`,
                                                 name: `select-${item.bomID}`,
                                                 icon: 'pi pi-plus',
-                                                label: '选择',
+                                                label: $t('action.select'),
                                                 severity: 'secondary',
                                                 outlined: true,
                                                 class: 'hover:bg-gray-50 transition-colors duration-200 rounded-lg',
@@ -304,12 +304,12 @@ export default defineComponent({
         const kittingResultColumns: CustomColumn[] = [
             {
                 field: 'materialCode',
-                header: '物料编码',
+                header: $t('view.materialCode'),
                 width: 200,
             },
             {
                 field: 'materialName',
-                header: '物料名称',
+                header: $t('view.materialName'),
                 width: 150,
             },
             // {
@@ -320,7 +320,7 @@ export default defineComponent({
             // },
             {
                 field: 'unit',
-                header: '单位',
+                header: $t('inventory.unit'),
                 width: 50,
             },
             // {
@@ -331,19 +331,19 @@ export default defineComponent({
             // },
             {
                 field: 'kitQty',
-                header: '齐套数量',
+                header: $t('linesideInventory.kittingQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
             {
                 field: 'lessQty',
-                header: '缺失数量',
+                header: $t('linesideInventory.missingQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
             {
                 field: 'needQty',
-                header: '需求数量',
+                header: $t('linesideInventory.requiredQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
@@ -396,7 +396,7 @@ export default defineComponent({
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     summary: bomCtx.t('dialog.title.error'),
-                    detail: error.message ?? error ?? '操作失败',
+                    detail: error.message ?? error ?? $t('auth.operationFailed'),
                     group: 'br',
                     life: 3000
                 })
@@ -411,7 +411,7 @@ export default defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     summary: bomCtx.t('dialog.title.error'),
-                    detail: '发货数量不能为0',
+                    detail: $t('linesideInventory.shipmentQuantityNonZero'),
                     group: 'br',
                     life: 3000
                 });
@@ -420,7 +420,7 @@ export default defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     summary: bomCtx.t('dialog.title.error'),
-                    detail: `库存不足，无法完成发货!`,
+                    detail: $t('linesideInventory.insufficientInventory'),
                     group: 'br',
                     life: 3000
                 });
@@ -431,7 +431,7 @@ export default defineComponent({
                     uiBuilder.toast(bomCtx, {
                         severity: 'success',
                         summary: bomCtx.t('dialog.success'),
-                        detail: '发货成功',
+                        detail: $t('linesideInventory.shipmentSucceeded'),
                         group: 'br',
                         life: 3000
                     });
@@ -442,7 +442,7 @@ export default defineComponent({
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     summary: bomCtx.t('dialog.title.error'),
-                    detail: error.message ?? error ?? '操作失败',
+                    detail: error.message ?? error ?? $t('auth.operationFailed'),
                     group: 'br',
                     life: 3000
                 })
@@ -536,7 +536,7 @@ export default defineComponent({
                         // 选择至站点
                         uiBuilder.factory.column(
                             {
-                                header: '选择至站点',
+                                header: $t('linesideInventory.selectDestinationSite'),
                                 field: 'worksite',
                                 columnKey: 'worksite',
                                 key: 'worksite',
@@ -575,12 +575,12 @@ export default defineComponent({
                                             
                                             // 只自定义站点编码列
                                             const customSiteCodeColumn = uiBuilder.factory.column({
-                                                header: '站点编码',
+                                                header: $t('linesideInventory.siteCode'),
                                                 field: 'siteCode',
                                                 style: { width: '120px', textAlign: 'left' },
                                                 body: (slotProps: any) => {
                                                     const siteData = slotProps.data;
-                                                    return h('span', siteData.siteCode || '无编码');
+                                                    return h('span', siteData.siteCode || $t('linesideInventory.noCode'));
                                                 }
                                             });
                                             
@@ -610,7 +610,7 @@ export default defineComponent({
                                                 }),
                                                 props.context,
                                                 {
-                                                    title: '至站点选择',
+                                                    title: $t('linesideInventory.destinationSiteSelection'),
                                                     style: { width: '80vw', maxHeight: '95%' },
                                                     accept: async () => {
                                                         // 未选择至站点数据时给出明确提示，并阻止关闭弹窗
@@ -618,7 +618,7 @@ export default defineComponent({
                                                             uiBuilder.toast(bomCtx, {
                                                                 severity: 'error',
                                                                 summary: props.context.t('dialog.title.error'),
-                                                                detail: '请选择至站点数据',
+                                                                detail: $t('linesideInventory.selectDestinationSiteData'),
                                                                 group: 'br',
                                                                 life: 3000,
                                                             });
@@ -746,7 +746,7 @@ export default defineComponent({
                     id: 'shipment',
                     name: 'shipment',
                     icon: 'pi pi-check',
-                    label: '发货',
+                    label: $t('linesideInventory.shipment'),
                     severity: 'success',
                     badge: (selectedKittingResult.value.length ?? 0).toString(),
                     // style: { width: '50px' },

@@ -28,7 +28,7 @@ import { type MaterialCat, defineMaterialCat } from '@mmda/base/src/models/Mater
 
 /** BPMN 编辑器异步加载，避免制程逻辑文件静态引入 bpmn-js */
 const BpmnCom = defineAsyncComponent(() =>
-	import('@mmda/vui-primevue').then((m) => m.BpmnModeler)
+	import('@/components/BpmnModeler').then((m) => m.BpmnModeler)
 );
 
 /**
@@ -319,12 +319,12 @@ export class ProcessLogic extends UiLogic<Process> {
 			target && (target.type === 'bpmn:EndEvent' || target.id.includes('EndEvent'))) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '连线违规',
-				detail: '开始节点不能直接连接结束节点！',
+				summary: context.t('process.invalidConnection'),
+				detail: context.t('process.startToEnd'),
 				group: 'br',
 				life: 3000
 			});
-			return '开始节点不能直接连接结束节点！'; // 校验失败
+			return context.t('process.startToEnd'); // 校验失败
 		}
 
 		// 2. 开始节点 → 结束阶段元素
@@ -332,12 +332,12 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (nextOp?.opPhase === 'END') {
 				uiBuilder.toast(context, {
 					severity: 'error',
-					summary: '连线违规',
-					detail: '开始节点不能连接结束阶段的工序！',
+					summary: context.t('process.invalidConnection'),
+					detail: context.t('process.startToEndPhase'),
 					group: 'br',
 					life: 3000
 				});
-				return '开始节点不能连接结束阶段的工序！';
+				return context.t('process.startToEndPhase');
 			}
 		}
 
@@ -345,24 +345,24 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (target && (target.type === 'bpmn:EndEvent' || target.id.includes('EndEvent')) && prevOp?.opPhase !== 'END') {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '连线违规',
-				detail: '结束节点不能连接除结束阶段以外的其他工序!',
+				summary: context.t('process.invalidConnection'),
+				detail: context.t('process.endFromNonEndPhase'),
 				group: 'br',
 				life: 3000
 			});
-			return '结束节点不能连接除结束阶段以外的其他工序!';
+			return context.t('process.endFromNonEndPhase');
 		}
 
 		// 4. 结束阶段元素 → 任何阶段元素
 		if (prevOp?.opPhase === 'END' && nextOp) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '连线违规',
-				detail: '结束阶段工序只能连接结束节点！',
+				summary: context.t('process.invalidConnection'),
+				detail: context.t('process.endPhaseOnlyToEnd'),
 				group: 'br',
 				life: 3000
 			});
-			return '结束阶段工序只能连接结束节点！';
+			return context.t('process.endPhaseOnlyToEnd');
 		}
 
 		// 5. 重复连线
@@ -376,12 +376,12 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (isRouteExists) {
 				uiBuilder.toast(context, {
 					severity: 'error',
-					summary: '创建失败',
-					detail: '当前已存在该路线！',
+					summary: context.t('failure.failed'),
+					detail: context.t('process.routeExists'),
 					group: 'br',
 					life: 3000
 				});
-				return '当前已存在该路线！';
+				return context.t('process.routeExists');
 			}
 		}
 
@@ -389,12 +389,12 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (prevOp && nextOp && (prevOp.opCode === nextOp.opCode)) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '创建失败',
-				detail: '当前工序不能连接自己！',
+				summary: context.t('failure.failed'),
+				detail: context.t('process.selfConnection'),
 				group: 'br',
 				life: 3000
 			});
-			return '当前工序不能连接自己！';
+			return context.t('process.selfConnection');
 		}
 
 		// todo 7. 只能有一条终结路线
@@ -432,8 +432,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (startNodeCount <= 1) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: '删除失败',
-					detail: '至少需要一个开始节点',
+					summary: context.t('failure.failed'),
+					detail: context.t('process.atLeastOneStart'),
 					group: 'br',
 					life: 3000
 				});
@@ -493,8 +493,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			console.error('返回上级制程失败:', error);
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '错误',
-				detail: '返回上级制程失败',
+				summary: context.t('dialog.title.error'),
+				detail: context.t('process.returnToParentFailed'),
 				group: 'br',
 				life: 3000
 			});
@@ -818,7 +818,7 @@ export class ProcessLogic extends UiLogic<Process> {
 											this.isSubProcess.value ?
 												[
 													ctx.uiBuilder.factory.button({
-														label: '查看',
+														label: ctx.t('view.details'),
 														severity: 'info',
 														size: 'small',
 														icon: 'pi pi-eye',
@@ -835,7 +835,7 @@ export class ProcessLogic extends UiLogic<Process> {
 														}
 													}),
 													ctx.uiBuilder.factory.button({
-														label: '返回',
+														label: ctx.t('action.back'),
 														severity: 'secondary',
 														size: 'small',
 														icon: 'pi pi-arrow-left',
@@ -856,7 +856,7 @@ export class ProcessLogic extends UiLogic<Process> {
 												] :
 												[
 													uiBuilder.factory.button({
-														label: '编辑',
+														label: ctx.t('action.edit'),
 														severity: 'info',
 														size: 'small',
 														icon: 'pi pi-pencil',
@@ -963,8 +963,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			console.error('创建路线异常:', error);
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: '错误',
-				detail: error.message ?? '创建路线异常',
+				summary: context.t('dialog.title.error'),
+				detail: error.message ?? context.t('process.createRouteFailed'),
 				group: 'br',
 				life: 3000
 			});
@@ -1037,7 +1037,7 @@ export class ProcessLogic extends UiLogic<Process> {
 									footerSlot: (selection, modeler) =>
 										[
 											ctx.uiBuilder.factory.button({
-												label: '查看',
+												label: ctx.t('view.details'),
 												severity: 'info',
 												size: 'small',
 												icon: 'pi pi-eye',
@@ -1056,7 +1056,7 @@ export class ProcessLogic extends UiLogic<Process> {
 											}),
 											this.isSubProcess.value &&
 											ctx.uiBuilder.factory.button({
-												label: '返回',
+												label: ctx.t('action.back'),
 												severity: 'secondary',
 												size: 'small',
 												icon: 'pi pi-arrow-left',
@@ -1096,7 +1096,7 @@ export class ProcessLogic extends UiLogic<Process> {
  */
 export const ProcessLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProcessLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Processes',
 		router,
 		module: module || metaUiService.findModule('Process'),
@@ -1152,13 +1152,13 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					const remainingRate = rootLogic.getRemainOutputRate(ctx.root.model.operations, model.id);
 
 					if (outputRate < 0) {
-						return '产出比率不能小于0！';
+						return ctx.t('process.outputRateMin');
 					}
 					if (outputRate > 1) {
-						return '产出比率不能超过100%！';
+						return ctx.t('process.outputRateMax');
 					}
 					if (outputRate > remainingRate) {
-						return `产出比率不能超过剩余余量${(remainingRate * 100).toFixed(2)}%！`;
+						return ctx.globalProps.$t('process.outputRateRemainingMax', { n: (remainingRate * 100).toFixed(2) });
 					}
 				}),
 				this.field('setupTime').onChange((ctx: UiViewContext<any>, model) => {
@@ -1171,10 +1171,10 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					.onChange((ctx: UiViewContext<any>, model, newVal) => {
 						rootLogic.updateProcessCycleData(ctx.root, ctx.root.model.operations);
 					})
-					.onWarn((value, model) => {
+					.onWarn((value, model, ctx) => {
 						const standardCycleTime = this.getTimeValue(model.setupTime) + this.getTimeValue(model.opTime);
 						if (this.getTimeValue(value) < standardCycleTime) {
-							return `生产周期小于准备时间与标准工时之和（${standardCycleTime}秒），请确认！`;
+							return ctx.globalProps.$t('process.cycleBelowStandard', { n: standardCycleTime });
 						}
 						return '';
 					}),
@@ -1213,12 +1213,12 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					})
 					.onValidate((value, model, ctx: UiViewContext<any>) => {
 					if (!value) {
-						return '工序名称不能为空！';
+						return ctx.t('process.operationNameRequired');
 					}
 					if (ctx.root.model.operations?.length) {
 						const op = ctx.root.model.operations.find((op: ProcessOperation) => !MetaModel.deleted(op) && op.opName === value)
 						if (op && op.id !== model.id) {
-							return '工序名称已存在！';
+							return ctx.t('process.operationNameExists');
 						}
 					}
 				}),
@@ -1231,23 +1231,23 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 						if (value === OpPhase.END) {
 							// 1. 判断是否已经设置了结束工序
 							if (endOps && (endOps.length > 1 || (endOps.length == 1 && endOps[0].id !== model.id))) {
-								validateStr = '已设置结束工序，当前工序不允许设置为结束工序！';
+								validateStr = ctx.t('process.endOperationAlreadySet');
 							}
 							// 2. 判断结束工序前面连接的节点是否是开始节点
 							if (rootLogic?.prevElement?.type === 'bpmn:StartEvent') {
-								validateStr = '开始节点不能连接结束阶段的工序！';
+								validateStr = ctx.t('process.startToEndPhase');
 							}
 							// 3. 判断当前工序是否可以设置为结束工序：检查 routes 中是否有以此工序为起点的连线
 							const hasNextRoute = ctx.root.model.routes?.some(
 								(route: ProcessRoute) => !MetaModel.deleted(route) && route.prevOpCode === model.opCode
 							);
 							if (hasNextRoute) {
-								validateStr = '当前工序不能设置为结束阶段的工序！';
+								validateStr = ctx.t('process.operationCannotBeEndPhase');
 							}
 						} else {
 							// 4. 判断非结束工序后面连接的节点是否是结束节点
 							if (rootLogic?.nextElement?.type === 'bpmn:EndEvent') {
-								validateStr = '结束节点不能连接结束阶段以外的工序！';
+								validateStr = ctx.t('process.endFromNonEndPhase');
 							}
 						}
 
@@ -1278,7 +1278,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					.defaultAdder(this.addResources)
 					.addCustomAction({
 						name: 'createResource',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.createResource,

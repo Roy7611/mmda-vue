@@ -638,7 +638,7 @@ export class RoleLogic extends UiLogic<Role> {
  */
 export const RoleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new RoleLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Roles',
 		router,
 		module: module || metaUiService.findModule('Role'),

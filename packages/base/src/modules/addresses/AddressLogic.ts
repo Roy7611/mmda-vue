@@ -119,7 +119,7 @@ export class AddressLogic extends UiLogic<Address> {
  * @returns 
  */
 export const AddressLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new AddressLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Addresses',
 	router,
 	module: module || metaUiService.findModule('Address'),

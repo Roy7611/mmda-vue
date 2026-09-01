@@ -170,7 +170,7 @@ export class ShiftLogic extends UiLogic<Shift> {
  */
 export const ShiftLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ShiftLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Shifts',
 		router,
 		module: module || metaUiService.findModule('Shift'),

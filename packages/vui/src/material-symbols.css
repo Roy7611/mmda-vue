@@ -1,0 +1,26 @@
+/**
+ * Material Symbols Outlined — optional icon font for cross-skin UI (e.g. drag handle).
+ *
+ * Full variable font is ~3MB+. Google Fonts `icon_names=` subset adds only the
+ * glyphs you list (~1–2KB each). Syncfusion apps already ship `e-icons` via EJ2
+ * themes; import this only when you need Material ligatures outside EJ2.
+ *
+ *   import '@mmda/vui/material-symbols.css'
+ */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&icon_names=drag_indicator&display=block");
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.125rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}

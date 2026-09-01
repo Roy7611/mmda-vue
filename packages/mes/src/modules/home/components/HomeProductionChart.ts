@@ -5,6 +5,7 @@
 import { defineComponent, h, onMounted, onUnmounted, watch, getCurrentInstance, ref } from 'vue'
 import type { PropType } from 'vue'
 import type { ProductionChartData } from '../types'
+import { useI18n } from 'vue-i18n'
 
 /* 从 computed style 中解析 CSS 变量色值 */
 function resolveColor(varName: string, fallback: string): string {
@@ -17,6 +18,7 @@ export const HomeProductionChart = defineComponent({
     chartData: { type: Object as PropType<ProductionChartData>, required: true },
   },
   setup(props) {
+    const { t } = useI18n()
     const containerRef = ref<HTMLElement | null>(null)
     let chartInstance: any = null
 
@@ -30,9 +32,9 @@ export const HomeProductionChart = defineComponent({
          ECharts setOption 对这些字段传 null 会触发内部 assert 崩溃 */
       if (!data.labels || !data.actual || !data.plan) return
 
-      const textColor = resolveColor('--p-text-color', '#333')
-      const borderColor = resolveColor('--p-content-border-color', '#e5e7eb')
-      const primaryColor = resolveColor('--p-primary-color', '#3B82F6')
+      const textColor = resolveColor('--mmda-text-color', '#333')
+      const borderColor = resolveColor('--mmda-content-border-color', '#e5e7eb')
+      const primaryColor = resolveColor('--mmda-primary-color', '#3B82F6')
 
       chartInstance.setOption({
         tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -51,14 +53,14 @@ export const HomeProductionChart = defineComponent({
         },
         series: [
           {
-            name: '实际',
+            name: t('view.actual'),
             type: 'bar',
             data: data.actual,
             itemStyle: { color: primaryColor, borderRadius: [2, 2, 0, 0] },
             barWidth: '30%',
           },
           {
-            name: '计划',
+            name: t('view.planned'),
             type: 'bar',
             data: data.plan,
             /* 主色 25% 半透明 */
@@ -95,16 +97,16 @@ export const HomeProductionChart = defineComponent({
       h('div', {
         style: {
           display: 'flex', gap: '16px', padding: '2px 0',
-          fontSize: '10px', color: 'var(--p-text-muted-color)', flexShrink: 0,
+          fontSize: '10px', color: 'var(--mmda-text-muted-color)', flexShrink: 0,
         },
       }, [
         h('span', { style: { display: 'flex', alignItems: 'center', gap: '4px' } }, [
-          h('span', { style: { width: '8px', height: '8px', borderRadius: '1px', background: 'var(--p-primary-color)' } }),
-          '实际',
+          h('span', { style: { width: '8px', height: '8px', borderRadius: '1px', background: 'var(--mmda-primary-color)' } }),
+          t('view.actual'),
         ]),
         h('span', { style: { display: 'flex', alignItems: 'center', gap: '4px' } }, [
-          h('span', { style: { width: '8px', height: '8px', borderRadius: '1px', background: 'color-mix(in srgb, var(--p-primary-color) 25%, transparent)' } }),
-          '计划',
+          h('span', { style: { width: '8px', height: '8px', borderRadius: '1px', background: 'color-mix(in srgb, var(--mmda-primary-color) 25%, transparent)' } }),
+          t('view.planned'),
         ]),
       ]),
     ])

@@ -1,9 +1,10 @@
 import type { VNode, VNodeChild } from "vue";
-import { parseSorts, isString, isNumber, PagerCtor, DEFAULT_PAGE_SIZE } from "@mmda/core";
+import { parseSorts, isString, isNumber, PagerCtor, DEFAULT_PAGE_SIZE, defaultSearchParam } from "@mmda/core";
 import type { EntitySearchParam } from "@mmda/core";
 import type { RouteParams } from "vue-router";
 import type { PropData } from "./ui_layout";
 import type { UiDialogPropsType } from "./ui_dialog";
+import { readStoredPageSize } from "./ui_theme";
 
 export type ChildSlot = (...args: any[]) => VNodeChild;
 export const UI_CREATE = "create";
@@ -127,7 +128,7 @@ export function resolveViewManyProps(
   routeParam: RouteParams,
   attrs: Record<string, unknown>,
   props: Readonly<UiViewManyProps>,
-  defaultPageSize: number = DEFAULT_PAGE_SIZE,
+  defaultPageSize: number = readStoredPageSize(DEFAULT_PAGE_SIZE),
 ): UiViewManyProps {
   const {
     view,
@@ -174,6 +175,13 @@ export function resolveSearchParam(
     searchWord,
     queryParams,
   };
+}
+
+/** 列表默认搜索参数：pager.pageSize 使用本地偏好 `mmda/pageSize` */
+export function createDefaultSearchParam(searchWord = ""): EntitySearchParam {
+  const param = defaultSearchParam(searchWord);
+  param.pager.pageSize = readStoredPageSize();
+  return param;
 }
 //#endregion of 多对象视图
 

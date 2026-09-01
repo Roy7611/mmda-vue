@@ -65,7 +65,7 @@ import { type ProvinceNCity, defineProvinceNCity } from '../../models/ProvinceNC
 	 * @returns 
 	 */
 	export const ProvinceNCityLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProvinceNCityLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProvinceNCities',
 		router,
 		module: module || metaUiService.findModule('ProvinceNCity'),

@@ -65,7 +65,7 @@ import { type RectifiableProduct, defineRectifiableProduct } from '@/models/Rect
 	 * @returns 
 	 */
 	export const RectifiableProductLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new RectifiableProductLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'RectifiableProducts',
 		router,
 		module: module || metaUiService.findModule('RectifiableProduct'),

@@ -48,9 +48,9 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 							status: getSearchOp('NOT_IN').toSQL([ProductionTaskStatus.CANCELED, ProductionTaskStatus.FINISHED])
 						})),
 					this.field('remark')
-						.onWarn<string>(value => {
+						.onWarn<string>((value, model, ctx) => {
 							if (!isNullOrUndefined(value) && value.length >= 255) {
-								return '备注最多255个字符';
+								return ctx.t('productionEvent.remarkMaxLength');
 							}
 							return '';
 						}),
@@ -103,7 +103,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 				this.group<ProductionEventPhoto>('photos')
 					.addCustomAction({
 						name: 'createProductionEventPhoto',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.addProductionEventPhoto,
@@ -142,7 +142,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
  */
 export const ProductionEventLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionEventLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionEvents',
 		router,
 		module: module || metaUiService.findModule('ProductionEvent'),

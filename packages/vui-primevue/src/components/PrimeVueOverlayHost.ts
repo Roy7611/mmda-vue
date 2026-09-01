@@ -96,27 +96,32 @@ export const PrimeVueOverlayHost = defineComponent({
           }
           const slots = {
             default: () => request.content,
-            footer: () =>
-              h('div', { class: 'mmda-prime-dialog__footer' }, [
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'p-button p-button-text',
-                    onClick: () => closeOverlayDialog(overlay!, request, false),
-                  },
-                  cancelLabel.value,
-                ),
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'p-button',
-                    onClick: () => closeOverlayDialog(overlay!, request, true),
-                  },
-                  okLabel.value,
-                ),
-              ]),
+            footer:
+              request.props.showFooter === false
+                ? undefined
+                : () =>
+                    h('div', { class: 'mmda-prime-dialog__footer' }, [
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          class: 'p-button p-button-text',
+                          onClick: () =>
+                            closeOverlayDialog(overlay!, request, false),
+                        },
+                        cancelLabel.value,
+                      ),
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          class: 'p-button',
+                          onClick: () =>
+                            closeOverlayDialog(overlay!, request, true),
+                        },
+                        okLabel.value,
+                      ),
+                    ]),
           }
           return factory
             ? factory.dialog(dialogProps, slots)

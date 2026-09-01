@@ -113,7 +113,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
         const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
         if (customSearchFields.length == 0) {
             customSearchFields.push({
-                searchLabel: '项目',
+                searchLabel: 'ganttLabel.sProject',
                 searchParam: 'projectID',
                 valueFn: (v: any) => !isRefNone(v) ? v.projectID : '',
                 renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -165,7 +165,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                                 }),
                                 ctx,
                                 {
-                                    title: '项目',
+                                    title: ctx.t('ganttLabel.sProject'),
                                     style: { width: '80vw', maxHeight: '95%' },
                                     accept: async () => {
                                         csf.searchVal.value = csf.searchWord = data;
@@ -190,7 +190,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                     })
                 }
             }, {
-                searchLabel: '生产任务',
+                searchLabel: 'stationlabel.productionTask',
                 searchParam: 'taskNo',
                 valueFn: (v: any) => !isRefNone(v) ? v.taskNo : '',
                 renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -242,7 +242,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                                 }),
                                 ctx,
                                 {
-                                    title: '生产任务',
+                                    title: ctx.t('stationlabel.productionTask'),
                                     style: { width: '80vw', maxHeight: '95%' },
                                     accept: async () => {
                                         csf.searchVal.value = csf.searchWord = data;
@@ -280,7 +280,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
  */
 export const MaterialUsageLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
     new MaterialUsageLogic({
-        service: metaUiService,
+        metaUiService: metaUiService,
         repository: 'StationPortals',
         router,
         module: module || metaUiService.findModule('StationPortal'),

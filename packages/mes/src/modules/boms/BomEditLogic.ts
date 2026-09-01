@@ -33,17 +33,17 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	const selectOptions = ref([]);
 	if (fields.length == 0) {
 		fields.push(
-			this.field('bomUsage').onWarn((value, model) => {
+			this.field('bomUsage').onWarn((value, model, ctx: UiViewContext<any>) => {
 				if (value === BomUsage.MAINTENANCE) {
 					const hasNonSparePart = model.items?.some((item: BomItem) => !MetaModel.deleted(item) && !item.sparePart);
 					if (hasNonSparePart) {
-						return '当BOM用途为保养时，请确保物料清单添加的子件为备件';
+						return ctx.t('bom.maintenanceItemsMustBeSpareParts');
 					}
 				}
 			}),
-			this.field('expirationDays').onValidate((value) => {
+			this.field('expirationDays').onValidate((value, model, ctx: UiViewContext<any>) => {
 				if(!isNullOrUndefined(value) && value > 32767) {
-					return '保质期不能超过32767天'
+					return ctx.t('bom.expirationDaysMax')
 				}
 			}),
 			this.field('refBomID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
@@ -84,7 +84,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				}))
 				.setFooterActions([
 					{
-						label: '创建制品标识',
+						label: 'bom.createProductIdentifier',
 						icon: 'pi pi-plus-circle',
 						severity: 'success',
 						onClick: () => {
@@ -263,7 +263,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				// })
 				.addCustomAction({
 					name: 'createBomItem',
-					label: '创建',
+					label: 'action.create',
 					icon: 'far fa-plus-circle',
 					role: 'info',
 					onAction: this.NewBomItem,
@@ -272,7 +272,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				})
 				.addCustomAction({
 					name: 'addBomItemsForLinesideInventory',
-					label: '线边库存',
+					label: 'bom.linesideInventory',
 					icon: 'far fa-plus-circle',
 					role: 'success',
 					onAction: this.addBomItemsForLinesideInventory,
@@ -281,7 +281,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				})
 				.addCustomAction({
 					name: 'addBomItemsForBom',
-					label: '自制品',
+					label: 'bom.inHouseProduct',
 					icon: 'far fa-plus-circle',
 					role: 'success',
 					onAction: this.addBomItemsForBom,

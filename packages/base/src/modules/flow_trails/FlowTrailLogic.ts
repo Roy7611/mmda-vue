@@ -65,7 +65,7 @@ import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
 	 * @returns 
 	 */
 	export const FlowTrailLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new FlowTrailLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'FlowTrails',
 		router,
 		module: module || metaUiService.findModule('FlowTrail'),

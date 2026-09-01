@@ -77,7 +77,7 @@ import { type Notice, defineNotice } from '../../models/Notice';
 	 * @returns 
 	 */
 	export const NoticeLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new NoticeLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Notices',
 		router,
 		module: module || metaUiService.findModule('Notice'),

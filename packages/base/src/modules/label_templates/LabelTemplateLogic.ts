@@ -160,7 +160,7 @@ export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
  * @returns 
  */
 export const LabelTemplateLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new LabelTemplateLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'LabelTemplates',
 	router,
 	module: module || metaUiService.findModule('LabelTemplate'),

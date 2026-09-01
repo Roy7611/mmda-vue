@@ -214,8 +214,8 @@ export class HomeLogic extends UiLogic<CustomPage> {
     } catch (e: any) {
       console.error('HomeLogic.home() 聚合请求失败:', e)
       // 提取后端返回的 ProblemDetails 错误详情，回退到通用提示
-      const detail = e?.detail || e?.message || '数据加载失败，请稍后重试'
-      this.loadError.value = typeof detail === 'string' ? detail : '数据加载失败'
+      const detail = e?.detail || e?.message || ctx.t('dashboard.loadFailedRetry')
+      this.loadError.value = typeof detail === 'string' ? detail : ctx.t('dashboard.loadFailed')
       this.loaded.value = false // 加载失败不标记已完成，下次 init 可重试
     }
 
@@ -253,7 +253,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
       customSearchFields.push(
         /* 工作中心搜索字段 */
         {
-          searchLabel: '工作中心',
+          searchLabel: 'view.workSite',
           searchParam: 'siteID',
           valueFn: (v: any) => !isRefNone(v) ? v.siteID : '',
           renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -297,7 +297,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
                   }),
                   ctx,
                   {
-                    title: '工作中心',
+                    title: ctx.t('view.workSite'),
                     style: { width: '80vw', maxHeight: '95%' },
                     accept: async () => {
                       /* 未选中任何工作中心时给出明确提示：原实现静默 return false，用户感知为「点确认无响应」 */
@@ -306,7 +306,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
                           severity: 'error',
                           summary: ctx.t('dialog.title.error'),
                           group: 'br',
-                          detail: '请先选择工作中心',
+                          detail: ctx.t('dashboard.selectWorksiteFirst'),
                           life: 3000,
                         })
                         return false
@@ -336,7 +336,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
         },
         /* 开始日期 */
         {
-          searchLabel: '开始日期',
+          searchLabel: 'dashboard.startDate',
           searchParam: 'beginTime',
           renderer: (ctx: UiBuildContext<any> & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
@@ -354,7 +354,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
         },
         /* 结束日期 */
         {
-          searchLabel: '结束日期',
+          searchLabel: 'dashboard.endDate',
           searchParam: 'endTime',
           renderer: (ctx: UiBuildContext<any> & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
@@ -372,7 +372,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
         },
         /* 时间范围 */
         {
-          searchLabel: '时间范围',
+          searchLabel: 'view.timesRange',
           searchParam: 'date',
           renderer: (ctx: UiBuildContext<any> & any, csf) => {
             const searchData = reactive({
@@ -411,7 +411,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
 
 export const HomeLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
   new HomeLogic({
-    service: metaUiService,
+    metaUiService: metaUiService,
     repository: 'StationPortals',
     router,
     module: module || metaUiService.findModule('StationPortal'),

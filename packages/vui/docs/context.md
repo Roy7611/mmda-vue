@@ -8,7 +8,6 @@
 - `UiContext`：Logic 与字段回调的统一类型，含 `model` 和常用读写。
 - `UiViewContext`：Vue 会话实现。构造时按 `view` 选择 `reactive` 或 `shallowReactive`。
 - `UiBuildContext`：一屏宿主，挂 Logic，负责 `init` / `search` / `save`。
-- `createUiBuildContext`：`new UiBuildContext(options)` 的工厂。
 - `UiViewOne` / `UiViewMany`：详情、编辑、创建、列表、多选。
 - 主从：`subGroupContext` / `with(row)` / `subGroupItemContext`。
 
@@ -96,4 +95,4 @@ await context.init();
 
 - 不要在单元格 render 里调用会改响应式依赖的 `router.resolve` 并写回 props；导航放到 click。
 - 不要为只读展示包装 `reactive(row)`；行对象由列表模型直接提供。
-- 实体整页使用 `createUiBuildContext`；它就是 `new UiBuildContext`。
+- 实体整页使用 `new UiBuildContext`。

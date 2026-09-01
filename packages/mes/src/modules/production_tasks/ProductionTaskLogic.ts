@@ -118,7 +118,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 		const { searchFields, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
-				searchLabel: '计划号',
+				searchLabel: 'view.planNo',
 				searchParam: 'planNo',
 				valueFn: (v: any) => v.planNo,
 				renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -168,7 +168,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 								}),
 								ctx,
 								{
-									title: '生产计划',
+									title: t('stationlabel.productionPlan'),
 									style: { width: '80vw', maxHeight: '95%' },
 									accept: async () => {
 										planNoData.planNo = data;
@@ -301,7 +301,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
  */
 export const ProductionTaskLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new ProductionTaskLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'ProductionTasks',
 		router,
 		module: module || metaUiService.findModule('ProductionTask'),

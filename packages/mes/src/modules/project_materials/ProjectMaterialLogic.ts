@@ -94,7 +94,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
-					searchLabel: '项目',
+					searchLabel: 'ganttLabel.sProject',
 					searchParam: 'projectID',
 					valueFn: (v: any) => !isRefNone(v) ? v.projectID : '',
 					renderer: (ctx: UiBuildContext<any> & any, csf) => {
@@ -146,7 +146,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 									}),
 									ctx,
 									{
-										title: '项目',
+										title: ctx.t('ganttLabel.sProject'),
 										style: { width: '80vw', maxHeight: '95%' },
 										accept: async () => {
 											csf.searchVal.value = csf.searchWord = data;
@@ -172,7 +172,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 					}
 				},
 				{
-					searchLabel: '在建项目',
+					searchLabel: 'projectMaterial.activeProjects',
 					searchParam: 'projectinprogress',
 					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.toggleSwitch(csf.searchVal.value, {
 						trueValue: true,
@@ -183,7 +183,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 					})
 				},
 				{
-					searchLabel: '一键缺料',
+					searchLabel: 'projectMaterial.shortagesOnly',
 					searchParam: 'shortageQuantity',
 					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.toggleSwitch(csf.searchVal.value, {
 						trueValue: '>0',
@@ -265,7 +265,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
  * @returns 
  */
 export const ProjectMaterialLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProjectMaterialLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'ProjectMaterials',
 	router,
 	module: module || metaUiService.findModule('ProjectMaterial'),

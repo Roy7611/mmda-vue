@@ -68,7 +68,7 @@ export class QualityControlStandardLogic extends UiLogic<QualityControlStandard>
 				this.group<QualityControlStandardItem>('items')
 					.addCustomAction({
 						name: 'createContractItem',
-						label: '创建',
+						label: 'action.create',
 						icon: 'far fa-plus-circle',
 						role: 'info',
 						onAction: this.newQualityControlStandardItem,
@@ -113,7 +113,7 @@ export class QualityControlStandardLogic extends UiLogic<QualityControlStandard>
  */
 export const QualityControlStandardLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new QualityControlStandardLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'QualityControlStandards',
 		router,
 		module: module || metaUiService.findModule('QualityControlStandard'),

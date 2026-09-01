@@ -8,6 +8,7 @@ import type { UiBuildContext } from '@mmda/vui';
 import { ToolStatusEnum } from '@/enums/ToolStatus';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import './ToolsPicking.less';
+import { useI18n } from 'vue-i18n';
 
 interface ToolItem {
 	toolID: string;
@@ -104,6 +105,7 @@ export const ToolsPicking = defineComponent({
 		onReady: { type: Function as any, default: null },
 	},
 	setup: (props) => {
+		const { t } = useI18n();
 		const { $ui: ui, $api: apiBox, $toast: toast } = props.ctx.globalProps;
 		const { uiBuilder } = props.ctx;
 
@@ -152,11 +154,11 @@ export const ToolsPicking = defineComponent({
 
 		const getDisabledReason = (tool: ToolRow): string => {
 			const selectedBy = findSelectedByOtherTrans(tool.toolID);
-			if (selectedBy) return `已选择给物流单 ${selectedBy.transNo ?? selectedBy.transID}`;
+			if (selectedBy) return t('toolPicking.assignedToOther', { it: selectedBy.transNo ?? selectedBy.transID });
 
 			const assignment = getToolAssignment(tool);
 			if (assignment && assignment.transID !== currentTransID.value) {
-				return `已指定给物流单 ${assignment.transNo}`;
+				return t('toolPicking.boundToOther', { it: assignment.transNo });
 			}
 			return '';
 		};
@@ -185,7 +187,7 @@ export const ToolsPicking = defineComponent({
 			return editable.length > 0 && editable.every(tool => tool.__checked);
 		});
 
-		const showToast = (severity: string, detail: string, summary = '提示') => {
+		const showToast = (severity: string, detail: string, summary = t('dialog.title.prompt')) => {
 			toast.add({ severity, detail, summary, group: 'br', life: 3000 });
 		};
 
@@ -239,7 +241,7 @@ export const ToolsPicking = defineComponent({
 			if (!currentTransID.value && selectedTransIDs.value.length) {
 				currentTransID.value = selectedTransIDs.value[0];
 			}
-			if (failed.length) showToast('error', `以下物流单加载失败：${failed.join('、')}`, '错误');
+			if (failed.length) showToast('error', t('toolPicking.loadTransFailed', { it: failed.join('、') }), t('dialog.title.error'));
 		};
 
 		const removeTrans = (transID: string) => {
@@ -282,7 +284,7 @@ export const ToolsPicking = defineComponent({
 				if (requestID !== toolsRequestID || currentTransID.value !== transID || selectedItemID.value !== itemID) return;
 				apiTools.value = (res.list as ToolItem[]) ?? [];
 			} catch (error: any) {
-				if (requestID === toolsRequestID) showToast('error', error.message ?? '加载器具列表失败', '错误');
+				if (requestID === toolsRequestID) showToast('error', error.message ?? t('toolPicking.loadToolsFailed'), t('dialog.title.error'));
 			} finally {
 				if (requestID === toolsRequestID) toolsLoading.value = false;
 			}
@@ -328,7 +330,7 @@ export const ToolsPicking = defineComponent({
 
 		const submitFn = async (): Promise<boolean> => {
 			if (!selectedTransIDs.value.length) {
-				showToast('error', '请先选择物流单', '错误');
+				showToast('error', t('toolPicking.selectTransFirst'), t('dialog.title.error'));
 				return false;
 			}
 
@@ -336,7 +338,7 @@ export const ToolsPicking = defineComponent({
 				.map(transID => transStates[transID])
 				.filter(state => state && hasSelectionChanged(state));
 			if (!changedStates.length) {
-				showToast('warn', '器具指定没有发生变化');
+				showToast('warn', t('toolPicking.unchanged'));
 				return false;
 			}
 
@@ -351,10 +353,10 @@ export const ToolsPicking = defineComponent({
 			try {
 				await apiBox.http.postJson('/mes/Tools/bindKitCheckTools', { transes });
 				changedStates.forEach(syncOriginalSelection);
-				showToast('success', `已更新 ${changedStates.length} 个物流单的器具指定`, '成功');
+				showToast('success', t('toolPicking.updated', { count: changedStates.length }), t('dialog.title.success'));
 				return true;
 			} catch (error: any) {
-				showToast('error', error.message ?? '器具指定失败', '错误');
+				showToast('error', error.message ?? t('toolPicking.assignmentFailed'), t('dialog.title.error'));
 				return false;
 			} finally {
 				submitLoading.value = false;
@@ -405,11 +407,11 @@ export const ToolsPicking = defineComponent({
 					props.ctx,
 					{
 						name: 'materialTransSearchForRelative',
-						title: '选择物流单（可多选）',
+						title: t('toolPicking.selectTranses'),
 						style: { width: '68vw' },
 						accept: async () => {
 							if (!pendingTranses.value.length) {
-								showToast('error', '请至少选择一个物流单', '错误');
+								showToast('error', t('toolPicking.selectAtLeastOne'), t('dialog.title.error'));
 								return false;
 							}
 							await addTranses(pendingTranses.value);
@@ -428,7 +430,7 @@ export const ToolsPicking = defineComponent({
 		const searchTransDirectly = async () => {
 			const searchWord = transSearchWord.value.trim();
 			if (!searchWord) {
-				showToast('warn', '请输入物流单号');
+				showToast('warn', t('toolPicking.inputTransNo'));
 				return;
 			}
 			transSearchLoading.value = true;
@@ -442,13 +444,13 @@ export const ToolsPicking = defineComponent({
 				const matched = rows.find(trans => trans.transNo?.toLowerCase() === searchWord.toLowerCase())
 					?? (rows.length === 1 ? rows[0] : null);
 				if (!matched) {
-					showToast('warn', '未找到唯一匹配的物流单，请输入完整物流单号');
+					showToast('warn', t('toolPicking.noUniqueTrans'));
 					return;
 				}
 				await addTranses([matched]);
 				transSearchWord.value = '';
 			} catch (error: any) {
-				showToast('error', error.message ?? '查询物流单失败', '错误');
+				showToast('error', error.message ?? t('toolPicking.queryFailed'), t('dialog.title.error'));
 			} finally {
 				transSearchLoading.value = false;
 			}
@@ -456,11 +458,11 @@ export const ToolsPicking = defineComponent({
 
 		const renderHeader = () => h('div', { class: 'tools-picking__header' }, [
 			h('div', { class: 'tools-picking__search' }, [
-				h('span', { class: 'tools-picking__label' }, '物流单'),
+				h('span', { class: 'tools-picking__label' }, t('toolPicking.trans')),
 				ui.factory.input(transSearchWord.value, {
 					id: 'toolsPickingTransNo',
 					name: 'toolsPickingTransNo',
-					placeholder: '输入物流单号',
+					placeholder: t('toolPicking.transNoPlaceholder'),
 					class: 'tools-picking__search-input',
 					onUpdate: (value: string) => { transSearchWord.value = value ?? ''; },
 					onKeydown: (event: KeyboardEvent) => {
@@ -468,11 +470,11 @@ export const ToolsPicking = defineComponent({
 					},
 				}),
 				ui.factory.button({
-					id: 'toolsPickingSearch', icon: 'pi pi-search', label: '添加', size: 'small',
+					id: 'toolsPickingSearch', icon: 'pi pi-search', label: t('action.add'), size: 'small',
 					loading: transSearchLoading.value, onAction: searchTransDirectly,
 				}),
 				ui.factory.button({
-					id: 'toolsPickingOpenList', icon: 'pi pi-list', label: '批量选择', size: 'small',
+					id: 'toolsPickingOpenList', icon: 'pi pi-list', label: t('toolPicking.selectMany'), size: 'small',
 					severity: 'secondary', outlined: true, onAction: openTransSearch,
 				}),
 			]),
@@ -493,9 +495,9 @@ export const ToolsPicking = defineComponent({
 							},
 						}),
 					])),
-					button({ type: 'button', class: 'tools-picking__clear', onClick: clearTranses }, '清空'),
+					button({ type: 'button', class: 'tools-picking__clear', onClick: clearTranses }, t('action.clear')),
 				])
-				: h('span', { class: 'tools-picking__header-hint' }, '可添加多个物流单后统一指定器具'),
+				: h('span', { class: 'tools-picking__header-hint' }, t('toolPicking.multiHint')),
 		]);
 
 		function button(props: Record<string, unknown>, text: string) {
@@ -511,14 +513,14 @@ export const ToolsPicking = defineComponent({
 
 		const renderLeftPanel = () => h('div', { class: 'tools-picking__left' }, [
 			h('div', { class: 'tools-picking__panel-title' }, [
-				h('span', currentTrans.value ? `物料清单 · ${currentTrans.value.transNo}` : '物料清单'),
-				currentTrans.value ? h('span', `${currentItems.value.length} 项`) : null,
+				h('span', currentTrans.value ? t('toolPicking.materialListOf', { it: currentTrans.value.transNo }) : t('toolPicking.materialList')),
+				currentTrans.value ? h('span', t('toolPicking.itemCount', { count: currentItems.value.length })) : null,
 			]),
 			h('div', { class: 'tools-picking__item-list' }, [
 				!currentTrans.value
-					? renderEmpty('pi pi-truck', '请先添加物流单')
+					? renderEmpty('pi pi-truck', t('toolPicking.addTransFirst'))
 					: currentItems.value.length === 0
-						? renderEmpty('pi pi-inbox', '该物流单没有物料项')
+						? renderEmpty('pi pi-inbox', t('toolPicking.noMaterialItems'))
 						: currentItems.value.map(item => {
 							const itemID = String(item.itemID);
 							const selectedCount = currentState.value?.selectedToolsMap[itemID]?.length ?? 0;
@@ -529,11 +531,11 @@ export const ToolsPicking = defineComponent({
 								onClick: () => selectItem(itemID),
 							}, [
 								h('span', { class: 'tools-picking__item-code' }, `#${item.itemID}`),
-								h('span', { class: 'tools-picking__item-name' }, item.materialName || item.materialCode || '(无名称)'),
+								h('span', { class: 'tools-picking__item-name' }, item.materialName || item.materialCode || t('toolPicking.unnamed')),
 								h('span', { class: 'tools-picking__item-meta' }, item.materialCode ?? ''),
 								h('span', { class: 'tools-picking__item-count' }, [
 									h('strong', String(selectedCount)),
-									` 已选 / ${quantity} 需求`,
+									t('toolPicking.selectedDemand', { selected: selectedCount, quantity }),
 								]),
 							]);
 						}),
@@ -558,69 +560,69 @@ export const ToolsPicking = defineComponent({
 						},
 					},
 				),
-				ui.factory.column({ header: '器具编号', field: 'toolNo', style: { width: '150px' } }),
-				ui.factory.column({ header: '序列号', field: 'serialNo', style: { width: '140px' } }),
-				ui.factory.column({ header: '器具名称', field: 'toolName', style: { width: '180px' } }),
-				ui.factory.column({ header: '规格', field: 'specs', style: { width: '130px' } }),
+				ui.factory.column({ header: t('toolPicking.toolNo'), field: 'toolNo', style: { width: '150px' } }),
+				ui.factory.column({ header: t('toolPicking.serialNo'), field: 'serialNo', style: { width: '140px' } }),
+				ui.factory.column({ header: t('toolPicking.toolName'), field: 'toolName', style: { width: '180px' } }),
+				ui.factory.column({ header: t('toolPicking.specs'), field: 'specs', style: { width: '130px' } }),
 				ui.factory.column(
-					{ header: '状态', field: 'status', style: { width: '90px' } },
+					{ header: t('toolPicking.status'), field: 'status', style: { width: '90px' } },
 					{ body: ({ data }: { data: ToolRow }) => h('span', { class: 'tools-picking__status' },
 						String(data.status ? ToolStatusEnum[`${data.status}_TEXT` as keyof typeof ToolStatusEnum] ?? data.status : '-')) },
 				),
 				ui.factory.column(
-					{ header: '可用性', style: { width: '210px' } },
+					{ header: t('toolPicking.availability'), style: { width: '210px' } },
 					{ body: ({ data }: { data: ToolRow }) => {
 						const reason = getDisabledReason(data);
 						return h('span', { class: ['tools-picking__availability', { 'is-disabled': Boolean(reason) }] },
-							reason || (data.__checked ? '已选择' : '可选择'));
+							reason || (data.__checked ? t('toolPicking.selected') : t('toolPicking.selectable')));
 					} },
 				),
 			];
 
 		const renderRightPanel = () => {
-			if (!currentTrans.value) return renderEmpty('pi pi-truck', '从上方添加并选择物流单');
-			if (!selectedItemID.value) return renderEmpty('pi pi-arrow-left', '从左侧选择一个物料项');
+			if (!currentTrans.value) return renderEmpty('pi pi-truck', t('toolPicking.addAndSelectTrans'));
+			if (!selectedItemID.value) return renderEmpty('pi pi-arrow-left', t('toolPicking.selectMaterialItem'));
 
 			const selectedCount = currentSelectedTools.value.length;
 			const quantity = Number(currentItem.value?.quantity) || 0;
 			return h('div', { class: 'tools-picking__right' }, [
 				h('div', { class: 'tools-picking__context' }, [
 					h('div', [
-						h('span', { class: 'tools-picking__context-label' }, '当前物料'),
+						h('span', { class: 'tools-picking__context-label' }, t('toolPicking.currentMaterial')),
 						h('strong', `#${currentItem.value?.itemID} ${currentItem.value?.materialName || currentItem.value?.materialCode || ''}`),
 					]),
 					h('div', { class: 'tools-picking__selection-count' }, [
 						ui.factory.checkbox(allEditableSelected.value, {
 							binary: true,
 							disabled: editableTools.value.length === 0,
-							label: '全选',
+							label: t('toolPicking.selectAll'),
 							onUpdate: handleToggleAll,
 						}),
 						h('strong', String(selectedCount)),
-						h('span', `已选 · ${quantity} 需求（不限制数量）`),
+						h('span', t('toolPicking.selectedDemandUnlimited', { quantity })),
 					]),
 			]),
 				h('div', { class: 'tools-picking__table', key: `${currentTransID.value}-${selectedItemID.value}` }, [
 					toolsLoading.value
-						? h('div', { class: 'tools-picking__loading' }, [ui.factory.loading({}), h('span', '器具加载中…')])
+						? h('div', { class: 'tools-picking__loading' }, [ui.factory.loading({}), h('span', t('toolPicking.loadingTools'))])
 						: tableTools.value.length
 							? ui.factory.primeVueTable(tableTools.value as any, buildColumns() as any, {
 								scrollable: true,
 								scrollHeight: 'flex',
 								dataKey: 'id',
-								emptyMessage: '没有匹配的器具',
+								emptyMessage: t('toolPicking.noMatchingTools'),
 								rowClass: (data: ToolRow) => getDisabledReason(data) ? 'tools-picking__disabled-row' : '',
 							} as any)
-							: renderEmpty('pi pi-wrench', '该物料没有匹配的器具'),
+							: renderEmpty('pi pi-wrench', t('toolPicking.materialNoTools')),
 			]),
 		]);
 		};
 
 		const renderFooter = () => h('div', { class: 'tools-picking__footer' }, [
-			h('span', [h('strong', String(selectedTransIDs.value.length)), ' 个物流单']),
-			h('span', [h('strong', String(itemCountWithSelections.value)), ' 个物料项']),
-			h('span', [h('strong', String(totalSelectedCount.value)), ' 个器具']),
-			submitLoading.value ? h('span', { class: 'tools-picking__submitting' }, '正在批量提交…') : null,
+			h('span', t('toolPicking.transCount', { count: selectedTransIDs.value.length })),
+			h('span', t('toolPicking.materialItemCount', { count: itemCountWithSelections.value })),
+			h('span', t('toolPicking.toolCount', { count: totalSelectedCount.value })),
+			submitLoading.value ? h('span', { class: 'tools-picking__submitting' }, t('toolPicking.submitting')) : null,
 		]);
 
 		return () => h('div', { class: 'tools-picking' }, [

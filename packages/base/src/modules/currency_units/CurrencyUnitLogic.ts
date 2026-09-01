@@ -73,7 +73,7 @@ export class CurrencyUnitLogic extends UiLogic<CurrencyUnit> {
  * @returns 
  */
 export const CurrencyUnitLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new CurrencyUnitLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'CurrencyUnits',
 	router,
 	module: module || metaUiService.findModule('CurrencyUnit'),

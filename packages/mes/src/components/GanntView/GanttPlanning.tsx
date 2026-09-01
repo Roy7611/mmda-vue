@@ -1,7 +1,7 @@
 /* eslint-disable vue/no-mutating-props */
 import { defineComponent, ref, reactive, h, onBeforeMount, inject, getCurrentInstance } from 'vue';
 import type { ApiClient } from '@mmda/core';
-import '@mmda/vui-primevue/src/assets/animate.min.css';
+import '@/compat/animate.min.css';
 
 export type GanttPlanningFormData = {
 	planNo: string | null;

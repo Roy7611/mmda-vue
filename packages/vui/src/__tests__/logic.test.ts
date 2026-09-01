@@ -62,7 +62,7 @@ const service = {
 describe('UiLogic', () => {
   it('beforeEdit 把 Field/Group Logic 挂到当前会话', async () => {
     const logic = new OrderLogic(o => o as any, {
-      service,
+      metaUiService: service,
       repository: 'Orders',
       meta: { metaui },
     })
@@ -85,7 +85,7 @@ describe('UiLogic', () => {
     let indexLoads = 0
     let editLoads = 0
     const logic = new OrderLogic(o => o as any, {
-      service,
+      metaUiService: service,
       repository: 'Orders',
       meta: { metaui },
     })

@@ -147,7 +147,7 @@ export class SiteLogic extends UiLogic<Site> {
  */
 export const SiteLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
 	new SiteLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Sites',
 		router,
 		module: module || metaUiService.findModule('Site'),

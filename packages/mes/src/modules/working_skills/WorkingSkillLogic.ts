@@ -65,7 +65,7 @@ import { type WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 	 * @returns 
 	 */
 	export const WorkingSkillLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new WorkingSkillLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'WorkingSkills',
 		router,
 		module: module || metaUiService.findModule('WorkingSkill'),

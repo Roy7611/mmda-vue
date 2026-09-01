@@ -18,5 +18,6 @@ cpSync(src, dest, { recursive: true })
 const cssDest = join(root, 'dist', 'fontawesome.css')
 cpSync(join(root, 'src', 'fontawesome.css'), cssDest)
 cpSync(join(root, 'src', 'theme.css'), join(root, 'dist', 'theme.css'))
+cpSync(join(root, 'src', 'material-symbols.css'), join(root, 'dist', 'material-symbols.css'))
 
 console.log('Copied shared CSS and Font Awesome assets to dist')

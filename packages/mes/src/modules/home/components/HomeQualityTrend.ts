@@ -4,6 +4,7 @@
  */
 import { defineComponent, h, onMounted, onUnmounted, watch, getCurrentInstance, ref } from 'vue'
 import type { PropType } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /* 从 computed style 中解析 CSS 变量色值 */
 function resolveColor(varName: string, fallback: string): string {
@@ -15,9 +16,10 @@ export const HomeQualityTrend = defineComponent({
   props: {
     /* 7天合格率百分比数据，如 [98.2, 98.5, 98.0, 99.1, 98.7, 99.3, 98.9] */
     trendData: { type: Array as PropType<number[]>, required: true },
-    labels: { type: Array as PropType<string[]>, default: () => ['周一', '周二', '周三', '周四', '周五', '周六', '周日'] },
+    labels: { type: Array as PropType<string[]>, default: () => [] },
   },
   setup(props) {
+    const { t } = useI18n()
     const containerRef = ref<HTMLElement | null>(null)
     let chartInstance: any = null
 
@@ -30,16 +32,24 @@ export const HomeQualityTrend = defineComponent({
       /* 空数组 [] 是 truthy，会通过检查传给 ECharts 导致内部 assert；加 length 检查兜底 */
       if (!data.length) return
 
-      const textColor = resolveColor('--p-text-color', '#333')
-      const borderColor = resolveColor('--p-content-border-color', '#e5e7eb')
-      const greenColor = resolveColor('--p-green-400', '#22C55E')
+      const textColor = resolveColor('--mmda-text-color', '#333')
+      const borderColor = resolveColor('--mmda-content-border-color', '#e5e7eb')
+      const greenColor = resolveColor('--mmda-green-400', '#22C55E')
 
       chartInstance.setOption({
         tooltip: { trigger: 'axis' },
         grid: { left: 36, right: 8, top: 8, bottom: 24 },
         xAxis: {
           type: 'category',
-          data: props.labels,
+          data: props.labels.length ? props.labels : [
+            t('view.weekdayMon'),
+            t('view.weekdayTue'),
+            t('view.weekdayWed'),
+            t('view.weekdayThu'),
+            t('view.weekdayFri'),
+            t('view.weekdaySat'),
+            t('view.weekdaySun'),
+          ],
           axisLine: { lineStyle: { color: borderColor } },
           axisLabel: { color: textColor, fontSize: 10 },
           axisTick: { show: false },

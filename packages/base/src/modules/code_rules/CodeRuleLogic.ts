@@ -73,7 +73,7 @@ import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 	 * @returns 
 	 */
 	export const CodeRuleLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new CodeRuleLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'CodeRules',
 		router,
 		module: module || metaUiService.findModule('CodeRule'),

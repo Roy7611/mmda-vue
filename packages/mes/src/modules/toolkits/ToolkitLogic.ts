@@ -42,7 +42,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 			return h('div', {
 				class: 'flex-1 overflow-y-auto p-4! col-span-full flex items-center justify-center text-gray-500',
 				id: 'tool-list-empty',
-			}, '无可用选项');
+			}, context.t('empty.select'));
 		}
 		return uiBuilder.factory.dataViewBox({
 			value: activeTools,
@@ -322,7 +322,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
  * @returns 
  */
 export const ToolkitLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ToolkitLogic({
-	service: metaUiService,
+	metaUiService: metaUiService,
 	repository: 'Toolkits',
 	router,
 	module: module || metaUiService.findModule('Toolkit'),

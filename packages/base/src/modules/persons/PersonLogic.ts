@@ -65,7 +65,7 @@ import { type Person, definePerson } from '../../models/Person';
 	 * @returns 
 	 */
 	export const PersonLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new PersonLogic({
-		service: metaUiService,
+		metaUiService: metaUiService,
 		repository: 'Persons',
 		router,
 		module: module || metaUiService.findModule('Person'),
