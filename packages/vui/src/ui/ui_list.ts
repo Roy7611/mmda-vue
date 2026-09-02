@@ -113,6 +113,7 @@ export interface UiListEmits<T = any> {
   /** 可返回 Promise：Syncfusion 自定义绑定时需等查询结束再回写 dataSource。 */
   onSort?: (sorts: Sort[]) => void | Promise<unknown>;
   onSearch?: (searchWord: string) => void;
+  onRefresh?: () => void;
 }
 
 export interface UiListSlots<T = any> {

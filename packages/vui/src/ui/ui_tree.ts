@@ -5,13 +5,14 @@ export interface UiTreeFields<T = any> {
   id?: string
   label?: string | ((node: T) => string)
   parentId?: string
+  /** 子节点数组字段名。已加载的儿子从这里取，懒加载展开后写回这里。 */
   children?: string
   icon?: string | ((node: T) => string)
   childrenCount?: string | ((node: T) => number)
 }
 
 export interface UiTreeProps<T = any> {
-  data: T[]
+  data?: T[]
   fields?: UiTreeFields<T>
   selectionMode?: 'single' | 'checkbox' | 'none'
   selected?: string | string[]
@@ -37,21 +38,25 @@ export type UiTreePropsType<T = any> = UiTreeProps<T> & UiTreeEmits<T>
 
 export interface UiTreeViewProps<T = any> extends UiTreeProps<T> {
   /** 树顶搜索框，按节点文本本地过滤。 */
-  showTreeSearchBar?: boolean
+  showSearchBar?: boolean
   /** 树底插槽。为 true 时渲染 `footer`。 */
   showTreeFooter?: boolean
-  /** @deprecated 用 `showTreeSearchBar` */
-  showSearchbar?: boolean
   editable?: boolean
   /** 分类仓库。CategoryList 用来做节点 CRUD 与模块权限。 */
   repository?: string
   /**
-   * 节点额外操作。默认 `hover`：悬停出现添加子节点。
+   * 节点编辑方式。默认 `hover`：悬停出现添加子节点。
    * `contextMenu` 才启用皮肤自带右键菜单。
    */
-  treeNodeActions?: 'hover' | 'contextMenu'
-  /** 树折叠变化，左树右表用来收第一栏。 */
-  onTreeCollapsed?: (collapsed: boolean) => void
+  editMode?: 'hover' | 'contextMenu'
+  /** 当前选中实体，给底栏用。 */
+  selectedNode?: T
+  /** 有 repository 时的取数方式。默认 eager。 */
+  loadMode?: 'eager' | 'lazy'
+  /** 仅 lazy 挂载：拉顶层节点。 */
+  preloader?: () => T[] | Promise<T[]>
+  /** CRUD 后递增，TreeView 重新取数。 */
+  reloadTick?: { value: number }
 }
 
 export interface UiTreeViewEmits<T = any> extends UiTreeEmits<T> {
@@ -64,13 +69,17 @@ export interface UiTreeViewEmits<T = any> extends UiTreeEmits<T> {
   onTreeRefresh?: () => void | Promise<void>
 }
 
-export interface UiTreeViewSlots {
+export interface UiTreeViewSlots<T = any> {
+  /** 自定义树顶。有内容时替换内置过滤框。 */
+  header?: () => VNodeChild
   footer?: () => VNodeChild
+  /** 用当前选中节点画底栏。无参 `footer()` 优先。 */
+  footerContent?: (node: T) => VNodeChild
 }
 
 export type UiTreeViewPropsType<T = any> = UiTreeViewProps<T> &
   UiTreeViewEmits<T> &
-  UiTreeViewSlots
+  UiTreeViewSlots<T>
 
 export interface UiTreeMappedNode<T = any> {
   id: string
@@ -109,14 +118,72 @@ export function treeChildrenKey<T = unknown>(fields?: UiTreeFields<T>): string {
   return typeof fields?.children === 'string' ? fields.children : 'children'
 }
 
+export function treeChildrenOf<T>(
+  node: T,
+  fields?: UiTreeFields<T>,
+): T[] | undefined {
+  const kids = (node as Record<string, unknown>)[treeChildrenKey(fields)]
+  return Array.isArray(kids) ? (kids as T[]) : undefined
+}
+
+export function setTreeChildren<T>(
+  node: T,
+  children: T[],
+  fields?: UiTreeFields<T>,
+): void {
+  (node as Record<string, unknown>)[treeChildrenKey(fields)] = children
+}
+
 export function treeChildrenCountOf<T>(
   node: T,
   fields?: UiTreeFields<T>,
 ): number {
-  const count = readTreeField(node, fields?.childrenCount)
-  if (typeof count === 'number') return count
+  const count = treeKnownChildrenCountOf(node, fields)
+  if (count != null) return count
   const kids = (node as Record<string, unknown>)[treeChildrenKey(fields)]
   return Array.isArray(kids) ? kids.length : 0
+}
+
+/** 模型上的 `childrenCount` 数值。没配或不是 number 则未知。 */
+export function treeKnownChildrenCountOf<T>(
+  node: T,
+  fields?: UiTreeFields<T>,
+): number | undefined {
+  const count = readTreeField(node, fields?.childrenCount)
+  return typeof count === 'number' ? count : undefined
+}
+
+/** `fields.children` 已是数组（含 `[]`）即已加载。 */
+export function treeChildrenLoaded<T>(
+  node: T,
+  fields?: UiTreeFields<T>,
+): boolean {
+  return Array.isArray((node as Record<string, unknown>)[treeChildrenKey(fields)])
+}
+
+/**
+ * 懒加载还要不要请求。
+ * 已是数组不拉；有 count 且为 0 是叶子不拉；无 count 只能查一次。
+ */
+export function treeShouldLoadChildren<T>(
+  node: T,
+  fields?: UiTreeFields<T>,
+): boolean {
+  if (treeChildrenLoaded(node, fields)) return false
+  return treeKnownChildrenCountOf(node, fields) !== 0
+}
+
+/** 展开箭头：有 count 用 count；无 count 且未查过就画；查完 `[]` 再收。 */
+export function treeHasExpandableChildren<T>(
+  node: T,
+  fields?: UiTreeFields<T>,
+): boolean {
+  const count = treeKnownChildrenCountOf(node, fields)
+  if (count === 0) return false
+  if (typeof count === 'number' && count > 0) return true
+  const kids = treeChildrenOf(node, fields)
+  if (kids) return kids.length > 0
+  return true
 }
 
 export function mapTreeNodes<T>(
@@ -139,24 +206,58 @@ export function mapTreeNodes<T>(
       parentId: String(readTreeField(src, fields?.parentId) ?? ''),
       icon: readTreeField(src, fields?.icon) as string | undefined,
       childrenCount,
-      hasChildren: childrenCount > 0 || children.length > 0,
+      hasChildren: treeHasExpandableChildren(src, fields) || children.length > 0,
       children,
       src,
     }
   }
 
-  if (alreadyNested) return data.map(mapOne)
+  if (alreadyNested) {
+    const mapped = data.map(mapOne)
+    const nested = new Set<string>()
+    const walk = (nodes: UiTreeMappedNode<T>[]) => {
+      for (const node of nodes) {
+        for (const child of node.children) {
+          nested.add(child.id)
+          walk([child])
+        }
+      }
+    }
+    walk(mapped)
+    const roots = mapped.filter((node) => !nested.has(node.id))
+    return roots.length ? roots : mapped
+  }
 
   const mapped = data.map(mapOne)
   const byId = new Map(mapped.map((node) => [node.id, node]))
   const roots: UiTreeMappedNode<T>[] = []
+  let datasetHasLinks = false
   for (const node of mapped) {
     const parent = node.parentId ? byId.get(node.parentId) : undefined
     if (parent && parent !== node) {
       parent.children.push(node)
       parent.hasChildren = true
+      datasetHasLinks = true
     } else {
       roots.push(node)
+    }
+  }
+  if (datasetHasLinks) {
+    for (const node of mapped) {
+      if (node.children.length > 0) {
+        node.hasChildren = true
+        continue
+      }
+      const count = treeKnownChildrenCountOf(node.src, fields)
+      if (count != null) {
+        node.hasChildren = count > 0
+        continue
+      }
+      if (treeChildrenLoaded(node.src, fields)) {
+        node.hasChildren = (treeChildrenOf(node.src, fields)?.length ?? 0) > 0
+        continue
+      }
+      node.hasChildren = false
     }
   }
   return roots

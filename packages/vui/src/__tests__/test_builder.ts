@@ -1,4 +1,12 @@
-import { defineComponent, h, ref, type VNode, type VNodeArrayChildren } from "vue";
+import {
+  defineComponent,
+  h,
+  ref,
+  watch,
+  type PropType,
+  type VNode,
+  type VNodeArrayChildren,
+} from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
 import { AbstractUiBuilder } from "../ui/ui_builder";
 import type { UiViewContext } from "../ui/ui_context";
@@ -282,11 +290,24 @@ export class TestUiBuilder extends AbstractUiBuilder {
   }
 
   buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
-    return h("span", { class: "mmda-breadcrumb" }, props.label || context.title);
+    const text = [context.title, props.label].filter(Boolean).join(" / ");
+    return h("span", { class: "mmda-breadcrumb" }, text || context.title);
   }
 
-  buildModuleToolbar() {
-    return stub("buildModuleToolbar", { class: "mmda-toolbar" });
+  buildModuleToolbar(
+    context: UiContext,
+    props: ModuleToolbarProps,
+    slots?: UiSlots,
+  ) {
+    return h("div", { class: "mmda-toolbar" }, [
+      props.showBreadcrumb === false
+        ? null
+        : this.buildModuleBreadcrumb(context, {
+            module: (context as any).module,
+            label: props.breadcrumbLeaf || "",
+          }),
+      slots?.center?.(),
+    ]);
   }
 
   buildSearchField(_field: UiSearchField) {
@@ -297,8 +318,21 @@ export class TestUiBuilder extends AbstractUiBuilder {
     return stub("buildSearchForm");
   }
 
-  buildModuleSearchbar() {
-    return stub("buildModuleSearchbar", { class: "mmda-searchbar" });
+  buildModuleSearchbar(_context: UiContext, props: ModuleSearchbarProps) {
+    return h("div", { class: "mmda-searchbar" }, [
+      h("input", {
+        class: "mmda-searchbar-input",
+        type: "search",
+        onChange: (event: Event) => {
+          props.onSearch?.((event.target as HTMLInputElement).value);
+        },
+      }),
+      h("button", {
+        type: "button",
+        class: "mmda-searchbar-refresh",
+        onClick: () => props.onRefresh?.(),
+      }),
+    ]);
   }
 
   buildSearchForRelative(
@@ -319,36 +353,90 @@ export class TestUiBuilder extends AbstractUiBuilder {
 }
 
 function renderTestSplitter(panes: UiSplitterPane[], props: UiSplitterProps = {}) {
-  const vertical = props.orientation === "Vertical";
-  return h(
-    "div",
-    {
-      class: [
-        "mmda-splitter",
-        vertical ? "mmda-splitter--vertical" : "mmda-splitter--horizontal",
-        props.class,
-      ],
-    },
-    panes.map((pane, index) =>
-      h(
+  return h(TestSplitter, {
+    panes,
+    orientation: props.orientation,
+    splitterClass: props.class,
+    collapseTick: props.collapseTick,
+    onCollapsed: props.onCollapsed,
+    onExpanded: props.onExpanded,
+  });
+}
+
+const TestSplitter = defineComponent({
+  name: "MmdaTestSplitter",
+  props: {
+    panes: { type: Array as PropType<UiSplitterPane[]>, required: true },
+    orientation: { type: String as PropType<UiSplitterProps["orientation"]> },
+    splitterClass: { type: String },
+    collapseTick: { type: Number, default: 0 },
+    onCollapsed: { type: Function as PropType<UiSplitterProps["onCollapsed"]> },
+    onExpanded: { type: Function as PropType<UiSplitterProps["onExpanded"]> },
+  },
+  setup(props) {
+    const collapsed = ref(props.panes.map((pane) => !!pane.collapsed));
+    watch(
+      () => props.collapseTick,
+      (tick, prev) => {
+        if (!tick || tick === prev) return;
+        collapsed.value = collapsed.value.map((value, index) =>
+          index === 0 ? true : value,
+        );
+      },
+    );
+    return () => {
+      const vertical = props.orientation === "Vertical";
+      return h(
         "div",
         {
-          class: "mmda-splitter-pane",
-          style:
-            index === 0
-              ? {
-                  [vertical ? "height" : "width"]: props.collapsedFirst
-                    ? "3rem"
-                    : (pane.size ?? "16rem"),
-                  flex: "0 0 auto",
-                }
-              : { flex: "1 1 auto", minWidth: 0, minHeight: 0 },
+          class: [
+            "mmda-splitter",
+            vertical ? "mmda-splitter--vertical" : "mmda-splitter--horizontal",
+            props.splitterClass,
+          ],
         },
-        pane.content,
-      ),
-    ),
-  );
-}
+        props.panes.flatMap((pane, index) => {
+          const isCollapsed = collapsed.value[index];
+          return [
+            h(
+              "div",
+              {
+                class: "mmda-splitter-pane",
+                "data-collapsible": pane.collapsible ? "true" : undefined,
+                "data-collapsed": isCollapsed ? "true" : undefined,
+                style: isCollapsed
+                  ? { display: "none" }
+                  : index === 0
+                    ? {
+                        [vertical ? "height" : "width"]: pane.size ?? "16rem",
+                        flex: "0 0 auto",
+                      }
+                    : { flex: "1 1 auto", minWidth: 0, minHeight: 0 },
+              },
+              pane.content,
+            ),
+            pane.collapsible && index === 0
+              ? h("button", {
+                  type: "button",
+                  class: "mmda-splitter-collapse",
+                  "aria-label": isCollapsed ? "expand" : "collapse",
+                  onClick: () => {
+                    const next = !collapsed.value[index];
+                    collapsed.value = collapsed.value.map((value, i) =>
+                      i === index ? next : value,
+                    );
+                    const event = { index, collapsed: next };
+                    if (next) props.onCollapsed?.(event);
+                    else props.onExpanded?.(event);
+                  },
+                })
+              : null,
+          ];
+        }),
+      );
+    };
+  },
+});
 
 const TestTree = defineComponent({
   name: "MmdaTestTree",
@@ -361,6 +449,7 @@ const TestTree = defineComponent({
     contextMenu: { type: Function, default: undefined },
     showHoverAdd: { type: [Boolean, Function], default: undefined },
     onNodeSelect: { type: Function, default: undefined },
+    onExpand: { type: Function, default: undefined },
     onNodeRename: { type: Function, default: undefined },
     onNodeAddChild: { type: Function, default: undefined },
   },
@@ -413,6 +502,18 @@ const TestTree = defineComponent({
                 },
               },
               [
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    class: "mmda-tree-expand",
+                    onClick: (event: Event) => {
+                      event.stopPropagation();
+                      props.onExpand?.(node);
+                    },
+                  },
+                  ">",
+                ),
                 editing
                   ? h("input", {
                       class: "mmda-tree-rename-input",

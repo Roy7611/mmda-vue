@@ -724,7 +724,7 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
           if (module) {
             return this.buildModuleBreadcrumb(context, {
               module,
-              label: runtime.many ? "" : context.title,
+              label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
             });
           }
           return h("strong", context.title);

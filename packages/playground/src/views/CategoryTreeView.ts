@@ -33,7 +33,7 @@ export const CategoryTreeView = defineComponent({
               icon: "icon",
             },
             showIcon: true,
-            showTreeSearchBar: true,
+            showSearchBar: true,
             editable: true,
             selected: selected.value,
             onNodeSelect: (node: Category | Category[]) => {

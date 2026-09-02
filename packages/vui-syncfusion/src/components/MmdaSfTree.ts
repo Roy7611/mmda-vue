@@ -1,4 +1,13 @@
-import { computed, defineComponent, h, nextTick, ref, watch, type PropType } from 'vue'
+import {
+  computed,
+  defineComponent,
+  h,
+  nextTick,
+  ref,
+  shallowRef,
+  watch,
+  type PropType,
+} from 'vue'
 import { ContextMenuComponent, TreeViewComponent } from '@syncfusion/ej2-vue-navigations'
 import {
   isTreeIconUrl,
@@ -61,13 +70,15 @@ export const MmdaSfTree = defineComponent({
   setup(props: TreeProps) {
     const roots = computed(() => mapTreeNodes(props.data ?? [], props.fields))
     const byId = computed(() => indexMapped(roots.value))
-    const selectedNodes = computed(() => [...selectedIdSet(props.selected)])
     const menuRef = ref<any>()
     const menuItems = ref<any[]>([])
     const pending = ref<UiAction[]>([])
     const hover = ref<{ id: string; x: number; y: number } | null>(null)
+    const expandedIds = ref<string[]>([])
+    const treeRef = ref<any>()
+    const selectedProp = shallowRef([...selectedIdSet(props.selected)])
 
-    const fields = computed(() => ({
+    const buildFields = () => ({
       dataSource: flattenMapped(roots.value).map((node) => {
         const icon = node.icon ?? ''
         const url = isTreeIconUrl(icon)
@@ -83,7 +94,55 @@ export const MmdaSfTree = defineComponent({
       hasChildren: 'hasChildren',
       iconCss: props.showIcon ? 'icon' : undefined,
       imageUrl: props.showIcon ? 'imageUrl' : undefined,
-    }))
+    })
+    const boundFields = shallowRef(buildFields())
+
+    const ej2 = () => treeRef.value?.ej2Instances ?? treeRef.value
+
+    const rememberExpanded = (id: string, open: boolean) => {
+      if (!id) return
+      const cur = expandedIds.value
+      if (open && !cur.includes(id)) expandedIds.value = [...cur, id]
+      if (!open && cur.includes(id)) {
+        expandedIds.value = cur.filter((item) => item !== id)
+      }
+    }
+
+    const restoreExpanded = () => {
+      const inst = ej2()
+      if (!inst || !expandedIds.value.length) return
+      inst.expandedNodes = [...expandedIds.value]
+    }
+
+    watch(
+      () => [props.data, props.fields, props.showIcon] as const,
+      () => {
+        const next = buildFields()
+        if (
+          treeDataSignature(boundFields.value.dataSource) ===
+          treeDataSignature(next.dataSource)
+        ) {
+          return
+        }
+        boundFields.value = next
+        const inst = ej2()
+        if (!inst) return
+        const keep = inst.expandedNodes?.length
+          ? [...inst.expandedNodes]
+          : [...expandedIds.value]
+        expandedIds.value = keep
+        inst.fields = next
+        void nextTick(restoreExpanded)
+      },
+    )
+    watch(
+      () => props.selected,
+      (selected) => {
+        const inst = ej2()
+        if (!inst) return
+        inst.selectedNodes = [...selectedIdSet(selected)]
+      },
+    )
 
     const emitSelect = (ids: string[]) => {
       const nodes = ids
@@ -94,7 +153,6 @@ export const MmdaSfTree = defineComponent({
       else if (nodes[0] != null) props.onNodeSelect?.(nodes[0])
     }
 
-    const treeRef = ref<any>()
     watch(
       () => props.editing,
       (id) => {
@@ -174,9 +232,9 @@ export const MmdaSfTree = defineComponent({
           h(TreeViewComponent as any, {
             ref: treeRef,
             cssClass: ['mmda-sf-tree', props.class].filter(Boolean).join(' '),
-            fields: fields.value,
+            fields: boundFields.value,
             showCheckBox: (props.selectionMode ?? 'single') === 'checkbox',
-            selectedNodes: selectedNodes.value,
+            selectedNodes: selectedProp.value,
             allowEditing: Boolean(props.onNodeRename),
             nodeSelecting: (args: any) => {
               const ev = args?.event as MouseEvent | undefined
@@ -196,8 +254,13 @@ export const MmdaSfTree = defineComponent({
             },
             nodeExpanded: (args: any) => {
               const id = String(args?.nodeData?.id ?? args?.id ?? '')
+              rememberExpanded(id, true)
               const node = byId.value.get(id)
               if (node) void props.onExpand?.(node.src)
+            },
+            nodeCollapsed: (args: any) => {
+              const id = String(args?.nodeData?.id ?? args?.id ?? '')
+              rememberExpanded(id, false)
             },
             nodeEditing: (args: any) => {
               if (!props.onNodeRename) {
@@ -257,6 +320,15 @@ export const MmdaSfTree = defineComponent({
       )
   },
 })
+
+function treeDataSignature(nodes: { id?: string; parentId?: string; hasChildren?: boolean; label?: string }[]) {
+  return nodes
+    .map(
+      (node) =>
+        `${node.id ?? ''}\t${node.parentId ?? ''}\t${node.hasChildren ? 1 : 0}\t${node.label ?? ''}`,
+    )
+    .join('\n')
+}
 
 function flattenMapped<T>(nodes: UiTreeMappedNode<T>[]): UiTreeMappedNode<T>[] {
   const list: UiTreeMappedNode<T>[] = []

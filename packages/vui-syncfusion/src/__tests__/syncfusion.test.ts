@@ -20,7 +20,11 @@ import {
 } from "../syncfusion_i18n";
 import { SyncfusionUiBuilder } from "../syncfusion_builder";
 import { createSyncfusionFieldFactory } from "../syncfusion_field_factory";
-import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "../syncfusion_factory";
+import {
+  createSyncfusionUiFactory,
+  autoFitSyncfusionListGrid,
+  splitterEventIndex,
+} from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
 import { PhotoGallery } from "../components/PhotoGallery";
 import { FilesUploader } from "../components/FilesUploader";
@@ -70,6 +74,17 @@ describe("Syncfusion skin", () => {
     expect(factory.table).toBeTypeOf("function");
     expect(factory.dialog).toBeTypeOf("function");
     expect(factory.splitter).toBeTypeOf("function");
+    const split = factory.splitter(
+      [
+        { content: h("span", "L"), size: "16rem", min: "12rem", collapsible: true },
+        { content: h("span", "R"), min: "16rem" },
+      ],
+      { class: "mmda-tree-list-splitter" },
+    );
+    expect(split.type).toBeTruthy();
+    expect((split.type as { name?: string }).name).toBe("MmdaSfSplitter");
+    expect(splitterEventIndex({ index: [0, 1] })).toBe(0);
+    expect(splitterEventIndex({ index: 0 })).toBe(0);
     expect(factory.tree).toBeTypeOf("function");
     const tree = factory.tree({
       data: [{ id: "1", label: "根" }],
@@ -466,7 +481,9 @@ describe("Syncfusion skin", () => {
     } as any;
     const vnode = builder.buildModuleSearchbar(context, { onSearch, onRefresh });
     const textbox = vnode.children.find(
-      (child: any) => child?.props?.appendTemplate === "appendTemplate",
+      (child: any) =>
+        child?.props?.appendTemplate === "appendTemplate" ||
+        child?.type?.name === "MmdaSfSearchWord",
     );
     expect(textbox).toBeTruthy();
     expect(String(textbox.props.cssClass ?? "")).toContain("e-small");

@@ -24,6 +24,7 @@ import {
   resolveSearchParam,
   resolveViewManyProps,
   UiViewMany,
+  UiViewManyKind,
   UiViewOne,
   type UiViewType,
 } from "./ui_view";
@@ -202,8 +203,9 @@ export function createEntityView(options: EntityViewOptions) {
           );
         }
         const context = current.value;
-        // 订阅 loading：分页/筛选时刷新；表格同时接收 Ref 以便 Syncfusion 遮罩响应
-        void context.loading.value;
+        // 表格已接收 loading Ref，自己转圈。左树右表点选只 search 刷表，
+        // 不能因 loading 整页 build（会重挂 Splitter）。纯列表仍靠 loading 重渲取新页。
+        if (!isCategoryListView(context)) void context.loading.value;
         const treeData = (context.logic as { treeData?: { value?: unknown } })
           ?.treeData;
         if (treeData && "value" in treeData) void treeData.value;
@@ -239,4 +241,16 @@ export function createEntityView(options: EntityViewOptions) {
       };
     },
   });
+}
+
+function isCategoryListView(context: UiBuildContext) {
+  const view = String(context.view ?? "");
+  const option = context.logic?.viewOptions?.[view]?.(context as any) ?? {};
+  const kind = (option as { viewKind?: string }).viewKind;
+  return Boolean(
+    (option as { treeOption?: unknown }).treeOption ||
+      (option as { tree?: unknown }).tree ||
+      kind === UiViewManyKind.categoryList ||
+      kind === "categoryList",
+  );
 }

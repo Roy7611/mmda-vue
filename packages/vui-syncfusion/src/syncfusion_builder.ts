@@ -1,9 +1,11 @@
 import {
   defineAsyncComponent,
+  defineComponent,
   h,
   reactive,
   ref,
   unref,
+  watch,
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
@@ -71,6 +73,53 @@ import { AttachmentPanel } from "./components/AttachmentPanel";
 import { createSyncfusionFieldFactory } from "./syncfusion_field_factory";
 import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "./syncfusion_factory";
 import { syncfusionLayout } from "./syncfusion_layout";
+
+const MmdaSfSearchWord = defineComponent({
+  name: "MmdaSfSearchWord",
+  props: {
+    runtime: { type: Object, required: true },
+    placeholder: { type: String, default: "" },
+    cssClass: { type: String, default: "" },
+    onEnter: { type: Function, default: undefined },
+  },
+  setup(props, { slots }) {
+    const runtime = props.runtime as {
+      searchParam?: { searchWord?: string };
+    };
+    const word = ref(String(runtime.searchParam?.searchWord ?? ""));
+    watch(
+      () => runtime.searchParam?.searchWord,
+      (next) => {
+        const text = String(next ?? "");
+        if (text !== word.value) word.value = text;
+      },
+    );
+    return () =>
+      h(
+        TextBoxComponent as any,
+        {
+          value: word.value,
+          placeholder: props.placeholder,
+          cssClass: props.cssClass,
+          floatLabelType: "Never",
+          showClearButton: true,
+          appendTemplate: "appendTemplate",
+          input: (args: any) => {
+            word.value = args.value ?? "";
+            if (runtime.searchParam) runtime.searchParam.searchWord = word.value;
+          },
+          keydown: (args: any) => {
+            const key = args?.event?.key ?? args?.key;
+            if (key === "Enter") {
+              args?.event?.preventDefault?.();
+              props.onEnter?.();
+            }
+          },
+        },
+        { appendTemplate: slots.appendTemplate },
+      );
+  },
+});
 
 const UI_NAME = "mmda";
 
@@ -830,7 +879,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       if (module) {
         return this.buildModuleBreadcrumb(context, {
           module,
-          label: runtime.many ? "" : context.title,
+          label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
         });
       }
       return h("strong", context.title);
@@ -1036,24 +1085,13 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
           field.renderer(context, field),
         ),
         h(
-          TextBoxComponent as any,
+          MmdaSfSearchWord,
           {
-            value: runtime.searchParam?.searchWord ?? "",
+            runtime,
             placeholder: searchLabel,
             cssClass: "e-small mmda-sf-searchbar__input",
-            floatLabelType: "Never",
-            showClearButton: true,
+            onEnter: submitFuzzySearch,
             appendTemplate: "appendTemplate",
-            input: (args: any) => {
-              runtime.searchParam.searchWord = args.value ?? "";
-            },
-            keydown: (args: any) => {
-              const key = args?.event?.key ?? args?.key;
-              if (key === "Enter") {
-                args?.event?.preventDefault?.();
-                submitFuzzySearch();
-              }
-            },
           },
           { appendTemplate: searchAddons },
         ),

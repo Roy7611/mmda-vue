@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -63,7 +63,7 @@ for (const file of logicFiles) {
   )
   const repository =
     ctorRepo?.[1] ?? toRepository(classMatch[1])
-  const importPath = `../modules/${relative(join(src, 'modules'), file).replaceAll('\\', '/').replace(/\.ts$/, '')}`
+  const importPath = `./modules/${relative(join(src, 'modules'), file).replaceAll('\\', '/').replace(/\.ts$/, '')}`
   logicEntries.push({
     className: classMatch[1],
     repository,
@@ -88,6 +88,5 @@ export async function createRepositoryLogic(repository: string, init: UiLogicIni
 }
 `
 
-mkdirSync(join(src, 'logic'), { recursive: true })
-writeFileSync(join(src, 'logic', 'registry.ts'), `${logicsTs}`)
+writeFileSync(join(src, 'logics.ts'), logicsTs)
 console.log(`indexed ${modelFiles.length} models, ${enumFiles.length} enums, ${logicEntries.length} logics`)

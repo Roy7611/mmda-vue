@@ -123,8 +123,6 @@ export default {
     expandSummary: "Expand summary",
     collapseSummaryBar: "Collapse summary panel",
     expandSummaryBar: "Expand summary panel",
-    collapseTree: "Collapse tree",
-    expandTree: "Expand tree",
   },
   upload: {
     httpFail: "File upload failed (HTTP {status})",

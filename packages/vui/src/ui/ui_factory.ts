@@ -46,16 +46,37 @@ export type { UiTableCellRenderer } from './ui_list'
 
 export interface UiSplitterPane {
   content: VNode
+  /** 初始尺寸，如 `16rem` / `25%`。对应 SF `paneSettings.size`。 */
   size?: string
+  /** 对应 `paneSettings.min`。 */
   min?: string
+  /** 对应 `paneSettings.max`。 */
+  max?: string
+  /** 分隔条上显示折叠/展开图标。对应 `paneSettings.collapsible`。 */
   collapsible?: boolean
+  /** 初始是否已折叠。对应 `paneSettings.collapsed`。 */
+  collapsed?: boolean
+  /** 对应 `paneSettings.resizable`。 */
+  resizable?: boolean
+  cssClass?: string
+}
+
+export interface UiSplitterCollapseEvent {
+  index: number
+  collapsed: boolean
 }
 
 export interface UiSplitterProps {
   orientation?: 'Horizontal' | 'Vertical'
   class?: string
-  /** 收起第一栏（树折叠）。 */
-  collapsedFirst?: boolean
+  width?: string
+  height?: string
+  /** 对应 SF `separatorSize`。 */
+  separatorSize?: number
+  /** 程序化收起第 0 栏（模糊搜索）。不要写 paneSettings.collapsed。 */
+  collapseTick?: number
+  onCollapsed?: (event: UiSplitterCollapseEvent) => void
+  onExpanded?: (event: UiSplitterCollapseEvent) => void
 }
 
 export type UiRenderer<T = any> = (

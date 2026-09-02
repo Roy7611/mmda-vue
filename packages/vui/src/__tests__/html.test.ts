@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { h, nextTick, render } from "vue";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { defineComponent, h, nextTick, ref, render } from "vue";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
 import { UiViewContext } from "../ui/ui_context";
 import { UiViewManyKind } from "../ui/ui_view";
+import { renderTreeView } from "../ui/ui_tree_view";
 import { TestUiBuilder } from "./test_builder";
 
 const metaui = new MetaUi({
@@ -80,9 +81,8 @@ describe("AbstractUiBuilder tree chrome", () => {
     document.body.append(host);
     render(
       new TestUiBuilder().buildTreeListView(context, {
-        showToolbar: false,
-        showSearchbar: false,
-        tree: () => ({
+        listOption: { showToolbar: false, showSearchbar: false },
+        treeOption: () => ({
           data: [{ id: "c1", label: "分类" }],
           class: "mmda-test-tree",
         }),
@@ -99,6 +99,149 @@ describe("AbstractUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
   });
 
+  it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeListView(context, {
+        showTreeSearchBar: true,
+        treeOption: () => ({
+          data: [{ id: "c1", label: "添加剂包装物" }],
+          selected: "c1",
+          selectedNode: { id: "c1", label: "添加剂包装物" },
+          showTreeFooter: true,
+        }),
+      }),
+      host,
+    );
+    expect(host.querySelector(".mmda-breadcrumb")?.textContent).toContain(
+      "添加剂包装物",
+    );
+    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(
+      host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsible"),
+    ).toBe("true");
+    const toggle = host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!;
+    expect(toggle).toBeTruthy();
+    toggle.click();
+    await nextTick();
+    expect(
+      host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
+    ).toBe("true");
+    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(host.querySelector(".mmda-splitter-collapse")).toBeTruthy();
+    host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!.click();
+    await nextTick();
+    expect(
+      host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
+    ).toBeNull();
+    expect(host.querySelector(".mmda-tree-view")).toBeTruthy();
+    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+  });
+
+  it("折叠左树只改布局，不改查询条件", async () => {
+    const search = vi.fn();
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    (context as { search?: () => Promise<unknown> }).search = search;
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeListView(context, {
+        foreignKey: "categoryID",
+        listOption: { showSearchbar: false },
+        treeOption: () => ({
+          data: [{ id: "c1", label: "添加剂包装物" }],
+          selected: "c1",
+          selectedNode: { id: "c1", label: "添加剂包装物" },
+        }),
+      }),
+      host,
+    );
+    host.querySelector<HTMLElement>(".mmda-tree-row")!.click();
+    await nextTick();
+    expect(context.searchParam.queryParams?.categoryID).toBe("c1");
+    const afterSelect = search.mock.calls.length;
+    host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!.click();
+    await nextTick();
+    expect(
+      host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
+    ).toBe("true");
+    expect(context.searchParam.queryParams?.categoryID).toBe("c1");
+    expect(search.mock.calls.length).toBe(afterSelect);
+    expect(host.querySelector(".mmda-breadcrumb")?.textContent).toContain(
+      "添加剂包装物",
+    );
+    host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!.click();
+    await nextTick();
+    expect(
+      host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
+    ).toBeNull();
+    expect(context.searchParam.queryParams?.categoryID).toBe("c1");
+    expect(search.mock.calls.length).toBe(afterSelect);
+  });
+
+  it("点树只带类别 getAll，模糊搜索清外键后按 SearchParam 查全部", async () => {
+    const search = vi.fn();
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    (context as { search?: () => Promise<unknown> }).search = search;
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeListView(context, {
+        foreignKey: "categoryID",
+        treeOption: () => ({
+          data: [{ id: "c1", label: "添加剂包装物" }],
+          selected: "c1",
+          selectedNode: { id: "c1", label: "添加剂包装物" },
+        }),
+      }),
+      host,
+    );
+    host.querySelector<HTMLElement>(".mmda-tree-row")!.click();
+    await nextTick();
+    expect(context.searchParam.queryParams?.categoryID).toBe("c1");
+    expect(context.searchParam.searchWord ?? "").toBe("");
+    expect(search.mock.lastCall?.[1]?.searchAll).not.toBe(true);
+    const input = host.querySelector<HTMLInputElement>(".mmda-searchbar-input")!;
+    expect(input).toBeTruthy();
+    input.value = "螺丝刀";
+    input.dispatchEvent(new Event("change"));
+    await nextTick();
+    expect(context.searchParam.searchWord).toBe("螺丝刀");
+    expect(context.searchParam.queryParams?.categoryID).toBeUndefined();
+    expect(search.mock.lastCall?.[1]?.searchAll).not.toBe(true);
+    host.querySelector<HTMLElement>(".mmda-tree-row")!.click();
+    await nextTick();
+    expect(context.searchParam.searchWord ?? "").toBe("");
+    expect(context.searchParam.queryParams?.categoryID).toBe("c1");
+    expect(search.mock.lastCall?.[1]?.searchAll).not.toBe(true);
+  });
+
   it("buildTreeView 搜索过滤节点，底栏渲染 footer 插槽", async () => {
     const host = document.createElement("div");
     hosts.push(host);
@@ -109,7 +252,7 @@ describe("AbstractUiBuilder tree chrome", () => {
           { id: "1", label: "苹果" },
           { id: "2", label: "香蕉" },
         ],
-        showTreeSearchBar: true,
+        showSearchBar: true,
         showTreeFooter: true,
         footer: () => h("span", { class: "mmda-test-tree-footer" }, "脚"),
       }),
@@ -129,7 +272,7 @@ describe("AbstractUiBuilder tree chrome", () => {
     expect(host.textContent).not.toContain("香蕉");
   });
 
-  it("buildTreeView 无自定义 footer 时显示选中节点文本", () => {
+  it("buildTreeView 无自定义 footer 时显示选中节点文本", async () => {
     const host = document.createElement("div");
     hosts.push(host);
     document.body.append(host);
@@ -140,7 +283,8 @@ describe("AbstractUiBuilder tree chrome", () => {
           { id: "2", label: "香蕉" },
         ],
         selected: "1",
-        showTreeSearchBar: true,
+        selectedNode: { id: "1", label: "苹果" },
+        showSearchBar: true,
         showTreeFooter: true,
       }),
       host,
@@ -148,39 +292,69 @@ describe("AbstractUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-tree-view-footer-label")?.textContent).toBe(
       "苹果",
     );
-    expect(host.querySelector(".mmda-tree-view-collapse")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view-collapse")).toBeFalsy();
+    const rows = host.querySelectorAll<HTMLElement>(".mmda-tree-row");
+    expect(rows[1]).toBeTruthy();
+    rows[1]!.click();
+    await nextTick();
+    expect(host.querySelector(".mmda-tree-view-footer-label")?.textContent).toBe(
+      "香蕉",
+    );
   });
 
-  it("buildTreeView 底栏折叠按钮可隐藏和展开树", async () => {
+  it("buildTreeView 有 header 时替换过滤框，无 header 仍画过滤框", () => {
     const host = document.createElement("div");
     hosts.push(host);
     document.body.append(host);
     render(
       new TestUiBuilder().buildTreeView({
         data: [{ id: "1", label: "苹果" }],
-        showTreeSearchBar: true,
-        showTreeFooter: true,
+        showSearchBar: true,
+        header: () => h("span", { class: "mmda-test-tree-header" }, "顶"),
       }),
       host,
     );
-    expect(host.querySelector(".mmda-tree-view-body")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-search")).toBeTruthy();
-    const toggle = host.querySelector<HTMLButtonElement>(
-      ".mmda-tree-view-collapse",
-    )!;
-    toggle.click();
-    await nextTick();
-    expect(
-      host.querySelector(".mmda-tree-view")?.classList.contains(
-        "mmda-tree-view--collapsed",
-      ),
-    ).toBe(true);
-    expect(host.querySelector(".mmda-tree-view-body")).toBeNull();
-    expect(host.querySelector(".mmda-tree-view-search")).toBeNull();
-    host.querySelector<HTMLButtonElement>(".mmda-tree-view-collapse")!.click();
-    await nextTick();
-    expect(host.querySelector(".mmda-tree-view-body")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-search")).toBeTruthy();
+    expect(host.querySelector(".mmda-test-tree-header")?.textContent).toBe("顶");
+    expect(host.querySelector(".mmda-tree-view-header")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view-search")).toBeFalsy();
+    render(
+      new TestUiBuilder().buildTreeView({
+        data: [{ id: "1", label: "苹果" }],
+        showSearchBar: true,
+      }),
+      host,
+    );
+    expect(host.querySelector(".mmda-tree-view-header")).toBeFalsy();
+    expect(host.querySelector(".mmda-tree-view-search .mmda-factory-input")).toBeTruthy();
+  });
+
+  it("buildTreeView footerContent 渲染选中节点描述，footer 仍优先", () => {
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeView({
+        data: [{ id: "1", label: "苹果" }],
+        selectedNode: { id: "1", label: "苹果", code: "A1" } as any,
+        showTreeFooter: true,
+        footerContent: (node: { code?: string; label: string }) =>
+          h("span", { class: "mmda-test-node-desc" }, `${node.code} ${node.label}`),
+      }),
+      host,
+    );
+    expect(host.querySelector(".mmda-test-node-desc")?.textContent).toBe("A1 苹果");
+    render(
+      new TestUiBuilder().buildTreeView({
+        data: [{ id: "1", label: "苹果" }],
+        selectedNode: { id: "1", label: "苹果" },
+        showTreeFooter: true,
+        footer: () => h("span", { class: "mmda-test-tree-footer" }, "脚"),
+        footerContent: () => h("span", { class: "mmda-test-node-desc" }, "描述"),
+      }),
+      host,
+    );
+    expect(host.querySelector(".mmda-test-tree-footer")?.textContent).toBe("脚");
+    expect(host.querySelector(".mmda-test-node-desc")).toBeFalsy();
   });
 
   it("build 按 viewOptions[view].viewKind 走 tree list", () => {
@@ -196,7 +370,7 @@ describe("AbstractUiBuilder tree chrome", () => {
       viewOptions: {
         index: () => ({
           viewKind: UiViewManyKind.categoryList,
-          tree: () => ({ data: [{ id: "c1", label: "分类" }] }),
+          treeOption: () => ({ data: [{ id: "c1", label: "分类" }] }),
         }),
       },
     } as any;
@@ -226,7 +400,7 @@ describe("AbstractUiBuilder tree chrome", () => {
     context.logic = {
       viewOptions: {
         index: () => ({
-          tree: () => ({ data: [{ id: "c1", label: "分类" }] }),
+          treeOption: () => ({ data: [{ id: "c1", label: "分类" }] }),
         }),
       },
     } as any;
@@ -274,7 +448,7 @@ describe("AbstractUiBuilder tree chrome", () => {
           data: [{ id: "c1", categoryName: "分类" }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
-          showTreeSearchBar: false,
+          showSearchBar: false,
           showTreeFooter: false,
         },
         context,
@@ -322,8 +496,8 @@ describe("AbstractUiBuilder tree chrome", () => {
           data: [{ id: "c1", categoryName: "分类", editable: true }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
-          treeNodeActions: "contextMenu",
-          showTreeSearchBar: false,
+          editMode: "contextMenu",
+          showSearchBar: false,
           showTreeFooter: true,
         },
         context,
@@ -406,8 +580,8 @@ describe("AbstractUiBuilder tree chrome", () => {
           data: [{ id: "c1", categoryName: "分类", editable: true }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
-          treeNodeActions: "contextMenu",
-          showTreeSearchBar: false,
+          editMode: "contextMenu",
+          showSearchBar: false,
           showTreeFooter: false,
         },
         context,
@@ -432,5 +606,112 @@ describe("AbstractUiBuilder tree chrome", () => {
     expect(labels.some((text) => text?.includes("删除") || text?.includes("delete"))).toBe(
       true,
     );
+  });
+
+  it("父级重渲不重拉顶层树", async () => {
+    let loads = 0;
+    const preloader = async () => {
+      loads += 1;
+      return [{ id: "c1", label: "分类", childrenCount: 0 }];
+    };
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    const treeOption = () => ({
+      repository: "MaterialCats",
+      loadMode: "lazy" as const,
+      preloader,
+      fields: {
+        id: "id",
+        label: "label",
+        childrenCount: "childrenCount",
+      },
+      showTreeFooter: false,
+    });
+    const n = ref(0);
+    const Parent = defineComponent({
+      setup() {
+        return () => {
+          n.value;
+          return new TestUiBuilder().buildTreeListView(context, {
+            showTreeSearchBar: false,
+            listOption: { showToolbar: false, showSearchbar: false },
+            treeOption,
+          });
+        };
+      },
+    });
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(h(Parent), host);
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+    expect(loads).toBe(1);
+    n.value += 1;
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+    expect(loads).toBe(1);
+  });
+
+  it("叶子不拉子节点，无 childrenCount 展开才拉", async () => {
+    const loads: string[] = [];
+    const leaf = { id: "leaf", label: "叶", childrenCount: 0 };
+    const unk: { id: string; label: string; children?: unknown[] } = {
+      id: "unk",
+      label: "未知",
+    };
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      renderTreeView(
+        new TestUiBuilder().factory,
+        {
+          loadMode: "lazy",
+          fields: {
+            id: "id",
+            label: "label",
+            children: "children",
+            childrenCount: "childrenCount",
+          },
+          showSearchBar: false,
+          showTreeFooter: false,
+        },
+        async (parent) => {
+          loads.push(parent ? String(parent.id) : "root");
+          return parent ? [] : [leaf, unk];
+        },
+      ),
+      host,
+    );
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+    expect(loads).toEqual(["root"]);
+    const expandOf = (label: string) =>
+      [...host.querySelectorAll(".mmda-tree-row")]
+        .find((row) => row.textContent?.includes(label))
+        ?.querySelector<HTMLButtonElement>(".mmda-tree-expand");
+    expandOf("叶")!.click();
+    await nextTick();
+    await Promise.resolve();
+    expect(loads).toEqual(["root"]);
+    expandOf("未知")!.click();
+    await nextTick();
+    await Promise.resolve();
+    expect(loads).toEqual(["root", "unk"]);
+    expect(unk.children).toEqual([]);
+    expandOf("未知")!.click();
+    await nextTick();
+    await Promise.resolve();
+    expect(loads).toEqual(["root", "unk"]);
   });
 });

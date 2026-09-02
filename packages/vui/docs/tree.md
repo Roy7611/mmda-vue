@@ -22,7 +22,7 @@ export interface UiTreeFields<T = any> {
 }
 
 export interface UiTreeProps<T = any> {
-  data: T[]
+  data?: T[]
   fields?: UiTreeFields<T>
   selectionMode?: 'single' | 'checkbox' | 'none'
   selected?: string | string[]
@@ -41,7 +41,9 @@ export interface UiTreeEmits<T = any> {
 }
 ```
 
-`label` / `icon` / `childrenCount`：字符串当字段名，函数则 `(node) =>` 取值。`childrenCount > 0` 时即使子节点未加载也画展开箭头，不再另加 `hasChildren`。展开走 `onExpand`（可懒加载）。
+`label` / `icon` / `childrenCount`：字符串当字段名，函数则 `(node) =>` 取值。`children` 是子节点数组字段名，已加载的儿子从这里取，懒加载展开后写回这里。`parentId` 是服务端查子节点的外键。
+
+懒加载要不要请求：`children` 已是数组（含 `[]`）不再拉。配了 `childrenCount` 且读到 number 时，`0` 是叶子不拉，`> 0` 才展开再拉。没配 `childrenCount` 则无法判叶子，展开查一次，空也写成 `[]`。展开箭头：有 count 用 count；无 count 且未查过就画，查完 `[]` 再收。展开走 `onExpand`。
 
 `data` 是 `T[]`，不是 `Ref`。接口对着 `h()`，不会自动解包。Logic 里可以 `ref`，调用时传 `.value`。
 
@@ -51,11 +53,16 @@ export interface UiTreeEmits<T = any> {
 
 ```ts
 export interface UiTreeViewProps<T> extends UiTreeProps<T> {
-  showTreeSearchBar?: boolean
+  showSearchBar?: boolean
   showTreeFooter?: boolean
   editable?: boolean
   repository?: string
-  treeNodeActions?: 'hover' | 'contextMenu'
+  editMode?: 'hover' | 'contextMenu'
+  selectedNode?: T
+  header?: () => VNodeChild
+  footerContent?: (node: T) => VNodeChild
+  loadMode?: 'eager' | 'lazy'
+  preloader?: () => T[] | Promise<T[]>
 }
 
 export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
@@ -67,11 +74,13 @@ export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
 }
 ```
 
-- `showTreeSearchBar`：树顶搜索框，走 `factory.input`（皮肤控件），按节点文本本地过滤；点节点仍走 `onNodeSelect`。
-- `showTreeFooter`：树底栏。有 `footer()` 用插槽，否则显示当前选中节点文本；右侧有折叠按钮，可收起整棵树（左树右表时左栏收成细条）。`categoryList` 默认打开。
+- 树顶：`header()` 有内容时画自定义顶栏（`mmda-tree-view-header`），替换内置过滤框。没有 `header` 且 `showSearchBar` 时，走 `factory.input` 本地过滤。左树右表的 `showTreeSearchBar` 在 `UiTreeListViewProps` 上，内部传给树的 `showSearchBar`。点节点仍走 `onNodeSelect`。
+- `showTreeFooter`：树底栏，风格与 `AppUserFooter` 一致。优先级：`footer()` → `footerContent(selectedNode)` → `selectedNode` 的 label。
+- `loadMode`：有 `repository` 时默认 `eager`（一次 `getAll` 整树）。`lazy` 挂载走无参 `preloader()`（只拉顶层）；展开按 `fields.parentId` 查子节点，写回 `fields.children`。
+- `categoryList` 默认打开树顶搜索和底栏。点选节点只给右表 `search()` 过滤，不因 `loading` 整页 `build`。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。左树独立挂载：右表查询不重绘树，展开/选中走皮肤树控件 API。折叠只改布局，不听、不改查询。折叠控件走 `factory.splitter`（Syncfusion 为 `paneSettings.collapsible`）。
 - `editable`：工具条上的添加 / 重命名 / 删除（演示用）。默认不可编辑。
-- `repository`：分类仓库。节点操作用皮肤树控件：默认 `treeNodeActions: 'hover'`，悬停出现添加子节点；`contextMenu` 才启用各皮肤自带 ContextMenu。物料分类树示例开 `treeNodeActions: 'contextMenu'`。菜单按分类模块 `allowRead` / `allowCreate` / `allowEdit` / `allowDelete` 显示：查看、分隔、添加根/子/兄弟、分隔、删除（含子孙）、分隔、编辑、原地重命名。分类模块没有可用权限时回退到当前列表页模块权限。
-- `buildTreeView` 只拼 `factory.input` + `factory.tree` + `factory.button`，不自造树或菜单。左树右表的分隔条走 `factory.splitter`（各皮肤自己的 Splitter）。
+- `repository`：分类仓库。节点操作用皮肤树控件：默认 `editMode: 'hover'`，悬停出现添加子节点；`contextMenu` 才启用各皮肤自带 ContextMenu。物料分类树示例开 `editMode: 'contextMenu'`。菜单按分类模块 `allowRead` / `allowCreate` / `allowEdit` / `allowDelete` 显示：查看、分隔、添加根/子/兄弟、分隔、删除（含子孙）、分隔、编辑、原地重命名。分类模块没有可用权限时回退到当前列表页模块权限。
+- `buildTreeView` 只拼顶栏（`header()` 或 `factory.input`）+ `factory.tree` + 底栏，不自造树或菜单。左树右表的分隔条和折叠走 `factory.splitter`（各皮肤自己的 Splitter / `paneSettings`）。
 
 ## 皮肤
 

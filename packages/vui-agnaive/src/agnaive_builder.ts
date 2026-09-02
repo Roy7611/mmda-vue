@@ -647,7 +647,7 @@ export class AgNaiveUiBuilder extends AbstractUiBuilder {
             : module
               ? this.buildModuleBreadcrumb(context, {
                   module,
-                  label: runtime.many ? '' : context.title,
+                  label: props.breadcrumbLeaf || (runtime.many ? '' : context.title),
                 })
               : h('strong', context.title),
       ]),

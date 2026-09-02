@@ -81,25 +81,33 @@ Logic **只返回选项**，不 `h()`、不调 `factory`。`selectOne` / `select
 
 ```ts
 viewOptions = {
-  index: (ctx) => ({
+  index: () => ({
     viewKind: UiViewManyKind.categoryList,
-    tree: () => ({
-      data: this.treeData.value,
+    foreignKey: 'categoryID',
+    showTreeSearchBar: true,
+    treeOption: () => ({
       repository: 'MaterialCats',
-      fields: { id: 'categoryID', label: 'categoryName', parentId: 'parentCatID' },
-      showTreeSearchBar: true,
-      onTreeRefresh: () => this.reloadCats(),
+      loadMode: 'lazy',
+      preloader: () => this.preloadCats(),
+      editMode: 'contextMenu',
+      fields: {
+        id: 'categoryID',
+        label: 'categoryName',
+        parentId: 'parentCatID',
+        children: 'children',
+        childrenCount: 'childrenCount',
+      },
+      selectedNode: this.currentCategory,
+      footerContent: (cat) => /* 编码 / 名称 / 用途 / 子节点数 */,
       onNodeSelect: (node) => {
         this.currentCategory = node
-        ctx.searchParam.pager.pageNo = 1
-        void ctx.search()
       },
     }),
   }),
 }
 ```
 
-`tree` 是 `UiTreeViewPropsType`（左栏走 `buildTreeView`）。分类数据不要在这个工厂里加载。
+`treeOption` 是 `UiTreeViewPropsType`（左栏走 `buildTreeView`）。`listOption` 是右表，与纯 list 页相同。`showTreeSearchBar` 在左树右表选项上，内部变成树的 `showSearchBar`。`foreignKey` 是列表外键：点树写入后走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉此外键，按 `SearchParam` 查全部。折叠不改查询。不要整页重挂树。有 `repository` 时 TreeView 自己向分类 Logic 取数，不要在列表 Logic 里预载整树。
 
 `UiLogic` 不画控件。自定义单元格用 `setCustomRenderer`，返回的是 VNode，真正的 Input/Table 仍由 `fldFactory` 提供。
 

@@ -1,8 +1,10 @@
 import {
   defineComponent,
   h,
+  onUnmounted,
   ref,
   type Component,
+  type PropType,
   type VNode,
   type VNodeArrayChildren,
   type VNodeChild,
@@ -56,6 +58,8 @@ import {
   collectNodeAndDescendantIds,
   treeIdOf,
   treeLabelFieldName,
+  treeLabelOf,
+  treeParentFieldName,
   type UiTreePropsType,
   type UiTreeViewPropsType,
 } from "./ui_tree";
@@ -109,7 +113,7 @@ import {
   type UiAction,
 } from "./ui_action";
 import type { UiButtonProps } from "./ui_button";
-import type { UiViewContext } from "./ui_context";
+import { UiViewContext } from "./ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./ui_overlay";
 import { DocxFilePreview } from "./components/DocxFilePreview";
 import { MmdaGroupCard } from "./components/GroupCard";
@@ -1214,6 +1218,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     if (isViewMany(view)) {
       const kind = merged.viewKind;
       if (
+        merged.treeOption ||
         merged.tree ||
         kind === UiViewManyKind.categoryList ||
         kind === "categoryList"
@@ -1240,10 +1245,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     context?: UiContext,
   ): VNode {
     const categoryRepo = props.repository;
-    const mode = props.treeNodeActions ?? "hover";
+    const mode = props.editMode ?? "hover";
+    const reloadTick = props.reloadTick ?? { value: 0 };
     const wired: UiTreeViewPropsType<T> = {
       ...props,
-      treeNodeActions: mode,
+      reloadTick,
+      editMode: mode,
       contextMenu:
         mode === "contextMenu" && context && categoryRepo
           ? (node: T) => this.treeCategoryMenu(context, wired, node)
@@ -1257,7 +1264,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         if (context && categoryRepo) {
           void this.openCategoryTreeDialog(
             context,
-            props,
+            wired,
             UiViewOne.Create,
             node,
             "child",
@@ -1267,11 +1274,44 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       onNodeRename: (node, text) => {
         props.onNodeRename?.(node, text);
         if (context && categoryRepo) {
-          void this.renameCategoryTreeNode(context, props, node, text);
+          void this.renameCategoryTreeNode(context, wired, node, text);
         }
       },
     };
-    return renderTreeView(this.factory, wired);
+    const loadChildren =
+      context &&
+      categoryRepo &&
+      (props.preloader || context.app?.meta)
+        ? (parent?: T) => this.loadCategoryTreeNodes(context, wired, parent)
+        : undefined;
+    return renderTreeView(this.factory, wired, loadChildren);
+  }
+
+  protected async loadCategoryTreeNodes<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    parent?: T,
+  ): Promise<T[]> {
+    if (!parent && props.loadMode === "lazy" && props.preloader) {
+      return (await props.preloader()) ?? [];
+    }
+    const repository = props.repository;
+    if (!repository || !context.app?.meta) return props.data ?? [];
+    const catLogic = await this.resolveCategoryTreeLogic(context, repository);
+    const lazy = props.loadMode === "lazy";
+    if (!lazy && !parent) {
+      const page = await catLogic.getAll({
+        pager: { pageNo: 1, pageSize: 1000 },
+      });
+      return (page?.list ?? []) as T[];
+    }
+    const parentField = treeParentFieldName(props.fields);
+    const parentId = parent ? treeIdOf(parent, props.fields) : "";
+    const page = await catLogic.getAll({
+      pager: { pageNo: 1, pageSize: 1000 },
+      queryParams: { [parentField]: parentId },
+    });
+    return (page?.list ?? []) as T[];
   }
 
   protected resolveCategoryTreeAuth<T>(
@@ -1402,23 +1442,25 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     });
   }
 
-  protected async refreshCategoryTree(
+  protected async refreshCategoryTree<T>(
     context: UiContext,
-    props: UiTreeViewPropsType,
+    props: UiTreeViewPropsType<T>,
     logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> },
   ) {
     if (props.onTreeRefresh) {
       await props.onTreeRefresh();
+    }
+    if (props.reloadTick) {
+      props.reloadTick.value += 1;
       return;
     }
-    const listLogic = context.logic as {
-      treeData?: { value?: unknown };
-    };
-    if (!listLogic?.treeData || !logic.getAll) return;
+    if (!logic.getAll) return;
     const page = await logic.getAll({
       pager: { pageNo: 1, pageSize: 1000 },
     });
-    listLogic.treeData.value = page?.list ?? [];
+    if (props.data) {
+      props.data.splice(0, props.data.length, ...((page?.list ?? []) as T[]));
+    }
   }
 
   protected async openCategoryTreeDialog<T>(
@@ -1659,7 +1701,10 @@ export abstract class AbstractUiBuilder implements UiBuilder {
               props.onSearch?.(text);
               if (!props.onSearch) void runtime.search?.();
             },
-            onRefresh: () => void runtime.search?.(),
+            onRefresh: () => {
+              if (props.onRefresh) props.onRefresh();
+              else void runtime.search?.();
+            },
           });
     const toolbar =
       props.showToolbar === false
@@ -1742,81 +1787,14 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     context: UiContext,
     props: UiTreeListViewPropsType<T> = {},
   ): VNode {
-    const treeSpec =
-      typeof props.tree === "function" ? props.tree() : props.tree;
-    if (!treeSpec) return this.buildListView(context, props);
-    const { runtime, toolbar, searchbar, list, paginator } =
-      this.listViewParts(context, props);
-    const treeWidth =
-      typeof props.treeWidth === "number"
-        ? `${props.treeWidth}px`
-        : (props.treeWidth ?? "16rem");
-    const self = this;
-    return h(
-      defineComponent({
-        name: "MmdaTreeListView",
-        setup() {
-          const collapsed = ref(false);
-          return () => {
-            const spec =
-              typeof props.tree === "function" ? props.tree() : props.tree;
-            const body = self.factory.splitter(
-              [
-                {
-                  content: self.buildAside(
-                    self.buildTreeView(
-                      {
-                        ...spec!,
-                        showTreeSearchBar:
-                          spec!.showTreeSearchBar ?? spec!.showSearchbar ?? true,
-                        showTreeFooter: spec!.showTreeFooter ?? true,
-                        onTreeCollapsed: (next) => {
-                          collapsed.value = next;
-                        },
-                      },
-                      context,
-                    ),
-                    { class: "mmda-tree-list-aside" },
-                  ),
-                  size: collapsed.value ? "3rem" : treeWidth,
-                  min: collapsed.value ? "3rem" : "12rem",
-                },
-                {
-                  content: self.buildMain(list, {
-                    class: "mmda-list-scroll",
-                    style: { height: "100%", minWidth: 0, overflow: "hidden" },
-                  }),
-                },
-              ],
-              {
-                orientation: "Horizontal",
-                class: "mmda-tree-list-splitter",
-                collapsedFirst: collapsed.value,
-              },
-            );
-            return self.buildContainer(
-              [
-                toolbar ? self.buildHeader(toolbar) : null,
-                !toolbar && searchbar ? self.buildHeader(searchbar) : null,
-                body,
-                paginator ? self.buildFooter(paginator) : null,
-              ].filter(Boolean) as VNode[],
-              {
-                class: "mmda-list-view mmda-tree-list-view",
-                role: runtime.view,
-                style: {
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
-                  minHeight: 0,
-                  overflow: "hidden",
-                },
-              },
-            );
-          };
-        },
-      }),
-    );
+    const { treeOption, listOption } = resolveTreeListOptions(props);
+    const treeSpec = typeof treeOption === "function" ? treeOption() : treeOption;
+    if (!treeSpec) return this.buildListView(context, listOption);
+    return h(MmdaTreeListView, {
+      builder: this,
+      context,
+      spec: props,
+    });
   }
 
   buildCustomView<T = any>(
@@ -2409,6 +2387,271 @@ export class UiActionFactory {
     action.role = configured ? String(configured) : "warning";
     return this.fromEntity(context, action);
   }
+}
+
+function resolveTreeListOptions<T>(props: UiTreeListViewPropsType<T>) {
+  const treeOption =
+    props.treeOption ?? (props as { tree?: typeof props.treeOption }).tree;
+  const extras = props as UiTreeListViewPropsType<T> & {
+    showToolbar?: boolean;
+    showSearchbar?: boolean;
+    showBreadcrumb?: boolean;
+    showActions?: boolean;
+  };
+  return {
+    treeOption,
+    listOption: {
+      ...(props.listOption ?? {}),
+      showToolbar: props.listOption?.showToolbar ?? extras.showToolbar,
+      showSearchbar: props.listOption?.showSearchbar ?? extras.showSearchbar,
+      showBreadcrumb: props.listOption?.showBreadcrumb ?? extras.showBreadcrumb,
+      showActions: props.listOption?.showActions ?? extras.showActions,
+    },
+  };
+}
+
+function treeListQuery(context: UiContext) {
+  const runtime = context as UiContext & {
+    getQueryParam?: () => Record<string, unknown>;
+    searchParam: { queryParams?: Record<string, unknown> };
+  };
+  return (
+    runtime.getQueryParam?.() ??
+    ((runtime.searchParam.queryParams ??= {}) as Record<string, unknown>)
+  );
+}
+
+function selectedCategoryNode<T>(
+  spec: UiTreeViewPropsType<T> | undefined,
+  context: UiContext,
+): T | undefined {
+  if (spec?.selectedNode) return spec.selectedNode;
+  return (context as { logic?: { currentCategory?: T } }).logic
+    ?.currentCategory;
+}
+
+function hasRightSearch(context: UiContext) {
+  const param = context.searchParam;
+  if (String(param?.searchWord ?? "").trim()) return true;
+  if (param?.searchParams && Object.keys(param.searchParams).length > 0) {
+    return true;
+  }
+  if (
+    context.filters?.some(
+      (filter) => (filter.selectedConditions?.value?.length ?? 0) > 0,
+    )
+  ) {
+    return true;
+  }
+  if (
+    context.searchFields?.some((field) => {
+      const value = field.searchVal?.value;
+      return value != null && value !== "";
+    })
+  ) {
+    return true;
+  }
+  return Boolean(context.customSearchFields?.some((field) => field.hasVal));
+}
+
+const MmdaTreeListTreePane = defineComponent({
+  name: "MmdaTreeListTreePane",
+  props: {
+    builder: { type: Object, required: true },
+    context: { type: Object as PropType<UiContext>, required: true },
+    spec: { type: Object as PropType<UiTreeListViewPropsType>, required: true },
+    reloadTick: { type: Object, required: true },
+    onPicked: { type: Function, required: true },
+  },
+  setup(props) {
+    return () => {
+      const self = props.builder as AbstractUiBuilder;
+      const viewProps = props.spec;
+      const { treeOption } = resolveTreeListOptions(viewProps);
+      const spec =
+        typeof treeOption === "function" ? treeOption() : treeOption;
+      return self.buildAside(
+        self.buildTreeView(
+          {
+            ...spec!,
+            reloadTick: props.reloadTick as { value: number },
+            showSearchBar:
+              spec!.showSearchBar ?? viewProps.showTreeSearchBar ?? true,
+            showTreeFooter: spec!.showTreeFooter ?? true,
+            onNodeSelect: (node: unknown) => {
+              spec!.onNodeSelect?.(node);
+              props.onPicked(node);
+            },
+          },
+          props.context,
+        ),
+        { class: "mmda-tree-list-aside" },
+      );
+    };
+  },
+});
+
+const MmdaTreeListView = defineComponent({
+  name: "MmdaTreeListView",
+  props: {
+    builder: { type: Object, required: true },
+    context: { type: Object as PropType<UiContext>, required: true },
+    spec: { type: Object as PropType<UiTreeListViewPropsType>, required: true },
+  },
+  setup(props) {
+    const reloadTick = ref(0);
+    const pickedLabel = ref("");
+
+    const runtimeOf = () =>
+      props.context as UiContext & {
+        search?: (param?: unknown) => Promise<unknown>;
+        searchParam: { pager?: { pageNo?: number } };
+      };
+
+    const latestSpec = () => {
+      const { treeOption } = resolveTreeListOptions(props.spec);
+      return typeof treeOption === "function" ? treeOption() : treeOption;
+    };
+
+    const applyForeignKey = (scoped: boolean, node?: unknown) => {
+      const foreignKey = props.spec.foreignKey;
+      if (!foreignKey) return;
+      const query = treeListQuery(props.context);
+      if (!scoped) {
+        delete query[foreignKey];
+        return;
+      }
+      const spec = latestSpec();
+      const picked = node ?? selectedCategoryNode(spec, props.context);
+      const id = picked != null ? treeIdOf(picked, spec?.fields) : "";
+      if (id) query[foreignKey] = id;
+      else delete query[foreignKey];
+    };
+
+    const runtime = runtimeOf();
+    const origSearch = runtime.search?.bind(runtime);
+    if (origSearch) {
+      runtime.search = (param, options) => {
+        if (hasRightSearch(props.context)) applyForeignKey(false);
+        return origSearch(param, options);
+      };
+    }
+    onUnmounted(() => {
+      runtime.search = origSearch;
+    });
+
+    const onPicked = (node: unknown) => {
+      const spec = latestSpec();
+      const picked = Array.isArray(node) ? node[0] : node;
+      if (picked != null) {
+        pickedLabel.value = treeLabelOf(picked, spec?.fields);
+      }
+      if (!props.spec.foreignKey || picked == null) return;
+      props.context.clearFilters();
+      applyForeignKey(true, picked);
+      const runtimeCtx = runtimeOf();
+      if (runtimeCtx.searchParam.pager) {
+        runtimeCtx.searchParam.pager.pageNo = 1;
+      }
+      void runtimeCtx.search?.();
+    };
+
+    return () => {
+      const self = props.builder as AbstractUiBuilder;
+      const context = props.context;
+      const paged = context.model as {
+        list?: unknown[];
+        pagination?: { recordCount?: number };
+      };
+      if (Array.isArray(paged.list)) void paged.list.length;
+      if (paged.pagination) void paged.pagination.recordCount;
+      const viewProps = props.spec;
+      const { listOption } = resolveTreeListOptions(viewProps);
+      const { runtime, searchbar, list, paginator } = (
+        self as unknown as {
+          listViewParts: AbstractUiBuilder["listViewParts"];
+        }
+      ).listViewParts(context, {
+        ...listOption,
+        showToolbar: false,
+      });
+      const treeWidth =
+        typeof viewProps.treeWidth === "number"
+          ? `${viewProps.treeWidth}px`
+          : (viewProps.treeWidth ?? "16rem");
+      const toolbar =
+        listOption.showToolbar === false
+          ? null
+          : self.buildModuleToolbar(
+              context,
+              {
+                showBreadcrumb: listOption.showBreadcrumb ?? true,
+                showActions: listOption.showActions ?? true,
+                breadcrumbLeaf:
+                  pickedLabel.value || selectedTreeLabel(latestSpec()),
+              },
+              {
+                center: () => (searchbar ? [searchbar] : []),
+              },
+            );
+      const body = self.factory.splitter(
+        [
+          {
+            content: h(MmdaTreeListTreePane, {
+              builder: self,
+              context,
+              spec: viewProps,
+              reloadTick,
+              onPicked,
+            }),
+            size: treeWidth,
+            min: "12rem",
+            collapsible: true,
+            cssClass: "mmda-tree-list-tree-pane",
+          },
+          {
+            content: self.buildMain(list, {
+              class: "mmda-list-scroll",
+              style: { height: "100%", minWidth: 0, overflow: "hidden" },
+            }),
+            min: "16rem",
+          },
+        ],
+        {
+          orientation: "Horizontal",
+          class: "mmda-tree-list-splitter",
+          separatorSize: 8,
+        },
+      );
+      return self.buildContainer(
+        [
+          toolbar ? self.buildHeader(toolbar) : null,
+          !toolbar && searchbar ? self.buildHeader(searchbar) : null,
+          body,
+          paginator ? self.buildFooter(paginator) : null,
+        ].filter(Boolean) as VNode[],
+        {
+          class: "mmda-list-view mmda-tree-list-view",
+          role: runtime.view,
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            minHeight: 0,
+            overflow: "hidden",
+          },
+        },
+      );
+    };
+  },
+});
+
+function selectedTreeLabel<T>(
+  spec?: UiTreeViewPropsType<T>,
+): string {
+  if (!spec) return "";
+  if (spec.selectedNode) return treeLabelOf(spec.selectedNode, spec.fields);
+  return "";
 }
 
 export { unimplemented };

@@ -1159,9 +1159,16 @@ html.e-dark-mode .mmda-sf-dropup {
 }
 
 .mmda-sf-maincontent .mmda-tree-list-view .e-pane {
-  min-width: 0;
   height: 100%;
   overflow: hidden;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view .e-pane.mmda-tree-list-tree-pane:not(.e-collapsed) {
+  min-width: 12rem;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view .e-pane:not(.mmda-tree-list-tree-pane) {
+  min-width: 0;
 }
 
 .mmda-sf-maincontent .mmda-tree-list-view .e-pane .mmda-list-scroll {
@@ -1180,12 +1187,9 @@ html.e-dark-mode .mmda-sf-dropup {
 }
 
 .mmda-sf-maincontent .mmda-tree-view-footer {
-  background: color-mix(
-    in srgb,
-    rgb(var(--color-sf-on-surface)) 8%,
-    var(--mmda-surface-card)
-  );
-  color: rgb(var(--color-sf-on-surface));
+  background: var(--mmda-surface-card, #fff);
+  border-top-color: var(--mmda-content-border-color, #e5e7eb);
+  color: var(--mmda-text-color);
 }
 
 .mmda-sf-maincontent .mmda-list-view .e-grid {
@@ -1468,8 +1472,10 @@ html.e-dark-mode .mmda-sf-dropup {
   height: 100% !important;
 }
 
+/* block：与单元格里的 inline <output> 共用同一行盒，避免
+ * inline-block + overflow:hidden 把基线改成盒子底边、文字偏上。 */
 .e-grid.mmda-sf-table .mmda-table-link {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   padding: 0;
   overflow: hidden;
@@ -1478,6 +1484,7 @@ html.e-dark-mode .mmda-sf-dropup {
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: inherit;
   cursor: pointer;
 }
 
@@ -2299,7 +2306,8 @@ html.mmda-dark .mmda-sf-maincontent {
 }
 
 html.mmda-dark #mmda-sf-dock-sidebar.e-sidebar,
-html.mmda-dark .mmda-sf-sidebar__footer {
+html.mmda-dark .mmda-sf-sidebar__footer,
+html.mmda-dark .mmda-sf-maincontent .mmda-tree-view-footer {
   background: var(--mmda-surface-card, #211f26);
   border-color: var(--mmda-content-border-color, #49454f);
   color: var(--mmda-text-color, #e6e1e5);

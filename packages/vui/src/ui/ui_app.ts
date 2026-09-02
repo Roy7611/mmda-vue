@@ -64,6 +64,8 @@ export interface ModuleToolbarProps {
   showBreadcrumb?: boolean;
   showActions?: boolean;
   showSearchBox?: boolean;
+  /** 模块链后再加一级，例如选中的分类名。 */
+  breadcrumbLeaf?: string;
   actions?: Record<string, (...args: any[]) => any>;
 }
 

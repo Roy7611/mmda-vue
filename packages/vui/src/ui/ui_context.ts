@@ -668,7 +668,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
     }
   }
 
-  resetFilters(): boolean | Promise<boolean> {
+  clearFilters() {
     this.searchParam.searchWord = "";
     this.searchParam.searchParams = undefined;
     for (const filter of this.filters) filter.selectedConditions.value = [];
@@ -684,6 +684,10 @@ export class UiViewContext<E extends object = Record<string, any>> {
     this.syncQuickFilters();
     this.listLayoutRev.value += 1;
     schedulePersistListPack(this);
+  }
+
+  resetFilters(): boolean | Promise<boolean> {
+    this.clearFilters();
     return true;
   }
 

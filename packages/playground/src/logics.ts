@@ -97,6 +97,7 @@ export class CatalogLogic extends ProductLogic {
     this.viewOptions = {
       index: (ctx) => ({
         viewKind: UiViewManyKind.categoryList,
+        showTreeSearchBar: true,
         tree: () => ({
           data: categoryRows,
           fields: {
@@ -106,7 +107,6 @@ export class CatalogLogic extends ProductLogic {
             icon: "icon",
           },
           showIcon: true,
-          showTreeSearchBar: true,
           showTreeFooter: true,
           selected: this.currentCategoryId,
           onNodeSelect: (node: Category | Category[]) => {

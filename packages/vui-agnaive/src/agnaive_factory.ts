@@ -397,9 +397,11 @@ export function createAgNaiveUiFactory(): UiFactory {
         {
           class: ['mmda-agnaive-splitter', props?.class].filter(Boolean).join(' '),
           direction: props?.orientation === 'Vertical' ? 'vertical' : 'horizontal',
-          defaultSize: props?.collapsedFirst ? 48 : parseCssSize(panes[0]?.size) ?? 256,
-          min: props?.collapsedFirst ? 48 : parseCssSize(panes[0]?.min) ?? 192,
-          disabled: props?.collapsedFirst,
+          defaultSize: panes[0]?.collapsed
+            ? 0
+            : (parseCssSize(panes[0]?.size) ?? 256),
+          min: parseCssSize(panes[0]?.min) ?? 192,
+          max: parseCssSize(panes[0]?.max),
         },
         {
           1: () => panes[0]?.content,

@@ -39,7 +39,9 @@ Factory 用短名（`list`、`tree`、`ganttChart`）。Builder 组合用 `XxxVi
 | `gantt` | `buildGanttView` |
 | `scheduler` | 后做 |
 
-`UiTreeListViewProps` 在 listView 上再加 `tree`（`UiTreeViewPropsType` 或工厂）和 `treeWidth`。左栏走 `buildTreeView`：默认打开树顶搜索和树底栏；`footer` 在 `tree` 上设。搜索框用 `factory.input`。
+`UiTreeListViewProps` 三块分开：`treeOption`（左树，`UiTreeViewPropsType` 或工厂）、`listOption`（右表，与 `buildListView` 同一套）、`foreignKey`（列表外键，对应 `treeOption.fields.id`）。左栏走 `buildTreeView`：默认打开树顶搜索和树底栏。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。折叠只改布局，不听、不改查询。左栏 `collapsible: true`，折叠用皮肤 Splitter 的 `paneSettings`（[SF expand-collapse](https://ej2.syncfusion.com/vue/documentation/splitter/expand-collapse)）。
+
+`UiSplitterPane` 对齐 SF `paneSettings`：`size` / `min` / `max` / `collapsible` / `collapsed` / `resizable` / `cssClass`。
 
 vui **不** import `primevue/*` 或 `@syncfusion/*`。皮肤包实现 `UiFactory` 与 `UiOverlay`。
 
@@ -50,7 +52,7 @@ vui **不** import `primevue/*` 或 `@syncfusion/*`。皮肤包实现 `UiFactory
 | `build` | 按 `viewOptions` + `viewKind` 分发整页 |
 | `buildListView` | 列表：工具栏 + 搜索 + 表 + 分页 |
 | `buildTree` | 薄包 `factory.tree` |
-| `buildTreeView` | `factory.input` + `factory.tree` + 底栏 `factory.button` |
+| `buildTreeView` | 顶栏（`header()` 或 `factory.input`）+ `factory.tree` + 底栏 |
 | `buildTreeListView` | 工具栏 + `factory.splitter`（左树右表）+ 分页 |
 | `buildGanttView` | 甘特（皮肤实现） |
 | `buildView` | 单对象：工具栏 + 分组表单 |

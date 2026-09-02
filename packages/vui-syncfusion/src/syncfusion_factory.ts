@@ -9,6 +9,7 @@ import {
   toRaw,
   unref,
   watch,
+  type PropType,
   type VNode,
 } from 'vue'
 import {
@@ -34,6 +35,8 @@ import type {
   UiListPropsType,
   UiPaginatorPropsType,
   UiSlots,
+  UiSplitterPane,
+  UiSplitterProps,
 } from '@mmda/vui'
 import { gridFreezeOf, isPersistableListColumn, readStoredPageSize, createIconVNode, MATERIAL_SYMBOL_PREFIX, persistListPack, type UiViewContext } from '@mmda/vui'
 import { resolveFieldUnit } from './syncfusion_field_factory'
@@ -697,6 +700,106 @@ export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
   syncMetaUiFromGridColumns(ej2Grid, metaui)
   await persistListPack(context)
 }
+
+const paneSettingsKey = (panes: UiSplitterPane[]) =>
+  JSON.stringify(
+    panes.map((pane) => ({
+      size: pane.size,
+      min: pane.min,
+      max: pane.max,
+      collapsible: pane.collapsible,
+      resizable: pane.resizable,
+      cssClass: pane.cssClass,
+    })),
+  )
+
+const toPaneSettings = (panes: UiSplitterPane[]) =>
+  panes.map((pane) => ({
+    size: pane.size,
+    min: pane.min,
+    max: pane.max,
+    collapsible: pane.collapsible,
+    collapsed: false,
+    resizable: pane.resizable,
+    cssClass: pane.cssClass,
+  }))
+
+/** EJ2 collapsed/expanded 的 index 是 `[prev, next]`，不能 Number(数组)。 */
+export const splitterEventIndex = (args?: {
+  index?: number | number[]
+}) => {
+  const raw = args?.index
+  if (Array.isArray(raw)) return Number(raw[0] ?? 0)
+  return Number(raw ?? 0)
+}
+
+/** paneSettings 只在尺寸配置变时更新。collapsed 不写回 EJ2，否则 search 重渲会把右栏算成 0。 */
+const MmdaSfSplitter = defineComponent({
+  name: 'MmdaSfSplitter',
+  props: {
+    panes: { type: Array as PropType<UiSplitterPane[]>, required: true },
+    orientation: { type: String as PropType<UiSplitterProps['orientation']> },
+    width: { type: String, default: '100%' },
+    height: { type: String, default: '100%' },
+    separatorSize: { type: Number, default: undefined },
+    cssClass: { type: String, default: '' },
+    collapseTick: { type: Number, default: 0 },
+    onCollapsed: { type: Function as PropType<UiSplitterProps['onCollapsed']> },
+    onExpanded: { type: Function as PropType<UiSplitterProps['onExpanded']> },
+  },
+  setup(props) {
+    const splitterRef = ref<{
+      collapse?: (index: number) => void
+      ej2Instances?: { collapse?: (index: number) => void }
+    } | null>(null)
+    const paneSettings = ref(toPaneSettings(props.panes))
+    watch(
+      () => paneSettingsKey(props.panes),
+      () => {
+        paneSettings.value = toPaneSettings(props.panes)
+      },
+    )
+    watch(
+      () => props.collapseTick,
+      (tick, prev) => {
+        if (!prev || tick <= prev) return
+        const inst = splitterRef.value?.ej2Instances ?? splitterRef.value
+        inst?.collapse?.(0)
+      },
+    )
+    const emitCollapse = (collapsed: boolean, args?: { index?: number | number[] }) => {
+      const event = { index: splitterEventIndex(args), collapsed }
+      if (collapsed) props.onCollapsed?.(event)
+      else props.onExpanded?.(event)
+    }
+    return () =>
+      h(
+        SplitterComponent as any,
+        {
+          ref: splitterRef,
+          orientation: props.orientation === 'Vertical' ? 'Vertical' : 'Horizontal',
+          width: props.width,
+          height: props.height,
+          separatorSize: props.separatorSize,
+          cssClass: ['mmda-sf-splitter', props.cssClass].filter(Boolean).join(' '),
+          paneSettings: paneSettings.value,
+          // 只走 Vue 监听。collapsed/expanded 传函数会被 EJ2 当成 pane.collapsed 为真，开局整栏收起。
+          onCollapsed: (args: { index?: number | number[] }) =>
+            emitCollapse(true, args),
+          onExpanded: (args: { index?: number | number[] }) =>
+            emitCollapse(false, args),
+        },
+        {
+          default: () =>
+            props.panes.map((pane) =>
+              h('div', { class: 'mmda-sf-splitter-pane', style: { height: '100%' } }, [
+                pane.content,
+              ]),
+            ),
+        },
+      )
+  },
+})
 
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   patchChoiceFilter()
@@ -2276,28 +2379,17 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         slots,
       ),
     splitter: (panes, props) =>
-      h(
-        SplitterComponent as any,
-        {
-          orientation: props?.orientation === 'Vertical' ? 'Vertical' : 'Horizontal',
-          width: '100%',
-          height: '100%',
-          cssClass: ['mmda-sf-splitter', props?.class].filter(Boolean).join(' '),
-          paneSettings: panes.map((pane, index) => ({
-            size:
-              index === 0 && props?.collapsedFirst ? '3rem' : pane.size,
-            min: index === 0 && props?.collapsedFirst ? '3rem' : pane.min,
-            collapsible: pane.collapsible,
-            collapsed: index === 0 && props?.collapsedFirst,
-          })),
-        },
-        () =>
-          panes.map((pane) =>
-            h('div', { class: 'mmda-sf-splitter-pane', style: { height: '100%' } }, [
-              pane.content,
-            ]),
-          ),
-      ),
+      h(MmdaSfSplitter, {
+        panes,
+        orientation: props?.orientation,
+        width: props?.width,
+        height: props?.height,
+        separatorSize: props?.separatorSize,
+        cssClass: props?.class,
+        collapseTick: props?.collapseTick,
+        onCollapsed: props?.onCollapsed,
+        onExpanded: props?.onExpanded,
+      }),
     searchForRelative: (props, slots) =>
       factory.dialog(
         {

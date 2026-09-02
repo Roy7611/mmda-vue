@@ -24,7 +24,7 @@ searchParam
 └─ searchParams   POST body：表头复杂条件
 ```
 
-`UiBuildContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchEntities()`：没有 `searchParams` 走 GET `getAll`，有则 POST `searchAll`。规则在 core 的 [models](../../core/docs/models.md) / [net](../../core/docs/net.md)。
+`UiBuildContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchEntities()`：没有 `searchParams` 走 GET `getAll`，有则 POST `searchAll`。左树右表例外：点树只 `getAll`（类别外键，不带 `SearchParam`）；右侧模糊搜索和字段过滤清外键后走同一套 `searchEntities`。规则在 core 的 [models](../../core/docs/models.md) / [net](../../core/docs/net.md)。
 
 ## 工具栏
 

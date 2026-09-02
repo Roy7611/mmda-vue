@@ -156,8 +156,6 @@ export default {
     expandSummary: "展开右侧",
     collapseSummaryBar: "收起右侧栏",
     expandSummaryBar: "展开右侧栏",
-    collapseTree: "收起树",
-    expandTree: "展开树",
   },
   upload: {
     httpFail: "文件上传失败（HTTP {status}）",

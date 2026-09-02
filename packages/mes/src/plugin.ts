@@ -1,6 +1,6 @@
 import { HomeView } from './views/HomeView'
 import { Custompages } from './views/PlaceholderViews'
-import { LOGIC_LOADERS } from './logic/registry'
+import { LOGIC_LOADERS } from './logics'
 import GanntView from './components/GanntView/GanntView'
 import ProjectGanttView from './components/ProjectGanntView/ProjectGanttView'
 
