@@ -95,7 +95,7 @@ describe("default VUI layouts", () => {
     const toolbar = host.querySelector<HTMLElement>(".mmda-page-toolbar")!;
     const regions = host.querySelector<HTMLElement>(".mmda-page-regions")!;
     const main = host.querySelector<HTMLElement>(".mmda-page-main")!;
-    expect(page.style.overflow).toBe("hidden");
+    expect(page.style.overflow).toBe("auto");
     expect(toolbar.style.position).toBe("sticky");
     expect(regions.classList.contains("mmda-page-regions--with-summary")).toBe(
       true,
@@ -327,6 +327,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     ).toBe("1");
     expect(host.querySelector(".mmda-page-main .mmda-group.primary")).not.toBeNull();
     expect(host.querySelector(".mmda-page-main .mmda-group.master")).not.toBeNull();
+    expect(host.querySelector(".mmda-page-main > .mmda-group")).not.toBeNull();
     expect(host.querySelector(".mmda-page-main fieldset.mmda-group")).toBeNull();
     expect(host.querySelector(".mmda-page-summary .mmda-group.secondary")).not.toBeNull();
     expect(host.querySelector("form")).toBeNull();

@@ -11,6 +11,8 @@
   --mmda-surface-group: #ffffff;
   --mmda-content-border-color: #cac4cf;
   --mmda-border-radius-lg: 12px;
+  --mmda-icon-button-size: 1.75rem;
+  --mmda-page-end-space: 3rem;
   --mmda-primary-color: #6750a4;
   --mmda-primary-soft: #e9ddff;
   --mmda-on-primary: #ffffff;
@@ -658,9 +660,21 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   --mmda-field-label-col: 8rem;
   display: flex;
   flex-direction: column;
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
+  padding-bottom: var(--mmda-page-end-space, 3rem);
+}
+
+/* 主区多卡叠放：竖向不压扁，横向吃满主区（避免 min-width:auto 把网格撑爆） */
+.mmda-page-main > .mmda-group {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .mmda-page-summary {
   --mmda-field-label-col: 7rem;
@@ -755,7 +769,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   white-space: nowrap;
 }
 
-/* —— 详情页：scroll + 左右分区合一；右侧可折叠（宽度滑动） —— */
+/* —— 详情页：左右分区合一，整页滚动；折叠钮 sticky 钉在视口高度 —— */
 .mmda-page-regions {
   position: relative;
   display: grid;
@@ -763,20 +777,20 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   gap: 1rem;
   align-items: start;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .mmda-page-regions--with-summary {
   --mmda-page-summary-width: 20rem;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto;
   gap: 1rem;
-  align-items: stretch;
+  align-items: start;
   transition: gap 0.28s ease;
 }
 
 .mmda-page-regions--with-summary:has(> .mmda-page-footer) {
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
 }
 
 .mmda-page-regions--with-summary.is-summary-collapsed {
@@ -790,14 +804,16 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 
 /*
  * 右栏：固定内容宽 + 外层 width 动画，overflow 裁切 → 横向滑入/滑出。
- * 不把 toggle 放进 aside，避免 top:50% 随栏高变化上下跳。
+ * 高度跟内容走（不限高），所以 hidden 只切横向，不会自己出竖向滚动条。
  */
 .mmda-page-summary {
   box-sizing: border-box;
+  grid-column: 2;
+  grid-row: 1;
   width: var(--mmda-page-summary-width, 20rem);
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   transition: width 0.28s ease;
   pointer-events: auto;
 }
@@ -814,18 +830,22 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   width: var(--mmda-page-summary-width, 20rem);
   min-width: var(--mmda-page-summary-width, 20rem);
   min-height: 0;
+  padding-bottom: var(--mmda-page-end-space, 3rem);
 }
 
 /*
- * 锚在 .mmda-page-regions（不滚动）；主区/概要各自内滚，按钮纵向位置固定。
- * 始终贴页面内容区最右侧，不随概要栏宽度移动。
+ * 贴内容区最右侧。sticky 钉在视口约 30vh，整页滚时位置不变。
+ * 不再靠主区内滚来“钉住”。
  */
 .mmda-page-summary-toggle {
-  position: absolute;
-  top: 30%;
-  right: 0;
+  position: sticky;
+  top: 30vh;
   z-index: 4;
   display: inline-flex;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
   align-items: center;
   justify-content: center;
   width: 1.15rem;
@@ -841,7 +861,6 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   );
   color: var(--mmda-on-primary-container, #21005d);
   box-shadow: -1px 0 4px rgb(0 0 0 / 8%);
-  transform: translateY(-50%);
   cursor: pointer;
 }
 
@@ -918,6 +937,45 @@ article.mmda-group {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+}
+
+/*
+ * 分区角标：左上圆角斜角三角形。
+ * primary / tails → 主色；summary / 附件 → 次色。
+ */
+.mmda-group.primary,
+.mmda-group.secondary {
+  --mmda-group-mark: var(--mmda-primary-color, #6750a4);
+  --mmda-group-mark-size: 1.85rem;
+  position: relative;
+}
+
+.mmda-group.secondary {
+  --mmda-group-mark: var(--mmda-secondary-color, #625b71);
+}
+
+.mmda-group.primary::before,
+.mmda-group.secondary::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: var(--mmda-group-mark-size);
+  height: var(--mmda-group-mark-size);
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    var(--mmda-group-mark) 50%,
+    transparent 50.5%
+  );
+  opacity: 0.8;
+  border-start-start-radius: var(--mmda-border-radius-lg, 12px);
+}
+
+.mmda-group.primary .mmda-group-title,
+.mmda-group.secondary .mmda-group-title {
+  padding-inline-start: 0.7rem;
 }
 
 /* html 外壳自带留白；Prime/SF Card 走官方 header/content padding，勿在此覆盖 */
@@ -1041,6 +1099,7 @@ article.mmda-group.is-collapsed > .mmda-group-header {
 .mmda-group > .mmda-group-header,
 .mmda-group .mmda-group-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 0.5rem;
 }
@@ -1067,12 +1126,30 @@ article.mmda-group.is-collapsed > .mmda-group-header {
 
 .mmda-group-actions .mmda-group-action,
 .mmda-group-actions .mmda-button.mmda-group-action {
-  min-width: 1.75rem;
-  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  aspect-ratio: 1;
+  min-width: var(--mmda-icon-button-size, 1.75rem);
+  min-height: var(--mmda-icon-button-size, 1.75rem);
   padding: 0.25rem;
   border: none;
+  border-radius: 50%;
   background: transparent;
   box-shadow: none;
+  font-size: 1rem;
+}
+
+.mmda-group-actions .mmda-group-action:hover,
+.mmda-group-actions .mmda-button.mmda-group-action:hover,
+.mmda-group-actions .mmda-group-action:focus-visible,
+.mmda-group-actions .mmda-button.mmda-group-action:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--mmda-on-surface-variant, #49454f) 12%,
+    transparent
+  );
 }
 
 .mmda-group .mmda-group-title {

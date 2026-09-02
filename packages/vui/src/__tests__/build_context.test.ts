@@ -138,4 +138,140 @@ describe('UiBuildContext', () => {
     expect(postBlob).toHaveBeenCalled()
     expect(ctx.templates[0].templateID).toBe('t1')
   })
+
+  it('批量删除只提交 deletable 行：一条 deleteOne，多条 deleteAll', async () => {
+    const deleteOne = vi.fn(async () => true)
+    const deleteMany = vi.fn(async () => true)
+    const logic = new OrderLogic(o => o as any, {
+      metaUiService: { getApiClient: () => ({}) } as any,
+      repository: 'Orders',
+      meta: { metaui },
+    })
+    logic.delete = deleteOne
+    logic.deleteAll = deleteMany
+    const ctx = new UiBuildContext({
+      model: { list: [] } as any,
+      metaui,
+      view: 'index',
+      logic,
+    })
+    ctx.search = vi.fn(async () => undefined) as any
+
+    ctx.selectedItems = [
+      { id: '1', deletable: true },
+      { id: '2', deletable: false },
+    ]
+    await ctx.deleteAll(['1', '2'])
+    expect(deleteOne).toHaveBeenCalledWith('1')
+    expect(deleteMany).not.toHaveBeenCalled()
+
+    deleteOne.mockClear()
+    ctx.selectedItems = [
+      { id: '1', deletable: true },
+      { id: '2' },
+      { id: '3', deletable: false },
+    ]
+    await ctx.deleteAll(['1', '2', '3'])
+    expect(deleteMany).toHaveBeenCalledWith(['1', '2'])
+    expect(deleteOne).not.toHaveBeenCalled()
+  })
+
+  it('所选全不可删时不请求服务器', async () => {
+    const deleteOne = vi.fn(async () => true)
+    const deleteMany = vi.fn(async () => true)
+    const logic = new OrderLogic(o => o as any, {
+      metaUiService: { getApiClient: () => ({}) } as any,
+      repository: 'Orders',
+      meta: { metaui },
+    })
+    logic.delete = deleteOne
+    logic.deleteAll = deleteMany
+    const ctx = new UiBuildContext({
+      model: { list: [] } as any,
+      metaui,
+      view: 'index',
+      logic,
+    })
+    ctx.search = vi.fn(async () => undefined) as any
+    ctx.selectedItems = [{ id: '9', deletable: false }]
+    await expect(ctx.deleteAll(['9'])).resolves.toBe(false)
+    expect(deleteOne).not.toHaveBeenCalled()
+    expect(deleteMany).not.toHaveBeenCalled()
+  })
+
+  it('批量删除动作在 index 确认后提交，不依赖 selectMany', async () => {
+    const toast = vi.fn()
+    const confirm = vi.fn(async () => 'yes')
+    const deleteAll = vi.fn(async () => true)
+    const { UiActionFactory } = await import('../ui/ui_builder')
+    const factory = new UiActionFactory(
+      { toast, confirm } as any,
+      (icon: string) => icon,
+    )
+    const ctx = {
+      selectedItems: [
+        { id: '1', deletable: true },
+        { id: '2', deletable: false },
+        { id: '3', deletable: true },
+      ],
+      metaui: { displayLabel: '订单' },
+      t: (key: string) => key,
+      translate: (key: string) => key,
+      actionLoadings: {},
+      executing: false,
+      deleteAll,
+    }
+    await factory.deleteAll(ctx as any).onAction?.()
+    expect(confirm).toHaveBeenCalled()
+    expect(deleteAll).toHaveBeenCalledWith(['1', '3'])
+    expect(toast).not.toHaveBeenCalled()
+  })
+
+  it('批量删除动作在全不可删时只提示不提交', async () => {
+    const toast = vi.fn()
+    const confirm = vi.fn(async () => 'yes')
+    const deleteAll = vi.fn()
+    const { UiActionFactory } = await import('../ui/ui_builder')
+    const factory = new UiActionFactory(
+      { toast, confirm } as any,
+      (icon: string) => icon,
+    )
+    const ctx = {
+      selectedItems: [{ id: '9', deletable: false }],
+      metaui: { displayLabel: '订单' },
+      t: (key: string) => key,
+      translate: (key: string) => key,
+      actionLoadings: {},
+      executing: false,
+      deleteAll,
+    }
+    await factory.deleteAll(ctx as any).onAction?.()
+    expect(toast).toHaveBeenCalledWith(
+      ctx,
+      expect.objectContaining({ detail: 'invalid.noDeletable' }),
+    )
+    expect(confirm).not.toHaveBeenCalled()
+    expect(deleteAll).not.toHaveBeenCalled()
+  })
+
+  it('模块动作未配置 displayHint 时默认 warning', async () => {
+    const { UiActionFactory } = await import('../ui/ui_builder')
+    const factory = new UiActionFactory(
+      { toast: async () => undefined } as any,
+      (icon: string) => icon,
+    )
+    const ctx = {
+      t: (key: string) => key,
+      translate: (key: string) => key,
+      actionLoadings: {},
+      executing: false,
+      doAction: vi.fn(),
+    }
+    expect(factory.action(ctx as any, { name: 'ship' }).colorRole).toBe(
+      'warning',
+    )
+    expect(
+      factory.action(ctx as any, { name: 'scrap', role: 'DANGER' }).colorRole,
+    ).toBe('danger')
+  })
 })

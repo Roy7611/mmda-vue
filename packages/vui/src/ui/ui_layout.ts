@@ -237,7 +237,7 @@ export function layoutFieldGroup(options: FieldGroupLayoutOptions): VNode {
 /**
  * 详情与编辑页共用布局。
  * 先左右分栏：左主区（primary + tails 自上而下），右概要（可折叠以拉宽主区）。
- * 工具栏独立行，正文区域自行滚动。
+ * 工具栏独立行；整页一起滚，主区不再单独出滚动条。
  */
 export function layoutPage(options: PageLayoutOptions): VNode {
   const {
@@ -259,11 +259,10 @@ export function layoutPage(options: PageLayoutOptions): VNode {
       "mmda-page-layout",
       {
         display: "grid",
-        gridTemplateRows:
-          toolbar == null ? "minmax(0, 1fr)" : "auto minmax(0, 1fr)",
+        gridTemplateRows: toolbar == null ? "auto" : "auto auto",
         height: "100%",
         minHeight: 0,
-        overflow: "hidden",
+        overflow: "auto",
       },
       props,
     ),

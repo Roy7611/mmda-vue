@@ -2,9 +2,9 @@ import { defineComponent, h, ref } from "vue";
 import { translateMessage } from "../../i18n/i18n";
 
 /**
- * Detail page body: scroll + left/right regions in one root.
+ * Detail page body: left/right regions in one root (page scrolls as one).
  * Left main stacks primary then tails; right summary collapses to free width.
- * Toggle is a sibling of the summary (anchored to regions) so its Y stays fixed while the panel slides.
+ * Toggle is sticky on the content edge so it stays at a fixed height.
  */
 export const MmdaPageRegions = defineComponent({
   name: "MmdaPageRegions",

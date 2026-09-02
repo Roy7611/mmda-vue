@@ -1,0 +1,78 @@
+{
+  "name": "@mmda/vui-agnaive",
+  "description": "AG Grid Enterprise + Naive UI skin for the MMDA Vue UI runtime",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "main": "./dist/mmda-vui-agnaive.es.js",
+  "module": "./dist/mmda-vui-agnaive.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-vui-agnaive.es.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/core": "workspace:^",
+    "@mmda/vui": "workspace:^"
+  },
+  "peerDependencies": {
+    "ag-grid-community": "^34.0.0",
+    "ag-grid-enterprise": "^34.0.0",
+    "ag-grid-vue3": "^34.0.0",
+    "bpmn-js": "^18.25.1",
+    "jsbarcode": "^3.12.3",
+    "naive-ui": "^2.45.0",
+    "qrcode": "^1.5.4",
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.0.0",
+    "vue-router": "^4.3.0"
+  },
+  "peerDependenciesMeta": {
+    "bpmn-js": {
+      "optional": true
+    },
+    "jsbarcode": {
+      "optional": true
+    },
+    "qrcode": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/jsbarcode": "^3.11.4",
+    "@types/node": "^20.19.0",
+    "@types/qrcode": "^1.5.6",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "ag-grid-community": "^34.3.1",
+    "ag-grid-enterprise": "^34.3.1",
+    "ag-grid-vue3": "^34.3.1",
+    "bpmn-js": "^18.25.1",
+    "jsbarcode": "^3.12.3",
+    "jsdom": "^30.0.1",
+    "naive-ui": "^2.45.0",
+    "qrcode": "^1.5.4",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.25",
+    "vue-i18n": "^11.1.11",
+    "vue-router": "^4.5.1"
+  }
+}

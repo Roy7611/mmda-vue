@@ -188,6 +188,7 @@ export default {
     required: "Required",
     requiredAny: "Required at least one item",
     requiredSelectAny: "Pls select at least one item",
+    noDeletable: "Selected records cannot be deleted",
     AvatarPicture: "Avatar picture must be Image format!",
     AvatarPictureSize: "Avatar picture size can not exceed 2MB!",
     regPhoneFormat:

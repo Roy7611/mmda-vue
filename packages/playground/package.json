@@ -6,13 +6,19 @@
   "scripts": {
     "dev": "vite",
     "dev:sf": "vite --mode syncfusion",
+    "dev:agnaive": "vite --mode agnaive",
     "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "@mmda/core": "workspace:^",
     "@mmda/vui": "workspace:^",
+    "@mmda/vui-agnaive": "workspace:^",
     "@mmda/vui-primevue": "workspace:^",
     "@mmda/vui-syncfusion": "workspace:^",
+    "ag-grid-community": "^34.3.1",
+    "ag-grid-enterprise": "^34.3.1",
+    "ag-grid-vue3": "^34.3.1",
+    "naive-ui": "^2.45.0",
     "@syncfusion/ej2-vue-barcode-generator": "34.2.2",
     "@syncfusion/ej2-vue-buttons": "34.2.2",
     "@syncfusion/ej2-vue-calendars": "34.2.2",

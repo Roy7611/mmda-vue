@@ -86,28 +86,41 @@ describe('PrimeVue skin', () => {
   it('builds module breadcrumb from parent chain', () => {
     const factory = new ModuleFactory([
       {
-        moduleCode: 'B.01',
-        moduleLabel: '组织架构',
-        moduleType: 'MODULE',
+        moduleCode: 'B',
+        moduleLabel: '基础数据',
+        moduleType: 'SYSTEM',
         moduleVersion: ModuleVersion.TEAM,
-        moduleIcon: 'far fa-sitemap',
         allowOps: 1,
-        moduleUrl: '/BASE/org',
+        moduleUrl: '/BASE',
         requiredCreateParam: false,
         status: ModuleStatus.RELEASED,
         divider: false,
         subModules: [
           {
-            moduleCode: 'B.01.01',
-            moduleLabel: '部门',
-            moduleType: 'FEATURE',
+            moduleCode: 'B.01',
+            moduleLabel: '组织架构',
+            moduleType: 'MODULE',
             moduleVersion: ModuleVersion.TEAM,
-            allowOps: 7,
-            moduleUrl: '/BASE/Departments',
+            moduleIcon: 'far fa-sitemap',
+            allowOps: 1,
+            moduleUrl: '/BASE/org',
             requiredCreateParam: false,
             status: ModuleStatus.RELEASED,
             divider: false,
-            objName: 'Department',
+            subModules: [
+              {
+                moduleCode: 'B.01.01',
+                moduleLabel: '部门',
+                moduleType: 'FEATURE',
+                moduleVersion: ModuleVersion.TEAM,
+                allowOps: 7,
+                moduleUrl: '/BASE/Departments',
+                requiredCreateParam: false,
+                status: ModuleStatus.RELEASED,
+                divider: false,
+                objName: 'Department',
+              },
+            ],
           },
         ],
       },
@@ -120,6 +133,9 @@ describe('PrimeVue skin', () => {
     )
     expect(vnode).toBeTruthy()
     expect((vnode.props as any)?.model).toHaveLength(2)
+    expect((vnode.props as any)?.model.map((item: any) => item.label)).not.toContain(
+      '基础数据',
+    )
     expect((vnode.props as any)?.model[0].label).toBe('组织架构')
     expect((vnode.props as any)?.model[1].label).toBe('部门')
   })

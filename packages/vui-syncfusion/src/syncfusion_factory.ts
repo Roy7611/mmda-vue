@@ -175,8 +175,14 @@ const MmdaSfGrid = defineComponent({
   provide: {
     grid: SF_GRID_MODULES,
   },
-  setup(_, { attrs, slots }) {
-    return () => h(GridComponent as any, { ...attrs }, slots)
+  setup(_, { attrs, slots, expose }) {
+    const inner = ref(null)
+    expose({
+      get ej2Instances() {
+        return inner.value?.ej2Instances ?? inner.value
+      },
+    })
+    return () => h(GridComponent as any, { ...attrs, ref: inner }, slots)
   },
 })
 
@@ -252,6 +258,7 @@ const MmdaSfGridLoadingHost = defineComponent({
 const EMPTY_SELECTION: unknown[] = []
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
+
 
 const listedFields = (metaui: MetaUi) => {
   const fields = metaui.getListedFields()
@@ -742,7 +749,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     const selectionMode = props.selectionMode
     const showColumnFilters =
       props.filterDisplay === 'row' || props.filterDisplay === 'menu'
-    const showGrouping = props.enableGroup !== false
+    const showGrouping = false
     const pagination = props.pagination
     const editableFields = new Set(props.editableFields ?? [])
     const inplaceEdit =
@@ -755,7 +762,6 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       ? (Array.from(toRaw(model) as T[]) as T[])
       : []
 
-    /** custom binding 分组时需回写 dataSource 解除 pending */
     let ej2Grid: any = null
     let focusedEditCell: { rowIndex: number; field: string } | null = null
     let contentTable: HTMLElement | null = null
@@ -1202,7 +1208,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           allowSorting:
             props.enableSort !== false && field.sortable !== false,
           allowFiltering: showColumnFilters,
-          allowGrouping: showGrouping,
+          allowGrouping: false,
           allowReordering: Boolean(props.onListLayoutChange),
           visible: field.listed !== false,
           freeze,
@@ -1410,19 +1416,32 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
 
     const primaryKey = metaui.primaryKey
     const layoutRev = unref(props.layoutRev as any) ?? 0
-    const gridKey = `mmda-sf-grid-${metaui.objName ?? primaryKey ?? 'list'}-${layoutRev}`
+    const listGroupKey = String(metaui.objName ?? primaryKey ?? 'list')
+    const gridKey = `mmda-sf-grid-${listGroupKey}-${layoutRev}`
+
+    const resolveEj2Grid = () => {
+      const grid = ej2Grid
+      if (!grid) return null
+      if (
+        typeof grid.hideSpinner === 'function' ||
+        typeof grid.getColumns === 'function'
+      ) {
+        return grid
+      }
+      return grid.ej2Instances ?? grid
+    }
 
     /** custom binding（result/count）在 dataStateChange 后会转圈等待 dataSource 回写。
      * 索引页用虚拟滚动时 count 必须是当前页行数（不是总记录数），否则会按总数撑虚拟高度。
      */
-    const resolveCustomBinding = async () => {
-      if (!ej2Grid || !pagination) return
+    const resolveCustomBinding = async (state?: any) => {
+      if (!pagination) return
       await nextTick()
-      const current = ej2Grid.dataSource
-      const result = Array.isArray(current?.result)
-        ? current.result
-        : Array.from(rows)
-      ej2Grid.dataSource = { result, count: result.length }
+      const grid = resolveEj2Grid()
+      if (!grid) return
+      const source = Array.from(rows)
+      grid.dataSource = { result: source, count: source.length }
+      grid.hideSpinner?.()
     }
 
     const runRemoteQuery = (work: unknown) => {
@@ -1434,8 +1453,10 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     }
 
     const persistLayoutFromGrid = () => {
-      if (!props.onListLayoutChange || !ej2Grid) return
-      syncMetaUiFromGridColumns(ej2Grid, metaui)
+      if (!props.onListLayoutChange) return
+      const grid = resolveEj2Grid()
+      if (!grid) return
+      syncMetaUiFromGridColumns(grid, metaui)
       props.onListLayoutChange()
     }
 
@@ -1465,7 +1486,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           : undefined,
         allowSorting: props.enableSort !== false,
         allowFiltering: showColumnFilters,
-        allowGrouping: showGrouping,
+        allowGrouping: false,
         editSettings: inplaceEdit
           ? {
               allowEditing: true,
@@ -1476,15 +1497,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
               allowNextRowEdit: true,
             }
           : undefined,
-        groupSettings: showGrouping
-          ? {
-              showDropArea: true,
-              showGroupedColumn: false,
-              showToggleButton: false,
-              // custom binding（result/count）下由客户端按当前页分组
-              disablePageWiseAggregates: true,
-            }
-          : undefined,
+        groupSettings: undefined,
         // 普通字段 Filter Menu；枚举/引用列在 columns[].filter 覆盖为 CheckBox。
         filterSettings: showColumnFilters ? { type: 'Menu' } : undefined,
         // 用 columns 数组而非 ColumnDirective，避免 Vue 指令序列化丢掉 filter.ui 函数。
@@ -1695,15 +1708,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         dataStateChange: (state: any) => {
           const requestType = state?.action?.requestType
           if (requestType === 'virtualscroll') {
-            // 当前页数据已在 result 中，回写解除 loading 即可。
-            void resolveCustomBinding()
-            return
-          }
-          if (
-            requestType === 'grouping' ||
-            requestType === 'ungrouping'
-          ) {
-            void resolveCustomBinding()
+            void resolveCustomBinding(state)
             return
           }
           if (requestType === 'sorting' && props.enableSort !== false) {

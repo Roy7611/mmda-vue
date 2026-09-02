@@ -1154,6 +1154,11 @@ html.e-dark-mode .mmda-sf-dropup {
   height: 100% !important;
 }
 
+/* 列表内滚：最后一行下面留空，才能滚离开分页器 */
+.mmda-sf-maincontent .mmda-list-view .e-grid .e-content {
+  padding-bottom: var(--mmda-page-end-space, 3rem);
+}
+
 .mmda-sf-maincontent .mmda-view {
   height: 100%;
   min-height: 0;
@@ -1277,36 +1282,95 @@ html.e-dark-mode .mmda-sf-dropup {
 .mmda-sf-searchbar > .e-control-wrapper,
 .mmda-sf-searchbar > .e-input-group,
 .mmda-sf-searchbar .e-float-input,
-.mmda-sf-searchbar .mmda-sf-searchbar__input {
+.mmda-sf-searchbar .mmda-sf-searchbar__input,
+.mmda-sf-searchbar .e-input-group.mmda-sf-searchbar__input {
   width: 20rem;
   max-width: min(20rem, 100%);
   flex: 0 1 20rem;
 }
 
+/* 扁平搜索框：32px，无 Material 底线 / 描边，浅底跟主题走 */
+.mmda-sf-searchbar .e-input-group.e-small,
+.mmda-sf-searchbar .e-control-wrapper.e-small,
+.mmda-sf-searchbar .e-input-group.mmda-sf-searchbar__input {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0.25rem 0 0.75rem;
+  border: 0;
+  border-bottom: 0;
+  border-radius: 999px;
+  background: rgb(var(--color-sf-surface-variant));
+  box-shadow: none;
+}
+
+.mmda-sf-searchbar .e-input-group.e-small::before,
+.mmda-sf-searchbar .e-input-group.e-small::after,
+.mmda-sf-searchbar .e-input-group.mmda-sf-searchbar__input::before,
+.mmda-sf-searchbar .e-input-group.mmda-sf-searchbar__input::after,
+.mmda-sf-searchbar .e-input-group .e-float-line {
+  display: none !important;
+  border: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.mmda-sf-searchbar .e-input-group.e-small.e-input-focus,
+.mmda-sf-searchbar .e-input-group.mmda-sf-searchbar__input.e-input-focus {
+  border: 0;
+  box-shadow: none;
+  background: color-mix(
+    in srgb,
+    rgb(var(--color-sf-on-surface)) 8%,
+    rgb(var(--color-sf-surface-variant))
+  );
+}
+
+.mmda-sf-searchbar .e-input-group.e-small .e-input,
+.mmda-sf-searchbar .mmda-sf-searchbar__input .e-input {
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  line-height: 30px;
+  font-size: 0.875rem;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mmda-sf-searchbar .e-input-group .e-clear-icon {
+  min-height: 0;
+  height: 1.25rem;
+  font-size: 12px;
+  margin-inline-end: 0.15rem;
+}
+
 .mmda-sf-searchbar__addons {
   display: inline-flex;
   align-items: center;
-  align-self: stretch;
+  align-self: center;
+  height: 28px;
 }
 
 .mmda-sf-searchbar__addon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  min-width: 2rem;
-  height: 100%;
+  width: 1.75rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
   margin: 0;
   padding: 0;
   border: 0;
-  border-left: 1px solid var(--color-sf-border, #e0e0e0);
+  border-radius: 999px;
   background: transparent;
-  color: inherit;
+  color: rgb(var(--color-sf-on-surface-variant));
   cursor: pointer;
 }
 
 .mmda-sf-searchbar__addon:hover {
-  background: color-mix(in srgb, currentColor 8%, transparent);
+  background: rgb(var(--color-sf-secondary-container));
+  color: rgb(var(--color-sf-on-secondary-container));
 }
 
 .mmda-sf-searchbar__addon .e-icons {
@@ -1932,7 +1996,9 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
   align-items: stretch;
   justify-content: flex-start;
   line-height: normal;
+  min-width: 0;
   min-height: 0;
+  max-width: 100%;
   overflow: hidden;
   /* flat：无 elevation；靠描边与底色分层 */
   box-shadow: none;
@@ -1954,6 +2020,10 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+
+.e-card.mmda-group > .mmda-group-header {
+  flex-shrink: 0;
 }
 
 .e-card.mmda-group .e-collapse-inner,
@@ -2004,17 +2074,42 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
 }
 
 .e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action {
-  min-width: 28px;
-  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  aspect-ratio: 1;
+  min-width: var(--mmda-icon-button-size, 1.75rem);
+  min-height: var(--mmda-icon-button-size, 1.75rem);
   padding: 0;
   border: none;
+  border-radius: 50%;
   box-shadow: none;
   background: transparent;
+  overflow: hidden;
+}
+
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action:hover,
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--mmda-on-surface-variant, #49454f) 12%,
+    transparent
+  );
+}
+
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action.e-danger:hover,
+.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action.e-danger:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--mmda-danger-color, #b3261e) 14%,
+    transparent
+  );
 }
 
 .e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action .e-btn-icon {
   margin: 0;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 /* 详情页附件：上传进度、文件列表与行操作 */

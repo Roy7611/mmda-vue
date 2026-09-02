@@ -83,7 +83,9 @@ const moduleChain = (module: Module): Module[] => {
     chain.unshift(parent);
     parent = (parent as Module & { parent?: Module }).parent;
   }
-  return chain;
+  // 一级 SYSTEM 已在侧栏显示，面包屑从二级模块起
+  const withoutSystem = chain.filter((item) => item.moduleType !== "SYSTEM");
+  return withoutSystem.length ? withoutSystem : chain;
 };
 
 const breadcrumbItem = (item: {
@@ -629,27 +631,14 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
               action.actionModes === 4 &&
               action.promptType !== "MULTIPLE_SELECT",
           )
-          .map(
-            (action: ModuleAction) =>
-              ({
-                id: `${action.actionName}-button`,
-                name: action.actionName,
-                role: `${UI_NAME}-${action.actionName}-action`,
-                icon: action.displayIcon,
-                label: action.displayLabel,
-                colorRole: (
-                  action.displayHint as string | undefined
-                )?.toLowerCase(),
-                onAction: () =>
-                  (context as any).doAction?.(
-                    {
-                      name: action.actionName,
-                      icon: action.displayIcon,
-                      label: action.displayLabel,
-                    },
-                    context.model,
-                  ),
-              }) as UiAction,
+          .map((action: ModuleAction) =>
+            this.actionFactory.action(context, {
+              id: `${action.actionName}-button`,
+              name: action.actionName,
+              icon: action.displayIcon,
+              label: action.displayLabel,
+              role: action.displayHint,
+            }),
           ),
       );
     }
@@ -662,13 +651,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         label: $t("action.deleteAll"),
         icon: "fas fa-trash-alt",
         colorRole: "danger",
-        onAction: () => {
-          runtime.toSelectManyIndex?.("deleteAll", async () => {
-            const action = this.actionFactory.deleteAll(context);
-            await action.onAction?.();
-            return true;
-          });
-        },
+        onAction: () => this.actionFactory.deleteAll(context).onAction?.(),
       });
     }
 
@@ -1056,7 +1039,8 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
           {
             value: runtime.searchParam?.searchWord ?? "",
             placeholder: searchLabel,
-            cssClass: "mmda-sf-searchbar__input",
+            cssClass: "e-small mmda-sf-searchbar__input",
+            floatLabelType: "Never",
             showClearButton: true,
             appendTemplate: "appendTemplate",
             input: (args: any) => {

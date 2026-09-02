@@ -89,6 +89,7 @@ import { DocxFilePreview } from "./components/DocxFilePreview";
 import { MmdaGroupCard } from "./components/GroupCard";
 import { XlsxFilePreview } from "./components/XlsxFilePreview";
 import { translateMessage } from "../i18n/i18n";
+import { deletableSelectedItems } from "./ui_build_context";
 
 /** VUI 内部统一运行时；公开契约由各场景 context 接口约束。 */
 type UiContext = UiViewContext<any>;
@@ -1853,17 +1854,31 @@ export class UiActionFactory {
             "Select at least one item.",
         });
       }
+      const deletable = deletableSelectedItems(selected);
+      if (deletable.length === 0) {
+        return this.builder.toast(context, {
+          severity: "error",
+          detail:
+            runtime.translate?.("invalid.noDeletable") ??
+            "Selected records cannot be deleted.",
+        });
+      }
       const result = await this.builder.confirm(context, {
         message:
-          runtime.translate?.("confirmation.deleteAll", {
-            it: runtime.metaui?.displayLabel,
-          }) ?? "Delete selected items?",
+          deletable.length === 1
+            ? (runtime.translate?.("confirmation.delete", {
+                it: runtime.metaui?.displayLabel,
+              }) ?? "Delete this item?")
+            : (runtime.translate?.("confirmation.deleteAll", {
+                it: runtime.metaui?.displayLabel,
+              }) ?? "Delete selected items?"),
         buttons: ["yes", "no"],
       });
       if (result !== "yes") return;
-      const ids = selected
+      const ids = deletable
         .map((item: any) => item?.id)
-        .filter((id: unknown) => id != null);
+        .filter((id: unknown) => id != null)
+        .map((id: unknown) => String(id));
       return runtime.deleteAll?.(ids);
     });
   }
@@ -1912,7 +1927,11 @@ export class UiActionFactory {
 
   action(context: UiContext, action: EntityAction) {
     action.onAction = () => (context as any).doAction?.(action);
-    action.role ??= action.param?.hint?.toLocaleLowerCase?.() ?? "warning";
+    const configured =
+      (typeof action.role === "string" && action.role.trim()) ||
+      action.param?.hint ||
+      (action as { displayHint?: string }).displayHint;
+    action.role = configured ? String(configured) : "warning";
     return this.fromEntity(context, action);
   }
 }

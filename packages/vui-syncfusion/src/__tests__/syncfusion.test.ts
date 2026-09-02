@@ -458,6 +458,7 @@ describe("Syncfusion skin", () => {
       (child: any) => child?.props?.appendTemplate === "appendTemplate",
     );
     expect(textbox).toBeTruthy();
+    expect(String(textbox.props.cssClass ?? "")).toContain("e-small");
     expect(textbox.props.placeholder).toBe("action.search");
     const addons = textbox.children.appendTemplate();
     const buttons = addons.children;
@@ -804,58 +805,14 @@ describe("Syncfusion skin", () => {
       pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
     });
     const enabled = gridOf(enabledHost);
-    expect(enabled.props?.allowGrouping).toBe(true);
+    expect(enabled.props?.allowGrouping).toBe(false);
     expect(enabled.props?.enableVirtualization).toBe(true);
     expect(enabled.props?.allowPaging).toBe(false);
-    expect(enabled.props?.groupSettings).toEqual(
-      expect.objectContaining({
-        showDropArea: true,
-        showGroupedColumn: false,
-        disablePageWiseAggregates: true,
-      }),
-    );
-    const category = enabled.props?.columns?.find(
-      (column: any) => column?.field === "categoryName",
-    );
-    expect(category?.allowGrouping).toBe(true);
+    expect(enabled.props?.groupSettings).toBeUndefined();
 
     const disabled = gridOf(factory.table([], metaui, { enableGroup: false }));
     expect(disabled.props?.allowGrouping).toBe(false);
     expect(disabled.props?.groupSettings).toBeUndefined();
-  });
-
-  it("resolves custom binding after client-side grouping on paginated lists", async () => {
-    const factory = createSyncfusionUiFactory();
-    const metaui = {
-      objName: "Material",
-      getListedFields: () => [
-        { fieldName: "category", displayLabel: "类别" },
-        { fieldName: "name", displayLabel: "名称" },
-      ],
-      groups: [],
-      primaryKey: "id",
-    } as any;
-    const rows = [
-      { id: "1", category: "A", name: "alpha" },
-      { id: "2", category: "A", name: "beta" },
-      { id: "3", category: "B", name: "gamma" },
-    ];
-    const vnode = gridOf(
-      factory.table(rows, metaui, {
-        pagination: { pageNo: 1, pageSize: 20, recordCount: 3 },
-      }),
-    );
-    const ej2Grid = { dataSource: { result: rows, count: rows.length } };
-    vnode.props.ref?.({ ej2Instances: ej2Grid });
-
-    vnode.props.dataStateChange({
-      action: { requestType: "grouping" },
-      group: [{ field: "category" }],
-    });
-    await nextTick();
-
-    expect(Array.isArray(ej2Grid.dataSource?.result)).toBe(true);
-    expect(ej2Grid.dataSource.count).toBe(ej2Grid.dataSource.result.length);
   });
 
   it("uses row virtualization and an external Pager for list pages", () => {
@@ -1794,28 +1751,41 @@ describe("Syncfusion skin", () => {
   it("builds module breadcrumb from parent chain", () => {
     const factory = new ModuleFactory([
       {
-        moduleCode: "B.01",
-        moduleLabel: "组织架构",
-        moduleType: "MODULE",
+        moduleCode: "B",
+        moduleLabel: "基础数据",
+        moduleType: "SYSTEM",
         moduleVersion: ModuleVersion.TEAM,
-        moduleIcon: "far fa-sitemap",
         allowOps: 1,
-        moduleUrl: "/BASE/org",
+        moduleUrl: "/BASE",
         requiredCreateParam: false,
         status: ModuleStatus.RELEASED,
         divider: false,
         subModules: [
           {
-            moduleCode: "B.01.01",
-            moduleLabel: "部门",
-            moduleType: "FEATURE",
+            moduleCode: "B.01",
+            moduleLabel: "组织架构",
+            moduleType: "MODULE",
             moduleVersion: ModuleVersion.TEAM,
-            allowOps: 7,
-            moduleUrl: "/BASE/Departments",
+            moduleIcon: "far fa-sitemap",
+            allowOps: 1,
+            moduleUrl: "/BASE/org",
             requiredCreateParam: false,
             status: ModuleStatus.RELEASED,
             divider: false,
-            objName: "Department",
+            subModules: [
+              {
+                moduleCode: "B.01.01",
+                moduleLabel: "部门",
+                moduleType: "FEATURE",
+                moduleVersion: ModuleVersion.TEAM,
+                allowOps: 7,
+                moduleUrl: "/BASE/Departments",
+                requiredCreateParam: false,
+                status: ModuleStatus.RELEASED,
+                divider: false,
+                objName: "Department",
+              },
+            ],
           },
         ],
       },

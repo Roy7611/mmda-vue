@@ -236,6 +236,7 @@ export default {
     required: "必须输入",
     requiredAny: "必须至少一项",
     requiredSelectAny: "必须至少选择一项",
+    noDeletable: "所选记录不可删除",
     AvatarPicture: "头像图片必须是图像格式！",
     AvatarPictureSize: "头像图片大小不能超过2MB！",
     regPhoneFormat: "手机号格式不正确，请重新输入",

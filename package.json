@@ -11,13 +11,14 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/playground --filter @mmda/app build",
+    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/playground --filter @mmda/app build",
     "dev:vui": "pnpm --filter @mmda/playground dev",
     "dev:vui:sf": "pnpm --filter @mmda/playground dev:sf",
+    "dev:vui:agnaive": "pnpm --filter @mmda/playground dev:agnaive",
     "dev:app": "pnpm --filter @mmda/app dev",
     "dev:apps": "pnpm dev:app",
     "dev:gateway": "node scripts/dev-gateway.mjs",
-    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/app test",
+    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app test",
     "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
     "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""
   },

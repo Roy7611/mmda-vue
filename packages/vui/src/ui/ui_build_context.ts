@@ -28,6 +28,18 @@ export interface UiFileTransferOptions extends ImportOrExportParam {
   body?: any;
 }
 
+/** 列表多选里只有 deletable !== false 的行可以提交删除。 */
+export function deletableSelectedItems<E extends Entity>(
+  items: readonly E[] | undefined | null,
+): E[] {
+  return (items ?? []).filter((item) => {
+    if (item == null) return false;
+    const entity = item as Entity;
+    if (entity.deletable === false) return false;
+    return entity.id != null && String(entity.id) !== "";
+  });
+}
+
 /**
  * 屏级运行时：在单实体会话之上增加 load/save/delete、列表刷新和路由动作。
  */
@@ -159,12 +171,33 @@ export class UiBuildContext<
   }
 
   async deleteAll(ids: string[]) {
+    const idSet = new Set((ids ?? []).map((id) => String(id)));
+    const selected = deletableSelectedItems(
+      (this.selectedItems as E[]).length
+        ? (this.selectedItems as E[])
+        : (ids ?? []).map((id) => ({ id }) as E),
+    ).filter((item) => idSet.has(String((item as Entity).id)));
+    const deletableIds = selected.map((item) => String((item as Entity).id));
+    if (!deletableIds.length) return false;
+
+    if (deletableIds.length === 1) {
+      const item = selected[0]!;
+      if (this.logic.beforeDelete) {
+        const ok = await this.logic.beforeDelete(this as any, item);
+        if (ok === false) return false;
+      }
+      const result = await this.logic.delete(deletableIds[0]);
+      await this.logic.afterDelete?.(this as any, item, undefined, result);
+      this.selectedItems = [];
+      await this.reload();
+      return result;
+    }
+
     if (this.logic.beforeDeleteAll) {
-      const ok = await this.logic.beforeDeleteAll(this as any, [] as E[]);
+      const ok = await this.logic.beforeDeleteAll(this as any, selected);
       if (ok === false) return false;
     }
-    const selected = this.selectedItems as E[];
-    const result = await this.logic.deleteAll(ids);
+    const result = await this.logic.deleteAll(deletableIds);
     await this.logic.afterDeleteAll?.(this as any, selected);
     this.selectedItems = [];
     await this.reload();

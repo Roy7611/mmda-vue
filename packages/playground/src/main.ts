@@ -18,6 +18,7 @@ import {
   mmdaPrimeVue,
 } from '@mmda/vui-primevue'
 import { SyncfusionUiBuilder, mmdaSyncfusion } from '@mmda/vui-syncfusion'
+import { AgNaiveUiBuilder, mmdaAgNaive } from '@mmda/vui-agnaive'
 import 'primeicons/primeicons.css'
 import './style.css'
 
@@ -184,12 +185,21 @@ const logic = new ProductLogic(value => value as Product, {
   router,
 })
 
-const useSyncfusion = import.meta.env.VITE_SKIN === 'syncfusion'
-const builder = useSyncfusion
-  ? new SyncfusionUiBuilder()
-  : new PrimeVueUiBuilder()
+const skin = import.meta.env.VITE_SKIN
+const useSyncfusion = skin === 'syncfusion'
+const useAgNaive = skin === 'agnaive'
+const builder = useAgNaive
+  ? new AgNaiveUiBuilder()
+  : useSyncfusion
+    ? new SyncfusionUiBuilder()
+    : new PrimeVueUiBuilder()
 const i18n = setupI18n({}, 'zh')
 const mmda = new MmdaApplication('/api', 'demo', builder, i18n)
+const skinPlugin = useAgNaive
+  ? mmdaAgNaive
+  : useSyncfusion
+    ? mmdaSyncfusion
+    : mmdaPrimeVue
 
 openView = async (view, id) => {
   const model =
@@ -241,6 +251,6 @@ const Root = defineComponent({
 })
 
 createApp(Root)
-  .use(useSyncfusion ? mmdaSyncfusion : mmdaPrimeVue, { locale: 'zh' })
+  .use(skinPlugin, { locale: 'zh' })
   .use(mmda)
   .mount('#app')

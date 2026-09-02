@@ -25,6 +25,10 @@ export default defineConfig({
       '@syncfusion/ej2-data',
       '@syncfusion/ej2-vue-base',
       '@syncfusion/ej2-vue-grids',
+      'ag-grid-community',
+      'ag-grid-enterprise',
+      'ag-grid-vue3',
+      'naive-ui',
       'vue',
     ],
     alias: [
@@ -39,6 +43,7 @@ export default defineConfig({
       { find: '@mmda/core', replacement: pkg('core') },
       { find: '@mmda/vui-primevue', replacement: pkg('vui-primevue') },
       { find: '@mmda/vui-syncfusion', replacement: pkg('vui-syncfusion') },
+      { find: '@mmda/vui-agnaive', replacement: pkg('vui-agnaive') },
       { find: '@mmda/vui', replacement: pkg('vui') },
     ],
   },

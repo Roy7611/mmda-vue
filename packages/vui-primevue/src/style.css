@@ -543,9 +543,11 @@ html[data-mmda-palette="cyan"] {
 }
 
 .p-card.mmda-group .mmda-group-actions .p-button.mmda-group-action {
-  width: 1.75rem;
-  height: 1.75rem;
+  aspect-ratio: 1;
+  min-width: var(--mmda-icon-button-size, 1.75rem);
+  min-height: var(--mmda-icon-button-size, 1.75rem);
   padding: 0;
+  border-radius: 50%;
   box-shadow: none;
 }
 

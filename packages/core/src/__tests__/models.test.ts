@@ -39,6 +39,8 @@ describe("EntityAction", () => {
       role: "primary",
       onAction,
     });
+    expect(entityActionFactory.save(onAction).role).toBe("danger");
+    expect(entityActionFactory.edit(onAction).role).toBe("primary");
   });
 });
 
