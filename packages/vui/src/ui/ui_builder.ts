@@ -1,5 +1,7 @@
 import {
+  defineComponent,
   h,
+  ref,
   type Component,
   type VNode,
   type VNodeArrayChildren,
@@ -20,6 +22,7 @@ import {
   entityActionFactory,
   EntityActionType,
   DEFAULT_PAGE_SIZE,
+  defineEntity,
 } from "@mmda/core";
 import { readStoredPageSize, writeStoredPageSize } from "./ui_theme";
 import { openListSettingDialog } from "./components/ListSettingView";
@@ -48,7 +51,31 @@ import type {
   UiListViewPropsType,
   UiPaginatorPropsType,
 } from "./ui_list";
-import type { UiGanttChartProps } from "./ui_gantt";
+import type { UiTreeListViewPropsType } from "./ui_treelist";
+import {
+  collectNodeAndDescendantIds,
+  treeIdOf,
+  treeLabelFieldName,
+  type UiTreePropsType,
+  type UiTreeViewPropsType,
+} from "./ui_tree";
+import {
+  categoryCreateParams,
+  categoryTreeAuth,
+  categoryTreeAuthHasAction,
+} from "./ui_tree_category";
+import { GenericUiLogic } from "./ui_logic";
+import { resolveRepositoryModule } from "./ui_entity_view";
+import type { UiGanttChartProps, UiGanttViewProps } from "./ui_gantt";
+import { renderTreeView } from "./ui_tree_view";
+import {
+  isViewMany,
+  UiViewManyKind,
+  UiViewOne,
+  type QrcodeProps,
+  type UiViewPropsType,
+  type UiViewType,
+} from "./ui_view";
 import type {
   AppScaffoldProps,
   AppSideBarProps,
@@ -70,7 +97,6 @@ import type {
   UiMessageBoxResult,
   UiToastProps,
 } from "./ui_dialog";
-import type { QrcodeProps, UiViewPropsType } from "./ui_view";
 import type {
   SearchForRelativeContentProps,
   SearchForRelativeProps,
@@ -89,7 +115,7 @@ import { DocxFilePreview } from "./components/DocxFilePreview";
 import { MmdaGroupCard } from "./components/GroupCard";
 import { XlsxFilePreview } from "./components/XlsxFilePreview";
 import { translateMessage } from "../i18n/i18n";
-import { deletableSelectedItems } from "./ui_build_context";
+import { deletableSelectedItems, UiBuildContext } from "./ui_build_context";
 
 /** VUI 内部统一运行时；公开契约由各场景 context 接口约束。 */
 type UiContext = UiViewContext<any>;
@@ -252,12 +278,24 @@ export interface UiBuilder {
     context: UiContext,
     props?: PropData,
   ) => VNode;
+  buildGanttView: (context: UiContext, props: UiGanttViewProps) => VNode;
+  /** @deprecated 使用 buildGanttView */
   buildGanttChart: (context: UiContext, props: UiGanttChartProps) => VNode;
   buildAttachmentGroup?: (context: UiContext, props?: PropData) => VNode;
   buildView: (context: UiContext, props?: UiViewPropsType) => VNode;
+  build: (context: UiContext, extra?: Record<string, unknown>) => VNode;
+  buildTree: <T = any>(props: UiTreePropsType<T>) => VNode;
+  buildTreeView: <T = any>(
+    props: UiTreeViewPropsType<T>,
+    context?: UiContext,
+  ) => VNode;
   buildListView: <T = any>(
     context: UiContext,
     props?: UiListViewPropsType<T>,
+  ) => VNode;
+  buildTreeListView: <T = any>(
+    context: UiContext,
+    props?: UiTreeListViewPropsType<T>,
   ) => VNode;
   buildCustomView: <T = any>(
     context: UiContext,
@@ -1154,13 +1192,355 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     );
   }
 
-  buildGanttChart(_context: UiContext, props: UiGanttChartProps): VNode {
+  buildGanttView(_context: UiContext, props: UiGanttViewProps): VNode {
     const count = props.tasks?.length ?? 0;
     return h("section", { class: "mmda-gantt-stub", ...props }, [
       count
         ? h("p", `${count} tasks (skin required)`)
         : h("p", "Gantt (skin required)"),
     ]);
+  }
+
+  buildGanttChart(context: UiContext, props: UiGanttChartProps): VNode {
+    return this.buildGanttView(context, props);
+  }
+
+  build(context: UiContext, extra: Record<string, unknown> = {}): VNode {
+    const runtime = context as UiViewContext;
+    const view = String(runtime.view ?? "") as UiViewType;
+    const factories = runtime.logic?.viewOptions;
+    const option = factories?.[view]?.(runtime) ?? {};
+    const merged = { ...option, ...extra } as Record<string, any>;
+    if (isViewMany(view)) {
+      const kind = merged.viewKind;
+      if (
+        merged.tree ||
+        kind === UiViewManyKind.categoryList ||
+        kind === "categoryList"
+      ) {
+        return this.buildTreeListView(context, merged);
+      }
+      if (kind === UiViewManyKind.gantt || kind === "gantt") {
+        return this.buildGanttView(context, merged);
+      }
+      return this.buildListView(context, merged);
+    }
+    return this.buildView(context, merged as UiViewPropsType);
+  }
+
+  buildTree<T = any>(props: UiTreePropsType<T>): VNode {
+    return this.factory.tree({
+      selectionMode: props.selectionMode ?? "single",
+      ...props,
+    });
+  }
+
+  buildTreeView<T = any>(
+    props: UiTreeViewPropsType<T>,
+    context?: UiContext,
+  ): VNode {
+    const categoryRepo = props.repository;
+    const mode = props.treeNodeActions ?? "hover";
+    const wired: UiTreeViewPropsType<T> = {
+      ...props,
+      treeNodeActions: mode,
+      contextMenu:
+        mode === "contextMenu" && context && categoryRepo
+          ? (node: T) => this.treeCategoryMenu(context, wired, node)
+          : undefined,
+      showHoverAdd:
+        mode === "hover" && context && categoryRepo
+          ? (node: T) => this.resolveCategoryTreeAuth(context, wired, node).allowCreate
+          : props.showHoverAdd,
+      onNodeAddChild: (node) => {
+        props.onNodeAddChild?.(node);
+        if (context && categoryRepo) {
+          void this.openCategoryTreeDialog(
+            context,
+            props,
+            UiViewOne.Create,
+            node,
+            "child",
+          );
+        }
+      },
+      onNodeRename: (node, text) => {
+        props.onNodeRename?.(node, text);
+        if (context && categoryRepo) {
+          void this.renameCategoryTreeNode(context, props, node, text);
+        }
+      },
+    };
+    return renderTreeView(this.factory, wired);
+  }
+
+  protected resolveCategoryTreeAuth<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    node: T,
+  ) {
+    const repository = props.repository;
+    const catModule =
+      repository && context.app
+        ? (resolveRepositoryModule(context.app, repository) ??
+          context.app.findModule(repository))
+        : undefined;
+    const flags = node as { editable?: boolean; deletable?: boolean };
+    const catAuth = categoryTreeAuth(catModule, flags);
+    const listAuth = categoryTreeAuth(context.module, flags);
+    return catModule?.authority && categoryTreeAuthHasAction(catAuth)
+      ? catAuth
+      : listAuth;
+  }
+
+  protected treeCategoryMenu<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    node: T,
+  ): UiAction[] {
+    const repository = props.repository;
+    if (!repository || node == null) return [];
+    const auth = this.resolveCategoryTreeAuth(context, props, node);
+    const t = (key: string) => context.t(key);
+    const items: UiAction[] = [];
+    if (auth.allowRead) {
+      items.push({
+        name: "view",
+        label: t("action.view"),
+        icon: this.factory.resolveIcon("details"),
+        onAction: () =>
+          this.openCategoryTreeDialog(context, props, UiViewOne.Details, node),
+      });
+    }
+    if (auth.allowCreate) {
+      if (items.length) items.push(UiActionDivider());
+      items.push(
+        {
+          name: "addRoot",
+          label: t("action.addRoot"),
+          icon: this.factory.resolveIcon("plus"),
+          onAction: () =>
+            this.openCategoryTreeDialog(context, props, UiViewOne.Create, node, "root"),
+        },
+        {
+          name: "addChild",
+          label: t("action.addChild"),
+          icon: this.factory.resolveIcon("plus"),
+          onAction: () =>
+            this.openCategoryTreeDialog(context, props, UiViewOne.Create, node, "child"),
+        },
+        {
+          name: "addSibling",
+          label: t("action.addSibling"),
+          icon: this.factory.resolveIcon("plus"),
+          onAction: () =>
+            this.openCategoryTreeDialog(
+              context,
+              props,
+              UiViewOne.Create,
+              node,
+              "sibling",
+            ),
+        },
+      );
+    }
+    if (auth.allowDelete) {
+      if (items.length) items.push(UiActionDivider());
+      items.push({
+        name: "delete",
+        label: t("action.delete"),
+        icon: this.factory.resolveIcon("delete"),
+        onAction: () => this.deleteCategoryTreeNode(context, props, node),
+      });
+    }
+    if (auth.allowEdit) {
+      if (items.length) items.push(UiActionDivider());
+      items.push(
+        {
+          name: "edit",
+          label: t("action.edit"),
+          icon: this.factory.resolveIcon("edit"),
+          onAction: () =>
+            this.openCategoryTreeDialog(context, props, UiViewOne.Edit, node),
+        },
+        {
+          name: "rename",
+          label: t("action.rename"),
+          icon: this.factory.resolveIcon("edit"),
+        },
+      );
+    }
+    return items;
+  }
+
+  protected async resolveCategoryTreeLogic(
+    context: UiContext,
+    repository: string,
+  ) {
+    const app = context.app;
+    const service =
+      (context.logic as { apiService?: string } | undefined)?.apiService ??
+      app?.name ??
+      "base";
+    const token = `${service}:${repository}Logic`;
+    try {
+      const injected = await app?.di.injectAsync<InstanceType<typeof GenericUiLogic>>(
+        token,
+      );
+      if (injected) return injected;
+    } catch {
+      // 未注册的仓库走通用 Logic
+    }
+    const module =
+      resolveRepositoryModule(app, repository) ?? app?.findModule(repository);
+    return new GenericUiLogic(defineEntity, {
+      metaUiService: app!.meta,
+      repository,
+      router: context.logic?.router,
+      module,
+      apiService: service,
+    });
+  }
+
+  protected async refreshCategoryTree(
+    context: UiContext,
+    props: UiTreeViewPropsType,
+    logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> },
+  ) {
+    if (props.onTreeRefresh) {
+      await props.onTreeRefresh();
+      return;
+    }
+    const listLogic = context.logic as {
+      treeData?: { value?: unknown };
+    };
+    if (!listLogic?.treeData || !logic.getAll) return;
+    const page = await logic.getAll({
+      pager: { pageNo: 1, pageSize: 1000 },
+    });
+    listLogic.treeData.value = page?.list ?? [];
+  }
+
+  protected async openCategoryTreeDialog<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    view: typeof UiViewOne.Create | typeof UiViewOne.Edit | typeof UiViewOne.Details,
+    node: T,
+    createKind?: "root" | "child" | "sibling",
+  ) {
+    const repository = props.repository;
+    const app = context.app;
+    if (!repository || !app) return;
+    const catLogic = await this.resolveCategoryTreeLogic(context, repository);
+    const pack = await app.meta.getPack({
+      repository,
+      service: catLogic.apiService,
+    });
+    if (!pack?.metaui) return;
+    const id = view === UiViewOne.Create ? undefined : treeIdOf(node, props.fields);
+    const queryParams =
+      view === UiViewOne.Create
+        ? categoryCreateParams(createKind ?? "root", node, props.fields)
+        : undefined;
+    const ctx = new UiBuildContext({
+      model: (id ? { id } : {}) as any,
+      metaui: pack.metaui,
+      view,
+      logic: catLogic,
+      app,
+      locale: context.locale,
+    });
+    await ctx.init({ path: id, queryParams });
+    const editing = view !== UiViewOne.Details;
+    const accepted = await app.confirmDialog(
+      this.buildView(ctx, { showBreadcrumb: false }),
+      ctx,
+      {
+        name: view,
+        title: pack.metaui.displayLabel,
+        width: "70vw",
+        height: "80vh",
+        maxHeight: "90vh",
+        showFooter: editing,
+        accept: editing
+          ? async () => {
+              const saved = await ctx.save();
+              return saved !== false;
+            }
+          : undefined,
+      },
+    );
+    if (!accepted && view === UiViewOne.Create) {
+      const createdId = (ctx.model as { id?: string }).id;
+      if (createdId) await catLogic.delete(createdId);
+      return;
+    }
+    if (accepted || view === UiViewOne.Details) {
+      if (accepted) await this.refreshCategoryTree(context, props, catLogic);
+    }
+  }
+
+  protected async deleteCategoryTreeNode<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    node: T,
+  ) {
+    const repository = props.repository;
+    if (!repository) return;
+    const title =
+      (node as { categoryName?: string; label?: string; name?: string })
+        .categoryName ??
+      (node as { label?: string }).label ??
+      (node as { name?: string }).name ??
+      treeIdOf(node, props.fields);
+    const result = await this.confirm(context, {
+      message:
+        context.translate?.("confirmation.delete", { it: title }) ??
+        `Delete ${title}?`,
+      buttons: ["yes", "no"],
+    });
+    if (result !== "yes") return;
+    const catLogic = await this.resolveCategoryTreeLogic(context, repository);
+    const ids = collectNodeAndDescendantIds(
+      props.data ?? [],
+      node,
+      props.fields,
+    );
+    if (ids.length > 1 && catLogic.deleteAll) {
+      await catLogic.deleteAll(ids);
+    } else {
+      for (const id of ids) await catLogic.delete(id);
+    }
+    const listLogic = context.logic as {
+      currentCategory?: { id?: string; categoryID?: string };
+    };
+    const currentId =
+      listLogic.currentCategory?.id ?? listLogic.currentCategory?.categoryID;
+    if (currentId && ids.includes(String(currentId))) {
+      listLogic.currentCategory = undefined;
+      const runtime = context as { search?: () => Promise<unknown> };
+      void runtime.search?.();
+    }
+    await this.refreshCategoryTree(context, props, catLogic);
+    props.onNodeDelete?.(node);
+  }
+
+  protected async renameCategoryTreeNode<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    node: T,
+    text: string,
+  ) {
+    const repository = props.repository;
+    if (!repository) return;
+    const field = treeLabelFieldName(props.fields);
+    const nextText = text.trim();
+    const prev = String((node as Record<string, unknown>)[field] ?? "").trim();
+    if (!nextText || nextText === prev) return;
+    const next = { ...(node as object), [field]: nextText } as T;
+    const catLogic = await this.resolveCategoryTreeLogic(context, repository);
+    await catLogic.save(next as any);
+    await this.refreshCategoryTree(context, props, catLogic);
   }
 
   buildAttachmentGroup(context: UiContext, props?: PropData): VNode {
@@ -1265,10 +1645,10 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       : page;
   }
 
-  buildListView<T = any>(
+  protected listViewParts<T>(
     context: UiContext,
     props: UiListViewPropsType<T> = {},
-  ): VNode {
+  ) {
     const runtime = context as any;
     const searchbar =
       props.showSearchbar === false
@@ -1325,6 +1705,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const paginator = integratedPaging
       ? null
       : this.buildPaginator(context, { onPage });
+    return { runtime, toolbar, searchbar, list, paginator };
+  }
+
+  buildListView<T = any>(
+    context: UiContext,
+    props: UiListViewPropsType<T> = {},
+  ): VNode {
+    const { runtime, toolbar, searchbar, list, paginator } =
+      this.listViewParts(context, props);
     return this.buildContainer(
       [
         toolbar ? this.buildHeader(toolbar) : null,
@@ -1346,6 +1735,87 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           overflow: "hidden",
         },
       },
+    );
+  }
+
+  buildTreeListView<T = any>(
+    context: UiContext,
+    props: UiTreeListViewPropsType<T> = {},
+  ): VNode {
+    const treeSpec =
+      typeof props.tree === "function" ? props.tree() : props.tree;
+    if (!treeSpec) return this.buildListView(context, props);
+    const { runtime, toolbar, searchbar, list, paginator } =
+      this.listViewParts(context, props);
+    const treeWidth =
+      typeof props.treeWidth === "number"
+        ? `${props.treeWidth}px`
+        : (props.treeWidth ?? "16rem");
+    const self = this;
+    return h(
+      defineComponent({
+        name: "MmdaTreeListView",
+        setup() {
+          const collapsed = ref(false);
+          return () => {
+            const spec =
+              typeof props.tree === "function" ? props.tree() : props.tree;
+            const body = self.factory.splitter(
+              [
+                {
+                  content: self.buildAside(
+                    self.buildTreeView(
+                      {
+                        ...spec!,
+                        showTreeSearchBar:
+                          spec!.showTreeSearchBar ?? spec!.showSearchbar ?? true,
+                        showTreeFooter: spec!.showTreeFooter ?? true,
+                        onTreeCollapsed: (next) => {
+                          collapsed.value = next;
+                        },
+                      },
+                      context,
+                    ),
+                    { class: "mmda-tree-list-aside" },
+                  ),
+                  size: collapsed.value ? "3rem" : treeWidth,
+                  min: collapsed.value ? "3rem" : "12rem",
+                },
+                {
+                  content: self.buildMain(list, {
+                    class: "mmda-list-scroll",
+                    style: { height: "100%", minWidth: 0, overflow: "hidden" },
+                  }),
+                },
+              ],
+              {
+                orientation: "Horizontal",
+                class: "mmda-tree-list-splitter",
+                collapsedFirst: collapsed.value,
+              },
+            );
+            return self.buildContainer(
+              [
+                toolbar ? self.buildHeader(toolbar) : null,
+                !toolbar && searchbar ? self.buildHeader(searchbar) : null,
+                body,
+                paginator ? self.buildFooter(paginator) : null,
+              ].filter(Boolean) as VNode[],
+              {
+                class: "mmda-list-view mmda-tree-list-view",
+                role: runtime.view,
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  minHeight: 0,
+                  overflow: "hidden",
+                },
+              },
+            );
+          };
+        },
+      }),
     );
   }
 
@@ -1718,9 +2188,14 @@ export function createStubUiBuilder(): UiBuilder {
     buildResponsiveField: emptyNode,
     buildGroup: emptyNode,
     buildBpmnDiagram: emptyNode,
+    buildGanttView: emptyNode,
     buildGanttChart: emptyNode,
     buildView: emptyNode,
+    build: emptyNode,
+    buildTree: emptyNode,
+    buildTreeView: emptyNode,
     buildListView: emptyNode,
+    buildTreeListView: emptyNode,
     buildCustomView: emptyNode,
     buildList: emptyNode,
     buildTable: emptyNode,

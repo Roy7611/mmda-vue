@@ -58,12 +58,9 @@ export class MaterialCatLogic extends UiLogic<MaterialCat> {
       )
       .then((res) => {
         const model = this.createEntity(res);
-        // model.materialType = MaterialType.TOOLS;
         model.depth = param?.depth ?? 0;
-        model.parentID = param?.parentID ?? "";
+        model.parentCatID = param?.parentCatID ?? param?.parentID ?? "";
         model.materialX = param?.materialX ?? "";
-        console.log(param, "model.materialX");
-
         return model;
       });
   }

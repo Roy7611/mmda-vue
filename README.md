@@ -8,9 +8,9 @@
 packages/
   core/          @mmda/core          框架无关：元数据、实体、交互接口、HTTP、DI
   vui/           @mmda/vui           Vue 3 运行时
-  vui-primevue/  @mmda/vui-primevue  PrimeVue 皮肤（playground 对照）
+  vui-primevue/  @mmda/vui-primevue  PrimeVue 皮肤
   vui-syncfusion/ @mmda/vui-syncfusion Syncfusion EJ2 Vue 3 皮肤（BASE / MES）
-  playground/    假数据对照
+  playground/    vui-agnaive 假数据把玩（仿 app 壳）
   app/           @mmda/app           统一应用壳、Router 与部署入口
   base/          @mmda/base          基础数据业务插件
   mes/           @mmda/mes           制造执行业务插件
@@ -28,8 +28,7 @@ packages/
 pnpm install
 pnpm test
 pnpm build
-pnpm dev:vui    # playground 假数据（PrimeVue）
-pnpm dev:vui:sf # playground 假数据（Syncfusion）
+pnpm dev:vui    # playground 假数据（vui-agnaive，http://127.0.0.1:5173/）
 pnpm dev:app    # 统一 SPA：http://127.0.0.1:5174/ （/api 由 Vite 代理到 8001）
 ```
 

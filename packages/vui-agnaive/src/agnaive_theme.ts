@@ -11,11 +11,12 @@ import {
   type NDateLocale,
   type NLocale,
 } from 'naive-ui'
-import { themeQuartz, type Theme } from 'ag-grid-community'
+import { colorSchemeDark, themeQuartz, type Theme } from 'ag-grid-community'
 
 export const naiveSkinState = reactive({
   dark: false,
   locale: 'zh',
+  themeRev: 0,
 })
 
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
@@ -49,7 +50,10 @@ export function readMmdaColor(variable: string, fallback: string): string {
 }
 
 export function refreshNaiveThemeFromCss() {
-  naiveSkinState.dark = document.documentElement.classList.contains('mmda-dark')
+  if (typeof document !== 'undefined') {
+    naiveSkinState.dark = document.documentElement.classList.contains('mmda-dark')
+  }
+  naiveSkinState.themeRev += 1
 }
 
 export function naiveLocaleOf(locale = naiveSkinState.locale): {
@@ -100,6 +104,27 @@ export function buildNaiveThemeOverrides(): GlobalThemeOverrides {
       textColorHoverPrimary: onPrimary,
       textColorPressedPrimary: onPrimary,
     },
+    Input: {
+      color: readMmdaColor('--mmda-surface-group', card),
+      textColor: text,
+      placeholderColor: muted,
+      caretColor: text,
+      border: `1px solid ${border}`,
+      borderHover: `1px solid ${primary}`,
+      borderFocus: `1px solid ${primary}`,
+    },
+    Pagination: {
+      itemColor: card,
+      itemTextColor: text,
+      itemBorder: `1px solid ${border}`,
+      buttonColor: card,
+      buttonBorder: `1px solid ${border}`,
+    },
+    Tree: {
+      color: 'transparent',
+      nodeColorActive: readMmdaColor('--mmda-primary-soft', '#e9ddff'),
+      nodeTextColor: text,
+    },
   }
 }
 
@@ -107,17 +132,44 @@ export const naiveThemeRef = computed(() =>
   naiveSkinState.dark ? darkTheme : null,
 )
 
-export const naiveOverridesRef = computed(() => buildNaiveThemeOverrides())
+export const naiveOverridesRef = computed(() => {
+  void naiveSkinState.dark
+  void naiveSkinState.themeRev
+  return buildNaiveThemeOverrides()
+})
 
 export function buildAgGridTheme(): Theme {
-  return themeQuartz.withParams({
+  void naiveSkinState.dark
+  void naiveSkinState.themeRev
+  const dark = naiveSkinState.dark
+  const base = dark ? themeQuartz.withPart(colorSchemeDark) : themeQuartz
+  return base.withParams({
     accentColor: readMmdaColor('--mmda-primary-color', '#6750a4'),
-    backgroundColor: readMmdaColor('--mmda-surface-card', '#ffffff'),
-    foregroundColor: readMmdaColor('--mmda-text-color', '#1c1b1e'),
-    borderColor: readMmdaColor('--mmda-content-border-color', '#cac4cf'),
-    headerBackgroundColor: readMmdaColor('--mmda-surface-ground', '#f7f2f7'),
-    headerTextColor: readMmdaColor('--mmda-text-color', '#1c1b1e'),
-    oddRowBackgroundColor: readMmdaColor('--mmda-surface-ground', '#f7f2f7'),
+    backgroundColor: readMmdaColor(
+      '--mmda-surface-card',
+      dark ? '#201f22' : '#ffffff',
+    ),
+    foregroundColor: readMmdaColor(
+      '--mmda-text-color',
+      dark ? '#e6e1e6' : '#1c1b1e',
+    ),
+    borderColor: readMmdaColor(
+      '--mmda-content-border-color',
+      dark ? '#49454e' : '#cac4cf',
+    ),
+    headerBackgroundColor: readMmdaColor(
+      '--mmda-surface-ground',
+      dark ? '#1c1b1e' : '#f7f2f7',
+    ),
+    headerTextColor: readMmdaColor(
+      '--mmda-text-color',
+      dark ? '#e6e1e6' : '#1c1b1e',
+    ),
+    oddRowBackgroundColor: readMmdaColor(
+      '--mmda-surface-ground',
+      dark ? '#1c1b1e' : '#f7f2f7',
+    ),
+    browserColorScheme: dark ? 'dark' : 'light',
     fontSize: 13,
     headerFontSize: 13,
     rowHeight: 32,

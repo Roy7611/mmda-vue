@@ -7,8 +7,8 @@ import {
   layoutFieldGroup,
   layoutPage,
 } from "../ui/ui_layout";
-import { HtmlUiBuilder } from "../ui/ui_html";
 import { UiViewContext } from "../ui/ui_context";
+import { TestUiBuilder } from "./test_builder";
 
 const hosts: HTMLElement[] = [];
 
@@ -300,7 +300,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "details",
     });
     const host = mount(
-      new HtmlUiBuilder().buildView(context, {
+      new TestUiBuilder().buildView(context, {
         showToolbar: false,
         primaryCols: 3,
       }),
@@ -347,7 +347,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "details",
     });
     const host = mount(
-      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+      new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
     const labels = [
       ...host.querySelectorAll(".mmda-page-main .mmda-group-title"),
@@ -369,7 +369,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "details",
     });
     const cardHost = mount(
-      new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context),
+      new TestUiBuilder().buildGroup(metaui.getGroup("base")!, context),
     );
     expect(
       cardHost.querySelector("article.mmda-group.primary.master"),
@@ -394,7 +394,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     expect(cardHost.querySelector(".mmda-group-body")).not.toBeNull();
 
     const fieldsetHost = mount(
-      new HtmlUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
+      new TestUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
         container: "fieldset",
       }),
     );
@@ -416,7 +416,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "details",
     });
     const host = mount(
-      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+      new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
 
     const regions = host.querySelector(".mmda-page-regions")!;
@@ -428,7 +428,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     expect(children.at(-1)?.textContent).toContain("概要");
   });
 
-  it("HTML 皮肤通过 FieldLayout 显示校验消息且不重复标签", () => {
+  it("FieldLayout 显示校验消息且不重复标签", () => {
     const context = new UiViewContext({
       model: { name: "", code: "", state: "", remark: "" },
       metaui,
@@ -436,7 +436,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     });
     context.setFieldError("name", "名称必填");
     const host = mount(
-      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+      new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
 
     const nameField = host.querySelector(
@@ -474,7 +474,7 @@ describe("AbstractUiBuilder layout wiring", () => {
     context.setupGroupLogic(grpLogic);
 
     const host = mount(
-      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+      new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
     const skuCard = [...host.querySelectorAll(".mmda-group.sub")].find((el) =>
       el.textContent?.includes("SKU"),
@@ -503,7 +503,7 @@ describe("AbstractUiBuilder layout wiring", () => {
   it("原生 Grid 子表默认整组可编辑，字段可单独关闭", () => {
     const medias = interleavedMetaui.getGroup("medias")!;
     const createBuilder = () => {
-      const builder = new HtmlUiBuilder();
+      const builder = new TestUiBuilder();
       let tableProps: any;
       (builder.factory as any).nativeInplaceEdit = true;
       (builder.factory as any).table = (
@@ -594,7 +594,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "edit",
     });
     const host = mount(
-      new HtmlUiBuilder().buildView(context, { showToolbar: false }),
+      new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
     const control = host.querySelector(".mmda-field-control")!;
     expect(control.querySelector("input")).toBeNull();

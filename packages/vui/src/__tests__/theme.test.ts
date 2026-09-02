@@ -3,7 +3,7 @@ import { createApp, defineComponent, h } from "vue";
 import { setupI18n } from "../i18n/i18n";
 import { MmdaApplication } from "../ui/ui_app";
 import { createStubUiBuilder } from "../ui/ui_builder";
-import { HtmlUiBuilder } from "../ui/ui_html";
+import { TestUiBuilder } from "./test_builder";
 import { ColorPalettePicker } from "../ui/components/ColorPalettePicker";
 import {
   DEFAULT_COLOR_PALETTE,
@@ -56,7 +56,7 @@ describe("MMDA color palettes", () => {
   });
 
   it("switches the document palette attribute", () => {
-    const ui = new HtmlUiBuilder();
+    const ui = new TestUiBuilder();
     ui.setColorPalette("green");
     expect(document.documentElement.dataset.mmdaPalette).toBe("green");
   });

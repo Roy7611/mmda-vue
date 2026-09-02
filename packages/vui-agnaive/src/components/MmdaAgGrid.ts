@@ -8,6 +8,7 @@ import {
 } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import {
+  AllCommunityModule,
   ModuleRegistry,
   type ColDef,
   type FilterChangedEvent,
@@ -44,7 +45,7 @@ import {
 import { buildAgGridTheme } from '../agnaive_theme'
 import { buildColumnDefs, cellNodeFromParams, editorFieldOf } from '../ag_columns'
 
-ModuleRegistry.registerModules([AllEnterpriseModule])
+ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule])
 
 const MmdaAgGridCell = defineComponent({
   name: 'MmdaAgGridCell',
@@ -227,7 +228,13 @@ export const MmdaAgGrid = defineComponent({
 
     return () => {
       const selectionMode = listProps.selectionMode
-      const height = listProps.height ?? listProps.maxHeight ?? '100%'
+      const rawHeight = listProps.height ?? listProps.maxHeight
+      const height =
+        typeof rawHeight === 'number'
+          ? `${rawHeight}px`
+          : rawHeight && rawHeight !== '100%'
+            ? rawHeight
+            : '28rem'
       const pageSize = pagination.value.pageSize ?? DEFAULT_PAGE_SIZE
       const pageNo = pagination.value.pageNo ?? 1
       const recordCount = pagination.value.recordCount ?? props.data.length
@@ -237,11 +244,12 @@ export const MmdaAgGrid = defineComponent({
           'div',
           {
             class: 'mmda-ag-grid__body',
-            style: { height: typeof height === 'number' ? `${height}px` : height },
+            style: { height },
           },
           [
             h(AgGridVue, {
               class: 'mmda-ag-grid__table',
+              style: { width: '100%', height: '100%' },
               theme: theme.value,
               rowData: props.data,
               columnDefs: columnDefs.value as ColDef[],

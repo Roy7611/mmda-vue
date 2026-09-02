@@ -18,7 +18,12 @@ import { agNaiveLayout } from '../agnaive_layout'
 import { agFilterModelToEntity, entityFilterToAgModel } from '../ag_filter'
 import { buildColumnDefs } from '../ag_columns'
 import { MmdaAgGrid } from '../components/MmdaAgGrid'
-import { cssColorToHex } from '../agnaive_theme'
+import {
+  buildAgGridTheme,
+  cssColorToHex,
+  naiveOverridesRef,
+  naiveSkinState,
+} from '../agnaive_theme'
 
 const field = (
   fieldName: string,
@@ -61,6 +66,8 @@ describe('vui-agnaive skin', () => {
     expect(factory.layout).toBe(agNaiveLayout)
     expect(factory.table).toBeTypeOf('function')
     expect(factory.dialog).toBeTypeOf('function')
+    expect(factory.splitter).toBeTypeOf('function')
+    expect(factory.tree).toBeTypeOf('function')
     expect(factory.integratedTablePaging).toBe(true)
     expect(factory.nativeInplaceEdit).toBe(true)
     expect(factory.defaultFilterDisplay).toBe('menu')
@@ -276,6 +283,22 @@ describe('vui-agnaive skin', () => {
   it('converts computed rgb colors to hex for Naive themeOverrides', () => {
     expect(cssColorToHex('rgb(103, 80, 164)', '#000')).toBe('#6750a4')
     expect(cssColorToHex('#abc', '#000')).toBe('#aabbcc')
+  })
+
+  it('rebuilds Naive overrides and AG Grid theme when dark mode changes', () => {
+    naiveSkinState.dark = false
+    naiveSkinState.themeRev += 1
+    const lightOverrides = naiveOverridesRef.value
+    const lightGrid = buildAgGridTheme()
+    naiveSkinState.dark = true
+    naiveSkinState.themeRev += 1
+    const darkOverrides = naiveOverridesRef.value
+    const darkGrid = buildAgGridTheme()
+    expect(darkOverrides).not.toBe(lightOverrides)
+    expect(darkGrid).not.toBe(lightGrid)
+    expect(darkOverrides.Input?.border).toMatch(/1px solid/)
+    expect(lightOverrides.Input?.border).toMatch(/1px solid/)
+    naiveSkinState.dark = false
   })
 
   it('renders list toolbar actions from module authority', () => {

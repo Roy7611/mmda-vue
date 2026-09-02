@@ -2,7 +2,7 @@ import { defineComponent, h, ref, type PropType } from "vue";
 
 /**
  * Collapsible group shell only — field/table layout lives in
- * `.mmda-group-body` (see HtmlUiBuilder.wrapGroupContent).
+ * `.mmda-group-body` (see AbstractUiBuilder.wrapGroupContent).
  *
  * Structure:
  *   .mmda-group.master|sub.primary|secondary

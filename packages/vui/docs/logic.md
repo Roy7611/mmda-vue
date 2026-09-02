@@ -8,6 +8,7 @@
 - `GenericUiLogic<E>`：无定制逻辑时的默认实现，通用 CRUD 页和跨服务 `select` 使用。
 - `UiGroupLogic<G, P>`：子表仓库，挂在主表 Logic 上。
 - `beforeIndex` / `beforeDetails` / `beforeEdit` / `beforeCreate` / `beforeSearch`：按视图装配。
+- `viewOptions`：按 `UiViewType` 登记拼屏选项。任意 view 都可登记；Builder 按 `context.view` 精确查找，不自动套用别的 view。
 - `beforeSave` / `afterLoad` 等钩子：CRUD 前后拦截。
 
 ```ts
@@ -61,6 +62,47 @@ export class MaterialLogic extends UiLogic<Material> {
 
 `this.field(name)` 返回 core 的 `MetaUiFieldLogic`。hide / lock / validate / customRenderer 都写在 Logic 实例上，不要改共享的 `MetaUiField`。
 
+## 拼屏选项
+
+```ts
+viewOptions?: Partial<
+  Record<
+    UiViewType,
+    (ctx: UiViewContext) =>
+      | UiListViewPropsType
+      | UiTreeListViewPropsType
+      | UiGanttViewProps
+      | UiViewPropsType
+  >
+>
+```
+
+Logic **只返回选项**，不 `h()`、不调 `factory`。`selectOne` / `selectMany` / `edit` / `details` / `create` 与 `index` 一样允许登记。未登记才走默认表/表单。要共用同一套左树右表，显式登记同一工厂。
+
+```ts
+viewOptions = {
+  index: (ctx) => ({
+    viewKind: UiViewManyKind.categoryList,
+    tree: () => ({
+      data: this.treeData.value,
+      repository: 'MaterialCats',
+      fields: { id: 'categoryID', label: 'categoryName', parentId: 'parentCatID' },
+      showTreeSearchBar: true,
+      onTreeRefresh: () => this.reloadCats(),
+      onNodeSelect: (node) => {
+        this.currentCategory = node
+        ctx.searchParam.pager.pageNo = 1
+        void ctx.search()
+      },
+    }),
+  }),
+}
+```
+
+`tree` 是 `UiTreeViewPropsType`（左栏走 `buildTreeView`）。分类数据不要在这个工厂里加载。
+
+`UiLogic` 不画控件。自定义单元格用 `setCustomRenderer`，返回的是 VNode，真正的 Input/Table 仍由 `fldFactory` 提供。
+
 无定制时：
 
 ```ts
@@ -91,7 +133,5 @@ class MaterialPartnerLogic extends UiGroupLogic<MaterialPartner, Material> {
 列表请求参数是 `EntitySearchParam`，不要在 Logic 里另拼一套 query。见 [列表与过滤](./list.md)。
 
 ## 边界
-
-`UiLogic` 不画控件。自定义单元格用 `setCustomRenderer`，返回的是 VNode，真正的 Input/Table 仍由 `fldFactory` 提供。
 
 不要在 Logic 里 `import` PrimeVue。需要皮肤能力时通过 `context.uiBuilder` 或 `context.app.ui`。

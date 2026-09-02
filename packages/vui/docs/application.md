@@ -75,4 +75,4 @@ Vue 的 `provide/inject` 管 **当前屏**：`UI_CONTEXT_KEY` 是这一次打开
 - 控件怎么画：`UiBuilder` / 皮肤包。
 - 登录后布局：应用 `AppShell` 调用 `builder.buildAppScaffold` / `buildAppSideBar`。
 
-`MmdaApplication` 可以没有 PrimeVue；playground 用 `HtmlUiBuilder` 即可跑通登录以外的拼屏。
+`MmdaApplication` 可以没有 PrimeVue；生产皮肤用 Prime / Syncfusion / Naive。vui 不带默认 HTML 皮肤。

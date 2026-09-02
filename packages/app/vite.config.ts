@@ -40,6 +40,7 @@ export default defineConfig({
       '@syncfusion/ej2-data',
       '@syncfusion/ej2-vue-base',
       '@syncfusion/ej2-vue-grids',
+      '@syncfusion/ej2-vue-layouts',
       '@syncfusion/ej2-vue-gantt',
       'vue',
     ],

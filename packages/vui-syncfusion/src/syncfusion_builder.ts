@@ -42,6 +42,7 @@ import {
   type UiSlots,
   type UiViewContext,
   type UiGanttChartProps,
+  type UiGanttViewProps,
 } from "@mmda/vui";
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import {
@@ -1272,7 +1273,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
     )
   }
 
-  buildGanttChart(_context: UiContext, props: UiGanttChartProps) {
+  buildGanttView(_context: UiContext, props: UiGanttViewProps) {
     return h(GanttChart, {
       tasks: props.tasks,
       links: props.links,
@@ -1293,6 +1294,10 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
       onTaskDblClick: props.onTaskDblClick,
       onRowReorder: props.onRowReorder,
     });
+  }
+
+  buildGanttChart(context: UiContext, props: UiGanttChartProps) {
+    return this.buildGanttView(context, props);
   }
 
   buildBpmnDiagram(

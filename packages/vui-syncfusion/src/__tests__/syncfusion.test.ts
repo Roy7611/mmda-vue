@@ -69,6 +69,17 @@ describe("Syncfusion skin", () => {
     expect(factory.nativeInplaceEdit).toBe(true);
     expect(factory.table).toBeTypeOf("function");
     expect(factory.dialog).toBeTypeOf("function");
+    expect(factory.splitter).toBeTypeOf("function");
+    expect(factory.tree).toBeTypeOf("function");
+    const tree = factory.tree({
+      data: [{ id: "1", label: "根" }],
+      fields: { icon: "icon" },
+      selectionMode: "single",
+      showIcon: true,
+    });
+    expect(tree.props.fields).toBeTruthy();
+    expect(tree.props.selectionMode).toBe("single");
+    expect(tree.props.showIcon).toBe(true);
     expect(factory.photoGallery).toBeTypeOf("function");
     expect(factory.filesUploader).toBeTypeOf("function");
     expect(factory.resolveIcon("save")).toBe("e-icons e-save");
@@ -97,7 +108,7 @@ describe("Syncfusion skin", () => {
     expect(rows[0].TaskName).toBe("Cut");
     expect(GANTT_VIEW_MODES.week.timelineViewMode).toBe("Week");
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.buildGanttChart({} as any, {
+    const vnode = builder.buildGanttView({} as any, {
       tasks: [{ id: 1, name: "Cut" }],
       readonly: true,
     });

@@ -320,57 +320,6 @@ importers:
       '@mmda/vui-agnaive':
         specifier: workspace:^
         version: link:../vui-agnaive
-      '@mmda/vui-primevue':
-        specifier: workspace:^
-        version: link:../vui-primevue
-      '@mmda/vui-syncfusion':
-        specifier: workspace:^
-        version: link:../vui-syncfusion
-      '@primevue/themes':
-        specifier: 4.5.4
-        version: 4.5.4
-      '@syncfusion/ej2-vue-barcode-generator':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-buttons':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-calendars':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-charts':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-diagrams':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-dropdowns':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-grids':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-inputs':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-lists':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-navigations':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-notifications':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-popups':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-progressbar':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-splitbuttons':
-        specifier: 34.2.2
-        version: 34.2.2
       ag-grid-community:
         specifier: ^34.3.1
         version: 34.3.1
@@ -383,12 +332,6 @@ importers:
       naive-ui:
         specifier: ^2.45.0
         version: 2.45.3(vue@3.5.41(typescript@5.9.3))
-      primeicons:
-        specifier: 7.0.0
-        version: 7.0.0
-      primevue:
-        specifier: ^4.5.5
-        version: 4.5.5(vue@3.5.41(typescript@5.9.3))
       vue:
         specifier: ^3.5.25
         version: 3.5.41(typescript@5.9.3)
@@ -701,6 +644,9 @@ importers:
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-inputs':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-layouts':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-lists':
@@ -1452,6 +1398,9 @@ packages:
 
   '@syncfusion/ej2-vue-inputs@34.2.2':
     resolution: {integrity: sha512-PWLvME7eH2ZORKdUeB1EBZAAY6jOCdBbCPXSB8huHOxija2H9IjJ3N3ZvApJLmPgm5pbwoLu7oN8dPxfjIk6Bw==}
+
+  '@syncfusion/ej2-vue-layouts@34.2.2':
+    resolution: {integrity: sha512-/nZH1v25FsnpxgbFmjMCCYOoUZMTZKm+3DrKbKFXDaYVYKuHvAIm3rEtxvBlHO/gS197HiQ144z/PbY0J4Vqdg==}
 
   '@syncfusion/ej2-vue-lists@34.2.2':
     resolution: {integrity: sha512-oIeqKAi+AADHlOEiJM6YkPOaPb57eiQ9xZFdfHDCXKDUAckjhp3rNsAF0FM/3AQRwYhhHRKxEy+Iuz7Fk9g+Mg==}
@@ -3635,6 +3584,12 @@ snapshots:
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
       '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-layouts@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-layouts': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
   '@syncfusion/ej2-vue-lists@34.2.2':

@@ -101,6 +101,13 @@ export enum UiViewMany {
   EditMany = "editMany",
 }
 export type UiViewManyType = "index" | "selectOne" | "selectMany" | "editMany"; //keyof typeof UiViewMany
+export enum UiViewManyKind {
+  list = "list",
+  categoryList = "categoryList",
+  treeGrid = "treeGrid",
+  gantt = "gantt",
+  scheduler = "scheduler",
+}
 const UiViewManyArray: string[] = Object.values(UiViewMany);
 export const isViewMany = (viewType: string) =>
   UiViewManyArray.includes(viewType);
@@ -116,6 +123,7 @@ export function resolveViewManyType(
 
 export interface UiViewManyProps {
   view?: UiViewManyType;
+  viewKind?: UiViewManyKind;
   pageSize?: number;
   pageNo?: number;
   sort?: string;

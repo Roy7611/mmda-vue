@@ -102,7 +102,7 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 - `AbstractUiBuilder` 默认实现 `buildView` / `buildListView` / `buildField` / `buildGroup` / `buildTable` / `buildAppScaffold`。
 - 布局：`layoutField`、`layoutFieldGroup`（组内列密度）、`layoutPage`（primary / summary / tails + sticky 工具栏）、`AppLayout`（`sidebarLeft` | `topBarFull`）。
 - `searchParam` 唯一查询状态；`UiFilter` / `UiSearchField` 只写回该对象。
-- `HtmlUiBuilder`：零 PrimeVue 的可运行皮肤，供测试和对照。
+- 皮肤在 `@mmda/vui-primevue` / `@mmda/vui-syncfusion` / `@mmda/vui-agnaive`；vui 不带默认 HTML factory。
 - `UiSelector` 只走 `factory`，不绑 PrimeVue。
 
 公共弹层在 Application，不在 core。`select()` / `subGroupItem()` 属于表单会话。

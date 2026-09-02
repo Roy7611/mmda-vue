@@ -4,6 +4,7 @@ import {
   createNoopGanttController,
   ganttLinkTypeCode,
   type UiGanttChartProps,
+  type UiGanttViewProps,
   type UiGanttTask,
 } from '../ui/ui_gantt'
 import { AbstractUiBuilder, createStubUiBuilder } from '../ui/ui_builder'
@@ -23,7 +24,7 @@ describe('ui gantt contract', () => {
   })
 
   it('renders a stub gantt when no skin override exists', () => {
-    const vnode = AbstractUiBuilder.prototype.buildGanttChart.call(
+    const vnode = AbstractUiBuilder.prototype.buildGanttView.call(
       {} as AbstractUiBuilder,
       {} as any,
       { tasks: [{ id: 1, name: 'Cut' }] },
@@ -32,9 +33,10 @@ describe('ui gantt contract', () => {
     expect((vnode.children as any)?.[0]?.children).toContain('1 tasks')
   })
 
-  it('stub builder exposes buildGanttChart and a no-op controller', () => {
+  it('stub builder exposes buildGanttView and a no-op controller', () => {
     const stub = createStubUiBuilder()
-    expect(typeof stub.buildGanttChart).toBe('function')
+    expect(typeof stub.buildGanttView).toBe('function')
+    expect(stub.buildGanttView({} as any, {} as UiGanttViewProps).type).toBe('div')
     expect(stub.buildGanttChart({} as any, {} as UiGanttChartProps).type).toBe('div')
     const controller = createNoopGanttController()
     controller.refresh()

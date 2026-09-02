@@ -19,7 +19,10 @@ import type {
   UiPaginatorPropsType,
   UiSlots,
 } from "@mmda/vui";
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from "@mmda/vui";
+import {
+  createIconVNode,
+  MATERIAL_SYMBOL_PREFIX,
+} from "@mmda/vui";
 import Badge from "primevue/badge";
 import Button from "primevue/button";
 import ButtonGroup from "primevue/buttongroup";
@@ -41,8 +44,11 @@ import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
 import MultiSelect from "primevue/multiselect";
 import SplitButton from "primevue/splitbutton";
+import Splitter from "primevue/splitter";
+import SplitterPanel from "primevue/splitterpanel";
 import Tag from "primevue/tag";
 import { primeLayout } from "./prime_layout";
+import { MmdaPrimeTree } from "./components/MmdaPrimeTree";
 
 const EMPTY_SELECTION: unknown[] = [];
 
@@ -583,6 +589,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
             pageSize: event.rows,
           }),
       }),
+    tree: (props) => h(MmdaPrimeTree, props as any),
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h(
         DataView,
@@ -659,6 +666,36 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       ),
     drawer: (props, slots) =>
       h(Drawer, { ...props, "onUpdate:visible": props.onUpdateVisible }, slots),
+    splitter: (panes, props) =>
+      h(
+        Splitter,
+        {
+          class: ["mmda-prime-splitter", props?.class].filter(Boolean).join(" "),
+          layout: props?.orientation === "Vertical" ? "vertical" : "horizontal",
+        },
+        {
+          default: () =>
+            panes.map((pane, index) =>
+              h(
+                SplitterPanel,
+                {
+                  size: index === 0 ? (props?.collapsedFirst ? 4 : 20) : 80,
+                  minSize: index === 0 ? (props?.collapsedFirst ? 4 : 12) : 20,
+                  style:
+                    index === 0
+                      ? {
+                          flexBasis: props?.collapsedFirst
+                            ? "3rem"
+                            : (pane.size ?? "16rem"),
+                          flexGrow: props?.collapsedFirst ? 0 : undefined,
+                        }
+                      : undefined,
+                },
+                { default: () => pane.content },
+              ),
+            ),
+        },
+      ),
     searchForRelative: (props, slots) =>
       h(
         Dialog,

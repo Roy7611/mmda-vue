@@ -11,4 +11,4 @@ const builder = new AgNaiveUiBuilder()
 app.use(mmdaAgNaive, { locale: 'zh', licenseKey: import.meta.env.VITE_AG_GRID_LICENSE })
 ```
 
-Playground: `pnpm dev:vui:agnaive`（`VITE_SKIN=agnaive`）。
+Playground: `pnpm dev:vui`（仿 app 壳，假数据）。

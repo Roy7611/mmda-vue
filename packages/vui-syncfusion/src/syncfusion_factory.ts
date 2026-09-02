@@ -77,10 +77,12 @@ import { DialogComponent } from '@syncfusion/ej2-vue-popups'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
 import { DropDownButtonComponent, SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { ChartComponent } from '@syncfusion/ej2-vue-charts'
+import { SplitterComponent } from '@syncfusion/ej2-vue-layouts'
 import { syncfusionLayout } from './syncfusion_layout'
 import { DropupMenuButton } from './components/DropupMenuButton'
 import { PhotoGallery } from './components/PhotoGallery'
 import { FilesUploader } from './components/FilesUploader'
+import { MmdaSfTree } from './components/MmdaSfTree'
 
 /**
  * Vue 属性 watcher 会在 appendTo/preRender 之前或 destroy 之后调用 dataBind→injectModules。
@@ -2147,6 +2149,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         },
       })
     },
+    tree: (props) => h(MmdaSfTree, props as any),
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h('div', { class: 'mmda-sf-list' }, [
         model.length
@@ -2271,6 +2274,29 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           ...props,
         },
         slots,
+      ),
+    splitter: (panes, props) =>
+      h(
+        SplitterComponent as any,
+        {
+          orientation: props?.orientation === 'Vertical' ? 'Vertical' : 'Horizontal',
+          width: '100%',
+          height: '100%',
+          cssClass: ['mmda-sf-splitter', props?.class].filter(Boolean).join(' '),
+          paneSettings: panes.map((pane, index) => ({
+            size:
+              index === 0 && props?.collapsedFirst ? '3rem' : pane.size,
+            min: index === 0 && props?.collapsedFirst ? '3rem' : pane.min,
+            collapsible: pane.collapsible,
+            collapsed: index === 0 && props?.collapsedFirst,
+          })),
+        },
+        () =>
+          panes.map((pane) =>
+            h('div', { class: 'mmda-sf-splitter-pane', style: { height: '100%' } }, [
+              pane.content,
+            ]),
+          ),
       ),
     searchForRelative: (props, slots) =>
       factory.dialog(

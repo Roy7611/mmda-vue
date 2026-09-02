@@ -13,8 +13,7 @@
   "scripts": {
     "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/playground --filter @mmda/app build",
     "dev:vui": "pnpm --filter @mmda/playground dev",
-    "dev:vui:sf": "pnpm --filter @mmda/playground dev:sf",
-    "dev:vui:agnaive": "pnpm --filter @mmda/playground dev:agnaive",
+    "dev:vui:agnaive": "pnpm --filter @mmda/playground dev",
     "dev:app": "pnpm --filter @mmda/app dev",
     "dev:apps": "pnpm dev:app",
     "dev:gateway": "node scripts/dev-gateway.mjs",

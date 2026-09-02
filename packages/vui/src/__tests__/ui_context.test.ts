@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
 import { MetaUi, MetaUiField, MetaUiFieldLogic, SqlDataType } from "@mmda/core";
 import { UiViewContext } from "../ui/ui_context";
-import { HtmlUiBuilder } from "../ui/ui_html";
+import { TestUiBuilder } from "./test_builder";
 
 const field = (fieldName: string, nullable = true, fieldIdx = 0) =>
   new MetaUiField({
@@ -181,7 +181,7 @@ describe("UiViewContext", () => {
       metaui,
       view: "index",
     });
-    const builder = new HtmlUiBuilder();
+    const builder = new TestUiBuilder();
 
     builder.displayCellFor(metaui.getField("orderNo")!, row, ctx);
 
@@ -203,7 +203,7 @@ describe("UiViewContext", () => {
       view: "details",
     });
 
-    new HtmlUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+    new TestUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
 
     expect(ctx.contextCount).toBe(2);
   });
@@ -223,7 +223,7 @@ describe("UiViewContext", () => {
       view: "edit",
     });
 
-    new HtmlUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+    new TestUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
 
     expect(ctx.contextCount).toBe(4);
   });

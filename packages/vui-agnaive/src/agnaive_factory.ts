@@ -11,6 +11,7 @@ import {
   NPagination,
   NSelect,
   NSpin,
+  NSplit,
 } from 'naive-ui'
 import {
   DEFAULT_PAGE_SIZE,
@@ -26,9 +27,13 @@ import type {
   UiPaginatorPropsType,
   UiSlots,
 } from '@mmda/vui'
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from '@mmda/vui'
+import {
+  createIconVNode,
+  MATERIAL_SYMBOL_PREFIX,
+} from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { MmdaAgGrid } from './components/MmdaAgGrid'
+import { MmdaNaiveTree } from './components/MmdaNaiveTree'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
@@ -286,6 +291,7 @@ export function createAgNaiveUiFactory(): UiFactory {
         'onUpdate:pageSize': (pageSize: number) =>
           props.onPage({ pageNo: 1, pageSize }),
       }),
+    tree: (props) => h(MmdaNaiveTree, props as any),
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h(
         'div',
@@ -385,6 +391,21 @@ export function createAgNaiveUiFactory(): UiFactory {
         },
         slots,
       ),
+    splitter: (panes, props) =>
+      h(
+        NSplit,
+        {
+          class: ['mmda-agnaive-splitter', props?.class].filter(Boolean).join(' '),
+          direction: props?.orientation === 'Vertical' ? 'vertical' : 'horizontal',
+          defaultSize: props?.collapsedFirst ? 48 : parseCssSize(panes[0]?.size) ?? 256,
+          min: props?.collapsedFirst ? 48 : parseCssSize(panes[0]?.min) ?? 192,
+          disabled: props?.collapsedFirst,
+        },
+        {
+          1: () => panes[0]?.content,
+          2: () => panes[1]?.content,
+        },
+      ),
     searchForRelative: (props, slots) =>
       h(
         NModal,
@@ -399,4 +420,12 @@ export function createAgNaiveUiFactory(): UiFactory {
   }
 
   return factory
+}
+
+function parseCssSize(value?: string): number | undefined {
+  if (!value) return undefined
+  const n = parseFloat(value)
+  if (!Number.isFinite(n)) return undefined
+  if (value.endsWith('rem')) return n * 16
+  return n
 }

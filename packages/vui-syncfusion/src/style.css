@@ -16,6 +16,7 @@
 @import '@syncfusion/ej2-grids/styles/material3.css';
 @import '@syncfusion/ej2-diagrams/styles/material3.css';
 @import '@syncfusion/ej2-layouts/styles/card/material3.css';
+@import '@syncfusion/ej2-layouts/styles/splitter/material3.css';
 /* ej2-gantt / ej2-treegrid CSS are loaded only by GanttChart (MES), not the shared skin. */
 
 /*
@@ -1148,6 +1149,43 @@ html.e-dark-mode .mmda-sf-dropup {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden !important;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view > .e-splitter,
+.mmda-sf-maincontent .mmda-tree-list-view > .mmda-splitter {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view .e-pane {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view .e-pane .mmda-list-scroll {
+  height: 100%;
+  min-width: 0;
+  overflow: hidden !important;
+}
+
+.mmda-sf-maincontent .mmda-tree-list-view .e-pane .e-grid {
+  height: 100% !important;
+}
+
+.mmda-sf-maincontent .mmda-tree-view-search .e-input-group,
+.mmda-sf-maincontent .mmda-tree-view-search .e-control-wrapper {
+  width: 100%;
+}
+
+.mmda-sf-maincontent .mmda-tree-view-footer {
+  background: color-mix(
+    in srgb,
+    rgb(var(--color-sf-on-surface)) 8%,
+    var(--mmda-surface-card)
+  );
+  color: rgb(var(--color-sf-on-surface));
 }
 
 .mmda-sf-maincontent .mmda-list-view .e-grid {

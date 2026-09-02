@@ -38,10 +38,25 @@ import type {
   UiPaginatorPropsType,
   UiTableCellRenderer,
 } from './ui_list'
+import type { UiTreePropsType } from './ui_tree'
 import type { Rx } from '../rx'
 import type { ChildSlot } from './ui_view'
 
 export type { UiTableCellRenderer } from './ui_list'
+
+export interface UiSplitterPane {
+  content: VNode
+  size?: string
+  min?: string
+  collapsible?: boolean
+}
+
+export interface UiSplitterProps {
+  orientation?: 'Horizontal' | 'Vertical'
+  class?: string
+  /** 收起第一栏（树折叠）。 */
+  collapsedFirst?: boolean
+}
 
 export type UiRenderer<T = any> = (
   model: T,
@@ -143,6 +158,7 @@ export interface UiFactory {
     slots?: UiSlots,
   ) => VNode
   list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
+  tree: <T>(props: UiTreePropsType<T>) => VNode
   table: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
   pagableTable: <T>(
     dataLoader: UiPagableDataLoader<T>,
@@ -162,6 +178,7 @@ export interface UiFactory {
     slots?: UiSlots,
   ) => VNode
   drawer: (props: PropData, slots?: UiSlots) => VNode
+  splitter: (panes: UiSplitterPane[], props?: UiSplitterProps) => VNode
   searchForRelative: (
     props: SearchForRelativeProps | PropData,
     slots?: UiSlots,

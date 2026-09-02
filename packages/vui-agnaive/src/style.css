@@ -1,4 +1,11 @@
 .mmda-agnaive-config,
+.n-config-provider.mmda-agnaive-config {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mmda-agnaive-config,
 .mmda-agnaive-container,
 .mmda-agnaive-toolbar,
 .mmda-agnaive-searchbar,
@@ -52,18 +59,22 @@
 .mmda-ag-grid {
   display: flex;
   flex-direction: column;
-  min-height: 16rem;
+  min-height: 28rem;
   gap: 0.5rem;
 }
 
 .mmda-ag-grid__body {
-  flex: 1;
-  min-height: 12rem;
+  flex: 1 1 auto;
+  min-height: 24rem;
+  width: 100%;
 }
 
-.mmda-ag-grid__table {
+.mmda-ag-grid__table,
+.mmda-ag-grid__table.ag-root-wrapper,
+.mmda-ag-grid__body .ag-root-wrapper {
   width: 100%;
   height: 100%;
+  min-height: 24rem;
 }
 
 .mmda-ag-grid__pager {
@@ -99,6 +110,23 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+}
+
+.mmda-agnaive-sidebar__header {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--mmda-content-border-color);
+}
+
+.mmda-agnaive-sidebar__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.mmda-agnaive-sidebar__footer {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--mmda-content-border-color);
 }
 
 .mmda-agnaive-list__item {
@@ -124,9 +152,39 @@
   gap: 0.5rem;
 }
 
-html[data-mmda-palette] .ag-root-wrapper {
+html[data-mmda-palette] .ag-root-wrapper,
+html.mmda-dark .ag-root-wrapper {
   --ag-background-color: var(--mmda-surface-card);
   --ag-foreground-color: var(--mmda-text-color);
   --ag-border-color: var(--mmda-content-border-color);
   --ag-header-background-color: var(--mmda-surface-ground);
+  --ag-odd-row-background-color: var(--mmda-surface-ground);
+  color: var(--mmda-text-color);
+  background: var(--mmda-surface-card);
+}
+
+.mmda-tree-list-aside,
+.mmda-agnaive-aside,
+.mmda-agnaive-tree,
+.mmda-tree-view {
+  background: var(--mmda-surface-card);
+  color: var(--mmda-text-color);
+}
+
+.mmda-tree-view-search,
+.mmda-tree-view-search .n-input,
+.mmda-tree-view-search input,
+.mmda-tree-view-search-input {
+  color: var(--mmda-text-color);
+}
+
+.mmda-tree-view-search {
+  background: transparent;
+}
+
+.mmda-tree-view-search .n-input,
+.mmda-tree-view-search input,
+.mmda-tree-view-search-input {
+  background: var(--mmda-surface-group, var(--mmda-surface-card));
+  border-color: var(--mmda-content-border-color);
 }

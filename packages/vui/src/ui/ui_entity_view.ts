@@ -204,6 +204,9 @@ export function createEntityView(options: EntityViewOptions) {
         const context = current.value;
         // 订阅 loading：分页/筛选时刷新；表格同时接收 Ref 以便 Syncfusion 遮罩响应
         void context.loading.value;
+        const treeData = (context.logic as { treeData?: { value?: unknown } })
+          ?.treeData;
+        if (treeData && "value" in treeData) void treeData.value;
         // 订阅子表 length：push/clear 不会改写属性引用，必须显式依赖才能重渲
         if (!context.many) {
           for (const group of context.metaui.groups) {
@@ -221,17 +224,18 @@ export function createEntityView(options: EntityViewOptions) {
         if (CustomView && context.many) {
           return h(CustomView, { ctx: context });
         }
-        return context.many
-          ? app.ui.buildListView(context, {
-              loading: context.loading,
-              showToolbar: true,
-              showSearchbar: true,
-              selectionMode:
-                context.view === UiViewMany.SelectOne ? "single" : "multiple",
-              onItemDoubleClick: (item: any) =>
-                router.push(`${route.path.replace(/\/$/, "")}/${item.id}`),
-            })
-          : app.ui.buildView(context, { showToolbar: true });
+        if (!context.many) {
+          return app.ui.build(context, { showToolbar: true });
+        }
+        return app.ui.build(context, {
+          loading: context.loading,
+          showToolbar: true,
+          showSearchbar: true,
+          selectionMode:
+            context.view === UiViewMany.SelectOne ? "single" : "multiple",
+          onItemDoubleClick: (item: any) =>
+            router.push(`${route.path.replace(/\/$/, "")}/${item.id}`),
+        });
       };
     },
   });

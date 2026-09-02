@@ -35,8 +35,21 @@ import {
 import { rx } from "../rx";
 import { UiCustomSearchField, UiSearchField } from "./ui_filter";
 import type { UniListViewProps } from "./ui_state";
-import { createDefaultSearchParam, type UiViewType } from "./ui_view";
+import { createDefaultSearchParam, type UiViewPropsType, type UiViewType } from "./ui_view";
 import type { UiViewContext } from "./ui_context";
+import type { UiListViewPropsType } from "./ui_list";
+import type { UiTreeListViewPropsType } from "./ui_treelist";
+import type { UiGanttViewProps } from "./ui_gantt";
+
+export type UiViewOption =
+  | UiListViewPropsType<any>
+  | UiTreeListViewPropsType<any>
+  | UiGanttViewProps
+  | UiViewPropsType;
+
+export type UiViewOptions = Partial<
+  Record<UiViewType, (ctx: UiViewContext) => UiViewOption>
+>;
 
 export interface UiSearchForm {
   searchParam?: EntitySearchParam;
@@ -117,6 +130,7 @@ export abstract class UiLogic<E extends Entity> {
   /** 后端功能模块名，如 `mes` | `base` */
   readonly apiService?: string;
   viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
+  viewOptions?: UiViewOptions;
 
   private readonly relativeLogics: Record<
     string,

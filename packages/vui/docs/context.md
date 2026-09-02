@@ -8,7 +8,7 @@
 - `UiContext`：Logic 与字段回调的统一类型，含 `model` 和常用读写。
 - `UiViewContext`：Vue 会话实现。构造时按 `view` 选择 `reactive` 或 `shallowReactive`。
 - `UiBuildContext`：一屏宿主，挂 Logic，负责 `init` / `search` / `save`。
-- `UiViewOne` / `UiViewMany`：详情、编辑、创建、列表、多选。
+- `UiViewOne` / `UiViewMany`：详情、编辑、创建、列表、多选。`view` 是 CRUD 页；`viewKind`（`UiViewManyKind`）是拼屏（list / categoryList / gantt…）。
 - 主从：`subGroupContext` / `with(row)` / `subGroupItemContext`。
 
 ```ts

@@ -18,13 +18,19 @@ import {
   MetaModel,
   isRefNone,
   EntityUrlParam,
+  EntitySearchParam,
+  defineEntityArray,
+  DEFAULT_PAGE_SIZE,
   isNullOrUndefined,
 } from "@mmda/core";
 import {
   type UiLogicInit,
+  type UiViewContext,
+  type UiViewOptions,
   UiLogic,
   UiGroupLogic,
   type UiLogicFnResult,
+  UiViewManyKind,
   UiViewOne,
 } from "@mmda/vui";
 import { type Material, defineMaterial } from "../../models/Material";
@@ -44,7 +50,7 @@ import {
 import { type Partner, definePartner } from "../../models/Partner";
 import { UsageStatus } from "../../enums/UsageStatus";
 import { MaterialType, MaterialTypeEnum } from "../../enums/MaterialType";
-import { MaterialCat } from "../../models/MaterialCat";
+import { type MaterialCat, defineMaterialCat } from "../../models/MaterialCat";
 // 展示物料用途
 const isHide = ref(true);
 /**
@@ -82,19 +88,89 @@ export class MaterialLogic extends UiLogic<Material> {
       "partNos",
       (master) => new MaterialPartnerLogic(this, master),
     );
+    this.viewOptions = {
+      index: (ctx) => this.categoryListOption(ctx),
+    };
   }
+  treeData = ref<MaterialCat[]>([]);
+  currentCategory?: MaterialCat;
+  viewOptions: UiViewOptions = {};
+  private catsLoaded = false;
+
   async create(
     param: any = {},
     entityUrlParam?: EntityUrlParam,
   ): Promise<Material> {
+    const categoryID = this.currentCategory?.categoryID ?? "";
     return super.create(
       Object.assign({}, param, {
-        refID: this.currentCategoryID ?? "",
-        refName: this.currentCategoryID ? "MaterialCat" : "",
+        categoryID,
+        refID: categoryID,
+        refName: categoryID ? "MaterialCat" : "",
       }),
+      entityUrlParam,
     );
   }
-  currentCategoryID: MaterialCat;
+
+  async getAll(param: EntitySearchParam = { pager: { pageSize: DEFAULT_PAGE_SIZE } }) {
+    await this.ensureCats();
+    const categoryID = this.currentCategory?.categoryID;
+    if (categoryID) {
+      param = {
+        ...param,
+        queryParams: { ...param.queryParams, categoryID },
+      };
+    }
+    return super.getAll(param);
+  }
+
+  private categoryListOption(ctx: UiViewContext) {
+    return {
+      viewKind: UiViewManyKind.categoryList,
+      tree: () => ({
+        data: this.treeData.value,
+        repository: "MaterialCats",
+        fields: {
+          id: "categoryID",
+          label: "categoryName",
+          parentId: "parentCatID",
+        },
+        treeNodeActions: "contextMenu",
+        showTreeSearchBar: true,
+        showTreeFooter: true,
+        selected: this.currentCategory?.categoryID,
+        onTreeRefresh: () => this.reloadCats(),
+        onNodeSelect: (node: MaterialCat | MaterialCat[]) => {
+          this.currentCategory = Array.isArray(node) ? node[0] : node;
+          ctx.searchParam.pager.pageNo = 1;
+          void (ctx as UiViewContext & { search?: () => Promise<unknown> }).search?.();
+        },
+      }),
+    };
+  }
+
+  async reloadCats() {
+    this.catsLoaded = false;
+    await this.ensureCats();
+  }
+
+  private async ensureCats() {
+    if (this.catsLoaded) return;
+    this.catsLoaded = true;
+    try {
+      const data = await this.apiClient.searchEntities(
+        { pager: { pageNo: 1, pageSize: 1000 } },
+        { repository: "MaterialCats", service: this.apiService ?? "base" },
+      );
+      this.treeData.value = defineEntityArray(
+        defineMaterialCat,
+        (data.list ?? []) as object[],
+      );
+    } catch {
+      this.catsLoaded = false;
+    }
+  }
+
   beforeIndex(): UiLogicFnResult<Material> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {

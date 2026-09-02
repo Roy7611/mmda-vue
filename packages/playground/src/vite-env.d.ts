@@ -1,11 +1,9 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_SKIN?: string
-  readonly VITE_SYNCFUSION_LICENSE?: string
-  readonly VITE_AG_GRID_LICENSE?: string
+  readonly VITE_AG_GRID_LICENSE?: string;
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }

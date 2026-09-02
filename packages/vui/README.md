@@ -9,12 +9,11 @@ import {
   MmdaApplication,
   UiLogic,
   UiBuildContext,
-  HtmlUiBuilder,
   setupI18n,
 } from '@mmda/vui'
 ```
 
-**不包含** PrimeVue / Syncfusion 控件。包内 `HtmlUiBuilder` 是零控件库依赖的 HTML 皮肤；PrimeVue 4.5 由 `@mmda/vui-primevue` 实现，EJ2 由 `@mmda/vui-syncfusion` 实现。
+**不包含** PrimeVue / Syncfusion / Naive 控件。vui 只提供拼屏契约与 Builder 组合；皮肤由 `@mmda/vui-primevue`、`@mmda/vui-syncfusion`、`@mmda/vui-agnaive` 实现。
 
 ## 分层
 
@@ -29,7 +28,7 @@ UiViewContext        一实体一份 Vue 会话（实现 core 的 UiContext）
         ↓
 UiBuildContext       屏级 CRUD、列表刷新、附件与导入导出
         ↓
-UiBuilder / Factory / Overlay  拼屏契约 + 弹层；Html / PrimeVue / Syncfusion
+UiBuilder / Factory / Overlay  拼屏契约 + 弹层；PrimeVue / Syncfusion / Naive
 ```
 
 约定：
@@ -46,11 +45,12 @@ UiBuilder / Factory / Overlay  拼屏契约 + 弹层；Html / PrimeVue / Syncfus
 
 ```ts
 import { createApp } from 'vue'
-import { MmdaApplication, HtmlUiBuilder, setupI18n, UiBuildContext } from '@mmda/vui'
+import { MmdaApplication, setupI18n, UiBuildContext } from '@mmda/vui'
 import { UiViewMany } from '@mmda/vui'
+import { PrimeVueUiBuilder } from '@mmda/vui-primevue'
 
 const i18n = setupI18n({}, 'zh')
-const builder = new HtmlUiBuilder()
+const builder = new PrimeVueUiBuilder()
 const app = new MmdaApplication('/api', 'base', builder, i18n, {
   clientId: 'mmda-base',
   clientSecret: '',
@@ -80,7 +80,7 @@ const context = new UiBuildContext({
 await context.init()
 ```
 
-无定制字段逻辑时用 `GenericUiLogic`。皮肤换成 PrimeVue 时，把 `HtmlUiBuilder` 换成 `PrimeVueUiBuilder`，vui 其余代码不变。
+无定制字段逻辑时用 `GenericUiLogic`。换皮肤只换 Builder（如 `PrimeVueUiBuilder` / `SyncfusionUiBuilder`），vui 其余代码不变。
 
 ## 文档
 
@@ -89,7 +89,7 @@ await context.init()
 | [应用壳](./docs/application.md) | `MmdaApplication`、鉴权、i18n、inject keys |
 | [仓库逻辑](./docs/logic.md) | `UiLogic` / `GenericUiLogic` / `UiGroupLogic` |
 | [会话上下文](./docs/context.md) | `UiViewContext`、`UiBuildContext`、主从树 |
-| [Builder 与皮肤](./docs/builder.md) | `UiBuilder`、`UiFactory`、`HtmlUiBuilder` |
+| [Builder 与皮肤](./docs/builder.md) | `UiBuilder`、`UiFactory`、皮肤包 |
 | [列表与过滤](./docs/list.md) | 工具栏、搜索、`UiFilter`、`UiSelector` |
 
 旧的 [vui.md](./docs/vui.md) 仅作索引，新内容以本 README 和上表为准。
@@ -103,6 +103,6 @@ pnpm install
 pnpm --filter @mmda/vui test
 pnpm --filter @mmda/vui typecheck
 pnpm --filter @mmda/vui build
-pnpm dev:vui    # playground，假数据
+pnpm dev:vui    # playground（vui-agnaive，假数据）
 pnpm dev:app    # 统一 SPA（BASE + MES）
 ```

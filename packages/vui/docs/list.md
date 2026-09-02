@@ -5,6 +5,7 @@
 ## 主要内容
 
 - `buildListView`：工具栏、搜索栏、表、分页。
+- 左树右表是 Builder 组合（`buildTreeListView`），见 [Builder](./builder.md)；树契约见 [树](./tree.md)；Logic 用 `viewOptions` 挂接，见 [仓库逻辑](./logic.md)。
 - `UiFilter`：快捷过滤，编译进 `queryParams.filter`。
 - `searchParams`：表头结构化 `EntityFilterModel`。
 - `UiSelector`：弹层里选实体，渲染走 `$app.ui.factory`。
@@ -50,7 +51,7 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 
 ## 表头过滤
 
-`filterModel` ↔ `searchParam.searchParams`。HTML 皮肤用 `<details>`；PrimeVue 可换成 Popover + 各类型编辑器。应用条件后页码回到 1。
+`filterModel` ↔ `searchParam.searchParams`。皮肤用各自的弹出层和编辑器。应用条件后页码回到 1。
 
 ## 选择与勾选
 

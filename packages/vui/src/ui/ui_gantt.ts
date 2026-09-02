@@ -53,7 +53,7 @@ export interface UiGanttChangeEvent<T = unknown> {
   native?: T
 }
 
-export interface UiGanttChartProps extends PropData {
+export interface UiGanttViewProps extends PropData {
   tasks?: UiGanttTask[]
   links?: UiGanttLink[]
   columns?: UiGanttColumn[]
@@ -77,6 +77,9 @@ export interface UiGanttChartProps extends PropData {
   onTaskDblClick?: (task: UiGanttTask) => void
   onRowReorder?: (task: UiGanttTask, event?: UiGanttChangeEvent) => void
 }
+
+/** @deprecated 使用 UiGanttViewProps */
+export type UiGanttChartProps = UiGanttViewProps
 
 export const UI_GANTT_LINK_TYPES = ['FS', 'SS', 'FF', 'SF'] as const
 

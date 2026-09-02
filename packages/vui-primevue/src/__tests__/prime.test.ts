@@ -31,6 +31,16 @@ describe('PrimeVue skin', () => {
     expect(factory.layout).toBe(primeLayout)
     expect(factory.table).toBeTypeOf('function')
     expect(factory.dialog).toBeTypeOf('function')
+    expect(factory.splitter).toBeTypeOf('function')
+    expect(factory.tree).toBeTypeOf('function')
+    const tree = factory.tree({
+      data: [{ id: '1', label: '根' }],
+      fields: { icon: 'icon' },
+      selectionMode: 'checkbox',
+      showIcon: true,
+    })
+    expect(tree.props.selectionMode).toBe('checkbox')
+    expect(tree.props.showIcon).toBe(true)
     expect(factory.resolveIcon('save')).toBe('pi pi-check')
   })
 
