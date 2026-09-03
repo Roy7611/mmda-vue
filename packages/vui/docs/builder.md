@@ -35,7 +35,7 @@ Factory 用短名（`list`、`tree`、`ganttChart`）。Builder 组合用 `XxxVi
 |---|---|
 | `list` 或未设 | `buildListView` |
 | `categoryList` | `buildTreeListView`（左 `buildTreeView` + 右表） |
-| `treeGrid` | 后做，暂回退 list |
+| `treeGrid` | `buildTreeGridView`（树形表格，见 [treegrid.md](./treegrid.md)） |
 | `gantt` | `buildGanttView` |
 | `scheduler` | 后做 |
 
@@ -83,7 +83,7 @@ buildField
 
 - 布局：`layout.row` / `column` / `cell`
 - 动作：`button`、`badge`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`
-- 列表：`table`、`list`、`paginator`
+- 列表：`table`、`treeGrid`、`list`、`paginator`
 - chrome：`dialog`、`drawer`、`searchForRelative`
 - 弹层：`UiOverlay`（toast / confirm / `dialog` 队列）；不要把 toast 写进 Factory
 

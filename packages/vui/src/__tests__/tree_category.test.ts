@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   categoryCreateParams,
+  categoryMoveParams,
   categoryTreeAuth,
   categoryTreeAuthHasAction,
 } from "../ui/ui_tree_category";
 import {
   collectNodeAndDescendantIds,
   mapTreeNodes,
+  moveTreeNode,
+  treeCannotDropOn,
+  treeDropParent,
   treeShouldLoadChildren,
 } from "../ui/ui_tree";
 
@@ -96,6 +100,75 @@ describe("category tree helpers", () => {
       parentCatID: "a",
       depth: 1,
     });
+  });
+
+  it("拖放改父节点写 parentCatID 和 depth", () => {
+    const node = {
+      categoryID: "b",
+      categoryName: "B",
+      parentCatID: "a",
+      depth: 1,
+    };
+    const parent = { categoryID: "d", categoryName: "D", parentCatID: "", depth: 0 };
+    expect(categoryMoveParams(node, parent, fields)).toMatchObject({
+      parentCatID: "d",
+      parentID: "d",
+      depth: 1,
+    });
+    expect(categoryMoveParams(node, undefined, fields)).toMatchObject({
+      parentCatID: "",
+      depth: 0,
+    });
+  });
+
+  it("禁止拖到自己或子孙上，扁平 parentId 只改字段", () => {
+    const data = [
+      { categoryID: "a", categoryName: "A", parentCatID: "" },
+      { categoryID: "b", categoryName: "B", parentCatID: "a" },
+      { categoryID: "c", categoryName: "C", parentCatID: "b" },
+      { categoryID: "d", categoryName: "D", parentCatID: "" },
+    ];
+    expect(treeCannotDropOn(data[0], data[2], data, fields)).toBe(true);
+    expect(treeCannotDropOn(data[0], data[0], data, fields)).toBe(true);
+    expect(treeCannotDropOn(data[2], data[3], data, fields)).toBe(false);
+    expect(treeDropParent(data[3], "inside")).toBe(data[3]);
+    expect(treeDropParent(data[1], "before", data[0])).toBe(data[0]);
+    moveTreeNode(data, data[2], data[3], fields);
+    expect(data[2].parentCatID).toBe("d");
+    expect(treeCannotDropOn(data[2], data[3], data, fields)).toBe(false);
+  });
+
+  it("嵌套 children 从原子树摘到新父", () => {
+    const child = {
+      categoryID: "b",
+      categoryName: "B",
+      parentCatID: "a",
+      children: [] as object[],
+    };
+    const sibling = {
+      categoryID: "d",
+      categoryName: "D",
+      parentCatID: "",
+      childrenCount: 0,
+      children: [] as object[],
+    };
+    const root = {
+      categoryID: "a",
+      categoryName: "A",
+      parentCatID: "",
+      childrenCount: 1,
+      children: [child],
+    };
+    const nestFields = { ...fields, children: "children", childrenCount: "childrenCount" };
+    const roots = [root, sibling];
+    moveTreeNode(roots, child, sibling, nestFields);
+    expect(root.children).toHaveLength(0);
+    expect(root.childrenCount).toBe(0);
+    expect(sibling.children).toEqual([child]);
+    expect(sibling.childrenCount).toBe(1);
+    expect(child.parentCatID).toBe("d");
+    expect(moveTreeNode(roots, child, child, nestFields)).toBe(roots);
+    expect(child.parentCatID).toBe("d");
   });
 });
 

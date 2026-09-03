@@ -589,6 +589,48 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   text-align: justify;
 }
 
+/* TreeGrid 树列：EJ2 的 .e-treecell 是 display:contents。
+ * 块级 width:100% 的 .mmda-sf-cell 会把展开图标挤到上一行，缩进也看不见。 */
+.mmda-sf-treegrid.e-treegrid .e-rowcell:not(.e-gridclip) .e-treecolumn-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.mmda-sf-treegrid .e-treecolumn-container .mmda-sf-cell,
+.mmda-sf-treegrid .e-treecolumn-container .mmda-sf-treecell {
+  display: inline;
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mmda-sf-treegrid .e-treecolumn-container .two-line-ellipsis {
+  display: inline;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mmda-sf-treegrid.e-treegrid .e-treecolumn-container > .e-icons {
+  flex: 0 0 auto;
+}
+
+.mmda-sf-treegrid .e-rowcell .mmda-sf-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-sf-treegrid .e-rowcell .e-switch-wrapper {
+  margin: 0;
+}
+
 .mmda-sf-control.is-invalid :is(input, textarea, .e-control) {
   border-color: #c00;
 }
@@ -2575,15 +2617,16 @@ html.mmda-dark .e-grid .e-table {
   gap: 0.5rem;
 }
 
-/* 布尔 CheckIcon / CheckedIcon：success 圈勾 / 灰色空心圆 */
+/* 布尔 CheckIcon / CheckedIcon：有权限跟主题色，无权限灰色空心圆 */
 .mmda-bool-icon {
   font-size: 1.15rem;
   line-height: 1;
   vertical-align: middle;
 }
 
-.mmda-bool-icon--true {
-  color: #2e7d32;
+.mmda-bool-icon--true,
+.e-grid .e-rowcell .e-icons.mmda-bool-icon.mmda-bool-icon--true {
+  color: rgb(var(--color-sf-primary, 103, 80, 164));
 }
 
 .mmda-bool-icon--false {

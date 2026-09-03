@@ -608,6 +608,90 @@ describe("AbstractUiBuilder tree chrome", () => {
     );
   });
 
+  it("可编辑分类树开启拖放改父节点", () => {
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    context.app = {
+      name: "base",
+      findModule: () => ({
+        authority: {
+          allowRead: true,
+          allowCreate: true,
+          allowEdit: true,
+          allowDelete: true,
+        },
+      }),
+      di: { injectAsync: async () => undefined },
+    } as any;
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeView(
+        {
+          data: [{ id: "c1", categoryName: "分类", editable: true }],
+          fields: { id: "id", label: "categoryName" },
+          repository: "MaterialCats",
+          editMode: "contextMenu",
+          showSearchBar: false,
+          showTreeFooter: false,
+        },
+        context,
+      ),
+      host,
+    );
+    expect(host.querySelector(".mmda-tree")?.getAttribute("data-allow-drag-drop")).toBe(
+      "1",
+    );
+  });
+
+  it("未授权编辑的分类树不开启拖放", () => {
+    const context = new UiViewContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaui,
+      view: "index",
+    });
+    context.app = {
+      name: "base",
+      findModule: () => ({
+        authority: {
+          allowRead: true,
+          allowCreate: false,
+          allowEdit: false,
+          allowDelete: false,
+        },
+      }),
+      di: { injectAsync: async () => undefined },
+    } as any;
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeView(
+        {
+          data: [{ id: "c1", categoryName: "分类" }],
+          fields: { id: "id", label: "categoryName" },
+          repository: "MaterialCats",
+          editMode: "contextMenu",
+          showSearchBar: false,
+          showTreeFooter: false,
+        },
+        context,
+      ),
+      host,
+    );
+    expect(host.querySelector(".mmda-tree")?.getAttribute("data-allow-drag-drop")).toBeNull();
+  });
+
   it("父级重渲不重拉顶层树", async () => {
     let loads = 0;
     const preloader = async () => {

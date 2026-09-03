@@ -581,14 +581,14 @@ const factory: UiFieldFactory = {
   checkIcon: (field, context, props) =>
     h('i', {
       class: context.getFieldValue(field, props?.row)
-        ? 'pi pi-check'
-        : 'pi pi-times',
+        ? 'pi pi-check-circle p-text-success'
+        : 'pi pi-circle',
       ...props,
     }),
   checkedIcon: (field, context, props) =>
     h('i', {
       class: context.getFieldValue(field, props?.row)
-        ? 'pi pi-check-circle'
+        ? 'pi pi-check-circle p-text-success'
         : 'pi pi-circle',
       ...props,
     }),

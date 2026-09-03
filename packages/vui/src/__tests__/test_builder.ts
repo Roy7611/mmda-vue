@@ -186,6 +186,13 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
       ),
     tree: <T>(props: UiTreePropsType<T>) => h(TestTree, props as any),
     table,
+    treeGrid: <T>(model: T[], metaui: MetaUi, props: any) =>
+      h("div", {
+        class: "mmda-tree-grid",
+        "data-tree-shape": props.treeShape,
+        "data-shape-key": props.shapeKey,
+        "data-load-mode": props.loadMode,
+      }, [table(model, metaui, props)]),
     pagableTable: (loader, metadata, props) =>
       table(loader.model.list as any[], metadata.metaui, props as any),
     loading: (props) => h("div", { class: "mmda-loading", ...props }, "Loading…"),
@@ -452,6 +459,8 @@ const TestTree = defineComponent({
     onExpand: { type: Function, default: undefined },
     onNodeRename: { type: Function, default: undefined },
     onNodeAddChild: { type: Function, default: undefined },
+    allowDragDrop: { type: Boolean, default: false },
+    onNodeMove: { type: Function, default: undefined },
   },
   setup(props: UiTreePropsType) {
     const menu = ref<{ items: { label: string; divider?: boolean }[] } | null>(
@@ -465,6 +474,7 @@ const TestTree = defineComponent({
           {
             class: ["mmda-tree", props.class],
             "data-has-context-menu": props.contextMenu ? "1" : undefined,
+            "data-allow-drag-drop": props.allowDragDrop ? "1" : undefined,
           },
           (props.data ?? []).map((node) => {
             const id = treeIdOf(node, props.fields);

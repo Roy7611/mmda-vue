@@ -3,6 +3,7 @@ import { NDropdown, NInput, NTree, type TreeOption } from 'naive-ui'
 import {
   createIconVNode,
   mapTreeNodes,
+  resolveMappedTreeDrop,
   selectedIdSet,
   type UiTreeEmits,
   type UiTreeFields,
@@ -54,6 +55,11 @@ export const MmdaNaiveTree = defineComponent({
     },
     onNodeRename: {
       type: Function as PropType<UiTreeEmits['onNodeRename']>,
+      default: undefined,
+    },
+    allowDragDrop: { type: Boolean, default: false },
+    onNodeMove: {
+      type: Function as PropType<UiTreeEmits['onNodeMove']>,
       default: undefined,
     },
   },
@@ -165,6 +171,7 @@ export const MmdaNaiveTree = defineComponent({
           class: ['mmda-agnaive-tree', props.class].filter(Boolean).join(' '),
           data: options.value,
           checkable: checkable.value,
+          draggable: props.allowDragDrop === true,
           selectable: (props.selectionMode ?? 'single') !== 'none',
           selectedKeys: checkable.value ? undefined : keys.value,
           checkedKeys: checkable.value ? keys.value : undefined,
@@ -173,6 +180,32 @@ export const MmdaNaiveTree = defineComponent({
           },
           'onUpdate:checkedKeys': (next: Array<string | number>) => {
             if (checkable.value) emitKeys(next)
+          },
+          onDrop: (info: {
+            node?: TreeOption
+            dragNode?: TreeOption
+            dropPosition?: string | number
+          }) => {
+            const dragSrc = info.dragNode?.key != null
+              ? byId.value.get(String(info.dragNode.key))?.src
+              : undefined
+            if ((dragSrc as { editable?: boolean } | undefined)?.editable === false) {
+              return
+            }
+            const drop = resolveMappedTreeDrop(
+              String(info.dragNode?.key ?? ''),
+              info.node?.key != null ? String(info.node.key) : undefined,
+              info.dropPosition,
+              byId.value,
+              (props.data ?? []) as never[],
+              props.fields,
+            )
+            if (!drop) return
+            void Promise.resolve(
+              props.onNodeMove?.(drop.dragged, drop.parent, {
+                position: drop.position,
+              }),
+            )
           },
           'onUpdate:expandedKeys': (
             _keys: Array<string | number>,

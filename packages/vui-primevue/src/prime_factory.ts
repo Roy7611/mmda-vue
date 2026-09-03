@@ -18,7 +18,9 @@ import type {
   UiListPropsType,
   UiPaginatorPropsType,
   UiSlots,
+  UiTreeGridPropsType,
 } from "@mmda/vui";
+import { assembleTreeGridRows, listedTableFields, treeRowId } from "@mmda/vui";
 import {
   createIconVNode,
   MATERIAL_SYMBOL_PREFIX,
@@ -590,6 +592,54 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           }),
       }),
     tree: (props) => h(MmdaPrimeTree, props as any),
+    treeGrid: <T>(model: T[], metaui: MetaUi, props: UiTreeGridPropsType<T>) => {
+      const fields = listedTableFields(metaui);
+      const { treeShape, shapeKey, idField, childrenKey, assembled } =
+        assembleTreeGridRows(model, metaui, {
+          ...props,
+          bindShape: props.bindShape ?? "nestedChildren",
+        });
+      const spec = { treeShape, shapeKey, idField };
+      const kidsOf = (row: T): T[] => {
+        const kids = (row as any)?.[childrenKey];
+        return Array.isArray(kids) ? kids : [];
+      };
+      const toNodes = (rows: T[]): any[] =>
+        rows.map((row) => ({
+          key: treeRowId(row, spec),
+          data: row,
+          children: toNodes(kidsOf(row)),
+          leaf:
+            props.loadMode === "lazy"
+              ? Number((row as any)?.[props.childrenCountKey ?? "childrenCount"] ?? 1) === 0
+              : !kidsOf(row).length,
+        }));
+      return h(DataTable as any, {
+        value: assembled.roots,
+        dataKey: idField,
+        class: ["mmda-prime-treegrid", props.class].filter(Boolean).join(" "),
+        rowHover: true,
+        onRowDblclick: (event: any) =>
+          props.onItemDoubleClick?.(event.data?.data ?? event.data),
+        onRowExpand: (event: any) => {
+          const row = event.data?.data ?? event.data;
+          if (row) void Promise.resolve(props.onExpand?.(row));
+        },
+      }, {
+        default: () =>
+          fields.map((field) =>
+            h(Column, {
+              field: field.fieldName,
+              header: field.displayLabel,
+              expander: field === fields[0],
+              body: ({ data }: { data: any }) => {
+                const row = data?.data ?? data;
+                return props.renderCell?.(field, row) ?? String(row?.[field.fieldName] ?? "");
+              },
+            }),
+          ),
+      });
+    },
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h(
         DataView,

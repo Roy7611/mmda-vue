@@ -61,3 +61,22 @@ export function categoryCreateParams<T>(
   }
   return params
 }
+
+export function categoryMoveParams<T>(
+  node: T,
+  parent: T | undefined,
+  fields?: UiTreeFields<T>,
+): Record<string, unknown> {
+  const parentKey = treeParentFieldName(fields)
+  const parentId = parent ? treeIdOf(parent, fields) : ''
+  const depth = parent
+    ? Number((parent as Record<string, unknown>).depth ?? 0) + 1
+    : 0
+  return {
+    ...(node as object),
+    [parentKey]: parentId,
+    parentID: parentId,
+    parentCatID: parentId,
+    depth,
+  }
+}

@@ -700,7 +700,7 @@ const fileLink = (field: MetaUiField, context: UiContext, props?: PropData) => {
   );
 };
 
-/** 布尔只读：true=圈勾 success；false=灰色空心圆（EJ2 icons） */
+/** 布尔只读：true 默认 success 圈勾；false=灰色空心圆 */
 const boolIcon = (field: MetaUiField, context: UiContext, props?: PropData) => {
   const checked = Boolean(context.getFieldValue(field, props?.row));
   return h("i", {

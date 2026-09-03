@@ -4,6 +4,7 @@ import ContextMenu from 'primevue/contextmenu'
 import InputText from 'primevue/inputtext'
 import {
   mapTreeNodes,
+  resolveMappedTreeDrop,
   selectedIdSet,
   type UiTreeEmits,
   type UiTreeFields,
@@ -63,6 +64,11 @@ export const MmdaPrimeTree = defineComponent({
     },
     onNodeRename: {
       type: Function as PropType<UiTreeEmits['onNodeRename']>,
+      default: undefined,
+    },
+    allowDragDrop: { type: Boolean, default: false },
+    onNodeMove: {
+      type: Function as PropType<UiTreeEmits['onNodeMove']>,
       default: undefined,
     },
   },
@@ -175,7 +181,35 @@ export const MmdaPrimeTree = defineComponent({
               selectionMode: props.selectionMode === 'none' ? undefined : mode.value,
               selectionKeys: props.selectionMode === 'none' ? undefined : selection.value,
               class: ['mmda-prime-tree', props.class].filter(Boolean).join(' '),
+              dragdrop: props.allowDragDrop === true,
               'onUpdate:selectionKeys': emitSelection,
+              onNodeDrop: (event: {
+                dragNode?: PrimeTreeNode
+                dropNode?: PrimeTreeNode
+                accept?: () => void
+              }) => {
+                const dragSrc = event.dragNode
+                  ? byId.value.get(String(event.dragNode.key))?.src
+                  : undefined
+                if ((dragSrc as { editable?: boolean } | undefined)?.editable === false) {
+                  return
+                }
+                const drop = resolveMappedTreeDrop(
+                  String(event.dragNode?.key ?? ''),
+                  event.dropNode?.key != null ? String(event.dropNode.key) : undefined,
+                  'inside',
+                  byId.value,
+                  (props.data ?? []) as never[],
+                  props.fields,
+                )
+                if (!drop) return
+                event.accept?.()
+                void Promise.resolve(
+                  props.onNodeMove?.(drop.dragged, drop.parent, {
+                    position: drop.position,
+                  }),
+                )
+              },
               onNodeExpand: (node: PrimeTreeNode) => {
                 const src = byId.value.get(String(node.key))?.src
                 if (src != null) void props.onExpand?.(src)

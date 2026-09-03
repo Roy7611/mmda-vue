@@ -109,4 +109,54 @@ describe('MetaUi name column', () => {
     expect(metaui.labelField).toBe('materialCode')
     expect(metaui.getField('materialCode')?.linkable).toBe(true)
   })
+
+  it('reports missing child groupUi', () => {
+    const metaui = new MetaUi({
+      objName: 'Role',
+      displayLabel: '角色',
+      groups: [
+        {
+          groupName: 'a1',
+          groupLabel: '主',
+          many: false,
+          fields: [{ ...fldInit, fieldName: 'roleName', displayLabel: '名称' }],
+        },
+        {
+          groupName: 'moduleAuths',
+          groupLabel: '功能权限',
+          many: true,
+          relObjName: 'RoleModuleAuth',
+          joinOn: 'roleID=@roleID',
+        },
+      ],
+    })
+    expect(metaui.hasSubGroupUis()).toBe(false)
+    const complete = new MetaUi({
+      objName: 'Role',
+      displayLabel: '角色',
+      groups: [
+        {
+          groupName: 'moduleAuths',
+          groupLabel: '功能权限',
+          many: true,
+          relObjName: 'RoleModuleAuth',
+          joinOn: 'roleID=@roleID',
+          groupUi: {
+            objName: 'RoleModuleAuth',
+            displayLabel: '功能权限',
+            groups: [
+              {
+                groupName: 'a1',
+                groupLabel: '行',
+                many: false,
+                fields: [{ ...fldInit, fieldName: 'allowRead', displayLabel: '读' }],
+              },
+            ],
+          },
+        },
+      ],
+    })
+    expect(complete.hasSubGroupUis()).toBe(true)
+    expect(complete.getGroup('moduleAuths')?.groupUi?.getField('allowRead')).toBeTruthy()
+  })
 })

@@ -55,6 +55,65 @@ const getOnePart = (str: string) => {
 	// }
 	return null; // 如果没有两个点，则返回null
 };
+const renderModuleCodeLabel = (
+	_fld: MetaUiField,
+	ctx: UiContext<RoleModuleAuth>,
+) => {
+	const row = ctx.model as RoleModuleAuth & { moduleLabel?: string };
+	const code = row.moduleCode ?? '';
+	const label = row.moduleLabel ?? '';
+	return [code, label].filter(Boolean).join(' ');
+};
+const actionKey = (action: { actionName?: string; actionCode?: string }) =>
+	action.actionName || action.actionCode || '';
+const renderAuthorizedActions = (
+	_fld: MetaUiField,
+	ctx: UiContext<RoleModuleAuth>,
+) => {
+	const row = ctx.model as RoleModuleAuth & {
+		moduleActions?: Array<{ actionName?: string; actionCode?: string; displayLabel?: string }>;
+		actions?: Array<{ actionName?: string; actionCode?: string; displayLabel?: string }>;
+		authorizedActions?: Array<{ actionName?: string; actionCode?: string; displayLabel?: string }>;
+		authority?: { authorizedActions?: Array<{ actionName?: string; actionCode?: string; displayLabel?: string }> };
+	};
+	const actions = row.moduleActions ?? row.actions ?? [];
+	const authorized = row.authorizedActions ?? row.authority?.authorizedActions ?? [];
+	const allowed = new Set(authorized.map(actionKey).filter(Boolean));
+	const labels = (actions.length
+		? actions.filter(action => allowed.has(actionKey(action)))
+		: authorized
+	)
+		.map(action => action.displayLabel)
+		.filter(Boolean);
+	return labels.join('、');
+};
+const editAuthorizedActions = (
+	_fld: MetaUiField,
+	ctx: UiContext<RoleModuleAuth>,
+	_props?: Record<string, unknown>,
+) => {
+	const { $ui: ui, $t: t } = ctx.globalProps;
+	const row = ctx.model as RoleModuleAuth & {
+		moduleActions?: unknown[];
+		actions?: unknown[];
+		authorizedActions?: unknown[];
+		authority?: { authorizedActions?: unknown[] };
+	};
+	return ui.factory.multiSelect({
+		showClear: true,
+		editable: true,
+		placeholder: t('action.select'),
+		dataKey: 'actionName',
+		optionLabel: 'displayLabel',
+		class: 'ui-searchOp w-full',
+		options: row.moduleActions ?? row.actions ?? [],
+		modelValue: row.authorizedActions ?? row.authority?.authorizedActions,
+		onUpdate: (value: unknown) => {
+			row.authorizedActions = value as typeof row.authorizedActions;
+			MetaModel.modify(row);
+		},
+	});
+};
 export class RoleLogic extends UiLogic<Role> {
 	constructor(init: UiLogicInit) {
 		super(defineRole, init);
@@ -90,7 +149,11 @@ export class RoleLogic extends UiLogic<Role> {
 			groups.push(
 				//角色功能
 				this.group<RoleModuleAuth>('moduleAuths')
-					.field('allowRead')
+					.field('moduleCode')
+					.setCustomRenderer(renderModuleCodeLabel)
+					.setCustomCellRenderer(renderModuleCodeLabel)
+					.inPlaceEdit(false)
+					.nextField('allowRead')
 					.inPlaceEdit()
 					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						props.onChange = (val: boolean | string | number) => {
@@ -103,17 +166,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowRead = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowRead = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowRead = val
 									})
 									//获取主表的M.01这样的字段
@@ -164,17 +227,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowCreate = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowCreate = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowCreate = val
 									})
 									//获取主表的M.01这样的字段
@@ -225,17 +288,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowEdit = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowEdit = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowEdit = val
 									})
 									//获取主表的M.01这样的字段
@@ -286,17 +349,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowPrint = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowPrint = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowPrint = val
 									})
 									//获取主表的M.01这样的字段
@@ -347,17 +410,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowDelete = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowDelete = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowDelete = val
 									})
 									//获取主表的M.01这样的字段
@@ -408,17 +471,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowImport = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowImport = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowImport = val
 									})
 									//获取主表的M.01这样的字段
@@ -469,17 +532,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowExport = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowExport = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowExport = val
 									})
 									//获取主表的M.01这样的字段
@@ -530,17 +593,17 @@ export class RoleLogic extends UiLogic<Role> {
 							//主菜单
 							if (!secondCode) {
 								if (isRefNone(oneCode)) {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowUpload = val
-										if (!item.subModules) {
-											item.subModules = []
+										if (!item.subModuleAuths) {
+											item.subModuleAuths = []
 										}
-										item.subModules.forEach((v: any) => {
+										item.subModuleAuths.forEach((v: any) => {
 											v.allowUpload = val
 										})
 									})
 								} else {
-									currentItem.subModules.forEach((item: any) => {
+									currentItem.subModuleAuths.forEach((item: any) => {
 										item.allowUpload = val
 									})
 									//获取主表的M.01这样的字段
@@ -582,6 +645,8 @@ export class RoleLogic extends UiLogic<Role> {
 					.nextField('authScope')
 					.inPlaceEdit()
 					.nextField('authActions')
+					.setCustomEditor(editAuthorizedActions)
+					.setCustomCellRenderer(renderAuthorizedActions)
 					.inPlaceEdit().parent
 				//角色用户
 				// this.group<UserRole>('users').defaultAdder(this.addusers).field('parttime').inPlaceEdit().parent
@@ -595,7 +660,11 @@ export class RoleLogic extends UiLogic<Role> {
 			groups.push(
 				//角色功能
 				this.group<RoleModuleAuth>('moduleAuths')
-					.field('allowRead')
+					.field('moduleCode')
+					.setCustomRenderer(renderModuleCodeLabel)
+					.setCustomCellRenderer(renderModuleCodeLabel)
+					.inPlaceEdit(false)
+					.nextField('allowRead')
 					.nextField('allowCreate')
 					.nextField('allowEdit')
 					.inPlaceEdit()
@@ -612,14 +681,7 @@ export class RoleLogic extends UiLogic<Role> {
 					.nextField('authScope')
 					.inPlaceEdit()
 					.nextField('authActions')
-					.setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						if (ctx.model.authorizedActions && ctx.model.authorizedActions.length > 0) {
-							ctx.model.authActions = ctx.model.authorizedActions.map((obj: any) => obj.displayLabel).join(', ');
-						} else {
-							ctx.model.authActions = null;
-						}
-						return h('span', ctx.model.authActions)
-					}).parent
+					.setCustomCellRenderer(renderAuthorizedActions).parent
 			);
 		}
 
@@ -654,21 +716,9 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('moduleCode').setCustomRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) =>
-					`${ctx.model.moduleLabel}`
-				).setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-					const currentItem: any = ctx.model;
-					//判断是不是主菜单
-					const secondCode = getSecondPart(currentItem.moduleCode);
-					// if (!secondCode) {
-					// 	return `${ctx.model.moduleCode} ${ctx.model.moduleLabel}`;
-					// } else {
-					// 	//非第一个菜单加空格
-					// 	const originalText = '\xa0\xa0\xa0\xa0' + `${ctx.model.moduleCode} ${ctx.model.moduleLabel}`;
-					// 	return originalText;
-					// }
-					return `${ctx.model.moduleLabel}`
-				})
+				this.field('moduleCode')
+					.setCustomRenderer(renderModuleCodeLabel)
+					.setCustomCellRenderer(renderModuleCodeLabel)
 			);
 		}
 
@@ -678,21 +728,9 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('moduleCode').setCustomRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) =>
-					`${ctx.model.moduleLabel}`
-				).setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-					const currentItem: any = ctx.model;
-					//判断是不是主菜单
-					const secondCode = getSecondPart(currentItem.moduleCode);
-					// if (!secondCode) {
-					// 	return `${ctx.model.moduleCode} ${ctx.model.moduleLabel}`;
-					// } else {
-					// 	//非第一个菜单加空格
-					// 	const originalText = '\xa0\xa0\xa0\xa0' + `${ctx.model.moduleCode} ${ctx.model.moduleLabel}`;
-					// 	return originalText;
-					// }
-					return `${ctx.model.moduleLabel}`
-				}),
+				this.field('moduleCode')
+					.setCustomRenderer(renderModuleCodeLabel)
+					.setCustomCellRenderer(renderModuleCodeLabel),
 				this.field('authActions')
 					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps
@@ -714,7 +752,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 								const str = name.split(',')
 								const arr1 = str[1].split('.')
 								this.master.moduleAuths.forEach((item: any) => {
-									item.subModules.forEach((value: any) => {
+									item.subModuleAuths.forEach((value: any) => {
 										if (item.moduleCode === arr1[0]) {
 											MetaModel.modify(item);
 										}
@@ -728,14 +766,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 							},
 						});
 					})
-					.setCustomCellRenderer((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						if (ctx.model.authorizedActions && ctx.model.authorizedActions.length > 0) {
-							ctx.model.authActions = ctx.model.authorizedActions.map((obj: any) => obj.displayLabel).join(', ');
-						} else {
-							ctx.model.authActions = null;
-						}
-						return h('span', ctx.model.authActions)
-					})
+					.setCustomCellRenderer(renderAuthorizedActions)
 				// 修改子表显示数据
 			);
 		}

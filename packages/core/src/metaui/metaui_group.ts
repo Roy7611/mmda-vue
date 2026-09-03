@@ -37,16 +37,13 @@ export const enum MetaUiGroupType {
   SECONDARY = 'secondary',
   TAILS = 'tails',
 }
+
 export const enum MetaUiSubGroupShape {
-  // LIST, //列表，默认
-  // TREE, //父子结构 有parentID字段
-  // HIERARCHY, //层次结构，1，1.1，1.2
-  // PHOTO, // 图片
-  LIST = 'LIST', //列表，默认
-  TREE = 'TREE', //父子结构 有parentID字段
-  HIERARCHY = 'HIERARCHY', //层次结构，1，1.1，1.2
-  PHOTO = 'PHOTO', // 图片
-  BPMN = 'BPMN', // 流程图
+  LIST = 'LIST', //扁平列表，默认
+  TREE = 'TREE', //父子，shapeKey = 父字段名
+  HIERARCHY = 'HIERARCHY', //点分编码，shapeKey = 编码字段名
+  CALENDAR = 'CALENDAR', //日历事件，用 Scheduler
+  IMAGE_GALLERY = 'IMAGE_GALLERY', //图片画廊
 }
 export interface MetaUiMasterGroup {
   groupName: string // 组名称，如a1,items
@@ -387,5 +384,10 @@ export class MetaUi {
    */
   getGroupUi(name: string): MetaUi | undefined {
     return this.getGroup(name)?.groupUi
+  }
+
+  /** 一对多组都带了 groupUi 才能 group().field() / 画子表。 */
+  hasSubGroupUis() {
+    return this.groups.every((group) => !group.many || !!group.groupUi)
   }
 }

@@ -24,6 +24,17 @@ export interface UiTreeProps<T = any> {
   contextMenu?: (node: T) => UiAction[]
   /** 悬停添加子节点。函数返回 false 时不显示。 */
   showHoverAdd?: boolean | ((node: T) => boolean)
+  /**
+   * 拖放改父节点。未设时：`editable === true`，或分类树有 `repository` 且模块 `allowEdit`。
+   * 不要只因默认 `editMode: 'hover'` 就打开。
+   */
+  allowDragDrop?: boolean
+}
+
+export type UiTreeDropPosition = 'inside' | 'before' | 'after'
+
+export interface UiTreeMoveMeta {
+  position: UiTreeDropPosition
 }
 
 export interface UiTreeEmits<T = any> {
@@ -32,6 +43,12 @@ export interface UiTreeEmits<T = any> {
   onNodeContextMenu?: (node: T, event: MouseEvent) => void
   onNodeRename?: (node: T, text: string) => void
   onNodeAddChild?: (parent: T) => void
+  /** 拖到某节点上（Inside）或其兄弟位（Before/After）。`parent` 为空即升到根。 */
+  onNodeMove?: (
+    node: T,
+    parent: T | undefined,
+    meta: UiTreeMoveMeta,
+  ) => void | Promise<void>
 }
 
 export type UiTreePropsType<T = any> = UiTreeProps<T> & UiTreeEmits<T>
@@ -99,6 +116,15 @@ export function readTreeField<T>(
   if (field == null) return undefined
   if (typeof field === 'function') return field(node)
   return (node as Record<string, unknown>)[field]
+}
+
+export function writeTreeField<T>(
+  node: T,
+  field: string | ((node: T) => unknown) | undefined,
+  value: unknown,
+): void {
+  if (field == null || typeof field === 'function') return
+  ;(node as Record<string, unknown>)[field] = value
 }
 
 export function treeIdOf<T>(node: T, fields?: UiTreeFields<T>): string {
@@ -353,4 +379,151 @@ export function findMappedNodeById<T>(
     if (child) return child
   }
   return undefined
+}
+
+export function normalizeTreeDropPosition(
+  position?: string | number,
+): UiTreeDropPosition {
+  if (position === -1 || String(position).toLowerCase() === 'before') {
+    return 'before'
+  }
+  if (position === 1 || String(position).toLowerCase() === 'after') {
+    return 'after'
+  }
+  return 'inside'
+}
+
+export function treeDropParent<T>(
+  dropped: T | undefined,
+  position: UiTreeDropPosition,
+  droppedParent?: T,
+): T | undefined {
+  if (!dropped || position === 'inside') return dropped
+  return droppedParent
+}
+
+export function treeCannotDropOn<T>(
+  dragged: T,
+  dropped: T | undefined,
+  data: T[],
+  fields?: UiTreeFields<T>,
+): boolean {
+  if (!dropped) return false
+  const dragId = treeIdOf(dragged, fields)
+  const dropId = treeIdOf(dropped, fields)
+  if (!dragId || !dropId) return true
+  if (dragId === dropId) return true
+  return collectNodeAndDescendantIds(data, dragged, fields).includes(dropId)
+}
+
+export function resolveMappedTreeDrop<T>(
+  dragId: string,
+  dropId: string | undefined,
+  position: string | number | undefined,
+  byId: Map<string, UiTreeMappedNode<T>>,
+  data: T[],
+  fields?: UiTreeFields<T>,
+):
+  | { dragged: T; parent: T | undefined; position: UiTreeDropPosition }
+  | undefined {
+  const dragged = byId.get(String(dragId))?.src
+  if (dragged == null) return undefined
+  const droppedMapped = dropId ? byId.get(String(dropId)) : undefined
+  const pos = normalizeTreeDropPosition(position)
+  const parent = treeDropParent(
+    droppedMapped?.src,
+    pos,
+    droppedMapped?.parentId ? byId.get(droppedMapped.parentId)?.src : undefined,
+  )
+  if (treeCannotDropOn(dragged, parent ?? droppedMapped?.src, data, fields)) {
+    return undefined
+  }
+  return { dragged, parent, position: pos }
+}
+
+function treeDataHasChildArrays<T>(data: T[], fields?: UiTreeFields<T>): boolean {
+  const key = treeChildrenKey(fields)
+  return data.some((node) =>
+    Array.isArray((node as Record<string, unknown>)[key]),
+  )
+}
+
+function bumpTreeChildrenCount<T>(
+  node: T,
+  delta: number,
+  fields?: UiTreeFields<T>,
+): void {
+  const key =
+    typeof fields?.childrenCount === 'string' ? fields.childrenCount : undefined
+  if (!key) return
+  const cur = (node as Record<string, unknown>)[key]
+  if (typeof cur === 'number') {
+    ;(node as Record<string, unknown>)[key] = Math.max(0, cur + delta)
+  }
+}
+
+function writeMovedParent<T>(
+  node: T,
+  parent: T | undefined,
+  fields?: UiTreeFields<T>,
+): void {
+  const parentId = parent ? treeIdOf(parent, fields) : ''
+  writeTreeField(node, treeParentFieldName(fields), parentId)
+  const rec = node as Record<string, unknown>
+  if ('depth' in rec) {
+    rec.depth = parent
+      ? Number((parent as Record<string, unknown>).depth ?? 0) + 1
+      : 0
+  }
+}
+
+export function detachTreeNode<T>(
+  roots: T[],
+  node: T,
+  fields?: UiTreeFields<T>,
+): T | undefined {
+  const id = treeIdOf(node, fields)
+  if (!id) return undefined
+  const childrenKey = treeChildrenKey(fields)
+  const visit = (nodes: T[], parent?: T): T | undefined => {
+    for (let i = 0; i < nodes.length; i++) {
+      if (treeIdOf(nodes[i], fields) === id) {
+        const [found] = nodes.splice(i, 1)
+        if (parent) bumpTreeChildrenCount(parent, -1, fields)
+        return found
+      }
+      const kids = (nodes[i] as Record<string, unknown>)[childrenKey]
+      if (Array.isArray(kids)) {
+        const found = visit(kids as T[], nodes[i])
+        if (found) return found
+      }
+    }
+    return undefined
+  }
+  return visit(roots)
+}
+
+/** 改父节点。扁平 `parentId` 只写字段；已有 `children` 数组则从原子树摘到新父。 */
+export function moveTreeNode<T>(
+  roots: T[],
+  node: T,
+  parent: T | undefined,
+  fields?: UiTreeFields<T>,
+): T[] {
+  if (parent && treeCannotDropOn(node, parent, roots, fields)) return roots
+  if (!treeDataHasChildArrays(roots, fields)) {
+    writeMovedParent(node, parent, fields)
+    return roots
+  }
+  const found = detachTreeNode(roots, node, fields) ?? node
+  writeMovedParent(found, parent, fields)
+  if (parent) {
+    const kids = treeChildrenOf(parent, fields)
+    if (kids) kids.push(found)
+    else setTreeChildren(parent, [found], fields)
+    bumpTreeChildrenCount(parent, 1, fields)
+  } else {
+    roots.push(found)
+  }
+  return roots
 }

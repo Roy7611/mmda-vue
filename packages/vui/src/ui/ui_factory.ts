@@ -39,6 +39,7 @@ import type {
   UiTableCellRenderer,
 } from './ui_list'
 import type { UiTreePropsType } from './ui_tree'
+import type { UiTreeGridPropsType } from './ui_tree_grid'
 import type { Rx } from '../rx'
 import type { ChildSlot } from './ui_view'
 
@@ -181,6 +182,11 @@ export interface UiFactory {
   list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
   tree: <T>(props: UiTreePropsType<T>) => VNode
   table: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
+  treeGrid: <T>(
+    model: T[],
+    metaui: MetaUi,
+    props: UiTreeGridPropsType<T>,
+  ) => VNode
   pagableTable: <T>(
     dataLoader: UiPagableDataLoader<T>,
     metadata: MetaUiPack,
@@ -346,6 +352,17 @@ export const TABLE_CELL_PROP_KEYS = [
   'showActions',
   'rowMenu',
   'itemHeight',
+  'treeShape',
+  'shapeKey',
+  'idField',
+  'parentIdField',
+  'loadMode',
+  'sourceShape',
+  'bindShape',
+  'childrenKey',
+  'childrenCountKey',
+  'onExpand',
+  'enableGroup',
 ] as const
 
 export const cleanProps = (

@@ -28,6 +28,7 @@ import type {
   UiSlots,
 } from '@mmda/vui'
 import {
+  assembleTreeGridRows,
   createIconVNode,
   MATERIAL_SYMBOL_PREFIX,
 } from '@mmda/vui'
@@ -292,6 +293,19 @@ export function createAgNaiveUiFactory(): UiFactory {
           props.onPage({ pageNo: 1, pageSize }),
       }),
     tree: (props) => h(MmdaNaiveTree, props as any),
+    treeGrid: <T>(model: T[], metaui: MetaUi, props: any) => {
+      const { assembled } = assembleTreeGridRows(model, metaui, {
+        ...props,
+        bindShape: props.bindShape ?? 'dataPath',
+      })
+      return h(MmdaAgGrid, {
+        data: assembled.rows,
+        metaui,
+        ...props,
+        treeData: true,
+        getDataPath: assembled.getDataPath,
+      } as any)
+    },
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h(
         'div',

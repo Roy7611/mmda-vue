@@ -287,7 +287,9 @@ class MetaUiServiceImpl implements MetaUiService {
           (g: any) => `${metaRepo}/${g.groupName}`
         )
         const assemblies = await this._cache.getMany(manyGroupKeys)
-        assemblies.forEach((a, i) => (manyGroups[i].groupUi = a))
+        assemblies.forEach((a, i) => {
+          if (a) manyGroups[i].groupUi = a
+        })
       }
     }
     return meta
@@ -438,7 +440,10 @@ class MetaUiServiceImpl implements MetaUiService {
       )
 
     return this.getFromCache(this.cacheRepository(repository, service)).then(meta => {
-      if (meta) return new MetaUi(meta)
+      if (meta) {
+        const metaui = new MetaUi(meta)
+        if (metaui.hasSubGroupUis()) return metaui
+      }
       return this.getPackFromServer(reload, { repository, service, }).then(
         metaPack => metaPack.metaui
       )
@@ -488,14 +493,18 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.getPackFromCache(
       this.cacheRepository(redirection ?? repository, params.service),
     ).then(meta => {
-      if (meta.metaui)
-        return {
-          module: this.findModule(repository), // redirection不影响模块查找，模块依然通过repository查找，因为redirection只是替换了repository来查找元界面数据，并不影响模块的repository
-          metaui: new MetaUi(meta.metaui),
-          filters: meta.filters,
-          sorts: meta.sorts,
+      if (meta.metaui) {
+        const metaui = new MetaUi(meta.metaui)
+        if (metaui.hasSubGroupUis()) {
+          return {
+            module: this.findModule(repository),
+            metaui,
+            filters: meta.filters,
+            sorts: meta.sorts,
+          }
         }
-      return this.getPackFromServer(true, params)
+      }
+      return this.getPackFromServer(false, params)
     })
   }
 
@@ -516,14 +525,18 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.getPackFromCache(
       this.cacheRepository(repository, service),
     ).then(meta => {
-      if (meta.metaui)
-        return {
-          module: this.findOtherSystemModule(service, repository),
-          metaui: new MetaUi(meta.metaui),
-          filters: meta.filters,
-          sorts: meta.sorts,
+      if (meta.metaui) {
+        const metaui = new MetaUi(meta.metaui)
+        if (metaui.hasSubGroupUis()) {
+          return {
+            module: this.findOtherSystemModule(service, repository),
+            metaui,
+            filters: meta.filters,
+            sorts: meta.sorts,
+          }
         }
-      return this.getPackFromServer(true, { repository, service, })
+      }
+      return this.getPackFromServer(false, { repository, service, })
     })
   }
 

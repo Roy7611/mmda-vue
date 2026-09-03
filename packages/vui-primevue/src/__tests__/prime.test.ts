@@ -38,9 +38,11 @@ describe('PrimeVue skin', () => {
       fields: { icon: 'icon' },
       selectionMode: 'checkbox',
       showIcon: true,
+      allowDragDrop: true,
     })
     expect(tree.props.selectionMode).toBe('checkbox')
     expect(tree.props.showIcon).toBe(true)
+    expect(tree.props.allowDragDrop).toBe(true)
     expect(factory.resolveIcon('save')).toBe('pi pi-check')
   })
 

@@ -255,7 +255,11 @@ export class MetaUiGroupLogic<E, G> {
    * 获取并注册子表组内字段的逻辑配置。
    */
   field(fieldName: string) {
-    const field = this.group.groupUi.getField(fieldName)
+    const groupUi = this.group.groupUi
+    if (!groupUi) {
+      throw Error(`Group "${this.group.groupName}" has no groupUi.`)
+    }
+    const field = groupUi.getField(fieldName)
     if (!field) {
       throw Error(`${fieldName} not found.`)
     }

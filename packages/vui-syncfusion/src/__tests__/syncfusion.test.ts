@@ -91,10 +91,12 @@ describe("Syncfusion skin", () => {
       fields: { icon: "icon" },
       selectionMode: "single",
       showIcon: true,
+      allowDragDrop: true,
     });
     expect(tree.props.fields).toBeTruthy();
     expect(tree.props.selectionMode).toBe("single");
     expect(tree.props.showIcon).toBe(true);
+    expect(tree.props.allowDragDrop).toBe(true);
     expect(factory.photoGallery).toBeTypeOf("function");
     expect(factory.filesUploader).toBeTypeOf("function");
     expect(factory.resolveIcon("save")).toBe("e-icons e-save");

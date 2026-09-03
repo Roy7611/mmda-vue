@@ -10,13 +10,17 @@ import {
 import { translateMessage } from "../i18n/i18n";
 import type { UiFactory } from "./ui_factory";
 import {
+  detachTreeNode,
   filterMappedTree,
   mapTreeNodes,
+  moveTreeNode,
   setTreeChildren,
+  treeChildrenLoaded,
   treeIdOf,
   treeLabelOf,
   treeShouldLoadChildren,
   type UiTreeFields,
+  type UiTreeMoveMeta,
   type UiTreeViewPropsType,
 } from "./ui_tree";
 
@@ -113,6 +117,38 @@ const MmdaTreeView = defineComponent({
       props.spec.onNodeRename?.(item as never, text);
     };
 
+    const onNodeMove = async (
+      node: unknown,
+      parent: unknown,
+      meta: UiTreeMoveMeta,
+    ) => {
+      const spec = props.spec;
+      try {
+        await spec.onNodeMove?.(node as never, parent as never, meta);
+        const fields = spec.fields;
+        if (
+          parent != null &&
+          spec.loadMode === "lazy" &&
+          props.loadChildren &&
+          !treeChildrenLoaded(parent, fields)
+        ) {
+          detachTreeNode(localData.value, node as never, fields);
+          const kids = await props.loadChildren(parent);
+          setTreeChildren(parent, kids, fields);
+        } else {
+          moveTreeNode(
+            localData.value,
+            node as never,
+            parent as never,
+            fields,
+          );
+        }
+        localData.value = localData.value.slice();
+      } catch {
+        if (spec.reloadTick) spec.reloadTick.value += 1;
+      }
+    };
+
     return () => {
       const factory = props.factory;
       const spec = props.spec;
@@ -163,6 +199,7 @@ const MmdaTreeView = defineComponent({
             onExpand,
             onNodeSelect,
             onNodeRename,
+            onNodeMove,
             onBeginRename: (item: unknown) => {
               editing.value = treeIdOf(item, spec.fields);
             },
@@ -187,6 +224,7 @@ const MmdaTreeViewBody = defineComponent({
     onExpand: { type: Function, required: true },
     onNodeSelect: { type: Function, required: true },
     onNodeRename: { type: Function, required: true },
+    onNodeMove: { type: Function, required: true },
     onBeginRename: { type: Function, required: true },
   },
   setup(props) {
@@ -203,6 +241,7 @@ const MmdaTreeViewBody = defineComponent({
           showIcon: spec.showIcon,
           class: spec.class,
           editing: props.editing,
+          allowDragDrop: spec.allowDragDrop,
           contextMenu:
             props.mode === "contextMenu"
               ? (item) => {
@@ -224,6 +263,7 @@ const MmdaTreeViewBody = defineComponent({
           onNodeSelect: props.onNodeSelect,
           onExpand: props.onExpand,
           onNodeRename: props.onNodeRename,
+          onNodeMove: props.onNodeMove,
         }),
       );
     };

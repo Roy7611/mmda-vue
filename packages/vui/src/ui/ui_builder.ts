@@ -53,9 +53,20 @@ import type {
   UiListViewPropsType,
   UiPaginatorPropsType,
 } from "./ui_list";
+import type {
+  UiTreeGridPropsType,
+  UiTreeGridViewPropsType,
+} from "./ui_tree_grid";
+import { treeGridSpecFromGroup } from "./ui_tree_grid";
+import {
+  isImageGalleryShape,
+  treeDataProvider,
+  treeIdField,
+} from "./ui_tree_data";
 import type { UiTreeListViewPropsType } from "./ui_treelist";
 import {
   collectNodeAndDescendantIds,
+  treeCannotDropOn,
   treeIdOf,
   treeLabelFieldName,
   treeLabelOf,
@@ -65,6 +76,7 @@ import {
 } from "./ui_tree";
 import {
   categoryCreateParams,
+  categoryMoveParams,
   categoryTreeAuth,
   categoryTreeAuthHasAction,
 } from "./ui_tree_category";
@@ -297,6 +309,16 @@ export interface UiBuilder {
     context: UiContext,
     props?: UiListViewPropsType<T>,
   ) => VNode;
+  buildTreeGrid: <T = any>(
+    rows: T[],
+    metaui: MetaUi,
+    rowContext: (row: T) => UiContext,
+    props?: UiTreeGridPropsType<T>,
+  ) => VNode;
+  buildTreeGridView: <T = any>(
+    context: UiContext,
+    props?: UiTreeGridViewPropsType<T>,
+  ) => VNode;
   buildTreeListView: <T = any>(
     context: UiContext,
     props?: UiTreeListViewPropsType<T>,
@@ -517,11 +539,17 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     return renderer(field, context, props);
   }
 
+  protected fieldDisplayName(field: MetaUiField) {
+    if (field.renderer) return field.renderer;
+    if (SqlDataType.isBool(field.dataType)) return "checkedIcon";
+    return "textSpan";
+  }
+
   displayFor(field: MetaUiField, context: UiContext, props: PropData = {}) {
     const logic = context.getFieldLogic(field) as any;
     const renderer =
       logic?.customRenderer ??
-      (field.renderer ? this.fldFactory[field.renderer] : undefined) ??
+      this.fldFactory[this.fieldDisplayName(field)] ??
       this.fldFactory.fallbackDisplay;
     return renderer(field, context, props);
   }
@@ -579,6 +607,143 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     });
   }
 
+  buildTreeGrid<T = any>(
+    rows: T[],
+    metaui: MetaUi,
+    rowContext: (row: T) => UiContext,
+    props: UiTreeGridPropsType<T> = {},
+  ): VNode {
+    const customRenderCell = props.renderCell;
+    const customGridCellRenderer = props.gridCellRenderer;
+    const cellProps = cleanTableCellProps({
+      tableMetaui: metaui,
+      isTree: true,
+      ...(props as PropData),
+    });
+    if ((props as PropData).readOnlyRows !== undefined) {
+      Object.defineProperty(cellProps, "readOnlyRows", {
+        value: (props as PropData).readOnlyRows,
+        enumerable: false,
+      });
+    }
+    if ((props as PropData).inplaceEdit !== undefined) {
+      Object.defineProperty(cellProps, "inplaceEdit", {
+        value: (props as PropData).inplaceEdit,
+        enumerable: false,
+      });
+    }
+    return this.factory.treeGrid(rows, metaui, {
+      ...props,
+      isTree: true,
+      renderCell: (field, row) =>
+        customRenderCell?.(field, row) ??
+        this.displayCellFor(field, row, rowContext(row), cellProps),
+      gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
+        const fieldLogic = rowContext(renderContext.row).getFieldLogic(
+          renderContext.field,
+        ) as any;
+        return (
+          customGridCellRenderer?.(renderContext) ??
+          fieldLogic?.customGridCellRenderer?.(renderContext)
+        );
+      },
+    });
+  }
+
+  buildTreeGridView<T = any>(
+    context: UiContext,
+    props: UiTreeGridViewPropsType<T> = {},
+  ): VNode {
+    const runtime = context as any;
+    const model = context.model as any;
+    const rows = (Array.isArray(model?.list) ? model.list : model) ?? [];
+    const treeShape = props.treeShape ?? "TREE";
+    const shapeKey = props.shapeKey ?? "";
+    const loadMode = props.loadMode ?? "lazy";
+    const idField =
+      props.idField ??
+      treeIdField(treeShape, shapeKey, context.metaui?.primaryKey);
+    const onExpand =
+      props.onExpand ??
+      (loadMode === "lazy"
+        ? async (node: T) => {
+            const kids = await this.loadTreeGridChildren(context, node, {
+              treeShape,
+              shapeKey,
+              idField,
+            });
+            treeDataProvider.attachChildren(node, kids);
+          }
+        : undefined);
+    const treeGrid = this.buildTreeGrid(rows, context.metaui, () => context, {
+      ...props,
+      treeShape,
+      shapeKey,
+      idField,
+      parentIdField:
+        props.parentIdField ?? (treeShape === "TREE" ? shapeKey : undefined),
+      loadMode,
+      onExpand,
+      filterDisplay:
+        props.filterDisplay ?? this.factory.defaultFilterDisplay ?? "none",
+      loading: props.loading ?? runtime.loading,
+      selectedItems: runtime.selectedItems ?? [],
+      onSelect: (selection) => {
+        context.selectedItems = selection;
+        props.onSelect?.(selection);
+      },
+    });
+    const { toolbar, searchbar } = this.listViewParts(context, {
+      ...props,
+      content: () => treeGrid,
+    });
+    return this.buildContainer(
+      [
+        toolbar ? this.buildHeader(toolbar) : null,
+        !toolbar && searchbar ? this.buildHeader(searchbar) : null,
+        this.buildMain(treeGrid, {
+          class: "mmda-list-scroll",
+          style: { flex: "1 1 auto", minHeight: 0, overflow: "auto" },
+        }),
+      ].filter(Boolean) as VNode[],
+      {
+        class: "mmda-tree-grid-view",
+        role: runtime.view,
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0,
+          overflow: "hidden",
+        },
+      },
+    );
+  }
+
+  protected async loadTreeGridChildren<T>(
+    context: UiContext,
+    parent: T,
+    spec: { treeShape: string; shapeKey: string; idField: string },
+  ): Promise<T[]> {
+    const runtime = context as any;
+    const parentId = String((parent as any)?.[spec.idField] ?? (parent as any)?.id ?? "");
+    const queryParams =
+      spec.treeShape === "HIERARCHY"
+        ? { [spec.shapeKey]: parentId }
+        : { [spec.shapeKey]: parentId };
+    const data = await runtime.logic?.apiClient?.searchEntities?.(
+      {
+        pager: { pageNo: 1, pageSize: 1000 },
+        queryParams,
+      },
+      {
+        repository: runtime.logic?.repository,
+        service: runtime.logic?.apiService,
+      },
+    );
+    return (data?.list ?? []) as T[];
+  }
+
   /** 对齐旧版 `_tableColumnWidth` */
   protected tableColumnWidth(field: MetaUiField): number {
     if (field.listSize && field.listSize > 0) {
@@ -616,7 +781,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const fieldLogic = ctx.getFieldLogic(field) as any;
     const model = (props.row ?? ctx.model) as { editable?: boolean };
 
-    if (inPlaceEdit && model?.editable && !isLock) {
+    if (inPlaceEdit && model?.editable !== false && !isLock) {
       const editor =
         fieldLogic?.customEditor ??
         this.fldFactory[field.editor ?? "textInput"] ??
@@ -629,7 +794,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
     const renderer =
       fieldLogic?.customCellRenderer ??
-      this.fldFactory[field.renderer ?? "textSpan"] ??
+      this.fldFactory[this.fieldDisplayName(field)] ??
       this.fldFactory.fallbackDisplay;
     return renderer(field, ctx, cellProps);
   }
@@ -945,7 +1110,27 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         [];
       const groupCtx = (context as UiViewContext).subGroupContext(group);
       const readOnlyRows = !context.editing;
-      if (group.displayShape === "PHOTO" && this.factory.photoGallery) {
+      const groupLogic = context.getGroupLogic(group) as any;
+      const customGroupView = context.editing
+        ? (groupLogic?.customEditor ?? groupLogic?.customRenderer)
+        : groupLogic?.customRenderer;
+      if (typeof customGroupView === "function") {
+        if (showGroupActions !== false) {
+          wrapProps.headerActions = this.buildGroupHeaderActions(
+            group,
+            context,
+          );
+        }
+        return this.wrapGroup(
+          group,
+          customGroupView(group, context, props),
+          wrapProps,
+        );
+      }
+      if (
+        isImageGalleryShape(group.displayShape) &&
+        this.factory.photoGallery
+      ) {
         const shapeKey = group.shapeKey || "mediaFile";
         const uploadMediaFiles = async (
           files: File[],
@@ -1085,7 +1270,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           wrapProps,
         );
       }
-      const groupLogic = context.getGroupLogic(group) as any;
       const nativeGridEditing = this.factory.nativeInplaceEdit === true;
       const nativeInplaceEdit =
         nativeGridEditing && groupLogic?.inplaceEdit !== false;
@@ -1108,21 +1292,16 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           );
         })
         .map((field) => field.fieldName);
-      const table = this.tableWithCells(
-        rows,
-        group.groupUi,
-        (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
-        {
+      const treeSpec = treeGridSpecFromGroup(group, rows);
+      const gridProps = {
           enableSort: false,
           enableGroup: false,
           showGridlines: true,
           readOnlyRows,
-          // 原生 Grid 路径始终屏蔽 VUI 的“整列常驻编辑器”；
-          // group 关闭时 editableFields 为空，仅保留双击弹窗编辑。
           inplaceEdit: nativeGridEditing,
           inplaceEditStart: groupLogic?.inplaceEditStart ?? "excel",
           editableFields,
-          canEditCell: (item, field) => {
+          canEditCell: (item: any, field: MetaUiField) => {
             const rowCtx = groupCtx.with(item);
             return (
               nativeInplaceEdit &&
@@ -1131,8 +1310,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
               !rowCtx.isFieldHidden(field)
             );
           },
-          onCellSave: (item, field, value) => {
-            // item = features[i]（由 Grid 按行号解析）；直接写集合，添加只需 push。
+          onCellSave: (item: any, field: MetaUiField, value: unknown) => {
+            const rowCtx = groupCtx.with(item);
+            if (treeSpec) {
+              rowCtx.setFieldValue(field, value);
+              return !rowCtx.getFieldError?.(field);
+            }
             let normalized = value;
             if (
               field.reference &&
@@ -1144,17 +1327,32 @@ export abstract class AbstractUiBuilder implements UiBuilder {
                 ) ?? value;
             }
             MetaModel.setFieldValue(item, field, normalized);
-            const rowCtx = groupCtx.with(item);
             rowCtx.setFieldValue(field, normalized);
             return !rowCtx.getFieldError?.(field);
           },
           rowStyle: hiddenDeletedSubRowStyle,
-          onItemDoubleClick: (item) =>
+          onItemDoubleClick: (item: any) =>
             (context as any).subGroupItem?.(group, item),
           group,
           groupUi: group.groupUi,
-        },
-      );
+          isTree: Boolean(treeSpec),
+        };
+      const table = treeSpec
+        ? this.buildTreeGrid(
+            rows,
+            group.groupUi,
+            (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
+            {
+              ...gridProps,
+              ...treeSpec,
+            },
+          )
+        : this.tableWithCells(
+            rows,
+            group.groupUi,
+            (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
+            gridProps,
+          );
       if (showGroupActions !== false) {
         wrapProps.headerActions = this.buildGroupHeaderActions(group, context);
       }
@@ -1228,6 +1426,9 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       if (kind === UiViewManyKind.gantt || kind === "gantt") {
         return this.buildGanttView(context, merged);
       }
+      if (kind === UiViewManyKind.treeGrid || kind === "treeGrid") {
+        return this.buildTreeGridView(context, merged);
+      }
       return this.buildListView(context, merged);
     }
     return this.buildView(context, merged as UiViewPropsType);
@@ -1247,10 +1448,20 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const categoryRepo = props.repository;
     const mode = props.editMode ?? "hover";
     const reloadTick = props.reloadTick ?? { value: 0 };
+    const allowDragDrop =
+      props.allowDragDrop ??
+      (props.editable === true ||
+        Boolean(
+          context &&
+            categoryRepo &&
+            this.resolveCategoryTreeAuth(context, props, undefined as never)
+              .allowEdit,
+        ));
     const wired: UiTreeViewPropsType<T> = {
       ...props,
       reloadTick,
       editMode: mode,
+      allowDragDrop,
       contextMenu:
         mode === "contextMenu" && context && categoryRepo
           ? (node: T) => this.treeCategoryMenu(context, wired, node)
@@ -1275,6 +1486,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         props.onNodeRename?.(node, text);
         if (context && categoryRepo) {
           void this.renameCategoryTreeNode(context, wired, node, text);
+        }
+      },
+      onNodeMove: async (node, parent, meta) => {
+        await props.onNodeMove?.(node, parent, meta);
+        if (context && categoryRepo) {
+          await this.moveCategoryTreeNode(context, wired, node, parent);
         }
       },
     };
@@ -1583,6 +1800,36 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     const catLogic = await this.resolveCategoryTreeLogic(context, repository);
     await catLogic.save(next as any);
     await this.refreshCategoryTree(context, props, catLogic);
+  }
+
+  protected async moveCategoryTreeNode<T>(
+    context: UiContext,
+    props: UiTreeViewPropsType<T>,
+    node: T,
+    parent: T | undefined,
+  ) {
+    const repository = props.repository;
+    if (!repository) return;
+    if (!this.resolveCategoryTreeAuth(context, props, node).allowEdit) return;
+    const treeData = props.data?.length
+      ? props.data
+      : ([node, parent].filter(Boolean) as T[]);
+    if (parent && treeCannotDropOn(node, parent, treeData, props.fields)) {
+      throw new Error("invalid tree drop");
+    }
+    const parentKey = treeParentFieldName(props.fields);
+    const parentId = parent ? treeIdOf(parent, props.fields) : "";
+    const prevId = String(
+      (node as Record<string, unknown>)[parentKey] ??
+        (node as Record<string, unknown>).parentCatID ??
+        (node as Record<string, unknown>).parentId ??
+        "",
+    );
+    if (parentId === prevId) return;
+    const next = categoryMoveParams(node, parent, props.fields) as T;
+    const catLogic = await this.resolveCategoryTreeLogic(context, repository);
+    await catLogic.save(next as any);
+    Object.assign(node as object, next);
   }
 
   buildAttachmentGroup(context: UiContext, props?: PropData): VNode {
@@ -2172,6 +2419,8 @@ export function createStubUiBuilder(): UiBuilder {
     build: emptyNode,
     buildTree: emptyNode,
     buildTreeView: emptyNode,
+    buildTreeGrid: emptyNode,
+    buildTreeGridView: emptyNode,
     buildListView: emptyNode,
     buildTreeListView: emptyNode,
     buildCustomView: emptyNode,

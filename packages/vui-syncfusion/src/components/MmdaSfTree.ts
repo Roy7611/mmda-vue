@@ -12,6 +12,7 @@ import { ContextMenuComponent, TreeViewComponent } from '@syncfusion/ej2-vue-nav
 import {
   isTreeIconUrl,
   mapTreeNodes,
+  resolveMappedTreeDrop,
   selectedIdSet,
   type UiAction,
   type UiTreeEmits,
@@ -64,6 +65,11 @@ export const MmdaSfTree = defineComponent({
     },
     onNodeRename: {
       type: Function as PropType<UiTreeEmits['onNodeRename']>,
+      default: undefined,
+    },
+    allowDragDrop: { type: Boolean, default: false },
+    onNodeMove: {
+      type: Function as PropType<UiTreeEmits['onNodeMove']>,
       default: undefined,
     },
   },
@@ -236,6 +242,49 @@ export const MmdaSfTree = defineComponent({
             showCheckBox: (props.selectionMode ?? 'single') === 'checkbox',
             selectedNodes: selectedProp.value,
             allowEditing: Boolean(props.onNodeRename),
+            allowDragAndDrop: props.allowDragDrop === true,
+            nodeDragStart: (args: any) => {
+              if (props.allowDragDrop !== true) {
+                args.cancel = true
+                return
+              }
+              const id = String(args?.draggedNodeData?.id ?? '')
+              const node = byId.value.get(id)
+              if ((node?.src as { editable?: boolean } | undefined)?.editable === false) {
+                args.cancel = true
+              }
+            },
+            nodeDragStop: (args: any) => {
+              const drop = resolveMappedTreeDrop(
+                String(args?.draggedNodeData?.id ?? ''),
+                args?.droppedNodeData?.id != null
+                  ? String(args.droppedNodeData.id)
+                  : undefined,
+                args?.position,
+                byId.value,
+                (props.data ?? []) as never[],
+                props.fields,
+              )
+              if (!drop) args.cancel = true
+            },
+            nodeDropped: (args: any) => {
+              const drop = resolveMappedTreeDrop(
+                String(args?.draggedNodeData?.id ?? ''),
+                args?.droppedNodeData?.id != null
+                  ? String(args.droppedNodeData.id)
+                  : undefined,
+                args?.position,
+                byId.value,
+                (props.data ?? []) as never[],
+                props.fields,
+              )
+              if (!drop) return
+              void Promise.resolve(
+                props.onNodeMove?.(drop.dragged, drop.parent, {
+                  position: drop.position,
+                }),
+              )
+            },
             nodeSelecting: (args: any) => {
               const ev = args?.event as MouseEvent | undefined
               if (ev && (ev.button === 2 || ev.which === 3)) args.cancel = true

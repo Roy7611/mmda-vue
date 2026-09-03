@@ -10,5 +10,6 @@
 | [Builder 与皮肤](./builder.md) | `UiBuilder` / 皮肤包 |
 | [列表与过滤](./list.md) | 工具栏、搜索、`UiSelector` |
 | [树](./tree.md) | `factory.tree`、`buildTree` / `buildTreeView` |
+| [树形表格](./treegrid.md) | `factory.treeGrid`、`buildTreeGrid` / `buildTreeGridView` |
 
 core 对照：[core README](../../core/README.md)。

@@ -508,8 +508,11 @@ const factory: UiFieldFactory = {
   checkIcon: (field, context, props) =>
     h("i", {
       class: context.getFieldValue(field, props?.row)
-        ? "fas fa-check"
-        : "fas fa-times",
+        ? "fas fa-check-circle"
+        : "far fa-circle",
+      style: context.getFieldValue(field, props?.row)
+        ? { color: "var(--mmda-success-color, #18a058)" }
+        : undefined,
       ...props,
     }),
   checkedIcon: (field, context, props) =>
@@ -517,6 +520,9 @@ const factory: UiFieldFactory = {
       class: context.getFieldValue(field, props?.row)
         ? "fas fa-check-circle"
         : "far fa-circle",
+      style: context.getFieldValue(field, props?.row)
+        ? { color: "var(--mmda-success-color, #18a058)" }
+        : undefined,
       ...props,
     }),
   searchInput: textInput,

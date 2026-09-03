@@ -6,6 +6,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
+  render,
   toRaw,
   unref,
   watch,
@@ -37,6 +38,12 @@ import type {
   UiSlots,
   UiSplitterPane,
   UiSplitterProps,
+  UiTreeGridPropsType,
+} from '@mmda/vui'
+import {
+  TREE_PARENT_KEY,
+  assembleTreeGridRows,
+  listedTableFields,
 } from '@mmda/vui'
 import { gridFreezeOf, isPersistableListColumn, readStoredPageSize, createIconVNode, MATERIAL_SYMBOL_PREFIX, persistListPack, type UiViewContext } from '@mmda/vui'
 import { resolveFieldUnit } from './syncfusion_field_factory'
@@ -86,6 +93,7 @@ import { DropupMenuButton } from './components/DropupMenuButton'
 import { PhotoGallery } from './components/PhotoGallery'
 import { FilesUploader } from './components/FilesUploader'
 import { MmdaSfTree } from './components/MmdaSfTree'
+import { MmdaSfTreeGrid } from './components/MmdaSfTreeGrid'
 
 /**
  * Vue 属性 watcher 会在 appendTo/preRender 之前或 destroy 之后调用 dataBind→injectModules。
@@ -361,6 +369,79 @@ const cellSlotName = (fieldName: string) =>
 const isEnumReference = (
   ref: NonNullable<MetaUiField['reference']>,
 ) => Boolean(ref.isEnum || (ref as { refType?: string }).refType === 'ENUM')
+
+/** EJ2 dropdownedit 默认 query 是 where(列名)+select(列名)。只清空 queries，保留原 Query 实例。 */
+const bindReferenceDropdown = (dropdown: any, rebuildList = false) => {
+  if (!dropdown?.query) return
+  if (Array.isArray(dropdown.query.queries)) {
+    dropdown.query.queries = []
+  }
+  if (rebuildList) {
+    try {
+      dropdown.setListData?.(dropdown.dataSource)
+    } catch {
+      /* created 时 list 可能尚未挂上 */
+    }
+  }
+}
+
+/** Grid / TreeGrid 引用列编辑：选项只认 refOptions，值/标签只走 valueOf / labelOf。 */
+const referenceEditParams = (field: MetaUiField) => {
+  const ref = field.reference
+  if (!ref) return undefined
+  const refFlds = ref.refFlds?.length ? ref.refFlds : ['value', 'text']
+  const valueKey = refFlds[0] ?? 'value'
+  const textKey = refFlds[1] ?? valueKey
+  const options = [...(ref.refOptions ?? [])]
+  if (isEnumReference(ref) && options.length === 0) return undefined
+  const dataSource = options.map(option => {
+    const value = ref.valueOf(option)
+    return {
+      ...(option as object),
+      [valueKey]: value,
+      [textKey]: String(ref.labelOf(option) ?? ''),
+      [field.fieldName]: value,
+    }
+  })
+  return {
+    params: {
+      dataSource,
+      fields: { value: valueKey, text: textKey },
+      allowFiltering: true,
+      created() {
+        bindReferenceDropdown(this, true)
+      },
+      beforeOpen() {
+        bindReferenceDropdown(this)
+      },
+    },
+  }
+}
+
+const columnEditType = (field: MetaUiField) =>
+  field.reference
+    ? 'dropdownedit'
+    : SqlDataType.isBool(field.dataType)
+      ? 'booleanedit'
+      : SqlDataType.isDateTime(field.dataType)
+        ? 'datetimepickeredit'
+        : SqlDataType.isDate(field.dataType)
+          ? 'datepickeredit'
+          : SqlDataType.isNum(field.dataType)
+            ? 'numericedit'
+            : 'defaultedit'
+
+const refreshReferenceEditParams = (column: any, field: MetaUiField) => {
+  const edit = referenceEditParams(field)
+  if (!edit || !column) return
+  column.edit = {
+    ...(column.edit ?? {}),
+    params: {
+      ...(column.edit?.params ?? {}),
+      ...edit.params,
+    },
+  }
+}
 
 /**
  * 三种引用与表单下拉同一套：
@@ -1321,34 +1402,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             inplaceEdit &&
             editableFields.has(field.fieldName) &&
             !field.readOnly,
-          editType: field.reference
-            ? 'dropdownedit'
-            : SqlDataType.isBool(field.dataType)
-              ? 'booleanedit'
-              : SqlDataType.isDateTime(field.dataType)
-                ? 'datetimepickeredit'
-                : SqlDataType.isDate(field.dataType)
-                  ? 'datepickeredit'
-                  : SqlDataType.isNum(field.dataType)
-                    ? 'numericedit'
-                    : 'defaultedit',
-          edit:
-            inplaceEdit &&
-            field.reference &&
-            field.reference.refFlds?.length
-            ? {
-                params: {
-                  dataSource: field.reference.refOptions,
-                  fields: {
-                    value: field.reference.refFlds[0],
-                    text:
-                      field.reference.refFlds[1] ??
-                      field.reference.refFlds[0],
-                  },
-                  allowFiltering: true,
-                },
-              }
-            : undefined,
+          editType: columnEditType(field),
+          edit: inplaceEdit ? referenceEditParams(field) : undefined,
           filter: columnFilter(field),
           width:
             field.listSize && field.listSize > 0
@@ -1712,7 +1767,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             props.canEditCell?.(row, field) === false
           ) {
             args.cancel = true
+            return
           }
+          refreshReferenceEditParams(args?.column, field)
         },
         cellSave: (args: any) => {
           if (!inplaceEdit) return
@@ -2253,6 +2310,148 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       })
     },
     tree: (props) => h(MmdaSfTree, props as any),
+    treeGrid: <T>(model: T[], metaui: MetaUi, props: UiTreeGridPropsType<T>) => {
+      const fields = listedTableFields(metaui)
+      const { idField, childrenKey, assembled } = assembleTreeGridRows(
+        model,
+        metaui,
+        props,
+      )
+      const nested = assembled.sourceShape === 'nested'
+      const loadMode = props.loadMode ?? 'full'
+      const editableFields = new Set(props.editableFields ?? [])
+      const inplaceEdit =
+        props.inplaceEdit === true && editableFields.size > 0
+      const fieldByName = (name?: string) =>
+        fields.find(item => item.fieldName === name)
+      const rowOf = (args: any) =>
+        ((args?.data ?? args?.rowData) as { taskData?: T } | undefined)
+          ?.taskData ??
+        (args?.data ?? args?.rowData)
+      const columns = fields.map((field, index) => {
+        const bool = SqlDataType.isBool(field.dataType)
+        const listed = field.listSize && field.listSize > 0 ? field.listSize : 0
+        const canEdit =
+          inplaceEdit && index > 0 && editableFields.has(field.fieldName)
+        return {
+          field: field.fieldName,
+          headerText: field.displayLabel,
+          width: index === 0
+            ? Math.max(listed || 240, 200)
+            : bool
+              ? Math.min(
+                  listed || Math.max((field.displayLabel?.length ?? 2) * 14, 72),
+                  96,
+                )
+              : listed || undefined,
+          minWidth: bool ? 64 : index === 0 ? 160 : 72,
+          maxWidth: bool ? 96 : undefined,
+          textAlign: bool ? 'Center' : undefined,
+          type: bool ? 'boolean' : undefined,
+          allowResizing: true,
+          allowEditing: canEdit,
+          editType: columnEditType(field),
+          edit: canEdit ? referenceEditParams(field) : undefined,
+        }
+      })
+      return h(MmdaSfTreeGrid, {
+        options: {
+          dataSource: nested ? assembled.roots : assembled.rows,
+          ...(nested
+            ? { childMapping: childrenKey }
+            : {
+                idMapping: idField,
+                parentIdMapping: TREE_PARENT_KEY,
+                hasChildMapping: props.childrenCountKey ?? 'childrenCount',
+              }),
+          columns,
+          treeColumnIndex: 0,
+          enableCollapseAll: loadMode === 'full',
+          allowPaging: false,
+          allowSorting: props.enableSort !== false,
+          allowFiltering: false,
+          allowResizing: props.resizableColumns !== false,
+          editSettings: inplaceEdit
+            ? {
+                allowEditing: true,
+                allowAdding: false,
+                allowDeleting: false,
+                mode: 'Cell',
+              }
+            : undefined,
+          cssClass: ['mmda-sf-treegrid-table', props.class]
+            .filter(Boolean)
+            .join(' '),
+          expanding: (args: any) => {
+            if (loadMode !== 'lazy') return
+            void Promise.resolve(props.onExpand?.(args?.data as T))
+          },
+          cellEdit: (args: any) => {
+            if (!inplaceEdit) return
+            const field = fieldByName(args?.column?.field ?? args?.columnName)
+            const row = rowOf(args) as T | undefined
+            if (
+              !field ||
+              !editableFields.has(field.fieldName) ||
+              props.canEditCell?.(row as T, field) === false
+            ) {
+              args.cancel = true
+              return
+            }
+            refreshReferenceEditParams(args?.column, field)
+          },
+          cellSave: (args: any) => {
+            if (!inplaceEdit) return
+            const field = fieldByName(args?.column?.field ?? args?.columnName)
+            const row = rowOf(args) as T | undefined
+            if (!field || !row) return
+            if (
+              props.onCellSave?.(row, field, args.value, args.previousValue) ===
+              false
+            ) {
+              args.cancel = true
+            }
+          },
+          recordClick: (args: any) => {
+            const row = rowOf(args) as T | undefined
+            if (row) props.onItemClick?.(row)
+          },
+          recordDoubleClick: (args: any) => {
+            const fieldName = args?.column?.field ?? args?.columnName
+            if (inplaceEdit && fieldName && editableFields.has(fieldName)) return
+            const row = rowOf(args) as T | undefined
+            if (row) props.onItemDoubleClick?.(row)
+          },
+          queryCellInfo: (args: any) => {
+            try {
+              if (args?.cell?.classList?.contains('e-editedcell')) return
+              const field = fieldByName(args?.column?.field)
+              if (!field || !args?.cell || !props.renderCell) return
+              const content = props.renderCell(field, rowOf(args) as T)
+              if (content == null) return
+              const treeCell = args.cell.querySelector?.(
+                '.e-treecell',
+              ) as HTMLElement | null
+              const target = treeCell ?? args.cell
+              const isTreeCol = Boolean(treeCell)
+              const host = document.createElement(isTreeCol ? 'span' : 'div')
+              host.className = isTreeCol ? 'mmda-sf-treecell' : 'mmda-sf-cell'
+              target.replaceChildren(host)
+              render(
+                h(
+                  isTreeCol ? 'span' : 'div',
+                  { class: host.className },
+                  content as any,
+                ),
+                host,
+              )
+            } catch {
+              /* 单格失败不要把整表打成空 */
+            }
+          },
+        },
+      })
+    },
     list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
       h('div', { class: 'mmda-sf-list' }, [
         model.length
