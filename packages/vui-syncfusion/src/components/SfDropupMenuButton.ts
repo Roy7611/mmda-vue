@@ -28,8 +28,8 @@ export interface DropupMenuItem {
  * Syncfusion DropDownButton 无可靠 upward API，侧栏 footer 第一次打开会错位，
  * 这里用 Button + Teleport 固定定位，避开 EJ2 Popup。
  */
-export const DropupMenuButton = defineComponent({
-  name: 'MmdaDropupMenuButton',
+export const SfDropupMenuButton = defineComponent({
+  name: 'SfDropupMenuButton',
   props: {
     label: { type: String, default: undefined },
     icon: { type: String, default: undefined },

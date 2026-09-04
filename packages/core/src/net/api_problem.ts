@@ -222,13 +222,45 @@ async function readErrorBody(response: Response): Promise<unknown> {
  * @param response 非 2xx 响应
  * @param request 可选，关联到问题对象便于诊断
  */
+const GENERIC_HTTP_STATUS_TEXT =
+  /^(Service Unavailable|Bad Gateway|Gateway Timeout|Unauthorized|Forbidden|Not Found|Internal Server Error|Bad Request|Conflict|Too Many Requests)$/i
+
+function isGenericHttpStatusText(value: string): boolean {
+  return GENERIC_HTTP_STATUS_TEXT.test(value.trim())
+}
+
+/** 空 body / 仅英文 statusText 时的中文兜底。 */
+function humanizeHttpStatus(
+  status: number,
+  fallback?: string,
+): string | undefined {
+  switch (status) {
+    case 400:
+      return '请求无效，请检查输入后重试'
+    case 401:
+      return '登录已失效，请重新登录'
+    case 403:
+      return '没有权限执行此操作'
+    case 404:
+      return '请求的资源不存在'
+    case 502:
+      return '网关错误，请检查后端服务是否正常'
+    case 503:
+      return '基础服务不可用，请确认 mmda-base 等后端服务已启动'
+    case 504:
+      return '服务响应超时，请稍后重试'
+    default:
+      return fallback?.trim() ? undefined : `请求失败（HTTP ${status}）`
+  }
+}
+
 export async function responseToApiProblem(
   response: Response,
   request?: Request,
 ): Promise<ApiProblem> {
   const body = await readErrorBody(response)
   const object = asObject(body)
-  const detail =
+  let detail =
     typeof object?.detail === 'string'
       ? object.detail
       : typeof object?.message === 'string'
@@ -242,6 +274,11 @@ export async function responseToApiProblem(
       : typeof object?.error === 'string'
         ? object.error
         : response.statusText || `HTTP ${response.status}`
+
+  // Gateway/空 body 时常只剩英文 statusText；补中文说明便于登录页等直接展示
+  if (!detail?.trim() || isGenericHttpStatusText(detail)) {
+    detail = humanizeHttpStatus(response.status, detail) ?? detail
+  }
 
   return new ApiProblem({
     ...(object ?? {}),

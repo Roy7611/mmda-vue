@@ -20,7 +20,7 @@ export const SigninView = defineComponent({
     const signinForm = builder.buildSigninForm(
       {
         context: app,
-        onSubmit: async (user: SigninUser) => {
+        onSignin: async (user: SigninUser) => {
           installGuestSession(app, user.username || "playground");
           await router.replace(
             String(route.query.redirect ?? `${DEMO_PREFIX}/`),

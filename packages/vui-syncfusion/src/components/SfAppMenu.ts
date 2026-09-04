@@ -144,8 +144,8 @@ function getSidebarInstance(refValue: unknown): {
  *     #mmda-sf-dock-sidebar  (this component)
  *     .mmda-sf-maincontent   (page — Push sibling)
  */
-export const SyncfusionAppMenu = defineComponent({
-  name: 'SyncfusionAppMenu',
+export const SfAppMenu = defineComponent({
+  name: 'SfAppMenu',
   props: {
     modules: {
       type: Array as PropType<Module[]>,

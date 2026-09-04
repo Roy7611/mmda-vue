@@ -46,13 +46,26 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
     dialogs,
     services,
     toast(props: UiToastProps) {
-      services.toast?.show({
-        title: props.summary ?? props.title ?? '',
-        content: String(props.detail ?? props.message ?? ''),
+      const content = String(props.detail ?? props.message ?? '')
+      const title = props.summary ?? props.title ?? ''
+      const model = {
+        title,
+        content,
         cssClass: severityClass(props.severity ?? props.type),
         timeOut: props.life ?? 3000,
         position: { X: 'Right', Y: 'Top' },
-      })
+      }
+      if (services.toast?.show) {
+        services.toast.show(model)
+        return
+      }
+      // OverlayHost 尚未就绪时仍要让登录等场景看得到错误
+      if (typeof window !== 'undefined' && content) {
+        window.setTimeout(() => {
+          if (services.toast?.show) services.toast.show(model)
+          else window.alert([title, content].filter(Boolean).join('\n'))
+        }, 0)
+      }
     },
     async confirm(props: UiMessageBoxProps) {
       try {

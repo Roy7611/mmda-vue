@@ -48,9 +48,10 @@ vueApp.use(mmdaSyncfusion, {
   locale: "zh",
 });
 vueApp.use(mmda);
-vueApp.use(router);
 vueApp.provide(APP_PLUGIN_REGISTRY_KEY, appPluginRegistry);
 
+// Install router after signinAuto so the first navigation sees the real auth state.
 void mmda.signinAuto().finally(() => {
+  vueApp.use(router);
   vueApp.mount("#app");
 });

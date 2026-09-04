@@ -5,7 +5,6 @@ import { required } from '@mmda/core'
 import {
   signinFormEmits,
   signinFormProps,
-  type SigninFormProps,
   type SigninUser,
 } from '@mmda/vui'
 
@@ -13,7 +12,7 @@ export const SigninForm = defineComponent({
   name: 'AgNaiveSigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
-  setup(props: SigninFormProps, { emit, slots }) {
+  setup(props, { emit, slots }) {
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',
@@ -43,8 +42,7 @@ export const SigninForm = defineComponent({
         await props.context?.localDb?.put?.('user/username', {
           username: user.username,
         })
-        emit('submit', payload)
-        if (props.onSubmit) await props.onSubmit(payload)
+        emit('signin', payload)
       } finally {
         if (props.context?.loginLoading)
           props.context.loginLoading.value = false

@@ -2,7 +2,7 @@ import { computed, defineComponent, h, ref, type PropType } from "vue";
 import { CarouselComponent } from "@syncfusion/ej2-vue-navigations";
 import { DialogComponent } from "@syncfusion/ej2-vue-popups";
 
-export interface PhotoGalleryItem {
+export interface SfImageGalleryItem {
   src: string;
   thumbnail?: string;
   alt?: string;
@@ -24,11 +24,11 @@ const escapeHtml = (value: string) =>
       })[char]!,
   );
 
-export const PhotoGallery = defineComponent({
-  name: "MmdaSyncfusionPhotoGallery",
+export const SfImageGallery = defineComponent({
+  name: "SfImageGallery",
   props: {
     items: {
-      type: Array as PropType<PhotoGalleryItem[]>,
+      type: Array as PropType<SfImageGalleryItem[]>,
       default: () => [],
     },
     emptyText: { type: String, default: "暂无图片" },
@@ -64,8 +64,8 @@ export const PhotoGallery = defineComponent({
         const caption = escapeHtml(item.description ?? item.title ?? "");
         return {
           template: `
-            <figure class="mmda-photo-gallery__slide">
-              <img class="mmda-photo-gallery__full-image" src="${src}" alt="${alt}" />
+            <figure class="mmda-image-gallery__slide">
+              <img class="mmda-image-gallery__full-image" src="${src}" alt="${alt}" />
               ${caption ? `<figcaption>${caption}</figcaption>` : ""}
             </figure>`,
         };
@@ -76,18 +76,18 @@ export const PhotoGallery = defineComponent({
       if (!images.value.length) {
         return h(
           "div",
-          { class: "mmda-photo-gallery mmda-photo-gallery--empty" },
+          { class: "mmda-image-gallery mmda-image-gallery--empty" },
           props.emptyText,
         );
       }
 
-      return h("div", { class: "mmda-photo-gallery" }, [
+      return h("div", { class: "mmda-image-gallery" }, [
         h(
           "div",
           {
-            class: "mmda-photo-gallery__grid",
+            class: "mmda-image-gallery__grid",
             style: {
-              "--mmda-photo-gallery-columns": String(
+              "--mmda-image-gallery-columns": String(
                 Math.max(1, props.columns),
               ),
             },
@@ -97,7 +97,7 @@ export const PhotoGallery = defineComponent({
               "button",
               {
                 type: "button",
-                class: "mmda-photo-gallery__thumbnail",
+                class: "mmda-image-gallery__thumbnail",
                 title: item.title ?? item.alt ?? "",
                 onClick: () => open(index),
                 onDblclick: () => emit("itemDblclick", item, index),
@@ -111,7 +111,7 @@ export const PhotoGallery = defineComponent({
                 (item.title || item.description) &&
                   h(
                     "span",
-                    { class: "mmda-photo-gallery__caption" },
+                    { class: "mmda-image-gallery__caption" },
                     item.title ?? item.description,
                   ),
               ],
@@ -132,7 +132,7 @@ export const PhotoGallery = defineComponent({
               height: "100vh",
               target: "body",
               header: props.dialogTitle,
-              cssClass: "mmda-photo-gallery-dialog",
+              cssClass: "mmda-image-gallery-dialog",
               close,
               overlayClick: close,
             },
@@ -150,7 +150,7 @@ export const PhotoGallery = defineComponent({
                   enableTouchSwipe: true,
                   allowKeyboardInteraction: true,
                   height: "100%",
-                  cssClass: "mmda-photo-gallery__carousel",
+                  cssClass: "mmda-image-gallery__carousel",
                   slideChanged: (args: { currentIndex?: number }) => {
                     if (typeof args.currentIndex === "number") {
                       selectedIndex.value = args.currentIndex;

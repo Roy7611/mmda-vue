@@ -12,8 +12,8 @@ import '@syncfusion/ej2-treegrid/styles/material3.css'
 
 TreeGrid.Inject(Edit, Filter, Resize, Selection, Sort)
 
-export const MmdaSfTreeGrid = defineComponent({
-  name: 'MmdaSfTreeGrid',
+export const SfTreeGrid = defineComponent({
+  name: 'SfTreeGrid',
   props: {
     options: { type: Object as PropType<Record<string, unknown>>, required: true },
   },

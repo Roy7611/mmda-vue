@@ -6,4 +6,4 @@ export {
   isLocalAppModuleUrl,
   type AppMenuItem,
 } from '@mmda/vui'
-export { SyncfusionAppMenu } from './SyncfusionAppMenu'
+export { SfAppMenu } from './SfAppMenu'

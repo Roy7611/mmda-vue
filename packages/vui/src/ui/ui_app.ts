@@ -123,6 +123,22 @@ export interface MmdaApplicationOptions {
 /**
  * Vue 应用壳：DI、鉴权、元数据服务、公共弹层（转发 UiBuilder）。
  */
+
+function isInvalidTokenError(error: unknown): boolean {
+  const status = Number((error as { status?: number })?.status ?? 0);
+  if (status === 401) return true;
+  const text = [
+    (error as { message?: string })?.message,
+    (error as { title?: string })?.title,
+    (error as { detail?: string })?.detail,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return /jwt|access.?token|invalid.?token|token.*(expired|rejected|invalid)|unauthorized|unauthenticated/i.test(
+    text,
+  );
+}
+
 export class MmdaApplication {
   readonly name: string;
   readonly api: OAuth2ApiClient;
@@ -136,6 +152,8 @@ export class MmdaApplication {
   readonly signinPath: string;
   /** 启动恢复会话期间抑制 401→强制跳登录，交给 signinAuto 自行 refresh */
   private restoringAuth = false;
+  /** Prevent concurrent 401 / bad-JWT redirects. */
+  private redirectingToSignin = false;
   /** 公共 SSO 库：仅 user / config，与模块 localDb 分离 */
   private readonly ssoDb: LocalAsyncDb;
 
@@ -201,13 +219,17 @@ export class MmdaApplication {
       },
     );
     this.api.setUnauthorizedErrorHandler(() => {
-      if (this.restoringAuth) return;
-      this.signOut().then(() => {
-        if (typeof window === "undefined") return;
-        const redirect = encodeURIComponent(window.location.pathname);
-        window.location.href = `${this.signinPath}?redirect=${redirect}`;
-      });
+      this.redirectToSignin();
     });
+    const prevErrorHandler = this.api.http.errorHandler;
+    this.api.http.errorHandler = (err, req) => {
+      // Backend often returns bad JWT as 500, not only 401.
+      if (!this.restoringAuth && isInvalidTokenError(err)) {
+        this.redirectToSignin();
+      }
+      if (prevErrorHandler) return prevErrorHandler(err, req);
+      throw err;
+    };
     this.meta = defaultMetaUiService(this.api);
     this.ssoDb = useMmdaSsoDb();
     this.di = createDependencyContainer();
@@ -292,10 +314,50 @@ export class MmdaApplication {
     }
   }
 
-  async signOut() {
-    this.context.user.userId = "";
+  /** Clear in-memory session + API tokens; IndexedDB cleanup can be async. */
+  clearAuthMemory() {
+    this.context.user = {
+      username: "",
+      userId: "",
+      userType: 0,
+      expiryOn: Date.now(),
+    };
     this.context.modules = [];
     this.context.authenticated = false;
+    this.api.config.accessToken = "";
+    this.api.config.refreshToken = "";
+  }
+
+  /**
+   * JWT/session invalid: jump to sign-in immediately.
+   * Do not await IndexedDB first — that left a blank protected page when IDB stalled.
+   */
+  redirectToSignin(returnPath?: string) {
+    if (this.restoringAuth || this.redirectingToSignin) return;
+    if (typeof window === "undefined") return;
+    const current = window.location.pathname;
+    if (
+      current === this.signinPath ||
+      current.endsWith("/Signin") ||
+      current.endsWith("/signin")
+    ) {
+      this.clearAuthMemory();
+      return;
+    }
+    this.redirectingToSignin = true;
+    this.clearAuthMemory();
+    void Promise.allSettled([
+      this.ssoDb.deleteMany(["user", "config"]),
+      this.localDb.deleteMany(["user", "config", "meta/systems"]),
+    ]);
+    const redirect = encodeURIComponent(
+      returnPath ?? `${current}${window.location.search}`,
+    );
+    window.location.assign(`${this.signinPath}?redirect=${redirect}`);
+  }
+
+  async signOut() {
+    this.clearAuthMemory();
     await Promise.allSettled([
       this.ssoDb.deleteMany(["user", "config"]),
       this.localDb.deleteMany(["user", "config", "meta/systems"]),
@@ -334,7 +396,7 @@ export class MmdaApplication {
         }
       }
       if (!user?.userId || !config?.accessToken) {
-        this.context.authenticated = false;
+        await this.signOut();
         return false;
       }
 
@@ -349,7 +411,7 @@ export class MmdaApplication {
 
       this.context.authenticated = !!(user.userId && expiryOn > Date.now());
       if (!this.canAccess) {
-        this.context.authenticated = false;
+        await this.signOut();
         return false;
       }
 
@@ -370,7 +432,7 @@ export class MmdaApplication {
         console.error(error);
         const refreshed = await this.api.refreshToken();
         if (!refreshed) {
-          this.context.authenticated = false;
+          await this.signOut();
           return false;
         }
         try {
@@ -379,14 +441,14 @@ export class MmdaApplication {
           await this.persistAuthSession(this.user);
         } catch (retryError) {
           console.error(retryError);
-          this.context.authenticated = false;
+          await this.signOut();
           return false;
         }
       }
       return this.canAccess;
     } catch (error) {
       console.error(error);
-      this.context.authenticated = false;
+      await this.signOut();
       return false;
     } finally {
       this.restoringAuth = false;

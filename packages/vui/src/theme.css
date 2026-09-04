@@ -1249,6 +1249,17 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   line-height: 1.5;
 }
 
+.mmda-signin-card__error {
+  margin: 0 1.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--mmda-danger-color, #b3261e) 35%, transparent);
+  background: color-mix(in srgb, var(--mmda-danger-color, #b3261e) 10%, transparent);
+  color: var(--mmda-danger-color, #b3261e);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .mmda-signin-card__body {
   padding: 1.35rem 1.75rem 1.75rem;
 }

@@ -12,8 +12,8 @@ import { createSpinner, hideSpinner, showSpinner } from '@syncfusion/ej2-popups'
  * Full-area Syncfusion spinner for EntityView page switches.
  * `e-icons e-spin` is not a valid glyph — use createSpinner/showSpinner.
  */
-export const MmdaSfPageLoading = defineComponent({
-  name: 'MmdaSfPageLoading',
+export const SfPageLoading = defineComponent({
+  name: 'SfPageLoading',
   setup(_, { attrs }) {
     const hostRef = ref<HTMLElement | null>(null)
     let ready = false

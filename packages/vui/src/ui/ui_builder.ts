@@ -104,8 +104,8 @@ import type {
 import { resolveColorPalette, type MmdaColorPalette } from "./ui_theme";
 import type {
   SigninFormProps,
-  SigninFormSlots,
   SignupFormProps,
+  SigninFormSlots,
 } from "./ui_auth";
 import type {
   UiDialogPropsType,
@@ -565,6 +565,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
   /**
    * 主表/子表共用：cellProps 在建表时 clean 一次，列 body 闭包逐行复用 renderCell。
+   * 索引只读表：绝大多数列不进单元格模板（见 templateCellFields），禁止为每行 with(row)。
    */
   protected tableWithCells(
     rows: any[],
@@ -590,20 +591,61 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         enumerable: false,
       });
     }
+
+    // 用同一份 list context 探测哪些列真正需要 Vue 单元格（自定义 / 链接 / 非纯文本）。
+    // 索引页 rowContext 恒为 () => context，不可在这里对每行 with(row)。
+    const probeContext = rowContext(rows[0] ?? {});
+    const listedRaw =
+      typeof (metaui as any).getListedFields === "function"
+        ? (metaui as any).getListedFields()
+        : (metaui as any).listedFields;
+    const listed: MetaUiField[] = Array.isArray(listedRaw) ? listedRaw : [];
+    const templateCellFields =
+      tableProps.templateCellFields ??
+      listed
+        .filter((field: MetaUiField) => {
+          if (tableProps.customCellRenderers?.[field.fieldName]) return true;
+          if (field.linkable) return true;
+          const logic = probeContext.getFieldLogic?.(field) as any;
+          if (logic?.customCellRenderer || logic?.customRenderer) return true;
+          const display = this.fieldDisplayName(field);
+          return display !== "textSpan";
+        })
+        .map((field: MetaUiField) => field.fieldName);
+
+    const hasGridCellRenderer =
+      Boolean(customGridCellRenderer) ||
+      listed.some((field: MetaUiField) => {
+        const logic = probeContext.getFieldLogic?.(field) as any;
+        return Boolean(logic?.customGridCellRenderer);
+      });
+
     return this.factory.table(rows, metaui, {
       ...tableProps,
-      renderCell: (field, row) =>
-        customRenderCell?.(field, row) ??
-        this.displayCellFor(field, row, rowContext(row), cellProps),
-      gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
-        const fieldLogic = rowContext(renderContext.row).getFieldLogic(
-          renderContext.field,
-        ) as any;
-        return (
-          customGridCellRenderer?.(renderContext) ??
-          fieldLogic?.customGridCellRenderer?.(renderContext)
-        );
+      templateCellFields,
+      renderCell: (field, row) => {
+        if (customRenderCell) return customRenderCell(field, row);
+        if (
+          Array.isArray(templateCellFields) &&
+          !templateCellFields.includes(field.fieldName)
+        ) {
+          return undefined as any;
+        }
+        return this.displayCellFor(field, row, rowContext(row), cellProps);
       },
+      ...(hasGridCellRenderer
+        ? {
+            gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
+              const fieldLogic = rowContext(renderContext.row).getFieldLogic(
+                renderContext.field,
+              ) as any;
+              return (
+                customGridCellRenderer?.(renderContext) ??
+                fieldLogic?.customGridCellRenderer?.(renderContext)
+              );
+            },
+          }
+        : {}),
     });
   }
 
@@ -1129,7 +1171,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       }
       if (
         isImageGalleryShape(group.displayShape) &&
-        this.factory.photoGallery
+        this.factory.imageGallery
       ) {
         const shapeKey = group.shapeKey || "mediaFile";
         const uploadMediaFiles = async (
@@ -1208,7 +1250,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
               runtime.uploading.value = false;
           }
         };
-        const gallery = this.factory.photoGallery(
+        const gallery = this.factory.imageGallery(
           rows
             .map((row) => ({
               src: String(row?.[shapeKey] ?? ""),

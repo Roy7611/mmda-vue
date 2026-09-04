@@ -90,7 +90,7 @@ const GanttImpl = defineAsyncComponent(async () => {
     } = mod as any
     return {
       default: defineComponent({
-        name: 'Ej2GanttHost',
+        name: 'SfGanttHost',
         components: { GanttComponent },
         provide: {
           gantt: [
@@ -127,8 +127,8 @@ const GanttImpl = defineAsyncComponent(async () => {
   }
 })
 
-export const GanttChart = defineComponent({
-  name: 'MmdaGanttChart',
+export const SfGanttChart = defineComponent({
+  name: 'SfGanttChart',
   props: {
     tasks: { type: Array as PropType<UiGanttTask[]>, default: () => [] },
     links: { type: Array as PropType<UiGanttLink[]>, default: () => [] },

@@ -52,8 +52,8 @@ function fileUrl(path: string) {
   return `${encodeUriAndFix(path)}${separator}v=${Date.now()}`;
 }
 
-export const AttachmentPanel = defineComponent({
-  name: "MmdaSyncfusionAttachmentPanel",
+export const SfAttachmentPanel = defineComponent({
+  name: "SfAttachmentPanel",
   props: {
     context: {
       type: Object as PropType<UiBuildContext<any>>,

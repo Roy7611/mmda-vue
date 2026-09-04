@@ -36,8 +36,8 @@ const formatSize = (bytes: number) => {
   return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
 };
 
-export const FilesUploader = defineComponent({
-  name: "MmdaSyncfusionFilesUploader",
+export const SfFilesUploader = defineComponent({
+  name: "SfFilesUploader",
   props: {
     upload: {
       type: Function as PropType<FilesUploadHandler>,

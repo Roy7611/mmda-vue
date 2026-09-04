@@ -96,7 +96,7 @@ export interface UiBadgeProps extends PropData {
   severity?: 'info' | 'success' | 'warning' | 'danger'
 }
 
-export interface UiPhotoGalleryItem {
+export interface UiImageGalleryItem {
   src: string
   thumbnail?: string
   alt?: string
@@ -148,7 +148,7 @@ export interface UiFactory {
   textSpan: UiRenderer<string>
   label: UiRenderer<string>
   image: UiRenderer<string>
-  photoGallery?: UiRenderer<UiPhotoGalleryItem[]>
+  imageGallery?: UiRenderer<UiImageGalleryItem[]>
   filesUploader?: (props: PropData) => VNode
   icon: UiRenderer<string>
   badge: (props: UiBadgeProps) => VNode
@@ -294,6 +294,7 @@ export const TABLE_CELL_PROP_KEYS = [
   'enableSort',
   'showGridlines',
   'renderCell',
+  'templateCellFields',
   'gridCellRenderer',
   'gridCellRenderers',
   'tableMetaui',

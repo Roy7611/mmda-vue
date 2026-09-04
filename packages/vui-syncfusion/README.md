@@ -25,7 +25,7 @@ app
 
 `locale` 会 `L10n.load` + `setCulture`，并跟随 `app.changeLocale()`（需先 `app.use(i18n)`）。`zh` 用简体覆盖表格空数据/分页等常用文案；`zh-Hant` 用 EJ2 自带的繁体包。
 
-`MmdaApplication.install` 会自动把 Overlay Host 挂到 `document.body`，不必再写 `<SyncfusionOverlayHost/>`。
+`MmdaApplication.install` 会自动把 Overlay Host 挂到 `document.body`，不必再写 `<SfOverlayHost/>`。
 
 无 license 时控件仍可运行，但会带 Syncfusion 试用水印。也可读环境变量 `VITE_SYNCFUSION_LICENSE`。
 

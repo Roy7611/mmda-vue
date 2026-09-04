@@ -97,6 +97,12 @@ export interface UiListProps<T = any> {
     row: T,
     props?: Record<string, any>,
   ) => VNode | VNode[];
+  /**
+   * 需要 EJ2 `column.template` 的字段名。索引表大量行时应只包含 linkable / 自定义渲染列；
+   * 其余列走 Grid valueAccessor 纯文本，避免千行×N 列的模板开销。
+   * 未传则皮肤可自行判断或退回全列模板。
+   */
+  templateCellFields?: string[];
   gridCellRenderer?: GridCellRenderer<T>;
   /** 可按 fieldName 或 MetaUiField.renderer 名称注册。 */
   gridCellRenderers?: Record<string, GridCellRenderer<T>>;

@@ -14,8 +14,8 @@ const DiagramImpl = defineAsyncComponent(async () => {
   }
 })
 
-export const BpmnDiagram = defineComponent({
-  name: 'BpmnDiagram',
+export const SfBpmnDiagram = defineComponent({
+  name: 'SfBpmnDiagram',
   props: {
     nodes: { type: Array as PropType<any[]>, default: () => [] },
     connectors: { type: Array as PropType<any[]>, default: () => [] },

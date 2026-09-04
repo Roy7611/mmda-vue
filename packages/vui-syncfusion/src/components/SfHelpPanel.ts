@@ -7,8 +7,8 @@ export interface HelpPanelItem {
   content: () => VNodeChild
 }
 
-export const HelpPanel = defineComponent({
-  name: 'MmdaHelpPanel',
+export const SfHelpPanel = defineComponent({
+  name: 'SfHelpPanel',
   props: {
     visible: Boolean,
     title: { type: String, default: 'Help' },

@@ -23,8 +23,8 @@ import {
 
 type TreeProps = UiTreeProps & UiTreeEmits
 
-export const MmdaSfTree = defineComponent({
-  name: 'MmdaSfTree',
+export const SfTree = defineComponent({
+  name: 'SfTree',
   props: {
     data: { type: Array as PropType<unknown[]>, required: true },
     fields: { type: Object as PropType<UiTreeFields>, default: undefined },

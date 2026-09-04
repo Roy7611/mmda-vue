@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { h, nextTick } from "vue";
 import { L10n } from "@syncfusion/ej2-base";
 import {
+  MetaModel,
   MetaUi,
   MetaUiGroup,
   ModuleFactory,
@@ -26,8 +27,8 @@ import {
   splitterEventIndex,
 } from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
-import { PhotoGallery } from "../components/PhotoGallery";
-import { FilesUploader } from "../components/FilesUploader";
+import { SfImageGallery } from "../components/SfImageGallery";
+import { SfFilesUploader } from "../components/SfFilesUploader";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
 const gridOf = (vnode: any) => {
@@ -82,7 +83,7 @@ describe("Syncfusion skin", () => {
       { class: "mmda-tree-list-splitter" },
     );
     expect(split.type).toBeTruthy();
-    expect((split.type as { name?: string }).name).toBe("MmdaSfSplitter");
+    expect((split.type as { name?: string }).name).toBe("SfSplitter");
     expect(splitterEventIndex({ index: [0, 1] })).toBe(0);
     expect(splitterEventIndex({ index: 0 })).toBe(0);
     expect(factory.tree).toBeTypeOf("function");
@@ -97,7 +98,7 @@ describe("Syncfusion skin", () => {
     expect(tree.props.selectionMode).toBe("single");
     expect(tree.props.showIcon).toBe(true);
     expect(tree.props.allowDragDrop).toBe(true);
-    expect(factory.photoGallery).toBeTypeOf("function");
+    expect(factory.imageGallery).toBeTypeOf("function");
     expect(factory.filesUploader).toBeTypeOf("function");
     expect(factory.resolveIcon("save")).toBe("e-icons e-save");
     expect(factory.resolveIcon("clear")).toBe("e-icons e-erase");
@@ -112,7 +113,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps unified gantt tasks onto EJ2 fields and view modes", async () => {
-    const { mapUiTasksToEj2, GANTT_VIEW_MODES } = await import("../components/GanttChart");
+    const { mapUiTasksToEj2, GANTT_VIEW_MODES } = await import("../components/SfGanttChart");
     const rows = mapUiTasksToEj2(
       [
         { id: 1, name: "Cut", startDate: "2026-01-01", parentId: null, type: "task" },
@@ -135,7 +136,7 @@ describe("Syncfusion skin", () => {
 
   it("renders photo thumbnails and opens the fullscreen carousel", () => {
     const emit = vi.fn();
-    const render = (PhotoGallery as any).setup(
+    const render = (SfImageGallery as any).setup(
       {
         items: [
           {
@@ -155,7 +156,7 @@ describe("Syncfusion skin", () => {
 
     const initial = render();
     const grid = initial.children[0];
-    expect(grid.props.class).toBe("mmda-photo-gallery__grid");
+    expect(grid.props.class).toBe("mmda-image-gallery__grid");
     expect(grid.children).toHaveLength(2);
     expect(grid.children[0].children[0].props.src).toBe(
       "/files/material-1.jpg",
@@ -188,7 +189,7 @@ describe("Syncfusion skin", () => {
       },
     );
     let exposed: any;
-    const render = (FilesUploader as any).setup(
+    const render = (SfFilesUploader as any).setup(
       {
         upload,
         multiple: true,
@@ -485,7 +486,7 @@ describe("Syncfusion skin", () => {
     const textbox = vnode.children.find(
       (child: any) =>
         child?.props?.appendTemplate === "appendTemplate" ||
-        child?.type?.name === "MmdaSfSearchWord",
+        child?.type?.name === "SfSearchTextInput",
     );
     expect(textbox).toBeTruthy();
     expect(String(textbox.props.cssClass ?? "")).toContain("e-small");
@@ -661,7 +662,7 @@ describe("Syncfusion skin", () => {
     );
     expect(
       vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
-    ).toMatch(/DropupMenuButton|MmdaDropupMenuButton/i);
+    ).toMatch(/DropupMenuButton|SfDropupMenuButton/i);
     expect(vnode.props?.placement).toBe("top-end");
     expect(vnode.props?.items).toHaveLength(1);
     expect(vnode.props?.items?.[0]?.label).toBe("蓝色");
@@ -768,14 +769,14 @@ describe("Syncfusion skin", () => {
 
     const automatic = builder.buildAppMenu(modules);
     expect(automatic.type).toMatchObject({
-      name: "SyncfusionAppMenu",
+      name: "SfAppMenu",
     });
     const systemsBar = builder.buildAppSideBar({
       modules,
       header: () => null,
     });
     expect(systemsBar.type).toMatchObject({
-      name: "SyncfusionAppMenu",
+      name: "SfAppMenu",
     });
     expect(systemsBar.props?.logo).toBeTypeOf("function");
 
@@ -919,10 +920,12 @@ describe("Syncfusion skin", () => {
       allowSorting: false,
       textAlign: "Left",
       headerTextAlign: "Left",
-      template: "mmdaCell_rowNum",
+      field: "rowNum",
       customAttributes: { class: "mmda-sf-rownum-col" },
       freeze: "Left",
     });
+    expect(columns[1].template).toBeUndefined();
+    expect(columns[1].valueAccessor).toBeUndefined();
     expect(columns[2]).toMatchObject({
       width: 180,
       textAlign: "Center",
@@ -940,10 +943,114 @@ describe("Syncfusion skin", () => {
     expect(link.type).toBe("a");
     expect(link.props.href).toBe("#1");
     expect(link.children).toBe("alpha");
+    expect(slots.mmdaCell_rowNum).toBeUndefined();
+  });
 
-    const rowNumCell = slots.mmdaCell_rowNum({ data: rows[0] });
-    expect(rowNumCell.props.class).toBe("mmda-sf-rownum__index");
-    expect(rowNumCell.children).toBe("21");
+  it("custom-binds only a virtual window, not the full server page", async () => {
+    const factory = createSyncfusionUiFactory();
+    const metaui = {
+      objName: "Product",
+      getListedFields: () => [
+        { fieldName: "name", displayLabel: "名称", dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = Array.from({ length: 200 }, (_, index) => ({
+      id: String(index + 1),
+      rowNum: String(index + 1),
+      name: `row-${index + 1}`,
+    }));
+    const vnode = gridOf(
+      factory.table(rows, metaui, {
+        pagination: { pageNo: 1, pageSize: 1000, recordCount: 3392 },
+      }),
+    );
+    expect(vnode.props?.enableVirtualization).toBe(true);
+    expect(vnode.props?.dataSource.count).toBe(200);
+    expect(vnode.props?.dataSource.result).toHaveLength(50);
+    expect(vnode.props?.dataSource.result[0].name).toBe("row-1");
+    expect(vnode.props?.dataSource.result.at(-1).name).toBe("row-50");
+
+    const grid = {
+      dataSource: null as any,
+      hideSpinner: vi.fn(),
+    };
+    vnode.props.ref({ ej2Instances: grid });
+    vnode.props.dataStateChange({
+      action: { requestType: "virtualscroll" },
+      skip: 50,
+      take: 50,
+    });
+    await nextTick();
+    await nextTick();
+    expect(grid.dataSource.count).toBe(200);
+    expect(grid.dataSource.result).toHaveLength(50);
+    expect(grid.dataSource.result[0].name).toBe("row-51");
+    expect(grid.hideSpinner).toHaveBeenCalled();
+  });
+
+  it("uses valueAccessor for non-template columns including reference fields", () => {
+    const factory = createSyncfusionUiFactory();
+    const statusField = {
+      fieldName: "status",
+      displayLabel: "状态",
+      dataType: 48,
+      renderer: "textSpan",
+      reference: {
+        isEnum: true,
+        isRef: false,
+        hasOne: false,
+        valueOf: (option: any) => option.code,
+        labelOf: (option: any) => option.label,
+      },
+    };
+    const metaui = {
+      objName: "Product",
+      getListedFields: () => [
+        {
+          fieldName: "name",
+          displayLabel: "名称",
+          dataType: 48,
+          renderer: "textSpan",
+        },
+        statusField,
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = [
+      {
+        id: "1",
+        name: "alpha",
+        status: "OPEN",
+        customProperties: { $status: "打开" },
+      },
+    ];
+    const vnode = gridOf(
+      factory.table(rows, metaui, {
+        pagination: { pageNo: 1, pageSize: 1000, recordCount: 1000 },
+        templateCellFields: ["name"],
+        renderCell: (_field: any, row: any) =>
+          h("a", { href: `#${row.id}` }, row.name),
+      }),
+    );
+    const columns = vnode.props.columns;
+    const nameCol = columns.find((column: any) => column.field === "name");
+    const statusCol = columns.find((column: any) => column.field === "status");
+    expect(nameCol.template).toBe("mmdaCell_name");
+    expect(nameCol.clipMode).toBe("EllipsisWithTooltip");
+    expect(nameCol.valueAccessor).toBeUndefined();
+    expect(statusCol.template).toBeUndefined();
+    expect(statusCol.clipMode).toBe("Ellipsis");
+    expect(typeof statusCol.valueAccessor).toBe("function");
+    expect(statusCol.valueAccessor("status", rows[0])).toBe(
+      MetaModel.displayField(rows[0], statusField),
+    );
+    expect(statusCol.valueAccessor("status", rows[0])).toBe("打开");
+    const slots = vnode.children as any;
+    expect(slots.mmdaCell_name).toBeTypeOf("function");
+    expect(slots.mmdaCell_status).toBeUndefined();
   });
 
   it("renders three flat row actions by default without a dropdown", () => {

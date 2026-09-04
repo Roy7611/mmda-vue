@@ -1008,7 +1008,7 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
         class: "mmda-prime-auth-form",
         onSubmit: (event: Event) => {
           event.preventDefault();
-          props.onSubmit?.(user);
+          props.onSignup?.(user);
         },
       },
       [

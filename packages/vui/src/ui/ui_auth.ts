@@ -12,10 +12,6 @@ export interface SigninUser {
 
 export const signinFormProps = {
   mode: String as PropType<SigninMode>,
-  onChangeMode: Function as PropType<() => void>,
-  onSendVCode: Function as PropType<(mobile: string) => void>,
-  onGetQrCode: Function as PropType<() => void>,
-  onSubmit: Function as PropType<(user: SigninUser, callbackFn?: Function) => void>,
   context: Object as any,
 }
 
@@ -27,14 +23,26 @@ export interface SigninFormSlots {
   thirdParty?: Slot
 }
 
-export type SigninFormProps = ExtractPropTypes<typeof signinFormProps>
-
 export const signinFormEmits = {
-  submit: (user: SigninUser) => isObject(user),
-  play: () => true,
+  signin: (user: SigninUser) => isObject(user),
+  changeMode: () => true,
+  sendVCode: (mobile: string) => typeof mobile === 'string',
+  getQrCode: () => true,
 }
 
-export type SigninFormEmits = ExtractPropTypes<typeof signinFormEmits>
+export type SigninFormEmits = typeof signinFormEmits
+
+/**
+ * 登录表单对外类型：`signinFormProps` 声明字段 + emit 对应的 onXxx listener。
+ * 组件 `defineComponent({ props: signinFormProps })` 只吃声明字段；
+ * `buildSigninForm` / `h()` 可同时带 `onSignin` 等 listener。
+ */
+export type SigninFormProps = ExtractPropTypes<typeof signinFormProps> & {
+  onSignin?: (user: SigninUser) => void | Promise<void>
+  onChangeMode?: () => void
+  onSendVCode?: (mobile: string) => void
+  onGetQrCode?: () => void
+}
 
 export interface SignupUser {
   mobile: string
@@ -46,10 +54,7 @@ export interface SignupUser {
 
 export const signupFormProps = {
   toSignin: { type: String, default: '/signin' },
-  onSubmit: Function as PropType<(user: SignupUser) => void>,
 }
-
-export type SignupFormProps = ExtractPropTypes<typeof signupFormProps>
 
 export interface SignupFormSlots {
   header?: () => VNode[]
@@ -60,4 +65,9 @@ export const signupFormEmits = {
   signup: (user: SignupUser) => isObject(user),
 }
 
-export type SignupCardEmits = ExtractPropTypes<typeof signupFormEmits>
+export type SignupCardEmits = typeof signupFormEmits
+
+/** 注册表单对外类型：声明 props + `onSignup` listener。 */
+export type SignupFormProps = ExtractPropTypes<typeof signupFormProps> & {
+  onSignup?: (user: SignupUser) => void | Promise<void>
+}

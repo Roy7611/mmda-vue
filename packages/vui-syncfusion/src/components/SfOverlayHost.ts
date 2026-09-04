@@ -7,8 +7,8 @@ import {
   type SyncfusionOverlay,
 } from '../syncfusion_overlay'
 
-export const SyncfusionOverlayHost = defineComponent({
-  name: 'SyncfusionOverlayHost',
+export const SfOverlayHost = defineComponent({
+  name: 'SfOverlayHost',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaApplication | undefined
     const overlay = (app?.ui as any)?.overlay as SyncfusionOverlay | undefined
@@ -33,7 +33,11 @@ export const SyncfusionOverlayHost = defineComponent({
         h(ToastComponent as any, {
           ref: (el: any) => {
             toastRef.value = el
-            if (overlay && el?.show) overlay.services.toast = el
+            // EJ2 Vue 包装上没有 show；真正的 Toast 在 ej2Instances
+            const toast = el?.ej2Instances ?? el
+            if (overlay && typeof toast?.show === 'function') {
+              overlay.services.toast = toast
+            }
           },
         }),
         ...dialogs.map(request => {

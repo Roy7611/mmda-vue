@@ -28,8 +28,8 @@ const QrImpl = defineAsyncComponent(async () => {
   }
 })
 
-export const BarcodeGenerator = defineComponent({
-  name: 'BarcodeGenerator',
+export const SfBarcodeGenerator = defineComponent({
+  name: 'SfBarcodeGenerator',
   props: {
     value: { type: String, required: true },
     type: { type: String, default: 'Code128' },
@@ -41,8 +41,8 @@ export const BarcodeGenerator = defineComponent({
   },
 })
 
-export const QRCodeGenerator = defineComponent({
-  name: 'QRCodeGenerator',
+export const SfQRCodeGenerator = defineComponent({
+  name: 'SfQRCodeGenerator',
   props: {
     value: { type: String, required: true },
     width: { type: [String, Number], default: '160px' },

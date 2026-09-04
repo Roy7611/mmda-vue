@@ -885,7 +885,7 @@ export class AgNaiveUiBuilder extends AbstractUiBuilder {
         class: 'mmda-agnaive-auth-form',
         onSubmit: (event: Event) => {
           event.preventDefault()
-          props.onSubmit?.(user)
+          props.onSignup?.(user)
         },
       },
       [
