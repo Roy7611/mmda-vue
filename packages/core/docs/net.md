@@ -2,6 +2,8 @@
 
 面向业务与框架开发者。`net` 不是 axios 封装。当前推荐栈是 **FetchApi 传输** → **ApiClient 实体 REST** → **OAuth2ApiClient 认证**。HTTP 与业务错误走 RFC 9457 **`ApiProblem`**。
 
+**Deprecated：** `FetchClient`、`OAuthApiClient`、`ApiError` 本轮保留行为，不要在新代码使用。推荐 `FetchApi` + `OAuth2ApiClient` + `ApiProblem`。单文件说明见 [net/](./net/http.md)。
+
 组件里不要自己 `new FetchApi()` / `new OAuth2ApiClient()`。应用启动时建一份（vui 的 `MmdaApplication` 已建），放进 DI，页面只 `inject`。
 
 ---
@@ -17,7 +19,7 @@
 | 认证 | `HttpClient` 拦截器追加 Bearer；`refreshHandler` 处理 401 | 可插拔 **`FetchAuthProvider`**。内置 Bearer / Basic / API Key。OAuth 换票仍在应用层 |
 | 接到 CRUD | `OAuthApiClient(http: HttpClient)` | **`OAuth2ApiClient(fetchApi)`** 内部用 `FetchApiHttp(applyFetchAuth)`；Bearer 与 401 单飞刷新走 `OAuthBearerAuthProvider` |
 | 应用壳 | `MmdaApplication` → `FetchClient` + `OAuthApiClient` | **`FetchApi` + `OAuth2ApiClient`**（`packages/vui`） |
-| 仍保留 | — | `FetchClient` / `OAuthApiClient` / `ApiError` **不删**，旧路径行为不变 |
+| 仍保留 | — | `FetchClient` / `OAuthApiClient` / `ApiError` **deprecated，不删** |
 
 源码：
 
@@ -311,7 +313,7 @@ URL 形状：
 |---|---|---|
 | `getOne(id)` | `GET .../{id}` | 单条 |
 | `getAll({ queryParams })` | `GET ...` | 分页列表，读响应头 `x-pager` |
-| `searchAll(body)` | POST `.../searchAll` + JSON body | 带搜索条件的列表 |
+| `searchAll(param)` | GET `getAll` 或 POST `.../searchAll` | 吃 `EntitySearchParam`；有 `filterModel` 才 POST（见 [entity_search.md](./models/entity_search.md)） |
 | `createOne(data)` | `.../create` | |
 | `saveOne(entity)` | `.../save` | 会去掉 `rowNum`、`actions` |
 | `saveAll(list)` | `.../saveAll` | |
@@ -319,7 +321,8 @@ URL 形状：
 | `deleteOneByPost(id)` | `.../delete` | 后端不支持 DELETE 时 |
 | `deleteAll(ids)` | `.../deleteAll` | |
 | `doAction({ action, path }, body)` | `POST .../{action}` | 自定义动作 |
-| `getMetaUi` / `getMetaUiPack` | `.../metaui`、`.../metaUiPack` | 给 MetaUiService 用 |
+
+`metaui` / `metaUiPack` 由 `MetaUiService` 用 `buildEntityURL` + `http.getJson` 拉取 JSON，再 `new MetaUi`。`ApiClient` 不解析元数据。
 
 换服务或仓储，把参数传进方法，不必新开客户端：
 
@@ -327,6 +330,8 @@ URL 形状：
 await api.getOne(id, { service: 'mes', repository: 'Orders' })
 await api.doAction({ action: 'confirm', path: id }, { remark })
 ```
+
+`searchAll(param)` 把 `EntitySearchParam` 拆成传输：分页 / `searchWord` / `queryParams` 进 URL（`toQueryParams`）；有 `filterModel` 时 POST `.../searchAll`，body 为 FilterModel 映射（`toSearchRequest`）。无过滤则 GET `getAll`。字段条件不要再塞进 `queryParams`。详见 [api_client.md](./net/api_client.md)、[entity_query_usage.md](./logic/entity_query_usage.md)。
 
 `getAll` / `searchAll` 返回 `PagedList`：`{ list, pagination }`。分页来自响应头 `x-pager`（常量 `PAGINATION_HEADER`），没有该头则是 `NO_PAGINATION`。
 

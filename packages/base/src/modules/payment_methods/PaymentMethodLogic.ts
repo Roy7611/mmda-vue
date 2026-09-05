@@ -27,7 +27,7 @@ export class PaymentMethodLogic extends UiLogic<PaymentMethod> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('methodName').searchable(true),
+				this.field('methodName'),
 			)
 		}
 		return { fields, groups, customActions }

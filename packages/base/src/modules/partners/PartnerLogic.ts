@@ -47,9 +47,9 @@ export class PartnerLogic extends UiLogic<Partner> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('status').searchable(true),
-				this.field('partnerRoles').searchable(true),
-				this.field('qualifiedLevel').searchable(true),
+				this.field('status'),
+				this.field('partnerRoles'),
+				this.field('qualifiedLevel'),
 			)
 		}
 		return { fields, groups, customActions }

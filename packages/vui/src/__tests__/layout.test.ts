@@ -547,7 +547,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       view: "edit",
     });
     const groupLogic = new MetaUiGroupLogic(medias);
-    groupLogic.field("mediaUrl").inPlaceEdit(false);
+    groupLogic.field("mediaUrl").inplaceEdit(false);
     disabledContext.setupGroupLogic(groupLogic);
     const disabled = createBuilder();
     disabled.builder.buildGroup(medias, disabledContext);
@@ -558,7 +558,7 @@ describe("AbstractUiBuilder layout wiring", () => {
       metaui: interleavedMetaui,
       view: "edit",
     });
-    const disabledGroupLogic = new MetaUiGroupLogic(medias).inPlaceEdit(false);
+    const disabledGroupLogic = new MetaUiGroupLogic(medias).inplaceEdit(false);
     groupDisabledContext.setupGroupLogic(disabledGroupLogic);
     const groupDisabled = createBuilder();
     groupDisabled.builder.buildGroup(medias, groupDisabledContext);

@@ -27,11 +27,11 @@ import { type Notice, defineNotice } from '../../models/Notice';
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length === 0) {
 				fields.push(
-					this.field('importance').searchable(true),
-					this.field('emergency').searchable(true),
-					this.field('notifyingThru').searchable(true),
-					this.field('status').searchable(true),
-					this.field('todo').searchable(true),
+					this.field('importance'),
+					this.field('emergency'),
+					this.field('notifyingThru'),
+					this.field('status'),
+					this.field('todo'),
 				)
 			}
 			return { fields, groups, customActions }

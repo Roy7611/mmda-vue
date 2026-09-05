@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2006, 2024, www.syclive.com All rights reserved.
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSearchOp, debounce, EntityUrlParam } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, inFilter, notInFilter, debounce, EntityUrlParam } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
 import { type MaterialTrans, defineMaterialTrans } from '@/models/MaterialTrans';
 import { type MaterialTransItem, defineMaterialTransItem } from '@/models/MaterialTransItem';
@@ -555,22 +555,46 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('status').searchable(true),
+				this.field('status'),
 				// todo 宇轩不需要
-				// this.field('projectID').searchable(true).setSearchParam((ctx, model: any) => {
+				// this.field('projectID').refFilter((model, ctx) => {
+					const __p = ((ctx, model: any) => {
 				// 	// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
 				// 	return model.order?.projectID ? { projectID: model.order.projectID } : {};
-				// }),
-				this.field('orderID').searchable(true).setSearchParam((ctx, model: any) => {
+				// })(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('orderID').refFilter((model, ctx) => {
+					const __p = ((ctx, model: any) => {
 					// 搜索订单时：如果已经选择了项目，则传入项目ID来限制订单列表
 					return {
 						projectID: model.projectID ?? '',
-						status: getSearchOp('NOT_IN').toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
+						status: getSqlOperator('NOT_IN')!.toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
-				this.field('supplierID').searchable(true),
-				this.field('fromSiteID').searchable(true),
-				this.field('toSiteID').searchable(true),
+				this.field('supplierID'),
+				this.field('fromSiteID'),
+				this.field('toSiteID'),
 			);
 		}
 		return { fields, groups, customActions };
@@ -583,20 +607,44 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 		if (fields.length == 0) {
 			fields.push(
 				// 项目与生产订单双向联动过滤
-				this.field('projectID').setSearchParam((ctx, model: any) => {
+				this.field('projectID').refFilter((model, ctx) => {
+					const __p = ((ctx, model: any) => {
 					// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
 					return model.order?.projectID ? { projectID: model.order.projectID } : {};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}).hideIf((t, context) => {
 					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 				this.field('orderID')
-					.setSearchParam((ctx, model: any) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model: any) => {
 						return {
 							projectID: model.projectID ?? '',
-							status: getSearchOp('NOT_IN').toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
+							status: getSqlOperator('NOT_IN')!.toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((ctx, model: any) => {
 						if (model.order) {
 							model.projectID = model.order.projectID;
@@ -605,10 +653,22 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 					}).hideIf(t => !isNullOrUndefined(t.refName) && t.refName === 'CompleteInspection'),
 
 				this.field('transReasonID')
-					.setSearchParam((context, model) => ({
+					.refFilter((model, ctx) => {
+					const __p = ((context, model) => ({
 						status: UsageStatusEnum.valueOf(UsageStatus.USED),
 						reasonTypes: 2, // 移料原因筛选条件 自定义 判断是否是物流单所使用的原因
-					}))
+					}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((ctx, model, items) => {
 						//原因改变清空 来和去站点
 						model.fromSiteID = null;
@@ -628,20 +688,44 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						}
 					}),
 				this.field('fromSiteID')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
 							siteType: model?.reason?.requiredFromSiteTypes ?? '',
 							siteNature: model?.reason?.reasonCode === 'TP_RET' ? 'fromMRet' : model?.reason?.reasonCode === 'TP_IN_REQ' ? 'fromRet' : model?.reason?.reasonCode === 'TP_OUT_REQ' ? 'fromReq' : '',
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.lockIf(t => !isRefNone(t?.reason) && isRefNone(t?.reason?.requiredFromSiteTypes)),
 				this.field('toSiteID')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
 							siteType: model?.reason?.requiredToSiteTypes ?? '',
 							siteNature: model?.reason?.reasonCode === 'TP_RET' ? 'toMRet' : model?.reason?.reasonCode === 'TP_IN_REQ' ? 'toRet' : model?.reason?.reasonCode === 'TP_OUT_REQ' ? 'toReq' : '',
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.lockIf(t => !isRefNone(t?.reason) && isRefNone(t?.reason?.requiredToSiteTypes))
 			);
 		}
@@ -652,9 +736,8 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 					const isCompleteInspectionTrans = (t: MaterialTrans) => Boolean(!isNullOrUndefined(t.refName) && t.refName === 'CompleteInspection');
 
 					const itemsGroup = this.group<MaterialTransItem>('items')
-						//.clearIf((t: MaterialTrans) => !isCompleteInspectionTrans(t))
-						.deleteIf((t: MaterialTrans) => t.refName !== "Material" ? t.refName !== "Material" : !isCompleteInspectionTrans(t))
-						.editIf((t: MaterialTrans) => t.refName !== "Material" ? t.refName !== "Material" : !isCompleteInspectionTrans(t))
+						.itemDeletable((_row, t: MaterialTrans) => t.refName !== "Material" ? t.refName !== "Material" : !isCompleteInspectionTrans(t))
+						.lockIf((t: MaterialTrans) => !(t.refName !== "Material" ? t.refName !== "Material" : !isCompleteInspectionTrans(t)))
 						.lockIf(model => model.refName === 'CompleteInspection' || model.refName === 'TP_IN_REQ')
 						// .defaultAdder(this.addMaterialTransItem)
 						.addCustomAction({
@@ -685,9 +768,9 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 							visible: (t: MaterialTrans) => !isCompleteInspectionTrans(t) && !isRefNone(t.reason) && (t.reason.reasonCode === 'PURCHASE' || t.reason.reasonCode === 'PRODUCTION'),
 						});
 					Object.assign(itemsGroup.field('quantity').field, { listSize: 260 });
-					itemsGroup.field('quantity').inPlaceEdit().onValidate<number>((value, model, ctx) => (value === 0 ? ctx.t('materialTrans.quantityNonZero') : null));
-					itemsGroup.field('unit').inPlaceEdit();
-					return itemsGroup.clearIf(t => !isCompleteInspectionTrans(t))
+					itemsGroup.field('quantity').inplaceEdit().onValidate<number>((value, model, ctx) => (value === 0 ? ctx.t('materialTrans.quantityNonZero') : null));
+					itemsGroup.field('unit').inplaceEdit();
+					return itemsGroup.canDo('clear', t => !isCompleteInspectionTrans(t))
 						// .addCustomAction({
 						// 	name: 'createLinesideInventoryItem',
 						// 	label: '从未到货清单中选择',
@@ -754,9 +837,9 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				service: 'base',
 				searchParam: {
 					pager: defaultPager(),
-					queryParams: {
-						status: getSearchOp('IN').toSQL('USED'),
-						materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
+					filterModel: {
+						status: inFilter('USED'),
+						materialType: notInFilter([MaterialType.LABOR]),
 					},
 				},
 				ctor: defineMaterial,

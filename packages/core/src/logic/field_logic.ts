@@ -1,109 +1,58 @@
-import type { Predicate } from '../metaui/metaui_field'
+import { MetaUiField } from '../metaui/metaui_field'
 import type { UiContext } from './ui_context'
 import {
-  MetaUiField,
-  MetaUiFieldFrozen,
-  type FooterAction,
+  logicOr,
+  sqlAnd,
   type OnChangeFn,
-  type onSearchChangeFn,
-  type setSelectableFn,
-  type setSearchParamFn,
-  type setAggregationFn,
   type OnValidateFn,
-  type OnWarnFn,
+  type Predicate,
   type RefFilterFn,
-} from '../metaui/metaui_field'
-
-const logicOr =
-  <T>(a: Predicate<T>, b: Predicate<T>): Predicate<T> =>
-    value => a(value) || b(value)
-
-/**
- * 元域渲染函数，不同的环境，其实现机制不一样。
- * @remarks 例如 Vue，返回渲染结果，通常是 `VNode`。
- */
-export type UiFieldRenderer = (
-  fld: MetaUiField,
-  ctx: UiContext<any>,
-  props: Record<string, any>,
-) => any;
-
-export type UiCellRenderer<T extends object = Record<string, any>> = (
-  fld: MetaUiField,
-  ctx: UiContext<any>,
-  props: Record<string, any>,
-) => any;
-
-/** Grid 控件可直接消费的轻量值；不包含框架相关的 VNode。 */
-export type GridCellValue = string | number | boolean | Date | null | undefined;
-
-export interface GridCellRenderContext<
-  T = Record<string, any>,
-> {
-  field: MetaUiField;
-  row: T;
-  rowIndex: number;
-  value: unknown;
-  displayValue: GridCellValue;
-}
-
-export type GridCellRenderer<
-  T = Record<string, any>,
-> = (context: GridCellRenderContext<T>) => GridCellValue;
+  type AggregateFn,
+  type CustomFieldRenderFn,
+} from './logic_functions'
+import {
+  customValidator,
+  descriptorsToValidators,
+  type FieldValidator,
+  type ValidatorSeverity,
+} from './validators'
 
 /**
- * 元域逻辑，包括只读、隐藏、修改值监视以及设置自定义渲染和编辑器函数。
- *
- * @typeParam E 实体类型，例如 `BOM`
- * @remarks 注意这些逻辑函数是非响应式的原生 js 函数。
+ * 元域逻辑：只读、隐藏、校验、变更。自定义渲染由 vui 消费，VNode 类型在 vui。
  */
 export class MetaUiFieldLogic<E> {
-  logicMethods: Record<string, Function>
-  /** 是否可搜索（列表页搜索栏） */
-  isSearchField?: boolean
-  /** 是否直接单元格内编辑 */
-  cellEditable?: boolean
-  /** 自定义编辑器 */
-  customEditor?: Function
-  /** 自定义渲染器 */
-  customRenderer?: Function
-  /** 自定义表格单元格渲染器 */
-  customCellRenderer?: Function
-  /** Grid 专用轻量单元格渲染器 */
-  customGridCellRenderer?: GridCellRenderer<E>
-  /** 是否冻结列（None/Left/Right） */
-  frozen?: MetaUiFieldFrozen
-  /** 只读条件函数 */
-  readonlyFn?: Predicate
-  /** 隐藏条件函数 */
-  hiddenFn?: Predicate
-  /** 必填条件函数 */
-  requiredFn?: Predicate
-  /** 自定义校验函数 */
-  onValidateFn?: OnValidateFn
-  /** 自定义警告函数 */
-  onWarnFn?: OnWarnFn
-  /** 值变更回调函数 */
-  onChangeFn?: OnChangeFn
-  /** 搜索条件变更回调函数 */
-  onSearchChangeFn?: onSearchChangeFn
-  /** 可勾选条件设置函数 */
-  selectableFn?: setSelectableFn
-  /** 搜索参数设置函数 */
-  setSearchParamFn?: setSearchParamFn
-  /** 聚合函数 */
-  setAggregationFn?: setAggregationFn
-  /** 冻结列设置函数 */
-  setFrozenFn?: (val: MetaUiFieldFrozen) => void
-  /** 搜索弹窗底部操作按钮（仅关联字段生效） */
-  footerActions?: FooterAction[]
-  /** 关联过滤器（logic 层缓存，优先于 reference.filterFn） */
-  filterFn?: RefFilterFn
-
+  /** 对应的元数据字段（Data SSOT；Logic 不改写 readOnly / hidden / nullable）。 */
   constructor(public readonly field: MetaUiField) {
-    this.logicMethods = {}
     this.hasField()
+    this.validators = descriptorsToValidators(field?.validatorDescriptors)
   }
+
+  /** 列级是否允许表格原位编辑；与 lockIf 无关。子表组默认开，inplaceEdit(false) 关单列。 */
+  inplaceEditable?: boolean
+  /** 表单自定义编辑器；vui 消费，返回值常为 VNode。 */
+  customEditor?: CustomFieldRenderFn
+  /** 表单自定义展示；vui 消费，返回值常为 VNode。 */
+  customRenderer?: CustomFieldRenderFn
+  /** 列表单元格自定义展示。 */
+  customCellRenderer?: CustomFieldRenderFn
+  /** 列表单元格自定义编辑。 */
+  customCellEditor?: CustomFieldRenderFn
+  /** 业务只读条件；多次 lockIf OR 叠加。求值：field.readOnly || readonlyFn。 */
+  readonlyFn?: Predicate<E>
+  /** 业务隐藏条件；多次 hideIf OR。求值：field.hidden || hiddenFn。 */
+  hiddenFn?: Predicate<E>
+  /** 业务必填条件；多次 requiredIf OR。求值：!field.nullable || requiredFn。 */
+  requiredFn?: Predicate<E>
+  /** 最近一次 onValidate 回调（兼容）；真正跑的是 validators。 */
+  onValidateFn?: OnValidateFn<unknown, E>
+  /** 校验器列表；构造从元数据 validatorDescriptors 种子，onValidate 追加。 */
+  validators: FieldValidator[] = []
+  /** 值变更回调。 */
+  onChangeFn?: OnChangeFn<E, any>
+  /** 列表/子表合计自定义；vui 读此函数，返回 number。 */
+  aggregateFn?: AggregateFn<E>
+  /** 引用范围 SQL 片段列表；refFilter 追加，buildRefFilter 与元数据 where AND。 */
+  private readonly refFilters: RefFilterFn<E>[] = []
 
   private hasField() {
     if (!this.field) {
@@ -112,38 +61,28 @@ export class MetaUiFieldLogic<E> {
     return this
   }
 
-  /**
-   * 根据条件 predicate 设置当前字段为只读，返回 this 以便链式调用。
-   * @example this.fieldLogic.lockIf(item => item.age > 18)
-   */
   lockIf(predicate: Predicate<E>) {
-    this.readonlyFn = predicate
+    if (this.readonlyFn && this.readonlyFn != predicate)
+      this.readonlyFn = logicOr(predicate, this.readonlyFn)
+    else this.readonlyFn = predicate
     return this
   }
 
-  /** 将当前字段设置为只读，等效于 `lockIf(() => true)` */
   lock() {
     return this.lockIf(() => true)
   }
 
-  /**
-   * 根据条件 predicate 隐藏当前字段，返回 this 以便链式调用。
-   * @example this.fieldLogic.hideIf(item => item.age > 18)
-   */
   hideIf(predicate: Predicate<E>) {
-    this.hiddenFn = predicate
+    if (this.hiddenFn && this.hiddenFn != predicate)
+      this.hiddenFn = logicOr(predicate, this.hiddenFn)
+    else this.hiddenFn = predicate
     return this
   }
 
-  /** 隐藏当前字段，等效于 `hideIf(() => true)` */
   hide() {
     return this.hideIf(() => true)
   }
 
-  /**
-   * 根据条件 predicate 设置当前字段为必填，返回 this 以便链式调用。
-   * @example this.fieldLogic.requiredIf(item => item.age > 18)
-   */
   requiredIf(predicate: Predicate<E>) {
     if (this.requiredFn && this.requiredFn != predicate)
       this.requiredFn = logicOr(predicate, this.requiredFn)
@@ -151,125 +90,109 @@ export class MetaUiFieldLogic<E> {
     return this
   }
 
-  /** 等效于 `requiredIf(() => true)`，设置当前字段为必填 */
   required() {
     return this.requiredIf(() => true)
   }
 
-  /**
-   * 设置表格单元格是否可直接编辑。
-   * 子表组默认开启 inplaceEdit；传 false 可关闭单个字段。
-   */
-  inPlaceEdit(enabled = true) {
-    this.cellEditable = enabled
+  /** 表格单元格是否可原位编辑。子表组默认开启；传 false 关闭单个字段。 */
+  inplaceEdit(enabled = true) {
+    this.inplaceEditable = enabled
     return this
   }
 
-  /**
-   * 设置为搜索条件；若元数据 `hidden` 为 true 则不可搜索。
-   */
-  searchable(value: boolean) {
-    this.isSearchField = this.field.hidden ? false : value
+  onValidate<V = unknown>(
+    validate: OnValidateFn<V, E>,
+    severity: ValidatorSeverity = 'error',
+  ) {
+    this.onValidateFn = validate as OnValidateFn<unknown, E>
+    this.validators.push(customValidator(validate as OnValidateFn, severity))
     return this
   }
 
-  onValidate<V = any>(validate: OnValidateFn<V, E>) {
-    this.onValidateFn = validate
-    return this
-  }
-
-  onWarn<V = any>(warn: OnWarnFn<V, E>) {
-    this.onWarnFn = warn
-    return this
-  }
-
-  /** 域值改变时触发（beforeEdit 中编辑时使用） */
-  onChange<P = any>(change: OnChangeFn<E, P>) {
+  onChange<P = unknown>(change: OnChangeFn<E, P>) {
     this.onChangeFn = change
     return this
   }
 
-  /** 搜索域 value 改变时触发（beforeIndex 中 searchable=true 时使用） */
-  onSearchChange<P = any>(searchChangeFn: onSearchChangeFn<P>) {
-    this.onSearchChangeFn = searchChangeFn
+  aggregate(fn: AggregateFn<E>) {
+    this.aggregateFn = fn
     return this
   }
 
-  setSelectable(selectableFn: setSelectableFn) {
-    this.selectableFn = selectableFn
-    return this
-  }
-
-  setSearchParam<P = any>(setSearchParamFn: setSearchParamFn<P>) {
-    this.setSearchParamFn = setSearchParamFn
-    return this
-  }
-
-  setAggregation<P = any>(setAggregationFn: setAggregationFn<P>) {
-    this.setAggregationFn = setAggregationFn
-    return this
-  }
-
-  /**
-   * 设置搜索弹窗 Footer 操作按钮。
-   * 仅对关联字段（reference.isRef 或 reference.hasOne）生效。
-   */
-  setFooterActions(footerActions: FooterAction[]) {
-    const ref = this.field.reference
-    if (!ref || (!ref.isRef && !ref.hasOne)) {
-      throw new Error(
-        `[setFooterActions] 字段 "${this.field.fieldName}" 不是关联字段（REF/HAS_ONE），` +
-          `无法设置 footerActions。请确认该字段的 reference 属性配置正确。`,
-      )
-    }
-    this.footerActions = footerActions
-    return this
-  }
-
-  /**
-   * @example this.field("xxx").setFrozen(MetaUiFieldFrozen.Left)
-   */
-  setFrozen(val: MetaUiFieldFrozen) {
-    this.frozen = val
-    return this
-  }
-
-  setCustomRenderer(renderFn: UiFieldRenderer) {
+  setCustomRenderer(renderFn: CustomFieldRenderFn) {
     this.customRenderer = renderFn
     return this
   }
 
-  setCustomCellRenderer(renderFn: UiCellRenderer) {
+  setCustomCellRenderer(renderFn: CustomFieldRenderFn) {
     this.customCellRenderer = renderFn
     return this
   }
 
-  setGridCellRenderer(renderFn: GridCellRenderer<E>) {
-    this.customGridCellRenderer = renderFn
+  setCustomCellEditor(editorFn: CustomFieldRenderFn) {
+    this.customCellEditor = editorFn
     return this
   }
 
-  setCustomEditor(editorFn: UiFieldRenderer) {
+  setCustomEditor(editorFn: CustomFieldRenderFn) {
     this.customEditor = editorFn
     return this
   }
 
   /**
-   * 设置关联过滤器；同时写入 logic 层 filterFn 与 MetaUi 元数据上的 reference.filterFn（旧代码兼容）。
-   * 可以在 filterFn 里面调用 setFieldQueryParams 方法设置当前域的搜索条件。
+   * 追加引用范围限制（SQL 片段）。与元数据 reference.where AND，多次调用叠加。
    */
-  refFilter(filterFn: RefFilterFn) {
+  refFilter(filterFn: RefFilterFn<E>) {
     if (!this?.field?.reference) {
       console.warn(`${this?.field?.fieldName || ''} field reference invalid.`)
       return this
     }
-    this.filterFn = filterFn
-    this.field.reference.filterFn = filterFn
+    this.refFilters.push(filterFn)
     return this
   }
 
-  refLabelFn(labelFn: (model: any) => any) {
-    if (this?.field?.reference) this.field.reference.labelFn = labelFn
+  /** 元数据 where 与已登记 refFilter 的 AND 结果。 */
+  buildRefFilter(
+    model: E,
+    ctx: UiContext<E & object>,
+    fieldOptions?: Record<string, unknown>,
+  ): string | undefined {
+    let filter = this.field.reference?.where
+    for (const fn of this.refFilters) {
+      filter = sqlAnd(filter, fn(model, ctx, fieldOptions))
+    }
+    return filter
+  }
+
+  /**
+   * 组装关联引用查询 filter：buildRefFilter + @param 替换 + searchWord LIKE。
+   * 元数据 MetaUiFieldRef 只提供 where / refFlds，不负责拼查询。
+   */
+  buildRefSearchFilter(
+    model: E,
+    ctx: UiContext<E & object>,
+    searchWord?: string,
+    fieldOptions?: Record<string, unknown>,
+  ): string | undefined {
+    const ref = this.field.reference
+    if (!ref) return undefined
+    let filter = this.buildRefFilter(model, ctx, fieldOptions)
+    if (filter && filter.indexOf('@') != -1) {
+      filter = filter.replaceAll(/@(\w+)/gi, (p: string) => (model as any)[p.substring(1)])
+    }
+    if (searchWord) {
+      const conditions: string[] = []
+      conditions.push(`t.${ref.refFlds[1]} LIKE %${searchWord}%`)
+      if (ref.hasExtraRefFields)
+        conditions.push(`t.${ref.refFlds[2]} LIKE %${searchWord}%`)
+      filter = sqlAnd(filter, conditions.join(' OR '))
+    }
+    return filter
+  }
+
+  /** 引用选项显示标签；写入元数据 reference.labelFn。 */
+  refLabelFn(labelFn: (option: Record<string, unknown>) => string) {
+    if (this?.field?.reference) this.field.reference.labelFn = labelFn as any
     else console.warn(`${this.field.fieldName} field reference invalid.`)
     return this
   }

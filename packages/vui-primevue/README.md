@@ -50,6 +50,6 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 
 - 不实现或复制旧 `layoutOne` / `layoutTow`；页面使用 vui 的 `layoutPage`
 - 不自行拼装查询请求；DataTable 仅通过 `filterModel` /
-  `onFilterModelChange` 回写 `UiViewContext.searchParam.searchParams`
+  `onFilterModelChange` 回写 `UiViewContext.searchParam.filterModel`
 - `fieldMessage` 为 `false`，校验状态由 PrimeVue 控件和 `Message` 展示
 - 不包含旧 Font Awesome 资源、Office Online、vuelidate 或 echarts

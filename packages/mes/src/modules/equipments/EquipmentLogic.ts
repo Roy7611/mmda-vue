@@ -185,7 +185,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('status').searchable(true), this.field('stationID').searchable(true), this.field('lineID').searchable(true));
+			fields.push(this.field('status'), this.field('stationID'), this.field('lineID'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -281,7 +281,8 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							ctx.clearFieldValue('lineID')
 						}
 					})
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						if (model.lineID) {
 							return {
 								equippingType: '>0',
@@ -293,7 +294,18 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							}
 						}
 
-					}),
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 				this.field('lineID')
 					.lockIf(model => !isRefNone(model.lineID))
 					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
@@ -301,13 +313,37 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							model.stationID = null;
 						}
 					})
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
 							status: 'USED'
 						}
-					}),
-				this.field('checklistID').setSearchParam((ctx, model) => {
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('checklistID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					return { status: 'USED' };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('movable').onChange((context, model, newVal) => {
 					if (newVal) {
@@ -367,14 +403,50 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						ctx.setFieldValue('planToMaintain', this.calculateNextMaintainDate(ctx, currentOption));
 					}
 				}),
-				// this.field('bomID').setSearchParam((ctx, model) => {
+				// this.field('bomID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 				// 	return { status: '>-1' };
-				// }),
-				this.field('deviceID').setSearchParam((ctx, model) => {
-					return { runningState: 'WORKING' };
+				// })(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
-				this.field('bomID').setSearchParam((ctx, model) => {
+				this.field('deviceID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
+					return { runningState: 'WORKING' };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('bomID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					return { status: 'APPROVED', bomUsage: `IN ${BomUsage.MAINTENANCE}` };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 			);
 			/**
@@ -400,8 +472,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						visible: t => t.movable,
 						view: UiViewOne.Edit,
 					})
-					.clearIf(() => true)
-			)
+			);
 			/**
 			fields.push(
 				this.group<I>('grpName')

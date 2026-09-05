@@ -1,5 +1,11 @@
 # 前端交互逻辑
 
+`logic` 是给程序员的规范接口（纯 TS）。回调类型在 [`logic_functions.ts`](./logic/logic_functions.md)。字段行为见 [`field_logic.ts`](./logic/field_logic.md)。引用过滤用 `refFilter` 叠加，与元数据 `where` AND，不要写回 `MetaUiField`。
+
+详见 [index.md](./index.md) 与 [core_architecture.md](./core_architecture.md)。
+
+---
+
 `logic` 实现一屏界面运行时，依赖 `metaui`、`models`，需要加载数据时也可依赖 `net`。
 
 ## 主要内容
@@ -8,8 +14,9 @@
   `view` 决定，不再按 Index/Edit/Details 拆接口。
 - `MetaUiFieldLogic`：字段只读、隐藏、校验、搜索和自定义渲染。
 - `MetaUiGroupLogic`：子表行为、导入导出、聚合和自定义操作。
-- `UiValidation` / `validateField`：校验状态和执行。
-- `FieldSearchOptions`：关联字段查询、过滤和候选项的操作缓存。
+- `UiValidation` / `validateField`：校验状态和执行。设计 [validation_design.md](./logic/validation_design.md)，用法 [validation_usage.md](./logic/validation_usage.md)，名字 [validator.md](./logic/validator.md)。
+- 列表查询：设计在 models [entity_search.md](./models/entity_search.md)，用法 [entity_query_usage.md](./logic/entity_query_usage.md)。
+- `SqlOperator`：仅 where / `refFilter` 的 SQL 片段（[sql_operator.md](./logic/sql_operator.md)）。列表字段条件用 `EntityFilterOperator`，不要再使用已删除的 SearchOp。
 
 ## 按视图拆分 Logic
 
@@ -33,7 +40,7 @@ export class OrderLogic extends UiLogic<Order> {
 ```ts
 export function beforeIndex(this: OrderLogic) {
   const result = UiLogic.prototype.beforeIndex.call(this)
-  result.fields.push(this.field('status').searchable(true))
+  result.fields.push(this.field('status'))
   return result
 }
 ```
@@ -79,14 +86,9 @@ interface FieldSearchOptions {
 该对象属于具体会话上下文，不能放回 `MetaUiField`。否则多个界面共享同一份
 元数据时，会互相污染搜索词、候选项和分页状态。
 
-关联过滤器同样挂在 `MetaUiFieldLogic.filterFn`（`refFilter`）。`buildSearchFilter`
-优先用传入的 `filterFn`，没有时才回退 `reference.filterFn`（旧代码兼容）。
+关联过滤器挂在 `MetaUiFieldLogic.refFilter`（内部列表 AND 叠加）。`buildRefFilter` 得到 where AND refFilter；关联查询关键字与 `@param` 替换用 `buildRefSearchFilter`。不要写回字段。
 
-旧实现的 `SearchForRelativeOptions` 暂不作为第三套会话缓存迁入；关联搜索过程
-统一先使用 `FieldSearchOptions`。若后续仍需要防抖或请求取消，只扩展该类型。
-
-旧名称 `MetaUiFieldOptions`、`defaultFieldOptions` 和
-`isDefaultFieldOptions` 暂时保留为 deprecated 别名。
+关联搜索会话只用 `FieldSearchOptions`（含 `isComposing`、`currentSelectOption`）。不要写回字段。
 
 ## 依赖约束
 
@@ -97,4 +99,3 @@ models ─┘
 ```
 
 `metaui` 和 `models` 不反向依赖 `logic`。交互入口是 `logic/ui_logic`。
-旧的 `models/validation` 路径仅作兼容转发。

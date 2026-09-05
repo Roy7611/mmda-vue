@@ -1,12 +1,14 @@
 import { computed, unref, type ComputedRef } from "vue";
 import type { UiColorRole } from "./ui_material";
-import type {
-  EntityAction,
-  TranslateFn,
-  ActionCallback,
-  UiContext,
+import {
+  parseEntityBoolExpression,
+  isPromise,
+  type EntityAction,
+  type TranslateFn,
+  type ActionCallback,
+  type UiContext,
+  type Predicate,
 } from "@mmda/core";
-import { isPromise } from "@mmda/core";
 
 export type IconResolver = (icon: string) => string;
 
@@ -64,7 +66,16 @@ export interface UiAction {
   colorRole?: UiColorRole;
   tooltip?: string;
   disabled?: boolean | "true" | "false";
-  visible?: ComputedRef<boolean>;
+  /**
+   * 是否出现。工具栏可绑 ComputedRef；表格行用 Predicate(row)。
+   * 缺省出现。
+   */
+  visible?: ComputedRef<boolean> | Predicate<any> | boolean;
+  /**
+   * 当前行/实体是否可执行。false：可见但不可点。
+   * 由 EntityAction.executableExpression 解析；也可手写 Predicate。
+   */
+  canDo?: Predicate<any> | boolean;
   group?: string;
   loading?: boolean; // 是否正在加载
   view?: string; //显示在那几个视图，比如details,edit，若为空则全部显示
@@ -124,9 +135,26 @@ export const UiActionCtor = (
     group,
   };
 };
+
+/** EntityAction.executableExpression → UiAction.canDo（字符串或函数）。 */
+export function canDoFromExecutableExpression(
+  _context: UiActionContext,
+  action: EntityAction,
+): Predicate | undefined {
+  const expr = action.executableExpression;
+  if (typeof expr === "function") return expr as Predicate;
+  if (typeof expr === "string" && expr.trim()) {
+    return parseEntityBoolExpression(expr);
+  }
+  return undefined;
+}
+
 export const UiContextAction = (
   context: UiActionContext,
-  {
+  action: EntityAction,
+  i: IconResolver,
+): UiAction => {
+  const {
     id,
     name,
     label,
@@ -138,9 +166,7 @@ export const UiContextAction = (
     visible,
     group,
     view,
-  }: EntityAction,
-  i: IconResolver
-): UiAction => {
+  } = action;
   return {
     name,
     id,
@@ -184,6 +210,7 @@ export const UiContextAction = (
       }
     },
     disabled,
+    canDo: canDoFromExecutableExpression(context, action),
     visible: visible
       ? computed(visible.bind(context, context.model))
       : undefined,
@@ -201,6 +228,32 @@ export const UiActionDivider = (): UiAction => {
     divider: true,
   };
 };
+
+/** 是否渲染此项。`target` 为行或页 model；Predicate 时传入。 */
+export function isActionVisible(
+  action: UiAction,
+  target?: unknown,
+  ctx?: unknown,
+): boolean {
+  const visible = action.visible;
+  if (visible == null) return true;
+  if (typeof visible === "boolean") return visible;
+  if (typeof visible === "function") return visible(target, ctx as any) !== false;
+  return unref(visible) !== false;
+}
+
+/** 是否可点。先看静态 `disabled`，再看 `canDo`。 */
+export function isActionEnabled(
+  action: UiAction,
+  target?: unknown,
+  ctx?: unknown,
+): boolean {
+  if (action.disabled === true || action.disabled === "true") return false;
+  const canDo = action.canDo;
+  if (canDo == null) return true;
+  if (typeof canDo === "boolean") return canDo;
+  return canDo(target, ctx as any) !== false;
+}
 
 export interface FlowToModel {
   ownerID: string

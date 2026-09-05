@@ -91,6 +91,8 @@ await context.init()
 | [会话上下文](./docs/context.md) | `UiViewContext`、`UiBuildContext`、主从树 |
 | [Builder 与皮肤](./docs/builder.md) | `UiBuilder`、`UiFactory`、皮肤包 |
 | [列表与过滤](./docs/list.md) | 工具栏、搜索、`UiFilter`、`UiSelector` |
+| [表格契约](../vui-syncfusion/docs/sf-grid.md) | 厂商无关的 Grid 接口（各皮肤共用） |
+| [SfGrid 设计](../vui-syncfusion/docs/sf-grid-design.md) | Syncfusion 皮肤如何实现该契约 |
 
 旧的 [vui.md](./docs/vui.md) 仅作索引，新内容以本 README 和上表为准。
 

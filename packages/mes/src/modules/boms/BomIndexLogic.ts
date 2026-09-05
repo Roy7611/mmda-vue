@@ -10,10 +10,10 @@ export function beforeIndex(this: BomLogic): UiLogicFnResult<Bom> {
 	const { fields, groups, customActions } = UiLogic.prototype.beforeIndex.call(this);
 	if (fields.length == 0) {
 		fields.push(
-			this.field('projectID').searchable(true),
-			this.field('bomType').searchable(true),
-			this.field('bomUsage').searchable(true),
-			this.field('status').searchable(true)
+			this.field('projectID'),
+			this.field('bomType'),
+			this.field('bomUsage'),
+			this.field('status')
 		);
 	}
 	return { fields, groups, customActions };

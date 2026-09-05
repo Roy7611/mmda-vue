@@ -143,15 +143,15 @@ describe('_setupGroupLogic 隔离性', () => {
     expect(ctx.getGroupLogic('items')).toBe(grpLogic)
   })
 
-  it('合并时保留父 chain 的 cellEditable', () => {
-    const parentFl = new MetaUiFieldLogic(field('qty')).inPlaceEdit()
+  it('合并时保留父 chain 的 inplaceEditable', () => {
+    const parentFl = new MetaUiFieldLogic(field('qty')).inplaceEdit()
     const childFl = new MetaUiFieldLogic(field('qty'))
     const renderFn = (): undefined => undefined
     childFl.setCustomCellRenderer(renderFn)
-    const cellEditable = parentFl.cellEditable
+    const inplaceEditable = parentFl.inplaceEditable
     Object.assign(parentFl, childFl)
-    parentFl.cellEditable = cellEditable ?? parentFl.cellEditable
-    expect(parentFl.cellEditable).toBe(true)
+    parentFl.inplaceEditable = inplaceEditable ?? parentFl.inplaceEditable
+    expect(parentFl.inplaceEditable).toBe(true)
     expect(parentFl.customCellRenderer).toBe(renderFn)
   })
 })

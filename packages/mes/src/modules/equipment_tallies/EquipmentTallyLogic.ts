@@ -53,15 +53,15 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 		if (fields.length == 0) {
 			// 根据点检日期过滤
 			if (this.field('checkDate').field) {
-				fields.push(this.field('checkDate').searchable(true));
+				fields.push(this.field('checkDate'));
 			}
 			// 根据设备过滤
 			if (this.field('equipmentID').field) {
-				fields.push(this.field('equipmentID').searchable(true));
+				fields.push(this.field('equipmentID'));
 			}
 			// 根据状态过滤
 			if (this.field('status').field) {
-				fields.push(this.field('status').searchable(true));
+				fields.push(this.field('status'));
 			}
 		}
 		return { fields, groups, customActions };
@@ -148,9 +148,9 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 						view: UiViewOne.Edit,
 					})
 				// .field('checkResult')
-				// .inPlaceEdit()
+				// .inplaceEdit()
 				// .parent.field('remark')
-				// .inPlaceEdit().parent
+				// .inplaceEdit().parent
 			);
 		}
 		return { fields, groups, customActions };

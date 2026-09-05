@@ -3,7 +3,7 @@
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 import { h, ref } from 'vue';
-import { MetaModel, isNullOrUndefined, getSearchOp } from '@mmda/core';
+import { MetaModel, isNullOrUndefined, getSqlOperator } from '@mmda/core';
 import { UiLogic, UiViewOne, type UiLogicFnResult, type UiViewContext } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
 import type { BomItem } from '@/models/BomItem';
@@ -33,7 +33,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	const selectOptions = ref([]);
 	if (fields.length == 0) {
 		fields.push(
-			this.field('bomUsage').onWarn((value, model, ctx: UiViewContext<any>) => {
+			this.field('bomUsage').onValidate((value, model, ctx: UiViewContext<any>) => {
 				if (value === BomUsage.MAINTENANCE) {
 					const hasNonSparePart = model.items?.some((item: BomItem) => !MetaModel.deleted(item) && !item.sparePart);
 					if (hasNonSparePart) {
@@ -68,30 +68,44 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					),
 				]);
 			}),
-			this.field('plantID').setSearchParam((ctx: UiViewContext<any>, model) => {
+			this.field('plantID').refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 				return { status: 'USED' };
-			}),
+			})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 			this.field('alternate').hideIf(model => model.bomType !== BomType.ALTERNATE),
 			// BOM类型
 			// this.field('bomType').lockIf(t => !isNullOrUndefined(t.refBomID)),
 			this.field('productID')
 				.lockIf((t, ctx) => t.refName === 'ProductionOrder' || t.status !== BomStatus.NEW || t.bomType === BomType.ALTERNATE) // 新建BOM，且不是替代BOM
-				.setSearchParam((ctx: UiViewContext<any>, model) => ({
-					materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
-					status: getSearchOp('IN').toSQL('USED'),
+				.refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => ({
+					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
+					status: getSqlOperator('IN').toSQL('USED'),
 					categoryID: model.productCategoryID ?? '',
 					materialID: forBomMaterialID.value.length ? `NOT IN ${forBomMaterialID.value.join(',')}` : ''
-				}))
-				.setFooterActions([
-					{
-						label: 'bom.createProductIdentifier',
-						icon: 'pi pi-plus-circle',
-						severity: 'success',
-						onClick: () => {
-							window.open('/BASE/Materials/Create', '_blank');
-						},
-					},
-				])
+				}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 				.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 					if (isNullOrUndefined(newVal)) {
 						ctx.batchSetFieldValue({
@@ -134,8 +148,20 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					model =>
 						[].concat(...model.items.filter(item => !MetaModel.deleted(item)).map(item => (item.operations ? item.operations.filter(operation => !MetaModel.deleted(operation)) : []))).length > 0
 				)
-				.setSearchParam((ctx: UiViewContext<any>, model) => {
+				.refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { status: 'USED' };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}).onChange((context, model, newVal, oldVal) => {
 					if (newVal) {
 						// 切换制程时，先只删除上一制程带入的机具物料
@@ -215,9 +241,21 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('productCode').lockIf(model => !isNullOrUndefined(model.productID)),
 			this.field('productCategoryID')
 				.lockIf(model => !isNullOrUndefined(model.productID))
-				.setSearchParam(() => ({
-					materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
-				})).setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				.refFilter((model, ctx) => {
+					const __p = (() => ({
+					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
+				}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}).setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
 				return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 			}),
@@ -240,8 +278,8 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	if (groups.length == 0) {
 		groups.push(
 			this.group<BomItem>('items')
-				.editIf((m, ctx) => isCurrentBomRow(m, ctx))
-				.deleteIf((m, ctx) =>  isCurrentBomRow(m, ctx))
+				.lockIf((m, ctx) => !isCurrentBomRow(m, ctx))
+				.itemDeletable((row, _master, ctx) => isCurrentBomRow(row, ctx))
 				.onChange((ctx: UiViewContext<any>, model, items) => {
 					setSubBomItemsEditable(items, model.bomID);
 					// 拦截被标记为删除的物料，同步清除其下挂载的子件BOM数据
@@ -288,9 +326,9 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					view: UiViewOne.Edit,
 				})
 				.field('materialCode')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('materialID')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 					if (isNullOrUndefined(newVal)) {
 						// 物料被清空时，同步清空关联的子件 BOM 等信息
@@ -300,38 +338,38 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					}
 				})
 				.nextField('materialName')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('brand')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('specs')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('modelType')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('unit')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('texture')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('sourcingMode')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('sourcingUrl')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('materialCategory')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('materialPic')
 				.setCustomRenderer(renderBomItemMaterialPic)
 				.setCustomCellRenderer(renderBomItemMaterialPic)
 				.nextField('quantity')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('partType')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('partBomID')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('partLeadTime')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('tracingMode')
-				.inPlaceEdit()
+				.inplaceEdit()
 				.nextField('drawingNo')
-				.inPlaceEdit().parent
+				.inplaceEdit().parent
 		);
 	}
 	return { fields, groups, customActions };

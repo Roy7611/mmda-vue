@@ -6,8 +6,8 @@
  *
  */
 import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSearchOp } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm } from '@mmda/vui';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
+import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';
@@ -284,18 +284,30 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('qcPhase').searchable(true),
-				this.field('inProcessType').searchable(true),
+				this.field('qcPhase'),
+				this.field('inProcessType'),
 				this.field('taskID')
-					.searchable(true)
-					.setSearchParam((context, model) => {
+					
+					.refFilter((model, ctx) => {
+					const __p = ((context, model) => {
 						return {
 							sort: `planDate ${SortOrder.DESC}`,
 							status: `IN ${ProductionTaskStatus.WORKING},${ProductionTaskStatus.FINISHED}`,
 						};
-					}),
-				this.field('jobID').searchable(true),
-				this.field('status').searchable(true)
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('jobID'),
+				this.field('status')
 			);
 		}
 		return { fields, groups, customActions };
@@ -310,7 +322,8 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			//品控标准
 			fields.push(
 				this.field('qcsID')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						const params: Record<string, any> = { status: '>0' };
 						// 预设单为true说明是特殊来源生成的检验单：按 qcPhase 筛品控标准
 						if (model.preset) {
@@ -320,7 +333,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 						const currentCreateRefName = window.history?.state?.createParam?.refName as string | undefined;
 						// 普通来源 + 已完工任务：不可选来料检验标准
 						if (!isProductionInspectionSource(model, currentCreateRefName) && model.task?.status === ProductionTaskStatus.FINISHED) {
-							params.qcPhase = getSearchOp('NOT_IN').toSQL(QcPhase.IQC);
+							params.qcPhase = getSqlOperator('NOT_IN').toSQL(QcPhase.IQC);
 							return params;
 						}
 						if (isRefNone(model.qcPhase)) return params;
@@ -330,7 +343,18 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 							params.qcPhase = model.qcPhase;
 						}
 						return params;
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange(async (context, model, newVal, oldVal) => {
 						// 获取为特殊来源的refName。
 						const createRefName = window.history?.state?.createParam?.refName as string | undefined;
@@ -385,7 +409,8 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 				this.field('inProcessType').lockIf(t => t.qcPhase !== 'IPQC' || t.preset),
 				this.field('taskID')
 					.lockIf(t => t.preset)
-					.setSearchParam((context, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((context, model) => {
 						const ref = context.metaui.getField('qcPhase').reference;
 						const phase = ref?.valueOf(ref?.enumFn(model.qcPhase) ?? context.getFieldValue(context.metaui.getField('qcPhase'))) ?? model.qcPhase;
 						return {
@@ -395,7 +420,18 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 								? ProductionTaskStatus.WORKING
 								: `IN ${ProductionTaskStatus.WORKING},${ProductionTaskStatus.FINISHED}`,
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((context, model, newVal) => this.syncMaterialsFromTaskSelection(context, model, newVal))
 			);
 			/**
@@ -804,7 +840,7 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 
 		if (groups.length === 0) {
 			groups.push(
-				this.group<QualityInspectionItem>('a1').setWatermark((grp,
+				setGroupWatermark(this.group<QualityInspectionItem>('a1'), (grp,
 					ctx,
 					props) => {
 					if (isNullOrUndefined(ctx.model.qualified)) return
@@ -828,7 +864,7 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (groups.length === 0) {
 			groups.push(
-				this.group<QualityInspectionItem>('a1').setWatermark((grp,
+				setGroupWatermark(this.group<QualityInspectionItem>('a1'), (grp,
 					ctx,
 					props) => {
 					if (isNullOrUndefined(ctx.model.qualified)) return

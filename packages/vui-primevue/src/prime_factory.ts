@@ -4,7 +4,7 @@ import {
   SortOrder,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
-  getFieldSearchOps,
+  getFieldFilterOps,
   type EntityFieldFilter,
   type EntityFilterModel,
   type MetaUi,
@@ -163,7 +163,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         operator:
           current && "operator" in current
             ? current.operator
-            : (getFieldSearchOps(field)[0]?.name ?? "EQ"),
+            : (getFieldFilterOps(field)[0] ?? "EQ"),
         value:
           current?.filterType === "set"
             ? [...current.values]
@@ -211,9 +211,9 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           : h("div", { class: "mmda-prime-column-filter__values" }, [
               h(Select, {
                 modelValue: state.operator,
-                options: getFieldSearchOps(field).map((op) => ({
-                  ...op,
-                  label: op.label ?? op.name,
+                options: getFieldFilterOps(field).map((op) => ({
+                  name: op,
+                  label: op,
                 })),
                 optionLabel: "label",
                 optionValue: "name",

@@ -122,7 +122,7 @@ export const checkbox = (
 ) =>
   control(CheckBoxComponent as any, field, context, props, {
     checked: context.getFieldValue(field),
-    label: field.displayLabel,
+    label: props?.label === "" ? "" : (props?.label ?? field.displayLabel),
   });
 
 export const switcher = (
@@ -154,7 +154,6 @@ export const searchBox = (
   const valueKey = reference.refFlds?.[0] ?? "value";
   const labelKey = reference.refFlds?.[1] ?? valueKey;
   const fldOptions = context.getFieldOptions(field);
-  const searchOptions = context.getSearchForRelativeOptions(field);
 
   let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
     ? context.getFieldValue(field)
@@ -174,13 +173,13 @@ export const searchBox = (
     ) {
       fldOptions.selectOptions.unshift(fieldValue);
     }
-    searchOptions.searchWord = fieldValue;
+    fldOptions.currentSelectOption = fieldValue;
   }
 
   const selectedModel =
-    searchOptions.searchWord != null &&
-    typeof searchOptions.searchWord === "object"
-      ? searchOptions.searchWord
+    fldOptions.currentSelectOption != null &&
+    typeof fldOptions.currentSelectOption === "object"
+      ? fldOptions.currentSelectOption
       : fieldValue;
 
   return builder.buildSearchForRelative(context, field, {
@@ -195,7 +194,7 @@ export const searchBox = (
     labelField: labelKey,
     invalid: invalidOf(field, context),
     onChange: (value: any) => {
-      searchOptions.searchWord = value || null;
+      fldOptions.currentSelectOption = value || null;
       context.setFieldValue(field, value || null);
       if (!value) {
         const model = context.model as Record<string, any>;
@@ -210,7 +209,7 @@ export const searchBox = (
     },
     toSearch: async () => {
       const picked = await (context as any).pickRelative?.(field);
-      if (picked) searchOptions.searchWord = picked;
+      if (picked) fldOptions.currentSelectOption = picked;
       return true;
     },
   });

@@ -95,7 +95,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 		if (fields.length == 0) {
 			hrefData.value = this.getParmas(window.location.href);
 			fields.push(
-				this.field('status').searchable(true),
+				this.field('status'),
 				this.field('taskName').setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
@@ -125,10 +125,10 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 					]);
 				}),
 
-				//this.field('taskLevel').searchable(true),
-				// this.field('taskPhase').searchable(true),
-				this.field('riskLevel').searchable(true)
-				// this.field('projectID').searchable(true)
+				//this.field('taskLevel'),
+				// this.field('taskPhase'),
+				this.field('riskLevel')
+				// this.field('projectID')
 			);
 		}
 		return { fields, groups, customActions };

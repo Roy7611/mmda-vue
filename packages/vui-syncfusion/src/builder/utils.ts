@@ -7,7 +7,7 @@ import {
 } from "vue";
 import { RouterLink } from "vue-router";
 import type { Module, ModuleAuth } from "@mmda/core";
-import type { UiAction, UiViewContext } from "@mmda/vui";
+import { isActionVisible, type UiAction, type UiViewContext } from "@mmda/vui";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 
 const SfSearchTextInput = defineComponent({
@@ -107,7 +107,7 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
   moduleOf(context)?.authority;
 
 const visibleActions = (actions: UiAction[]) =>
-  actions.filter((action) => action.visible == null || unref(action.visible));
+  actions.filter((action) => isActionVisible(action));
 
 
 export {

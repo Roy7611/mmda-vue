@@ -72,7 +72,7 @@ export class CountryLogic extends UiLogic<Country> {
   beforeIndex(): UiLogicFnResult<Country> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
-      fields.push(this.field("briefName").searchable(true));
+      fields.push(this.field("briefName"));
     }
     return { fields, groups, customActions };
   }

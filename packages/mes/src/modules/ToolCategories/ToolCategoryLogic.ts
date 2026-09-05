@@ -53,9 +53,9 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			// fields.push(
-			// 	this.field('status').searchable(true),
-			// 	this.field('supportPackage').searchable(true),
-			// 	this.field('trackingMode').searchable(true),
+			// 	this.field('status'),
+			// 	this.field('supportPackage'),
+			// 	this.field('trackingMode'),
 			// )
 		}
 		return { fields, groups, customActions }

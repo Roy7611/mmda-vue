@@ -56,7 +56,7 @@ describe("UiSelector", () => {
         getPack: vi.fn(async () => ({ metaui })),
       },
       api: {
-        searchEntities: vi.fn(async () => emptyPagedList()),
+        searchAll: vi.fn(async () => emptyPagedList()),
       },
     };
 
@@ -73,7 +73,7 @@ describe("UiSelector", () => {
       repository: "Warehouses",
       service: undefined,
     });
-    expect(appStub.api.searchEntities).toHaveBeenCalled();
+    expect(appStub.api.searchAll).toHaveBeenCalled();
     expect(calls.paginator).toBeGreaterThan(0);
     expect(calls.input).toBeGreaterThan(0);
     expect(calls.list).toBeGreaterThan(0);

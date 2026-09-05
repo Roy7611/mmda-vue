@@ -1,15 +1,15 @@
 import { SqlDataType } from './datatype'
-import { sqlAnd } from './metaui_search'
 import { pluralize } from '../utils/pluralize'
-import { isFunction, isNullObject, isNullOrUndefined } from '../utils/is'
-import type { UiContext } from '../logic/ui_context'
+import { isNullObject, isNullOrUndefined } from '../utils/is'
+import {
+  parseValidatorDescriptors,
+  type ValidatorDescriptor,
+} from './validator_parse'
 
-export type Predicate<T = any> = (t: T, context?: any) => boolean
-
-type UiReferenceSearchContext = UiContext<any> & {
-  searchFields?: any[]
-  _fieldOptions?: Record<string, any>
-}
+export {
+  parseValidatorDescriptors,
+  type ValidatorDescriptor,
+} from './validator_parse'
 
 export interface Translatable {
   message: string
@@ -18,49 +18,6 @@ export interface Translatable {
 }
 
 export type TranslateFn = (message: string | Translatable) => string
-
-export type RefFilterFn<T = any> = (
-  model: T,
-  ctx: UiContext<any>,
-  fieldOptions?: Record<string, any>,
-) => string
-export type OnChangeFn<E = any, T = any> = (
-  context: UiContext<E & object>,
-  model: E,
-  newVal: T,
-  oldVal: T
-) => void
-export type onSearchChangeFn<T = any> = (
-  context: UiContext,
-  fld: MetaUiField,
-  newVal: T,
-  oldVal: T
-) => void
-export type setSelectableFn = (
-  context: UiContext,
-  field: MetaUiField,
-  row: any
-) => boolean
-export type setSearchParamFn<T = any> = (
-  context: UiContext<T & object>,
-  model: T,
-  field: MetaUiField
-) => Record<string, any>
-export type setAggregationFn<T = any> = (
-  context: UiContext,
-  field: MetaUiField,
-  model: T,
-) => Record<string, any>
-export type OnValidateFn<T = any, E = any> = (
-  value: T,
-  model: E,
-  ctx?: UiContext<any>
-) => string | Translatable | undefined
-export type OnWarnFn<T = any, E = any> = (
-  value: T,
-  model: E,
-  ctx?: UiContext<any>
-) => string
 export enum MetaUiFieldAlignment {
   LEFT = 'LEFT',
   RIGHT = 'RIGHT',
@@ -100,11 +57,6 @@ export type Nullishable<T> = T | null | undefined
 
 // type BoolFunc = (entity: any, editing: boolean) => boolean;
 // type ReadOnlyFunc = (entity: any) => boolean;
-
-export interface ValidationRulesParsed {
-  key: string;
-  value: any;
-}
 
 /**
  * 元界面域初始化类型
@@ -157,14 +109,10 @@ export interface MetaUiFieldInit {
 
   maxLength?: number //字符串最大长度，用于CHAR/VARCHAR
 
-  min?: string //数值范围
-  max?: string
-
   unsigned?: boolean //是否无符号，用于整型
   numericPrecision?: number //数值精度
   numericScale?: number //小数位数
   validationRules?: string // 校验规则
-  validationRulesParseds?: ValidationRulesParsed[] // 解析后的校验规则
 
   formula?: string // 公式
   defaultVal?: string // 缺省值
@@ -179,18 +127,6 @@ export interface MetaUiImageFormat {
   width?: number
   height?: number
   fileExt?: string
-}
-
-/**
- * 过滤器参数
- * @remarks
- */
-export interface FilterProps {
-  searchWord?: string
-  andCondition?: string
-  ctx: UiReferenceSearchContext
-  /** 来自 FieldLogic 的会话过滤器；不传则回退 reference.filterFn */
-  filterFn?: RefFilterFn
 }
 
 const _imgReg = /^([\d|\?]+)?[_|\*]?([\d|\?]+)(\.\w+)?$/
@@ -259,18 +195,6 @@ export function ensureListFieldVisibleWhenFrozen(field: MetaUiField) {
   field.hidden = false
 }
 
-/** 弹窗 Footer 操作按钮 */
-export interface FooterAction {
-  /** 按钮文案 */
-  label: string
-  /** 按钮图标（PrimeIcons class），可选 */
-  icon?: string
-  /** 按钮语义样式 */
-  severity?: 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'danger'
-  /** 点击回调 */
-  onClick: () => void
-}
-
 /**
  * 元界面域
  *
@@ -281,11 +205,14 @@ export interface FooterAction {
  */
 export class MetaUiField {
   constructor(init: MetaUiFieldInit) {
-    Object.assign(this, init);
+    Object.assign(this, init)
+    delete (this as { min?: unknown }).min
+    delete (this as { max?: unknown }).max
     if (this.frozen == null) this.frozen = MetaUiFieldFrozen.None
     if (this.selectOptions) {
-      this.reference = MetaUiFieldRef.parse(this.selectOptions);
+      this.reference = MetaUiFieldRef.parse(this.selectOptions)
     }
+    this.validatorDescriptors = parseValidatorDescriptors(this.validationRules)
   }
 
   fieldIdx: number
@@ -317,7 +244,7 @@ export class MetaUiField {
   readonly editor?: string
   readonly selectOptions?: string
   readonly validationRules?: string
-  validationRulesParseds?: ValidationRulesParsed[]
+  validatorDescriptors: ValidatorDescriptor[]
   readonly placeholder?: string
   readonly tooltip?: string
 
@@ -325,8 +252,6 @@ export class MetaUiField {
 
   readonly primaryKey?: boolean
   readonly maxLength?: number
-  min?: string
-  max?: string
   readonly unsigned?: boolean
   readonly numericPrecision?: number
   readonly numericScale?: number
@@ -345,21 +270,6 @@ export class MetaUiField {
    */
   imageFormat?: MetaUiImageFormat
 
-
-
-  static parseValidationRules(validationRules: string): ValidationRulesParsed[] {
-    //  输入Max(100) 输出 { name: 'max', value: '100' } 输入Range(0,100) 输出 { name: 'range', value: '0,100' }
-    // const pattern = /^(\w+)\((\d+)\)$/;
-    const pattern = /^([A-Za-z]+)(?:\(([^)]*)\))?$/i;
-    return (validationRules ?? '').split(';').map(rule => {
-      const match = pattern.exec(rule);
-      if (!match) return null;
-      return {
-        key: match[1].toLocaleLowerCase(),
-        value: match[2] ? match[2] : ''
-      };
-    }).filter((v): v is ValidationRulesParsed => !!v);
-  }
 
 
   // /**
@@ -398,7 +308,6 @@ export const enum MetaOptionsShape {
 // test at https://www.mklab.cn/utils/regex
 const _refExp =
   /^(\w+)\s(\w+(?:\.\w+)?)\(([\w|,]+)\)(?:\s+AS\s+(\w+))?(?:\s+WHERE\s*\((.+)\))?(?:\s+GROUP\s+BY\s+(\w+))?(?:\s+(READONLY))?$/
-const _paramExp = /\@(\w+)/gi
 type propFn = (item: any) => any
 export interface MetaUiFieldRefInit {
   refType: MetaRelationType
@@ -524,9 +433,6 @@ export class MetaUiFieldRef {
   private _labelFn?: propFn
   private _groupByFn?: propFn
 
-  private _filterFn?: RefFilterFn
-  // private _searchFn?: (searchParam:EntitySearchParam)=>Promise<PagedList<any>>;
-
   get isEnum() {
     return this.refType == MetaRelationType.ENUM
   }
@@ -626,69 +532,6 @@ export class MetaUiFieldRef {
     return this._groupByFn
   }
 
-  get filterFn() {
-    return this._filterFn
-  }
-  set filterFn(fn: RefFilterFn) {
-    this._filterFn = fn
-  }
-
-  // get searchFn(){
-  //   return this._searchFn;
-  // }
-  // set searchFn(fn: (searchParam:EntitySearchParam)=>Promise<PagedList<any>>){
-  //   this._searchFn = fn;
-  // }
-  buildSearchFilter(model: any, filterProps: FilterProps) {
-    const { searchWord, andCondition, ctx, filterFn } = filterProps
-    const { searchFields } = ctx
-    const runtimeFilter = filterFn ?? this._filterFn
-
-    let filter = isFunction(runtimeFilter)
-      ? sqlAnd(this.where, runtimeFilter(model, ctx, ctx._fieldOptions))
-      : this.where
-    if (andCondition) filter = sqlAnd(filter, andCondition)
-    if (filter && filter.indexOf('@') != -1) {
-      filter = filter.replaceAll(
-        _paramExp,
-        (p: string) => model[p.substring(1)]
-      )
-    }
-    if (searchWord) {
-      let conditions: string[] = []
-      conditions.push(`t.${this.refFlds[1]} LIKE %${searchWord}%`)
-      if (this.hasExtraRefFields)
-        conditions.push(`t.${this.refFlds[2]} LIKE %${searchWord}%`)
-      filter = sqlAnd(filter, conditions.join(' OR '))
-    }
-    return filter
-  }
-
-  buildSearchQueryParams(model: any, filterProps: FilterProps) {
-    const { searchWord, andCondition, ctx, filterFn } = filterProps
-    const { searchFields } = ctx
-    const runtimeFilter = filterFn ?? this._filterFn
-
-    let filter = isFunction(runtimeFilter)
-      ? sqlAnd(this.where, runtimeFilter(model, ctx, ctx._fieldOptions))
-      : this.where
-    if (andCondition) filter = sqlAnd(filter, andCondition)
-    if (filter && filter.indexOf('@') != -1) {
-      filter = filter.replaceAll(
-        _paramExp,
-        (p: string) => model[p.substring(1)]
-      )
-    }
-    if (searchWord) {
-      let conditions: string[] = []
-      conditions.push(`t.${this.refFlds[1]} LIKE %${searchWord}%`)
-      if (this.hasExtraRefFields)
-        conditions.push(`t.${this.refFlds[2]} LIKE %${searchWord}%`)
-      filter = sqlAnd(filter, conditions.join(' OR '))
-    }
-    return filter
-  }
-
   get service(): string | undefined {
     if (this.refDbName) {
       const names = this.refDbName.split('_')
@@ -751,13 +594,3 @@ export class MetaUiFieldPair extends MetaUiField {
   }
 }
 
-export interface SearchForRelativeOptions {
-  searchWord?: string | any
-  isComposing?: boolean
-}
-export const defaultSearchForRelativeOptions = (): SearchForRelativeOptions => {
-  return {
-    searchWord: null,
-    isComposing: false
-  }
-}

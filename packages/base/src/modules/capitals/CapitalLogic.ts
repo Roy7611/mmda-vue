@@ -27,7 +27,7 @@ export class CapitalLogic extends UiLogic<Capital> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('capitalFlows').searchable(true),
+				this.field('capitalFlows'),
 			)
 		}
 		return { fields, groups, customActions }

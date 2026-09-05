@@ -1,4 +1,3 @@
-import type { Predicate } from '../metaui/metaui_field'
 import { isEmpty, isString } from '../utils/is'
 import type { Entity } from './entity'
 import { created, deleted, destroy } from './entity_state'
@@ -77,7 +76,7 @@ export const count = <E extends Entity>(entities: E[]) => {
  * @returns 如果存在满足条件的实体，返回true，否则返回false
  */
 
-export const hasAny = <E extends Entity>(items: E[], predicate?: Predicate<E>) => {
+export const hasAny = <E extends Entity>(items: E[], predicate?: (e: E, context?: any) => boolean) => {
   if (isEmpty(items)) return false;
   return predicate
     ? items.some((it) => !deleted(it) && predicate(it))

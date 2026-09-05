@@ -30,7 +30,7 @@ export class QualityControlStandardLogic extends UiLogic<QualityControlStandard>
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('status').searchable(true), this.field('qcPhase').searchable(true), this.field('inspectionMethod').searchable(true));
+			fields.push(this.field('status'), this.field('qcPhase'), this.field('inspectionMethod'));
 		}
 		return { fields, groups, customActions };
 	}

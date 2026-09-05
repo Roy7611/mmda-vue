@@ -27,7 +27,7 @@ import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length === 0) {
 				fields.push(
-					this.field('carrierProdName').searchable(true),
+					this.field('carrierProdName'),
 				)
 			}
 			return { fields, groups, customActions }

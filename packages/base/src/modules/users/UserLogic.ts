@@ -317,9 +317,9 @@ export class UserLogic extends UiLogic<User> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
       fields.push(
-        this.field("status").searchable(true),
-        this.field("subscribedChannels").searchable(true),
-        this.field("staff").searchable(true),
+        this.field("status"),
+        this.field("subscribedChannels"),
+        this.field("staff"),
         this.field("deptID").setCustomCellRenderer(
           (fld, ctx: UiContext<User>, props) => {
             if (isRefNone(ctx.model.deptID)) return h("div");
@@ -389,9 +389,21 @@ export class UserLogic extends UiLogic<User> {
               });
             }
           })
-          .setSearchParam((context, model, fld) => ({
+          .refFilter((model, ctx) => {
+					const __p = ((context, model, fld) => ({
             status: `IN ${DepartmentStatus.RUNNING}`,
-          })),
+          }))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
       );
       /**
 			fields.push(

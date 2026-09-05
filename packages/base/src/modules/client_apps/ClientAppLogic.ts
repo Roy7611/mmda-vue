@@ -72,7 +72,7 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
   beforeIndex(): UiLogicFnResult<ClientApp> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
-      fields.push(this.field("status").searchable(true));
+      fields.push(this.field("status"));
     }
     return { fields, groups, customActions };
   }

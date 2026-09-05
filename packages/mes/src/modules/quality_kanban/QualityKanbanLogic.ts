@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import { getSearchOp, isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey } from '@mmda/core';
+import { inFilter, isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
 import type { UiLogicInit } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
@@ -231,16 +231,18 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
 
     /** 获取全部生产站点（searchForRelative 弹窗内查询），只查已启用站点 */
     async getAllSite(context: UiContext, value?: any) {
-        await context.globalProps.$api.getAll({
-            repository: 'Sites',
-            service: 'mes',
-            queryParams: {
+        await context.globalProps.$api.searchAll({
+            pager: {
                 pageSize: searchParamSite.pager.pageSize,
                 pageNo: searchParamSite.pager.pageNo,
-                sort: '',
-                searchWord: value,
-                status: getSearchOp('IN').toSQL(UsageStatus.USED), // USED: 只查询已启用站点
             },
+            searchWord: value,
+            filterModel: {
+                status: inFilter(UsageStatus.USED),
+            },
+        }, {
+            repository: 'Sites',
+            service: 'mes',
         }).then((res: any) => {
             searchParamSite.pager = res.pagination
             tableDataSite.value = res.list.map((item: any) => ({ ...item }))

@@ -26,7 +26,7 @@ const { start, end } = dateTimeRange[DateRangeKind.LAST_7_DAYS]()
 const db = useLocalAsyncDb('wms', locale)
 await db.put(`meta/${repo}`, pack)
 
-const onSearch = debounce((q: string) => api.searchAll({ q }), 300)
+const onSearch = debounce((q: string) => api.searchAll({ pager: { pageNo: 1, pageSize: 20 }, searchWord: q }), 300)
 ```
 
 约定：
@@ -271,7 +271,7 @@ getNodePath(tree, '3').map((n) => n.id) // ['1', '2', '3']
 di.provide('wmsDb', () => useLocalAsyncDb('wms', locale))
 
 const onType = debounce((q: string) => {
-  di.inject(ApiToken).repository(pluralize('Warehouse')).searchAll({ q })
+  di.inject(ApiToken).repository(pluralize('Warehouse')).searchAll({ pager: { pageNo: 1, pageSize: 20 }, searchWord: q })
 }, 300)
 ```
 
@@ -306,5 +306,5 @@ const onType = debounce((q: string) => {
 | `getParmas` | `getParams`（旧名仍可用） |
 | `debounce` 箭头函数导致 `this` 丢失 | 调用时 `this` 正确 |
 | `mapTree` 叶子不 mapper、空孩子写成 `.children` | 叶子会 mapper；空孩子用你传入的 key |
-| `DateRangeKind` 在 `models/date_range` | 定义在 utils，从 `@mmda/core` 导入即可。`models/date_range` 仍 re-export 该枚举 |
+| `DateRangeKind` | 定义在 `utils/date_range`，从 `@mmda/core` 导入 |
 | 两套 `DateRange` 类型打架 | 现在的 `DateRange` 是 `{ start, end }` 的 JS Date 区间 |

@@ -15,7 +15,6 @@ import {
 	type EntityAction,
 	type ApiClient,
 	type EntitySearchParam,
-	toQueryParams,
 	defineEntityArray,
 	PagedList,
 	MetaModel,
@@ -28,7 +27,7 @@ import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';
 import { User, defineUser } from '@mmda/base/src/models/User';
 //import { DocPicture, defineDocPicture } from '@/models/DocPicture';
-import { EntityState } from '@mmda/core/src/models/entity';
+import { EntityState } from '@mmda/core';
 import { encodeUriAndFix } from '@mmda/core';
 import { UserStatus, UserStatusEnum } from '@mmda/base/src/enums/UserStatus';
 import { DocShareStatus } from '@/enums/DocShareStatus';
@@ -237,9 +236,9 @@ export class DocLogic extends UiLogic<Doc> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('categoryID').searchable(true),
-				this.field('projectID').searchable(true),
-				this.field('confidentialityLevel').searchable(true),
+				this.field('categoryID'),
+				this.field('projectID'),
+				this.field('confidentialityLevel'),
 				// 文件
 				this.field('docFile').setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);

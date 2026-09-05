@@ -14,6 +14,7 @@ export interface ApiErrorPayload {
   validationErrors?: ValidationError[];
 }
 
+/** @deprecated 使用 {@link ApiProblem}。 */
 export class ApiError extends Error {
   readonly name = "ApiError";
 

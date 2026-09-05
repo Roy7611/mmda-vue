@@ -1,15 +1,13 @@
 import {
   MetaUiFieldFrozen,
-  SortOrder,
   compareListColumns,
   ensureListFieldVisibleWhenFrozen,
   isListFrozen,
+  toEntityQuery,
   type ListSettingsField,
   type MetaUi,
   type MetaUiField,
   type MetaUiFilter,
-  type MetaUiSortSet,
-  type Sort,
 } from "@mmda/core";
 import type { UiViewContext } from "./ui_context";
 
@@ -80,58 +78,11 @@ export function syncQuickFiltersToMeta(context: UiViewContext<any>) {
   }
 }
 
-export function syncPagerSortsToMeta(context: UiViewContext<any>) {
-  const logic = context.logic as { meta?: { sorts?: MetaUiSortSet[] } } | undefined;
-  if (!logic?.meta) return;
-  const pagerSorts = (context.searchParam.pager.sorts ?? []) as Sort[];
-  let sorts = logic.meta.sorts;
-  if (!sorts?.length) {
-    if (!pagerSorts.length) return;
-    sorts = [
-      {
-        sortName: "userSort",
-        sortTitle: "默认",
-        sortSets: [],
-      },
-    ];
-    logic.meta.sorts = sorts;
-  }
-  for (const set of sorts) {
-    for (const item of set.sortSets ?? []) item.active = false;
-  }
-  const target = sorts[0]!;
-  target.sortSets = pagerSorts.map((sort) => ({
-    sortLabel: sort.sortBy,
-    sortSet: { sortBy: sort.sortBy, sortOrder: String(sort.sortOrder) },
-    active: true,
-  }));
-}
-
-export function applyCachedSorts(context: UiViewContext<any>) {
-  const sorts = (context.logic as { meta?: { sorts?: MetaUiSortSet[] } } | undefined)
-    ?.meta?.sorts;
-  if (!sorts?.length) return;
-  const values: Sort[] = [];
-  for (const set of sorts) {
-    for (const item of set.sortSets ?? []) {
-      if (!item.active || !item.sortSet?.sortBy) continue;
-      values.push({
-        sortBy: item.sortSet.sortBy,
-        sortOrder:
-          String(item.sortSet.sortOrder).toUpperCase() === SortOrder.DESC
-            ? SortOrder.DESC
-            : SortOrder.ASC,
-      });
-    }
-  }
-  if (values.length) context.searchParam.pager.sorts = values;
-}
-
 export async function persistListPack(context: UiViewContext<any>) {
   const logic = context.logic as
     | {
         repository?: string;
-        meta?: { metaui?: MetaUi; filters?: MetaUiFilter[]; sorts?: MetaUiSortSet[] };
+        meta?: { metaui?: MetaUi; filters?: MetaUiFilter[] };
         metaUiService?: {
           updateForCache: (
             repository: string,
@@ -143,13 +94,13 @@ export async function persistListPack(context: UiViewContext<any>) {
     | undefined;
   if (!logic?.repository || !logic.meta?.metaui || !logic.metaUiService) return;
   syncQuickFiltersToMeta(context);
-  syncPagerSortsToMeta(context);
   try {
     await logic.metaUiService.updateForCache(
       logic.repository,
       {
         ...logic.meta,
         metaui: context.metaui,
+        lastQuery: toEntityQuery(context.searchParam),
       },
       listServiceName(context),
     );

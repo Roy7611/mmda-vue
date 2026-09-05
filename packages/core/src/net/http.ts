@@ -489,6 +489,7 @@ export const supportFetch = typeof fetch === "function";
 
 /**
  * 使用FetchAPI实现的{@link HttpClient | Http客户端}
+ * @deprecated 使用 {@link FetchApi}；需要 `HttpClient` 时用 {@link FetchApiHttp}。
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API|Fetch API官方文档}
  */
 export class FetchClient extends HttpClient {

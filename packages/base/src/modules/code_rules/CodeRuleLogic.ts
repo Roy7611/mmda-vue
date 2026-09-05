@@ -27,7 +27,7 @@ import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length === 0) {
 				fields.push(
-					this.field('creatorID').searchable(true),
+					this.field('creatorID'),
 				)
 			}
 			return { fields, groups, customActions }

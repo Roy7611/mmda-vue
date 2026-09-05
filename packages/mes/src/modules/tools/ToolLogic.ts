@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSearchOp, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
+import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
 import { type UiBuildContext, type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogPropsType, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
@@ -586,12 +586,12 @@ export class ToolLogic extends UiLogic<Tool> {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.category ? ctx.model.category.categoryName : '-', {});
 				}),
 				// 根据工位过滤
-				this.field('siteID').searchable(true),
+				this.field('siteID'),
 				// 根据状态过滤
-				this.field('status').searchable(true),
-				this.field('asEquip').searchable(true),
-				this.field('lifecycleModes').searchable(true),
-				this.field('alertingState').searchable(true),
+				this.field('status'),
+				this.field('asEquip'),
+				this.field('lifecycleModes'),
+				this.field('alertingState'),
 			);
 		}
 		if (customActions.length == 0) {
@@ -1502,12 +1502,24 @@ export class ToolLogic extends UiLogic<Tool> {
 					}),
 				this.field('asEquip').lockIf((model: Tool) => !!(model.checklistID || model.maintenancePlanID)),
 				// 设备管理相关字段 - 只有当 asEquip 为 true 时才显示
-				this.field('checklistID').hideIf((model: Tool) => !model.asEquip).setSearchParam((context: UiContext<Tool>,
+				this.field('checklistID').hideIf((model: Tool) => !model.asEquip).refFilter((model, ctx) => {
+					const __p = ((context: UiContext<Tool>,
 					model: Tool,
 					field: MetaUiField) => {
 					return {
-						status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
+						status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('maxLifeCycles')
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
@@ -1543,18 +1555,30 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('remainingLife').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 1) == 1)),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID')
-					.setSearchParam((context: UiContext<Tool>,
+					.refFilter((model, ctx) => {
+					const __p = ((context: UiContext<Tool>,
 						model: Tool,
 						field: MetaUiField) => {
 						const params: any = {
-							materialType: getSearchOp('IN').toSQL(MaterialType.TOOLS), // 只能选择机具设备用途的物料
-							status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
+							materialType: getSqlOperator('IN').toSQL(MaterialType.TOOLS), // 只能选择机具设备用途的物料
+							status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
 						};
 						if (!isRefNone(model.categoryID)) {
-							params.categoryID = getSearchOp('EQ').toSQL(model.categoryID);
+							params.categoryID = getSqlOperator('EQ').toSQL(model.categoryID);
 						}
 						return params;
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((ctx: UiBuildContext<any>, model, newVal) => {
 						if (isRefNone(newVal)) {
 							// 清空物料时不清空类别、器具名称
@@ -1616,13 +1640,25 @@ export class ToolLogic extends UiLogic<Tool> {
 			} else if (this.currentCategory?.materialX === 'ToolPattern') {
 				console.log('ToolPattern');
 				fields.push(
-					this.field('customerID').hideIf((model: Tool) => !model.status).setSearchParam((context: UiContext<Tool>,
+					this.field('customerID').hideIf((model: Tool) => !model.status).refFilter((model, ctx) => {
+					const __p = ((context: UiContext<Tool>,
 						model: Tool,
 						field: MetaUiField) => {
 						return {
-							status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的客户
+							status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的客户
 						};
-					}),
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 					this.field('length').onValidate((value, model, ctx) => {
 						if (value != null && value < 0) {
 							return ctx?.t('tool.lengthPositive');
@@ -1758,14 +1794,16 @@ export class ToolLogic extends UiLogic<Tool> {
 	async searchFn(ctx: UiBuildContext<any>, searchWord: string = '') {
 		this.treeLoading.value = true;
 		return await new Promise((resolve, reject) => {
-			resolve(this.apiClient.getAll({
+			resolve(this.apiClient.searchAll({
+				searchWord,
+				filterModel: {
+					materialType: inFilter(MaterialType.TOOLS),
+				},
+				pager: { pageSize: 20, pageNo: 1 },
+			}, {
 				repository: 'MaterialCats',
 				service: 'base',
-				queryParams: {
-					depth: 0,
-					materialType: getSearchOp('IN').toSQL(MaterialType.TOOLS),
-					searchWord: searchWord
-				},
+				queryParams: { depth: 0 },
 			}));
 		}).then((res: any) => {
 			this.treeData.value = res.list
@@ -2156,11 +2194,23 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 					return refToolUseActions.includes(actionName.value);
 				}),
 				this.field('ownerID')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
-							status: getSearchOp('IN').toSQL('ACTIVATED'), // 只能选择激活的用户
+							status: getSqlOperator('IN').toSQL('ACTIVATED'), // 只能选择激活的用户
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onValidate((val, model, ctx: UiViewContext<any>) => {
 						if (actionName.value === 'batchLend' && !val) {
 							return ctx.t('tool.borrowerRequired');

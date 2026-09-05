@@ -133,7 +133,7 @@ class MaterialPartnerLogic extends UiGroupLogic<MaterialPartner, Material> {
 
 | 方法 | 作用 |
 |---|---|
-| `getAll` / `search` | 列表；内部走 `ApiClient.searchEntities` |
+| `getAll` / `search` | 列表；内部走 `ApiClient.searchAll` |
 | `load` / `create` / `save` / `delete` | 单对象 |
 | `doAction` | 实体动作（打印、审核等） |
 | `initMetadata` | `MetaUiService.getPack` |

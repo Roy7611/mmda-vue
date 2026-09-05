@@ -33,7 +33,7 @@ export class SiteLogic extends UiLogic<Site> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('siteLevel').searchable(true), this.field('openDate').searchable(true), this.field('status').searchable(true));
+			fields.push(this.field('siteLevel'), this.field('openDate'), this.field('status'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -57,12 +57,24 @@ export class SiteLogic extends UiLogic<Site> {
 				// this.field('superSiteID')
 				// 	.lockIf(model => model.status == 'USED' || model.status == 'DEPRECATED')
 				// 	.hideIf((model: Site) => model.siteLevel === SiteLevel.PLANT)
-				// 	.setSearchParam((ctx, model) => {
+				// 	.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 				// 		return {
 				// 			siteLevel: isRefNone(model.siteLevel) ? '' : `${SiteLevelEnum.valueOf(model.siteLevel) - 1}`,
 				// 			status:'USED',
 				// 		};
-				// 	}),
+				// 	})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 				//注释：当前支持在已弃用状态下编辑此信息
 				// this.field('siteName').lockIf(model => model.status == 'DEPRECATED'),
 				// this.field('addressID').lockIf(model => model.status == 'DEPRECATED'),
@@ -75,12 +87,24 @@ export class SiteLogic extends UiLogic<Site> {
 				// 站点级别为工厂隐藏选择父站点
 				this.field('superSiteID')
 					.lockIf((model: Site) => model.siteLevel === 'PLANT')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
 							siteLevel: isRefNone(model.siteLevel) ? '' : `${WorkCenterLevelEnum.valueOf(model.siteLevel) - 1}`,
 							status: 'USED',
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 			);
 			/**
 			fields.push(

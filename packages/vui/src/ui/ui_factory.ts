@@ -295,8 +295,6 @@ export const TABLE_CELL_PROP_KEYS = [
   'showGridlines',
   'renderCell',
   'templateCellFields',
-  'gridCellRenderer',
-  'gridCellRenderers',
   'tableMetaui',
   'onItemDoubleClick',
   'customCellRenderers',

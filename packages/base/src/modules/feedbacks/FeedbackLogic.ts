@@ -113,8 +113,8 @@ export class FeedbackLogic extends UiLogic<Feedback> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
       fields.push(
-        this.field("ownerID").searchable(true),
-        this.field("creatorID").searchable(true),
+        this.field("ownerID"),
+        this.field("creatorID"),
       );
     }
     return { fields, groups, customActions };

@@ -1,4 +1,4 @@
-import { Paginator, defaultPager, type Pager } from "./pagination";
+import { defaultPager, parseSorts, type Pager } from "./pagination";
 
 export type EntityFilterType = "text" | "number" | "date" | "set" | "boolean";
 
@@ -41,30 +41,50 @@ export interface EntityBooleanFieldFilter {
 }
 
 export type EntityFieldFilter =
-  EntitySimpleFieldFilter | EntitySetFieldFilter | EntityBooleanFieldFilter;
+  | EntitySimpleFieldFilter
+  | EntitySetFieldFilter
+  | EntityBooleanFieldFilter;
 
-/** AG Grid 风格的字段过滤模型，键是实体字段名。 */
+/** 字段过滤文档，键是实体字段名。 */
 export type EntityFilterModel = Record<string, EntityFieldFilter>;
 
-/**
- * 实体列表搜索参数。
- *
- * `queryParams` 保持在 URL 中，适合 GET、路由和快捷过滤。
- * `searchParams` 是复杂字段过滤模型，存在时通过 searchAll body 发送。
- */
-export interface EntitySearchParam {
-  pager: Pager;
-  searchWord?: string;
-  queryParams?: Record<string, unknown>;
-  searchParams?: EntityFilterModel;
+/** Module.defaultFilter 段：queryID;queryName */
+export interface NamedQueryRef {
+  queryID: string;
+  queryName: string;
 }
 
-export interface EntitySearchRequest {
-  queryParams: Record<string, unknown>;
-  searchParams?: EntityFilterModel;
+/**
+ * 可保存的查询定义（客户端名）。
+ * CustomizedQuery.queryExpression = JSON.stringify(EntityQuery)。
+ * pager.sorts 是唯一排序来源。
+ */
+export interface EntityQuery {
+  queryID?: string;
+  queryName?: string;
+  objName?: string;
+  remark?: string;
+  filterModel?: EntityFilterModel;
+  pager: Pager;
+  searchWord?: string;
+}
+
+/**
+ * 当次列表请求 ≈ EntityQuery。
+ * `queryParams` 仅兼容旧 URL / 快捷过滤 SQL；新代码字段条件进 filterModel。
+ */
+export interface EntitySearchParam extends EntityQuery {
+  queryParams?: Record<string, unknown>;
 }
 
 export function defaultSearchParam(searchWord = ""): EntitySearchParam {
+  return {
+    pager: defaultPager(),
+    searchWord,
+  };
+}
+
+export function defaultEntityQuery(searchWord = ""): EntityQuery {
   return {
     pager: defaultPager(),
     searchWord,
@@ -75,7 +95,7 @@ const cloneRecord = <T extends Record<string, unknown>>(
   value?: T,
 ): T | undefined => (value == null ? undefined : ({ ...value } as T));
 
-const cloneFilterModel = (value?: EntityFilterModel) =>
+export const cloneFilterModel = (value?: EntityFilterModel) =>
   value == null
     ? undefined
     : Object.fromEntries(
@@ -87,18 +107,46 @@ const cloneFilterModel = (value?: EntityFilterModel) =>
         ]),
       );
 
+const clonePager = (pager: Pager): Pager => ({
+  pageSize: pager.pageSize,
+  pageNo: pager.pageNo,
+  sorts: pager.sorts?.map((sort) => ({ ...sort })),
+});
+
+export function toEntityQuery(src: EntityQuery): EntityQuery {
+  return {
+    queryID: src.queryID,
+    queryName: src.queryName,
+    objName: src.objName,
+    remark: src.remark,
+    filterModel: cloneFilterModel(src.filterModel),
+    pager: clonePager(src.pager ?? defaultPager()),
+    searchWord: src.searchWord,
+  };
+}
+
+export function applyEntityQuery(to: EntitySearchParam, src: EntityQuery) {
+  to.queryID = src.queryID;
+  to.queryName = src.queryName;
+  to.objName = src.objName;
+  to.remark = src.remark;
+  to.searchWord = src.searchWord;
+  const pager = src.pager ?? defaultPager();
+  to.pager.pageSize = pager.pageSize;
+  to.pager.pageNo = pager.pageNo;
+  to.pager.sorts = pager.sorts?.map((sort) => ({ ...sort }));
+  if (src.filterModel) to.filterModel = cloneFilterModel(src.filterModel);
+  else delete to.filterModel;
+  return to;
+}
+
 export function assignSearchParam(
   to: EntitySearchParam,
   src: EntitySearchParam,
 ) {
-  to.pager.pageSize = src.pager.pageSize;
-  to.pager.pageNo = src.pager.pageNo;
-  to.pager.sorts = src.pager.sorts?.map((sort) => ({ ...sort }));
-  to.searchWord = src.searchWord;
+  applyEntityQuery(to, src);
   if (src.queryParams) to.queryParams = cloneRecord(src.queryParams);
   else delete to.queryParams;
-  if (src.searchParams) to.searchParams = cloneFilterModel(src.searchParams);
-  else delete to.searchParams;
   return to;
 }
 
@@ -121,22 +169,101 @@ export function isDifferentSearchParam(
   return stableValue(a) !== stableValue(b);
 }
 
-export function toQueryParams(param: EntitySearchParam) {
-  const queryParams: Record<string, unknown> = Paginator.pagerToJson(
-    param.pager,
-  );
-  if (param.searchWord) queryParams.searchWord = param.searchWord;
-  if (param.queryParams) Object.assign(queryParams, param.queryParams);
-  return queryParams;
+export const hasFilterModel = (param: Pick<EntityQuery, "filterModel">) =>
+  param.filterModel != null && Object.keys(param.filterModel).length > 0;
+
+export function inFilter(
+  values: unknown | unknown[],
+  operator: "IN" | "NOT_IN" = "IN",
+): EntitySetFieldFilter {
+  return {
+    filterType: "set",
+    operator,
+    values: Array.isArray(values) ? [...values] : [values],
+  };
 }
 
-export const hasSearchParams = (param: EntitySearchParam) =>
-  param.searchParams != null && Object.keys(param.searchParams).length > 0;
+export function notInFilter(values: unknown | unknown[]): EntitySetFieldFilter {
+  return inFilter(values, "NOT_IN");
+}
 
-/** 将统一状态拆成现有 ApiClient 的 URL + body 两部分。 */
-export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
-  return {
-    queryParams: toQueryParams(param),
-    searchParams: hasSearchParams(param) ? param.searchParams : undefined,
-  };
+export function eqFilter(
+  value: unknown,
+  filterType: EntitySimpleFieldFilter["filterType"] = "text",
+): EntitySimpleFieldFilter {
+  return { filterType, operator: "EQ", value };
+}
+
+export function nullFilter(
+  operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
+): EntitySimpleFieldFilter {
+  return { filterType: "text", operator };
+}
+
+export function stringifyQueryExpression(query: EntityQuery): string {
+  return JSON.stringify(toEntityQuery(query));
+}
+
+export type ParsedQueryExpression =
+  | { kind: "query"; query: EntityQuery }
+  | { kind: "sql"; sql: string };
+
+function isEntityQueryLike(value: unknown): value is EntityQuery {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const o = value as Record<string, unknown>;
+  return (
+    "pager" in o ||
+    "filterModel" in o ||
+    "queryID" in o ||
+    "queryName" in o ||
+    "searchWord" in o
+  );
+}
+
+export function parseQueryExpression(
+  expr?: string | null,
+): ParsedQueryExpression | undefined {
+  const raw = String(expr ?? "").trim();
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (isEntityQueryLike(parsed)) {
+      return {
+        kind: "query",
+        query: toEntityQuery({
+          ...parsed,
+          pager: parsed.pager ?? defaultPager(),
+        }),
+      };
+    }
+    return { kind: "sql", sql: raw };
+  } catch {
+    return { kind: "sql", sql: raw };
+  }
+}
+
+/**
+ * Module.defaultFilter：`queryID;queryName|queryID;queryName`
+ */
+export function parseDefaultFilter(s?: string): NamedQueryRef[] {
+  if (!s) return [];
+  return s
+    .split("|")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      const sep = segment.indexOf(";");
+      if (sep < 0) return undefined;
+      const queryID = segment.slice(0, sep).trim();
+      const queryName = segment.slice(sep + 1).trim();
+      if (!queryID || !queryName) return undefined;
+      return { queryID, queryName };
+    })
+    .filter((item): item is NamedQueryRef => item != null);
+}
+
+export function parseDefaultSort(s?: string) {
+  return parseSorts(s ?? "");
 }

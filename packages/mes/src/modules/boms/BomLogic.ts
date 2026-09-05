@@ -7,7 +7,7 @@
  */
 import { defineComponent, h, reactive, ref, type Ref } from 'vue';
 import { Router, useRouter } from 'vue-router';
-import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, pluralize, defaultSearchOps, getSearchOp, encodeUriAndFix, toApiError } from '@mmda/core';
+import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
@@ -62,17 +62,19 @@ const bomitemquery = reactive({
 export const resources: any = ref([])
 export const getmaterial = async (context: UiBuildContext<any>, value?: any) => {
 	await context.globalProps.$api
-		.getAll({
-			repository: 'Materials',
-			service: 'base',
-			queryParams: {
+		.searchAll({
+			pager: {
 				pageSize: bomitemquery.searchParam.pager.pageSize,
 				pageNo: bomitemquery.searchParam.pager.pageNo,
-				sort: '',
-				status: getSearchOp('IN').toSQL('USED'),
-				materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
-				searchWord: value,
 			},
+			searchWord: value,
+			filterModel: {
+				status: inFilter('USED'),
+				materialType: notInFilter([MaterialType.LABOR]),
+			},
+		}, {
+			repository: 'Materials',
+			service: 'base',
 		})
 		.then((res: any) => {
 			bomitemquery.searchParam.pager = res.pagination;
@@ -464,7 +466,7 @@ export const renderBomProductPic = (fld: MetaUiField, ctx: UiContext<Bom>) => {
 	]);
 };
 
-// 子件 BOM 行保留查看按钮 editIf 控制。
+// 子件 BOM 行用 itemDeletable / 行 editable 控制可否删编。
 export const setSubBomItemsEditable = (items: BomItem[] | undefined, rootBomID?: string) => {
 	const pending = [...(items ?? [])];
 	while (pending.length > 0) {
@@ -1059,14 +1061,16 @@ export class BomLogic extends UiLogic<Bom> {
 		this.treeLoading.value = true;
 		return await new Promise(resolve => {
 			resolve(
-				this.apiClient.getAll({
+				this.apiClient.searchAll({
+					searchWord: typeof searchWord === 'string' ? searchWord : '',
+					filterModel: {
+						materialType: notInFilter([MaterialType.LABOR]),
+					},
+					pager: defaultPager(),
+				}, {
 					repository: 'MaterialCats',
 					service: 'base',
-					queryParams: {
-						depth: 0,
-						materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
-						searchWord: searchWord,
-					},
+					queryParams: { depth: 0 },
 				})
 			);
 		})
@@ -1111,9 +1115,12 @@ export class BomLogic extends UiLogic<Bom> {
 	}
 
 	async getAll(param: EntitySearchParam, context?: UiContext): Promise<PagedList<Bom>> {
-		param.queryParams = Object.assign({}, param.queryParams, {
-			productCategoryID: this.currentCategory?.categoryID ?? '',
-		});
+		if (this.currentCategory?.categoryID) {
+			param.filterModel = {
+				...param.filterModel,
+				productCategoryID: eqFilter(this.currentCategory.categoryID),
+			};
+		}
 		return super.getAll(param, context);
 	}
 
@@ -1131,9 +1138,9 @@ export class BomLogic extends UiLogic<Bom> {
 				selectionMode: 'multiple',
 				searchParam: {
 					pager: defaultPager(),
-					queryParams: {
-						status: getSearchOp('IN').toSQL('USED'),
-						materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
+					filterModel: {
+						status: inFilter('USED'),
+						materialType: notInFilter([MaterialType.LABOR]),
 					},
 				},
 				// 不允许绑定与productID相等的物料
@@ -1383,10 +1390,22 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('altStrategyID').setSearchParam((ctx: UiViewContext<any>, model) => {
+				this.field('altStrategyID').refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 					return {
-						status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的替代料策略
+						status: getSqlOperator('IN')!.toSQL('USED'), // 只能选择启用的替代料策略
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				// 产出比率、损耗率可以为0
 				this.field('outputRate').onValidate((value, model, ctx: UiViewContext<any>) => {
@@ -1409,7 +1428,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				this.field('brand').lockIf(model => !isRefNone(model.materialID)),
 				this.field('specs')
 					.lockIf(model => !isRefNone(model.materialID))
-					.inPlaceEdit(),
+					.inplaceEdit(),
 				this.field('modelType').lockIf(model => !isRefNone(model.materialID)),
 				//this.field('unit').lockIf(model => !isRefNone(model.materialID)),
 				this.field('texture').lockIf(model => !isRefNone(model.materialID)),
@@ -1489,13 +1508,25 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 							refreshTree();
 						}
 					})
-					.setSearchParam((ctx: UiViewContext<any>, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 						return {
 							productID: model.materialID ?? '',
 							status: 'APPROVED',
-							bomID: defaultSearchOps.StringFieldSearchOps[7].toSQL(model.bomID),
+							bomID: getSqlOperator('NOT_IN')!.toSQL(model.bomID),
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 				// .onValidate((value, model, ctx: UiViewContext<any>) => {
 				// 	if (!value && (model.sourcingMode === SourcingMode.MAKE || model.sourcingMode === SourcingMode.OUTSOURCE)) {
 				// 		return '当来源为自制/外协时，子件BOM必填';
@@ -1533,7 +1564,6 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 			groups.push(
 				this.group<BomItemOperation>('operations')
 					.hideIf((model, ctx) => (ctx.root ? !ctx.root.model.processID : false))
-					.clearIf(model => true)
 					.addCustomAction({
 						name: 'createBomItemOperation',
 						label: 'action.create',
@@ -1686,14 +1716,22 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 		if (fields.length == 0) {
 			fields.push(
 				this.field('opCode')
-					.setSearchParam((ctx: UiViewContext<any>, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 						const rootModel = ctx.root.model as Bom;
 						return { parentProcessID: rootModel.processID ?? '' };
-					})
-					.setSelectable((ctx: UiViewContext<any> & any, field, row) => {
-						const itemModel = ctx.prev.prev.model as BomItem;
-						return !itemModel.operations?.some((r: BomItemOperation) => !MetaModel.deleted(r) && r.opCode === row.opCode);
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.lockIf(model => model.entityState != EntityState.CREATED && model.entityState != EntityState.CREATED_MODIFIED)
 					.onChange(async (ctx: UiViewContext<any>, model, newVal, oldVal) => {
 						if (newVal && newVal !== oldVal) {

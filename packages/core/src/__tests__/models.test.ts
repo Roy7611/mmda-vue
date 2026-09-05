@@ -7,8 +7,6 @@ import {
   defaultSearchParam,
   EntityState,
   isDifferentSearchParam,
-  toQueryParams,
-  toSearchRequest,
 } from "../models/entity";
 import { SortOrder } from "../models/pagination";
 import { MetaModel } from "../models/metamodel";
@@ -18,7 +16,7 @@ import {
   ModuleOp,
   ModuleStatus,
   ModuleVersion,
-} from "../models/module";
+} from "../metaui/module";
 import type { Attachment, ReportTemplate } from "../models/file";
 import { createMockMetaUi } from "./helpers/metaui_mock";
 
@@ -78,51 +76,16 @@ describe("EntitySearchParam", () => {
     expect(isDifferentSearchParam(c, d)).toBe(true);
   });
 
-  it("toQueryParams 合并 pager 与 queryParams", () => {
-    const param = defaultSearchParam("仓");
-    param.queryParams = { site: "SZ" };
-    expect(toQueryParams(param)).toMatchObject({
-      pageSize: 20,
-      pageNo: 1,
-      searchWord: "仓",
-      site: "SZ",
-    });
-  });
-
-  it("searchParams 使用结构化 filterModel 并与 GET 参数分离", () => {
-    const param = defaultSearchParam("仓");
-    param.queryParams = { status: "OPEN" };
-    param.searchParams = {
-      quantity: {
-        filterType: "number",
-        operator: "BETWEEN",
-        value: 10,
-        valueTo: 20,
-      },
-      category: { filterType: "set", values: ["A", "B"] },
-    };
-    const request = toSearchRequest(param);
-
-    expect(request.queryParams).toMatchObject({
-      pageSize: 20,
-      pageNo: 1,
-      searchWord: "仓",
-      status: "OPEN",
-    });
-    expect(request.queryParams).not.toHaveProperty("quantity");
-    expect(request.searchParams).toEqual(param.searchParams);
-  });
-
-  it("复制和比较包含 sorts 与 searchParams", () => {
+  it("复制和比较包含 sorts 与 filterModel", () => {
     const source = defaultSearchParam();
     source.pager.sorts = [{ sortBy: "name", sortOrder: SortOrder.DESC }];
-    source.searchParams = {
+    source.filterModel = {
       name: { filterType: "text", operator: "CONTAINS", value: "A" },
     };
     const copy = assignSearchParam(defaultSearchParam(), source);
 
     expect(isDifferentSearchParam(copy, source)).toBe(false);
-    copy.searchParams!.name = {
+    copy.filterModel!.name = {
       filterType: "text",
       operator: "CONTAINS",
       value: "B",

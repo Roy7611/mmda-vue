@@ -219,7 +219,6 @@ const searchBox = (
   const valueKey = reference.refFlds?.[0] ?? "value";
   const labelKey = reference.refFlds?.[1] ?? valueKey;
   const fldOptions = context.getFieldOptions(field);
-  const searchOptions = context.getSearchForRelativeOptions(field);
   let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
     ? context.getFieldValue(field)
     : null;
@@ -237,11 +236,11 @@ const searchBox = (
     ) {
       fldOptions.selectOptions.unshift(fieldValue);
     }
-    searchOptions.searchWord = fieldValue;
+    fldOptions.currentSelectOption = fieldValue;
   }
   return builder.buildSearchForRelative(context, field, {
-    modelValue: searchOptions.searchWord ?? fieldValue,
-    showClear: Boolean(searchOptions.searchWord ?? fieldValue),
+    modelValue: fldOptions.currentSelectOption ?? fieldValue,
+    showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
     options: fldOptions.selectOptions,
     title: props?.title ?? field.displayLabel,
     dataKey: valueKey,
@@ -251,7 +250,7 @@ const searchBox = (
         : labelKey,
     invalid: invalidOf(field, context),
     onChange: (value: any) => {
-      searchOptions.searchWord = value || null;
+      fldOptions.currentSelectOption = value || null;
       context.setFieldValue(field, value || null);
       if (!value) {
         const model = context.model as Record<string, any>;
@@ -263,12 +262,12 @@ const searchBox = (
       }
     },
     onInput: (value: string) => {
-      if (searchOptions.isComposing) return;
+      if (fldOptions.isComposing) return;
       void context.searchRelative(field, value);
     },
     toSearch: async () => {
       const picked = await (context as any).pickRelative?.(field);
-      if (picked) searchOptions.searchWord = picked;
+      if (picked) fldOptions.currentSelectOption = picked;
       return true;
     },
     ...props,

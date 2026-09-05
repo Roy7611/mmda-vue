@@ -28,7 +28,7 @@ export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('riskLevel').searchable(true), this.field('status').searchable(true),this.field('projectID').searchable(true));
+			fields.push(this.field('riskLevel'), this.field('status'),this.field('projectID'));
 		}
 		return { fields, groups, customActions };
 	}

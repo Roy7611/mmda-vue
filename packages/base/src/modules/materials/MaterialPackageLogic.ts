@@ -40,7 +40,7 @@ export class MaterialPackageLogic extends UiLogic<MaterialPackage> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('status').searchable(true),
+				this.field('status'),
 			)
 		}
 		return { fields, groups, customActions }

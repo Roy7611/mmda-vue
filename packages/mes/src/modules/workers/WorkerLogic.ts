@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, getSearchOp } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, inFilter } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
@@ -51,11 +51,11 @@ export class WorkerLogic extends UiLogic<Worker> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('laborType').searchable(true),
-				this.field('captain').searchable(true),
-				this.field('teamID').searchable(true),
-				this.field('status').searchable(true),
-				this.field('workDeptID').searchable(true),
+				this.field('laborType'),
+				this.field('captain'),
+				this.field('teamID'),
+				this.field('status'),
+				this.field('workDeptID'),
 			);
 		}
 
@@ -112,7 +112,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 			});
 		}
 		if (fields.length == 0) {
-			fields.push(this.field('laborType').searchable(true), this.field('captain').searchable(true));
+			fields.push(this.field('laborType'), this.field('captain'));
 		}
 
 		return { fields, groups, customActions };
@@ -184,11 +184,23 @@ export class WorkerLogic extends UiLogic<Worker> {
 				 */
 				this.field('workerNo')
 					.lockIf(model => model.status == 'ON_BOARD'),
-				this.field('teamID').setSearchParam((ctx, model) => {
+				this.field('teamID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					return {
 						 status: `IN ${WorkTeamStatus.NEW},${WorkTeamStatus.ACTIVE}`,
 						qualified: true
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 			);
 			/**
@@ -228,8 +240,8 @@ export class WorkerLogic extends UiLogic<Worker> {
 				selectionMode: 'multiple',
 				searchParam: {
 					pager: defaultPager(),
-					queryParams: {
-						status: getSearchOp('IN').toSQL([UsageStatus.USED]),
+					filterModel: {
+						status: inFilter([UsageStatus.USED]),
 					}
 				},
 			})

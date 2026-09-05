@@ -8,7 +8,6 @@ import type { UiFactory } from "../ui_factory";
 import type { UiViewContext } from "../ui_context";
 import type { UiDialogPropsType } from "../ui_dialog";
 import {
-  applyCachedSorts,
   applyListSettingsFields,
   bumpListLayout,
   collectListSettingsFields,
@@ -366,7 +365,6 @@ export async function openListSettingDialog(
       logic.meta = pack;
       context.metaui = pack.metaui;
       context.configureSearch(pack.filters ?? [], logic.beforeSearch?.());
-      applyCachedSorts(context);
       rows.splice(0, rows.length, ...snapshotListLayoutRows(pack.metaui));
       bumpListLayout(context);
       await (context as any).search?.();

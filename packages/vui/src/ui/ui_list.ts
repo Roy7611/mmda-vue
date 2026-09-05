@@ -1,7 +1,6 @@
 import type { VNode, VNodeArrayChildren, VNodeChild, Ref } from "vue";
 import type {
   EntityFilterModel,
-  GridCellRenderer,
   MetaUiField,
   Pager,
   Pagination,
@@ -18,12 +17,6 @@ export type UiTableCellRenderer<T = any> = (
   row: T,
   props?: Record<string, any>,
 ) => VNode;
-
-export type {
-  GridCellRenderer,
-  GridCellRenderContext,
-  GridCellValue,
-} from "@mmda/core";
 
 export type { UiSlots } from "./ui_layout";
 
@@ -103,9 +96,6 @@ export interface UiListProps<T = any> {
    * 未传则皮肤可自行判断或退回全列模板。
    */
   templateCellFields?: string[];
-  gridCellRenderer?: GridCellRenderer<T>;
-  /** 可按 fieldName 或 MetaUiField.renderer 名称注册。 */
-  gridCellRenderers?: Record<string, GridCellRenderer<T>>;
 }
 
 export interface UiListEmits<T = any> {

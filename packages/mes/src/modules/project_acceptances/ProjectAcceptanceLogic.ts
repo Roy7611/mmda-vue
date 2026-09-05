@@ -34,7 +34,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
-			fields.push(this.field('projectID').searchable(true), this.field('checkType').searchable(true), this.field('status').searchable(true));
+			fields.push(this.field('projectID'), this.field('checkType'), this.field('status'));
 		}
 		return { fields, groups, customActions };
 	}

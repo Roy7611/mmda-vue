@@ -1,6 +1,5 @@
 import { defaultDataTypeValue } from "../metaui/datatype";
-import { MetaUiField, MetaUiFieldRef } from "../metaui/metaui_field";
-import type { Predicate } from "../metaui/metaui_field";
+import { MetaUiField } from "../metaui/metaui_field";
 import { MetaUi, MetaUiGroup } from "../metaui/metaui_group";
 import {
   isString,
@@ -278,7 +277,7 @@ export class EntityArray<E extends Entity> extends Array<E> {
   ) {
     super(...items.map((it) => ctor(it)));
   }
-  hasAny(predicate?: Predicate<E>) {
+  hasAny(predicate?: (e: E, context?: any) => boolean) {
     return hasAny(this, predicate);
   }
   sum(numProp: string | NumberGetter<E>) {
@@ -518,9 +517,22 @@ export interface SubGroupItemTransform<E, G> {
   source: any;
   target: E;
   creator: EntityCtor<G>;
-  propsMapper?: Record<string, string | ((it: any) => any)>;
+  propsMapper?: PropsMapper;
   ignoreMapper?: Record<string, string>;
   sequenceKey?: string;
+}
+
+export type PropsMapper = Record<string, string | ((it: any) => any)>
+
+/** 会话侧子表转换参数：group 可以是组名，由 UiContext 解析成 MetaUiGroup。 */
+export interface SubGroupItemTransformParam<G> {
+  group: string | MetaUiGroup
+  source?: any
+  target?: any
+  creator?: EntityCtor<G>
+  propsMapper?: PropsMapper
+  ignoreMapper?: Record<string, string>
+  sequenceKey?: string
 }
 
 /**

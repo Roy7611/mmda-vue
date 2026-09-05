@@ -16,6 +16,7 @@ import {
   defineEntityArray,
   MetaUiFieldLogic,
   MetaUiGroupLogic,
+  getSqlOperator,
   type Entity,
   type EntityAction,
   type EntityCtor,
@@ -192,7 +193,9 @@ export abstract class UiLogic<E extends Entity> {
     const fields = Object.fromEntries(
       (this.searchForm?.searchFields ?? []).map((field) => [
         field.field.fieldName,
-        field.hasVal ? field.currentOp.toSQL(field.searchValue) : "",
+        field.hasVal
+          ? (getSqlOperator(field.currentOp)?.toSQL(field.searchValue) ?? "")
+          : "",
       ]),
     );
     const custom = Object.fromEntries(
@@ -438,7 +441,7 @@ export abstract class UiLogic<E extends Entity> {
     param: EntitySearchParam = { pager: { pageSize: DEFAULT_PAGE_SIZE } },
   ): Promise<PagedList<E> | undefined> {
     try {
-      const data = await this.apiClient.searchEntities(param, {
+      const data = await this.apiClient.searchAll(param, {
         queryParams: { moduleCode: this.module?.moduleCode ?? "" },
         service: this.apiService,
       });

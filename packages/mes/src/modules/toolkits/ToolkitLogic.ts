@@ -8,7 +8,7 @@
 import { Router } from 'vue-router';
 import { h, ref, VNode, type Ref, } from "vue";
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup } from '@mmda/core';
-import { defaultPager, isArray, isRefNone, MetaModel, EntityState, defaultSearchOps, getSearchOp } from '@mmda/core';
+import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, UiViewOne, type UiLogicFnResult, type PropData } from '@mmda/vui';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
@@ -249,9 +249,9 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 			repository: 'Tools',
 			searchParam: {
 				pager: defaultPager(),
-				queryParams: {
-					toolkitID: 'IS NULL',
-					status: getSearchOp('IN').toSQL([ToolStatus.NORMAL, ToolStatus.ALERTED]), // defaultSearchOps.StringFieldSearchOps[6].toSQL([ToolStatus.NORMAL, ToolStatus.ALERTED]), // 只能选择正常使用和谨慎使用的器具
+				filterModel: {
+					toolkitID: nullFilter(),
+					status: inFilter([ToolStatus.NORMAL, ToolStatus.ALERTED]),
 				}
 			},
 			ctor: defineTool,

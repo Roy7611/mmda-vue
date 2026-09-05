@@ -18,7 +18,6 @@ import {
   ModuleOp,
   ModuleAuth,
   auth,
-  SearchOp,
   hasBit,
 } from "@mmda/core";
 import {
@@ -54,7 +53,7 @@ export class UnitLogic extends UiLogic<Unit> {
   beforeIndex(): UiLogicFnResult<Unit> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
-      fields.push(this.field("unitType").searchable(true));
+      fields.push(this.field("unitType"));
     }
     return { fields, groups, customActions };
   }

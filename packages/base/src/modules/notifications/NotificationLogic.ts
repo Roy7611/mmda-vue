@@ -15,7 +15,6 @@ import type {
 } from "@mmda/core";
 import {
   SortOrder,
-  defaultSearchOps,
   pluralize,
   type UiContext,
 } from "@mmda/core";
@@ -129,7 +128,7 @@ export class NotificationLogic extends UiLogic<Notification> {
     const { fields, groups, customActions } = super.beforeEdit();
     if (fields.length == 0) {
       fields.push(
-        this.field("todo").searchable(true),
+        this.field("todo"),
         this.field("noticeContent").setCustomRenderer(
           (fld, ctx: UiContext<Notification>) => {
             const content = ctx.model.noticeContent ?? "";

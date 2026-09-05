@@ -201,9 +201,9 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('supplierID').searchable(true),
-				this.field('brand').searchable(true),
-				this.field('sourcingMode').searchable(true)
+				this.field('supplierID'),
+				this.field('brand'),
+				this.field('sourcingMode')
 			)
 			/**
 			fields.push(

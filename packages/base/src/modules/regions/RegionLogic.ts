@@ -40,7 +40,7 @@ export class RegionLogic extends UiLogic<Region> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('regionType').searchable(true),
+				this.field('regionType'),
 			)
 		}
 		return { fields, groups, customActions }

@@ -27,7 +27,7 @@ export class BankLogic extends UiLogic<Bank> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		// if (fields.length === 0) {
 		// 	// fields.push(
-		// 	// 	// this.field('bankColor').searchable(true),
+		// 	// 	// this.field('bankColor'),
 		// 	// )
 		// }
 		return { fields, groups, customActions }

@@ -1,33 +1,7 @@
 import {
   compareListColumns,
   MetaUiField,
-  MetaUiFieldRef,
 } from './metaui_field'
-
-type PropsMapper = Record<string, string | ((it: any) => any)>
-
-export type CreateGroupItemsFn = (
-  context: any,
-  entity: any,
-  items: any[]
-) => Promise<boolean>
-export type OnChangeGroupFn<E = any, G = any> = (
-  context: any,
-  model: E,
-  items: G[]
-) => any
-export type GroupFilterFn<E = any, G = any> = (
-  context: any,
-  model: E,
-  items: G[]
-) => any
-export type AddGroupItemsFn<E = any> = (context: any, model: E) => any
-export interface ImportGroupItemsProps<E> {
-  propsMapper?: PropsMapper
-  importFn?: (context: any, file: File[]) => Promise<void> // 导入处理方法
-  exportFn?: (context: any, model: E) => Promise<void> // 导出处理方法
-}
-export type ImportGroupItemsFn<E = any> = (context: any, model: E) => ImportGroupItemsProps<E>
 
 /**
  * 详情和编辑界面的三个区域
@@ -126,25 +100,18 @@ export class MetaUiGroup {
     this.secondary = secondary
     this.aggregates = aggregates
     this.expanded = true
+    if (fields && fields.length > 0) {
+      this.fields = fields.map((fld) =>
+        fld instanceof MetaUiField ? fld : new MetaUiField(fld),
+      )
+    }
     if (many) {
       if (groupUi) this.groupUi = new MetaUi(groupUi)
       const matches = [...joinOn.matchAll(_joinExp)]
       this.joinFields = {}
       matches.forEach(m => (this.joinFields[m[1]] = m[2]))
-      // 老逻辑 子表元数据有需要聚合的字段才开启聚合
-      // this.aggregate = this.groupUi.getListedFields().some(f=>f.aggregationSet>0);
-      // 新逻辑 默认开启聚合，合计数据总数
       this.aggregate = true
-    } else if (fields && fields.length > 0) {
-      // 主表组，解析字段上的校验规则
-      fields.forEach(fld => fld.validationRulesParseds = MetaUiField.parseValidationRules(fld.validationRules))
-
-      // 如果是主表组，且字段上有selectOptions，则解析出引用关系
-      fields
-        .filter(fld => !!fld.selectOptions)
-        .forEach(
-          fld => (fld.reference = MetaUiFieldRef.parse(fld.selectOptions))
-        )
+    } else {
       this.aggregate = false
     }
   }

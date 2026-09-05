@@ -73,7 +73,7 @@ buildField
   └─ 其余 → tableCell → renderer（HAS_ONE 常用 externalLink）
 ```
 
-`customRenderer` / `customCellRenderer` / `customEditor` 在 Field Logic 上覆盖默认映射。
+`customRenderer` / `customCellRenderer` / `customEditor` / `customCellEditor` 在 Field Logic 上覆盖默认映射。
 
 表格级 props（`rowStyle`、`selectionMode`、`renderCell`…）必须经 `cleanTableCellProps` 滤掉，禁止透传到单元格 DOM。
 

@@ -128,9 +128,9 @@ export class EmployeeLogic extends UiLogic<Employee> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
       fields.push(
-        this.field("status").searchable(true),
-        this.field("gender").searchable(true),
-        this.field("workDeptID").searchable(true),
+        this.field("status"),
+        this.field("gender"),
+        this.field("workDeptID"),
       );
     }
     if (customActions.length == 0) {

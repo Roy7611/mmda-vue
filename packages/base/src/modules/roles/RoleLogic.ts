@@ -6,8 +6,8 @@
  *
  */
 import { Router } from 'vue-router';
-import { h, ref, unref, watch } from 'vue';
-import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, MetaModel, EntityState, ApiClient, ModuleOp, ModuleAuth, auth, SearchOp, hasBit, isRefNone } from '@mmda/core';
+import { ref, unref, watch } from 'vue';
+import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Role, defineRole } from '../../models/Role';
 import { type RoleModuleAuth, defineRoleModuleAuth } from '../../models/RoleModuleAuth';
@@ -66,6 +66,36 @@ const renderModuleCodeLabel = (
 };
 const actionKey = (action: { actionName?: string; actionCode?: string }) =>
 	action.actionName || action.actionCode || '';
+
+/** 勾选后向子模块级联；复选框由 TreeGrid `booleanedit` + `displayAsCheckBox` 负责。 */
+const cascadeAuthFlag =
+	(fieldName: string) =>
+	(
+		_ctx: UiContext<RoleModuleAuth>,
+		model: RoleModuleAuth,
+		val: boolean | string | number,
+	) => {
+		const currentItem: any = model;
+		const secondCode = getSecondPart(currentItem.moduleCode);
+		const oneCode = getOnePart(currentItem.moduleCode);
+		if (!secondCode) {
+			if (isRefNone(oneCode)) {
+				(currentItem.subModuleAuths ?? []).forEach((item: any) => {
+					item[fieldName] = val;
+					if (!item.subModuleAuths) item.subModuleAuths = [];
+					item.subModuleAuths.forEach((v: any) => {
+						v[fieldName] = val;
+					});
+				});
+			} else {
+				(currentItem.subModuleAuths ?? []).forEach((item: any) => {
+					item[fieldName] = val;
+				});
+			}
+		} else {
+			currentItem[fieldName] = val;
+		}
+	};
 const renderAuthorizedActions = (
 	_fld: MetaUiField,
 	ctx: UiContext<RoleModuleAuth>,
@@ -128,7 +158,7 @@ export class RoleLogic extends UiLogic<Role> {
 	beforeIndex(): UiLogicFnResult<Role> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
-			fields.push(this.field('roleType').searchable(true), this.field('creator').searchable(true));
+			fields.push(this.field('roleType'), this.field('creator'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -152,504 +182,39 @@ export class RoleLogic extends UiLogic<Role> {
 					.field('moduleCode')
 					.setCustomRenderer(renderModuleCodeLabel)
 					.setCustomCellRenderer(renderModuleCodeLabel)
-					.inPlaceEdit(false)
+					.inplaceEdit(false)
 					.nextField('allowRead')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							// console.log('oneCode', oneCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowRead = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowRead = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowRead = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowRead = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowRead = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowRead = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowRead'))
 					.nextField('allowCreate')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowCreate = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowCreate = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowCreate = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowCreate = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowCreate = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowCreate'))
 					.nextField('allowEdit')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowEdit = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowEdit = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowEdit = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowEdit = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowEdit = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowEdit'))
 					.nextField('allowPrint')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowPrint = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowPrint = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowPrint = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowPrint = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowPrint = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowPrint'))
 					.nextField('allowDelete')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowDelete = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowDelete = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowDelete = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowDelete = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowDelete = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowDelete'))
 					.nextField('allowImport')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowImport = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowImport = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowImport = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowImport = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowImport = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowImport'))
 					.nextField('allowExport')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowExport = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowExport = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowExport = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowExport = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowExport = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowExport'))
 					.nextField('allowUpload')
-					.inPlaceEdit()
-					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						props.onChange = (val: boolean | string | number) => {
-							const currentItem: any = ctx.model;
-							//判断是不是主菜单
-							const secondCode = getSecondPart(currentItem.moduleCode);
-							//获取第一个菜单的code
-							const oneCode = getOnePart(currentItem.moduleCode);
-							//主菜单
-							if (!secondCode) {
-								if (isRefNone(oneCode)) {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowUpload = val
-										if (!item.subModuleAuths) {
-											item.subModuleAuths = []
-										}
-										item.subModuleAuths.forEach((v: any) => {
-											v.allowUpload = val
-										})
-									})
-								} else {
-									currentItem.subModuleAuths.forEach((item: any) => {
-										item.allowUpload = val
-									})
-									//获取主表的M.01这样的字段
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	if (item.moduleCode.includes(oneCode)) {
-									// 		item.allowRead = item.allowCreate = item.allowDelete =
-									// 			item.allowEdit = item.allowExport = item.allowImport = item.allowPrint = val;
-									// 	}
-									// });
-								}
-							} else {
-								if (val == false) {
-									currentItem.allowUpload = val;
-									// currentItem.allowCreate=val;
-									// currentItem.allowDelete=val;
-									// currentItem.allowEdit=val;
-									// currentItem.allowExport=val;
-									// currentItem.allowImport=val;
-									// currentItem.allowPrint=val;
-								} else {
-									currentItem.allowUpload = val;
-									// ctx.root.model.moduleAuths.forEach((item: any) => {
-									// 	console.log('是否是一级菜单', getSecondPart(item.moduleCode));
-									// 	if (!getSecondPart(item.moduleCode)) {
-									// 		item.allowCreate = val;
-									// 	}
-									// });
-								}
-							}
-						};
-						// 判断用户是否有这个权限，没有权限展示为空
-						const mA = !isRefNone(ctx.model.allowOps) ? auth(ctx.model.allowOps.value) : '';
-						if (!(mA as any)[fld.fieldName]) {
-							return h('div', {}, null);
-						} else {
-							return ctx.uiBuilder.fldFactory.Switcher(fld, ctx, props);
-						}
-					})
+					.inplaceEdit()
+					.onChange(cascadeAuthFlag('allowUpload'))
 					.nextField('authScope')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('authActions')
 					.setCustomEditor(editAuthorizedActions)
 					.setCustomCellRenderer(renderAuthorizedActions)
-					.inPlaceEdit().parent
+					.inplaceEdit().parent
 				//角色用户
-				// this.group<UserRole>('users').defaultAdder(this.addusers).field('parttime').inPlaceEdit().parent
+				// this.group<UserRole>('users').defaultAdder(this.addusers).field('parttime').inplaceEdit().parent
 			);
 		}
 		return { fields, groups, customActions };
@@ -663,23 +228,23 @@ export class RoleLogic extends UiLogic<Role> {
 					.field('moduleCode')
 					.setCustomRenderer(renderModuleCodeLabel)
 					.setCustomCellRenderer(renderModuleCodeLabel)
-					.inPlaceEdit(false)
+					.inplaceEdit(false)
 					.nextField('allowRead')
 					.nextField('allowCreate')
 					.nextField('allowEdit')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('allowPrint')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('allowDelete')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('allowImport')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('allowExport')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('allowUpload')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('authScope')
-					.inPlaceEdit()
+					.inplaceEdit()
 					.nextField('authActions')
 					.setCustomCellRenderer(renderAuthorizedActions).parent
 			);

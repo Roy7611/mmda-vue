@@ -41,6 +41,11 @@ app
 
 动作图标用 Syncfusion `e-icons`；业务图标（`Module.moduleIcon`、`far fa-*`）走 `@mmda/vui/fontawesome.css`（插件已引入）。
 
+## 文档
+
+- [表格契约](./docs/sf-grid.md)：厂商无关的 Grid 接口（scene、props、事件、方法）。本包以 `SfGrid` 实现；AgGrid 包装应对齐同一份。
+- [SfGrid 设计](./docs/sf-grid-design.md)：本皮肤如何落到 EJ2。尚未从 `factory.table` 抽出实现。
+
 ## 边界
 
 - 不拼装 `EntitySearchParam`；Grid 过滤只回写 `filterModel`

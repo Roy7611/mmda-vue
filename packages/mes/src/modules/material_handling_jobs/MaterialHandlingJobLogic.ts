@@ -53,17 +53,17 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
 		if (fields.length === 0) {
 			fields.push(
 				// 优先级
-				this.field('priority').searchable(true),
+				this.field('priority'),
 				// 执行设备
-				this.field('equipID').searchable(true),
+				this.field('equipID'),
 				// 生产单件
-				this.field('prodItemID').searchable(true),
+				this.field('prodItemID'),
 				// 状态
-				this.field('status').searchable(true),
+				this.field('status'),
 				// 限制类型
-				this.field('constraintType').searchable(true),
+				this.field('constraintType'),
 				// 组合模式
-				this.field('groupMode').searchable(true)
+				this.field('groupMode')
 			)
 		}
 		return { fields, groups, customActions }

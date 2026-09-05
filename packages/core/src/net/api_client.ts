@@ -1,13 +1,14 @@
-import { MetaUi } from "./../metaui/metaui_group";
 import { Entity } from "../models/entity";
 import {
-  toSearchRequest,
+  hasFilterModel,
+  type EntityFilterModel,
   type EntitySearchParam,
 } from "../models/entity_search";
 import {
   type Pagination,
   type PagedList,
   NO_PAGINATION,
+  Paginator,
   pagedList,
 } from "../models/pagination";
 /**
@@ -90,6 +91,28 @@ export interface EntityUrlParam extends EntityRepository {
   redirection?: string; // 重定向 设置后替代repository
 }
 
+export interface EntitySearchRequest {
+  queryParams: Record<string, unknown>;
+  filterModel?: EntityFilterModel;
+}
+
+export function toQueryParams(param: EntitySearchParam) {
+  const queryParams: Record<string, unknown> = Paginator.pagerToJson(
+    param.pager,
+  );
+  if (param.searchWord) queryParams.searchWord = param.searchWord;
+  if (param.queryParams) Object.assign(queryParams, param.queryParams);
+  return queryParams;
+}
+
+/** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 EntityFilterModel。 */
+export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
+  return {
+    queryParams: toQueryParams(param),
+    filterModel: hasFilterModel(param) ? param.filterModel : undefined,
+  };
+}
+
 /** 分页结果放HTTP Headers中的键值 */
 export const PAGINATION_HEADER = "x-pager";
 
@@ -143,39 +166,6 @@ export class ApiClient {
     throw toApiError(err, req);
   }
 
-  getMetaUi(
-    reload: boolean = false,
-    { repository, service }: EntityRepository = {},
-  ) {
-    const url = this.buildEntityURL({
-      repository,
-      path: "metaui",
-      queryParams: { reload },
-      service,
-    });
-    return this.http.getJson(url).then((meta) => new MetaUi(meta));
-  }
-
-  getMetaUiPack(
-    reload: boolean = false,
-    { repository, service, queryParams }: EntityUrlParam = {},
-  ) {
-    const url = this.buildEntityURL({
-      repository: repository,
-      path: "metaUiPack",
-      queryParams: Object.assign({}, { reload }, queryParams),
-      service,
-    });
-    return this.http.getJson(url).then((meta) => {
-      const { filters, metaUi, sorts } = meta;
-      return {
-        filters: filters,
-        metaui: new MetaUi(metaUi),
-        sorts: sorts,
-      };
-    });
-  }
-  //queryParams
   getOne(
     id: string,
     { repository, action, service, queryParams }: EntityUrlParam = {},
@@ -221,33 +211,12 @@ export class ApiClient {
     });
   }
 
-  searchAll(
-    searchParam: any,
-    { repository, queryParams, service }: EntityUrlParam = {},
-  ): Promise<PagedList<unknown>> {
-    // 与 create/save/deleteAll 一致：动作名进路径。
-    // 复杂列过滤走 POST JSON body；后端需开放 POST searchAll（GET 无法带 body）。
-    const url = this.buildEntityURL({
-      repository,
-      action: "searchAll",
-      queryParams,
-      service,
-    });
-    return this.http.post(url, {
-      options: {
-        body: JSON.stringify(searchParam),
-      },
-      beforeSend: this.http.buildJsonHeaders(),
-      resExtractor: this.pagedDataExtractor,
-    });
-  }
-
   /**
    * 统一实体列表查询。
-   * searchWord / 分页在 URL query；字段组合过滤在 searchAll body。
-   * 有字段过滤时 POST searchAll，query 里仍带 searchWord。
+   * searchWord / 分页在 URL query；字段组合过滤在 POST .../searchAll body。
+   * 无字段过滤时 GET getAll。
    */
-  searchEntities(
+  searchAll(
     param: EntitySearchParam,
     options: EntityUrlParam = {},
   ): Promise<PagedList<unknown>> {
@@ -256,9 +225,22 @@ export class ApiClient {
       ...request.queryParams,
       ...(options.queryParams ?? {}),
     };
-    return request.searchParams
-      ? this.searchAll(request.searchParams, { ...options, queryParams })
-      : this.getAll({ ...options, queryParams });
+    if (!request.filterModel) {
+      return this.getAll({ ...options, queryParams });
+    }
+    const url = this.buildEntityURL({
+      repository: options.repository,
+      service: options.service,
+      action: "searchAll",
+      queryParams,
+    });
+    return this.http.post(url, {
+      options: {
+        body: JSON.stringify(request.filterModel),
+      },
+      beforeSend: this.http.buildJsonHeaders(),
+      resExtractor: this.pagedDataExtractor,
+    });
   }
 
   createOne(

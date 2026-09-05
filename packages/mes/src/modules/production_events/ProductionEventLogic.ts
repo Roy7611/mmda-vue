@@ -6,7 +6,7 @@
  *
  */
 import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSearchOp } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSqlOperator } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionEvent, defineProductionEvent } from '@/models/ProductionEvent';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
@@ -29,7 +29,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('status').searchable(true), this.field('eventType').searchable(true), this.field('eventCauses').searchable(true), this.field('taskID').searchable(true));
+			fields.push(this.field('status'), this.field('eventType'), this.field('eventCauses'), this.field('taskID'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -44,16 +44,28 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 				(
 					this.field('taskID')
 						.lockIf((model: ProductionEvent, ctx: UiContext<ProductionEvent>) => model.taskID && ctx.isEditDialog)
-						.setSearchParam((ctx, model, field) => ({
-							status: getSearchOp('NOT_IN').toSQL([ProductionTaskStatus.CANCELED, ProductionTaskStatus.FINISHED])
-						})),
+						.refFilter((model, ctx) => {
+					const __p = ((ctx, model, field) => ({
+							status: getSqlOperator('NOT_IN').toSQL([ProductionTaskStatus.CANCELED, ProductionTaskStatus.FINISHED])
+						}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 					this.field('remark')
-						.onWarn<string>((value, model, ctx) => {
+						.onValidate<string>((value, model, ctx) => {
 							if (!isNullOrUndefined(value) && value.length >= 255) {
 								return ctx.t('productionEvent.remarkMaxLength');
 							}
 							return '';
-						}),
+						}, 'warning'),
 				)
 			// this.field('eventCauses').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
 			// 	const { $ui: ui, $t: t } = ctx.globalProps;
@@ -109,7 +121,6 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 						onAction: this.addProductionEventPhoto,
 						// view: UiViewOne.Edit,
 					})
-					.clearIf(() => true)
 				// .defaultAdder(this.addProductionEventPhoto),
 			);
 		}

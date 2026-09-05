@@ -627,8 +627,26 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   min-width: 0;
 }
 
+.mmda-sf-treegrid .e-rowcell .mmda-sf-control .e-checkbox-wrapper {
+  margin: 0;
+}
+
 .mmda-sf-treegrid .e-rowcell .e-switch-wrapper {
   margin: 0;
+}
+
+.mmda-auth-op-unavailable {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.mmda-sf-treegrid .e-rowcell .mmda-auth-op-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  vertical-align: middle;
 }
 
 .mmda-sf-control.is-invalid :is(input, textarea, .e-control) {

@@ -31,7 +31,7 @@ import { type MaintenancePlan, defineMaintenancePlan } from '@/models/Maintenanc
 		beforeIndex() {
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length == 0) {
-				fields.push(this.field('frequency').searchable(true),);
+				fields.push(this.field('frequency'),);
 			}
 			return { fields, groups, customActions };
 		}

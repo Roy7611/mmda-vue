@@ -4,7 +4,7 @@
  * 从单接口 Dashboards/home 改为 11 个独立 Dashboard 接口并行调用
  */
 import { Router } from 'vue-router'
-import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, triggerEscKey, pagedList, NO_PAGINATION, getSearchOp } from '@mmda/core'
+import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, triggerEscKey, pagedList, NO_PAGINATION, inFilter } from '@mmda/core'
 import type { UiLogicInit } from '@mmda/vui'
 import { UiLogic } from '@mmda/vui'
 import { reactive, ref } from 'vue'
@@ -229,16 +229,18 @@ export class HomeLogic extends UiLogic<CustomPage> {
   }
 
   async getAllSite(context: UiContext, value?: any) {
-    await context.globalProps.$api.getAll({
-      repository: 'Sites',
-      service: 'mes',
-      queryParams: {
+    await context.globalProps.$api.searchAll({
+      pager: {
         pageSize: searchParamSite.pager.pageSize,
         pageNo: searchParamSite.pager.pageNo,
-        sort: '',
-        searchWord: value,
-        status: getSearchOp('IN').toSQL(UsageStatus.USED), // USED: 只查询已启用站点
       },
+      searchWord: value,
+      filterModel: {
+        status: inFilter(UsageStatus.USED),
+      },
+    }, {
+      repository: 'Sites',
+      service: 'mes',
     }).then((res: any) => {
       searchParamSite.pager = res.pagination
       tableDataSite.value = res.list.map((item: any) => ({ ...item }))

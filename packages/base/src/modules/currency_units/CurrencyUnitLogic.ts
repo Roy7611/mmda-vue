@@ -27,7 +27,7 @@ export class CurrencyUnitLogic extends UiLogic<CurrencyUnit> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('currSymbol').searchable(true),
+				this.field('currSymbol'),
 			)
 		}
 		return { fields, groups, customActions }

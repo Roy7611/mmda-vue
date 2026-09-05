@@ -426,12 +426,12 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('projectID').searchable(true),
-				this.field('priority').searchable(true),
-				this.field('constraintType').searchable(true),
-				this.field('productCategoryID').searchable(true),
-				this.field('deliveryDate').searchable(true),
-				this.field('status').searchable(true)
+				this.field('projectID'),
+				this.field('priority'),
+				this.field('constraintType'),
+				this.field('productCategoryID'),
+				this.field('deliveryDate'),
+				this.field('status')
 			);
 		}
 		return { fields, groups, customActions };
@@ -499,10 +499,22 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 						updateExpectedPeriod(model, model.expectedStart, newVal);
 					}),
-				this.field('superOrderID').setSearchParam((ctx) => {
+				this.field('superOrderID').refFilter((model, ctx) => {
+					const __p = ((ctx) => {
 					return {
 						status: `NOT IN ${ProductionOrderStatusEnum.CANCELED_VALUE},${ProductionOrderStatusEnum.PAUSED_VALUE}`
 					}
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('constraintType').onChange((ctx: UiViewContext<any>, model, newVal) => {
 					if (shouldHideConstraintDate(newVal)) {
@@ -524,11 +536,23 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 
 				//外协厂商
 				this.field('outsourcingManufacturerID')
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return {
 							status: '>0',
 						};
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.hideIf(model => model.outsourced == false),
 
 				//this.field('vendorID').hideIf(model => model.outsourced == false),
@@ -571,8 +595,8 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 
 				//选中制程，赋值Bom
 				this.field('bomID')
-					.setSelectable((ctx, field, row) => ctx.model?.bomID !== row?.bomID)
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						const queryInfo: any = {
 							status: `IN ${BomStatus.APPROVED}`
 						};
@@ -580,7 +604,18 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 							queryInfo.productCode = model.productCode;
 						}
 						return queryInfo;
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange<string>((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 						if (isNullOrUndefined(newVal)) {
 							// 手动创建订单bom清除后制品信息可以清除，反之不能清除
@@ -643,7 +678,8 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				this.field('packID')
 					//选择包装规格时，需确保productID选中，MaterialPackage是属于Bom中定义的productID的。若没有productID，则不能选择，等有了才能更改。
 					.lockIf(model => isNullOrUndefined(model.bom?.productID ?? null) || model.bom.product.supportPackage)
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						if (model.bom?.productID ?? null) {
 							return {
 								filter: 'materialID=' + model.bom?.productID,
@@ -654,7 +690,18 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 								status: `NOT IN ${UsageStatus.DEPRECATED},${UsageStatus.NEW}`,
 							};
 						}
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange<string>((ctx, model, newVal, oldVal) => {
 						if (isRefNone(newVal)) return;
 					}),

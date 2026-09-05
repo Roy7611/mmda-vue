@@ -9,20 +9,19 @@
 import {
   MetaUiField,
   SqlDataType,
-  getFieldSearchOps,
+  getFieldFilterOps,
+  getSqlOperator,
   isArray,
   isNullOrUndefined,
 } from "@mmda/core";
 import type {
   MetaUiFilter,
   MetaUiFilterCondition,
-  SearchOp,
   TranslateFn,
   UiContext,
   Pager,
   Pagination,
   SelectableFn,
-  FooterAction,
   EntityFieldFilter,
   EntityFilterOperator,
 } from "@mmda/core";
@@ -41,8 +40,6 @@ export interface SearchForRelativeProps extends PropData {
   accept?: () => Promise<boolean>;
   onHide?: () => Promise<boolean>;
   reject?: () => Promise<boolean>;
-  /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
-  footerActions?: FooterAction[];
 }
 export interface SearchForRelativeContentProps extends PropData {
   selectableFn?: SelectableFn;
@@ -171,24 +168,22 @@ export class UiCustomSearchField {
 }
 
 export class UiSearchField {
-  readonly availableOps: Array<SearchOp>;
-  currentOp: SearchOp;
+  readonly availableOps: Array<EntityFilterOperator>;
+  currentOp: EntityFilterOperator;
   currentOpLabel: Ref<string>;
   searchVal: Ref<any>;
   defaultVal: Ref<any>;
-  searchWord?: any; // 远程搜索框的模糊搜索
-  isComposing?: boolean; // 远程搜索是否开启输入法选词
+  searchWord?: any;
+  isComposing?: boolean;
   valueFn?: (v: any | any[]) => any;
 
   constructor(
     public readonly field: MetaUiField,
     t: TranslateFn,
   ) {
-    this.availableOps = getFieldSearchOps(field);
-    this.availableOps.forEach((op) => (op.label = t(`matcher.${op.name}`)));
-    this.currentOp = this.availableOps[0];
-    this.currentOpLabel = ref(this.currentOp.label);
-    // this.defaultVal = ref(SqlDataType.isBool(field.dataType) ? Number(field.defaultVal) : field.defaultVal)
+    this.availableOps = getFieldFilterOps(field);
+    this.currentOp = this.availableOps[0] ?? "EQ";
+    this.currentOpLabel = ref(t(`matcher.${this.currentOp}`));
     this.searchVal = ref(null);
   }
 
@@ -203,19 +198,19 @@ export class UiSearchField {
     return this.searchVal.value;
   }
 
-  changeCurrentOp(op: SearchOp) {
+  changeCurrentOp(op: EntityFilterOperator, t?: TranslateFn) {
     this.currentOp = op;
-    this.currentOpLabel.value = op?.label;
-    if (op?.name === "IS_NULL" || op?.name === "IS_NOT_NULL") {
-      this.searchVal.value = op.name;
+    this.currentOpLabel.value = t ? t(`matcher.${op}`) : op;
+    if (op === "IS_NULL" || op === "IS_NOT_NULL") {
+      this.searchVal.value = op;
     }
   }
 
   toFilterModel(): EntityFieldFilter | undefined {
     const filterValue = this.hasVal ? this.searchValue : unref(this.defaultVal);
-    if (isNullOrUndefined(filterValue) && this.currentOp.parameters !== 0)
-      return undefined;
-    const operator = this.currentOp.name as EntityFilterOperator;
+    const parameters = getSqlOperator(this.currentOp)?.parameters ?? 1;
+    if (isNullOrUndefined(filterValue) && parameters !== 0) return undefined;
+    const operator = this.currentOp;
     if (SqlDataType.isBool(this.field.dataType)) {
       if (operator === "IS_ALL") return undefined;
       return {

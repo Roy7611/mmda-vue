@@ -109,7 +109,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('status').searchable(true), this.field('projectID').searchable(true));
+			fields.push(this.field('status'), this.field('projectID'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -121,18 +121,54 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 		if (fields.length == 0) {
 			fields.push(
 				// 生产任务筛选（工程项目）
-				this.field('taskID').setSearchParam((ctx, model) => ({ projectID: model.projectID ?? '' }))
+				this.field('taskID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((context, model) => {
 						// 选中自动回填工程项目
 						context.setFieldValue('projectID', model.prodTask?.project)
 						console.log(model);
 						
 					}),
-				this.field('siteID').setSearchParam((context, Model, fld) => {
+				this.field('siteID').refFilter((model, ctx) => {
+					const __p = ((context, Model, fld) => {
 					return { siteType: 'IN 2,4' }
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				// 工程项目
-				this.field('projectID').setSearchParam((ctx, model) => ({ projectID: model.prodTask?.projectID ?? '' }))
+				this.field('projectID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => ({ projectID: model.prodTask?.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 			)                                     
 			/**
 			fields.push(

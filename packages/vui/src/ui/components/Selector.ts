@@ -48,7 +48,7 @@ export const UiSelector = defineComponent({
       loading.value = true;
       error.value = "";
       try {
-        const data = await api.searchEntities(searchParam, {
+        const data = await api.searchAll(searchParam, {
           repository: props.repository,
           service: props.service,
         });

@@ -150,7 +150,7 @@ export class MaterialLogic extends UiLogic<Material> {
   }
 
   private async loadCats(parentId: string) {
-    const data = await this.apiClient.searchEntities(
+    const data = await this.apiClient.searchAll(
       {
         pager: { pageNo: 1, pageSize: 1000 },
         queryParams: { parentCatID: parentId },
@@ -164,10 +164,10 @@ export class MaterialLogic extends UiLogic<Material> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
       fields.push(
-        this.field("status").searchable(true),
-        this.field("supportPackage").searchable(true),
-        this.field("trackingMode").searchable(true),
-        this.field("materialType").searchable(true),
+        this.field("status"),
+        this.field("supportPackage"),
+        this.field("trackingMode"),
+        this.field("materialType"),
       );
     }
     return { fields, groups, customActions };
@@ -233,7 +233,7 @@ export class MaterialLogic extends UiLogic<Material> {
           view: UiViewOne.Edit,
         }),
         // .field('materialPic')
-        // .inPlaceEdit().parent
+        // .inplaceEdit().parent
         // this.group<Sku>('skus').defaultAdder(this.newSku),
       );
       /**
@@ -512,9 +512,21 @@ export class MaterialPartnerLogic extends UiGroupLogic<
     const { fields, groups, customActions } = super.beforeEdit();
     if (fields.length === 0) {
       fields.push(
-        this.field("packID").setSearchParam((context, model, fld) => ({
+        this.field("packID").refFilter((model, ctx) => {
+					const __p = ((context, model, fld) => ({
           status: UsageStatus.USED,
-        })),
+        }))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
       );
     }
 

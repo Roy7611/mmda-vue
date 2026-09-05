@@ -28,7 +28,7 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 		beforeIndex() {
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length == 0) {
-				fields.push(this.field('projectID').searchable(true), this.field('opPhase').searchable(true),this.field('constraintType').searchable(true),this.field('status').searchable(true), );
+				fields.push(this.field('projectID'), this.field('opPhase'),this.field('constraintType'),this.field('status'), );
 			}
 			return { fields, groups, customActions };
 		}

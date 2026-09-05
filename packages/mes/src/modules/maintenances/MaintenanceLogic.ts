@@ -51,9 +51,9 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 		if (fields.length == 0) {
 			fields.push(
 				// 根据维护方式过滤
-				this.field('maintainingMethod').searchable(true),
+				this.field('maintainingMethod'),
 				// 根据期望复工过滤
-				this.field('status').searchable(true)
+				this.field('status')
 			);
 		}
 		return { fields, groups, customActions };
@@ -116,9 +116,9 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 					Object.assign(partsGroup.field('quantity').field, { aggregationSet: MetaAggregation.SUM });
 					Object.assign(partsGroup.field('costPrice').field, { aggregationSet: MetaAggregation.SUM });
 					Object.assign(partsGroup.field('cost').field, { aggregationSet: MetaAggregation.SUM });
-					partsGroup.field('quantity').inPlaceEdit().parent
-						.field('costPrice').inPlaceEdit().parent
-						.field('remark').inPlaceEdit();
+					partsGroup.field('quantity').inplaceEdit().parent
+						.field('costPrice').inplaceEdit().parent
+						.field('remark').inplaceEdit();
 					return partsGroup;
 				})(),
 				(() => {
@@ -132,7 +132,6 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 							view: UiViewOne.Edit,
 							visible: t => !(t?.refName?.includes("Tool") || t?.status === 'DISPATCHED')
 						})
-						.clearIf(() => true)
 						.onChange((context, model) => rollupMaintenanceCost(model));
 					// 工时、费用：表格底部汇总
 					Object.assign(itemsGroup.field('hours').field, { aggregationSet: MetaAggregation.SUM });
@@ -288,10 +287,22 @@ export class MaintenanceItemLogic extends UiGroupLogic<MaintenanceItem, Maintena
 					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED'),
 				this.field('transReasonID')
 					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED')
-					.setSearchParam((context, model, fld) => ({
+					.refFilter((model, ctx) => {
+					const __p = ((context, model, fld) => ({
 						status: `IN ${UsageStatus.USED}`,
 						equipType: model.equip ? model.equip.equipType : ''
-					})),
+					}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 				this.field('toStatus')
 					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.refName?.includes("Equipment|repair") || ctx.root.model?.status === 'DISPATCHED'),
 				this.field('toSiteID')

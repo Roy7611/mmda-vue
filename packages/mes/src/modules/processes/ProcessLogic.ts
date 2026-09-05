@@ -7,7 +7,7 @@
  */
 import { Router } from 'vue-router';
 import { h, ref, computed, type Ref, toRaw, defineAsyncComponent } from 'vue';
-import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSearchOp, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, inFilter, notInFilter, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
@@ -125,14 +125,16 @@ export class ProcessLogic extends UiLogic<Process> {
 	async searchFn(ctx: UiContext, searchWord: string | MaterialCat = '') {
 		this.treeLoading.value = true;
 		return await new Promise((resolve, reject) => {
-			resolve(this.apiClient.getAll({
+			resolve(this.apiClient.searchAll({
+				searchWord: typeof searchWord === 'string' ? searchWord : '',
+				filterModel: {
+					materialType: notInFilter([MaterialType.LABOR]),
+				},
+				pager: defaultPager(),
+			}, {
 				repository: 'MaterialCats',
 				service: 'base',
-				queryParams: {
-					depth: 0,
-					materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
-					searchWord: searchWord
-				},
+				queryParams: { depth: 0 },
 			}));
 		}).then((res: any) => {
 			this.treeData.value = res.list
@@ -182,9 +184,9 @@ export class ProcessLogic extends UiLogic<Process> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('processType').searchable(true),
-				//  this.field('productCategoryID').searchable(true),
-				this.field('status').searchable(true),
+				this.field('processType'),
+				//  this.field('productCategoryID'),
+				this.field('status'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory?.categoryName ?? '-', {});
@@ -645,10 +647,22 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (fields.length == 0) {
 			fields.push(
 				//制品类别滤掉materialType为“劳动力”的类别
-				this.field('productCategoryID').setSearchParam(() => {
+				this.field('productCategoryID').refFilter((model, ctx) => {
+					const __p = (() => {
 					return {
-						materialType: getSearchOp('NOT_IN').toSQL([MaterialType.LABOR]),
+						materialType: getSqlOperator('NOT_IN')!.toSQL([MaterialType.LABOR]),
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('cycleMinutes').onChange((ctx: UiViewContext<any>, model, newVal) => {
 					this.syncCycleOutputQty(ctx, newVal);
@@ -1171,7 +1185,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					.onChange((ctx: UiViewContext<any>, model, newVal) => {
 						rootLogic.updateProcessCycleData(ctx.root, ctx.root.model.operations);
 					})
-					.onWarn((value, model, ctx) => {
+					.onValidate((value, model, ctx) => {
 						const standardCycleTime = this.getTimeValue(model.setupTime) + this.getTimeValue(model.opTime);
 						if (this.getTimeValue(value) < standardCycleTime) {
 							return ctx.globalProps.$t('process.cycleBelowStandard', { n: standardCycleTime });
@@ -1187,11 +1201,35 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					}),
 				this.field('qcsID')
 					.hideIf((model) => !model.qcInProcessTypes || model.qcInProcessTypes === QcInProcessType.NONE)
-					.setSearchParam((ctx, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return { status: 'USED', qcPhase: 'IPQC' };
-					}),
-				this.field('subProcessID').setSearchParam((ctx, model) => {
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('subProcessID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					return { status: 'USED', };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				// todo 参与唯一键组装，不好判断
 				// this.field('opCode').onValidate((value, model, ctx: UiViewContext<any>) => {
@@ -1299,9 +1337,9 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 			selectionMode: 'multiple',
 			searchParam: {
 				pager: defaultPager(),
-				queryParams: {
-					status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
-					materialType: getSearchOp('IN').toSQL([MaterialType.LABOR, MaterialType.TOOLS]),
+				filterModel: {
+					status: inFilter('USED'),
+					materialType: inFilter([MaterialType.LABOR, MaterialType.TOOLS]),
 				}
 			},
 			selectableFn: (m: Material) => !(target.resources && target.resources.find((r: ProcessOperationResource) => !MetaModel.deleted(r) && r.resourceID === m.materialID))
@@ -1380,8 +1418,6 @@ export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperation
 		if (fields.length == 0) {
 			fields.push(
 				this.field('resourceID')
-					.setSelectable((context: UiViewContext<any> & any, field: MetaUiField, row: any) =>
-						!(context.prev.model && context.prev.model.find((r: ProcessOperationResource) => r.resourceID === row.materialID)))
 					.onChange((context: UiContext<ProcessOperationResource>, model: ProcessOperationResource, newVal) => {
 						if (isNullOrUndefined(newVal)) {
 							context.setFieldValue('resourceType', null);
@@ -1393,14 +1429,26 @@ export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperation
 						context.setFieldValue('resourceType', (this.parent as ProcessOperationLogic).getResourceTypeValue(resource?.materialType));
 						context.setFieldValue('unit', resource?.unit ?? null);
 					})
-					.setSearchParam((context: UiContext<ProcessOperationResource>,
+					.refFilter((model, ctx) => {
+					const __p = ((context: UiContext<ProcessOperationResource>,
 						model: ProcessOperationResource,
 						field: MetaUiField) => {
 						return {
-							status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
-							materialType: getSearchOp('IN').toSQL([MaterialType.LABOR, MaterialType.TOOLS]),
+							status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
+							materialType: getSqlOperator('IN').toSQL([MaterialType.LABOR, MaterialType.TOOLS]),
 						};
-					}),
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 				this.field('resourceType')
 					.lockIf((model) => !isNullOrUndefined(model.resourceID)),
 			)
@@ -1443,19 +1491,55 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('prevOpCode').setSearchParam((ctx: UiViewContext<any>, model) => {
+				this.field('prevOpCode').refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { processID: ctx.model.processID };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
-				this.field('nextOpCode').setSearchParam((ctx: UiViewContext<any>, model) => {
+				this.field('nextOpCode').refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { processID: ctx.model.processID };
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('toSubOpCode')
 					.hideIf((m, ctx: UiViewContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
-					.setSearchParam((ctx: UiViewContext<any>, model) => {
+					.refFilter((model, ctx) => {
+					const __p = ((ctx: UiViewContext<any>, model) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
 
 						return { processID: rootLogic?.nextOp?.subProcessID };
-					})
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 			)
 		}
 		if (groups.length == 0) {

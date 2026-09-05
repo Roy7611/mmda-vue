@@ -13,7 +13,6 @@ import {
 	type EntityAction,
 	type ApiClient,
 	type EntitySearchParam,
-	toQueryParams,
 	defineEntityArray,
 	PagedList,
 	MetaModel,
@@ -76,7 +75,7 @@ export class ShiftLogic extends UiLogic<Shift> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('shiftSystem').searchable(true));
+			fields.push(this.field('shiftSystem'));
 		}
 		return { fields, groups, customActions };
 	}

@@ -3,9 +3,6 @@ import type { EntitySearchParam } from "./entity_search";
 
 export * from "./entity_search";
 
-export { EntityActionType, entityActionFactory } from "../metaui/metaui_action";
-export type { ActionCallback, EntityAction } from "../metaui/metaui_action";
-
 export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
 export type LooseRequired<T> = { [P in keyof (T & Required<T>)]: T[P] };
 /**
@@ -220,8 +217,6 @@ export interface EntitySelectParam<E> {
   labelKey?: string;
   selectableFn?: SelectableFn; // 用于标记可选择项的函数
   /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
-  footerActions?: import("../metaui/metaui_field").FooterAction[];
-  /** 已选面板 label 格式化函数，传入选中行返回显示文本，仅多选模式生效。不传则从 group a1 首个 field 自动推导 */
   labelFn?: (item: any) => string;
 }
 

@@ -1,5 +1,3 @@
-import type { Predicate } from './metaui_field'
-
 export type ActionCallback = (...args: any[]) => any
 
 /** 按钮/行为的界面元数据。 */
@@ -15,8 +13,9 @@ export interface EntityAction {
   disabled?: boolean
   group?: string
   view?: string
+  executableExpression?: string | ((t: any) => boolean)
   onAction?: ActionCallback
-  visible?: Predicate
+  visible?: (t: any, context?: any) => boolean
 }
 
 export enum EntityActionType {

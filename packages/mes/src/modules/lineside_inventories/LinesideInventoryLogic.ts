@@ -17,7 +17,6 @@ import {
 	debounce,
 	isObject,
 	triggerEscKey,
-	MetaUiFieldFrozen,
 	MetaUiFieldAlignmentEnum,
 	MetaUiFieldAlignment,
 	isFunction,
@@ -695,11 +694,11 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('qaStatus').searchable(true),
-				// this.field('siteID').searchable(true),
-				// this.field('materialCode').searchable(true),
-				// this.field('materialName').searchable(true),
-				this.field('leftOverQuantity').setFrozen(MetaUiFieldFrozen.Right)
+				this.field('qaStatus'),
+				// this.field('siteID'),
+				// this.field('materialCode'),
+				// this.field('materialName'),
+				this.field('leftOverQuantity')
 			);
 		}
 		if (customActions.length == 0) {

@@ -495,6 +495,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
               icon: action.displayIcon,
               label: action.displayLabel,
               role: action.displayHint,
+              executableExpression: action.executableExpression,
             }),
           ),
       );

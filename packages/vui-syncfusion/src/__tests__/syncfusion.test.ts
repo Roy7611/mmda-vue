@@ -445,9 +445,7 @@ describe("Syncfusion skin", () => {
       getFieldOptions: () => ({
         selectOptions: [category],
         searchParam: { searchWord: "" },
-      }),
-      getSearchForRelativeOptions: () => ({
-        searchWord: category,
+        currentSelectOption: category,
         isComposing: false,
       }),
       searchRelative: vi.fn(),

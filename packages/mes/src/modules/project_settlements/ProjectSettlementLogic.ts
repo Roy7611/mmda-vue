@@ -31,8 +31,8 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('projectID').searchable(true),
-				this.field('status').searchable(true)
+				this.field('projectID'),
+				this.field('status')
 			);
 		}
 		return { fields, groups, customActions };
@@ -56,7 +56,7 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
 		}
 		if (groups.length == 0) {
 			groups.push(
-				this.group<ProjectSettlementItem>('items').field('deduct').inPlaceEdit().parent
+				this.group<ProjectSettlementItem>('items').field('deduct').inplaceEdit().parent
 					.onChange((context, model) => {
 						// 筛选未删除的数据
 						const items = model.items.filter(value => value.entityState < 4)
@@ -75,7 +75,7 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
 						const data = items.filter((value: any) => value.capitalFlows === CapitalFlows.COST)
 						model.totalPayable = Number((MetaModel.sum(data, items => items.settledValue) - MetaModel.sum(data, items => items.deduct)).toFixed(4))
 					})
-					.field('settledValue').inPlaceEdit().parent,
+					.field('settledValue').inplaceEdit().parent,
 			)
 			/**
 			fields.push(

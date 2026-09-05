@@ -139,11 +139,17 @@ export interface Module {
   /** 必须有创建参数*/
   requiredCreateParam: boolean;
 
-  /** 默认过滤器*/
+  /**
+   * 命名查询芯片：`queryID;queryName|queryID;queryName`
+   * 例：`1;全部|2;启用|3;停用`
+   */
   defaultFilter?: string;
 
-  /** 默认排序*/
+  /** 默认排序（无选中命名查询时；有查询则以该查询 pager.sorts 为准）*/
   defaultSort?: string;
+
+  /** 默认分组 */
+  defaultGroupBy?: string;
 
   /** 状态：0;未发布|1;测试中|2;已发布|-1;已停用*/
   status: ModuleStatus;
@@ -166,7 +172,8 @@ export interface Module {
 }
 
 /**
- * 模块操作
+ * 模块业务操作的元数据目录，只给角色权限打勾用。
+ * 不是客户端按钮入口；服务器转成 EntityAction 后再建 UiAction。
  * @remarks moduleCode:模块编码 actionCode:操作编码 actionModes:操作模式 actionName:操作名称 actionType:操作类型 description:操作描述 displayHint:操作提示 displayIcon:操作提示图标 displayLabel:操作提示标签 ownerOnly:仅负责人允许 promptType:操作交互类型 executableExpression:执行表达式
  */
 export interface ModuleAction {
@@ -181,6 +188,10 @@ export interface ModuleAction {
   description?: string;
   ownerOnly?: boolean;
   promptType?: ModuleActionPromptType;
+  /**
+   * 角色权限勾选用的可执行表达式（字符串）。
+   * 不是客户端按钮入口；客户端 canDo 只读 EntityAction.executableExpression。
+   */
   executableExpression?: string;
 }
 

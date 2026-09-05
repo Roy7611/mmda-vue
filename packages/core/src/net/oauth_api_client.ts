@@ -71,6 +71,7 @@ function requireOAuthClient(clientId: string, clientSecret: string) {
 /**
  * 支持OAuth认证的API客户端（HttpClient 拦截器：追加 Bearer，401 由
  * {@link HttpClient.refreshHandler} 刷新）。
+ * @deprecated 使用 {@link OAuth2ApiClient}。
  */
 export class OAuthApiClient extends ApiClient {
   private authenticatorInstalled = false;

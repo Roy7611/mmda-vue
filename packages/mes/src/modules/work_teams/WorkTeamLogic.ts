@@ -53,16 +53,16 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
 		if (fields.length == 0) {
 			fields.push(
 				// 班组类型
-				this.field('teamTypeID').searchable(true),
+				this.field('teamTypeID'),
 
 				// 班组长
-				this.field('leaderID').searchable(true),
+				this.field('leaderID'),
 
 				// 合格否
-				this.field('qualified').searchable(true),
+				this.field('qualified'),
 
 				// 状态
-				this.field('status').searchable(true)
+				this.field('status')
 			);
 		}
 
@@ -84,9 +84,21 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
 					.onValidate<string>((value,model)=>{ })
 				*/
 				this.field('leaderID')
-					.setSearchParam((ctx, model) => ({
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => ({
 						status: EmployeeStatus.ON_BOARD
-					}))
+					}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange<string>(async (ctx, model, newVal, oldVal) => {
 						if (!newVal || this.hasMember(model, newVal)) return;
 						let leader = model.leader;
@@ -134,7 +146,7 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
 				// 工人组
 				groups.push(
 					this.group<Worker>('members')
-						.editIf(() => false)
+						.inplaceEdit(false)
 						.defaultAdder(this.addMembers)
 						.onChange((ctx, model, items) => {
 							const activeMembers = (items ?? []).filter(

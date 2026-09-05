@@ -5,18 +5,19 @@ import {
 } from '../utils/localdb'
 import { ApiClient, type EntityUrlParam } from '../net/api_client'
 import type { MetaUiFilter } from './metaui_filter'
-import type { MetaUiSortSet } from './metaui_sort'
-import { type Module, ModuleFactory } from '../models/module'
+import { type Module, ModuleFactory } from './module'
 import type { ReportTemplate } from '../models/file'
 import type { MetaUiFieldFrozen } from './metaui_field'
+import type { EntityQuery } from '../models/entity_search'
 
-export interface MetaUiFilterNSorts {
+export interface MetaUiFilters {
   filters?: MetaUiFilter[]
-  sorts?: MetaUiSortSet[]
 }
 
-export interface MetaUiPack extends MetaUiFilterNSorts {
+export interface MetaUiPack extends MetaUiFilters {
   metaui: MetaUi
+  /** 本地上次查询定义（含 pager.sorts），不来自服务器 pack */
+  lastQuery?: EntityQuery
 }
 
 export interface ListSettingsField {
@@ -38,7 +39,7 @@ export interface ListSettingsPayload {
  *
  * @remarks
  *
- * 复杂获取用户界面元数据，包括{@link Module|模块}、{@link MetaUi|元界面}、{@link MetaUiFilter|元过滤器}以及{@link MetaUiSortSet|元排序设置}
+ * 复杂获取用户界面元数据，包括{@link Module|模块}、{@link MetaUi|元界面}、{@link MetaUiFilter|元过滤器}。查询排序只在 Pager.sorts。
  */
 export interface MetaUiService {
   /**
@@ -87,7 +88,7 @@ export interface MetaUiService {
 
   findOtherSystemModule?: (service: string, nameOrUrl: string) => Module | undefined
   /**
-   * 获取元界面数据包，包含过滤器和排序设置
+   * 获取元界面数据包，包含过滤器。排序不进包缓存，只在查询 Pager.sorts。
    * @param repository 仓储，通常是实体名称的复数形式，比如Warehouses
    * @param service 服务，例如`mes`, `wms`
    * @param reload `true` 时作为查询参数传给服务器：从数据库重新组装；Redis 为 readThru。不是先清 Redis。
@@ -99,7 +100,7 @@ export interface MetaUiService {
    * @example
    * ```ts
    * const service = defaultMetaUiService;
-   * const {metaui,filters,sorts} = await service.get('Warehouses', false);
+   * const {metaui,filters} = await service.getPack({ repository: 'Warehouses' });
    * ```
    */
   getPack(
@@ -116,16 +117,16 @@ export interface MetaUiService {
   ): Promise<MetaUiPack>
 
   /**
-   * 获取过滤器和排序设置
+   * 获取过滤器（排序不缓存，只在查询 Pager.sorts）
    * @param repository
    * @param service
    * @param reload
    */
-  getFilterNSorts(
+  getFilters(
     repository: string,
     service?: string,
     reload?: boolean
-  ): Promise<MetaUiFilterNSorts>
+  ): Promise<MetaUiFilters>
   /**
    * 获取元界面数据
    * @param repository 仓储，通常是实体名称的复数形式，比如Warehouses
@@ -134,7 +135,7 @@ export interface MetaUiService {
    */
   get(repository: string, service?: string, reload?: boolean): Promise<MetaUi>
   /**
-   * 将当前元数据包写入 IndexedDB（metaui / filters / sorts）。
+   * 将当前元数据包写入 IndexedDB（metaui / filters）。排序不缓存。
    * `repository` 为实体复数名；`service` 参与缓存库隔离。
    */
   updateForCache(
@@ -299,25 +300,24 @@ class MetaUiServiceImpl implements MetaUiService {
     return {
       metaui,
       filters: metaPack[1],
-      sorts: metaPack[2],
+      lastQuery: metaPack[2] ?? undefined,
     }
   }
   private getFromCache(repository: string) {
     const metaRepo = `meta/${repository}`
     return this._cache.get(metaRepo).then(meta => this.assemble(metaRepo, meta))
   }
-  private getFilterNSortsFromCache(repository: string) {
-    const metaRepos = [`meta/${repository}/filters`, `meta/${repository}/sorts`]
+  private getFiltersFromCache(repository: string) {
+    const metaRepos = [`meta/${repository}/filters`]
     return this._cache.getMany(metaRepos).then(meta => {
       return {
         filters: meta[0],
-        sorts: meta[1],
       }
     })
   }
   private getPackFromCache(repository: string) {
     const metaRepo = `meta/${repository}`
-    const metaRepos = [metaRepo, `${metaRepo}/filters`, `${metaRepo}/sorts`]
+    const metaRepos = [metaRepo, `${metaRepo}/filters`, `${metaRepo}/query`]
     return this._cache
       .getMany(metaRepos)
       .then(meta => this.assemblePack(metaRepo, meta))
@@ -376,22 +376,56 @@ class MetaUiServiceImpl implements MetaUiService {
   }
 
   /**
-   * 将元界面数据包（包含过滤器和排序设置）缓存在 _cache 中
+   * 将元界面数据包（metaui / filters）缓存在 _cache 中。
+   * lastQuery 仅在 pack 显式带该字段时写入，避免服务器 pack 冲掉本地查询定义。
    */
   private putPackToCache(repository: string, metaPack: any) {
-    const { filters, sorts } = metaPack
+    const { filters, lastQuery } = metaPack
     const snapshot = this.snapshotMeta(metaPack.metaui)
     const metaUiPack: MetaUiPack = {
       metaui: new MetaUi(snapshot),
       filters,
-      sorts,
     }
     const assemblies = this.disassemble(`meta/${repository}`, snapshot)
     assemblies.push([`meta/${repository}/filters`, filters])
-    assemblies.push([`meta/${repository}/sorts`, sorts])
+    if ('lastQuery' in metaPack) {
+      assemblies.push([`meta/${repository}/query`, lastQuery ?? null])
+      if (lastQuery) metaUiPack.lastQuery = lastQuery
+    }
 
-    return this._cache.putMany(assemblies).then(() => metaUiPack)
+    return this._cache.putMany(assemblies).then(() => {
+      if (metaUiPack.lastQuery) return metaUiPack
+      return this._cache.get(`meta/${repository}/query`).then(query => {
+        if (query) metaUiPack.lastQuery = query
+        return metaUiPack
+      })
+    })
   }
+  private fetchMetaUiJson(
+    repository: string,
+    service?: string,
+    reload = false,
+  ) {
+    const url = this.apiClient.buildEntityURL({
+      repository,
+      path: 'metaui',
+      queryParams: { reload },
+      service,
+    })
+    return this.apiClient.http.getJson(url)
+  }
+
+  private fetchMetaUiPackJson(reload = false, params: EntityUrlParam) {
+    const { repository, service, queryParams } = params
+    const url = this.apiClient.buildEntityURL({
+      repository,
+      path: 'metaUiPack',
+      queryParams: Object.assign({}, { reload }, queryParams),
+      service,
+    })
+    return this.apiClient.http.getJson(url)
+  }
+
   /**
    * 从服务器获取元界面数据（不包含过滤器和排序设置）
    * @param repository 仓储一般为实体的复数形式，例如`Putaways`
@@ -400,11 +434,9 @@ class MetaUiServiceImpl implements MetaUiService {
    * @returns
    */
   getFromServer(repository: string, service?: string, reload: boolean = false) {
-    return this.apiClient
-      .getMetaUi(reload, { repository, service })
-      .then(meta =>
-        this.putToCache(this.cacheRepository(repository, service), meta),
-      )
+    return this.fetchMetaUiJson(repository, service, reload).then(meta =>
+      this.putToCache(this.cacheRepository(repository, service), meta),
+    )
   }
 
   getPackFromServer(
@@ -412,14 +444,15 @@ class MetaUiServiceImpl implements MetaUiService {
     params: EntityUrlParam
   ) {
     const { repository, redirection } = params
-    return this.apiClient
-      .getMetaUiPack(reload, params)
-      .then(meta =>
-        this.putPackToCache(
-          this.cacheRepository(redirection ?? repository, params.service),
-          meta,
-        ),
-      ) // 支持redirection参数指定重定向的repository
+    return this.fetchMetaUiPackJson(reload, params).then((raw: any) =>
+      this.putPackToCache(
+        this.cacheRepository(redirection ?? repository, params.service),
+        {
+          filters: raw.filters,
+          metaui: raw.metaUi ?? raw.metaui,
+        },
+      ),
+    )
   }
   /**
    * 获取元界面，
@@ -470,14 +503,14 @@ class MetaUiServiceImpl implements MetaUiService {
     })
     return this.apiClient.http.postJson(url, payload)
   }
-  getFilterNSorts(
+  getFilters(
     repository: string,
     service?: string,
     reload?: boolean
-  ): Promise<MetaUiFilterNSorts> {
+  ): Promise<MetaUiFilters> {
     if (reload) return this.getPackFromServer(reload, { repository, service, })
 
-    return this.getFilterNSortsFromCache(
+    return this.getFiltersFromCache(
       this.cacheRepository(repository, service),
     )
   }
@@ -500,7 +533,7 @@ class MetaUiServiceImpl implements MetaUiService {
             module: this.findModule(repository),
             metaui,
             filters: meta.filters,
-            sorts: meta.sorts,
+            lastQuery: meta.lastQuery,
           }
         }
       }
@@ -532,7 +565,7 @@ class MetaUiServiceImpl implements MetaUiService {
             module: this.findOtherSystemModule(service, repository),
             metaui,
             filters: meta.filters,
-            sorts: meta.sorts,
+            lastQuery: meta.lastQuery,
           }
         }
       }

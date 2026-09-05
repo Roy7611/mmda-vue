@@ -89,7 +89,7 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 - `FieldSearchOptions` 替代写回字段的 `MetaUiFieldOptions`。
 - `validateField` 在 core，不再依赖 vuelidate。
 - `EntitySearchParam`：`pager` + `searchWord` + `queryParams`（GET）+ `searchParams`（`EntityFilterModel` body）。
-- `ApiClient.searchEntities()`：无列过滤走 GET `getAll`；有 `searchParams` 走 POST `searchAll`。
+- `ApiClient.searchAll()`：无列过滤走 GET `getAll`；有 `searchParams` 走 POST `.../searchAll`。
 - `Attachment` / `ReportTemplate` 在 `models/file.ts`；传输走 `doAction` / `http.postBlob`。
 - 组区域：`MetaUiGroup.isPrimary()` / `isSecondary()` / `isTails()`。
 - 权限用 `hasBit` / `auth`，不挂 `Number.prototype`。

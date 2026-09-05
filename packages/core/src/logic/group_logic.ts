@@ -1,28 +1,22 @@
 import type { EntityAction, ActionCallback } from '../metaui/metaui_action'
-import type { Predicate } from '../metaui/metaui_field'
-import type { UiContext } from './ui_context'
-import type { UiGroupWatermark, Watermark } from './ui_types'
 import { MetaUiField } from '../metaui/metaui_field'
-import {
-  MetaUiGroup,
-  type CreateGroupItemsFn,
-  type AddGroupItemsFn,
-  type ImportGroupItemsFn,
-  type GroupFilterFn,
-  type OnChangeGroupFn,
-} from '../metaui/metaui_group'
+import { MetaUiGroup } from '../metaui/metaui_group'
+import { parseEntityBoolExpression } from '../utils/entity_bool_expr'
 import { MetaUiFieldLogic } from './field_logic'
+import {
+  logicAnd,
+  logicOr,
+  type AddGroupItemsFn,
+  type BeforeItemRemoveFn,
+  type CreateGroupItemsFn,
+  type GroupFilterFn,
+  type ItemDeletableFn,
+  type OnChangeGroupFn,
+  type Predicate,
+} from './logic_functions'
 
-const logicOr =
-  <T>(a: Predicate<T>, b: Predicate<T>): Predicate<T> =>
-    value => a(value) || b(value)
+export type SubGroupStdOp = 'add' | 'clear'
 
-/**
- * 子表界面组内域逻辑
- * @typeParam E 主表类型，例如 `BOM`
- * @typeParam G 子表类型，例如 `BOMItem`
- * @remarks 例如 BOM.items 组内字段 `materialName` 的可见、只读和自定义渲染器
- */
 export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
   constructor(
     field: MetaUiField,
@@ -35,78 +29,35 @@ export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
   }
 }
 
-export type UiGroupRenderer = (
-  grp: MetaUiGroup,
-  ctx: UiContext<any>,
-  props: Record<string, any>,
-) => any
-
-/**
- * 子表界面组逻辑
- * @typeParam E 主表类型，例如 `BOM`
- * @typeParam G 子表类型，例如 `BOMItem`
- */
 export class MetaUiGroupLogic<E, G> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
-  /** 子表是否启用单元格原位编辑；默认开启。 */
-  inplaceEdit = true
-  /**
-   * 原位编辑启动方式（Syncfusion 原生 Grid）：
-   * `excel` 单击选中、键入覆盖（默认）/ `click` 单击进入 / `dblclick` 双击进入。
-   */
-  inplaceEditStart: "click" | "dblclick" | "excel" = "excel"
-  /** 自定义渲染器 */
+  inplaceEditable = true
+  inplaceEditStart: 'click' | 'dblclick' | 'excel' = 'excel'
   customRenderer?: Function
-  /** 表格顶部自定义内容（查看态） */
   customPrepend?: Function
-  /** 表格底部自定义内容（查看态） */
   customAppend?: Function
-  /** 水印内容 */
-  watermark?: Watermark
-  /** 水印生成函数 */
-  watermarkFn?: UiGroupWatermark
-  /** 是否启用聚合 */
-  _aggregate?: boolean
-  /** 自定义聚合函数 */
   customAggregator?: Function
-  /** 自定义编辑器（编辑态） */
   customEditor?: Function
-  /** 编辑态表格前自定义内容 */
   customEditPrepend?: Function
-  /** 编辑态表格后自定义内容 */
   customEditAppend?: Function
-  /** 是否需要处理文件导入导出 */
-  needHandlerFile: boolean
-  /** 导入导出属性函数 */
-  importOrExportPropsFn?: ImportGroupItemsFn
-  /** 自定义操作按钮列表 */
+  /** 标准操作（add / clear）。many 组默认有；canDo 往对应项叠加条件。 */
+  stdActions: EntityAction[]
+  /** 额外按钮。vui 渲染成图标或下拉，core 不规定。 */
   customActions?: Array<EntityAction>
-  /** 只读条件函数 */
-  readonlyFn?: Predicate
-  /** 隐藏条件函数 */
-  hiddenFn?: Predicate
-  /** 清空条件函数 */
-  clearIfFn?: Predicate
-  /** 可编辑条件函数 */
-  editIfFn?: Predicate
-  /** 可删除条件函数 */
-  deleteIfFn?: Predicate
-  /** 可导入条件函数 */
-  importIfFn?: Predicate
-  /** 可导出条件函数 */
-  exportIfFn?: Predicate
-  /** 筛选函数 */
+  readonlyFn?: Predicate<E>
+  hiddenFn?: Predicate<E>
+  itemDeletableFunc?: ItemDeletableFn<E, G>
+  beforeItemRemoveFunc?: BeforeItemRemoveFn<E, G>
   filterFn?: GroupFilterFn
-  /** 默认添加函数 */
   defaultAddFn?: ActionCallback
-  /** 添加前回调函数 */
   beforeAddFn?: CreateGroupItemsFn
-  /** 变更回调函数 */
   onChangeFn?: OnChangeGroupFn
 
   constructor(public readonly group: MetaUiGroup) {
     this.fields = []
-    // 元数据 canHave → 绑定组可见性（主表字段为假则隐藏整组）
+    this.stdActions = group.many
+      ? [{ name: 'add' }, { name: 'clear' }]
+      : []
     if (group.canHave) {
       const key = group.canHave
       this.hiddenFn = (model: E) => !(model as Record<string, any>)?.[key]
@@ -120,44 +71,39 @@ export class MetaUiGroupLogic<E, G> {
     return this
   }
   hideIf(predicate: Predicate<E>) {
-    // 与 canHave 叠加：任一为真即隐藏
     if (this.hiddenFn && this.hiddenFn != predicate)
       this.hiddenFn = logicOr(predicate, this.hiddenFn)
     else this.hiddenFn = predicate
     return this
   }
-  clearIf(predicate: Predicate<E>) {
-    if (this.clearIfFn && this.clearIfFn != predicate)
-      this.clearIfFn = logicOr(predicate, this.clearIfFn)
-    else this.clearIfFn = predicate
-    return this
+  lock() {
+    return this.lockIf(() => true)
   }
-  editIf(predicate: Predicate<E>) {
-    if (this.editIfFn && this.editIfFn != predicate)
-      this.editIfFn = logicOr(predicate, this.editIfFn)
-    else this.editIfFn = predicate
-    return this
-  }
-  deleteIf(predicate: Predicate<E>) {
-    if (this.deleteIfFn && this.deleteIfFn != predicate)
-      this.deleteIfFn = logicOr(predicate, this.deleteIfFn)
-    else this.deleteIfFn = predicate
-    return this
-  }
-  importIf(predicate: Predicate<E>) {
-    if (this.importIfFn && this.importIfFn != predicate)
-      this.importIfFn = logicOr(predicate, this.importIfFn)
-    else this.importIfFn = predicate
-    return this
-  }
-  exportIf(predicate: Predicate<E>) {
-    if (this.exportIfFn && this.exportIfFn != predicate)
-      this.exportIfFn = logicOr(predicate, this.exportIfFn)
-    else this.exportIfFn = predicate
+
+  canDo(op: SubGroupStdOp | SubGroupStdOp[], pred: Predicate<E>) {
+    const ops = Array.isArray(op) ? op : [op]
+    for (const name of ops) {
+      const action = this.stdActions.find(a => a.name === name)
+      if (!action) continue
+      action.executableExpression = andExecutable(action.executableExpression, pred)
+    }
     return this
   }
 
-  /** 设置子表行筛选条件 */
+  itemDeletable(fn: ItemDeletableFn<E, G>) {
+    if (this.itemDeletableFunc && this.itemDeletableFunc != fn) {
+      const prev = this.itemDeletableFunc
+      this.itemDeletableFunc = (row, master, ctx) =>
+        prev(row, master, ctx) && fn(row, master, ctx)
+    } else this.itemDeletableFunc = fn
+    return this
+  }
+
+  beforeItemRemove(fn: BeforeItemRemoveFn<E, G>) {
+    this.beforeItemRemoveFunc = fn
+    return this
+  }
+
   setFilter(filterFn: GroupFilterFn<E, G>) {
     this.filterFn = filterFn
     return this
@@ -173,21 +119,13 @@ export class MetaUiGroupLogic<E, G> {
     return this
   }
 
-  /** 开关整个子表组的单元格原位编辑。 */
-  inPlaceEdit(enabled = true) {
-    this.inplaceEdit = enabled
+  inplaceEdit(enabled = true) {
+    this.inplaceEditable = enabled
     return this
   }
 
-  /** 配置子表单元格如何进入编辑（默认 click）。 */
-  inPlaceEditStart(start: "click" | "dblclick" | "excel") {
+  setInplaceEditStart(start: 'click' | 'dblclick' | 'excel') {
     this.inplaceEditStart = start
-    return this
-  }
-
-  defaultHandlerFile(propsFn?: ImportGroupItemsFn<E>) {
-    this.needHandlerFile = true
-    this.importOrExportPropsFn = propsFn
     return this
   }
 
@@ -195,31 +133,27 @@ export class MetaUiGroupLogic<E, G> {
     this.onChangeFn = change
     return this
   }
-  setCustomRenderer(renderFn: UiGroupRenderer) {
+  setCustomRenderer(renderFn: Function) {
     this.customRenderer = renderFn
     return this
   }
-  setWatermark(watermarkFn: UiGroupWatermark) {
-    this.watermarkFn = watermarkFn
-    return this
-  }
-  setCustomPrepend(renderFn: UiGroupRenderer) {
+  setCustomPrepend(renderFn: Function) {
     this.customPrepend = renderFn
     return this
   }
-  setCustomAppend(renderFn: UiGroupRenderer) {
+  setCustomAppend(renderFn: Function) {
     this.customAppend = renderFn
     return this
   }
-  setCustomEditor(editorFn: UiGroupRenderer) {
+  setCustomEditor(editorFn: Function) {
     this.customEditor = editorFn
     return this
   }
-  setCustomEditPrepend(renderFn: UiGroupRenderer) {
+  setCustomEditPrepend(renderFn: Function) {
     this.customEditPrepend = renderFn
     return this
   }
-  setCustomEditAppend(renderFn: UiGroupRenderer) {
+  setCustomEditAppend(renderFn: Function) {
     this.customEditAppend = renderFn
     return this
   }
@@ -241,19 +175,11 @@ export class MetaUiGroupLogic<E, G> {
     return this
   }
 
-  aggregate() {
-    this._aggregate = true
-    return this
-  }
   aggregateWith(aggregator: Function) {
-    this._aggregate = true
     this.customAggregator = aggregator
     return this
   }
 
-  /**
-   * 获取并注册子表组内字段的逻辑配置。
-   */
   field(fieldName: string) {
     const groupUi = this.group.groupUi
     if (!groupUi) {
@@ -267,4 +193,14 @@ export class MetaUiGroupLogic<E, G> {
     this.fields.push(fieldLogic)
     return fieldLogic
   }
+}
+
+function andExecutable(
+  current: EntityAction['executableExpression'],
+  pred: Predicate<any>,
+): Predicate<any> {
+  if (typeof current === 'function') return logicAnd(current, pred)
+  if (typeof current === 'string' && current.trim())
+    return logicAnd(parseEntityBoolExpression(current), pred)
+  return pred
 }

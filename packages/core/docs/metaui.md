@@ -8,9 +8,13 @@
 - `MetaUiGroup`：主表或子表分组。
 - `MetaUiField`：字段声明、数据类型、展示与引用配置。
 - `SqlDataType`：后端字段类型及默认值映射。
-- `MetaUiFilter` / `MetaUiSortSet` / SearchOp：过滤、排序和搜索声明。
+- `MetaUiFilter`：快捷过滤声明（仍可编译进 `queryParams.filter`）。
+- 列表字段条件：`EntityFilterOperator` + `filterModel`（见 [entity_search.md](./models/entity_search.md)）。
+- SQL 片段：`SqlOperator`（where / `refFilter`）。
+- 排序只在 `pager.sorts`。本地上次查询是 pack 上的 `lastQuery: EntityQuery`，不单存 sorts。
 - `EntityAction`：渲染为按钮的行为声明。
-- `MetaUiService`：加载、缓存和组装元数据包。
+- `MetaUiService`：加载、缓存和组装元数据包（含可选 `lastQuery`）。
+- `Module`：功能目录与权限位；`defaultFilter` 是 `queryID;queryName|…` 命名查询芯片。
 
 ```ts
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
@@ -45,8 +49,8 @@ metaui → models → logic
 core 不声明单选/多选、chips 或 Tab；这些展示策略由 UI 库决定。
 
 同一组已选 condition 使用 OR，不同组使用 AND，最终写入
-`EntitySearchParam.queryParams.filter`，因此快捷过滤仍可通过 GET 查询。
-表头产生的类型化复杂条件写入 `EntitySearchParam.searchParams`
-（`EntityFilterModel`），不改写 `MetaUiFilter`。
+`EntitySearchParam.queryParams.filter`（兼容路径，仍可走 GET）。
+表头产生的类型化复杂条件写入 `EntitySearchParam.filterModel`，
+不改写 `MetaUiFilter`。列表主路径是 `searchAll`。
 
-参见 [models.md](./models.md) 和 [logic.md](./logic.md)。
+参见 [models.md](./models.md)、[entity_search.md](./models/entity_search.md)、[logic.md](./logic.md)。

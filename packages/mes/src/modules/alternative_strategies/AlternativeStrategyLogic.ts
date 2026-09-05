@@ -7,7 +7,7 @@
  */
 import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { defaultSearchOps, getSearchOp, MetaModel } from '@mmda/core';
+import { getSqlOperator, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type AlternativeStrategy, defineAlternativeStrategy } from '@/models/AlternativeStrategy';
 import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/models/AlternativeStrategyItem';
@@ -33,9 +33,9 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('allowMixed').searchable(true),
-				this.field('status').searchable(true),
-				this.field('mixedByProbability').searchable(true)
+				this.field('allowMixed'),
+				this.field('status'),
+				this.field('mixedByProbability')
 			)
 		}
 
@@ -61,7 +61,6 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<AlternativeStrategyItem>('items')
-					.clearIf(model => true)
 					.addCustomAction({
 						name: 'createAlternativeStrategyItem',
 						label: 'action.create',
@@ -137,14 +136,10 @@ export class AlternativeStrategyItemLogic extends UiGroupLogic<AlternativeStrate
 		if (fields.length == 0) {
 			fields.push(
 				this.field('materialID')
-					.setSearchParam((context: UiContext<AlternativeStrategyItem>, model: AlternativeStrategyItem, field: MetaUiField) => ({
-						status: getSearchOp('IN').toSQL('USED'), // 只能选择启用的物料
-					}))
-					.setSelectable((context: UiViewContext<any> & any, field: MetaUiField, row: any) => {
-						const rootModel = context.root.model as AlternativeStrategy;
-						return !(rootModel.items && rootModel.items.filter((r: AlternativeStrategyItem) => !MetaModel.deleted(r)).find((r: AlternativeStrategyItem) => r.materialID === row.materialID))
-					}
-					),
+					.refFilter((model, ctx) => {
+					const __p = ((context: UiContext<AlternativeStrategyItem>, model: AlternativeStrategyItem, field: MetaUiField) => ({
+						status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
+					}),
 				this.field('usageProbability')
 					.onValidate<number>((val) => {
 						if (val !== undefined && val !== null && val > 100) {
@@ -162,7 +157,18 @@ export class AlternativeStrategyItemLogic extends UiGroupLogic<AlternativeStrate
 						}
 						return '';
 					})
-			)
+			)(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 		}
 
 		return { fields, groups, customActions };

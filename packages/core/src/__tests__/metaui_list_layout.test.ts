@@ -88,7 +88,7 @@ describe("列表列顺序", () => {
 });
 
 describe("updateForCache", () => {
-  it("把 metaui/filters/sorts 写入带 service 的缓存键", async () => {
+  it("把 metaui/filters 与 lastQuery 写入缓存，不写 sorts", async () => {
     const metaui = metaOf(field("code", { listSize: 120, listPos: 0 }));
     const apiClient = {
       config: { service: "base", locale: "zh" },
@@ -111,23 +111,11 @@ describe("updateForCache", () => {
         ],
       },
     ];
-    const sorts = [
-      {
-        sortName: "defaultSort",
-        sortTitle: "默认",
-        sortSets: [
-          {
-            sortLabel: "code",
-            sortSet: { sortBy: "code", sortOrder: "ASC" },
-            active: true,
-          },
-        ],
-      },
-    ];
-    await service.updateForCache("Things", { metaui, filters, sorts }, "base");
+    await service.updateForCache("Things", { metaui, filters, lastQuery: { pager: { pageSize: 20, pageNo: 1 }, searchWord: "x" }, sorts: [{ sortBy: "code", sortOrder: "ASC" }] } as any, "base");
     const cached = await service.getPack({ repository: "Things", service: "base" });
     expect(cached.metaui.getField("code")?.listSize).toBe(120);
     expect(cached.filters?.[0]?.filterConditions[0].active).toBe(true);
-    expect(cached.sorts?.[0]?.sortSets[0].active).toBe(true);
+    expect((cached as { sorts?: unknown }).sorts).toBeUndefined();
+    expect(cached.lastQuery?.searchWord).toBe("x");
   });
 });

@@ -373,7 +373,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			//fields.push(this.field('status').searchable(true));
+			//fields.push(this.field('status'));
 		}
 		//获得权限
 		//this.getRoleaction();

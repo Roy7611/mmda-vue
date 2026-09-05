@@ -26,7 +26,7 @@ import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect'
 		beforeIndex() {
 			const { fields, groups, customActions } = super.beforeIndex();
 			if (fields.length == 0) {
-				fields.push(this.field('severity').searchable(true),);
+				fields.push(this.field('severity'),);
 			}
 			return { fields, groups, customActions };
 		}

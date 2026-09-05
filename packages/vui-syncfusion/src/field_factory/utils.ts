@@ -20,9 +20,17 @@ export const control = (
   slots?: Record<string, () => VNode>,
 ) => {
   const invalid = invalidOf(field, context);
+  const {
+    onChange: onChangeProp,
+    change: changeProp,
+    input: inputProp,
+    ...restProps
+  } = props;
   const onChange = (args: any) => {
     const value = args?.value ?? args?.checked ?? args;
     update(field, context)(value);
+    // RoleLogic 等通过 props.onChange 做父子级联
+    if (typeof onChangeProp === "function") onChangeProp(value);
   };
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
     h(
@@ -37,9 +45,9 @@ export const control = (
         locale: getSyncfusionCulture(),
         cssClass: invalid ? "e-error" : undefined,
         ...extra,
-        ...props,
-        change: props.change ?? onChange,
-        input: props.input ?? onChange,
+        ...restProps,
+        change: changeProp ?? onChange,
+        input: inputProp ?? onChange,
       },
       slots,
     ),

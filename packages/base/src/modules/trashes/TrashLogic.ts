@@ -27,8 +27,8 @@ export class TrashLogic extends UiLogic<Trash> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('erasedTime').searchable(true),
-				this.field('ashmanID').searchable(true),
+				this.field('erasedTime'),
+				this.field('ashmanID'),
 			)
 		}
 		return { fields, groups, customActions }

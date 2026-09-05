@@ -114,9 +114,21 @@ export class WbsTaskLogic extends UiGroupLogic<WbsTask, Wbs> {
 
 	if (fields.length == 0) {
 		fields.push(
-			this.field('ownerID').setSearchParam((context, model) => ({
+			this.field('ownerID').refFilter((model, ctx) => {
+					const __p = ((context, model) => ({
 					status: `IN ${UserStatus.ACTIVATED}`
-			})),
+			}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
 		)
 	}
 		

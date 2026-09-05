@@ -1,10 +1,10 @@
-import type { MetaUiFilter } from './metaui_filter'
+﻿import type { MetaUiFilter } from './metaui_filter'
 import { isArray, isString } from './../utils/is'
 import { SqlDataType } from './datatype'
 import { MetaUiField } from './metaui_field'
 
 /**
- * 搜索比较操作符
+ * 鎼滅储姣旇緝鎿嶄綔绗?
  */
 export interface SearchOp {
   name: string
@@ -148,13 +148,13 @@ export const SearchOpNameList = [
 export type SearchOpName = typeof SearchOpNameList[number]
 
 /**
- * 根据操作符名称获取搜索操作符
- * @param op - 操作符名称，可选值:
+ * 鏍规嵁鎿嶄綔绗﹀悕绉拌幏鍙栨悳绱㈡搷浣滅
+ * @param op - 鎿嶄綔绗﹀悕绉帮紝鍙€夊€?
  *             'EQ' | 'NEQ' | 'GT' | 'GTEQ' | 'LT' | 'LTEQ' |
  *             'STARTS_WITH' | 'ENDS_WITH' | 'CONTAINS' | 'NOT_CONTAINS' |
  *             'IS_NULL' | 'IS_NOT_NULL' | 'IS_ALL' | 'IS_TRUE' | 'IS_FALSE' |
  *             'IN' | 'NOT_IN' | 'BETWEEN'
- * @returns 对应的 SearchOp 对象，如果未找到则返回 undefined
+ * @returns 瀵瑰簲鐨?SearchOp 瀵硅薄锛屽鏋滄湭鎵惧埌鍒欒繑鍥?undefined
  * @example
  * ```typescript
  * const op = getSearchOp('EQ');
@@ -167,8 +167,8 @@ export const getSearchOp = (op: SearchOpName): SearchOp | undefined => {
 }
 
 /**
- * 获取元域可选搜索操作符，用于构建搜索视图
- * @param field 元域
+ * 鑾峰彇鍏冨煙鍙€夋悳绱㈡搷浣滅锛岀敤浜庢瀯寤烘悳绱㈣鍥?
+ * @param field 鍏冨煙
  * @returns
  */
 export const getFieldSearchOps = (field: MetaUiField) => {
@@ -201,11 +201,11 @@ export function sqlOr(a?: string, b?: string) {
 }
 
 /**
- * 搜索域
+ * 鎼滅储鍩?
  *
  * @remarks
  *
- * 包含元界面域、可用操作符`SearchOp`以及值。`fixed`表示是否固定在列表页面头部
+ * 鍖呭惈鍏冪晫闈㈠煙銆佸彲鐢ㄦ搷浣滅`SearchOp`浠ュ強鍊笺€俙fixed`琛ㄧず鏄惁鍥哄畾鍦ㄥ垪琛ㄩ〉闈㈠ご閮?
  */
 // export class MetaUiSearchField {
 //   readonly availableOps: SearchOp[];
@@ -219,11 +219,11 @@ export function sqlOr(a?: string, b?: string) {
 // }
 
 /**
- * 元搜索
+ * 鍏冩悳绱?
  *
  * @remarks
  *
- * 用于构建搜索界面，其中元界面域成员在加入时应设为非响应数据
+ * 鐢ㄤ簬鏋勫缓鎼滅储鐣岄潰锛屽叾涓厓鐣岄潰鍩熸垚鍛樺湪鍔犲叆鏃跺簲璁句负闈炲搷搴旀暟鎹?
  */
 // export class MetaUiSearch {
 //   fixedFilter?: MetaUiFilter;
@@ -261,3 +261,4 @@ export function sqlOr(a?: string, b?: string) {
 //     return queryParams;
 //   }
 // }
+

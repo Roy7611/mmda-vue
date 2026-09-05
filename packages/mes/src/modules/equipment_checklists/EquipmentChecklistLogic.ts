@@ -31,11 +31,11 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 		if (fields.length == 0) {
 			// 根据点检周期过滤
 			if (this.field('checkCycle').field) {
-				fields.push(this.field('checkCycle').searchable(true));
+				fields.push(this.field('checkCycle'));
 			}
 			// 根据状态过滤
 			if (this.field('status').field) {
-				fields.push(this.field('status').searchable(true));
+				fields.push(this.field('status'));
 			}
 		}
 		return { fields, groups, customActions };

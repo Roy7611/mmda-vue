@@ -37,11 +37,11 @@ export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('status').searchable(true),
-				this.field('CCC').searchable(true),
-				this.field('qsMark').searchable(true),
-				this.field('envMark').searchable(true),
-				this.field('superMarketOnly').searchable(true),
+				this.field('status'),
+				this.field('CCC'),
+				this.field('qsMark'),
+				this.field('envMark'),
+				this.field('superMarketOnly'),
 			)
 		}
 		return { fields, groups, customActions }

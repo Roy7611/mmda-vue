@@ -1279,15 +1279,39 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('lineID')
-					.searchable(true)
-					.setSearchParam((ctx, model) => {
+					
+					.refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 						return { status: 'USED' };
-					}),
-				// this.field('opCode').searchable(true).setSearchParam((context, model) => {
+					})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				// this.field('opCode').refFilter((model, ctx) => {
+					const __p = ((context, model) => {
 				// 	const lineItem = context.searchFields.filter((item: any) => item.field.fieldName === 'lineID')
 				// 	return { lineID: lineItem[0].searchValue ?? '' }
-				// })
-				// this.field('equippingType').searchable(true)
+				// })(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
+				// this.field('equippingType')
 			);
 		}
 		return { fields, groups, customActions };

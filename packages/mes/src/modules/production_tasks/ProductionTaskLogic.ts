@@ -78,9 +78,9 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 				/**
 				 * searchable报错，疑似元数据库没有值
 				 */
-				this.field('status').searchable(true),
-				this.field('expectedStart').searchable(true),
-				this.field('lineID').searchable(true),
+				this.field('status'),
+				this.field('expectedStart'),
+				this.field('lineID'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});

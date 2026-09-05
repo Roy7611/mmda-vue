@@ -575,14 +575,26 @@ export class ProjectLogic extends UiLogic<Project> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('contractID').searchable(true).setSearchParam((context, model) => ({
+				this.field('contractID').refFilter((model, ctx) => {
+					const __p = ((context, model) => ({
 					originalContractID: 'IS NULL',
 					status: 3
-				})),
-				this.field('importance').searchable(true),
-				this.field('expectedStart').searchable(true),
-				this.field('expectedFinish').searchable(true),
-				this.field('status').searchable(true)
+				}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}),
+				this.field('importance'),
+				this.field('expectedStart'),
+				this.field('expectedFinish'),
+				this.field('status')
 			);
 		}
 		return { fields, groups, customActions };
@@ -596,13 +608,25 @@ export class ProjectLogic extends UiLogic<Project> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('customerID').setSearchParam((ctx, model) => {
+				this.field('customerID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					//let filters = null;
 					//filters = 'AND status>0';
 					return {
 						//filter: filters,
 						status: '>0',
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 
 				this.field('expectedStart').onChange((ctx, model, newVal, oldVal) => {
@@ -635,7 +659,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			 */
 			//groups.push(this.group<ProjectMaterial>('materials').defaultAdder(this.newProjectMaterial));
 			groups.push(
-				this.group<ProjectMember>('members').defaultAdder(this.addProjectMember).field('memberTitle').inPlaceEdit().parent,
+				this.group<ProjectMember>('members').defaultAdder(this.addProjectMember).field('memberTitle').inplaceEdit().parent,
 				this.group<ProjectDeliveryItemAmend>('a4').hideIf(model => model.amendIdx <= 0),
 				this.group<ProjectDeliveryItem>('deliveryItems')
 					.defaultAdder(this.addDeliveryItem)
@@ -648,106 +672,8 @@ export class ProjectLogic extends UiLogic<Project> {
 						view: UiViewOne.Edit,
 					})
 					.hideIf(model => !model.deliveryItems && model.deliveryItems.length <= 0)
-					// .defaultHandlerFile(() => ({
-					// 	importFn: async (context: UiBuildContext<any>, file) => {
-					// 		if (context.root.view === UiViewOne.Edit) {
-					// 			// 添加前清空子表交付物
-					// 			context.root.removeSubGroupItems('deliveryItems')
-					// 			await context.uploadFiles(file, {
-					// 				action: 'importItems',
-					// 				queryParams: {
-					// 					id: context.root.model.projectID ?? '',
-					// 					templateID: context.currentTemplate?.templateID ?? '',
-					// 					// 判断是否为详情（1：详情， 0：编辑）
-					// 					isDetail: 0
-					// 				},
-					// 				repository: 'ProjectDeliveryItems',
-					// 				service: 'mes'
-					// 			})
-					// 				.then((res: any) => {
-					// 					console.log(res, 'data');
-					// 					const { datas } = res.data
-					// 					if (datas.length > 0) {
-					// 						// 添加子项数据
-					// 						context.root.addSubGroupItems({
-					// 							target: context.root.model,
-					// 							group: 'deliveryItems',
-					// 							source: datas,
-					// 							sequenceKey: 'itemID',
-					// 							propsMapper: {
-					// 								productID: () => null
-					// 							}
-					// 						})
-					// 					}
-					// 					// 成功提示
-					// 					context.uiBuilder.toast(context, {
-					// 						severity: 'success',
-					// 						summary: context.t('dialog.success'),
-					// 						detail: context.t("success.importSuccess"),
-					// 						group: 'br',
-					// 						life: 3000
-					// 					})
-					// 				})
-					// 				.catch((error: any) => context.uiBuilder.toast(context, {
-					// 					severity: "error",
-					// 					summary: context.t("dialog.title.error"),
-					// 					detail: error.message ?? context.t("failure.importFail"),
-					// 					life: 3000,
-					// 				}))
-					// 		} else {
-					// 			await context.uploadFiles(file, {
-					// 				action: 'importItems',
-					// 				queryParams: {
-					// 					id: context.root.model.projectID ?? '',
-					// 					templateID: context.currentTemplate?.templateID ?? '',
-					// 					// 判断是否为详情（1：详情， 0：编辑）
-					// 					isDetail: 1
-					// 				},
-					// 				repository: 'ProjectDeliveryItems',
-					// 				service: 'mes'
-					// 			})
-					// 				.then(() => {
-					// 					// 成功提示
-					// 					context.uiBuilder.toast(context, {
-					// 						severity: 'success',
-					// 						summary: context.t('dialog.success'),
-					// 						detail: context.t("success.importSuccess"),
-					// 						group: 'br'
-					// 						// life: 3000
-					// 					})
-					// 					// 刷新页面
-					// 					setInterval(() => context.reload(), 2000)
-					// 				})
-					// 				.catch((error: any) => context.uiBuilder.toast(context, {
-					// 					severity: "error",
-					// 					summary: context.t("dialog.title.error"),
-					// 					detail: error.message ?? context.t("failure.importFail"),
-					// 					life: 3000,
-					// 				}))
-					// 		}
-
-					// 	},
-					// 	exportFn: async (context: UiBuildContext<any>, model) => {
-					// 		await context.globalProps.$api.exportAll({
-					// 			action: 'exportAll',
-					// 			queryParams: {
-					// 				contractID: context.root.model.contractID ?? '',
-					// 				templateID: context.currentTemplate?.templateID ?? '',
-					// 			},
-					// 			repository: 'Projects',
-					// 			service: 'mes'
-					// 		}).catch((error: any) => {
-					// 			context.uiBuilder.toast(context, {
-					// 				severity: "error",
-					// 				summary: context.globalProps.$t("dialog.title.error"),
-					// 				detail: error.message ?? context.globalProps.$t("failure.importFail"),
-					// 				life: 3000,
-					// 			});
-					// 		})
-					// 	}
-					// }))
 					.field('amendType')
-					.inPlaceEdit().parent
+					.inplaceEdit().parent
 			);
 
 			//groups.push(this.group<ProjectTask>('tasks').defaultAdder(this.newTasks));
@@ -1082,108 +1008,6 @@ export class ProjectLogic extends UiLogic<Project> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<ProjectDeliveryItemAmend>('a4').hideIf(model => model.amendIdx <= 0)
-				// this.group<ProjectDeliveryItem>('deliveryItems').defaultHandlerFile(() => ({
-				// 	// importFn: async (context, file) => {
-				// 	// 	if (context.root.view === UiViewOne.Edit) {
-				// 	// 		// 添加前清空子表交付物
-				// 	// 		context.root.removeSubGroupItems('deliveryItems')
-				// 	// 		await context.uploadFiles(file, {
-				// 	// 			action: 'importItems',
-				// 	// 			queryParams: {
-				// 	// 				id: context.root.model.projectID ?? '',
-				// 	// 				templateID: context.currentTemplate?.templateID ?? '',
-				// 	// 				// 判断是否为详情（1：详情， 0：编辑）
-				// 	// 				isDetail: 0
-				// 	// 			},
-				// 	// 			repository: 'ProjectDeliveryItems',
-				// 	// 			service: 'mes'
-				// 	// 		})
-				// 	// 			.then((res: any) => {
-				// 	// 				const { datas } = res.data
-				// 	// 				if (datas.length > 0) {
-				// 	// 					// 添加子项数据
-				// 	// 					context.root.addSubGroupItems({
-				// 	// 						target: context.root.model,
-				// 	// 						group: 'deliveryItems',
-				// 	// 						source: datas,
-				// 	// 						sequenceKey: 'itemID',
-				// 	// 						propsMapper: {
-				// 	// 							productID: (): void => null
-				// 	// 						}
-				// 	// 					})
-				// 	// 				}
-				// 	// 				// 成功提示
-				// 	// 				context.uiBuilder.toast(context, {
-				// 	// 					severity: 'success',
-				// 	// 					summary: context.t('dialog.success'),
-				// 	// 					detail: context.t("success.importSuccess"),
-				// 	// 					group: 'br',
-				// 	// 					life: 3000
-				// 	// 				})
-				// 	// 			})
-				// 	// 			.catch((error: any) => context.uiBuilder.toast(context, {
-				// 	// 				severity: "error",
-				// 	// 				summary: context.t("dialog.title.error"),
-				// 	// 				detail: error.message ?? context.t("failure.importFail"),
-				// 	// 				life: 3000,
-				// 	// 			}))
-				// 	// 	} else {
-				// 	// 		await context.uploadFiles(file, {
-				// 	// 			action: 'importItems',
-				// 	// 			queryParams: {
-				// 	// 				id: context.root.model.projectID ?? '',
-				// 	// 				templateID: context.currentTemplate?.templateID ?? '',
-				// 	// 				// 判断是否为详情（1：详情， 0：编辑）
-				// 	// 				isDetail: 1
-				// 	// 			},
-				// 	// 			repository: 'ProjectDeliveryItems',
-				// 	// 			service: 'mes'
-				// 	// 		})
-				// 	// 			.then(() => {
-				// 	// 				// 成功提示
-				// 	// 				context.uiBuilder.toast(context, {
-				// 	// 					severity: 'success',
-				// 	// 					summary: context.t('dialog.success'),
-				// 	// 					detail: context.t("success.importSuccess"),
-				// 	// 					group: 'br'
-				// 	// 					// life: 3000
-				// 	// 				})
-				// 	// 				// 刷新页面
-				// 	// 				setInterval(() => context.reload(), 2000)
-				// 	// 			})
-				// 	// 			.catch((error: any) => context.uiBuilder.toast(context, {
-				// 	// 				severity: "error",
-				// 	// 				summary: context.t("dialog.title.error"),
-				// 	// 				detail: error.message ?? context.t("failure.importFail"),
-				// 	// 				life: 3000,
-				// 	// 			}))
-				// 	// 	}
-
-				// 	// },
-				// 	// exportFn: async (context, file) => {
-				// 	// 	const { $api: apiBox } = context.globalProps
-				// 	// 	try {
-				// 	// 		await apiBox.exportAll({
-				// 	// 			action: 'exportAll',
-				// 	// 			queryParams: {
-				// 	// 				projectID: context.root.model.projectID ?? '',
-				// 	// 				templateID: context.currentTemplate?.templateID ?? '',
-				// 	// 			},
-				// 	// 			repository: 'ProjectDeliveryItems',
-				// 	// 			service: 'mes'
-				// 	// 		})
-				// 	// 	} catch (error: any) {
-				// 	// 		context.uiBuilder.toast(context, {
-				// 	// 			severity: "error",
-				// 	// 			summary: context.globalProps.$t("dialog.title.error"),
-				// 	// 			detail: error.message ?? context.globalProps.$t("failure.importFail"),
-				// 	// 			life: 3000,
-				// 	// 		});
-				// 	// 	}
-				// 	// }
-				// }))
-				// 	// 导入（暂停、终止和维保隐藏）
-				// 	.importIf(t => !(t.status === 'PAUSED' || t.status === 'MAITAINING' || t.status === 'TERMINATED'))
 			);
 		}
 		// groups.push(
@@ -1258,13 +1082,25 @@ export class ProjectMaterialLogic extends UiGroupLogic<ProjectMaterial, Project>
 			console.log('this.field(supplierID)', this.field('supplierID'));
 
 			fields.push(
-				this.field('supplierID').setSearchParam((ctx, model) => {
+				this.field('supplierID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					//let filters = null;
 					//filters = 'AND status>0';
 					return {
 						//filter: filters,
 						status: '>0',
 					};
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				})
 			);
 		}

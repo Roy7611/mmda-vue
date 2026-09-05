@@ -67,9 +67,9 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('workType').searchable(true),
-				this.field('expectedStart').searchable(true),
-				this.field('status').searchable(true));
+			fields.push(this.field('workType'),
+				this.field('expectedStart'),
+				this.field('status'));
 		}
 		return { fields, groups, customActions };
 	}

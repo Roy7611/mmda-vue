@@ -10,10 +10,13 @@ import {
   emptyPagedList,
   assignPagedList,
   isPagedList,
+  applyEntityQuery,
   assignSearchParam,
+  parseDefaultSort,
   defineEntity,
   defineValidation,
-  validateField,
+  validateFieldResult,
+  isPromise,
   type Entity,
   type EntityAction,
   type EntitySelectParam,
@@ -29,11 +32,11 @@ import {
   type SubGroupItemTransformParam,
   type Translatable,
   type TranslateFn,
-  type UiSubGroupMode,
+  type UiSubGroupView,
   type UiFieldValidation,
   type UiValidation,
 } from "@mmda/core";
-import { reactive, ref, shallowReactive, computed, toRaw, type Ref } from "vue";
+import { reactive, ref, unref, shallowReactive, computed, toRaw, type Ref } from "vue";
 import { rx } from "../rx";
 import {
   UiViewMany,
@@ -52,8 +55,9 @@ import {
 } from "./ui_filter";
 import type { UiBuilder } from "./ui_builder";
 import type { UiAction } from "./ui_action";
+import { canDoFromExecutableExpression } from "./ui_action";
 import type { UiColorRole } from "./ui_material";
-import { applyCachedSorts, schedulePersistListPack } from "./list_layout";
+import { schedulePersistListPack } from "./list_layout";
 
 type UiContext = UiViewContext<any>;
 type ContextCache = Map<string, UiViewContext<any>>;
@@ -128,10 +132,6 @@ export class UiViewContext<E extends object = Record<string, any>> {
   private readonly fieldOptions = reactive<Record<string, FieldSearchOptions>>(
     {},
   );
-  private readonly searchForRelativeOptions: Record<
-    string,
-    { searchWord: any; isComposing: boolean }
-  > = reactive({});
   private readonly referenceOptionLoads = new Map<string, Promise<any[]>>();
   private readonly validationState: UiValidation;
   private baseFilter = "";
@@ -407,8 +407,10 @@ export class UiViewContext<E extends object = Record<string, any>> {
       : translated;
   }
 
-  t(message: string | Translatable | undefined) {
-    return message == null || message === "" ? "" : this.translateFn(message);
+  t(message: string | Translatable | undefined, param?: Record<string, any>) {
+    if (message == null || message === "") return "";
+    if (typeof message === "string") return this.translate(message, param);
+    return this.translateFn(message);
   }
 
   async load() {
@@ -484,11 +486,15 @@ export class UiViewContext<E extends object = Record<string, any>> {
    */
   getGroupActions(grp: MetaUiGroup) {
     this.setupGroupActions(grp);
-    return (this._groupActions[grp.groupName] ?? []).filter(
-      (a) =>
-        (!a.view || a.view === UiViewOne.Create || a.view === UiViewOne.Edit) &&
-        (a.visible?.value ?? true),
-    );
+    return (this._groupActions[grp.groupName] ?? []).filter((a) => {
+      if (a.view && a.view !== UiViewOne.Create && a.view !== UiViewOne.Edit) {
+        return false;
+      }
+      const visible = a.visible;
+      if (visible == null) return true;
+      if (typeof visible === "function") return true;
+      return Boolean(unref(visible));
+    });
   }
 
   private setupGroupActions(grp: MetaUiGroup) {
@@ -498,65 +504,55 @@ export class UiViewContext<E extends object = Record<string, any>> {
     const actions: UiAction[] = [];
     this._groupActions[name] = actions;
 
-    if (!this.editing || this.isGroupReadonly(grp)) return;
+    if (!this.editing) return;
 
     const grpLogic = this.getGroupLogic(grp);
     if (!grpLogic) return;
 
     const visibles = this.logic?.groupActionVisibles?.[name];
+    const context = this;
 
-    if (typeof grpLogic.defaultAddFn === "function") {
-      const context = this;
-      actions.push(
-        {
+    const liveCanDo = (action: EntityAction) => {
+      return (model: unknown, ctx?: unknown) => {
+        if (this.isGroupReadonly(grp)) return false;
+        const pred = canDoFromExecutableExpression(this as any, action);
+        return pred ? pred(model, ctx as any) !== false : true;
+      };
+    };
+
+    const visibleOf = (actionName: string) =>
+      visibles?.[actionName]
+        ? computed(() => !!visibles[actionName]!(this.model, this))
+        : undefined;
+
+    for (const std of grpLogic.stdActions ?? []) {
+      if (std.name === "clear") {
+        actions.push({
           name: "clear",
-          icon: "clear",
-          label: this.t("action.clear"),
+          icon: std.icon ?? "clear",
+          label: std.label ?? this.t("action.clear"),
           colorRole: "danger",
           onAction: () => this.removeSubGroupItems(grp),
           view: UiViewOne.Edit,
-          visible: visibles?.["clear"]
-            ? computed(() => !!visibles["clear"]!(this.model, this))
-            : undefined,
-        },
-        {
+          canDo: liveCanDo(std),
+          visible: visibleOf("clear"),
+        });
+      } else if (std.name === "add") {
+        actions.push({
           name: "add",
           role: "secondary",
-          icon: "plus",
-          label: this.t("action.add"),
+          icon: std.icon ?? "plus",
+          label: std.label ?? this.t("action.add"),
           colorRole: "primary",
-          onAction: () =>
-            grpLogic.defaultAddFn!.apply(this.logic, [context, context.model]),
+          onAction: () => this.runGroupAdd(grp, grpLogic),
           view: UiViewOne.Edit,
-          visible: visibles?.["add"]
-            ? computed(() => !!visibles["add"]!(this.model, this))
-            : undefined,
-        },
-      );
-    }
-
-    if (typeof grpLogic.clearIfFn === "function") {
-      const clearIndex = actions.findIndex((a) => a.name === "clear");
-      const allowClear = !!grpLogic.clearIfFn(this.model, this);
-      if (allowClear && clearIndex === -1) {
-        actions.unshift({
-          name: "clear",
-          icon: "clear",
-          label: this.t("action.clear"),
-          colorRole: "danger",
-          onAction: () => this.removeSubGroupItems(grp),
-          view: UiViewOne.Edit,
-          visible: visibles?.["clear"]
-            ? computed(() => !!visibles["clear"]!(this.model, this))
-            : undefined,
+          canDo: liveCanDo(std),
+          visible: visibleOf("add"),
         });
-      } else if (!allowClear && clearIndex !== -1) {
-        actions.splice(clearIndex, 1);
       }
     }
 
     if (grpLogic.customActions?.length) {
-      const context = this;
       for (const a of grpLogic.customActions) {
         const uiAction: UiAction = {
           name: a.name,
@@ -567,6 +563,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
             a.onAction!.apply(this.logic, [context, context.model]),
           tooltip: a.description,
           view: a.view ?? context.view,
+          canDo: liveCanDo(a),
         };
         if (a.visible) {
           uiAction.visible = computed(() => !!a.visible!(context.model));
@@ -574,6 +571,26 @@ export class UiViewContext<E extends object = Record<string, any>> {
         actions.push(uiAction);
       }
     }
+  }
+
+  private async runGroupAdd(
+    grp: MetaUiGroup,
+    grpLogic: MetaUiGroupLogic<any, any>,
+  ) {
+    if (typeof grpLogic.defaultAddFn === "function") {
+      return grpLogic.defaultAddFn.apply(this.logic, [this, this.model]);
+    }
+    const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
+    if (typeof grpLogic.beforeAddFn === "function") {
+      const ok = await grpLogic.beforeAddFn(this, this.model, items);
+      if (ok === false) return;
+    }
+    const created = await this.createSubGroupItems({
+      group: grp,
+      target: this.model as Entity,
+    });
+    const list = Array.isArray(created) ? created : [created];
+    for (const item of list) this.addSubGroupItem(grp, item);
   }
 
   getFieldValue(field: MetaUiField | string, model: E = this.model) {
@@ -654,8 +671,6 @@ export class UiViewContext<E extends object = Record<string, any>> {
     const options = this.getFieldOptions(fld);
     options.searchParam.searchWord = "";
     options.currentSelectOption = undefined;
-    const searchOptions = this.getSearchForRelativeOptions(fld);
-    searchOptions.searchWord = null;
     this.setFieldValue(fld, null);
     const ref = fld.reference;
     if (ref) {
@@ -670,7 +685,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
 
   clearFilters() {
     this.searchParam.searchWord = "";
-    this.searchParam.searchParams = undefined;
+    this.searchParam.filterModel = undefined;
     for (const filter of this.filters) filter.selectedConditions.value = [];
     for (const searchField of this.searchFields) {
       searchField.searchWord = null;
@@ -712,6 +727,14 @@ export class UiViewContext<E extends object = Record<string, any>> {
     });
     if (form?.searchParam)
       assignSearchParam(this.searchParam, form.searchParam);
+    const lastQuery = (this.logic as UiLogic<any> | undefined)?.meta?.lastQuery;
+    if (lastQuery) applyEntityQuery(this.searchParam, lastQuery);
+    else {
+      const defaultSort = this.logic?.module?.defaultSort;
+      if (defaultSort && !this.searchParam.pager.sorts?.length) {
+        this.searchParam.pager.sorts = parseDefaultSort(defaultSort);
+      }
+    }
     if (form?.queryParams) {
       Object.assign(this.getQueryParam(), form.queryParams);
       if (form.queryParams.filter) {
@@ -724,16 +747,15 @@ export class UiViewContext<E extends object = Record<string, any>> {
       this.baseFilter = String(this.searchParam.queryParams.filter);
     }
     this.syncSearchState();
-    applyCachedSorts(this);
   }
 
   setFieldFilter(field: MetaUiField | string, filter?: EntityFieldFilter) {
     const name = this.resolveField(field).fieldName;
-    const model = (this.searchParam.searchParams ??= {});
+    const model = (this.searchParam.filterModel ??= {});
     if (filter) model[name] = filter;
     else delete model[name];
     if (Object.keys(model).length === 0)
-      this.searchParam.searchParams = undefined;
+      this.searchParam.filterModel = undefined;
   }
 
   toggleQuickFilter(
@@ -776,31 +798,34 @@ export class UiViewContext<E extends object = Record<string, any>> {
     this.syncSearchState();
   }
 
-  isFieldReadonly(field: MetaUiField | string) {
+  isFieldReadonly(field: MetaUiField | string): boolean {
     const fld = this.resolveField(field);
     return (
-      this.getFieldLogic(fld)?.readonlyFn?.(this.model, this) ?? !!fld.readOnly
+      !!fld.readOnly ||
+      !!this.getFieldLogic(fld)?.readonlyFn?.(this.model, this)
     );
   }
 
-  isFieldHidden(field: MetaUiField | string) {
+  isFieldHidden(field: MetaUiField | string): boolean {
     const fld = this.resolveField(field);
     return (
-      this.getFieldLogic(fld)?.hiddenFn?.(this.model, this) ?? !!fld.hidden
+      !!fld.hidden || !!this.getFieldLogic(fld)?.hiddenFn?.(this.model, this)
     );
   }
 
-  isFieldRequired(field: MetaUiField | string) {
+  isFieldRequired(field: MetaUiField | string): boolean {
     const fld = this.resolveField(field);
     return (
-      this.getFieldLogic(fld)?.requiredFn?.(this.model, this) ?? !fld.nullable
+      !fld.nullable ||
+      !!this.getFieldLogic(fld)?.requiredFn?.(this.model, this)
     );
   }
 
-  isGroupReadonly(group: MetaUiGroup | string) {
+  isGroupReadonly(group: MetaUiGroup | string): boolean {
     const grp = this.resolveGroup(group);
     return (
-      this.getGroupLogic(grp)?.readonlyFn?.(this.model, this) ?? !!grp.readOnly
+      !!grp.readOnly ||
+      !!this.getGroupLogic(grp)?.readonlyFn?.(this.model, this)
     );
   }
 
@@ -815,12 +840,13 @@ export class UiViewContext<E extends object = Record<string, any>> {
     return false;
   }
 
-  isGroupEditable(group: MetaUiGroup | string) {
+  isSubGroupItemDeletable(group: MetaUiGroup | string, item: Entity): boolean {
+    if (item.deletable === false) return false;
     const grp = this.resolveGroup(group);
-    return (
-      this.getGroupLogic(grp)?.editIfFn?.(this.model, this) ??
-      !this.isGroupReadonly(grp)
-    );
+    const fn = this.getGroupLogic(grp)?.itemDeletableFunc;
+    if (!fn) return true;
+    const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
+    return fn(item, master, this as unknown as UiContext) !== false;
   }
 
   async validate() {
@@ -901,6 +927,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
       if (state && typeof state === "object" && "touched" in state) {
         state.touched = false;
         state.message = "";
+        if ("warning" in state) state.warning = "";
       }
     }
   }
@@ -974,7 +1001,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
   subGroupItemContext<G extends Entity>(
     group: MetaUiGroup | string,
     item: G,
-    groupMode: UiSubGroupMode = this.editing ? "edit" : "details",
+    groupMode: UiSubGroupView = this.editing ? "edit" : "details",
     cacheKey = "id",
   ) {
     const grp = this.resolveGroup(group);
@@ -1066,23 +1093,15 @@ export class UiViewContext<E extends object = Record<string, any>> {
       }
       const ref = field.reference;
       if (!ref || !this.app || !ref.refRepository) return options;
-      const filter = ref.buildSearchFilter(model, {
-        searchWord,
-        ctx: this as any,
-        filterFn: this.getFieldLogic(field)?.filterFn ?? ref.filterFn,
-      });
-      const extra = this.getFieldLogic(field)?.setSearchParamFn?.(
-        this as unknown as UiContext,
-        model,
-        field,
-      );
+      const filter = (
+        this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
+      ).buildRefSearchFilter(model, this as any, searchWord);
       options.searchParam.queryParams = {
         ...(options.searchParam.queryParams ?? {}),
-        ...(extra ?? {}),
         ...(filter ? { filter } : {}),
       };
       // 远程联想：调 API，不弹 select 对话框（对话框由 SearchBox 搜索按钮触发）
-      const page = await this.app.api.searchEntities(options.searchParam, {
+      const page = await this.app.api.searchAll(options.searchParam, {
         repository: ref.refRepository,
         service: ref.service,
       });
@@ -1126,8 +1145,6 @@ export class UiViewContext<E extends object = Record<string, any>> {
       ) {
         options.selectOptions.unshift(picked[0]);
       }
-      const searchOptions = this.getSearchForRelativeOptions(fld);
-      searchOptions.searchWord = picked[0];
       return picked[0];
     } catch (error) {
       console.error(error);
@@ -1140,14 +1157,6 @@ export class UiViewContext<E extends object = Record<string, any>> {
       });
       return false;
     }
-  }
-
-  getSearchForRelativeOptions(field: MetaUiField | string) {
-    const fld = this.resolveField(field);
-    return (this.searchForRelativeOptions[fld.fieldName] ??= {
-      searchWord: null as any,
-      isComposing: false,
-    });
   }
 
   /**
@@ -1170,20 +1179,13 @@ export class UiViewContext<E extends object = Record<string, any>> {
       const searchParam = defaultSearchParam();
       searchParam.pager.pageNo = 1;
       searchParam.pager.pageSize = 1000;
-      const filter = ref.buildSearchFilter(this.model, {
-        ctx: this as any,
-        filterFn: this.getFieldLogic(field)?.filterFn ?? ref.filterFn,
-      });
-      const extra = this.getFieldLogic(field)?.setSearchParamFn?.(
-        this as unknown as UiContext,
-        this.model,
-        field,
-      );
+      const filter = (
+        this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
+      ).buildRefSearchFilter(this.model, this as any);
       searchParam.queryParams = {
-        ...(extra ?? {}),
         ...(filter ? { filter } : {}),
       };
-      const page = await this.app!.api.searchEntities(searchParam, {
+      const page = await this.app!.api.searchAll(searchParam, {
         repository: ref.refRepository,
         service: ref.service,
       });
@@ -1235,13 +1237,25 @@ export class UiViewContext<E extends object = Record<string, any>> {
 
   removeSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
     const grp = this.resolveGroup(group);
+    const logic = this.getGroupLogic(grp);
     const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
-    MetaModel.deleteItem(items, item);
-    this.getGroupLogic(grp)?.onChangeFn?.(
-      this as unknown as UiContext,
-      this.model,
-      items,
-    );
+    const commit = () => {
+      MetaModel.deleteItem(items, item);
+      logic?.onChangeFn?.(this as unknown as UiContext, this.model, items);
+    };
+    const intercept = logic?.beforeItemRemoveFunc;
+    if (!intercept) {
+      commit();
+      return;
+    }
+    const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
+    const result = intercept(item, master, this as unknown as UiContext);
+    if (isPromise(result)) {
+      return result.then((ok) => {
+        if (ok !== false) commit();
+      });
+    }
+    if (result !== false) commit();
   }
 
   removeSubGroupItems<G extends Entity>(group: MetaUiGroup | string) {
@@ -1344,7 +1358,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
   async subGroupItem<G>(
     group: MetaUiGroup | string,
     item: G,
-    props: { groupMode?: UiSubGroupMode } = {},
+    props: { groupMode?: UiSubGroupView } = {},
   ): Promise<false | G> {
     const ctx = this.subGroupItemContext(
       group,
@@ -1440,7 +1454,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
     validation: UiValidation,
   ) {
     if (this.isFieldHidden(field) || this.isFieldReadonly(field)) return 0;
-    const message = validateField(
+    const result = validateFieldResult(
       field,
       value,
       model,
@@ -1449,10 +1463,12 @@ export class UiViewContext<E extends object = Record<string, any>> {
     const state = (validation[field.fieldName] ??= {
       touched: false,
       message: "",
+      warning: "",
     }) as UiFieldValidation;
     state.touched = true;
-    state.message = message;
-    return message ? 1 : 0;
+    state.message = result.errors.join("；");
+    state.warning = result.warnings.join("；");
+    return result.errors.length ? 1 : 0;
   }
 
   private countValidationErrors(value: unknown): number {

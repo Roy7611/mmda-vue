@@ -32,7 +32,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
-			fields.push(this.field('status').searchable(true), this.field('projectID').searchable(true), this.field('replenished').searchable(true), this.field('reqDate').searchable(true));
+			fields.push(this.field('status'), this.field('projectID'), this.field('replenished'), this.field('reqDate'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -43,13 +43,37 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('siteID').setSearchParam((context, Model, fld) => {
+				this.field('siteID').refFilter((model, ctx) => {
+					const __p = ((context, Model, fld) => {
 					return { siteType: 'IN 2,4' }
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('totalReqQuantity').hideIf(() => true),
 				this.field('totalDlvQuantity').hideIf(() => true),
 				// 生产任务筛选（工程项目）
-				this.field('taskID').setSearchParam((context, model) => ({ projectID: model.projectID ?? '' }))
+				this.field('taskID').refFilter((model, ctx) => {
+					const __p = ((context, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 					.onChange((context, model) => {
 						// 选中自动回填工程项目
 						context.setFieldValue('projectID', model.prodTask?.project)

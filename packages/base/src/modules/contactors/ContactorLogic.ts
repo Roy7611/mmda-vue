@@ -46,10 +46,10 @@ export class ContactorLogic extends UiLogic<Contactor> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				// this.field('contactorName').searchable(true),
-				this.field('gender').searchable(true),
-				// this.field('birthday').searchable(true),
-				this.field('partnerID').searchable(true),
+				// this.field('contactorName'),
+				this.field('gender'),
+				// this.field('birthday'),
+				this.field('partnerID'),
 			)
 		}
 		return { fields, groups, customActions }
@@ -61,9 +61,21 @@ export class ContactorLogic extends UiLogic<Contactor> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('partnerID').setSearchParam((context, model, fld) => ({
+				this.field('partnerID').refFilter((model, ctx) => {
+					const __p = ((context, model, fld) => ({
 					status: `IN ${UsageStatus.USED}`
-				}))
+				}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				})
 			)
 			/**
 			fields.push(

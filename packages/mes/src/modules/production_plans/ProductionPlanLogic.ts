@@ -20,7 +20,6 @@ import {
 	EntityState,
 	isRefNone,
 	MetaUiGroup,
-	UiGroupRenderer,
 	isNullOrUndefined,
 } from '@mmda/core';
 import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
@@ -277,7 +276,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			hrefData.value = this.getParmas(window.location.href);
-			fields.push(this.field('status').searchable(true));
+			fields.push(this.field('status'));
 		}
 		return { fields, groups, customActions };
 	}
@@ -550,7 +549,8 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 		if (fields.length == 0) {
 			fields.push(
 				this.field('qcInProcessStatus').lockIf(m => true),
-				this.field('lineID').setSearchParam((ctx, model) => {
+				this.field('lineID').refFilter((model, ctx) => {
+					const __p = ((ctx, model) => {
 					const proprams = <any>{
 						status: 'NOT IN 0,-1',
 						bomID: model.bomID ?? ''
@@ -560,6 +560,17 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 						proprams.plantID = ctx.model.bom.plantID;
 					}
 					return proprams;
+				})(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
 				}),
 				this.field('taskQuantity').onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 					const { $api, $router, $toast, $t: t } = ctx.globalProps;

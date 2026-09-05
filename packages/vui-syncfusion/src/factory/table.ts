@@ -492,19 +492,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       return `${prefix}${String(text)}${unit}`
     }
 
-    const plainCellDisplay = (field: MetaUiField, row: T) => {
-      const displayValue = formattedDisplayText(field, row)
+    const plainCellDisplay = (field: MetaUiField, row: T) =>
       // 索引大页：valueAccessor 可能对整页每行调用，禁止 rows.indexOf（O(n²)）。
-      const custom = props.gridCellRenderer?.({
-        field,
-        row,
-        rowIndex: -1,
-        value: (row as any)?.[field.fieldName],
-        displayValue,
-      })
-      if (custom !== undefined && custom !== null) return custom
-      return displayValue
-    }
+      formattedDisplayText(field, row)
 
     const renderCellVNode = (field: MetaUiField, row: T) => {
       if (props.renderCell) {
@@ -553,6 +543,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return {
           field: field.fieldName,
           headerText: field.displayLabel,
+          isPrimaryKey: field.primaryKey === true,
           type: gridColumnType(field),
           format: gridColumnFormat(field),
           textAlign,
@@ -660,6 +651,14 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         ]
         const run = (action?: any) =>
           action?.onAction?.() ?? action?.command?.()
+        const enabled = (action?: any) =>
+          action == null ||
+          !(
+            action.disabled === true ||
+            action.disabled === 'true' ||
+            (typeof action.canDo === 'function' && action.canDo(row) === false) ||
+            action.canDo === false
+          )
         // 索引大页虚拟行仍会挂操作列：用原生 button，避免每行 3× EJ2 ButtonComponent。
         const flatIconButton = (
           action: any | undefined,
@@ -681,7 +680,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               type: 'button',
               class: 'e-btn e-flat e-round mmda-sf-row-action',
               title: action.label,
-              onClick: () => run(action),
+              disabled: !enabled(action),
+              onClick: () => {
+                if (!enabled(action)) return
+                run(action)
+              },
             },
             [h('span', { class: ['e-btn-icon', iconCss] })],
           )
@@ -705,6 +708,18 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                 },
               })
             : flatIconButton(details, 'details')
+
+        if (!edit && !details && remove) {
+          return h(
+            'div',
+            {
+              class: 'mmda-sf-row-actions',
+              onClick: (event: Event) => event.stopPropagation(),
+              onMousedown: (event: Event) => event.stopPropagation(),
+            },
+            [flatIconButton(remove, 'delete')],
+          )
+        }
 
         return h(
           'div',

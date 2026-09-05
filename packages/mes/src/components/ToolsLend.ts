@@ -22,7 +22,7 @@ export const ToolsLend = defineComponent({
 		const userOptionsAll = ref([]);
 		const userPageInfo = reactive({
 			searchWord: '',
-			status: 'GTEQ NEW',
+			status: 'GE NEW',
 			// pageSize: 20,
 			// pageNo: 1,
 		});

@@ -264,7 +264,6 @@ export const MmdaAgGrid = defineComponent({
               },
               context: {
                 renderCell: listProps.renderCell,
-                gridCellRenderer: listProps.gridCellRenderer,
               },
               treeData: Boolean((listProps as any).treeData),
               getDataPath: (listProps as any).getDataPath,

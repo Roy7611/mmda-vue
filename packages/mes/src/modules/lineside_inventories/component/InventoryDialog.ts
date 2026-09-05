@@ -261,7 +261,7 @@ export default defineComponent({
                                                 footer: f.aggregationSet ? ({ column }: any) => {
 
                                                     return uiBuilder.factory.textSpan(
-                                                        (isFunction(props.context.getFieldLogic(f)?.setAggregationFn) ? props.context.getFieldLogic(f)?.setAggregationFn(props.context as unknown as UiContext<Entity>, f, data.inventories).toPrecise().thousandDigitFormat() : defaultSummaryMethod(f, data.inventories.filter((item: any) => !MetaModel.deleted(item)))).toString(), {
+                                                        (isFunction(props.context.getFieldLogic(f)?.aggregateFn) ? props.context.getFieldLogic(f)?.aggregateFn(props.context as unknown as UiContext<Entity>, f, data.inventories).toPrecise().thousandDigitFormat() : defaultSummaryMethod(f, data.inventories.filter((item: any) => !MetaModel.deleted(item)))).toString(), {
                                                         style: {
                                                             width: '100%',
                                                             textAlign: 'center',

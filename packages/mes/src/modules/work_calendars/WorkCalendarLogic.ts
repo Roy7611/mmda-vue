@@ -232,9 +232,21 @@ export class WorkCalendarDayLogic extends UiGroupLogic<WorkCalendarDay, WorkCale
 					return null;
 				}),
 				this.field('shiftSystem').lockIf(t => !isNullOrUndefined(t.specificShiftID)),
-				this.field('specificShiftID').setSearchParam((content, model, fld) => ({
+				this.field('specificShiftID').refFilter((model, ctx) => {
+					const __p = ((content, model, fld) => ({
 					shiftSystem: model.shiftSystem
-				})).onChange((context: UiContext<WorkCalendarDay>, model: WorkCalendarDay, newVal) => {
+				}))(ctx as any, model as any, undefined as any);
+					if (!__p) return "";
+					return Object.entries(__p)
+						.filter(([, v]) => v !== "" && v != null)
+						.map(([k, v]) => {
+							const s = String(v);
+							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+							if (/^[><=]/.test(s)) return `${k}${s}`;
+							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
+						})
+						.join(" AND ");
+				}).onChange((context: UiContext<WorkCalendarDay>, model: WorkCalendarDay, newVal) => {
 					if (!isNullOrUndefined(newVal)) {
 						const shiftObj = context.getFieldCurrentOption('specificShiftID')
 						context.setFieldValue('shiftSystem', {

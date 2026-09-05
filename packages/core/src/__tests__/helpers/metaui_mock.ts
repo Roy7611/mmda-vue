@@ -5,7 +5,7 @@ import { SqlDataType } from "../../metaui/datatype";
  * 构造最小化 MetaUiField 用于测试，不依赖完整元数据
  */
 export function createMockField(init?: Partial<MetaUiField>): MetaUiField {
-  return {
+  return new MetaUiField({
     fieldName: "testField",
     displayLabel: "测试字段",
     fieldIdx: 0,
@@ -13,7 +13,7 @@ export function createMockField(init?: Partial<MetaUiField>): MetaUiField {
     nullable: true,
     listed: true,
     ...init,
-  } as MetaUiField;
+  });
 }
 
 /**

@@ -21,6 +21,7 @@ import type {
 import {
   MetaModel,
   SqlDataType,
+  auth,
   entityActionFactory,
   EntityActionType,
   DEFAULT_PAGE_SIZE,
@@ -48,7 +49,6 @@ import type {
 } from "./ui_factory";
 import { cleanTableCellProps } from "./ui_factory";
 import type {
-  GridCellRenderContext,
   UiListPropsType,
   UiListViewPropsType,
   UiPaginatorPropsType,
@@ -121,6 +121,7 @@ import type {
 import {
   UiActionDivider,
   UiContextAction,
+  isActionEnabled,
   type IconResolver,
   type UiAction,
 } from "./ui_action";
@@ -574,7 +575,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     tableProps: UiListPropsType<any> = {},
   ): VNode {
     const customRenderCell = tableProps.renderCell;
-    const customGridCellRenderer = tableProps.gridCellRenderer;
     const cellProps = cleanTableCellProps({
       tableMetaui: metaui,
       ...(tableProps as PropData),
@@ -613,13 +613,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         })
         .map((field: MetaUiField) => field.fieldName);
 
-    const hasGridCellRenderer =
-      Boolean(customGridCellRenderer) ||
-      listed.some((field: MetaUiField) => {
-        const logic = probeContext.getFieldLogic?.(field) as any;
-        return Boolean(logic?.customGridCellRenderer);
-      });
-
     return this.factory.table(rows, metaui, {
       ...tableProps,
       templateCellFields,
@@ -633,19 +626,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
         }
         return this.displayCellFor(field, row, rowContext(row), cellProps);
       },
-      ...(hasGridCellRenderer
-        ? {
-            gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
-              const fieldLogic = rowContext(renderContext.row).getFieldLogic(
-                renderContext.field,
-              ) as any;
-              return (
-                customGridCellRenderer?.(renderContext) ??
-                fieldLogic?.customGridCellRenderer?.(renderContext)
-              );
-            },
-          }
-        : {}),
     });
   }
 
@@ -656,7 +636,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     props: UiTreeGridPropsType<T> = {},
   ): VNode {
     const customRenderCell = props.renderCell;
-    const customGridCellRenderer = props.gridCellRenderer;
     const cellProps = cleanTableCellProps({
       tableMetaui: metaui,
       isTree: true,
@@ -680,15 +659,6 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       renderCell: (field, row) =>
         customRenderCell?.(field, row) ??
         this.displayCellFor(field, row, rowContext(row), cellProps),
-      gridCellRenderer: (renderContext: GridCellRenderContext<any>) => {
-        const fieldLogic = rowContext(renderContext.row).getFieldLogic(
-          renderContext.field,
-        ) as any;
-        return (
-          customGridCellRenderer?.(renderContext) ??
-          fieldLogic?.customGridCellRenderer?.(renderContext)
-        );
-      },
     });
   }
 
@@ -773,7 +743,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       spec.treeShape === "HIERARCHY"
         ? { [spec.shapeKey]: parentId }
         : { [spec.shapeKey]: parentId };
-    const data = await runtime.logic?.apiClient?.searchEntities?.(
+    const data = await runtime.logic?.apiClient?.searchAll?.(
       {
         pager: { pageNo: 1, pageSize: 1000 },
         queryParams,
@@ -825,12 +795,15 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
     if (inPlaceEdit && model?.editable !== false && !isLock) {
       const editor =
+        fieldLogic?.customCellEditor ??
         fieldLogic?.customEditor ??
         this.fldFactory[field.editor ?? "textInput"] ??
         this.fldFactory.fallbackInput;
       return editor(field, ctx, {
         showWordLimit: false,
         width: `${this.tableColumnWidth(field)}px`,
+        // 表格布尔格不要带字段标签（「读取」「创建」）
+        ...(SqlDataType.isBool(field.dataType) ? { label: "" } : {}),
       });
     }
 
@@ -892,12 +865,11 @@ export abstract class AbstractUiBuilder implements UiBuilder {
     props: PropData = {},
   ): VNode | VNode[] {
     const fieldLogic = context.getFieldLogic(field) as any;
-    const useEditor =
-      Boolean(context.editing) &&
-      !props?.isSearch &&
-      !props?.inplaceEdit &&
-      fieldLogic?.cellEditable &&
-      !context.isFieldReadonly(field);
+    // Syncfusion：nativeInplaceEdit 默认 true，未 inPlaceEdit(false) 即可编。
+    const nativeGrid = this.factory.nativeInplaceEdit === true;
+    const cellEditable = nativeGrid
+      ? fieldLogic?.inplaceEditable !== false
+      : fieldLogic?.inplaceEditable === true;
     const isRoot = (context as { name?: string }).name == ".";
     const isTree = props?.isTree ?? false;
     const isSearch = props?.isSearch;
@@ -905,6 +877,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
 
     const readOnlyRoot =
       !context.editing && (isRoot || props.readOnlyRows === true);
+
     const customRenderer =
       fieldLogic?.customCellRenderer ?? fieldLogic?.customRenderer;
     if (customRenderer) {
@@ -920,6 +893,21 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       });
       return customRenderer(field, rowContext, rendererProps);
     }
+
+    // 布尔：常显控件；其它类型：无原生就地编辑时才用 Vue 编辑器。
+    const boolCell =
+      SqlDataType.isBool(field.dataType) &&
+      Boolean(context.editing) &&
+      !isSearch &&
+      cellEditable &&
+      !context.isFieldReadonly(field);
+    const useEditor =
+      boolCell ||
+      (Boolean(context.editing) &&
+        !isSearch &&
+        !props?.inplaceEdit &&
+        cellEditable &&
+        !context.isFieldReadonly(field));
 
     if (useLink && !isSearch) {
       const { tableMetaui } = props;
@@ -964,19 +952,11 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       );
     }
 
-    let cacheKey: string | null = null;
-    if (props?.cacheKey) {
-      cacheKey = props.cacheKey;
-    } else if (isTree && props?.groupUi) {
-      cacheKey = props.groupUi.primaryKey;
-    }
-
+    // 行上下文已由上层 rowContext(row) 提供；仅在 model 不是当前行时再 with。
     const rowCtx =
       context.model === row
         ? context
-        : isTree
-          ? context.treeWith(row, cacheKey ?? undefined)
-          : context.with(row, cacheKey ?? undefined);
+        : context.with(row, props?.cacheKey ?? undefined);
 
     return this.tableCellWithError(field, rowCtx, useEditor, props);
   }
@@ -1117,6 +1097,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           shape: "round",
           class: "mmda-group-action",
           "aria-label": label,
+          disabled: !isActionEnabled(action, context.model, context),
         });
       }),
     );
@@ -1314,7 +1295,7 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       }
       const nativeGridEditing = this.factory.nativeInplaceEdit === true;
       const nativeInplaceEdit =
-        nativeGridEditing && groupLogic?.inplaceEdit !== false;
+        nativeGridEditing && groupLogic?.inplaceEditable !== false;
       const listedFields = group.groupUi.getListedFields();
       const tableFields = listedFields.length
         ? listedFields
@@ -1327,8 +1308,8 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           return (
             !readOnlyRows &&
             (nativeGridEditing
-              ? nativeInplaceEdit && fieldLogic?.cellEditable !== false
-              : fieldLogic?.cellEditable === true) &&
+              ? nativeInplaceEdit && fieldLogic?.inplaceEditable !== false
+              : fieldLogic?.inplaceEditable === true) &&
             !groupCtx.isFieldReadonly(field) &&
             !groupCtx.isFieldHidden(field)
           );
@@ -1345,12 +1326,28 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           editableFields,
           canEditCell: (item: any, field: MetaUiField) => {
             const rowCtx = groupCtx.with(item);
-            return (
-              nativeInplaceEdit &&
-              (item as { editable?: boolean }).editable !== false &&
-              !rowCtx.isFieldReadonly(field) &&
-              !rowCtx.isFieldHidden(field)
-            );
+            if (
+              !(
+                nativeInplaceEdit &&
+                (item as { editable?: boolean }).editable !== false &&
+                !rowCtx.isFieldReadonly(field) &&
+                !rowCtx.isFieldHidden(field)
+              )
+            ) {
+              return false;
+            }
+            // 权限列：模块 allowOps 不支持的操作不进编、不显示复选框
+            if (
+              SqlDataType.isBool(field.dataType) &&
+              String(field.fieldName).startsWith("allow") &&
+              (item as { allowOps?: number }).allowOps != null
+            ) {
+              const flags = auth(
+                (item as { allowOps?: number }).allowOps ?? 0,
+              ) as Record<string, boolean>;
+              if (!flags[field.fieldName]) return false;
+            }
+            return true;
           },
           onCellSave: (item: any, field: MetaUiField, value: unknown) => {
             const rowCtx = groupCtx.with(item);
@@ -1378,6 +1375,10 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           group,
           groupUi: group.groupUi,
           isTree: Boolean(treeSpec),
+          rowMenu: readOnlyRows
+            ? undefined
+            : (item: any) =>
+                this.subGroupRowMenu(context, group, item),
         };
       const table = treeSpec
         ? this.buildTreeGrid(
@@ -2130,12 +2131,12 @@ export abstract class AbstractUiBuilder implements UiBuilder {
           clear: context.translate("action.clear"),
           ...props.filterLabels,
         },
-        filterModel: runtime.searchParam?.searchParams,
+        filterModel: runtime.searchParam?.filterModel,
         loadFilterOptions:
           props.loadFilterOptions ??
           ((field) => runtime.loadReferenceOptions(field)),
         onFilterModelChange: (filterModel) => {
-          runtime.searchParam.searchParams =
+          runtime.searchParam.filterModel =
             Object.keys(filterModel).length > 0 ? filterModel : undefined;
           runtime.searchParam.pager.pageNo = 1;
           if (props.onFilterModelChange) {
@@ -2181,6 +2182,35 @@ export abstract class AbstractUiBuilder implements UiBuilder {
       details: this.factory.resolveIcon("details"),
     };
     return (row) => this.listRowMenu(context, row, icons, includeExtras);
+  }
+
+  /** 子表行删：可点看 itemDeletableFunc 与 row.deletable；确认后走 beforeItemRemove。 */
+  protected subGroupRowMenu(
+    context: UiContext,
+    group: MetaUiGroup,
+    row: any,
+  ): UiAction[] {
+    const runtime = context as UiViewContext;
+    return [
+      {
+        name: "delete",
+        label: context.t("action.delete"),
+        icon: this.factory.resolveIcon("delete"),
+        canDo: () => runtime.isSubGroupItemDeletable(group, row) !== false,
+        onAction: async () => {
+          if (runtime.isSubGroupItemDeletable(group, row) === false) return;
+          const result = await this.confirm(context, {
+            message:
+              runtime.translate?.("confirmation.delete", {
+                it: runtime.getModelTitle?.(row) ?? row?.id,
+              }) ?? "Delete this item?",
+            buttons: ["yes", "no"],
+          });
+          if (result !== "yes") return;
+          await runtime.removeSubGroupItem(group, row);
+        },
+      },
+    ];
   }
 
   /** 列表行操作：编辑、删除、详情；扩展 actions 置于分隔线后。
@@ -2724,7 +2754,7 @@ function selectedCategoryNode<T>(
 function hasRightSearch(context: UiContext) {
   const param = context.searchParam;
   if (String(param?.searchWord ?? "").trim()) return true;
-  if (param?.searchParams && Object.keys(param.searchParams).length > 0) {
+  if (param?.filterModel && Object.keys(param.filterModel).length > 0) {
     return true;
   }
   if (

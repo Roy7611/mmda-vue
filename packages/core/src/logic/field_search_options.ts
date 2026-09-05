@@ -19,6 +19,8 @@ export interface FieldSearchOptions {
   selectOptions: any[]
   cachedSelectOption?: any
   pagination: Pagination
+  /** 联想框输入法组词中，跳过即时远程搜索 */
+  isComposing?: boolean
 }
 
 const DEFAULT_SEARCH_WORD = '__'
@@ -30,14 +32,8 @@ export const defaultFieldSearchOptions = (
   searching: false,
   selectOptions: option ? [option] : [],
   pagination: NO_PAGINATION,
+  isComposing: false,
 })
 
 export const isDefaultFieldSearchOptions = (options: FieldSearchOptions) =>
   options.searchParam.searchWord === DEFAULT_SEARCH_WORD
-
-/** @deprecated 使用 `FieldSearchOptions`。 */
-export type MetaUiFieldOptions = FieldSearchOptions
-/** @deprecated 使用 `defaultFieldSearchOptions`。 */
-export const defaultFieldOptions = defaultFieldSearchOptions
-/** @deprecated 使用 `isDefaultFieldSearchOptions`。 */
-export const isDefaultFieldOptions = isDefaultFieldSearchOptions

@@ -47,8 +47,8 @@ export class AddressLogic extends UiLogic<Address> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('countryCode').searchable(true),
-				this.field('lastUsed').searchable(true),
+				this.field('countryCode'),
+				this.field('lastUsed'),
 			)
 		}
 		return { fields, groups, customActions }

@@ -89,7 +89,7 @@ export class CarrierLogic extends UiLogic<Carrier> {
   beforeIndex(): UiLogicFnResult<Carrier> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
-      fields.push(this.field("carrierName").searchable(true));
+      fields.push(this.field("carrierName"));
     }
     return { fields, groups, customActions };
   }

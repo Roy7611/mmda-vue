@@ -10,7 +10,8 @@ import type { Pager } from '../models/pagination'
 import type { FieldSearchOptions } from './field_search_options'
 import type { MetaUiFieldLogic } from './field_logic'
 import type { MetaUiGroupLogic } from './group_logic'
-import type { SubGroupItemTransformParam, UiSubGroupMode } from './ui_types'
+import type { SubGroupItemTransformParam } from '../models/metamodel'
+import type { UiSubGroupView } from './ui_types'
 import type { UiValidation } from './validation'
 
 /**
@@ -34,7 +35,7 @@ export interface UiContext<M extends object = any> {
   selectionMode?: 'single' | 'multiple' | null
 
   translate(message: string, param?: Record<string, any>): string
-  t(message: string | Translatable | undefined): string
+  t(message: string | Translatable | undefined, param?: Record<string, any>): string
 
   readonly app?: any
   readonly uiBuilder?: any
@@ -73,7 +74,7 @@ export interface UiContext<M extends object = any> {
   isInvalid?(field: MetaUiField | string): boolean
   getInvalidMessage?(field: MetaUiField | string): string
   isGroupReadonly?(group: MetaUiGroup | string): boolean
-  isGroupEditable?(group: MetaUiGroup | string): boolean
+  isSubGroupItemDeletable?(group: MetaUiGroup | string, item: Entity): boolean
 
   readonly prev?: UiContext<any>
   readonly root?: UiContext<any>
@@ -87,7 +88,7 @@ export interface UiContext<M extends object = any> {
   subGroupItemContext?<G extends Entity>(
     group: MetaUiGroup | string,
     item: G,
-    groupMode?: UiSubGroupMode,
+    groupMode?: UiSubGroupView,
     cacheKey?: string,
   ): UiContext<G>
   beginEdit?(item: object, cacheKey?: string): UiContext<any>

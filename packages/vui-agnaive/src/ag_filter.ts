@@ -63,29 +63,34 @@ export function agFilterModelToEntity(
   for (const [fieldName, raw] of Object.entries(agModel)) {
     if (!raw) continue
     const field = fieldOf(metaui, fieldName)
-    if (raw.filterType === 'set' || Array.isArray(raw.values)) {
+    const cell =
+      raw.operator === 'AND' || raw.operator === 'OR'
+        ? raw.conditions?.[0]
+        : raw
+    if (!cell) continue
+    if (cell.filterType === 'set' || Array.isArray(cell.values)) {
       next[fieldName] = {
         filterType: 'set',
-        values: [...(raw.values ?? [])],
-        operator: raw.operator === 'NOT_IN' ? 'NOT_IN' : 'IN',
+        values: [...(cell.values ?? [])],
+        operator: cell.operator === 'NOT_IN' ? 'NOT_IN' : 'IN',
       }
       continue
     }
-    if ((field && SqlDataType.isBool(field.dataType)) || raw.filterType === 'boolean') {
+    if ((field && SqlDataType.isBool(field.dataType)) || cell.filterType === 'boolean') {
       const value =
-        raw.value == null
-          ? raw.filter === 'true'
+        cell.value == null
+          ? cell.filter === 'true'
             ? true
-            : raw.filter === 'false'
+            : cell.filter === 'false'
               ? false
               : null
-          : Boolean(raw.value)
+          : Boolean(cell.value)
       next[fieldName] = { filterType: 'boolean', value }
       continue
     }
     const operator =
-      AG_TO_OP[raw.type] ??
-      (raw.operator as EntityFilterOperator) ??
+      AG_TO_OP[cell.type] ??
+      (cell.operator as EntityFilterOperator) ??
       'EQ'
     const filterType =
       field && SqlDataType.isDate(field.dataType)
@@ -96,8 +101,8 @@ export function agFilterModelToEntity(
     next[fieldName] = {
       filterType,
       operator,
-      value: raw.filter ?? raw.dateFrom ?? raw.value,
-      valueTo: raw.filterTo ?? raw.dateTo ?? raw.valueTo,
+      value: cell.filter ?? cell.dateFrom ?? cell.value,
+      valueTo: cell.filterTo ?? cell.dateTo ?? cell.valueTo,
     }
   }
   return next

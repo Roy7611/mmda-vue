@@ -47,11 +47,11 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				//this.field('deptID').searchable(true),
-				this.field('projectID').searchable(true),
-				this.field('status').searchable(true),
-				this.field('abnormalities').searchable(true)
-				// this.field('siteID').searchable(true),  没有产线
+				//this.field('deptID'),
+				this.field('projectID'),
+				this.field('status'),
+				this.field('abnormalities')
+				// this.field('siteID'),  没有产线
 			);
 		}
 		return { fields, groups, customActions };

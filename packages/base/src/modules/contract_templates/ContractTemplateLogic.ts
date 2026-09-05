@@ -52,8 +52,8 @@ export class ContractTemplateLogic extends UiLogic<ContractTemplate> {
     const { fields, groups, customActions } = super.beforeIndex();
     if (fields.length === 0) {
       fields.push(
-        this.field("status").searchable(true),
-        this.field("surveyRequired").searchable(true),
+        this.field("status"),
+        this.field("surveyRequired"),
       );
     }
     return { fields, groups, customActions };

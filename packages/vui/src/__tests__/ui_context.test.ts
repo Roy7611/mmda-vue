@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
-import { MetaUi, MetaUiField, MetaUiFieldLogic, SqlDataType } from "@mmda/core";
+import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
 import { UiViewContext } from "../ui/ui_context";
 import { TestUiBuilder } from "./test_builder";
 
@@ -225,7 +225,7 @@ describe("UiViewContext", () => {
 
     new TestUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
 
-    expect(ctx.contextCount).toBe(4);
+    expect(ctx.contextCount).toBe(3);
   });
 
   it("表格编辑只为 beginEdit 的行创建上下文并可释放", () => {
@@ -334,6 +334,53 @@ describe("UiViewContext", () => {
     root.addSubGroupItem("items", row);
     expect(model.items).toHaveLength(1);
     root.removeSubGroupItem("items", row);
+    expect(
+      (model.items[0] as { entityState?: number }).entityState,
+    ).toBeDefined();
+  });
+
+  it("子表标准 add/clear 的 canDo 响应 lockIf 与 canDo 叠加", () => {
+    const { metaui } = createOrderMetaUi();
+    const model = { id: "o1", orderNo: "SO-1", locked: false, items: [] };
+    const root = new UiViewContext({ model, metaui, view: "edit" });
+    const grp = metaui.getGroup("items")!;
+    const logic = new MetaUiGroupLogic(grp);
+    logic.canDo("clear", (m: { locked?: boolean }) => !m.locked);
+    root.setupGroupLogic(logic);
+    const actions = root.getGroupActions(grp);
+    const add = actions.find((a) => a.name === "add")!;
+    const clear = actions.find((a) => a.name === "clear")!;
+    expect(add.canDo?.(model, root)).not.toBe(false);
+    expect(clear.canDo?.(model, root)).not.toBe(false);
+    model.locked = true;
+    expect(clear.canDo?.(model, root)).toBe(false);
+    logic.lock();
+    expect(add.canDo?.(model, root)).toBe(false);
+  });
+
+  it("行删：row.deletable 与 itemDeletableFunc AND；beforeItemRemove 可取消", async () => {
+    const { metaui } = createOrderMetaUi();
+    const model = { id: "o1", orderNo: "SO-1", status: "NEW", items: [] as object[] };
+    const root = new UiViewContext({ model, metaui, view: "edit" });
+    const grp = metaui.getGroup("items")!;
+    const logic = new MetaUiGroupLogic<{ status: string }, { locked?: boolean }>(grp);
+    logic.itemDeletable((row, master) => !row.locked && master.status === "NEW");
+    let blocked = true;
+    logic.beforeItemRemove(() => !blocked);
+    root.setupGroupLogic(logic);
+    const allowed = { id: "i1", itemName: "A", locked: false } as any;
+    const locked = { id: "i2", itemName: "B", locked: true } as any;
+    const flagOff = { id: "i3", itemName: "C", deletable: false } as any;
+    root.addSubGroupItem("items", allowed);
+    root.addSubGroupItem("items", locked);
+    root.addSubGroupItem("items", flagOff);
+    expect(root.isSubGroupItemDeletable(grp, allowed)).toBe(true);
+    expect(root.isSubGroupItemDeletable(grp, locked)).toBe(false);
+    expect(root.isSubGroupItemDeletable(grp, flagOff)).toBe(false);
+    await root.removeSubGroupItem(grp, allowed);
+    expect(model.items).toHaveLength(3);
+    blocked = false;
+    await root.removeSubGroupItem(grp, allowed);
     expect(
       (model.items[0] as { entityState?: number }).entityState,
     ).toBeDefined();
@@ -514,7 +561,7 @@ describe("UiViewContext", () => {
       { packID: "1", packFullName: "纸箱" },
       { packID: "2", packFullName: "托盘" },
     ];
-    const searchEntities = vi.fn(async () => ({
+    const searchAll = vi.fn(async () => ({
       list: options,
       pagination: { pageNo: 1, pageSize: 1000, recordCount: 2 },
     }));
@@ -523,7 +570,7 @@ describe("UiViewContext", () => {
       metaui,
       view: "index",
       app: {
-        api: { searchEntities },
+        api: { searchAll },
       } as any,
     });
 
@@ -534,8 +581,8 @@ describe("UiViewContext", () => {
     expect(ctx.getFieldOptions(packField).selectOptions).toEqual(
       packField.reference?.refOptions,
     );
-    expect(searchEntities).toHaveBeenCalledOnce();
-    expect(searchEntities).toHaveBeenCalledWith(
+    expect(searchAll).toHaveBeenCalledOnce();
+    expect(searchAll).toHaveBeenCalledWith(
       expect.objectContaining({
         pager: expect.objectContaining({ pageNo: 1, pageSize: 1000 }),
       }),
@@ -563,7 +610,7 @@ describe("UiViewContext", () => {
     expect(root.getCacheByID("i1")?.model).toMatchObject({ itemName: "" });
   });
 
-  it("打开列表时勾选缓存的 active 过滤并应用排序", () => {
+  it("打开列表时勾选缓存的 active 过滤，不从 pack 拉排序", () => {
     const { metaui } = createOrderMetaUi();
     const ctx = new UiViewContext({
       model: { list: [] },
@@ -571,19 +618,7 @@ describe("UiViewContext", () => {
       view: "index",
       logic: {
         meta: {
-          sorts: [
-            {
-              sortName: "defaultSort",
-              sortTitle: "默认",
-              sortSets: [
-                {
-                  sortLabel: "orderNo",
-                  sortSet: { sortBy: "orderNo", sortOrder: "DESC" },
-                  active: true,
-                },
-              ],
-            },
-          ],
+          sorts: [{ sortBy: "orderNo", sortOrder: "DESC" }],
         },
       },
     } as any);
@@ -601,8 +636,6 @@ describe("UiViewContext", () => {
     expect(ctx.filters[0]?.selectedConditions.value.map((item) => item.displayLabel)).toEqual(
       ["B"],
     );
-    expect(ctx.searchParam.pager.sorts).toEqual([
-      { sortBy: "orderNo", sortOrder: "DESC" },
-    ]);
+    expect(ctx.searchParam.pager.sorts ?? []).toEqual([]);
   });
 });
