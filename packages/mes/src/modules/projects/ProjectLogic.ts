@@ -5,10 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel } from '@mmda/core';
+
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel, MetaUiBuilder } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
-import { primeVueFactory } from '@/compat/primevue_legacy'
 import { type Project, defineProject } from '@/models/Project';
 import { type ProjectMember, defineProjectMember } from '@/models/ProjectMember';
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
@@ -23,10 +22,10 @@ import { type ProjectTaskRelation, defineProjectTaskRelation } from '@/models/Pr
 
 import { type User, defineUser } from '@mmda/base/src/models/User';
 
-import ChooseWbs from '@/components/ChooseWbs/ChooseWbs';
+import { chooseWbsNode } from '@/components/ChooseWbs/ChooseWbs';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 import { log } from 'console';
-import { defineComponent, h, inject, reactive, ref } from 'vue';
+import { confirmCenterNode, createSelectMaterialFooter } from './select_material_footer';
 import { cpSync } from 'fs';
 import { template } from 'lodash';
 import { ProjectStatus } from '../../enums/ProjectStatus';
@@ -43,13 +42,13 @@ const compareTime = (time1: any, time2: any) => {
 	return 1;
 };
 
-const wbsData = reactive({
+const wbsData = {
 	payload: {
 		refID: '',
 	},
 });
 
-const searchParam = reactive({
+const searchParam = {
 	//pager: {
 	// pageSize: 10,
 	// pageNo: 1
@@ -59,13 +58,13 @@ const searchParam = reactive({
 });
 
 //选中的项目物料
-const selectMetarlList = reactive({
+const selectMetarlList = {
 	data: [],
 });
 
-const metarlData = ref([]);
-const metarlcolumns = ref([]);
-const metarlDataKEY = ref('id');
+const metarlData = { value: [] };
+const metarlcolumns = { value: [] };
+const metarlDataKEY = { value: 'id' };
 
 const getMetarlList = async (ctx: any, model?: any, filter?: any, value?: any) => {
 	let modelMaterList = [];
@@ -86,263 +85,52 @@ const getMetarlList = async (ctx: any, model?: any, filter?: any, value?: any) =
 };
 
 //请购
-const beforeRequest = async (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
-	const { $ui: ui, $api, $router, $toast: toast, $t: t } = context.globalProps;
-	const apiClient = $api as ApiClient;
+const beforeRequest = async (context: UiContext, model: Project, action: EntityAction) => {
+	const { $ui: ui, $router, $toast: toast, $t: t } = context.globalProps;
+	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
 		model.action = null;
 	}
 	//获取元数据
 	const mUI = await metaUiService.get('ProjectMaterials', 'mes');
-	metarlcolumns.value = mUI.getListedFields().sort((prev: any, curr: any) => {
-		return Number(prev.fieldIdx) - Number(curr.fieldIdx);
-	});
 	metarlDataKEY.value = 'itemID';
 	await getMetarlList(context, model, 'noMAKE');
-	return await context.uiBuilder.confirmDialog(
-		context.uiBuilder.buildSearchForRelativeContent(
-			metarlcolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-			{
-				dataKey: metarlDataKEY.value,
-				selectionMode: 'multiple',
-				onSearch: async (params: any) => {
-					const { searchParams, reload, pager } = params;
-					await getMetarlList(context, model, 'noMAKE');
-					return { list: metarlData.value };
-				},
-				onPage: ({ pageNo, pageSize }: any) => {
-					// searchParam.pager.pageNo = pageNo;
-					// searchParam.pager.pageSize = pageSize;
-				},
-				onSelect: (selection: any, row: any) => {
-					selectMetarlList.data = selection;
-				},
-			}
-		),
+	const metaui = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
+	return await context.uiBuilder.dialog(
+		context.uiBuilder.factory.table(metarlData.value, metaui, {
+			selectionMode: 'multiple',
+			onSelect: (selection: any) => { selectMetarlList.data = selection; },
+		}),
 		context,
 		{
 			title: t('bom.selectMaterial'),
 		}
 	)
-		.then((res: any) => console.log('res', res))
-		.catch((err: any) => console.log('err', err));
 };
 
 //采购
-const beforePurchase = async (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
-	const { $ui: ui, $api, $router, $toast: toast, $t: t } = context.globalProps;
-	const apiClient = $api as ApiClient;
+const beforePurchase = async (context: UiContext, model: Project, action: EntityAction) => {
+	const { $ui: ui, $router, $toast: toast, $t: t } = context.globalProps;
+	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
 		model.action = null;
 	}
 	//获取元数据
 	const mUI = await metaUiService.get('ProjectMaterials', 'mes');
-	metarlcolumns.value = mUI.getListedFields().sort((prev: any, curr: any) => {
-		return Number(prev.fieldIdx) - Number(curr.fieldIdx);
-	});
-
-	console.log('metarlcolumns', metarlcolumns.value);
 	metarlDataKEY.value = 'itemID';
 	await getMetarlList(context, model, 'noMAKE');
-	context.uiBuilder.confirmDialog(
-		context.uiBuilder.buildSearchForRelativeContent(
-			metarlcolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-			{
-				dataKey: metarlDataKEY.value,
-				selectionMode: 'multiple',
-				onSearch: async (params: any) => {
-					const { searchParams, reload, pager } = params;
-					await getMetarlList(context, model, 'noMAKE');
-					return { list: metarlData.value };
-				},
-				onPage: ({ pageNo, pageSize }: any) => {
-					// searchParam.pager.pageNo = pageNo;
-					// searchParam.pager.pageSize = pageSize;
-				},
-				onSelect: (selection: any, row: any) => {
-					selectMetarlList.data = selection;
-				},
-			}
-		),
+	const metaui = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
+	context.uiBuilder.dialog(
+		context.uiBuilder.factory.table(metarlData.value, metaui, {
+			selectionMode: 'multiple',
+			onSelect: (selection: any) => { selectMetarlList.data = selection; },
+		}),
 		context,
 		{
 			title: t('bom.selectMaterial'),
-			footer: defineComponent({
-				name: 'DialogFooter',
-				setup: () => {
-					const dialogRef: any = inject('dialogRef');
-					return () =>
-						primeVueFactory.buttonGroup(() => [
-							primeVueFactory.button({
-								outlined: true,
-								label: t('action.cancel'),
-								class: 'mr-2',
-								icon: 'pi pi-times',
-								colorRole: 'info',
-								severity: 'danger',
-								id: 'dlg-cancel-button',
-								role: 'dlg-cancel-pick-button',
-								onAction: async () => {
-									dialogRef.value.close();
-								},
-							}),
-							//生成订单
-							primeVueFactory.button({
-								outlined: true,
-								label: t('action.generatePurchaseOrder'),
-								class: 'mr-2',
-								id: 'dlg-confirm-button',
-								role: 'dlg-confirm-pick-button',
-								icon: 'pi pi-check',
-								colorRole: 'info',
-								onAction: async () => {
-									if (selectMetarlList.data.length <= 0) {
-										context.uiBuilder.toast(context, {
-											severity: 'error',
-											summary: t('invalid.requiredSelectAny'),
-											group: 'br',
-											life: 3000,
-										});
-										return false;
-									} else {
-										const submitData = {
-											refName: 'Project',
-											refID: <any>null,
-											refItemKeys: <any>[],
-										};
-										const rItemKeys = selectMetarlList.data.map((item: any) => {
-											const itemKeys = {
-												refName: item.refName,
-												refID: item.refID,
-												refItemID: item.refItemID,
-												tenantID: item.tenantID,
-											};
-											return itemKeys;
-										});
-										submitData.refItemKeys = rItemKeys;
-
-										try {
-											const resPackages = await apiClient.doAction(
-												{
-													action: 'create',
-													repository: 'PurchaseOrders',
-													service: 'srm',
-												},
-												submitData
-											);
-											if (resPackages) {
-												context.uiBuilder.toast(context, {
-													severity: 'success',
-													summary: t('success.operationSuccessful'),
-													life: 3000,
-												});
-
-												return true;
-											}
-										} catch (error: any) {
-											context.uiBuilder.toast(context, {
-												severity: 'error',
-												title: t('dialog.title.error'),
-												summary: error.detail ?? '',
-												group: 'br',
-												life: 3000,
-											});
-											return false;
-										}
-									}
-								},
-							}),
-							//生成合同
-							primeVueFactory.button({
-								outlined: true,
-								label: t('action.generatePurchaseContract'),
-								class: 'mr-2',
-								id: 'dlg-confirm-button',
-								role: 'dlg-confirm-pick-button',
-								icon: 'pi pi-check',
-								colorRole: 'success',
-								onAction: async () => {
-									if (selectMetarlList.data.length <= 0) {
-										context.uiBuilder.toast(context, {
-											severity: 'error',
-											summary: t('invalid.requiredSelectAny'),
-											group: 'br',
-											life: 3000,
-										});
-										return false;
-									} else {
-										const submitData = {
-											refName: 'Project',
-											refID: <any>null,
-											refItemKeys: <any>[],
-										};
-										const rItemKeys = selectMetarlList.data.map((item: any) => {
-											const itemKeys = {
-												refName: item.refName,
-												refID: item.refID,
-												refItemID: item.refItemID,
-												tenantID: item.tenantID,
-											};
-											return itemKeys;
-										});
-										submitData.refItemKeys = rItemKeys;
-
-										try {
-											const resPackages = await apiClient.doAction(
-												{
-													action: 'create',
-													repository: 'SupplyContracts',
-													service: 'srm',
-												},
-												submitData
-											);
-											if (resPackages) {
-												context.uiBuilder.toast(context, {
-													severity: 'success',
-													summary: t('success.operationSuccessful'),
-													life: 3000,
-												});
-												setTimeout(() => {
-													context.reload();
-												}, 2000);
-											}
-										} catch (error: any) {
-											context.uiBuilder.toast(context, {
-												severity: 'error',
-												title: t('dialog.title.error'),
-												summary: error.detail ?? '',
-												group: 'br',
-												life: 3000,
-											});
-											return false;
-										}
-									}
-
-									// const callback = () => {
-									// 	dialogRef.value.close();
-									// 	resolve(true);
-									// };
-									// const handleFn = props.beforeConfirm || props.accept;
-
-									// if (!isFunction(handleFn)) {
-									// 	return callback();
-									// } else {
-									// 	const result = await handleFn();
-									// 	if (isPromise<boolean>(result)) {
-									// 		result.then(ok => {
-									// 			if (ok) callback();
-									// 		});
-									// 	} else {
-									// 		if (result) callback();
-									// 	}
-									// }
-								},
-							}),
-						]);
-				},
-			}),
+			footer: createSelectMaterialFooter({ t, context, selectMetarlList, apiClient }),
 			// accept: async () => {
 			// 	console.log('aaaaaa');
 			// 	// if (selectionRows.value.length > 0) {
@@ -406,18 +194,18 @@ const beforePurchase = async (context: UiBuildContext<any>, model: Project, acti
 };
 
 //生产
-const beforeProduction = async (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
+const beforeProduction = async (context: UiContext, model: Project, action: EntityAction) => {
 	return false;
 };
 
-const beforeStage = async (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
-	const { $toast: toast, $api, $t } = context.globalProps;
-	const apiClient = $api as ApiClient;
+const beforeStage = async (context: UiContext, model: Project, action: EntityAction) => {
+	const { $toast: toast, $t } = context.globalProps;
+	const apiClient = this.apiClient;
 	wbsData.payload.refID = '';
 	try {
 		// 生成弹窗
-		await context.uiBuilder.confirmDialog(
-			h(ChooseWbs, {
+		await context.uiBuilder.dialog(
+			chooseWbsNode({
 				context: context,
 				onChangeData(val: any) {
 					wbsData.payload.refID = val.refID ?? '';
@@ -453,14 +241,8 @@ const beforeStage = async (context: UiBuildContext<any>, model: Project, action:
 								}
 							);
 							if (res) {
-								context.uiBuilder.confirmDialog(
-									h(
-										'div',
-										{
-											class: 'confirmCenter',
-										},
-										[$t('success.opJumpProject')]
-									),
+								context.uiBuilder.dialog(
+									confirmCenterNode($t('success.opJumpProject')),
 									context,
 									{
 										width: '30vw',
@@ -468,10 +250,7 @@ const beforeStage = async (context: UiBuildContext<any>, model: Project, action:
 										title: '',
 										accept: async () => {
 											console.log('model.projectID', model.projectID);
-											const { $router: router, $api: api } = context.globalProps;
-											const burl = api.http.baseUrl.replace(/api/g, '');
-											const url = `${burl}MES/ProjectSchedule?projectID=${model.projectID}`;
-											window.open(url, '_blank');
+											window.open(`/MES/ProjectSchedule?projectID=${model.projectID}`, '_blank');
 										},
 										reject: async () => {
 											context.reload();
@@ -530,7 +309,7 @@ export class ProjectLogic extends UiLogic<Project> {
 		this.addRelativeLogic<ProjectMember>('members', master => new ProjectMemberLogic(this, master));
 		this.addRelativeLogic<ProjectDeliveryItem>('deliveryItems', master => new ProjectDeliveryItemLogic(this, master));
 
-		this.beforeAction = async (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
+		this.beforeAction = async (context: UiContext, model: Project, action: EntityAction) => {
 			try {
 				let result: boolean | void;
 				if (action.name == 'stage') result = await beforeStage(context, model, action);
@@ -548,7 +327,7 @@ export class ProjectLogic extends UiLogic<Project> {
 			}
 		};
 
-		this.beforeSave = (context: UiBuildContext<any>, model: Project, action: EntityAction) => {
+		this.beforeSave = (context: UiContext, model: Project, action: EntityAction) => {
 			const { $t: t } = context.globalProps;
 			//同时有开始时间，结束时间
 			if (model.expectedStart && model.expectedFinish) {
@@ -575,7 +354,7 @@ export class ProjectLogic extends UiLogic<Project> {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('contractID').refFilter((model, ctx) => {
+				this.field('contractID').refWhere((model, ctx) => {
 					const __p = ((context, model) => ({
 					originalContractID: 'IS NULL',
 					status: 3
@@ -608,7 +387,7 @@ export class ProjectLogic extends UiLogic<Project> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('customerID').refFilter((model, ctx) => {
+				this.field('customerID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					//let filters = null;
 					//filters = 'AND status>0';
@@ -684,12 +463,12 @@ export class ProjectLogic extends UiLogic<Project> {
 		return { fields, groups, customActions };
 	}
 
-	// importDeliveryItems(context: UiBuildContext<any>, target: Project) {
-	// 	const { $api, $router, $toast, $t } = context.globalProps;
+	// importDeliveryItems(context: UiContext, target: Project) {
+	// 	const { $router, $toast, $t } = context.globalProps;
 
-	// 	context.uiBuilder.confirmDialog(
+	// 	context.uiBuilder.dialog(
 	// 		context.uiBuilder.buildFileUpload(context, {
-	// 			url: `${context.apiClient.http.baseUrl}/mes/ProjectDeliveryItems/importAll?templateID=${context.model.id}`,
+	// 			url: `${this.apiClient.http.baseUrl}/mes/ProjectDeliveryItems/importAll?templateID=${context.model.id}`,
 	// 			accept: '.xls,.xslx',
 	// 			showUploadButton: true,
 	// 			onUpload: (scope: any) => {
@@ -1019,7 +798,7 @@ export class ProjectLogic extends UiLogic<Project> {
 	/**
 	 * 导入
 	 */
-	// async importFiles(context: UiBuildContext<any>) {
+	// async importFiles(context: UiContext) {
 	// 	const { $toast, $t } = context.globalProps;
 	// 	context.uiBuilder.buildFileUpload(context, {
 	// 		url: '', //上传地址
@@ -1052,7 +831,7 @@ export class ProjectLogic extends UiLogic<Project> {
  * @param module 模块
  * @returns
  */
-export const ProjectLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectLogic({
 		metaUiService: metaUiService,
 		repository: 'Projects',
@@ -1082,7 +861,7 @@ export class ProjectMaterialLogic extends UiGroupLogic<ProjectMaterial, Project>
 			console.log('this.field(supplierID)', this.field('supplierID'));
 
 			fields.push(
-				this.field('supplierID').refFilter((model, ctx) => {
+				this.field('supplierID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					//let filters = null;
 					//filters = 'AND status>0';

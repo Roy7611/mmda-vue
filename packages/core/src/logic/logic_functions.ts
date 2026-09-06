@@ -41,8 +41,8 @@ export type OnValidateFn<T = any, E = any> = (
   ctx?: UiContext<E & object>,
 ) => string | Translatable | undefined
 
-/** 关联引用的额外 SQL 片段；由 refFilter 叠加，与元数据 where AND。 */
-export type RefFilterFn<T = unknown> = (
+/** 关联引用的额外 SQL WHERE 片段；由 refWhere 叠加，与元数据 where AND。 */
+export type RefWhereFn<T = unknown> = (
   model: T,
   ctx: UiContext<T & object>,
   fieldOptions?: Record<string, unknown>,

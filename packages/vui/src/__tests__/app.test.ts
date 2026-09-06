@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, inject } from 'vue'
 import { setupI18n } from '../i18n/i18n'
-import { MmdaApplication } from '../ui/ui_app'
+import { MmdaVueApp } from '../ui/ui_app'
 import { createStubUiBuilder } from '../ui/ui_builder'
 import { UI_APP_KEY, UI_BUILDER_KEY } from '../ui/ui_keys'
 import { getFileInfo } from '../ui/components/FileIcons'
 
-describe('MmdaApplication', () => {
+describe('MmdaVueApp', () => {
   it('装配 DI、locale 和弹层转发，不依赖 echarts', () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
-    const app = new MmdaApplication('https://example.test/api', 'wms', ui, i18n)
+    const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
 
     expect(app.name).toBe('wms')
     expect(app.di.provide).toBeTypeOf('function')
@@ -22,8 +22,8 @@ describe('MmdaApplication', () => {
   it('confirmDialog 转发给 Builder', async () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
-    const app = new MmdaApplication('https://example.test/api', 'wms', ui, i18n)
-    await expect(app.confirmDialog({} as any, {} as any, { name: 'x' })).resolves.toBe(
+    const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
+    await expect(app.ui.dialog({} as any, {} as any, { name: 'x' })).resolves.toBe(
       false,
     )
   })
@@ -40,7 +40,7 @@ describe('MmdaApplication', () => {
         typeof props.sideBar === 'function' ? props.sideBar() : props.sideBar,
         typeof props.body === 'function' ? props.body() : props.body,
       ]))
-    const mmda = new MmdaApplication('https://example.test/api', 'wms', ui, i18n)
+    const mmda = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
     const Root = defineComponent({
       setup() {
         const app = inject(UI_APP_KEY)!
@@ -78,7 +78,7 @@ describe('MmdaApplication', () => {
   it('signin 使用应用级 OAuth client 配置', async () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
-    const app = new MmdaApplication('https://example.test/api', 'wms', ui, i18n, {
+    const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n, {
       clientId: 'app-client',
       clientSecret: 'app-secret',
     })

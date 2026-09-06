@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -23,16 +22,12 @@ import {
   UiGroupLogic,
   type UiLogicFnResult,
   UiViewOne,
-  cleanProps,
-  fasIcon,
 } from "@mmda/vui";
 import { type Tenant, defineTenant } from "../../models/Tenant";
 import {
   type TenantModule,
   defineTenantModule,
 } from "../../models/TenantModule";
-import { h, mergeProps } from "vue";
-const UI_NAME = "mmda";
 /**
  * 租户交互逻辑
  * @author mmda codebot
@@ -77,8 +72,8 @@ export class TenantLogic extends UiLogic<Tenant> {
               Pick<UiContext<Tenant>, "getFieldCurrentOption">,
             props,
           ) => {
-            if (isRefNone(ctx.model.countryCode)) return h("div");
-            const { modules } = ctx.app;
+            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan("");
+            const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
             // 检索出引用模块的主模块
@@ -98,44 +93,12 @@ export class TenantLogic extends UiLogic<Tenant> {
                 (subModule: Module) =>
                   subModule.objName === fld.reference?.refObjName,
               );
-            const { $router, $ui: ui } = ctx.globalProps;
-            const namedRoute = {
-              name: "Country",
-              params: {
-                id: `${ctx.model.country.localeCode},${ctx.model.countryCode}`,
-              },
-            };
-            const r = $router.resolve(namedRoute);
             const options = ctx.getFieldCurrentOption(fld);
-            const customProps = {
-              role: `external-link-icon`,
-              style: {
-                marginRight: "5px",
-                cursor: "pointer",
-                color: "var(--p-button-info-background)",
-              },
-              onClick: () => window.open(r.href, "_blank"),
-            };
             if (!url || !refModule?.authority?.allowRead)
-              return ui.factory.textSpan(
+              return ctx.uiBuilder.factory.textSpan(
                 ctx.model.customProperties.$countryCode,
               );
-            return h(
-              "div",
-              {
-                class: "flex_item_center",
-                role: `${UI_NAME}-external-link`,
-                id: fld.fieldName,
-                ...props,
-              },
-              [
-                fasIcon(
-                  "external-link",
-                  mergeProps(customProps, cleanProps(["class"], props ?? {})),
-                ),
-                ui.factory.textSpan(options.briefName),
-              ],
-            );
+            return ctx.uiBuilder.fldFactory.HasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(options?.briefName ?? "");
           },
         ),
       );
@@ -186,8 +149,8 @@ export class TenantLogic extends UiLogic<Tenant> {
       fields.push(
         this.field("countryCode").setCustomRenderer(
           (fld, ctx: UiContext<Tenant>, props) => {
-            if (isRefNone(ctx.model.countryCode)) return h("div");
-            const { modules } = ctx.app;
+            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan("");
+            const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
             // 检索出引用模块的主模块
@@ -207,41 +170,9 @@ export class TenantLogic extends UiLogic<Tenant> {
                 (subModule: Module) =>
                   subModule.objName === fld.reference?.refObjName,
               );
-            const { $router, $ui: ui } = ctx.globalProps;
-            const namedRoute = {
-              name: "Country",
-              params: {
-                id: `${ctx.model.country.localeCode},${ctx.model.countryCode}`,
-              },
-            };
-            const r = $router.resolve(namedRoute);
-            const customProps: any = {
-              role: `external-link-icon`,
-              style: {
-                marginRight: "5px",
-                cursor: "pointer",
-                color: "var(--p-button-info-background)",
-              },
-              onClick: () => window.open(r.href, "_blank"),
-            };
             if (!url || !refModule?.authority?.allowRead)
-              return ui.factory.textSpan(ctx.model.country.briefName);
-            return h(
-              "div",
-              {
-                class: "flex_item_center",
-                role: `${UI_NAME}-external-link`,
-                id: fld.fieldName,
-                ...props,
-              },
-              [
-                fasIcon(
-                  "external-link",
-                  mergeProps(customProps, cleanProps(["class"], props ?? {})),
-                ),
-                ui.factory.textSpan(ctx.model.country.briefName),
-              ],
-            );
+              return ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
+            return ctx.uiBuilder.fldFactory.HasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
           },
         ),
       );
@@ -298,7 +229,7 @@ export class TenantLogic extends UiLogic<Tenant> {
  */
 export const TenantLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new TenantLogic({

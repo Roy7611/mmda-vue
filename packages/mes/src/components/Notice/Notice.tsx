@@ -1,5 +1,5 @@
-import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs } from 'vue';
-import { isRefNone, type ApiClient } from '@mmda/core';
+import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs, inject } from 'vue';
+import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
@@ -7,6 +7,7 @@ import { build } from 'vite';
 import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
+import { MES_KEY } from '@/keys';
 
 export default defineComponent({
 	name: 'Notice',
@@ -22,7 +23,7 @@ export default defineComponent({
 	setup(props, ctx) {
 		// const ganttBox = ref();
 
-		const apiBox = getCurrentInstance().appContext.app.config.globalProperties.$api as ApiClient;
+		const apiClient = inject(MES_KEY)!.api;
 		const { $ui: ui, $t, appContext } = getCurrentInstance().appContext.app.config.globalProperties;
 
 		//最终提交前处理的方法
@@ -103,7 +104,7 @@ export default defineComponent({
 				} else {
 					userPageInfo.searchWord = '';
 				}
-				res = await apiBox.getAll({
+				res = await apiClient.getAll({
 					repository: 'Users',
 					queryParams: { ...userPageInfo, deptID: "150" },
 					service: 'base',

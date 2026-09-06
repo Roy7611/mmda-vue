@@ -13,7 +13,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
+
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityState } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkTeam, defineWorkTeam } from '@/models/WorkTeam';
@@ -84,7 +84,7 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
 					.onValidate<string>((value,model)=>{ })
 				*/
 				this.field('leaderID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => ({
 						status: EmployeeStatus.ON_BOARD
 					}))(ctx as any, model as any, undefined as any);
@@ -105,7 +105,7 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
 
 						if (!leader || leader.workerID !== newVal) {
 							try {
-								leader = defineWorker(await ctx.apiClient.getOne(newVal, {
+								leader = defineWorker(await this.apiClient.getOne(newVal, {
 									repository: 'Workers',
 									service: 'mes',
 								}));
@@ -268,7 +268,7 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
  * @param module 模块
  * @returns 
  */
-export const WorkTeamLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkTeamLogic({
+export const WorkTeamLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkTeamLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkTeams',
 	router,

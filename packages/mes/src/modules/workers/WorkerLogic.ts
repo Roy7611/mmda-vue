@@ -5,12 +5,11 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, inFilter } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
-import { h, reactive } from 'vue';
 import { WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 import { EmployeeStatus, EmployeeStatusEnum } from '@mmda/base/src/enums/EmployeeStatus';
 import { type Employee, defineEmployee } from '@mmda/base/src/models/Employee';
@@ -69,8 +68,8 @@ export class WorkerLogic extends UiLogic<Worker> {
 				onAction: async (context: UiContext<Worker>) => {
 					//多选职员变成工人
 					// context.toSelectManyIndex('importWorkerEmployees', () => this.importWorkerEmployees(context));
-					const { $toast, $api, $t } = context.globalProps;
-					const apiClient = $api as ApiClient;
+					const { $toast, $t } = context.globalProps;
+					const apiClient = this.apiClient;
 					return context
 						.select<Employee>({
 							service: 'base',
@@ -134,9 +133,9 @@ export class WorkerLogic extends UiLogic<Worker> {
 			})
 			throw new Error(t('invalid.requiredSelectAny'));
 		}
-		const rawSelection = reactive({
+		const rawSelection = {
 			list: <any>[],
-		});
+		};
 		if (selectedItems) {
 			//toRaw 返回原始数据
 			rawSelection.list = selectedItems.map(it => {
@@ -145,8 +144,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 		}
 
 		//调用接口
-		const { $api, $router } = context.globalProps;
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		try {
 			const res = await apiClient.doAction(
 				{
@@ -184,7 +182,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 				 */
 				this.field('workerNo')
 					.lockIf(model => model.status == 'ON_BOARD'),
-				this.field('teamID').refFilter((model, ctx) => {
+				this.field('teamID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return {
 						 status: `IN ${WorkTeamStatus.NEW},${WorkTeamStatus.ACTIVE}`,
@@ -287,7 +285,7 @@ export class WorkerLogic extends UiLogic<Worker> {
  * @param module 模块
  * @returns
  */
-export const WorkerLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const WorkerLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new WorkerLogic({
 		metaUiService: metaUiService,
 		repository: 'Workers',

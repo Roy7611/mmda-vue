@@ -1,13 +1,14 @@
 # @mmda/vui-primevue
 
 `@mmda/vui` 的 PrimeVue 4.5 控件皮肤。页面结构、查询状态和 CRUD
-仍由 vui 管理；本包负责 PrimeVue VNode、字段编辑器、表格、导航及弹层。
+仍由 vui 管理；本包的 factory 生产 PrimeVue 控件，Builder 只补壳。
+vui 不 import `primevue/*`。约定见 [vui Builder](../vui/docs/builder.md)。
 
 ## 安装
 
 ```ts
 import { createApp } from 'vue'
-import { MmdaApplication, setupI18n } from '@mmda/vui'
+import { MmdaVueApp, setupI18n } from '@mmda/vui'
 import {
   PrimeVueUiBuilder,
   PrimeVueOverlayHost,
@@ -22,7 +23,7 @@ const i18n = setupI18n({}, 'zh')
 // mmdaPrimeVue 已自动加载 Aura 主题、MMDA 布局样式与 Font Awesome（moduleIcon / far fa-*）
 app
   .use(mmdaPrimeVue, { locale: 'zh' })
-  .use(new MmdaApplication('/api', 'demo', ui, i18n))
+  .use(new MmdaVueApp('/api', 'demo', ui, i18n))
   .mount('#app')
 ```
 
@@ -51,5 +52,6 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 - 不实现或复制旧 `layoutOne` / `layoutTow`；页面使用 vui 的 `layoutPage`
 - 不自行拼装查询请求；DataTable 仅通过 `filterModel` /
   `onFilterModelChange` 回写 `UiViewContext.searchParam.filterModel`
+- `onSort` / `onFilterModelChange` 必须 **return** 查询 Promise（与 Syncfusion / Naive 同一契约，见 vui [列表](../vui/docs/list.md#远程排序--过滤皮肤契约)）
 - `fieldMessage` 为 `false`，校验状态由 PrimeVue 控件和 `Message` 展示
 - 不包含旧 Font Awesome 资源、Office Online、vuelidate 或 echarts

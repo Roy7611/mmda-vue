@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, inFilter, notInFilter, debounce, EntityUrlParam } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
 import { type MaterialTrans, defineMaterialTrans } from '@/models/MaterialTrans';
@@ -18,12 +18,8 @@ import { type Material, defineMaterial } from '@mmda/base/src/models/Material';
 import { MaterialType } from '@mmda/base/src/enums/MaterialType';
 import { UsageStatus, UsageStatusEnum } from '@mmda/base/src/enums/UsageStatus';
 import { ProductionOrderStatus } from '@/enums/ProductionOrderStatus'
-import type { Ref } from 'vue';
-import { ref } from 'vue';
 import { type MaterialTransReason, defineMaterialTransReason } from '@/models/MaterialTransReason';
-import { reactive, h } from 'vue';
-// 部分到货（移料单）组件
-import { MaterialRItem } from './MaterialRItem/MaterialRItem';
+import { materialRItemNode } from './MaterialRItem/MaterialRItem';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
 import { ProductionOrder } from '@/models/ProductionOrder';
 import type { UiBuildContext } from '@mmda/vui';
@@ -38,11 +34,11 @@ import type { UiBuildContext } from '@mmda/vui';
  * 移料单交互逻辑
  */
 //提交的值
-const subData = reactive({
+const subData = {
 	data: [],
 });
-const isMaterialReason = ref(false)
-// const notice = reactive({
+const isMaterialReason = { value: false }
+// const notice = {
 // 	data: {
 // 		ownerID: '',
 // 		ownerName: '',
@@ -83,7 +79,7 @@ const isMaterialReason = ref(false)
 // 	repository: 'MaterialTranses',
 // 	detail: context.globalProps.$t('auth.PrepareSuccess')
 // })
-const getValidationErrors = (context: UiBuildContext<any>, errors: any): string => {
+const getValidationErrors = (context: UiContext, errors: any): string => {
 	let errorMessage = '';
 	errors.forEach(({ field, error }: any) => {
 		if (field && field.indexOf('/') != -1) {
@@ -104,16 +100,16 @@ const getValidationErrors = (context: UiBuildContext<any>, errors: any): string 
 	return errorMessage
 }
 // 确认收料
-const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans, action: EntityAction) => {
-	const { $t: t, $api: apiBox, $toast: toast } = context.globalProps;
+const beforeReceive = async (context: UiContext, model: MaterialTrans, action: EntityAction) => {
+	const { $t: t, $toast: toast } = context.globalProps;
 	try {
-		const isHasShip = await apiBox.getAll({
+		const isHasShip = await context.apiClient.getAll({
 			repository: 'MaterialTranses',
 			path: `${model.transID ?? ''}/hasShip`,
 			service: 'mes',
 		});
 		if (isHasShip.list) {
-			return context.uiBuilder.confirmMessage(context, {
+			return context.uiBuilder.confirm(context, {
 				header: t('action.confirm'),
 				message: t('confirmation.hasShipMsg'),
 				type: action.param.hint,
@@ -121,7 +117,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 				acceptLabel: t('action.confirm'),
 				// 确认
 				accept: async () => {
-					context.uiBuilder.confirmMessage(context, {
+					context.uiBuilder.confirm(context, {
 						header: t('action.confirm'),
 						message: t('dialog.areYourSure'),
 						type: action.param.hint,
@@ -130,8 +126,8 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 						// 部分到货
 						accept: async () => {
 							try {
-								context.uiBuilder.confirmDialog(
-									h(MaterialRItem, {
+								context.uiBuilder.dialog(
+									materialRItemNode({
 										id: 'materialRItems',
 										name: 'materialRItems',
 										ctx: context,
@@ -148,7 +144,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 										accept: async () => {
 											const paramData = subData.data.map(item => ({ refID: item.transID, refItemID: item.itemID, refName: item.arrivedQuantity }));
 											try {
-												const res: boolean = await apiBox.doAction(
+												const res: boolean = await context.apiClient.doAction(
 													{
 														path: model.transID ?? '',
 														action: action.name,
@@ -191,7 +187,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 						// 全部到货
 						reject: async () => {
 							try {
-								const res: boolean = await apiBox.doAction(
+								const res: boolean = await context.apiClient.doAction(
 									{
 										path: model.transID ?? '',
 										action: action.name,
@@ -228,7 +224,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 				onHide: async () => { },
 			});
 		} else {
-			return context.uiBuilder.confirmMessage(context, {
+			return context.uiBuilder.confirm(context, {
 				header: t('action.confirm'),
 				message: t('dialog.areYourSure'),
 				type: action.param.hint,
@@ -237,8 +233,8 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 				// 部分到货
 				accept: async () => {
 					try {
-						context.uiBuilder.confirmDialog(
-							h(MaterialRItem, {
+						context.uiBuilder.dialog(
+							materialRItemNode({
 								id: 'materialRItems',
 								name: 'materialRItems',
 								ctx: context,
@@ -255,7 +251,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 								accept: async () => {
 									const paramData = subData.data.map(item => ({ refID: item.transID, refItemID: item.itemID, refName: item.arrivedQuantity }));
 									try {
-										const res: boolean = await apiBox.doAction(
+										const res: boolean = await context.apiClient.doAction(
 											{
 												path: model.transID ?? '',
 												action: action.name,
@@ -298,7 +294,7 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 				// 全部到货
 				reject: async () => {
 					try {
-						const res: boolean = await apiBox.doAction(
+						const res: boolean = await context.apiClient.doAction(
 							{
 								path: model.transID ?? '',
 								action: action.name,
@@ -365,11 +361,11 @@ const beforeReceive = async (context: UiBuildContext<any>, model: MaterialTrans,
 // })
 export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 	/** 侧边栏移料原因列表（分页加载，首屏 30 条） */
-	transReasons: Ref<MaterialTransReason[]> = ref([]);
+	transReasons = { value: [] };
 	/** 当前选中的移料原因，null 表示未筛选 */
-	selectedTransReason: Ref<MaterialTransReason | null> = ref(null);
+	selectedTransReason = { value: null };
 	/** 移料原因列表加载中标志，防止滚动触底时重复请求 */
-	transReasonsLoading = ref(false);
+	transReasonsLoading = { value: false };
 	/** 移料原因分页状态：pageNo 当前页、pageSize 每页条数、recordCount 总记录数 */
 	transReasonsPager = { pageNo: 1, pageSize: 30, recordCount: 0 };
 	/**
@@ -391,7 +387,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 			this.selectedTransReason.value = null;
 		};
 
-		this.beforeSave = (context: UiBuildContext<any>, model: MaterialTrans, action: EntityAction) => {
+		this.beforeSave = (context: UiContext, model: MaterialTrans, action: EntityAction) => {
 			const { tel, email, telPrefix } = model;
 			const { $t: t } = context.globalProps;
 			// 移料原因 原站点必须填写
@@ -404,7 +400,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 			}
 			return Promise.resolve(true);
 		};
-		this.beforeAction = (context: UiBuildContext<any>, model: MaterialTrans, action: EntityAction) => {
+		this.beforeAction = (context: UiContext, model: MaterialTrans, action: EntityAction) => {
 			try {
 				if (action.name == 'receive') return beforeReceive(context, model, action);
 				else return Promise.resolve(true);
@@ -448,13 +444,12 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 		const transReasonID = reason ? reason.reasonID : '';
 		// 同步 searchParam 与 URL，保证 refresh 与深链接一致
 		(ctx.searchParam.queryParams ??= {});
-		const res = await ctx.globalProps.$api.getAll({
-			repository: 'MaterialTransReasons',
+		const res = await this.getAllOf<Record<string, unknown>>('MaterialTransReasons', {
 			queryParams: {
 				status: 1,
 				reasonTypes: 1
 			},
-		})
+		}, { service: 'mes' })
 		const ReasonArr = res.list.filter((item: any) => item.reasonID === transReasonID)
 		isMaterialReason.value = ReasonArr.length ? true : false
 		if (transReasonID) {
@@ -557,7 +552,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 			fields.push(
 				this.field('status'),
 				// todo 宇轩不需要
-				// this.field('projectID').refFilter((model, ctx) => {
+				// this.field('projectID').refWhere((model, ctx) => {
 					const __p = ((ctx, model: any) => {
 				// 	// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
 				// 	return model.order?.projectID ? { projectID: model.order.projectID } : {};
@@ -573,7 +568,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						})
 						.join(" AND ");
 				}),
-				this.field('orderID').refFilter((model, ctx) => {
+				this.field('orderID').refWhere((model, ctx) => {
 					const __p = ((ctx, model: any) => {
 					// 搜索订单时：如果已经选择了项目，则传入项目ID来限制订单列表
 					return {
@@ -607,7 +602,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 		if (fields.length == 0) {
 			fields.push(
 				// 项目与生产订单双向联动过滤
-				this.field('projectID').refFilter((model, ctx) => {
+				this.field('projectID').refWhere((model, ctx) => {
 					const __p = ((ctx, model: any) => {
 					// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
 					return model.order?.projectID ? { projectID: model.order.projectID } : {};
@@ -623,11 +618,11 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						})
 						.join(" AND ");
 				}).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 				this.field('orderID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model: any) => {
 						return {
 							projectID: model.projectID ?? '',
@@ -653,7 +648,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 					}).hideIf(t => !isNullOrUndefined(t.refName) && t.refName === 'CompleteInspection'),
 
 				this.field('transReasonID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context, model) => ({
 						status: UsageStatusEnum.valueOf(UsageStatus.USED),
 						reasonTypes: 2, // 移料原因筛选条件 自定义 判断是否是物流单所使用的原因
@@ -688,7 +683,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 						}
 					}),
 				this.field('fromSiteID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							siteType: model?.reason?.requiredFromSiteTypes ?? '',
@@ -708,7 +703,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				})
 					.lockIf(t => !isRefNone(t?.reason) && isRefNone(t?.reason?.requiredFromSiteTypes)),
 				this.field('toSiteID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							siteType: model?.reason?.requiredToSiteTypes ?? '',
@@ -810,7 +805,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 							} else {
 								if (items[0].orderID) {
 									// 自动回填生产订单
-									context.globalProps.$api.getOne(items[0].orderID, { repository: 'ProductionOrders' }).then((res: ProductionOrder) => {
+									context.logic!.loadOf<ProductionOrder>('ProductionOrders', items[0].orderID).then((res: ProductionOrder | undefined) => {
 										if (res) {
 											context.setFieldValue('orderID', ({ orderID: items[0].orderID, orderNo: res.orderNo }))
 										}
@@ -830,7 +825,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 	 * @param target
 	 * @returns
 	 */
-	addMaterialTransItemFormMaterial(context: UiBuildContext<any>, target: MaterialTrans) {
+	addMaterialTransItemFormMaterial(context: UiContext, target: MaterialTrans) {
 		context
 			.select<Material>({
 				repository: 'Materials',
@@ -875,7 +870,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// console.log(error);
 			});
 	}
-	addLinesideInventoryItem(context: UiBuildContext<any>, target: MaterialTrans) {
+	addLinesideInventoryItem(context: UiContext, target: MaterialTrans) {
 		context
 			.select<LinesideInventoryItem>({
 				repository: 'LinesideInventoryItems',
@@ -919,7 +914,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// console.log(error);
 			});
 	}
-	addPurchasedReturnableItems(context: UiBuildContext<any>, target: MaterialTrans) {
+	addPurchasedReturnableItems(context: UiContext, target: MaterialTrans) {
 		context
 			.select<PurchasedReturnableItem>({
 				repository: 'PurchasedReturnableItems',
@@ -957,7 +952,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// console.log(error);
 			});
 	}
-	addPurchasedReceivableItems(context: UiBuildContext<any>, target: MaterialTrans) {
+	addPurchasedReceivableItems(context: UiContext, target: MaterialTrans) {
 		context
 			.select<PurchasedReceivableItem>({
 				repository: 'PurchasedReceivableItems',
@@ -995,7 +990,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// console.log(error);
 			});
 	}
-	newMaterialTransItem(context: UiBuildContext<any>, target: MaterialTrans) {
+	newMaterialTransItem(context: UiContext, target: MaterialTrans) {
 		context
 			.newSubGroupItem<MaterialTransItem>({
 				group: 'items',
@@ -1013,7 +1008,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 			});
 	}
 	// 添加按钮（分情况）
-	addMaterialTransItem(context: UiBuildContext<any>, target: MaterialTrans) {
+	addMaterialTransItem(context: UiContext, target: MaterialTrans) {
 		if (!isRefNone(target.reason)) {
 			if (!isRefNone(target?.reason?.requiredFromSiteTypes) && target.reason.reasonCode !== 'PURCHASE_RETURN') {
 				if (target?.reason?.requiredFromSiteID && isRefNone(target.fromSiteID)) {
@@ -1080,7 +1075,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
  * @param module 模块
  * @returns
  */
-export const MaterialTransLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const MaterialTransLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new MaterialTransLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialTranses',
@@ -1110,27 +1105,14 @@ export class MaterialTransItemLogic extends UiGroupLogic<MaterialTransItem, Mate
 				this.field('weight').onChange((context, model) => {
 					this.master.totalWeight = Number(MetaModel.sum(this.master.items, items => items.weight * items.quantity).toFixed(4));
 				}),
-				this.field('orderID').setCustomRenderer((fld, ctx: UiBuildContext<any>, props) => {
+				this.field('orderID').setCustomRenderer((fld, ctx: UiContext, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (fldVal) {
-										window.open(`/MES/ProductionOrders/${fldVal}`, '_blank');
-									}
-								},
-							},
-							fldVal ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal ?? '',
+						href: fldVal ? `/MES/ProductionOrders/${fldVal}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 			);
 		}
@@ -1140,27 +1122,14 @@ export class MaterialTransItemLogic extends UiGroupLogic<MaterialTransItem, Mate
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('orderID').setCustomRenderer((fld, ctx: UiBuildContext<any>, props) => {
+				this.field('orderID').setCustomRenderer((fld, ctx: UiContext, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (fldVal) {
-										window.open(`/MES/ProductionOrders/${fldVal}`, '_blank');
-									}
-								},
-							},
-							fldVal ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal ?? '',
+						href: fldVal ? `/MES/ProductionOrders/${fldVal}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 
 			)

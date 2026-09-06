@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionJob, defineProductionJob } from '@/models/ProductionJob';
@@ -85,7 +84,7 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductionJobLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductionJobLogic({
+	export const ProductionJobLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductionJobLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionJobs',
 		router,

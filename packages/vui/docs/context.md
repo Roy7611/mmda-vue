@@ -1,7 +1,32 @@
 # 会话上下文
 
-屏级运行时是 `UiBuildContext`（继承 `UiViewContext`）。行为由 `view` 决定，
-不再按 Index/Edit/Details 拆类。Logic 回调使用 core 的 `UiContext`。
+屏级运行时是 `UiBuildContext`（继承 `UiViewContext`，对标 Flutter `BuildContext`）。
+行为由 `view` 决定，不再按 Index/Edit/Details 拆类。
+
+业务 Logic 回调使用 core 的 `UiContext`（不要写成 `UiBuildContext` 类）。
+会话上走 `uiBuilder` / `apiClient` / `app`；`globalProps` 只是把 Vue `globalProperties` 传递下来，极少用。
+分层与图见仓库根 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
+
+`UiViewContext` 仍是**一个类**（`implements` core `UiContext`）。实现按职责拆在 `packages/vui/src/ui/contexts/`：
+
+| 文件 | 职责 |
+|---|---|
+| [`ui_context.ts`](../src/ui/ui_context.ts) | 门面：构造、Logic 绑定、筛选会话、`with` / `release` |
+| `contexts/validate.ts` | `validate` / 字段错误态 |
+| `contexts/reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()` |
+| `contexts/subgroup.ts` | 子表上下文与增删行 |
+
+关联搜索走 Logic + SQL `buildRefWhere`，不调 `globalProps.$api`。
+
+- `searchRelative(field, word)`：联想 / 列筛，不弹层。
+- `select(field)`：hasOne 弹选并写回字段（原 `pickRelative`）。
+- `select({ repository, service?, selectionMode })`：任意仓库；返回 `false` 或数组。选择器仍是 `selectOne` / `selectMany` 的 `buildView`。
+- 本地行：`MetaUiBuilder` + `factory.table` + `dialog`。
+
+细则 [core ui_context_usage](../../core/docs/logic/ui_context_usage.md)。
+
+
+通用 HTTP 用 `context.apiClient`（与 Logic 的 `this.apiClient` 同一实例）。不要掏 `$api`。见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
 
 ## 主要内容
 

@@ -6,7 +6,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import {
 	type MetaUiService,
 	type Module,
@@ -28,13 +28,12 @@ import { type ProductionOrder, defineProductionOrder } from '@/models/Production
 import { type ProductionPlanItem, defineProductionPlanItem } from '@/models/ProductionPlanItem';
 import { ProductionPlanStatus } from '@/enums/ProductionPlanStatus';
 // import { ProductionPlanStatus } from '@/enums/ProductionPlanStatus';
-import { h, onUpdated, reactive, ref } from 'vue';
 import { ProductionOrderStatus } from '@/enums/ProductionOrderStatus';
 import { ProductionTaskStatus, ProductionTaskStatusEnum } from '@/enums/ProductionTaskStatus';
 import { TaskConstraintType, TaskConstraintTypeEnum } from '@mmda/base/src/enums/TaskConstraintType';
 // import { text } from 'stream/consumers';
 
-const pushNum = ref(1);
+const pushNum = { value: 1 };
 //生产编号 规则
 const getNumber = () => {
 	const numberLength = pushNum.value.toString().length;
@@ -92,7 +91,7 @@ const getChildOrders = async (context: UiContext, orders: ProductionOrder[]): Pr
 	const results = await Promise.all(
 		orders.map(async (value: ProductionOrder) => {
 			if (!value?.orderID) return [] as ProductionOrder[];
-			const res = await context.globalProps.$api.getOne(value.orderID, {
+			const res = await this.apiClient.getOne(value.orderID, {
 				action: 'plannableDescendants',
 				repository: 'ProductionOrders',
 				service: 'mes',
@@ -104,7 +103,7 @@ const getChildOrders = async (context: UiContext, orders: ProductionOrder[]): Pr
 	);
 	return results.flat();
 };
-const hrefData = ref();
+const hrefData = { value:  };
 
 /**
  * 生产计划交互逻辑
@@ -135,8 +134,8 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 		this.afterAction = (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction, apiResultOrError?: any) => {
 			const err = apiResultOrError;
 			if (err?.status == 400 && err?.code == 'task.relasedQuantity.exceed') {
-				const { $api, $router, $toast, $t: t } = context.globalProps;
-				const apiClient = $api as ApiClient;
+				const { $router, $toast, $t: t } = context.globalProps;
+				const apiClient = this.apiClient;
 				context.uiBuilder.toast(context, {
 					severity: 'error',
 					summary: t('dialog.title.error'),
@@ -144,7 +143,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 					group: 'br',
 					// life: 3000
 				})
-				context.uiBuilder.confirmMessage(context, {
+				context.uiBuilder.confirm(context, {
 					header: t('dialog.title.prompt'),
 					message: t('ganttLabel.jumpMaterialInspection'),
 					type: 'warn',
@@ -191,7 +190,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 						}
 					},
 				})
-				// context.uiBuilder.confirmDialog(
+				// context.uiBuilder.dialog(
 				// 	h(
 				// 		'div',
 				// 		{
@@ -305,8 +304,8 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				searchLabel: 'auth.PlanDate',
 				searchParam: 'planDate',
 				valueFn: (v: any) => (v.filter((item: any) => item !== null).length > 1 ? `BETWEEN '${v[0].toFormat('yyyy-MM-dd')}' AND '${v[1].toFormat('yyyy-MM-dd')}'` : ''),
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
-					const { $ui: ui, $t: t, $api: apiBox } = ctx.globalProps;
+				renderer: (ctx: UiContext & any, csf) => {
+					const { $ui: ui, $t: t } = ctx.globalProps;
 
 					// const options = isString(taskLevelOption.value) ? JSON.parse(taskLevelOption.value) : [];
 					if (hrefData.value.expectedStart || hrefData.value.expectedFinish) {
@@ -529,7 +528,7 @@ const isDecimal = (num: number) => {
  * @param module 模块
  * @returns
  */
-export const ProductionPlanLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionPlanLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionPlanLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionPlans',
@@ -549,7 +548,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 		if (fields.length == 0) {
 			fields.push(
 				this.field('qcInProcessStatus').lockIf(m => true),
-				this.field('lineID').refFilter((model, ctx) => {
+				this.field('lineID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					const proprams = <any>{
 						status: 'NOT IN 0,-1',
@@ -573,7 +572,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 						.join(" AND ");
 				}),
 				this.field('taskQuantity').onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
-					const { $api, $router, $toast, $t: t } = ctx.globalProps;
+					const { $router, $toast, $t: t } = ctx.globalProps;
 					//判断newVal是不是小数
 					if (isDecimal(newVal) && newVal > 0) {
 						$toast.add({
@@ -634,27 +633,16 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 					}),
 				this.field('taskNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
-							? h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										const { $api: apiBox, $router: router } = ctx.globalProps;
-
-										if (ctx.model.taskID) {
-											window.open(`/MES/ProductionTasks/${ctx.model.taskID}`, '_blank');
-										}
-									},
-								},
-								fldVal
-							)
-							: (fldVal ?? ''),
-					]);
+					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					if (linkable) {
+						return ctx.uiBuilder.factory.link({
+							text: fldVal,
+							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							target: '_blank',
+							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+						});
+					}
+					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
 				}),
 				this.field('constraintType').onChange((ctx: UiViewContext<any>, model, newVal) => {
 					if (shouldHideConstraintDate(newVal)) {
@@ -673,7 +661,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 					}),
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})
 			);
 		}
@@ -687,55 +675,33 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 			fields.push(
 				this.field('taskNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
-							? h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										const { $api: apiBox, $router: router } = ctx.globalProps;
-
-										if (ctx.model.taskID) {
-											window.open(`/MES/ProductionTasks/${ctx.model.taskID}`, '_blank');
-										}
-									},
-								},
-								fldVal
-							)
-							: (fldVal ?? ''),
-					]);
+					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					if (linkable) {
+						return ctx.uiBuilder.factory.link({
+							text: fldVal,
+							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							target: '_blank',
+							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+						});
+					}
+					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
 				}).setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
-							? h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										const { $api: apiBox, $router: router } = ctx.globalProps;
-
-										if (ctx.model.taskID) {
-											window.open(`/MES/ProductionTasks/${ctx.model.taskID}`, '_blank');
-										}
-									},
-								},
-								fldVal
-							)
-							: (fldVal ?? ''),
-					]);
+					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					if (linkable) {
+						return ctx.uiBuilder.factory.link({
+							text: fldVal,
+							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							target: '_blank',
+							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+						});
+					}
+					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
 				}),
 				this.field('constraintDate').hideIf(model => shouldHideConstraintDate(model.constraintType)),
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})
 			);
 		}

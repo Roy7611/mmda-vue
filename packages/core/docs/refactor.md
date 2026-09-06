@@ -1,4 +1,6 @@
-# 本轮 core 分层清理
+# 本轮 core 分层清理（历史）
+
+> **产品分层真源：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。** 本文只记本轮搬/删/改名，不当现行架构说明。
 
 ## 搬
 
@@ -26,7 +28,7 @@
 
 ## 引用过滤
 
-`refFilter` 往内部列表追加。`buildRefFilter` = `sqlAnd(reference.where, ...logicFns)`。vui 用 `buildRefSearchFilter` 组装关联查询（含 searchWord / `@param`）。原 `setSearchParam` 的 queryParams 加码改为 `refFilter` SQL。
+`refWhere` 往内部列表追加。`buildRefWhere` = `sqlAnd(reference.where, ...logicFns)` 并替换 `@param`。联想关键字用 `searchWord`，不再在 SQL 里拼 LIKE。原 `setSearchParam` 的 queryParams 加码改为 `refWhere` SQL。
 
 ## 列表查询（EntityQuery）
 

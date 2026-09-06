@@ -1,6 +1,6 @@
 # 列表查询：程序员怎么写
 
-从 `@mmda/core` 导入。不要 `@mmda/core/src/...`。设计见 [entity_search.md](../models/entity_search.md)。SQL 片段见 [sql_operator.md](./sql_operator.md)。
+从 `@mmda/core` 导入。不要 `@mmda/core/src/...`。设计见 [entity_search.md](../models/entity_search.md)。日期 / `dateKind` / Excel token 见 [date_filter_usage.md](./date_filter_usage.md)。SQL 片段见 [sql_operator.md](./sql_operator.md)。
 
 ## 列表只走 `searchAll`
 
@@ -51,7 +51,19 @@ filterModel: {
 | `inFilter(v)` | set + `IN` |
 | `notInFilter(v)` | set + `NOT_IN` |
 | `eqFilter(v, filterType?)` | 简单相等，默认 `text` |
+| `betweenFilter(from, to)` | `date` + `BETWEEN` |
+| `dateKindFilter('THIS_MONTH')` | 相对语义，POST 原样带 `dateKind` |
 | `nullFilter('IS_NULL' \| 'IS_NOT_NULL')` | 空值判断 |
+
+可复用「本月」：
+
+```ts
+import { dateKindFilter } from '@mmda/core'
+
+param.filterModel = { createdAt: dateKindFilter('THIS_MONTH') }
+```
+
+Excel 勾选绝对年月日用 `inFilter(['2026-05', '2026-06-01'])`。完整日期示例（本月 OR 上月、pivot 树、常见坑）见 [date_filter_usage.md](./date_filter_usage.md)。
 
 不要再写：
 
@@ -123,14 +135,14 @@ vui 侧典型顺序（Logic 也可自己做）：
 
 持久化上次查询时把整个 `toEntityQuery(searchParam)` 写入 pack 的 `lastQuery`，不要单存 sorts。
 
-## `refFilter` 才用 `SqlOperator`
+## `refWhere` 才用 `SqlOperator`
 
-元数据 `reference.where` 是硬限制，不可改写。业务加码用 Logic `refFilter`，与 `where` AND：
+元数据 `reference.where` 是硬限制，不可改写。业务加码用 Logic `refWhere`，与 `where` AND：
 
 ```ts
 import { getSqlOperator } from '@mmda/core'
 
-this.field('materialID').refFilter((model) => {
+this.field('materialID').refWhere((model) => {
   const status = getSqlOperator('IN')!.toSQL('USED')
   return `status ${status}`
 })
@@ -155,10 +167,12 @@ UI 文案：`t('matcher.' + op)`。
 | 另存一份 sorts 到 IndexedDB | 只存 EntityQuery（含 `pager.sorts`） |
 | `defaultFilter` 当 FilterModel JSON 解析 | 按 `queryID;queryName\|…` 解析芯片 |
 | 用 SearchOp / label 对象 | 已删除；用 `EntityFilterOperator` + i18n |
+| 把本月存成 `inFilter(['2026-09'])` | `dateKindFilter('THIS_MONTH')`，见 [date_filter_usage.md](./date_filter_usage.md) |
 
 ## 相关
 
 - 设计：[entity_search.md](../models/entity_search.md)
+- 日期过滤：[date_filter.md](../models/date_filter.md) · [date_filter_usage.md](./date_filter_usage.md)
 - 传输：[api_client.md](../net/api_client.md)
 - 模块默认：[module.md](../metaui/module.md)
 - 本地 pack：[metaui_service.md](../metaui/metaui_service.md)

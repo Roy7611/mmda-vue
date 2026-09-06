@@ -6,7 +6,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -37,46 +36,73 @@ import {
   type UserRelation,
   defineUserRelation,
 } from "../../models/UserRelation";
-import { changeUsePwd } from "../../components/ChangePasswordForm";
-import { h, reactive, ref } from "vue";
 import { DepartmentStatus } from "../../enums/DepartmentStatus";
 /**
- * 用户交互逻辑
+ * ??????
  * @author mmda codebot
  * @since 2024-07-17 07:38:59.0
  * @revision 2024-07-18 02:22:47.0
  */
 //#region ~GENERATED PARTS BEGIN
 /**
- * 用户交互逻辑
+ * ??????
  */
-const pwdData = reactive({
-  data: {
-    userID: "",
-    newPwd: "",
-    newPwdAgain: "",
-  },
-});
 
-const parmas = reactive({
-  disapproveReason: "",
-}) as any;
-
-//修改密码
+//????
 const beforeChangePwd = async (
   context: UiContext<User> & Required<Pick<UiContext<User>, "reload">>,
   model: User,
   action: EntityAction,
 ) => {
-  pwdData.data.newPwd = "";
+  const pwdData = {
+    data: {
+      userID: "",
+      newPwd: "",
+      newPwdAgain: "",
+    },
+  };
   try {
-    // 生成弹窗
-    await context.uiBuilder.confirmDialog(
-      h(changeUsePwd, {
-        onGetTepModel(val: any) {
-          pwdData.data = val;
-        },
-      }),
+    // ????
+    const factory = context.uiBuilder.factory;
+    await context.uiBuilder.dialog(
+      [
+        factory.formItem?.(
+          {
+            name: "newPwd",
+            label: context.t("auth.newPassword"),
+            required: true,
+            isEdit: true,
+          },
+          {
+            default: () =>
+              factory.input?.(pwdData.data.newPwd, {
+                type: "password",
+                autocomplete: "new-password",
+                "onUpdate:modelValue": (value: string) => {
+                  pwdData.data.newPwd = value;
+                },
+              }),
+          },
+        ),
+        factory.formItem?.(
+          {
+            name: "newPwdAgain",
+            label: context.t("auth.confirmNewPassword"),
+            required: true,
+            isEdit: true,
+          },
+          {
+            default: () =>
+              factory.input?.(pwdData.data.newPwdAgain, {
+                type: "password",
+                autocomplete: "new-password",
+                "onUpdate:modelValue": (value: string) => {
+                  pwdData.data.newPwdAgain = value;
+                },
+              }),
+          },
+        ),
+      ],
       context,
       {
         title: context.t("auth.changePassword"),
@@ -86,10 +112,11 @@ const beforeChangePwd = async (
         showFooter: true,
         accept: async () => {
           pwdData.data.userID = model.userID ?? "";
-          const { $toast, $api, $app, $router } = context.globalProps;
+          const toast = (props: Record<string, unknown>) =>
+            context.uiBuilder.toast(context, props);
 
           if (!pwdData.data.userID) {
-            $toast.add({
+            toast({
               severity: "error",
               detail: context.t("auth.userIdMissing"),
               summary: context.t("dialog.title.error"),
@@ -100,7 +127,7 @@ const beforeChangePwd = async (
           }
 
           if (!pwdData.data.newPwd) {
-            $toast.add({
+            toast({
               severity: "error",
               detail: context.t("auth.pleaseEnterNewPassword"),
               summary: context.t("dialog.title.error"),
@@ -111,7 +138,7 @@ const beforeChangePwd = async (
           }
 
           if (pwdData.data.newPwd !== pwdData.data.newPwdAgain) {
-            $toast.add({
+            toast({
               severity: "error",
               detail: context.t("auth.passwordMismatch"),
               summary: context.t("dialog.title.error"),
@@ -121,9 +148,8 @@ const beforeChangePwd = async (
             return false;
           }
 
-          const apiClient = $api as ApiClient;
           try {
-            const res = await apiClient.doAction(
+            const res = await context.apiClient.doAction(
               {
                 path: pwdData.data.userID,
                 action: "changePwd",
@@ -138,19 +164,18 @@ const beforeChangePwd = async (
             );
 
             if (res) {
-              $toast.add({
+              toast({
                 severity: "success",
                 detail: context.t("auth.changePasswordSuccess"),
                 summary: context.t("dialog.success"),
                 life: 3000,
               });
-              $app.signOut();
+              await context.app?.signOut();
               window.localStorage.removeItem("user");
-              setTimeout(() => $router.replace("/Signin"), 2000);
             }
             return true;
           } catch (error: any) {
-            $toast.add({
+            toast({
               severity: "error",
               detail: error.message,
               summary: context.t("dialog.title.error"),
@@ -170,14 +195,15 @@ const beforeChangePwd = async (
   }
 };
 
-// 驳回
+// ??
 const beforeDisapprove = async (
   context: UiContext<User> & Required<Pick<UiContext<User>, "reload">>,
   model: User,
   action: EntityAction,
 ) => {
   const { $ui: ui, $api: apiBox } = context.globalProps;
-  await context.uiBuilder.confirmDialog(
+  const params = { disapproveReason: "" };
+  await context.uiBuilder.dialog(
     ui.factory.formItem(
       {
         name: "disapproveReason",
@@ -187,11 +213,11 @@ const beforeDisapprove = async (
       },
       {
         default: () =>
-          ui.factory.textarea(parmas.disapproveReason, {
+          ui.factory.textarea(params.disapproveReason, {
             autoResize: true,
             placeholder: context.t("invalid.requireDisapproveReason"),
             "onUpdate:modelValue": (value: any) => {
-              parmas.disapproveReason = value;
+              params.disapproveReason = value;
             },
           }),
       },
@@ -204,7 +230,7 @@ const beforeDisapprove = async (
       maxHeight: "70vh",
       showFooter: true,
       accept: async () => {
-        if (parmas.disapproveReason === "") {
+        if (params.disapproveReason === "") {
           context.uiBuilder.toast(context, {
             severity: "error",
             summary: context.t("dialog.title.error"),
@@ -224,7 +250,7 @@ const beforeDisapprove = async (
             },
             {
               actionName: action.label,
-              payload: parmas,
+              payload: params,
             },
           );
           if (res) {
@@ -296,12 +322,12 @@ export class UserLogic extends UiLogic<User> {
     ) => {
       const { email, telPrefix, mobile } = model;
       const { $t: t } = context.globalProps;
-      // 邮箱验证
+      // ????
       const regEmail =
         /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
-      // 国家区号验证
+      // ??????
       const regTelPrefix = /\+\d{1,3}\s?/g;
-      // 手机号验证
+      // ?????
       const regPhone =
         /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/;
       if (!regEmail.test(email) && !isRefNone(email))
@@ -322,11 +348,11 @@ export class UserLogic extends UiLogic<User> {
         this.field("staff"),
         this.field("deptID").setCustomCellRenderer(
           (fld, ctx: UiContext<User>, props) => {
-            if (isRefNone(ctx.model.deptID)) return h("div");
-            const { modules } = ctx.app;
+            if (isRefNone(ctx.model.deptID)) return ctx.uiBuilder.factory.textSpan("");
+            const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
-            // 检索出引用模块的主模块
+            // ???????????
             const refMainModule = modules.find(
               (module: Module) =>
                 module?.subModules &&
@@ -335,7 +361,7 @@ export class UserLogic extends UiLogic<User> {
                     subModule.objName === fld.reference?.refObjName,
                 ) != -1,
             );
-            // 检索出引用模块
+            // ???????
             const refModule =
               refMainModule &&
               refMainModule.subModules &&
@@ -359,7 +385,7 @@ export class UserLogic extends UiLogic<User> {
     return { fields, groups, customActions };
   }
   /**
-   * 设置编辑交互逻辑
+   * ????????
    */
   beforeEdit() {
     const { fields, groups, customActions } = super.beforeEdit();
@@ -430,7 +456,7 @@ export class UserLogic extends UiLogic<User> {
         // this.group<UserRelation>('relations')
         // 	.addCustomAction({
         // 		name: 'createContractItem',
-        // 		label: '创建',
+        // 		label: '??',
         // 		icon: 'far fa-plus-circle',
         // 		role: 'info',
         // 		onAction: this.newUserRelation,
@@ -455,52 +481,23 @@ export class UserLogic extends UiLogic<User> {
         this.field("deptID").setCustomRenderer(
           (fld, ctx: UiContext<User>, props) => {
             const fldVal = ctx.getFieldValue(fld);
-            return h("div", { style: { width: "100%", overflow: "hidden" } }, [
-              h(
-                "a",
-                {
-                  style: {
-                    color: "#409eff",
-                  },
-                  href: "javascript:;",
-                  onClick: async () => {
-                    const { $api: apiBox, $router: router } = ctx.globalProps;
-
-                    if (fldVal.deptID) {
-                      window.open(
-                        `/BASE/Departments/${fldVal.deptID}`,
-                        "_blank",
-                      );
-                    }
-                  },
-                },
-                fldVal ? fldVal.deptName : "",
-              ),
-            ]);
+            return ctx.uiBuilder.factory.link({
+              text: fldVal ? fldVal.deptName : "",
+              href: fldVal?.deptID ? `/BASE/Departments/${fldVal.deptID}` : undefined,
+              target: "_blank",
+              style: { color: "#409eff", width: "100%", overflow: "hidden" },
+            });
           },
         ),
         this.field("personID").setCustomRenderer(
           (fld, ctx: UiContext<User>, props) => {
             const fldVal = ctx.getFieldValue(fld);
-            return h("div", { style: { width: "100%", overflow: "hidden" } }, [
-              h(
-                "a",
-                {
-                  style: {
-                    color: "#409eff",
-                  },
-                  href: "javascript:;",
-                  onClick: async () => {
-                    const { $api: apiBox, $router: router } = ctx.globalProps;
-
-                    if (fldVal.personID) {
-                      window.open(`/BASE/Persons/${fldVal.personID}`, "_blank");
-                    }
-                  },
-                },
-                fldVal ? fldVal.personName : "",
-              ),
-            ]);
+            return ctx.uiBuilder.factory.link({
+              text: fldVal ? fldVal.personName : "",
+              href: fldVal?.personID ? `/BASE/Persons/${fldVal.personID}` : undefined,
+              target: "_blank",
+              style: { color: "#409eff", width: "100%", overflow: "hidden" },
+            });
           },
         ),
       );
@@ -508,9 +505,9 @@ export class UserLogic extends UiLogic<User> {
     return { fields, groups, customActions };
   }
   /**
-   * 创建用户角色
-   * @param context 界面上下文
-   * @param target 项目模板
+   * ??????
+   * @param context ?????
+   * @param target ????
    */
   newUserRole(context: UiContext<User>, target: User) {
     context
@@ -525,7 +522,7 @@ export class UserLogic extends UiLogic<User> {
       })
       .then((selection: any) => {
         if (selection) {
-          // 取相同的数据
+          // ??????
           const items = selection.filter((item: any) =>
             MetaModel.hasAnyLike(target.roles, { roleID: item.roleID }),
           );
@@ -554,9 +551,9 @@ export class UserLogic extends UiLogic<User> {
   }
 
   /**
-   * 创建用户终端设备
-   * @param context 界面上下文
-   * @param target 项目模板
+   * ????????
+   * @param context ?????
+   * @param target ????
    */
   // newUserDevice(context: UiContext, target: User) {
   // 	context.newSubGroupItem<UserDevice>({
@@ -570,9 +567,9 @@ export class UserLogic extends UiLogic<User> {
   // }
 
   /**
-   * 创建用户开放标识
-   * @param context 界面上下文
-   * @param target 项目模板
+   * ????????
+   * @param context ?????
+   * @param target ????
    */
   newUserOpenIdentity(context: UiContext<User>, target: User) {
     // context.newSubGroupItem<UserOpenIdentity>({
@@ -613,9 +610,9 @@ export class UserLogic extends UiLogic<User> {
   }
 
   /**
-   * 创建用户关系
-   * @param context 界面上下文
-   * @param target 项目模板
+   * ??????
+   * @param context ?????
+   * @param target ????
    */
   newUserRelation(context: UiContext<User>, target: User) {
     context
@@ -629,20 +626,20 @@ export class UserLogic extends UiLogic<User> {
         }
       });
   }
-  //设置详情逻辑
+  //??????
   //beforeDetails(){}
 }
 
 /**
- * 构造用户交互逻辑
- * @param metaUiService 元数据服务
- * @param router 路由
- * @param module 模块
+ * ????????
+ * @param metaUiService ?????
+ * @param router ??
+ * @param module ??
  * @returns
  */
 export const UserLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new UserLogic({
@@ -652,7 +649,7 @@ export const UserLogicCtor = (
     module: module || metaUiService.findModule("User"),
   });
 /**
- * 角色交互逻辑
+ * ??????
  */
 export class UserRoleLogic extends UiGroupLogic<UserRole, User> {
   constructor(parent: UserLogic, master: User) {
@@ -660,7 +657,7 @@ export class UserRoleLogic extends UiGroupLogic<UserRole, User> {
   }
 }
 /**
- * 设备交互逻辑
+ * ??????
  */
 export class UserDeviceLogic extends UiGroupLogic<UserDevice, User> {
   constructor(parent: UserLogic, master: User) {
@@ -668,7 +665,7 @@ export class UserDeviceLogic extends UiGroupLogic<UserDevice, User> {
   }
 }
 /**
- * 开放标识交互逻辑
+ * ????????
  */
 export class UserOpenIdentityLogic extends UiGroupLogic<
   UserOpenIdentity,
@@ -679,7 +676,7 @@ export class UserOpenIdentityLogic extends UiGroupLogic<
   }
 }
 /**
- * 用户关系交互逻辑
+ * ????????
  */
 export class UserRelationLogic extends UiGroupLogic<UserRelation, User> {
   constructor(parent: UserLogic, master: User) {

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialRequisition, defineMaterialRequisition } from '@/models/MaterialRequisition';
@@ -13,7 +12,6 @@ import { type MaterialRequisitionItem, defineMaterialRequisitionItem } from '@/m
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
 //import { NoticeFn } from '@/components/NoticeFn'
 import { Material, defineMaterial } from '@mmda/base/src/models/Material';
-import { h, reactive } from 'vue'
 /**
  * 领料单交互逻辑
  * @author mmda codebot
@@ -43,7 +41,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('siteID').refFilter((model, ctx) => {
+				this.field('siteID').refWhere((model, ctx) => {
 					const __p = ((context, Model, fld) => {
 					return { siteType: 'IN 2,4' }
 				})(ctx as any, model as any, undefined as any);
@@ -61,7 +59,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
 				this.field('totalReqQuantity').hideIf(() => true),
 				this.field('totalDlvQuantity').hideIf(() => true),
 				// 生产任务筛选（工程项目）
-				this.field('taskID').refFilter((model, ctx) => {
+				this.field('taskID').refWhere((model, ctx) => {
 					const __p = ((context, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
 					return Object.entries(__p)
@@ -225,7 +223,7 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
  * @param module 模块
  * @returns
  */
-export const MaterialRequisitionLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const MaterialRequisitionLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new MaterialRequisitionLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialRequisitions',

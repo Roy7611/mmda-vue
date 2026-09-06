@@ -652,6 +652,36 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
+ * 模块工具栏：固定高度、上下居中；贴顶直角。
+ * sticky 时内容滚过不透底。皮肤内 .mmda-*-toolbar 可透明，由本层提供表面色。
+ */
+.mmda-page-toolbar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 3rem;
+  padding: 0 0.75rem;
+  color: var(--mmda-text-color);
+  background: var(--mmda-surface-card);
+  border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
+}
+
+.mmda-page-toolbar-sticky {
+  background: var(--mmda-surface-card);
+}
+
+.mmda-page-toolbar .mmda-sf-toolbar,
+.mmda-page-toolbar .mmda-prime-toolbar,
+.mmda-page-toolbar .mmda-agnaive-toolbar {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/*
  * 详情字段网格（目标效果）：
  * 一行 N 个 field → 固定 2N 列：label(定宽右对齐) | field(1fr) | …
  * 字段外壳 display:contents，label/control 直接进组网格，跨 Card 对齐。

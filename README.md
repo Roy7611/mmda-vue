@@ -51,51 +51,35 @@ pnpm dev:app
 
 生产反代示例：[`deploy/nginx.mmda.conf`](deploy/nginx.mmda.conf)。`scripts/dev-gateway.mjs` 仅作可选兼容，日常开发不需要。
 
-现在只有一个 Vue 根、一个 Router 和一个 `MmdaApplication`。BASE/MES
+现在只有一个 Vue 根、一个 Router 和一个 **`MmdaVueApp`**（类型是 core `MmdaApplication`）。BASE/MES
 以业务插件形式注册路由、API service、Logic 和自定义页面，系统切换使用
 客户端路由，不再重新加载 SPA。详见[统一应用壳架构](docs/unified-app.md)。
 
 ## 分层
 
-```text
-utils / extensions → metaui → models → logic → net / di     (@mmda/core)
-                                              ↘
-                                          Vue 运行时          (@mmda/vui)
-                                              ↘
-                                          控件皮肤            (vui-primevue / vui-syncfusion)
-```
+**UI → Logic → Data**，见 [ARCHITECTURE.md](ARCHITECTURE.md)。不要再用「core 目录链把 logic 夹在 models 与 net 之间」当作产品分层。
 
-细节见 [packages/core/README.md](packages/core/README.md)、
-[packages/vui/README.md](packages/vui/README.md) 和
-[packages/vui-primevue/README.md](packages/vui-primevue/README.md)。
+包落点：core = Logic 接口 + Data；vui = UI 运行时；`vui-*` = 皮肤。细节见 [packages/core/README.md](packages/core/README.md)、[packages/vui/README.md](packages/vui/README.md)。
 
 业务应用 `AppShell` 调用 `UiBuilder.buildAppScaffold`，chrome 走 `UiFactory` 和 `--mmda-*` token；
 具体皮肤只在 `main.ts` 装配 Builder / Plugin。Syncfusion 的开发期主题别名由
 `@mmda/vui-syncfusion/vite` 统一提供。
 
-从旧仓迁过来的设计问题、不兼容点和后续路径见 [REFACTOR.md](REFACTOR.md)。
+迁仓过程与历史不兼容点见 [REFACTOR.md](REFACTOR.md)（非现行架构真源）。
 
 ## 文档
 
-- [重构说明](REFACTOR.md)
-- [统一应用壳架构](docs/unified-app.md)
+- [架构（真源）](ARCHITECTURE.md)
+- [术语与命名](docs/naming.md)
+- [重构说明（迁仓历史）](REFACTOR.md)
+- [本轮 UI / 应用壳重构](packages/core/docs/refactor_ui_app.md)
+- [统一应用壳](docs/unified-app.md)
 - [core 总览](packages/core/README.md)
-- [界面元数据](packages/core/docs/metaui.md)
-- [数据模型](packages/core/docs/models.md)
-- [前端交互逻辑](packages/core/docs/logic.md)
-- [HTTP / OAuth](packages/core/docs/net.md)
-- [依赖注入](packages/core/docs/dependency-injection.md)
-- [工具函数](packages/core/docs/utils.md)
-- [原型扩展](packages/core/docs/extensions.md)
 - [vui 总览](packages/vui/README.md)
-- [应用壳](packages/vui/docs/application.md)
-- [仓库逻辑](packages/vui/docs/logic.md)
-- [会话上下文](packages/vui/docs/context.md)
-- [Builder 与皮肤](packages/vui/docs/builder.md)
-- [列表与过滤](packages/vui/docs/list.md)
-- [PrimeVue 4.5 皮肤](packages/vui-primevue/README.md)
-- [Syncfusion EJ2 皮肤](packages/vui-syncfusion/README.md)
-- [基础数据验证应用](packages/base/README.md)
-- [制造执行系统](packages/mes/README.md)
+- [PrimeVue 皮肤](packages/vui-primevue/README.md)
+- [Syncfusion 皮肤](packages/vui-syncfusion/README.md)
+- [AG Grid + Naive 皮肤](packages/vui-agnaive/README.md)
+- [基础数据](packages/base/README.md)
+- [制造执行](packages/mes/README.md)
 - [同域开发网关](scripts/dev-gateway.mjs)
 - [生产 nginx 示例](deploy/nginx.mmda.conf)

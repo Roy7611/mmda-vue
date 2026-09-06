@@ -11,6 +11,10 @@ import {
   parseDefaultFilter,
   parseQueryExpression,
   stringifyQueryExpression,
+  joinFilter,
+  multiFilter,
+  cloneFilterModel,
+  combineCompareAndSet,
 } from "../models/entity_search";
 
 describe("ApiClient.searchAll", () => {
@@ -130,6 +134,50 @@ describe("ApiClient.searchAll", () => {
     expect(postedUrl).toContain("pageNo=");
     expect(http.post.mock.calls.length).toBe(1);
   });
+
+  it("getPivotValues GET pivotValues/{field}", async () => {
+    const http = {
+      baseUrl: "",
+      buildJsonHeaders: vi.fn(() => vi.fn()),
+      getJson: vi.fn(async () => ["A", "B"]),
+    };
+    const api = new ApiClient(http as any, {
+      service: "base",
+      repository: "Orders",
+    });
+    await expect(api.getPivotValues("status", { reload: true })).resolves.toEqual(
+      ["A", "B"],
+    );
+    expect(http.getJson).toHaveBeenCalledWith(
+      expect.stringMatching(/\/Orders\/pivotValues\/status/),
+      expect.anything(),
+    );
+    const postedUrl = String(
+      (http.getJson as { mock: { calls: unknown[][] } }).mock.calls[0]?.[0] ??
+        "",
+    );
+    expect(postedUrl).toContain("reload=");
+  });
+
+  it("getPivotDates GET pivotDates/{field}", async () => {
+    const http = {
+      baseUrl: "",
+      buildJsonHeaders: vi.fn(() => vi.fn()),
+      getJson: vi.fn(async () => ["2026-05-01", "2026-06-01"]),
+    };
+    const api = new ApiClient(http as any, {
+      service: "base",
+      repository: "Orders",
+    });
+    await expect(api.getPivotDates("createdAt")).resolves.toEqual([
+      "2026-05-01",
+      "2026-06-01",
+    ]);
+    expect(http.getJson).toHaveBeenCalledWith(
+      expect.stringMatching(/\/Orders\/pivotDates\/createdAt/),
+      expect.anything(),
+    );
+  });
 });
 
 describe("EntityQuery", () => {
@@ -157,5 +205,54 @@ describe("EntityQuery", () => {
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");
     }
     expect(parseQueryExpression("status='OPEN'")?.kind).toBe("sql");
+  });
+});
+
+describe("EntityFilter join/multi", () => {
+  it("joinFilter / multiFilter round-trip through cloneFilterModel", () => {
+    const join = joinFilter("AND", [
+      { filterType: "text", operator: "CONTAINS", value: "a" },
+      { filterType: "text", operator: "CONTAINS", value: "b" },
+    ]);
+    const multi = multiFilter([
+      { filterType: "text", operator: "CONTAINS", value: "仓" },
+      inFilter(["LABOR", "PART"]),
+    ]);
+    const model = { name: join, category: multi };
+    const cloned = cloneFilterModel(model)!;
+    expect(cloned).toEqual(model);
+    expect(cloned.name).not.toBe(join);
+    expect((cloned.name as typeof join).conditions).not.toBe(join.conditions);
+    expect((cloned.category as typeof multi).filterModels).not.toBe(
+      multi.filterModels,
+    );
+  });
+
+  it("combineCompareAndSet 摊平单块、两块则 multi", () => {
+    expect(
+      combineCompareAndSet({
+        filterType: "text",
+        operator: "CONTAINS",
+        value: "a",
+      }),
+    ).toEqual({
+      filterType: "text",
+      operator: "CONTAINS",
+      value: "a",
+    });
+    expect(combineCompareAndSet(undefined, inFilter("OPEN"))).toEqual(
+      inFilter("OPEN"),
+    );
+    expect(
+      combineCompareAndSet(
+        { filterType: "text", operator: "CONTAINS", value: "a" },
+        inFilter("OPEN"),
+      ),
+    ).toEqual(
+      multiFilter([
+        { filterType: "text", operator: "CONTAINS", value: "a" },
+        inFilter("OPEN"),
+      ]),
+    );
   });
 });

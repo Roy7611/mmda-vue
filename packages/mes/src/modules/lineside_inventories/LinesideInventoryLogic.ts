@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import {
 	type MetaUiService,
 	type PagedList,
@@ -28,11 +28,9 @@ import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
 import { type Worksite, defineWorksite } from '@/models/Worksite';
-import { defineComponent, h, reactive, ref, onBeforeMount, toRefs } from 'vue';
-import type { Ref } from 'vue';
-import InventoryDialog from './component/InventoryDialog';
-import CompleteShipment from './component/CompleteShipment';
-import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
+import { inventoryDialogNode } from './component/InventoryDialog';
+import { completeShipmentNode } from './component/CompleteShipment';
+import { materialTransEditorNode } from '@/modules/material_transes/MaterialTransEditor';
 
 /**
  * 线边库存交互逻辑
@@ -44,9 +42,9 @@ import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEdi
 /**
  * 线边库存交互逻辑
  */
-const tableDataProject = ref([]);
-const tableDataKeyProject = ref('id');
-const searchParamProject = reactive({
+const tableDataProject = { value: [] };
+const tableDataKeyProject = { value: 'id' };
+const searchParamProject = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -54,9 +52,9 @@ const searchParamProject = reactive({
 	searchWord: '',
 	searchParams: {},
 });
-const tableDataOrder = ref([]);
-const tableDataKeyOrder = ref('id');
-const searchParamOrder= reactive({
+const tableDataOrder = { value: [] };
+const tableDataKeyOrder = { value: 'id' };
+const searchParamOrder= {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -65,9 +63,9 @@ const searchParamOrder= reactive({
 	searchParams: {},
 });
 export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
-	worksites: Ref<Worksite[]> = ref([]);
-	selectedWorksite: Ref<Worksite | null> = ref(null);
-	quantityInStock: Ref<number> = ref(0);
+	worksites = { value: [] };
+	selectedWorksite = { value: null };
+	quantityInStock = { value: 0 };
 
 	constructor(init: UiLogicInit) {
 		super(defineLinesideInventory, init);
@@ -84,7 +82,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			shipTrans: (item: LinesideInventory) => item.allowCheckIn,
 		};
 
-		this.beforeAction = (context: UiBuildContext<any>, model: LinesideInventory, action: EntityAction) => {
+		this.beforeAction = (context: UiContext, model: LinesideInventory, action: EntityAction) => {
 			try {
 				if (action.name == 'oneClickStorage') return this.oneClickStorage(context);
 				if (action.name == 'oneClickReturn') return this.oneClickReturn(context);
@@ -104,7 +102,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		return res
 	}
 
-	async oneClickStorage(context: UiBuildContext<any>) {
+	async oneClickStorage(context: UiContext) {
 		if (!this.selectedWorksite.value) {
 			context.uiBuilder.toast(context, {
 				severity: 'warn',
@@ -139,8 +137,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					},
 					Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
 				)
-				return await context.uiBuilder.confirmDialog(
-					h(MaterialTransEditor, {
+				return await context.uiBuilder.dialog(
+					materialTransEditorNode({
 						name: 'WarehousingMaterialTrans',
 						createFn: async (logic) => {
 							// /api/mes/MaterialTranses/oneClickStorage
@@ -154,7 +152,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 								return logic.createEntity(res);
 							})
 						},
-						onInit: (ctx: UiBuildContext<any>) => {
+						onInit: (ctx: UiContext) => {
 							materialTransCtx = ctx;
 							materialTransCtx.isEditDialog = true;
 						},
@@ -201,7 +199,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		});
 		return false;
 	}
-	async oneClickReturn(context: UiBuildContext<any>) {
+	async oneClickReturn(context: UiContext) {
 		if (!this.selectedWorksite.value) {
 			context.uiBuilder.toast(context, {
 				severity: 'warn',
@@ -236,8 +234,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					},
 					Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
 				)
-				return await context.uiBuilder.confirmDialog(
-					h(MaterialTransEditor, {
+				return await context.uiBuilder.dialog(
+					materialTransEditorNode({
 						name: 'WarehousingMaterialTrans',
 						createFn: async (logic) => {
 							// /api/mes/MaterialTranses/oneClickStorage
@@ -251,7 +249,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 								return logic.createEntity(res);
 							});
 						},
-						onInit: (ctx: UiBuildContext<any>) => {
+						onInit: (ctx: UiContext) => {
 							materialTransCtx = ctx;
 							materialTransCtx.isEditDialog = true;
 						},
@@ -305,7 +303,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	 * 选择一个工作中心，设置当前的工作中心id到searchParam中
 	 * @param worksite - 选择的工作中心
 	 */
-	selectWorksite(ctx: UiBuildContext<any>, worksite: Worksite) {
+	selectWorksite(ctx: UiContext, worksite: Worksite) {
 		if (ctx.loading.value) return; // 加载中不允许切换 后期进行用户体验优化
 		this.selectedWorksite.value = worksite;
 		const siteID = worksite ? worksite.siteID : '';
@@ -346,7 +344,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	 * 线边库存一键发货
 	 * @returns
 	 */
-	async shipTrans(context: UiBuildContext<any>) {
+	async shipTrans(context: UiContext) {
 		//当前选中项
 		const { selectedItems, translate: t } = context;
 		if (isRefNone(selectedItems))
@@ -363,8 +361,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			partNo: it.partNo,
 			qaStatus: it.qaStatus,
 		}));
-		const { $api, $router: router } = context.globalProps;
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		try {
 			const res = await apiClient.doAction(
 				{
@@ -398,17 +395,14 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	 * @param value
 	 */
 	async getAllProject(context: UiContext, value?: any) {
-		await context.globalProps.$api
-			.getAll({
-				repository: 'Projects',
-				service: 'mes',
-				queryParams: {
-					pageSize: searchParamProject.pager.pageSize,
-					pageNo: searchParamProject.pager.pageNo,
-					sort: '',
-					searchWord: value,
-				},
-			})
+		await this.getAllOf<Record<string, unknown>>('Projects', {
+			queryParams: {
+				pageSize: searchParamProject.pager.pageSize,
+				pageNo: searchParamProject.pager.pageNo,
+				sort: '',
+				searchWord: value,
+			},
+		}, { service: 'mes' })
 			.then((res: any) => {
 				searchParamProject.pager = res.pagination;
 				tableDataProject.value = res.list.map((it: any) => {
@@ -430,17 +424,14 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	 * @param value
 	 */
 	async getAllOrders(context: UiContext, value?: any) {
-		await context.globalProps.$api
-			.getAll({
-				repository: 'ProductionOrders',
-				service: 'mes',
-				queryParams: {
-					pageSize: searchParamOrder.pager.pageSize,
-					pageNo: searchParamOrder.pager.pageNo,
-					sort: '',
-					searchWord: value,
-				},
-			})
+		await this.getAllOf<Record<string, unknown>>('ProductionOrders', {
+			queryParams: {
+				pageSize: searchParamOrder.pager.pageSize,
+				pageNo: searchParamOrder.pager.pageNo,
+				sort: '',
+				searchWord: value,
+			},
+		}, { service: 'mes' })
 			.then((res: any) => {
 				searchParamOrder.pager = res.pagination;
 				tableDataOrder.value = res.list.map((it: any) => {
@@ -464,7 +455,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				searchLabel: 'ganttLabel.sProject',
 				searchParam: 'projectID',
 				valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext & any, csf) => {
 					if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 						tableDataProject.value.push(csf.searchVal.value);
 					}
@@ -475,70 +466,20 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 						class: 'w-full',
 						// options: tableDataProject.value,
 						options: tableDataProject.value,
-						toSearch: async (event: Event) => {
-							let data = [] as any;
-							let getData = [] as any;
-							// 获取元数据字段
-							const { metaui } = await ctx.logic!.loadMetadata('Projects', 'mes', true);
-							tableDataKeyProject.value = metaui.primaryKey;
-							ctx.searchParam.pager = searchParamProject.pager = {
-								pageNo: 1,
-								pageSize: 10,
-							};
-							// 列表column
-							const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-								isSearch: true,
-								cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-							});
-							ctx.uiBuilder.confirmDialog(
-								ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-									dataKey: tableDataKeyProject.value,
-									onSearch: async (params: any) => {
-										const { searchParams, reload, pager } = params;
-										await this.getAllProject(ctx, searchParams.searchWord);
-										return { list: tableDataProject.value, pager: searchParamProject.pager };
-									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										searchParamProject.pager.pageNo = pageNo;
-										searchParamProject.pager.pageSize = pageSize;
-										ctx.searchParam.pager = searchParamProject.pager;
-									},
-									onSelect: (selection: any, row: any) => {
-										getData = [selection];
-										data = row;
-									},
-									onRowDblclick: (row: any, index: number) => {
-										csf.searchVal.value = csf.searchWord.value = row;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(row)));
-										triggerEscKey(); // 弹窗关闭(触发esc建)
-									},
-								}),
-								ctx,
-								{
-									title: ctx.t('ganttLabel.sProject'),
-									style: { width: '80vw', maxHeight: '95%' },
-									accept: async () => {
-										// //当前选中项
-										if (!MetaModel.hasAny(getData)) {
-											ctx.uiBuilder.toast(ctx, {
-												severity: 'error',
-												detail: ctx.t('invalid.requiredSelectAny'),
-												summary: ctx.t('dialog.title.error'),
-												group: 'br',
-												// position: 'bottom-right',
-												life: 3000,
-											});
-											return false;
-										}
-										csf.searchVal.value = csf.searchWord = data;
-										ctx.model.projectID = data.projectID ?? ctx.model.projectID;
-										ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo;
-										this.searchParam.projectID = ctx.model.projectID;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-										return true;
-									},
-								}
-							);
+						toSearch: async () => {
+							const picked = await ctx.select({
+								repository: 'Projects',
+								service: 'mes',
+								selectionMode: 'single',
+							})
+							if (!Array.isArray(picked) || !picked.length) return false
+							const data = picked[0]
+							csf.searchVal.value = csf.searchWord = data
+							ctx.model.projectID = data.projectID ?? ctx.model.projectID
+							ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo
+							this.searchParam.projectID = ctx.model.projectID
+							ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
+							return true
 						},
 						onUpdate: (value: any) => {
 							csf.searchVal.value = value || null;
@@ -556,7 +497,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				searchLabel: 'ganttLabel.sProductionOrder',
 				searchParam: 'orderID',
 				valueFn: (v: any) => (!isRefNone(v) ? v.orderID : ''),
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext & any, csf) => {
 					if (!tableDataOrder.value.length && isObject(csf.searchVal.value)) {
 						tableDataOrder.value.push(csf.searchVal.value);
 					}
@@ -567,70 +508,20 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 						class: 'w-full',
 						// options: tableDataProject.value,
 						options: tableDataOrder.value,
-						toSearch: async (event: Event) => {
-							let data = [] as any;
-							let getData = [] as any;
-							// 获取元数据字段
-							const { metaui } = await ctx.logic!.loadMetadata('ProductionOrders', 'mes', true);
-							tableDataKeyOrder.value = metaui.primaryKey;
-							ctx.searchParam.pager = searchParamOrder.pager = {
-								pageNo: 1,
-								pageSize: 10,
-							};
-							// 列表column
-							const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-								isSearch: true,
-								cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-							});
-							ctx.uiBuilder.confirmDialog(
-								ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-									dataKey: tableDataKeyOrder.value,
-									onSearch: async (params: any) => {
-										const { searchParams, reload, pager } = params;
-										await this.getAllOrders(ctx, searchParams.searchWord);
-										return { list: tableDataOrder.value, pager: searchParamOrder.pager };
-									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										searchParamOrder.pager.pageNo = pageNo;
-										searchParamOrder.pager.pageSize = pageSize;
-										ctx.searchParam.pager = searchParamOrder.pager;
-									},
-									onSelect: (selection: any, row: any) => {
-										getData = [selection];
-										data = row;
-									},
-									onRowDblclick: (row: any, index: number) => {
-										csf.searchVal.value = csf.searchWord.value = row;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/orderID`, JSON.parse(JSON.stringify(row)));
-										triggerEscKey(); // 弹窗关闭(触发esc建)
-									},
-								}),
-								ctx,
-								{
-									title: ctx.t('ganttLabel.sProductionOrder'),
-									style: { width: '80vw', maxHeight: '95%' },
-									accept: async () => {
-										// //当前选中项
-										if (!MetaModel.hasAny(getData)) {
-											ctx.uiBuilder.toast(ctx, {
-												severity: 'error',
-												detail: ctx.t('invalid.requiredSelectAny'),
-												summary: ctx.t('dialog.title.error'),
-												group: 'br',
-												// position: 'bottom-right',
-												life: 3000,
-											});
-											return false;
-										}
-										csf.searchVal.value = csf.searchWord = data;
-										ctx.model.orderID = data.orderID ?? ctx.model.orderID;
-										ctx.model.orderNo = data.orderNo ?? ctx.model.orderNo;
-										this.searchParam.orderID = ctx.model.orderID;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/orderID`, JSON.parse(JSON.stringify(data)));
-										return true;
-									},
-								}
-							);
+						toSearch: async () => {
+							const picked = await ctx.select({
+								repository: 'ProductionOrders',
+								service: 'mes',
+								selectionMode: 'single',
+							})
+							if (!Array.isArray(picked) || !picked.length) return false
+							const data = picked[0]
+							csf.searchVal.value = csf.searchWord = data
+							ctx.model.orderID = data.orderID ?? ctx.model.orderID
+							ctx.model.orderNo = data.orderNo ?? ctx.model.orderNo
+							this.searchParam.orderID = ctx.model.orderID
+							ctx.app.localDb.put(`search/${ctx.logic.repository}/orderID`, JSON.parse(JSON.stringify(data)))
+							return true
 						},
 						onUpdate: (value: any) => {
 							csf.searchVal.value = value || null;
@@ -648,12 +539,12 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		return { searchParam, searchFields, customSearchFields };
 	}
 
-	checkInventory(context: UiBuildContext<any>) {
+	checkInventory(context: UiContext) {
 		const { uiBuilder, globalProps } = context;
 		const { $t } = globalProps;
 
 		try {
-			context.uiBuilder.confirmDialog(h(InventoryDialog, { context }), context, {
+			context.uiBuilder.dialog(inventoryDialogNode({ context }), context, {
 				title: $t('linesideInventory.queryInventory'),
 				width: '60vw',
 				accept: async () => { },
@@ -669,12 +560,12 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		}
 	}
 
-	completeShipment(context: UiBuildContext<any>) {
+	completeShipment(context: UiContext) {
 		const { uiBuilder, globalProps } = context;
 		const { $t } = globalProps;
 
 		try {
-			context.uiBuilder.confirmDialog(h(CompleteShipment, { context }), context, {
+			context.uiBuilder.dialog(completeShipmentNode({ context }), context, {
 				title: $t('linesideInventory.completeShipment'),
 				width: '90vw',
 				showFooter: false,
@@ -723,7 +614,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					label: 'linesideInventory.oneClickShipment',
 					group: 'selectMany',
 					role: 'primary',
-					onAction: (context: UiBuildContext<any>) => {
+					onAction: (context: UiContext) => {
 						// 切换到多选模式
 						context.toSelectManyIndex('shipTrans', () => this.shipTrans(context));
 					},
@@ -791,7 +682,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
  * @param module 模块
  * @returns
  */
-export const LinesideInventoryLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const LinesideInventoryLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new LinesideInventoryLogic({
 		metaUiService: metaUiService,
 		repository: 'LinesideInventories',
@@ -811,25 +702,12 @@ export class LinesideInventoryItemLogic extends UiGroupLogic<LinesideInventoryIt
 			fields.push(
 				this.field('transNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (ctx.model.transID) {
-										window.open(`/MES/MaterialTranses/${ctx.model.transID}`, '_blank');
-									}
-								},
-							},
-							fldVal ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal ?? '',
+						href: ctx.model.transID ? `/MES/MaterialTranses/${ctx.model.transID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 			)
 		}

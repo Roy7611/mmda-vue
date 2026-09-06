@@ -5,11 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, isNullOrUndefined } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Partner, definePartner } from '../../models/Partner';
-import { h } from 'vue'
 import { PartnerCat } from '../../models/PartnerCat';
 /**
  * 贸易伙伴交互逻辑
@@ -126,7 +124,7 @@ export class PartnerLogic extends UiLogic<Partner> {
  * @param module 模块
  * @returns 
  */
-export const PartnerLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new PartnerLogic({
+export const PartnerLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new PartnerLogic({
 	metaUiService: metaUiService,
 	repository: 'Partners',
 	router,

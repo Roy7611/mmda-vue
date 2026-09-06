@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
@@ -72,7 +71,7 @@ import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const CodeRuleLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new CodeRuleLogic({
+	export const CodeRuleLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new CodeRuleLogic({
 		metaUiService: metaUiService,
 		repository: 'CodeRules',
 		router,

@@ -2,23 +2,157 @@ import type {
   ColDef,
   ICellEditorParams,
   ICellRendererParams,
+  IFilterOptionDef,
   SetFilterValuesFuncParams,
   ValueFormatterParams,
 } from 'ag-grid-community'
 import {
+  DATE_RANGE_FILTER_KINDS,
+  MetaUiFieldFilterType,
   SqlDataType,
+  columnFilterKindOf,
+  hasFilterType,
+  normalizePivotDates,
+  simpleFilterTypeOf,
+  toDatePeriodToken,
+  type DateTimeRangeKind,
   type MetaUi,
   type MetaUiField,
 } from '@mmda/core'
 import { gridFreezeOf } from '@mmda/vui'
 import type { UiListPropsType } from '@mmda/vui'
-import { listedMetaFields, isReferenceSetField } from './ag_filter'
+import {
+  listedMetaFields,
+  isHasOneFilterField,
+  isReferenceSetField,
+  rememberPivotDays,
+} from './ag_filter'
 
 export function listedFieldsOf(metaui: MetaUi): MetaUiField[] {
   return listedMetaFields(metaui)
 }
 
 const headerName = (field: MetaUiField) => field.displayLabel || field.fieldName
+
+const dateKindOptions = (
+  labels?: Partial<Record<DateTimeRangeKind, string>>,
+): IFilterOptionDef[] =>
+  DATE_RANGE_FILTER_KINDS.map(kind => ({
+    displayKey: kind,
+    displayName: labels?.[kind] ?? kind,
+    predicate: () => true,
+    numberOfInputs: 0,
+  }))
+
+const simpleFilterOf = (
+  field: MetaUiField,
+  props: UiListPropsType<any> = {} as UiListPropsType<any>,
+) => {
+  const type = simpleFilterTypeOf(field)
+  const maxNumConditions = hasFilterType(field, MetaUiFieldFilterType.JOIN)
+    ? 2
+    : 1
+  if (type === 'date') {
+    return {
+      filter: 'agDateColumnFilter',
+      filterParams: {
+        browserDatePicker: true,
+        maxNumConditions,
+        filterOptions: [
+          'equals',
+          'notEqual',
+          'greaterThan',
+          'greaterThanOrEqual',
+          'lessThan',
+          'lessThanOrEqual',
+          'inRange',
+          'blank',
+          'notBlank',
+          ...dateKindOptions(props.dateRangeLabels),
+        ],
+      },
+    }
+  }
+  if (type === 'number') {
+    return {
+      filter: 'agNumberColumnFilter',
+      filterParams: { maxNumConditions },
+    }
+  }
+  return {
+    filter: 'agTextColumnFilter',
+    filterParams: { maxNumConditions },
+  }
+}
+
+const dateTreeFilterParamsOf = (
+  field: MetaUiField,
+  props: UiListPropsType<any>,
+) => ({
+  treeList: true,
+  defaultToNothingSelected: true,
+  excelMode: 'windows' as const,
+  keyCreator: (params: { value: unknown }) =>
+    toDatePeriodToken(params.value) ?? String(params.value ?? ''),
+  treeListPathGetter: (value: string | null) => {
+    const token = toDatePeriodToken(value) ?? value
+    if (!token) return [null]
+    const parts = String(token).split('-')
+    return parts.length >= 3 ? parts.slice(0, 3) : [token]
+  },
+  treeListFormatter: (
+    pathKey: string | null,
+    level: number,
+  ) => {
+    if (pathKey == null) return ''
+    if (level === 1) {
+      const month = Number(pathKey)
+      const suffix = props.dateRangeLabels?.month ?? ''
+      return Number.isFinite(month) ? `${month}${suffix}` : pathKey
+    }
+    return pathKey
+  },
+  values: (params: SetFilterValuesFuncParams) => {
+    const apply = (raw: unknown) => {
+      const days = normalizePivotDates(raw)
+      rememberPivotDays(field, days)
+      params.success(days)
+    }
+    void Promise.resolve(
+      props.loadPivotDates?.(field) ?? props.loadFilterOptions?.(field) ?? [],
+    ).then(apply, () => apply([]))
+  },
+})
+
+const setFilterParamsOf = (
+  field: MetaUiField,
+  props: UiListPropsType<any>,
+) => ({
+  values: (params: SetFilterValuesFuncParams) => {
+    const apply = (options: unknown[]) => {
+      const reference = field.reference!
+      params.success(options.map(option => String(reference.valueOf(option))))
+    }
+    const current = field.reference?.refOptions ?? []
+    if (current.length) {
+      apply(current)
+      return
+    }
+    void Promise.resolve(props.loadFilterOptions?.(field)).then(() => {
+      apply(field.reference?.refOptions ?? [])
+    })
+  },
+  valueFormatter: (params: { value: unknown }) => {
+    const reference = field.reference
+    if (!reference) return String(params.value ?? '')
+    const match = (reference.refOptions ?? []).find(
+      option => String(reference.valueOf(option)) === String(params.value),
+    )
+    return match ? String(reference.labelOf(match)) : String(params.value ?? '')
+  },
+  suppressMiniFilter: false,
+  defaultToNothingSelected: true,
+})
 
 export function buildColumnDefs<T>(
   metaui: MetaUi,
@@ -41,7 +175,7 @@ export function buildColumnDefs<T>(
       minWidth: 72,
       pinned: freeze === 'Left' ? 'left' : freeze === 'Right' ? 'right' : undefined,
       context: { field },
-      cellRenderer: 'MmdaAgGridCell',
+      cellRenderer: 'AgGridCell',
       valueFormatter: (params: ValueFormatterParams<T>) => {
         const reference = field.reference
         if (!reference?.refOptions?.length) {
@@ -57,41 +191,12 @@ export function buildColumnDefs<T>(
         props.inplaceEdit === true &&
         (!props.editableFields?.length ||
           props.editableFields.includes(field.fieldName)),
-      cellEditor: 'MmdaAgGridEditor',
+      cellEditor: 'AgGridEditor',
       cellEditorPopup: true,
     }
     if (filterDisplay !== 'none') {
-      if (isReferenceSetField(field)) {
-        col.filter = 'agSetColumnFilter'
-        col.filterParams = {
-          values: (params: SetFilterValuesFuncParams) => {
-            const apply = (options: unknown[]) => {
-              const reference = field.reference!
-              params.success(
-                options.map(option => String(reference.valueOf(option))),
-              )
-            }
-            const current = field.reference?.refOptions ?? []
-            if (current.length) {
-              apply(current)
-              return
-            }
-            void Promise.resolve(props.loadFilterOptions?.(field)).then(() => {
-              apply(field.reference?.refOptions ?? [])
-            })
-          },
-          valueFormatter: (params: { value: unknown }) => {
-            const reference = field.reference
-            if (!reference) return String(params.value ?? '')
-            const match = (reference.refOptions ?? []).find(
-              option => String(reference.valueOf(option)) === String(params.value),
-            )
-            return match ? String(reference.labelOf(match)) : String(params.value ?? '')
-          },
-          suppressMiniFilter: false,
-          defaultToNothingSelected: true,
-        }
-      } else if (SqlDataType.isBool(field.dataType)) {
+      const kind = columnFilterKindOf(field)
+      if (kind === 'boolean') {
         col.filter = 'agSetColumnFilter'
         col.valueGetter = params => {
           const row = params.data as Record<string, unknown> | undefined
@@ -107,13 +212,50 @@ export function buildColumnDefs<T>(
             return String(params.value ?? '')
           },
         }
-      } else if (SqlDataType.isDate(field.dataType)) {
-        col.filter = 'agDateColumnFilter'
-        col.filterParams = { browserDatePicker: true }
-      } else if (SqlDataType.isNum(field.dataType)) {
-        col.filter = 'agNumberColumnFilter'
+      } else if (kind === 'range' || kind === 'text') {
+        const simple = simpleFilterOf(field, props)
+        col.filter = simple.filter
+        col.filterParams = simple.filterParams
+      } else if (kind === 'set') {
+        if (isHasOneFilterField(field)) {
+          col.filter = 'AgHasOneFilter'
+          col.filterParams = {
+            field,
+            searchRelative: props.searchRelative,
+          }
+        } else if (isReferenceSetField(field) || field.reference) {
+          col.filter = 'agSetColumnFilter'
+          col.filterParams = setFilterParamsOf(field, props)
+        } else {
+          col.filter = 'agSetColumnFilter'
+          col.filterParams = { defaultToNothingSelected: true }
+        }
       } else {
-        col.filter = 'agTextColumnFilter'
+        const simple = simpleFilterOf(field, props)
+        const optionFilter = simpleFilterTypeOf(field) === 'date'
+          ? {
+              filter: 'agSetColumnFilter',
+              filterParams: dateTreeFilterParamsOf(field, props),
+            }
+          : isHasOneFilterField(field)
+          ? {
+              filter: 'AgHasOneFilter',
+              filterParams: {
+                field,
+                searchRelative: props.searchRelative,
+              },
+            }
+          : isReferenceSetField(field)
+            ? {
+                filter: 'agSetColumnFilter',
+                filterParams: setFilterParamsOf(field, props),
+              }
+            : {
+                filter: 'agSetColumnFilter',
+                filterParams: { defaultToNothingSelected: true },
+              }
+        col.filter = 'agMultiColumnFilter'
+        col.filterParams = { filters: [simple, optionFilter] }
       }
     }
     return col

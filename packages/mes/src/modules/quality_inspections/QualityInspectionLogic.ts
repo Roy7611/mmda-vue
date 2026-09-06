@@ -5,9 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
+
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, MetaUiBuilder, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
+import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';
@@ -16,35 +16,34 @@ import { QcInProcessType, QcInProcessTypeEnum } from '@/enums/QcInProcessType';
 import { QcPhase, QcPhaseEnum } from '@mmda/base/src/enums/QcPhase';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
-import { h, ref, reactive } from 'vue';
 /**
  * 质量检验交互逻辑
  * @author mmda codebot
  * @since 2024-08-07 10:30:05.0
  * @revision 2024-08-12 18:22:36.0
  */
-const tableData = ref([]);
-const tablecolumns = ref([]);
-const tableDataKEY = ref('id');
-const searchParam = reactive({
+const tableData = { value: [] as any[] };
+const tablecolumns = { value: [] as any[] };
+const tableDataKEY = { value: 'id' };
+const searchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 
-const tableDataProject = ref([]);
-const tableDataKeyProject = ref('id');
-const searchParamProject = reactive({
+const tableDataProject = { value: [] as any[] };
+const tableDataKeyProject = { value: 'id' };
+const searchParamProject = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 
 const activeItems = (inspection?: QualityInspection) =>
 	(inspection?.items ?? []).filter(item => !MetaModel.deleted(item));
@@ -78,7 +77,7 @@ const beforeMaterialTransCreateRedirect = async (
 		if (action.param?.type !== 'redirect') return true;
 		const to = action.param.value?.to ?? action.param.value;
 		if (to?.objName !== 'MaterialTrans' || to?.action !== 'create') return true;
-		const res = await context.globalProps.$api.createOne(action.param.value.ref, {
+		const res = await this.apiClient.createOne(action.param.value.ref, {
 			repository: 'MaterialTranses',
 			service: 'mes',
 		});
@@ -155,17 +154,14 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 	 * @param value
 	 */
 	async getAllProject(context: UiContext, value?: any) {
-		await context.globalProps.$api
-			.getAll({
-				repository: 'Projects',
-				service: 'mes',
-				queryParams: {
-					pageSize: searchParamProject.pager.pageSize,
-					pageNo: searchParamProject.pager.pageNo,
-					sort: '',
-					searchWord: value,
-				},
-			})
+		await this.getAllOf<Record<string, unknown>>('Projects', {
+			queryParams: {
+				pageSize: searchParamProject.pager.pageSize,
+				pageNo: searchParamProject.pager.pageNo,
+				sort: '',
+				searchWord: value,
+			},
+		}, { service: 'mes' })
 			.then((res: any) => {
 				searchParamProject.pager = res.pagination;
 				tableDataProject.value = res.list.map((it: any) => {
@@ -189,7 +185,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 				searchLabel: '项目',
 				searchParam: 'projectID',
 				valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext<any> & any, csf) => {
 					if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 						tableDataProject.value.push(csf.searchVal.value)
 					}
@@ -200,70 +196,20 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 						class: 'w-full',
 						// options: tableDataProject.value,
 						options: tableDataProject.value,
-						toSearch: async (event: Event) => {
-							let data = [] as any;
-							let getData = [] as any
-							// 获取元数据字段
-							const { metaui } = await ctx.logic!.loadMetadata('Projects', 'mes', true);
-							tableDataKeyProject.value = metaui.primaryKey;
-							ctx.searchParam.pager = searchParamProject.pager = {
-								pageNo: 1,
-								pageSize: 10
-							}
-							// 列表column
-							const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-								isSearch: true,
-								cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-							});
-							ctx.uiBuilder.confirmDialog(
-								ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-									dataKey: tableDataKeyProject.value,
-									onSearch: async (params: any) => {
-										const { searchParams, reload, pager } = params;
-										await this.getAllProject(ctx, searchParams.searchWord);
-										return { list: tableDataProject.value, pager: searchParamProject.pager };
-									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										searchParamProject.pager.pageNo = pageNo;
-										searchParamProject.pager.pageSize = pageSize;
-										ctx.searchParam.pager = searchParamProject.pager
-									},
-									onSelect: (selection: any, row: any) => {
-										getData = [selection]
-										data = row;
-									},
-									onRowDblclick: (row: any, index: number) => {
-										csf.searchVal.value = csf.searchWord.value = row
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(row)));
-										triggerEscKey(); // 弹窗关闭(触发esc建)
-									},
-								}),
-								ctx,
-								{
-									title: '项目',
-									style: { width: '80vw', maxHeight: '95%' },
-									accept: async () => {
-										// //当前选中项
-										if (!MetaModel.hasAny(getData)) {
-											ctx.uiBuilder.toast(ctx, {
-												severity: 'error',
-												detail: ctx.t('invalid.requiredSelectAny'),
-												summary: ctx.t('dialog.title.error'),
-												group: 'br',
-												// position: 'bottom-right',
-												life: 3000,
-											});
-											return false
-										}
-										csf.searchVal.value = csf.searchWord = data;
-										ctx.model.projectID = data.projectID ?? ctx.model.projectID;
-										ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo;
-										this.searchParam.projectID = ctx.model.projectID;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-										return true;
-									},
-								}
-							);
+						toSearch: async () => {
+							const picked = await ctx.select({
+								repository: 'Projects',
+								service: 'mes',
+								selectionMode: 'single',
+							})
+							if (!Array.isArray(picked) || !picked.length) return false
+							const data = picked[0]
+							csf.searchVal.value = csf.searchWord = data
+							ctx.model.projectID = data.projectID ?? ctx.model.projectID
+							ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo
+							this.searchParam.projectID = ctx.model.projectID
+							ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
+							return true
 						},
 						onUpdate: (value: any) => {
 							csf.searchVal.value = value || null;
@@ -288,7 +234,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 				this.field('inProcessType'),
 				this.field('taskID')
 					
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context, model) => {
 						return {
 							sort: `planDate ${SortOrder.DESC}`,
@@ -322,7 +268,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			//品控标准
 			fields.push(
 				this.field('qcsID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						const params: Record<string, any> = { status: '>0' };
 						// 预设单为true说明是特殊来源生成的检验单：按 qcPhase 筛品控标准
@@ -362,7 +308,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 						if (shouldBackfillFromQcs(model, createRefName)) {
 							if (!isRefNone(newVal)) {
 								let qcPhase = (context.getFieldCurrentOption('qcsID') ?? model.qcStandard)?.qcPhase;
-								if (isRefNone(qcPhase)) qcPhase = (await context.globalProps.$api.getOne(newVal, { repository: 'QualityControlStandards', service: 'mes' }).catch((): null => null))?.qcPhase;
+								if (isRefNone(qcPhase)) qcPhase = (await context.logic!.loadOf<Record<string, unknown>>('QualityControlStandards', newVal, { service: 'mes' }).catch((): null => null) as { qcPhase?: unknown } | null)?.qcPhase;
 								if (!isRefNone(qcPhase)) {
 									context.setFieldValue('qcPhase', { value: qcPhase, text: QcPhaseEnum.textOf(qcPhase) });
 									this.syncInProcessTypeByQcPhase(context, model, qcPhase);
@@ -373,7 +319,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 						// 普通来源与特殊来源共用：清空或切换品控标准时同步处理检验项
 						if (!isRefNone(oldVal)) context.removeSubGroupItems('items');
 						if (isRefNone(newVal)) return;
-						context.globalProps.$api.getAll({
+						this.apiClient.getAll({
 							repository: 'QualityInspections',
 							action: `${model.inspectionID}/createQualityInspectionItemByQCS`,
 							queryParams: { qcsID: model.qcsID },
@@ -409,7 +355,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 				this.field('inProcessType').lockIf(t => t.qcPhase !== 'IPQC' || t.preset),
 				this.field('taskID')
 					.lockIf(t => t.preset)
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context, model) => {
 						const ref = context.metaui.getField('qcPhase').reference;
 						const phase = ref?.valueOf(ref?.enumFn(model.qcPhase) ?? context.getFieldValue(context.metaui.getField('qcPhase'))) ?? model.qcPhase;
@@ -565,10 +511,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 		}
 
 		try {
-			const task = await context.globalProps.$api.getOne(taskID, {
-				repository: 'ProductionTasks',
-				service: 'mes',
-			}) as ProductionTask;
+			const task = await context.logic!.loadOf<ProductionTask>('ProductionTasks', taskID, { service: 'mes' });
 			if (requestID !== this.taskMaterialRequestID) return;
 			this.applyQcPhaseExcludeIqc(context, model, task.status);
 
@@ -616,19 +559,15 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 		if (!pending.length) return;
 		const rows = pending.map(i => ({ ...i, qualifiedText: context.t('qualityInspection.unqualified') }));
 		let selected: typeof rows = rows;
-		context.uiBuilder.confirmDialog(
-			context.uiBuilder.buildSearchForRelativeContent([
-				ui.factory.column({ header: context.t('qualityInspection.category'), field: 'category' }),
-				ui.factory.column({ header: context.t('qualityInspection.inspectionContent'), field: 'itemName' }),
-				ui.factory.column({ header: context.t('qualityInspection.criterion'), field: 'criterion' }),
-				ui.factory.column({ header: context.t('qualityInspection.qualified'), field: 'qualifiedText' }),
-			], {
-				dataKey: 'itemID',
+		const metaui = MetaUiBuilder.create('BatchQualified')
+			.field('category', context.t('qualityInspection.category'))
+			.field('itemName', context.t('qualityInspection.inspectionContent'))
+			.field('criterion', context.t('qualityInspection.criterion'))
+			.field('qualifiedText', context.t('qualityInspection.qualified'))
+			.build();
+		context.uiBuilder.dialog(
+			context.uiBuilder.factory.table(rows, metaui, {
 				selectionMode: 'multiple',
-				selectAll: true,
-				showSearchBar: false,
-				paginator: false,
-				onSearch: async () => ({ list: rows, pager: { pageNo: 1, pageSize: rows.length, recordCount: rows.length } }),
 				onSelect: (sel: typeof rows) => { selected = sel ?? []; },
 			}),
 			context,
@@ -711,7 +650,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
  * @param module 模块
  * @returns
  */
-export const QualityInspectionLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const QualityInspectionLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new QualityInspectionLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityInspections',
@@ -893,9 +832,8 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 		super(defineQualityInspectionMaterial, parent, master, 'materials');
 	}
 	async getData(ctx: any, value?: any) {
-		const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-		const res = await apiBox.getAll({
-			repository: 'QualityDefects',
+		const { $ui: ui, $t: t } = ctx.globalProps;
+		const res = await ctx.logic!.getAllOf<Record<string, unknown>>('QualityDefects', {
 			queryParams: {
 				pageSize: searchParam.pager.pageSize,
 				pageNo: searchParam.pager.pageNo,
@@ -1040,7 +978,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 					}),
 				this.field('defectDesc')
 					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
-						const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
+						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchForRelative({
 							role: `defectDesc-search-for-relative`,
@@ -1051,48 +989,18 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 							optionLabel: 'defectDesc',
 							options: tableData.value,
 							placeholder: t('action.select'),
-							toSearch: async (event: Event) => {
-								let data = [] as any;
-								const metaUi = await metaUiService.get('QualityDefects', 'mes');
-								tablecolumns.value = metaUi.getListedFields().sort((prev: any, curr: any) => {
-									return Number(prev.fieldIdx) - Number(curr.fieldIdx);
-								});
-								tableDataKEY.value = metaUi.primaryKey;
-								await this.getData(ctx, '');
-								ctx.uiBuilder.confirmDialog(
-									ctx.uiBuilder.buildSearchForRelativeContent(
-										tablecolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-										{
-											dataKey: tableDataKEY.value,
-											onSearch: async (params: any) => {
-												const { searchParams, reload, pager } = params;
-												await this.getData(ctx, searchParams.searchWord);
-												return { list: tableData.value, pager: searchParam.pager };
-											},
-											onPage: ({ pageNo, pageSize }: any) => {
-												searchParam.pager.pageNo = pageNo;
-												searchParam.pager.pageSize = pageSize;
-											},
-											onSelect: (selection: any, row: any) => {
-												data = row;
-											},
-										}
-									),
-									ctx,
-									{
-										title: fld.displayLabel,
-										width: '80%',
-										// height: '30%',
-										accept: async () => {
-											// 缺陷描述回填
-											ctx.model.defectDesc = data.defectDesc ?? ctx.model.defectDesc;
-											// 缺陷标识回填
-											ctx.model.defectID = data.defectID ?? ctx.model.defectID;
-											MetaModel.modify(ctx.model);
-											return true;
-										},
-									}
-								);
+							toSearch: async () => {
+								const picked = await ctx.select({
+									repository: 'QualityDefects',
+									service: 'mes',
+									selectionMode: 'single',
+								})
+								if (!Array.isArray(picked) || !picked.length) return false
+								const data = picked[0]
+								ctx.model.defectDesc = data.defectDesc ?? ctx.model.defectDesc
+								ctx.model.defectID = data.defectID ?? ctx.model.defectID
+								MetaModel.modify(ctx.model)
+								return true
 							},
 							onInput: async (value: string) => {
 								model.defectDesc = value;

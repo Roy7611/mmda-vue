@@ -12,7 +12,7 @@ interface PropsData {
 	action?: string;
 	// 接口 repository 字段
 	repository?: string;
-	// 成功后提示信息
+	// 成功后提示信�?
 	detail?: string;
 }
 
@@ -20,20 +20,20 @@ const notice = reactive({
 	data: {
 		ownerID: '',
 		ownerName: '',
-		ownerInvalid: false, //显示用 是否选择了用户
+		ownerInvalid: false, //显示�?是否选择了用�?
 		ownerDeptID: '',
 		ownerDeptName: '',
-		importance: 'UNKNOWN', //重要性
-		urgency: 'NORMAL', //紧急性
+		importance: 'UNKNOWN', //重要�?
+		urgency: 'NORMAL', //紧急�?
 		notification: '', //待办事宜
-		copyTo: [], //通知给
-		copyToInvalid: false, //是否选择了 通知给谁。
+		copyTo: [], //通知�?
+		copyToInvalid: false, //是否选择�?通知给谁�?
 	},
 });
 
 /**
- * 通知组件调用方法（等封装到框架在修改）
- * @param context 界面上下文
+ * 通知组件调用方法（等封装到框架在修改�?
+ * @param context 界面上下�?
  * @param props  方法配置字段
  * @returns Promise<boolean>
  */
@@ -42,10 +42,10 @@ export const NoticeFn = async (
 	context: UiContext & Required<Pick<UiContext, 'reload'>>,
 	props?: PropsData,
 ): Promise<boolean> => {
-	const { $t: t, $api: apiBox, $toast: toast } = context.globalProps;
+	const { $t: t, $toast: toast } = context.globalProps;
 	props.data = notice.data;
 	try {
-		context.uiBuilder.confirmDialog(
+		context.uiBuilder.dialog(
 			h(Notice, {
 				dataModel: props.data,
 				ctx: context,
@@ -57,19 +57,19 @@ export const NoticeFn = async (
 			{
 				title: props.title,
 				accept: async () => {
-					//选中人必填
+					//选中人必�?
 					if (!props.data.ownerID) {
 						props.data.ownerInvalid = true;
 						return false;
 					}
-					//通知人必填
+					//通知人必�?
 					if (isNullOrUndefined(props.data.copyTo) || props.data.copyTo.length <= 0) {
 						props.data.copyToInvalid = true;
 						return false;
 					}
 					//调用接口
 					try {
-						const res: boolean = await apiBox.doAction(
+						const res: boolean = await (context as any).logic.apiClient.doAction(
 							{
 								path: props.id ?? '',
 								action: props.action,

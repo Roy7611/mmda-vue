@@ -5,8 +5,8 @@
 
 ## 职责
 
-字段 lock/hide/required、onChange、onValidate（可带 severity）、refFilter 叠加、inplaceEdit。
-关联查询：`buildRefFilter`（where AND refFilter）、`buildRefSearchFilter`（再加 @param 替换与 searchWord LIKE）。
+字段 lock/hide/required、onChange、onValidate（可带 severity）、refWhere 叠加、inplaceEdit。
+关联查询：`buildRefWhere`（where AND refWhere，含 `@param` 替换）。联想关键字走 `searchWord`，不要拼 LIKE。
 构造时从 `validatorDescriptors` 组装 `validators`。
 
 ## 不要

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Person, definePerson } from '../../models/Person';
@@ -64,7 +63,7 @@ import { type Person, definePerson } from '../../models/Person';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const PersonLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new PersonLogic({
+	export const PersonLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new PersonLogic({
 		metaUiService: metaUiService,
 		repository: 'Persons',
 		router,

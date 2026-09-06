@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionLot, defineProductionLot } from '@/models/ProductionLot';
@@ -55,7 +54,7 @@ export class ProductionLotLogic extends UiLogic<ProductionLot> {
 			fields.push(
 				//生产任务变动
 				this.field('taskID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						//let filters = null;
 						//filters = 'status=WORKING';
@@ -126,7 +125,7 @@ export class ProductionLotLogic extends UiLogic<ProductionLot> {
  * @param module 模块
  * @returns
  */
-export const ProductionLotLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionLotLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionLotLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionLots',

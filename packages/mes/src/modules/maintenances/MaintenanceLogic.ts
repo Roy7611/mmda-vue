@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type UiContext, MetaModel, MetaAggregation, defaultPager, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Maintenance, defineMaintenance } from '@/models/Maintenance';
@@ -232,7 +231,7 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
  * @param module 模块
  * @returns
  */
-export const MaintenanceLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const MaintenanceLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new MaintenanceLogic({
 		metaUiService: metaUiService,
 		repository: 'Maintenances',
@@ -287,7 +286,7 @@ export class MaintenanceItemLogic extends UiGroupLogic<MaintenanceItem, Maintena
 					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED'),
 				this.field('transReasonID')
 					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context, model, fld) => ({
 						status: `IN ${UsageStatus.USED}`,
 						equipType: model.equip ? model.equip.equipType : ''

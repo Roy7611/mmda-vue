@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type EquipmentChecklist, defineEquipmentChecklist } from '@/models/EquipmentChecklist';
@@ -109,7 +108,7 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const EquipmentChecklistLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new EquipmentChecklistLogic({
+	export const EquipmentChecklistLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new EquipmentChecklistLogic({
 		metaUiService: metaUiService,
 		repository: 'EquipmentChecklists',
 		router,

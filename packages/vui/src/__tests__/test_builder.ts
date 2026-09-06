@@ -8,7 +8,7 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
-import { AbstractUiBuilder } from "../ui/ui_builder";
+import { VueUiBuilder } from "../ui/ui_builder";
 import type { UiViewContext } from "../ui/ui_context";
 import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/ui_auth";
 import type {
@@ -247,7 +247,7 @@ function createTestFieldFactory(): UiFieldFactory {
 }
 
 /** Test-only builder. Not a public vui skin. */
-export class TestUiBuilder extends AbstractUiBuilder {
+export class TestUiBuilder extends VueUiBuilder {
   constructor(
     factory = createTestUiFactory(),
     fieldFactory = createTestFieldFactory(),

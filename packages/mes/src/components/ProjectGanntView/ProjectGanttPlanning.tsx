@@ -1,5 +1,5 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs } from 'vue';
-import { isRefNone, type ApiClient } from '@mmda/core';
+import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
@@ -8,7 +8,7 @@ import '@/compat/animate.min.css';
 import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 
-export default defineComponent({
+const ProjectGanttPlanning = defineComponent({
 	name: 'ProjectGanttPlanning',
 	emits: ['changePlanningData'],
 	// props: ['dataModel', 'ctx'],
@@ -22,7 +22,6 @@ export default defineComponent({
 	setup(props, ctx) {
 		// const ganttBox = ref();
 
-		const apiBox = getCurrentInstance().appContext.app.config.globalProperties.$api as ApiClient;
 		const { $ui: ui, $t, appContext } = getCurrentInstance().appContext.app.config.globalProperties;
 
 		//最终提交前处理的方法
@@ -107,3 +106,9 @@ export default defineComponent({
 		);
 	},
 });
+
+export default ProjectGanttPlanning
+
+export function projectGanttPlanningNode(props?: Record<string, any>) {
+	return h(ProjectGanttPlanning, props as any)
+}

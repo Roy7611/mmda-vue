@@ -6,19 +6,18 @@ import { resolve } from 'node:path';
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
 import { MetaUiPack } from '@mmda/core';
 import type { UiLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
-import { reactive, h, toRaw, ref, RendererElement, RendererNode, VNode, getCurrentInstance } from 'vue';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
 import { getTaskData, getLinkRes, getProSub, getPlanRes, getBreaks, getReflash, getReload } from '@/components/ProjectGanntView/ProjectGanttUpdate';
 import { TaskRelationship, TaskRelationshipEnum } from '@mmda/base/src/enums/TaskRelationship';
 import { TaskConstraintTypeEnum } from '@mmda/base/src/enums/TaskConstraintType';
-import GanttPlanning from '@/components/ProjectGanntView/ProjectGanttPlanning';
-import ChoosePerson from '@/components/ChoosePerson/ChoosePerson';
+import { projectGanttPlanningNode } from '@/components/ProjectGanntView/ProjectGanttPlanning';
+import { choosePersonNode } from '@/components/ChoosePerson/ChoosePerson';
 //生产工作包
 import { ProjectWorkPackageEditor } from '@/modules/project_work_packages/ProjectWorkPackageEditor';
 
@@ -26,7 +25,7 @@ import { uiBuilder } from '@/mes';
 import type { UiBuildContext } from '@mmda/vui';
 
 //负责人
-const chargePerson = reactive({
+const chargePerson = {
 	data: {
 		uid: null,
 		userName: null,
@@ -35,7 +34,7 @@ const chargePerson = reactive({
 		detpID: null,
 	},
 });
-const notice = reactive({
+const notice = {
 	data: {
 		ownerID: '',
 		ownerName: '',
@@ -84,20 +83,20 @@ const linkTypes = [
 	{ key: 'START_TO_FINISH', value: 3 },
 ];
 
-const updateRes = reactive({
+const updateRes = {
 	data: [],
 });
-const linkRes = reactive({
+const linkRes = {
 	data: false,
 });
 
 //id map
-const threeMep = reactive({
+const threeMep = {
 	data: [],
 });
 
 //日计划提交对象
-const dailyPlanning = reactive({
+const dailyPlanning = {
 	data: {
 		planNo: null,
 		planNoInvalid: false,
@@ -117,26 +116,26 @@ const getSubstringBeforeNthDot = (str: any, n: number) => {
 	return parts.slice(0, n - 1).join('.');
 };
 
-const tableData = ref([]);
-const tablecolumns = ref([]);
-const tableDataKEY = ref('id');
-// const materialcolumns = ref([]);
-const materialData = ref([]);
+const tableData = { value: [] };
+const tablecolumns = { value: [] };
+const tableDataKEY = { value: 'id' };
+// const materialcolumns = { value: [] };
+const materialData = { value: [] };
 
-// const paginationData = reactive({
+// const paginationData = {
 // 	pageSize: 10,
 // 	currentPage: 1,
 // 	recordCount: 0,
 // });
 
 //选中的rows
-const selectionRows = ref([]);
+const selectionRows = { value: [] };
 
-const selfParam = reactive({
+const selfParam = {
 	my: false,
 });
 
-const searchParam = reactive({
+const searchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -145,14 +144,14 @@ const searchParam = reactive({
 	searchParams: {},
 });
 //权限
-// const Qx = reactive({
+// const Qx = {
 // 	jurisdiction: <any>{},
 // });
 
 // //获取交付物
 // const getProjectMaterial = async (ctx: any, taskItem?: any, value?: any) => {
-// 	const { $ui: ui, $api, $router, $toast, $t: t } = ctx.globalProps;
-// 	const apiClient = $api as ApiClient;
+// 	const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
+// 	const apiClient = this.apiClient;
 // 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 // 	if (taskItem.action) {
 // 		taskItem.action = null;
@@ -183,8 +182,8 @@ const searchParam = reactive({
 
 //获取项目工作包
 const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: string) => {
-	const { $ui: ui, $api, $router, $toast, $t: t } = ctx.globalProps;
-	const apiClient = $api as ApiClient;
+	const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
+	const apiClient = ctx.logic?.apiClient ?? ctx.app?.api;
 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 	if (taskItem.action) {
 		taskItem.action = null;
@@ -216,7 +215,7 @@ const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: stri
 //获取甘特图子任务
 const getSub = async (appContext: any, task: any) => {
 	console.log('task', task);
-	const { $api, $router, $toast, $t: t } = appContext.globalProps;
+	const { $router, $toast, $t: t } = appContext.globalProps;
 	const updateObj = {
 		deleteID: task.id,
 		subList: <any>[],
@@ -226,7 +225,7 @@ const getSub = async (appContext: any, task: any) => {
 	//删除,并更新
 	try {
 		let res: any = null;
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		res = await apiClient.getAll({
 			action: 'getAllTaskSchedule',
 			repository: 'ProjectSchedule',
@@ -336,7 +335,7 @@ const getSub = async (appContext: any, task: any) => {
 	}
 };
 
-const refLashDatas = reactive({
+const refLashDatas = {
 	data: {
 		tasks: [],
 		links: [],
@@ -347,7 +346,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	//甘特图模版
 	skin = 'material'; //传入dark为黑暗模式
 	scheduleroleaction: any = {}; //权限
-	roleaction = getCurrentInstance().appContext.config.globalProperties.$app.context.modules;
+	roleaction: any[] = [];
 	constructor(init: UiLogicInit) {
 		super(defineCustomPage, init);
 	}
@@ -397,7 +396,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		return res;
 	}
 
-	// const wbsData = reactive({
+	// const wbsData = {
 	// 	payload: {
 	// 		refID: '',
 	// 	},
@@ -407,14 +406,14 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	setResponsible = async (ctx: any, taskItems?: any) => {
 		console.log('ctx', ctx);
 		console.log('taskItems', taskItems);
-		const { $ui: ui, $api, $router, $toast, $t: t } = ctx.globalProps;
+		const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
 
 		//弹窗选择负责人
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		try {
 			// 生成弹窗
-			await ctx.uiBuilder.confirmDialog(
-				h(ChoosePerson, {
+			await ctx.uiBuilder.dialog(
+				choosePersonNode({
 					context: ctx,
 					onChangeData(val: any) {
 						chargePerson.data = val.data;
@@ -520,7 +519,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			customSearchFields.push({
 				searchLabel: 'doc.mine',
 				searchParam: 'my',
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext & any, csf) => {
 					const { $ui: ui } = ctx.globalProps;
 					console.log('csf', csf);
 					return ui.factory.toggleSwitch(csf.searchVal.value, {
@@ -544,8 +543,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 	//获取甘特图任务数据
 	async getProSchedule(appContext: any, query: any) {
-		const { $api, $router, $toast, $t: t } = appContext.app.config.globalProperties;
-		const task = reactive({
+		const gp = appContext.app?.config?.globalProperties ?? appContext.globalProps;
+		const { $router, $toast, $t: t } = gp;
+		const apiClient = appContext.logic?.apiClient ?? gp.$app.api;
+		const task = {
 			taskData: {
 				data: <any>[],
 				link: <any>[],
@@ -561,7 +562,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			res = await apiClient.getAll({
 				action: 'getAllProjectSchedule',
 				repository: 'ProjectSchedule',
@@ -643,8 +644,8 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 	//获取甘特图任务数据
 	async getProScheduleR(appContext: any, query: any) {
-		const { $api, $router, $toast, $t: t } = appContext.globalProps;
-		const task = reactive({
+		const { $router, $toast, $t: t } = appContext.globalProps;
+		const task = {
 			taskData: {
 				data: <any>[],
 				link: <any>[],
@@ -659,7 +660,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			res = await apiClient.getAll({
 				action: 'getAllProjectSchedule',
 				repository: 'ProjectSchedule',
@@ -745,10 +746,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		//appContext.uiBuilder.
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
-				const { $t: t, $api: apiBox, $toast: toast } = appContext.globalProps;
+				const { $t: t, $toast: toast } = appContext.globalProps;
 				//调用接口
 				try {
-					const res: boolean = await apiBox.doAction(
+					const res: boolean = await this.apiClient.doAction(
 						{
 							path: taskItem.taskID ?? '',
 							action: 'release',
@@ -799,117 +800,66 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const { $ui: ui, $api, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
-		const apiClient = $api as ApiClient;
+		const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
-		//获取元数据
-		const mUI = await metaUiService.get('ProjectDeliveryItems', 'mes');
-		tablecolumns.value = mUI.getListedFields().sort((prev: any, curr: any) => {
-			return Number(prev.fieldIdx) - Number(curr.fieldIdx);
+		const picked = await appContext.select({
+			repository: 'ProjectDeliveryItems',
+			service: 'mes',
+			selectionMode: 'multiple',
+			searchParam: {
+				queryParams: {
+					projectID: taskItem.projectID,
+				},
+			},
 		});
-
-		tableDataKEY.value = 'itemID';
-		await getPdItem(appContext, taskItem, '');
-
-		//弹窗显示数据
-		if (tableData.value && tableData.value.length > 0) {
-			appContext.uiBuilder.confirmDialog(
-				appContext.uiBuilder.buildSearchForRelativeContent(
-					tablecolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-					{
-						dataKey: tableDataKEY.value,
-						selectionMode: 'multiple',
-						onSearch: async (params: any) => {
-							const { searchParams, reload, pager } = params;
-							await getPdItem(appContext, taskItem, searchParams.searchWord);
-							return { list: tableData.value, pager: searchParam.pager };
-						},
-						onPage: ({ pageNo, pageSize }: any) => {
-							searchParam.pager.pageNo = pageNo;
-							searchParam.pager.pageSize = pageSize;
-						},
-						onSelect: (selection: any, row: any) => {
-							selectionRows.value = selection;
-						},
-					}
-				),
-				appContext,
-				{
-					title: t('projectSchedule.selectProjectDeliverables'),
-					width: '90vw',
-					accept: async () => {
-						if (selectionRows.value.length > 0) {
-							//提交模型
-							const payLoad = {
-								payload: {
-									taskID: taskItem.projectID,
-									items: <any>[],
-								},
-							};
-							const rItemKeys = selectionRows.value.map((item: any) => {
-								const itemKeys = <any>{
-									projectID: item.projectID,
-									itemID: item.itemID,
-									ownerID: null,
-									ownerDeptID: null,
-								};
-								return itemKeys;
-							});
-							payLoad.payload.items = rItemKeys;
-							try {
-								//调用接口提交交付物，生成工作包
-								const resPackages = await apiClient.doAction(
-									{
-										path: taskItem.taskID,
-										action: 'addWorkPackage',
-										repository: 'ProjectSchedule',
-										service: 'mes',
-									},
-									payLoad
-								);
-								if (resPackages == true) {
-									appContext.uiBuilder.toast(appContext, {
-										severity: 'success',
-										summary: t('success.operationSuccessful'),
-										life: 3000,
-									});
-									//调用接口更新数据
-									await getSub(appContext, taskItem);
-									return true;
-								}
-							} catch (error: any) {
-								appContext.uiBuilder.toast(appContext, {
-									severity: 'error',
-									title: 'dialog.title.error',
-									summary: error.detail ?? '',
-									group: 'br',
-									life: 3000,
-								});
-								return false;
-							}
-
-							return;
-						} else {
-							appContext.uiBuilder.toast(appContext, {
-								severity: 'error',
-								summary: t('invalid.requiredSelectAny'),
-								group: 'br',
-								life: 3000,
-							});
-							return false;
-						}
-					},
-				}
-			);
-		} else {
+		if (!Array.isArray(picked) || !picked.length) {
 			toast.add({
 				severity: 'info',
 				detail: `${t('invalid.noDeliverables')}`,
 				life: 3000,
 			});
+			return;
 		}
-	}
+		const payLoad = {
+			payload: {
+				taskID: taskItem.projectID,
+				items: picked.map((item: any) => ({
+					projectID: item.projectID,
+					itemID: item.itemID,
+					ownerID: null,
+					ownerDeptID: null,
+				})),
+			},
+		};
+		try {
+			const resPackages = await apiClient.doAction(
+				{
+					path: taskItem.taskID,
+					action: 'addWorkPackage',
+					repository: 'ProjectSchedule',
+					service: 'mes',
+				},
+				payLoad
+			);
+			if (resPackages == true) {
+				appContext.uiBuilder.toast(appContext, {
+					severity: 'success',
+					summary: t('success.operationSuccessful'),
+					life: 3000,
+				});
+				await getSub(appContext, taskItem);
+			}
+		} catch (error: any) {
+			appContext.uiBuilder.toast(appContext, {
+				severity: 'error',
+				title: 'dialog.title.error',
+				summary: error.detail ?? '',
+				group: 'br',
+				life: 3000,
+			});
+		}
 
 	//导入交付物
 	async imporitDeliverables(taskItem: any, appContext: any) {
@@ -917,128 +867,75 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const { $ui: ui, $api, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
-		const apiClient = $api as ApiClient;
+		const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
-		//获取元数据
-		const mUI = await metaUiService.get('ProjectDeliveryItems', 'mes');
-		tablecolumns.value = mUI.getListedFields().sort((prev: any, curr: any) => {
-			return Number(prev.fieldIdx) - Number(curr.fieldIdx);
+		const picked = await appContext.select({
+			repository: 'ProjectDeliveryItems',
+			service: 'mes',
+			selectionMode: 'multiple',
+			searchParam: {
+				queryParams: {
+					projectID: taskItem.projectID,
+					sourcingMode: 'MAKE',
+				},
+			},
 		});
-
-		tableDataKEY.value = 'itemID';
-		await getPdItem(appContext, taskItem, '', 'MAKE');
-
-		//弹窗显示数据
-		if (tableData.value && tableData.value.length > 0) {
-			appContext.uiBuilder.confirmDialog(
-				appContext.uiBuilder.buildSearchForRelativeContent(
-					tablecolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-					{
-						dataKey: tableDataKEY.value,
-						selectionMode: 'multiple',
-						onSearch: async (params: any) => {
-							const { searchParams, reload, pager } = params;
-							await getPdItem(appContext, taskItem, searchParams.searchWord, 'MAKE');
-							return { list: tableData.value, pager: searchParam.pager };
-						},
-						onPage: ({ pageNo, pageSize }: any) => {
-							searchParam.pager.pageNo = pageNo;
-							searchParam.pager.pageSize = pageSize;
-						},
-						onSelect: (selection: any, row: any) => {
-							selectionRows.value = selection;
-						},
-						onSelectAll: (selection: any, row: any) => {
-							selectionRows.value = selection;
-						},
-					}
-				),
-				appContext,
-				{
-					title: t('projectSchedule.selectProjectDeliverables'),
-					width: '90vw',
-					accept: async () => {
-						if (selectionRows.value.length > 0) {
-							//提交模型
-							const payLoad = {
-								payload: {
-									taskID: taskItem.projectID,
-									items: <any>[],
-								},
-							};
-							const rItemKeys = selectionRows.value.map((item: any) => {
-								const itemKeys = <any>{
-									projectID: item.projectID,
-									itemID: item.itemID,
-									ownerID: null,
-									ownerDeptID: null,
-								};
-								return itemKeys;
-							});
-							payLoad.payload.items = rItemKeys;
-							try {
-								//调用接口提交交付物，生成工作包
-								const resPackages = await apiClient.doAction(
-									{
-										path: taskItem.taskID,
-										action: 'addWorkPackage',
-										repository: 'ProjectSchedule',
-										service: 'mes',
-									},
-									payLoad
-								);
-								if (resPackages == true) {
-									appContext.uiBuilder.toast(appContext, {
-										severity: 'success',
-										summary: t('success.operationSuccessful'),
-										life: 3000,
-									});
-									//调用接口更新数据
-									await getSub(appContext, taskItem);
-									return true;
-								}
-							} catch (error: any) {
-								appContext.uiBuilder.toast(appContext, {
-									severity: 'error',
-									title: 'dialog.title.error',
-									summary: error.detail ?? '',
-									group: 'br',
-									life: 3000,
-								});
-								return false;
-							}
-
-							return;
-						} else {
-							appContext.uiBuilder.toast(appContext, {
-								severity: 'error',
-								summary: t('invalid.requiredSelectAny'),
-								group: 'br',
-								life: 3000,
-							});
-							return false;
-						}
-					},
-				}
-			);
-		} else {
+		if (!Array.isArray(picked) || !picked.length) {
 			toast.add({
 				severity: 'info',
 				detail: `${t('invalid.noDeliverables')}`,
 				life: 3000,
 			});
+			return;
 		}
-	}
+		const payLoad = {
+			payload: {
+				taskID: taskItem.projectID,
+				items: picked.map((item: any) => ({
+					projectID: item.projectID,
+					itemID: item.itemID,
+					ownerID: null,
+					ownerDeptID: null,
+				})),
+			},
+		};
+		try {
+			const resPackages = await apiClient.doAction(
+				{
+					path: taskItem.taskID,
+					action: 'addWorkPackage',
+					repository: 'ProjectSchedule',
+					service: 'mes',
+				},
+				payLoad
+			);
+			if (resPackages == true) {
+				appContext.uiBuilder.toast(appContext, {
+					severity: 'success',
+					summary: t('success.operationSuccessful'),
+					life: 3000,
+				});
+				await getSub(appContext, taskItem);
+			}
+		} catch (error: any) {
+			appContext.uiBuilder.toast(appContext, {
+				severity: 'error',
+				title: 'dialog.title.error',
+				summary: error.detail ?? '',
+				group: 'br',
+				life: 3000,
+			});
+		}
 	// //导入交付物
 	// async imporitDeliverables(taskItem: any, appContext: any) {
 	// 	if (taskItem.action) {
 	// 		taskItem.action = null;
 	// 	}
 
-	// 	const { $ui: ui, $api, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
-	// 	const apiClient = $api as ApiClient;
+	// 	const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+	// 	const apiClient = appContext.logic?.apiClient;
 	// 	const { model, metaUiService } = appContext;
 
 	// 	//获取元数据
@@ -1052,8 +949,8 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 	// 	//弹窗显示数据
 	// 	if (materialData.value && materialData.value.length > 0) {
-	// 		appContext.uiBuilder.confirmDialog(
-	// 			appContext.uiBuilder.buildSearchForRelativeContent(
+	// 		appContext.uiBuilder.dialog(
+	// 			/* legacy relative picker removed */
 	// 				tablecolumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
 	// 				{
 	// 					dataKey: tableDataKEY.value,
@@ -1166,10 +1063,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const { $api, $router, $toast } = appContext.app.config.globalProperties;
+		const { $router, $toast } = appContext.globalProps;
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			res = await apiClient.doAction(
 				{
 					action: 'saveLink',
@@ -1198,7 +1095,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		dailyPlanning.data.date = planDate;
 		appContext.uiBuilder.confirm(appContext, {
 			title: appContext.t('ganttLabel.PrepareDaily'),
-			message: h(GanttPlanning, {
+			message: projectGanttPlanningNode({
 				dataModel: dailyPlanning.data,
 				ctx: appContext,
 				onChangePlanningData(val: any) {
@@ -1219,7 +1116,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	}
 	//甘特图日计划调用接口返回
 	async submitPlan(planItem: any, content: any) {
-		const { $api, $router, $toast } = content.globalProps;
+		const { $router, $toast } = content.globalProps;
 
 		if (planItem.action) {
 			planItem.action = null;
@@ -1227,7 +1124,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			res = await apiClient.doAction(
 				{
@@ -1276,7 +1173,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const ProjectScheduleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectScheduleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectScheduleLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectSchedule',

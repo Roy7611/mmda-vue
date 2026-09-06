@@ -7,7 +7,7 @@ import {
   type UiGanttViewProps,
   type UiGanttTask,
 } from '../ui/ui_gantt'
-import { AbstractUiBuilder, createStubUiBuilder } from '../ui/ui_builder'
+import { VueUiBuilder, createStubUiBuilder } from '../ui/ui_builder'
 
 describe('ui gantt contract', () => {
   it('maps link types and predecessor strings', () => {
@@ -24,8 +24,8 @@ describe('ui gantt contract', () => {
   })
 
   it('renders a stub gantt when no skin override exists', () => {
-    const vnode = AbstractUiBuilder.prototype.buildGanttView.call(
-      {} as AbstractUiBuilder,
+    const vnode = VueUiBuilder.prototype.buildGanttView.call(
+      {} as VueUiBuilder,
       {} as any,
       { tasks: [{ id: 1, name: 'Cut' }] },
     )

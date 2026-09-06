@@ -9,3 +9,7 @@ export const ToolCategoryEditor = defineComponent({
       h('p', { style: { padding: '16px' } }, t('view.toolCategoryEditorHint'))
   },
 })
+
+export function toolCategoryEditorNode(props?: Record<string, any>) {
+  return h(ToolCategoryEditor, props as any)
+}

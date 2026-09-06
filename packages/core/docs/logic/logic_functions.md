@@ -5,7 +5,7 @@
 
 ## 职责
 
-程序员交互回调（Predicate、OnChangeFn、OnValidateFn、RefFilterFn、组回调）。
+程序员交互回调（Predicate、OnChangeFn、OnValidateFn、RefWhereFn、组回调）。
 `logicAnd` / `logicOr` 组合谓词；`sqlAnd` / `sqlOr` 拼接 SQL 片段。
 不含渲染器；`UiFieldRenderer` / `UiGroupRenderer` 在 vui。metaui/models 不要 import 本文件。
 

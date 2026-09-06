@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect';
@@ -70,7 +69,7 @@ import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect'
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const QualityDefectLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new QualityDefectLogic({
+	export const QualityDefectLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new QualityDefectLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityDefects',
 		router,

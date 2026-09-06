@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectCapital, defineProjectCapital } from '@/models/ProjectCapital';
@@ -91,7 +90,7 @@ export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
  * @param module 模块
  * @returns
  */
-export const ProjectCapitalLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectCapitalLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectCapitalLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectCapitals',

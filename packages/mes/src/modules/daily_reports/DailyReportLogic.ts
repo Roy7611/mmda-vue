@@ -5,15 +5,13 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { h, reactive, ref, unref } from 'vue';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, defaultPager } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, defaultPager, MetaUiBuilder } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type DailyReport, defineDailyReport } from '@/models/DailyReport';
 import { type DailyReportTask, defineDailyReportTask } from '@/models/DailyReportTask';
 import { type DailyReportEvent, defineDailyReportEvent } from '@/models/DailyReportEvent';
 import { type DailyReportPhoto, defineDailyReportPhoto } from '@/models/DailyReportPhoto';
-import ChooseImage from '@/components/ChooseImage/ChooseImage';
+import { chooseImageNode } from '@/components/ChooseImage/ChooseImage';
 import { defineProjectTask, ProjectTask } from '@/models/ProjectTask';
 
 /**
@@ -26,8 +24,8 @@ import { defineProjectTask, ProjectTask } from '@/models/ProjectTask';
 /**
  * 日报交互逻辑
  */
-const tableDataKey = ref('id')
-const searchParam = reactive({
+const tableDataKey = { value: 'id' }
+const searchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
@@ -35,7 +33,7 @@ const searchParam = reactive({
 	searchWord: '',
 	searchParams: {}
 })
-const taskData = ref([])
+const taskData = { value: [] }
 export class DailyReportLogic extends UiLogic<DailyReport> {
 	constructor(init: UiLogicInit) {
 		super(defineDailyReport, init);
@@ -92,7 +90,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
 					// view: UiViewOne.Edit,
 				}),
 				this.group<DailyReportTask>('tasks').defaultAdder(this.addDailyReportTask).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 				this.group<DailyReportPhoto>('photos').defaultAdder(this.addProductionEventPhoto),
@@ -159,7 +157,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<DailyReportTask>('tasks').hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 			)
@@ -176,7 +174,7 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
  * @param module 模块
  * @returns
  */
-export const DailyReportLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const DailyReportLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new DailyReportLogic({
 		metaUiService: metaUiService,
 		repository: 'DailyReports',
@@ -198,9 +196,9 @@ export class DailyReportTaskLogic extends UiGroupLogic<DailyReportTask, DailyRep
 //选择图片
 const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string) => {
 	const { $ui: ui, $t: t, $toast: toast } = ctx.globalProps;
-	const selectData = ref([]);
+	const selectData = { value: [] };
 	console.log('phptos');
-	const photoList = ref([]);
+	const photoList = { value: [] };
 	if (master.photos && master.photos.length > 0) {
 		photoList.value = master.photos.filter((item: any) => {
 			return item.entityState != 4;
@@ -209,8 +207,8 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 		photoList.value = [];
 	}
 
-	return await ctx.uiBuilder.confirmDialog(
-		h(ChooseImage, {
+	return await ctx.uiBuilder.dialog(
+		chooseImageNode({
 			selectOption: photoList.value,
 			ctx: ctx,
 			selectType: selectType,
@@ -277,14 +275,10 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 		if (fields.length == 0) {
 			fields.push(
 				this.field('refPhotos').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
-					return h(
-						'div',
-						{
-							class: 'upBox',
-						},
-						[
-							ui.factory.image(ctx.model.refPhotos, {
+					const factory = ctx.uiBuilder.factory;
+					const t = ctx.t.bind(ctx);
+					return factory.buttonGroup(() => [
+							factory.image(ctx.model.refPhotos, {
 								isEdit: true,
 								preview: true,
 								style: {
@@ -294,7 +288,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 									ctx.model.refPhotos = null;
 								},
 							}),
-							ui.factory.button({
+							factory.button({
 								label: t('action.chooseImage'),
 								style: {
 									marginTop: '1rem',
@@ -302,8 +296,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 								},
 								onAction: () => chooseImages(ctx, this.master, 'simple'),
 							}),
-						]
-					);
+						], { class: 'upBox' });
 
 					// ui.factory.button({
 					// 	label: t('action.chooseImage'),
@@ -330,49 +323,36 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 						onUpdate: (value: any) => {
 							ctx.setFieldValue('taskID', value ?? null);
 						},
-						toSearch: async (event: Event) => {
-							let data = null as any;
+						toSearch: async () => {
 							const metaFields = ctx.root.logic!.meta.metaui.groups.filter((item: any) => item.relObjName === 'DailyReportTask');
-							const groupUi = metaFields[0]?.groupUi;
-							if (!groupUi) return false;
-							await ctx.uiBuilder.confirmDialog(ctx.uiBuilder.buildSearchForRelativeContent(
-								ctx.uiBuilder.buildColumns(groupUi, ctx, {
-									isSearch: true
+							const taskGroup = metaFields[0];
+							if (!taskGroup?.groupUi) return false;
+							const rows = filterReportTasks(getReportTasks(ctx), '');
+							let data = null as any;
+							const accepted = await ctx.uiBuilder.dialog(
+								ctx.uiBuilder.factory.table(rows, taskGroup.groupUi, {
+									selectionMode: 'single',
+									onSelect: (selection: any) => {
+										data = Array.isArray(selection) ? selection[0] : selection;
+										taskData.value = data;
+									},
 								}),
+								ctx,
 								{
-									dataKey: unref(tableDataKey),
-									paginator: false,
-									onSearch: ({ searchParams }: any) => {
-										const list = filterReportTasks(getReportTasks(ctx), searchParams?.searchWord);
-										return {
-											list,
-											pager: {
-												...searchParam.pager,
-												recordCount: list.length,
-											}
-										}
+									title: t('dailyReport.selectRelatedTask'),
+									width: '80%',
+									accept: async () => {
+										if (!data) return false;
+										ctx.setFieldValue('taskID', data.taskID);
+										return true;
 									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										searchParam.pager.pageNo = pageNo;
-										searchParam.pager.pageSize = pageSize;
-									},
-									onSelect: (selection: any, row: any) => {
-										data = taskData.value = row;
-									},
-								}
-							), ctx, {
-								title: t('dailyReport.selectRelatedTask'),
-								width: '80%',
-								accept: async () => {
-									if (!data) return false;
-									ctx.setFieldValue('taskID', data.taskID);
-									return true;
 								},
-							})
+							);
+							return accepted;
 						}
 					})
 				}).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				})
 			);
@@ -392,7 +372,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 		if (!fields.length) {
 			fields.push(
 				this.field('taskID').hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.context.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				})
 			)

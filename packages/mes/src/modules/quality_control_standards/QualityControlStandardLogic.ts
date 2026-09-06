@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type QualityControlStandard, defineQualityControlStandard } from '@/models/QualityControlStandard';
@@ -111,7 +110,7 @@ export class QualityControlStandardLogic extends UiLogic<QualityControlStandard>
  * @param module 模块
  * @returns
  */
-export const QualityControlStandardLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const QualityControlStandardLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new QualityControlStandardLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityControlStandards',

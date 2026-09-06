@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { MmdaApplication, setupI18n } from "@mmda/vui";
+import { MmdaVueApp, setupI18n } from "@mmda/vui";
 import { AgNaiveUiBuilder, mmdaAgNaive } from "@mmda/vui-agnaive";
 import { AppShell } from "./App";
 import {
@@ -12,7 +12,7 @@ import "./style.css";
 
 const i18n = setupI18n({}, "zh");
 const builder = new AgNaiveUiBuilder();
-const mmda = new MmdaApplication("/api", "demo", builder, i18n, {
+const mmda = new MmdaVueApp("/api", "demo", builder, i18n, {
   clientId: "mmda-playground",
   signinPath: "/Signin",
 });

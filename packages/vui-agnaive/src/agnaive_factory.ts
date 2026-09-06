@@ -33,8 +33,8 @@ import {
   MATERIAL_SYMBOL_PREFIX,
 } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
-import { MmdaAgGrid } from './components/MmdaAgGrid'
-import { MmdaNaiveTree } from './components/MmdaNaiveTree'
+import { AgGrid } from './components/AgGrid'
+import { NaiveTree } from './components/NaiveTree'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
@@ -292,13 +292,13 @@ export function createAgNaiveUiFactory(): UiFactory {
         'onUpdate:pageSize': (pageSize: number) =>
           props.onPage({ pageNo: 1, pageSize }),
       }),
-    tree: (props) => h(MmdaNaiveTree, props as any),
+    tree: (props) => h(NaiveTree, props as any),
     treeGrid: <T>(model: T[], metaui: MetaUi, props: any) => {
       const { assembled } = assembleTreeGridRows(model, metaui, {
         ...props,
         bindShape: props.bindShape ?? 'dataPath',
       })
-      return h(MmdaAgGrid, {
+      return h(AgGrid, {
         data: assembled.rows,
         metaui,
         ...props,
@@ -331,7 +331,7 @@ export function createAgNaiveUiFactory(): UiFactory {
           : props.empty?.() ?? '',
       ),
     table: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
-      h(MmdaAgGrid, { data: model, metaui, ...props } as any),
+      h(AgGrid, { data: model, metaui, ...props } as any),
     pagableTable: (loader, metadata, props) =>
       h('div', { class: 'mmda-agnaive-pagable-table' }, [
         factory.table(loader.model.list as any[], metadata.metaui, props as any),

@@ -6,12 +6,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Address, defineAddress } from '../../models/Address';
 import { type Country } from '../../models/Country';
-import { h } from 'vue'
 
 /**
  * 常用地址交互逻辑
@@ -74,14 +72,11 @@ export class AddressLogic extends UiLogic<Address> {
 					.onChange((ctx, model, newVal) => {
 						if (newVal) {
 							const countryId = String(newVal).includes(',') ? newVal : `${ctx.locale ?? 'zh-Hans'},${newVal}`;
-							const api = ctx.globalProps?.$api as ApiClient | undefined;
-							if (api) {
-								api.getOne(countryId, { repository: 'Countries' })
-									.then((c: Country) => {
-										if (c?.telPrefix) ctx.setFieldValue('telPrefix', '+' + c.telPrefix);
-									})
-									.catch(() => { });
-							}
+							this.loadOf<Country>('Countries', countryId)
+								.then((c) => {
+									if (c?.telPrefix) ctx.setFieldValue('telPrefix', '+' + c.telPrefix);
+								})
+								.catch(() => { });
 						} else {
 							// 没有值清除电话区号
 							ctx.clearFieldValue('telPrefix')
@@ -118,7 +113,7 @@ export class AddressLogic extends UiLogic<Address> {
  * @param module 模块
  * @returns 
  */
-export const AddressLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new AddressLogic({
+export const AddressLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new AddressLogic({
 	metaUiService: metaUiService,
 	repository: 'Addresses',
 	router,

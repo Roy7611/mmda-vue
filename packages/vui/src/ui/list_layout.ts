@@ -20,9 +20,9 @@ const persistTimers = new WeakMap<object, ReturnType<typeof setTimeout>>();
 
 export function listServiceName(context: UiViewContext<any>) {
   const logic = context.logic as
-    | { apiService?: string; apiClient?: { config?: { service?: string } } }
+    | { apiService?: string; serviceName?: string }
     | undefined;
-  return logic?.apiService ?? logic?.apiClient?.config?.service;
+  return logic?.apiService ?? logic?.serviceName;
 }
 
 export function bumpListLayout(context: UiViewContext<any>) {

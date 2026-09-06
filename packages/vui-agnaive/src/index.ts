@@ -14,18 +14,18 @@ export * from './agnaive_overlay'
 export * from './agnaive_theme'
 export * from './ag_filter'
 export * from './ag_columns'
-export * from './components/MmdaAgGrid'
+export * from './components/AgGrid'
 export * from './components/AgNaiveOverlayHost'
 export * from './components/SigninForm'
 export * from './components/CodeImage'
 export * from './components/BpmnModeler'
 
-export interface MmdaAgNaiveOptions {
+export interface AgNaiveOptions {
   licenseKey?: string
   locale?: string
 }
 
-function resolveLicense(options: MmdaAgNaiveOptions) {
+function resolveLicense(options: AgNaiveOptions) {
   if (options.licenseKey) return options.licenseKey
   try {
     return (import.meta as any).env?.VITE_AG_GRID_LICENSE as string | undefined
@@ -35,7 +35,7 @@ function resolveLicense(options: MmdaAgNaiveOptions) {
 }
 
 export const mmdaAgNaive: Plugin = {
-  install(_app: App, options: MmdaAgNaiveOptions = {}) {
+  install(_app: App, options: AgNaiveOptions = {}) {
     const key = resolveLicense(options)
     if (key) LicenseManager.setLicenseKey(key)
     if (options.locale) naiveSkinState.locale = options.locale

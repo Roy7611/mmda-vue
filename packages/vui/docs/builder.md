@@ -2,17 +2,61 @@
 
 `UiBuilder` 负责 **怎么把会话画成 VNode**。vui 定义契约和默认拼屏；具体按钮、表格、输入框由皮肤实现。
 
+元数据驱动的 UI 构造是三层，不要把皮肤控件写进 vui：
+
+```text
+MetaUi + Logic
+      ↓
+UiViewContext（会话）
+      ↓
+VueUiBuilder（拼复杂视图）
+      ↓
+UiFactory 契约  →  皮肤 factory（生产控件）
+      ↓
+皮肤 components（SfGrid / AgGrid / NaiveTree）
+```
+
+| 层 | 干什么 | 放哪 |
+|---|---|---|
+| **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `ui/components/` 只有无厂商壳（ListSettingView、GroupCard） |
+| **Factory** | 用 `MetaUi` + 列表/字段 props **生产**组件 | 皮肤 `factory/`、`field_factory/`。vui 只留 [`ui_factory.ts`](../src/ui/ui_factory.ts) |
+| **Builder** | 用 Factory 原子件拼工具栏、搜索、分组、分页、确认框 | vui `VueUiBuilder`；皮肤 Builder 只补壳/覆盖 |
+
+`buildTable` 只补齐会话（`filterModel`、`loadFilterOptions`、`searchRelative`）再调 `factory.table`。列怎么画、虚拟滚动、列筛控件都在皮肤组件里（如 `SfGrid`、`AgGrid`）。
+
+vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`。`UiActionFactory` 是 Builder 的标准按钮接线，在 `builders/actions.ts`。
+
+以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用元数据生产（`factory.table` / `tree` / 字段 editor）→ vui Builder 只决定何时分页、分组、弹选择器，**不** import EJ2 / ag-grid / primevue。
+
+## 源码位置（`packages/vui/src/ui/`）
+
+```text
+ui_builder.ts       门面：UiBuilder 契约、VueUiBuilder、build() 分发、壳层
+ui_factory.ts       皮肤必须实现的生产契约
+ui_action.ts        动作模型
+ui_list.ts / ui_tree.ts   传给 factory.table / factory.tree 的 props
+components/         无厂商壳
+builders/
+  form.ts           buildField / buildGroup / buildView
+  list.ts           列表页；内部 factory.table
+  tree.ts           buildTree / buildTreeView；内部 factory.tree
+  actions.ts        UiActionFactory
+  category_ops.ts   分类树 CRUD 走 Logic；Builder 只开对话框
+```
+
+对外仍从 `@mmda/vui` 导入 `VueUiBuilder`、`UiFactory`、`UiActionFactory`。
+
 ## 主要内容
 
-- `UiBuilder`：拼屏接口。
-- `AbstractUiBuilder`：列表页/详情页默认结构、动作工厂、单元格解析。
+- `UiBuilder`：core 拼屏接口（无 Vue）。vui 实现类是 **`VueUiBuilder`**。
+- `VueUiBuilder`：列表页/详情页默认结构、动作工厂、单元格解析。
 - `UiFactory` / `UiFieldFactory`：原子控件（button、table、textInput…），含 `menu` / `dialog` / `drawer`。
-- `UiOverlay`：命令式 toast / confirm / dialog；皮肤提供 `overlayHost`，`MmdaApplication.install` 自动挂载。
+- `UiOverlay`：命令式 toast / confirm / dialog；皮肤提供 `overlayHost`，**`MmdaVueApp.install`** 自动挂载。
 - `UiLayout`：行列栅格，与控件库无关。
 - `UiAction` / `UiActionFactory`：刷新、创建、保存、导入导出等。
 
 ```ts
-import { AbstractUiBuilder, type UiFactory } from '@mmda/vui'
+import { VueUiBuilder, type UiFactory } from '@mmda/vui'
 ```
 
 ## 依赖方向
@@ -20,11 +64,11 @@ import { AbstractUiBuilder, type UiFactory } from '@mmda/vui'
 ```text
 页面  →  context.ui.build(ctx) / buildListView / buildView
               ↓
-       AbstractUiBuilder（结构）
+       VueUiBuilder（结构）
               ↓
        UiFactory / UiFieldFactory（控件）+ UiOverlay
               ↓
-       PrimeVueUiBuilder / SyncfusionUiBuilder / AgNaiveUiBuilder
+       皮肤 factory → SfGrid / AgGrid / …
 ```
 
 Factory 用短名（`list`、`tree`、`ganttChart`）。Builder 组合用 `XxxView`（`listView`、`treeView`、`treeListView`、`ganttView`）。`treelist` 不是皮肤控件，没有 `factory.treelist`。

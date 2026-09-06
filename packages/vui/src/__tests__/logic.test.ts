@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  EntityLogic,
   MetaUi,
   MetaUiField,
   MetaUiFieldLogic,
@@ -60,6 +61,15 @@ const service = {
 } as any
 
 describe('UiLogic', () => {
+  it('继承 EntityLogic', () => {
+    const logic = new OrderLogic(o => o as any, {
+      metaUiService: service,
+      repository: 'Orders',
+      meta: { metaui },
+    })
+    expect(logic).toBeInstanceOf(EntityLogic)
+  })
+
   it('beforeEdit 把 Field/Group Logic 挂到当前会话', async () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,

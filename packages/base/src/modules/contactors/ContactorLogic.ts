@@ -6,7 +6,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Contactor, defineContactor } from '../../models/Contactor';
@@ -61,7 +60,7 @@ export class ContactorLogic extends UiLogic<Contactor> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('partnerID').refFilter((model, ctx) => {
+				this.field('partnerID').refWhere((model, ctx) => {
 					const __p = ((context, model, fld) => ({
 					status: `IN ${UsageStatus.USED}`
 				}))(ctx as any, model as any, undefined as any);
@@ -111,7 +110,7 @@ export class ContactorLogic extends UiLogic<Contactor> {
  * @param module 模块
  * @returns 
  */
-export const ContactorLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ContactorLogic({
+export const ContactorLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ContactorLogic({
 	metaUiService: metaUiService,
 	repository: 'Contactors',
 	router,

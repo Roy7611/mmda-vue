@@ -1,30 +1,22 @@
 # MMDA 重构说明
 
-本文记录从旧仓 `D:\vue\mmda-vue` 迁到本仓 `D:\2026\ts\mmda` 的设计问题、重构思路、当前结果、与旧代码的不兼容点，以及后续路径。
+> **现状分层以 [ARCHITECTURE.md](ARCHITECTURE.md) 为准。** 本文是迁仓过程记录，不是现行架构真源；文中旧示意图若与 ARCHITECTURE 冲突，以 ARCHITECTURE 为准。
 
-包级 API 细节见 [packages/core](packages/core/README.md)、[packages/vui/docs/vui.md](packages/vui/docs/vui.md)、[packages/vui-primevue](packages/vui-primevue/README.md)。
+本仓内更近一轮（UI 契约、`MmdaVueApp`、`context.select`）记在 [packages/core/docs/refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
+
+本文记录从旧仓迁到本仓的设计问题、重构思路、结果与不兼容点。
+
+包级 API 见 [packages/core](packages/core/README.md)、[packages/vui](packages/vui/README.md)、各皮肤 README。
 
 ## 背景
 
 旧仓是单仓多包（core / vui / vui-primevue / 业务应用），Vue 3 + PrimeVue 4，元数据驱动列表和表单。能跑，但边界长期混在一起：
 
 - core 名义上「框架无关」，实际大量 Vue 会话、弹层和业务文件模型。
-- vui 既管会话，又直接依赖 PrimeVue，还堆了 6k 行级的 `ui_context`。
+- vui 既管会话，又直接依赖 PrimeVue，还堆了超大 `ui_context`。
 - vui-primevue 既是皮肤，又自己拼页面、自己拼查询、自己带 BPMN / 预览 / App 壳。
 
-新仓目标是 **core 可给 Vue / React / 小程序共用**，vui 只做 Vue 运行时，皮肤只画控件。
-
-当前分层：
-
-```text
-utils / extensions → metaui → models → logic → net / di     @mmda/core
-                                              ↘
-                                          Vue 运行时          @mmda/vui
-                                              ↘
-                                          控件皮肤            @mmda/vui-primevue
-```
-
-计划中：`@mmda/rui`（React，只依赖 core）、可选其它皮肤（如 Syncfusion）。
+新仓目标是 **core 可给 Vue / React / 小程序共用**，vui 只做 Vue 运行时，皮肤只画控件。现行目标分层见 [ARCHITECTURE.md](ARCHITECTURE.md)（**UI → Logic → Data**；`logic/` 属 Logic，不是 Data）。
 
 ---
 
@@ -66,7 +58,7 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 
 1. **core 零 UI 框架**。`UiContext` 是跨生态契约，不是 Vue 类型；弹层属于 Application。
 2. **一份元数据，多份会话**。主表一个上下文；每个子表行一个上下文；集合级另开。搜索缓存只活在会话上。
-3. **vui 不依赖 PrimeVue**。`AbstractUiBuilder` 负责拼屏；皮肤只实现控件、chrome、弹层。
+3. **vui 不依赖 PrimeVue**。`VueUiBuilder` 负责拼屏；皮肤只实现控件、chrome、弹层。
 4. **查询状态只有 `EntitySearchParam`**。皮肤绑 UI，不拼请求。
 5. **不整文件粘贴旧巨类**。对照行为，按新契约重写。
 6. **重型能力可选**。BPMN / 预览 / 图表 / 二维码是 optional peer，不进默认 bundle。
@@ -99,11 +91,12 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 - `MmdaApplication`：DI、鉴权、locale；`toast` / `confirm` / `confirmDialog` 转发 Builder。
 - `UiViewContext`：Vue 会话，实现 core `UiContext`。
 - `UiBuildContext`：屏级 CRUD、搜索同步、附件/模板调用链。
-- `AbstractUiBuilder` 默认实现 `buildView` / `buildListView` / `buildField` / `buildGroup` / `buildTable` / `buildAppScaffold`。
+- `VueUiBuilder` 默认实现 `buildView` / `buildListView` / `buildField` / `buildGroup` / `buildTable` / `buildAppScaffold`。实现拆在 `ui/builders/`（`form` / `list` / `tree` / `actions` / `category_ops`）；`ui_builder.ts` 只做契约与 `build()` 分发。皮肤 `components/` + `factory/` 生产 `SfGrid` / `AgGrid`，vui 不建 widget factory 目录。
+- `UiViewContext` 实现拆在 `ui/contexts/`（`validate` / `reference` / `subgroup`），类本身仍是唯一会话类型。
 - 布局：`layoutField`、`layoutFieldGroup`（组内列密度）、`layoutPage`（primary / summary / tails + sticky 工具栏）、`AppLayout`（`sidebarLeft` | `topBarFull`）。
 - `searchParam` 唯一查询状态；`UiFilter` / `UiSearchField` 只写回该对象。
 - 皮肤在 `@mmda/vui-primevue` / `@mmda/vui-syncfusion` / `@mmda/vui-agnaive`；vui 不带默认 HTML factory。
-- `UiSelector` 只走 `factory`，不绑 PrimeVue。
+- 实体选择走 `context.select()` / `EntityView` 的 `selectOne|selectMany`（特殊 Index），不绑皮肤、不另起 Selector 组件。
 
 公共弹层在 Application，不在 core。`select()` / `subGroupItem()` 属于表单会话。
 
@@ -111,7 +104,7 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 
 对照旧包重写，而不是复制 `primevue_builder.ts`（约 5762 行）。
 
-- `PrimeVueUiBuilder` 继承 `AbstractUiBuilder`，实现 chrome、搜索栏、登录、toast/confirm。
+- `PrimeVueUiBuilder` 继承 `VueUiBuilder`，实现 chrome、搜索栏、登录、toast/confirm。
 - `createPrimeVueUiFactory()`：按钮、DataTable、分页、菜单、dialog/drawer、Chart 入口。
 - `createPrimeVueFieldFactory()`：旧 metadata editor/renderer 名（`TextBox`、`DropdownList` 等）映射到 PrimeVue 控件。
 - `layout.fieldMessage = false`，校验走控件 `invalid` + `Message`。

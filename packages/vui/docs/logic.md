@@ -1,12 +1,14 @@
-# 仓库逻辑
+# 实体交互逻辑
 
-`UiLogic` 绑定一个仓库（repository）和一份 `MetaUi`。它声明 **这一实体在各视图上的字段/组逻辑**，并调用 `ApiClient` 做 load/save/search。
+`UiLogic` 是**实体在 UI 层的交互逻辑**：按视图声明字段/组/动作，并调用 `ApiClient` 做 load/save/search。它绑定该实体的仓库（`repository`，通常为实体模型的复数）和一份 `MetaUi`。
 
 ## 主要内容
 
-- `UiLogic<E>`：主表仓库。
+- `EntityLogic<E>`：core 基类，无 Vue 的 ApiClient + MetaModel CRUD。不要叫 `EntityManager` / `RepositoryLogic`。
+- `UiLogic<E>`：该实体的交互逻辑（vui，继承 `EntityLogic`）。`repository` 只是 API 路径字符串。
 - `GenericUiLogic<E>`：无定制逻辑时的默认实现，通用 CRUD 页和跨服务 `select` 使用。
-- `UiGroupLogic<G, P>`：子表仓库，挂在主表 Logic 上。
+- `UiGroupLogic<G, P>`：子表 Logic，挂在主表 Logic 上。
+- `createRepositoryLogic(repository)`：按仓库名取出 Logic 的工厂函数（名字保留）。
 - `beforeIndex` / `beforeDetails` / `beforeEdit` / `beforeCreate` / `beforeSearch`：按视图装配。
 - `viewOptions`：按 `UiViewType` 登记拼屏选项。任意 view 都可登记；Builder 按 `context.view` 精确查找，不自动套用别的 view。
 - `beforeSave` / `afterLoad` 等钩子：CRUD 前后拦截。
@@ -77,7 +79,7 @@ viewOptions?: Partial<
 >
 ```
 
-Logic **只返回选项**，不 `h()`、不调 `factory`。`selectOne` / `selectMany` / `edit` / `details` / `create` 与 `index` 一样允许登记。未登记才走默认表/表单。要共用同一套左树右表，显式登记同一工厂。
+`viewOptions` **只返回选项**，不 `h()`。业务动作可以 `context.uiBuilder.factory` / `dialog` / `select`。`selectOne` / `selectMany` / `edit` / `details` / `create` 与 `index` 一样允许登记。未登记才走默认表/表单。要共用同一套左树右表，显式登记同一工厂。
 
 ```ts
 viewOptions = {
@@ -140,6 +142,21 @@ class MaterialPartnerLogic extends UiGroupLogic<MaterialPartner, Material> {
 
 列表请求参数是 `EntitySearchParam`，不要在 Logic 里另拼一套 query。见 [列表与过滤](./list.md)。
 
+跨仓库 / 跨服务：用 `this.getAllOf` / `this.loadOf` / `this.searchRelative`，或 **`this.apiClient` / `context.apiClient`**（同一实例，带 `repository` / `service`）。通用读写不必在 Logic 再包一层。不要掏 `globalProps.$api`：
+
+```ts
+// 不要
+await context.globalProps.$api.getOne(id, { repository: 'Orders' })
+
+// 要
+await this.load(id)
+await context.apiClient.getOne(id, { repository: 'Orders', service: 'mes' })
+await this.getAllOf<Order>('Orders', param, { service: 'mes' })
+await this.doAction(model, action)
+```
+
+`$api` 只是 Vue `globalProperties` 的传递袋，极少用。日常走 `context.apiClient` / `context.uiBuilder` / `context.app`。见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
+
 ## 边界
 
-不要在 Logic 里 `import` PrimeVue。需要皮肤能力时通过 `context.uiBuilder` 或 `context.app.ui`。
+不要在 Logic 里 `import` PrimeVue。弹层/Toast 走 `context.uiBuilder`。业务钩子类型是 core `UiContext`，不要写成 vui `UiBuildContext` 类。

@@ -5,16 +5,14 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, isNullOrUndefined, MetaModel } from '@mmda/core';
 import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewMany } from '@mmda/vui';
 import { type ProductionTask, defineProductionTask } from '@/models/ProductionTask';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
-import { h, reactive } from 'vue';
 
 //生产计划
-const planNoData = reactive({
+const planNoData = {
 	planNo: <any>null,
 	planNoPager: {
 		pageSize: 10,
@@ -30,17 +28,13 @@ const planNoData = reactive({
  * 获取所有的 生产计划 plan
  */
 const getAllplan = async (context: UiContext, value?: any) => {
-	// const { $toast: toast, $ui: ui, $api: apiBox, $t: t } = getCurrentInstance().appContext.config.globalProperties;
-	await context.globalProps.$api
-		.getAll({
-			repository: 'ProductionPlans',
-			service: 'mes',
-			queryParams: {
-				pageNo: planNoData.planNoPager.pageNo,
-				pageSize: planNoData.planNoPager.pageSize,
-				searchWord: value,
-			},
-		})
+	await context.logic!.getAllOf<Record<string, unknown>>('ProductionPlans', {
+		queryParams: {
+			pageNo: planNoData.planNoPager.pageNo,
+			pageSize: planNoData.planNoPager.pageSize,
+			searchWord: value,
+		},
+	}, { service: 'mes' })
 		.then((res: any) => {
 			res.list = res.list.map((it: any) => {
 				return {
@@ -121,8 +115,8 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 				searchLabel: 'view.planNo',
 				searchParam: 'planNo',
 				valueFn: (v: any) => v.planNo,
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
-					const { $ui: ui, $t: t, $api: apiBox } = ctx.globalProps;
+				renderer: (ctx: UiContext & any, csf) => {
+					const { $ui: ui, $t: t } = ctx.globalProps;
 					// if (hrefData.value.projectID) {
 					// 	this.getOneProjects(ctx, hrefData.value.projectID, csf.searchVal.value);
 					// }
@@ -134,50 +128,18 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 						optionLabel: 'planNo',
 						//options: planNoData.planNosList,
 						options: !isNullOrUndefined(csf.searchVal.value) ? [csf.searchVal.value] : planNoData.planNosList,
-						toSearch: async (event: Event) => {
-							let data = [] as any;
-							// const { metaUiService } = ctx;
-							const { metaui } = await ctx.logic!.loadMetadata('ProductionPlans', 'mes', true);
-							planNoData.tableDataKEY = metaui.primaryKey;
-							ctx.searchParam.pager = planNoData.planNoPager = {
-								pageNo: 1,
-								pageSize: 10
-							}
-							// 列表column
-							const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-								isSearch: true,
-								cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-							});
-							ctx.uiBuilder.confirmDialog(
-								ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-									dataKey: planNoData.tableDataKEY,
-									onSearch: async (params: any) => {
-										const { searchParams, reload, pager } = params;
-										// projectsData.searchWord=searchParams.searchWord
-										await getAllplan(ctx, searchParams.searchWord);
-										return { list: planNoData.planNosList, pager: planNoData.planNoPager };
-									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										planNoData.planNoPager.pageNo = pageNo;
-										planNoData.planNoPager.pageSize = pageSize;
-										ctx.searchParam.pager = planNoData.planNoPager
-									},
-									onSelect: (selection: any, row: any) => {
-										data = row;
-									},
-								}),
-								ctx,
-								{
-									title: t('stationlabel.productionPlan'),
-									style: { width: '80vw', maxHeight: '95%' },
-									accept: async () => {
-										planNoData.planNo = data;
-										csf.searchVal.value = data ?? null;
-										ctx.app.localDb.put(`search/${ctx.logic.repository}/planNo`, JSON.parse(JSON.stringify(data)));
-										return true;
-									},
-								}
-							);
+						toSearch: async () => {
+							const picked = await ctx.select({
+								repository: 'ProductionPlans',
+								service: 'mes',
+								selectionMode: 'single',
+							})
+							if (!Array.isArray(picked) || !picked.length) return false
+							const data = picked[0]
+							planNoData.planNo = data
+							csf.searchVal.value = data ?? null
+							ctx.app.localDb.put(`search/${ctx.logic.repository}/planNo`, JSON.parse(JSON.stringify(data)))
+							return true
 						},
 						onUpdate: async (value: any) => {
 							csf.searchVal.value = value;
@@ -247,30 +209,22 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 				this.field('planNo').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (isNullOrUndefined(fldVal) || isNullOrUndefined(ctx.model.planID)) return fldVal;
-					const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/g, '');
-					return h('div', { style: { class: '' } }, [
-						h('a', {
-							style: { color: '#409eff' },
-							href: 'javascript:;',
-							onClick: async () => {
-								window.open(`${baseUrl}MES/ProductionPlans/${ctx.model.planID}`, '_blank');
-							},
-						}, fldVal),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal,
+						href: `/MES/ProductionPlans/${ctx.model.planID}`,
+						target: '_blank',
+						style: { color: '#409eff' },
+					});
 				}),
 				this.field('orderNo').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (isNullOrUndefined(fldVal) || isNullOrUndefined(ctx.model.orderID)) return fldVal;
-					const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/g, '');
-					return h('div', { style: { class: '' } }, [
-						h('a', {
-							style: { color: '#409eff' },
-							href: 'javascript:;',
-							onClick: async () => {
-								window.open(`${baseUrl}MES/ProductionOrders/${ctx.model.orderID}`, '_blank');
-							},
-						}, fldVal),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal,
+						href: `/MES/ProductionOrders/${ctx.model.orderID}`,
+						target: '_blank',
+						style: { color: '#409eff' },
+					});
 				}),
 				this.field('endOpCode').setCustomRenderer((fld, ctx: UiContext<ProductionTask>, props) => ctx.uiBuilder.factory.textSpan(MetaModel.getRefProp(ctx.model, 'endOpCode'))),
 				//当前没有制品类别模块，先以普通文本形式显示
@@ -299,7 +253,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
  * @param module 模块
  * @returns
  */
-export const ProductionTaskLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionTaskLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionTaskLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionTasks',

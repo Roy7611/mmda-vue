@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, UiContext, EntityAction } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, UiLogicFnResult } from '@mmda/vui';
 import { type ProjectAcceptance, defineProjectAcceptance } from '@/models/ProjectAcceptance';
@@ -180,7 +179,7 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
  * @param module 模块
  * @returns
  */
-export const ProjectAcceptanceLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectAcceptanceLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectAcceptanceLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectAcceptances',

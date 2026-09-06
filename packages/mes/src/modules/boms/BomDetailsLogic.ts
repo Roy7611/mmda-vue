@@ -2,7 +2,6 @@
  * Copyright (c) 2006, 2024, www.syclive.com All rights reserved.
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-import { h } from 'vue';
 import { isNullOrUndefined } from '@mmda/core';
 import { UiLogic, type UiLogicFnResult, type UiViewContext } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
@@ -22,29 +21,16 @@ export function beforeDetails(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('totalQuantity').hideIf(model => isNullOrUndefined(model.totalQuantity)),
 			this.field('refBomID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-					h(
-						'a',
-						{
-							style: {
-								color: '#409eff',
-							},
-							href: 'javascript:;',
-							onClick: async () => {
-								const { $api: apiBox, $router: router } = ctx.globalProps;
-
-								if (fldVal.BomID) {
-									window.open(`/MES/Boms/${fldVal.BomID}`, '_blank');
-								}
-							},
-						},
-						fldVal ? fldVal.BomNo : ''
-					),
-				]);
+				return ctx.uiBuilder.factory.link({
+					text: fldVal ? fldVal.BomNo : '',
+					href: fldVal?.BomID ? `/MES/Boms/${fldVal.BomID}` : undefined,
+					target: '_blank',
+					style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+				});
 			}),
 			this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+				return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 			})
 		);
 	}

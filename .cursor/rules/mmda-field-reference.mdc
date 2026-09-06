@@ -10,9 +10,9 @@ alwaysApply: true
 | 类型 | 选项从哪来 | 主键 | 说明 |
 |------|------------|------|------|
 | **enum** | 本地 `refOptions`（`value;code;label` 解析成对象） | `valueOf` → code（英文成员） | `labelOf` → label（显示文本） |
-| **ref** | 服务端查，写回 `refOptions` | `id`（`refFlds[0]`） | 未加载时 `refOptions` 为空数组 |
-| **hasOne** | 同上 | `id` | 可能多显示字段或树，标签仍用 `labelOf` |
+| **ref** | 服务端查小表，**全量缓存**写回 `refOptions` | `id`（`refFlds[0]`） | 字典类；未加载时 `refOptions` 为空数组 |
+| **hasOne** | **不适合全量缓存**；按需 `searchRelative` / `pickRelative` / `load` | `id` | 对方可能很大；关联对象与业务逻辑相关，客户端要**整份实体** |
 
-表单下拉和列表 CheckBox 筛选同一套：`loadReferenceOptions` 填 `refOptions`，显示 `labelOf`，提交/过滤用 `valueOf`。
+表单下拉和列表 CheckBox 筛选同一套取值规则：显示 `labelOf`，提交/过滤用 `valueOf`。`ref` 用缓存的 `refOptions`；`hasOne` 不要当小表灌进 `refOptions`。
 
 不要：把列做成 EJ2 外键列、`itemTemplate` 猜字段、`mmdaFilterLabel`、从当前页行 distinct 凑选项。

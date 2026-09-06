@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   MetaUiService,
   Module,
@@ -175,7 +174,7 @@ export class UnitLogic extends UiLogic<Unit> {
  */
 export const UnitLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new UnitLogic({

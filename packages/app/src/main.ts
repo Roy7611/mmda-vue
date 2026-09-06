@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { MmdaApplication, setupI18n } from "@mmda/vui";
+import { MmdaVueApp, setupI18n } from "@mmda/vui";
 import { mmdaSyncfusion, SyncfusionUiBuilder } from "@mmda/vui-syncfusion";
 import baseZh from "@mmda/base/src/locales/zh";
 import baseEn from "@mmda/base/src/locales/en";
@@ -23,7 +23,7 @@ const i18n = setupI18n(
   "zh",
 );
 const builder = new SyncfusionUiBuilder();
-const mmda = new MmdaApplication(
+const mmda = new MmdaVueApp(
   import.meta.env.VITE_BASE_API || "/api",
   "base",
   builder,
@@ -34,7 +34,7 @@ const mmda = new MmdaApplication(
     signinPath: "/Signin",
   },
 );
-mmda.context.localAppPrefixes = appPluginRegistry
+mmda.state.localAppPrefixes = appPluginRegistry
   .all()
   .map((plugin) => plugin.routePrefix);
 

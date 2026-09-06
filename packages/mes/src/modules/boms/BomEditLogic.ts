@@ -2,7 +2,6 @@
  * Copyright (c) 2006, 2024, www.syclive.com All rights reserved.
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-import { h, ref } from 'vue';
 import { MetaModel, isNullOrUndefined, getSqlOperator } from '@mmda/core';
 import { UiLogic, UiViewOne, type UiLogicFnResult, type UiViewContext } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
@@ -30,7 +29,6 @@ import {
 
 export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	const { fields, groups, customActions } = UiLogic.prototype.beforeEdit.call(this);
-	const selectOptions = ref([]);
 	if (fields.length == 0) {
 		fields.push(
 			this.field('bomUsage').onValidate((value, model, ctx: UiViewContext<any>) => {
@@ -48,27 +46,14 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			}),
 			this.field('refBomID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-					h(
-						'a',
-						{
-							style: {
-								color: '#409eff',
-							},
-							href: 'javascript:;',
-							onClick: async () => {
-								const { $api: apiBox, $router: router } = ctx.globalProps;
-
-								if (fldVal.BomID) {
-									window.open(`/MES/Boms/${fldVal.BomID}`, '_blank');
-								}
-							},
-						},
-						fldVal ? fldVal.BomNo : ''
-					),
-				]);
+				return ctx.uiBuilder.factory.link({
+					text: fldVal ? fldVal.BomNo : '',
+					href: fldVal?.BomID ? `/MES/Boms/${fldVal.BomID}` : undefined,
+					target: '_blank',
+					style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+				});
 			}),
-			this.field('plantID').refFilter((model, ctx) => {
+			this.field('plantID').refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 				return { status: 'USED' };
 			})(ctx as any, model as any, undefined as any);
@@ -88,7 +73,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			// this.field('bomType').lockIf(t => !isNullOrUndefined(t.refBomID)),
 			this.field('productID')
 				.lockIf((t, ctx) => t.refName === 'ProductionOrder' || t.status !== BomStatus.NEW || t.bomType === BomType.ALTERNATE) // 新建BOM，且不是替代BOM
-				.refFilter((model, ctx) => {
+				.refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => ({
 					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
 					status: getSqlOperator('IN').toSQL('USED'),
@@ -148,7 +133,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					model =>
 						[].concat(...model.items.filter(item => !MetaModel.deleted(item)).map(item => (item.operations ? item.operations.filter(operation => !MetaModel.deleted(operation)) : []))).length > 0
 				)
-				.refFilter((model, ctx) => {
+				.refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { status: 'USED' };
 				})(ctx as any, model as any, undefined as any);
@@ -241,7 +226,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('productCode').lockIf(model => !isNullOrUndefined(model.productID)),
 			this.field('productCategoryID')
 				.lockIf(model => !isNullOrUndefined(model.productID))
-				.refFilter((model, ctx) => {
+				.refWhere((model, ctx) => {
 					const __p = (() => ({
 					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
 				}))(ctx as any, model as any, undefined as any);
@@ -257,7 +242,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 						.join(" AND ");
 				}).setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+				return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 			}),
 			this.field('productPic')
 				.setCustomRenderer(renderBomProductPic)

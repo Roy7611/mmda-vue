@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import {
 	type MetaUiService,
 	type Module,
@@ -167,7 +166,7 @@ export class ShiftLogic extends UiLogic<Shift> {
  * @param module 模块
  * @returns
  */
-export const ShiftLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ShiftLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ShiftLogic({
 		metaUiService: metaUiService,
 		repository: 'Shifts',

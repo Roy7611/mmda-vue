@@ -20,8 +20,13 @@ export type UiTableCellRenderer<T = any> = (
 
 export type { UiSlots } from "./ui_layout";
 
+/** 表格场景；三套皮肤同一组字面量，不要各自再定义。 */
+export type UiGridScene = "index" | "selector" | "edit" | "details";
+
 export interface UiListProps<T = any> {
   [index: string]: any;
+  /** 列表页 / 选记录 / 子表编辑 / 子表只读。缺省由 Builder 按 view 推断。 */
+  scene?: UiGridScene;
   striped?: boolean;
   showGridlines?: boolean;
   showSummary?: boolean;
@@ -75,6 +80,15 @@ export interface UiListProps<T = any> {
   ) => void | Promise<unknown>;
   /** 首次打开引用字段过滤器时加载并缓存可选项。 */
   loadFilterOptions?: (field: MetaUiField) => Promise<unknown[]>;
+  /** 日期列 Excel 树：日历日 YYYY-MM-DD。 */
+  loadPivotDates?: (field: MetaUiField) => Promise<unknown>;
+  /** 相对日期筛选项标签（dateRange.TODAY 等）。 */
+  dateRangeLabels?: Partial<Record<string, string>>;
+  /** hasOne 列筛远程联想（关联仓储，默认 pageSize 20）。 */
+  searchRelative?: (
+    field: MetaUiField,
+    searchWord: string,
+  ) => Promise<unknown[]>;
   /** 列表列宽/显隐/冻结/顺序变更后回写元数据并缓存。 */
   onListLayoutChange?: () => void;
   /** 列布局版本；变化时重建表格。 */
@@ -106,7 +120,10 @@ export interface UiListEmits<T = any> {
   onSelectAll?: (selection: T[]) => void;
   onSelectionChange?: (selection: T[]) => void;
   onItemContextMenu?: (item: T) => void;
-  /** 可返回 Promise：Syncfusion 自定义绑定时需等查询结束再回写 dataSource。 */
+  /**
+   * 列排序。必须把 sorts 写进 `searchParam.pager.sorts` 后 `return search()`。
+   * 皮肤（含 Prime / Naive）要 `return` 这个 Promise，等完成再改 dataSource。
+   */
   onSort?: (sorts: Sort[]) => void | Promise<unknown>;
   onSearch?: (searchWord: string) => void;
   onRefresh?: () => void;

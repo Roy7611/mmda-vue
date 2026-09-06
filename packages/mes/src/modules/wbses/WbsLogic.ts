@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Wbs, defineWbs } from '@/models/Wbs';
@@ -95,7 +94,7 @@ export class WbsLogic extends UiLogic<Wbs> {
  * @param module 模块
  * @returns 
  */
-export const WbsLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WbsLogic({
+export const WbsLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WbsLogic({
 	metaUiService: metaUiService,
 	repository: 'Wbses',
 	router,
@@ -114,7 +113,7 @@ export class WbsTaskLogic extends UiGroupLogic<WbsTask, Wbs> {
 
 	if (fields.length == 0) {
 		fields.push(
-			this.field('ownerID').refFilter((model, ctx) => {
+			this.field('ownerID').refWhere((model, ctx) => {
 					const __p = ((context, model) => ({
 					status: `IN ${UserStatus.ACTIVATED}`
 			}))(ctx as any, model as any, undefined as any);

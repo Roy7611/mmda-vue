@@ -16,12 +16,6 @@ export interface UiActionContext extends UiContext {
   readonly model: Record<string, any>
   actionLoadings: Record<string, boolean>
   readonly executing: boolean
-  uiBuilder: {
-    toast(
-      context: UiContext,
-      props: Record<string, any>,
-    ): unknown
-  }
 }
 
 /**

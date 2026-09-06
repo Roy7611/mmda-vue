@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type OrganizationUnit, defineOrganizationUnit } from '../../models/OrganizationUnit';
@@ -64,7 +63,7 @@ import { type OrganizationUnit, defineOrganizationUnit } from '../../models/Orga
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const OrganizationUnitLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new OrganizationUnitLogic({
+	export const OrganizationUnitLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new OrganizationUnitLogic({
 		metaUiService: metaUiService,
 		repository: 'OrganizationUnits',
 		router,

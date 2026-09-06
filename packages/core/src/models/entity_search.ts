@@ -1,6 +1,17 @@
+import {
+  isDateRangeKind,
+  type DateTimeRangeKind,
+} from "../utils/date_range";
 import { defaultPager, parseSorts, type Pager } from "./pagination";
 
-export type EntityFilterType = "text" | "number" | "date" | "set" | "boolean";
+export type EntityFilterType =
+  | "text"
+  | "number"
+  | "date"
+  | "set"
+  | "boolean"
+  | "join"
+  | "multi";
 
 export type EntityFilterOperator =
   | "EQ"
@@ -27,6 +38,8 @@ export interface EntitySimpleFieldFilter {
   operator: EntityFilterOperator;
   value?: unknown;
   valueTo?: unknown;
+  /** 相对日历语义。有值时不要写死 value/valueTo；POST 原样交给服务端展开。 */
+  dateKind?: DateTimeRangeKind;
 }
 
 export interface EntitySetFieldFilter {
@@ -40,10 +53,25 @@ export interface EntityBooleanFieldFilter {
   value: boolean | null;
 }
 
+/** 同一比较器多段 AND/OR。与 multi（不同种类子过滤叠放）不同。 */
+export interface EntityJoinFieldFilter {
+  filterType: "join";
+  operator: "AND" | "OR";
+  conditions: EntityFieldFilter[];
+}
+
+/** 同一列叠不同种类子过滤（常见：比较条件 + 选项 set）。服务端 AND。 */
+export interface EntityMultiFieldFilter {
+  filterType: "multi";
+  filterModels: EntityFieldFilter[];
+}
+
 export type EntityFieldFilter =
   | EntitySimpleFieldFilter
   | EntitySetFieldFilter
-  | EntityBooleanFieldFilter;
+  | EntityBooleanFieldFilter
+  | EntityJoinFieldFilter
+  | EntityMultiFieldFilter;
 
 /** 字段过滤文档，键是实体字段名。 */
 export type EntityFilterModel = Record<string, EntityFieldFilter>;
@@ -95,15 +123,34 @@ const cloneRecord = <T extends Record<string, unknown>>(
   value?: T,
 ): T | undefined => (value == null ? undefined : ({ ...value } as T));
 
+export const cloneFieldFilter = (
+  filter: EntityFieldFilter,
+): EntityFieldFilter => {
+  if (filter.filterType === "set") {
+    return { ...filter, values: [...filter.values] };
+  }
+  if (filter.filterType === "join") {
+    return {
+      ...filter,
+      conditions: filter.conditions.map(cloneFieldFilter),
+    };
+  }
+  if (filter.filterType === "multi") {
+    return {
+      ...filter,
+      filterModels: filter.filterModels.map(cloneFieldFilter),
+    };
+  }
+  return { ...filter };
+};
+
 export const cloneFilterModel = (value?: EntityFilterModel) =>
   value == null
     ? undefined
     : Object.fromEntries(
         Object.entries(value).map(([field, filter]) => [
           field,
-          filter.filterType === "set"
-            ? { ...filter, values: [...filter.values] }
-            : { ...filter },
+          cloneFieldFilter(filter),
         ]),
       );
 
@@ -194,10 +241,101 @@ export function eqFilter(
   return { filterType, operator: "EQ", value };
 }
 
+export function betweenFilter(
+  value: unknown,
+  valueTo: unknown,
+  filterType: EntitySimpleFieldFilter["filterType"] = "date",
+): EntitySimpleFieldFilter {
+  return { filterType, operator: "BETWEEN", value, valueTo };
+}
+
+export function dateKindFilter(
+  dateKind: DateTimeRangeKind,
+): EntitySimpleFieldFilter {
+  return { filterType: "date", operator: "BETWEEN", dateKind };
+}
+
 export function nullFilter(
   operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
 ): EntitySimpleFieldFilter {
   return { filterType: "text", operator };
+}
+
+export function joinFilter(
+  operator: "AND" | "OR",
+  conditions: EntityFieldFilter[],
+): EntityJoinFieldFilter {
+  return {
+    filterType: "join",
+    operator,
+    conditions: conditions.map(cloneFieldFilter),
+  };
+}
+
+export function multiFilter(
+  filterModels: EntityFieldFilter[],
+): EntityMultiFieldFilter {
+  return {
+    filterType: "multi",
+    filterModels: filterModels.map(cloneFieldFilter),
+  };
+}
+
+export function isEmptyFieldFilter(
+  filter?: EntityFieldFilter | null,
+): boolean {
+  if (!filter) return true;
+  if (filter.filterType === "set") return !filter.values?.length;
+  if (filter.filterType === "boolean") return filter.value == null;
+  if (filter.filterType === "join") {
+    return filter.conditions.every((item) => isEmptyFieldFilter(item));
+  }
+  if (filter.filterType === "multi") {
+    return filter.filterModels.every((item) => isEmptyFieldFilter(item));
+  }
+  if (filter.operator === "IS_ALL") return true;
+  if (filter.operator === "IS_NULL" || filter.operator === "IS_NOT_NULL") {
+    return false;
+  }
+  if (isDateRangeKind(filter.dateKind)) return false;
+  if (filter.operator === "BETWEEN") {
+    return filter.value == null && filter.valueTo == null;
+  }
+  return filter.value == null || filter.value === "";
+}
+
+export function compactFieldFilter(
+  filter?: EntityFieldFilter | null,
+): EntityFieldFilter | undefined {
+  if (!filter || isEmptyFieldFilter(filter)) return undefined;
+  if (filter.filterType === "join") {
+    const conditions = filter.conditions
+      .map((item) => compactFieldFilter(item))
+      .filter((item): item is EntityFieldFilter => item != null);
+    if (!conditions.length) return undefined;
+    if (conditions.length === 1) return conditions[0];
+    return { ...filter, conditions };
+  }
+  if (filter.filterType === "multi") {
+    const filterModels = filter.filterModels
+      .map((item) => compactFieldFilter(item))
+      .filter((item): item is EntityFieldFilter => item != null);
+    if (!filterModels.length) return undefined;
+    if (filterModels.length === 1) return filterModels[0];
+    return { ...filter, filterModels };
+  }
+  return cloneFieldFilter(filter);
+}
+
+/** 上块比较 + 下块 set：两块都有效则 multi，否则摊平。 */
+export function combineCompareAndSet(
+  compare?: EntityFieldFilter | null,
+  set?: EntitySetFieldFilter | null,
+): EntityFieldFilter | undefined {
+  const first = compactFieldFilter(compare);
+  const second = compactFieldFilter(set);
+  if (first && second) return multiFilter([first, second]);
+  return first ?? second;
 }
 
 export function stringifyQueryExpression(query: EntityQuery): string {

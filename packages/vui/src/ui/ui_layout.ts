@@ -259,7 +259,8 @@ export function layoutPage(options: PageLayoutOptions): VNode {
       "mmda-page-layout",
       {
         display: "grid",
-        gridTemplateRows: toolbar == null ? "auto" : "auto auto",
+        // 工具栏按内容高度；内容区吃剩余空间，避免 auto/auto 被撑成对半高
+        gridTemplateRows: toolbar == null ? "minmax(0, 1fr)" : "auto minmax(0, 1fr)",
         height: "100%",
         minHeight: 0,
         overflow: "auto",
@@ -277,7 +278,7 @@ export function layoutPage(options: PageLayoutOptions): VNode {
                 stickyToolbar && "mmda-page-toolbar-sticky",
               ],
               style: stickyToolbar
-                ? { position: "sticky", top: 0, zIndex: 1 }
+                ? { position: "sticky", top: 0, zIndex: 2 }
                 : undefined,
             },
             toolbar as any,

@@ -1,6 +1,5 @@
 /* eslint-disable vue/no-mutating-props */
 import { defineComponent, ref, reactive, h, onBeforeMount, inject, getCurrentInstance } from 'vue';
-import type { ApiClient } from '@mmda/core';
 import '@/compat/animate.min.css';
 
 export type GanttPlanningFormData = {
@@ -42,7 +41,7 @@ function computeGanttPlanningErrors(formData: GanttPlanningFormData) {
 	};
 }
 
-export default defineComponent({
+const GanttPlanning = defineComponent({
 	name: 'GanttPlanning',
 	props: {
 		dataModel: Object as any,
@@ -53,7 +52,6 @@ export default defineComponent({
 		},
 	},
 	setup(props) {
-		getCurrentInstance()!.appContext.app.config.globalProperties.$api as ApiClient;
 		const { $ui: ui, $t } = getCurrentInstance()!.appContext.app.config.globalProperties;
 		const dialogRef: any = inject('dialogRef', null);
 
@@ -260,3 +258,9 @@ export default defineComponent({
 		};
 	},
 });
+
+export default GanttPlanning
+
+export function ganttPlanningNode(props?: Record<string, any>) {
+	return h(GanttPlanning, props as any)
+}

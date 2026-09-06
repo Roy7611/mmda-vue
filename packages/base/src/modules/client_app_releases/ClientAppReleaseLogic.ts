@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ClientAppRelease, defineClientAppRelease } from '../../models/ClientAppRelease';
@@ -64,7 +63,7 @@ import { type ClientAppRelease, defineClientAppRelease } from '../../models/Clie
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ClientAppReleaseLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ClientAppReleaseLogic({
+	export const ClientAppReleaseLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ClientAppReleaseLogic({
 		metaUiService: metaUiService,
 		repository: 'ClientAppReleases',
 		router,

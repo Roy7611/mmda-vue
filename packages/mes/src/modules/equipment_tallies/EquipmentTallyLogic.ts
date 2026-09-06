@@ -5,12 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type EquipmentTally, defineEquipmentTally } from '@/models/EquipmentTally';
 import { type EquipmentTallyRecord, defineEquipmentTallyRecord } from '@/models/EquipmentTallyRecord';
-import { h, reactive, ref, unref } from 'vue';
 import { EquipmentCheckResult, EquipmentCheckResultEnum } from '@/enums/EquipmentCheckResult';
 
 /**
@@ -23,8 +21,8 @@ import { EquipmentCheckResult, EquipmentCheckResultEnum } from '@/enums/Equipmen
 /**
  * 设备点检计分表交互逻辑
  */
-const tableDataKey = ref('id')
-const searchParam = reactive({
+const tableDataKey = { value: 'id' }
+const searchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
@@ -179,50 +177,37 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 	 * @param target
 	 */
 	async oneClickNormal(context: UiViewContext<any>, target: EquipmentTally) {
-		const { $ui: ui, $router: router } = context.globalProps
 		const metaFields = context.logic!.meta.metaui.groups.filter((item: any) => item.relObjName === 'EquipmentTallyRecord')
+		const recordGroup = metaFields[0]
+		if (!recordGroup?.groupUi) return
 		const items = target.records.map(v => ({ ...v, id: `${v.tallyID},${v.itemID}` }))
-		await context.uiBuilder.confirmDialog(context.uiBuilder.buildSearchForRelativeContent(
-			ui.buildColumns(metaFields[0].groupUi, context, {
-				isSearch: true
-			}),
-			{
-				dataKey: unref(tableDataKey),
+		const rows = items.filter(v => v.checkResult !== EquipmentCheckResult.OK)
+		collectmaterialparams.tableData = []
+		await context.uiBuilder.dialog(
+			context.uiBuilder.factory.table(rows, recordGroup.groupUi, {
 				selectionMode: 'multiple',
-				paginator: false,
-				onSearch: ({ searchParams, reload, pager }: any) => {
-					return {
-						list: items.filter(v => v.checkResult !== EquipmentCheckResult.OK).filter(item => item.itemName.includes(searchParams.searchWord) || (!isNullOrUndefined(item.category) ? item.category.includes(searchParams.searchWord) : '')), pager: searchParam.pager
-					}
+				onSelect: (selection: any) => {
+					collectmaterialparams.tableData = (selection ?? []).map((v: any) => v.itemID)
 				},
-				onPage: ({ pageNo, pageSize }: any) => {
-					// console.log(pageNo, pageSize, '1111');
-
-				},
-				onSelect: (selection: any, row: any) => {
-					collectmaterialparams.tableData = selection.map((v: any) => v.itemID)
-				},
-				onSelectAll: (selection: any, row: any) => {
-					collectmaterialparams.tableData = selection.map((v: any) => v.itemID)
+			}),
+			context,
+			{
+				title: context.t('equipmentTally.selectInspectionRecords'),
+				width: '80%',
+				accept: async () => {
+					target.records.forEach(value => {
+						collectmaterialparams.tableData.forEach((id: any) => {
+							if (value.itemID === id) {
+								value.checkResult = EquipmentCheckResult.OK
+								value.customProperties.$checkResult = EquipmentCheckResultEnum.textOf(EquipmentCheckResult.OK)
+								MetaModel.modify(value)
+							}
+						})
+					})
+					return true
 				}
 			}
-		), context, {
-			title: context.t('equipmentTally.selectInspectionRecords'),
-			width: '80%',
-			accept: async () => {
-				target.records.forEach(value => {
-					collectmaterialparams.tableData.forEach((id: any) => {
-						if (value.itemID === id) {
-							value.checkResult = EquipmentCheckResult.OK
-							value.customProperties.$checkResult = EquipmentCheckResultEnum.textOf(EquipmentCheckResult.OK)
-							MetaModel.modify(value)
-						}
-					})
-
-				})
-				return true
-			}
-		})
+		)
 	}
 	//设置详情逻辑
 	beforeDetails(): UiLogicFnResult<EquipmentTally> {
@@ -233,21 +218,12 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 					const fldVal = ctx.getFieldValue(fld);
 					const equipID = fldVal?.equipID ?? ctx.model.equipID;
 					const label = fldVal?.equipName ?? fldVal?.equipNo ?? ctx.model.equipment?.equipName ?? '';
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: { color: '#409eff' },
-								href: 'javascript:;',
-								onClick: () => {
-									if (equipID) {
-										window.open(`/MES/Equipments/${equipID}`, '_blank');
-									}
-								},
-							},
-							label
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: label,
+						href: equipID ? `/MES/Equipments/${equipID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 			);
 		}
@@ -262,7 +238,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
  * @param module 模块
  * @returns
  */
-export const EquipmentTallyLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const EquipmentTallyLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new EquipmentTallyLogic({
 		metaUiService: metaUiService,
 		repository: 'EquipmentTallies',

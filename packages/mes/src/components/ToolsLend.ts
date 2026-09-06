@@ -16,7 +16,8 @@ export const ToolsLend = defineComponent({
 	},
 	emits: ['getUserID'],
 	setup: (props, { emit }) => {
-		const { $ui: ui, $t: t, $toast: toast, $api: apiBox } = props.ctx.globalProps;
+		const { $ui: ui, $t: t, $toast: toast } = props.ctx.globalProps;
+		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const owner = ref('');
 		//人员下拉选择
 		const userOptionsAll = ref([]);
@@ -30,7 +31,7 @@ export const ToolsLend = defineComponent({
 		// 获取用户
 		const getUser = async () => {
 			try {
-				const res = await apiBox.getAll({
+				const res = await apiClient.getAll({
 					repository: 'Users',
 					queryParams: userPageInfo,
 					service: 'base',
@@ -102,3 +103,7 @@ export const ToolsLend = defineComponent({
 			]);
 	},
 });
+
+export function toolsLendNode(props?: Record<string, any>) {
+	return h(ToolsLend, props as any);
+}

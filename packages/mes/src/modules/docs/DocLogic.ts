@@ -5,8 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { ComponentInternalInstance, getCurrentInstance, h, reactive, ref, toRaw } from 'vue';
-import { Router } from 'vue-router';
+
 import {
 	type MetaUiService,
 	type Module,
@@ -40,7 +39,7 @@ import { DocShareStatus } from '@/enums/DocShareStatus';
  */
 const beforeshare = async (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
 	// 当前登录用户，用于排除自己
-	const currentUserId = context.app.context.user.userId;
+	const currentUserId = context.app.state.user.userId;
 	return context
 		.select<User>({
 			service: 'base',
@@ -117,11 +116,11 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
  * @returns
  */
 const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $toast, $api, $t } = context.globalProps;
+	const { $toast, $t } = context.globalProps;
 	// 列表页可能未加载 shares，需补拉文档详情
 	let shares = model.shares;
 	if (!shares?.length) {
-		const data = await $api.getOne(model.docID, { repository: 'Docs', service: 'mes' });
+		const data = await context.logic!.loadOf<Doc>('Docs', model.docID, { service: 'mes' });
 		shares = defineDoc(data as object).shares ?? [];
 	}
 	// 仅保留未回收的分享对象
@@ -243,52 +242,34 @@ export class DocLogic extends UiLogic<Doc> {
 				this.field('docFile').setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					const { fileName, fileExt } = getFileInfo(fldVal)
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-									try {
-										await apiBox.getOne(ctx.model.docID, {
-											repository: 'Docs',
-											service: 'mes',
-										})
-										if (fileExt == 'xlsx' || fileExt == 'docx' || fileExt == 'pptx') {
-											const routeUrl = router.resolve({
-												path: `/${apiBox.config.service.toUpperCase()}/FileView`,
-												query: {
-													fileUrl: encodeUriAndFix(fldVal)
-												}
-											})
-											window.open(routeUrl.href, '_blank');
-										} else if (fileExt == 'pdf') {
-											window.open(fldVal, '_blank')
-										} else if (fileExt == 'bmp' ||
-											fileExt == 'jpg' ||
-											fileExt == 'png' ||
-											fileExt == 'gif') {
-											window.open(`${encodeUriAndFix(fldVal)}?a=${+new Date()}`, '_blank')
-										}
-									} catch (error: any) {
-										ctx.uiBuilder.toast(ctx, {
-											severity: 'error',
-											summary: ctx.t('dialog.title.error'),
-											detail: error.message,
-											group: 'br',
-											life: 3000
-										})
-
-									}
-								},
-							},
-							fileName !== 'null' ? fileName : ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fileName !== 'null' ? fileName : '',
+						href: 'javascript:;',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+						onClick: async () => {
+							try {
+								await ctx.logic!.loadOf<Doc>('Docs', ctx.model.docID, { service: 'mes' })
+								if (fileExt == 'xlsx' || fileExt == 'docx' || fileExt == 'pptx') {
+									window.open(`/${this.apiClient.config.service.toUpperCase()}/FileView?fileUrl=${encodeUriAndFix(fldVal)}`, '_blank');
+								} else if (fileExt == 'pdf') {
+									window.open(fldVal, '_blank')
+								} else if (fileExt == 'bmp' ||
+									fileExt == 'jpg' ||
+									fileExt == 'png' ||
+									fileExt == 'gif') {
+									window.open(`${encodeUriAndFix(fldVal)}?a=${+new Date()}`, '_blank')
+								}
+							} catch (error: any) {
+								ctx.uiBuilder.toast(ctx, {
+									severity: 'error',
+									summary: ctx.t('dialog.title.error'),
+									detail: error.message,
+									group: 'br',
+									life: 3000
+								})
+							}
+						},
+					});
 				})
 			);
 		}
@@ -340,7 +321,7 @@ export class DocLogic extends UiLogic<Doc> {
 		// 		this.field('docFile').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 		// 			const fldVal = ctx.getFieldValue(fld);
 		// 			const fileInfo = getFileInfo(fldVal);
-		// 			const showBotton = ref('none');
+		// 			const showBotton = { value: 'none' };
 		// 			if (ctx.model.docFile) {
 		// 				showBotton.value = 'block';
 		// 			} else {
@@ -385,12 +366,12 @@ export class DocLogic extends UiLogic<Doc> {
 		// 									// const link = encodeUriAndFix(url);
 		// 									// window.open(link, '_blank');
 		// 								} else if (suffix == '.bmp' || suffix == '.jpg' || suffix == '.png' || suffix == '.txt' || suffix == '.gif' || suffix == '.dwg') {
-		// 									const urlNo = ref(+new Date());
+		// 									const urlNo = { value: +new Date() };
 		// 									const link = encodeUriAndFix(url);
 		// 									const linkno = link + '?v=' + urlNo.value
 		// 									window.open(linkno, '_blank');
 		// 								} else {
-		// 									const urlNo = ref(+new Date());
+		// 									const urlNo = { value: +new Date() };
 		// 									const link = encodeUriAndFix(url);
 		// 									const linkno = link + '?v=' + urlNo.value
 		// 									window.open(linkno, '_blank');
@@ -439,7 +420,7 @@ export class DocLogic extends UiLogic<Doc> {
 			customSearchFields.push({
 				searchLabel: 'doc.type',
 				searchParam: 'search',
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext & any, csf) => {
 					if (!searchParam.queryParams) {
 						searchParam.queryParams = {
 							reclaimed: 'false',
@@ -485,7 +466,7 @@ export class DocLogic extends UiLogic<Doc> {
  * @param module 模块
  * @returns
  */
-export const DocLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const DocLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new DocLogic({
 		metaUiService: metaUiService,
 		repository: 'Docs',
@@ -509,7 +490,7 @@ export class DocShareLogic extends UiGroupLogic<DocShare, Doc> {
 	}
 	beforeDetails() {
 		const { fields, groups, customActions } = super.beforeDetails();
-		const urlNo = ref(+new Date());
+		const urlNo = { value: +new Date() };
 		if (fields.length == 0) {
 			// fields.push();
 		}

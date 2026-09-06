@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -87,7 +86,7 @@ export class DepartmentLogic extends UiLogic<Department> {
     const { fields, groups, customActions } = super.beforeEdit();
     if (fields.length == 0) {
       fields.push(
-        this.field("parentDeptID").refFilter((model, ctx) => {
+        this.field("parentDeptID").refWhere((model, ctx) => {
 					const __p = ((context, model) => ({
           status: `IN ${DepartmentStatus.RUNNING}`,
         }))(ctx as any, model as any, undefined as any);
@@ -102,7 +101,7 @@ export class DepartmentLogic extends UiLogic<Department> {
 						})
 						.join(" AND ");
 				}),
-        this.field("leaderID").refFilter((model, ctx) => {
+        this.field("leaderID").refWhere((model, ctx) => {
 					const __p = ((context, model) => ({
           status: `NOT IN ${EmployeeStatus.LEAVE}`,
         }))(ctx as any, model as any, undefined as any);
@@ -165,7 +164,7 @@ export class DepartmentLogic extends UiLogic<Department> {
  */
 export const DepartmentLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new DepartmentLogic({

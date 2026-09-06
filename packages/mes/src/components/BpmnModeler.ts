@@ -122,3 +122,13 @@ export const BpmnModeler = defineComponent({
       ])
   },
 })
+
+export function bpmnModelerNode(props?: Record<string, any>) {
+  return h(BpmnModeler, props as any)
+}
+
+export function processBpmnNode(props?: Record<string, any>) {
+  return h('div', { class: 'process-bpmn-container col-span-full' }, [
+    h(BpmnModeler, props as any),
+  ])
+}

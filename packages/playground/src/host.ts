@@ -38,15 +38,15 @@ export function installGuestSession(
   app: MmdaApplication,
   username = "playground",
 ) {
-  app.context.user = {
+  app.state.user = {
     username,
     userId: "demo",
     userType: 0,
     expiryOn: Date.now() + 365 * 24 * 60 * 60 * 1000,
   };
-  app.context.authenticated = true;
-  app.context.modules = playgroundModules as Module[];
-  app.context.localAppPrefixes = [PLAYGROUND_SERVICE];
+  app.state.authenticated = true;
+  app.state.modules = playgroundModules as Module[];
+  app.state.localAppPrefixes = [PLAYGROUND_SERVICE];
 }
 
 export function registerPlaygroundLogic(app: MmdaApplication, router: unknown) {

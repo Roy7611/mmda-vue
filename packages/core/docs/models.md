@@ -45,6 +45,7 @@ const search: EntitySearchParam = {
 `ApiClient.searchAll()` 是统一入口：空 `filterModel` → GET `getAll`；否则 POST `.../searchAll`（body 为 FilterModel 映射）。新代码不要往 `queryParams` 写字段条件。
 
 - 设计：[entity_search.md](./models/entity_search.md)
+- 日期过滤设计 / 用法：[date_filter.md](./models/date_filter.md) · [date_filter_usage.md](./logic/date_filter_usage.md)
 - 用法：[entity_query_usage.md](./logic/entity_query_usage.md)
 - 传输：[api_client.md](./net/api_client.md)
 
@@ -62,7 +63,7 @@ const payload = MetaModel.savable(metaui, model)
 - `EntityAction`：按钮元数据（metaui）
 - `UiValidation`：界面校验状态（logic）
 - `UiContext`：跨场景宿主（logic）
-- `SqlOperator`：where / refFilter 片段（logic）
+- `SqlOperator`：where / refWhere 片段（logic）
 
 新代码从 `@mmda/core` 顶层导入。
 

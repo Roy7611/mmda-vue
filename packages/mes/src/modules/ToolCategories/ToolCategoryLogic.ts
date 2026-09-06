@@ -13,7 +13,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, MetaUiPack } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ToolCategory, defineToolCategory } from "@/models/ToolCategory";
@@ -122,7 +121,7 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
  * @param module 模块
  * @returns 
  */
-export const ToolCategoryLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ToolCategoryLogic({
+export const ToolCategoryLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ToolCategoryLogic({
 	metaUiService: metaUiService,
 	repository: 'ToolCategories',
 	router,

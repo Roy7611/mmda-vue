@@ -7,11 +7,9 @@ import {
   type UiTreeGridPropsType,
 } from "@mmda/vui";
 import { SfTreeGrid } from "../components/SfTreeGrid";
+import { buildSfTreeGridColumns } from "../sf_grid_column";
 import {
-  columnEditType,
-  gridColumnType,
-  referenceEditParams,
-  refreshReferenceEditParams,
+  refreshRefEditParams,
 } from "./utils";
 
 /** EJ2 queryCellInfo 里的 render() 不在组件树内，需带上建表时的 appContext。 */
@@ -47,37 +45,10 @@ export function attachTreeGridRenderer(factory: any) {
       ((args?.data ?? args?.rowData) as { taskData?: T } | undefined)
         ?.taskData ?? (args?.data ?? args?.rowData);
 
-    const columns = fields.map((field, index) => {
-      const bool = SqlDataType.isBool(field.dataType);
-      const listed = field.listSize && field.listSize > 0 ? field.listSize : 0;
-      const canEdit =
-        inplaceEdit && index > 0 && editableFields.has(field.fieldName);
-      return {
-        field: field.fieldName,
-        headerText: field.displayLabel,
-        // 官方编辑要求 isPrimaryKey；取自元数据 MetaUiField.primaryKey
-        // https://ej2.syncfusion.com/vue/documentation/treegrid/editing/edit
-        isPrimaryKey: field.primaryKey === true,
-        width: index === 0
-          ? Math.max(listed || 240, 200)
-          : bool
-            ? Math.min(
-                listed || Math.max((field.displayLabel?.length ?? 2) * 14, 72),
-                96,
-              )
-            : listed || undefined,
-        minWidth: bool ? 64 : index === 0 ? 160 : 72,
-        maxWidth: bool ? 96 : undefined,
-        textAlign: bool ? "Center" : undefined,
-        // 官方：boolean 列 + displayAsCheckBox 常显复选框；editType=booleanedit
-        // https://ej2.syncfusion.com/vue/documentation/treegrid/editing/edit-types
-        type: gridColumnType(field),
-        displayAsCheckBox: bool || undefined,
-        allowResizing: true,
-        allowEditing: canEdit,
-        editType: columnEditType(field),
-        edit: canEdit ? referenceEditParams(field) : undefined,
-      };
+    const columns = buildSfTreeGridColumns(metaui, {
+      allowSorting: props.enableSort !== false,
+      inplaceEdit,
+      editableFields,
     });
 
     return h(SfTreeGrid, {
@@ -126,7 +97,7 @@ export function attachTreeGridRenderer(factory: any) {
             args.cancel = true;
             return;
           }
-          refreshReferenceEditParams(args?.column, field);
+          refreshRefEditParams(args?.column, field);
         },
         cellSave(this: any, args: any) {
           if (!inplaceEdit) return;

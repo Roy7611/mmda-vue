@@ -16,7 +16,7 @@ export const ToolsMove = defineComponent(
         },
         emits: ['getMoveData'],
         setup: (props, { emit }) => {
-            const { $ui: ui, $t: t, $toast: toast, $api: apiBox } = props.ctx.globalProps
+            const { $ui: ui, $t: t, $toast: toast } = props.ctx.globalProps
             const ToolsMoveData = reactive({
                 moveTo: '',
                 remark: ''
@@ -56,3 +56,7 @@ export const ToolsMove = defineComponent(
         }
     }
 )
+
+export function toolsMoveNode(props?: Record<string, any>) {
+    return h(ToolsMove, props as any);
+}

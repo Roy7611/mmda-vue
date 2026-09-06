@@ -3,6 +3,7 @@
 - **层**：Data / models（传输在 net；套用与 SQL 片段在 logic；模块默认与本地缓存在 metaui）
 - **源码**：[`packages/core/src/models/entity_search.ts`](../../src/models/entity_search.ts)
 - **程序员怎么写**：[entity_query_usage.md](../logic/entity_query_usage.md)
+- **日期过滤**：[date_filter.md](./date_filter.md) · [date_filter_usage.md](../logic/date_filter_usage.md)
 - **SQL 片段**：[sql_operator.md](../logic/sql_operator.md)
 
 对齐校验文档的写法：[validation_design.md](../logic/validation_design.md) / [validation_usage.md](../logic/validation_usage.md)。
@@ -53,11 +54,24 @@ interface EntitySearchParam extends EntityQuery {
 
 | filterType | 主要字段 |
 |---|---|
-| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`（`BETWEEN`） |
-| `set` | `values` + 可选 `operator`：`IN` / `NOT_IN` |
+| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`；`date` 可另带 **`dateKind`**（`THIS_MONTH` 等，POST 不展开） |
+| `set` | `values` + 可选 `operator`：`IN` / `NOT_IN`。日期列的 `values` 可以是周期 token：`YYYY` / `YYYY-MM` / `YYYY-MM-DD` |
 | `boolean` | `value: boolean \| null`（`IS_ALL` 表示不筛选，通常不写入 model） |
+| `join` | 同一比较器多段：`operator: "AND"\|"OR"` + `conditions[]` |
+| `multi` | 同一列叠 **不同种类** 子过滤：`filterModels[]`（服务端 AND） |
 
-工厂：`inFilter` / `notInFilter` / `eqFilter` / `nullFilter`。
+`join` ≠ `multi`：两段 CONTAINS 用 join；CONTAINS + 选项 set 用 multi。只填一块时摊平为 simple/set，不要包一层空的 join/multi。
+
+工厂：`inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `joinFilter` / `multiFilter` / `combineCompareAndSet`。
+
+日期两路：
+
+- **语义** `{ filterType:'date', dateKind:'THIS_MONTH' }`：保存和 POST 都保留 kind，**服务端**按服务器日历展开成半开 `[start, next)`。不要在客户端收成 BETWEEN。
+- **Excel 绝对勾选** `set` + 周期 token：`toSearchRequest` / `searchAll` 会 `expandDateFilters` 合并相邻区间 → 一段 `BETWEEN` 或多段 `join` OR。`dateKind` 不展开。
+
+周期 token 先变半开区间再合并（`prev.next >= next.start`）。例：`['2026-05','2026-06-01','2025-12']` → 12 月一段 + `[2026-05-01, 2026-06-02)`。`compactDateSet` 对照 pivot 日把全选的年/月收成 token。
+
+日期两路的展开规则、token 合并、表头 multi 见 **[date_filter.md](./date_filter.md)**，写法见 **[date_filter_usage.md](../logic/date_filter_usage.md)**。
 
 运算符全集见源码 `EntityFilterOperator`。UI 标签用 i18n `matcher.${op}`，不要在 Logic 里挂中英文 label 对象。
 
@@ -67,7 +81,7 @@ interface EntitySearchParam extends EntityQuery {
 |---|---|
 | **models** | EntityQuery / SearchParam / FilterModel / Operator；`stringifyQueryExpression` / `parseQueryExpression`；`parseDefaultFilter`；工厂函数 |
 | **metaui** | `Module.defaultFilter` / `defaultSort` / `defaultGroupBy`；pack 的 `lastQuery` |
-| **logic** | 套用默认查询、`refFilter`；**无 SearchOp**；SQL 用 `SqlOperator` |
+| **logic** | 套用默认查询、`refWhere`；**无 SearchOp**；SQL 用 `SqlOperator` |
 | **net** | `searchAll`；`toSearchRequest` / `toQueryParams`；空 filterModel → GET |
 | **vui** | 只读写 EntityQuery / SearchParam；芯片与表头运算符用 `EntityFilterOperator` |
 
@@ -152,15 +166,12 @@ if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
 | 场景 | 用什么 |
 |---|---|
 | 列表 / 表头 / 搜索栏字段条件 | `EntityFilterOperator` + `filterModel` |
-| 元数据 `reference.where`、Logic `refFilter` | `SqlOperator`（`getSqlOperator` / `toSQL`） |
+| 元数据 `reference.where`、Logic `refWhere` | `SqlOperator`（`getSqlOperator` / `toSQL`） |
 | 尚未迁完的快捷过滤 SQL、旧 MES URL | `queryParams`（兼容，新代码不要加） |
 
 已删除 **SearchOp**。表头可选运算符：`getFieldFilterOps(field)` → `EntityFilterOperator[]`。
 
 ## 本轮不做
-
-- join / pivot
-- 一夜删芯片 SQL
 - 改 Java `queryExpression` 列宽
 - 强拆 `entity_filters.ts`（类型仍在 `entity_search.ts`；业务从 `@mmda/core` 顶层导入）
 
@@ -171,7 +182,8 @@ if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
 | `defaultSearchParam` / `defaultEntityQuery` | 工厂 |
 | `toEntityQuery` / `applyEntityQuery` / `assignSearchParam` | 复制与套用 |
 | `hasFilterModel` / `isDifferentSearchParam` | 判断 |
-| `inFilter` / `notInFilter` / `eqFilter` / `nullFilter` | 字段条件工厂 |
+| `inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `joinFilter` / `multiFilter` | 字段条件工厂 |
+| `expandDateFilters` / `compactDateSet` | 日期 set token 合并展开（不碰 dateKind） |
 | `stringifyQueryExpression` / `parseQueryExpression` | CustomizedQuery 编解码 |
 | `parseDefaultFilter` / `parseDefaultSort` | Module 默认串 |
 

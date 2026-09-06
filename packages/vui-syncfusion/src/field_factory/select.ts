@@ -208,7 +208,7 @@ export const searchBox = (
       }
     },
     toSearch: async () => {
-      const picked = await (context as any).pickRelative?.(field);
+      const picked = await (context as any).select(field);
       if (picked) fldOptions.currentSelectOption = picked;
       return true;
     },

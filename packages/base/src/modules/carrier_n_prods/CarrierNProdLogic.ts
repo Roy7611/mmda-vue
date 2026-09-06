@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd';
@@ -72,7 +71,7 @@ import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const CarrierNProdLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new CarrierNProdLogic({
+	export const CarrierNProdLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new CarrierNProdLogic({
 		metaUiService: metaUiService,
 		repository: 'CarrierNProds',
 		router,

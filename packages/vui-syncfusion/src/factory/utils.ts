@@ -2,6 +2,11 @@ import {
   DEFAULT_PAGE_SIZE_OPTIONS,
   MetaUiFieldAlignmentEnum,
   SqlDataType,
+  columnFilterKindOf,
+  hasFilterType,
+  resolveColumnFilterTypes,
+  simpleFilterTypeOf,
+  MetaUiFieldFilterType,
   type EntityFilterModel,
   type EntityFilterOperator,
   type MetaUi,
@@ -117,21 +122,11 @@ export const gridFilterOperator = (operator?: string) => {
   return operators[String(operator ?? "").toLowerCase()] ?? "EQ";
 };
 
-export const isChoiceFilterField = (field: MetaUiField) => {
-  const reference = field.reference as
-    | MetaUiField["reference"]
-    | { isEnum?: boolean; isRef?: boolean; hasOne?: boolean; refType?: string }
-    | undefined;
-  if (!reference) return false;
-  return Boolean(
-    reference.isEnum ||
-      reference.isRef ||
-      reference.hasOne ||
-      reference.refType === "ENUM" ||
-      reference.refType === "REF" ||
-      reference.refType === "HAS_ONE",
+export const isChoiceFilterField = (field: MetaUiField) =>
+  hasFilterType(
+    resolveColumnFilterTypes(field),
+    MetaUiFieldFilterType.SET,
   );
-};
 
 /** Column.template 名 ↔ Grid 命名 slot */
 export const cellSlotName = (fieldName: string) =>
@@ -201,7 +196,7 @@ export const columnEditType = (field: MetaUiField) =>
             ? "numericedit"
             : "defaultedit";
 
-export const refreshReferenceEditParams = (column: any, field: MetaUiField) => {
+export const refreshRefEditParams = (column: any, field: MetaUiField) => {
   const edit = referenceEditParams(field);
   if (!edit || !column) return;
   column.edit = {
@@ -223,16 +218,61 @@ export const choiceFilterDataSource = (field: MetaUiField) => {
   }));
 };
 
-const flattenFilterPredicates = (predicates: any[] | undefined): any[] => {
+const flattenFilterPredicates = (
+  predicates: any[] | undefined,
+  parentJoin?: string,
+): any[] => {
   const items: any[] = [];
   for (const predicate of predicates ?? []) {
     if (Array.isArray(predicate?.predicates) && predicate.predicates.length) {
-      items.push(...flattenFilterPredicates(predicate.predicates));
+      const join = String(predicate.condition ?? parentJoin ?? "and").toLowerCase();
+      items.push(...flattenFilterPredicates(predicate.predicates, join));
       continue;
     }
-    if (predicate?.field) items.push(predicate);
+    if (predicate?.field) items.push({ ...predicate, join: parentJoin });
   }
   return items;
+};
+
+const simpleTypeOf = (field: MetaUiField): "text" | "number" | "date" =>
+  simpleFilterTypeOf(field);
+
+const isSetLikeOperator = (operator: string) =>
+  ["equal", "in", "notequal", "notin"].includes(operator);
+
+const flattenValues = (items: any[]) =>
+  items.flatMap((item) => (Array.isArray(item.value) ? item.value : [item.value]));
+
+const toSimpleFilter = (item: any, field: MetaUiField) => ({
+  filterType: simpleTypeOf(field),
+  operator: gridFilterOperator(item.operator),
+  value: item.value,
+});
+
+const joinOperatorOf = (items: any[]): "AND" | "OR" =>
+  items.some((item) => String(item.join ?? "and").toLowerCase() === "or")
+    ? "OR"
+    : "AND";
+
+const toCompareFilter = (items: any[], field: MetaUiField) => {
+  if (items.length === 1) return toSimpleFilter(items[0], field);
+  return {
+    filterType: "join" as const,
+    operator: joinOperatorOf(items),
+    conditions: items.map((item) => toSimpleFilter(item, field)),
+  };
+};
+
+const toSetFilter = (items: any[], field: MetaUiField) => {
+  const operators = items.map((item) => String(item.operator ?? "").toLowerCase());
+  const allNotEqual = operators.every(
+    (op) => op === "notequal" || op === "notin",
+  );
+  return {
+    filterType: "set" as const,
+    operator: allNotEqual ? ("NOT_IN" as const) : ("IN" as const),
+    values: flattenValues(items),
+  };
 };
 
 export const gridFiltersToModel = (
@@ -251,7 +291,7 @@ export const gridFiltersToModel = (
   for (const [fieldName, items] of grouped) {
     const field = fields.find((value) => value.fieldName === fieldName);
     if (!field) continue;
-    if (SqlDataType.isBool(field.dataType)) {
+    if (columnFilterKindOf(field) === "boolean") {
       const item = items[items.length - 1];
       model[fieldName] = {
         filterType: "boolean",
@@ -262,24 +302,7 @@ export const gridFiltersToModel = (
     const operators = items.map((item) =>
       String(item.operator ?? "").toLowerCase(),
     );
-    const values = items.flatMap((item) =>
-      Array.isArray(item.value) ? item.value : [item.value],
-    );
-    const choiceValues = items.flatMap((item) =>
-      Array.isArray(item.value) ? item.value : [],
-    );
-    const allEqual = operators.every((op) => op === "equal" || op === "in");
-    const allNotEqual = operators.every(
-      (op) => op === "notequal" || op === "notin",
-    );
-    if (isChoiceFilterField(field) && (choiceValues.length || values.length)) {
-      model[fieldName] = {
-        filterType: "set",
-        operator: allNotEqual ? "NOT_IN" : "IN",
-        values: choiceValues.length ? choiceValues : values,
-      };
-      continue;
-    }
+    const values = flattenValues(items);
     const lower = items.find((item) =>
       ["greaterthan", "greaterthanorequal"].includes(
         String(item.operator ?? "").toLowerCase(),
@@ -290,43 +313,53 @@ export const gridFiltersToModel = (
         String(item.operator ?? "").toLowerCase(),
       ),
     );
+    const compareType = simpleFilterTypeOf(field);
     if (
-      (SqlDataType.isDate(field.dataType) ||
-        SqlDataType.isNum(field.dataType)) &&
+      (compareType === "date" || compareType === "number") &&
       lower &&
       upper
     ) {
       model[fieldName] = {
-        filterType: SqlDataType.isDate(field.dataType) ? "date" : "number",
+        filterType: compareType,
         operator: "BETWEEN",
         value: lower.value,
         valueTo: upper.value,
       };
       continue;
     }
+    const compareItems = items.filter((item) => {
+      const op = String(item.operator ?? "").toLowerCase();
+      if (isChoiceFilterField(field) && isSetLikeOperator(op)) return false;
+      if (op === "in" || op === "notin") return false;
+      if (Array.isArray(item.value) && isSetLikeOperator(op)) return false;
+      return true;
+    });
+    const setItems = items.filter((item) => !compareItems.includes(item));
+    const allEqual = operators.every((op) => op === "equal" || op === "in");
+    const allNotEqual = operators.every(
+      (op) => op === "notequal" || op === "notin",
+    );
+    if (!compareItems.length && setItems.length) {
+      model[fieldName] = toSetFilter(setItems, field);
+      continue;
+    }
     if (
+      !setItems.length &&
       values.length &&
       (allEqual || allNotEqual) &&
-      (values.length > 1 || isChoiceFilterField(field))
+      values.length > 1
     ) {
+      model[fieldName] = toSetFilter(items, field);
+      continue;
+    }
+    if (compareItems.length && setItems.length) {
       model[fieldName] = {
-        filterType: "set",
-        operator: allNotEqual ? "NOT_IN" : "IN",
-        values,
+        filterType: "multi",
+        filterModels: [toCompareFilter(compareItems, field), toSetFilter(setItems, field)],
       };
       continue;
     }
-    const item = items[items.length - 1];
-    const filterType = SqlDataType.isDate(field.dataType)
-      ? "date"
-      : SqlDataType.isNum(field.dataType)
-        ? "number"
-        : "text";
-    model[fieldName] = {
-      filterType,
-      operator: gridFilterOperator(item.operator),
-      value: item.value,
-    };
+    model[fieldName] = toCompareFilter(compareItems.length ? compareItems : items, field);
   }
   return model;
 };

@@ -15,6 +15,7 @@ import {
   onBeforeMount,
   reactive,
   withModifiers,
+  ref,
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -37,6 +38,7 @@ export const SigninForm = defineComponent({
       agreed: { touched: false, message: '' },
     })
 
+    const loading = ref(false)
     const tx = (message: string) => (message ? t(message) : message)
 
     const requiredUsername = () => {
@@ -61,7 +63,7 @@ export const SigninForm = defineComponent({
 
     const handleLogin = async () => {
       if (!validate()) return
-      if (props.context?.loginLoading) props.context.loginLoading.value = true
+      loading.value = true
       const payload: SigninUser = {
         signinMode: user.signinMode,
         username: user.username,
@@ -74,7 +76,7 @@ export const SigninForm = defineComponent({
         })
         emit('signin', payload)
       } finally {
-        if (props.context?.loginLoading) props.context.loginLoading.value = false
+        loading.value = false
       }
     }
 
@@ -90,9 +92,8 @@ export const SigninForm = defineComponent({
     })
 
     return () => {
-      const loading = !!props.context?.loginLoading?.value
       return h('div', { class: 'mmda-signin-form-wrap' }, [
-        loading
+        loading.value
           ? h(
               'div',
               { class: 'mmda-signin-form__loading' },

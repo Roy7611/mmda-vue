@@ -10,3 +10,7 @@ export const MaterialTransEditor = defineComponent({
       h('p', { style: { padding: '16px' } }, t('view.materialTransEditorHint'))
   },
 })
+
+export function materialTransEditorNode(props?: Record<string, any>) {
+  return h(MaterialTransEditor, props as any)
+}

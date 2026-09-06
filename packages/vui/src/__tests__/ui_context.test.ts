@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
-import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
+import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, type UiContext } from "@mmda/core";
 import { UiViewContext } from "../ui/ui_context";
 import { TestUiBuilder } from "./test_builder";
 
@@ -56,6 +56,17 @@ const createOrderMetaUi = () => {
 };
 
 describe("UiViewContext", () => {
+  it("实现 core UiContext", () => {
+    const { metaui } = createOrderMetaUi();
+    const ctx: UiContext = new UiViewContext({
+      model: { id: "o1", orderNo: "SO-1", items: [] },
+      metaui,
+      view: "details",
+    });
+    expect(ctx.model).toEqual({ id: "o1", orderNo: "SO-1", items: [] });
+    expect(ctx.displayField("orderNo")).toBe("SO-1");
+  });
+
   it("索引和详情使用浅响应，编辑页保留深层双向绑定", () => {
     const { metaui } = createOrderMetaUi();
     const details = new UiViewContext({
@@ -389,7 +400,7 @@ describe("UiViewContext", () => {
   it("newSubGroupItem 先入集，对话框取消则移除，确定则保留", async () => {
     const { metaui } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const confirmDialog = vi
+    const dialog = vi
       .fn()
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
@@ -398,8 +409,7 @@ describe("UiViewContext", () => {
       metaui,
       view: "edit",
       app: {
-        confirmDialog,
-        ui: { buildView: () => ({}) },
+        ui: { buildView: () => ({}), dialog },
       } as any,
     });
 
@@ -423,7 +433,7 @@ describe("UiViewContext", () => {
     expect(kept).toMatchObject({ itemName: "OK" });
     expect(model.items).toHaveLength(1);
     expect(toRaw(model.items[0])).toBe(toRaw(kept as object));
-    expect(confirmDialog).toHaveBeenCalledTimes(2);
+    expect(dialog).toHaveBeenCalledTimes(2);
   });
 
   it("批量字段赋值会校验，重置筛选保留固定 GET 查询参数", () => {
@@ -557,40 +567,109 @@ describe("UiViewContext", () => {
         },
       ],
     });
-    const options = [
-      { packID: "1", packFullName: "纸箱" },
-      { packID: "2", packFullName: "托盘" },
-    ];
-    const searchAll = vi.fn(async () => ({
-      list: options,
-      pagination: { pageNo: 1, pageSize: 1000, recordCount: 2 },
-    }));
+    const pivot = ["1", "2"];
+    const getPivotValues = vi.fn(async () => pivot);
+    const searchAll = vi.fn();
     const ctx = new UiViewContext({
       model: { id: "m1" },
       metaui,
       view: "index",
       app: {
-        api: { searchAll },
+        api: {
+          searchAll,
+          getPivotValues,
+          config: { repository: "Materials", service: "base" },
+        },
       } as any,
     });
 
-    await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual(options);
-    await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual(options);
+    const loaded = await ctx.loadReferenceOptions(packField);
+    await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual(loaded);
 
-    expect(packField.reference?.refOptions).toEqual(options);
+    expect(packField.reference?.refOptions).toEqual([
+      { packID: "1" },
+      { packID: "2" },
+    ]);
     expect(ctx.getFieldOptions(packField).selectOptions).toEqual(
       packField.reference?.refOptions,
     );
-    expect(searchAll).toHaveBeenCalledOnce();
-    expect(searchAll).toHaveBeenCalledWith(
-      expect.objectContaining({
-        pager: expect.objectContaining({ pageNo: 1, pageSize: 1000 }),
-      }),
-      {
-        repository: "MaterialPackages",
-        service: undefined,
-      },
-    );
+    expect(getPivotValues).toHaveBeenCalledOnce();
+    expect(getPivotValues).toHaveBeenCalledWith("packID", {
+      repository: "Materials",
+      service: "base",
+    });
+    expect(searchAll).not.toHaveBeenCalled();
+  });
+
+  it("有 refOptions 缓存时不请求接口", async () => {
+    const packField = new MetaUiField({
+      fieldName: "packID",
+      displayLabel: "包装规格",
+      fieldIdx: 0,
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+      selectOptions: "REF MaterialPackage(packID,packFullName)",
+    });
+    packField.reference!.refOptions.push({ packID: "1", packFullName: "纸箱" });
+    const metaui = new MetaUi({
+      objName: "Material",
+      displayLabel: "物料",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "a1",
+          groupLabel: "物料",
+          many: false,
+          fields: [packField],
+        },
+      ],
+    });
+    const getPivotValues = vi.fn();
+    const ctx = new UiViewContext({
+      model: { id: "m1" },
+      metaui,
+      view: "index",
+      app: { api: { getPivotValues, searchAll: vi.fn() } } as any,
+    });
+    await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual([
+      { packID: "1", packFullName: "纸箱" },
+    ]);
+    expect(getPivotValues).not.toHaveBeenCalled();
+  });
+
+  it("hasOne 不在 loadReferenceOptions 里 searchAll 1000", async () => {
+    const material = new MetaUiField({
+      fieldName: "matID",
+      displayLabel: "物料",
+      fieldIdx: 0,
+      dataType: SqlDataType.BIGINT,
+      nullable: true,
+      selectOptions: "HAS_ONE Material(matID,matName) AS material",
+    });
+    const metaui = new MetaUi({
+      objName: "Order",
+      displayLabel: "订单",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "a1",
+          groupLabel: "订单",
+          many: false,
+          fields: [material],
+        },
+      ],
+    });
+    const searchAll = vi.fn();
+    const getPivotValues = vi.fn();
+    const ctx = new UiViewContext({
+      model: { id: "o1" },
+      metaui,
+      view: "index",
+      app: { api: { searchAll, getPivotValues } } as any,
+    });
+    await expect(ctx.loadReferenceOptions(material)).resolves.toEqual([]);
+    expect(searchAll).not.toHaveBeenCalled();
+    expect(getPivotValues).not.toHaveBeenCalled();
   });
 
   it("根 context 校验子表每一行并暴露组错误", async () => {

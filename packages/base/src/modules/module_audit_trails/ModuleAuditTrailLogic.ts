@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/ModuleAuditTrail';
@@ -64,7 +63,7 @@ import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/Modu
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ModuleAuditTrailLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ModuleAuditTrailLogic({
+	export const ModuleAuditTrailLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ModuleAuditTrailLogic({
 		metaUiService: metaUiService,
 		repository: 'ModuleAuditTrails',
 		router,

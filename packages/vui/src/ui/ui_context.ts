@@ -6,7 +6,6 @@ import {
   MetaUiGroupLogic,
   MetaModel,
   defaultFieldSearchOptions,
-  defaultSearchParam,
   emptyPagedList,
   assignPagedList,
   isPagedList,
@@ -17,6 +16,7 @@ import {
   defineValidation,
   validateFieldResult,
   isPromise,
+  pluralize,
   type Entity,
   type EntityAction,
   type EntitySelectParam,
@@ -32,6 +32,7 @@ import {
   type SubGroupItemTransformParam,
   type Translatable,
   type TranslateFn,
+  type UiContext,
   type UiSubGroupView,
   type UiFieldValidation,
   type UiValidation,
@@ -53,13 +54,15 @@ import {
   quickFiltersToSQL,
   type UiSearchField,
 } from "./ui_filter";
-import type { UiBuilder } from "./ui_builder";
+import type { VueUiBuilderHost } from "./ui_builder";
 import type { UiAction } from "./ui_action";
 import { canDoFromExecutableExpression } from "./ui_action";
 import type { UiColorRole } from "./ui_material";
 import { schedulePersistListPack } from "./list_layout";
+import { attachContextValidate } from "./contexts/validate";
+import { attachContextReference } from "./contexts/reference";
+import { attachContextSubgroup } from "./contexts/subgroup";
 
-type UiContext = UiViewContext<any>;
 type ContextCache = Map<string, UiViewContext<any>>;
 type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
 type GroupLogicMap = Record<string, MetaUiGroupLogic<any, any>>;
@@ -98,7 +101,9 @@ const identityTranslate: TranslateFn = (message) =>
  * 一个实例只绑定一个实体（或一个子表集合）。主表、子表集合和每一条子表行
  * 都有各自的实例；字段搜索状态与校验状态不跨实例共享。
  */
-export class UiViewContext<E extends object = Record<string, any>> {
+export class UiViewContext<E extends object = Record<string, any>>
+  implements UiContext<E>
+{
   readonly model: E;
   metaui: MetaUi;
   readonly view: UiViewType;
@@ -178,7 +183,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
               typeof message === "string" ? message : message.message;
             const param =
               typeof message === "string" ? undefined : message.param;
-            return String((app.i18n.global.t as any)(value, param));
+            return String(((app as any).i18n?.global.t as any)(value, param));
           }
         : identityTranslate);
     this.loader = options.loader;
@@ -295,27 +300,25 @@ export class UiViewContext<E extends object = Record<string, any>> {
     return !this.parent;
   }
 
-  get uiBuilder(): UiBuilder | undefined {
-    return this.app?.ui;
+  get uiBuilder(): VueUiBuilderHost | undefined {
+    return this.app?.ui as VueUiBuilderHost | undefined;
   }
 
+  /**
+   * 宿主注入袋（`$app` / `$ui` / `$t` / `$router` / `$toast`）。
+   * 不在 core `UiContext` 上：Logic 回调不要依赖本袋。`$api` 只挂应用壳。
+   */
   get globalProps() {
-    const context = this as unknown as UiContext;
     return {
       $app: this.app,
-      $api: this.app?.api,
       $ui: this.app?.ui,
       $t: (message: string, param?: Record<string, any>) =>
         this.translate(message, param),
       $router: this.logic?.router,
       $toast: {
-        add: (props: Record<string, any>) => this.app?.ui.toast(context, props),
+        add: (props: Record<string, any>) => this.app?.ui.toast(this, props),
       },
     };
-  }
-
-  get apiClient() {
-    return this.app?.api;
   }
 
   /**
@@ -348,13 +351,17 @@ export class UiViewContext<E extends object = Record<string, any>> {
     }
     if (relativeId == null || relativeId === "") return null;
 
-    const api = this.apiClient;
-    if (!api) return null;
+    const logic = this.logic;
+    // Prefer Logic.serviceName / apiService; shell app.api only as fallback (not exposed on UiContext).
+    const service =
+      logic?.serviceName ??
+      logic?.apiService ??
+      this.app?.api?.config?.service;
+    if (!service) return null;
 
     const refDbName = field.reference.refDbName;
-    const { service } = api.config;
-    const { baseUrl } = api.http;
-    if (refDbName && refDbName !== service) {
+    const baseUrl = this.app?.api?.http?.baseUrl;
+    if (refDbName && refDbName !== service && baseUrl) {
       return (
         baseUrl.replace("api", "") +
         refDbName.toLocaleUpperCase() +
@@ -369,7 +376,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
     if (!repository) return null;
 
     // Prefer the page's apiService (mes|base), never host app.name.
-    const appService = (this.logic?.apiService ?? service).toUpperCase();
+    const appService = service.toUpperCase();
     const idSegment = encodeURIComponent(String(relativeId));
     const path = `/${appService}/${repository}/${idSegment}`;
     const router = this.globalProps.$router;
@@ -626,7 +633,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
       }
     }
     this.getFieldLogic(fld)?.onChangeFn?.(
-      this as unknown as UiContext,
+      this,
       this.model,
       value,
       oldValue,
@@ -846,186 +853,9 @@ export class UiViewContext<E extends object = Record<string, any>> {
     const fn = this.getGroupLogic(grp)?.itemDeletableFunc;
     if (!fn) return true;
     const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
-    return fn(item, master, this as unknown as UiContext) !== false;
+    return fn(item, master, this) !== false;
   }
 
-  async validate() {
-    let valid = true;
-    for (const group of this.metaui.groups) {
-      if ((await this.validateGroup(group)) > 0) valid = false;
-    }
-    const summary = (this.validationState.summary ??= { errorNum: 0 });
-    summary.errorNum = valid
-      ? 0
-      : this.countValidationErrors(this.validationState);
-    return valid;
-  }
-
-  validateField(
-    field: MetaUiField | string,
-    value = this.getFieldValue(field),
-  ) {
-    const fld = this.resolveField(field);
-    return this.validateSingleField(
-      fld,
-      value,
-      this.model as Record<string, any>,
-      this.validationState,
-    );
-  }
-
-  async validateGroup(group: MetaUiGroup | string) {
-    const grp = this.resolveGroup(group);
-    if (this.isGroupHidden(grp)) return 0;
-    if (!grp.many) {
-      return grp.fields.reduce(
-        (count, field) =>
-          count +
-          this.validateSingleField(
-            field,
-            this.getFieldValue(field),
-            this.model as Record<string, any>,
-            this.validationState,
-          ),
-        0,
-      );
-    }
-
-    const rows =
-      ((this.model as Record<string, any>)[grp.groupName] as Record<
-        string,
-        any
-      >[]) ?? [];
-    const groupState = (this.validationState[grp.groupName] ??=
-      {}) as UiValidation;
-    let errorCount = grp.requiredAny && rows.length === 0 ? 1 : 0;
-    rows.forEach((row, index) => {
-      const rowKey = String(row.rowNum ?? row.id ?? index);
-      const rowState = (groupState[rowKey] ??= {
-        rowNum: rowKey,
-        summary: { errorNum: 0 },
-      }) as UiValidation;
-      const rowContext = this.subGroupItemContext(grp, row as Entity);
-      let rowErrors = 0;
-      for (const field of grp.groupUi?.groups.flatMap((g) => g.fields) ?? []) {
-        rowErrors += rowContext.validateSingleField(
-          field,
-          rowContext.getFieldValue(field),
-          row,
-          rowState,
-        );
-      }
-      const summary = (rowState.summary ??= { errorNum: 0 });
-      summary.errorNum = rowErrors;
-      errorCount += rowErrors;
-    });
-    return errorCount;
-  }
-
-  resetValidation() {
-    for (const state of Object.values(this.validationState)) {
-      if (state && typeof state === "object" && "touched" in state) {
-        state.touched = false;
-        state.message = "";
-        if ("warning" in state) state.warning = "";
-      }
-    }
-  }
-
-  hasFieldError(field: MetaUiField | string) {
-    return this.getInvalidMessage(field) !== "";
-  }
-
-  isInvalid(field: MetaUiField | string) {
-    const state = this.validationState[this.resolveField(field).fieldName];
-    return !!(
-      state &&
-      typeof state === "object" &&
-      "touched" in state &&
-      state.touched &&
-      state.message
-    );
-  }
-
-  getInvalidMessage(field: MetaUiField | string) {
-    const state = this.validationState[this.resolveField(field).fieldName];
-    return state &&
-      typeof state === "object" &&
-      "message" in state &&
-      typeof state.message === "string"
-      ? state.message
-      : "";
-  }
-
-  getFieldError(field: MetaUiField | string) {
-    return this.getInvalidMessage(field);
-  }
-
-  setFieldError(field: MetaUiField | string, error: string) {
-    const name = this.resolveField(field).fieldName;
-    const state = (this.validationState[name] ??= {
-      touched: true,
-      message: "",
-    }) as UiFieldValidation;
-    state.touched = true;
-    state.message = error;
-  }
-
-  getSelectedGroupItems(group: MetaUiGroup | string) {
-    return this.subGroupContext(group).selectedItems;
-  }
-
-  hasGroupError(group: MetaUiGroup | string) {
-    const state = this.validationState[this.resolveGroup(group).groupName];
-    return this.countValidationErrors(state) > 0;
-  }
-
-  subGroupContext(group: MetaUiGroup | string) {
-    const grp = this.resolveGroup(group);
-    if (!grp.groupUi)
-      throw new Error(`Group "${grp.groupName}" has no groupUi.`);
-    const path = `${this.cachePath}/${grp.groupName}`;
-    const cached = this.cache.get(path);
-    if (cached) return cached;
-    const rows =
-      ((this.model as Record<string, any>)[grp.groupName] as
-        object[] | undefined) ?? [];
-    const fieldLogics: FieldLogicMap = {};
-    const groupLogic = this.getGroupLogic(grp);
-    for (const fieldLogic of groupLogic?.fields ?? []) {
-      fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
-    }
-    return this.createChild(rows, grp.groupUi, path, this.view, fieldLogics);
-  }
-
-  subGroupItemContext<G extends Entity>(
-    group: MetaUiGroup | string,
-    item: G,
-    groupMode: UiSubGroupView = this.editing ? "edit" : "details",
-    cacheKey = "id",
-  ) {
-    const grp = this.resolveGroup(group);
-    if (!grp.groupUi)
-      throw new Error(`Group "${grp.groupName}" has no groupUi.`);
-    const rowKey = this.rowCacheKey(item, cacheKey, grp.groupUi.primaryKey);
-    const path = `${this.cachePath}/${grp.groupName}/${rowKey}`;
-    const cached = this.cache.get(path);
-    if (cached) return cached as UiViewContext<G>;
-    const fieldLogics: FieldLogicMap = {};
-    const groupLogic = this.getGroupLogic(grp);
-    for (const fieldLogic of groupLogic?.fields ?? []) {
-      fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
-    }
-    return this.createChild(
-      item,
-      grp.groupUi,
-      path,
-      groupMode as UiViewOneType,
-      fieldLogics,
-      this.logic?.createRelativeLogic?.(grp.groupName, this.model as Entity) ??
-        this.logic,
-    ) as UiViewContext<G>;
-  }
 
   with<G extends object>(model: G, cacheKey = "id") {
     const rowKey = this.rowCacheKey(model, cacheKey, this.metaui.primaryKey);
@@ -1077,326 +907,16 @@ export class UiViewContext<E extends object = Record<string, any>> {
     return undefined;
   }
 
-  async searchRelative(
-    field: MetaUiField,
-    searchWord = "",
-    model = this.model,
-  ) {
-    const options = this.getFieldOptions(field);
-    if (options.searching) return options;
-    options.searching = true;
-    options.searchParam.searchWord = searchWord;
-    try {
-      if (field.reference?.isEnum) {
-        options.selectOptions = field.reference.refOptions ?? [];
-        return options;
-      }
-      const ref = field.reference;
-      if (!ref || !this.app || !ref.refRepository) return options;
-      const filter = (
-        this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
-      ).buildRefSearchFilter(model, this as any, searchWord);
-      options.searchParam.queryParams = {
-        ...(options.searchParam.queryParams ?? {}),
-        ...(filter ? { filter } : {}),
-      };
-      // 远程联想：调 API，不弹 select 对话框（对话框由 SearchBox 搜索按钮触发）
-      const page = await this.app.api.searchAll(options.searchParam, {
-        repository: ref.refRepository,
-        service: ref.service,
-      });
-      options.selectOptions = page.list ?? [];
-      options.pagination = page.pagination;
-      return options;
-    } finally {
-      options.searching = false;
-    }
+
+  private listRepository() {
+    const fromApi = (this.app as { api?: { config?: { repository?: string } } } | undefined)
+      ?.api?.config?.repository;
+    if (fromApi) return fromApi;
+    const fromLogic = (this.logic as { repository?: string } | undefined)?.repository;
+    if (fromLogic) return fromLogic;
+    return pluralize(this.metaui.objName);
   }
 
-  /** 弹窗选关联记录（SearchBox 放大镜）。 */
-  async pickRelative(field: MetaUiField | string) {
-    const fld = this.resolveField(field);
-    const ref = fld.reference;
-    if (!ref?.refRepository || !this.app) {
-      this.app?.ui.toast(this as unknown as UiContext, {
-        severity: "error",
-        summary: this.t("dialog.title.error"),
-        detail: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
-        group: "br",
-        life: 3000,
-      });
-      return false;
-    }
-    const options = this.getFieldOptions(fld);
-    try {
-      const picked = await this.select({
-        repository: ref.refRepository,
-        service: ref.service,
-        searchParam: options.searchParam,
-        selectionMode: "single",
-      });
-      if (!Array.isArray(picked) || !picked[0]) return false;
-      this.setFieldValue(fld, picked[0]);
-      options.currentSelectOption = picked[0];
-      if (
-        !options.selectOptions.some(
-          (item) => ref.valueOf(item) === ref.valueOf(picked[0]),
-        )
-      ) {
-        options.selectOptions.unshift(picked[0]);
-      }
-      return picked[0];
-    } catch (error) {
-      console.error(error);
-      this.app.ui.toast(this as unknown as UiContext, {
-        severity: "error",
-        summary: this.t("dialog.title.error"),
-        detail: error instanceof Error ? error.message : String(error),
-        group: "br",
-        life: 3000,
-      });
-      return false;
-    }
-  }
-
-  /**
-   * 为下拉类控件按需加载 REF / HAS_ONE 选项，并写回共享 refOptions。
-   * 与关联字段搜索使用相同的 repository、service、where 和字段逻辑参数。
-   */
-  async loadReferenceOptions(field: MetaUiField): Promise<any[]> {
-    const ref = field.reference;
-    if (!ref) return [];
-    if (ref.isEnum || ref.refOptions.length > 0) return ref.refOptions;
-    if ((!ref.isRef && !ref.hasOne) || !ref.refRepository || !this.app) {
-      return ref.refOptions;
-    }
-
-    const cacheKey = `${ref.service ?? ""}:${ref.refRepository}:${field.fieldName}`;
-    const pending = this.referenceOptionLoads.get(cacheKey);
-    if (pending) return pending;
-
-    const request = (async () => {
-      const searchParam = defaultSearchParam();
-      searchParam.pager.pageNo = 1;
-      searchParam.pager.pageSize = 1000;
-      const filter = (
-        this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
-      ).buildRefSearchFilter(this.model, this as any);
-      searchParam.queryParams = {
-        ...(filter ? { filter } : {}),
-      };
-      const page = await this.app!.api.searchAll(searchParam, {
-        repository: ref.refRepository,
-        service: ref.service,
-      });
-      ref.refOptions.splice(0, ref.refOptions.length, ...(page.list ?? []));
-      this.getFieldOptions(field).selectOptions = ref.refOptions;
-      return ref.refOptions;
-    })();
-
-    this.referenceOptionLoads.set(cacheKey, request);
-    try {
-      return await request;
-    } finally {
-      this.referenceOptionLoads.delete(cacheKey);
-    }
-  }
-
-  addSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
-    const grp = this.resolveGroup(group);
-    const items = ((this.model as Record<string, any>)[grp.groupName] ??= []);
-    // 已在集合中则跳过（newSubGroupItem 会先入集，调用方 .then 里再 add 也不会重复）
-    if (items.includes(item)) return;
-    items.push(item);
-    MetaModel.modify(this.model as Entity);
-    this.getGroupLogic(grp)?.onChangeFn?.(
-      this as unknown as UiContext,
-      this.model,
-      items,
-    );
-  }
-
-  addSubGroupItems<G extends Entity>(param: SubGroupItemTransformParam<G>) {
-    MetaModel.addSubGroupItems(this.resolveSubGroupTransform(param));
-    MetaModel.modify(this.model as Entity);
-    const group = this.resolveGroup(param.group);
-    this.getGroupLogic(group)?.onChangeFn?.(
-      this as unknown as UiContext,
-      this.model,
-      (this.model as Record<string, any>)[group.groupName],
-    );
-  }
-
-  createSubGroupItems<G extends Entity>(
-    param: SubGroupItemTransformParam<G>,
-  ): Promise<G | G[]> {
-    return Promise.resolve(
-      MetaModel.createSubGroupItems(this.resolveSubGroupTransform(param)),
-    );
-  }
-
-  removeSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
-    const grp = this.resolveGroup(group);
-    const logic = this.getGroupLogic(grp);
-    const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
-    const commit = () => {
-      MetaModel.deleteItem(items, item);
-      logic?.onChangeFn?.(this as unknown as UiContext, this.model, items);
-    };
-    const intercept = logic?.beforeItemRemoveFunc;
-    if (!intercept) {
-      commit();
-      return;
-    }
-    const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
-    const result = intercept(item, master, this as unknown as UiContext);
-    if (isPromise(result)) {
-      return result.then((ok) => {
-        if (ok !== false) commit();
-      });
-    }
-    if (result !== false) commit();
-  }
-
-  removeSubGroupItems<G extends Entity>(group: MetaUiGroup | string) {
-    const grp = this.resolveGroup(group);
-    const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
-    MetaModel.clearItems(items);
-    this.getGroupLogic(grp)?.onChangeFn?.(
-      this as unknown as UiContext,
-      this.model,
-      items,
-    );
-  }
-
-  async select<T>(param: EntitySelectParam<T>): Promise<boolean | T[]> {
-    if (!this.app) return false;
-    const pack = await this.app.meta.getPack({
-      repository: param.repository,
-      service: param.service,
-    });
-    const ctor =
-      param.ctor ??
-      ((source: object) =>
-        MetaModel.createEntity(pack.metaui, defineEntity, source) as T);
-    const { GenericUiLogic } = await import("./ui_logic");
-    const { UiBuildContext } = await import("./ui_build_context");
-    const logic = new GenericUiLogic(ctor as any, {
-      metaUiService: this.app.meta,
-      repository: param.repository,
-      meta: pack,
-      router: this.logic?.router,
-      apiService: param.service,
-    });
-    const selectionMode = param.selectionMode ?? "multiple";
-    const selectCtx = new UiBuildContext({
-      model: emptyPagedList<T>() as any,
-      metaui: pack.metaui,
-      view:
-        selectionMode === "single"
-          ? UiViewMany.SelectOne
-          : UiViewMany.SelectMany,
-      locale: this.locale,
-      translate: this.translateFn,
-      app: this.app,
-      logic,
-    });
-    if (param.searchParam) {
-      assignSearchParam(selectCtx.searchParam, param.searchParam);
-    }
-    if (param.selectableFn) {
-      selectCtx.setSelectableFn("select", param.selectableFn);
-    }
-    selectCtx.selectedItems = [];
-    await selectCtx.init();
-    this.root.showDialog = true;
-    // 对话框卸载时 Grid 可能 rowDeselected 清空 selectedItems，用本地副本承接结果
-    let picked: T[] = [];
-    try {
-      const accepted = await this.app.confirmDialog(
-        this.app.ui.buildListView(selectCtx, {
-          selectionMode,
-          showToolbar: true,
-          showSearchbar: true,
-          showBreadcrumb: false,
-          showActions: false,
-          showColumnWithAction: false,
-          onSelect: (selection: T[]) => {
-            selectCtx.selectedItems = selection ?? [];
-            // 忽略关闭时的清空，避免冲掉已选结果
-            if (selection?.length) picked = selection;
-          },
-          onItemDoubleClick:
-            selectionMode === "single"
-              ? (item: T) => {
-                  picked = item != null ? [item] : [];
-                  selectCtx.selectedItems = picked;
-                  void this.app?.ui.overlay.settleTopDialog?.(true);
-                }
-              : undefined,
-        }),
-        selectCtx as unknown as UiContext,
-        {
-          name: "select",
-          title: pack.metaui.displayLabel ?? param.repository,
-          width: "80vw",
-          height: "80vh",
-          maxHeight: "90vh",
-          cssClass: "mmda-select-dialog",
-        },
-      );
-      if (!accepted) return false;
-      if (!picked.length && selectCtx.selectedItems?.length) {
-        picked = selectCtx.selectedItems as T[];
-      }
-      return picked;
-    } finally {
-      this.root.showDialog = false;
-    }
-  }
-
-  async subGroupItem<G>(
-    group: MetaUiGroup | string,
-    item: G,
-    props: { groupMode?: UiSubGroupView } = {},
-  ): Promise<false | G> {
-    const ctx = this.subGroupItemContext(
-      group,
-      item as Entity,
-      props.groupMode,
-    );
-    if (!this.app) return item;
-    this.root.showDialog = ctx.isEditDialog = true;
-    try {
-      const accepted = await this.app.confirmDialog(
-        this.app.ui.buildView(ctx as unknown as UiContext),
-        ctx as unknown as UiContext,
-        { name: this.resolveGroup(group).groupName },
-      );
-      return accepted ? (ctx.model as G) : false;
-    } finally {
-      this.root.showDialog = ctx.isEditDialog = false;
-    }
-  }
-
-  /**
-   * 创建子表行并打开对话框。
-   * 先写入数据源，确定保留；取消则移除该行（与表格原位添加一样直接操作集合）。
-   */
-  async newSubGroupItem<G extends Entity>(
-    param: SubGroupItemTransformParam<G>,
-  ) {
-    const created = (await this.createSubGroupItems(param)) as G;
-    this.addSubGroupItem(param.group, created);
-    const accepted = await this.subGroupItem(param.group, created, {
-      groupMode: "create",
-    });
-    if (!accepted) {
-      this.removeSubGroupItem(param.group, created);
-      return false;
-    }
-    return accepted;
-  }
 
   private createChild<G extends object>(
     model: G,
@@ -1458,7 +978,7 @@ export class UiViewContext<E extends object = Record<string, any>> {
       field,
       value,
       model,
-      this as unknown as UiContext,
+      this,
     );
     const state = (validation[field.fieldName] ??= {
       touched: false,
@@ -1502,4 +1022,65 @@ export class UiViewContext<E extends object = Record<string, any>> {
     }
     return generated;
   }
+
+  declare validate: () => Promise<boolean>;
+  declare validateField: (
+    field: MetaUiField | string,
+    value?: any,
+  ) => number;
+  declare validateGroup: (group: MetaUiGroup | string) => Promise<number>;
+  declare resetValidation: () => void;
+  declare hasFieldError: (field: MetaUiField | string) => boolean;
+  declare isInvalid: (field: MetaUiField | string) => boolean;
+  declare getInvalidMessage: (field: MetaUiField | string) => string;
+  declare getFieldError: (field: MetaUiField | string) => string;
+  declare setFieldError: (field: MetaUiField | string, error: string) => void;
+  declare hasGroupError: (group: MetaUiGroup | string) => boolean;
+  declare getSelectedGroupItems: (group: MetaUiGroup | string) => any[];
+  declare subGroupContext: (group: MetaUiGroup | string) => UiViewContext<any>;
+  declare subGroupItemContext: <G extends Entity>(
+    group: MetaUiGroup | string,
+    item: G,
+    groupMode?: UiSubGroupView,
+    cacheKey?: string,
+  ) => UiViewContext<G>;
+  declare searchRelative: (
+    field: MetaUiField,
+    searchWord?: string,
+    model?: E,
+  ) => Promise<FieldSearchOptions>;
+  declare loadReferenceOptions: (field: MetaUiField) => Promise<any[]>;
+  declare select: {
+    (field: MetaUiField | string): Promise<any>
+    <T>(param: EntitySelectParam<T>): Promise<boolean | T[]>
+  };
+  declare addSubGroupItem: <G extends Entity>(
+    group: MetaUiGroup | string,
+    item: G,
+  ) => void;
+  declare addSubGroupItems: <G extends Entity>(
+    param: SubGroupItemTransformParam<G>,
+  ) => void;
+  declare createSubGroupItems: <G extends Entity>(
+    param: SubGroupItemTransformParam<G>,
+  ) => Promise<G | G[]>;
+  declare removeSubGroupItem: <G extends Entity>(
+    group: MetaUiGroup | string,
+    item: G,
+  ) => void | Promise<void>;
+  declare removeSubGroupItems: <G extends Entity>(
+    group: MetaUiGroup | string,
+  ) => void;
+  declare subGroupItem: <G>(
+    group: MetaUiGroup | string,
+    item: G,
+    props?: { groupMode?: UiSubGroupView },
+  ) => Promise<false | G>;
+  declare newSubGroupItem: <G extends Entity>(
+    param: SubGroupItemTransformParam<G>,
+  ) => Promise<false | G>;
 }
+
+attachContextValidate(UiViewContext);
+attachContextReference(UiViewContext);
+attachContextSubgroup(UiViewContext);

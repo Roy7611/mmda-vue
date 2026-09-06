@@ -5,12 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Equipment, defineEquipment } from '@/models/Equipment';
 import { type EquipmentStation, defineEquipmentStation } from '@/models/EquipmentStation';
-import { h } from 'vue';
 import { User, defineUser } from '@mmda/base/src/models/User';
 import { Station, defineStation } from '@/models/Station';
 import { BomUsage } from '@/enums/BomUsage';
@@ -281,7 +279,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							ctx.clearFieldValue('lineID')
 						}
 					})
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						if (model.lineID) {
 							return {
@@ -313,7 +311,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							model.stationID = null;
 						}
 					})
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							status: 'USED'
@@ -330,7 +328,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						})
 						.join(" AND ");
 				}),
-				this.field('checklistID').refFilter((model, ctx) => {
+				this.field('checklistID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED' };
 				})(ctx as any, model as any, undefined as any);
@@ -403,7 +401,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						ctx.setFieldValue('planToMaintain', this.calculateNextMaintainDate(ctx, currentOption));
 					}
 				}),
-				// this.field('bomID').refFilter((model, ctx) => {
+				// this.field('bomID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 				// 	return { status: '>-1' };
 				// })(ctx as any, model as any, undefined as any);
@@ -418,7 +416,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						})
 						.join(" AND ");
 				}),
-				this.field('deviceID').refFilter((model, ctx) => {
+				this.field('deviceID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { runningState: 'WORKING' };
 				})(ctx as any, model as any, undefined as any);
@@ -433,7 +431,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						})
 						.join(" AND ");
 				}),
-				this.field('bomID').refFilter((model, ctx) => {
+				this.field('bomID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'APPROVED', bomUsage: `IN ${BomUsage.MAINTENANCE}` };
 				})(ctx as any, model as any, undefined as any);
@@ -493,69 +491,30 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 			fields.push(
 				this.field('stationID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (fldVal.stationID) {
-										window.open(`/MES/Stations/${fldVal.stationID}`, '_blank');
-									}
-								},
-							},
-							fldVal?.stationName ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal?.stationName ?? '',
+						href: fldVal?.stationID ? `/MES/Stations/${fldVal.stationID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				}),
 				this.field('lineID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (fldVal.lineID) {
-										window.open(`/MES/ProductionLines/${fldVal.lineID}`, '_blank');
-									}
-								},
-							},
-							fldVal?.lineName ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal?.lineName ?? '',
+						href: fldVal?.lineID ? `/MES/ProductionLines/${fldVal.lineID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				}),
 				this.field('maintenancePlanID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-
-									if (fldVal.planID) {
-										window.open(`/MES/MaintenancePlans/${fldVal.planID}`, '_blank');
-									}
-								},
-							},
-							fldVal?.planName ?? ''
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal?.planName ?? '',
+						href: fldVal?.planID ? `/MES/MaintenancePlans/${fldVal.planID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 			)
 		}
@@ -603,7 +562,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
  * @param module 模块
  * @returns
  */
-export const EquipmentLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const EquipmentLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new EquipmentLogic({
 		metaUiService: metaUiService,
 		repository: 'Equipments',

@@ -1,7 +1,7 @@
 /*
  * @Author: mmda codebot
  * @Date: 2026-06-30
- * @Description: 指定器具弹窗 — 支持多物流单批量指定器具
+ * @Description: 指定器具弹窗 �?支持多物流单批量指定器具
  */
 import { computed, defineComponent, h, onMounted, reactive, ref, watch, type PropType } from 'vue';
 import type { UiBuildContext } from '@mmda/vui';
@@ -31,7 +31,7 @@ interface ToolItem {
 
 interface ToolRow extends ToolItem {
 	id: string;
-	/** 行选中态，随勾选变化以驱动表格行刷新*/
+	/** 行选中态，随勾选变化以驱动表格行刷�?/
 	__checked?: boolean;
 }
 
@@ -106,7 +106,8 @@ export const ToolsPicking = defineComponent({
 	},
 	setup: (props) => {
 		const { t } = useI18n();
-		const { $ui: ui, $api: apiBox, $toast: toast } = props.ctx.globalProps;
+		const { $ui: ui, $toast: toast } = props.ctx.globalProps;
+		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const { uiBuilder } = props.ctx;
 
 		const transStates = reactive<Record<string, TransState>>({});
@@ -163,7 +164,7 @@ export const ToolsPicking = defineComponent({
 			return '';
 		};
 
-		// 器具列表仅展示 getAllOptTool 接口返回
+		// 器具列表仅展�?getAllOptTool 接口返回
 		const filteredTools = computed<ToolRow[]>(() => {
 			if (!selectedItemID.value) return [];
 			return apiTools.value.map(toToolRow);
@@ -224,7 +225,7 @@ export const ToolsPicking = defineComponent({
 				if (transStates[transID] || pendingTransIDs.has(transID)) continue;
 				pendingTransIDs.add(transID);
 				try {
-					const detail = await apiBox.getOne(transID, {
+					const detail = await apiClient.getOne(transID, {
 						repository: 'MaterialTranses',
 						service: 'mes',
 					}) as MaterialTrans;
@@ -241,7 +242,7 @@ export const ToolsPicking = defineComponent({
 			if (!currentTransID.value && selectedTransIDs.value.length) {
 				currentTransID.value = selectedTransIDs.value[0];
 			}
-			if (failed.length) showToast('error', t('toolPicking.loadTransFailed', { it: failed.join('、') }), t('dialog.title.error'));
+			if (failed.length) showToast('error', t('toolPicking.loadTransFailed', { it: failed.join('�?) }), t('dialog.title.error'));
 		};
 
 		const removeTrans = (transID: string) => {
@@ -264,13 +265,12 @@ export const ToolsPicking = defineComponent({
 			if (currentState.value) currentState.value.selectedItemID = itemID;
 		};
 
-		// 按物料行查询可选器具（含该行已指定器具）
-		const loadToolsForItem = async (materialID: string, itemID: string, transID: string) => {
+		// 按物料行查询可选器具（含该行已指定器具�?		const loadToolsForItem = async (materialID: string, itemID: string, transID: string) => {
 			const requestID = ++toolsRequestID;
 			toolsLoading.value = true;
 			apiTools.value = [];
 			try {
-				const res = await apiBox.getAll({
+				const res = await apiClient.getAll({
 					repository: 'Tools',
 					path: 'getAllOptTool',
 					service: 'mes',
@@ -343,15 +343,14 @@ export const ToolsPicking = defineComponent({
 			}
 
 			submitLoading.value = true;
-			// 批量提交：一次请求更新多个物流单的器具指定
-			const transes = changedStates.map(state => ({
+			// 批量提交：一次请求更新多个物流单的器具指�?			const transes = changedStates.map(state => ({
 				transID: state.trans.transID,
 				items: Object.entries(state.selectedToolsMap).flatMap(([itemID, tools]) =>
 					tools.map(tool => ({ itemID, toolID: tool.toolID })),
 				),
 			}));
 			try {
-				await apiBox.http.postJson('/mes/Tools/bindKitCheckTools', { transes });
+				await apiClient.http.postJson('/mes/Tools/bindKitCheckTools', { transes });
 				changedStates.forEach(syncOriginalSelection);
 				showToast('success', t('toolPicking.updated', { count: changedStates.length }), t('dialog.title.success'));
 				return true;
@@ -374,57 +373,19 @@ export const ToolsPicking = defineComponent({
 		};
 
 		const openTransSearch = async () => {
-			const { metaui } = await props.ctx.logic.loadMetadata('MaterialTranses', 'mes');
-			const columns = await uiBuilder.buildColumns(metaui, props.ctx, {
-				cacheKey: `transID/SearchRelative/${metaui.primaryKey}`,
-			});
 			const pendingTranses = ref<MaterialTrans[]>([]);
-			return new Promise(resolve => {
-				uiBuilder.confirmDialog(
-					(uiBuilder as any).buildSearchForRelativeContent(columns, {
-						dataKey: 'transID',
-						selectionMode: 'multiple',
-						onSearch: async (params: any) => {
-							const result = await apiBox.getAll({
-								repository: 'MaterialTranses',
-								service: 'mes',
-								queryParams: {
-									searchWord: params?.searchParams?.searchWord ?? '',
-									pageSize: params?.pager?.pageSize ?? 20,
-									pageNo: params?.pager?.pageNo ?? 1,
-									isKitCheckToolLend: true,
-								},
-							});
-							return { list: result.list, pager: result.pagination };
-						},
-						onSelect: (selection: unknown, row: unknown) => {
-							pendingTranses.value = normalizeTransSelection(selection, row);
-						},
-						onSelectAll: (selection: unknown) => {
-							pendingTranses.value = normalizeTransSelection(selection, null);
-						},
-					}),
-					props.ctx,
-					{
-						name: 'materialTransSearchForRelative',
-						title: t('toolPicking.selectTranses'),
-						style: { width: '68vw' },
-						accept: async () => {
-							if (!pendingTranses.value.length) {
-								showToast('error', t('toolPicking.selectAtLeastOne'), t('dialog.title.error'));
-								return false;
-							}
-							await addTranses(pendingTranses.value);
-							resolve(pendingTranses.value);
-							return true;
-						},
-						reject: async () => {
-							resolve(null);
-							return true;
-						},
-					},
-				);
+			const picked = await props.ctx.select<MaterialTrans>({
+				repository: 'MaterialTranses',
+				service: 'mes',
+				selectionMode: 'multiple',
+				searchParam: {
+					queryParams: { isKitCheckToolLend: true },
+				},
 			});
+			if (!Array.isArray(picked) || !picked.length) return null;
+			pendingTranses.value = picked;
+			await addTranses(pendingTranses.value);
+			return pendingTranses.value;
 		};
 
 		const searchTransDirectly = async () => {
@@ -435,7 +396,7 @@ export const ToolsPicking = defineComponent({
 			}
 			transSearchLoading.value = true;
 			try {
-				const result = await apiBox.getAll({
+				const result = await apiClient.getAll({
 					repository: 'MaterialTranses',
 					service: 'mes',
 					queryParams: { searchWord, pageSize: 20, pageNo: 1, isKitCheckToolLend: true },
@@ -637,3 +598,7 @@ export const ToolsPicking = defineComponent({
 });
 
 export default ToolsPicking;
+
+export function toolsPickingNode(props?: Record<string, any>) {
+	return h(ToolsPicking, props as any);
+}

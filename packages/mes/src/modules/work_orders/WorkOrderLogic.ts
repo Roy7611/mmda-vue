@@ -5,14 +5,12 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, MetaModel } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkOrder, defineWorkOrder } from '@/models/WorkOrder';
 import { EmployeeStatus } from '@mmda/base/src/enums/EmployeeStatus';
 import { type WorkOrderMember, defineWorkOrderMember } from '@/models/WorkOrderMember';
 import { type Worker, defineWorker } from '@/models/Worker';
-import { h } from 'vue';
 
 //时间对比
 const compareTime = (time1: any, time2: any) => {
@@ -203,7 +201,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
  * @param module 模块
  * @returns 
  */
-export const WorkOrderLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkOrderLogic({
+export const WorkOrderLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkOrderLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkOrders',
 	router,

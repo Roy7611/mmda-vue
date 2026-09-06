@@ -6,22 +6,21 @@ import { resolve } from 'node:path';
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
 import { MetaUiPack } from '@mmda/core';
 import type { UiLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
-import { reactive, h, toRaw, ref, RendererElement, RendererNode, VNode, getCurrentInstance } from 'vue';
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
 import { applyScheduleGanttTaskDates } from '@/components/GanntView/ganttScheduleDateHelpers';
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { getTaskData, getLinkRes, getPlanRes, getBreaks, getProSub } from '@/components/GanntView/ganntUpdate';
 import { TaskRelationship, TaskRelationshipEnum } from '@mmda/base/src/enums/TaskRelationship';
 import { TaskConstraintTypeEnum } from '@mmda/base/src/enums/TaskConstraintType';
-import GanttPlanning, { resetGanttPlanningShell, type GanttPlanningShell } from '@/components/GanntView/GanttPlanning';
+import { ganttPlanningNode, resetGanttPlanningShell, type GanttPlanningShell } from '@/components/GanntView/GanttPlanning';
 import type { UiBuildContext } from '@mmda/vui';
 
-const notice = reactive({
+const notice = {
 	data: {
 		ownerID: '',
 		ownerName: '',
@@ -61,15 +60,15 @@ interface MetaData {
 /**
  * 生产看板交互逻辑
  */
-const updateRes = reactive({
+const updateRes = {
 	data: [],
 });
-const linkRes = reactive({
+const linkRes = {
 	data: false,
 });
 
 //日计划提交对象
-const dailyPlanning = reactive<GanttPlanningShell>({
+const dailyPlanning: GanttPlanningShell = {
 	submitHandler: undefined,
 	data: {
 		planNo: null,
@@ -79,15 +78,15 @@ const dailyPlanning = reactive<GanttPlanningShell>({
 		expectedFinish: null,
 		rangeDate: null,
 	},
-});
+};
 
 //甘特图日计划调用接口返回
 const submitPlan = async (planItem: any, content: any) => {
-	const { $api, $router, $toast, $t: t } = content.globalProps;
+	const { $router, $toast, $t: t } = content.globalProps;
 	planItem.action = null;
 	try {
 		let res: any = null;
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		res = await apiClient.doAction(
 			{
@@ -125,13 +124,13 @@ const submitPlan = async (planItem: any, content: any) => {
 	}
 };
 //权限
-// const Qx = reactive({
+// const Qx = {
 // 	jurisdiction: <any>{},
 // });
 
 //根据ID获取 task
 const getSub = async (appContext: any, task: any) => {
-	const { $api, $router, $toast } = appContext.globalProps;
+	const { $router, $toast } = appContext.globalProps;
 	const updateObj = {
 		subList: <any>[],
 		subLinkList: <any>[],
@@ -147,7 +146,7 @@ const getSub = async (appContext: any, task: any) => {
 
 	try {
 		let res: any = null;
-		const apiClient = $api as ApiClient;
+		const apiClient = this.apiClient;
 		res = await apiClient.getAll({
 			action: 'getAllSchedule',
 			repository: 'ProductionScheduleTasks',
@@ -195,7 +194,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	//甘特图模版
 	skin = 'material'; //传入dark为黑暗模式
 	scheduleroleaction: any = {}; //权限
-	roleaction = getCurrentInstance().appContext.config.globalProperties.$app.context.modules;
+	roleaction: any[] = [];
 	constructor(init: UiLogicInit) {
 		super(defineProductionSchedule, init);
 	}
@@ -211,10 +210,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		// 		{
 		// 		searchLabel: '状态',
 		// 		searchParam: 'search',
-		// 		renderer: (ctx: UiBuildContext<any> & any, csf) => {
-		// 			const { $ui: ui, $t: t, $api: apiBox } = ctx.globalProps;
-		// 			const searchValue = ref();
-		// 			const tableData = reactive({
+		// 		renderer: (ctx: UiContext & any, csf) => {
+		// 			const { $ui: ui, $t: t, $toast: toast } = ctx.globalProps;
+		// 			const searchValue = { value:  };
+		// 			const tableData = {
 		// 				list: [],
 		// 				column: [],
 		// 			});
@@ -253,8 +252,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	// async getProSchedule(appContext: any, query: any) {
 	// 	console.log('query', query);
 
-	// 	const { $api, $router, $toast } = appContext.app.config.globalProperties;
-	// 	const task = reactive({
+	// 	const gp = appContext.app?.config?.globalProperties ?? appContext.globalProps;
+	// 	const { $router, $toast } = gp;
+	// 	const apiClient = appContext.logic?.apiClient ?? gp.$app.api;
+	// 	const task = {
 	// 		taskData: {
 	// 			data: <any>[],
 	// 			link: <any>[],
@@ -268,7 +269,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 
 	// 	try {
 	// 		let res: any = null;
-	// 		const apiClient = $api as ApiClient;
+	// 		const apiClient = appContext.logic?.apiClient;
 
 	// 		res = await apiClient.getAll({
 	// 			action: 'getAllSchedule',
@@ -321,10 +322,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
 				//调用接口
-				const { $t: t, $api: apiBox, $toast: toast } = appContext.globalProps;
+				const { $t: t, $toast: toast } = appContext.globalProps;
 				//调用接口
 				try {
-					const res: boolean = await apiBox.doAction(
+					const res: boolean = await this.apiClient.doAction(
 						{
 							path: taskItem.taskID ?? '',
 							action: 'breakDown',
@@ -365,13 +366,13 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	}
 	//甘特图 拖拉拽
 	async changeTasks(tasksItem: any, appContext: any) {
-		const { $api, $router, $toast } = appContext.app.config.globalProperties;
+		const { $router, $toast } = appContext.app.config.globalProperties;
 		if (tasksItem.action) {
 			tasksItem.action = null;
 		}
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			res = await apiClient.doAction(
 				{
 					action: 'saveAndGetAll',
@@ -425,10 +426,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const { $api, $router, $toast } = appContext.app.config.globalProperties;
+		const { $router, $toast } = appContext.app.config.globalProperties;
 		try {
 			let res: any = null;
-			const apiClient = $api as ApiClient;
+			const apiClient = this.apiClient;
 			res = await apiClient.doAction(
 				{
 					action: 'saveLink',
@@ -456,8 +457,8 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		resetGanttPlanningShell(dailyPlanning, planDate);
 		dailyPlanning.data.date = planDate;
 		dailyPlanning.submitHandler = async () => submitPlan(dailyPlanning.data, appContext);
-		appContext.uiBuilder.confirmDialog(
-			h(GanttPlanning, {
+		appContext.uiBuilder.dialog(
+			ganttPlanningNode({
 				key: `gantt-planning-${planDate}-${Date.now()}`,
 				planningShell: dailyPlanning,
 				dataModel: dailyPlanning.data,
@@ -496,7 +497,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
  * @param module 模块
  * @returns
  */
-export const ProductionScheduleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionScheduleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionScheduleLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionSchedule',

@@ -155,13 +155,15 @@ const { start, end } = toDateRange(luxonRange) // JS Date，给日期控件
 
 | `DateRangeKind` | 含义 |
 |---|---|
-| `TODAY` / `YESTERDAY` | 当天 / 昨天 0 点～结束 |
-| `THIS_WEEK` / `LAST_WEEK` | luxon 的周（默认周一起点看 locale） |
-| `LAST_7_DAYS` / `LAST_30_DAYS` | **含今天**共 7 / 30 个日历日 |
-| `THIS_MONTH` / `LAST_MONTH` | 自然月 |
+| `TODAY` / `YESTERDAY` / `TOMORROW` | 今天 / 昨天 / 明天 |
+| `THIS_WEEK` / `LAST_WEEK` / `NEXT_WEEK` | ISO 周，**周一起点** |
+| `LAST_7_DAYS` / `LAST_30_DAYS` / `LAST_90_DAYS` | **含今天**共 7 / 30 / 90 个日历日 |
+| `THIS_MONTH` / `LAST_MONTH` / `NEXT_MONTH` | 自然月 |
 | `THIS_QUARTER` / `LAST_QUARTER` | 季 |
 | `THIS_YEAR` / `LAST_YEAR` | 年 |
 | `EARLIER` | 筛选项哨兵，**没有**对应函数 |
+
+`dateTimeRange` 给芯片预览，区间是闭的 `startOf`/`endOf`。列表 POST 的 `dateKind` **不要**在客户端展开；服务端用半开 `[start, next)`。`expandDateFilters` 只处理绝对 set token。单文件：[date_range.md](./utils/date_range.md)；列表语义：[date_filter.md](./models/date_filter.md)。
 
 ```ts
 dateTimeRange[DateRangeKind.EARLIER] // 类型上就不存在

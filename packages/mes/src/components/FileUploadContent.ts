@@ -3,9 +3,10 @@ import { MetaModel, encodeUriAndFix, formatFileSize, isFunction, isNullOrUndefin
 import { defineComponent, h, getCurrentInstance, reactive, onMounted, ref } from 'vue'
 import { getFileInfo, PropData } from "@mmda/vui";
 export const FileUploadContent = (context: any, props: PropData) => {
-    const { $ui: ui, $api: apiBox, $toast: toast, $dialog, $t: t, $router } = context
+    const { $ui: ui, $toast: toast, $dialog, $t: t, $router } = context.globalProps ?? context
+    const apiClient = context.logic?.apiClient ?? context.app?.api ?? context.$app?.api
     const showPreView = props.showPreView ?? true
-    // 上传控件的文件列表
+    // 上传控件的文件列�?
     const viewFiles = (props.uploadedFiles ?? []).map((f: any) => {
         const { fileName, fileIcon, fileExt } = getFileInfo(f.fileName ?? f.name)
         return {
@@ -18,7 +19,7 @@ export const FileUploadContent = (context: any, props: PropData) => {
             uploader: f.uploader
         }
     })
-    // 可预览文件列表
+    // 坯预览文件列�?
     const previewList: string[] = ["xlsx", "xls", "docx", "doc", "pptx", "ppt", "pdf", "bmp", "jpg", "jpeg", "png", "gif"]
     return ui.factory.dataView(viewFiles, {
         dataKey: 'name',
@@ -95,7 +96,7 @@ export const FileUploadContent = (context: any, props: PropData) => {
                                 tooltipPosition: 'bottom',
                                 ariaLabel: 'Preview',
                                 onAction: () => {
-                                    const service = apiBox.config.service.toUpperCase()
+                                    const service = apiClient.config.service.toUpperCase()
                                     const extLower = fileExt.toLowerCase()
                                     if (['xlsx', 'xls'].includes(extLower)) {
                                         const routeUrl = $router.resolve({

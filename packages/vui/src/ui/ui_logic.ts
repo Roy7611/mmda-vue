@@ -3,31 +3,19 @@ import type { I18n } from "vue-i18n";
 import { translateMessage } from "../i18n/i18n";
 import type { WatchCallback, WatchOptions } from "vue";
 import {
-  ApiClient,
-  ApiError,
-  isApiErrorPayload,
-  toApiError,
-  isObject,
-  isNullObject,
+  EntityLogic,
   MetaModel,
   NO_PAGINATION,
-  DEFAULT_PAGE_SIZE,
-  defaultEntitySimplifyOptions,
-  defineEntityArray,
   MetaUiFieldLogic,
   MetaUiGroupLogic,
   getSqlOperator,
   type Entity,
   type EntityAction,
   type EntityCtor,
+  type EntityLogicInit,
   type EntitySearchParam,
-  type EntitySimplifyOptions,
   type EntityUrlParam,
   type MetaUiGroup,
-  type MetaUiPack,
-  type MetaUiService,
-  type Module,
-  type PagedList,
   type Predicate,
   type SelectableFn,
   type UiContext,
@@ -41,6 +29,8 @@ import type { UiViewContext } from "./ui_context";
 import type { UiListViewPropsType } from "./ui_list";
 import type { UiTreeListViewPropsType } from "./ui_treelist";
 import type { UiGanttViewProps } from "./ui_gantt";
+
+export { EntityLogic, type EntityLogicInit };
 
 export type UiViewOption =
   | UiListViewPropsType<any>
@@ -103,33 +93,14 @@ export type UiLogicManyAfterFn<E> = (
   ...args: any[]
 ) => void;
 
-export interface UiLogicInit {
-  /** 元数据 / MetaUI 服务 */
-  metaUiService: MetaUiService;
-  repository: string;
+export interface UiLogicInit extends EntityLogicInit {
   router?: Router | any;
-  meta?: MetaUiPack;
-  module?: Module;
-  isChild?: boolean;
   i18n?: I18n;
-  customPage?: boolean;
-  /** 后端功能模块名，如 `mes` | `base`；路由与 API 都用它 */
-  apiService?: string;
 }
 
-export abstract class UiLogic<E extends Entity> {
-  meta: MetaUiPack;
-  module?: Module;
+export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
   listViewProps?: UniListViewProps;
-  createParam: any;
-  readonly metaUiService: MetaUiService;
-  readonly apiClient: ApiClient;
-  readonly repository: string;
   readonly router?: Router | any;
-  readonly isChild: boolean;
-  readonly customPage: boolean;
-  /** 后端功能模块名，如 `mes` | `base` */
-  readonly apiService?: string;
   viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
   viewOptions?: UiViewOptions;
 
@@ -207,34 +178,10 @@ export abstract class UiLogic<E extends Entity> {
     return { ...fields, ...custom };
   }
 
-  constructor(
-    public readonly createEntity: EntityCtor<E>,
-    init: UiLogicInit,
-  ) {
-    this.metaUiService = init.metaUiService;
-    this.repository = init.repository;
+  constructor(createEntity: EntityCtor<E>, init: UiLogicInit) {
+    super(createEntity, init);
     this.router = init.router;
-    this.meta = init.meta ?? ({ metaui: undefined } as any);
-    this.module = init.module;
-    this.isChild = init.isChild ?? false;
-    this.customPage = init.customPage ?? false;
-    this.apiService = init.apiService;
-    this.apiClient = this.metaUiService.getApiClient(this.repository);
     this.relativeLogics = {};
-  }
-
-  getModelTitle(model: E) {
-    const metaui = this.meta.metaui;
-    if (!metaui) return model.id;
-    return `${metaui.displayLabel}【${metaui.uniqueKey ? model[metaui.uniqueKey] : model.id}】`;
-  }
-
-  createDefault(proto?: object): E {
-    return MetaModel.createEntity<E>(
-      this.meta.metaui,
-      this.createEntity,
-      proto,
-    );
   }
 
   addRelativeLogic<R extends Entity>(
@@ -339,10 +286,6 @@ export abstract class UiLogic<E extends Entity> {
     return new MetaUiGroupLogic<E, G>(group);
   }
 
-  getSimplifyOptions(): EntitySimplifyOptions {
-    return defaultEntitySimplifyOptions;
-  }
-
   beforeSearch(): UiSearchForm {
     return (this.searchForm ??= {
       searchParam: rx(createDefaultSearchParam()),
@@ -420,225 +363,16 @@ export abstract class UiLogic<E extends Entity> {
     this.selectManyActions = [];
   }
 
-  async applyTo(context: UiViewContext, view: UiViewType = "edit") {
+  async applyTo(context: UiViewContext<any>, view: UiViewType = "edit") {
     const logicView = await this.ensureViewLogic(view);
     const fn = this.getLogicFn(logicView);
     if (!fn) return;
     const { fields, groups, customActions } = fn.call(this);
     context.bindLogics(fields, groups, customActions);
   }
-
-  error(e: any): never {
-    console.error(e);
-    throw e;
-  }
-
-  success(message: any) {
-    console.info(message);
-  }
-
-  async getAll(
-    param: EntitySearchParam = { pager: { pageSize: DEFAULT_PAGE_SIZE } },
-  ): Promise<PagedList<E> | undefined> {
-    try {
-      const data = await this.apiClient.searchAll(param, {
-        queryParams: { moduleCode: this.module?.moduleCode ?? "" },
-        service: this.apiService,
-      });
-      data.list = defineEntityArray<E>(
-        this.createEntity,
-        data.list as object[],
-      );
-      return data as PagedList<E>;
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async create(param: any = {}, entityUrlParam?: EntityUrlParam) {
-    try {
-      this.createParam = param;
-      const data =
-        isObject(param.entity) && !isNullObject(param.entity)
-          ? param.entity
-          : await this.apiClient.createOne(param, {
-              service: this.apiService,
-              ...entityUrlParam,
-            });
-      return this.createEntity(data);
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  importCreate(param: any = {}) {
-    return this.create(param);
-  }
-
-  async crossSystemAccess(param: EntityUrlParam & { body?: any }) {
-    try {
-      const data = await this.apiClient.doAction(param, param.body);
-      return this.createEntity(data);
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async load(id: any) {
-    try {
-      const data = await this.apiClient.getOne(id, {
-        service: this.apiService,
-      });
-      return this.createEntity(data);
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async delete(id: any) {
-    try {
-      return await this.apiClient.deleteOne(id, { service: this.apiService });
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async deleteAll(idList: string[]) {
-    try {
-      return await this.apiClient.deleteAll(idList, {
-        service: this.apiService,
-      });
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async save(model: E) {
-    try {
-      const savable = MetaModel.savable(
-        this.meta.metaui,
-        model,
-        this.getSimplifyOptions(),
-      );
-      return await this.apiClient.saveOne(savable, {
-        service: this.apiService,
-      });
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  uploadFile(file: File, options: EntityUrlParam = {}) {
-    return this.apiClient.uploadFile(
-      file,
-      {
-        repository: options.repository ?? this.repository,
-        service: options.service ?? this.apiService,
-        ...options,
-      },
-      "file",
-    );
-  }
-
-  uploadFiles(files: File[], options: EntityUrlParam = {}) {
-    return this.apiClient.uploadFiles(
-      files,
-      {
-        repository: options.repository ?? this.repository,
-        service: options.service ?? this.apiService,
-        ...options,
-      },
-      "files",
-    );
-  }
-
-  importFile(file: File, options: EntityUrlParam = {}) {
-    return this.apiClient.importExcel(file, "file", {
-      repository: options.repository ?? this.repository,
-      service: options.service ?? this.apiService,
-      ...options,
-    });
-  }
-
-  importFiles(files: File[], options: EntityUrlParam = {}) {
-    return this.apiClient.importAll(files, "files", {
-      repository: options.repository ?? this.repository,
-      service: options.service ?? this.apiService,
-      ...options,
-    });
-  }
-
-  exportFile(id: string, options: EntityUrlParam = {}, body?: any) {
-    return this.apiClient.exportOne(
-      id,
-      {
-        repository: options.repository ?? this.repository,
-        service: options.service ?? this.apiService,
-        ...options,
-      },
-      body,
-    );
-  }
-
-  exportFiles(options: EntityUrlParam = {}, body?: any) {
-    return this.apiClient.exportAll(
-      {
-        repository: options.repository ?? this.repository,
-        service: options.service ?? this.apiService,
-        ...options,
-      },
-      body,
-    );
-  }
-
-  async doAction(model: E, a: EntityAction) {
-    try {
-      const params =
-        a.param?.type === "execute" ? a.param.value || {} : a.param;
-      const result = await this.apiClient.doAction(
-        {
-          path: model.id,
-          action: a.name,
-          service: this.apiService ?? this.apiClient.config.service,
-        },
-        params,
-      );
-      if (result instanceof ApiError || isApiErrorPayload(result)) {
-        throw result instanceof ApiError ? result : toApiError(result);
-      }
-      return result;
-    } catch (e) {
-      this.error(e);
-    }
-  }
-
-  async initMetadata(reload = false, params?: EntityUrlParam) {
-    if (this.customPage) return;
-    this.meta = await this.metaUiService.getPack(
-      Object.assign(
-        {},
-        { repository: this.repository, service: this.apiService },
-        params,
-      ),
-      reload,
-    );
-    if (
-      this.meta?.metaui?.objName &&
-      this.module &&
-      this.meta.metaui.objName !== this.module.objName &&
-      !params?.redirection
-    ) {
-      this.module = this.metaUiService.findModule(this.meta.metaui.objName);
-    }
-    return this.meta;
-  }
-
-  loadMetadata(repository: string, service?: string, reload = false) {
-    return this.metaUiService.getPack({ repository, service }, reload);
-  }
 }
 
-/** 无定制字段逻辑时的仓库 Logic，供通用 CRUD 页与跨服务 select 使用 */
+/** 无定制字段逻辑时的默认实现，供通用 CRUD 页与跨服务 select 使用 */
 export class GenericUiLogic<E extends Entity = Entity> extends UiLogic<E> {}
 
 export class UiGroupLogic<

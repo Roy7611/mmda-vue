@@ -17,7 +17,7 @@ import { createAgNaiveUiFactory } from '../agnaive_factory'
 import { agNaiveLayout } from '../agnaive_layout'
 import { agFilterModelToEntity, entityFilterToAgModel } from '../ag_filter'
 import { buildColumnDefs } from '../ag_columns'
-import { MmdaAgGrid } from '../components/MmdaAgGrid'
+import { AgGrid } from '../components/AgGrid'
 import {
   buildAgGridTheme,
   cssColorToHex,
@@ -83,16 +83,16 @@ describe('vui-agnaive skin', () => {
     expect(fields.HasOneText).toBe(fields.externalLink)
   })
 
-  it('constructs the builder against AbstractUiBuilder', () => {
+  it('constructs the builder against VueUiBuilder', () => {
     const builder = new AgNaiveUiBuilder()
     expect(builder.factory.layout.fieldMessage).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
-  it('wraps table in MmdaAgGrid', () => {
+  it('wraps table in AgGrid', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.table([], productMeta(), { selectionMode: 'multiple' })
-    expect(vnode.type).toBe(MmdaAgGrid)
+    expect(vnode.type).toBe(AgGrid)
     expect(vnode.props?.metaui.objName).toBe('Product')
   })
 
@@ -131,6 +131,129 @@ describe('vui-agnaive skin', () => {
     expect(ag.price.type).toBe('inRange')
   })
 
+  it('maps AG AND/OR conditions to join and back', () => {
+    const metaui = productMeta()
+    const entity = agFilterModelToEntity(
+      {
+        name: {
+          filterType: 'text',
+          operator: 'AND',
+          conditions: [
+            { filterType: 'text', type: 'contains', filter: 'a' },
+            { filterType: 'text', type: 'contains', filter: 'b' },
+          ],
+        },
+      },
+      metaui,
+    )
+    expect(entity.name).toEqual({
+      filterType: 'join',
+      operator: 'AND',
+      conditions: [
+        {
+          filterType: 'text',
+          operator: 'CONTAINS',
+          value: 'a',
+          valueTo: undefined,
+        },
+        {
+          filterType: 'text',
+          operator: 'CONTAINS',
+          value: 'b',
+          valueTo: undefined,
+        },
+      ],
+    })
+    const ag = entityFilterToAgModel(entity, metaui)
+    expect(ag.name.operator).toBe('AND')
+    expect(ag.name.conditions).toHaveLength(2)
+    expect(ag.name.conditions[1].filter).toBe('b')
+  })
+
+  it('maps AG multi filterModels to multi and back', () => {
+    const metaui = productMeta()
+    const entity = agFilterModelToEntity(
+      {
+        name: {
+          filterType: 'multi',
+          filterModels: [
+            { filterType: 'text', type: 'contains', filter: '仓' },
+            { filterType: 'set', values: ['OPEN', 'CLOSED'] },
+          ],
+        },
+      },
+      metaui,
+    )
+    expect(entity.name?.filterType).toBe('multi')
+    expect((entity.name as any).filterModels).toHaveLength(2)
+    const ag = entityFilterToAgModel(entity, metaui)
+    expect(ag.name.filterType).toBe('multi')
+    expect(ag.name.filterModels).toHaveLength(2)
+    expect(ag.name.filterModels[1].values).toEqual(['OPEN', 'CLOSED'])
+  })
+
+  it('maps dateKind and does not turn THIS_MONTH into a calendar month token', () => {
+    const created = field('createdAt', '创建', SqlDataType.TIMESTAMP)
+    const metaui = new MetaUi({
+      objName: 'Order',
+      displayLabel: '订单',
+      primaryKey: 'id',
+      groups: [
+        {
+          groupName: 'base',
+          groupLabel: 'base',
+          many: false,
+          fields: [created],
+        },
+      ],
+    })
+    const entity = agFilterModelToEntity(
+      {
+        createdAt: { filterType: 'date', type: 'THIS_MONTH' },
+      },
+      metaui,
+    )
+    expect(entity.createdAt).toEqual({
+      filterType: 'date',
+      operator: 'BETWEEN',
+      dateKind: 'THIS_MONTH',
+    })
+    const ag = entityFilterToAgModel(entity, metaui)
+    expect(ag.createdAt.filterType).toBe('multi')
+    expect(ag.createdAt.filterModels[0].type).toBe('THIS_MONTH')
+  })
+
+  it('uses treeList Set Filter for date columns', () => {
+    const created = field('createdAt', '创建', SqlDataType.TIMESTAMP)
+    const metaui = new MetaUi({
+      objName: 'Order',
+      displayLabel: '订单',
+      primaryKey: 'id',
+      groups: [
+        {
+          groupName: 'base',
+          groupLabel: 'base',
+          many: false,
+          fields: [created],
+        },
+      ],
+    })
+    const cols = buildColumnDefs(metaui, { filterDisplay: 'menu' })
+    expect(cols[0]?.filter).toBe('agMultiColumnFilter')
+    const setFilter = cols[0]?.filterParams?.filters?.find(
+      (item: { filter?: string }) => item.filter === 'agSetColumnFilter',
+    )
+    expect(setFilter?.filterParams?.treeList).toBe(true)
+    const dateFilter = cols[0]?.filterParams?.filters?.[0]
+    expect(dateFilter?.filter).toBe('agDateColumnFilter')
+    expect(dateFilter?.filterParams?.filterOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ displayKey: 'THIS_MONTH' }),
+        expect.objectContaining({ displayKey: 'TOMORROW' }),
+      ]),
+    )
+  })
+
   it('uses Set Filter for enum options from refOptions via valueOf', () => {
     const status = new MetaUiField({
       fieldName: 'status',
@@ -165,6 +288,33 @@ describe('vui-agnaive skin', () => {
     })
     expect(received).toEqual(['OPEN', 'CLOSED'])
     expect(cols[0]?.filterParams?.valueFormatter({ value: 'OPEN' })).toBe('打开')
+  })
+
+  it('explicit filterTypes SET on string overrides text/multi infer', () => {
+    const name = new MetaUiField({
+      fieldName: 'name',
+      displayLabel: '名称',
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+      fieldIdx: 0,
+      listed: true,
+      filterTypes: 16, // SET
+    })
+    const metaui = new MetaUi({
+      objName: 'Item',
+      displayLabel: '物料',
+      primaryKey: 'id',
+      groups: [
+        {
+          groupName: 'base',
+          groupLabel: 'base',
+          many: false,
+          fields: [name],
+        },
+      ],
+    })
+    const cols = buildColumnDefs(metaui, { filterDisplay: 'menu' })
+    expect(cols[0]?.filter).toBe('agSetColumnFilter')
   })
 
   it('uses Set Filter for ref/hasOne from refOptions, not page distinct', () => {
@@ -211,7 +361,7 @@ describe('vui-agnaive skin', () => {
     expect(cols[0]?.filterParams?.valueFormatter({ value: 'W1' })).toBe('主仓')
   })
 
-  it('loads empty refOptions through loadFilterOptions', async () => {
+  it('uses searchable hasOne filter instead of dumping Set on mount', async () => {
     const material = new MetaUiField({
       fieldName: 'matID',
       displayLabel: '物料',
@@ -238,19 +388,14 @@ describe('vui-agnaive skin', () => {
       field.reference!.refOptions.push({ matID: 'M1', matName: '螺丝' })
       return field.reference!.refOptions
     })
-    const cols = buildColumnDefs(metaui, { loadFilterOptions })
-    let received: unknown[] = []
-    await (cols[0]?.filterParams?.values as Function)({
-      success: (values: unknown[]) => {
-        received = values
-      },
-    })
-    expect(loadFilterOptions).toHaveBeenCalledTimes(1)
-    expect(received).toEqual(['M1'])
-    expect(cols[0]?.filterParams?.valueFormatter({ value: 'M1' })).toBe('螺丝')
+    const searchRelative = vi.fn(async () => [{ matID: 'M1', matName: '螺丝' }])
+    const cols = buildColumnDefs(metaui, { loadFilterOptions, searchRelative })
+    expect(cols[0]?.filter).toBe('AgHasOneFilter')
+    expect(cols[0]?.filterParams?.searchRelative).toBe(searchRelative)
+    expect(loadFilterOptions).not.toHaveBeenCalled()
   })
 
-  it('passes selection and filter callbacks through factory.table to MmdaAgGrid', () => {
+  it('passes selection and filter callbacks through factory.table to AgGrid', () => {
     const factory = createAgNaiveUiFactory()
     const onFilterModelChange = vi.fn()
     const onSelectionChange = vi.fn()
@@ -260,7 +405,7 @@ describe('vui-agnaive skin', () => {
       onFilterModelChange,
       onSelectionChange,
     })
-    expect(vnode.type).toBe(MmdaAgGrid)
+    expect(vnode.type).toBe(AgGrid)
     expect(vnode.props?.selectionMode).toBe('multiple')
     expect(vnode.props?.onFilterModelChange).toBe(onFilterModelChange)
     expect(vnode.props?.onSelectionChange).toBe(onSelectionChange)
@@ -271,7 +416,7 @@ describe('vui-agnaive skin', () => {
       'src/agnaive_factory.ts',
       'src/ag_columns.ts',
       'src/ag_filter.ts',
-      'src/components/MmdaAgGrid.ts',
+      'src/components/AgGrid.ts',
     ].map(file => readFileSync(resolve(process.cwd(), file), 'utf8'))
     const joined = sources.join('\n')
     expect(joined).not.toContain('NDataTable')

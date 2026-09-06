@@ -17,13 +17,13 @@ export const AppUserFooter = defineComponent({
     const icon = (name: string) => builder.factory.resolveIcon(name);
 
     const setDark = (dark: boolean) => {
-      app.context.isDark = dark;
+      app.state.isDark = dark;
       builder.setColorScheme(dark);
       writeMmdaPref("isDark", JSON.stringify(dark));
     };
 
     onMounted(() => {
-      setDark(Boolean(app.context.isDark));
+      setDark(Boolean(app.state.isDark));
     });
 
     return () =>
@@ -38,12 +38,12 @@ export const AppUserFooter = defineComponent({
         ),
         h("div", { class: "mmda-user-footer__actions" }, [
           builder.factory.button({
-            icon: icon(app.context.isDark ? "fas fa-sun" : "fas fa-moon"),
+            icon: icon(app.state.isDark ? "fas fa-sun" : "fas fa-moon"),
             class: "mmda-user-footer__button",
             buttonType: "text",
             shape: "circle",
-            tooltip: app.context.isDark ? "切换到明亮模式" : "切换到暗黑模式",
-            onClick: () => setDark(!app.context.isDark),
+            tooltip: app.state.isDark ? "切换到明亮模式" : "切换到暗黑模式",
+            onClick: () => setDark(!app.state.isDark),
           }),
           h(ColorPalettePicker),
         ]),

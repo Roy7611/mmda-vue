@@ -5,12 +5,14 @@
 ## 核心结构
 
 - `MetaUi`：对象界面的根元数据。
+- `MetaUiBuilder`：本地列表列声明，见 [metaui_builder.md](./metaui/metaui_builder.md)。
 - `MetaUiGroup`：主表或子表分组。
 - `MetaUiField`：字段声明、数据类型、展示与引用配置。
+- `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFieldFilterType`；`0` = 按 dataType/reference 推断）。见 [metaui_field.md](./metaui/metaui_field.md)。
 - `SqlDataType`：后端字段类型及默认值映射。
 - `MetaUiFilter`：快捷过滤声明（仍可编译进 `queryParams.filter`）。
 - 列表字段条件：`EntityFilterOperator` + `filterModel`（见 [entity_search.md](./models/entity_search.md)）。
-- SQL 片段：`SqlOperator`（where / `refFilter`）。
+- SQL 片段：`SqlOperator`（where / `refWhere`）。
 - 排序只在 `pager.sorts`。本地上次查询是 pack 上的 `lastQuery: EntityQuery`，不单存 sorts。
 - `EntityAction`：渲染为按钮的行为声明。
 - `MetaUiService`：加载、缓存和组装元数据包（含可选 `lastQuery`）。

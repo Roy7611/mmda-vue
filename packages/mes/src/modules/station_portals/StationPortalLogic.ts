@@ -5,21 +5,20 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router, useRouter } from 'vue-router';
 import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiBuildContext, UI_BUILDER_KEY, UiGroupLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
-import { inject, defineComponent, getCurrentInstance, h, reactive, ref, toRefs, Suspense } from 'vue';
 import { isObject } from 'lodash';
-import { ProductionEventEditor } from '@/modules/production_events/ProductionEventEditor';
+import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';
 import { ProductionItemEditor } from '@/modules/production_items/ProductionItemEditor';
+import { productionLotReportNode, productionPlateReportNode, stationPortalFormWrap } from './station_portal_nodes';
 import { ProductionEventLogic, ProductionEventLogicCtor } from '@/modules/production_events/ProductionEventLogic';
 
 
-const tableDataplan = ref([]);
-const tablecolumnsplan = ref([]);
-const tableDataKEYplan = ref('id');
-const searchParamplan = reactive({
+const tableDataplan = { value: [] };
+const tablecolumnsplan = { value: [] };
+const tableDataKEYplan = { value: 'id' };
+const searchParamplan = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -27,10 +26,10 @@ const searchParamplan = reactive({
 	searchWord: '',
 	searchParams: {},
 });
-const tableDatatask = ref([]);
-const tablecolumnstask = ref([]);
-const tableDataKEYtask = ref('id');
-const searchParamtask = reactive({
+const tableDatatask = { value: [] };
+const tablecolumnstask = { value: [] };
+const tableDataKEYtask = { value: 'id' };
+const searchParamtask = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -61,16 +60,8 @@ const reporteventparams = {
 	refItemKeys: <any>null,
 	refName: 'ProductionTask',
 };
-const qualityStatusOptions = (t: UiContext['t']) => [
-	{ label: t('stationlabel.qualityPending'), value: 'NI', id: 0 },
-	{ label: t('stationlabel.qualityGood'), value: 'OK', id: 1 },
-	{ label: t('stationlabel.qualityDefective'), value: 'DG', id: 2 },
-	{ label: t('stationlabel.qualityConcession'), value: 'AUC', id: 3 },
-	{ label: t('stationlabel.qualityBad'), value: 'NG', id: 4 },
-	{ label: t('stationlabel.qualityScrap'), value: 'SCRAP', id: 8 },
-];
-const minDateexpiryDate = ref(new Date());
-const maxDateprodDate = ref(new Date());
+const minDateexpiryDate = { value: new Date() };
+const maxDateprodDate = { value: new Date() };
 /**
  * 智能工位交互逻辑
  * @author mmda codebot
@@ -115,13 +106,8 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		let eventCtx: (UiBuildContext<any> & {
 			prepareFn(action: EntityAction): Promise<any>;
 		}) | null = null;
-		return uiBuilder.confirmDialog(
-			h(
-				Suspense,
-				{},
-				{
-					default: () =>
-						h(ProductionEventEditor, {
+		return uiBuilder.dialog(
+			productionEventEditorNode({
 							id: '_',
 							view: UI_CREATE,
 							editing: true,
@@ -129,14 +115,12 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 							params: reporteventparams,
 							showToolbar: false,
 							attachmentsCollapsed: true,
-							onMountedSuccess: (ctx: UiBuildContext<any>) => {
+							onMountedSuccess: (ctx: UiContext) => {
 								eventCtx = ctx as UiBuildContext<any> & {
 									prepareFn(action: EntityAction): Promise<any>;
 								};
 							},
-						}),
-				}
-			),
+			}),
 			context,
 			{
 				title: context.t('stationlabel.productionEvent'),
@@ -248,7 +232,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 			]);
 		// 	},
 		// });
-		// context.uiBuilder.confirmDialog(h(eventdialog, {}), context, {
+		// context.uiBuilder.dialog(h(eventdialog, {}), context, {
 		// 	title: '事件报告',
 		// 	class: '',
 		// 	height: '15rem',
@@ -273,7 +257,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// reporteventparams.refID = context.globalProps.$route.params.id
 		reporteventparams.refID = taskID;
 		if (context.model.eventtitle && context.model.eventtype && context.model.eventcause) {
-			await context.globalProps.$api
+			await this.apiClient
 				.doAction(
 					{
 						repository: 'ProductionEvents',
@@ -287,7 +271,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					res.eventTitle = context.model.eventtitle;
 					res.eventType = context.model.eventtype;
 					res.eventCauses = context.model.eventcause;
-					await context.globalProps.$api
+					await this.apiClient
 						.doAction(
 							{
 								repository: 'ProductionEvents',
@@ -332,117 +316,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 */
 	repotwork(context: UiContext<any>, reportparams: any, reportparamspath: any) {
 		if (reportparamspath.objName == 'ProductionLot') {
-			const ProductionLotdialog = defineComponent({
-				name: 'ProductionLotdialog',
-				setup() {
-					return () =>
-						h('div', { class: 'flex_wrap' }, [
-							context.uiBuilder.factory.formItem(
-								{
-									label: context.t('stationlabel.batchesquantity'),
-									// placeholder: context.t('action.input'),
-									// modelValue: context.model.quantity,
-									// required: true,
-									// isEdit: true,
-									// onUpdate: (val: string) => (context.model.quantity = Number(val)),
-								},
-								{
-									default: () =>
-										context.uiBuilder.factory.numberInput({
-											min: 0,
-											maxFractionDigits: 3,
-											modelValue: context.model.quantity,
-											onInput: (e: any) => (context.model.quantity = e.value),
-										}),
-							}
-							),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.Batchnumber'),
-								placeholder: context.t('action.input'),
-								modelValue: context.model.lotNo,
-								onUpdate: (val: string) => (context.model.lotNo = val),
-							}),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.goodsQuality'),
-								// placeholder: context.t('action.input'),
-								// modelValue: context.model.goodQuantity,
-								// onUpdate: (val: string) => (context.model.goodQuantity = Number(val)),
-							}, {
-								default: () =>
-									context.uiBuilder.factory.numberInput({
-										min: 0,
-										maxFractionDigits: 3,
-										modelValue: context.model.goodQuantity,
-										placeholder: context.t('action.input'),
-										// onInput: (e: any) => (context.model.goodQuantity = e.value),
-										onUpdate: (val: number) => (context.model.goodQuantity = val),
-									}),
-							}),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.concessionQuantity'),
-								// placeholder: context.t('action.input'),
-								// modelValue: context.model.aucQuantity,
-								// onUpdate: (val: string) => (context.model.aucQuantity = Number(val)),
-							}, {
-								default: () =>
-									context.uiBuilder.factory.numberInput({
-										min: 0,
-										maxFractionDigits: 3,
-										modelValue: context.model.aucQuantity,
-										placeholder: context.t('action.input'),
-										onUpdate: (val: number) => (context.model.aucQuantity = val),
-									}),
-							}),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.Quantityofdefectivegoods'),
-								// placeholder: context.t('action.input'),
-								// modelValue: context.model.defectiveQuantity,
-								// onUpdate: (val: string) => (context.model.defectiveQuantity = Number(val)),
-							}, {
-								default: () =>
-									context.uiBuilder.factory.numberInput({
-										min: 0,
-										maxFractionDigits: 3,
-										modelValue: context.model.defectiveQuantity,
-										placeholder: context.t('action.input'),
-										onUpdate: (val: number) => (context.model.defectiveQuantity = val),
-									}),
-							}),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.Badquantity'),
-								// placeholder: context.t('action.input'),
-								// modelValue: context.model.ngQuantity,
-								// onUpdate: (val: string) => (context.model.ngQuantity = Number(val)),
-							}, {
-								default: () =>
-									context.uiBuilder.factory.numberInput({
-										min: 0,
-										maxFractionDigits: 3,
-										modelValue: context.model.ngQuantity,
-										placeholder: context.t('action.input'),
-										onUpdate: (val: number) => (context.model.ngQuantity = val),
-									}),
-							}),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.Quantityofwasteproducts'),
-								// placeholder: context.t('action.input'),
-								// modelValue: context.model.scrapQuantity,
-								// onUpdate: (val: string) => (context.model.scrapQuantity = Number(val)),
-							}, {
-								default: () =>
-									context.uiBuilder.factory.numberInput({
-										min: 0,
-										maxFractionDigits: 3,
-										modelValue: context.model.scrapQuantity,
-										placeholder: context.t('action.input'),
-										onUpdate: (val: number) => (context.model.scrapQuantity = val),
-									}),
-							}),
-						]);
-				},
-			});
-			// 弹窗
-			context.uiBuilder.confirmDialog(h(ProductionLotdialog, {}), context, {
+			context.uiBuilder.dialog(productionLotReportNode(context), context, {
 				title: context.t('stationlabel.batchReport'),
 				height: '18rem',
 				accept: async () => {
@@ -490,7 +364,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 				]);
 		// 		},
 		// 	});
-		// 	context.uiBuilder.confirmDialog(h(ProductionItemdialog, {}), context, {
+		// 	context.uiBuilder.dialog(h(ProductionItemdialog, {}), context, {
 		// 		title: '报工',
 		// 		accept: async () => {
 		// 			// console.log(context.model)
@@ -507,71 +381,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		} else if (reportparamspath.objName == 'ProductionPlate') {
 			context.model.quantity = null;
 			context.model.packQty = null;
-			const ProductionPlatedialog = defineComponent({
-				name: 'ProductionPlatedialog',
-				setup() {
-					return () =>
-						h('div', { class: 'flex flex-col' }, [
-							context.uiBuilder.factory.formItem(
-								{
-									label: context.t('stationlabel.outputQuantity'),
-									required: true,
-									isEdit: true,
-								},
-								{
-									default: () =>
-										context.uiBuilder.factory.numberInput({
-											modelValue: context.model.quantity,
-											min: 0,
-											placeholder: context.t('action.input'),
-											onUpdate: (val: number) => { context.model.quantity = val; const perPack = Number(context.model.packQuantity) || 0; if (perPack > 0) context.model.packQty = Math.ceil((Number(val) || 0) / perPack); },
-										}),
-							}
-							),
-							context.uiBuilder.factory.formItem(
-								{
-									label: context.t('stationlabel.packagingQuantity'),
-								},
-								{
-									default: () =>
-										context.uiBuilder.factory.numberInput({
-											modelValue: context.model.packQty,
-											min: 0,
-											placeholder: context.t('action.input'),
-											onUpdate: (val: number) => { context.model.packQty = val; const perPack = Number(context.model.packQuantity) || 0; context.model.quantity = (Number(val) || 0) * perPack; },
-										}),
-							}
-							),
-							context.uiBuilder.factory.formItem({
-								label: context.t('stationlabel.Batchnumber'),
-								placeholder: context.t('action.input'),
-								modelValue: context.model.lotNo,
-								onUpdate: (val: string) => (context.model.lotNo = val),
-							}),
-							context.uiBuilder.factory.formItem(
-								{
-									label: context.t('stationlabel.Qualityinspectionresults'),
-									modelValue: context.model.qcResult,
-								},
-								{
-									default: () =>
-										context.uiBuilder.factory.select({
-											modelValue: context.model.qcResult,
-											options: qualityStatusOptions(context.t),
-											dataKey: 'id',
-											placeholder: context.t('action.select'),
-											optionLabel: 'label',
-											optionValue: 'value',
-											onUpdate: (value: string) => {
-												context.model.qcResult = value;
-											},
-										}),
-							}
-							),
-						]);
-				},
-			});
-			context.uiBuilder.confirmDialog(h(ProductionPlatedialog, {}), context, {
+			context.uiBuilder.dialog(productionPlateReportNode(context), context, {
 				title: context.t('stationlabel.lotReport'),
 				height: '15rem',
 				accept: async () => {
@@ -609,7 +419,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			return false;
 		}
 		try {
-			const res: any = await context.globalProps.$api.doAction(
+			const res: any = await this.apiClient.doAction(
 				{ action: 'create', service: 'mes', repository: 'ProductionLots' },
 				reportparams
 			);
@@ -621,7 +431,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			res.scrapQuantity = context.model.scrapQuantity;
 			if (context.model.lotNo) res.lotNo = context.model.lotNo;
 
-			await context.globalProps.$api.doAction(
+			await this.apiClient.doAction(
 				{ action: 'save', service: 'mes', repository: 'ProductionLots' },
 				res
 			);
@@ -646,7 +456,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			return false;
 		}
 		try {
-			const res: any = await context.globalProps.$api.doAction(
+			const res: any = await this.apiClient.doAction(
 				{ action: 'create', service: 'mes', repository: 'ProductionPlates' },
 				reportparams
 			);
@@ -654,7 +464,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			res.packQty = context.model.packQty;
 			res.lotNo = context.model.lotNo;
 			res.qcResult = context.model.qcResult;
-			await context.globalProps.$api.doAction(
+			await this.apiClient.doAction(
 				{ action: 'save', service: 'mes', repository: 'ProductionPlates' },
 				res
 			);
@@ -680,7 +490,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		];
 		if (data.data.tracingMode == 'LOT') {
 			//批次追踪，投料量取已领取量
-			await context.globalProps.$api
+			await this.apiClient
 				.doAction(
 					{
 						action: 'create',
@@ -697,8 +507,8 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				.catch((error: any) => {
 					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
 				});
-			context.uiBuilder.confirmDialog(
-				h('div', { class: 'flex_wrap' }, [
+			context.uiBuilder.dialog(
+				stationPortalFormWrap([
 					context.uiBuilder.factory.formItem({
 						label: context.t('view.materialName'),
 						disabled: true,
@@ -777,7 +587,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			);
 		} else if (data.data.tracingMode == 'SN') {
 			//序列号追踪，扫码多个序列号，逗号隔开，计算序列号数量
-			await context.globalProps.$api
+			await this.apiClient
 				.doAction(
 					{
 						action: 'create',
@@ -794,8 +604,8 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				.catch((error: any) => {
 					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
 				});
-			context.uiBuilder.confirmDialog(
-				h('div', { class: 'flex_wrap' }, [
+			context.uiBuilder.dialog(
+				stationPortalFormWrap([
 					context.uiBuilder.factory.formItem({
 						label: context.t('view.materialName'),
 						disabled: true,
@@ -881,7 +691,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			);
 		} else {
 			//无追踪方式
-			await context.globalProps.$api
+			await this.apiClient
 				.doAction(
 					{
 						action: 'create',
@@ -898,8 +708,8 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				.catch((error: any) => {
 					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
 				});
-			context.uiBuilder.confirmDialog(
-				h('div', { class: 'flex_wrap' }, [
+			context.uiBuilder.dialog(
+				stationPortalFormWrap([
 					context.uiBuilder.factory.formItem({
 						label: context.t('view.materialName'),
 						disabled: true,
@@ -992,7 +802,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	async confirmMaterialtrack(context: UiContext<any>) {
 		if (!context.model.createMaterialtrack.list.fedQuantity)
 			return context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: context.t('stationlabel.inputfedQuantity'), life: 3000 });
-		await context.globalProps.$api
+		await this.apiClient
 			.doAction(
 				{
 					action: 'save',
@@ -1018,7 +828,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 * 生产单件报工
 	 */
 	// async submitProductionItem(context: UiContext, reportparams: any) {
-	// 	await context.globalProps.$api
+	// 	await this.apiClient
 	// 		.doAction(
 	// 			{
 	// 				action: 'create',
@@ -1029,7 +839,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 		)
 	// 		.then(async (res: any) => {
 	// 			res.ngTimes = context.model.ngTimes;
-	// 			await context.globalProps.$api
+	// 			await this.apiClient
 	// 				.doAction(
 	// 					{
 	// 						action: 'save',
@@ -1081,7 +891,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 
 	// 	let groupDiskCtx: UiContext | null = null; // 明确类型，避免null报错
 
-	// 	return uiBuilder.confirmDialog(
+	// 	return uiBuilder.dialog(
 	// 		h(
 	// 			Suspense,
 	// 			{},
@@ -1249,9 +1059,9 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 物料转器具
 	// async function convertMaterialToTool(context: UiContext, materials: any[]) {
 	//   const { globalProps } = context;
-	//   const { $api, $toast, $logger } = globalProps;
+	//   const { $toast, $logger } = globalProps;
 	//   try {
-	//     const res = await $api.post('/api/tool/materialToTool', {
+	//     const res = await this.apiClient.post('/api/tool/materialToTool', {
 	//       materials: materials.map(m => ({
 	//         materialId: m.id,
 	//         toolName: m.name,
@@ -1280,7 +1090,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			fields.push(
 				this.field('lineID')
 					
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return { status: 'USED' };
 					})(ctx as any, model as any, undefined as any);
@@ -1295,7 +1105,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						})
 						.join(" AND ");
 				}),
-				// this.field('opCode').refFilter((model, ctx) => {
+				// this.field('opCode').refWhere((model, ctx) => {
 					const __p = ((context, model) => {
 				// 	const lineItem = context.searchFields.filter((item: any) => item.field.fieldName === 'lineID')
 				// 	return { lineID: lineItem[0].searchValue ?? '' }
@@ -1340,7 +1150,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 * @param value
 	 */
 	async getAllplan(context: UiContext<any>, value?: any) {
-		await context.globalProps.$api
+		await this.apiClient
 			.getAll({
 				repository: 'ProductionPlans',
 				service: 'mes',
@@ -1366,7 +1176,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 * @param value
 	 */
 	async getAlltask(context: UiContext<any>, value?: any) {
-		await context.globalProps.$api
+		await this.apiClient
 			.getAll({
 				repository: 'ProductionTasks',
 				service: 'mes',
@@ -1406,7 +1216,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					searchLabel: 'stationlabel.productionPlan',
 					searchParam: 'planID',
 					valueFn: (v: any) => v.planID,
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
+					renderer: (ctx: UiContext & any, csf) => {
 						if (!tableDataplan.value.length && isObject(csf.searchVal.value)) {
 							tableDataplan.value.push(csf.searchVal.value)
 					}
@@ -1417,62 +1227,24 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								dataKey: 'planID',
 								optionLabel: 'planNo',
 								options: tableDataplan.value,
-								toSearch: async (event: Event) => {
-									let data = null as any;
-									const { metaui } = await ctx.logic!.loadMetadata('ProductionPlans', 'mes', true);
-									tableDataKEYplan.value = metaui.primaryKey;
-									tablecolumnsplan.value = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-										isSearch: true,
-										cacheKey: `planID/SearchRelative/${metaui.primaryKey}`,
-									});
-									// await this.getAllplan(ctx, '');
-									ctx.uiBuilder.confirmDialog(
-										ctx.uiBuilder.buildSearchForRelativeContent(
-											tablecolumnsplan.value,
-											{
-												dataKey: tableDataKEYplan.value,
-												onSearch: async (params: any) => {
-													const { searchParams, reload, pager } = params;
-													await this.getAllplan(ctx, searchParams.searchWord);
-													return { list: tableDataplan.value, pager: searchParamplan.pager };
-												},
-												onPage: ({ pageNo, pageSize }: any) => {
-													searchParamplan.pager.pageNo = pageNo;
-													searchParamplan.pager.pageSize = pageSize;
-												},
-												onSelect: (selection: any, row: any) => {
-													// console.log(selection, row, '选择')
-													data = row;
-												},
-												onRowDblclick: (row: any, index: number) => {
-													csf.searchVal.value = csf.searchWord.value = row
-													ctx.app.localDb.put(
-														`search/${ctx.logic.repository}/planID`,
-														JSON.parse(JSON.stringify(row))
-													)
-													triggerEscKey()
-												},
-										}
-										),
-										ctx,
-										{
-											title: ctx.t('stationlabel.selectProductionPlan'),
-											style: { width: '80vw', maxHeight: '95%' },
-											accept: async () => {
-												if (!data?.planID) {
-													ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 });
-													return false;
-											}
-												csf.searchWord.value = csf.searchVal.value = data;
-												ctx.model.planID = data.planID ?? ctx.model.planID;
-												ctx.model.planNo = data.planNo ?? ctx.model.planNo;
-												this.searchParam.planID = ctx.model.planID;
-												ctx.app.localDb.put(`search/${ctx.logic.repository}/planID`, JSON.parse(JSON.stringify(data)));
-												// ctx.addQueryParam('planID', this.searchParams.planID?.['planID']);
-												return true;
-											},
+								toSearch: async () => {
+									const picked = await ctx.select({
+										repository: 'ProductionPlans',
+										service: 'mes',
+										selectionMode: 'single',
+									})
+									if (!Array.isArray(picked) || !picked.length) return false
+									const data = picked[0]
+									if (!data?.planID) {
+										ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
+										return false
 									}
-									);
+									csf.searchWord.value = csf.searchVal.value = data
+									ctx.model.planID = data.planID ?? ctx.model.planID
+									ctx.model.planNo = data.planNo ?? ctx.model.planNo
+									this.searchParam.planID = ctx.model.planID
+									ctx.app.localDb.put(`search/${ctx.logic.repository}/planID`, JSON.parse(JSON.stringify(data)))
+									return true
 								},
 								onChange: (value: any) => {
 									csf.searchWord.value = csf.searchVal.value = value
@@ -1506,7 +1278,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					searchLabel: 'stationlabel.productionTask',
 					searchParam: 'taskID',
 					valueFn: (v: any) => v.taskID,
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
+					renderer: (ctx: UiContext & any, csf) => {
 						if (!tableDatatask.value.length && isObject(csf.searchVal.value)) {
 							tableDatatask.value.push(csf.searchVal.value)
 					}
@@ -1519,62 +1291,25 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								optionLabel: (v: any) => v.taskNo,
 								//options: tableDatatask.value,
 								options: tableDatatask.value,
-								toSearch: async (event: Event) => {
-									let data = null as any;
-									const { metaui } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true);
-									tableDataKEYtask.value = metaui.primaryKey;
-									tablecolumnstask.value = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-										isSearch: true,
-										cacheKey: `taskID/SearchRelative/${metaui.primaryKey}`,
-									});
-									// await this.getAlltask(ctx, '');
-									ctx.uiBuilder.confirmDialog(
-										ctx.uiBuilder.buildSearchForRelativeContent(
-											tablecolumnstask.value,
-											{
-												dataKey: tableDataKEYtask.value,
-												onSearch: async (params: any) => {
-													const { searchParams, reload, pager } = params;
-													await this.getAlltask(ctx, searchParams.searchWord);
-													return { list: tableDatatask.value, pager: searchParamtask.pager };
-												},
-												onPage: ({ pageNo, pageSize }: any) => {
-													searchParamtask.pager.pageNo = pageNo;
-													searchParamtask.pager.pageSize = pageSize;
-												},
-												onSelect: (selection: any, row: any) => {
-													data = row;
-												},
-												onRowDblclick: (row: any, index: number) => {
-													csf.searchVal.value = csf.searchWord.value = row
-													ctx.app.localDb.put(
-														`search/${ctx.logic.repository}/taskID`,
-														JSON.parse(JSON.stringify(row))
-													)
-													triggerEscKey()
-												},
-										}
-										),
-										ctx,
-										{
-											title: ctx.t('stationlabel.selectProductionTask'),
-											style: { width: '80vw', maxHeight: '95%' },
-											accept: async () => {
-												if (!data?.taskID) {
-													ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 });
-													return false;
-											}
-												csf.searchWord.value = csf.searchVal.value = data ?? null;
-												ctx.model.taskID = data.taskID ?? ctx.model.taskID;
-												ctx.model.taskNo = data.taskNo ?? ctx.model.taskNo;
-												ctx.model.taskPlanID = data.planID ?? ctx.model.planID;
-												this.searchParam.taskID = ctx.model.taskID;
-												ctx.app.localDb.put(`search/${ctx.logic.repository}/taskID`, JSON.parse(JSON.stringify(data)));
-												//  ctx.addQueryParam('taskID', this.searchParams.taskID?.['taskID']);
-												return true;
-											},
+								toSearch: async () => {
+									const picked = await ctx.select({
+										repository: 'ProductionTasks',
+										service: 'mes',
+										selectionMode: 'single',
+									})
+									if (!Array.isArray(picked) || !picked.length) return false
+									const data = picked[0]
+									if (!data?.taskID) {
+										ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
+										return false
 									}
-									);
+									csf.searchWord.value = csf.searchVal.value = data ?? null
+									ctx.model.taskID = data.taskID ?? ctx.model.taskID
+									ctx.model.taskNo = data.taskNo ?? ctx.model.taskNo
+									ctx.model.taskPlanID = data.planID ?? ctx.model.planID
+									this.searchParam.taskID = ctx.model.taskID
+									ctx.app.localDb.put(`search/${ctx.logic.repository}/taskID`, JSON.parse(JSON.stringify(data)))
+									return true
 								},
 								onChange: (value: any) => {
 									csf.searchWord.value = csf.searchVal.value = value
@@ -1661,7 +1396,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
  * @param module 模块
  * @returns
  */
-export const StationPortalLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const StationPortalLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new StationPortalLogic({
 		metaUiService: metaUiService,
 		repository: 'StationPortals',

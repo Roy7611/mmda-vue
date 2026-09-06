@@ -5,12 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
-import { defineComponent, getCurrentInstance, h, reactive, ref, toRefs } from 'vue';
 /**
  * 项目材料交互逻辑
  * @author mmda codebot
@@ -21,10 +19,10 @@ import { defineComponent, getCurrentInstance, h, reactive, ref, toRefs } from 'v
 /**
  * 项目材料交互逻辑
  */
-const tableDataProject = ref([])
-const tablecolumnsProject = ref([])
-const tableDataKeyProject = ref('id')
-const searchParamProject = reactive({
+const tableDataProject = { value: [] }
+const tablecolumnsProject = { value: [] }
+const tableDataKeyProject = { value: 'id' }
+const searchParamProject = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
@@ -64,16 +62,14 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 		 * @param value 
 		 */
 	async getAllProject(context: UiContext, value?: any) {
-		await context.globalProps.$api.getAll({
-			repository: 'Projects',
-			service: 'mes',
+		await this.getAllOf<Record<string, unknown>>('Projects', {
 			queryParams: {
 				pageSize: searchParamProject.pager.pageSize,
 				pageNo: searchParamProject.pager.pageNo,
 				sort: '',
 				searchWord: value
 			},
-		}).then((res: any) => {
+		}, { service: 'mes' }).then((res: any) => {
 			searchParamProject.pager = res.pagination
 			tableDataProject.value = res.list.map((it: any) => {
 				return {
@@ -97,7 +93,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 					searchLabel: 'ganttLabel.sProject',
 					searchParam: 'projectID',
 					valueFn: (v: any) => !isRefNone(v) ? v.projectID : '',
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
+					renderer: (ctx: UiContext & any, csf) => {
 						if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 							tableDataProject.value.push(csf.searchVal.value)
 						}
@@ -108,56 +104,20 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
 							class: 'w-full',
 							// options: tableDataProject.value,
 							options: tableDataProject.value,
-							toSearch: async (event: Event) => {
-								let data = [] as any;
-								// 获取元数据字段
-								const { metaui } = await ctx.logic!.loadMetadata('Projects', 'mes', true);
-								tableDataKeyProject.value = metaui.primaryKey;
-								ctx.searchParam.pager = searchParamProject.pager = {
-									pageNo: 1,
-									pageSize: 10
-								}
-								// 列表column
-								const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-									isSearch: true,
-									cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-								});
-								ctx.uiBuilder.confirmDialog(
-									ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-										dataKey: tableDataKeyProject.value,
-										onSearch: async (params: any) => {
-											const { searchParams, reload, pager } = params;
-											await this.getAllProject(ctx, searchParams.searchWord);
-											return { list: tableDataProject.value, pager: searchParamProject.pager };
-										},
-										onPage: ({ pageNo, pageSize }: any) => {
-											searchParamProject.pager.pageNo = pageNo;
-											searchParamProject.pager.pageSize = pageSize;
-											ctx.searchParam.pager = searchParamProject.pager
-										},
-										onSelect: (selection: any, row: any) => {
-											data = row;
-										},
-										onRowDblclick: (row: any, index: number) => {
-											csf.searchVal.value = csf.searchWord.value = row
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(row)));
-											triggerEscKey(); // 弹窗关闭(触发esc建)
-										},
-									}),
-									ctx,
-									{
-										title: ctx.t('ganttLabel.sProject'),
-										style: { width: '80vw', maxHeight: '95%' },
-										accept: async () => {
-											csf.searchVal.value = csf.searchWord = data;
-											ctx.model.projectID = data.projectID ?? ctx.model.projectID;
-											ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo;
-											this.searchParam.projectID = ctx.model.projectID;
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-											return true;
-										},
-									}
-								);
+							toSearch: async () => {
+								const picked = await ctx.select({
+									repository: 'Projects',
+									service: 'mes',
+									selectionMode: 'single',
+								})
+								if (!Array.isArray(picked) || !picked.length) return false
+								const data = picked[0]
+								csf.searchVal.value = csf.searchWord = data
+								ctx.model.projectID = data.projectID ?? ctx.model.projectID
+								ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo
+								this.searchParam.projectID = ctx.model.projectID
+								ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
+								return true
 							},
 							onUpdate: (value: any) => {
 								csf.searchVal.value = value || null;
@@ -264,7 +224,7 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
  * @param module 模块
  * @returns 
  */
-export const ProjectMaterialLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProjectMaterialLogic({
+export const ProjectMaterialLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProjectMaterialLogic({
 	metaUiService: metaUiService,
 	repository: 'ProjectMaterials',
 	router,

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionLine, defineProductionLine } from '@/models/ProductionLine';
@@ -84,7 +83,7 @@ export class ProductionLineLogic extends UiLogic<ProductionLine> {
  * @param module 模块
  * @returns 
  */
-export const ProductionLineLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProductionLineLogic({
+export const ProductionLineLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProductionLineLogic({
 	metaUiService: metaUiService,
 	repository: 'ProductionLines',
 	router,

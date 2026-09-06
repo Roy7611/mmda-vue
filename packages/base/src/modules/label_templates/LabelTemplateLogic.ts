@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type LabelTemplate, defineLabelTemplate } from '../../models/LabelTemplate';
@@ -159,7 +158,7 @@ export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
  * @param module 模块
  * @returns 
  */
-export const LabelTemplateLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new LabelTemplateLogic({
+export const LabelTemplateLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new LabelTemplateLogic({
 	metaUiService: metaUiService,
 	repository: 'LabelTemplates',
 	router,

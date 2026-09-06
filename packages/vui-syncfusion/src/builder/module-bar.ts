@@ -1,6 +1,6 @@
 import { h, type VNode } from "vue";
 import { SqlDataType } from "@mmda/core";
-import type { AbstractUiBuilder } from "@mmda/vui";
+import type { VueUiBuilder } from "@mmda/vui";
 import type {
   ModuleBreadcrumbProps,
   ModuleSearchbarProps,
@@ -32,7 +32,7 @@ type ModuleBarHost = any;
 export { SfSearchTextInput, breadcrumbItem, moduleChain } from "./utils";
 
 export function buildModuleBreadcrumb(
-  this: AbstractUiBuilder,
+  this: VueUiBuilder,
   context: UiContext,
   props: ModuleBreadcrumbProps,
 ) {
@@ -219,7 +219,7 @@ export function buildSearchForm(
 }
 
 export function buildModuleSearchbar(
-  this: AbstractUiBuilder,
+  this: VueUiBuilder,
   context: UiContext,
   props: ModuleSearchbarProps & { onRefresh?: () => void },
 ) {

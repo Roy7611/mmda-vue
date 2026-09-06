@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -15,6 +15,10 @@ import { PrimeVueUiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
 import { createPrimeVueUiFactory } from '../prime_factory'
 import { primeLayout } from '../prime_layout'
+import {
+  applyPrimeColumnFilter,
+  hydratePrimeColumnFilter,
+} from '../prime_filter'
 
 describe('PrimeVue skin', () => {
   it('maps all MMDA palettes to Aura primary and highlight variables', () => {
@@ -54,7 +58,7 @@ describe('PrimeVue skin', () => {
     expect(fields.FileUpload).toBe(fields.fileUpload)
   })
 
-  it('constructs the builder against the new AbstractUiBuilder contract', () => {
+  it('constructs the builder against the new VueUiBuilder contract', () => {
     const builder = new PrimeVueUiBuilder()
     expect(builder.factory.layout.fieldMessage).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
@@ -247,5 +251,51 @@ describe('PrimeVue skin', () => {
     expect(buttons[5].props.text).toBeFalsy()
     expect(buttons[5].props.severity).toBe('secondary')
     expect(buttons[5].props.icon).toBeFalsy()
+  })
+})
+
+describe('prime column filter join/multi', () => {
+  it('does not treat join AND as a compare operator', () => {
+    const field = { fieldName: 'name', dataType: 48, nullable: true } as any
+    const state = hydratePrimeColumnFilter(field, {
+      filterType: 'join',
+      operator: 'AND',
+      conditions: [
+        { filterType: 'text', operator: 'CONTAINS', value: 'a' },
+        { filterType: 'text', operator: 'CONTAINS', value: 'b' },
+      ],
+    })
+    expect(state.operator).toBe('CONTAINS')
+    expect(state.joinOperator).toBe('AND')
+    expect(state.value).toBe('a')
+    expect(state.secondValue).toBe('b')
+    expect(applyPrimeColumnFilter(field, state)?.filterType).toBe('join')
+  })
+
+  it('builds multi from compare + set', () => {
+    const field = {
+      fieldName: 'status',
+      dataType: 48,
+      nullable: true,
+      reference: { isEnum: true },
+    } as any
+    const state = hydratePrimeColumnFilter(field)
+    state.operator = 'CONTAINS'
+    state.value = '仓'
+    state.setValues = ['LABOR', 'PART']
+    const applied = applyPrimeColumnFilter(field, state)
+    expect(applied?.filterType).toBe('multi')
+    expect((applied as any).filterModels[1].values).toEqual(['LABOR', 'PART'])
+  })
+
+  it('does not searchAll on hydrate for hasOne', () => {
+    const field = {
+      fieldName: 'matID',
+      dataType: 72,
+      reference: { hasOne: true, isEnum: false, isRef: false, refOptions: [] },
+    } as any
+    const searchAll = vi.fn()
+    hydratePrimeColumnFilter(field)
+    expect(searchAll).not.toHaveBeenCalled()
   })
 })

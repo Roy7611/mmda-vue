@@ -3,8 +3,15 @@ import { h, nextTick, toRaw, unref } from 'vue'
 import {
   DEFAULT_PAGE_SIZE,
   MetaModel,
+  MetaUiFieldFilterType,
   SortOrder,
   SqlDataType,
+  columnFilterKindOf,
+  combineCompareAndSet,
+  hasFilterType,
+  resolveColumnFilterTypes,
+  simpleFilterTypeOf,
+  type EntityFieldFilter,
   type MetaUi,
   type MetaUiField,
 } from '@mmda/core'
@@ -13,9 +20,11 @@ import {
   readStoredPageSize,
   type UiListPropsType,
   type UiPaginatorPropsType,
+  settleRemoteListQuery,
 } from '@mmda/vui'
 import { NumericTextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
+import { ComboBox } from '@syncfusion/ej2-dropdowns'
 import { SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { getSyncfusionCulture } from '../syncfusion_i18n'
 import { SfGrid, SfGridLoadingHost, syncMetaUiFromGridColumns } from './grid'
@@ -29,6 +38,7 @@ import {
   gridColumnFormat,
   gridColumnType,
   gridFiltersToModel,
+  gridFilterOperator,
   gridTextAlign,
   gridTextAlignCss,
   isChoiceFilterField,
@@ -37,7 +47,7 @@ import {
   findAction,
   isEnumReference,
   referenceEditParams,
-  refreshReferenceEditParams,
+  refreshRefEditParams,
   resolveFieldUnit,
 } from './utils'
 
@@ -228,6 +238,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     type RangeValue = { min?: unknown; max?: unknown }
     const pendingRanges = new Map<string, RangeValue>()
+    const pendingColumnFilters = new Map<string, EntityFieldFilter>()
 
     /** 引用列 CheckBox：数据与表单下拉相同（valueOf/labelOf）。
      * EJ2 默认用列值当勾选文字，Vue 下 itemTemplate 会把 label 清空。
@@ -274,7 +285,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
      * actionBegin 再补上界谓词。
      */
     const rangeMenuFilter = (field: MetaUiField) => {
-      const isDate = SqlDataType.isDate(field.dataType)
+      const isDate = simpleFilterTypeOf(field) === 'date'
       const isDateTime = SqlDataType.isDateTime(field.dataType)
       let firstControl: NumericTextBox | DatePicker | DateTimePicker | undefined
       let secondControl: NumericTextBox | DatePicker | DateTimePicker | undefined
@@ -469,16 +480,239 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       }
     }
 
-    /** 布尔/文本走 EJ2 默认 Menu；枚举/关联用 CheckBox。 */
-    const columnFilter = (field: MetaUiField) => {
-      if (isChoiceFilterField(field)) return choiceCheckBoxFilter(field)
-      if (
-        SqlDataType.isDate(field.dataType) ||
-        (SqlDataType.isNum(field.dataType) && !field.reference)
-      ) {
-        return rangeMenuFilter(field)
+    /**
+     * 列筛两块：上块比较（可两段 AND/OR），下块 enum/ref 勾选或 hasOne ComboBox。
+     */
+    const multiMenuFilter = (field: MetaUiField) => {
+      const kind = columnFilterKindOf(field)
+      const types = resolveColumnFilterTypes(field)
+      const compareType = simpleFilterTypeOf(field)
+      const isNum = compareType === 'number'
+      const choice = isChoiceFilterField(field)
+      const showCompare = kind !== 'set'
+      const showSet = kind !== 'text' && choice
+      const allowJoin = hasFilterType(types, MetaUiFieldFilterType.JOIN)
+      const hasOne = Boolean(
+        showSet &&
+          field.reference?.hasOne &&
+          !field.reference?.isEnum &&
+          !field.reference?.isRef,
+      )
+      let firstInput: HTMLInputElement | undefined
+      let secondInput: HTMLInputElement | undefined
+      let joinSelect: HTMLSelectElement | undefined
+      let secondRow: HTMLElement | undefined
+      const checks = new Map<string, HTMLInputElement>()
+      let combo: ComboBox | undefined
+      let selectedHasOne: unknown[] = []
+
+      const currentFilter = () =>
+        props.filterModel?.[field.fieldName] as EntityFieldFilter | undefined
+
+      const compareFromCurrent = (current?: EntityFieldFilter) => {
+        if (!current || !showCompare) return undefined
+        if (current.filterType === 'multi') {
+          return current.filterModels.find(item => item.filterType !== 'set')
+        }
+        if (current.filterType === 'set') return undefined
+        return current
       }
-      return { type: 'Menu' }
+
+      const setFromCurrent = (current?: EntityFieldFilter) => {
+        if (!current || !showSet) return []
+        if (current.filterType === 'set') return current.values
+        if (current.filterType === 'multi') {
+          const set = current.filterModels.find(item => item.filterType === 'set')
+          return set && 'values' in set ? set.values : []
+        }
+        return []
+      }
+
+      const readCompare = (): EntityFieldFilter | undefined => {
+        if (!showCompare) return undefined
+        const first = firstInput?.value?.trim()
+        const second = allowJoin ? secondInput?.value?.trim() : undefined
+        const op = String(argsOperator() ?? 'contains')
+        const join = String(joinSelect?.value ?? 'and').toUpperCase() === 'OR' ? 'OR' : 'AND'
+        const filterType = compareType
+        const toSimple = (value?: string) =>
+          value
+            ? {
+                filterType,
+                operator: gridFilterOperator(op),
+                value: isNum && value !== '' ? Number(value) : value,
+              }
+            : undefined
+        const a = toSimple(first)
+        const b = toSimple(second)
+        if (a && b) {
+          return { filterType: 'join', operator: join, conditions: [a, b] }
+        }
+        return a
+      }
+
+      let operatorDropDown: any
+      const argsOperator = () => operatorDropDown?.value
+
+      return {
+        type: 'Menu',
+        dataSource:
+          showSet && !hasOne ? choiceFilterDataSource(field) : undefined,
+        ui: {
+          create: (args: any) => {
+            operatorDropDown = args.getOptrInstance?.dropOptr
+            const host = document.createElement('div')
+            host.className = 'mmda-sf-filter-multi'
+            if (showCompare) {
+              firstInput = document.createElement('input')
+              firstInput.className = 'e-input e-flmenu-input'
+              firstInput.placeholder = '值'
+              host.appendChild(firstInput)
+
+              if (allowJoin) {
+                secondRow = document.createElement('div')
+                secondRow.className = 'mmda-sf-filter-multi__join'
+                joinSelect = document.createElement('select')
+                joinSelect.innerHTML =
+                  '<option value="and">AND</option><option value="or">OR</option>'
+                secondInput = document.createElement('input')
+                secondInput.className = 'e-input e-flmenu-input'
+                secondInput.placeholder = '第二段'
+                secondRow.append(joinSelect, secondInput)
+                host.appendChild(secondRow)
+              }
+            }
+
+            if (showSet && !hasOne) {
+              const box = document.createElement('div')
+              box.className = 'mmda-sf-filter-multi__choices'
+              for (const item of choiceFilterDataSource(field)) {
+                const label = document.createElement('label')
+                const input = document.createElement('input')
+                input.type = 'checkbox'
+                input.value = String(item[field.fieldName] ?? '')
+                checks.set(input.value, input)
+                label.append(input, document.createTextNode(String(item.text ?? '')))
+                box.appendChild(label)
+              }
+              host.appendChild(box)
+            }
+            if (showSet && hasOne) {
+              const comboInput = document.createElement('input')
+              host.appendChild(comboInput)
+              let debounce: ReturnType<typeof setTimeout> | undefined
+              combo = new ComboBox({
+                allowFiltering: true,
+                fields: { text: 'text', value: 'value' },
+                dataSource: [],
+                filtering: (e: any) => {
+                  e.updateData([])
+                  if (debounce) clearTimeout(debounce)
+                  debounce = setTimeout(() => {
+                    void Promise.resolve(
+                      props.searchRelative?.(field, String(e.text ?? '')),
+                    ).then(rows => {
+                      const reference = field.reference!
+                      const data = (rows ?? []).map(row => ({
+                        value: reference.valueOf(row),
+                        text: String(reference.labelOf(row) ?? ''),
+                      }))
+                      e.updateData(data)
+                    })
+                  }, 300)
+                },
+                change: (e: any) => {
+                  selectedHasOne = e.value == null ? [] : [e.value]
+                },
+              })
+              combo.appendTo(comboInput)
+            }
+            args.target.appendChild(host)
+          },
+          write: () => {
+            const current = currentFilter()
+            const compare = compareFromCurrent(current)
+            const values = setFromCurrent(current)
+            if (compare?.filterType === 'join') {
+              firstInput && (firstInput.value = String(compare.conditions[0] && 'value' in compare.conditions[0] ? compare.conditions[0].value ?? '' : ''))
+              secondInput && (secondInput.value = String(compare.conditions[1] && 'value' in compare.conditions[1] ? compare.conditions[1].value ?? '' : ''))
+              if (joinSelect) joinSelect.value = compare.operator.toLowerCase()
+            } else if (compare && 'value' in compare) {
+              firstInput && (firstInput.value = String(compare.value ?? ''))
+            }
+            for (const [value, input] of checks) {
+              input.checked = values.map(String).includes(value)
+            }
+            if (values.length && combo) {
+              selectedHasOne = [...values]
+              combo.value = values[0] as any
+            }
+          },
+          read: (args: any) => {
+            const checked = [...checks.entries()]
+              .filter(([, input]) => input.checked)
+              .map(([value]) => value)
+            const setValues = hasOne ? selectedHasOne : checked
+            const set =
+              setValues.length
+                ? { filterType: 'set' as const, operator: 'IN' as const, values: setValues }
+                : undefined
+            const compare = readCompare()
+            const next = combineCompareAndSet(compare, set)
+            pendingColumnFilters.delete(field.fieldName)
+            if (!next) {
+              args.fltrObj.removeFilteredColsByField?.(field.fieldName)
+              return
+            }
+            pendingColumnFilters.set(field.fieldName, next)
+            const first =
+              next.filterType === 'join'
+                ? next.conditions[0]
+                : next.filterType === 'multi'
+                  ? next.filterModels[0]
+                  : next
+            const operator =
+              first && 'operator' in first
+                ? String(first.operator).toLowerCase()
+                : 'equal'
+            const value =
+              first && 'value' in first
+                ? first.value
+                : first && 'values' in first
+                  ? first.values[0]
+                  : null
+            args.fltrObj.filterByColumn(
+              field.fieldName,
+              operator === 'contains' ? 'contains' : operator,
+              value ?? null,
+              'and',
+              true,
+            )
+          },
+          destroy: () => {
+            combo?.destroy()
+            combo = undefined
+            firstInput = undefined
+            secondInput = undefined
+            checks.clear()
+          },
+        },
+      }
+    }
+
+    /** 列头过滤：优先 MetaUiField.filterTypes 位掩码，0 则按 dataType/reference 推断。 */
+    const columnFilter = (field: MetaUiField) => {
+      switch (columnFilterKindOf(field)) {
+        case 'boolean':
+          return { type: 'Menu' }
+        case 'range':
+          return rangeMenuFilter(field)
+        case 'set':
+        case 'multi':
+        case 'text':
+        default:
+          return multiMenuFilter(field)
+      }
     }
 
     const formattedDisplayText = (field: MetaUiField, row: T) => {
@@ -796,11 +1030,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
 
     const runRemoteQuery = (work: unknown) => {
-      void Promise.resolve(work)
-        .catch(() => undefined)
-        .finally(() => {
-          void resolveCustomBinding()
-        })
+      void settleRemoteListQuery(work).finally(() => {
+        void resolveCustomBinding()
+      })
     }
 
     const persistLayoutFromGrid = () => {
@@ -939,7 +1171,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             args.cancel = true
             return
           }
-          refreshReferenceEditParams(args?.column, field)
+          refreshRefEditParams(args?.column, field)
         },
         cellSave: (args: any) => {
           if (!inplaceEdit) return
@@ -1120,6 +1352,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                 valueTo: range.max,
               }
               pendingRanges.delete(fieldName)
+            }
+            for (const [fieldName, filter] of [...pendingColumnFilters.entries()]) {
+              model[fieldName] = filter
+              pendingColumnFilters.delete(fieldName)
             }
             runRemoteQuery(props.onFilterModelChange(model))
           }

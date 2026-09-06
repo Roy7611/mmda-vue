@@ -2,12 +2,12 @@
 
 本文是 **vui Grid 的对外接口**：`scene`、`metaui`、`dataSource`、开关、回调、Logic 钩子。**不出现任何厂商类型、模块名或列配置对象。** Syncfusion 的 `SfGrid` 与日后 AgGrid 包装层实现 **同一套 props / 事件 / 方法**；Builder 只调 `factory.grid`。
 
-- **本包皮肤：** [`SfGrid.ts`](../src/components/SfGrid.ts)。列映射、控件模块是皮肤内部，业务不要 import。
+- 本包皮肤：[`SfGrid.ts`](../src/components/SfGrid.ts)（契约控件）、[`SfGridLayout.ts`](../src/components/SfGridLayout.ts)（布局伴侣）。EJ2 宿主为 `SfGridHost`。列映射见 `sf_grid_column.ts`（读 `filterTypes`）。
 - **实现笔记（本皮肤）** 见 [sf-grid-design.md](./sf-grid-design.md)。现网仍走 `factory.table`；日后 `factory.grid` 接线。
 
 表格 **不持有** `UiContext`。传入行对象 + 回调。查询见 vui [列表与过滤](../../vui/docs/list.md)。enum / ref / hasOne 只走 `valueOf` / `labelOf`。
 
-**TreeGrid：** 树表只 **复用列映射**（MetaUiField → 该皮肤的列配置），不要把表格 Vue 组件嵌进树表。树列缩进由树表自己叠。
+**TreeGrid：** 树表只复用列映射：`buildSfTreeGridColumns` → `sfTreeGridColumnOf` → `sfGridColumnOf`（MetaUiField → 该皮肤列配置），不要把表格 Vue 组件嵌进树表。树列缩进由树表自己叠。
 
 ## 何时用
 
@@ -290,6 +290,8 @@ selector 只做选择时：`showActionColumn: false`，`allowContextMenu: false`
 | `loadFilterOptions` | `(field) => Promise<unknown[]>` | 引用列打开筛选项 |
 | `persistSort` | `boolean` | 仅 index/selector；排序条件是否写回 MetaUi（默认开） |
 | `persistFilter` | `boolean` | 仅 index/selector；过滤条件是否写回 MetaUi（默认开） |
+
+列头挂哪种过滤控件由 **`MetaUiField.filterTypes`**（TINYINT 位掩码）决定；`0` 则按 `dataType` / `reference` 推断。见 core `MetaUiFieldFilterType`（TEXT=1、NUMBER=2、DATE=4、BOOLEAN=8、SET=16、MULTI=32、JOIN=64）。
 
 index/selector：**禁止**让表格只对当前页再滤/再排。改条件后换 `dataSource`。
 

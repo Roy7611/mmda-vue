@@ -1,61 +1,163 @@
-# 架构
+# MMDA 前端架构
 
-关注点分离（Separation of concerns）将一个软件横向和纵向分割，横向切分为多层架构（Layered Architecture），纵向切分为多个模块（Modular Architecture）。横向侧重于技术分层，纵向偏向于业务分块。
+**产品横向分层只有一处定义：本文。** 术语用词见 [docs/naming.md](docs/naming.md)；代理约束见 [AGENTS.md](AGENTS.md)；包内 API 细节见各包 `docs/`。
 
-前后端分离将一个应用物理上分为前端和后端，带来诸多益处：技术栈解耦，通过Mock前后端可并行开发，后端只处理数据带来QPS大幅上升，部署更灵活，后端可独立扩容，前端变静态资源。前后端分离解决的是横向的用户界面与数据接口的切割，而微服务架构解决的是纵向的后端内部业务逻辑的切割（比如订单服务、用户服务分开）。通常，一个优秀的现代架构是 “前端（React/Vue/Flutter） + 后端 API 网关 + 后端微服务” 的组合，架构深刻影响了系统的非功能性需求（性能、扩展性、维护性）。
+## UI → Logic → Data
 
-## 分层架构（Layered Architecture）
+```text
+UI      vui + 皮肤        配置与展现：挂 Logic，显示 Logic 给出的状态
+  ↑ 数据向下         ↓ 事件向上
+Logic   交互逻辑          显示 / 锁定 / 校验 / 引用加码 / onChange；纯 TypeScript
+  ↑ 新数据           ↓ 标准接口
+Data    元数据·实体·HTTP  单一事实来源（SSOT）；不要在 UI 里直接碰
+```
 
-这里只说前端分层架构，参见[Fultter官方文档](https://docs.flutter.dev/app-architecture/concepts)。
+| 层 | 做什么 | 不做什么 |
+|---|---|---|
+| **UI** | 拼屏、控件、路由壳 | 业务计算、改共享元数据 |
+| **Logic** | 交互：何时显示/锁定/校验、引用 `refWhere`、业务动作挂到会话 | Vue/React 类型、厂商控件、自己拼 URL |
+| **Data** | 元数据、`MetaModel`、`ApiClient` | 界面组件、会话状态写回 `MetaUiField` |
 
-![水平分层架构](/docs/images/horizontal-layers-with-icons.png)
+层只与**相邻**层交互。皮肤不感知 Data。会话经 `context.apiClient` 做通用读写；业务动作由 Logic 挂到会话。Data 更新后再交给 Logic 刷新 UI。
 
-- 用户通过**UI层**与系统交互，UI层也叫展现层，负责显示数据，这些数据由逻辑层暴露给用户。UI层还负责处理用户交互。
-- 逻辑层在前端框架中定义交互逻辑，例如什么情况下应该展现什么，用户若通过UI修改了数据，应该如何处理数据并展现新的状态。如果仅仅是CRUD的功能，逻辑层不是必需的。
-- 数据层在前端框架中实际上负责管理数据源交互，例如与后端API接口交互，负责获取数据、提交更改的数据、处理业务接口等，遵循单一事实来源([SSOT, Single Source of Truth](https://en.wikipedia.org/wiki/Single_source_of_truth))的原则，根治数据不一致性。
+### Logic 的依赖
 
-## 单向数据流
+Logic 是夹在 UI 与 Data 之间的**交互逻辑**：接收用户操作，决定显示 / 锁定 / 校验 / 引用加码 / 业务动作，再把结果交给两层邻居。它不直接画控件，也不自己拼 HTTP。
 
-分层架构中每一层只能与其直接上下层交互，例如UI层不应该知道数据层的存在，反之亦然。例如你修改了数量，onChange事件中不应该去计算金额，要交给逻辑层去计算和修改金额数据，数据层触发UI刷新。
+```text
+用户操作 → UI 发事件 → Logic
+                           ├─ 经 ApiClient（this.apiClient / context.apiClient）与 Data 交互
+                           └─ 经 context.uiBuilder 与 UI 交互（confirm / toast / 输入…）
+Data 回新数据 → Logic 更新状态 → UI 重绘
+```
 
-![水平分层交互](/docs/images/horizontal-layers-with-UDF.png)
+| 方向 | 通道 | 干什么 |
+|---|---|---|
+| **Logic → Data** | `ApiClient` | 读写实体、动作、查询。与 `this.apiClient`、`context.apiClient` 同一实例。不要在 Logic 再包一层 `get` / `doAction` |
+| **Logic → UI** | `context.uiBuilder` | toast / confirm / dialog / `factory.table` / `buildView`。换皮换实现，Logic 只认 core `UiBuilder` |
+| **职责** | 处理用户交互 | 钩子、校验、`refWhere`、把业务函数挂到会话。不认 Vue/React 类型，不碰皮肤控件 |
 
-从用户交互到重新渲染的过程如下：
+Logic 只认 core **`UiContext`**。不要写成 vui `UiBuildContext`。日常不要掏 `globalProps.$ui` / `$api`。
 
-- UI 层：button clicked
-- Logic 层：调用 api 接口执行动作、保存数据
-- Data 层：更新并提供新数据给Logic层
-- Logic 层：替换新数据并提供给UI层
-- UI 层：展现新数据
+```mermaid
+flowchart LR
+  User[用户] --> UI
+  UI -->|事件| Logic
+  Logic -->|ApiClient| Data
+  Data -->|新数据| Logic
+  Logic -->|context.uiBuilder / 状态| UI
+```
 
-每一层都明确定义输入和输出，例如`MVVM`中的视图模型我们定义为交互逻辑（Logic Layer），它的输入是数据源模型，输出是给视图提供命令函数和显示用的格式化数据。
+### 包怎么落层
 
-在UI组件树中数据向下流，事件向上抛（`Data Down, Events Up`）。在设计 Vue/React 组件时，要守住这条底线。
+| 层 | 包 / 目录 |
+|---|---|
+| UI | `@mmda/vui`（拼屏、会话）、`@mmda/vui-*`（皮肤控件与 factory） |
+| Logic | `@mmda/core` 的 `src/logic/`（`EntityLogic` 等规范接口）；业务 `*Logic.ts` 在 `@mmda/base` / `@mmda/mes`，经 vui 的 `UiLogic` 接到视图 |
+| Data | `@mmda/core` 的 `metaui` / `models` / `net` / `di` / `utils` / `extensions` |
 
-## UI是状态函数
+`@mmda/core` **没有 UI 实现**；契约在 `src/ui/`（`UiBuilder` / `UiFactory` / `UiContext`）。core 里的 `logic/` 是产品 **Logic 层**，不是 Data 的子目录。
 
-在前端框架中采用声明式UI，用函数来构建和反映应用的当前状态，当状态一旦改变，就重新构建依赖于状态的UI。
+### Data 在 core 内的目录
 
-![状态函数](/docs/images/ui-f-state.png)
+内部依赖：`utils` / `extensions` → `metaui` → `models` → `net`。`di` 只依赖 utils。`metaui` / `models` / `utils` **不** import `logic/`。
 
-在vue中，这个`f`就是渲染函数。对 UI 的要求是尽可能“无脑”（瘦视图View 要尽可能笨）
+| 目录 | 职责 |
+|---|---|
+| `metaui` | 服务端界面元数据；`Module` 在此；`MetaUiService` 可依赖 net |
+| `models` | 实体框架；`MetaModel` 用元数据操纵实体 |
+| `net` | HTTP / `ApiClient` |
+| `di` / `utils` / `extensions` | 注入与工具 |
 
-- 坏做法：在 Vue/React 的 onClick 里直接写复杂的计算、调接口、处理缓存逻辑。
-- 好做法：View 只负责两件事：
+引用：元数据 `reference.where`（SQL 硬限制）不可改写；业务加码用 Logic `refWhere`，与 `where` AND。不要把 JS 过滤器写进 `MetaUiField`。
 
-  - 展示数据；
-  - 发出事件（告诉 ViewModel/Controller“用户点了一下”）。至于点了之后是调接口、算税费还是跳转路由，全部交给 View 层之外的纯逻辑层处理。
+### UI 怎么画（一词一句）
 
-原则上，绝对不允许界面上的某个点击或输入去直接篡改原始数据，Vue框架的`v-model`并没有忽略“数据变化要驱动 UI”这件事，底层利用 Proxy 代理通知视图更新，它只是换了一种监听方式。
+```text
+皮肤 Component  →  皮肤 Factory（用 MetaUi 生产）  →  vui Builder（拼工具栏/搜索/分页/对话框）
+```
 
-`数据驱动 UI`：用户输入 -> 触发 Action/Event -> 更新 Store/Model（唯一数据源）-> Store 变化 -> 新数据流向 UI 自动刷新。
+不要把 `SfGrid` / `AgGrid` 写进 `@mmda/vui`。细则用词见 [naming.md](docs/naming.md)。
 
-## 益处
+### 会话：两层 Context
 
-### 可测试性
+业务 Logic **只认 core `UiContext` 接口**（换 vui / rui / mui 仍是这一套）。vui 的 `UiBuildContext` 对标 Flutter `BuildContext`，给 **Builder / 渲染函数**用，不要写成业务钩子的类型。
 
-每层都可独立测试，最关键的逻辑层可Mock数据源输入，单独测试交互逻辑。
+```text
+业务 *Logic.ts  ──►  core UiContext（接口）
+                           ▲
+                           │ implements
+vui UiViewContext ──► vui UiBuildContext  ≈ Flutter BuildContext（渲染 / 屏级拼装）
+```
 
-### 可扩展性
+core 没有 vui 的 class。`UiContext` 上要声明的能力必须是 **core 里的框架无关接口**（不能 `any`）：`UiBuilder`、`ApiClient`（已有）、**`MmdaApplication`（abstract class）**。vui 实现类叫 **`MmdaVueApp extends MmdaApplication`**；rui 再继承同一套 `MmdaApplication`。
 
-逻辑层定义整洁的接口，修改逻辑不影响UI和数据。
+| Context 上 | 干什么 | 不是什么 |
+|---|---|---|
+| `uiBuilder` | 统一 UI（confirm / toast / 输入） | vui 带 VNode 的实现细节；不是 `$ui` |
+| `apiClient` | 通用 HTTP | 不是 `globalProps.$api` |
+| `app` | core **`MmdaApplication`**（鉴权、MetaUi、DI、locale；业务读 **`app.state`**） | 不是 Vue `App`；不是 `$app`。vui 实现类是 **`MmdaVueApp`**。弹层不在壳上，走 `app.ui` |
+| Logic 挂上的函数 | `ApiClient` 没有的业务（校验、加码、专用动作） | 不要把 `get`/`doAction` 在 Logic 再包一遍 |
+| `globalProps` | 把 Vue `globalProperties` **传递**下来 | 极少用；不是主 API |
+
+```mermaid
+flowchart TB
+  subgraph logicLayer [Logic]
+    BizLogic[XxxLogic]
+  end
+  subgraph coreIf [core_interfaces]
+    UiCtx[UiContext]
+    UiBld[UiBuilder]
+    Api[ApiClient]
+    MmdaApp[MmdaApplication]
+  end
+  subgraph vuiImpl [vui_implementation]
+    ViewCtx[UiViewContext]
+    BuildCtx[UiBuildContext]
+    VueBld[VueUiBuilder]
+    VueApp[MmdaVueApp]
+  end
+  BizLogic --> UiCtx
+  UiCtx --> UiBld
+  UiCtx --> Api
+  UiCtx --> MmdaApp
+  ViewCtx --> UiCtx
+  BuildCtx --> ViewCtx
+  VueBld --> UiBld
+  VueApp --> MmdaApp
+  ViewCtx --> VueApp
+  ViewCtx --> VueBld
+  BuildCtx --> BizLogic
+```
+
+### 三条路径
+
+```text
+通用数据 ── context.apiClient                 → Data（不必经 Logic 再包）
+业务操作 ── Logic 函数组装到 context           → 本屏交互 / 专用动作
+UI       ── context.uiBuilder                 → 换皮（统一接口）
+应用壳    ── context.app                       → MmdaApplication（读 app.state）
+```
+
+`this.apiClient` 与 `context.apiClient` 同一实例。日常不要掏 `context.globalProps.$ui` / `$api`。
+
+vui 现状：`UiViewContext` 实现 core `UiContext`；`uiBuilder` 来自 `app.ui`。core 契约是 **`UiBuilder<TNode>`** 与 abstract class **`MmdaApplication`**；vui 拼屏类是 **`VueUiBuilder implements UiBuilder<VNode>`**，应用壳是 **`MmdaVueApp extends MmdaApplication`**。皮肤 **`SyncfusionUiBuilder extends VueUiBuilder`**。业务钩子参数用 core `UiContext`，不要 vui `UiBuildContext`。
+
+### 弹层与选记录
+
+| 能力 | 走哪 | 不要 |
+|---|---|---|
+| 提示 / 是/否 / 塞内容 | `uiBuilder.toast` / `confirm` / `dialog` | 已删除的 `confirmMessage`、`confirmDialog`、`app.confirm` |
+| 联想、列筛（无 UI） | `context.searchRelative(field, word)` | 把 hasOne 当小表灌 `refOptions` |
+| 字段弹选并写回 | `context.select(field)` | `pickRelative` |
+| 任意仓库勾选 | `context.select({ repository, service?, selectionMode })` | `buildSearchForRelativeContent`、`buildSelector` |
+| 本地行勾选 | `MetaUiBuilder` + `factory.table` + `dialog` | 为本地数组再开一套仓库查询 |
+
+业务 `*Logic.ts` 可以调 `factory` / `fldFactory` / `buildView`，但不要出现 Vue 类型。`viewOptions` 仍只返回选项。
+
+程序员用法：[UiBuilder](packages/core/docs/ui/ui_builder_usage.md)、[UiContext](packages/core/docs/logic/ui_context_usage.md)、[MetaUiBuilder](packages/core/docs/metaui/metaui_builder.md)。本轮改名记录：[refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
+
+## 单向数据流（摘要）
+
+用户操作 → UI 发事件 → Logic 调 Data → Data 回新数据 → Logic 更新状态 → UI 重绘。  
+UI 组件树里仍是数据向下、事件向上。

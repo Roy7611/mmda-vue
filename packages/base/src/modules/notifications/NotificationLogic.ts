@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
+
 import type {
   MetaUiService,
   Module,
@@ -118,8 +118,8 @@ export class NotificationLogic extends UiLogic<Notification> {
         noticeID: item.noticeID,
         moduleCode: item.moduleCode,
       }));
-      return context.apiClient.http.postJson(
-        `${context.apiClient.config.service}/Notifications/readAll`,
+      return this.apiClient.http.postJson(
+        `${this.apiClient.config.service}/Notifications/readAll`,
         data,
       );
     }
@@ -249,10 +249,7 @@ export class NotificationLogic extends UiLogic<Notification> {
       } = toHandleAction;
       const { deepLink, objName, action } = value.to ?? value;
 
-      window.location.href = this.apiClient.http.baseUrl.replace(
-        "/api",
-        deepLink,
-      );
+      this.router.push(deepLink);
     } else {
       if (system.service !== this.apiClient.config.service) {
         window.location.href = `${system.href}/${redirectRepository}/${notice.refID}`;
@@ -336,7 +333,7 @@ export class NotificationLogic extends UiLogic<Notification> {
  */
 export const NotificationLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new NotificationLogic({

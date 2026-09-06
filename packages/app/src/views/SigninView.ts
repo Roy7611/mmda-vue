@@ -53,7 +53,7 @@ export const SigninView = defineComponent({
           } catch (error) {
             const detail = authErrorMessage(error)
             formError.value = detail
-            await app.toast({} as any, {
+            await app.ui.toast({} as any, {
               severity: 'error',
               detail,
               summary: '登录失败',

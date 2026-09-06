@@ -236,6 +236,23 @@ export interface MetaUiInit {
  * 元界面数据通常从服务器端首次获取，在本地缓存，框架利用它动态创建一个屏幕，供用户操作和互动。
  */
 export class MetaUi {
+  /** `MetaUiBuilder.create(name).fields(inits).build()` 短写。 */
+  static list(objName: string, fields: MetaUiField[] = []) {
+    return new MetaUi({
+      objName,
+      displayLabel: objName,
+      groups: [
+        {
+          groupName: 'a1',
+          groupLabel: objName,
+          many: false,
+          fields,
+        },
+      ],
+      assembled: true,
+    })
+  }
+
   constructor({
     objName,
     displayLabel,

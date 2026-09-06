@@ -7,12 +7,16 @@ import { L10n } from "@syncfusion/ej2-base";
 import {
   MetaModel,
   MetaUi,
+  MetaUiField,
+  MetaUiFieldFilterType,
   MetaUiGroup,
   ModuleFactory,
   ModuleOp,
   ModuleStatus,
   ModuleVersion,
+  SqlDataType,
   auth,
+  columnFilterKindOf,
 } from "@mmda/core";
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui";
 import {
@@ -29,6 +33,7 @@ import {
 import { syncfusionLayout } from "../syncfusion_layout";
 import { SfImageGallery } from "../components/SfImageGallery";
 import { SfFilesUploader } from "../components/SfFilesUploader";
+import { gridFiltersToModel, isChoiceFilterField } from "../factory/utils";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
 const gridOf = (vnode: any) => {
@@ -510,7 +515,7 @@ describe("Syncfusion skin", () => {
     expect(context.searchParam.pager.pageNo).toBe(1);
   });
 
-  it("constructs the builder against the new AbstractUiBuilder contract", () => {
+  it("constructs the builder against the new VueUiBuilder contract", () => {
     const builder = new SyncfusionUiBuilder();
     expect(builder.factory.layout.fieldMessage).toBe(false);
     expect(builder.buildAppScaffold()).toBeTruthy();
@@ -1411,17 +1416,12 @@ describe("Syncfusion skin", () => {
     const columns = vnode.props.columns.filter(
       (column: any) => column?.field && column.field !== "rowNum",
     );
-    expect(columns[0].filter).toMatchObject({
-      type: "CheckBox",
-    });
-    expect(columns[0].filter.itemTemplate).toBeUndefined();
-    expect(columns[0].filter.dataSource).toEqual([
-      { category: "RAW", text: "原材料", __mmdaChoice: true },
-      { category: "PART", text: "零件", __mmdaChoice: true },
-    ]);
+    expect(columns[0].filter.type).toBe("Menu");
+    expect(columns[0].filter.ui).toBeTruthy();
     expect(columns[0].foreignKeyField).toBeUndefined();
     expect(columns[0].dataSource).toBeUndefined();
-    expect(columns[1].filter).toEqual({ type: "Menu" });
+    expect(columns[1].filter.type).toBe("Menu");
+    expect(columns[1].filter.ui).toBeTruthy();
 
     const listeners: Record<string, (args: any) => void> = {};
     vnode.props.ref?.({
@@ -1540,7 +1540,7 @@ describe("Syncfusion skin", () => {
     const column = vnode.props.columns.find(
       (item: any) => item?.field === "materialType",
     );
-    expect(column.filter.type).toBe("CheckBox");
+    expect(column.filter.type).toBe("Menu");
     expect(column.filter.dataSource).toEqual([
       { materialType: "LABOR", text: "劳动力", __mmdaChoice: true },
       { materialType: "CONSUMABLE", text: "办公用品", __mmdaChoice: true },
@@ -1683,7 +1683,8 @@ describe("Syncfusion skin", () => {
       format: "yyyy-MM-dd HH:mm:ss",
     });
     expect(columns[2].filter).toEqual({ type: "Menu" });
-    expect(columns[3].filter).toEqual({ type: "Menu" });
+    expect(columns[3].filter.type).toBe("Menu");
+    expect(columns[3].filter.ui).toBeTruthy();
 
     const start = new Date("2026-08-01");
     vnode.props.dataStateChange({
@@ -2196,5 +2197,115 @@ describe("Syncfusion skin", () => {
     expect(l10n.getConstant("NotStartsWith")).toBe("开头不是");
     expect(l10n.getConstant("ClearFilter")).toBe("清除筛选");
     expect(applySyncfusionLocale("en")).toBe("en-US");
+  });
+});
+
+describe("gridFiltersToModel join/multi", () => {
+  const nameField = { fieldName: "name", dataType: 48 };
+  const qtyField = { fieldName: "qty", dataType: 68 };
+  const statusField = {
+    fieldName: "status",
+    dataType: 48,
+    reference: { isEnum: true },
+  };
+
+  it("string + explicit SET only is choice, not multi", () => {
+    const field = new MetaUiField({
+      fieldName: "name",
+      displayLabel: "名称",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      filterTypes: MetaUiFieldFilterType.SET,
+    });
+    expect(columnFilterKindOf(field)).toBe("set");
+    expect(isChoiceFilterField(field)).toBe(true);
+  });
+
+  it("maps same-field AND contains to join", () => {
+    const model = gridFiltersToModel(
+      [
+        {
+          condition: "and",
+          predicates: [
+            { field: "name", operator: "contains", value: "a" },
+            { field: "name", operator: "contains", value: "b" },
+          ],
+        },
+      ],
+      [nameField] as any,
+    );
+    expect(model.name).toEqual({
+      filterType: "join",
+      operator: "AND",
+      conditions: [
+        { filterType: "text", operator: "CONTAINS", value: "a" },
+        { filterType: "text", operator: "CONTAINS", value: "b" },
+      ],
+    });
+  });
+
+  it("maps contains + IN codes to multi", () => {
+    const model = gridFiltersToModel(
+      [
+        {
+          condition: "and",
+          predicates: [
+            { field: "status", operator: "contains", value: "仓" },
+            { field: "status", operator: "equal", value: "LABOR" },
+            { field: "status", operator: "equal", value: "PART" },
+          ],
+        },
+      ],
+      [statusField] as any,
+    );
+    expect(model.status.filterType).toBe("multi");
+    expect((model.status as any).filterModels[0]).toEqual({
+      filterType: "text",
+      operator: "CONTAINS",
+      value: "仓",
+    });
+    expect((model.status as any).filterModels[1]).toEqual({
+      filterType: "set",
+      operator: "IN",
+      values: ["LABOR", "PART"],
+    });
+  });
+
+  it("keeps BETWEEN and IN from becoming join", () => {
+    const between = gridFiltersToModel(
+      [
+        {
+          predicates: [
+            { field: "qty", operator: "greaterthanorequal", value: 1 },
+            { field: "qty", operator: "lessthanorequal", value: 9 },
+          ],
+        },
+      ],
+      [qtyField] as any,
+    );
+    expect(between.qty).toEqual({
+      filterType: "number",
+      operator: "BETWEEN",
+      value: 1,
+      valueTo: 9,
+    });
+    const inn = gridFiltersToModel(
+      [
+        {
+          predicates: [
+            { field: "status", operator: "equal", value: "A" },
+            { field: "status", operator: "equal", value: "B" },
+          ],
+        },
+      ],
+      [statusField] as any,
+    );
+    expect(inn.status).toEqual({
+      filterType: "set",
+      operator: "IN",
+      values: ["A", "B"],
+    });
   });
 });

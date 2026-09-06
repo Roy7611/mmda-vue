@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 
 
-export default defineComponent({
+const InventoryDialog = defineComponent({
     name: 'InventoryDialog',
     props: {
         context: { type: Object as PropType<UiBuildContext<any>>, default: null },
@@ -34,7 +34,7 @@ export default defineComponent({
         const lockMsgTreeLoading: Ref<boolean> = ref(false);
         const getLockMsg = async () => {
             lockMsgTreeLoading.value = true;
-            return await props.context.apiClient
+            return await (props.context.logic?.apiClient ?? props.context.app?.api)
                 .getAll({
                     repository: 'LinesideInventories',
                     service: 'mes',
@@ -316,3 +316,9 @@ export default defineComponent({
             ]);
     },
 })
+
+export default InventoryDialog
+
+export function inventoryDialogNode(props?: Record<string, any>) {
+    return h(InventoryDialog, props as any)
+}

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku';
@@ -64,7 +63,7 @@ import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const MaterialNSkuLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new MaterialNSkuLogic({
+	export const MaterialNSkuLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new MaterialNSkuLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialNSkus',
 		router,

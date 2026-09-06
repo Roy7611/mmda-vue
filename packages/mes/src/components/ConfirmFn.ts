@@ -21,13 +21,13 @@ interface PropsData {
 	id?: string
 }
 /**
- * action弹窗组件调用方法（等封装到框架在修改）
- * @param context 界面上下文
+ * action弹窗组件调用方法（等封装到框架在修改�?
+ * @param context 界面上下�?
  * @param props  方法配置字段
  * @returns Promise<boolean>context: UiContext, props?: PropsData, repositoryName?: string, p0?: { id: string; title: string; type: string; icon: string; message: string; }
  */
 export const ConfirmFn = async (context: UiContext, action: EntityAction, repositoryName: string, props?: PropsData) => {
-	const { $t: t, $api: apiBox, $toast: toast } = context.globalProps;
+	const { $t: t, $toast: toast } = context.globalProps;
 	// pi pi-info-circle //信息
 	// pi-check-circle //成功
 	// pi-exclamation-circle //警告信息
@@ -49,7 +49,7 @@ export const ConfirmFn = async (context: UiContext, action: EntityAction, reposi
 			break;
 	}
 	try {
-		context.uiBuilder.confirmMessage(context, {
+		context.uiBuilder.confirm(context, {
 			header: props.title,
 			message: props.message,
 			icon: props.icon,
@@ -60,7 +60,7 @@ export const ConfirmFn = async (context: UiContext, action: EntityAction, reposi
 			accept: async () => {
 				return true
 				// try {
-				// 	const res: boolean = await apiBox.doAction({
+				// 	const res: boolean = await this.apiClient.doAction({
 				// 		path: props.id,
 				// 		action: action.name,
 				// 		repository: repositoryName,

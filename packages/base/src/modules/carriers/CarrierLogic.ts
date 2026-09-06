@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -224,7 +223,7 @@ export class CarrierLogic extends UiLogic<Carrier> {
  */
 export const CarrierLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new CarrierLogic({

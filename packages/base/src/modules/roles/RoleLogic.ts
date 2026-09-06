@@ -5,8 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { ref, unref, watch } from 'vue';
 import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Role, defineRole } from '../../models/Role';
@@ -24,7 +22,6 @@ import { type RoleUiAuth, defineRoleUiAuth } from '../../models/RoleUiAuth';
  * 角色交互逻辑
  */
 //获得两个点之后的部分
-const selected = ref();
 const deepCopy = (original: Object | any): Object => {
 	if (Array.isArray(original)) {
 		return original.map(deepCopy);
@@ -263,7 +260,7 @@ export class RoleLogic extends UiLogic<Role> {
  * @param module 模块
  * @returns
  */
-export const RoleLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const RoleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new RoleLogic({
 		metaUiService: metaUiService,
 		repository: 'Roles',

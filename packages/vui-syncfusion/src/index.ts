@@ -24,6 +24,18 @@ export * from './components/SfDropupMenuButton'
 export * from './components/SfAttachmentPanel'
 export * from './components/SfImageGallery'
 export * from './components/SfFilesUploader'
+export { SfGrid } from './components/SfGrid'
+export { SfGridLayout } from './components/SfGridLayout'
+export { SfGridHost, SfGridLoadingHost } from './factory/grid'
+export {
+  buildSfGridColumns,
+  buildSfTreeGridColumns,
+  sfGridColumnFilterOf,
+  sfGridColumnOf,
+  sfGridSceneDefaults,
+  sfTreeGridColumnOf,
+} from './sf_grid_column'
+export type { SfTreeGridColumnOptions } from './sf_grid_column'
 
 export interface MmdaSyncfusionOptions {
   licenseKey?: string

@@ -5,12 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isRefNone, EntityAction, isNullOrUndefined, triggerEscKey, isObject, debounce } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectWorkPackage, defineProjectWorkPackage } from '@/models/ProjectWorkPackage';
 import { type ProjectWorkPackageItem, defineProjectWorkPackageItem } from '@/models/ProjectWorkPackageItem';
-import { getCurrentInstance, h, inject, reactive, ref } from 'vue';
 import { MES_KEY } from '@/keys';
 import { isString } from 'lodash';
 import { ManualTaskStatus } from '@mmda/base/src/enums/ManualTaskStatus';
@@ -34,11 +32,11 @@ const getDaysBetweenDates = (date1: any, date2: any) => {
  * 项目工作包交互逻辑
  */
 
-const taskLevelOption = ref([]) as any;
-const taskPhaseOption = ref([]) as any;
-const hrefData = ref();
+const taskLevelOption = { value: [] } as any;
+const taskPhaseOption = { value: [] } as any;
+const hrefData = { value:  };
 //项目
-const projectsData = reactive({
+const projectsData = {
 	project: <any>null,
 	projectsPager: {
 		pageSize: 10,
@@ -53,17 +51,13 @@ const projectsData = reactive({
  * 获取所有的 Projects
  */
 const getAllProjects = async (context: UiContext, value?: any) => {
-	// const { $toast: toast, $ui: ui, $api: apiBox, $t: t } = getCurrentInstance().appContext.config.globalProperties;
-	await context.globalProps.$api
-		.getAll({
-			repository: 'Projects',
-			service: 'mes',
-			queryParams: {
-				pageNo: projectsData.projectsPager.pageNo,
-				pageSize: projectsData.projectsPager.pageSize,
-				searchWord: value,
-			},
-		})
+	await context.logic!.getAllOf<Record<string, unknown>>('Projects', {
+		queryParams: {
+			pageNo: projectsData.projectsPager.pageNo,
+			pageSize: projectsData.projectsPager.pageSize,
+			searchWord: value,
+		},
+	}, { service: 'mes' })
 		.then((res: any) => {
 			res.list = res.list.map((it: any) => {
 				return {
@@ -98,31 +92,11 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 				this.field('status'),
 				this.field('taskName').setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-									const refID = ctx.model.taskID;
-									if (refID) {
-										const routerURL = router.resolve({
-											name: 'ProjectWorkPackage',
-											params: { id: refID },
-										});
-										// projectsData.project = null; //载入清空返回的保存数据
-										router.push(routerURL);
-										// window.open(routerURL.href);
-									}
-								},
-							},
-							fldVal
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal,
+						href: ctx.model.taskID ? `/MES/ProjectWorkPackages/${ctx.model.taskID}` : undefined,
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				}),
 
 				//this.field('taskLevel'),
@@ -172,17 +146,13 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 
 	getOneProjects = async (context: UiContext, value?: any, csf?: any) => {
 		if (hrefData.value.projectID) {
-			// const { $toast: toast, $ui: ui, $api: apiBox, $t: t } = getCurrentInstance().appContext.config.globalProperties;
-			await context.globalProps.$api
-				.getAll({
-					repository: 'Projects',
-					service: 'mes',
-					queryParams: {
-						pageNo: projectsData.projectsPager.pageNo,
-						pageSize: projectsData.projectsPager.pageSize,
-						projectID: value ?? null,
-					},
-				})
+			await context.logic!.getAllOf<Record<string, unknown>>('Projects', {
+				queryParams: {
+					pageNo: projectsData.projectsPager.pageNo,
+					pageSize: projectsData.projectsPager.pageSize,
+					projectID: value ?? null,
+				},
+			}, { service: 'mes' })
 				.then((res: any) => {
 					if (res && res.list.length > 0) {
 						res.list = res.list.map((it: any) => {
@@ -218,8 +188,8 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 					searchLabel: 'projectWorkPackage.phase',
 					searchParam: 'taskPhase',
 					valueFn: (value: any) => `IN ${value.join(',')}`,
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
-						const { $ui: ui, $t: t, $api: apiBox } = ctx.globalProps;
+					renderer: (ctx: UiContext & any, csf) => {
+						const { $ui: ui, $t: t } = ctx.globalProps;
 						this.getTaskPhase(ctx);
 						const options = isString(taskPhaseOption.value) ? JSON.parse(taskPhaseOption.value) : [];
 						if (hrefData.value.taskPhase) {
@@ -253,8 +223,8 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 					searchLabel: 'ganttLabel.sProject',
 					searchParam: 'projectID',
 					valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
-						const { $ui: ui, $t: t, $api: apiBox } = ctx.globalProps;
+					renderer: (ctx: UiContext & any, csf) => {
+						const { $ui: ui, $t: t } = ctx.globalProps;
 						// if (hrefData.value.projectID) {
 						// 	this.getOneProjects(ctx, hrefData.value.projectID, csf.searchVal.value);
 						// }
@@ -270,57 +240,18 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 							dataKey: 'projectID',
 							optionLabel: (v: any) => v.projectName,
 							options: projectsData.projectsList,
-							toSearch: async (event: Event) => {
-								let data = [] as any;
-								// const { metaUiService } = ctx;
-								const { metaui } = await ctx.logic!.loadMetadata('Projects', 'mes', true);
-								projectsData.tableDataKEY = metaui.primaryKey;
-								ctx.searchParam.pager = projectsData.projectsPager = {
-									pageNo: 1,
-									pageSize: 10
-								}
-								// 列表column
-								const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-									isSearch: true,
-									cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-								});
-								ctx.uiBuilder.confirmDialog(
-									ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-										dataKey: projectsData.tableDataKEY,
-										onSearch: async (params: any) => {
-											const { searchParams, reload, pager } = params;
-											// projectsData.searchWord=searchParams.searchWord
-											await getAllProjects(ctx, searchParams.searchWord);
-											return { list: projectsData.projectsList, pager: projectsData.projectsPager };
-										},
-										onPage: ({ pageNo, pageSize }: any) => {
-											projectsData.projectsPager.pageNo = pageNo;
-											projectsData.projectsPager.pageSize = pageSize;
-											ctx.searchParam.pager = projectsData.projectsPager
-										},
-										onSelect: (selection: any, row: any) => {
-											// console.log(selection, row, '选择')
-											data = row;
-										},
-										onRowDblclick(data: any, index: any) {
-											projectsData.project = data;
-											csf.searchVal.value = data ?? null;
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-											triggerEscKey();
-										},
-									}),
-									ctx,
-									{
-										title: t('ganttLabel.sProject'),
-										style: { width: '80vw', maxHeight: '95%' },
-										accept: async () => {
-											projectsData.project = data;
-											csf.searchVal.value = data ?? null;
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-											return true;
-										},
-									}
-								);
+							toSearch: async () => {
+								const picked = await ctx.select({
+									repository: 'Projects',
+									service: 'mes',
+									selectionMode: 'single',
+								})
+								if (!Array.isArray(picked) || !picked.length) return false
+								const data = picked[0]
+								projectsData.project = data
+								csf.searchVal.value = data ?? null
+								ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
+								return true
 							},
 
 							onUpdate: async (value: any) => {
@@ -392,7 +323,7 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
  * @param module 模块
  * @returns
  */
-export const ProjectWorkPackageLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectWorkPackageLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectWorkPackageLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectWorkPackages',
@@ -413,29 +344,12 @@ export class ProjectWorkPackageItemLogic extends UiGroupLogic<ProjectWorkPackage
 			fields.push(
 				this.field('taskName').setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, [
-						h(
-							'a',
-							{
-								style: {
-									color: '#409eff',
-								},
-								href: 'javascript:;',
-								onClick: async () => {
-									const { $api: apiBox, $router: router } = ctx.globalProps;
-									const refID = ctx.model.refID;
-									if (refID) {
-										const routerURL = router.resolve({
-											name: ctx.model.refName,
-											params: { id: refID },
-										});
-										window.open(routerURL.href, '_blank');
-									}
-								},
-							},
-							fldVal
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldVal,
+						href: ctx.model.refID ? `/MES/${ctx.model.refName}s/${ctx.model.refID}` : undefined,
+						target: '_blank',
+						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
+					});
 				})
 			);
 		}

@@ -17,6 +17,7 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaApplication } from "./ui_app";
+import type { VueUiBuilderHost } from "./ui_builder";
 import { UiBuildContext } from "./ui_build_context";
 import { UI_APP_KEY } from "./ui_keys";
 import { GenericUiLogic, type UiLogic, type UiLogicInit } from "./ui_logic";
@@ -199,7 +200,7 @@ export function createEntityView(options: EntityViewOptions) {
               "aria-busy": "true",
               "aria-label": translateMessage("state.loading"),
             },
-            [app.ui.buildLoading({} as any)],
+            [ (app.ui as VueUiBuilderHost).buildLoading({} as any)],
           );
         }
         const context = current.value;
@@ -227,9 +228,9 @@ export function createEntityView(options: EntityViewOptions) {
           return h(CustomView, { ctx: context });
         }
         if (!context.many) {
-          return app.ui.build(context, { showToolbar: true });
+          return (app.ui as VueUiBuilderHost).build(context, { showToolbar: true });
         }
-        return app.ui.build(context, {
+        return (app.ui as VueUiBuilderHost).build(context, {
           loading: context.loading,
           showToolbar: true,
           showSearchbar: true,

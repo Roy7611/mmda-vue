@@ -4,7 +4,6 @@ import {
   friendlySeconds,
   isNullObject,
   relativeTime,
-  type EntityListSearcher,
   type EntitySearchParam,
   type MetaUi,
   type MetaUiField,
@@ -181,7 +180,7 @@ export interface UiFactory {
   ) => VNode
   list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
   tree: <T>(props: UiTreePropsType<T>) => VNode
-  table: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
+  table: <T>(model: T[], metaui: MetaUi, props?: UiListPropsType<T>) => VNode
   treeGrid: <T>(
     model: T[],
     metaui: MetaUi,
@@ -380,4 +379,4 @@ export const cleanProps = (
 export const cleanTableCellProps = (props: PropData = {}): PropData =>
   cleanProps(TABLE_CELL_PROP_KEYS, props)
 
-export type { EntityListSearcher, Module, ChildSlot, UiDialogPropsType }
+export type { Module, ChildSlot, UiDialogPropsType }

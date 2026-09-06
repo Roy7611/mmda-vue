@@ -8,7 +8,7 @@ export const ContextMenu = defineComponent({
     },
     emits: ['getData'],
     setup(props, { emit }) {
-        const { $api: apiBox, $ui: ui } = props.context.globalProps;
+        const { $ui: ui } = props.context.globalProps;
         const materialsName = ref(props.propsData.name ?? '')
         return () => h('div', {
             style: {

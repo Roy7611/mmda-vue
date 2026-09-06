@@ -211,7 +211,7 @@ describe('validation', () => {
   })
 })
 
-describe('FieldLogic.refFilter', () => {
+describe('FieldLogic.refWhere', () => {
   it('叠加 logic SQL，并保留元数据 where', () => {
     const fld = new MetaUiField({
       fieldIdx: 0,
@@ -226,12 +226,12 @@ describe('FieldLogic.refFilter', () => {
 
     const l1 = new MetaUiFieldLogic(fld)
     const l2 = new MetaUiFieldLogic(fld)
-    l1.refFilter(() => 'site=A')
-    l1.refFilter(() => 'plant=P1')
-    l2.refFilter(() => 'site=B')
+    l1.refWhere(() => 'site=A')
+    l1.refWhere(() => 'plant=P1')
+    l2.refWhere(() => 'site=B')
 
-    const f1 = l1.buildRefFilter({}, {} as any)
-    const f2 = l2.buildRefFilter({}, {} as any)
+    const f1 = l1.buildRefWhere({}, {} as any)
+    const f2 = l2.buildRefWhere({}, {} as any)
     expect(f1).toContain(where!)
     expect(f1).toContain('site=A')
     expect(f1).toContain('plant=P1')
@@ -239,11 +239,11 @@ describe('FieldLogic.refFilter', () => {
     expect(f2).toContain('site=B')
     expect(f2).not.toContain('site=A')
 
-    expect(l1.buildRefSearchFilter({}, {} as any)).toContain('site=A')
-    expect(l2.buildRefSearchFilter({}, {} as any)).toContain('site=B')
+    expect(l1.buildRefWhere({}, {} as any)).toContain('site=A')
+    expect(l2.buildRefWhere({}, {} as any)).toContain('site=B')
   })
 
-  it('buildRefSearchFilter 叠加 searchWord 与 @param', () => {
+  it('buildRefWhere 替换 @param，不拼 searchWord LIKE', () => {
     const fld = new MetaUiField({
       fieldIdx: 0,
       fieldName: 'whID',
@@ -253,16 +253,12 @@ describe('FieldLogic.refFilter', () => {
       selectOptions: 'REF Warehouse(whID,whName) WHERE (siteID=@siteID)',
     })
     const logic = new MetaUiFieldLogic(fld)
-    const filter = logic.buildRefSearchFilter(
-      { siteID: 9 } as any,
-      {} as any,
-      'abc',
-    )
-    expect(filter).toContain('siteID=9')
-    expect(filter).toContain('whName LIKE %abc%')
+    const where = logic.buildRefWhere({ siteID: 9 } as any, {} as any)
+    expect(where).toContain('siteID=9')
+    expect(where).not.toContain('LIKE')
   })
 
-  it('无 logic 过滤器时只用元数据 where', () => {
+  it('无 logic where 时只用元数据 where', () => {
     const fld = new MetaUiField({
       fieldIdx: 0,
       fieldName: 'whID',
@@ -272,6 +268,6 @@ describe('FieldLogic.refFilter', () => {
       selectOptions: 'REF Warehouse(whID,whName) WHERE (siteID=1)',
     })
     const logic = new MetaUiFieldLogic(fld)
-    expect(logic.buildRefFilter({}, {} as any)).toBe(fld.reference!.where)
+    expect(logic.buildRefWhere({}, {} as any)).toBe(fld.reference!.where)
   })
 })

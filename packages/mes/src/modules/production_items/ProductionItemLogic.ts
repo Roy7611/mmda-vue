@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionItem, defineProductionItem } from '@/models/ProductionItem';
@@ -13,7 +12,6 @@ import { type ProductionItemTool, defineProductionItemTool } from '@/models/Prod
 import { type ProductionItemJournal, defineProductionItemJournal } from '@/models/ProductionItemJournal';
 import { type ProductionItemParam, defineProductionItemParam } from '@/models/ProductionItemParam';
 import { type ProductionItemAlarm, defineProductionItemAlarm } from '@/models/ProductionItemAlarm';
-import { ref } from 'vue';
 
 /**
  * 生产单件交互逻辑
@@ -65,7 +63,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 			fields.push(
 				//生产任务变动
 				this.field('taskID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						//let filters = null;
 						//filters = 'status=WORKING';
@@ -219,7 +217,7 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
  * @param module 模块
  * @returns
  */
-export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionItemLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionItems',

@@ -21,14 +21,14 @@ export const AppUserFooter = defineComponent({
     const route = useRoute()
     const password = reactive({ newPwd: '', newPwdAgain: '' })
     const username = computed(() => app.user?.username || '游客')
-    const todoCount = computed(() => Number(app.context.todoCount ?? 0))
+    const todoCount = computed(() => Number(app.state.todoCount ?? 0))
     const icon = (name: string) => builder.factory.resolveIcon(name)
 
     const toast = (severity: string, summary: string, detail: string) =>
-      void app.toast({} as any, { severity, summary, detail, life: 3000 })
+      void app.ui.toast({} as any, { severity, summary, detail, life: 3000 })
 
     const setDark = (dark: boolean) => {
-      app.context.isDark = dark
+      app.state.isDark = dark
       builder.setColorScheme(dark)
       writeMmdaPref('isDark', JSON.stringify(dark))
     }
@@ -42,7 +42,7 @@ export const AppUserFooter = defineComponent({
 
     const changePassword = () => {
       Object.assign(password, { newPwd: '', newPwdAgain: '' })
-      void builder.confirmDialog(
+      void builder.dialog(
         h(ChangePasswordForm, {
           onChange: (value: typeof password) => Object.assign(password, value),
         }),
@@ -99,7 +99,7 @@ export const AppUserFooter = defineComponent({
     })
 
     onMounted(() => {
-      setDark(Boolean(app.context.isDark))
+      setDark(Boolean(app.state.isDark))
       void app.getTodoCount()
       void app.getSystems()
     })
@@ -141,12 +141,12 @@ export const AppUserFooter = defineComponent({
             ],
           ),
           builder.factory.button({
-            icon: icon(app.context.isDark ? 'fas fa-sun' : 'fas fa-moon'),
+            icon: icon(app.state.isDark ? 'fas fa-sun' : 'fas fa-moon'),
             class: 'mmda-user-footer__button',
             buttonType: 'text',
             shape: 'circle',
-            tooltip: app.context.isDark ? '切换到明亮模式' : '切换到暗黑模式',
-            onClick: () => setDark(!app.context.isDark),
+            tooltip: app.state.isDark ? '切换到明亮模式' : '切换到暗黑模式',
+            onClick: () => setDark(!app.state.isDark),
           }),
           h(ColorPalettePicker),
           builder.factory.menuButton(

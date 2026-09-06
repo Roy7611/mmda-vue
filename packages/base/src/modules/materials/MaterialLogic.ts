@@ -5,8 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
-import { h, ref } from "vue";
 import {
   type MetaUiService,
   type Module,
@@ -48,8 +46,6 @@ import { type Partner, definePartner } from "../../models/Partner";
 import { UsageStatus } from "../../enums/UsageStatus";
 import { MaterialType, MaterialTypeEnum } from "../../enums/MaterialType";
 import { type MaterialCat, defineMaterialCat } from "../../models/MaterialCat";
-// 展示物料用途
-const isHide = ref(true);
 /**
  * 物料交互逻辑
  * @author mmda codebot
@@ -106,20 +102,16 @@ export class MaterialLogic extends UiLogic<Material> {
           selected: this.currentCategory?.categoryID,
           selectedNode: this.currentCategory,
           footerContent: (cat: MaterialCat) =>
-            h(
-              "span",
-              { class: "mmda-tree-view-footer-label" },
-              [
-                cat.categoryCode,
-                cat.categoryName,
-                cat.materialType
-                  ? MaterialTypeEnum.textOf(cat.materialType)
-                  : "",
-                cat.childrenCount,
-              ]
-                .filter((value) => value !== undefined && value !== "")
-                .join(" · "),
-            ),
+            [
+              cat.categoryCode,
+              cat.categoryName,
+              cat.materialType
+                ? MaterialTypeEnum.textOf(cat.materialType)
+                : "",
+              cat.childrenCount,
+            ]
+              .filter((value) => value !== undefined && value !== "")
+              .join(" · "),
           onNodeSelect: (node: MaterialCat | MaterialCat[]) => {
             this.currentCategory = Array.isArray(node) ? node[0] : node;
           },
@@ -179,28 +171,28 @@ export class MaterialLogic extends UiLogic<Material> {
     const { fields, groups, customActions } = super.beforeEdit();
     if (fields.length == 0) {
       fields.push(
-        this.field("materialType").hideIf(() => isHide.value),
+        this.field("materialType").hideIf((model) =>
+          isRefNone(model.categoryID),
+        ),
         this.field("categoryID").onChange((context, model, newVal) => {
           if (newVal) {
             const category = context.getFieldCurrentOption("categoryID");
             if (!category) return;
             (model as Material & { materialX?: string }).materialX =
               category.materialX ?? "";
-            isHide.value = false;
             context.setFieldValue("materialType", {
               value: category.materialType,
               text: MaterialTypeEnum.textOf(category.materialType),
             });
           } else {
             (model as Material & { materialX?: string }).materialX = "";
-            isHide.value = true;
           }
         }),
         //customJson 字段暂显示图号信息
         this.field("customJson")
           .setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
             const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
-            return h("div", drawing);
+            return ctx.uiBuilder.factory.textSpan(drawing ?? "");
           })
           .lock(),
       );
@@ -378,31 +370,17 @@ export class MaterialLogic extends UiLogic<Material> {
           (fld, ctx: UiContext<Material>, props) => {
             const fldVal = ctx.getFieldValue(fld);
             if (!fldVal) return null;
-            return h(
-              "div",
-              {
-                style: {
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  width: "100%",
-                  height: "100%",
-                },
+            return ctx.uiBuilder.factory.image(fldVal, {
+              width: "70",
+              height: "70",
+              imageStyle: {
+                width: "70px",
+                height: "70px",
+                objectFit: "contain",
               },
-              [
-                ctx.uiBuilder.factory.image(fldVal, {
-                  width: "70",
-                  height: "70",
-                  imageStyle: {
-                    width: "70px",
-                    height: "70px",
-                    objectFit: "contain",
-                  },
-                  style: { width: "70px", height: "70px" },
-                  preview: true,
-                }),
-              ],
-            );
+              style: { width: "70px", height: "70px" },
+              preview: true,
+            });
           },
         ),
 
@@ -410,7 +388,7 @@ export class MaterialLogic extends UiLogic<Material> {
         this.field("customJson").setCustomRenderer(
           (fld, ctx: UiContext<Material>, props) => {
             const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
-            return h("div", drawing);
+            return ctx.uiBuilder.factory.textSpan(drawing ?? "");
           },
         ),
       );
@@ -435,7 +413,7 @@ export class MaterialLogic extends UiLogic<Material> {
  */
 export const MaterialLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new MaterialLogic({
@@ -512,7 +490,7 @@ export class MaterialPartnerLogic extends UiGroupLogic<
     const { fields, groups, customActions } = super.beforeEdit();
     if (fields.length === 0) {
       fields.push(
-        this.field("packID").refFilter((model, ctx) => {
+        this.field("packID").refWhere((model, ctx) => {
 					const __p = ((context, model, fld) => ({
           status: UsageStatus.USED,
         }))(ctx as any, model as any, undefined as any);

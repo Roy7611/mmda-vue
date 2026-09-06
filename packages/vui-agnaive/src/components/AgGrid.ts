@@ -44,11 +44,12 @@ import {
 } from '../ag_filter'
 import { buildAgGridTheme } from '../agnaive_theme'
 import { buildColumnDefs, cellNodeFromParams, editorFieldOf } from '../ag_columns'
+import { AgHasOneFilter } from './AgHasOneFilter'
 
 ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule])
 
-const MmdaAgGridCell = defineComponent({
-  name: 'MmdaAgGridCell',
+const AgGridCell = defineComponent({
+  name: 'AgGridCell',
   props: {
     params: { type: Object as PropType<ICellRendererParams>, required: true },
   },
@@ -57,8 +58,8 @@ const MmdaAgGridCell = defineComponent({
   },
 })
 
-const MmdaAgGridEditor = defineComponent({
-  name: 'MmdaAgGridEditor',
+const AgGridEditor = defineComponent({
+  name: 'AgGridEditor',
   props: {
     params: { type: Object as PropType<ICellEditorParams>, required: true },
   },
@@ -147,8 +148,8 @@ const MmdaAgGridEditor = defineComponent({
   },
 })
 
-export const MmdaAgGrid = defineComponent({
-  name: 'MmdaAgGrid',
+export const AgGrid = defineComponent({
+  name: 'AgGrid',
   inheritAttrs: false,
   props: {
     data: { type: Array as PropType<any[]>, default: () => [] },
@@ -202,7 +203,7 @@ export const MmdaAgGrid = defineComponent({
     const onFilterChanged = (event: FilterChangedEvent) => {
       if (applyingFilter.value) return
       const model = agFilterModelToEntity(event.api.getFilterModel(), props.metaui)
-      listProps.onFilterModelChange?.(model)
+      return listProps.onFilterModelChange?.(model)
     }
 
     const onSortChanged = (event: SortChangedEvent) => {
@@ -213,7 +214,7 @@ export const MmdaAgGrid = defineComponent({
           sortBy: col.colId as string,
           sortOrder: col.sort === 'desc' ? SortOrder.DESC : SortOrder.ASC,
         }))
-      listProps.onSort?.(sorts)
+      return listProps.onSort?.(sorts)
     }
 
     const onSelectionChanged = (event: SelectionChangedEvent) => {
@@ -259,8 +260,9 @@ export const MmdaAgGrid = defineComponent({
                 sortable: listProps.enableSort !== false,
               },
               components: {
-                MmdaAgGridCell,
-                MmdaAgGridEditor,
+                AgGridCell,
+                AgGridEditor,
+                AgHasOneFilter,
               },
               context: {
                 renderCell: listProps.renderCell,

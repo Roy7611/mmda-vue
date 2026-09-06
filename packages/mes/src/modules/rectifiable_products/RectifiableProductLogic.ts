@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';
@@ -64,7 +63,7 @@ import { type RectifiableProduct, defineRectifiableProduct } from '@/models/Rect
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const RectifiableProductLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new RectifiableProductLogic({
+	export const RectifiableProductLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new RectifiableProductLogic({
 		metaUiService: metaUiService,
 		repository: 'RectifiableProducts',
 		router,

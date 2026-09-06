@@ -28,7 +28,7 @@ const metaui = new MetaUi({
   ],
 });
 
-describe("AbstractUiBuilder tree chrome", () => {
+describe("VueUiBuilder tree chrome", () => {
   const hosts: HTMLElement[] = [];
 
   afterEach(() => {
@@ -63,7 +63,7 @@ describe("AbstractUiBuilder tree chrome", () => {
     window.confirm = () => true;
     await expect(
       new TestUiBuilder().confirm(context, { message: "确认吗？" }),
-    ).resolves.toBe("yes");
+    ).resolves.toBe(true);
     window.confirm = original;
   });
 

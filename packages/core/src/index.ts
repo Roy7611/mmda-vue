@@ -1,6 +1,6 @@
 /**
  * 元模型驱动架构核心（@mmda/core）
- * 产品层：Logic（logic/）+ Data（其余）。没有 UI。
+ * 产品层：Logic（logic/）+ Data（metaui / models / net / …）+ UI 契约（ui/，无实现）。
  */
 export { DateTime, Duration, Interval } from 'luxon'
 
@@ -24,6 +24,7 @@ export * from './metaui/metaui_dialog'
 export * from './metaui/metaui_action'
 export * from './metaui/metaui_field'
 export * from './metaui/metaui_group'
+export * from './metaui/metaui_builder'
 export * from './metaui/metaui_filter'
 export * from './metaui/metaui_service'
 export * from './metaui/module'
@@ -34,12 +35,21 @@ export * from './models/file'
 export * from './models/metamodel'
 export * from './models/pagination'
 
+// 应用壳（abstract class，不在 logic/）
+export * from './mmda_app'
+
+// UI 契约（无 Vue / 皮肤实现）
+export * from './ui/builder'
+export * from './ui/factory'
+export * from './ui/field_factory'
+export * from './ui/layout'
+export * from './ui/context'
+
 // Logic
 export * from './logic/field_search_options'
 export * from './logic/validation'
 export * from './logic/validators'
-export * from './logic/ui_context'
-export * from './logic/ui_logic'
+export * from './logic/entity_logic'
 export * from './logic/sql_operator'
 
 // Data：net / di

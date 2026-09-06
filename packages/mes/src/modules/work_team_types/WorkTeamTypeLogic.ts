@@ -13,7 +13,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type UiContext, type MetaUiService, type Module, defaultPager } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkTeamType, defineWorkTeamType } from '@/models/WorkTeamType';
@@ -137,7 +136,7 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
  * @param module 模块
  * @returns 
  */
-export const WorkTeamTypeLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new WorkTeamTypeLogic({
+export const WorkTeamTypeLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkTeamTypeLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkTeamTypes',
 	router,
@@ -156,7 +155,7 @@ export class WorkTeamTypeCertLogic extends UiGroupLogic<WorkTeamTypeCert, WorkTe
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('skillID').refFilter((model, ctx) => {
+				this.field('skillID').refWhere((model, ctx) => {
 					const __p = (() => ({
 					status: 'USED',
 				}))(ctx as any, model as any, undefined as any);

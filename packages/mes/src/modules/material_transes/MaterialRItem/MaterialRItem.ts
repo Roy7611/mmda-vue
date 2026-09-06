@@ -1,12 +1,4 @@
-/*
- * @Author: LiuLan 15999689+browser-liu@user.noreply.gitee.com
- * @Date: 2026-04-27 10:58:15
- * @LastEditors: LiuLan 15999689+browser-liu@user.noreply.gitee.com
- * @LastEditTime: 2026-06-18 15:13:31
- * @FilePath: \mmda\packages\mes\src\modules\material_transes\MaterialRItem\MaterialRItem.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-import { isNullOrUndefined, MetaModel } from '@mmda/core';
+import { isNullOrUndefined, MetaModel, MetaUiBuilder } from '@mmda/core';
 import { defineComponent, h, getCurrentInstance, unref, ref, onMounted, reactive, onBeforeMount } from 'vue'
 
 export const MaterialRItem = defineComponent({
@@ -44,61 +36,59 @@ export const MaterialRItem = defineComponent({
         //最终提交前处理的方法
         const submitFun = () => emit('getTepModel', submitData.data);
 
-        return () => props.ctx.uiBuilder.buildSearchForRelativeContent(
-            [
-                ui.factory.column({ header: '#', field: 'rowNum', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.materialCategory'), field: 'materialCategory', style: 'width: 100px' }),
-                ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
-                ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.quantity'), field: 'quantity', style: 'width: 100px' }),
-                ui.factory.column(
-                    { header: t('inventory.arrivedQuantity'), style: 'width: 240px' },
-                    {
-                        body: ({ data }: any, frozenRow: any, index: any) => ui.factory.numberInput({
-                            style: { width: '140px' },
-                            min: 0,
-                            maxFractionDigits: 2, // 最大小数位数
-                            modelValue: data.arrivedQuantity,
-                            onUpdate:(value:number) => {
-                               if (!isNullOrUndefined(value) && Number(value) <= 0) {
-                                    toast.add({
-                                        severity: 'warn',
-                                        summary: t('dialog.title.warning'),
-                                        detail: t('inventory.arrivedQuantityPositive'),
-                                        group: 'br',
-                                        life: 3000,
-                                    });
-                                    return
-                                }
-                                 data.arrivedQuantity = value;
-                                 submitFun()
-                            }
-                        })
-                    }
-                ),
-                ui.factory.column({ header: t('inventory.unit'), field: 'unit', style: 'width: 100px' }),
-                ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
-                ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.materialTexture'), field: 'modelType', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.usage'), field: 'usage', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.remainingQuantity'), field: 'leftOverQuantity', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.unitPrice'), field: 'unitPrice', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.amount'), field: 'amount', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.weight'), field: 'weight', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.qualityStatus'), field: 'qaStatus', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.packageSize'), field: 'packSize', style: 'width: 100px' }),
-                ui.factory.column({ header: t('inventory.remark'), field: 'remark', style: 'width: 100px' }),
-            ],
+        const metaui = MetaUiBuilder.create('MaterialRItem')
+            .rowNumber('#')
+            .field('materialCategory', t('inventory.materialCategory'))
+            .field('materialCode', t('view.materialCode'))
+            .field('materialName', t('view.materialName'))
+            .field('quantity', t('inventory.quantity'))
+            .field('arrivedQuantity', t('inventory.arrivedQuantity'))
+            .field('unit', t('inventory.unit'))
+            .field('brand', t('bom.brand'))
+            .field('specs', t('bom.specification'))
+            .field('modelType', t('inventory.materialTexture'))
+            .field('usage', t('inventory.usage'))
+            .field('leftOverQuantity', t('inventory.remainingQuantity'))
+            .field('unitPrice', t('inventory.unitPrice'))
+            .field('amount', t('inventory.amount'))
+            .field('weight', t('inventory.weight'))
+            .field('qaStatus', t('inventory.qualityStatus'))
+            .field('packSize', t('inventory.packageSize'))
+            .field('remark', t('inventory.remark'))
+            .build();
+
+        return () => props.ctx.uiBuilder.factory.table(
+            submitData.data,
+            metaui,
             {
-                dataKey: unref(tableDataKey),
-                paginator: false,
-                selectionMode: 'none',
-                onSearch: ({ searchParams, reload, pager }: any) => {
-                    return {
-                        list: submitData.data.filter(item => item.materialName.includes(searchParams.searchWord) || (!isNullOrUndefined(item.materialCode) ? item.materialCode.includes(searchParams.searchWord) : '')), pager: searchParam.pager
-                    }
+                tableId: 'material-r-item-table',
+                customCellRenderers: {
+                    arrivedQuantity: (_field: any, data: any) => ui.factory.numberInput({
+                        style: { width: '140px' },
+                        min: 0,
+                        maxFractionDigits: 2,
+                        modelValue: data.arrivedQuantity,
+                        onUpdate: (value: number) => {
+                            if (!isNullOrUndefined(value) && Number(value) <= 0) {
+                                toast.add({
+                                    severity: 'warn',
+                                    summary: t('dialog.title.warning'),
+                                    detail: t('inventory.arrivedQuantityPositive'),
+                                    group: 'br',
+                                    life: 3000,
+                                });
+                                return
+                            }
+                            data.arrivedQuantity = value;
+                            submitFun()
+                        }
+                    }),
                 },
-            }
+            },
         )
     }
 })
+
+export function materialRItemNode(props?: Record<string, any>) {
+    return h(MaterialRItem, props as any)
+}

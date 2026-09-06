@@ -1,12 +1,12 @@
 import { MetaUiField } from '../metaui/metaui_field'
-import type { UiContext } from './ui_context'
+import type { UiContext } from '../ui/context'
 import {
   logicOr,
   sqlAnd,
   type OnChangeFn,
   type OnValidateFn,
   type Predicate,
-  type RefFilterFn,
+  type RefWhereFn,
   type AggregateFn,
   type CustomFieldRenderFn,
 } from './logic_functions'
@@ -51,8 +51,8 @@ export class MetaUiFieldLogic<E> {
   onChangeFn?: OnChangeFn<E, any>
   /** 列表/子表合计自定义；vui 读此函数，返回 number。 */
   aggregateFn?: AggregateFn<E>
-  /** 引用范围 SQL 片段列表；refFilter 追加，buildRefFilter 与元数据 where AND。 */
-  private readonly refFilters: RefFilterFn<E>[] = []
+  /** 引用范围 SQL 片段列表；refWhere 追加，buildRefWhere 与元数据 where AND。 */
+  private readonly refWheres: RefWhereFn<E>[] = []
 
   private hasField() {
     if (!this.field) {
@@ -140,54 +140,34 @@ export class MetaUiFieldLogic<E> {
   }
 
   /**
-   * 追加引用范围限制（SQL 片段）。与元数据 reference.where AND，多次调用叠加。
+   * 追加引用范围限制（SQL WHERE 片段）。与元数据 reference.where AND，多次调用叠加。
    */
-  refFilter(filterFn: RefFilterFn<E>) {
+  refWhere(whereFn: RefWhereFn<E>) {
     if (!this?.field?.reference) {
       console.warn(`${this?.field?.fieldName || ''} field reference invalid.`)
       return this
     }
-    this.refFilters.push(filterFn)
+    this.refWheres.push(whereFn)
     return this
   }
 
-  /** 元数据 where 与已登记 refFilter 的 AND 结果。 */
-  buildRefFilter(
-    model: E,
-    ctx: UiContext<E & object>,
-    fieldOptions?: Record<string, unknown>,
-  ): string | undefined {
-    let filter = this.field.reference?.where
-    for (const fn of this.refFilters) {
-      filter = sqlAnd(filter, fn(model, ctx, fieldOptions))
-    }
-    return filter
-  }
-
   /**
-   * 组装关联引用查询 filter：buildRefFilter + @param 替换 + searchWord LIKE。
-   * 元数据 MetaUiFieldRef 只提供 where / refFlds，不负责拼查询。
+   * 元数据 where 与已登记 refWhere 的 AND，并替换 `@param`。
+   * 联想关键字走 EntitySearchParam.searchWord，不要在此拼 LIKE。
    */
-  buildRefSearchFilter(
+  buildRefWhere(
     model: E,
     ctx: UiContext<E & object>,
-    searchWord?: string,
     fieldOptions?: Record<string, unknown>,
   ): string | undefined {
-    const ref = this.field.reference
-    if (!ref) return undefined
-    let filter = this.buildRefFilter(model, ctx, fieldOptions)
-    if (filter && filter.indexOf('@') != -1) {
-      filter = filter.replaceAll(/@(\w+)/gi, (p: string) => (model as any)[p.substring(1)])
+    let where = this.field.reference?.where
+    for (const fn of this.refWheres) {
+      where = sqlAnd(where, fn(model, ctx, fieldOptions))
     }
-    if (searchWord) {
-      const conditions: string[] = []
-      conditions.push(`t.${ref.refFlds[1]} LIKE %${searchWord}%`)
-      if (ref.hasExtraRefFields)
-        conditions.push(`t.${ref.refFlds[2]} LIKE %${searchWord}%`)
-      filter = sqlAnd(filter, conditions.join(' OR '))
+    if (where && where.indexOf('@') != -1) {
+      where = where.replaceAll(/@(\w+)/gi, (p: string) => (model as any)[p.substring(1)])
     }
-    return filter
+    return where
   }
 
   /** 引用选项显示标签；写入元数据 reference.labelFn。 */

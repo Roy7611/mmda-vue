@@ -12,9 +12,9 @@ SfGrid 是皮肤控件：`metaui` + `dataSource`（行对象）+ `scene` + 事�
 
 ```text
 Index / Selector
-  build() → buildListView → listViewParts → buildTable
+  build() → buildListView → listViewParts → buildTable   // vui builders/list.ts
     → tableWithCells(rows, metaui, () => pageContext)   // 页 = 整表，禁止 with(row)
-    → factory.table
+    → factory.table → h(SfGrid, …)
 
 Edit / Details 子表
   build() → buildView → buildGroup(many)

@@ -44,6 +44,7 @@ import PanelMenu from "primevue/panelmenu";
 import Paginator from "primevue/paginator";
 import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
+import AutoComplete from "primevue/autocomplete";
 import MultiSelect from "primevue/multiselect";
 import SplitButton from "primevue/splitbutton";
 import Splitter from "primevue/splitter";
@@ -51,6 +52,11 @@ import SplitterPanel from "primevue/splitterpanel";
 import Tag from "primevue/tag";
 import { primeLayout } from "./prime_layout";
 import { MmdaPrimeTree } from "./components/MmdaPrimeTree";
+import {
+  applyPrimeColumnFilter,
+  hydratePrimeColumnFilter,
+  mergeFieldFilter,
+} from "./prime_filter";
 
 const EMPTY_SELECTION: unknown[] = [];
 
@@ -159,134 +165,155 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       const filterModel = (props.filterModel ?? {}) as EntityFilterModel;
       const fieldName = field.fieldName!;
       const current = filterModel[fieldName];
+      const hydrated = hydratePrimeColumnFilter(field, current);
       const state = reactive({
-        operator:
-          current && "operator" in current
-            ? current.operator
-            : (getFieldFilterOps(field)[0] ?? "EQ"),
-        value:
-          current?.filterType === "set"
-            ? [...current.values]
-            : current && "value" in current
-              ? current.value
-              : undefined,
-        valueTo: current && "valueTo" in current ? current.valueTo : undefined,
+        ...hydrated,
+        suggestions: [] as { label: string; value: unknown }[],
       });
       const apply = (filter?: EntityFieldFilter) => {
-        const next = { ...filterModel };
-        if (filter) next[fieldName] = filter;
-        else delete next[fieldName];
-        props.onFilterModelChange?.(next);
+        return props.onFilterModelChange?.(
+          mergeFieldFilter(filterModel, fieldName, filter),
+        );
       };
-      const enumOptions = (field.reference?.refOptions ?? []).map((option) => ({
-        label: field.reference!.labelOf(option),
-        value: field.reference!.valueOf(option),
+      const ref = field.reference;
+      const showSet =
+        Boolean(ref?.isEnum || ref?.isRef || ref?.hasOne) &&
+        !SqlDataType.isBool(field.dataType);
+      const enumOptions = (ref?.refOptions ?? []).map((option) => ({
+        label: ref!.labelOf(option),
+        value: ref!.valueOf(option),
       }));
       const noValue = ["IS_NULL", "IS_NOT_NULL", "IS_ALL"].includes(
         state.operator ?? "",
       );
-      const editor = field.reference?.isEnum
-        ? h(MultiSelect, {
+      const valueEditor = (which: "first" | "second") => {
+        const isSecond = which === "second";
+        const modelKey = isSecond ? "secondValue" : "value";
+        if (SqlDataType.isDate(field.dataType)) {
+          return h(DatePicker as any, {
+            modelValue: state[modelKey],
+            dateFormat: "yy-mm-dd",
+            "onUpdate:modelValue": (value: any) => (state[modelKey] = value),
+          });
+        }
+        if (SqlDataType.isNum(field.dataType)) {
+          return h(InputNumber as any, {
+            modelValue: state[modelKey],
+            "onUpdate:modelValue": (value: number | null) =>
+              (state[modelKey] = value),
+          });
+        }
+        return h(InputText as any, {
+          modelValue: state[modelKey],
+          "onUpdate:modelValue": (value: string) => (state[modelKey] = value),
+        });
+      };
+      const compareBlock = SqlDataType.isBool(field.dataType)
+        ? h(Select, {
             modelValue: state.value,
-            options: enumOptions,
+            options: [
+              { label: props.filterLabels?.all ?? "All", value: null },
+              { label: props.filterLabels?.yes ?? "Yes", value: true },
+              { label: props.filterLabels?.no ?? "No", value: false },
+            ],
             optionLabel: "label",
             optionValue: "value",
-            display: "chip",
-            placeholder: field.displayLabel,
-            "onUpdate:modelValue": (value: unknown[]) => (state.value = value),
+            "onUpdate:modelValue": (value: boolean | null) =>
+              (state.value = value),
           })
-        : SqlDataType.isBool(field.dataType)
-          ? h(Select, {
-              modelValue: state.value,
-              options: [
-                { label: props.filterLabels?.all ?? "All", value: null },
-                { label: props.filterLabels?.yes ?? "Yes", value: true },
-                { label: props.filterLabels?.no ?? "No", value: false },
-              ],
+        : h("div", { class: "mmda-prime-column-filter__values" }, [
+            h(Select, {
+              modelValue: state.operator,
+              options: getFieldFilterOps(field).map((op) => ({
+                name: op,
+                label: op,
+              })),
               optionLabel: "label",
-              optionValue: "value",
-              "onUpdate:modelValue": (value: boolean | null) =>
-                (state.value = value),
-            })
-          : h("div", { class: "mmda-prime-column-filter__values" }, [
+              optionValue: "name",
+              "onUpdate:modelValue": (value: string) =>
+                (state.operator = value),
+            }),
+            !noValue && valueEditor("first"),
+            state.operator === "BETWEEN" &&
+              (SqlDataType.isDate(field.dataType)
+                ? h(DatePicker as any, {
+                    modelValue: state.valueTo,
+                    dateFormat: "yy-mm-dd",
+                    "onUpdate:modelValue": (value: any) =>
+                      (state.valueTo = value),
+                  })
+                : h(InputNumber as any, {
+                    modelValue: state.valueTo,
+                    "onUpdate:modelValue": (value: number | null) =>
+                      (state.valueTo = value),
+                  })),
+            !noValue &&
+              state.operator !== "BETWEEN" &&
               h(Select, {
-                modelValue: state.operator,
-                options: getFieldFilterOps(field).map((op) => ({
-                  name: op,
-                  label: op,
-                })),
+                modelValue: state.joinOperator,
+                options: [
+                  { name: "AND", label: "AND" },
+                  { name: "OR", label: "OR" },
+                ],
                 optionLabel: "label",
                 optionValue: "name",
-                "onUpdate:modelValue": (value: string) =>
-                  (state.operator = value),
+                "onUpdate:modelValue": (value: "AND" | "OR") =>
+                  (state.joinOperator = value),
               }),
-              !noValue &&
-                (SqlDataType.isDate(field.dataType)
-                  ? h(DatePicker as any, {
-                      modelValue: state.value,
-                      dateFormat: "yy-mm-dd",
-                      "onUpdate:modelValue": (value: any) =>
-                        (state.value = value),
-                    })
-                  : SqlDataType.isNum(field.dataType)
-                    ? h(InputNumber as any, {
-                        modelValue: state.value,
-                        "onUpdate:modelValue": (value: number | null) =>
-                          (state.value = value),
-                      })
-                    : h(InputText as any, {
-                        modelValue: state.value,
-                        "onUpdate:modelValue": (value: string) =>
-                          (state.value = value),
-                      })),
-              state.operator === "BETWEEN" &&
-                (SqlDataType.isDate(field.dataType)
-                  ? h(DatePicker as any, {
-                      modelValue: state.valueTo,
-                      dateFormat: "yy-mm-dd",
-                      "onUpdate:modelValue": (value: any) =>
-                        (state.valueTo = value),
-                    })
-                  : h(InputNumber as any, {
-                      modelValue: state.valueTo,
-                      "onUpdate:modelValue": (value: number | null) =>
-                        (state.valueTo = value),
-                    })),
-            ]);
+            !noValue &&
+              state.operator !== "BETWEEN" &&
+              valueEditor("second"),
+          ]);
+      const setBlock = !showSet
+        ? undefined
+        : ref?.hasOne && !ref.isEnum
+          ? h(AutoComplete as any, {
+              modelValue: state.setValues[0],
+              suggestions: state.suggestions,
+              optionLabel: "label",
+              forceSelection: true,
+              completeOnFocus: true,
+              dropdown: true,
+              placeholder: field.displayLabel,
+              completeMethod: (event: { query: string }) => {
+                void Promise.resolve(
+                  props.searchRelative?.(field, event.query ?? ""),
+                ).then((rows) => {
+                  state.suggestions = (rows ?? []).map((option) => ({
+                    label: String(ref.labelOf(option)),
+                    value: ref.valueOf(option),
+                  }));
+                });
+              },
+              "onUpdate:modelValue": (value: any) => {
+                const picked =
+                  value && typeof value === "object" && "value" in value
+                    ? value.value
+                    : value;
+                state.setValues = picked == null ? [] : [picked];
+              },
+            })
+          : h(MultiSelect, {
+              modelValue: state.setValues,
+              options: enumOptions,
+              optionLabel: "label",
+              optionValue: "value",
+              display: "chip",
+              placeholder: field.displayLabel,
+              "onUpdate:modelValue": (value: unknown[]) =>
+                (state.setValues = value ?? []),
+            });
 
       return h("div", { class: "mmda-prime-column-filter" }, [
-        editor,
+        compareBlock,
+        setBlock,
         h("div", { class: "mmda-prime-column-filter__actions" }, [
           h(Button, {
             icon: "pi pi-check",
             size: "small",
             text: true,
             ariaLabel: props.filterLabels?.apply ?? "Apply",
-            onClick: () => {
-              if (field.reference?.isEnum) {
-                apply({
-                  filterType: "set",
-                  values: Array.isArray(state.value) ? state.value : [],
-                });
-              } else if (SqlDataType.isBool(field.dataType)) {
-                apply(
-                  state.value == null
-                    ? undefined
-                    : { filterType: "boolean", value: Boolean(state.value) },
-                );
-              } else {
-                apply({
-                  filterType: SqlDataType.isDate(field.dataType)
-                    ? "date"
-                    : SqlDataType.isNum(field.dataType)
-                      ? "number"
-                      : "text",
-                  operator: state.operator as any,
-                  value: state.value,
-                  valueTo: state.valueTo,
-                });
-              }
-            },
+            onClick: () => apply(applyPrimeColumnFilter(field, state)),
           }),
           h(Button, {
             icon: "pi pi-times",
@@ -375,7 +402,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           : event.sortField
             ? [{ field: event.sortField, order: event.sortOrder }]
             : [];
-        props.onSort?.(
+        return props.onSort?.(
           sorts.map((sort: any) => ({
             sortBy: sort.field,
             sortOrder: sort.order === -1 ? SortOrder.DESC : SortOrder.ASC,

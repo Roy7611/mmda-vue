@@ -1,4 +1,5 @@
 import { Entity } from "../models/entity";
+import { expandDateFilters } from "../models/date_filter";
 import {
   hasFilterModel,
   type EntityFilterModel,
@@ -107,9 +108,12 @@ export function toQueryParams(param: EntitySearchParam) {
 
 /** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 EntityFilterModel。 */
 export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
+  const filterModel = hasFilterModel(param)
+    ? expandDateFilters(param.filterModel)
+    : undefined;
   return {
     queryParams: toQueryParams(param),
-    filterModel: hasFilterModel(param) ? param.filterModel : undefined,
+    filterModel,
   };
 }
 
@@ -240,6 +244,55 @@ export class ApiClient {
       },
       beforeSend: this.http.buildJsonHeaders(),
       resExtractor: this.pagedDataExtractor,
+    });
+  }
+
+  /**
+   * 当前实体表内 DISTINCT 字段值（GET .../pivotValues/{field}）。
+   * 给 REF 列筛选项用，不是关联表全量。
+   */
+  getPivotValues(
+    field: string,
+    {
+      repository,
+      service,
+      reload,
+    }: EntityUrlParam & { reload?: boolean } = {},
+  ): Promise<string[]> {
+    const queryParams =
+      reload === true ? { reload: true } : undefined;
+    const url = this.buildEntityURL({
+      repository,
+      service,
+      path: `pivotValues/${encodeURIComponent(field)}`,
+      queryParams,
+    });
+    return this.http.getJson(url, {
+      beforeSend: this.http.buildJsonHeaders(),
+    }) as Promise<string[]>;
+  }
+
+  /**
+   * 日期列 Excel 树：当前表出现过的日历日（GET .../pivotDates/{field}）。
+   */
+  getPivotDates(
+    field: string,
+    {
+      repository,
+      service,
+      reload,
+    }: EntityUrlParam & { reload?: boolean } = {},
+  ): Promise<unknown> {
+    const queryParams =
+      reload === true ? { reload: true } : undefined;
+    const url = this.buildEntityURL({
+      repository,
+      service,
+      path: `pivotDates/${encodeURIComponent(field)}`,
+      queryParams,
+    });
+    return this.http.getJson(url, {
+      beforeSend: this.http.buildJsonHeaders(),
     });
   }
 

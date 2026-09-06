@@ -4,7 +4,7 @@ import { MetaUiField } from "../metaui/metaui_field";
 import type { EntityFilterOperator } from "../models/entity_search";
 
 /**
- * SQL 片段操作符：metadata `where` / Logic `refFilter`。
+ * SQL 片段操作符：metadata `where` / Logic `refWhere`。
  * 结构化列表过滤用 EntityFilterOperator，不要用本类型拼进 queryParams。
  */
 export interface SqlOperator {

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CurrencyUnit, defineCurrencyUnit } from '../../models/CurrencyUnit';
@@ -72,7 +71,7 @@ export class CurrencyUnitLogic extends UiLogic<CurrencyUnit> {
  * @param module 模块
  * @returns 
  */
-export const CurrencyUnitLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new CurrencyUnitLogic({
+export const CurrencyUnitLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new CurrencyUnitLogic({
 	metaUiService: metaUiService,
 	repository: 'CurrencyUnits',
 	router,

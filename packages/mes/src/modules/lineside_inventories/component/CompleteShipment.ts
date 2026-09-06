@@ -17,7 +17,7 @@ import type { Bom } from '@/models/Bom';
 import { BomLogic, BomLogicCtor } from '@/modules/boms/BomLogic';
 import type { Worksite } from "@/models/Worksite";
 
-export default defineComponent({
+const CompleteShipment = defineComponent({
     name: 'CompleteShipment',
     props: {
         context: { type: Object as PropType<UiBuildContext<any>>, default: null },
@@ -566,71 +566,25 @@ export default defineComponent({
                                         optionLabel,
                                         class: 'w-full',
                                         options: row.workSites,
-                                        toSearch: async (event: Event) => {
-                                            // 打开弹窗时同步当前行的已选站点，避免沿用其他行的选中值
+                                        toSearch: async () => {
                                             selectedSite.value = kittingResults.value[ktIndex]?.searchVal ?? null;
-                                            // 获取元数据字段
-                                            const { metaui } = await props.context.logic!.loadMetadata('Worksites', 'mes');                                        
-                                            const Columns = await uiBuilder.buildColumns(metaui, props.context, { cacheKey: metaui.primaryKey, });
-                                            
-                                            // 只自定义站点编码列
-                                            const customSiteCodeColumn = uiBuilder.factory.column({
-                                                header: $t('linesideInventory.siteCode'),
-                                                field: 'siteCode',
-                                                style: { width: '120px', textAlign: 'left' },
-                                                body: (slotProps: any) => {
-                                                    const siteData = slotProps.data;
-                                                    return h('span', siteData.siteCode || $t('linesideInventory.noCode'));
-                                                }
+                                            const picked = await props.context.select({
+                                                repository: 'Worksites',
+                                                service: 'mes',
+                                                selectionMode: 'single',
+                                                searchParam: {
+                                                    queryParams: {
+                                                        siteType: 8,
+                                                        siteID: data?.projectID ?? '',
+                                                    },
+                                                },
                                             });
-                                            
-                                            const columns = Columns.map((col:VNode) => {
-                                                // 通过字段名找到站点编码列
-                                                if (col.props?.field === 'siteCode') {
-                                                    return customSiteCodeColumn;
-                                                }
-                                                return col;
-                                            });
-                                            uiBuilder.confirmDialog(
-                                                uiBuilder.buildSearchForRelativeContent(columns, {
-                                                    dataKey: metaui.primaryKey,
-                                                    onSearch: async (params: any) => {
-                                                        const { searchParams, reload, pager } = params;
-                                                        siteSearchword.value = searchParams.searchWord;
-                                                        await getAllWorkSites(data, ktIndex);
-                                                        return { list: kittingResults.value[ktIndex].workSites, pager: worksitePager };
-                                                    },
-                                                    onPage: ({ pageNo, pageSize }: any) => {
-                                                        worksitePager.pageNo = pageNo;
-                                                        worksitePager.pageSize = pageSize;
-                                                    },
-                                                    onSelect: (selection: any, row: any) => {
-                                                        selectedSite.value = selection;
-                                                    },
-                                                }),
-                                                props.context,
-                                                {
-                                                    title: $t('linesideInventory.destinationSiteSelection'),
-                                                    style: { width: '80vw', maxHeight: '95%' },
-                                                    accept: async () => {
-                                                        // 未选择至站点数据时给出明确提示，并阻止关闭弹窗
-                                                        if (!selectedSite.value) {
-                                                            uiBuilder.toast(bomCtx, {
-                                                                severity: 'error',
-                                                                summary: props.context.t('dialog.title.error'),
-                                                                detail: $t('linesideInventory.selectDestinationSiteData'),
-                                                                group: 'br',
-                                                                life: 3000,
-                                                            });
-                                                            return false;
-                                                        }
-
-                                                        if (ktIndex === -1) return false;
-                                                        kittingResults.value[ktIndex].searchVal = selectedSite.value;
-                                                        kittingResults.value[ktIndex].siteID = selectedSite.value.siteID;
-                                                    },
-                                                }
-                                            );
+                                            if (!Array.isArray(picked) || !picked.length) return false;
+                                            selectedSite.value = picked[0];
+                                            if (ktIndex === -1) return false;
+                                            kittingResults.value[ktIndex].searchVal = selectedSite.value;
+                                            kittingResults.value[ktIndex].siteID = selectedSite.value.siteID;
+                                            return true;
                                         },
                                         onUpdate: (value: any) => {
                                             if (!value) {
@@ -794,3 +748,9 @@ export default defineComponent({
         });
     },
 })
+
+export default CompleteShipment
+
+export function completeShipmentNode(props?: Record<string, any>) {
+    return h(CompleteShipment, props as any)
+}

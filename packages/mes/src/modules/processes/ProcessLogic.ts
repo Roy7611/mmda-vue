@@ -5,9 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { h, ref, computed, type Ref, toRaw, defineAsyncComponent } from 'vue';
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, inFilter, notInFilter, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
+import { processBpmnNode } from '@/components/BpmnModeler';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
@@ -25,11 +24,6 @@ import { ResourceType, ResourceTypeEnum } from '@/enums/ResourceType';
 import { type Material, defineMaterial } from '@mmda/base/src/models/Material';
 import { MaterialType } from '@mmda/base/src/enums/MaterialType';
 import { type MaterialCat, defineMaterialCat } from '@mmda/base/src/models/MaterialCat';
-
-/** BPMN 编辑器异步加载，避免制程逻辑文件静态引入 bpmn-js */
-const BpmnCom = defineAsyncComponent(() =>
-	import('@/components/BpmnModeler').then((m) => m.BpmnModeler)
-);
 
 /**
  * 制程交互逻辑
@@ -112,9 +106,9 @@ export class ProcessLogic extends UiLogic<Process> {
 	}
 
 	//#region 树形列表逻辑
-	categoryName: Ref<string> = ref('');
-	treeData: Ref<MaterialCat[]> = ref([]);
-	treeLoading: Ref<boolean> = ref(false);
+	categoryName = { value: '' };
+	treeData = { value: [] };
+	treeLoading = { value: false };
 
 	/**
 	 * 搜索物料分类
@@ -197,8 +191,8 @@ export class ProcessLogic extends UiLogic<Process> {
 	}
 
 	// #region BPMN逻辑
-	selectionCtx: Ref<UiContext<any>>
-	isSubProcess: Ref<boolean>
+	selectionCtx: { value: UiContext<any> | null }
+	isSubProcess: { value: boolean }
 	subProcessStack: Process[] = []; // 子制程栈，用于逐级返回
 	prevOp: ProcessOperation; // 上一个工序
 	currentOp: ProcessOperation; // 当前工序
@@ -639,15 +633,15 @@ export class ProcessLogic extends UiLogic<Process> {
 	beforeEdit() {
 		const { fields, groups, customActions } = super.beforeEdit();
 		this.clearCachedData(); // 清空缓存
-		this.selectionCtx = ref(null)
-		this.isSubProcess = ref(false)
+		this.selectionCtx = { value: null }
+		this.isSubProcess = { value: false }
 		this.subProcessStack = []
 		this.showRemoveConnectToast = false
 
 		if (fields.length == 0) {
 			fields.push(
 				//制品类别滤掉materialType为“劳动力”的类别
-				this.field('productCategoryID').refFilter((model, ctx) => {
+				this.field('productCategoryID').refWhere((model, ctx) => {
 					const __p = (() => {
 					return {
 						materialType: getSqlOperator('NOT_IN')!.toSQL([MaterialType.LABOR]),
@@ -686,10 +680,7 @@ export class ProcessLogic extends UiLogic<Process> {
 				this.group<ProcessRoute>('routes')
 					.setCustomEditor((group, ctx: UiViewContext<any>, props) => {
 						const { uiBuilder } = ctx;
-						return h('div',
-							{ class: 'process-bpmn-container col-span-full' },
-							[
-								h(BpmnCom, {
+						return processBpmnNode({
 									context: ctx,
 									selectionCtx: this.selectionCtx.value,
 									'onUpdate:selectionCtx': (element) => this.updateSelectionCtx(ctx, element),
@@ -738,7 +729,7 @@ export class ProcessLogic extends UiLogic<Process> {
 
 												if (item) {
 													if (shape.type === 'bpmn:Task' && !this.isdeleted) {
-														ctx.uiBuilder.confirmMessage(ctx, {
+														ctx.uiBuilder.confirm(ctx, {
 															header: ctx.t('action.confirm'),
 															message: ctx.t('confirmation.delete'),
 														}).then(() => {
@@ -898,8 +889,7 @@ export class ProcessLogic extends UiLogic<Process> {
 													})
 												]
 									}
-								})
-							]);
+								});
 					})
 			);
 		}
@@ -1017,8 +1007,8 @@ export class ProcessLogic extends UiLogic<Process> {
 	beforeDetails() {
 		const { fields, groups, customActions } = super.beforeDetails();
 		this.clearCachedData(); // 清空缓存
-		this.selectionCtx = ref(null)
-		this.isSubProcess = ref(false)
+		this.selectionCtx = { value: null }
+		this.isSubProcess = { value: false }
 		this.subProcessStack = []
 
 		if (fields.length == 0) {
@@ -1034,10 +1024,7 @@ export class ProcessLogic extends UiLogic<Process> {
 			groups.push(
 				this.group<ProcessRoute>('routes')
 					.setCustomRenderer((group, ctx: UiViewContext<any>, props) => {
-						return h('div', {
-							class: 'process-bpmn-container col-span-full'
-						}, [
-							h(BpmnCom, {
+						return processBpmnNode({
 								context: ctx,
 								selectionCtx: this.selectionCtx.value,
 								'onUpdate:selectionCtx': (element) => this.updateSelectionCtx(ctx, element),
@@ -1089,8 +1076,7 @@ export class ProcessLogic extends UiLogic<Process> {
 											})
 										]
 								}
-							})
-						]);
+							});
 					}),
 				this.group<ProcessOperation>('operations').hideIf(() => true)
 
@@ -1108,7 +1094,7 @@ export class ProcessLogic extends UiLogic<Process> {
  * @param module 模块
  * @returns
  */
-export const ProcessLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProcessLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProcessLogic({
 		metaUiService: metaUiService,
 		repository: 'Processes',
@@ -1201,7 +1187,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					}),
 				this.field('qcsID')
 					.hideIf((model) => !model.qcInProcessTypes || model.qcInProcessTypes === QcInProcessType.NONE)
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return { status: 'USED', qcPhase: 'IPQC' };
 					})(ctx as any, model as any, undefined as any);
@@ -1216,7 +1202,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 						})
 						.join(" AND ");
 				}),
-				this.field('subProcessID').refFilter((model, ctx) => {
+				this.field('subProcessID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED', };
 				})(ctx as any, model as any, undefined as any);
@@ -1429,7 +1415,7 @@ export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperation
 						context.setFieldValue('resourceType', (this.parent as ProcessOperationLogic).getResourceTypeValue(resource?.materialType));
 						context.setFieldValue('unit', resource?.unit ?? null);
 					})
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context: UiContext<ProcessOperationResource>,
 						model: ProcessOperationResource,
 						field: MetaUiField) => {
@@ -1491,7 +1477,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('prevOpCode').refFilter((model, ctx) => {
+				this.field('prevOpCode').refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { processID: ctx.model.processID };
 				})(ctx as any, model as any, undefined as any);
@@ -1506,7 +1492,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 						})
 						.join(" AND ");
 				}),
-				this.field('nextOpCode').refFilter((model, ctx) => {
+				this.field('nextOpCode').refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 					return { processID: ctx.model.processID };
 				})(ctx as any, model as any, undefined as any);
@@ -1523,7 +1509,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 				}),
 				this.field('toSubOpCode')
 					.hideIf((m, ctx: UiViewContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
 

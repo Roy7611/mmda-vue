@@ -66,7 +66,7 @@ const warehouses = di.inject(ApiToken).repository('Warehouses')
 const one = await warehouses.getOne(id)
 ```
 
-vui 应用不必手写上面这段：`new MmdaApplication(apiUrl, 'base', builder, i18n, { clientId, clientSecret })` 已经 `new OAuth2ApiClient(new FetchApi({ baseUrl, credentials: 'include' }))`。相对路径 `baseUrl`（如 `/api`）会相对 `location.origin` 解析。
+vui 应用不必手写上面这段：`new MmdaVueApp(apiUrl, 'base', builder, i18n, { clientId, clientSecret })` 已经 `new OAuth2ApiClient(new FetchApi({ baseUrl, credentials: 'include' }))`。相对路径 `baseUrl`（如 `/api`）会相对 `location.origin` 解析。
 
 约定：
 

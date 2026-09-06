@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, EntityState, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type Station, defineStation } from '@/models/Station';
@@ -31,7 +30,7 @@ export class StationLogic extends UiLogic<Station> {
 			fields.push(
 				this.field('lineID')
 					
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = (() => {
 						return { status: 'USED' };
 					})(ctx as any, model as any, undefined as any);
@@ -68,7 +67,7 @@ export class StationLogic extends UiLogic<Station> {
 			);
 			 */
 			fields.push(
-				this.field('lineID').refFilter((model, ctx) => {
+				this.field('lineID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED' };
 				})(ctx as any, model as any, undefined as any);
@@ -85,7 +84,7 @@ export class StationLogic extends UiLogic<Station> {
 				}),
 				// this.field('opCode')
 				// 	.hideIf(model => isLineIDEmpty(model))
-				// 	.refFilter((model, ctx) => {
+				// 	.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 				// 		return { lineID: model.lineID };
 				// 	})(ctx as any, model as any, undefined as any);
@@ -188,7 +187,7 @@ export class StationLogic extends UiLogic<Station> {
  * @param module 模块
  * @returns
  */
-export const StationLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const StationLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new StationLogic({
 		metaUiService: metaUiService,
 		repository: 'Stations',

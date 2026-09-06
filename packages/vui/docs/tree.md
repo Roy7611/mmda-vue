@@ -2,7 +2,7 @@
 
 单纯树（节点标签 + 展开）。树形表格是另一套，见 [treegrid.md](./treegrid.md)。
 
-`factory.tree` 是皮肤树控件。`buildTree` 薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
+`factory.tree` 是皮肤树控件（皮肤 `components/` 里实现，如 `NaiveTree` / `SfTree`）。`buildTree`（vui `builders/tree.ts`）薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
 
 ## 单纯树
 

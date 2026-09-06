@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionPlate, defineProductionPlate } from '@/models/ProductionPlate';
@@ -48,7 +47,7 @@ export class ProductionPlateLogic extends UiLogic<ProductionPlate> {
 			fields.push(
 				//生产任务变动
 				this.field('taskID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						//let filters = null;
 						//filters = 'status=WORKING';
@@ -130,7 +129,7 @@ export class ProductionPlateLogic extends UiLogic<ProductionPlate> {
  * @param module 模块
  * @returns
  */
-export const ProductionPlateLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionPlateLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionPlateLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionPlates',

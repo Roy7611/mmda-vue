@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Product, defineProduct } from '@/models/Product';
@@ -64,7 +63,7 @@ import { type Product, defineProduct } from '@/models/Product';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductLogic({
+	export const ProductLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductLogic({
 		metaUiService: metaUiService,
 		repository: 'Products',
 		router,

@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import type { MetaUiService, Module, MetaUiField, UiContext } from "@mmda/core";
 import {
   type UiLogicInit,
@@ -157,7 +156,7 @@ export class ContractTemplateLogic extends UiLogic<ContractTemplate> {
  */
 export const ContractTemplateLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new ContractTemplateLogic({

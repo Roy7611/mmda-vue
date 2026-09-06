@@ -5,15 +5,14 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, debounce, isObject } from '@mmda/core';
+
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined, debounce, isObject } from '@mmda/core';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Rectification, defineRectification } from '@/models/Rectification';
 import { type RectificationItem, defineRectificationItem } from '@/models/RectificationItem';
 import { RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';
 import { RectificationMethod } from '@/enums/RectificationMethod';
-import { h, ref, reactive } from 'vue';
 import { UserStatus } from '@mmda/base/src/enums/UserStatus';
 
 /**
@@ -26,30 +25,30 @@ import { UserStatus } from '@mmda/base/src/enums/UserStatus';
 /**
  * 质量异常整改单交互逻辑
  */
-const tableData = ref([])
-const tableColumns = ref([])
-const tableDataKey = ref('id')
-const searchParam = reactive({
+const tableData = { value: [] as any[] }
+const tableColumns = { value: [] as any[] }
+const tableDataKey = { value: 'id' }
+const searchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
 	},
 	searchWord: '',
 	searchParams: {}
-})
+}
 
 
-const defectTableData = ref([])
-const defectTableColumns = ref([])
-const defectTableDataKey = ref('id')
-const defectSearchParam = reactive({
+const defectTableData = { value: [] as any[] }
+const defectTableColumns = { value: [] as any[] }
+const defectTableDataKey = { value: 'id' }
+const defectSearchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
 	},
 	searchWord: '',
 	searchParams: {}
-})
+}
 const qcResultValueOf = (value: any) =>
 	QaStatusEnum.valueOf(isObject(value) ? value.value : value);
 //时间对比
@@ -109,7 +108,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
 						model.expectedDuration = Math.round((new Date(model.expectedToComplete).getTime() - new Date(model.sentDate).getTime()) / 1000 / 60 / 60)
 					}
 				}),
-				this.field('rectifierID').refFilter((model, ctx) => {
+				this.field('rectifierID').refWhere((model, ctx) => {
 					const __p = ((context, model) => {
 					return {
 						status: `IN ${UserStatus.ACTIVATED}`
@@ -246,7 +245,7 @@ export class RectificationLogic extends UiLogic<Rectification> {
  * @param module 模块
  * @returns 
  */
-export const RectificationLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new RectificationLogic({
+export const RectificationLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new RectificationLogic({
 	metaUiService: metaUiService,
 	repository: 'Rectifications',
 	router,
@@ -260,8 +259,8 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 		super(defineRectificationItem, parent, master, 'items')
 	}
 	async getData(ctx: any, id: any, value?: any) {
-		const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-		const res = await apiBox.getAll({
+		const { $ui: ui, $t: t } = ctx.globalProps;
+		const res = await this.apiClient.getAll({
 			repository: 'ProductionTasks',
 			path: `${id}/getAllAncestorProductionTask`,
 			queryParams: {
@@ -287,9 +286,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 		})
 	}
 	async getDefectData(ctx: any, value?: any) {
-		const { $api: apiBox } = ctx.globalProps;
-		const res = await apiBox.getAll({
-			repository: 'QualityDefects',
+		const res = await ctx.logic!.getAllOf<Record<string, unknown>>('QualityDefects', {
 			queryParams: {
 				pageSize: defectSearchParam.pager.pageSize,
 				pageNo: defectSearchParam.pager.pageNo,
@@ -313,7 +310,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 				this.field('producedQuantity').lockIf(t => !isRefNone(t.refID)),
 				this.field('unit').lockIf(t => !isRefNone(t.refID)),
 				this.field('reworkTaskID').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
-					const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
+					const { $ui: ui, $t: t } = ctx.globalProps;
 					const { model } = ctx; const metaUiService = ctx.logic!.metaUiService
 					const id = !isRefNone(model.refTaskID) ? model.refTaskID : 0
 					return ui.factory.searchForRelative({
@@ -325,58 +322,28 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 						optionLabel: (v: any) => v.productName,
 						options: tableData.value,
 						placeholder: t('action.select'),
-						toSearch: async (event: Event) => {
-							let data = [] as any
-							// 获取元数据字段
-							const { metaui } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true);
-							ctx.searchParam.pager = searchParam.pager = {
-								pageNo: 1,
-								pageSize: 10
-							}
-							// 列表column
-							tableColumns.value = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-								isSearch: true,
-								cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-							});
-							tableDataKey.value = metaui.primaryKey
-							ctx.uiBuilder.confirmDialog(
-								ctx.uiBuilder.buildSearchForRelativeContent(
-									tableColumns.value,
-									{
-										dataKey: tableDataKey.value,
-										onSearch: async (params: any) => {
-											const { searchParams, reload, pager } = params
-											await this.getData(ctx, id, searchParams.searchWord)
-											return { list: tableData.value, pager: searchParam.pager }
-										},
-										onPage: ({ pageNo, pageSize }: any) => {
-											searchParam.pager.pageNo = pageNo;
-											searchParam.pager.pageSize = pageSize;
-											ctx.searchParam.pager = searchParam.pager
-										},
-										onSelect: (selection: any, row: any) => {
-											data = row
-										}
-									}
-								), ctx, {
-								title: fld.displayLabel,
-								width: '80%',
-								// height: '30%',
-								accept: async () => {
-									ctx.model.reworkTaskID = data.taskID
-									ctx.model.reworkTask = data
-									// // 制品编码
-									// ctx.model.productCode = data.productCode
-									// // 制品名称及规格
-									// ctx.model.productName = `${data.productName} ${data.specs}`
-									// // 生产数量
-									// ctx.model.producedQuantity = data.producedQuantity
-									// // 单位
-									// ctx.model.unit = data.unit
-									MetaModel.modify(ctx.model)
-									return true
-								}
-							}
+						toSearch: async () => {
+							await this.getData(ctx, id, '')
+							const { metaui } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
+							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaui.getListedFields()).build()
+							let data: any = null
+							return ctx.uiBuilder.dialog(
+								ctx.uiBuilder.factory.table(tableData.value, pickMeta, {
+									selectionMode: 'single',
+									onSelect: (selection: any) => { data = Array.isArray(selection) ? selection[0] : selection },
+								}),
+								ctx,
+								{
+									title: fld.displayLabel,
+									width: '80%',
+									accept: async () => {
+										if (!data) return false
+										ctx.model.reworkTaskID = data.taskID
+										ctx.model.reworkTask = data
+										MetaModel.modify(ctx.model)
+										return true
+									},
+								},
 							)
 						},
 						onUpdate: (value: any) => {
@@ -392,7 +359,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 				}),
 				this.field('defectiveDesc')
 					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
-						const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
+						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchForRelative({
 							role: `defectiveDesc-search-for-relative`,
@@ -403,45 +370,18 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 							optionLabel: 'defectDesc',
 							options: defectTableData.value,
 							placeholder: t('action.select'),
-							toSearch: async (event: Event) => {
-								let data = [] as any;
-								const metaUi = await metaUiService.get('QualityDefects', 'mes');
-								defectTableColumns.value = metaUi.getListedFields().sort((prev: any, curr: any) => {
-									return Number(prev.fieldIdx) - Number(curr.fieldIdx);
-								});
-								defectTableDataKey.value = metaUi.primaryKey;
-								await this.getDefectData(ctx, '');
-								ctx.uiBuilder.confirmDialog(
-									ctx.uiBuilder.buildSearchForRelativeContent(
-										defectTableColumns.value.map((item: any) => ui.factory.column({ header: item.displayLabel, field: item.fieldName })),
-										{
-											dataKey: defectTableDataKey.value,
-											onSearch: async (params: any) => {
-												const { searchParams, reload, pager } = params;
-												await this.getDefectData(ctx, searchParams.searchWord);
-												return { list: defectTableData.value, pager: defectSearchParam.pager };
-											},
-											onPage: ({ pageNo, pageSize }: any) => {
-												defectSearchParam.pager.pageNo = pageNo;
-												defectSearchParam.pager.pageSize = pageSize;
-											},
-											onSelect: (selection: any, row: any) => {
-												data = row;
-											},
-										}
-									),
-									ctx,
-									{
-										title: fld.displayLabel,
-										width: '80%',
-										accept: async () => {
-											ctx.model.defectiveDesc = data.defectDesc ?? ctx.model.defectiveDesc;
-											ctx.model.defectID = data.defectID ?? ctx.model.defectID;
-											MetaModel.modify(ctx.model);
-											return true;
-										},
-									}
-								);
+							toSearch: async () => {
+								const picked = await ctx.select({
+									repository: 'QualityDefects',
+									service: 'mes',
+									selectionMode: 'single',
+								})
+								if (!Array.isArray(picked) || !picked.length) return false
+								const data = picked[0]
+								ctx.model.defectiveDesc = data.defectDesc ?? ctx.model.defectiveDesc
+								ctx.model.defectID = data.defectID ?? ctx.model.defectID
+								MetaModel.modify(ctx.model)
+								return true
 							},
 							onInput: async (value: string) => {
 								model.defectiveDesc = value;

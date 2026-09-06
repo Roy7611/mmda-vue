@@ -5,12 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
 import type { UiLogicInit, UiLogicFnResult } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
 import { primeVueFactory } from '@/compat/primevue_legacy'
-import { reactive, h, toRaw, ref, RendererElement, RendererNode, VNode, getCurrentInstance } from 'vue';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
 /**
@@ -37,7 +35,7 @@ export class ProjectSkewersLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const ProjectSkewersLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectSkewersLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
     new ProjectSkewersLogic({
         metaUiService: metaUiService,
         repository: 'StationPortals',

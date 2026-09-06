@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type PaymentMethod, definePaymentMethod } from '../../models/PaymentMethod';
@@ -72,7 +71,7 @@ export class PaymentMethodLogic extends UiLogic<PaymentMethod> {
  * @param module 模块
  * @returns 
  */
-export const PaymentMethodLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new PaymentMethodLogic({
+export const PaymentMethodLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new PaymentMethodLogic({
 	metaUiService: metaUiService,
 	repository: 'PaymentMethods',
 	router,

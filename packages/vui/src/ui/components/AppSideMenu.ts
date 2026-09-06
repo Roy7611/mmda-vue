@@ -147,7 +147,7 @@ export const AppSideMenu = defineComponent({
       children: () => VNode[],
     ): VNode => {
       const local = isLocalAppModuleUrl(
-        app?.context.localAppPrefixes ?? app?.name ?? "",
+        app?.state.localAppPrefixes ?? app?.name ?? "",
         url,
       );
       if (local) {

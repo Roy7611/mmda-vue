@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type MaterialHandlingJob, defineMaterialHandlingJob } from '@/models/MaterialHandlingJob';
@@ -176,7 +175,7 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
  * @param module 模块
  * @returns 
  */
-export const MaterialHandlingJobLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new MaterialHandlingJobLogic({
+export const MaterialHandlingJobLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new MaterialHandlingJobLogic({
 	metaUiService: metaUiService,
 	repository: 'MaterialHandlingJobs',
 	router,

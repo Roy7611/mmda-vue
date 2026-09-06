@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Bank, defineBank } from '../../models/Bank';
@@ -72,7 +71,7 @@ export class BankLogic extends UiLogic<Bank> {
  * @param module 模块
  * @returns 
  */
-export const BankLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new BankLogic({
+export const BankLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new BankLogic({
 	metaUiService: metaUiService,
 	repository: 'Banks',
 	router,

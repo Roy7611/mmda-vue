@@ -5,30 +5,28 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
+
 import { inFilter, isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
 import type { UiLogicInit } from '@mmda/vui';
 import { UiLogic } from '@mmda/vui';
 import { primeVueFactory } from '@/compat/primevue_legacy'
-import { reactive, ref, getCurrentInstance } from 'vue';
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 import type { QualityKPI, QualitySiteKPI, QualityTrend } from '@/models/QualityKPI';
-import type { UiBuildContext } from '@mmda/vui';
 
 // 生产站点下拉数据缓存（searchForRelative 弹窗内表格数据，模块级共享）
-const tableDataSite = ref([])
-const tableDataKeySite = ref('id')
-const searchParamSite = reactive({
+const tableDataSite = { value: [] }
+const tableDataKeySite = { value: 'id' }
+const searchParamSite = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
 })
 // 制品类别下拉数据缓存（searchForRelative 弹窗内表格数据，模块级共享）
-const tableDataCategory = ref([])
-const tableDataKeyCategory = ref('id')
-const searchParamCategory = reactive({
+const tableDataCategory = { value: [] }
+const tableDataKeyCategory = { value: 'id' }
+const searchParamCategory = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
@@ -44,21 +42,24 @@ const searchParamCategory = reactive({
 export class QualityKanbanLogic extends UiLogic<CustomPage> {
     //skin = 'material'; //传入dark为黑暗模式
     scheduleroleaction: any = {}; //权限
-    roleaction = getCurrentInstance().appContext.config.globalProperties.$app.context.modules;
+    roleaction: any[] = [];
     constructor(init: UiLogicInit) {
         super(defineCustomPage, init);
     }
+    private bindApp(context: UiContext) {
+        this.roleaction = context.app?.state.modules ?? [];
+    }
 
     /** 汇总 KPI（后端 /QualityKanban 返回 List 仅 1 行，取第 0 项） */
-    kpiData = ref<QualityKPI | null>(null)
+    kpiData = { value: null }
     /** 站点质量明细（后端 /QualityKanban/siteQuality 返回） */
-    sitesData = ref<QualitySiteKPI[]>([])
+    sitesData = { value: [] }
     /** 质量趋势（后端 /QualityKanban/getAnalyzeQualityFluctuation 返回） */
-    trendData = ref<QualityTrend[]>([])
+    trendData = { value: [] }
     /** 数据加载完成标记，控制三态切换 */
-    loaded = ref(false)
+    loaded = { value: false }
     /** 数据加载错误信息，非空表示加载失败 */
-    loadError = ref<string | null>(null)
+    loadError = { value: null }
 
     /** 当前筛选参数集合（beforeSearch 各字段写入，home 读取） */
     searchParam: Record<string, any> = {}
@@ -178,7 +179,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
      * 时间范围优先级：快捷范围（date）> 生产时间段（startTime 数组）> 回退本周
      */
     async home(ctx?: any) {
-        const { $api: apiBox } = ctx.globalProps
+        const apiClient = this.apiClient
 
         // 解析时间范围：快捷范围优先，其次生产时间段 range 数组，最后回退本周
         let startTime: string
@@ -209,9 +210,9 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
         try {
             // 三个接口并行请求：汇总 / 站点 / 趋势
             const [kpiRes, sitesRes, trendRes] = await Promise.all([
-                apiBox.http.getJson(apiBox.buildEntityURL({ repository: 'QualityKanban', queryParams: params })),
-                apiBox.http.getJson(apiBox.buildEntityURL({ repository: 'QualityKanban', action: 'siteQuality', queryParams: params })),
-                apiBox.http.getJson(apiBox.buildEntityURL({ repository: 'QualityKanban', action: 'getAnalyzeQualityFluctuation', queryParams: params })),
+                apiClient.http.getJson(apiClient.buildEntityURL({ repository: 'QualityKanban', queryParams: params })),
+                apiClient.http.getJson(apiClient.buildEntityURL({ repository: 'QualityKanban', action: 'siteQuality', queryParams: params })),
+                apiClient.http.getJson(apiClient.buildEntityURL({ repository: 'QualityKanban', action: 'getAnalyzeQualityFluctuation', queryParams: params })),
             ])
             // 汇总接口返回 List（仅 1 行），取第 0 项
             this.kpiData.value = (kpiRes && kpiRes.length > 0) ? kpiRes[0] : null
@@ -231,7 +232,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
 
     /** 获取全部生产站点（searchForRelative 弹窗内查询），只查已启用站点 */
     async getAllSite(context: UiContext, value?: any) {
-        await context.globalProps.$api.searchAll({
+        await context.logic!.getAllOf<Record<string, unknown>>('Sites', {
             pager: {
                 pageSize: searchParamSite.pager.pageSize,
                 pageNo: searchParamSite.pager.pageNo,
@@ -251,9 +252,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
 
     /** 获取全部制品类别（searchForRelative 弹窗内查询），来源 base 模块 MaterialCats */
     async getAllCategory(context: UiContext, value?: any) {
-        await context.globalProps.$api.getAll({
-            repository: 'MaterialCats',
-            service: 'base',
+        await this.getAllOf<Record<string, unknown>>('MaterialCats', {
             queryParams: {
                 pageSize: searchParamCategory.pager.pageSize,
                 pageNo: searchParamCategory.pager.pageNo,
@@ -279,7 +278,8 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                     searchLabel: 'qualityKanban.productionSite',
                     searchParam: 'siteID',
                     valueFn: (v: any) => !isRefNone(v) ? v.siteID : '',
-                    renderer: (ctx: UiBuildContext<any> & any, csf) => {
+                    renderer: (ctx: UiContext & any, csf) => {
+                        this.bindApp(ctx)
                         if (!tableDataSite.value.length && isObject(csf.searchVal.value)) {
                             tableDataSite.value.push(csf.searchVal.value)
                         }
@@ -290,47 +290,18 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                             class: 'w-full',
                             options: tableDataSite.value,
                             toSearch: async () => {
-                                let data = [] as any
-                                const { metaui } = await ctx.logic!.loadMetadata('Sites', 'mes', true)
-                                tableDataKeySite.value = metaui.primaryKey
-                                const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-                                    isSearch: true,
-                                    cacheKey: `siteID/SearchRelative/${metaui.primaryKey}`,
+                                const picked = await ctx.select({
+                                    repository: 'Sites',
+                                    service: 'mes',
+                                    selectionMode: 'single',
                                 })
-                                ctx.uiBuilder.confirmDialog(
-                                    ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-                                        dataKey: tableDataKeySite.value,
-                                        onSearch: async (params: any) => {
-                                            await this.getAllSite(ctx, params.searchParams.searchWord)
-                                            return { list: tableDataSite.value, pager: searchParamSite.pager }
-                                        },
-                                        onPage: ({ pageNo, pageSize }: any) => {
-                                            searchParamSite.pager.pageNo = pageNo
-                                            searchParamSite.pager.pageSize = pageSize
-                                        },
-                                        onSelect: (_selection: any, row: any) => { data = row },
-                                        onRowDblclick: (row: any) => {
-                                            csf.searchVal.value = csf.searchWord.value = row
-                                            ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(row)))
-                                            triggerEscKey()
-                                        },
-                                    }),
-                                    ctx,
-                                    {
-                                        title: ctx.t('qualityKanban.productionSite'),
-                                        style: { width: '80vw', maxHeight: '95%' },
-                                        accept: async () => {
-                                            if (data.length === 0) {
-                                                return false
-                                            }
-                                            csf.searchVal.value = csf.searchWord = data
-                                            ctx.model.siteID = data.siteID ?? ctx.model.siteID
-                                            this.searchParam.siteID = ctx.model.siteID
-                                            ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(data)))
-                                            return true
-                                        },
-                                    },
-                                )
+                                if (!Array.isArray(picked) || !picked.length) return false
+                                const data = picked[0]
+                                csf.searchVal.value = csf.searchWord = data
+                                ctx.model.siteID = data.siteID ?? ctx.model.siteID
+                                this.searchParam.siteID = ctx.model.siteID
+                                ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(data)))
+                                return true
                             },
                             onUpdate: (value: any) => {
                                 csf.searchVal.value = value || null
@@ -349,7 +320,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                     searchLabel: 'qualityKanban.productCategory',
                     searchParam: 'productCategoryID',
                     valueFn: (v: any) => !isRefNone(v) ? v.categoryID : '',
-                    renderer: (ctx: UiBuildContext<any> & any, csf) => {
+                    renderer: (ctx: UiContext & any, csf) => {
                         if (!tableDataCategory.value.length && isObject(csf.searchVal.value)) {
                             tableDataCategory.value.push(csf.searchVal.value)
                         }
@@ -360,47 +331,18 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                             class: 'w-full',
                             options: tableDataCategory.value,
                             toSearch: async () => {
-                                let data = [] as any
-                                const { metaui } = await ctx.logic!.loadMetadata('MaterialCats', 'base', true)
-                                tableDataKeyCategory.value = metaui.primaryKey
-                                const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-                                    isSearch: true,
-                                    cacheKey: `productCategoryID/SearchRelative/${metaui.primaryKey}`,
+                                const picked = await ctx.select({
+                                    repository: 'MaterialCats',
+                                    service: 'base',
+                                    selectionMode: 'single',
                                 })
-                                ctx.uiBuilder.confirmDialog(
-                                    ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-                                        dataKey: tableDataKeyCategory.value,
-                                        onSearch: async (params: any) => {
-                                            await this.getAllCategory(ctx, params.searchParams.searchWord)
-                                            return { list: tableDataCategory.value, pager: searchParamCategory.pager }
-                                        },
-                                        onPage: ({ pageNo, pageSize }: any) => {
-                                            searchParamCategory.pager.pageNo = pageNo
-                                            searchParamCategory.pager.pageSize = pageSize
-                                        },
-                                        onSelect: (_selection: any, row: any) => { data = row },
-                                        onRowDblclick: (row: any) => {
-                                            csf.searchVal.value = csf.searchWord.value = row
-                                            ctx.app.localDb.put(`search/${ctx.logic.repository}/productCategoryID`, JSON.parse(JSON.stringify(row)))
-                                            triggerEscKey()
-                                        },
-                                    }),
-                                    ctx,
-                                    {
-                                        title: ctx.t('qualityKanban.productCategory'),
-                                        style: { width: '80vw', maxHeight: '95%' },
-                                        accept: async () => {
-                                            if (data.length === 0) {
-                                                return false
-                                            }
-                                            csf.searchVal.value = csf.searchWord = data
-                                            ctx.model.productCategoryID = data.categoryID ?? ctx.model.productCategoryID
-                                            this.searchParam.productCategoryID = ctx.model.productCategoryID
-                                            ctx.app.localDb.put(`search/${ctx.logic.repository}/productCategoryID`, JSON.parse(JSON.stringify(data)))
-                                            return true
-                                        },
-                                    },
-                                )
+                                if (!Array.isArray(picked) || !picked.length) return false
+                                const data = picked[0]
+                                csf.searchVal.value = csf.searchWord = data
+                                ctx.model.productCategoryID = data.categoryID ?? ctx.model.productCategoryID
+                                this.searchParam.productCategoryID = ctx.model.productCategoryID
+                                ctx.app.localDb.put(`search/${ctx.logic.repository}/productCategoryID`, JSON.parse(JSON.stringify(data)))
+                                return true
                             },
                             onUpdate: (value: any) => {
                                 csf.searchVal.value = value || null
@@ -418,7 +360,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 {
                     searchLabel: 'qualityKanban.productCode',
                     searchParam: 'productCode',
-                    renderer: (ctx: UiBuildContext<any> & any, csf) => primeVueFactory.input(csf.searchVal.value, {
+                    renderer: (ctx: UiContext & any, csf) => primeVueFactory.input(csf.searchVal.value, {
                         placeholder: ctx.t('qualityKanban.productCode'),
                         onValueChange: (val: string) => {
                             csf.searchVal.value = val
@@ -430,7 +372,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 {
                     searchLabel: 'qualityKanban.productionPeriod',
                     searchParam: 'startTime',
-                    renderer: (ctx: UiBuildContext<any> & any, csf) => {
+                    renderer: (ctx: UiContext & any, csf) => {
                         // localStorage 恢复的是 ISO 字符串数组，PrimeVue DatePicker 的 range 模式需要 Date 数组，
                         // 这里把字符串元素还原为 Date，避免 datepicker 用 yy-mm-dd 解析 ISO 字符串报错
                         const raw = csf.searchVal.value
@@ -451,8 +393,8 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                 {
                     searchLabel: 'view.timesRange',
                     searchParam: 'date',
-                    renderer: (ctx: UiBuildContext<any> & any, csf) => {
-                        const searchData = reactive({
+                    renderer: (ctx: UiContext & any, csf) => {
+                        const searchData = {
                             timeSelect: [
                                 { name: ctx.t('dateRange.TODAY'), value: 'TODAY' },
                                 { name: ctx.t('dateRange.YESTERDAY'), value: 'YESTERDAY' },
@@ -507,7 +449,7 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const QualityKanbanLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const QualityKanbanLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
     new QualityKanbanLogic({
         metaUiService: metaUiService,
         repository: 'QualityKanban',

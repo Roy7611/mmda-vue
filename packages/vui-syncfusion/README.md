@@ -1,12 +1,14 @@
 # @mmda/vui-syncfusion
 
-`@mmda/vui` 的 Syncfusion EJ2 Vue 3 控件皮肤。页面结构、查询和 CRUD 仍由 vui 管理；本包负责 EJ2 VNode、字段编辑器、表格、导航及弹层。
+`@mmda/vui` 的 Syncfusion EJ2 Vue 3 控件皮肤。页面结构、查询和 CRUD 仍由 vui 管理。
+
+本包按 **components → factory → builder** 落地：`components/SfGrid.ts` 等是控件；`factory/` 用 `MetaUi` 生产（`factory.table` → `h(SfGrid)`）；`builder/` 只补壳。vui 的 `VueUiBuilder` 拼列表/表单，不 import EJ2。约定见 [vui Builder](../vui/docs/builder.md)。
 
 ## 安装
 
 ```ts
 import { createApp } from 'vue'
-import { MmdaApplication, setupI18n } from '@mmda/vui'
+import { MmdaVueApp, setupI18n } from '@mmda/vui'
 import { SyncfusionUiBuilder, mmdaSyncfusion } from '@mmda/vui-syncfusion'
 
 const app = createApp(Root)
@@ -19,7 +21,7 @@ app
     licenseKey: import.meta.env.VITE_SYNCFUSION_LICENSE,
     locale: 'zh', // zh | en | zh-Hant；也可传入 EJ2 L10n 对象
   })
-  .use(new MmdaApplication('/api', 'demo', ui, i18n))
+  .use(new MmdaVueApp('/api', 'demo', ui, i18n))
   .mount('#app')
 ```
 

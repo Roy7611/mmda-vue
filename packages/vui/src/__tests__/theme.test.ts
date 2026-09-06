@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import { setupI18n } from "../i18n/i18n";
-import { MmdaApplication } from "../ui/ui_app";
+import { MmdaVueApp } from "../ui/ui_app";
 import { createStubUiBuilder } from "../ui/ui_builder";
 import { TestUiBuilder } from "./test_builder";
 import { ColorPalettePicker } from "../ui/components/ColorPalettePicker";
@@ -68,15 +68,15 @@ describe("MMDA color palettes", () => {
     const setColorScheme = vi.spyOn(ui, "setColorScheme");
     const setColorPalette = vi.spyOn(ui, "setColorPalette");
 
-    const app = new MmdaApplication(
+    const app = new MmdaVueApp(
       "/api",
       "test",
       ui,
       setupI18n({}, "zh"),
     );
 
-    expect(app.context.isDark).toBe(true);
-    expect(app.context.colorPalette).toBe("orange");
+    expect(app.state.isDark).toBe(true);
+    expect(app.state.colorPalette).toBe("orange");
     expect(setColorScheme).toHaveBeenCalledWith(true);
     expect(setColorPalette).toHaveBeenCalledWith("orange");
   });
@@ -100,7 +100,7 @@ describe("MMDA color palettes", () => {
         ),
       );
     const setColorPalette = vi.spyOn(ui, "setColorPalette");
-    const mmda = new MmdaApplication(
+    const mmda = new MmdaVueApp(
       "/api",
       "test",
       ui,
@@ -120,7 +120,7 @@ describe("MMDA color palettes", () => {
     ) as HTMLButtonElement).click();
     await Promise.resolve();
 
-    expect(mmda.context.colorPalette).toBe("blue");
+    expect(mmda.state.colorPalette).toBe("blue");
     expect(localStorage.getItem("mmda/colorPalette")).toBe("blue");
     expect(localStorage.getItem("colorPalette")).toBeNull();
     expect(setColorPalette).toHaveBeenLastCalledWith("blue");

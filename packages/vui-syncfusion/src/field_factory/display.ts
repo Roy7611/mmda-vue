@@ -125,7 +125,7 @@ export const externalLink = (
 
   const { modules = [], context: appContext } = app;
   const systemList: any[] = appContext?.systemList ?? [];
-  const api = context.apiClient ?? app.api;
+  const api = context.logic?.apiClient ?? app.api;
   const isCurrentSystem =
     !reference.refDbName || reference.refDbName === api?.config.service;
 

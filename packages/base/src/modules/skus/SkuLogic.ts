@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Sku, defineSku } from '../../models/Sku';
@@ -112,7 +111,7 @@ export class SkuLogic extends UiLogic<Sku> {
  * @param module 模块
  * @returns 
  */
-export const SkuLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new SkuLogic({
+export const SkuLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new SkuLogic({
 	metaUiService: metaUiService,
 	repository: 'Skus',
 	router,

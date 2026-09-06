@@ -5,14 +5,12 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, type UiContext, isRefNone, ApiClient, defaultPager, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiBuilder, UI_BUILDER_KEY } from '@mmda/vui';
 import { type Site, defineSite } from '@/models/Site';
 import { type SiteShift, defineSiteShift } from '@/models/SiteShift';
 import { type Shift, defineShift } from '@/models/Shift';
 import { SiteLevel, SiteLevelEnum } from '@/enums/SiteLevel';
-import { h, inject } from 'vue';
 import { WorkCenterLevel, WorkCenterLevelEnum } from '@/enums/WorkCenterLevel';
 
 /**
@@ -57,7 +55,7 @@ export class SiteLogic extends UiLogic<Site> {
 				// this.field('superSiteID')
 				// 	.lockIf(model => model.status == 'USED' || model.status == 'DEPRECATED')
 				// 	.hideIf((model: Site) => model.siteLevel === SiteLevel.PLANT)
-				// 	.refFilter((model, ctx) => {
+				// 	.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 				// 		return {
 				// 			siteLevel: isRefNone(model.siteLevel) ? '' : `${SiteLevelEnum.valueOf(model.siteLevel) - 1}`,
@@ -87,7 +85,7 @@ export class SiteLogic extends UiLogic<Site> {
 				// 站点级别为工厂隐藏选择父站点
 				this.field('superSiteID')
 					.lockIf((model: Site) => model.siteLevel === 'PLANT')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							siteLevel: isRefNone(model.siteLevel) ? '' : `${WorkCenterLevelEnum.valueOf(model.siteLevel) - 1}`,
@@ -169,7 +167,7 @@ export class SiteLogic extends UiLogic<Site> {
  * @param module 模块
  * @returns
  */
-export const SiteLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const SiteLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new SiteLogic({
 		metaUiService: metaUiService,
 		repository: 'Sites',

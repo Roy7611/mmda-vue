@@ -1,4 +1,4 @@
-import { defineComponent, h, onBeforeMount, reactive, withModifiers } from 'vue'
+import { defineComponent, h, onBeforeMount, reactive, ref, withModifiers } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NButton, NCheckbox, NInput, NSpin } from 'naive-ui'
 import { required } from '@mmda/core'
@@ -25,6 +25,7 @@ export const SigninForm = defineComponent({
       password: { message: '' },
       agreed: { message: '' },
     })
+    const loading = ref(false)
     const tx = (message: string) => (message ? t(message) : message)
 
     const validate = () => {
@@ -36,7 +37,7 @@ export const SigninForm = defineComponent({
 
     const handleLogin = async () => {
       if (!validate()) return
-      if (props.context?.loginLoading) props.context.loginLoading.value = true
+      loading.value = true
       const payload: SigninUser = { ...user }
       try {
         await props.context?.localDb?.put?.('user/username', {
@@ -44,8 +45,7 @@ export const SigninForm = defineComponent({
         })
         emit('signin', payload)
       } finally {
-        if (props.context?.loginLoading)
-          props.context.loginLoading.value = false
+        loading.value = false
       }
     }
 
@@ -96,7 +96,7 @@ export const SigninForm = defineComponent({
             { type: 'primary', attrType: 'submit', block: true },
             {
               default: () =>
-                props.context?.loginLoading?.value
+                loading.value
                   ? h(NSpin, { size: 'small' })
                   : t('auth.signin') || 'Sign in',
             },

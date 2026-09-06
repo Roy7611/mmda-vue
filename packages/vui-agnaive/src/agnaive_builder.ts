@@ -16,7 +16,7 @@ import {
   type ModuleAuth,
 } from '@mmda/core'
 import {
-  AbstractUiBuilder,
+  VueUiBuilder,
   AppSideMenu,
   MmdaGroupCard,
   UiViewMany,
@@ -88,7 +88,7 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
 const visibleActions = (actions: UiAction[]) =>
   actions.filter(action => action.visible == null || unref(action.visible))
 
-export class AgNaiveUiBuilder extends AbstractUiBuilder {
+export class AgNaiveUiBuilder extends VueUiBuilder {
   declare readonly factory: UiFactory
 
   constructor(
@@ -818,7 +818,7 @@ export class AgNaiveUiBuilder extends AbstractUiBuilder {
           await props.toSearch(event as Event)
           return
         }
-        await (context as any).pickRelative?.(field)
+        await (context as any).select(field)
       } catch (error) {
         console.error(error)
       }

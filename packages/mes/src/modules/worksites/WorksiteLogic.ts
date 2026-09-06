@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worksite, defineWorksite } from '@/models/Worksite';
@@ -64,7 +63,7 @@ export class WorksiteLogic extends UiLogic<Worksite> {
  * @param module 模块
  * @returns
  */
-export const WorksiteLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const WorksiteLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new WorksiteLogic({
 		metaUiService: metaUiService,
 		repository: 'Worksites',

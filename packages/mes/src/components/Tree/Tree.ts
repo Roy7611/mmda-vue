@@ -9,7 +9,8 @@ export const Tree = defineComponent({
 	},
 	emits: ['nodeClick'],
 	setup(props, { emit }) {
-		const { $api: apiBox, $ui: ui, $t: t } = props.context.globalProps;
+		const { $ui: ui, $t: t } = props.context.globalProps;
+		const apiClient = props.context.logic?.apiClient ?? props.context.app?.api;
 		const rootParams = reactive({
 			...props.treeProps.rootUrlParams,
 		});
@@ -25,9 +26,9 @@ export const Tree = defineComponent({
 		const loading = ref(false);
 		const childrenData = ref([]);
 		const nodes = ref([]) as any;
-		// tree数据
+		// tree数杮
 		const treeData = ref([]);
-		// 搜索表单
+		// 杜索表坕
 		const treeForm = reactive({
 			searchWord: '',
 		});
@@ -36,12 +37,12 @@ export const Tree = defineComponent({
 			getRootData();
 		});
 
-		//获取根目录
+		//获坖根目�?
 		const getRootData = () => {
 			rootParams.queryParams.searchWord = treeForm.searchWord;
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise(async (resolve, reject) => {
-				const res: any = await apiBox.getAll(rootParams);
+				const res: any = await apiClient.getAll(rootParams);
 				if (res.list && res.list.length > 0) {
 					treeData.value = res.list;
 					resolve(true);
@@ -99,7 +100,7 @@ export const Tree = defineComponent({
 					break;
 			}
 			try {
-				const res: any = await apiBox.http.postJson(props.treeProps.createUrl, {
+				const res: any = await apiClient.http.postJson(props.treeProps.createUrl, {
 					depth,
 					categoryName: name,
 				});
@@ -115,7 +116,7 @@ export const Tree = defineComponent({
 			}
 		};
 		const delHandle = async (data: any) => {
-			//根目录禁止删除
+			//根目录禝止删�?
 			if (data.categoryID == '-1') {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
@@ -157,10 +158,10 @@ export const Tree = defineComponent({
 				});
 			}
 		};
-		// 目录操作接口方法
+		// 目录擝作接坣方法
 		const saveFn = (params: any) => {
 			try {
-				const res: any = apiBox.http.postJson(props.treeProps.saveUrl, params);
+				const res: any = apiClient.http.postJson(props.treeProps.saveUrl, params);
 				res
 					.then((res: any) => {
 						getRootData();
@@ -198,7 +199,7 @@ export const Tree = defineComponent({
 		const deleteFn = (childrenCount: number, params: any) => {
 			try {
 				if (childrenCount) {
-					const res: any = apiBox.deleteAll(params, props.treeProps.deleteAllUrlParams);
+					const res: any = apiClient.deleteAll(params, props.treeProps.deleteAllUrlParams);
 					res
 						.then((res: any) => {
 							// rootUrlParams.queryParams.pageNo = 1;
@@ -220,7 +221,7 @@ export const Tree = defineComponent({
                             })
 						});
 				} else {
-					const res: any = apiBox.http.deleteJson(`${props.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
+					const res: any = apiClient.http.deleteJson(`${props.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
 					res
 						.then((res: any) => {
 							console.log('deleteFn', res);
@@ -256,10 +257,10 @@ export const Tree = defineComponent({
 				});
 			}
 		};
-		// 搜索方法
+		// 杜索方法
 		const searchFn = () => getRootData();
-		//获取子目录
-		// path 携带id要在props中传过来判断
+		//获坖孝目�?
+		// path 杺带id覝在props中传过来判断
 		const getChildrenData = (categoryID: string | number) => {
 			const path =
 				props.treeProps.childrenUrlParams.path?.split('/')[0] === 'categoryID'
@@ -276,7 +277,7 @@ export const Tree = defineComponent({
 			// eslint-disable-next-line no-async-promise-executor
 			return new Promise(async (resolve, reject) => {
 				try {
-					const res: any = await apiBox.getAll(urlParams);
+					const res: any = await apiClient.getAll(urlParams);
 					if (res.list && res.list.length > 0) {
 						childrenData.value = res.list;
 					}
@@ -333,7 +334,7 @@ export const Tree = defineComponent({
 						//     //     console.log(node, '1111');
 
 						//     //     try {
-						//     //         const res = await apiBox.getAll(url)
+						//     //         const res = await apiClient.getAll(url)
 						//     //         console.log(res, '1111');
 						//     //         if (res.list && res.list.length > 0) {
 						//     //             const data = res.list.map((item: any) => {
@@ -355,7 +356,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.addRootDirectory'),
 										command: () => {
-											props.context.uiBuilder.confirmDialog(
+											props.context.uiBuilder.dialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
@@ -389,7 +390,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.addRootDirectory'),
 										command: () => {
-											props.context.uiBuilder.confirmDialog(
+											props.context.uiBuilder.dialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
@@ -421,7 +422,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.addSiblingDirectory'),
 										command: (node: any) => {
-											props.context.uiBuilder.confirmDialog(
+											props.context.uiBuilder.dialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
@@ -453,7 +454,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.addSubdirectory'),
 										command: () => {
-											props.context.uiBuilder.confirmDialog(
+											props.context.uiBuilder.dialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {
@@ -486,7 +487,7 @@ export const Tree = defineComponent({
 										label: t('tool.deleteDirectory'),
 										key: 'delete',
 										command: () => {
-											props.context.uiBuilder.confirmMessage(props.context, {
+											props.context.uiBuilder.confirm(props.context, {
 												header: t('action.confirm'),
 												message: t('dialog.areYourSure'),
 												type: 'warn',
@@ -500,7 +501,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.rename'),
 										command: () => {
-											props.context.uiBuilder.confirmDialog(
+											props.context.uiBuilder.dialog(
 												h(ContextMenu, {
 													context: props.context,
 													propsData: {

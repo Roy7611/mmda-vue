@@ -16,18 +16,11 @@ import {
 
 ## 分层
 
-产品层是 **UI → Logic → Data**。core **没有 UI**。详见 [docs/index.md](./docs/index.md) 与仓库 [AGENTS.md](../../AGENTS.md)。
-
-```text
-UI     vui + 皮肤     配置与展现
-Logic  core/logic     规范接口：只写交互
-Data   core 其余      元数据 / MetaModel / API
-```
+产品层 **UI → Logic → Data** 见仓库 [ARCHITECTURE.md](../../ARCHITECTURE.md)。core **没有 UI 实现**：契约在 `src/ui/`；`src/logic/` 是 Logic；其余目录是 Data。应用壳 abstract class 在 `src/mmda_app.ts`。程序员：[UiBuilder](./docs/ui/ui_builder_usage.md)、[UiContext](./docs/logic/ui_context_usage.md)、[本轮 UI/壳重构](./docs/refactor_ui_app.md)。包内目录索引见 [docs/core_architecture.md](./docs/core_architecture.md)、[docs/index.md](./docs/index.md)。
 
 - 先有 `MetaUi`，再用 `MetaModel` 创建和提交实体，最后用 Logic 跑一屏。
-- `metaui` 不依赖 `logic`（`MetaUiService` 可依赖 net）。
-- `models` 不依赖 `logic`。
-- 会话态放在 `UiContext` / `MetaUiFieldLogic`，不要写回共享的 `MetaUiField`。引用硬限制用 `reference.where`；业务加码用 `refFilter`。
+- `metaui` / `models` 不依赖 `logic`（`MetaUiService` 可依赖 net）。
+- 会话态放在 `UiContext` / `MetaUiFieldLogic`，不要写回共享的 `MetaUiField`。引用硬限制用 `reference.where`；业务加码用 `refWhere`。
 
 ## 最小用法
 
@@ -60,7 +53,7 @@ hasBit(allowOp, ModuleOp.READ)
 auth(ModuleOp.READ | ModuleOp.EXPORT)
 ```
 
-日期区间筛选用 `dateTimeRange`。应用入口 `import '@mmda/core'` 会打 Date/String/Number/Array 补丁。
+日期区间筛选用 `dateTimeRange`（预览）。列表 `dateKind` / Excel token 见 [date_filter_usage.md](./docs/logic/date_filter_usage.md)。应用入口 `import '@mmda/core'` 会打 Date/String/Number/Array 补丁。
 
 ## 文档
 

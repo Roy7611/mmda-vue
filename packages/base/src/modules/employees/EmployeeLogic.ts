@@ -6,7 +6,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -26,17 +25,16 @@ import {
 } from "@mmda/vui";
 import { type Employee, defineEmployee } from "../../models/Employee";
 import { EmployeeStatus } from "../../enums/EmployeeStatus";
-import { reactive } from "vue";
 
 /**
- * 职员交互逻辑
+ * čĺäş¤äşéťčž
  * @author mmda codebot
  * @since 2024-07-17 07:38:58.0
  * @revision 2024-09-01 23:08:29.0
  */
 //#region ~GENERATED PARTS BEGIN
 /**
- * 职员交互逻辑
+ * čĺäş¤äşéťčž
  */
 export class EmployeeLogic extends UiLogic<Employee> {
   constructor(init: UiLogicInit) {
@@ -48,13 +46,13 @@ export class EmployeeLogic extends UiLogic<Employee> {
     ) => {
       const { mobile, email, qq } = model;
       const { $t: t } = context.globalProps;
-      // 手机号验证
+      // ććşĺˇéŞčŻ
       const regPhone =
         /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/;
-      // 邮箱验证
+      // éŽçŽąéŞčŻ
       const regEmail =
         /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
-      // qq号验证
+      // qqĺˇéŞčŻ
       const regQQ = /^[1-9][0-9]{4,10}$/;
       if (!regPhone.test(mobile) && !isRefNone(mobile))
         return Promise.reject(Error(t("invalid.regPhoneFormat")));
@@ -70,7 +68,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
     };
   }
   async batchCreateEmployeeAccounts(context: UiContext<Employee>) {
-    //当前选中项
+    //ĺ˝ĺéä¸­éĄš
     const { selectedItems, translate: t } = context;
     if (!MetaModel.hasAny(selectedItems)) {
       context.uiBuilder.toast(this, {
@@ -81,17 +79,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
       });
       throw new Error(t("invalid.requiredSelectAny"));
     }
-    const rawSelection = reactive({
-      list: <any>[],
-    });
-    if (selectedItems) {
-      //toRaw 返回原始数据
-      rawSelection.list = selectedItems.map((it) => {
-        return it.empID;
-      });
-    }
-    //调用接口
-    const { $api, $router } = context.globalProps;
+    const empIds = (selectedItems ?? []).map((it) => it.empID);
+    const { $api } = context.globalProps;
     const apiClient = $api as ApiClient;
     try {
       const res = await apiClient.doAction(
@@ -100,9 +89,9 @@ export class EmployeeLogic extends UiLogic<Employee> {
           repository: "Employees",
           service: "base",
         },
-        rawSelection.list,
+        empIds,
       );
-      //关闭窗口
+      //ĺłé­çŞĺŁ
       if (res) {
         context.uiBuilder.toast(context, {
           severity: "success",
@@ -224,7 +213,7 @@ export class EmployeeLogic extends UiLogic<Employee> {
     return { fields, groups, customActions };
   }
   /**
-   * 设置编辑交互逻辑
+   * čŽžç˝Žçźčžäş¤äşéťčž
    */
   beforeEdit() {
     const { fields, groups, customActions } = super.beforeEdit();
@@ -252,20 +241,20 @@ export class EmployeeLogic extends UiLogic<Employee> {
     return { fields, groups, customActions };
   }
 
-  //设置详情逻辑
+  //čŽžç˝ŽčŻŚćéťčž
   //beforeDetails(){}
 }
 
 /**
- * 构造职员交互逻辑
- * @param metaUiService 元数据服务
- * @param router 路由
- * @param module 模块
+ * ćé čĺäş¤äşéťčž
+ * @param metaUiService ĺć°ćŽćĺĄ
+ * @param router čˇŻçą
+ * @param module ć¨Ąĺ
  * @returns
  */
 export const EmployeeLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new EmployeeLogic({

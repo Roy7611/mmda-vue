@@ -10,7 +10,7 @@
 **只**用于：
 
 - 元数据 `reference.where` / 其它 where 片段
-- Logic `refFilter` 拼 SQL
+- Logic `refWhere` 拼 SQL
 
 **不要**用于列表主路径。列表字段条件用 models 的 `EntityFilterOperator` + `EntityFilterModel`，经 `searchAll` 的 `filterModel` 提交。
 
@@ -35,7 +35,7 @@
 ```ts
 import { getSqlOperator, getFieldFilterOps } from '@mmda/core'
 
-// refFilter
+// refWhere
 const frag = getSqlOperator('NOT_IN')!.toSQL(['CANCELED', 'CLOSED'])
 // → "NOT IN CANCELED,CLOSED" 一类片段，再拼进 `status ${frag}`
 

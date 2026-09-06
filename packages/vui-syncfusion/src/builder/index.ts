@@ -17,7 +17,7 @@ import {
   type ModuleAuth,
 } from "@mmda/core";
 import {
-  AbstractUiBuilder,
+  VueUiBuilder,
   MmdaGroupCard,
   UiViewMany,
   hasSystemModules,
@@ -85,7 +85,7 @@ import {
   renderMain,
 } from "./shell";
 
-export class SyncfusionUiBuilder extends AbstractUiBuilder {
+export class SyncfusionUiBuilder extends VueUiBuilder {
   declare readonly factory: SyncfusionUiFactory;
 
   constructor(
@@ -791,7 +791,7 @@ export class SyncfusionUiBuilder extends AbstractUiBuilder {
         if (typeof props.toSearch === 'function') {
           await props.toSearch(event as Event)
         } else {
-          await (context as any).pickRelative?.(field)
+          await (context as any).select(field)
         }
       } catch (error) {
         console.error(error)

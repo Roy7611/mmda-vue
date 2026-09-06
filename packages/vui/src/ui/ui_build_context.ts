@@ -28,6 +28,21 @@ export interface UiFileTransferOptions extends ImportOrExportParam {
   body?: any;
 }
 
+/**
+ * 屏级 IO / 导航。Logic 只当声明调用 `search`；实现只在本类，不要写到 core `UiContext`。
+ */
+export interface UiSessionIo<E extends Entity = Entity> {
+  search(param?: EntitySearchParam): Promise<unknown>;
+  refresh(reloadMetadata?: boolean, setLoading?: boolean): Promise<void>;
+  reload(): Promise<unknown> | unknown;
+  save(): Promise<unknown>;
+  delete(): Promise<unknown>;
+  index(): void;
+  details(idOrItem?: string | E): void;
+  edit(id?: string): void;
+  create(): void;
+}
+
 /** 列表多选里只有 deletable !== false 的行可以提交删除。 */
 export function deletableSelectedItems<E extends Entity>(
   items: readonly E[] | undefined | null,
@@ -45,7 +60,8 @@ export function deletableSelectedItems<E extends Entity>(
  */
 export class UiBuildContext<
   E extends Entity = Entity,
-> extends UiViewContext<E> {
+> extends UiViewContext<E>
+  implements UiSessionIo<E> {
   declare logic: UiLogic<E>;
   currentTemplate: ReportTemplate | null = null;
   templates: ReportTemplate[] = [];
@@ -109,14 +125,14 @@ export class UiBuildContext<
     try {
       if (reloadMetadata) await this.logic.initMetadata(true);
       if (this.logic.beforeLoad) {
-        await this.logic.beforeLoad(this as any, this.model);
+        await this.logic.beforeLoad(this, this.model);
       }
       const id = (this.model as Entity).id;
       if (id) {
         const loaded = await this.logic.load(id);
         if (loaded) this.setModel(loaded);
       }
-      await this.logic.afterLoad?.(this as any, this.model);
+      await this.logic.afterLoad?.(this, this.model);
     } finally {
       this.loading.value = false;
     }
@@ -135,25 +151,25 @@ export class UiBuildContext<
 
   async save() {
     if (this.logic.beforeSave) {
-      const ok = await this.logic.beforeSave(this as any, this.model);
+      const ok = await this.logic.beforeSave(this, this.model);
       if (ok === false) return false;
     }
     if (this.logic.beforeValidate) {
-      const ok = await this.logic.beforeValidate(this as any, this.model);
+      const ok = await this.logic.beforeValidate(this, this.model);
       if (ok === false) return false;
     }
     const valid = await this.validate();
     if (!valid) return false;
     const remoteErrors = await this.logic.afterValidate?.(
-      this as any,
+      this,
       this.model,
       this.$v,
     );
     if (remoteErrors && remoteErrors > 0) return false;
     const result = await this.logic.save(this.model);
     if (result && typeof result === "object") this.setModel(result as E);
-    await this.logic.afterSave?.(this as any, this.model, undefined, result);
-    await this.app?.toast(this as any, {
+    await this.logic.afterSave?.(this, this.model, undefined, result);
+    await this.app?.ui?.toast(this, {
       severity: "success",
       detail: this.translate("success.saved"),
     });
@@ -162,11 +178,11 @@ export class UiBuildContext<
 
   async delete() {
     if (this.logic.beforeDelete) {
-      const ok = await this.logic.beforeDelete(this as any, this.model);
+      const ok = await this.logic.beforeDelete(this, this.model);
       if (ok === false) return false;
     }
     const result = await this.logic.delete((this.model as Entity).id);
-    await this.logic.afterDelete?.(this as any, this.model, undefined, result);
+    await this.logic.afterDelete?.(this, this.model, undefined, result);
     return result;
   }
 
@@ -175,7 +191,7 @@ export class UiBuildContext<
     const selected = deletableSelectedItems(
       (this.selectedItems as E[]).length
         ? (this.selectedItems as E[])
-        : (ids ?? []).map((id) => ({ id }) as E),
+        : (ids ?? []).map((id) => ({ id }) as unknown as E),
     ).filter((item) => idSet.has(String((item as Entity).id)));
     const deletableIds = selected.map((item) => String((item as Entity).id));
     if (!deletableIds.length) return false;
@@ -183,22 +199,22 @@ export class UiBuildContext<
     if (deletableIds.length === 1) {
       const item = selected[0]!;
       if (this.logic.beforeDelete) {
-        const ok = await this.logic.beforeDelete(this as any, item);
+        const ok = await this.logic.beforeDelete(this, item);
         if (ok === false) return false;
       }
       const result = await this.logic.delete(deletableIds[0]);
-      await this.logic.afterDelete?.(this as any, item, undefined, result);
+      await this.logic.afterDelete?.(this, item, undefined, result);
       this.selectedItems = [];
       await this.reload();
       return result;
     }
 
     if (this.logic.beforeDeleteAll) {
-      const ok = await this.logic.beforeDeleteAll(this as any, selected);
+      const ok = await this.logic.beforeDeleteAll(this, selected);
       if (ok === false) return false;
     }
     const result = await this.logic.deleteAll(deletableIds);
-    await this.logic.afterDeleteAll?.(this as any, selected);
+    await this.logic.afterDeleteAll?.(this, selected);
     this.selectedItems = [];
     await this.reload();
     return result;
@@ -219,10 +235,10 @@ export class UiBuildContext<
 
   async resetFilters() {
     const selected = this.selectedItems as E[];
-    const ok = await this.logic.beforeResetFilters?.(this as any, selected);
+    const ok = await this.logic.beforeResetFilters?.(this, selected);
     if (ok === false) return false;
     super.resetFilters();
-    await this.logic.afterResetFilters?.(this as any, selected);
+    await this.logic.afterResetFilters?.(this, selected);
     await this.search();
     return true;
   }
@@ -238,14 +254,14 @@ export class UiBuildContext<
     try {
       if (this.logic.beforeAction) {
         const ok = await this.logic.beforeAction(
-          this as any,
+          this,
           this.model,
           action,
         );
         if (ok === false) return false;
       }
       const result = await this.logic.doAction(this.model, action);
-      await this.logic.afterAction?.(this as any, this.model, action, result);
+      await this.logic.afterAction?.(this, this.model, action, result);
       if (action.redirectTo) await this.doRedirectAction(action);
       return result;
     } finally {
@@ -266,7 +282,7 @@ export class UiBuildContext<
       this.selectionMode === "multiple"
     ) {
       if (!this.selectedItems.length) {
-        await this.app?.ui.toast(this as any, {
+        await this.app?.ui?.toast(this, {
           severity: "error",
           detail: this.t("invalid.requiredSelectAny"),
         });
@@ -299,41 +315,41 @@ export class UiBuildContext<
   }
 
   async print() {
-    const ok = await this.logic.beforePrint?.(this as any, this.model);
+    const ok = await this.logic.beforePrint?.(this, this.model);
     if (ok === false) return false;
     if (typeof window !== "undefined") window.print();
-    await this.logic.afterPrint?.(this as any, this.model);
+    await this.logic.afterPrint?.(this, this.model);
     return true;
   }
 
   async uploadFile(file: File, options: UiFileTransferOptions = {}) {
-    const ok = await this.logic.beforeUpload?.(this as any, this.model, file);
+    const ok = await this.logic.beforeUpload?.(this, this.model, file);
     if (ok === false) return false;
     const result = await this.logic.uploadFile(file, options);
-    await this.logic.afterUpload?.(this as any, this.model, undefined, result);
+    await this.logic.afterUpload?.(this, this.model, undefined, result);
     return result;
   }
 
   async uploadFiles(files: File[], options: UiFileTransferOptions = {}) {
-    const ok = await this.logic.beforeUpload?.(this as any, this.model, files);
+    const ok = await this.logic.beforeUpload?.(this, this.model, files);
     if (ok === false) return false;
     const result = await this.logic.uploadFiles(files, options);
-    await this.logic.afterUpload?.(this as any, this.model, undefined, result);
+    await this.logic.afterUpload?.(this, this.model, undefined, result);
     return result;
   }
 
   async importFile(options: UiFileTransferOptions = {}) {
     if (!options.file) throw new Error("importFile requires options.file.");
     const ok = await this.logic.beforeImport?.(
-      this as any,
+      this,
       this.model,
       options.file,
     );
     if (ok === false) return false;
     const result = await this.logic.importFile(options.file, options);
-    options.importFn?.(this as any, result);
-    options.handlerFn?.(this as any, result);
-    await this.logic.afterImport?.(this as any, this.model, undefined, result);
+    options.importFn?.(this, result);
+    options.handlerFn?.(this, result);
+    await this.logic.afterImport?.(this, this.model, undefined, result);
     await this.reload();
     return result;
   }
@@ -341,15 +357,15 @@ export class UiBuildContext<
   async importFiles(options: UiFileTransferOptions = {}) {
     if (!options.files) throw new Error("importFiles requires options.files.");
     const ok = await this.logic.beforeImport?.(
-      this as any,
+      this,
       this.model,
       options.files,
     );
     if (ok === false) return false;
     const result = await this.logic.importFiles(options.files, options);
-    options.importFn?.(this as any, result);
-    options.handlerFn?.(this as any, result);
-    await this.logic.afterImport?.(this as any, this.model, undefined, result);
+    options.importFn?.(this, result);
+    options.handlerFn?.(this, result);
+    await this.logic.afterImport?.(this, this.model, undefined, result);
     await this.reload();
     return result;
   }
@@ -360,15 +376,15 @@ export class UiBuildContext<
       options,
       options.body,
     );
-    options.exportFn?.(this as any, result);
-    options.handlerFn?.(this as any, result);
+    options.exportFn?.(this, result);
+    options.handlerFn?.(this, result);
     return result;
   }
 
   async exportFiles(options: UiFileTransferOptions = {}) {
     const result = await this.logic.exportFiles(options, options.body);
-    options.exportFn?.(this as any, result);
-    options.handlerFn?.(this as any, result);
+    options.exportFn?.(this, result);
+    options.handlerFn?.(this, result);
     return result;
   }
 
@@ -422,7 +438,7 @@ export class UiBuildContext<
     template: ReportTemplate,
     options: EntityUrlParam = {},
   ) {
-    const url = this.logic.apiClient.buildEntityURL({
+    const blob = await this.logic.postBlob({
       action: options.action ?? "downloadTemplate",
       repository: options.repository ?? this.logic.repository,
       service: options.service,
@@ -431,7 +447,6 @@ export class UiBuildContext<
         ...(options.queryParams ?? {}),
       },
     });
-    const blob = await this.logic.apiClient.http.postBlob(url, {});
     this.triggerDownload(blob, getFileInfo(template.templateFile).fileName);
     return blob;
   }
@@ -441,11 +456,11 @@ export class UiBuildContext<
     body: unknown,
     options: EntityUrlParam,
   ) {
-    const ok = await this.logic.beforeUpload?.(this as any, this.model, body);
+    const ok = await this.logic.beforeUpload?.(this, this.model, body);
     if (ok === false) return false;
     this.uploading.value = true;
     try {
-      const result = await this.logic.apiClient.doAction(
+      const result = await this.logic.invokeAction(
         {
           action,
           path: options.path,
@@ -456,7 +471,7 @@ export class UiBuildContext<
         body,
       );
       await this.logic.afterUpload?.(
-        this as any,
+        this,
         this.model,
         undefined,
         result,
@@ -484,11 +499,7 @@ export class UiBuildContext<
     const router = this.logic.router;
     if (!router) return;
     // Route by logic.apiService + repository only — never app.name.
-    const service = (
-      this.logic.apiService ??
-      this.logic.apiClient?.config?.service ??
-      "base"
-    ).toUpperCase();
+    const service = (this.logic.serviceName ?? "base").toUpperCase();
     const repo = this.logic.repository;
     const root = `/${service}/${repo}`;
     if (view === UiViewMany.Index || view === UiViewMany.SelectMany) {

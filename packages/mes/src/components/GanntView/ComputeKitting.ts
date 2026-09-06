@@ -18,6 +18,9 @@ export default defineComponent({
 	props: {},
 	setup: (props, { emit }) => {
 		const { appContext } = getCurrentInstance();
+		const apiClient =
+			appContext.app.config.globalProperties.$api ??
+			appContext.app.config.globalProperties.$app?.api;
 		const mes = inject(MES_KEY);
 		const { meta: metaUiService, di, i18n, ui } = mes;
 		const router = useRouter();
@@ -28,13 +31,13 @@ export default defineComponent({
 		const orderNo = ref((route.query.orderNo as string) || '');
 		console.log(route, '1111');
 		const planID = ref((route.query.planID as string) || '')
-		/** 来自排程：project=按项目，order=按生产订单 */
+		/** 来自排程：project=按项目，order=按生产订�?*/
 		const scheduleView = ref<'project' | 'order'>(
 			(() => {
 				const raw = (route.query.scheduleView as string) || '';
 				if (raw === 'order') return 'order';
 				if (raw === 'project') return 'project';
-				// 兼容只带 orderID 的跳转
+				// 兼容只带 orderID 的跳�?
 				if (route.query.orderID && !route.query.projectID) return 'order';
 				return 'project';
 			})()
@@ -87,7 +90,7 @@ export default defineComponent({
 				canReadProductionOrder.value
 		);
 
-		/** 与 GanntView 一致：从模块树解析项目 / 生产订单读取权限 */
+		/** �?GanntView 一致：从模块树解析项目 / 生产订单读取权限 */
 		const resolveScheduleViewPermissions = () => {
 			canReadProject.value = false;
 			canReadProductionOrder.value = false;
@@ -114,8 +117,8 @@ export default defineComponent({
 		};
 
 		/**
-		 * 接口 groups 字段可能是 id|value|key + label|text|name。
-		 * MultiSelect 固定 optionValue=id、optionLabel=label，只做字段映射，不增删选项。
+		 * 接口 groups 字段可能�?id|value|key + label|text|name�?
+		 * MultiSelect 固定 optionValue=id、optionLabel=label，只做字段映射，不增删选项�?
 		 */
 		const normalizeGroupOption = (opt: any): { id: string; label: string } | null => {
 			if (opt == null) return null;
@@ -135,7 +138,7 @@ export default defineComponent({
 			(options ?? []).forEach(raw => {
 				const opt = normalizeGroupOption(raw);
 				if (!opt) return;
-				// 仅对排程权限相关的两项做权限过滤，其余业务分组原样保留
+				// 仅对排程权限相关的两项做权限过滤，其余业务分组原样保�?
 				if (opt.id === PROJECT_GROUP_ID && !canReadProject.value) return;
 				if (opt.id === ORDER_GROUP_ID && !canReadProductionOrder.value) return;
 				map.set(opt.id, opt);
@@ -185,7 +188,7 @@ export default defineComponent({
 
 		const hasProjectContext = () => !!(reloadParam.projectID || projectID.value);
 
-		/** 齐料检查按订单视图：分组锁定为「订单」，不可改 */
+		/** 齐料检查按订单视图：分组锁定为「订单」，不可�?*/
 		const isGroupLockedToOrder = computed(() => isOrderKittingView.value);
 
 		const ensureOrderGroupOption = (options: { id: string; label: string }[]) => {
@@ -226,7 +229,7 @@ export default defineComponent({
 			return [];
 		};
 
-		/** 请求/展示用分组 */
+		/** 请求/展示用分�?*/
 		const getEffectiveGroupBy = () => {
 			if (isGroupLockedToOrder.value) {
 				return resolveDefaultGroupBy();
@@ -239,7 +242,7 @@ export default defineComponent({
 		const applyGroupStateFromResponse = (groups: any[], selectedGroupBy: any) => {
 			let fromApi = filterGroupsForScheduleView(filterGroupOptionsByPermission(groups ?? []));
 
-			// 按订单：只保留/补齐「订单」，锁定选中
+			// 按订单：只保�?补齐「订单」，锁定选中
 			if (isOrderKittingView.value) {
 				const orderOpt = ensureOrderGroupOption(fromApi);
 				groupOption.value = [orderOpt];
@@ -285,7 +288,7 @@ export default defineComponent({
 			}
 		};
 
-		/** 齐料树表列：无项目读取权限 / 按订单视图时不展示「项目」列 */
+		/** 齐料树表列：无项目读取权�?/ 按订单视图时不展示「项目」列 */
 		const shouldShowKittingTableColumn = (field: string) => {
 			if (field === '项次' || field === 'projectID' || field === 'orderID' || field === '现场装配') {
 				return false;
@@ -341,21 +344,21 @@ export default defineComponent({
 		//领料模式
 		const kittingMode = ref(false);
 
-		/** 收集节点及其子孙的 key */
+		/** 收集节点及其子孙�?key */
 		const collectNodeKeys = (node: any, keys: Set<string> = new Set()) => {
 			if (node?.key != null) keys.add(node.key);
 			(node?.children ?? []).forEach((child: any) => collectNodeKeys(child, keys));
 			return keys;
 		};
 
-		/** 取消勾选时按 key 从 multiSelectList 移除（含子孙），避免引用不相等导致删不掉 */
+		/** 取消勾选时�?key �?multiSelectList 移除（含子孙），避免引用不相等导致删不掉 */
 		const clearSelection = (value: any) => {
 			const keysToRemove = collectNodeKeys(value);
 			if (!keysToRemove.size) return;
 			multiSelectList.value = multiSelectList.value.filter((item: any) => !keysToRemove.has(item.key));
 		};
 
-		// 递归更新父节点的选中状态
+		// 递归更新父节点的选中状�?
 		const updateCheckStatus = (nodeList: any[]) => {
 			const walk = (nodes: any[]) => {
 				nodes.forEach(node => {
@@ -386,7 +389,7 @@ export default defineComponent({
 
 			walk(nodeList);
 		};
-		// 递归过滤掉不能选择的数据
+		// 递归过滤掉不能选择的数�?
 		const filterSelection = (value: any) => {
 			if (value.key.includes('.')) {
 				const keys = value.key.split('.');
@@ -425,16 +428,16 @@ export default defineComponent({
 			return result;
 		};
 
-		// 过滤出选中的数据中能转换成移料清单的数据
+		// 过滤出选中的数据中能转换成移料清单的数�?
 		const filterData = computed(() => {
 			return filterTreeData(multiSelectList.value);
 		});
 
 		// 确认领料方法
 		const confirmKitting = async () => {
-			const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
+			const { $ui: ui, $t: t } = ctx.globalProps;
 
-			console.log(filterData.value, "数据。。。。")
+			console.log(filterData.value, "数据。。。�?)
 			const params = filterData.value.map((item: any) => ({
 				orderID: item.orderID ?? null,
 				materialID: item.materialID,
@@ -450,12 +453,12 @@ export default defineComponent({
 				});
 
 			const firstItem = filterData.value[0];
-			console.log(firstItem, "第一个数据")
+			console.log(firstItem, "第一个数�?)
 
 			let materialTransCtx: UiContext<MaterialTrans>;
 			// 拦截报错
 			try {
-				const res = await ctx.apiClient
+				const res = await apiClient
 					.doAction(
 						{
 							action: 'kitCheckIssue',
@@ -464,14 +467,14 @@ export default defineComponent({
 						params
 					)
 				if (res) {
-					ui.confirmDialog(
+					ui.dialog(
 						h(MaterialTransEditor, {
 							id: '_',
 							view: UI_CREATE,
 							name: 'CompleteInspectionMaterialTrans',
 
 							createFn: async (logic) => {
-								return await ctx.apiClient
+								return await apiClient
 									.doAction(
 										{
 											action: 'kitCheckIssue',
@@ -480,7 +483,7 @@ export default defineComponent({
 										params
 									)
 									.then((res: any) => {
-										console.log(res, "领料单")
+										console.log(res, "领料�?)
 										res.orderID = filterData.value[0].orderID;
 										return logic.createEntity(res);
 									}).catch((error: any) => {
@@ -636,11 +639,11 @@ export default defineComponent({
 		});
 		//获取项目列表
 		const getProjectData = async (ctx: any, value?: any) => {
-			const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-			const { $api, $router } = ctx.globalProps;
+			const { $ui: ui, $t: t } = ctx.globalProps;
+			const { $router } = ctx.globalProps;
 
 			try {
-				const res = await apiBox.getAll({
+				const res = await apiClient.getAll({
 					repository: 'Projects',
 					queryParams: {
 						pageSize: searchParam.pager.pageSize,
@@ -689,9 +692,8 @@ export default defineComponent({
 
 		/** 获取生产订单列表（齐料检查按订单视图筛选） */
 		const getOrderData = async (ctx: any, value?: any) => {
-			const { $api: apiBox } = ctx.globalProps;
 			try {
-				const res = await apiBox.getAll({
+				const res = await apiClient.getAll({
 					repository: 'ProductionOrders',
 					queryParams: {
 						pageSize: searchParam.pager.pageSize,
@@ -738,8 +740,8 @@ export default defineComponent({
 		const completeInspectionList = ref(<any>[]);
 
 		const groupBy = ref(<any>[]); //分组
-		const groupOption = ref(<any>[]); //分组选项（由接口 groups 填充）
-		/** 可下拉选择：有选项且未锁定为订单 */
+		const groupOption = ref(<any>[]); //分组选项（由接口 groups 填充�?
+		/** 可下拉选择：有选项且未锁定为订�?*/
 		const hasSelectableGroupOptions = computed(
 			() => groupOption.value.length > 0 && !isGroupLockedToOrder.value
 		);
@@ -762,10 +764,9 @@ export default defineComponent({
 		//获取齐料数据
 		const getCompleteInspection = async (ctx: any, calculate: boolean = true) => {
 			showLoading.value = true;
-			const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-			const { $api, $router } = ctx.globalProps;
+			const { $ui: ui, $t: t } = ctx.globalProps;
 			try {
-				const res = await apiBox.doAction(
+				const res = await apiClient.doAction(
 					{
 						action: 'CompleteInspection',
 						repository: 'ProductionTasks',
@@ -781,7 +782,7 @@ export default defineComponent({
 					}
 				);
 				applyGroupStateFromResponse(res?.groups ?? [], res?.groupBy);
-				//是否有数据
+				//是否有数�?
 				if (res.data && res.data.length > 0) {
 					console.log('groupOption.value', groupOption.value);
 					const key = Object.keys(res.data[0].data);
@@ -811,11 +812,10 @@ export default defineComponent({
 		//获取备料计划
 		const getPreparationPlan = async (ctx: any, calculate: boolean = true) => {
 			showLoading.value = true;
-			const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-			const { $api, $router } = ctx.globalProps;
+			const { $ui: ui, $t: t } = ctx.globalProps;
 
 			try {
-				const res = await apiBox.doAction(
+				const res = await apiClient.doAction(
 					{
 						action: 'PreparationPlan',
 						repository: 'ProjectSchedule',
@@ -829,7 +829,7 @@ export default defineComponent({
 					}
 				);
 				applyGroupStateFromResponse(res?.groups ?? [], res?.groupBy);
-				//是否有数据
+				//是否有数�?
 				if (res.data && res.data.length > 0) {
 					console.log('groupOption.value', groupOption.value);
 					const key = Object.keys(res.data[0].data);
@@ -861,7 +861,7 @@ export default defineComponent({
 			reloadParam.projectID = '';
 			reloadParam.orderID = '';
 			selectgProject.value = null;
-			temporarilySelectg.value = null;//临时的变相清除
+			temporarilySelectg.value = null;//临时的变相清�?
 			selectgOrder.value = null;
 			temporarilySelectOrder.value = null;
 		};
@@ -891,98 +891,28 @@ export default defineComponent({
 														options: lineData.value,
 														dataKey: 'projectID',
 														optionLabel: 'projectName',
-														toSearch: async (event: Event) => {
-															const { $ui: ui, $api: apiBox, $t: t } = ctx.globalProps;
-															const { model } = ctx;
-															const { metaUiService } = ctx.logic;
-															let data = [] as any;
-															const metaUi = await metaUiService.get('Projects', 'mes');
-															linecolumns.value = metaUi.getListedFields().sort((prev: any, curr: any) => {
-																return Number(prev.fieldIdx) - Number(curr.fieldIdx);
+														toSearch: async () => {
+															const picked = await ctx.select({
+																repository: 'Projects',
+																service: 'mes',
+																selectionMode: 'single',
 															});
-															projecDataKEY.value = metaUi.primaryKey;
-															await getProjectData(ctx, '');
-															ctx.uiBuilder.confirmDialog(
-																(ctx.uiBuilder as any).buildSearchForRelativeContent(
-																	linecolumns.value.map((item: any) =>
-																		ui.factory.column({
-																			header: item.displayLabel,
-																			field: item.fieldName,
-																			style: {
-																				width: '200px',
-																			},
-																		})
-																	),
-																	{
-																		dataKey: projecDataKEY.value,
-																		onSearch: async (params: any) => {
-																			const { searchParams, reload, pager } = params;
-																			reloadParam.projectID = null;
-																			await getProjectData(ctx, searchParams.searchWord);
-																			return { list: lineData.value, pager: searchParam.pager };
-																		},
-																		onPage: ({ pageNo, pageSize }: any) => {
-																			searchParam.pager.pageNo = pageNo;
-																			searchParam.pager.pageSize = pageSize;
-																		},
-																		onSelect: (selection: any, row: any) => {
-																			data = row;
-																		},
-																	}
-																),
-																ctx,
-																{
-																	name: 'projectSearchForRelative',
-																	title: $t('ganttLabel.sProject'),
-																	width: '80%',
-																	accept: async () => {
-
-																		if (data.projectID) {
-																			selectgProject.value = data.length === 0 ? null : data;
-																			temporarilySelectg.value = selectgProject.value;
-																			reloadParam.projectID = data.length === 0 ? null : data.projectID;
-																			multiSelectList.value = []; //清空选中的负责人
-																			//getProScheduleR(props.ctx);
-																			//上传调用接口
-																			return true;
-																		}
-																		else {
-																			ctx.uiBuilder.toast(ctx, {
-																				severity: 'error',
-																				summary: $t('dialog.title.error'),
-																				detail: $t('invalid.requiredSelectAny'), // 提示信息
-																				group: 'br',
-																				life: 3000,
-																			});
-																			return false;
-																		}
-
-																	},
-																	//取消 reloadParam.projectID
-																	reject: async () => {
-																		selectgProject.value = temporarilySelectg.value ?? null;
-																		reloadParam.projectID = temporarilySelectg?.value?.projectID ?? null;
-
-																		//判断 缓存数据在不在lineDate里 
-																		if (selectgProject.value) {
-																			const res = lineData.value.findIndex((item: any) => {
-																				return item.projectID == selectgProject.value.projectID;
-																			})
-
-																			if (res < 0) {
-																				lineData.value.push(selectgProject.value);
-																			}
-																		}
-																		return true;
-																	},
-
-																	onHide: () => {
-																		//这个函数主要是把确定和取消分开执行。原来的accept会调用reject
-																		//console.log("onHide");
-																		return true;
-																	},
-																}
-															);
+															if (!Array.isArray(picked) || !picked.length) {
+																ctx.uiBuilder.toast(ctx, {
+																	severity: 'error',
+																	summary: $t('dialog.title.error'),
+																	detail: $t('invalid.requiredSelectAny'),
+																	group: 'br',
+																	life: 3000,
+																});
+																return false;
+															}
+															const data = picked[0];
+															selectgProject.value = data;
+															temporarilySelectg.value = selectgProject.value;
+															reloadParam.projectID = data.projectID ?? null;
+															multiSelectList.value = [];
+															return true;
 														},
 
 														onUpdate: (value: any) => {
@@ -1020,80 +950,28 @@ export default defineComponent({
 														options: orderData.value,
 														dataKey: 'orderID',
 														optionLabel: formatProductionOrderSelectLabel,
-														toSearch: async (event: Event) => {
-															let data = [] as any;
-															const metaUi = await metaUiService.get('ProductionOrders', 'mes');
-															ordercolumns.value = metaUi.getListedFields().sort((prev: any, curr: any) => {
-																return Number(prev.fieldIdx) - Number(curr.fieldIdx);
+														toSearch: async () => {
+															const picked = await ctx.select({
+																repository: 'ProductionOrders',
+																service: 'mes',
+																selectionMode: 'single',
 															});
-															orderDataKEY.value = metaUi.primaryKey;
-															await getOrderData(ctx, '');
-															ctx.uiBuilder.confirmDialog(
-																(ctx.uiBuilder as any).buildSearchForRelativeContent(
-																	ordercolumns.value.map((item: any) =>
-																		ui.factory.column({
-																			header: item.displayLabel,
-																			field: item.fieldName,
-																			style: {
-																				width: '200px',
-																			},
-																		})
-																	),
-																	{
-																		dataKey: orderDataKEY.value,
-																		onSearch: async (params: any) => {
-																			const { searchParams } = params;
-																			reloadParam.orderID = '';
-																			await getOrderData(ctx, searchParams.searchWord);
-																			return { list: orderData.value, pager: searchParam.pager };
-																		},
-																		onPage: ({ pageNo, pageSize }: any) => {
-																			searchParam.pager.pageNo = pageNo;
-																			searchParam.pager.pageSize = pageSize;
-																		},
-																		onSelect: (selection: any, row: any) => {
-																			data = row;
-																		},
-																	}
-																),
-																ctx,
-																{
-																	name: 'orderSearchForRelative',
-																	title: $t('ganttLabel.selectProductionOrder'),
-																	width: '80%',
-																	accept: async () => {
-																		if (data.orderID) {
-																			selectgOrder.value = data.length === 0 ? null : data;
-																			temporarilySelectOrder.value = selectgOrder.value;
-																			reloadParam.orderID = data.length === 0 ? null : data.orderID;
-																			multiSelectList.value = [];
-																			return true;
-																		}
-																		ctx.uiBuilder.toast(ctx, {
-																			severity: 'error',
-																			summary: $t('dialog.title.error'),
-																			detail: $t('invalid.requiredSelectAny'),
-																			group: 'br',
-																			life: 3000,
-																		});
-																		return false;
-																	},
-																	reject: async () => {
-																		selectgOrder.value = temporarilySelectOrder.value ?? null;
-																		reloadParam.orderID = temporarilySelectOrder?.value?.orderID ?? null;
-																		if (selectgOrder.value) {
-																			const res = orderData.value.findIndex((item: any) => {
-																				return item.orderID == selectgOrder.value.orderID;
-																			});
-																			if (res < 0) {
-																				orderData.value.push(selectgOrder.value);
-																			}
-																		}
-																		return true;
-																	},
-																	onHide: () => true,
-																}
-															);
+															if (!Array.isArray(picked) || !picked.length) {
+																ctx.uiBuilder.toast(ctx, {
+																	severity: 'error',
+																	summary: $t('dialog.title.error'),
+																	detail: $t('invalid.requiredSelectAny'),
+																	group: 'br',
+																	life: 3000,
+																});
+																return false;
+															}
+															const data = picked[0];
+															selectgOrder.value = data;
+															temporarilySelectOrder.value = selectgOrder.value;
+															reloadParam.orderID = data.orderID ?? null;
+															multiSelectList.value = [];
+															return true;
 														},
 														onUpdate: (value: any) => {
 															selectgOrder.value = value;
@@ -1265,7 +1143,7 @@ export default defineComponent({
 															)
 														);
 
-														// // todo 领料数量可编辑 暂时设计为缺多少领多少
+														// // todo 领料数量可编�?暂时设计为缺多少领多�?
 														// if (kittingMode.value) {
 														// 	columns.push(
 														// 		ui.factory.column(

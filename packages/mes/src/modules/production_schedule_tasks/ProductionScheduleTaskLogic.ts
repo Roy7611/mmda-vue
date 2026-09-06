@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/models/ProductionScheduleTask';
@@ -64,7 +63,7 @@ import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/mod
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductionScheduleTaskLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new ProductionScheduleTaskLogic({
+	export const ProductionScheduleTaskLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductionScheduleTaskLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionScheduleTasks',
 		router,

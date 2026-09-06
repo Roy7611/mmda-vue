@@ -5,8 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
-import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
+
+import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
 import { type UiBuildContext, type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogPropsType, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
@@ -14,12 +14,11 @@ import { type MaintenancePlan } from '@/models/MaintenancePlan';
 import { MaintainingFrequency } from '@/enums/MaintainingFrequency';
 import { ToolStatus } from '@/enums/ToolStatus'
 import { LifecycleModeEnum } from '@/enums/LifecycleMode'
-import { h, reactive, type Ref, ref, VNode } from 'vue';
-import { ToolsLend } from '@/components/ToolsLend';
-import { ToolsMove } from '@/components/ToolsMove';
-import { ToolsPicking } from '@/components/ToolsPicking';
+import { toolsLendNode } from '@/components/ToolsLend';
+import { toolsMoveNode } from '@/components/ToolsMove';
+import { toolsPickingNode } from '@/components/ToolsPicking';
 import { ToolCategory } from "@/models/ToolCategory";
-import { ToolCategoryEditor } from "@/modules/ToolCategories/ToolCategoryEditor";
+import { toolCategoryEditorNode } from "@/modules/ToolCategories/ToolCategoryEditor";
 import { MaterialType } from '@mmda/base/src/enums/MaterialType';
 
 
@@ -35,28 +34,28 @@ import { MaterialType } from '@mmda/base/src/enums/MaterialType';
  */
 
 // 借出参数
-const lendData = reactive({
+const lendData = {
 	data: {
 		ownerID: '',
 	},
 });
 // 移动参数
-const moveData = reactive({
+const moveData = {
 	data: {} as any,
 });
 // 维修参数
-const repairData = reactive({
+const repairData = {
 	data: {
 		ownerID: '',
 	},
 });
 // 归还参数
-const returnData = reactive({
+const returnData = {
 	data: {} as any,
 });
 
 // 批量检修接口参数
-const Overhaulparams = reactive({
+const Overhaulparams = {
 	// 检修参数
 	batchOverhaul: {
 		refName: "Tool|batchOverhaul",
@@ -65,7 +64,7 @@ const Overhaulparams = reactive({
 })
 
 // 批量改制接口参数
-const Retrofitparams = reactive({
+const Retrofitparams = {
 	// 改制参数
 	batchRetrofit: {
 		refName: "Tool|batchRetrofit",
@@ -74,7 +73,7 @@ const Retrofitparams = reactive({
 })
 
 // 批量维修接口参数
-const Repairparams = reactive({
+const Repairparams = {
 	// 维修参数
 	batchRepair: {
 		refName: "Tool|batchRepair",
@@ -82,7 +81,7 @@ const Repairparams = reactive({
 	},
 })
 
-const propsData = reactive({
+const propsData = {
 	// 检修参数
 	batchOverhaul: {
 		action: 'create',
@@ -96,10 +95,10 @@ const propsData = reactive({
 /**
  * 获取create标识
  */
-const getCreateData = async (params: any, propData: any, context: UiBuildContext<any>) => {
+const getCreateData = async (params: any, propData: any, context: UiContext) => {
 	let data = {} as any
 	try {
-		const res = await context.globalProps.$api.doAction(propData, params)
+		const res = await context.apiClient.doAction(propData, params)
 		if (res) {
 			data = res
 		}
@@ -118,11 +117,11 @@ const getCreateData = async (params: any, propData: any, context: UiBuildContext
 	return data
 }
 // 借出
-const beforeToolsLend = async (context: UiBuildContext<any>, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $api: apiBox, $t: t } = context.globalProps;
+const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAction) => {
+	const { $toast: toast, $t: t } = context.globalProps;
 	try {
-		await context.uiBuilder.confirmDialog(
-			h(ToolsLend, {
+		await context.uiBuilder.dialog(
+			toolsLendNode({
 				class: 'w-full',
 				ctx: context,
 				onGetUserID: (value: string) => {
@@ -155,7 +154,7 @@ const beforeToolsLend = async (context: UiBuildContext<any>, model: Tool, action
 					}
 
 					try {
-						const res = await apiBox.doAction(
+						const res = await context.apiClient.doAction(
 							{
 								path: model.toolID ?? '',
 								action: 'lend',
@@ -194,11 +193,11 @@ const beforeToolsLend = async (context: UiBuildContext<any>, model: Tool, action
 };
 
 // 移动
-const beforeToolsMove = async (context: UiBuildContext<any>, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $api: apiBox, $t: t } = context.globalProps;
+const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAction) => {
+	const { $toast: toast, $t: t } = context.globalProps;
 	try {
-		await context.uiBuilder.confirmDialog(
-			h(ToolsMove, {
+		await context.uiBuilder.dialog(
+			toolsMoveNode({
 				class: 'w-full',
 				ctx: context,
 				onGetMoveData: (value: Object) => (moveData.data = value),
@@ -228,7 +227,7 @@ const beforeToolsMove = async (context: UiBuildContext<any>, model: Tool, action
 						return false;
 					}
 					try {
-						const res = await apiBox.doAction(
+						const res = await context.apiClient.doAction(
 							{
 								path: model.toolID ?? '',
 								action: 'move',
@@ -267,11 +266,11 @@ const beforeToolsMove = async (context: UiBuildContext<any>, model: Tool, action
 };
 
 // 维修
-const beforeToolsRepair = async (context: UiBuildContext<any>, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $api: apiBox, $t: t } = context.globalProps;
+const beforeToolsRepair = async (context: UiContext, model: Tool, action: EntityAction) => {
+	const { $toast: toast, $t: t } = context.globalProps;
 	try {
-		await context.uiBuilder.confirmDialog(
-			h(ToolsLend, {
+		await context.uiBuilder.dialog(
+			toolsLendNode({
 				class: 'w-full',
 				ctx: context,
 				onGetUserID: (value: string) => (repairData.data.ownerID = value),
@@ -301,7 +300,7 @@ const beforeToolsRepair = async (context: UiBuildContext<any>, model: Tool, acti
 						return false;
 					}
 					try {
-						const res = await apiBox.doAction(
+						const res = await context.apiClient.doAction(
 							{
 								path: model.toolID ?? '',
 								action: 'repair',
@@ -337,11 +336,11 @@ const beforeToolsRepair = async (context: UiBuildContext<any>, model: Tool, acti
 };
 
 // 归还
-const beforeToolsReturn = async (context: UiBuildContext<any>, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $api: apiBox, $t: t } = context.globalProps;
+const beforeToolsReturn = async (context: UiContext, model: Tool, action: EntityAction) => {
+	const { $toast: toast, $t: t } = context.globalProps;
 	try {
-		await context.uiBuilder.confirmDialog(
-			h(ToolsMove, {
+		await context.uiBuilder.dialog(
+			toolsMoveNode({
 				ctx: context,
 				onGetMoveData: (value: Object) => (returnData.data = value),
 			}),
@@ -369,7 +368,7 @@ const beforeToolsReturn = async (context: UiBuildContext<any>, model: Tool, acti
 						return false;
 					}
 					try {
-						const res = await apiBox.doAction(
+						const res = await context.apiClient.doAction(
 							{
 								path: model.toolID ?? '',
 								action: 'return',
@@ -408,14 +407,14 @@ const beforeToolsReturn = async (context: UiBuildContext<any>, model: Tool, acti
 };
 
 // 操作的业务action-name 为子表提供判断条件
-const actionName = ref('');
+const actionName = { value: '' };
 const refToolUseActions = ['store', 'lend', 'return', 'move', 'batchStore', 'batchLend', 'batchMove']; // 关联toolUse的field-logic
 
 export class ToolLogic extends UiLogic<Tool> {
 	constructor(init: UiLogicInit) {
 		super(defineTool, init);
 		this.addRelativeLogic<ToolUse>('uses', master => new ToolUseLogic(this, master));
-		this.beforeAction = (context: UiBuildContext<any>, model: Tool, action: EntityAction) => {
+		this.beforeAction = (context: UiContext, model: Tool, action: EntityAction) => {
 
 
 			actionName.value = action.name;
@@ -426,7 +425,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			}
 		};
 
-		this.afterLoad = async (context: UiBuildContext<any>, model: Tool): Promise<void> => {
+		this.afterLoad = async (context: UiContext, model: Tool): Promise<void> => {
 			actionName.value = '';
 			if (context.view === UiViewMany.Index) return;
 			if (model?.category?.materialX) {
@@ -501,7 +500,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 	}
 
-	handlerBeforeActionFn(context: UiContext<Tool> & UiBuildContext<any>, action: EntityAction): Promise<boolean> {
+	handlerBeforeActionFn(context: UiContext<Tool>, action: EntityAction): Promise<boolean> {
 		// 关联操作的逻辑在 beforeRefToolUseAction 中处理
 		if (action.name == 'store' || action.name == 'return' || action.name == 'lend' || action.name == 'move') return this.beforeRefToolUseAction(context, context.model, action);
 		if (action.name == 'batchStore') context.toSelectManyIndex('batchStore', () => this.batchStoreFn(context));
@@ -550,7 +549,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		})
 	}
 
-	async getAll(param: EntitySearchParam, context?: UiBuildContext<any>): Promise<PagedList<Tool>> {
+	async getAll(param: EntitySearchParam, context?: UiContext): Promise<PagedList<Tool>> {
 		if (!this.currentCategory) {
 			await context.initMetadata(false, {
 				repository: this.repository,
@@ -609,7 +608,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量入库
-	async batchStoreFn(context: UiBuildContext<any>) {
+	async batchStoreFn(context: UiContext) {
 		actionName.value = 'batchStore';
 		//当前选中项
 		const { selectedItems } = context; const t = context.t.bind(context);
@@ -664,7 +663,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量启用
-	async batchStartUsingFn(context: UiBuildContext<any>): Promise<boolean> {
+	async batchStartUsingFn(context: UiContext): Promise<boolean> {
 		actionName.value = 'batchStartUsing';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -678,7 +677,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		// 	});
 		// 	return Promise.reject(new Error("没有选择数据"));
 		// }
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchEnable', { count: selectedItems.length }),
 			header: t('tool.batchEnable'),
 			icon: "pi pi-exclamation-triangle",
@@ -716,7 +715,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量借出
-	async batchLendFn(context: UiBuildContext<any>) {
+	async batchLendFn(context: UiContext) {
 		actionName.value = 'batchLend';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -764,7 +763,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量移动
-	async batchMoveFn(context: UiBuildContext<any>) {
+	async batchMoveFn(context: UiContext) {
 		actionName.value = 'batchMove';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -812,7 +811,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量归还
-	async batchReturnFn(context: UiBuildContext<any>) {
+	async batchReturnFn(context: UiContext) {
 		actionName.value = 'batchReturn';
 		const { selectedItems, uiBuilder } = context; const t = context.t.bind(context);
 
@@ -828,202 +827,18 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 
 		// todo 记录当前选中项的使用次数，供批量归还接口使用
-		const returnParmas = ref<Record<string, any>>(null);
+		const returnParmas = { value: null as Record<string, any> | null };
 		if (selectedItems.length) returnParmas.value = Object.assign({}, ...selectedItems.map((item: any) => ({ [item.toolID]: 0 })));
 
 		// new logic 
 		const showFields = [].concat(this.meta.metaui.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.meta.metaui.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
-		const columns = [].concat(
-			uiBuilder.factory.column(
-				{
-					field: 'rowNum',
-					header: '',
-					exportable: false,
-					alignFrozen: 'left',
-					frozen: true,
-					style: {
-						width: `50px`,
-						'text-align': 'center',
-						'z-index': 99
-					},
-					pt: {
-						headerCell: (o: any) => {
-							const { attrs, props, context: ctx } = o
-
-							return {
-								class: `${props.field}`,
-								style: {
-									background: 'var(--mmda-content-background)',
-									'text-align': 'center',
-								}
-							}
-						},
-						bodyCell: (o: any) => {
-							const { attrs, parent, props, context: ctx } = o
-
-							return {
-								class: `${props.field}`
-							}
-						}
-					}
-				},
-				{
-					header: () =>
-						uiBuilder.factory.textSpan('#', {
-							style: {
-								width: '100%',
-								textAlign: 'center'
-							}
-						}),
-					body: ({ data, index }: any) => {
-
-						return uiBuilder.factory.textSpan(
-							`${index + 1}`,
-							{
-								// 统一使用索引来做行号
-								style: {
-									width: '100%',
-									textAlign: 'center'
-								}
-							}
-						)
-					}
-				}
-			),
-			showFields
-				.map((f: MetaUiField) => {
-					if (['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)) {
-						return uiBuilder.factory.column(
-							{
-								header: f.displayLabel,
-								field: f.fieldName,
-								columnKey: f.fieldName,
-								key: f.fieldName,
-								sortable: f.sortable ?? true,
-								style: {
-									width: `200px`,
-									maxWidth: `400px`,
-									'text-align': MetaUiFieldAlignmentEnum.valueOf(f.align ?? MetaUiFieldAlignment.LEFT)
-								},
-								pt: {
-									columnHeaderContent: (o: any) => {
-										return {
-											style: {
-												justifyContent: MetaUiFieldAlignmentEnum.valueOf(
-													f.align ?? MetaUiFieldAlignment.LEFT
-												)
-											}
-										}
-									},
-									headerCell: (o: any) => {
-										const { attrs, props, context: ctx } = o
-
-										return {
-											class: `${props.field}`,
-											style: {
-												background: 'var(--mmda-treetable-header-cell-background)',
-											}
-										}
-									},
-									bodyCell: (o: any) => {
-										const { attrs, parent, props, context: ctx } = o
-
-										return {
-											class: `${props.field}`,
-											style: {
-												width: `200px`,
-												maxWidth: `400px`
-											}
-										}
-									}
-								}
-							},
-							{
-								body: (slotProps: any) => {
-									return f.fieldName === 'toolPic' ? uiBuilder.factory.image(slotProps.data[f.fieldName], {
-									imageStyle: { height: '60px', width: 'auto', objectFit: 'contain' },
-									preview: true,
-								}) : uiBuilder.factory.textSpan(f.reference ? f.reference.labelFn(slotProps.data[f.fieldName]) : slotProps.data[f.fieldName],)
-								},
-							}
-						)
-
-					} else if (f.fieldName === 'usedCycles') {
-						return uiBuilder.factory.column(
-							{
-								header: f.displayLabel,
-								field: f.fieldName,
-								frozen: true,
-								alignFrozen: 'right',
-								columnKey: f.fieldName,
-								key: f.fieldName,
-								sortable: f.sortable ?? true,
-								style: {
-									width: `200px`,
-									maxWidth: `400px`,
-									'text-align': MetaUiFieldAlignmentEnum.valueOf(f.align ?? MetaUiFieldAlignment.LEFT)
-								},
-								pt: {
-									columnHeaderContent: (o: any) => {
-										return {
-											style: {
-												justifyContent: MetaUiFieldAlignmentEnum.valueOf(
-													f.align ?? MetaUiFieldAlignment.LEFT
-												)
-											}
-										}
-									},
-									headerCell: (o: any) => {
-										const { attrs, props, context: ctx } = o
-
-										return {
-											class: `${props.field}`,
-											style: {
-												background: 'var(--mmda-treetable-header-cell-background)',
-											}
-										}
-									},
-									bodyCell: (o: any) => {
-										const { attrs, parent, props, context: ctx } = o
-
-										return {
-											class: `${props.field}`,
-											style: {
-												width: `200px`,
-												maxWidth: `400px`
-											}
-										}
-									}
-								}
-							},
-							{
-								body: (slotProps: any) => {
-									const data = slotProps.data;
-									const inputVal = returnParmas.value[data.toolID] || 0;
-									const isExceeded = ((data.lifecycleModes as any) & 2) == 2 && (inputVal + data.usedCycles) > data.maxLifeCycles;
-									return h('div', { class: 'flex flex-col' }, [
-										uiBuilder.factory.numberInput({
-											modelValue: inputVal,
-											invalid: isExceeded || undefined,
-											onUpdate: (value: number) => returnParmas.value[data.toolID] = value,
-										}),
-										isExceeded ? h('small', { style: { color: 'red' } }, t('tool.overMaxUseCount')) : null,
-									]);
-								},
-							}
-						)
-					}
-				}
-
-				)
-		)
-		return await context.uiBuilder.confirmDialog(
-			uiBuilder.factory.primeVueTable(
+		const metaui = MetaUiBuilder.create('BatchReturn').fields(showFields).build()
+		return await context.uiBuilder.dialog(
+			uiBuilder.factory.table(
 				selectedItems,
-				columns,
+				metaui,
 				{
 					tableId: `batch-return-table`,
-					// scrollable: true,
 					scrollHeight: '400px',
 				},
 			),
@@ -1090,7 +905,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		);
 
 		// old logic 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchReturn', { count: selectedItems.length }),
 			header: t('tool.batchReturn'),
 			icon: "pi pi-exclamation-triangle",
@@ -1127,8 +942,8 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量检修
-	async batchOverhaulFn(context: UiBuildContext<any>) {
-		const { $api, $router: router } = context.globalProps;
+	async batchOverhaulFn(context: UiContext) {
+		const { $router: router } = context.globalProps;
 		actionName.value = 'batchOverhaul';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1143,7 +958,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			return;
 		}
 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchRepair', { count: selectedItems.length }),
 			header: t('tool.batchRepair'),
 			icon: "pi pi-exclamation-triangle",
@@ -1160,7 +975,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
-				const service = $api.config.service.toUpperCase();
+				const service = this.apiClient.config.service.toUpperCase();
 				const routerURL = router.resolve({
 					path: `/${service}/Maintenances/Create`,
 					query: { id: data.maintenanceID },
@@ -1172,8 +987,8 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量改制
-	async batchRetrofitFn(context: UiBuildContext<any>) {
-		const { $api, $router: router } = context.globalProps;
+	async batchRetrofitFn(context: UiContext) {
+		const { $router: router } = context.globalProps;
 		actionName.value = 'batchRetrofit';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1188,7 +1003,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			return;
 		}
 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchRemake', { count: selectedItems.length }),
 			header: t('tool.batchRemake'),
 			icon: "pi pi-exclamation-triangle",
@@ -1205,7 +1020,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
-				const service = $api.config.service.toUpperCase();
+				const service = this.apiClient.config.service.toUpperCase();
 				const routerURL = router.resolve({
 					path: `/${service}/Maintenances/Create`,
 					query: { id: data.maintenanceID },
@@ -1217,8 +1032,8 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量维修
-	async batchRepairFn(context: UiBuildContext<any>) {
-		const { $api, $router: router } = context.globalProps;
+	async batchRepairFn(context: UiContext) {
+		const { $router: router } = context.globalProps;
 		actionName.value = 'batchRepair';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1233,7 +1048,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			return;
 		}
 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchMaintain', { count: selectedItems.length }),
 			header: t('tool.batchMaintain'),
 			icon: "pi pi-exclamation-triangle",
@@ -1250,7 +1065,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
-				const service = $api.config.service.toUpperCase();
+				const service = this.apiClient.config.service.toUpperCase();
 				const routerURL = router.resolve({
 					path: `/${service}/Maintenances/Create`,
 					query: { id: data.maintenanceID },
@@ -1262,7 +1077,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量报废
-	async batchScrapFn(context: UiBuildContext<any>) {
+	async batchScrapFn(context: UiContext) {
 		actionName.value = 'batchScrap';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1277,7 +1092,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			return;
 		}
 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchScrap', { count: selectedItems.length }),
 			header: t('tool.batchScrap'),
 			icon: "pi pi-exclamation-triangle",
@@ -1314,7 +1129,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 批量处置
-	async batchDisposeFn(context: UiBuildContext<any>) {
+	async batchDisposeFn(context: UiContext) {
 		actionName.value = 'batchDispose';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1329,7 +1144,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			return;
 		}
 
-		return await context.uiBuilder.confirmMessage(context, {
+		return await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchDispose', { count: selectedItems.length }),
 			header: t('tool.batchDispose'),
 			icon: "pi pi-exclamation-triangle",
@@ -1365,13 +1180,13 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 领料
-	async beforeToolsPicking(context: UiBuildContext<any>): Promise<boolean> {
+	async beforeToolsPicking(context: UiContext): Promise<boolean> {
 		const { $t: t } = context.globalProps;
-		const submitFn = ref<(() => Promise<boolean>) | null>(null);
+		const submitFn = { value: null as (() => Promise<boolean>) | null };
 
 		try {
-			return await context.uiBuilder.confirmDialog(
-				h(ToolsPicking, {
+			return await context.uiBuilder.dialog(
+				toolsPickingNode({
 					class: 'w-full h-full',
 					ctx: context,
 					onReady: (fn: () => Promise<boolean>) => {
@@ -1410,7 +1225,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	}
 
 	// 计算下次维护日期
-	calculateNextMaintainDate(context: UiBuildContext<any>, maintenancePlan: MaintenancePlan): string {
+	calculateNextMaintainDate(context: UiContext, maintenancePlan: MaintenancePlan): string {
 		let start: string | Date; // 维护开始计算日期 如 本周第一天 本月第一天等
 		let nextDate: string;
 		switch (maintenancePlan.frequency) {
@@ -1467,7 +1282,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				// 当前分类不为空时，锁定分类字段，且只能选择当前分类
 				this.field('categoryID')
 					// .lockIf((model: Tool) => this.currentCategory?.categoryID && this.currentCategory?.categoryID === model.categoryID)
-					.onChange(async (ctx: UiBuildContext<any>, model, newVal, oldVal) => {
+					.onChange(async (ctx: UiContext, model, newVal, oldVal) => {
 						if (ctx.loading.value || newVal === oldVal) return;
 						ctx.loading.value = true
 						try {
@@ -1502,7 +1317,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					}),
 				this.field('asEquip').lockIf((model: Tool) => !!(model.checklistID || model.maintenancePlanID)),
 				// 设备管理相关字段 - 只有当 asEquip 为 true 时才显示
-				this.field('checklistID').hideIf((model: Tool) => !model.asEquip).refFilter((model, ctx) => {
+				this.field('checklistID').hideIf((model: Tool) => !model.asEquip).refWhere((model, ctx) => {
 					const __p = ((context: UiContext<Tool>,
 					model: Tool,
 					field: MetaUiField) => {
@@ -1542,7 +1357,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('remainingCycles')
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('cost').lockIf((model: Tool) => model.status !== ToolStatus.NONE),
-				this.field('maintenancePlanID').hideIf((model: Tool) => !model.asEquip).onChange((ctx: UiBuildContext<any>, model, newVal) => {
+				this.field('maintenancePlanID').hideIf((model: Tool) => !model.asEquip).onChange((ctx: UiContext, model, newVal) => {
 					if (isRefNone(newVal)) {
 						ctx.setFieldValue('planToMaintain', '');
 					} else {
@@ -1555,7 +1370,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('remainingLife').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 1) == 1)),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context: UiContext<Tool>,
 						model: Tool,
 						field: MetaUiField) => {
@@ -1579,7 +1394,7 @@ export class ToolLogic extends UiLogic<Tool> {
 						})
 						.join(" AND ");
 				})
-					.onChange((ctx: UiBuildContext<any>, model, newVal) => {
+					.onChange((ctx: UiContext, model, newVal) => {
 						if (isRefNone(newVal)) {
 							// 清空物料时不清空类别、器具名称
 							return;
@@ -1598,7 +1413,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('liveToDate')
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 1) == 1))
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
-					.onChange((ctx: UiBuildContext<any>, model, newVal, oldVal) =>
+					.onChange((ctx: UiContext, model, newVal, oldVal) =>
 						ctx.setFieldValue('remainingLife', new Date().calculateDiff(new Date(), new Date(newVal), 'd'))
 					)
 					.onValidate((value, model, ctx) => {
@@ -1640,7 +1455,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			} else if (this.currentCategory?.materialX === 'ToolPattern') {
 				console.log('ToolPattern');
 				fields.push(
-					this.field('customerID').hideIf((model: Tool) => !model.status).refFilter((model, ctx) => {
+					this.field('customerID').hideIf((model: Tool) => !model.status).refWhere((model, ctx) => {
 					const __p = ((context: UiContext<Tool>,
 						model: Tool,
 						field: MetaUiField) => {
@@ -1718,40 +1533,24 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
-					if (isRefNone(ctx.model.materialID)) return h('div');
+					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.materialID;
-					const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/g, '');
-					return h('div', {}, [
-						h(
-							'a',
-							{
-								style: { color: '#409eff' },
-								href: 'javascript:;',
-								onClick: () => {
-									window.open(`${baseUrl}BASE/Materials/${ctx.model.materialID}`, '_blank');
-								},
-							},
-							fldText
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldText,
+						href: `/BASE/Materials/${ctx.model.materialID}`,
+						target: '_blank',
+						style: { color: '#409eff' },
+					});
 				}),
 				this.field('toolkitID').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
-					if (isRefNone(ctx.model.toolkitID)) return h('div');
+					if (isRefNone(ctx.model.toolkitID)) return ctx.uiBuilder.factory.textSpan('');
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.toolkitID;
-					const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/g, '');
-					return h('div', {}, [
-						h(
-							'a',
-							{
-								style: { color: '#409eff' },
-								href: 'javascript:;',
-								onClick: () => {
-									window.open(`${baseUrl}MES/Toolkits/${ctx.model.toolkitID}`, '_blank');
-								},
-							},
-							fldText
-						),
-					]);
+					return ctx.uiBuilder.factory.link({
+						text: fldText,
+						href: `/MES/Toolkits/${ctx.model.toolkitID}`,
+						target: '_blank',
+						style: { color: '#409eff' },
+					});
 				})
 			)
 		}
@@ -1781,9 +1580,9 @@ export class ToolLogic extends UiLogic<Tool> {
 		},
 		deleteJsonUrl: 'base/MaterialCats',
 	};
-	categoryName: Ref<string> = ref('');
-	treeData: Ref<ToolCategory[]> = ref([]);
-	treeLoading: Ref<boolean> = ref(false);
+	categoryName = { value: '' };
+	treeData = { value: [] };
+	treeLoading = { value: false };
 
 	/**
 	 * 搜索物料分类
@@ -1791,7 +1590,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {string} [searchWord=''] - 搜索关键词,默认为空字符串
 	 * @returns {Promise<boolean>} - 搜索成功返回true,否则返回false
 	 */
-	async searchFn(ctx: UiBuildContext<any>, searchWord: string = '') {
+	async searchFn(ctx: UiContext, searchWord: string = '') {
 		this.treeLoading.value = true;
 		return await new Promise((resolve, reject) => {
 			resolve(this.apiClient.searchAll({
@@ -1819,11 +1618,11 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {UiDialogPropsType & {toolCategory?: ToolCategory,}} props - 对话框props
 	 * @returns {Promise<boolean>} - 保存成功返回true,否则返回false
 	 */
-	async categoryConfirmDialog(ctx: UiBuildContext<any>, content: VNode, props: UiDialogPropsType & {
+	async categoryConfirmDialog(ctx: UiContext, content: VNode, props: UiDialogPropsType & {
 		toolCategory?: ToolCategory,
 	}): Promise<boolean> {
 
-		return ctx.uiBuilder.confirmDialog(
+		return ctx.uiBuilder.dialog(
 			content
 			, ctx, {
 			width: '75%',
@@ -1838,7 +1637,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {string} key - 添加目录的类型,addRoot, addSibling, addChild
 	 * @param {ToolCategory} [node] - 父目录
 	 */
-	async addHandle(ctx: UiBuildContext<any>, key: string, node?: ToolCategory) {
+	async addHandle(ctx: UiContext, key: string, node?: ToolCategory) {
 		let title: string;
 		let depth: number = node?.depth ?? 0;
 		let parentCatID: string | number = '';
@@ -1862,7 +1661,7 @@ export class ToolLogic extends UiLogic<Tool> {
 		}
 		console.log(node, 'node');
 		
-		return this.categoryConfirmDialog(ctx, h(ToolCategoryEditor, {
+		return this.categoryConfirmDialog(ctx, toolCategoryEditorNode({
 			depth,
 			parentCatID,
 			materialX: node?.materialX,
@@ -1888,7 +1687,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {UiBuildContext<any>} ctx - 上下文对象
 	 * @param {ToolCategory} node - 需具类别对象
 	 */
-	async delHandle(ctx: UiBuildContext<any>, node: ToolCategory) {
+	async delHandle(ctx: UiContext, node: ToolCategory) {
 		const { categoryName, categoryID, categoryCode, childrenCount, children } = node;
 		let params: any = {};
 		if (childrenCount) {
@@ -1912,10 +1711,10 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {ToolCategory} node - 需具类别对象
 	 * @returns {Promise<boolean>} - 是否成功保存
 	 */
-	async editHandle(ctx: UiBuildContext<any>, node: ToolCategory) {
+	async editHandle(ctx: UiContext, node: ToolCategory) {
 		this.categoryName.value = node.categoryName
 		try {
-			ctx.uiBuilder.confirmDialog(ctx.uiBuilder.factory.formItem(
+			ctx.uiBuilder.dialog(ctx.uiBuilder.factory.formItem(
 				{
 					label: ctx.t('tool.categoryName'),
 					name: 'categoryName',
@@ -1959,8 +1758,8 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {any} params - 保存参数
 	 * @returns {Promise<void>} - 是否成功保存
 	 */
-	saveFn(ctx: UiBuildContext<any>, params: any) {
-		const res: any = ctx.apiClient.http.postJson(this.treeProps.saveUrl, params);
+	saveFn(ctx: UiContext, params: any) {
+		const res: any = this.apiClient.http.postJson(this.treeProps.saveUrl, params);
 		res
 			.then((res: any) => {
 				this.searchFn(ctx);
@@ -1989,9 +1788,9 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {number} childrenCount - 需具类别的子节点数量
 	 * @param {any} params - 删除参数
 	 */
-	deleteFn(ctx: UiBuildContext<any>, childrenCount: number, params: any) {
+	deleteFn(ctx: UiContext, childrenCount: number, params: any) {
 		try {
-			ctx.uiBuilder.confirmMessage(ctx, {
+			ctx.uiBuilder.confirm(ctx, {
 				message: ctx.t('tool.deleteCategoryConfirm'),
 				header: ctx.t('tool.category'),
 				icon: "pi pi-exclamation-triangle",
@@ -2007,7 +1806,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				},
 				accept: async () => {
 					if (childrenCount) {
-						return await ctx.apiClient.deleteAll(params, this.treeProps.deleteAllUrlParams).then((res: any) => {
+						return await this.apiClient.deleteAll(params, this.treeProps.deleteAllUrlParams).then((res: any) => {
 							this.searchFn(ctx);
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'success',
@@ -2026,7 +1825,7 @@ export class ToolLogic extends UiLogic<Tool> {
 								})
 							});
 					} else {
-						const res: any = ctx.apiClient.http.deleteJson(`${this.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
+						const res: any = this.apiClient.http.deleteJson(`${this.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
 						res
 							.then((res: any) => {
 								this.searchFn(ctx);
@@ -2067,7 +1866,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {string} type - 操作类型
 	 * @param {ToolCategory} [node] - 父目录
 	 */
-	directoryEditFn(ctx: UiBuildContext<any>, type: string, node?: ToolCategory) {
+	directoryEditFn(ctx: UiContext, type: string, node?: ToolCategory) {
 		switch (type) {
 			case 'addRoot':
 				this.addHandle(ctx, type);
@@ -2101,7 +1900,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	 * @param {UiBuildContext<any>} ctx - 上下文对象
 	 * @param {ToolCategory} data - 节点数据
 	 */
-	async onNodeSelectFn(ctx: UiBuildContext<any>, data: ToolCategory) {
+	async onNodeSelectFn(ctx: UiContext, data: ToolCategory) {
 		this.currentCategory = data;
 		if (this.currentCategory?.materialX) {
 			await ctx.initMetadata(false, {
@@ -2128,7 +1927,7 @@ export class ToolLogic extends UiLogic<Tool> {
  * @param module 模块
  * @returns
  */
-export const ToolLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ToolLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ToolLogic({
 		metaUiService: metaUiService,
 		repository: 'Tools',
@@ -2194,7 +1993,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 					return refToolUseActions.includes(actionName.value);
 				}),
 				this.field('ownerID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							status: getSqlOperator('IN').toSQL('ACTIVATED'), // 只能选择激活的用户
@@ -2216,7 +2015,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 							return ctx.t('tool.borrowerRequired');
 						}
 					})
-					.onChange((ctx: UiBuildContext<any>, model, newVal) => {
+					.onChange((ctx: UiContext, model, newVal) => {
 						ctx.setFieldValue('ownerDeptID', newVal ? ctx.getFieldCurrentOption('ownerID')?.deptID : '');
 					}),
 			)
@@ -2229,7 +2028,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
 			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
-			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
+			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => ctx.uiBuilder.factory.textSpan(ctx.model.customProperties[`$${fld.fieldName}`])));
 			/**
 			fields.push(
 				this.field('fldName')

@@ -266,7 +266,7 @@ const searchBox = (
       void context.searchRelative(field, value);
     },
     toSearch: async () => {
-      const picked = await (context as any).pickRelative?.(field);
+      const picked = await (context as any).select(field);
       if (picked) fldOptions.currentSelectOption = picked;
       return true;
     },
@@ -348,7 +348,7 @@ const externalLink = (
   }
   const { modules = [], context: appContext } = app;
   const systemList: any[] = appContext?.systemList ?? [];
-  const api = context.apiClient ?? app.api;
+  const api = context.logic?.apiClient ?? app.api;
   const isCurrentSystem =
     !reference.refDbName || reference.refDbName === api?.config.service;
   const refMainModule = isCurrentSystem

@@ -5,9 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { defineComponent, h, reactive, ref, type Ref } from 'vue';
-import { Router, useRouter } from 'vue-router';
-import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
+import { useRouter } from 'vue-router';
+import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
@@ -27,12 +26,12 @@ import { ResourceType } from '@/enums/ResourceType';
 import { ProcessOperationResource } from '@/models/ProcessOperationResource';
 import type { UiBuildContext } from '@mmda/vui';
 
-const tableData = ref([]);
-const tablecolumns = ref([]);
-const tableDataKEY = ref('id');
+const tableData = { value: [] };
+const tablecolumns = { value: [] };
+const tableDataKEY = { value: 'id' };
 // 存放bom自制品的物料id(array)
-export const forBomMaterialID = ref([])
-const searchParamTask = reactive({
+export const forBomMaterialID = { value: [] }
+const searchParamTask = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
@@ -44,7 +43,7 @@ const searchParamTask = reactive({
 	},
 });
 //匹配标准件
-const bomitemquery = reactive({
+const bomitemquery = {
 	materialID: '',
 	materialData: null,
 	tableData: [],
@@ -59,23 +58,19 @@ const bomitemquery = reactive({
 		searchParams: {},
 	},
 });
-export const resources: any = ref([])
-export const getmaterial = async (context: UiBuildContext<any>, value?: any) => {
-	await context.globalProps.$api
-		.searchAll({
-			pager: {
-				pageSize: bomitemquery.searchParam.pager.pageSize,
-				pageNo: bomitemquery.searchParam.pager.pageNo,
-			},
-			searchWord: value,
-			filterModel: {
-				status: inFilter('USED'),
-				materialType: notInFilter([MaterialType.LABOR]),
-			},
-		}, {
-			repository: 'Materials',
-			service: 'base',
-		})
+export const resources: any = { value: [] }
+export const getmaterial = async (context: UiContext, value?: any) => {
+	await context.logic!.getAllOf<Record<string, unknown>>('Materials', {
+		pager: {
+			pageSize: bomitemquery.searchParam.pager.pageSize,
+			pageNo: bomitemquery.searchParam.pager.pageNo,
+		},
+		searchWord: value,
+		filterModel: {
+			status: inFilter('USED'),
+			materialType: notInFilter([MaterialType.LABOR]),
+		},
+	}, { service: 'base' })
 		.then((res: any) => {
 			bomitemquery.searchParam.pager = res.pagination;
 			bomitemquery.tableData = res.list;
@@ -87,20 +82,17 @@ export const getmaterial = async (context: UiBuildContext<any>, value?: any) => 
  * @param value
  */
 export const getProjectTask = async (context: UiContext<Bom>, value?: any) => {
-	await context.globalProps.$api
-		.getAll({
-			repository: 'ProjectTasks',
-			service: 'mes',
-			queryParams: {
-				pageSize: searchParamTask.pager.pageSize,
-				pageNo: searchParamTask.pager.pageNo,
-				sort: '',
-				searchWord: value,
-				taskPhase: 'MAKE',
-				taskLevel: TaskLevel.TASK,
-				projectID: context.model.projectID ?? '',
-			},
-		})
+	await context.logic!.getAllOf<Record<string, unknown>>('ProjectTasks', {
+		queryParams: {
+			pageSize: searchParamTask.pager.pageSize,
+			pageNo: searchParamTask.pager.pageNo,
+			sort: '',
+			searchWord: value,
+			taskPhase: 'MAKE',
+			taskLevel: TaskLevel.TASK,
+			projectID: context.model.projectID ?? '',
+		},
+	}, { service: 'mes' })
 		.then((res: any) => {
 			searchParamTask.pager = res.pagination;
 			tableData.value = res.list.map((it: any) => {
@@ -151,11 +143,10 @@ const bomItemPicCommonStyle = {
 	overflow: 'hidden',
 };
 
-const renderBomItemMaterialPicContent = (picUrl: string) => {
+const renderBomItemMaterialPicContent = (picUrl: string, ctx: UiContext<BomItem>) => {
+	const factory = ctx.uiBuilder.factory;
 	if (!picUrl) {
-		return h(
-			'span',
-			{
+		return factory.icon?.('fas fa-image', {
 				class: `${BOM_ITEM_PIC_CLASS} ${BOM_ITEM_PIC_CLASS}--empty${BOM_ITEM_PIC_EMPTY_SHOW_FRAME ? ` ${BOM_ITEM_PIC_CLASS}--framed` : ''}`,
 				style: {
 					...bomItemPicCommonStyle,
@@ -163,39 +154,21 @@ const renderBomItemMaterialPicContent = (picUrl: string) => {
 					justifyContent: 'center',
 					alignItems: 'center',
 					color: 'gray',
+					fontSize: `${BOM_ITEM_PIC_ICON_SIZE}px`,
 					...bomItemPicEmptyFrameStyle,
 				},
-			},
-			[
-				h('i', {
-					class: 'fas fa-image',
-					style: {
-						fontSize: `${BOM_ITEM_PIC_ICON_SIZE}px`,
-						width: `${BOM_ITEM_PIC_ICON_SIZE}px`,
-						height: `${BOM_ITEM_PIC_ICON_SIZE}px`,
-						lineHeight: `${BOM_ITEM_PIC_ICON_SIZE}px`,
-						display: 'inline-block',
-						textAlign: 'center',
-					},
-				}),
-			]
-		);
+			}) ?? factory.textSpan('');
 	}
 
-	return h('img', {
+	return factory.image(encodeUriAndFix(picUrl), {
 		class: `${BOM_ITEM_PIC_CLASS} ${BOM_ITEM_PIC_CLASS}--img`,
-		src: encodeUriAndFix(picUrl),
-		alt: 'material',
-		style: {
+		preview: true,
+		imageStyle: {
 			...bomItemPicCommonStyle,
 			objectFit: 'contain',
 			objectPosition: 'center center',
 			...(BOM_ITEM_PIC_EMPTY_SHOW_FRAME ? { borderRadius: BOM_ITEM_PIC_BORDER_RADIUS } : {}),
 			cursor: 'pointer',
-		},
-		onClick: (e: Event) => {
-			e.stopPropagation();
-			window.open(`${encodeUriAndFix(picUrl)}?a=${Date.now()}`, '_blank');
 		},
 	});
 };
@@ -334,7 +307,7 @@ export const bridgeBomItemsSubGroupFieldLogic = (context: UiContext<Bom>) => {
 
 export const renderBomItemMaterialPic = (fld: MetaUiField, ctx: UiContext<BomItem>) => {
 	const picUrl = getBomItemMaterialPicUrl(fld, ctx);
-	return renderBomItemMaterialPicContent(picUrl);
+	return renderBomItemMaterialPicContent(picUrl, ctx);
 };
 
 /** 沟通结果集缩略图：宽度自适应容器，高度上限避免撑破表单 */
@@ -408,62 +381,39 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 
 	// 编辑态：复用框架 ImageUpload（选择/清除/上传逻辑不变），外层 CSS 约束为缩略图
 	if (ctx.editing && ctx.uiBuilder.fldFactory?.imageUpload) {
-		return h('div', { class: 'bom-item-communicate-pic' }, [
-			ctx.uiBuilder.fldFactory.imageUpload(fld, ctx, props),
-		]);
+		return ctx.uiBuilder.fldFactory.imageUpload(fld, ctx, props);
 	}
 
 	const urls = getBomItemCommunicatePicUrls(fld, ctx);
-	if (!urls.length) return h('span', {}, '');
+	if (!urls.length) return ctx.uiBuilder.factory.textSpan('');
 
-	return h(
-		'div',
-		{
+	if (urls.length === 1) {
+		return ctx.uiBuilder.factory.image(urls[0], {
+			preview: true,
+			isEdit: false,
 			class: 'bom-item-communicate-pic',
-			style: { display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' },
-		},
-		urls.map(url =>
-			ctx.uiBuilder.factory.image(url, {
-				preview: true,
-				isEdit: false,
-				imageStyle: {
-					width: '100%',
-					height: 'auto',
-					maxWidth: '100%',
-					maxHeight: `${maxH}px`,
-					objectFit: 'contain',
-					objectPosition: 'center center',
-					cursor: 'pointer',
-				},
-				style: {
-					width: '100%',
-					maxWidth: '100%',
-					maxHeight: `${maxH}px`,
-					overflow: 'hidden',
-					border: '1px solid #e4e7ed',
-					borderRadius: '4px',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					background: '#fafbfc',
-					boxSizing: 'border-box',
-				},
-			})
-		)
-	);
+			imageStyle: {
+				width: '100%',
+				height: 'auto',
+				maxWidth: '100%',
+				maxHeight: `${maxH}px`,
+				objectFit: 'contain',
+			},
+		});
+	}
+	return ctx.uiBuilder.factory.imageGallery?.(urls.map(src => ({ src })))
+		?? ctx.uiBuilder.factory.image(urls[0], { preview: true, class: 'bom-item-communicate-pic' });
 };
 
 //制品图片自定义居中渲染
 export const renderBomProductPic = (fld: MetaUiField, ctx: UiContext<Bom>) => {
 	const raw = ctx.getFieldValue(fld);
 	const picUrl = typeof raw === 'string' ? raw.trim() : '';
-	return h('div', { style: { width: '100%', display: 'flex', justifyContent: 'center' } }, [
-		ctx.uiBuilder.factory.image(picUrl, {
-			preview: true,
-			imageStyle: { maxWidth: '100%', maxHeight: '120px', objectFit: 'contain' },
-			style: { display: 'inline-flex', justifyContent: 'center' },
-		}),
-	]);
+	return ctx.uiBuilder.factory.image(picUrl, {
+		preview: true,
+		imageStyle: { maxWidth: '100%', maxHeight: '120px', objectFit: 'contain' },
+		style: { display: 'inline-flex', justifyContent: 'center', width: '100%' },
+	});
 };
 
 // 子件 BOM 行用 itemDeletable / 行 editable 控制可否删编。
@@ -504,15 +454,15 @@ export const isCurrentBomRow = (row: { bomID?: string } | null | undefined, ctx:
  * @param action
  * @returns
  */
-export const beforealter = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+export const beforealter = async (context: UiContext, model: Bom, action: EntityAction) => {
 	context.globalProps.$router.push({ name: 'BomEdit', params: model.bomID });
 	return false;
 };
 
-export const checkBomHasTask = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+export const checkBomHasTask = async (context: UiContext, model: Bom, action: EntityAction) => {
 	if (!isNullOrUndefined(model.bomID)) {
 		try {
-			const res = await context.globalProps.$api.getOne(`${model.bomID}/hasTask`, {
+			const res = await context.apiClient.getOne(`${model.bomID}/hasTask`, {
 				repository: 'Boms',
 				service: 'mes',
 			});
@@ -537,109 +487,62 @@ export const checkBomHasTask = async (context: UiBuildContext<any>, model: Bom, 
  * @param action
  * @returns
  */
-export const beforeapprove = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+export const beforeapprove = async (context: UiContext, model: Bom, action: EntityAction) => {
 	//根据bomID 查询是否存在项目任务，如果存在，弹窗展示项目任务 ProjectTask 多选，过滤 taskPhase=MAKE，taskLevel=TASK
 	const metaUiService = context.logic!.metaUiService;
-	const { $ui: ui, $api: apiBox, $t: t, $toast: Toast } = context.globalProps;
+	const { $ui: ui, $t: t, $toast: Toast } = context.globalProps;
 
 	const hasTask = await checkBomHasTask(context, model, action);
 	if (hasTask) {
-		let data = [] as any;
-		const metaUi = await metaUiService.get('ProjectTasks', 'mes');
-		tablecolumns.value = metaUi.getListedFields().sort((prev: any, curr: any) => {
-			return Number(prev.fieldIdx) - Number(curr.fieldIdx);
-		});
-		tableDataKEY.value = metaUi.primaryKey;
-		context.uiBuilder.confirmDialog(
-			context.uiBuilder.buildSearchForRelativeContent(
-				tablecolumns.value.map((item: MetaUiField) =>
-					ui.factory.column({
-						header: item.displayLabel,
-						field: item.fieldName,
-						style: {
-							width: `${item.listSize ?? 200}px`,
-						},
-					})
-				),
-				{
-					dataKey: tableDataKEY.value,
-					selectionMode: 'single',
-					onSearch: async (params: any) => {
-						const { searchParams, reload, pager } = params;
-						await getProjectTask(context, searchParams.searchWord);
-						return { list: tableData.value, pager: searchParamTask.pager };
-					},
-					onPage: ({ pageNo, pageSize }: any) => {
-						searchParamTask.pager.pageNo = pageNo;
-						searchParamTask.pager.pageSize = pageSize;
-					},
-					onSelect: (selection: any, row: any) => {
-						// console.log(selection, '选择')
-						data = selection;
-					},
-					onSelectAll: (selection: any, row: any) => {
-						// console.log(selection, '全选')
-						data = selection;
-					},
-				}
-			),
-			context,
-			{
-				title: t('bom.selectProjectTask'),
-				style: { width: '80vw', maxHeight: '95%' },
-				accept: async () => {
-					let refItemKeys = <any>[];
-					//单选情况下,改多选删除 , 多选直接用data
-					const dataList = [];
-					if (data) {
-						dataList.push(data);
-					}
-					refItemKeys = dataList.map((it: any) => {
-						return Object.assign({ refID: it.taskID });
-					});
-
-					//多选的情况下
-					// refItemKeys = data.map((it: any) => {
-					// 	return Object.assign({ refID: it.taskID });
-					// });
-					await apiBox
-						.doAction(
-							{
-								path: model.bomID,
-								service: 'mes',
-								repository: 'Boms',
-								action: 'approve',
-							},
-							{ payload: { refItemKeys: refItemKeys } }
-						)
-						.then((res: any) => {
-							if (res) {
-								context.reload();
-								return true;
-							}
-						})
-						.catch((err: any) => {
-							Toast.add({
-								severity: 'error',
-								summary: t('dialog.title.error'),
-								group: 'br',
-								detail: err.message,
-								life: 3000,
-							});
-							return true;
-						});
-					return true;
+		const picked = await context.select({
+			repository: 'ProjectTasks',
+			service: 'mes',
+			selectionMode: 'single',
+			searchParam: {
+				queryParams: {
+					taskPhase: 'MAKE',
+					taskLevel: TaskLevel.TASK,
+					projectID: model.projectID ?? '',
 				},
-			}
-		);
+			},
+		});
+		if (!Array.isArray(picked) || !picked.length) return false;
+		const data = picked[0];
+		const refItemKeys = [{ refID: data.taskID }];
+		await context.apiClient
+			.doAction(
+				{
+					path: model.bomID,
+					service: 'mes',
+					repository: 'Boms',
+					action: 'approve',
+				},
+				{ payload: { refItemKeys } }
+			)
+			.then((res: any) => {
+				if (res) {
+					context.reload();
+					return true;
+				}
+			})
+			.catch((err: any) => {
+				Toast.add({
+					severity: 'error',
+					summary: t('dialog.title.error'),
+					group: 'br',
+					detail: err.message,
+					life: 3000,
+				});
+				return true;
+			});
 	} else {
 		return true
-		// return await context.uiBuilder.confirmMessage(context, {
+		// return await context.uiBuilder.confirm(context, {
 		// 	header: t('action.confirm'),
 		// 	message: t('dialog.areYourSure'),
 		// 	type: action.param.hint,
 		// 	accept: async () => {
-		// 		return await apiBox
+		// 		return await context.apiClient
 		// 			.doAction(
 		// 				{
 		// 					path: model.bomID,
@@ -673,19 +576,19 @@ export const beforeapprove = async (context: UiBuildContext<any>, model: Bom, ac
  * @param action
  * @returns
  */
-export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+export const beforematchStd = async (context: UiContext, model: Bom, action: EntityAction) => {
 	// if (context.actionLoadings[action.name]) return false; // 防止重复点击
 	const metaUiService = context.logic!.metaUiService;
-	const { $ui: ui, $api: apiBox, $t: t, $toast: Toast } = context.globalProps;
+	const { $ui: ui, $t: t, $toast: Toast } = context.globalProps;
 	// 获取物料数据
 	await getmaterial(context, '');
 
 	// 过滤 减项数据
 	const originTableData = model.items || [];
-	const tableData = ref(originTableData);
+	const tableData = { value: originTableData };
 
 	// 本地分页和搜索参数
-	const _searchParam = reactive({
+	const _searchParam = {
 		// recordCount 不传 分页器会无法正常显示
 		pager: { pageSize: 10, pageNo: 1, recordCount: originTableData.length },
 		searchWord: '',
@@ -756,54 +659,22 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 						// 切换页码后bomitemquery.tableData更新了，找不到你选中的数据，所以展示不对，要保证你取的数据在你的可选列表中
 						options: [].concat(bomitemquery.tableData, [rowData.data.material]),
 						// toSearch 通过搜索 getmaterial 获取数据
-						toSearch: async (event: Event) => {
-							let data = [] as any;
-							// 获取物料列表的列定义
-							const materialColumns = [
-								ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
-								ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
-								ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
-								ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
-								ui.factory.column({ header: t('bom.modelType'), field: 'modelType', style: 'width: 100px' }),
-								ui.factory.column({ header: t('bom.nationalStandardNo'), field: 'gbNo', style: 'width: 100px' }),
-							];
-
-							context.uiBuilder.confirmDialog(
-								context.uiBuilder.buildSearchForRelativeContent(materialColumns, {
-									dataKey: 'materialID',
-									onSearch: async (params: any) => {
-										const { searchParams, reload, pager } = params;
-										await getmaterial(context, searchParams.searchWord);
-										return { list: bomitemquery.tableData, pager: bomitemquery.searchParam.pager };
+						toSearch: async () => {
+							const picked = await context.select({
+								repository: 'Materials',
+								service: 'base',
+								selectionMode: 'single',
+								searchParam: {
+									filterModel: {
+										status: inFilter('USED'),
+										materialType: notInFilter([MaterialType.LABOR]),
 									},
-									onPage: ({ pageNo, pageSize }: any) => {
-										bomitemquery.searchParam.pager.pageNo = pageNo;
-										bomitemquery.searchParam.pager.pageSize = pageSize;
-									},
-									onSelect: (selection: any, row: any) => {
-										data = row;
-									},
-								}),
-								context,
-								{
-									title: t('bom.selectMaterial'),
-									style: { width: '80vw', maxHeight: '95%' },
-									accept: async () => {
-										if (data.length === 0) {
-											context.uiBuilder.toast(context, {
-												severity: 'error',
-												summary: context.t('dialog.title.error'),
-												detail: context.t('invalid.requiredSelectAny'),
-												group: 'br',
-												life: 3000,
-											});
-											return false;
-										}
-										rowData.data.material = data;
-										return true;
-									},
-								}
-							);
+								},
+							});
+							if (!Array.isArray(picked) || !picked.length) return false;
+							const data = picked[0];
+							rowData.data.material = data;
+							return true;
 						},
 						onChange: (value: any) => {
 							if (!isRefNone(value)) {
@@ -820,30 +691,14 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 	];
 
 	let lastSearchWord = '';
+	getPagedItems('', false);
+	const pageNo = _searchParam?.pager?.pageNo ?? 1;
+	const pageSize = _searchParam?.pager?.pageSize ?? 10;
+	const start = (pageNo - 1) * pageSize;
+	const initialPage = tableData.value.slice(start, start + pageSize);
 
-	context.uiBuilder.confirmDialog(
-		context.uiBuilder.buildSearchForRelativeContent(columns, {
-			dataKey: 'itemID',
-			selectionMode: 'none',
-			onPage: ({ pageNo, pageSize }: any) => {
-				_searchParam.pager.pageNo = pageNo;
-				_searchParam.pager.pageSize = pageSize;
-			},
-			onSearch: async (params: any) => {
-				const { searchParams } = params;
-				const isNewSearch = searchParams.searchWord !== lastSearchWord;
-				lastSearchWord = searchParams.searchWord;
-				getPagedItems(searchParams.searchWord, isNewSearch);
-				// 分页处理
-				const pageNo = _searchParam?.pager?.pageNo ?? 1;
-				const pageSize = _searchParam?.pager?.pageSize ?? 10;
-				const start = (pageNo - 1) * pageSize;
-				const end = start + pageSize;
-				const pagedList = tableData.value.slice(start, end);
-
-				return { list: pagedList, pager: _searchParam.pager };
-			},
-		}),
+	context.uiBuilder.dialog(
+		ui.factory.dataTable!(initialPage, columns, {}),
 		context,
 		{
 			title: t('bom.matchStandardParts'),
@@ -860,7 +715,7 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 				});
 				console.log(refItemKeys, 'refItemKeys');
 				try {
-					const res = await apiBox.doAction(
+					const res = await context.apiClient.doAction(
 						{
 							path: model.bomID,
 							service: 'mes',
@@ -909,7 +764,7 @@ export const beforematchStd = async (context: UiBuildContext<any>, model: Bom, a
 /**
  * 指派设计任务：筛选来源=自制且未绑定子件BOM的项次，弹窗多选后放行给FLOW_TO处理通知
  */
-export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+export const beforeAssignDesignTask = async (context: UiContext, model: Bom, action: EntityAction) => {
 	const { $ui: ui, $toast: Toast, $t: t } = context.globalProps;
 
 	// 过滤符合条件的 BomItem：来源=自制 且 未绑定子件BOM
@@ -931,40 +786,19 @@ export const beforeAssignDesignTask = async (context: UiBuildContext<any>, model
 	}
 
 	// 构建表格列定义
-	const columns = [
-		ui.factory.column({ header: context.t('bom.itemNo'), field: 'itemID', style: { width: '80px' } }),
-		ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: { width: '150px' } }),
-		ui.factory.column({ header: t('bom.specification'), field: 'specs', style: { width: '120px' } }),
-		ui.factory.column({ header: context.t('bom.usageQuantity'), field: 'quantity', style: { width: '80px' } }),
-	];
+	const metaui = MetaUiBuilder.create('BomDesignParts')
+		.field('itemID', context.t('bom.itemNo'))
+		.field('materialName', t('view.materialName'))
+		.field('specs', t('bom.specification'))
+		.field('quantity', context.t('bom.usageQuantity'))
+		.build();
 
 	let selectedItems: BomItem[] = [];
 
-	return await context.uiBuilder.confirmDialog(
-		context.uiBuilder.buildSearchForRelativeContent(columns, {
-			dataKey: 'itemID',
-			labelFn: (item: any) => item.materialName,
+	return await context.uiBuilder.dialog(
+		context.uiBuilder.factory.table(targetItems, metaui, {
 			selectionMode: 'multiple',
-			data: targetItems,
-			onSearch: async (params: any) => {
-				const searchWord = params.searchParams?.searchWord || '';
-				const filtered = searchWord
-					? targetItems.filter((item: any) =>
-						['materialName', 'specs', 'itemID'].some(field =>
-							String(item[field] || '').toLowerCase().includes(searchWord.toLowerCase())
-						)
-					)
-					: targetItems;
-				const pageNo = params.pager?.pageNo || 1;
-				const pageSize = params.pager?.pageSize || 10;
-				const start = (pageNo - 1) * pageSize;
-				return {
-					list: filtered.slice(start, start + pageSize),
-					pager: { pageSize, pageNo, recordCount: filtered.length }
-				};
-			},
-			onSelect: (selection: any) => { selectedItems = selection; },
-			onSelectAll: (selection: any) => { selectedItems = selection; },
+			onSelect: (selection: BomItem[]) => { selectedItems = selection ?? []; },
 		}),
 		context,
 		{
@@ -1003,7 +837,7 @@ export class BomLogic extends UiLogic<Bom> {
 		super(defineBom, init);
 		this.addRelativeLogic<BomItem>('items', master => new BomItemLogic(this, master));
 
-		this.beforeAction = (context: UiBuildContext<any>, model: Bom, action: EntityAction) => {
+		this.beforeAction = (context: UiContext, model: Bom, action: EntityAction) => {
 			try {
 				if (action.name == 'alter') return beforealter(context, model, action);
 				if (action.name == 'approve') return beforeapprove(context, model, action);
@@ -1047,9 +881,9 @@ export class BomLogic extends UiLogic<Bom> {
 	};
 
 	//#region 树形列表逻辑
-	categoryName: Ref<string> = ref('');
-	treeData: Ref<MaterialCat[]> = ref([]);
-	treeLoading: Ref<boolean> = ref(false);
+	categoryName = { value: '' };
+	treeData = { value: [] };
+	treeLoading = { value: false };
 
 	/**
 	 * 搜索制品类别分类
@@ -1234,9 +1068,9 @@ export class BomLogic extends UiLogic<Bom> {
 									v.editable = false
 									if (v.partBomID) {
 										try {
-											const partBom = defineBom(await context.apiClient.getOne(v.partBomID, {
+											const partBom = defineBom(await this.apiClient.getOne(v.partBomID, {
 												repository: 'Boms',
-												service: context.apiClient.config.service || 'mes',
+												service: this.apiClient.config.service || 'mes',
 											}));
 											const children = (partBom.items ?? []).filter(item => !MetaModel.deleted(item)).map((item: BomItem) => { item.parentKey = value.id; item.deletable = false; return item; });
 											setSubBomItemsEditable(children, value?.bomID);
@@ -1370,7 +1204,7 @@ export class BomLogic extends UiLogic<Bom> {
  * @param module 模块
  * @returns
  */
-export const BomLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const BomLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new BomLogic({
 		metaUiService: metaUiService,
 		repository: 'Boms',
@@ -1390,7 +1224,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('altStrategyID').refFilter((model, ctx) => {
+				this.field('altStrategyID').refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 					return {
 						status: getSqlOperator('IN')!.toSQL('USED'), // 只能选择启用的替代料策略
@@ -1485,9 +1319,9 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 
 						if (partBomID && partBomID !== oldPartBomID) {
 							try {
-								const partBom = defineBom(await ctx.apiClient.getOne(partBomID, {
+								const partBom = defineBom(await this.apiClient.getOne(partBomID, {
 									repository: 'Boms',
-									service: ctx.apiClient.config.service || 'mes',
+									service: this.apiClient.config.service || 'mes',
 								}));
 								const children = (partBom.items ?? []).filter(item => !MetaModel.deleted(item)).map((item: BomItem) => { item.parentKey = model.id; item.deletable = false; return item; });
 								setSubBomItemsEditable(children, rootModel?.bomID);
@@ -1508,7 +1342,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 							refreshTree();
 						}
 					})
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 						return {
 							productID: model.materialID ?? '',
@@ -1617,23 +1451,13 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				this.field('materialCode').setCustomRenderer((fld, ctx: UiViewContext<any>, prop) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (!isRefNone(ctx.model.materialID)) {
-						const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/g, '');
-						return h('div', { style: { class: '' } }, [
-							h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										const url = `${baseUrl}BASE/Materials/${ctx.model.materialID}`;
-										window.open(url, '_blank');
-									},
-								},
-								fldVal
-							),
-						]);
+
+						return ctx.uiBuilder.factory.link({
+							text: fldVal,
+							href: `${baseUrl}BASE/Materials/${ctx.model.materialID}`,
+							target: '_blank',
+							style: { color: '#409eff' },
+						});
 					} else {
 						return fldVal;
 					}
@@ -1642,23 +1466,14 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				this.field('sourcingUrl').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (!isNullOrUndefined(fldVal)) {
-						return h('div', { style: { class: '' } }, [
-							h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										window.open(fldVal, '_blank');
-									},
-								},
-								fldVal
-							),
-						]);
+						return ctx.uiBuilder.factory.link({
+							text: fldVal,
+							href: fldVal,
+							target: '_blank',
+							style: { color: '#409eff' },
+						});
 					} else {
-						return h('div');
+						return ctx.uiBuilder.factory.textSpan('');
 					}
 				}),
 				this.field('partBomID')
@@ -1677,24 +1492,13 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					const fldVal = ctx.getFieldValue(fld);
 					console.log(JSON.stringify(fldVal));
 					if (!isRefNone(ctx.model.altStrategyID)) {
-						const baseUrl = ctx.globalProps.$api.http.baseUrl.replace(/api/, '');
-						return h('div', { style: { class: '' } }, [
-							h(
-								'a',
-								{
-									style: {
-										color: '#409eff',
-									},
-									href: 'javascript:;',
-									onClick: async () => {
-										const url = `${baseUrl}MES/AlternativeStrategies/${ctx.model.altStrategyID}`;
-										window.open(url, '_blank');
-									},
 
-								},
-								fldVal.strategyCode
-							),
-						]);
+						return ctx.uiBuilder.factory.link({
+							text: fldVal.strategyCode,
+							href: `${baseUrl}MES/AlternativeStrategies/${ctx.model.altStrategyID}`,
+							target: '_blank',
+							style: { color: '#409eff' },
+						});
 					} else {
 						return fldVal;
 					}
@@ -1716,7 +1520,7 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 		if (fields.length == 0) {
 			fields.push(
 				this.field('opCode')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx: UiViewContext<any>, model) => {
 						const rootModel = ctx.root.model as Bom;
 						return { parentProcessID: rootModel.processID ?? '' };
@@ -1738,7 +1542,7 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 							try {
 								const rootModel = ctx.root.model as Bom;
 								const compositeId = `${rootModel.processID},${newVal}`;
-								const processOperation = await ctx.apiClient.getOne(
+								const processOperation = await this.apiClient.getOne(
 									compositeId, // 传递复合主键字符串
 									{
 										repository: 'ProcessOperations',

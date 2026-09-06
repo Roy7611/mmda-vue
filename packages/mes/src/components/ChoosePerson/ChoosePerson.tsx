@@ -18,7 +18,7 @@ import {
 	PropType,
 	inject,
 } from 'vue';
-import { isRefNone, Pagination, type ApiClient } from '@mmda/core';
+import { isRefNone, Pagination } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import { label, type UiBuildContext } from '@mmda/vui';
 import { get } from 'http';
@@ -38,7 +38,7 @@ interface OwnerData {
 	ownerDeptID?: string;
 	ownerDeptName?: string;
 }
-export default defineComponent({
+const ChoosePerson = defineComponent({
 	name: 'ChoosePerson',
 	emits: ['changeData'],
 	props: {
@@ -56,11 +56,11 @@ export default defineComponent({
 		// const ganttBox = ref();
 
 		const userObj = ref();
-		const apiClient = getCurrentInstance().appContext.app.config.globalProperties.$api as ApiClient;
+		const mes = inject(MES_KEY)!;
+		const apiClient = mes.api;
 		const { $t, appGlobal, $toast: toast } = getCurrentInstance().appContext.app.config.globalProperties;
 		const { appContext } = getCurrentInstance();
 
-		const mes = inject(MES_KEY);
 		const { meta: metaUiService, di, i18n, ui } = mes;
 
 		const invalidProps = reactive<InvalidProps>({
@@ -219,57 +219,16 @@ export default defineComponent({
 											userChange(selectedUser.value);
 										}
 									},
-									toSearch: async (event: Event) => {
-										const { metaui } = await props.context.logic.loadMetadata('Users', 'base', true);
-										props.context.searchParam.pager = userPagination = {
-											pageSize: 10,
-											pageNo: 1
-										}
-										// userMeta.value = metaui
-										const columns = await props.context.uiBuilder.buildColumns(metaui, props.context, {
-											isSearch: true,
-											cacheKey: `ownerName/SearchRelative/${metaui.primaryKey}`,
-										});
-
-										return new Promise<any>((resolve, reject) => {
-											props.context.uiBuilder.confirmDialog(
-											(props.context.uiBuilder as any).buildSearchForRelativeContent(columns, {
-													dataKey: `${metaui.primaryKey}`,
-													tableId: `${metaui.objName}`,
-													onSearch: async ({ searchParams }: any) =>
-														await getUser(searchParams).then(() => ({
-															list: userOptionsAll.value,
-															pager: userPagination,
-														})),
-													onSelect: (selection: any[], row: any) => {
-														selectedUser.value = row;
-													},
-													onPage: (pager: any) => {
-														userPagination.pageNo = pager.pageNo;
-														userPagination.pageSize = pager.pageSize;
-														props.context.searchParam.pager = userPagination
-													},
-												}),
-												props.context,
-												{
-													cancelId: `dlg-${metaui.objName}-cancel-button`,
-													confirmId: `dlg-${metaui.objName}-confirm-button`,
-													name: 'searchForRelative',
-													title: metaui.displayLabel,
-													style: { width: '80vw', maxHeight: '95%' },
-													breakpoints: {
-														'960px': '75vw',
-														'640px': '90vw',
-													},
-													modal: true,
-													accept: async () => {
-														userChange(selectedUser.value);
-														return true;
-													},
-													// reject: props.reject
-												}
-											);
-										});
+									toSearch: async () => {
+										const picked = await props.context.select({
+											repository: 'Users',
+											service: 'base',
+											selectionMode: 'single',
+										})
+										if (!Array.isArray(picked) || !picked.length) return false
+										selectedUser.value = picked[0]
+										userChange(selectedUser.value)
+										return true
 									},
 								},
 								{
@@ -320,3 +279,9 @@ export default defineComponent({
 		);
 	},
 });
+
+export default ChoosePerson
+
+export function choosePersonNode(props?: Record<string, any>) {
+	return h(ChoosePerson, props as any)
+}

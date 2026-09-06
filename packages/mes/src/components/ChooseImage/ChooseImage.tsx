@@ -1,5 +1,5 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs } from 'vue';
-import { encodeUriAndFix, isRefNone, type ApiClient } from '@mmda/core';
+import { encodeUriAndFix, isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import { label } from '@mmda/vui';
 import { get } from 'http';
@@ -10,7 +10,7 @@ import { emit } from 'process';
 
 import '../ChooseImage/ChooseImage.less';
 
-export default defineComponent({
+const ChooseImage = defineComponent({
 	name: 'ChooseImage',
 	props: {
 		selectOption: Array as any,
@@ -30,7 +30,6 @@ export default defineComponent({
 	setup(props, ctx) {
 		// const ganttBox = ref();
 
-		const apiBox = getCurrentInstance().appContext.app.config.globalProperties.$api as ApiClient;
 		const { $ui: ui, $t, appContext } = getCurrentInstance().appContext.app.config.globalProperties;
 		//最终提交前处理的方法
 
@@ -137,3 +136,9 @@ export default defineComponent({
 			);
 	},
 });
+
+export default ChooseImage
+
+export function chooseImageNode(props?: Record<string, any>) {
+	return h(ChooseImage, props as any)
+}

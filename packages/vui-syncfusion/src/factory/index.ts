@@ -24,7 +24,7 @@ import { attachMiscellaneousRenderers } from "./miscellaneous";
 export { autoFitSyncfusionListGrid } from "./grid";
 export { splitterEventIndex } from "./splitter";
 export { resolveFieldUnit } from "./utils";
-export { SfGrid, SfGridLoadingHost } from "./grid";
+export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid-inject";

@@ -1165,8 +1165,8 @@ html.e-dark-mode .mmda-sf-dropup {
   min-height: 0;
   /* 页面本身不滚动；列表由 Grid 内滚，表单由 .mmda-view 内滚 */
   overflow: hidden;
-  /* 底边不加 padding，分页器与侧栏 footer 顶端对齐 */
-  padding: 0.75rem 1rem 0;
+  /* 四周不加 padding：工具栏贴齐主区边缘；列表/表单内容区自己留间距 */
+  padding: 0;
   background-color: var(--mmda-surface-ground);
   color: var(--mmda-text-color);
 }
@@ -1200,9 +1200,33 @@ html.e-dark-mode .mmda-sf-dropup {
 .mmda-sf-maincontent .mmda-list-view {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
   height: 100%;
   min-height: 0;
   overflow: hidden;
+}
+
+/* 工具栏贴顶满宽；表格区左右留白，避免贴边 */
+.mmda-sf-maincontent .mmda-list-view > .mmda-sf-header,
+.mmda-sf-maincontent .mmda-list-view > header {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+}
+
+.mmda-sf-maincontent .mmda-list-view > .mmda-list-scroll,
+.mmda-sf-maincontent .mmda-list-view > .mmda-sf-footer,
+.mmda-sf-maincontent .mmda-list-view > footer {
+  margin-inline: 1rem;
+}
+
+.mmda-sf-maincontent .mmda-page-layout {
+  padding: 0;
+}
+
+.mmda-sf-maincontent .mmda-page-layout > .mmda-page-regions {
+  margin-inline: 1rem;
+  margin-block-start: 0.75rem;
 }
 
 .mmda-sf-maincontent .mmda-list-view .mmda-list-scroll {
@@ -1302,19 +1326,27 @@ html.e-dark-mode .mmda-sf-dropup {
   bottom: 1.5rem;
 }
 
-/* 工具栏默认左右两栏；有搜索中区时再三列均分 */
+/* 工具栏默认左右两栏；有搜索中区时再三列均分。
+ * 独立使用（列表页）：固定高度、贴顶直角。
+ * 嵌在 .mmda-page-toolbar 内时由主题层盖底（padding/border 清零）。 */
 .mmda-sf-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
+  flex: 0 0 auto;
   gap: 0.75rem;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  margin: 0.5rem 0 0.75rem;
-  padding: 0 0.25rem;
+  height: 3rem;
+  margin: 0;
+  padding: 0 0.75rem;
   border: 0;
-  background: transparent;
+  border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
+  border-radius: 0;
+  color: var(--mmda-text-color, #1c1b1e);
+  background: var(--mmda-surface-card, #fffbfe);
 }
 
 .mmda-sf-toolbar--with-center {

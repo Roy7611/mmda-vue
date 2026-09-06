@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSqlOperator } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionEvent, defineProductionEvent } from '@/models/ProductionEvent';
@@ -44,7 +43,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 				(
 					this.field('taskID')
 						.lockIf((model: ProductionEvent, ctx: UiContext<ProductionEvent>) => model.taskID && ctx.isEditDialog)
-						.refFilter((model, ctx) => {
+						.refWhere((model, ctx) => {
 					const __p = ((ctx, model, field) => ({
 							status: getSqlOperator('NOT_IN').toSQL([ProductionTaskStatus.CANCELED, ProductionTaskStatus.FINISHED])
 						}))(ctx as any, model as any, undefined as any);
@@ -151,7 +150,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
  * @param module 模块
  * @returns
  */
-export const ProductionEventLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionEventLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionEventLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionEvents',

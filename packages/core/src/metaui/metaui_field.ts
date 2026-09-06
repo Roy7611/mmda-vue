@@ -52,6 +52,128 @@ export const enum MetaAggregation {
   FIRST = 32, //首值
 }
 
+/**
+ * 列过滤器类型（TINYINT 位掩码，与 metauifield.filterTypes 一致）。
+ *
+ * `0;NONE;-|1;TEXT;文本|2;NUMBER;数字|4;DATE;日期|8;BOOLEAN;布尔|16;SET;集合|32;MULTI;多个|64;JOIN;联合`
+ */
+export enum MetaUiFieldFilterType {
+  NONE = 0,
+  TEXT = 1,
+  NUMBER = 2,
+  DATE = 4,
+  BOOLEAN = 8,
+  SET = 16,
+  MULTI = 32,
+  JOIN = 64,
+}
+
+/** 列头过滤控件形态（由 filterTypes 解析而来）。 */
+export type ColumnFilterKind = 'boolean' | 'range' | 'set' | 'multi' | 'text'
+
+/** NONE / 未配：按 dataType + reference 推断（与现网皮肤默认一致）。 */
+export function inferColumnFilterTypes(field: {
+  dataType: SqlDataType
+  reference?: MetaUiFieldRef
+}): number {
+  if (SqlDataType.isBool(field.dataType)) return MetaUiFieldFilterType.BOOLEAN
+  if (SqlDataType.isDate(field.dataType)) {
+    return (
+      MetaUiFieldFilterType.DATE |
+      MetaUiFieldFilterType.SET |
+      MetaUiFieldFilterType.MULTI
+    )
+  }
+  const reference = field.reference
+  if (reference?.isEnum || reference?.isRef || reference?.hasOne) {
+    return MetaUiFieldFilterType.SET
+  }
+  if (SqlDataType.isNum(field.dataType) && !reference) {
+    return MetaUiFieldFilterType.NUMBER
+  }
+  return (
+    MetaUiFieldFilterType.TEXT |
+    MetaUiFieldFilterType.SET |
+    MetaUiFieldFilterType.MULTI
+  )
+}
+
+/** 显式 filterTypes 优先；0 则推断。 */
+export function resolveColumnFilterTypes(field: {
+  dataType: SqlDataType
+  reference?: MetaUiFieldRef
+  filterTypes?: number
+}): number {
+  const configured = field.filterTypes ?? MetaUiFieldFilterType.NONE
+  if (configured === MetaUiFieldFilterType.NONE) {
+    return inferColumnFilterTypes(field)
+  }
+  return configured
+}
+
+/** 位是否置位。可传已解析的 number，或传 field（内部先 resolve）。 */
+export function hasFilterType(
+  fieldOrTypes:
+    | number
+    | undefined
+    | {
+        dataType: SqlDataType
+        reference?: MetaUiFieldRef
+        filterTypes?: number
+      },
+  bit: MetaUiFieldFilterType,
+): boolean {
+  if (typeof fieldOrTypes === 'number') {
+    return (fieldOrTypes & bit) === bit
+  }
+  if (fieldOrTypes == null) {
+    return false
+  }
+  return (resolveColumnFilterTypes(fieldOrTypes) & bit) === bit
+}
+
+export function columnFilterKindOf(field: {
+  dataType: SqlDataType
+  reference?: MetaUiFieldRef
+  filterTypes?: number
+}): ColumnFilterKind {
+  const types = resolveColumnFilterTypes(field)
+  if (hasFilterType(types, MetaUiFieldFilterType.BOOLEAN)) return 'boolean'
+
+  const hasCompare =
+    hasFilterType(types, MetaUiFieldFilterType.TEXT) ||
+    hasFilterType(types, MetaUiFieldFilterType.NUMBER) ||
+    hasFilterType(types, MetaUiFieldFilterType.DATE)
+  const hasSet = hasFilterType(types, MetaUiFieldFilterType.SET)
+  const multi =
+    hasFilterType(types, MetaUiFieldFilterType.MULTI) || (hasCompare && hasSet)
+
+  if (multi) return 'multi'
+  if (hasSet) return 'set'
+  if (
+    hasFilterType(types, MetaUiFieldFilterType.NUMBER) ||
+    hasFilterType(types, MetaUiFieldFilterType.DATE)
+  ) {
+    return 'range'
+  }
+  return 'text'
+}
+
+/** EntityFilterModel 比较谓词用的 filterType。 */
+export function simpleFilterTypeOf(field: {
+  dataType: SqlDataType
+  reference?: MetaUiFieldRef
+  filterTypes?: number
+}): 'text' | 'number' | 'date' {
+  const types = resolveColumnFilterTypes(field)
+  if (hasFilterType(types, MetaUiFieldFilterType.DATE)) return 'date'
+  if (hasFilterType(types, MetaUiFieldFilterType.NUMBER)) return 'number'
+  if (hasFilterType(types, MetaUiFieldFilterType.TEXT)) return 'text'
+  if (SqlDataType.isDate(field.dataType)) return 'date'
+  if (SqlDataType.isNum(field.dataType)) return 'number'
+  return 'text'
+}
+
 export type Nullable<T> = T | null
 export type Nullishable<T> = T | null | undefined
 
@@ -82,6 +204,11 @@ export interface MetaUiFieldInit {
   listPos?: number // 列表列顺序；缺省按 fieldIdx。勿与详情 fieldIdx 混用
   align?: MetaUiFieldAlignment // 对齐方式
   sortable?: boolean // 可排序，通常是有索引的字段支持排序
+  /**
+   * 列过滤器类型位掩码，见 {@link MetaUiFieldFilterType}。
+   * 0（NONE）表示按 dataType / reference 推断。
+   */
+  filterTypes?: number
   aggregationSet?: MetaAggregation // 聚合函数
 
   // 渲染
@@ -229,6 +356,8 @@ export class MetaUiField {
   listPos?: number
   readonly align?: MetaUiFieldAlignment
   readonly sortable?: boolean
+  /** 列过滤器类型位掩码；0 = 推断。见 {@link MetaUiFieldFilterType}。 */
+  readonly filterTypes?: number
   readonly aggregationSet?: MetaAggregation
 
   hidden?: boolean

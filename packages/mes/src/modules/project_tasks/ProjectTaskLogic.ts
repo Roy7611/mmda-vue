@@ -5,11 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined } from '@mmda/core';
 import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectTask, defineProjectTask } from '@/models/ProjectTask';
-import { watch, toRaw, h, ref } from 'vue'
 import { stringify } from 'querystring';
 //计算两个天数之间的日期
 const getDaysBetweenDates = (date1: any, date2: any) => {
@@ -21,8 +19,8 @@ const getDaysBetweenDates = (date1: any, date2: any) => {
 };
 
 let context = null as any
-const sTime = ref(null);
-const edTime = ref(null);
+const sTime = { value: null as any };
+const edTime = { value: null as any };
 /**
  * 项目任务交互逻辑
  * @author mmda codebot
@@ -39,16 +37,14 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
 	}
 	async getChangeData(value: any) {
 		context = value;
-		watch(value.model, (newVal) => {
-			context.model = newVal
-		})
+		context.model = value.model
 	}
 
 	async getSave() {
 		try {
 			const errNum = await context.validate(context.model, context.$v)
 			if (errNum === 0) {
-				const isSave = await context.logic.save(toRaw(context.model))
+				const isSave = await context.logic.save(context.model)
 				if (isSave === 1) {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
@@ -203,7 +199,7 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
  * @param module 模块
  * @returns 
  */
-export const ProjectTaskLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ProjectTaskLogic({
+export const ProjectTaskLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProjectTaskLogic({
 	metaUiService: metaUiService,
 	repository: 'ProjectTasks',
 	router,

@@ -5,11 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
+
 import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey, EntityAction } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type EquipmentSparePart, defineEquipmentSparePart } from '@/models/EquipmentSparePart';
-import { reactive, ref } from 'vue';
 /**
  * 备品备件交互逻辑
  * @author mmda codebot
@@ -20,10 +19,10 @@ import { reactive, ref } from 'vue';
 /**
  * 备品备件交互逻辑
  */
-const tableDataProject = ref([])
-const tablecolumnsProject = ref([])
-const tableDataKeyProject = ref('id')
-const searchParamProject = reactive({
+const tableDataProject = { value: [] }
+const tablecolumnsProject = { value: [] }
+const tableDataKeyProject = { value: 'id' }
+const searchParamProject = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1
@@ -32,7 +31,7 @@ const searchParamProject = reactive({
 	searchParams: {}
 });
 // 接口参数
-const params = reactive({
+const params = {
 	// 请购单
 	PurchaseRequests: {
 		refName: 'EquipmentSparePart',
@@ -50,7 +49,7 @@ const params = reactive({
 	}
 })
 // 定义接口参数
-const propsData = reactive({
+const propsData = {
 	// 付款单
 	PurchaseRequests: {
 		action: 'create',
@@ -74,16 +73,13 @@ const propsData = reactive({
  *  请购（跳转到请购单）
  */
 const beforeRequest = async (context: UiContext, model: EquipmentSparePart, action: EntityAction) => {
-	const { $toast: toast, $t: t, $api: apiBox } = context.globalProps
+	const { $toast: toast, $t: t } = context.globalProps
 	params.detailPurchaseRequests.refItemKeys = [{
 		refID: model.partID
 	}]
 	try {
-		const res = await apiBox.doAction(propsData.PurchaseRequests, params.detailPurchaseRequests)
-		//  获取ip
-		const baseUrl = apiBox.http.baseUrl.replace(/api/g, '')
-		const url = `${baseUrl}SRM/PurchaseRequests/Create?id=${res.requestID}`
-		window.open(url, '_blank')
+		const res = await context.apiClient.doAction(propsData.PurchaseRequests, params.detailPurchaseRequests)
+		window.open(`/SRM/PurchaseRequests/Create?id=${res.requestID}`, '_blank')
 	} catch (error: any) {
 		context.uiBuilder.toast(context, {
 			severity: 'error',
@@ -108,9 +104,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 		}
 	}
 	async getAllProject(context: UiContext, value?: any) {
-		await context.globalProps.$api.getAll({
-			repository: 'Equipments',
-			service: 'mes',
+		await this.getAllOf<Record<string, unknown>>('Equipments', {
 			queryParams: {
 				pageSize: searchParamProject.pager.pageSize,
 				pageNo: searchParamProject.pager.pageNo,
@@ -131,7 +125,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 		})
 	}
 	async request(context: UiContext<EquipmentSparePart>) {
-		const { $toast: toast, $t: t, $api: apiBox } = context.globalProps
+		const { $toast: toast, $t: t } = context.globalProps
 		if (!context.selectedItems || !context.selectedItems.length) {
 			toast.add({
 				severity: "warn",
@@ -145,11 +139,8 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 				refID: item.partID
 			}))
 			try {
-				const res = await apiBox.doAction(propsData.PurchaseRequests, params.PurchaseRequests)
-				//  获取ip
-				const baseUrl = apiBox.http.baseUrl.replace(/api/g, '')
-				const url = `${baseUrl}SRM/PurchaseRequests/Create?id=${res.requestID}`
-				window.open(url, '_blank')
+				const res = await this.apiClient.doAction(propsData.PurchaseRequests, params.PurchaseRequests)
+				window.open(`/SRM/PurchaseRequests/Create?id=${res.requestID}`, '_blank')
 			} catch (error: any) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
@@ -162,7 +153,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 		}
 	}
 	async withdrawMaterials(context: UiContext<EquipmentSparePart>) {
-		const { $toast: toast, $t: t, $api: apiBox } = context.globalProps
+		const { $toast: toast, $t: t } = context.globalProps
 		if (!context.selectedItems || !context.selectedItems.length) {
 			toast.add({
 				severity: "warn",
@@ -176,11 +167,8 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 				refID: item.partID
 			}))
 			try {
-				const res = await apiBox.doAction(propsData.MaterialTranses, params.withdrawMaterials)
-				//  获取ip
-				const baseUrl = apiBox.http.baseUrl.replace(/api/g, '')
-				const url = `${baseUrl}MES/MaterialTranses/Create?id=${res.transID}`
-				window.open(url, '_blank')
+				const res = await this.apiClient.doAction(propsData.MaterialTranses, params.withdrawMaterials)
+				window.open(`/MES/MaterialTranses/Create?id=${res.transID}`, '_blank')
 			} catch (error: any) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
@@ -200,7 +188,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 					searchLabel: 'view.equipment',
 					searchParam: 'equipID',
 					valueFn: (v: any) => !isRefNone(v) ? v.equipID : '',
-					renderer: (ctx: UiBuildContext<any> & any, csf) => {
+					renderer: (ctx: UiContext & any, csf) => {
 						if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 							tableDataProject.value.push(csf.searchVal.value)
 						}
@@ -210,54 +198,18 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 							optionLabel: (v: any) => v.equipName,
 							class: 'w-full',
 							options: tableDataProject.value,
-							toSearch: async (event: Event) => {
-								let data = [] as any;
-								// 获取元数据字段
-								const { metaui } = await ctx.logic!.loadMetadata('Equipments', 'mes', true);
-								tableDataKeyProject.value = metaui.primaryKey;
-								// 列表column
-								const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-									isSearch: true,
-									cacheKey: `equipID/SearchRelative/${metaui.primaryKey}`,
-								});
-								ctx.searchParam.pager = searchParamProject.pager = {
-									pageNo: 1,
-									pageSize: 10
-								}
-								ctx.uiBuilder.confirmDialog(
-									ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-										dataKey: tableDataKeyProject.value,
-										onSearch: async (params: any) => {
-											const { searchParams, reload, pager } = params;
-											await this.getAllProject(ctx, searchParams.searchWord);
-											return { list: tableDataProject.value, pager: searchParamProject.pager };
-										},
-										onPage: ({ pageNo, pageSize }: any) => {
-											searchParamProject.pager.pageNo = pageNo;
-											searchParamProject.pager.pageSize = pageSize;
-											ctx.searchParam.pager = searchParamProject.pager
-										},
-										onSelect: (selection: any, row: any) => {
-											data = row;
-										},
-										onRowDblclick: (row: any, index: number) => {
-											csf.searchVal.value = csf.searchWord.value = row
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/equipID`, JSON.parse(JSON.stringify(row)));
-											triggerEscKey(); // 弹窗关闭(触发esc建)
-										},
-									}),
-									ctx,
-									{
-										title: ctx.t('view.equipment'),
-										style: { width: '80vw', maxHeight: '95%' },
-										accept: async () => {
-											csf.searchVal.value = csf.searchWord = data;
-											ctx.model.equipID = data.equipID ?? ctx.model.equipID;
-											ctx.app.localDb.put(`search/${ctx.logic.repository}/equipID`, JSON.parse(JSON.stringify(data)));
-											return true;
-										},
-									}
-								);
+							toSearch: async () => {
+								const picked = await ctx.select({
+									repository: 'Equipments',
+									service: 'mes',
+									selectionMode: 'single',
+								})
+								if (!Array.isArray(picked) || !picked.length) return false
+								const data = picked[0]
+								csf.searchVal.value = csf.searchWord = data
+								ctx.model.equipID = data.equipID ?? ctx.model.equipID
+								ctx.app.localDb.put(`search/${ctx.logic.repository}/equipID`, JSON.parse(JSON.stringify(data)))
+								return true
 							},
 							onUpdate: (value: any) => {
 								csf.searchVal.value = value || null;
@@ -342,7 +294,7 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
  * @param module 模块
  * @returns 
  */
-export const EquipmentSparePartLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new EquipmentSparePartLogic({
+export const EquipmentSparePartLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new EquipmentSparePartLogic({
 	metaUiService: metaUiService,
 	repository: 'EquipmentSpareParts',
 	router,

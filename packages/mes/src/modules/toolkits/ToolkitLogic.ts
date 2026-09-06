@@ -5,11 +5,10 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
-import { h, ref, VNode, type Ref, } from "vue";
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, UiViewOne, type UiLogicFnResult, type PropData } from '@mmda/vui';
+import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type PropData } from '@mmda/vui';
+import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
 import { ToolStatus } from '@/enums/ToolStatus'
@@ -30,135 +29,18 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 		super(defineToolkit, init);
 		this.addRelativeLogic<Tool>('tools', (master) => new ToolLogic(this, master));
 
-		this.currentDom = ref(null);
-		this.targetDom = ref(null);
+		this.currentDom = { value: null };
+		this.targetDom = { value: null };
 	}
 
 
-	customToolNode(group: MetaUiGroup, context: UiViewContext<any>, props: PropData): VNode {
-		const { uiBuilder } = context;
-		const activeTools = (context.model.tools ?? []).filter((item: Tool) => !MetaModel.deleted(item));
-		if (activeTools.length === 0) {
-			return h('div', {
-				class: 'flex-1 overflow-y-auto p-4! col-span-full flex items-center justify-center text-gray-500',
-				id: 'tool-list-empty',
-			}, context.t('empty.select'));
-		}
-		return uiBuilder.factory.dataViewBox({
-			value: activeTools,
-			showLayout: false,
-			layout: 'grid',
-			paginator: false,
-			class: 'flex-1 overflow-y-auto p-2! col-span-full',
-			id: 'tool-list',
-		}, {
-			item: (item: any, index: number) => {
-				return h('div', {
-					class: `tool-item w-full h-full relative flex flex-col col-span-3 items-start justify-center bg-gray-100 pb-2 opacity-${this.currentDom.value?.id !== this.targetDom.value?.id ? '50' : '100'}`,
-					id: `tool-${item.toolID}`,
-					draggable: true,
-					onDragstart: (e: DragEvent) => props.onDragstart && props.onDragstart(e, context, item),
-					onDragenter: (e: DragEvent) => props.onDragenter && props.onDragenter(e, context, item),
-					onDragover: (e: DragEvent) => props.onDragover && props.onDragover(e, context, item),
-					onDragend: (e: DragEvent) => props.onDragend && props.onDragend(e, context, item),
-				}, [
-					uiBuilder.factory.badge({
-						value: item.toolkitIndex,
-						severity: 'info',
-						class: 'absolute top-2 left-2 z-10'
-					}),
-					// 图片区域
-					h('div', { class: 'w-full h-36 flex-shrink-0 flex items-center justify-center rounded-lg relative overflow-hidden bg-gray-50' }, [
-						// 如果有图片则显示图片，否则显示产品图标
-						item.toolPic
-							? uiBuilder.factory.image(item.toolPic, {
-								preview: false,
-								draggable: false,
-								class: 'object-cover rounded-md pt-2',
-								style: {
-									width: '100%',
-									height: '100%',
-								},
-								imageStyle: {
-									width: '100%',
-									height: '100%',
-									objectFit: 'contain',
-								}
-							})
-							: h('i', {
-								class: 'pi pi-box text-2xl text-gray-400',
-								style: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }
-							}),
-					]),
-
-					h('div', {
-						class: 'flex-1 w-full pt-2 pb-2 min-w-0 px-2'
-					}, [
-						h('div', {
-							class: 'font-semibold text-gray-800 text-sm leading-tight break-all text-center'
-						}, [
-							`${item.toolName}(${item.toolNo})`
-						]),
-					]),
-					// 操作区域
-					h('div', { class: 'w-full flex justify-evenly' },
-						context.view === UiViewOne.Details ? [
-							uiBuilder.factory.button({
-								role: `view-${group.groupName}-action`,
-								id: `view-${group.groupName}-button`,
-								outlined: true,
-								icon: 'pi pi-eye',
-								colorRole: 'info',
-								label: context.t('action.details'),
-								onAction: () => context.subGroupItem(group, item, {
-									groupMode: 'details',
-									initMetadataParams: (groupCtx) => ({
-										redirection: item?.category?.materialX,
-										queryParams: {
-											xMetaObject: item?.category?.materialX,
-										},
-									}),
-								})
-							})
-						] :
-							[
-								uiBuilder.factory.button({
-									role: `view-${group.groupName}-action`,
-									id: `view-${group.groupName}-button`,
-									outlined: true,
-									icon: 'pi pi-eye',
-									colorRole: 'info',
-									label: context.t('action.details'),
-									onAction: () => context.subGroupItem(group, item, {
-										groupMode: 'details', initMetadataParams: (groupCtx) => ({
-											redirection: item?.category?.materialX,
-											queryParams: {
-												xMetaObject: item?.category?.materialX,
-											},
-										}),
-									})
-								}),
-								uiBuilder.factory.button({
-									role: `delete-${group.groupName}-action`,
-									id: `delete-${group.groupName}-button`,
-									outlined: true,
-									icon: 'pi pi-trash',
-									colorRole: 'info',
-									severity: 'danger',
-									label: context.t('action.delete'),
-									onAction: () => {
-										context.removeSubGroupItem(group, item);
-									}
-								})
-							])
-				])
-			}
-		})
+	customToolNode(group: MetaUiGroup, context: UiViewContext<any>, props: PropData): any {
+		return toolkitToolListNode(group, context, props, this.currentDom.value?.id, this.targetDom.value?.id);
 	}
 
 
-	currentDom: Ref<any>;
-	targetDom: Ref<any>;
+	currentDom: { value: any };
+	targetDom: { value: any };
 	/**
 	 * 设置编辑交互逻辑
 	 */
@@ -321,7 +203,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
  * @param module 模块
  * @returns 
  */
-export const ToolkitLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new ToolkitLogic({
+export const ToolkitLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ToolkitLogic({
 	metaUiService: metaUiService,
 	repository: 'Toolkits',
 	router,
@@ -389,7 +271,7 @@ export class ToolLogic extends UiGroupLogic<Tool, Toolkit> {
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
-					if (isRefNone(ctx.model.materialID)) return h('div');
+					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 
 					return ctx.uiBuilder.fldFactory.HasOneText(fld, ctx)
 				})

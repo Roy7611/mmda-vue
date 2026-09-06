@@ -151,7 +151,7 @@ describe("default VUI layouts", () => {
   });
 });
 
-describe("AbstractUiBuilder layout wiring", () => {
+describe("VueUiBuilder layout wiring", () => {
   const field = (name: string, label: string) =>
     new MetaUiField({
       fieldName: name,

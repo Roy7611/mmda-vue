@@ -1,4 +1,4 @@
-import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
+﻿import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
 import { NDropdown, NInput, NTree, type TreeOption } from 'naive-ui'
 import {
   createIconVNode,
@@ -13,8 +13,8 @@ import {
 
 type TreeProps = UiTreeProps & UiTreeEmits
 
-export const MmdaNaiveTree = defineComponent({
-  name: 'MmdaNaiveTree',
+export const NaiveTree = defineComponent({
+  name: 'NaiveTree',
   props: {
     data: { type: Array as PropType<unknown[]>, required: true },
     fields: { type: Object as PropType<UiTreeFields>, default: undefined },

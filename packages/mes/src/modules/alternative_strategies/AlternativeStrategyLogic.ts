@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { getSqlOperator, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
@@ -116,7 +115,7 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
  * @param module 模块
  * @returns 
  */
-export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) => new AlternativeStrategyLogic({
+export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new AlternativeStrategyLogic({
 	metaUiService: metaUiService,
 	repository: 'AlternativeStrategies',
 	router,
@@ -136,7 +135,7 @@ export class AlternativeStrategyItemLogic extends UiGroupLogic<AlternativeStrate
 		if (fields.length == 0) {
 			fields.push(
 				this.field('materialID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((context: UiContext<AlternativeStrategyItem>, model: AlternativeStrategyItem, field: MetaUiField) => ({
 						status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
 					}),

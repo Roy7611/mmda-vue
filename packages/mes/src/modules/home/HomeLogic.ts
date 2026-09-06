@@ -3,19 +3,17 @@
  * 保留 getAll / getAllSite / beforeSearch 等核心方法
  * 从单接口 Dashboards/home 改为 11 个独立 Dashboard 接口并行调用
  */
-import { Router } from 'vue-router'
-import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, triggerEscKey, pagedList, NO_PAGINATION, inFilter } from '@mmda/core'
+
+import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, inFilter, defaultPager } from '@mmda/core'
 import type { UiLogicInit } from '@mmda/vui'
 import { UiLogic } from '@mmda/vui'
-import { reactive, ref } from 'vue'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage'
 import type { HomeKpi, Worker, Equipment, Material, ProductionChartData, SafetyAlert, EquipmentAlarm, TodaySummary, QcStats, EquipmentOverview, PendingNotification } from './types'
-import type { UiBuildContext } from '@mmda/vui';
 
-const tableDataSite = ref([])
-const tableDataKeySite = ref('id')
-const searchParamSite = reactive({
+const tableDataSite = { value: [] }
+const tableDataKeySite = { value: 'id' }
+const searchParamSite = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
@@ -27,25 +25,25 @@ export class HomeLogic extends UiLogic<CustomPage> {
   }
 
   /** 11 个 Dashboard 接口返回值响应式变量 — 供 HomeView 消费 */
-  kpiData = ref<HomeKpi | null>(null)
-  workersData = ref<Worker[]>([])
-  equipmentsData = ref<Equipment[]>([])
-  materialsData = ref<Material[]>([])
-  chartData = ref<ProductionChartData | null>(null)
-  trendData = ref<number[]>([])
-  safetyAlertsData = ref<SafetyAlert[]>([])
-  equipmentAlarmsData = ref<EquipmentAlarm[]>([])
-  summaryData = ref<TodaySummary | null>(null)
-  qcStatsData = ref<QcStats | null>(null)
-  equipmentOverviewData = ref<EquipmentOverview[]>([])
+  kpiData = { value: null }
+  workersData = { value: [] }
+  equipmentsData = { value: [] }
+  materialsData = { value: [] }
+  chartData = { value: null }
+  trendData = { value: [] }
+  safetyAlertsData = { value: [] }
+  equipmentAlarmsData = { value: [] }
+  summaryData = { value: null }
+  qcStatsData = { value: null }
+  equipmentOverviewData = { value: [] }
   /** 待处理通知数据，由 /Dashboards/home 聚合端点返回，后端查询 mmda_base.notice 表 */
-  pendingNotificationsData = ref<PendingNotification[]>([])
+  pendingNotificationsData = { value: [] }
 
   /** 标记首页数据是否已加载完成 — 控制 HomeView 的三态切换 */
-  loaded = ref(false)
+  loaded = { value: false }
 
   /** 首页数据加载错误信息，非空表示加载失败，供 HomeView 显示错误态 */
-  loadError = ref<string | null>(null)
+  loadError = { value: null }
 
   /**
    * 解析快捷时间范围为起止日期字符串
@@ -161,7 +159,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
    * 首页数据加载：单次聚合请求 /Dashboards/home，后端返回所有面板数据
    */
   async home(ctx?: any) {
-    const { $api: apiBox } = ctx.globalProps
+    const apiClient = this.apiClient
 
     // 时间范围优先级：快捷范围 > 精确日期 > 回退本周
     let beginTime: string
@@ -193,8 +191,8 @@ export class HomeLogic extends UiLogic<CustomPage> {
 
     // 单次聚合请求：/Dashboards/home 返回所有面板数据（含 pendingNotifications）
     try {
-      const res = await apiBox.http.getJson(
-        apiBox.buildEntityURL({ repository: 'Dashboards', action: 'home', queryParams: params })
+      const res = await apiClient.http.getJson(
+        apiClient.buildEntityURL({ repository: 'Dashboards', action: 'home', queryParams: params })
       )
 
       if (res) {
@@ -229,7 +227,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
   }
 
   async getAllSite(context: UiContext, value?: any) {
-    await context.globalProps.$api.searchAll({
+    await context.logic!.getAllOf<Record<string, unknown>>('Sites', {
       pager: {
         pageSize: searchParamSite.pager.pageSize,
         pageNo: searchParamSite.pager.pageNo,
@@ -258,7 +256,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
           searchLabel: 'view.workSite',
           searchParam: 'siteID',
           valueFn: (v: any) => !isRefNone(v) ? v.siteID : '',
-          renderer: (ctx: UiBuildContext<any> & any, csf) => {
+          renderer: (ctx: UiContext & any, csf) => {
             if (!tableDataSite.value.length && isObject(csf.searchVal.value)) {
               tableDataSite.value.push(csf.searchVal.value)
             }
@@ -269,60 +267,23 @@ export class HomeLogic extends UiLogic<CustomPage> {
               class: 'w-full',
               options: tableDataSite.value,
               toSearch: async () => {
-                let data: any = null
-                const { metaui } = await ctx.logic!.loadMetadata('Sites', 'mes', true)
-                tableDataKeySite.value = metaui.primaryKey
-                const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-                  isSearch: true,
-                  cacheKey: `siteID/SearchRelative/${metaui.primaryKey}`,
-                })
-                ctx.uiBuilder.confirmDialog(
-                  ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-                    dataKey: tableDataKeySite.value,
-                    /* 必须显式声明单选模式：不传时底层 PrimeVue 表格没有 selectionMode，单击行不会触发 row-select，onSelect 永不执行，导致点确认无响应 */
-                    selectionMode: 'single',
-                    onSearch: async (params: any) => {
-                      await this.getAllSite(ctx, params.searchParams.searchWord)
-                      return { list: tableDataSite.value, pager: searchParamSite.pager }
-                    },
-                    onPage: ({ pageNo, pageSize }: any) => {
-                      searchParamSite.pager.pageNo = pageNo
-                      searchParamSite.pager.pageSize = pageSize
-                    },
-                    /* single 模式下第一个参数就是当前选中行对象，取消选中时为 null */
-                    onSelect: (selection: any) => { data = selection },
-                    onRowDblclick: (row: any) => {
-                      csf.searchVal.value = csf.searchWord.value = row
-                      ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(row)))
-                      triggerEscKey()
-                    },
-                  }),
-                  ctx,
-                  {
-                    title: ctx.t('view.workSite'),
-                    style: { width: '80vw', maxHeight: '95%' },
-                    accept: async () => {
-                      /* 未选中任何工作中心时给出明确提示：原实现静默 return false，用户感知为「点确认无响应」 */
-                      if (!data || !data.siteID) {
-                        ctx.uiBuilder.toast(ctx, {
-                          severity: 'error',
-                          summary: ctx.t('dialog.title.error'),
-                          group: 'br',
-                          detail: ctx.t('dashboard.selectWorksiteFirst'),
-                          life: 3000,
-                        })
-                        return false
-                      }
-                      csf.searchVal.value = data
-                      /* searchWord 是 Ref，必须写 .value：原实现 csf.searchWord = data 会把 Ref 本身替换成普通对象，破坏响应式 */
-                      csf.searchWord.value = data
-                      ctx.model.siteID = data.siteID ?? ctx.model.siteID
-                      this.searchParam.siteID = ctx.model.siteID
-                      ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(data)))
-                      return true
-                    },
+                const picked = await ctx.select({
+                  repository: 'Sites',
+                  service: 'mes',
+                  selectionMode: 'single',
+                  searchParam: {
+                    pager: defaultPager(),
+                    filterModel: { status: inFilter(UsageStatus.USED) },
                   },
-                )
+                })
+                if (!Array.isArray(picked) || !picked.length) return false
+                const data = picked[0]
+                csf.searchVal.value = data
+                csf.searchWord.value = data
+                ctx.model.siteID = data.siteID ?? ctx.model.siteID
+                this.searchParam.siteID = ctx.model.siteID
+                ctx.app.localDb.put(`search/${ctx.logic.repository}/siteID`, JSON.parse(JSON.stringify(data)))
+                return true
               },
               onUpdate: (value: any) => {
                 csf.searchVal.value = value || null
@@ -340,7 +301,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
         {
           searchLabel: 'dashboard.startDate',
           searchParam: 'beginTime',
-          renderer: (ctx: UiBuildContext<any> & any, csf) => {
+          renderer: (ctx: UiContext & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
               csf.searchVal.value = new Date(csf.searchVal.value).toFormat('yyyy-MM-dd')
             }
@@ -358,7 +319,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
         {
           searchLabel: 'dashboard.endDate',
           searchParam: 'endTime',
-          renderer: (ctx: UiBuildContext<any> & any, csf) => {
+          renderer: (ctx: UiContext & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
               csf.searchVal.value = new Date(csf.searchVal.value).toFormat('yyyy-MM-dd')
             }
@@ -376,8 +337,8 @@ export class HomeLogic extends UiLogic<CustomPage> {
         {
           searchLabel: 'view.timesRange',
           searchParam: 'date',
-          renderer: (ctx: UiBuildContext<any> & any, csf) => {
-            const searchData = reactive({
+          renderer: (ctx: UiContext & any, csf) => {
+            const searchData = {
               timeSelect: [
                 { name: ctx.t('dateRange.TODAY'), value: 'TODAY' },
                 { name: ctx.t('dateRange.YESTERDAY'), value: 'YESTERDAY' },
@@ -411,7 +372,7 @@ export class HomeLogic extends UiLogic<CustomPage> {
   }
 }
 
-export const HomeLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const HomeLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
   new HomeLogic({
     metaUiService: metaUiService,
     repository: 'StationPortals',

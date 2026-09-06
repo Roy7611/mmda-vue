@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { Router } from 'vue-router';
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
@@ -64,7 +63,7 @@ import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const FlowTrailLogicCtor = (metaUiService:MetaUiService,router:Router,module?:Module) => new FlowTrailLogic({
+	export const FlowTrailLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new FlowTrailLogic({
 		metaUiService: metaUiService,
 		repository: 'FlowTrails',
 		router,

@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
+
 import {
   type MetaUiService,
   type Module,
@@ -23,7 +23,6 @@ import {
   type ModuleBgTask,
   defineModuleBgTask,
 } from "../../models/ModuleBgTask";
-import { h } from "vue";
 /**
  * 后台任务交互逻辑
  * @author mmda codebot
@@ -107,7 +106,7 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
                 class: "mr-2",
                 onAction: async () => {
                   try {
-                    const res = await ctx.globalProps.$api.doAction(
+                    const res = await this.apiClient.doAction(
                       {
                         path: `${ctx.model.taskID},${ctx.model.moduleCode}`,
                         action: "cancel",
@@ -131,40 +130,8 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
                 },
               });
             }
-            // else if ((ctx.model.status as unknown as string) === 'RUNNING' || (ctx.model.status as unknown as string) === 'NEW' || (ctx.model.status as unknown as string) === 'SUSPENDED') {
-            // 		return ctx.uiBuilder.factory.button({
-            // 			severity: 'danger',
-            // 			label: ctx.globalProps.$t('action.cancel'),
-            // 			class: 'mr-2',
-            // 			onAction: async () => {
-            // 				try {
-            // 					const res = await buildCtx.globalProps.$api.doAction({
-            // 						path: `${data.taskID},${data.moduleCode}`,
-            // 						action: 'cancel',
-            // 						repository: 'ModuleBgTasks',
-            // 						service: 'base',
-            // 					}, {})
-            // 					if (res) {
-            // 						buildCtx.reload()
-            // 					}
-            // 				} catch (error: any) {
-            // 					buildCtx.uiBuilder.toast(buildCtx, {
-            // 						severity: 'error',
-            // 						summary: buildCtx.t('dialog.title.error'),
-            // 						detail: error.message ?? '操作失败',
-            // 						group: 'br',
-            // 						life: 3000
-            // 					})
-            // 				}
-            // 			}
-            // 		}))
-            // 	}
-            else {
-              if (ctx.model.taskResult) {
-                return h("span", {}, `${ctx.model.taskResult}`);
-              } else {
-                return h("span", {}, "");
-              }
+            } else {
+              return ctx.uiBuilder.factory.textSpan(ctx.model.taskResult ? `${ctx.model.taskResult}` : "");
             }
           },
         ),
@@ -188,7 +155,7 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
  */
 export const ModuleBgTaskLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new ModuleBgTaskLogic({

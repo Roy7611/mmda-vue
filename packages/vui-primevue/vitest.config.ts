@@ -17,6 +17,9 @@ export default defineConfig({
       '@mmda/vui/theme.css': fileURLToPath(
         new URL('../vui/src/theme.css', import.meta.url),
       ),
+      '@mmda/core': fileURLToPath(
+        new URL('../core/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

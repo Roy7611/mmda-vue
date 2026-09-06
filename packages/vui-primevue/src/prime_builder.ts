@@ -18,7 +18,7 @@ import {
   type ModuleAuth,
 } from "@mmda/core";
 import {
-  AbstractUiBuilder,
+  VueUiBuilder,
   AppSideMenu,
   UiViewMany,
   assembleMenuItems,
@@ -115,7 +115,7 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
 const visibleActions = (actions: UiAction[]) =>
   actions.filter((action) => action.visible == null || unref(action.visible));
 
-export class PrimeVueUiBuilder extends AbstractUiBuilder {
+export class PrimeVueUiBuilder extends VueUiBuilder {
   declare readonly factory: PrimeVueUiFactory;
 
   constructor(
@@ -913,7 +913,7 @@ export class PrimeVueUiBuilder extends AbstractUiBuilder {
           await props.toSearch(event)
           return
         }
-        await (context as any).pickRelative?.(field)
+        await (context as any).select(field)
       } catch (error) {
         console.error(error)
       }

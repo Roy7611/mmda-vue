@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialReturn, defineMaterialReturn } from '@/models/MaterialReturn';
@@ -13,7 +12,6 @@ import { type MaterialReturnItem, defineMaterialReturnItem } from '@/models/Mate
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
 // import { NoticeFn } from '@/components/NoticeFn'
-import { reactive } from 'vue'
 /**
  * 退料单交互逻辑
  * @author mmda codebot
@@ -121,7 +119,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 		if (fields.length == 0) {
 			fields.push(
 				// 生产任务筛选（工程项目）
-				this.field('taskID').refFilter((model, ctx) => {
+				this.field('taskID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
 					return Object.entries(__p)
@@ -140,7 +138,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 						console.log(model);
 						
 					}),
-				this.field('siteID').refFilter((model, ctx) => {
+				this.field('siteID').refWhere((model, ctx) => {
 					const __p = ((context, Model, fld) => {
 					return { siteType: 'IN 2,4' }
 				})(ctx as any, model as any, undefined as any);
@@ -156,7 +154,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 						.join(" AND ");
 				}),
 				// 工程项目
-				this.field('projectID').refFilter((model, ctx) => {
+				this.field('projectID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => ({ projectID: model.prodTask?.projectID ?? '' }))(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
 					return Object.entries(__p)
@@ -306,7 +304,7 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
  * @param module 模块
  * @returns
  */
-export const MaterialReturnLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const MaterialReturnLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new MaterialReturnLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialReturns',

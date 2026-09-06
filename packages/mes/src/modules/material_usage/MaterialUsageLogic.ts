@@ -1,8 +1,7 @@
-import { Router, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiBuildContext, UI_BUILDER_KEY, UiGroupLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction, UiSearchForm } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UI_BUILDER_KEY, UiGroupLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction, UiSearchForm } from '@mmda/vui';
 import { type MaterialUsage, defineMaterialUsage } from '@/models/MaterialUsage';
-import { defineComponent, getCurrentInstance, h, reactive, ref, toRefs } from 'vue';
 /**
  * 用料分析交互逻辑
  * @author mmda codebot
@@ -13,9 +12,9 @@ import { defineComponent, getCurrentInstance, h, reactive, ref, toRefs } from 'v
 /**
  * 用料分析交互逻辑
  */
-const tableDataProject = ref([])
-const tableDataKeyProject = ref('id')
-const searchParamProject = reactive({
+const tableDataProject = { value: [] }
+const tableDataKeyProject = { value: 'id' }
+const searchParamProject = {
     pager: {
         pageSize: 10,
         pageNo: 1
@@ -23,9 +22,9 @@ const searchParamProject = reactive({
     searchWord: '',
     searchParams: {}
 });
-const tableDataTask = ref([])
-const tableDataKeyTask = ref('id')
-const searchParamTask = reactive({
+const tableDataTask = { value: [] }
+const tableDataKeyTask = { value: 'id' }
+const searchParamTask = {
     pager: {
         pageSize: 10,
         pageNo: 1
@@ -38,8 +37,8 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
         super(defineMaterialUsage, init);
     }
     async getAll(param: any, ctx?: any) {
-        const { $api: apiBox, $toast: toast } = !isNullOrUndefined(ctx.globalProps) ? ctx.globalProps : ctx.app.config.globalProperties
-        const res = await apiBox.getAll({
+        const { $toast: toast } = !isNullOrUndefined(ctx.globalProps) ? ctx.globalProps : ctx.app.config.globalProperties
+        const res = await this.apiClient.getAll({
             repository: 'MaterialUsage',
             service: 'mes',
             action: 'getMaterialWaste',
@@ -59,16 +58,14 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
       * @param value 
      */
     async getAllProject(context: UiContext, value?: any) {
-        await context.globalProps.$api.getAll({
-            repository: 'Projects',
-            service: 'mes',
+        await this.getAllOf<Record<string, unknown>>('Projects', {
             queryParams: {
                 pageSize: searchParamProject.pager.pageSize,
                 pageNo: searchParamProject.pager.pageNo,
                 sort: '',
                 searchWord: value
             },
-        }).then((res: any) => {
+        }, { service: 'mes' }).then((res: any) => {
             searchParamProject.pager = res.pagination
             tableDataProject.value = res.list.map((it: any) => {
                 return {
@@ -89,16 +86,14 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
      * @param value 
     */
     async getAllTask(context: UiContext, value?: any) {
-        await context.globalProps.$api.getAll({
-            repository: 'ProductionTasks',
-            service: 'mes',
+        await this.getAllOf<Record<string, unknown>>('ProductionTasks', {
             queryParams: {
                 pageSize: searchParamTask.pager.pageSize,
                 pageNo: searchParamTask.pager.pageNo,
                 sort: '',
                 searchWord: value
             },
-        }).then((res: any) => {
+        }, { service: 'mes' }).then((res: any) => {
             searchParamTask.pager = res.pagination
             tableDataTask.value = res.list.map((it: any) => {
                 return {
@@ -116,7 +111,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                 searchLabel: 'ganttLabel.sProject',
                 searchParam: 'projectID',
                 valueFn: (v: any) => !isRefNone(v) ? v.projectID : '',
-                renderer: (ctx: UiBuildContext<any> & any, csf) => {
+                renderer: (ctx: UiContext & any, csf) => {
                     if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
                         tableDataProject.value.push(csf.searchVal.value)
                     }
@@ -127,56 +122,20 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                         class: 'w-full',
                         // options: tableDataProject.value,
                         options: tableDataProject.value,
-                        toSearch: async (event: Event) => {
-                            let data = [] as any;
-                            // 获取元数据字段
-                            const { metaui } = await ctx.logic!.loadMetadata('Projects', 'mes', true);
-                            tableDataKeyProject.value = metaui.primaryKey;
-                            ctx.searchParam.pager = searchParamProject.pager = {
-                                pageNo: 1,
-                                pageSize: 10
-                            }
-                            // 列表column
-                            const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-                                isSearch: true,
-                                cacheKey: `payerID/SearchRelative/${metaui.primaryKey}`,
-                            });
-                            ctx.uiBuilder.confirmDialog(
-                                ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-                                    dataKey: tableDataKeyProject.value,
-                                    onSearch: async (params: any) => {
-                                        const { searchParams, reload, pager } = params;
-                                        await this.getAllProject(ctx, searchParams.searchWord);
-                                        return { list: tableDataProject.value, pager: searchParamProject.pager };
-                                    },
-                                    onPage: ({ pageNo, pageSize }: any) => {
-                                        searchParamProject.pager.pageNo = pageNo;
-                                        searchParamProject.pager.pageSize = pageSize;
-                                        ctx.searchParam.pager = searchParamProject.pager
-                                    },
-                                    onSelect: (selection: any, row: any) => {
-                                        data = row;
-                                    },
-                                    onRowDblclick: (row: any, index: number) => {
-                                        csf.searchVal.value = csf.searchWord.value = row
-                                        ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(row)));
-                                        triggerEscKey(); // 弹窗关闭(触发esc建)
-                                    },
-                                }),
-                                ctx,
-                                {
-                                    title: ctx.t('ganttLabel.sProject'),
-                                    style: { width: '80vw', maxHeight: '95%' },
-                                    accept: async () => {
-                                        csf.searchVal.value = csf.searchWord = data;
-                                        ctx.model.projectID = data.projectID ?? ctx.model.projectID;
-                                        ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo;
-                                        this.searchParam.projectID = ctx.model.projectID;
-                                        ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)));
-                                        return true;
-                                    },
-                                }
-                            );
+                        toSearch: async () => {
+                            const picked = await ctx.select({
+                                repository: 'Projects',
+                                service: 'mes',
+                                selectionMode: 'single',
+                            })
+                            if (!Array.isArray(picked) || !picked.length) return false
+                            const data = picked[0]
+                            csf.searchVal.value = csf.searchWord = data
+                            ctx.model.projectID = data.projectID ?? ctx.model.projectID
+                            ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo
+                            this.searchParam.projectID = ctx.model.projectID
+                            ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
+                            return true
                         },
                         onUpdate: (value: any) => {
                             csf.searchVal.value = value || null;
@@ -193,7 +152,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                 searchLabel: 'stationlabel.productionTask',
                 searchParam: 'taskNo',
                 valueFn: (v: any) => !isRefNone(v) ? v.taskNo : '',
-                renderer: (ctx: UiBuildContext<any> & any, csf) => {
+                renderer: (ctx: UiContext & any, csf) => {
                     if (!tableDataTask.value.length && isObject(csf.searchVal.value)) {
                         tableDataTask.value.push(csf.searchVal.value)
                     }
@@ -204,56 +163,20 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
                         class: 'w-full',
                         // options: tableDataProject.value,
                         options: tableDataTask.value,
-                        toSearch: async (event: Event) => {
-                            let data = [] as any;
-                            // 获取元数据字段
-                            const { metaui } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true);
-                            tableDataKeyTask.value = metaui.primaryKey;
-                            ctx.searchParam.pager = searchParamTask.pager = {
-                                pageNo: 1,
-                                pageSize: 10
-                            }
-                            // 列表column
-                            const columns = await ctx.uiBuilder.buildColumns(metaui, ctx, {
-                                isSearch: true,
-                                cacheKey: `taskID/SearchRelative/${metaui.primaryKey}`,
-                            });
-                            ctx.uiBuilder.confirmDialog(
-                                ctx.uiBuilder.buildSearchForRelativeContent(columns, {
-                                    dataKey: tableDataKeyTask.value,
-                                    onSearch: async (params: any) => {
-                                        const { searchParams, reload, pager } = params;
-                                        await this.getAllTask(ctx, searchParams.searchWord);
-                                        return { list: tableDataTask.value, pager: searchParamTask.pager };
-                                    },
-                                    onPage: ({ pageNo, pageSize }: any) => {
-                                        searchParamTask.pager.pageNo = pageNo;
-                                        searchParamTask.pager.pageSize = pageSize;
-                                        ctx.searchParam.pager = searchParamTask.pager
-                                    },
-                                    onSelect: (selection: any, row: any) => {
-                                        data = row;
-                                    },
-                                    onRowDblclick: (row: any, index: number) => {
-                                        csf.searchVal.value = csf.searchWord.value = row
-                                        ctx.app.localDb.put(`search/${ctx.logic.repository}/taskNo`, JSON.parse(JSON.stringify(row)));
-                                        triggerEscKey(); // 弹窗关闭(触发esc建)
-                                    },
-                                }),
-                                ctx,
-                                {
-                                    title: ctx.t('stationlabel.productionTask'),
-                                    style: { width: '80vw', maxHeight: '95%' },
-                                    accept: async () => {
-                                        csf.searchVal.value = csf.searchWord = data;
-                                        ctx.model.taskID = data.taskID ?? ctx.model.taskID;
-                                        ctx.model.taskNo = data.taskNo ?? ctx.model.taskNo;
-                                        this.searchParam.taskNo = ctx.model.taskNo;
-                                        ctx.app.localDb.put(`search/${ctx.logic.repository}/taskNo`, JSON.parse(JSON.stringify(data)));
-                                        return true;
-                                    },
-                                }
-                            );
+                        toSearch: async () => {
+                            const picked = await ctx.select({
+                                repository: 'ProductionTasks',
+                                service: 'mes',
+                                selectionMode: 'single',
+                            })
+                            if (!Array.isArray(picked) || !picked.length) return false
+                            const data = picked[0]
+                            csf.searchVal.value = csf.searchWord = data
+                            ctx.model.taskID = data.taskID ?? ctx.model.taskID
+                            ctx.model.taskNo = data.taskNo ?? ctx.model.taskNo
+                            this.searchParam.taskNo = ctx.model.taskNo
+                            ctx.app.localDb.put(`search/${ctx.logic.repository}/taskNo`, JSON.parse(JSON.stringify(data)))
+                            return true
                         },
                         onUpdate: (value: any) => {
                             csf.searchVal.value = value || null;
@@ -278,7 +201,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
  * @param module 模块
  * @returns
  */
-export const MaterialUsageLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const MaterialUsageLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
     new MaterialUsageLogic({
         metaUiService: metaUiService,
         repository: 'StationPortals',

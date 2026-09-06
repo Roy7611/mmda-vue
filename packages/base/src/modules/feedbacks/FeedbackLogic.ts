@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from "vue-router";
 import {
   type MetaUiService,
   type Module,
@@ -28,8 +27,6 @@ import {
   type FeedbackPhoto,
   defineFeedbackPhoto,
 } from "../../models/FeedbackPhoto";
-import { NoticeFn } from "../../components/NoticeFn";
-import { reactive } from "vue";
 /**
  * 反馈交互逻辑
  * @author mmda codebot
@@ -40,56 +37,6 @@ import { reactive } from "vue";
 /**
  * 反馈交互逻辑
  */
-const notice = reactive({
-  data: {
-    ownerID: "",
-    ownerName: "",
-    ownerInvalid: false, //显示用 是否选择了用户
-    ownerDeptID: "",
-    ownerDeptName: "",
-    importance: "UNKNOWN", //重要性
-    urgency: "NORMAL", //紧急性
-    notification: "", //待办事宜
-    copyTo: [], //通知给
-    copyToInvalid: false, //是否选择了 通知给谁。
-  },
-});
-// // 回答
-// const beforeAnswer = async (context: UiContext, model: Feedback, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Submit'),
-// 	data: notice.data,
-// 	id: model.feedbackID ?? '',
-// 	action: 'answer',
-// 	repository: 'Feedbacks',
-// 	detail: context.globalProps.$t('auth.SubmitSuccess')
-// })
-// // 关闭
-// const beforeClose = async (context: UiContext, model: Feedback, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Submit'),
-// 	data: notice.data,
-// 	id: model.feedbackID ?? '',
-// 	action: 'close',
-// 	repository: 'Feedbacks',
-// 	detail: context.globalProps.$t('auth.SubmitSuccess')
-// })
-// // 打开
-// const beforeOpen = async (context: UiContext, model: Feedback, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Submit'),
-// 	data: notice.data,
-// 	id: model.feedbackID ?? '',
-// 	action: 'open',
-// 	repository: 'Feedbacks',
-// 	detail: context.globalProps.$t('auth.SubmitSuccess')
-// })
-// // 解决
-// const beforeResolve = async (context: UiContext, model: Feedback, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Submit'),
-// 	data: notice.data,
-// 	id: model.feedbackID ?? '',
-// 	action: 'resolve',
-// 	repository: 'Feedbacks',
-// 	detail: context.globalProps.$t('auth.SubmitSuccess')
-// })
 export class FeedbackLogic extends UiLogic<Feedback> {
   constructor(init: UiLogicInit) {
     super(defineFeedback, init);
@@ -189,7 +136,7 @@ export class FeedbackLogic extends UiLogic<Feedback> {
  */
 export const FeedbackLogicCtor = (
   metaUiService: MetaUiService,
-  router: Router,
+  router: UiLogicInit["router"],
   module?: Module,
 ) =>
   new FeedbackLogic({

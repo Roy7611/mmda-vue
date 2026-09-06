@@ -19,7 +19,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--mmda-content-border-color, #cac4cf);
+  color: var(--mmda-text-color, #1c1b1e);
+  background: var(--mmda-surface-card, #fffbfe);
 }
 
 .mmda-agnaive-toolbar-actions,

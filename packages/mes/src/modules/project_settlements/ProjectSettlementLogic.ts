@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectSettlement, defineProjectSettlement } from '@/models/ProjectSettlement';
@@ -100,7 +99,7 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
  * @param module 模块
  * @returns
  */
-export const ProjectSettlementLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProjectSettlementLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProjectSettlementLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectSettlements',

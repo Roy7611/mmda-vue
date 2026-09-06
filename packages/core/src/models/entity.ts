@@ -2,6 +2,7 @@ import type { EntityAction } from "../metaui/metaui_action";
 import type { EntitySearchParam } from "./entity_search";
 
 export * from "./entity_search";
+export * from "./date_filter";
 
 export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
 export type LooseRequired<T> = { [P in keyof (T & Required<T>)]: T[P] };

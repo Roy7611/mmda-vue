@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkCalendar, defineWorkCalendar } from '@/models/WorkCalendar';
@@ -83,7 +82,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 		const field = groupUi.getField('workDay')
 		console.log(field);
 		// entity.workDay = `2025-02-2${items.length}`
-		return uiBuilder.confirmDialog(
+		return uiBuilder.dialog(
 			uiBuilder.factory.datePicker({
 				name: field.fieldName,
 				id: field.fieldName,
@@ -206,7 +205,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
  * @param module 模块
  * @returns
  */
-export const WorkCalendarLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const WorkCalendarLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new WorkCalendarLogic({
 		metaUiService: metaUiService,
 		repository: 'WorkCalendars',
@@ -232,7 +231,7 @@ export class WorkCalendarDayLogic extends UiGroupLogic<WorkCalendarDay, WorkCale
 					return null;
 				}),
 				this.field('shiftSystem').lockIf(t => !isNullOrUndefined(t.specificShiftID)),
-				this.field('specificShiftID').refFilter((model, ctx) => {
+				this.field('specificShiftID').refWhere((model, ctx) => {
 					const __p = ((content, model, fld) => ({
 					shiftSystem: model.shiftSystem
 				}))(ctx as any, model as any, undefined as any);

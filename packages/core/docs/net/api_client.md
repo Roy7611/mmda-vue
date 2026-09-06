@@ -17,15 +17,17 @@ toSearchRequest(param)
 
 | API | 说明 |
 |---|---|
-| `toQueryParams` | pager + searchWord + 旧 `queryParams` → URL |
+| `searchAll` | 列表：无 filterModel 则 GET，否则 POST body |
+| `getPivotValues` | `GET .../pivotValues/{field}`，当前表 DISTINCT |
+| `getPivotDates` | `GET .../pivotDates/{field}`，日期列出现过的日历日 |
 | `hasFilterModel` | filterModel 是否有键 |
-| `toSearchRequest` | 拆成 URL / body |
+| `toSearchRequest` | 拆成 URL / body；日期 set token 会 `expandDateFilters`，`dateKind` 原样 |
 
 `queryParams` **仅兼容**旧 URL 与快捷过滤 SQL。新字段条件进 `filterModel`。鉴权用的 `moduleCode` 放 **第二个参数** `EntityUrlParam.queryParams`，不是查询文档的一部分。
 
 本轮不改成直接吃 FetchApi。不构造 `MetaUi`：`metaui` / `metaUiPack` 只返回 JSON，由 `MetaUiService` 组装。
 
-概念与程序员写法：[entity_search.md](../models/entity_search.md)、[entity_query_usage.md](../logic/entity_query_usage.md)。
+概念与程序员写法：[entity_search.md](../models/entity_search.md)、[entity_query_usage.md](../logic/entity_query_usage.md)。日期 token / `dateKind`：[date_filter.md](../models/date_filter.md)、[date_filter_usage.md](../logic/date_filter_usage.md)。
 
 ## 不要
 

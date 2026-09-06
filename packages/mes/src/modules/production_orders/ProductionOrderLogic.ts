@@ -5,11 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { Router } from 'vue-router';
 import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined } from '@mmda/core';
 import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
-import { reactive, ref, h } from 'vue';
 import { type ProductionOrderMaterial, defineProductionOrderMaterial } from '@/models/ProductionOrderMaterial';
 import { ProductionOrderStatusEnum } from '@/enums/ProductionOrderStatus';
 import { BomStatus } from '@/enums/BomStatus';
@@ -17,10 +15,10 @@ import { type Bom } from '@/models/Bom';
 import { TaskConstraintType } from '@mmda/base/src/enums/TaskConstraintType';
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 // 是否更新制品数据
-const isUpdate = ref(false)
+const isUpdate = { value: false }
 //订单简介
-const summary = ref('');
-const userPageInfo = reactive({
+const summary = { value: '' };
+const userPageInfo = {
 	pageSize: 10,
 	pageNo: 1,
 });
@@ -48,7 +46,7 @@ const getOrderSummary = (model: any, context: UiContext) => {
 // 旧逻辑保留：输入制品编码后自动查找 BOM 并回填相关字段，当前已停用。
 // const getBoms = async (ctx: any, model: any, newVal: any) => {
 // 	if (newVal) {
-// 		const { $api, $toast, $t } = ctx.globalProps;
+// 		const { $toast, $t } = ctx.globalProps;
 // 		const bomFilters = 'alternate IS NULL';
 // 		const queryInfo: any = {
 // 			status: 4,
@@ -60,11 +58,9 @@ const getOrderSummary = (model: any, context: UiContext) => {
 // 			queryInfo.filter = bomFilters;
 // 		}
 // 		try {
-// 			const res = await $api.getAll({
-// 				repository: 'Boms',
-// 				service: 'mes',
+// 			const res = await ctx.logic!.getAllOf<Record<string, unknown>>('Boms', {
 // 				queryParams: queryInfo,
-// 			});
+// 			}, { service: 'mes' });
 // 			if (res.list && res?.list.length > 0) {
 // 				model.bom = res.list[0];
 // 				if (model.bom) {
@@ -150,13 +146,13 @@ const calcExpectedOutput = (model: any) => {
 };
 
 // Bom 请求参数
-const bomSearchParam = reactive({
+const bomSearchParam = {
 	pager: {
 		pageSize: 10,
 		pageNo: 1,
 	},
 });
-const bomList = ref<Bom[]>()
+const bomList = { value:  }
 
 /**
  * 获取BOM
@@ -170,19 +166,16 @@ const getBom = async (context: UiContext, model: ProductionOrder, value?: any) =
 		return;
 	}
 
-	await context.globalProps.$api
-		.getAll({
-			repository: 'Boms',
-			service: 'mes',
-			queryParams: {
-				pageSize: bomSearchParam.pager.pageSize,
-				pageNo: bomSearchParam.pager.pageNo,
-				sort: '',
-				searchWord: value,
-				status: 'IN+APPROVED',
-				productCode: model.productCode,
-			},
-		})
+	await context.logic!.getAllOf<Record<string, unknown>>('Boms', {
+		queryParams: {
+			pageSize: bomSearchParam.pager.pageSize,
+			pageNo: bomSearchParam.pager.pageNo,
+			sort: '',
+			searchWord: value,
+			status: 'IN+APPROVED',
+			productCode: model.productCode,
+		},
+	}, { service: 'mes' })
 		.then((res: any) => {
 			bomSearchParam.pager = res.pagination;
 			bomList.value = res.list.map((it: any) => {
@@ -201,7 +194,7 @@ const getBom = async (context: UiContext, model: ProductionOrder, value?: any) =
 };
 
 // 关联配方
-const beforeLinkBom = async (context: UiBuildContext<any>, model: ProductionOrder, action: EntityAction) => {
+const beforeLinkBom = async (context: UiContext, model: ProductionOrder, action: EntityAction) => {
 	const { uiBuilder, apiClient } = context
 	const metaUiService = context.logic.metaUiService;
 	if (!model.productCode) {
@@ -228,88 +221,62 @@ const beforeLinkBom = async (context: UiBuildContext<any>, model: ProductionOrde
 		return false;
 	}
 
-	const metaUi = await metaUiService.get('Boms', 'mes');
-	const columns = await uiBuilder.buildColumns(metaUi, context, {
-		isSearch: true,
-		cacheKey: `bomID/SearchRelative/${metaUi.primaryKey}`,
-		fieldName: 'bomID'
-	})
+	const selectBom = { value: null as any };
+	const picked = await context.select({
+		repository: 'Boms',
+		service: 'mes',
+		selectionMode: 'single',
+		searchParam: {
+			pager: bomSearchParam.pager,
+			queryParams: {
+				status: 'IN+APPROVED',
+				productCode: model.productCode,
+			},
+		},
+		selectableFn: (row: Bom) => model.bomID !== row?.bomID,
+	});
+	if (!Array.isArray(picked) || !picked.length) return false;
+	selectBom.value = picked[0];
 
-	const selectBom = ref<Bom>();
-	await uiBuilder.confirmDialog(
-		uiBuilder.buildSearchForRelativeContent(columns, {
-			dataKey: metaUi.primaryKey,
-			selectionMode: 'single',
-			selectableFn: (row: Bom) => model.bomID !== row?.bomID,
-			onSearch: async (params: any) => {
-				const { searchParams } = params;
-				if (!searchParams.searchWord && bomSearchParam.pager.pageNo === 1) {
-					return { list: bomList.value, pager: bomSearchParam.pager };
-				}
-				await getBom(context, model, searchParams.searchWord);
-				return { list: bomList.value, pager: bomSearchParam.pager };
+	if (!selectBom.value || !selectBom.value?.bomID) {
+		uiBuilder.toast(context, {
+			severity: 'error',
+			summary: context.t('dialog.title.error'),
+			group: 'br',
+			detail: context.t('invalid.requiredSelectAny'),
+			life: 3000,
+		});
+		return false;
+	}
+	return await apiClient
+		.doAction(
+			{
+				path: model.orderID,
+				service: 'mes',
+				repository: 'ProductionOrders',
+				action: 'linkBom',
 			},
-			onPage: ({ pageNo, pageSize }: any) => {
-				bomSearchParam.pager.pageNo = pageNo;
-				bomSearchParam.pager.pageSize = pageSize;
-			},
-			onSelect: (selection: any, row: any) => {
-				// console.log(selection, '选择')
-				selectBom.value = selection;
-			},
-
-		}),
-		context,
-		{
-			name: 'searchForRelative',
-			title: context.t('dialog.title.selection') + metaUi.displayLabel,
-			style: { width: '80vw', maxHeight: '95%', },
-			modal: true,
-			accept: async () => {
-				if (!selectBom.value || !selectBom.value?.bomID) {
-					uiBuilder.toast(context, {
-						severity: 'error',
-						summary: context.t('dialog.title.error'),
-						group: 'br',
-						detail: context.t('invalid.requiredSelectAny'),
-						life: 3000,
-					});
-					return false;
-				}
-				return await apiClient
-					.doAction(
-						{
-							path: model.orderID,
-							service: 'mes',
-							repository: 'ProductionOrders',
-							action: 'linkBom',
-						},
-						{ payload: { refID: selectBom.value.bomID } }
-					)
-					.then((res: any) => {
-						if (res) {
-							context.reload();
-							return true;
-						}
-					})
-					.catch((err: any) => {
-						uiBuilder.toast(context, {
-							severity: 'error',
-							summary: context.t('dialog.title.error'),
-							group: 'br',
-							detail: err.message,
-							life: 3000,
-						});
-						return true;
-					});
-			},
-		}
-	)
-
-	return false
+			{ payload: { refID: selectBom.value.bomID } }
+		)
+		.then((res: any) => {
+			if (res) {
+				context.reload();
+				return true;
+			}
+		})
+		.catch((err: any) => {
+			uiBuilder.toast(context, {
+				severity: 'error',
+				summary: context.t('dialog.title.error'),
+				group: 'br',
+				detail: err.message,
+				life: 3000,
+			});
+			return true;
+		});
 };
 // 显示子订单
-const showChildOrders = ref([
+const showChildOrders = { value: [
 	{
 		name: '是',
 		value: true
@@ -318,23 +285,23 @@ const showChildOrders = ref([
 		name: '否',
 		value: false
 	}
-])
+] }
 
-const isClick = ref(false)
+const isClick = { value: false }
 
 /**
  * 恢复生产
  */
 const beforeResume = async (context: UiContext, model: ProductionOrder, action: EntityAction) => {
-	const { $router, $api } = context.globalProps;
+	const { $router } = context.globalProps;
 	try {
-		const res = await $api.getOne(model.orderID, {
+		const res = await context.apiClient.getOne(model.orderID, {
 			repository: 'ProductionOrders',
 			action: 'checkMaterialShortage'
 		})
 		if (res) {
 			// 给提示并跳转齐料检查
-			context.uiBuilder.confirmMessage(context, {
+			context.uiBuilder.confirm(context, {
 				header: context.t('action.confirm'),
 				message: context.t('productionOrder.shortagePrompt'),
 				type: 'warn',
@@ -376,7 +343,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 	constructor(init: UiLogicInit) {
 		super(defineProductionOrder, init);
 		this.addRelativeLogic<ProductionOrderMaterial>('materials', master => new ProductionOrderMaterialLogic(this, master));
-		this.beforeAction = (context: UiBuildContext<any>, model: ProductionOrder, action: EntityAction) => {
+		this.beforeAction = (context: UiContext, model: ProductionOrder, action: EntityAction) => {
 			try {
 				if (action.name == 'linkBom') return beforeLinkBom(context, model, action);
 				if (action.name == 'resume') return beforeResume(context, model, action)
@@ -398,13 +365,11 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 			// 存在多个制品需要提示用户，如果确定=>保存，取消 => 重新编辑 => 保存
 			if (!isUpdate.value) {
 				isUpdate.value = true
-				const result = await context.globalProps.$api.getAll({
-					repository: 'Boms',
-					service: context.globalProps.$api.config.service,
+				const result = await context.logic!.getAllOf<Record<string, unknown>>('Boms', {
 					queryParams: { ...userPageInfo, status: `IN ${BomStatus.APPROVED}`, productCode: model.productCode },
 				})
 				if (result.list.length > 1) {
-					const isComfirm = await context.uiBuilder.confirmMessage(context, {
+					const isComfirm = await context.uiBuilder.confirm(context, {
 						header: t('action.confirm'),
 						message: t('productionOrder.multipleBomPrompt'),
 						type: 'warn',
@@ -453,7 +418,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 			customSearchFields.push({
 				searchLabel: 'productionOrder.showChildOrders',
 				searchParam: 'showSubOrders',
-				renderer: (ctx: UiBuildContext<any> & any, csf) => {
+				renderer: (ctx: UiContext & any, csf) => {
 					isClick.value = false
 					const { factory } = ctx.uiBuilder;
 					return factory.selectButton(showChildOrders.value[0].value, {
@@ -499,7 +464,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
 						updateExpectedPeriod(model, model.expectedStart, newVal);
 					}),
-				this.field('superOrderID').refFilter((model, ctx) => {
+				this.field('superOrderID').refWhere((model, ctx) => {
 					const __p = ((ctx) => {
 					return {
 						status: `NOT IN ${ProductionOrderStatusEnum.CANCELED_VALUE},${ProductionOrderStatusEnum.PAUSED_VALUE}`
@@ -536,7 +501,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 
 				//外协厂商
 				this.field('outsourcingManufacturerID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return {
 							status: '>0',
@@ -595,7 +560,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 
 				//选中制程，赋值Bom
 				this.field('bomID')
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						const queryInfo: any = {
 							status: `IN ${BomStatus.APPROVED}`
@@ -668,7 +633,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 					.lockIf(model => !isRefNone(model.bomID) || !isNullOrUndefined(model.refName))
 					.setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				}),
 
 
@@ -678,7 +643,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				this.field('packID')
 					//选择包装规格时，需确保productID选中，MaterialPackage是属于Bom中定义的productID的。若没有productID，则不能选择，等有了才能更改。
 					.lockIf(model => isNullOrUndefined(model.bom?.productID ?? null) || model.bom.product.supportPackage)
-					.refFilter((model, ctx) => {
+					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						if (model.bom?.productID ?? null) {
 							return {
@@ -752,7 +717,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return h('div', { style: { width: '100%', overflow: 'hidden' } }, !isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})
 			);
 		}
@@ -773,7 +738,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
  * @param module 模块
  * @returns
  */
-export const ProductionOrderLogicCtor = (metaUiService: MetaUiService, router: Router, module?: Module) =>
+export const ProductionOrderLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
 	new ProductionOrderLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionOrders',

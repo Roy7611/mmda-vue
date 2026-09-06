@@ -24,7 +24,7 @@ export const ColorPalettePicker = defineComponent({
     const builder = inject(UI_BUILDER_KEY)! as UiBuilder;
 
     const selectPalette = (palette: MmdaColorPalette) => {
-      app.context.colorPalette = palette;
+      app.state.colorPalette = palette;
       builder.setColorPalette(palette);
       if (typeof localStorage !== "undefined") {
         writeMmdaPref("colorPalette", palette);

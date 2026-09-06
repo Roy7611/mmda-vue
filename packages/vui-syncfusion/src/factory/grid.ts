@@ -23,9 +23,12 @@ import { createSpinner, hideSpinner, showSpinner } from "@syncfusion/ej2-popups"
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid-inject";
 
-/** 程序化 h() 下用 provide 注入模块，对齐 Syncfusion Vue 文档写法。 */
-export const SfGrid = defineComponent({
-  name: "SfGrid",
+/**
+ * EJ2 GridComponent 外壳（provide 注入模块）。
+ * 契约层控件见 `components/SfGrid.ts`；本宿主供 factory.table / SfGrid 内部使用。
+ */
+export const SfGridHost = defineComponent({
+  name: "SfGridHost",
   inheritAttrs: false,
   provide: {
     grid: SF_GRID_MODULES,
@@ -40,6 +43,9 @@ export const SfGrid = defineComponent({
     return () => h(GridComponent as any, { ...attrs, ref: inner }, slots);
   },
 });
+
+/** @deprecated 使用 SfGridHost；保留别名以免旧 import 断裂 */
+export const SfGrid = SfGridHost;
 
 /**
  * 绑定 context.loading（Ref 或 boolean）：查询中盖住表格并用 EJ2 Spinner。

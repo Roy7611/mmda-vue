@@ -163,7 +163,7 @@ export const SfAppMenu = defineComponent({
   setup(props) {
     const app = inject(UI_APP_KEY, null as MmdaApplication | null)
     const appName = computed(
-      () => app?.context.localAppPrefixes ?? app?.name ?? '',
+      () => app?.state.localAppPrefixes ?? app?.name ?? '',
     )
     const route = useRoute()
     const selectedL1 = ref('')

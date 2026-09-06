@@ -1,5 +1,5 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs, Suspense } from 'vue';
-import { isRefNone, type ApiClient } from '@mmda/core';
+import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import { label, UI_CREATE } from '@mmda/vui';
 import { get } from 'http';
@@ -19,7 +19,6 @@ export default defineComponent({
 	},
 
 	setup(props, ctx) {
-		const apiBox = getCurrentInstance().appContext.app.config.globalProperties.$api as ApiClient;
 		const { $ui: ui, $t, appContext } = getCurrentInstance().appContext.app.config.globalProperties;
 		const projectTaskCreate = ref();
 	
@@ -46,7 +45,7 @@ export default defineComponent({
 		// 		} else {
 		// 			userPageInfo.searchWord = '';
 		// 		}
-		// 		res = await apiBox.getAll({
+		// 		res = await inject(MES_KEY)!.api.getAll({
 		// 			repository: 'Users',
 		// 			queryParams: { ...userPageInfo, deptID: "150" },
 		// 			service: 'base',
@@ -83,7 +82,7 @@ export default defineComponent({
 		});
 		let logicData = null as any
 		return () =>{
-				props.ctx.uiBuilder.confirmDialog(
+				props.ctx.uiBuilder.dialog(
 					h(
 						Suspense,
 						{},
