@@ -24,7 +24,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 ```text
 MetaUi + Logic
       ↓
-UiViewContext（会话）
+VueUiContext（会话）
       ↓
 VueUiBuilder（拼复杂视图）
       ↓
@@ -50,7 +50,7 @@ vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`
 ```text
 app/                MmdaVueApp、inject keys、主题
 logic/              UiLogic
-contexts/           UiViewContext / UiBuildContext（会话）
+contexts/           VueUiContext（会话；设计见 docs/vue_ui_context.md）
 components/         无厂商壳
 ui/layout/          UiLayout
 ui/factory/         一控件一文件的 props；factory.ts + field_factory.ts
@@ -154,6 +154,6 @@ vui **不**提供默认 HTML 皮肤或 `HtmlUiBuilder`。页面和 Logic 只依�
 - 侧栏菜单：Syncfusion 用自己的 Sidebar + Accordion：顶层 `moduleCode` 不含 `.`（如 `B`、`M`）时左侧系统轨切换一级，右侧 Accordion 展二/三级；否则只渲染 Accordion。无控件库皮肤用 `@mmda/vui` 的 `AppSideMenu`。
 - 应用自定义 chrome 走 `UiFactory`，样式使用 `--mmda-*` token。
 - 暗色模式调用 `builder.setColorScheme()`，不要在应用里直接写 `p-dark` / `e-dark`。
-- 皮肤可以读 `context`，不要在 factory 里 `new UiViewContext`。
+- 皮肤可以读 `context`，不要在 factory 里 `new VueUiContext`。
 - DataTable 的 `selection` 必须绑定会话的 `selectedItems`，不要在每次 `table()` 里 `ref([])`。
 - `rowStyle` 对可见行返回 `undefined`，不要每次 `return {}`。

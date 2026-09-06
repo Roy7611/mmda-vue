@@ -353,7 +353,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	async initMetadata(reload: boolean = false) {
 		// 接口调通后删除此方法
 		// super.initMetadata();
-		return Promise.resolve({ metaui: null });
+		return Promise.resolve({ metaUi: null });
 	}
 
 	//获得权限

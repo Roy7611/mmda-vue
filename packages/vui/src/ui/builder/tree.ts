@@ -23,7 +23,7 @@ import {
 import { resolveRepositoryModule } from "../../components/EntityView";
 import { renderTreeView } from "../../components/MmdaTreeView";
 import { UiViewOne } from "../../contexts/view";
-import { UiBuildContext } from "../../contexts/build_context";
+import { VueUiContext } from "../../contexts/vue_ui_context";
 import type { VueUiBuilder } from "./builder";
 import type { UiContext } from "./helpers";
 
@@ -258,15 +258,15 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
         repository,
         service: catLogic.apiService,
       });
-      if (!pack?.metaui) return;
+      if (!pack?.metaUi) return;
       const id = view === UiViewOne.Create ? undefined : treeIdOf(node, props.fields);
       const queryParams =
         view === UiViewOne.Create
           ? categoryCreateParams(createKind ?? "root", node, props.fields)
           : undefined;
-      const ctx = new UiBuildContext({
+      const ctx = new VueUiContext({
         model: (id ? { id } : {}) as any,
-        metaui: pack.metaui,
+        metaUi: pack.metaUi,
         view,
         logic: catLogic,
         app,
@@ -279,7 +279,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
         ctx,
         {
           name: view,
-          title: pack.metaui.displayLabel,
+          title: pack.metaUi.displayLabel,
           width: "70vw",
           height: "80vh",
           maxHeight: "90vh",

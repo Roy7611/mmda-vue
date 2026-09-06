@@ -9,7 +9,7 @@
 import { defineComponent, type SlotsType, inject, ref, type Ref, watch, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode, computed, toRaw } from 'vue';
 import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, } from "@mmda/core";
 import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignmentEnum, debounce, MetaUiFieldAlignment, MetaModel, emptyPagedList, } from '@mmda/core';
-import { UiBuildContext, type UiSearchField, type UiCustomSearchField, type CustomColumn } from '@mmda/vui';
+import { VueUiContext, type UiSearchField, type UiCustomSearchField, type CustomColumn } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { useRouter, useRoute } from 'vue-router';
 import { MES_KEY } from '@/keys';
@@ -20,7 +20,7 @@ import type { Worksite } from "@/models/Worksite";
 const CompleteShipment = defineComponent({
     name: 'CompleteShipment',
     props: {
-        context: { type: Object as PropType<UiBuildContext<any>>, default: null },
+        context: { type: Object as PropType<VueUiContext<any>>, default: null },
     },
     setup(props, ctx) {
         const { uiBuilder, globalProps, apiClient } = props.context;
@@ -33,9 +33,9 @@ const CompleteShipment = defineComponent({
             ctor: () => BomLogicCtor(metaUiService, router),
             options: { lifetime: 'scoped' }
         })
-        const bomCtx = new UiBuildContext<any>({
+        const bomCtx = new VueUiContext<any>({
             model: emptyPagedList<Bom>(),
-            metaui: bomLogic.meta.metaui,
+            metaUi: bomLogic.meta.metaUi,
             view: props.context.view,
             logic: bomLogic,
             app: props.context.app,

@@ -293,20 +293,20 @@ export function createAgNaiveUiFactory(): UiFactory {
           props.onPage({ pageNo: 1, pageSize }),
       }),
     tree: (props) => h(NaiveTree, props as any),
-    treeGrid: <T>(model: T[], metaui: MetaUi, props: any) => {
-      const { assembled } = assembleTreeGridRows(model, metaui, {
+    treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) => {
+      const { assembled } = assembleTreeGridRows(model, metaUi, {
         ...props,
         bindShape: props.bindShape ?? 'dataPath',
       })
       return h(AgGrid, {
         data: assembled.rows,
-        metaui,
+        metaUi,
         ...props,
         treeData: true,
         getDataPath: assembled.getDataPath,
       } as any)
     },
-    list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
+    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
       h(
         'div',
         { class: 'mmda-agnaive-list' },
@@ -318,7 +318,7 @@ export function createAgNaiveUiFactory(): UiFactory {
                   key:
                     props.itemKey?.(item) ??
                     String(
-                      metaui.primaryKey ? (item as any)[metaui.primaryKey] : index,
+                      metaUi.primaryKey ? (item as any)[metaUi.primaryKey] : index,
                     ),
                   class: ['mmda-agnaive-list__item', props.itemClass?.(item)],
                   style: props.itemStyle?.(item),
@@ -330,11 +330,11 @@ export function createAgNaiveUiFactory(): UiFactory {
             )
           : props.empty?.() ?? '',
       ),
-    table: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
-      h(AgGrid, { data: model, metaui, ...props } as any),
+    table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
+      h(AgGrid, { data: model, metaUi, ...props } as any),
     pagableTable: (loader, metadata, props) =>
       h('div', { class: 'mmda-agnaive-pagable-table' }, [
-        factory.table(loader.model.list as any[], metadata.metaui, props as any),
+        factory.table(loader.model.list as any[], metadata.metaUi, props as any),
       ]),
     loading: props =>
       h('div', { class: 'mmda-agnaive-loading', ...props }, [h(NSpin)]),

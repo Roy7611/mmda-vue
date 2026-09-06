@@ -66,8 +66,7 @@
 | 应用壳 | `MmdaApplication` | core abstract class；鉴权、MetaUi、DI、locale。`context.app` 的类型。业务读 **`app.state`** |
 | Vue 应用壳 | `MmdaVueApp` | vui `extends MmdaApplication`；不是 Vue `createApp()` |
 | 拼屏实现 | `VueUiBuilder` | vui 抽象类，`implements UiBuilder<VNode>`（模板方法）；皮肤 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等再 extends。取代 `AbstractUiBuilder`。注入类型用本类，不要另造 Host，也不要 alias 成 `UiBuilder` |
-| 会话实现 | `UiViewContext` | vui 实现 `UiContext`；不要叫 ViewModel / Store |
-| 屏级构建上下文 | `UiBuildContext` | vui；对标 Flutter `BuildContext`，给渲染 / 拼屏，不是业务钩子类型 |
+| 会话实现 | `VueUiContext` | vui 实现 core `UiContext`；对标 Flutter `BuildContext`，给构造 / 拼屏 / 屏级 IO。不要叫 ViewModel / Store。旧名 `UiViewContext` / `UiBuildContext` 已合并，新代码不要写 |
 
 元数据（`MetaUiField` 等）不是会话状态：查询词、选中行、校验结果不要写回去。
 
@@ -222,7 +221,7 @@ GenericUiLogic                         无定制时的默认实现
 
 ### 按视图装配
 
-钩子名：`before` + 视图首字母大写。`applyTo(context, view)` 调对应 `beforeXxx`，结果 `bindLogics` 进 `UiViewContext`。
+钩子名：`before` + 视图首字母大写。`applyTo(context, view)` 调对应 `beforeXxx`，结果 `bindLogics` 进 `VueUiContext`。
 
 | 视图 | 钩子 | 默认落到 |
 |---|---|---|

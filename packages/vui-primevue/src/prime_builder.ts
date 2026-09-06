@@ -296,7 +296,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     const runtime = context as any;
     const repository = runtime.isRoot
       ? runtime.logic.repository
-      : pluralize(context.metaui.objName);
+      : pluralize(context.metaUi.objName);
     const { role, handlerFn, importFn, exportFn } = props;
     const action =
       role === "import"
@@ -346,7 +346,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     const runtime = context as any;
     const repository = runtime.isRoot
       ? runtime.logic.repository
-      : pluralize(context.metaui.objName);
+      : pluralize(context.metaUi.objName);
     const action =
       role === "import"
         ? this.actionFactory.import(context, { repository })

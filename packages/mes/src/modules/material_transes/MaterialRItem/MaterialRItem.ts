@@ -36,7 +36,7 @@ export const MaterialRItem = defineComponent({
         //最终提交前处理的方法
         const submitFun = () => emit('getTepModel', submitData.data);
 
-        const metaui = MetaUiBuilder.create('MaterialRItem')
+        const metaUi = MetaUiBuilder.create('MaterialRItem')
             .rowNumber('#')
             .field('materialCategory', t('inventory.materialCategory'))
             .field('materialCode', t('view.materialCode'))
@@ -59,7 +59,7 @@ export const MaterialRItem = defineComponent({
 
         return () => props.ctx.uiBuilder.factory.table(
             submitData.data,
-            metaui,
+            metaUi,
             {
                 tableId: 'material-r-item-table',
                 customCellRenderers: {

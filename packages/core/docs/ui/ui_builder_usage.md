@@ -10,7 +10,7 @@ VueUiBuilder           vui 抽象类
 SyncfusionUiBuilder / PrimeVueUiBuilder / …
 ```
 
-架构见 [ARCHITECTURE.md](../../../../ARCHITECTURE.md)。本轮改名见 [refactor_ui_app.md](../refactor_ui_app.md)。
+架构见 [ARCHITECTURE.md](../../../../ARCHITECTURE.md)。会话实现 [VueUiContext 设计](../../../vui/docs/vue_ui_context.md) / [怎么写](../../../vui/docs/context.md)。本轮改名见 [refactor_ui_app.md](../refactor_ui_app.md)。
 
 ## 从哪拿
 

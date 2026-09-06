@@ -38,7 +38,7 @@ import {
   type UiTreeViewPropsType,
 } from "../factory/tree";
 import { UiActionDivider, type UiAction } from "../factory/action";
-import type { UiViewContext } from "../../contexts/view_context";
+import type { VueUiContext } from "../../contexts/vue_ui_context";
 import type { VueUiBuilder } from "./builder";
 import type { UiContext } from "./helpers";
 
@@ -48,13 +48,13 @@ export function attachListBuilder(ctor: { prototype: Host }) {
   Object.assign(ctor.prototype, {
     tableWithCells(
       rows: any[],
-      metaui: MetaUi,
+      metaUi: MetaUi,
       rowContext: (row: any) => UiContext,
       tableProps: UiListPropsType<any> = {},
     ): VNode {
       const customRenderCell = tableProps.renderCell;
       const cellProps = cleanTableCellProps({
-        tableMetaui: metaui,
+        tableMetaui: metaUi,
         ...(tableProps as PropData),
       });
       if ((tableProps as PropData).readOnlyRows !== undefined) {
@@ -74,9 +74,9 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       // 索引页 rowContext 恒为 () => context，不可在这里对每行 with(row)。
       const probeContext = rowContext(rows[0] ?? {});
       const listedRaw =
-        typeof (metaui as any).getListedFields === "function"
-          ? (metaui as any).getListedFields()
-          : (metaui as any).listedFields;
+        typeof (metaUi as any).getListedFields === "function"
+          ? (metaUi as any).getListedFields()
+          : (metaUi as any).listedFields;
       const listed: MetaUiField[] = Array.isArray(listedRaw) ? listedRaw : [];
       const templateCellFields =
         tableProps.templateCellFields ??
@@ -91,7 +91,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
           })
           .map((field: MetaUiField) => field.fieldName);
     
-      return this.factory.table(rows, metaui, {
+      return this.factory.table(rows, metaUi, {
         ...tableProps,
         templateCellFields,
         renderCell: (field, row) => {
@@ -109,13 +109,13 @@ export function attachListBuilder(ctor: { prototype: Host }) {
     
     buildTreeGrid<T = any>(
       rows: T[],
-      metaui: MetaUi,
+      metaUi: MetaUi,
       rowContext: (row: T) => UiContext,
       props: UiTreeGridPropsType<T> = {},
     ): VNode {
       const customRenderCell = props.renderCell;
       const cellProps = cleanTableCellProps({
-        tableMetaui: metaui,
+        tableMetaui: metaUi,
         isTree: true,
         ...(props as PropData),
       });
@@ -131,7 +131,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
           enumerable: false,
         });
       }
-      return this.factory.treeGrid(rows, metaui, {
+      return this.factory.treeGrid(rows, metaUi, {
         ...props,
         isTree: true,
         renderCell: (field, row) =>
@@ -152,7 +152,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       const loadMode = props.loadMode ?? "lazy";
       const idField =
         props.idField ??
-        treeIdField(treeShape, shapeKey, context.metaui?.primaryKey);
+        treeIdField(treeShape, shapeKey, context.metaUi?.primaryKey);
       const onExpand =
         props.onExpand ??
         (loadMode === "lazy"
@@ -165,7 +165,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
               treeDataProvider.attachChildren(node, kids);
             }
           : undefined);
-      const treeGrid = this.buildTreeGrid(rows, context.metaui, () => context, {
+      const treeGrid = this.buildTreeGrid(rows, context.metaUi, () => context, {
         ...props,
         treeShape,
         shapeKey,
@@ -385,7 +385,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
         const { tableMetaui } = props;
         const isCrossModule =
           !(context as { module?: unknown }).module ||
-          context.metaui?.objName !== tableMetaui?.objName;
+          context.metaUi?.objName !== tableMetaui?.objName;
     
         return this.factory.link({
           text: MetaModel.displayField(row, field),
@@ -571,7 +571,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       props: UiListPropsType<T> = {},
     ): VNode {
       const model = context.model as any;
-      return this.factory.list(model.list ?? model ?? [], context.metaui, props);
+      return this.factory.list(model.list ?? model ?? [], context.metaUi, props);
     },
     
     buildTable<T = any>(
@@ -582,7 +582,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       const runtime = context as any;
       return this.tableWithCells(
         model.list ?? model ?? [],
-        context.metaui,
+        context.metaUi,
         () => context,
         {
           filterDisplay:
@@ -684,7 +684,7 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       group: MetaUiGroup,
       row: any,
     ): UiAction[] {
-      const runtime = context as UiViewContext;
+      const runtime = context as VueUiContext;
       return [
         {
           name: "delete",
@@ -720,8 +720,8 @@ export function attachListBuilder(ctor: { prototype: Host }) {
       const entityAuth = runtime.getModuleAuth?.(row);
       const rowId =
         row?.id ??
-        (context.metaui?.primaryKey
-          ? row?.[context.metaui.primaryKey]
+        (context.metaUi?.primaryKey
+          ? row?.[context.metaUi.primaryKey]
           : undefined);
       const resolved = icons ?? {
         edit: this.factory.resolveIcon("edit"),
@@ -788,11 +788,11 @@ export function attachListBuilder(ctor: { prototype: Host }) {
     },
     
     buildColumns<T = any>(
-      metaui: MetaUi,
+      metaUi: MetaUi,
       context: UiContext,
       props: UiListPropsType<T> = {},
     ): VNode[] {
-      return metaui
+      return metaUi
         .getListedFields()
         .map((field) =>
           h(

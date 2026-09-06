@@ -25,7 +25,7 @@ import { rx } from "../rx";
 import { UiCustomSearchField, UiSearchField } from "../ui/factory/filter";
 import type { UniListViewProps } from "../app/state";
 import { createDefaultSearchParam, type UiViewPropsType, type UiViewType } from "../contexts/view";
-import type { UiViewContext } from "../contexts/view_context";
+import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { UiListViewPropsType } from "../ui/factory/list";
 import type { UiTreeListViewPropsType } from "../ui/factory/tree_category_list";
 import type { UiGanttViewProps } from "../ui/factory/gantt";
@@ -39,7 +39,7 @@ export type UiViewOption =
   | UiViewPropsType;
 
 export type UiViewOptions = Partial<
-  Record<UiViewType, (ctx: UiViewContext) => UiViewOption>
+  Record<UiViewType, (ctx: UiContext) => UiViewOption>
 >;
 
 export interface UiSearchForm {
@@ -243,8 +243,8 @@ export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
   }
 
   field(fldName: string) {
-    const metaui = this.meta?.metaui;
-    if (!metaui) {
+    const metaUi = this.meta?.metaUi;
+    if (!metaUi) {
       throw new Error(
         translateMessage("invalid.logicNoMetaField", {
           repository: this.repository,
@@ -252,7 +252,7 @@ export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
         }),
       );
     }
-    const field = metaui.getField(fldName);
+    const field = metaUi.getField(fldName);
     if (!field) {
       throw new Error(
         translateMessage("invalid.logicMissingField", {
@@ -265,8 +265,8 @@ export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
   }
 
   group<G>(groupName: string) {
-    const metaui = this.meta?.metaui;
-    if (!metaui) {
+    const metaUi = this.meta?.metaUi;
+    if (!metaUi) {
       throw new Error(
         translateMessage("invalid.logicNoMetaGroup", {
           repository: this.repository,
@@ -274,7 +274,7 @@ export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
         }),
       );
     }
-    const group = metaui.getGroup(groupName);
+    const group = metaUi.getGroup(groupName);
     if (!group) {
       throw new Error(
         translateMessage("invalid.logicMissingGroup", {
@@ -363,7 +363,7 @@ export abstract class UiLogic<E extends Entity> extends EntityLogic<E> {
     this.selectManyActions = [];
   }
 
-  async applyTo(context: UiViewContext<any>, view: UiViewType = "edit") {
+  async applyTo(context: VueUiContext<any>, view: UiViewType = "edit") {
     const logicView = await this.ensureViewLogic(view);
     const fn = this.getLogicFn(logicView);
     if (!fn) return;
@@ -389,10 +389,10 @@ export class UiGroupLogic<
     public readonly groupName: string,
   ) {
     const { meta, metaUiService, module, router } = parent;
-    const metaUiGroup = meta.metaui.getGroup(groupName)!;
+    const metaUiGroup = meta.metaUi.getGroup(groupName)!;
     super(defineGroupItem, {
       module,
-      meta: { metaui: metaUiGroup.groupUi! },
+      meta: { metaUi: metaUiGroup.groupUi! },
       metaUiService: metaUiService,
       repository: groupName,
       router,
@@ -413,7 +413,7 @@ export class UiGroupLogic<
   create(param?: any) {
     this.createParam = param;
     return Promise.resolve(
-      MetaModel.createEntity(this.meta.metaui, this.createEntity, param),
+      MetaModel.createEntity(this.meta.metaUi, this.createEntity, param),
     );
   }
 
@@ -452,8 +452,8 @@ export class UiGroupLogic<
         reload,
       );
     } else {
-      this.metaUiGroup = this.parent.meta.metaui.getGroup(this.groupName)!;
-      this.meta = { metaui: this.metaUiGroup.groupUi! };
+      this.metaUiGroup = this.parent.meta.metaUi.getGroup(this.groupName)!;
+      this.meta = { metaUi: this.metaUiGroup.groupUi! };
     }
     return this.meta;
   }

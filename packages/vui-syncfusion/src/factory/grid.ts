@@ -114,13 +114,13 @@ export const parseGridColumnWidth = (width: unknown): number | undefined => {
   return Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
 };
 
-export const syncMetaUiFromGridColumns = (ej2Grid: any, metaui: MetaUi) => {
+export const syncMetaUiFromGridColumns = (ej2Grid: any, metaUi: MetaUi) => {
   const columns = (ej2Grid.getColumns?.() ?? []).filter(
     (column: any) =>
       isPersistableListColumn(column.field) && column.type !== "checkbox",
   );
   columns.forEach((column: any, index: number) => {
-    const field = metaui.getField(column.field);
+    const field = metaUi.getField(column.field);
     if (!field) return;
     field.listPos = index;
     const width = parseGridColumnWidth(column.width);
@@ -134,7 +134,7 @@ export const syncMetaUiFromGridColumns = (ej2Grid: any, metaui: MetaUi) => {
       field.listed = column.visible !== false;
     }
   });
-  metaui.getListedFields(true);
+  metaUi.getListedFields(true);
 };
 
 export const waitForGridPaint = async () => {
@@ -144,11 +144,11 @@ export const waitForGridPaint = async () => {
   });
 };
 
-/** 工具栏「自动列宽」：EJ2 autoFitColumns + 回写 metaui.listSize 并缓存。 */
+/** 工具栏「自动列宽」：EJ2 autoFitColumns + 回写 metaUi.listSize 并缓存。 */
 export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
   if (typeof document === "undefined") return;
-  const metaui = context.metaui;
-  if (!metaui) return;
+  const metaUi = context.metaUi;
+  if (!metaUi) return;
   const element = document.querySelector(".e-grid.mmda-sf-table");
   const ej2Grid = (element as any)?.ej2_instances?.[0];
   if (!ej2Grid) return;
@@ -170,6 +170,6 @@ export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
   }
 
   await waitForGridPaint();
-  syncMetaUiFromGridColumns(ej2Grid, metaui);
+  syncMetaUiFromGridColumns(ej2Grid, metaUi);
   await persistListPack(context);
 }

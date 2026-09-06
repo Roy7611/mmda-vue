@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, MetaUiBuilder, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';
@@ -357,8 +357,8 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 					.lockIf(t => t.preset)
 					.refWhere((model, ctx) => {
 					const __p = ((context, model) => {
-						const ref = context.metaui.getField('qcPhase').reference;
-						const phase = ref?.valueOf(ref?.enumFn(model.qcPhase) ?? context.getFieldValue(context.metaui.getField('qcPhase'))) ?? model.qcPhase;
+						const ref = context.metaUi.getField('qcPhase').reference;
+						const phase = ref?.valueOf(ref?.enumFn(model.qcPhase) ?? context.getFieldValue(context.metaUi.getField('qcPhase'))) ?? model.qcPhase;
 						return {
 							sort: `planDate ${SortOrder.DESC}`,
 							// 来料检验只能选进行中任务；其他品控类型可选进行中或已完工
@@ -447,7 +447,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 	}
 	/** 普通来源 + 已完工任务：默认下拉读 refOptions，在此排除来料检验 */
 	private applyQcPhaseExcludeIqc(context: UiContext<QualityInspection>, model: QualityInspection, taskStatus?: string) {
-		const ref = context.metaui.getField('qcPhase').reference;
+		const ref = context.metaUi.getField('qcPhase').reference;
 		if (!this.qcPhaseAllOptions) this.qcPhaseAllOptions = ref.refOptions.slice();
 		const refName = window.history?.state?.createParam?.refName as string | undefined;
 		const exclude = !isProductionInspectionSource(model, refName)
@@ -559,14 +559,14 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 		if (!pending.length) return;
 		const rows = pending.map(i => ({ ...i, qualifiedText: context.t('qualityInspection.unqualified') }));
 		let selected: typeof rows = rows;
-		const metaui = MetaUiBuilder.create('BatchQualified')
+		const metaUi = MetaUiBuilder.create('BatchQualified')
 			.field('category', context.t('qualityInspection.category'))
 			.field('itemName', context.t('qualityInspection.inspectionContent'))
 			.field('criterion', context.t('qualityInspection.criterion'))
 			.field('qualifiedText', context.t('qualityInspection.qualified'))
 			.build();
 		context.uiBuilder.dialog(
-			context.uiBuilder.factory.table(rows, metaui, {
+			context.uiBuilder.factory.table(rows, metaUi, {
 				selectionMode: 'multiple',
 				onSelect: (sel: typeof rows) => { selected = sel ?? []; },
 			}),
@@ -673,7 +673,7 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 				this.field('itemName').lockIf(item => !isRefNone(item.qcsID)),
 				this.field('criterion').lockIf(item => !isRefNone(item.qcsID)),
 				this.field('qualified')
-					.onValidate((value, _model, ctx: UiViewContext<any>) => {
+					.onValidate((value, _model, ctx: UiContext<any>) => {
 						const inspection = (ctx.root?.model ?? this.master) as QualityInspection;
 						if (!shouldLinkItemAndQcResult(inspection)) return;
 						// 仅单条检验物时限制“合格否”与质检结果的组合。
@@ -699,7 +699,7 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 							});
 						}
 					})
-					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						//合格类型选择
 						const checkTyoeList = [
 							{
@@ -853,7 +853,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 			fields.push(
 				// 质检结果：按检验项合格情况过滤选项（自定义下拉，避免单元格失焦仍提交非法值）
 				this.field('qcResult')
-					.setCustomEditor((fld, ctx: UiViewContext<any>) => {
+					.setCustomEditor((fld, ctx: UiContext<any>) => {
 						const { $ui: ui } = ctx.globalProps;
 						const ref = fld.reference;
 						const refFlds = ref?.refFlds?.length ? ref.refFlds : ['value', 'text'];
@@ -957,7 +957,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 							},
 						});
 					})
-					.onValidate((value, _model, ctx: UiViewContext<any>) => {
+					.onValidate((value, _model, ctx: UiContext<any>) => {
 						const inspection = (ctx.root?.model ?? this.master) as QualityInspection;
 						if (!shouldLinkItemAndQcResult(inspection)) return;
 						const items = activeItems(inspection);
@@ -977,7 +977,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 						}
 					}),
 				this.field('defectDesc')
-					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchForRelative({
@@ -1025,7 +1025,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 				this.field('materialCode').lockIf(v => !isRefNone(v.refName)),
 				this.field('materialName').lockIf(v => !isRefNone(v.refName)),
 				this.field('materialCategoryID')
-					.setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
 						return ctx.globalProps.$ui.factory.textSpan(text || '');
 					})
@@ -1081,7 +1081,7 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 		if (fields.length == 0) {
 			fields.push(
 				this.field('materialCategoryID')
-					.setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
 						return ctx.globalProps.$ui.factory.textSpan(text || '');
 					}),

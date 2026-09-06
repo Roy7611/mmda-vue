@@ -249,9 +249,9 @@ describe("MetaModel.createEntity / savable", () => {
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
     });
-    const metaui = createMockMetaUi([fld]);
+    const metaUi = createMockMetaUi([fld]);
     const created = MetaModel.createEntity(
-      metaui,
+      metaUi,
       (o: object) => Object.assign({}, o) as any,
       { whName: "主仓" },
       {},
@@ -268,9 +268,9 @@ describe("MetaModel.createEntity / savable", () => {
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
     });
-    const metaui = createMockMetaUi([fld]);
+    const metaUi = createMockMetaUi([fld]);
     const created = MetaModel.createEntity(
-      metaui,
+      metaUi,
       (o: object) => Object.assign({}, o) as any,
       { categoryName: "砂箱", editable: true, deletable: false },
     );
@@ -286,9 +286,9 @@ describe("MetaModel.createEntity / savable", () => {
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
     });
-    const metaui = createMockMetaUi([fld]);
+    const metaUi = createMockMetaUi([fld]);
     const created = MetaModel.createEntity(
-      metaui,
+      metaUi,
       (o: object) => Object.assign({}, o) as any,
       { name: "东仓" },
       { whName: "name" },
@@ -304,9 +304,9 @@ describe("MetaModel.createEntity / savable", () => {
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
     });
-    const metaui = createMockMetaUi([fld]);
+    const metaUi = createMockMetaUi([fld]);
     const payload = MetaModel.savable(
-      metaui,
+      metaUi,
       {
         whName: "主仓",
         actions: [{ name: "save" }],

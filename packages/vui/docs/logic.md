@@ -15,6 +15,7 @@
 
 ```ts
 import { UiLogic, GenericUiLogic, type UiLogicInit } from '@mmda/vui'
+import type { UiContext } from '@mmda/core'
 ```
 
 ## 装配到会话
@@ -23,10 +24,10 @@ import { UiLogic, GenericUiLogic, type UiLogicInit } from '@mmda/vui'
 UiLogic.beforeEdit()
         │  fields / groups / customActions
         ▼
-UiViewContext.bindLogics(...)
+VueUiContext.bindLogics(...)
 ```
 
-`applyTo(context, view)` 根据 `view` 调用对应 `beforeXxx`，把结果写进当前会话。`UiBuildContext` 构造和 `init()` 时会再调一次，确保 `initMetadata` 之后定制 `field()` / `group()` 能拿到 `metaui`。
+`applyTo(context, view)` 根据 `view` 调用对应 `beforeXxx`，把结果写进当前会话。`VueUiContext` 构造和 `init()` 时会再调一次，确保 `initMetadata` 之后定制 `field()` / `group()` 能拿到 `metaui`。
 
 ## 业务 Logic
 
@@ -70,7 +71,7 @@ export class MaterialLogic extends UiLogic<Material> {
 viewOptions?: Partial<
   Record<
     UiViewType,
-    (ctx: UiViewContext) =>
+    (ctx: UiContext) =>
       | UiListViewPropsType
       | UiTreeListViewPropsType
       | UiGanttViewProps
@@ -159,4 +160,4 @@ await this.doAction(model, action)
 
 ## 边界
 
-不要在 Logic 里 `import` PrimeVue。弹层/Toast 走 `context.uiBuilder`。业务钩子类型是 core `UiContext`，不要写成 vui `UiBuildContext` 类。
+不要在 Logic 里 `import` PrimeVue。弹层/Toast 走 `context.uiBuilder`。业务钩子类型是 core `UiContext`，不要写成 vui `VueUiContext` 类。

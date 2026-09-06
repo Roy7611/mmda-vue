@@ -178,7 +178,7 @@ describe('PrimeVue skin', () => {
       many: true,
       editing: false,
       title: '部门',
-      metaui: { objName: 'Department', displayLabel: '部门' },
+      metaUi: { objName: 'Department', displayLabel: '部门' },
       model: { list: [] },
       logic: { module, repository: 'Departments' },
       module,
@@ -218,7 +218,7 @@ describe('PrimeVue skin', () => {
     const context = {
       many: false,
       editing: false,
-      metaui: { objName: 'Material', displayLabel: '物料' },
+      metaUi: { objName: 'Material', displayLabel: '物料' },
       model: {
         actions: [{ name: 'deprecate', label: '弃用', role: 'DANGER' }],
       },

@@ -253,15 +253,15 @@ export function defineEntity<T = any>(o?: object): T {
   defineSetter(o, "setDeleted", () => destroy(o));
   return o as T;
 }
-export function defineEntityWithId<E>(metaui: MetaUi, o?: object): E {
+export function defineEntityWithId<E>(metaUi: MetaUi, o?: object): E {
   const e = defineEntity<E>(o);
-  if (metaui.primaryKey) {
-    if (metaui.primaryKey.indexOf(",") != -1) {
-      const keys = metaui.primaryKey.split(",");
+  if (metaUi.primaryKey) {
+    if (metaUi.primaryKey.indexOf(",") != -1) {
+      const keys = metaUi.primaryKey.split(",");
       const getId = () => keys.map((k) => (o as any)[k]).join(",");
       defineID(e, getId);
     } else {
-      const getId = () => (o as any)[metaui.primaryKey];
+      const getId = () => (o as any)[metaUi.primaryKey];
       defineID(e, getId);
     }
   }
@@ -314,14 +314,14 @@ export function defineEntityArray<E extends Entity>(
 /**
  * 根据元数据创建实体
  * @typeParam E 要创建的实体类型
- * @param metaui 实体类型的元数据
+ * @param metaUi 实体类型的元数据
  * @param proto 原型对象，凡是元数据中包括的所有属性拷贝至返回的实体对象
  * @param mapper 属性映射函数集合，例如 { targetProp: 'srcProp', }
  * @returns
  * @example
  * ```ts
  * let itemId = MetaModel.max(bom.items);
- * let bomItem:BOMItem = createEntity(metaui, defineBOMItem, material, {
+ * let bomItem:BOMItem = createEntity(metaUi, defineBOMItem, material, {
  *  partNo: 'materialCode',
  *  itemID: (m)=>++itemId,
  *  bomID: ()=>bom.bomID,
@@ -331,7 +331,7 @@ export function defineEntityArray<E extends Entity>(
  * ```
  */
 function createEntity<E>(
-  metaui: MetaUi,
+  metaUi: MetaUi,
   creator: EntityCtor<E>,
   proto?: any,
   mapper?: Record<string, string | ((it: any) => any)>
@@ -353,7 +353,7 @@ function createEntity<E>(
       }
     }
 
-    metaui.groups.forEach((group) => {
+    metaUi.groups.forEach((group) => {
       if (group.many) {
         let defVal = [];
         if (mapper && mapper[group.groupName]) {
@@ -394,7 +394,7 @@ function createEntity<E>(
       }
     });
   } else {
-    metaui.groups.forEach((group) => {
+    metaUi.groups.forEach((group) => {
       if (group.many) {
         let defVal = [];
         if (mapper && mapper[group.groupName]) {
@@ -426,7 +426,7 @@ function createEntity<E>(
   // 实体状态
   e.entityState = EntityState.CREATED;
   if (isFunction(mapper?.rowNum)) e.rowNum = mapper.rowNum(proto);
-  return creator ? creator(e) : defineEntityWithId<E>(metaui, e);
+  return creator ? creator(e) : defineEntityWithId<E>(metaUi, e);
 }
 
 export interface EntitySimplifyOptions {
@@ -455,19 +455,19 @@ function ignoreNullishProps(model: any) {
 
 /**
  * 保存前简化实体模型，例如忽略`actions`和空值属性
- * @param metaui 元界面
+ * @param metaUi 元界面
  * @param model 实体模型
  * @param options 简化选项
  * @returns 简化后的实体模型
  */
-function savable<E>(metaui: MetaUi, model: E, options: EntitySimplifyOptions) {
+function savable<E>(metaUi: MetaUi, model: E, options: EntitySimplifyOptions) {
   let e = Object.assign<any, E>({}, model);
   const { ignoreProperties, ignoreDeeply, ignoreNullish, keepDirtyOnly } =
     options;
   ignoreProperties.forEach((prop) => delete e[prop]);
   if (ignoreNullish) ignoreNullishProps(e);
   if (ignoreDeeply) {
-    metaui.groups
+    metaUi.groups
       .filter((g) => g.many)
       .forEach((g) => {
         let gv = e[g.groupName];
@@ -486,12 +486,12 @@ function savable<E>(metaui: MetaUi, model: E, options: EntitySimplifyOptions) {
 }
 /**
  * 赋值实体对象，更新属性和相关的子表并触发响应式
- * @param metaui 元界面数据
+ * @param metaUi 元界面数据
  * @param model 要赋值的实体对象
  * @param data 从服务器返回的数据对象
  */
-function assign<E extends Entity>(metaui: MetaUi, model: E, data: any) {
-  metaui.groups.forEach((g) => {
+function assign<E extends Entity>(metaUi: MetaUi, model: E, data: any) {
+  metaUi.groups.forEach((g) => {
     if (g.many) {
       (model as any)[g.groupName].splice(
         0,
@@ -547,7 +547,7 @@ export interface SubGroupItemTransformParam<G> {
  * const bom:BOM = ...;//假设你有一个实体对象bom
  * //会自动处理关联主键bomID, 自增itemID, 行号rowNum
  * const items = MetaModel.createSubGroupItems({
- *  metaUiGroup: context.metaui.getGroup('items'),//bom元数据
+ *  metaUiGroup: context.metaUi.getGroup('items'),//bom元数据
  *  source: selection,//源数组 Material[]
  *  target: bom, //添加至target.items
  *  creator: defineBOMItem, //创建BOMItem函数
@@ -613,7 +613,7 @@ function createSubGroupItems<E, G extends Entity>(
  * const bom:BOM = ...;//假设你有一个实体对象bom
  * //会自动处理关联主键bomID, 自增itemID, 行号rowNum
  * MetaModel.addGroupItems({
- *  metaUiGroup: context.metaui.getGroup('items'),//bom元数据
+ *  metaUiGroup: context.metaUi.getGroup('items'),//bom元数据
  *  source: selection,//源数组 Material[]
  *  target: bom, //添加至toModel.items
  *  creator: defineBOMItem, //创建BOMItem函数

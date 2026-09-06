@@ -2,7 +2,7 @@ import type { MetaUiGroup } from "@mmda/core";
 import { MetaModel } from "@mmda/core";
 import { translateMessage } from "../../i18n/i18n";
 
-export type UiContext = import("../../contexts/view_context").UiViewContext<any>;
+export type UiContext = import("../../contexts/vue_ui_context").VueUiContext<any>;
 
 const hiddenDeletedSubRowStyle = (data: any) =>
   MetaModel.deleted(data) ? { display: "none" } : undefined;

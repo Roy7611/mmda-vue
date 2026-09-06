@@ -67,8 +67,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     paginator,
     resolveIcon: deps.resolveIcon,
   }
-  return <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => {
-    const fields = listedFields(metaui)
+  return <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
+    const fields = listedFields(metaUi)
     const rowNumField = fields.find(field => field.fieldName === 'rowNum')
     const dataFields = fields.filter(field => field.fieldName !== 'rowNum')
     const restrictTemplates = Array.isArray(props.templateCellFields)
@@ -991,9 +991,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       props.onSelect?.(records)
     }
 
-    const primaryKey = metaui.primaryKey
+    const primaryKey = metaUi.primaryKey
     const layoutRev = unref(props.layoutRev as any) ?? 0
-    const listGroupKey = String(metaui.objName ?? primaryKey ?? 'list')
+    const listGroupKey = String(metaUi.objName ?? primaryKey ?? 'list')
     const gridKey = `mmda-sf-grid-${listGroupKey}-${layoutRev}`
 
     const resolveEj2Grid = () => {
@@ -1043,7 +1043,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (!props.onListLayoutChange) return
       const grid = resolveEj2Grid()
       if (!grid) return
-      syncMetaUiFromGridColumns(grid, metaui)
+      syncMetaUiFromGridColumns(grid, metaUi)
       props.onListLayoutChange()
     }
 

@@ -77,8 +77,8 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 		items: WorkCalendarDay[]
 	) {
 		const { uiBuilder } = context
-		const group = context.metaui.getGroup('days')
-		const groupUi = context.metaui.getGroupUi('days')
+		const group = context.metaUi.getGroup('days')
+		const groupUi = context.metaUi.getGroupUi('days')
 		const field = groupUi.getField('workDay')
 		console.log(field);
 		// entity.workDay = `2025-02-2${items.length}`

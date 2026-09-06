@@ -37,7 +37,7 @@ Data 回新数据 → Logic 更新状态 → UI 重绘
 | **Logic → UI** | `context.uiBuilder` | toast / confirm / dialog / `factory.table` / `buildView`。换皮换实现，Logic 只认 core `UiBuilder` |
 | **职责** | 处理用户交互 | 钩子、校验、`refWhere`、把业务函数挂到会话。不认 Vue/React 类型，不碰皮肤控件 |
 
-Logic 只认 core **`UiContext`**。不要写成 vui `UiBuildContext`。日常不要掏 `globalProps.$ui` / `$api`。
+Logic 只认 core **`UiContext`**。不要写成 vui `VueUiContext`。日常不要掏 `globalProps.$ui` / `$api`。
 
 ```mermaid
 flowchart LR
@@ -100,15 +100,15 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 rui 若落地，另写 `ReactUiBuilder implements UiBuilder`，不要从 vui 抄 `VueUiBuilder`。程序员细则：[Builder 与皮肤](packages/vui/docs/builder.md)。
 
-### 会话：两层 Context
+### 会话：`UiContext` 与 `VueUiContext`
 
-业务 Logic **只认 core `UiContext` 接口**（换 vui / rui / mui 仍是这一套）。vui 的 `UiBuildContext` 对标 Flutter `BuildContext`，给 **Builder / 渲染函数**用，不要写成业务钩子的类型。
+业务 Logic **只认 core `UiContext` 接口**（换 vui / rui / mui 仍是这一套）。vui 的 **`VueUiContext`** 对标 Flutter `BuildContext`，给 **构造 / 拼屏 / 屏级 IO**用，不要写成业务钩子的类型。
 
 ```text
 业务 *Logic.ts  ──►  core UiContext（接口）
                            ▲
                            │ implements
-vui UiViewContext ──► vui UiBuildContext  ≈ Flutter BuildContext（渲染 / 屏级拼装）
+                    vui VueUiContext  ≈ Flutter BuildContext（渲染 / 屏级拼装）
 ```
 
 core 没有 vui 的 class。`UiContext` 上要声明的能力必须是 **core 里的框架无关接口**（不能 `any`）：`UiBuilder`、`ApiClient`（已有）、**`MmdaApplication`（abstract class）**。vui 实现类叫 **`MmdaVueApp extends MmdaApplication`**；rui 再继承同一套 `MmdaApplication`。
@@ -133,8 +133,7 @@ flowchart TB
     MmdaApp[MmdaApplication]
   end
   subgraph vuiImpl [vui_implementation]
-    ViewCtx[UiViewContext]
-    BuildCtx[UiBuildContext]
+    VueCtx[VueUiContext]
     VueBld[VueUiBuilder]
     VueApp[MmdaVueApp]
   end
@@ -142,13 +141,12 @@ flowchart TB
   UiCtx --> UiBld
   UiCtx --> Api
   UiCtx --> MmdaApp
-  ViewCtx --> UiCtx
-  BuildCtx --> ViewCtx
+  VueCtx --> UiCtx
   VueBld --> UiBld
   VueApp --> MmdaApp
-  ViewCtx --> VueApp
-  ViewCtx --> VueBld
-  BuildCtx --> BizLogic
+  VueCtx --> VueApp
+  VueCtx --> VueBld
+  VueCtx --> BizLogic
 ```
 
 ### 三条路径
@@ -163,7 +161,7 @@ UI       ── context.uiBuilder                     → 换皮（统一接口�
 
 `this.apiClient` 与 `context.apiClient` 同一实例。实体 CRUD 优先走 Logic 方法；日常不要掏 `context.globalProps.$ui` / `$api`。
 
-vui 现状：`UiViewContext` 实现 core `UiContext`（含 `apiClient` getter）；`uiBuilder` 来自 `app.ui`。core 契约是 **`UiBuilder<TNode>`** 与 abstract class **`MmdaApplication`**；vui 拼屏抽象类是 **`VueUiBuilder implements UiBuilder<VNode>`**（模板方法，取代 `AbstractUiBuilder`）；应用壳是 **`MmdaVueApp extends MmdaApplication`**。皮肤 **`SyncfusionUiBuilder` / `PrimeVueUiBuilder` extends `VueUiBuilder`**。业务钩子参数用 core `UiContext`，不要 vui `UiBuildContext`。注入拼屏用 **`VueUiBuilder`**，不要再造 Host，也不要把实现 alias 成 `UiBuilder`。
+vui 现状：`VueUiContext` 实现 core `UiContext`（含 `apiClient` getter）；`uiBuilder` 来自 `app.ui`。core 契约是 **`UiBuilder<TNode>`** 与 abstract class **`MmdaApplication`**；vui 拼屏抽象类是 **`VueUiBuilder implements UiBuilder<VNode>`**（模板方法，取代 `AbstractUiBuilder`）；应用壳是 **`MmdaVueApp extends MmdaApplication`**。皮肤 **`SyncfusionUiBuilder` / `PrimeVueUiBuilder` extends `VueUiBuilder`**。业务钩子参数用 core `UiContext`，不要 vui `VueUiContext`。注入拼屏用 **`VueUiBuilder`**，不要再造 Host，也不要把实现 alias 成 `UiBuilder`。
 
 ### 弹层与选记录
 
@@ -177,7 +175,7 @@ vui 现状：`UiViewContext` 实现 core `UiContext`（含 `apiClient` getter）
 
 业务 `*Logic.ts` 可以调 `factory` / `fldFactory` / `buildView`，但不要出现 Vue 类型。`viewOptions` 仍只返回选项。
 
-程序员用法：[UiBuilder](packages/core/docs/ui/ui_builder_usage.md)、[UiContext](packages/core/docs/logic/ui_context_usage.md)、[MetaUiBuilder](packages/core/docs/metaui/metaui_builder.md)。本轮改名记录：[refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
+程序员用法：[UiBuilder](packages/core/docs/ui/ui_builder_usage.md)、[UiContext](packages/core/docs/logic/ui_context_usage.md)、[vui 会话怎么写](packages/vui/docs/context.md)、[vui 会话设计](packages/vui/docs/vue_ui_context.md)、[MetaUiBuilder](packages/core/docs/metaui/metaui_builder.md)。本轮改名记录：[refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
 
 ## 单向数据流（摘要）
 

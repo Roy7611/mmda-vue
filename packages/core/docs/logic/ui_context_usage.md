@@ -1,8 +1,8 @@
 # UiContext：程序员怎么写
 
-业务钩子参数类型是 core **`UiContext`**（[`src/ui/context.ts`](../../src/ui/context.ts)）。vui 的 `UiViewContext` 实现它；`UiBuildContext` 给拼屏 / 屏级 IO，**不要写成 Logic 钩子类型**。
+业务钩子参数类型是 core **`UiContext`**（[`src/ui/context.ts`](../../src/ui/context.ts)）。vui 实现类是 **`VueUiContext`**（一个类，查询与 IO 是能力 mixin），**不要写成 Logic 钩子类型**。
 
-文件 [`ui_context.md`](./ui_context.md) 只说明职责边界。本轮 API 见 [refactor_ui_app.md](../refactor_ui_app.md)。
+职责边界：[ui_context.md](./ui_context.md)。vui 设计：[vue_ui_context.md](../../../vui/docs/vue_ui_context.md)；vui 用法：[context.md](../../../vui/docs/context.md)。本轮 UI 契约改名：[refactor_ui_app.md](../refactor_ui_app.md)。
 
 ## 会话上三条通道
 

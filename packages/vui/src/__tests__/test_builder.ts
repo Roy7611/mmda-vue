@@ -9,7 +9,7 @@ import {
 } from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
 import { VueUiBuilder } from "../ui/builder/builder";
-import type { UiViewContext } from "../contexts/view_context";
+import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/factory/auth";
 import type {
   AppSideBarProps,
@@ -25,7 +25,7 @@ import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/factory";
 import { treeIdOf, treeLabelOf, type UiTreePropsType } from "../ui/factory/tree";
 import type { SearchForRelativeProps, UiSearchField } from "../ui/factory/filter";
 
-type UiContext = UiViewContext<any>;
+type UiContext = VueUiContext<any>;
 
 const stub = (name: string, extra?: PropData): VNode =>
   h("span", { class: "mmda-html-stub", "data-unimplemented": name, ...extra }, "not implemented");
@@ -71,11 +71,11 @@ const testLayout: UiLayout = {
     ]),
 };
 
-const listedFields = (metaui: MetaUi) => {
-  const listed = metaui.getListedFields();
+const listedFields = (metaUi: MetaUi) => {
+  const listed = metaUi.getListedFields();
   return listed.length
     ? listed
-    : metaui.groups.filter((g) => !g.many).flatMap((g) => g.fields);
+    : metaUi.groups.filter((g) => !g.many).flatMap((g) => g.fields);
 };
 
 function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
@@ -99,8 +99,8 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
       ],
     );
 
-  const table = <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => {
-    const fields = listedFields(metaui);
+  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
+    const fields = listedFields(metaUi);
     return h("table", { class: "mmda-table" }, [
       h("thead", [h("tr", fields.map((field) => h("th", field.displayLabel)))]),
       h(
@@ -168,7 +168,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
     actionButton: (action, _t, _resolve, props) =>
       button({ ...action, ...props, onClick: action.onAction }),
     paginator: () => stub("paginator"),
-    list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
+    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
       h(
         "ul",
         { class: "mmda-list" },
@@ -180,21 +180,21 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
               onDblclick: () => props.onItemDoubleClick?.(item),
             },
             (props.item?.(item, index) ??
-              String((item as any)[metaui.labelField ?? metaui.primaryKey] ?? "")) as any,
+              String((item as any)[metaUi.labelField ?? metaUi.primaryKey] ?? "")) as any,
           ),
         ),
       ),
     tree: <T>(props: UiTreePropsType<T>) => h(TestTree, props as any),
     table,
-    treeGrid: <T>(model: T[], metaui: MetaUi, props: any) =>
+    treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) =>
       h("div", {
         class: "mmda-tree-grid",
         "data-tree-shape": props.treeShape,
         "data-shape-key": props.shapeKey,
         "data-load-mode": props.loadMode,
-      }, [table(model, metaui, props)]),
+      }, [table(model, metaUi, props)]),
     pagableTable: (loader, metadata, props) =>
-      table(loader.model.list as any[], metadata.metaui, props as any),
+      table(loader.model.list as any[], metadata.metaUi, props as any),
     loading: (props) => h("div", { class: "mmda-loading", ...props }, "Loading…"),
     scrollbar: (content, props) =>
       h("div", { style: { overflow: "auto" }, ...props }, content as any),

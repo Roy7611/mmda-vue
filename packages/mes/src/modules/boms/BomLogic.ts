@@ -8,7 +8,7 @@
 import { useRouter } from 'vue-router';
 import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
 import { type BomItem, defineBomItem } from '@/models/BomItem';
 import { type BomItemOperation, defineBomItemOperation } from '@/models/BomItemOperation';
@@ -183,7 +183,7 @@ const getBomItemMaterialPicUrl = (fld: MetaUiField, ctx: UiContext<BomItem>) => 
 const patchBomItemMaterialPicFieldLogic = (groupCtx: UiContext<any> & { _fieldLogicMap?: Record<string, unknown> }) => {
 	if (!groupCtx?._fieldLogicMap) return;
 
-	const materialPicField = groupCtx.metaui?.getField?.('materialPic');
+	const materialPicField = groupCtx.metaUi?.getField?.('materialPic');
 	if (!materialPicField) return;
 
 	const existing = groupCtx._fieldLogicMap.materialPic as
@@ -251,16 +251,16 @@ export const removeProcessResourceItems = (context: UiContext<Bom>, model: Bom, 
 };
 export const bridgeBomItemsSubGroupFieldLogic = (context: UiContext<Bom>) => {
 	const root = (context.root ?? context) as UiContext<Bom> & {
-		metaui?: { getGroup?: (name: string) => unknown };
+		metaUi?: { getGroup?: (name: string) => unknown };
 		model?: Bom;
 		_groupLogicMap?: Record<string, { fields?: Array<{ field?: { fieldName?: string } }> }>;
 		_cache?: Record<string, UiContext<any> & { _fieldLogicMap?: Record<string, unknown> }>;
 	};
-	if (!root.metaui?.getGroup || !root.model) return;
+	if (!root.metaUi?.getGroup || !root.model) return;
 
 	let itemsGroup: { groupName?: string };
 	try {
-		itemsGroup = root.metaui.getGroup('items') as { groupName?: string };
+		itemsGroup = root.metaUi.getGroup('items') as { groupName?: string };
 	} catch {
 		return;
 	}
@@ -294,7 +294,7 @@ export const bridgeBomItemsSubGroupFieldLogic = (context: UiContext<Bom>) => {
 	// 同步 patch 已缓存的子表/行 context，避免部分行仍走默认图片渲染
 	root._cache &&
 		Object.values(root._cache).forEach(cachedCtx => {
-			if (cachedCtx?.metaui?.objName === 'BomItem' || cachedCtx.name?.includes('items')) {
+			if (cachedCtx?.metaUi?.objName === 'BomItem' || cachedCtx.name?.includes('items')) {
 				grpLogic?.fields?.forEach(fl => {
 					if (fl?.field?.fieldName && cachedCtx._fieldLogicMap) {
 						cachedCtx._fieldLogicMap[fl.field.fieldName] = fl;
@@ -786,7 +786,7 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 	}
 
 	// 构建表格列定义
-	const metaui = MetaUiBuilder.create('BomDesignParts')
+	const metaUi = MetaUiBuilder.create('BomDesignParts')
 		.field('itemID', context.t('bom.itemNo'))
 		.field('materialName', t('view.materialName'))
 		.field('specs', t('bom.specification'))
@@ -796,7 +796,7 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 	let selectedItems: BomItem[] = [];
 
 	return await context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(targetItems, metaui, {
+		context.uiBuilder.factory.table(targetItems, metaUi, {
 			selectionMode: 'multiple',
 			onSelect: (selection: BomItem[]) => { selectedItems = selection ?? []; },
 		}),
@@ -994,7 +994,7 @@ export class BomLogic extends UiLogic<Bom> {
 							materialPic: m => m.materialPic ?? null,
 							materialID: m => m,
 							// tracingMode: m => {
-							// 	const fld = context.metaui.getField('tracingMode')
+							// 	const fld = context.metaUi.getField('tracingMode')
 							// 	return MetaModel.getFieldValue(m, fld)
 							// },
 							tracingMode: m => ({ value: m.trackingMode, text: MetaModel.getRefProp(m, 'trackingMode') }),
@@ -1225,7 +1225,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('altStrategyID').refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 					return {
 						status: getSqlOperator('IN')!.toSQL('USED'), // 只能选择启用的替代料策略
 					};
@@ -1242,7 +1242,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						.join(" AND ");
 				}),
 				// 产出比率、损耗率可以为0
-				this.field('outputRate').onValidate((value, model, ctx: UiViewContext<any>) => {
+				this.field('outputRate').onValidate((value, model, ctx: UiContext<any>) => {
 					const items = this.master.items.filter((items: BomItem) => items.entityState < 4 && model.itemID !== items.itemID)
 					const outputRateSum = ((MetaModel.sum(items, item => item.outputRate) * 10000) / 10000) + value;
 					if (outputRateSum > 1) {
@@ -1278,7 +1278,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				// this.field('tracingMode').lockIf(model => !isRefNone(model.tracingMode)),
 				//如果来源为自制，自动填写子部件 partBomID
 				this.field('sourcingMode')
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal == SourcingMode.INVENTORY || newVal == SourcingMode.DIRECT_PURCHASE) {
 							ctx.setFieldValue('partBomID', null);
 							model.children = undefined;
@@ -1289,7 +1289,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 							}
 						}
 					}),
-				this.field('partType').onValidate((value, model, ctx: UiViewContext<any>) => {
+				this.field('partType').onValidate((value, model, ctx: UiContext<any>) => {
 					if (model.sourcingMode === SourcingMode.MAKE && value === MaterialType.LABOR) {
 						return ctx.t('bom.inHousePartCannotBeLabor');
 					}
@@ -1297,9 +1297,9 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				//  当sourcingMode自制MAKE/外协OUTSOURCE
 				this.field('partBomID')
 					.hideIf(model => model.sourcingMode == SourcingMode.INVENTORY || model.sourcingMode == SourcingMode.DIRECT_PURCHASE)
-					.onChange(async (ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange(async (ctx: UiContext<any>, model, newVal, oldVal) => {
 
-						// const sourcingModeFld = ctx.metaui.getField('sourcingMode');
+						// const sourcingModeFld = ctx.metaUi.getField('sourcingMode');
 						// if (!sourcingModeFld) return;
 						// // 校验来源
 						// ctx.validateField(sourcingModeFld,
@@ -1343,7 +1343,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						}
 					})
 					.refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 						return {
 							productID: model.materialID ?? '',
 							status: 'APPROVED',
@@ -1361,7 +1361,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						})
 						.join(" AND ");
 				})
-				// .onValidate((value, model, ctx: UiViewContext<any>) => {
+				// .onValidate((value, model, ctx: UiContext<any>) => {
 				// 	if (!value && (model.sourcingMode === SourcingMode.MAKE || model.sourcingMode === SourcingMode.OUTSOURCE)) {
 				// 		return '当来源为自制/外协时，子件BOM必填';
 				// 	}
@@ -1370,7 +1370,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				//切割方式=不切割时，隐藏切割规格
 				this.field('cuttingSpecs')
 					.lockIf(model => model.cuttingMode == 'NONE')
-					.onValidate((value, model, ctx: UiViewContext<any>) => {
+					.onValidate((value, model, ctx: UiContext<any>) => {
 						if (model.cuttingMode !== CuttingMode.NONE && !value) {
 							return ctx.t('bom.cuttingSpecsRequired');
 						}
@@ -1406,7 +1406,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						onAction: this.newBomItemOperation,
 						view: UiViewOne.Edit,
 					})
-					.onChange((ctx: UiViewContext<any>, model, operations) => {
+					.onChange((ctx: UiContext<any>, model, operations) => {
 						model.opCodes = operations
 							.filter(operation => !MetaModel.deleted(operation))
 							.map(operations => operations.opCode)
@@ -1448,7 +1448,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					.setCustomCellRenderer(renderBomItemMaterialPic),
 				this.field('communicatePic').setCustomRenderer(renderBomItemCommunicatePic),
 				// 物料编码，有物料ID时可跳转至base的物料详情，没有则不能跳转
-				this.field('materialCode').setCustomRenderer((fld, ctx: UiViewContext<any>, prop) => {
+				this.field('materialCode').setCustomRenderer((fld, ctx: UiContext<any>, prop) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (!isRefNone(ctx.model.materialID)) {
 
@@ -1463,7 +1463,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					}
 				}),
 				// 链接加超链接（跳转其他页面）
-				this.field('sourcingUrl').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('sourcingUrl').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (!isNullOrUndefined(fldVal)) {
 						return ctx.uiBuilder.factory.link({
@@ -1488,7 +1488,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 					});
 				}),
 				// 替代料策略，有替代料策略ID时可跳转至详情，没有则不能跳转
-				this.field('altStrategyID').setCustomRenderer((fld, ctx: UiViewContext<any>, prop) => {
+				this.field('altStrategyID').setCustomRenderer((fld, ctx: UiContext<any>, prop) => {
 					const fldVal = ctx.getFieldValue(fld);
 					console.log(JSON.stringify(fldVal));
 					if (!isRefNone(ctx.model.altStrategyID)) {
@@ -1521,7 +1521,7 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 			fields.push(
 				this.field('opCode')
 					.refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 						const rootModel = ctx.root.model as Bom;
 						return { parentProcessID: rootModel.processID ?? '' };
 					})(ctx as any, model as any, undefined as any);
@@ -1537,7 +1537,7 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 						.join(" AND ");
 				})
 					.lockIf(model => model.entityState != EntityState.CREATED && model.entityState != EntityState.CREATED_MODIFIED)
-					.onChange(async (ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange(async (ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal && newVal !== oldVal) {
 							try {
 								const rootModel = ctx.root.model as Bom;
@@ -1559,7 +1559,7 @@ export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomIte
 							}
 						}
 					})
-					.onValidate((value, model, ctx: UiViewContext<any>) => {
+					.onValidate((value, model, ctx: UiContext<any>) => {
 						const itemModel = ctx.prev.prev.model as BomItem;
 						if (!value) return ctx.t('bom.operationRequired');
 						const endOprations = itemModel.operations?.filter(op => !MetaModel.deleted(op) && op.id !== model.id);

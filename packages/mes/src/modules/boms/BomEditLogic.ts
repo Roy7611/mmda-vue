@@ -2,8 +2,8 @@
  * Copyright (c) 2006, 2024, www.syclive.com All rights reserved.
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-import { MetaModel, isNullOrUndefined, getSqlOperator } from '@mmda/core';
-import { UiLogic, UiViewOne, type UiLogicFnResult, type UiViewContext } from '@mmda/vui';
+import { MetaModel, isNullOrUndefined, getSqlOperator, type UiContext } from '@mmda/core';
+import { UiLogic, UiViewOne, type UiLogicFnResult } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
 import type { BomItem } from '@/models/BomItem';
 import { BomStatus } from '@/enums/BomStatus';
@@ -31,7 +31,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	const { fields, groups, customActions } = UiLogic.prototype.beforeEdit.call(this);
 	if (fields.length == 0) {
 		fields.push(
-			this.field('bomUsage').onValidate((value, model, ctx: UiViewContext<any>) => {
+			this.field('bomUsage').onValidate((value, model, ctx: UiContext<any>) => {
 				if (value === BomUsage.MAINTENANCE) {
 					const hasNonSparePart = model.items?.some((item: BomItem) => !MetaModel.deleted(item) && !item.sparePart);
 					if (hasNonSparePart) {
@@ -39,12 +39,12 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					}
 				}
 			}),
-			this.field('expirationDays').onValidate((value, model, ctx: UiViewContext<any>) => {
+			this.field('expirationDays').onValidate((value, model, ctx: UiContext<any>) => {
 				if(!isNullOrUndefined(value) && value > 32767) {
 					return ctx.t('bom.expirationDaysMax')
 				}
 			}),
-			this.field('refBomID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+			this.field('refBomID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
 				return ctx.uiBuilder.factory.link({
 					text: fldVal ? fldVal.BomNo : '',
@@ -54,7 +54,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				});
 			}),
 			this.field('plantID').refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 				return { status: 'USED' };
 			})(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
@@ -74,7 +74,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('productID')
 				.lockIf((t, ctx) => t.refName === 'ProductionOrder' || t.status !== BomStatus.NEW || t.bomType === BomType.ALTERNATE) // 新建BOM，且不是替代BOM
 				.refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => ({
+					const __p = ((ctx: UiContext<any>, model) => ({
 					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
 					status: getSqlOperator('IN').toSQL('USED'),
 					categoryID: model.productCategoryID ?? '',
@@ -91,7 +91,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 						})
 						.join(" AND ");
 				})
-				.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+				.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 					if (isNullOrUndefined(newVal)) {
 						ctx.batchSetFieldValue({
 							productCode: null,
@@ -134,7 +134,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 						[].concat(...model.items.filter(item => !MetaModel.deleted(item)).map(item => (item.operations ? item.operations.filter(operation => !MetaModel.deleted(operation)) : []))).length > 0
 				)
 				.refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 					return { status: 'USED' };
 				})(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
@@ -240,7 +240,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
 						})
 						.join(" AND ");
-				}).setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				}).setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
 				return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 			}),
@@ -265,7 +265,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.group<BomItem>('items')
 				.lockIf((m, ctx) => !isCurrentBomRow(m, ctx))
 				.itemDeletable((row, _master, ctx) => isCurrentBomRow(row, ctx))
-				.onChange((ctx: UiViewContext<any>, model, items) => {
+				.onChange((ctx: UiContext<any>, model, items) => {
 					setSubBomItemsEditable(items, model.bomID);
 					// 拦截被标记为删除的物料，同步清除其下挂载的子件BOM数据
 					model.items.forEach(item => {
@@ -314,7 +314,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				.inplaceEdit()
 				.nextField('materialID')
 				.inplaceEdit()
-				.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+				.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 					if (isNullOrUndefined(newVal)) {
 						// 物料被清空时，同步清空关联的子件 BOM 等信息
 						ctx.setFieldValue('partBomID', null);

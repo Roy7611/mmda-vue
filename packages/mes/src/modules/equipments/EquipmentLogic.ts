@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Equipment, defineEquipment } from '@/models/Equipment';
 import { type EquipmentStation, defineEquipmentStation } from '@/models/EquipmentStation';
 import { User, defineUser } from '@mmda/base/src/models/User';
@@ -200,7 +200,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 				this.field('equipNo').lockIf(model => model.status == 'NORMAL' || model.status == 'DISABLED'),
 				//选择工位，确定产线
 				this.field('stationID')
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						console.log(isNullOrUndefined(newVal), '工位')
 						// 提取新旧工位ID，用于同步子表
 						const newStationID = !isNullOrUndefined(newVal)
@@ -306,7 +306,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 				}),
 				this.field('lineID')
 					.lockIf(model => !isRefNone(model.lineID))
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (isNullOrUndefined(newVal)) {
 							model.stationID = null;
 						}
@@ -393,7 +393,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						context.removeSubGroupItems('stations');
 					}
 				}),
-				this.field('maintenancePlanID').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('maintenancePlanID').onChange((ctx: UiContext<any>, model, newVal) => {
 					if (isRefNone(newVal)) {
 						ctx.setFieldValue('planToMaintain', '');
 					} else {
@@ -476,7 +476,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 				this.group<I>('grpName')
 					.lockIf(model=>model.prop1)
 					.hideIf(model=>model.prop2)
-					.onChange((ctx: UiViewContext<any>,model,items)=>{ })
+					.onChange((ctx: UiContext<any>,model,items)=>{ })
 			);
 			 */
 		}
@@ -489,7 +489,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 		}
 		if (fields.length === 0) {
 			fields.push(
-				this.field('stationID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('stationID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal?.stationName ?? '',
@@ -498,7 +498,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 					});
 				}),
-				this.field('lineID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('lineID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal?.lineName ?? '',
@@ -507,7 +507,7 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 					});
 				}),
-				this.field('maintenancePlanID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('maintenancePlanID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal?.planName ?? '',

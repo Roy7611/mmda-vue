@@ -284,7 +284,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   });
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
     h("div", { class: "mmda-sf-pagable-table" }, [
-      factory.table(loader.model.list as any[], metadata.metaui, props as any),
+      factory.table(loader.model.list as any[], metadata.metaUi, props as any),
       factory.paginator(loader.model.pagination, props),
     ]);
 

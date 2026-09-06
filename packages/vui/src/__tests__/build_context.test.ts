@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
 import { UiLogic } from '../logic/logic'
-import { UiBuildContext } from '../contexts/build_context'
+import { VueUiContext } from '../contexts/vue_ui_context'
 
-const metaui = new MetaUi({
+const metaUi = new MetaUi({
   objName: 'Order',
   displayLabel: '订单',
   groups: [
@@ -26,18 +26,18 @@ const metaui = new MetaUi({
 
 class OrderLogic extends UiLogic<any> {}
 
-describe('UiBuildContext', () => {
+describe('VueUiContext', () => {
   it('save 走 UiLogic 并在校验通过后提交', async () => {
     const save = vi.fn(async (model: any) => model)
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     logic.save = save
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { id: '1', orderNo: 'SO-1' } as any,
-      metaui,
+      metaUi,
       view: 'edit',
       logic,
     })
@@ -52,13 +52,13 @@ describe('UiBuildContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
       router: { push } as any,
     })
     logic.save = save
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { id: '42', orderNo: 'SO-1' } as any,
-      metaui,
+      metaUi,
       view: 'edit',
       logic,
       app: {
@@ -82,13 +82,13 @@ describe('UiBuildContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'EquipmentChecklists',
-      meta: { metaui },
+      meta: { metaUi },
       router: { push } as any,
       apiService: 'mes',
     })
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { id: '141' } as any,
-      metaui,
+      metaUi,
       view: 'index',
       logic,
       app: { name: 'base' } as any,
@@ -113,11 +113,11 @@ describe('UiBuildContext', () => {
         getAllTemplate,
       } as any,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { id: '1', orderNo: 'SO-1' } as any,
-      metaui,
+      metaUi,
       view: 'edit',
       logic,
     })
@@ -145,13 +145,13 @@ describe('UiBuildContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { list: [] } as any,
-      metaui,
+      metaUi,
       view: 'index',
       logic,
     })
@@ -182,13 +182,13 @@ describe('UiBuildContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
-    const ctx = new UiBuildContext({
+    const ctx = new VueUiContext({
       model: { list: [] } as any,
-      metaui,
+      metaUi,
       view: 'index',
       logic,
     })
@@ -214,7 +214,7 @@ describe('UiBuildContext', () => {
         { id: '2', deletable: false },
         { id: '3', deletable: true },
       ],
-      metaui: { displayLabel: '订单' },
+      metaUi: { displayLabel: '订单' },
       t: (key: string) => key,
       translate: (key: string) => key,
       actionLoadings: {},
@@ -238,7 +238,7 @@ describe('UiBuildContext', () => {
     )
     const ctx = {
       selectedItems: [{ id: '9', deletable: false }],
-      metaui: { displayLabel: '订单' },
+      metaUi: { displayLabel: '订单' },
       t: (key: string) => key,
       translate: (key: string) => key,
       actionLoadings: {},

@@ -1,7 +1,7 @@
 import { defineComponent, type SlotsType, ref, type Ref, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode } from 'vue';
 import type { Entity, EntitySearchParam, Pager, Pagination, PagedList, UiContext } from "@mmda/core";
 import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, MetaModel, } from '@mmda/core';
-import { CustomColumn, type UiBuildContext } from "@mmda/vui";
+import { CustomColumn, type VueUiContext } from "@mmda/vui";
 import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 
@@ -9,7 +9,7 @@ import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 const InventoryDialog = defineComponent({
     name: 'InventoryDialog',
     props: {
-        context: { type: Object as PropType<UiBuildContext<any>>, default: null },
+        context: { type: Object as PropType<VueUiContext<any>>, default: null },
     },
     setup(props, ctx) {
         const { uiBuilder, globalProps } = props.context;
@@ -217,7 +217,7 @@ const InventoryDialog = defineComponent({
                             },
                             {
                                 expansion: ({ data, index }: any) => {
-                                    const columns = props.context.metaui.getListedFields().map(f =>
+                                    const columns = props.context.metaUi.getListedFields().map(f =>
                                         uiBuilder.factory.column(
                                             {
                                                 header: f.displayLabel,
@@ -256,8 +256,8 @@ const InventoryDialog = defineComponent({
                                             },
                                             {
                                                 body: props.context.getFieldLogic(f)?.customRenderer
-                                                    ? (slotProps: any) => props.context.getFieldLogic(f)?.customRenderer?.(f, props.context.with(slotProps.data, props.context.metaui.primaryKey))
-                                                    : (slotProps: any) => uiBuilder._tableCell(f, props.context.with(slotProps.data, props.context.metaui.primaryKey)),
+                                                    ? (slotProps: any) => props.context.getFieldLogic(f)?.customRenderer?.(f, props.context.with(slotProps.data, props.context.metaUi.primaryKey))
+                                                    : (slotProps: any) => uiBuilder._tableCell(f, props.context.with(slotProps.data, props.context.metaUi.primaryKey)),
                                                 footer: f.aggregationSet ? ({ column }: any) => {
 
                                                     return uiBuilder.factory.textSpan(

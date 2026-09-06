@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, isNullOrUndefined, MetaModel } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewMany } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewMany } from '@mmda/vui';
 import { type ProductionTask, defineProductionTask } from '@/models/ProductionTask';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
@@ -96,9 +96,9 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 	}
 
 	// 列表搜索：状态选项来自元数据，排除「新」
-	beforeLoad = (ctx: UiViewContext<any>) => {
+	beforeLoad = (ctx: UiContext<any>) => {
 		if (ctx.view !== UiViewMany.Index) return Promise.resolve(true);
-		const field = ctx.metaui.getField('status');
+		const field = ctx.metaUi.getField('status');
 		const ref = field.reference;
 		if (ref?.isEnum) {
 			ctx.getFieldOptions(field).selectOptions = ref.refOptions.filter(
@@ -206,7 +206,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('planNo').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+				this.field('planNo').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (isNullOrUndefined(fldVal) || isNullOrUndefined(ctx.model.planID)) return fldVal;
 					return ctx.uiBuilder.factory.link({
@@ -216,7 +216,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 						style: { color: '#409eff' },
 					});
 				}),
-				this.field('orderNo').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+				this.field('orderNo').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					const fldVal = ctx.getFieldValue(fld);
 					if (isNullOrUndefined(fldVal) || isNullOrUndefined(ctx.model.orderID)) return fldVal;
 					return ctx.uiBuilder.factory.link({
@@ -228,7 +228,7 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
 				}),
 				this.field('endOpCode').setCustomRenderer((fld, ctx: UiContext<ProductionTask>, props) => ctx.uiBuilder.factory.textSpan(MetaModel.getRefProp(ctx.model, 'endOpCode'))),
 				//当前没有制品类别模块，先以普通文本形式显示
-				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});
 				})
 			)

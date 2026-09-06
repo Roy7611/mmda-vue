@@ -45,11 +45,11 @@ export const resolveFieldUnit = (field: MetaUiField): string => {
   return "";
 };
 
-export const listedFields = (metaui: MetaUi) => {
-  const fields = metaui.getListedFields();
+export const listedFields = (metaUi: MetaUi) => {
+  const fields = metaUi.getListedFields();
   return fields.length
     ? fields
-    : metaui.groups
+    : metaUi.groups
         .filter((group) => !group.many)
         .flatMap((group) => group.fields);
 };

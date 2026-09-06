@@ -7,7 +7,7 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type PropData } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type PropData } from '@mmda/vui';
 import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
@@ -34,7 +34,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 	}
 
 
-	customToolNode(group: MetaUiGroup, context: UiViewContext<any>, props: PropData): any {
+	customToolNode(group: MetaUiGroup, context: UiContext<any>, props: PropData): any {
 		return toolkitToolListNode(group, context, props, this.currentDom.value?.id, this.targetDom.value?.id);
 	}
 
@@ -71,15 +71,15 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 							tool.toolkitIndex = index + 1;
 						});
 					})
-					.setCustomEditor((group, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((group, ctx: UiContext<any>, props) => {
 						return this.customToolNode(group, ctx, {
 							...props,
 							view: ctx.view,
-							onDragstart: (e: DragEvent, context: UiViewContext<any>, item: Tool) => {
+							onDragstart: (e: DragEvent, context: UiContext<any>, item: Tool) => {
 								e.dataTransfer.effectAllowed = 'move'; // 拖动样式改为 "move"
 								this.currentDom.value = e.currentTarget;
 							},
-							onDragenter: (e: DragEvent, context: UiViewContext<any>, item: Tool) => {
+							onDragenter: (e: DragEvent, context: UiContext<any>, item: Tool) => {
 								e.preventDefault();
 								if ((e.currentTarget as HTMLDivElement).id === this.currentDom.value.id || !(e.currentTarget as HTMLDivElement).id.includes('tool-')) {   // 当移动到当前拖动元素，或者父元素上面我们不做操作
 									return
@@ -103,7 +103,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 							onDragover: (e: DragEvent) => {
 								e.preventDefault();
 							},
-							onDragend: (e: DragEvent, context: UiViewContext<any>, item: Tool) => {
+							onDragend: (e: DragEvent, context: UiContext<any>, item: Tool) => {
 								e.preventDefault();
 								// 根据最终DOM顺序更新所有tool的toolkitIndex
 								const toolItems = document.querySelectorAll(`.tool-item`);
@@ -125,7 +125,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 		return { fields, groups, customActions };
 	}
 
-	addTools(context: UiViewContext<any>, target: Toolkit,) {
+	addTools(context: UiContext<any>, target: Toolkit,) {
 		context.select<Tool>({
 			selectionMode: 'multiple',
 			repository: 'Tools',
@@ -186,7 +186,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 		}
 		if (groups.length == 0) {
 			groups.push(
-				this.group<Tool>('tools').setCustomRenderer((group, ctx: UiViewContext<any>, props) => {
+				this.group<Tool>('tools').setCustomRenderer((group, ctx: UiContext<any>, props) => {
 					return this.customToolNode(group, ctx, { view: ctx.view });
 				})
 			);
@@ -270,7 +270,7 @@ export class ToolLogic extends UiGroupLogic<Tool, Toolkit> {
 				this.field('usedCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
-				this.field('materialID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 
 					return ctx.uiBuilder.fldFactory.HasOneText(fld, ctx)
@@ -297,8 +297,8 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 	beforeDetails() {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
-			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
-			// fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
+			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
+			// fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
 			/**
 			fields.push(
 				this.field('fldName')

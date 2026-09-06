@@ -56,13 +56,13 @@ export function treeGridSpecFromGroup(group: MetaUiGroup, rows?: unknown[]) {
 
 export function assembleTreeGridRows<T>(
   model: T[],
-  metaui: MetaUi,
+  metaUi: MetaUi,
   props: UiTreeGridPropsType<T> = {},
 ) {
   const treeShape = String(props.treeShape ?? 'TREE')
   const shapeKey = props.shapeKey ?? ''
   const idField =
-    props.idField ?? treeIdField(treeShape, shapeKey, metaui.primaryKey)
+    props.idField ?? treeIdField(treeShape, shapeKey, metaUi.primaryKey)
   const childrenKey = props.childrenKey ?? detectChildrenKey(model)
   const nested = detectTreeSourceShape(model, childrenKey) === 'nested'
   const assembled = treeDataProvider.assemble(model, {
@@ -76,9 +76,9 @@ export function assembleTreeGridRows<T>(
   return { treeShape, shapeKey, idField, childrenKey, assembled }
 }
 
-export function listedTableFields(metaui: MetaUi) {
-  const listed = metaui.getListedFields()
+export function listedTableFields(metaUi: MetaUi) {
+  const listed = metaUi.getListedFields()
   return listed.length
     ? listed
-    : metaui.groups.filter((group) => !group.many).flatMap((group) => group.fields)
+    : metaUi.groups.filter((group) => !group.many).flatMap((group) => group.fields)
 }

@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, MetaModel } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkOrder, defineWorkOrder } from '@/models/WorkOrder';
 import { EmployeeStatus } from '@mmda/base/src/enums/EmployeeStatus';
 import { type WorkOrderMember, defineWorkOrderMember } from '@/models/WorkOrderMember';
@@ -96,7 +96,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 						model.expectedDuration = null;
 					}
 				}),
-				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiViewContext<any>, porps) => {
+				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
 					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
 				})
 			);
@@ -185,7 +185,7 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiViewContext<any>, porps) => {
+				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
 					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
 				})
 			)

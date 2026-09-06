@@ -1,5 +1,5 @@
 import { defineEntity } from "@mmda/core";
-import type { UiViewContext } from "../../contexts/view_context";
+import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { resolveRepositoryModule } from "../../components/EntityView";
 import { GenericUiLogic } from "../../logic/logic";
 import { categoryMoveParams } from "./tree_category";
@@ -12,7 +12,7 @@ import {
   type UiTreeViewPropsType,
 } from "../factory/tree";
 
-type UiContext = UiViewContext<any>;
+type UiContext = VueUiContext<any>;
 
 /** 分类树 CRUD 走 Logic，Builder 只负责确认框 / 打开视图。 */
 export async function resolveCategoryTreeLogic(

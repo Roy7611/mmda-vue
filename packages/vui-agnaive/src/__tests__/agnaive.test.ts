@@ -93,7 +93,7 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.table([], productMeta(), { selectionMode: 'multiple' })
     expect(vnode.type).toBe(AgGrid)
-    expect(vnode.props?.metaui.objName).toBe('Product')
+    expect(vnode.props?.metaUi.objName).toBe('Product')
   })
 
   it('builds column defs from listed metadata', () => {
@@ -104,14 +104,14 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps AG Grid FilterModel to EntityFilterModel and back', () => {
-    const metaui = productMeta()
+    const metaUi = productMeta()
     const entity = agFilterModelToEntity(
       {
         name: { filterType: 'text', type: 'contains', filter: 'demo' },
         price: { filterType: 'number', type: 'inRange', filter: 1, filterTo: 9 },
         enabled: { filterType: 'set', values: ['true'] },
       },
-      metaui,
+      metaUi,
     )
     expect(entity.name).toEqual({
       filterType: 'text',
@@ -126,13 +126,13 @@ describe('vui-agnaive skin', () => {
       values: ['true'],
       operator: 'IN',
     })
-    const ag = entityFilterToAgModel(entity, metaui)
+    const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.name.type).toBe('contains')
     expect(ag.price.type).toBe('inRange')
   })
 
   it('maps AG AND/OR conditions to join and back', () => {
-    const metaui = productMeta()
+    const metaUi = productMeta()
     const entity = agFilterModelToEntity(
       {
         name: {
@@ -144,7 +144,7 @@ describe('vui-agnaive skin', () => {
           ],
         },
       },
-      metaui,
+      metaUi,
     )
     expect(entity.name).toEqual({
       filterType: 'join',
@@ -164,14 +164,14 @@ describe('vui-agnaive skin', () => {
         },
       ],
     })
-    const ag = entityFilterToAgModel(entity, metaui)
+    const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.name.operator).toBe('AND')
     expect(ag.name.conditions).toHaveLength(2)
     expect(ag.name.conditions[1].filter).toBe('b')
   })
 
   it('maps AG multi filterModels to multi and back', () => {
-    const metaui = productMeta()
+    const metaUi = productMeta()
     const entity = agFilterModelToEntity(
       {
         name: {
@@ -182,11 +182,11 @@ describe('vui-agnaive skin', () => {
           ],
         },
       },
-      metaui,
+      metaUi,
     )
     expect(entity.name?.filterType).toBe('multi')
     expect((entity.name as any).filterModels).toHaveLength(2)
-    const ag = entityFilterToAgModel(entity, metaui)
+    const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.name.filterType).toBe('multi')
     expect(ag.name.filterModels).toHaveLength(2)
     expect(ag.name.filterModels[1].values).toEqual(['OPEN', 'CLOSED'])
@@ -194,7 +194,7 @@ describe('vui-agnaive skin', () => {
 
   it('maps dateKind and does not turn THIS_MONTH into a calendar month token', () => {
     const created = field('createdAt', '创建', SqlDataType.TIMESTAMP)
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Order',
       displayLabel: '订单',
       primaryKey: 'id',
@@ -211,21 +211,21 @@ describe('vui-agnaive skin', () => {
       {
         createdAt: { filterType: 'date', type: 'THIS_MONTH' },
       },
-      metaui,
+      metaUi,
     )
     expect(entity.createdAt).toEqual({
       filterType: 'date',
       operator: 'BETWEEN',
       dateKind: 'THIS_MONTH',
     })
-    const ag = entityFilterToAgModel(entity, metaui)
+    const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.createdAt.filterType).toBe('multi')
     expect(ag.createdAt.filterModels[0].type).toBe('THIS_MONTH')
   })
 
   it('uses treeList Set Filter for date columns', () => {
     const created = field('createdAt', '创建', SqlDataType.TIMESTAMP)
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Order',
       displayLabel: '订单',
       primaryKey: 'id',
@@ -238,7 +238,7 @@ describe('vui-agnaive skin', () => {
         },
       ],
     })
-    const cols = buildColumnDefs(metaui, { filterDisplay: 'menu' })
+    const cols = buildColumnDefs(metaUi, { filterDisplay: 'menu' })
     expect(cols[0]?.filter).toBe('agMultiColumnFilter')
     const setFilter = cols[0]?.filterParams?.filters?.find(
       (item: { filter?: string }) => item.filter === 'agSetColumnFilter',
@@ -264,7 +264,7 @@ describe('vui-agnaive skin', () => {
       listed: true,
       selectOptions: 'OPEN;OPEN;打开|CLOSED;CLOSED;关闭',
     })
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Ticket',
       displayLabel: '工单',
       primaryKey: 'id',
@@ -277,7 +277,7 @@ describe('vui-agnaive skin', () => {
         },
       ],
     })
-    const cols = buildColumnDefs(metaui, {})
+    const cols = buildColumnDefs(metaUi, {})
     expect(cols[0]?.filter).toBe('agSetColumnFilter')
     const valuesFn = cols[0]?.filterParams?.values as Function
     let received: unknown[] = []
@@ -300,7 +300,7 @@ describe('vui-agnaive skin', () => {
       listed: true,
       filterTypes: 16, // SET
     })
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Item',
       displayLabel: '物料',
       primaryKey: 'id',
@@ -313,7 +313,7 @@ describe('vui-agnaive skin', () => {
         },
       ],
     })
-    const cols = buildColumnDefs(metaui, { filterDisplay: 'menu' })
+    const cols = buildColumnDefs(metaUi, { filterDisplay: 'menu' })
     expect(cols[0]?.filter).toBe('agSetColumnFilter')
   })
 
@@ -327,7 +327,7 @@ describe('vui-agnaive skin', () => {
       listed: true,
       selectOptions: 'REF Warehouse(whID,whName)',
     })
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Stock',
       displayLabel: '库存',
       primaryKey: 'id',
@@ -340,7 +340,7 @@ describe('vui-agnaive skin', () => {
         },
       ],
     })
-    const listed = metaui.getListedFields()[0]!
+    const listed = metaUi.getListedFields()[0]!
     listed.reference!.refOptions.splice(
       0,
       listed.reference!.refOptions.length,
@@ -348,7 +348,7 @@ describe('vui-agnaive skin', () => {
       { whID: 'W2', whName: '辅仓' },
     )
     const loadFilterOptions = vi.fn()
-    const cols = buildColumnDefs(metaui, { loadFilterOptions })
+    const cols = buildColumnDefs(metaUi, { loadFilterOptions })
     expect(cols[0]?.filter).toBe('agSetColumnFilter')
     let received: unknown[] = []
     ;(cols[0]?.filterParams?.values as Function)({
@@ -371,7 +371,7 @@ describe('vui-agnaive skin', () => {
       listed: true,
       selectOptions: 'HAS_ONE Material(matID,matName) AS material',
     })
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Order',
       displayLabel: '订单',
       primaryKey: 'id',
@@ -389,7 +389,7 @@ describe('vui-agnaive skin', () => {
       return field.reference!.refOptions
     })
     const searchRelative = vi.fn(async () => [{ matID: 'M1', matName: '螺丝' }])
-    const cols = buildColumnDefs(metaui, { loadFilterOptions, searchRelative })
+    const cols = buildColumnDefs(metaUi, { loadFilterOptions, searchRelative })
     expect(cols[0]?.filter).toBe('AgHasOneFilter')
     expect(cols[0]?.filterParams?.searchRelative).toBe(searchRelative)
     expect(loadFilterOptions).not.toHaveBeenCalled()
@@ -468,7 +468,7 @@ describe('vui-agnaive skin', () => {
       many: true,
       editing: false,
       title: '部门',
-      metaui: { objName: 'Department', displayLabel: '部门' },
+      metaUi: { objName: 'Department', displayLabel: '部门' },
       model: { list: [] },
       logic: { module, repository: 'Departments' },
       module,
@@ -503,7 +503,7 @@ describe('vui-agnaive skin', () => {
     const context = {
       many: false,
       editing: false,
-      metaui: { objName: 'Material', displayLabel: '物料' },
+      metaUi: { objName: 'Material', displayLabel: '物料' },
       model: {
         actions: [{ name: 'deprecate', label: '弃用', role: 'DANGER' }],
       },

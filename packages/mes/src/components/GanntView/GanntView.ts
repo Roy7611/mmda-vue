@@ -11,7 +11,7 @@ import type { ApiClient } from '@mmda/core'
 import {
   UI_APP_KEY,
   type MmdaApplication,
-  type UiBuildContext,
+  type VueUiContext,
   type UiGanttController,
   type UiGanttViewMode,
 } from '@mmda/vui'
@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: 'GanntView',
   props: {
-    ctx: Object as PropType<UiBuildContext<any>>,
+    ctx: Object as PropType<VueUiContext<any>>,
   },
   setup(props) {
     const { t } = useI18n()

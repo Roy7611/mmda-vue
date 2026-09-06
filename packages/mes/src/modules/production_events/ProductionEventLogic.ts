@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSqlOperator } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionEvent, defineProductionEvent } from '@/models/ProductionEvent';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { ProductionEventPhoto, defineProductionEventPhoto } from '@/models/ProductionEventPhoto';
@@ -66,7 +66,7 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
 							return '';
 						}, 'warning'),
 				)
-			// this.field('eventCauses').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+			// this.field('eventCauses').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 			// 	const { $ui: ui, $t: t } = ctx.globalProps;
 			// 	const fldRef = fld.reference;
 			// 	if (!fldRef || !fldRef.isEnum) {

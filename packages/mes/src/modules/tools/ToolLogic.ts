@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
-import { type UiBuildContext, type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogPropsType, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogPropsType, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 import { type MaintenancePlan } from '@/models/MaintenancePlan';
@@ -533,7 +533,7 @@ export class ToolLogic extends UiLogic<Tool> {
 			MetaModel.setRefProp(toolUse, 'ownerID', decodeURIComponent(username || ''));
 		}
 
-		const toolUseGroup = context.metaui.getGroup('uses');
+		const toolUseGroup = context.metaUi.getGroup('uses');
 
 		return await context.subGroupItem<ToolUse>(toolUseGroup, toolUse, { groupMode: 'create', height: '30vh' });
 	}
@@ -831,12 +831,12 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (selectedItems.length) returnParmas.value = Object.assign({}, ...selectedItems.map((item: any) => ({ [item.toolID]: 0 })));
 
 		// new logic 
-		const showFields = [].concat(this.meta.metaui.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.meta.metaui.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
-		const metaui = MetaUiBuilder.create('BatchReturn').fields(showFields).build()
+		const showFields = [].concat(this.meta.metaUi.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.meta.metaUi.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
+		const metaUi = MetaUiBuilder.create('BatchReturn').fields(showFields).build()
 		return await context.uiBuilder.dialog(
 			uiBuilder.factory.table(
 				selectedItems,
-				metaui,
+				metaUi,
 				{
 					tableId: `batch-return-table`,
 					scrollHeight: '400px',
@@ -1511,10 +1511,10 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (fields.length == 0) {
 			fields.push(
 				//当前没有器具类别模块，先以普通文本形式显示
-				this.field('categoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('categoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.category ? ctx.model.category.categoryName : '-', {});
 				}),
-				this.field('lifecycleModes').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+				this.field('lifecycleModes').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					const m = Number(ctx.model.lifecycleModes) || 0;
 					const text = [m & 1 && LifecycleModeEnum.TM_TEXT, m & 2 && LifecycleModeEnum.FM_TEXT, m & 4 && LifecycleModeEnum.CM_TEXT].filter(Boolean).join(',') || LifecycleModeEnum.NONE_TEXT;
 					return ctx.uiBuilder.factory.textSpan(text, {});
@@ -1532,7 +1532,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.field('usedCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
-				this.field('materialID').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.materialID;
 					return ctx.uiBuilder.factory.link({
@@ -1542,7 +1542,7 @@ export class ToolLogic extends UiLogic<Tool> {
 						style: { color: '#409eff' },
 					});
 				}),
-				this.field('toolkitID').setCustomRenderer((fld, ctx: UiViewContext<any>) => {
+				this.field('toolkitID').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					if (isRefNone(ctx.model.toolkitID)) return ctx.uiBuilder.factory.textSpan('');
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.toolkitID;
 					return ctx.uiBuilder.factory.link({
@@ -1946,7 +1946,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('toSiteID').hideIf(() => actionName.value === 'return').onValidate((val, model, ctx: UiViewContext<any>) => {
+				this.field('toSiteID').hideIf(() => actionName.value === 'return').onValidate((val, model, ctx: UiContext<any>) => {
 					if ((actionName.value === 'move' || actionName.value === 'lend' || actionName.value === 'store' || actionName.value === 'batchStore' || actionName.value === 'batchLend' || actionName.value === 'batchMove') && !val) {
 						return ctx.t('tool.destinationRequired');
 					}
@@ -1974,7 +1974,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 					.hideIf(() => {
 						return actionName.value !== 'return' && refToolUseActions.includes(actionName.value);
 					})
-					.onValidate((val, model, ctx: UiViewContext<any>) => {  // 👈 改为 onValidate
+					.onValidate((val, model, ctx: UiContext<any>) => {  // 👈 改为 onValidate
 						const toolModel = ctx.root.model as Tool;
 						if (((toolModel.lifecycleModes as any) & 2) == 2 && (val + toolModel.usedCycles) > toolModel.maxLifeCycles) {
 							return ctx.t('tool.overMaxUseCount');  // 阻止提交
@@ -2010,7 +2010,7 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 						})
 						.join(" AND ");
 				})
-					.onValidate((val, model, ctx: UiViewContext<any>) => {
+					.onValidate((val, model, ctx: UiContext<any>) => {
 						if (actionName.value === 'batchLend' && !val) {
 							return ctx.t('tool.borrowerRequired');
 						}
@@ -2027,8 +2027,8 @@ export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
 	beforeDetails() {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
-			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
-			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => ctx.uiBuilder.factory.textSpan(ctx.model.customProperties[`$${fld.fieldName}`])));
+			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
+			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiContext<any>, props) => ctx.uiBuilder.factory.textSpan(ctx.model.customProperties[`$${fld.fieldName}`])));
 			/**
 			fields.push(
 				this.field('fldName')

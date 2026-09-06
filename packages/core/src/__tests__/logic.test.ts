@@ -165,7 +165,7 @@ describe('validation', () => {
   })
 
   it('子表字段同样能 parse', () => {
-    const metaui = createMockMetaUi([], {
+    const metaUi = createMockMetaUi([], {
       groupName: 'items',
       fields: [
         createMockField({
@@ -175,7 +175,7 @@ describe('validation', () => {
         }),
       ],
     })
-    const qty = metaui.groups
+    const qty = metaUi.groups
       .find((g) => g.many)
       ?.groupUi?.getField('qty')
     expect(qty?.validatorDescriptors).toEqual([{ name: 'Min', args: ['0'] }])
@@ -195,15 +195,15 @@ describe('validation', () => {
 
   it('defineValidation 按元数据铺出主表域和子表行', () => {
     const name = createMockField({ fieldName: 'whName' })
-    const metaui = createMockMetaUi([name], {
+    const metaUi = createMockMetaUi([name], {
       groupName: 'items',
       fields: [createMockField({ fieldName: 'qty' })],
     })
-    const empty = defineValidation(metaui)
+    const empty = defineValidation(metaUi)
     expect(empty.whName).toEqual({ touched: false, message: '', warning: '' })
     expect(empty.items).toEqual({})
 
-    const withRows = defineValidation(metaui, {
+    const withRows = defineValidation(metaUi, {
       items: [{ rowNum: '1' }, { rowNum: '2' }],
     } as any)
     expect((withRows.items as any)['1'].rowNum).toBe('1')

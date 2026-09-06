@@ -10,7 +10,7 @@ core **不是没有 UI**，是 **没有 UI 实现**。程序员对着这些接�
 | `layout.ts` | `UiLayout<TNode>` |
 | `context.ts` | `UiContext`（含 `searchRelative` / `select`；`UiSelectionMode` / `UiSubGroupView`） |
 
-vui：`VueUiBuilder implements UiBuilder<VNode>`（模板方法，取代 `AbstractUiBuilder`）。皮肤：`SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等 `extends VueUiBuilder`。不要另造 Host，也不要把 vui 实现 alias 成 `UiBuilder`。
+vui：`VueUiBuilder implements UiBuilder<VNode>`（模板方法，取代 `AbstractUiBuilder`）。会话实现是 **`VueUiContext`**（一个类，`implements UiContext`），不是 `UiViewContext` + `UiBuildContext` 两层。皮肤：`SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等 `extends VueUiBuilder`。不要另造 Host，也不要把 vui 实现 alias 成 `UiBuilder`。
 
 继承图见仓库 [ARCHITECTURE.md](../../../ARCHITECTURE.md)「Builder：契约 → Vue 抽象类 → 皮肤」、vui [builder.md](../../vui/docs/builder.md)。
 

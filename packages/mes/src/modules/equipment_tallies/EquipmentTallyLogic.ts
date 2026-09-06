@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type EquipmentTally, defineEquipmentTally } from '@/models/EquipmentTally';
 import { type EquipmentTallyRecord, defineEquipmentTallyRecord } from '@/models/EquipmentTallyRecord';
 import { EquipmentCheckResult, EquipmentCheckResultEnum } from '@/enums/EquipmentCheckResult';
@@ -94,7 +94,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 								MetaModel.addSubGroupItems<EquipmentTally, EquipmentTallyRecord>({
 									target: model,
 									source: res.list,
-									metaUiGroup: this.meta.metaui.getGroup('records'),
+									metaUiGroup: this.meta.metaUi.getGroup('records'),
 									sequenceKey: 'itemID',
 									propsMapper: {
 										deletable: () => false,
@@ -176,8 +176,8 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 	 * @param context
 	 * @param target
 	 */
-	async oneClickNormal(context: UiViewContext<any>, target: EquipmentTally) {
-		const metaFields = context.logic!.meta.metaui.groups.filter((item: any) => item.relObjName === 'EquipmentTallyRecord')
+	async oneClickNormal(context: UiContext<any>, target: EquipmentTally) {
+		const metaFields = context.logic!.meta.metaUi.groups.filter((item: any) => item.relObjName === 'EquipmentTallyRecord')
 		const recordGroup = metaFields[0]
 		if (!recordGroup?.groupUi) return
 		const items = target.records.map(v => ({ ...v, id: `${v.tallyID},${v.itemID}` }))
@@ -214,7 +214,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('equipID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('equipID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					const equipID = fldVal?.equipID ?? ctx.model.equipID;
 					const label = fldVal?.equipName ?? fldVal?.equipNo ?? ctx.model.equipment?.equipName ?? '';

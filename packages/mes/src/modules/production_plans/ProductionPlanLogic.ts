@@ -22,7 +22,7 @@ import {
 	MetaUiGroup,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ProductionPlan, defineProductionPlan } from '@/models/ProductionPlan';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionPlanItem, defineProductionPlanItem } from '@/models/ProductionPlanItem';
@@ -354,7 +354,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				//this.field('totalQuantity').lockIf(model => !isRefNone(model.status)),
 
 				this.field('expectedStart')
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal && model.expectedFinish) {
 							const days = getDaysBetweenDates(newVal, model.expectedFinish);
 							model.expectedPeriod = Number(days);
@@ -364,7 +364,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 					})
 					.lockIf(model => model.status != ProductionPlanStatus.NEW || (!isNullOrUndefined(model.customJson) && (JSON.parse(model.customJson)).source === 'dailyPlanning')),
 				this.field('expectedFinish')
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal && model.expectedStart) {
 							const days = getDaysBetweenDates(model.expectedStart, newVal);
 							model.expectedPeriod = Number(days);
@@ -374,7 +374,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 					})
 					.lockIf(model => model.status != ProductionPlanStatus.NEW || (!isNullOrUndefined(model.customJson) && (JSON.parse(model.customJson)).source === 'dailyPlanning')),
 
-				this.field('planDate').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('planDate').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const { $ui: ui } = ctx.globalProps;
 					return ui.factory.datePicker({
 						modelValue: ctx.model.planDate,
@@ -400,7 +400,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 			groups.push(
 				this.group<ProductionPlanItem>('items')
 					.defaultAdder(this.addPlanItem)
-					.onChange((ctx: UiViewContext<any>, model, items) => {
+					.onChange((ctx: UiContext<any>, model, items) => {
 						const newArr = model.items.filter((value: any) => value.entityState < 4);
 						const sumNumber = Math.round(Number(MetaModel.sum(newArr, item => item.taskQuantity)) * 100) / 100;
 						model.totalQuantity = sumNumber;
@@ -571,7 +571,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 						})
 						.join(" AND ");
 				}),
-				this.field('taskQuantity').onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+				this.field('taskQuantity').onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 					const { $router, $toast, $t: t } = ctx.globalProps;
 					//判断newVal是不是小数
 					if (isDecimal(newVal) && newVal > 0) {
@@ -610,7 +610,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 							return t('invalid.planTimeToSmall');
 						}
 					})
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal && model.expectedFinish && compareTime(newVal, model.expectedFinish) != 1) {
 							model.expectedDuration = getHoursBetweenDates(newVal, model.expectedFinish);
 						} else {
@@ -624,14 +624,14 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 							return t('invalid.planTimeToSmall');
 						}
 					})
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (newVal && model.expectedStart && compareTime(model.expectedStart, newVal) != 1) {
 							model.expectedDuration = getHoursBetweenDates(model.expectedStart, newVal);
 						} else {
 							model.expectedDuration = null;
 						}
 					}),
-				this.field('taskNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('taskNo').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
 					if (linkable) {
@@ -644,7 +644,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 					}
 					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
 				}),
-				this.field('constraintType').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('constraintType').onChange((ctx: UiContext<any>, model, newVal) => {
 					if (shouldHideConstraintDate(newVal)) {
 						ctx.setFieldValue('constraintDate', null);
 					}
@@ -659,7 +659,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 							return ctx.t('productionOrder.enterConstraintDate');
 						}
 					}),
-				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})
@@ -673,7 +673,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('taskNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('taskNo').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
 					if (linkable) {
@@ -699,7 +699,7 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
 				}),
 				this.field('constraintDate').hideIf(model => shouldHideConstraintDate(model.constraintType)),
-				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})

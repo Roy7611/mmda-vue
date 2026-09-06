@@ -23,7 +23,7 @@ export function error(message?: string): UiLoadingState {
   return { state: UiDataState.ERROR, message }
 }
 
-/** 移动端列表项展示约定，实现仍在后续 UiViewContext。 */
+/** 移动端列表项展示约定，实现仍在后续 VueUiContext。 */
 export interface UniListViewProps {
   titleKey?: string
   subtitle?: string | ((data: any) => string) | undefined

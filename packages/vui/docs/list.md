@@ -1,6 +1,6 @@
 # 列表与过滤
 
-列表页的查询状态只有一份：`UiViewContext.searchParam`（core 的 `EntitySearchParam`）。对外契约叫 **list**（`ui/factory/list.ts`、`buildListView`）；桌面子表走 **table**（`factory.table`）；皮肤实现用 **grid**（`SfGrid` / `AgGrid`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
+列表页的查询状态只有一份：`VueUiContext.searchParam`（core 的 `EntitySearchParam`）。对外契约叫 **list**（`ui/factory/list.ts`、`buildListView`）；桌面子表走 **table**（`factory.table`）；皮肤实现用 **grid**（`SfGrid` / `AgGrid`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
 
 core 设计与用法：[entity_search.md](../../core/docs/models/entity_search.md) · [entity_query_usage.md](../../core/docs/logic/entity_query_usage.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)
 
@@ -26,7 +26,7 @@ searchParam
 └─ filterModel    POST body：表头 / 搜索栏复杂条件
 ```
 
-`UiBuildContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
+`VueUiContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
 
 打开列表时套用 pack 的 `lastQuery`（一整份 `EntityQuery`），否则 `Module.defaultSort`。命名查询芯片来自 `Module.defaultFilter`（`queryID;queryName|…`），不是 FilterModel JSON。
 
@@ -82,7 +82,7 @@ Builder 已用 `writeListSorts` / `writeListFilterModel`。Prime / Naive 的表�
 
 ## 实体选择（特殊 Index）
 
-表单弹层：`context.select({ repository, selectionMode, searchParam })` → `UiBuildContext` + Logic + `buildListView`。
+表单弹层：`context.select({ repository, selectionMode, searchParam })` → `VueUiContext` + Logic + `buildListView`。
 
 路由选择：`EntityView` 认 `?view=selectOne|selectMany`，复用 `beforeIndex`，弹层里允许创建。
 

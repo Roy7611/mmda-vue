@@ -19,7 +19,7 @@ import { useRoute, useRouter } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaVueApp } from "../app/app";
 import type { VueUiBuilder } from "../ui/builder/builder";
-import { UiBuildContext } from "../contexts/build_context";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
 import { GenericUiLogic, type UiLogic, type UiLogicInit } from "../logic/logic";
 import {
@@ -86,7 +86,7 @@ export function createEntityView(options: EntityViewOptions) {
       const app = inject(UI_APP_KEY)! as MmdaVueApp;
       const route = useRoute();
       const router = useRouter();
-      const current = shallowRef<UiBuildContext>();
+      const current = shallowRef<VueUiContext>();
       const error = shallowRef("");
       /** 菜单切换时立刻盖住旧页，避免整段 open() 完成前仍显示上一模块 */
       const pageLoading = ref(false);
@@ -134,7 +134,7 @@ export function createEntityView(options: EntityViewOptions) {
             service,
           });
           if (generation !== openGeneration) return;
-          if (!pack?.metaui) {
+          if (!pack?.metaUi) {
             throw new Error(
               translateMessage("invalid.repositoryMissing", { repository }),
             );
@@ -146,11 +146,11 @@ export function createEntityView(options: EntityViewOptions) {
             view === UiViewMany.Index ||
             view === UiViewMany.SelectMany ||
             view === UiViewMany.SelectOne;
-          const context = new UiBuildContext({
+          const context = new VueUiContext({
             model: many
               ? (emptyPagedList() as any)
               : ({ id: route.params.id } as any),
-            metaui: pack.metaui,
+            metaUi: pack.metaUi,
             view,
             logic,
             app,
@@ -213,7 +213,7 @@ export function createEntityView(options: EntityViewOptions) {
         if (treeData && "value" in treeData) void treeData.value;
         // 订阅子表 length：push/clear 不会改写属性引用，必须显式依赖才能重渲
         if (!context.many) {
-          for (const group of context.metaui.groups) {
+          for (const group of context.metaUi.groups) {
             if (!group.many) continue;
             const items = (context.model as Record<string, unknown>)[
               group.groupName
@@ -245,7 +245,7 @@ export function createEntityView(options: EntityViewOptions) {
   });
 }
 
-function isCategoryListView(context: UiBuildContext) {
+function isCategoryListView(context: VueUiContext) {
   const view = String(context.view ?? "");
   const option = context.logic?.viewOptions?.[view as UiViewType]?.(context as any) ?? {};
   const kind = (option as { viewKind?: string }).viewKind;

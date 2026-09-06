@@ -54,7 +54,7 @@ export abstract class EntityLogic<E extends Entity> {
   ) {
     this.metaUiService = init.metaUiService;
     this.repository = init.repository;
-    this.meta = init.meta ?? ({ metaui: undefined } as any);
+    this.meta = init.meta ?? ({ metaUi: undefined } as any);
     this.module = init.module;
     this.isChild = init.isChild ?? false;
     this.customPage = init.customPage ?? false;
@@ -63,27 +63,27 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   getModelTitle(model: E) {
-    const metaui = this.meta.metaui;
-    if (!metaui) return model.id;
-    return `${metaui.displayLabel}?${metaui.uniqueKey ? model[metaui.uniqueKey] : model.id}?`;
+    const metaUi = this.meta.metaUi;
+    if (!metaUi) return model.id;
+    return `${metaUi.displayLabel}?${metaUi.uniqueKey ? model[metaUi.uniqueKey] : model.id}?`;
   }
 
   createDefault(proto?: object): E {
     return MetaModel.createEntity<E>(
-      this.meta.metaui,
+      this.meta.metaUi,
       this.createEntity,
       proto,
     );
   }
 
   field(fldName: string) {
-    const metaui = this.meta?.metaui;
-    if (!metaui) {
+    const metaUi = this.meta?.metaUi;
+    if (!metaUi) {
       throw new Error(
         `Logic "${this.repository}" has no metadata (field ${fldName})`,
       );
     }
-    const field = metaui.getField(fldName);
+    const field = metaUi.getField(fldName);
     if (!field) {
       throw new Error(
         `Logic "${this.repository}" missing field "${fldName}"`,
@@ -93,13 +93,13 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   group<G>(groupName: string) {
-    const metaui = this.meta?.metaui;
-    if (!metaui) {
+    const metaUi = this.meta?.metaUi;
+    if (!metaUi) {
       throw new Error(
         `Logic "${this.repository}" has no metadata (group ${groupName})`,
       );
     }
-    const group = metaui.getGroup(groupName);
+    const group = metaUi.getGroup(groupName);
     if (!group) {
       throw new Error(
         `Logic "${this.repository}" missing group "${groupName}"`,
@@ -246,7 +246,7 @@ export abstract class EntityLogic<E extends Entity> {
   async save(model: E) {
     try {
       const savable = MetaModel.savable(
-        this.meta.metaui,
+        this.meta.metaUi,
         model,
         this.getSimplifyOptions(),
       );
@@ -407,12 +407,12 @@ export abstract class EntityLogic<E extends Entity> {
       reload,
     );
     if (
-      this.meta?.metaui?.objName &&
+      this.meta?.metaUi?.objName &&
       this.module &&
-      this.meta.metaui.objName !== this.module.objName &&
+      this.meta.metaUi.objName !== this.module.objName &&
       !params?.redirection
     ) {
-      this.module = this.metaUiService.findModule(this.meta.metaui.objName);
+      this.module = this.metaUiService.findModule(this.meta.metaUi.objName);
     }
     return this.meta;
   }

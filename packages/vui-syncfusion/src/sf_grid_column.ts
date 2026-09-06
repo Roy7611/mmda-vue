@@ -120,14 +120,14 @@ export function sfGridColumnOf(
 }
 
 export function buildSfGridColumns(
-  metaui: MetaUi,
+  metaUi: MetaUi,
   options: {
     allowFiltering?: boolean
     allowSorting?: boolean
     allowEditing?: boolean
   } = {},
 ) {
-  return listedFields(metaui).map(field => sfGridColumnOf(field, options))
+  return listedFields(metaUi).map(field => sfGridColumnOf(field, options))
 }
 
 export type SfTreeGridColumnOptions = {
@@ -197,10 +197,10 @@ export function sfTreeGridColumnOf(
 
 /** 字段列表与现网 tree-grid 一致：{@link listedTableFields}。 */
 export function buildSfTreeGridColumns(
-  metaui: MetaUi,
+  metaUi: MetaUi,
   options: SfTreeGridColumnOptions = {},
 ) {
-  return listedTableFields(metaui).map((field, index) =>
+  return listedTableFields(metaUi).map((field, index) =>
     sfTreeGridColumnOf(field, index, options),
   )
 }

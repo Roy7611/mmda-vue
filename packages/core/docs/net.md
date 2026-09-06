@@ -361,7 +361,7 @@ const { blob, fileName } = await api.fetchApi.downloadFile(
 
 或旧 `api.http.postBlob(...)`。
 
-附件、报表模板的形状在 `models/file.ts`。不要从 `ApiClient` 找 `uploadAttachment` / `uploadTemplate`。会话层（vui `UiBuildContext`）用 `doAction` / `postBlob`。
+附件、报表模板的形状在 `models/file.ts`。不要从 `ApiClient` 找 `uploadAttachment` / `uploadTemplate`。会话层（vui `VueUiContext`）用 `doAction` / `postBlob`。
 
 ---
 
@@ -482,4 +482,4 @@ api.setAuthenticator() // 拦截器追加 Bearer；refreshHandler 处理 401
 | `expirsIn` | `expiresIn`（毫秒时间戳） |
 | `MmdaApplication` 旧传输 | 已切换；业务包不用改构造参数 |
 | `FetchApiHttp` + 自己挂 OAuth provider | 用 `OAuth2ApiClient`，或旧客户端 + `raw()` 二选一 |
-| `Attachment` 专用 API | vui `UiBuildContext` 的 `doAction` / `postBlob` |
+| `Attachment` 专用 API | vui `VueUiContext` 的 `doAction` / `postBlob` |

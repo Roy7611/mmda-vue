@@ -33,7 +33,7 @@ function asField(
 }
 
 /**
- * 流式拼一份列表用 MetaUi，再交给 `factory.table(rows, metaui)`。
+ * 流式拼一份列表用 MetaUi，再交给 `factory.table(rows, metaUi)`。
  */
 export class MetaUiBuilder {
   private readonly _fields: MetaUiField[] = []

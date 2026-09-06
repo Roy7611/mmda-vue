@@ -2,7 +2,7 @@
 
 > **现状分层以 [ARCHITECTURE.md](ARCHITECTURE.md) 为准。** 本文是迁仓过程记录，不是现行架构真源；文中旧示意图若与 ARCHITECTURE 冲突，以 ARCHITECTURE 为准。
 
-本仓内更近一轮（UI 契约、`MmdaVueApp`、`context.select`）记在 [packages/core/docs/refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
+本仓内更近一轮（UI 契约、`MmdaVueApp`、`context.select`）记在 [packages/core/docs/refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。vui 会话合并为 **`VueUiContext`**（不再分 `UiViewContext` / `UiBuildContext`）见 [packages/vui/docs/vue_ui_context.md](packages/vui/docs/vue_ui_context.md)。
 
 本文记录从旧仓迁到本仓的设计问题、重构思路、结果与不兼容点。
 
@@ -89,10 +89,9 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 ### `@mmda/vui`
 
 - `MmdaApplication`：DI、鉴权、locale；`toast` / `confirm` / `confirmDialog` 转发 Builder。
-- `UiViewContext`：Vue 会话，实现 core `UiContext`。
-- `UiBuildContext`：屏级 CRUD、搜索同步、附件/模板调用链。
+- `VueUiContext`：Vue 会话，实现 core `UiContext`（一个类；查询与 IO 是 mixin，不是 `UiViewContext` + `UiBuildContext` 两层）。设计见 [packages/vui/docs/vue_ui_context.md](packages/vui/docs/vue_ui_context.md)。
 - `VueUiBuilder` 默认实现 `buildView` / `buildListView` / `buildField` / `buildGroup` / `buildTable` / `buildAppScaffold`。实现拆在 `ui/builders/`（`form` / `list` / `tree` / `actions` / `category_ops`）；`ui_builder.ts` 只做契约与 `build()` 分发。皮肤 `components/` + `factory/` 生产 `SfGrid` / `AgGrid`，vui 不建 widget factory 目录。
-- `UiViewContext` 实现拆在 `ui/contexts/`（`validate` / `reference` / `subgroup`），类本身仍是唯一会话类型。
+- `VueUiContext` 按能力拆在 `contexts/mixins/`（`data` / `validate` / `reference` / `subgroup` / `navigate`），公开类仍是唯一会话类型。
 - 布局：`layoutField`、`layoutFieldGroup`（组内列密度）、`layoutPage`（primary / summary / tails + sticky 工具栏）、`AppLayout`（`sidebarLeft` | `topBarFull`）。
 - `searchParam` 唯一查询状态；`UiFilter` / `UiSearchField` 只写回该对象。
 - 皮肤在 `@mmda/vui-primevue` / `@mmda/vui-syncfusion` / `@mmda/vui-agnaive`；vui 不带默认 HTML factory。
@@ -139,7 +138,7 @@ playground 已改用 `PrimeVueUiBuilder`。
 | `@vuelidate/core` | `validateField`（core） |
 | 搜索状态写在 `MetaUiField` | `FieldSearchOptions` 在会话上 |
 | `MetaUiFieldOptions` | `FieldSearchOptions`（旧名暂 deprecated 别名） |
-| `UiContextBase` | 已删除；契约是 `UiContext`，实现是 `UiViewContext` |
+| `UiContextBase` | 已删除；契约是 `UiContext`，实现是 `VueUiContext` |
 | `PCModeType` | 已删；壳布局用 `AppLayout` variant |
 
 ### 查询
@@ -203,7 +202,7 @@ playground 已改用 `PrimeVueUiBuilder`。
 
 1. 用 [`packages/app`](packages/app) 对人工业务验证：登录、字典 CRUD、Employees 跨服务选人（只拉 mes 元数据）、Users/Roles、Materials、附件、待办。`pnpm dev:app`，网关地址见 `packages/app/.env.example`。
 2. 用 playground 对齐真实仓库的列表：快捷过滤、列过滤、分页、导入导出。
-3. `AssociationTable`、多文件/多图上传与附件组接到 `UiBuildContext`。
+3. `AssociationTable`、多文件/多图上传与附件组接到 `VueUiContext`。
 4. 把产品 App 顶栏 / 系统切换接到 `MmdaPrimeApp`，而不是把 mes 的 `HeaderView` 整文件拷回皮肤。
 5. 补 vui-primevue 针对 `filterModel` 回写、searchbar、confirm 的 jsdom 测试。
 
@@ -218,7 +217,7 @@ playground 已改用 `PrimeVueUiBuilder`。
 ### 远期（多生态）
 
 - `@mmda/rui`：只依赖 core，重做 React 控件层，不抄 vui 组件。
-- 小程序 / Uni：`UniUiBuildContext` 未迁。
+- 小程序 / Uni：`UniUiContext` 一类实现未迁（不要再叫 `UniUiBuildContext`）。
 - 可选第二皮肤（Syncfusion 等）：同样只实现 `UiFactory` + abstract Builder。
 - 删掉 core 里 deprecated 转发路径（`MetaUiFieldOptions`、旧文件位置 re-export），需单独 major。
 
@@ -236,6 +235,6 @@ playground 已改用 `PrimeVueUiBuilder`。
 2. `new PrimeVueUiBuilder()` 交给 `MmdaApplication`；`app.use(mmdaPrimeVue, { locale })`。
 3. 根组件渲染 `PrimeVueOverlayHost`。
 4. 列表只读写 `context.searchParam`；自定义查询条件进 `queryParams` 或 `UiCustomSearchField`。
-5. 子表按行创建上下文，不要复用主表 `UiViewContext` 做行校验。
+5. 子表按行创建上下文，不要复用主表 `VueUiContext` 做行校验。
 6. 附件/模板改走 vui 会话方法，不要调用已删除的 `ApiClient` 专用 API。
 7. 用 `layoutPage` 区域元数据（primary / `s?` / `t?`）代替手写 9+3 栅格。

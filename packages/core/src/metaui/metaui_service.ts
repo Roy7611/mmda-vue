@@ -15,7 +15,7 @@ export interface MetaUiFilters {
 }
 
 export interface MetaUiPack extends MetaUiFilters {
-  metaui: MetaUi
+  metaUi: MetaUi
   /** 本地上次查询定义（含 pager.sorts），不来自服务器 pack */
   lastQuery?: EntityQuery
 }
@@ -100,7 +100,7 @@ export interface MetaUiService {
    * @example
    * ```ts
    * const service = defaultMetaUiService;
-   * const {metaui,filters} = await service.getPack({ repository: 'Warehouses' });
+   * const {metaUi,filters} = await service.getPack({ repository: 'Warehouses' });
    * ```
    */
   getPack(
@@ -135,7 +135,7 @@ export interface MetaUiService {
    */
   get(repository: string, service?: string, reload?: boolean): Promise<MetaUi>
   /**
-   * 将当前元数据包写入 IndexedDB（metaui / filters）。排序不缓存。
+   * 将当前元数据包写入 IndexedDB（metaUi / filters）。排序不缓存。
    * `repository` 为实体复数名；`service` 参与缓存库隔离。
    */
   updateForCache(
@@ -296,9 +296,9 @@ class MetaUiServiceImpl implements MetaUiService {
     return meta
   }
   private async assemblePack(metaRepo: string, metaPack: any[]) {
-    const metaui = await this.assemble(metaRepo, metaPack[0])
+    const metaUi = await this.assemble(metaRepo, metaPack[0])
     return {
-      metaui,
+      metaUi,
       filters: metaPack[1],
       lastQuery: metaPack[2] ?? undefined,
     }
@@ -356,12 +356,12 @@ class MetaUiServiceImpl implements MetaUiService {
    * @returns 一个Promise对象，resolve时返回当前缓存的元界面对象
    */
   private putToCache(repository: string, meta: any) {
-    const metaui = new MetaUi(meta)
+    const metaUi = new MetaUi(meta)
     const assemblies = this.disassemble(`meta/${repository}`, meta)
-    return this._cache.putMany(assemblies).then(() => metaui)
+    return this._cache.putMany(assemblies).then(() => metaUi)
   }
   /**
-   * 写入前对 metaui 做 JSON 快照，避免 disassemble 拆掉内存中正在用的 groupUi。
+   * 写入前对 metaUi 做 JSON 快照，避免 disassemble 拆掉内存中正在用的 groupUi。
    */
   private snapshotMeta(meta: any) {
     if (meta == null) return meta
@@ -376,14 +376,14 @@ class MetaUiServiceImpl implements MetaUiService {
   }
 
   /**
-   * 将元界面数据包（metaui / filters）缓存在 _cache 中。
+   * 将元界面数据包（metaUi / filters）缓存在 _cache 中。
    * lastQuery 仅在 pack 显式带该字段时写入，避免服务器 pack 冲掉本地查询定义。
    */
   private putPackToCache(repository: string, metaPack: any) {
     const { filters, lastQuery } = metaPack
-    const snapshot = this.snapshotMeta(metaPack.metaui)
+    const snapshot = this.snapshotMeta(metaPack.metaUi)
     const metaUiPack: MetaUiPack = {
-      metaui: new MetaUi(snapshot),
+      metaUi: new MetaUi(snapshot),
       filters,
     }
     const assemblies = this.disassemble(`meta/${repository}`, snapshot)
@@ -449,7 +449,7 @@ class MetaUiServiceImpl implements MetaUiService {
         this.cacheRepository(redirection ?? repository, params.service),
         {
           filters: raw.filters,
-          metaui: raw.metaUi ?? raw.metaui,
+          metaUi: raw.metaUi ?? raw['metaui'],
         },
       ),
     )
@@ -469,16 +469,16 @@ class MetaUiServiceImpl implements MetaUiService {
   ): Promise<MetaUi> {
     if (reload)
       return this.getPackFromServer(reload, { repository, service, }).then(
-        metaPack => metaPack.metaui
+        metaPack => metaPack.metaUi
       )
 
     return this.getFromCache(this.cacheRepository(repository, service)).then(meta => {
       if (meta) {
-        const metaui = new MetaUi(meta)
-        if (metaui.hasSubGroupUis()) return metaui
+        const metaUi = new MetaUi(meta)
+        if (metaUi.hasSubGroupUis()) return metaUi
       }
       return this.getPackFromServer(reload, { repository, service, }).then(
-        metaPack => metaPack.metaui
+        metaPack => metaPack.metaUi
       )
     })
   }
@@ -491,7 +491,7 @@ class MetaUiServiceImpl implements MetaUiService {
       this.cacheRepository(repository, service),
       pack,
     ).then((updateMeta: MetaUiPack) => {
-      updateMeta.metaui.getListedFields(true)
+      updateMeta.metaUi.getListedFields(true)
     })
   }
 
@@ -526,12 +526,12 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.getPackFromCache(
       this.cacheRepository(redirection ?? repository, params.service),
     ).then(meta => {
-      if (meta.metaui) {
-        const metaui = new MetaUi(meta.metaui)
-        if (metaui.hasSubGroupUis()) {
+      if (meta.metaUi) {
+        const metaUi = new MetaUi(meta.metaUi)
+        if (metaUi.hasSubGroupUis()) {
           return {
             module: this.findModule(repository),
-            metaui,
+            metaUi,
             filters: meta.filters,
             lastQuery: meta.lastQuery,
           }
@@ -558,12 +558,12 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.getPackFromCache(
       this.cacheRepository(repository, service),
     ).then(meta => {
-      if (meta.metaui) {
-        const metaui = new MetaUi(meta.metaui)
-        if (metaui.hasSubGroupUis()) {
+      if (meta.metaUi) {
+        const metaUi = new MetaUi(meta.metaUi)
+        if (metaUi.hasSubGroupUis()) {
           return {
             module: this.findOtherSystemModule(service, repository),
-            metaui,
+            metaUi,
             filters: meta.filters,
             lastQuery: meta.lastQuery,
           }

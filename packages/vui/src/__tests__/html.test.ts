@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref, render } from "vue";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
-import { UiViewContext } from "../contexts/view_context";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { renderTreeView } from "../components/MmdaTreeView";
 import { TestUiBuilder } from "./test_builder";
 
-const metaui = new MetaUi({
+const metaUi = new MetaUi({
   objName: "Product",
   displayLabel: "商品",
   groups: [
@@ -40,9 +40,9 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("渲染可编辑表单并把输入写回 context", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { name: "旧名称" },
-      metaui,
+      metaUi,
       view: "edit",
     });
     const host = document.createElement("div");
@@ -58,7 +58,7 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("原生确认框返回统一的 yes/no 结果", async () => {
-    const context = new UiViewContext({ model: {}, metaui });
+    const context = new VueUiContext({ model: {}, metaUi });
     const original = window.confirm;
     window.confirm = () => true;
     await expect(
@@ -68,12 +68,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("buildTreeListView 用 splitter 分出树和表", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     const host = document.createElement("div");
@@ -100,12 +100,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     const host = document.createElement("div");
@@ -150,12 +150,12 @@ describe("VueUiBuilder tree chrome", () => {
 
   it("折叠左树只改布局，不改查询条件", async () => {
     const search = vi.fn();
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     (context as { search?: () => Promise<unknown> }).search = search;
@@ -199,12 +199,12 @@ describe("VueUiBuilder tree chrome", () => {
 
   it("点树只带类别 getAll，模糊搜索清外键后按 SearchParam 查全部", async () => {
     const search = vi.fn();
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     (context as { search?: () => Promise<unknown> }).search = search;
@@ -358,12 +358,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("build 按 viewOptions[view].viewKind 走 tree list", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.logic = {
@@ -389,12 +389,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("build 有 tree 即使没有 viewKind 也走 tree list", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.logic = {
@@ -419,12 +419,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("缺省 hover，右键不自造菜单", async () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.app = {
@@ -467,12 +467,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("CategoryList 右键按模块权限弹出树菜单", async () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.app = {
@@ -541,12 +541,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("分类模块无权限时右键菜单回退到列表模块权限", async () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.logic = {
@@ -609,12 +609,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("可编辑分类树开启拖放改父节点", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.app = {
@@ -652,12 +652,12 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("未授权编辑的分类树不开启拖放", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     context.app = {
@@ -698,12 +698,12 @@ describe("VueUiBuilder tree chrome", () => {
       loads += 1;
       return [{ id: "c1", label: "分类", childrenCount: 0 }];
     };
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
       },
-      metaui,
+      metaUi,
       view: "index",
     });
     const treeOption = () => ({

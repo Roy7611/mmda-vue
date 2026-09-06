@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionOrderMaterial, defineProductionOrderMaterial } from '@/models/ProductionOrderMaterial';
 import { ProductionOrderStatusEnum } from '@/enums/ProductionOrderStatus';
@@ -450,7 +450,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 						return context?.t('productionOrder.deliveryDateFuture');
 					}
 				}),
-				this.field('expectedStart').onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+				this.field('expectedStart').onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 					updateExpectedPeriod(model, newVal, model.expectedFinish);
 				}),
 				this.field('expectedFinish')
@@ -461,7 +461,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 							return context?.t('productionOrder.plannedFinishBeforeDelivery');
 						}
 					})
-					.onChange((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
 						updateExpectedPeriod(model, model.expectedStart, newVal);
 					}),
 				this.field('superOrderID').refWhere((model, ctx) => {
@@ -481,7 +481,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 						})
 						.join(" AND ");
 				}),
-				this.field('constraintType').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('constraintType').onChange((ctx: UiContext<any>, model, newVal) => {
 					if (shouldHideConstraintDate(newVal)) {
 						ctx.setFieldValue('constraintDate', null);
 					}
@@ -493,7 +493,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 					}
 				}),
 				// 外协
-				this.field('outsourced').onChange((context: UiViewContext<any>, model, newVal) => {
+				this.field('outsourced').onChange((context: UiContext<any>, model, newVal) => {
 					if (!newVal) {
 						context.clearFieldValue('outsourcingManufacturerID', null)
 					}
@@ -526,7 +526,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				 * 输入制品编码后，不自动带出 BOM，只把制品编码作为主配方 bomID 的搜索过滤条件。
 				 * 用户明确选择 BOM 后，再回填制品名称、单位、项目等相关字段。
 				 */
-				this.field('productCode').onChange<string>(async (ctx: UiViewContext<any>, model, newVal, oldVal) => {
+				this.field('productCode').onChange<string>(async (ctx: UiContext<any>, model, newVal, oldVal) => {
 					ctx.getFieldOptions('bomID').searchParam.searchWord = newVal?.trim() || '';
 					// 旧逻辑保留：debouncedGetBoms(ctx, model, newVal);
 					getOrderSummary(model, ctx);
@@ -581,7 +581,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 						})
 						.join(" AND ");
 				})
-					.onChange<string>((ctx: UiViewContext<any>, model, newVal, oldVal) => {
+					.onChange<string>((ctx: UiContext<any>, model, newVal, oldVal) => {
 						if (isNullOrUndefined(newVal)) {
 							// 手动创建订单bom清除后制品信息可以清除，反之不能清除
 							if (isNullOrUndefined(model.refName)) {
@@ -631,7 +631,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID')
 					.lockIf(model => !isRefNone(model.bomID) || !isNullOrUndefined(model.refName))
-					.setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				}),
@@ -687,7 +687,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				this.group<I>('grpName')
 					.lockIf(model=>model.prop1)
 					.hideIf(model=>model.prop2)
-					.onChange((ctx: UiViewContext<any>,model,items)=>{ })
+					.onChange((ctx: UiContext<any>,model,items)=>{ })
 			);
 			 */
 
@@ -696,7 +696,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 
 				// .lockIf(model=>model.prop1)
 				// .hideIf(model=>model.prop2)
-				// .onChange((ctx: UiViewContext<any>,model,items)=>{ })
+				// .onChange((ctx: UiContext<any>,model,items)=>{ })
 			);
 		}
 		return { fields, groups, customActions };
@@ -715,7 +715,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				this.field('subOrderCount').hideIf((t: ProductionOrder) => isNullOrUndefined(t.subOrderCount) || t.subOrderCount === 0),
 				this.field('plusQuantity').hideIf((t: ProductionOrder) => isNullOrUndefined(t.plusQuantity) || t.plusQuantity === 0),
 				//当前没有制品类别模块，先以普通文本形式显示
-				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
 				})

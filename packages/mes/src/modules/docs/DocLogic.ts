@@ -20,7 +20,7 @@ import {
 	defaultPager,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, getFileInfo, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, getFileInfo, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type Doc, defineDoc } from '@/models/Doc';
 import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';
@@ -318,7 +318,7 @@ export class DocLogic extends UiLogic<Doc> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		// if (fields.length == 0) {
 		// 	fields.push(
-		// 		this.field('docFile').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+		// 		this.field('docFile').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 		// 			const fldVal = ctx.getFieldValue(fld);
 		// 			const fileInfo = getFileInfo(fldVal);
 		// 			const showBotton = { value: 'none' };

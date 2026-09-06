@@ -265,7 +265,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 					});
 
 					// context.addSubGroupItems({
-					// 	metaui: context.metaui,
+					// 	metaUi: context.metaUi,
 					// 	groupName: 'skills',
 					// 	srcItems: selection,
 					// 	toModel: model,

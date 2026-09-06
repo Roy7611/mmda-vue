@@ -77,16 +77,16 @@ export const defineRowValidation = (rowNum: string): UiRowValidation => {
 export const defineGroupValidation = (groupName: string) => {}
 /**
  * 定义模型的校验状态
- * @param metaui 元界面
+ * @param metaUi 元界面
  * @param model 模型
  * @returns 返回一个与`model`一模一样形状的校验模型
  */
 export const defineValidation = <E extends Entity>(
-  metaui: MetaUi,
+  metaUi: MetaUi,
   model?: E,
 ): UiValidation => {
   const validation: UiValidation = {}
-  metaui.groups.forEach((g) => {
+  metaUi.groups.forEach((g) => {
     if (g.many) {
       if (model && model[g.groupName] && model[g.groupName].length) {
         const children: UiValidation = {}

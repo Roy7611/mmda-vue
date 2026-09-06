@@ -40,7 +40,7 @@ Edit / Details 子表
 
 ```mermaid
 flowchart TB
-  page["UiBuildContext 页会话"]
+  page["VueUiContext 页会话"]
   tableCtx["整表 context"]
   grid["SfGrid dataSource=行对象"]
   rowEvt["仅事件里 with(row)"]
@@ -50,7 +50,7 @@ flowchart TB
   grid -->|"cellSave / canEditCell / 删行"| rowEvt
 ```
 
-三层：页（`UiBuildContext`）→ 整表（index 即页；子表 `subGroupContext`）→ 行（`with(row)`，缓存 `@row/{id}`）。index / selector / details 渲染禁止 `with(row)`；edit 禁止列模板预建，只在回调里按需 `with`。细则见后文「调用路径与 Context」。
+三层：页（`VueUiContext`）→ 整表（index 即页；子表 `subGroupContext`）→ 行（`with(row)`，缓存 `@row/{id}`）。index / selector / details 渲染禁止 `with(row)`；edit 禁止列模板预建，只在回调里按需 `with`。细则见后文「调用路径与 Context」。
 
 - 不抽、不改 `factory.table` / `factory/utils` / 现有 `factory/grid.ts`
 - 官方 Grid 模块 `provide`（**不含 ColumnChooser**）；**scene 只改默认开关**，显式 props 可覆盖
@@ -194,7 +194,7 @@ provide 仍可注册模块全集（scene 切换不拆包）；index **运行时*
 
 | 层 | 怎么拿 | `model` 是什么 | 干什么 |
 |---|---|---|---|
-| **页** | `UiBuildContext` | Index = 分页列表包装；Edit/Details = 主表实体 | `search`、主表保存、打开 `subGroupItem` 对话框 |
+| **页** | `VueUiContext` | Index = 分页列表包装；Edit/Details = 主表实体 | `search`、主表保存、打开 `subGroupItem` 对话框 |
 | **整表** | index/selector：**就是页**；子表：`page.subGroupContext(group)`（按 `cachePath/groupName` 缓存一份） | 子表 **EntityArray** | 列元数据、`groupLogic`、组级只读/隐藏、增行 `addSubGroupItem`、合计 `sum/count`、`onAggregatesChange` |
 | **行** | `tableCtx.with(row)`（缓存 `@row/{id}`）；对话框另用 `subGroupItemContext` | **这一行** | `setFieldValue`、`validateField`、`fieldLogic.onChange`、行级 `isFieldReadonly` / `canEditCell` |
 

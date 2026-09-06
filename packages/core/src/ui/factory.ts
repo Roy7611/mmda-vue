@@ -16,7 +16,7 @@ export interface UiFactory<TNode = any> {
   ): TNode
   table(
     rows: unknown[],
-    metaui: MetaUi,
+    metaUi: MetaUi,
     props?: Record<string, unknown>,
   ): TNode
   select?(props?: Record<string, unknown>): TNode

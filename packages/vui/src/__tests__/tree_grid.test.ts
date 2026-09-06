@@ -6,7 +6,7 @@ import {
   MetaUiGroupLogic,
   SqlDataType,
 } from "@mmda/core";
-import { UiViewContext } from "../contexts/view_context";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { treeGridSpecFromGroup } from "../ui/factory/tree_grid";
 import { TestUiBuilder } from "./test_builder";
@@ -53,24 +53,24 @@ function itemsMetaui(shape: string, shapeKey: string) {
 
 describe("TreeGrid builder", () => {
   it("子表 TREE + shapeKey 走 factory.treeGrid，全量不分页", () => {
-    const metaui = itemsMetaui("TREE", "parentId");
-    const context = new UiViewContext({
+    const metaUi = itemsMetaui("TREE", "parentId");
+    const context = new VueUiContext({
       model: {
         items: [
           { id: "1", name: "根", parentId: "" },
           { id: "2", name: "子", parentId: "1" },
         ],
       },
-      metaui,
+      metaUi,
       view: "edit",
     });
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.treeGrid = (rows, _metaui, props) => {
+    builder.factory.treeGrid = (rows, _metaUi, props) => {
       captured = { rows, props };
       return h("div", { class: "mmda-tree-grid" });
     };
-    builder.buildGroup(metaui.getGroup("items")!, context);
+    builder.buildGroup(metaUi.getGroup("items")!, context);
     expect(captured.rows).toHaveLength(2);
     expect(captured.props.treeShape).toBe("TREE");
     expect(captured.props.shapeKey).toBe("parentId");
@@ -80,8 +80,8 @@ describe("TreeGrid builder", () => {
   });
 
   it("复合主键不当 idField", () => {
-    const metaui = itemsMetaui("TREE", "moduleCode");
-    const group = metaui.getGroup("items")!;
+    const metaUi = itemsMetaui("TREE", "moduleCode");
+    const group = metaUi.getGroup("items")!;
     Object.defineProperty(group.groupUi!, "primaryKey", {
       value: "roleID,moduleCode",
     });
@@ -90,12 +90,12 @@ describe("TreeGrid builder", () => {
   });
 
   it("缺 shapeKey 且无嵌套仍走 factory.table", () => {
-    const metaui = itemsMetaui("TREE", "");
-    const group = metaui.getGroup("items")!;
+    const metaUi = itemsMetaui("TREE", "");
+    const group = metaUi.getGroup("items")!;
     Object.defineProperty(group, "shapeKey", { value: undefined });
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { items: [] },
-      metaui,
+      metaUi,
       view: "edit",
     });
     let used = "none";
@@ -113,9 +113,9 @@ describe("TreeGrid builder", () => {
   });
 
   it("服务端已组装嵌套行即使 LIST 也走 treeGrid", () => {
-    const metaui = itemsMetaui("LIST", "");
-    const group = metaui.getGroup("items")!;
-    const context = new UiViewContext({
+    const metaUi = itemsMetaui("LIST", "");
+    const group = metaUi.getGroup("items")!;
+    const context = new VueUiContext({
       model: {
         items: [
           {
@@ -125,7 +125,7 @@ describe("TreeGrid builder", () => {
           },
         ],
       },
-      metaui,
+      metaUi,
       view: "details",
     });
     let used = "none";
@@ -135,7 +135,7 @@ describe("TreeGrid builder", () => {
       used = "table";
       return h("div");
     };
-    builder.factory.treeGrid = (_rows, _metaui, props) => {
+    builder.factory.treeGrid = (_rows, _metaUi, props) => {
       used = "treeGrid";
       captured = props;
       return h("div");
@@ -147,25 +147,25 @@ describe("TreeGrid builder", () => {
   });
 
   it("组 customRenderer 优先于表格", () => {
-    const metaui = itemsMetaui("LIST", "");
-    const context = new UiViewContext({
+    const metaUi = itemsMetaui("LIST", "");
+    const context = new VueUiContext({
       model: { items: [] },
-      metaui,
+      metaUi,
       view: "details",
     });
-    const logic = new MetaUiGroupLogic(metaui.getGroup("items")!);
+    const logic = new MetaUiGroupLogic(metaUi.getGroup("items")!);
     logic.customRenderer = () => h("div", { class: "mmda-custom-group" }, "bpmn");
     context.setupGroupLogic(logic);
     const host = document.createElement("div");
     render(
-      new TestUiBuilder().buildGroup(metaui.getGroup("items")!, context),
+      new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, context),
       host,
     );
     expect(host.querySelector(".mmda-custom-group")?.textContent).toBe("bpmn");
   });
 
   it("viewKind treeGrid 走 buildTreeGridView", () => {
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "MaterialCat",
       displayLabel: "类别",
       primaryKey: "categoryID",
@@ -178,9 +178,9 @@ describe("TreeGrid builder", () => {
         },
       ],
     });
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { list: [{ categoryID: "1", categoryName: "根" }] },
-      metaui,
+      metaUi,
       view: "index",
     });
     (context as any).logic = {

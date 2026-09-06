@@ -25,14 +25,14 @@ function renderWithAppContext(
 export function attachTreeGridRenderer(factory: any) {
   factory.treeGrid = <T>(
     model: T[],
-    metaui: MetaUi,
+    metaUi: MetaUi,
     props: UiTreeGridPropsType<T>,
   ) => {
     const appContext = getCurrentInstance()?.appContext ?? null;
-    const fields = listedTableFields(metaui);
+    const fields = listedTableFields(metaUi);
     const { idField, childrenKey, assembled } = assembleTreeGridRows(
       model,
-      metaui,
+      metaUi,
       props,
     );
     const nested = assembled.sourceShape === "nested";
@@ -45,7 +45,7 @@ export function attachTreeGridRenderer(factory: any) {
       ((args?.data ?? args?.rowData) as { taskData?: T } | undefined)
         ?.taskData ?? (args?.data ?? args?.rowData);
 
-    const columns = buildSfTreeGridColumns(metaui, {
+    const columns = buildSfTreeGridColumns(metaUi, {
       allowSorting: props.enableSort !== false,
       inplaceEdit,
       editableFields,

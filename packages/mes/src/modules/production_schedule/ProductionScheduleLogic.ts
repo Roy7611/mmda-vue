@@ -201,7 +201,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	async initMetadata(reload: boolean = false) {
 		// 接口调通后删除此方法
 		// super.initMetadata();
-		return Promise.resolve({ metaui: null });
+		return Promise.resolve({ metaUi: null });
 	}
 
 	beforeSearch() {

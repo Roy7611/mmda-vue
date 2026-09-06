@@ -20,17 +20,17 @@ import {
   type MetaUiField,
 } from '@mmda/core'
 
-const listedFields = (metaui: MetaUi) => {
-  const fields = metaui.getListedFields?.() ?? []
+const listedFields = (metaUi: MetaUi) => {
+  const fields = metaUi.getListedFields?.() ?? []
   return fields.length
     ? fields
-    : metaui.groups
+    : metaUi.groups
         .filter(group => !group.many)
         .flatMap(group => group.fields)
 }
 
-const fieldOf = (metaui: MetaUi, fieldName: string) =>
-  listedFields(metaui).find(field => field.fieldName === fieldName)
+const fieldOf = (metaUi: MetaUi, fieldName: string) =>
+  listedFields(metaUi).find(field => field.fieldName === fieldName)
 
 const AG_TO_OP: Record<string, EntityFilterOperator> = {
   equals: 'EQ',
@@ -193,13 +193,13 @@ function agFilterToField(
 
 export function agFilterModelToEntity(
   agModel: Record<string, any> | null | undefined,
-  metaui: MetaUi,
+  metaUi: MetaUi,
 ): EntityFilterModel {
   const next: EntityFilterModel = {}
   if (!agModel) return next
   for (const [fieldName, raw] of Object.entries(agModel)) {
     if (!raw) continue
-    const mapped = agFilterToField(raw, fieldOf(metaui, fieldName))
+    const mapped = agFilterToField(raw, fieldOf(metaUi, fieldName))
     const compacted = compactFieldFilter(mapped)
     if (compacted) next[fieldName] = compacted
   }
@@ -273,14 +273,14 @@ function fieldFilterToAg(filter: EntityFieldFilter, field?: MetaUiField): any {
 
 export function entityFilterToAgModel(
   model: EntityFilterModel | null | undefined,
-  metaui: MetaUi,
+  metaUi: MetaUi,
 ): Record<string, any> {
   const next: Record<string, any> = {}
   if (!model) return next
   for (const [fieldName, filter] of Object.entries(model)) {
     if (!filter) continue
-    const mapped = fieldFilterToAg(filter, fieldOf(metaui, fieldName))
-    if (mapped) next[fieldName] = asDateColumnAgModel(mapped, fieldOf(metaui, fieldName))
+    const mapped = fieldFilterToAg(filter, fieldOf(metaUi, fieldName))
+    if (mapped) next[fieldName] = asDateColumnAgModel(mapped, fieldOf(metaUi, fieldName))
   }
   return next
 }
@@ -302,8 +302,8 @@ function asDateColumnAgModel(mapped: any, field?: MetaUiField) {
   return { filterType: 'multi', filterModels: [mapped, null] }
 }
 
-export function listedMetaFields(metaui: MetaUi): MetaUiField[] {
-  return listedFields(metaui)
+export function listedMetaFields(metaUi: MetaUi): MetaUiField[] {
+  return listedFields(metaUi)
 }
 
 export function isReferenceSetField(field: MetaUiField) {

@@ -7,7 +7,7 @@ import {
   layoutFieldGroup,
   layoutPage,
 } from "../ui/layout/layout";
-import { UiViewContext } from "../contexts/view_context";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
 const hosts: HTMLElement[] = [];
@@ -161,7 +161,7 @@ describe("VueUiBuilder layout wiring", () => {
       nullable: false,
     });
 
-  const metaui = new MetaUi({
+  const metaUi = new MetaUi({
     objName: "Product",
     displayLabel: "商品",
     groups: [
@@ -294,9 +294,9 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("按 primary / summary / tails 分区并应用组内列数", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { name: "N", code: "C", state: "启用", remark: "R" },
-      metaui,
+      metaUi,
       view: "details",
     });
     const host = mount(
@@ -334,7 +334,7 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("主区主表按 groupName、子表按 groupIdx", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         materialCode: "M1",
         qcRatio: 1,
@@ -343,7 +343,7 @@ describe("VueUiBuilder layout wiring", () => {
         medias: [],
         skus: [],
       },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "details",
     });
     const host = mount(
@@ -363,13 +363,13 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("默认用 card；props.container 为 fieldset 时用 legend", async () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { name: "N", code: "C", state: "启用", remark: "R" },
-      metaui,
+      metaUi,
       view: "details",
     });
     const cardHost = mount(
-      new TestUiBuilder().buildGroup(metaui.getGroup("base")!, context),
+      new TestUiBuilder().buildGroup(metaUi.getGroup("base")!, context),
     );
     expect(
       cardHost.querySelector("article.mmda-group.primary.master"),
@@ -394,7 +394,7 @@ describe("VueUiBuilder layout wiring", () => {
     expect(cardHost.querySelector(".mmda-group-body")).not.toBeNull();
 
     const fieldsetHost = mount(
-      new TestUiBuilder().buildGroup(metaui.getGroup("base")!, context, undefined, {
+      new TestUiBuilder().buildGroup(metaUi.getGroup("base")!, context, undefined, {
         container: "fieldset",
       }),
     );
@@ -404,7 +404,7 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("右边栏概要分组排在附件之后", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         name: "N",
         code: "C",
@@ -412,7 +412,7 @@ describe("VueUiBuilder layout wiring", () => {
         remark: "R",
         attachments: [],
       },
-      metaui,
+      metaUi,
       view: "details",
     });
     const host = mount(
@@ -429,9 +429,9 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("FieldLayout 显示校验消息且不重复标签", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { name: "", code: "", state: "", remark: "" },
-      metaui,
+      metaUi,
       view: "edit",
     });
     context.setFieldError("name", "名称必填");
@@ -450,7 +450,7 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("编辑页子表 header 渲染 actions 工具栏", () => {
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: {
         materialCode: "M1",
         qcRatio: 1,
@@ -459,12 +459,12 @@ describe("VueUiBuilder layout wiring", () => {
         medias: [],
         skus: [],
       },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "edit",
     });
     const skus = interleavedMetaui.getGroup("skus")!;
     const grpLogic = new MetaUiGroupLogic(skus);
-    const add = vi.fn((ctx: UiViewContext) => {
+    const add = vi.fn((ctx: VueUiContext) => {
       ctx.addSubGroupItem("skus", {
         skuCode: "S1",
         editable: true,
@@ -508,7 +508,7 @@ describe("VueUiBuilder layout wiring", () => {
       (builder.factory as any).nativeInplaceEdit = true;
       (builder.factory as any).table = (
         _rows: any[],
-        _metaui: MetaUi,
+        _metaUi: MetaUi,
         props: any,
       ) => {
         tableProps = props;
@@ -517,9 +517,9 @@ describe("VueUiBuilder layout wiring", () => {
       return { builder, getTableProps: () => tableProps };
     };
 
-    const enabledContext = new UiViewContext({
+    const enabledContext = new VueUiContext({
       model: { medias: [] },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "edit",
     });
     const enabled = createBuilder();
@@ -528,9 +528,9 @@ describe("VueUiBuilder layout wiring", () => {
     expect(enabled.getTableProps().inplaceEditStart).toBe("excel");
 
     const features = interleavedMetaui.getGroup("features")!;
-    const featureContext = new UiViewContext({
+    const featureContext = new VueUiContext({
       model: { features: [{ featureCode: "Color-1", editable: true }] },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "edit",
     });
     const featureBuilder = createBuilder();
@@ -541,9 +541,9 @@ describe("VueUiBuilder layout wiring", () => {
       "featureName",
     ]);
 
-    const disabledContext = new UiViewContext({
+    const disabledContext = new VueUiContext({
       model: { medias: [] },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "edit",
     });
     const groupLogic = new MetaUiGroupLogic(medias);
@@ -553,9 +553,9 @@ describe("VueUiBuilder layout wiring", () => {
     disabled.builder.buildGroup(medias, disabledContext);
     expect(disabled.getTableProps().editableFields).toEqual([]);
 
-    const groupDisabledContext = new UiViewContext({
+    const groupDisabledContext = new VueUiContext({
       model: { medias: [] },
-      metaui: interleavedMetaui,
+      metaUi: interleavedMetaui,
       view: "edit",
     });
     const disabledGroupLogic = new MetaUiGroupLogic(medias).inplaceEdit(false);
@@ -588,9 +588,9 @@ describe("VueUiBuilder layout wiring", () => {
         },
       ],
     });
-    const context = new UiViewContext({
+    const context = new VueUiContext({
       model: { createdAt: "2026-08-31 10:00:00" },
-      metaui: meta,
+      metaUi: meta,
       view: "edit",
     });
     const host = mount(

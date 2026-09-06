@@ -25,7 +25,7 @@ export type UiSubGroupView = 'create' | 'edit' | 'details'
  * Vue globalProps 不在此接口上。
  */
 export interface UiContext<M extends object = any> {
-  readonly metaui: MetaUi
+  readonly metaUi: MetaUi
   readonly locale: string
   readonly initialized: boolean
   readonly model: M

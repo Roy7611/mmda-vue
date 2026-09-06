@@ -8,7 +8,7 @@
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined, debounce, isObject } from '@mmda/core';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Rectification, defineRectification } from '@/models/Rectification';
 import { type RectificationItem, defineRectificationItem } from '@/models/RectificationItem';
 import { RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';
@@ -309,7 +309,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 				this.field('productName').lockIf(t => !isRefNone(t.refID)),
 				this.field('producedQuantity').lockIf(t => !isRefNone(t.refID)),
 				this.field('unit').lockIf(t => !isRefNone(t.refID)),
-				this.field('reworkTaskID').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('reworkTaskID').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps;
 					const { model } = ctx; const metaUiService = ctx.logic!.metaUiService
 					const id = !isRefNone(model.refTaskID) ? model.refTaskID : 0
@@ -324,8 +324,8 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 						placeholder: t('action.select'),
 						toSearch: async () => {
 							await this.getData(ctx, id, '')
-							const { metaui } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
-							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaui.getListedFields()).build()
+							const { metaUi } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
+							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaUi.getListedFields()).build()
 							let data: any = null
 							return ctx.uiBuilder.dialog(
 								ctx.uiBuilder.factory.table(tableData.value, pickMeta, {
@@ -358,7 +358,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 					MetaModel.modify(this.master);
 				}),
 				this.field('defectiveDesc')
-					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchForRelative({

@@ -68,7 +68,7 @@ describe("actions and loading", () => {
     expect(action.icon).toBe("icon:save");
   });
 
-  it("loading() 不依赖 UiViewContext", () => {
+  it("loading() 不依赖 VueUiContext", () => {
     expect(loading("wait").state).toBe(UiDataState.LOADING);
   });
 });

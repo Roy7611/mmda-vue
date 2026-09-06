@@ -173,12 +173,12 @@ export interface UiFactory {
     props: UiPaginatorPropsType & PropData,
     slots?: UiSlots,
   ) => VNode
-  list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => VNode
+  list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => VNode
   tree: <T>(props: UiTreePropsType<T>) => VNode
-  table: <T>(model: T[], metaui: MetaUi, props?: UiListPropsType<T>) => VNode
+  table: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
   treeGrid: <T>(
     model: T[],
-    metaui: MetaUi,
+    metaUi: MetaUi,
     props: UiTreeGridPropsType<T>,
   ) => VNode
   pagableTable: <T>(

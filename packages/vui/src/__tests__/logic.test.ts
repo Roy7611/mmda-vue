@@ -8,7 +8,7 @@ import {
   SqlDataType,
 } from '@mmda/core'
 import { UiLogic } from '../logic/logic'
-import { UiViewContext } from '../contexts/view_context'
+import { VueUiContext } from '../contexts/vue_ui_context'
 
 const field = (fieldName: string, fieldIdx = 0) =>
   new MetaUiField({
@@ -19,7 +19,7 @@ const field = (fieldName: string, fieldIdx = 0) =>
     nullable: true,
   })
 
-const metaui = new MetaUi({
+const metaUi = new MetaUi({
   objName: 'Order',
   displayLabel: '订单',
   groups: [
@@ -55,7 +55,7 @@ class OrderLogic extends UiLogic<any> {}
 
 const service = {
   getApiClient: (): Record<string, never> => ({}),
-  getPack: async () => ({ metaui }),
+  getPack: async () => ({ metaUi }),
   findModule: (): undefined => undefined,
   locale: 'zh',
 } as any
@@ -65,7 +65,7 @@ describe('UiLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     expect(logic).toBeInstanceOf(EntityLogic)
   })
@@ -74,15 +74,15 @@ describe('UiLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     const { fields, groups } = logic.beforeEdit()
     fields.push(logic.field('orderNo').lock())
     groups.push(logic.group('items'))
 
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { id: '1', orderNo: 'A', items: [] },
-      metaui,
+      metaUi,
       view: 'edit',
     })
     await logic.applyTo(ctx, 'edit')
@@ -97,7 +97,7 @@ describe('UiLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaui },
+      meta: { metaUi },
     })
     logic.viewLogicLoaders = {
       index: async () => {
@@ -116,16 +116,16 @@ describe('UiLogic', () => {
       },
     }
 
-    const first = new UiViewContext({
+    const first = new VueUiContext({
       model: [],
-      metaui,
+      metaUi,
       view: 'index',
     })
     await logic.applyTo(first, 'index')
     await logic.applyTo(first, 'index')
-    const create = new UiViewContext({
+    const create = new VueUiContext({
       model: { id: '2' },
-      metaui,
+      metaUi,
       view: 'create',
     })
     await logic.applyTo(create, 'create')
@@ -138,12 +138,12 @@ describe('UiLogic', () => {
 
 describe('_setupGroupLogic 隔离性', () => {
   it('不会将子表字段写入父级 fieldLogics', () => {
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { id: '1', items: [] },
-      metaui,
+      metaUi,
     })
     const childField = new MetaUiFieldLogic(field('childField'))
-    const group = metaui.getGroup('items')!
+    const group = metaUi.getGroup('items')!
     const grpLogic = new MetaUiGroupLogic(group)
     ;(grpLogic.fields as MetaUiFieldLogic<any>[]).push(childField)
 

@@ -13,23 +13,23 @@ export type SfGridLayoutFieldState = {
 
 /**
  * 表格布局伴侣（非 Grid 模块 / 非 ColumnChooser）。
- * 页面菜单调用 `open(metaui)`；确认后写 listed / frozen / listPos。
+ * 页面菜单调用 `open(metaUi)`；确认后写 listed / frozen / listPos。
  */
 export const SfGridLayout = defineComponent({
   name: 'SfGridLayout',
   emits: {
-    confirm: (_metaui: MetaUi) => true,
+    confirm: (_metaUi: MetaUi) => true,
   },
   setup(_, { emit, expose }) {
     const visible = ref(false)
     const metauiRef = ref<MetaUi | null>(null)
     const items = ref<SfGridLayoutFieldState[]>([])
 
-    const open = (metaui: MetaUi) => {
-      metauiRef.value = metaui
+    const open = (metaUi: MetaUi) => {
+      metauiRef.value = metaUi
       const fields =
-        metaui.getListedFields?.(true) ??
-        metaui.groups
+        metaUi.getListedFields?.(true) ??
+        metaUi.groups
           ?.filter((group: any) => !group.many)
           .flatMap((group: any) => group.fields) ??
         []
@@ -53,18 +53,18 @@ export const SfGridLayout = defineComponent({
     }
 
     const apply = () => {
-      const metaui = metauiRef.value
-      if (!metaui) return
+      const metaUi = metauiRef.value
+      if (!metaUi) return
       items.value.forEach((item, index) => {
-        const field = metaui.getField?.(item.fieldName)
+        const field = metaUi.getField?.(item.fieldName)
         if (!field) return
         field.listed = item.listed
         field.listPos = index
         ;(field as any).frozen = item.frozen || ''
       })
-      metaui.getListedFields?.(true)
+      metaUi.getListedFields?.(true)
       visible.value = false
-      emit('confirm', metaui as MetaUi)
+      emit('confirm', metaUi as MetaUi)
     }
 
     expose({ open })

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
 import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, type UiContext } from "@mmda/core";
-import { UiViewContext } from "../contexts/view_context";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
 const field = (fieldName: string, nullable = true, fieldIdx = 0) =>
@@ -31,7 +31,7 @@ const createOrderMetaUi = () => {
       },
     ],
   };
-  const metaui = new MetaUi({
+  const metaUi = new MetaUi({
     objName: "Order",
     displayLabel: "订单",
     primaryKey: "id",
@@ -52,15 +52,15 @@ const createOrderMetaUi = () => {
       },
     ],
   });
-  return { metaui, itemName, quantity };
+  return { metaUi, itemName, quantity };
 };
 
-describe("UiViewContext", () => {
+describe("VueUiContext", () => {
   it("实现 core UiContext", () => {
-    const { metaui } = createOrderMetaUi();
-    const ctx: UiContext = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const ctx: UiContext = new VueUiContext({
       model: { id: "o1", orderNo: "SO-1", items: [] },
-      metaui,
+      metaUi,
       view: "details",
     });
     expect(ctx.model).toEqual({ id: "o1", orderNo: "SO-1", items: [] });
@@ -68,15 +68,15 @@ describe("UiViewContext", () => {
   });
 
   it("索引和详情使用浅响应，编辑页保留深层双向绑定", () => {
-    const { metaui } = createOrderMetaUi();
-    const details = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const details = new VueUiContext({
       model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
-      metaui,
+      metaUi,
       view: "details",
     });
-    const edit = new UiViewContext({
+    const edit = new VueUiContext({
       model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
-      metaui,
+      metaUi,
       view: "edit",
     });
 
@@ -100,7 +100,7 @@ describe("UiViewContext", () => {
         },
       ],
     };
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Material",
       displayLabel: "物料",
       primaryKey: "id",
@@ -129,14 +129,14 @@ describe("UiViewContext", () => {
         },
       ],
     });
-    const hidden = new UiViewContext({
+    const hidden = new VueUiContext({
       model: { id: "1", featuredSku: false, skus: [], features: [] },
-      metaui,
+      metaUi,
       view: "details",
     });
-    const shown = new UiViewContext({
+    const shown = new VueUiContext({
       model: { id: "1", featuredSku: true, skus: [], features: [] },
-      metaui,
+      metaUi,
       view: "details",
     });
 
@@ -147,15 +147,15 @@ describe("UiViewContext", () => {
   });
 
   it("详情 setFieldValue 写入浅模型但不建立深层响应", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = {
       id: "o1",
       orderNo: "SO-1",
       items: [{ itemName: "A" }],
     };
-    const ctx = new UiViewContext<any>({
+    const ctx = new VueUiContext<any>({
       model,
-      metaui,
+      metaUi,
       view: "details",
     });
 
@@ -167,15 +167,15 @@ describe("UiViewContext", () => {
   });
 
   it("详情 in-place setFieldValue 触发 onChange", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     let changed = 0;
-    const ctx = new UiViewContext<any>({
+    const ctx = new VueUiContext<any>({
       model: { id: "o1", orderNo: "SO-1", items: [] },
-      metaui,
+      metaUi,
       view: "details",
     });
     ctx.setupFieldLogic(
-      new MetaUiFieldLogic(metaui.getField("orderNo")!).onChange(() => {
+      new MetaUiFieldLogic(metaUi.getField("orderNo")!).onChange(() => {
         changed++;
       }),
     );
@@ -185,23 +185,23 @@ describe("UiViewContext", () => {
   });
 
   it("索引单元格渲染不创建行上下文", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { list: [row], pagination: {} },
-      metaui,
+      metaUi,
       view: "index",
     });
     const builder = new TestUiBuilder();
 
-    builder.displayCellFor(metaui.getField("orderNo")!, row, ctx);
+    builder.displayCellFor(metaUi.getField("orderNo")!, row, ctx);
 
     expect(ctx.contextCount).toBe(1);
   });
 
   it("详情子表只创建集合上下文，不创建只读行上下文", () => {
-    const { metaui } = createOrderMetaUi();
-    const ctx = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
@@ -210,18 +210,18 @@ describe("UiViewContext", () => {
           { id: "i2", itemName: "B" },
         ],
       },
-      metaui,
+      metaUi,
       view: "details",
     });
 
-    new TestUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+    new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, ctx, []);
 
     expect(ctx.contextCount).toBe(2);
   });
 
   it("编辑子表复用既有行上下文，不产生嵌套行上下文", () => {
-    const { metaui } = createOrderMetaUi();
-    const ctx = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
@@ -230,21 +230,21 @@ describe("UiViewContext", () => {
           { id: "i2", itemName: "B" },
         ],
       },
-      metaui,
+      metaUi,
       view: "edit",
     });
 
-    new TestUiBuilder().buildGroup(metaui.getGroup("items")!, ctx, []);
+    new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, ctx, []);
 
     expect(ctx.contextCount).toBe(3);
   });
 
   it("表格编辑只为 beginEdit 的行创建上下文并可释放", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new UiViewContext<any>({
+    const ctx = new VueUiContext<any>({
       model: [row],
-      metaui,
+      metaUi,
       view: "editMany",
     });
 
@@ -257,9 +257,9 @@ describe("UiViewContext", () => {
   });
 
   it("双向绑定当前实体，并执行该实体的字段逻辑", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new UiViewContext({ model, metaui, view: "edit" });
+    const ctx = new VueUiContext({ model, metaUi, view: "edit" });
 
     ctx.setFieldValue("orderNo", "SO-2");
 
@@ -269,11 +269,11 @@ describe("UiViewContext", () => {
   });
 
   it("主表、子表集合和每一行构成独立且可复用的 context 树", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const first = { id: "i1", itemName: "A", quantity: 1 };
     const second = { id: "i2", itemName: "B", quantity: 2 };
     const model = { id: "o1", orderNo: "SO-1", items: [first, second] };
-    const root = new UiViewContext({ model, metaui, view: "edit" });
+    const root = new VueUiContext({ model, metaUi, view: "edit" });
 
     const group = root.subGroupContext("items");
     const firstCtx = root.subGroupItemContext("items", first as any);
@@ -287,15 +287,15 @@ describe("UiViewContext", () => {
   });
 
   it("每一行独享校验和关联搜索状态，但共享逻辑定义", async () => {
-    const { metaui, itemName, quantity } = createOrderMetaUi();
+    const { metaUi, itemName, quantity } = createOrderMetaUi();
     const first = { id: "i1", itemName: "", quantity: 0 };
     const second = { id: "i2", itemName: "B", quantity: 2 };
     const quantityLogic = new MetaUiFieldLogic<any>(quantity).lockIf(
       (row) => row.quantity === 0,
     );
-    const root = new UiViewContext({
+    const root = new VueUiContext({
       model: { id: "o1", orderNo: "SO-1", items: [first, second] },
-      metaui,
+      metaUi,
       view: "edit",
       fieldLogics: { quantity: quantityLogic },
     });
@@ -318,12 +318,12 @@ describe("UiViewContext", () => {
   });
 
   it("没有持久化主键的不同新行不会共用 context", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const first = { itemName: "A" };
     const second = { itemName: "B" };
-    const root = new UiViewContext({
+    const root = new VueUiContext({
       model: { id: "o1", orderNo: "SO-1", items: [first, second] },
-      metaui,
+      metaUi,
       view: "edit",
     });
 
@@ -336,9 +336,9 @@ describe("UiViewContext", () => {
   });
 
   it("子表增删走 MetaModel 并触发组 onChange", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const root = new UiViewContext({ model, metaui, view: "edit" });
+    const root = new VueUiContext({ model, metaUi, view: "edit" });
     const row = { id: "i1", itemName: "A", quantity: 1, rowNum: "1" } as any;
     root.addSubGroupItem("items", row);
     expect(model.items).toHaveLength(1);
@@ -351,10 +351,10 @@ describe("UiViewContext", () => {
   });
 
   it("子表标准 add/clear 的 canDo 响应 lockIf 与 canDo 叠加", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", locked: false, items: [] };
-    const root = new UiViewContext({ model, metaui, view: "edit" });
-    const grp = metaui.getGroup("items")!;
+    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const grp = metaUi.getGroup("items")!;
     const logic = new MetaUiGroupLogic(grp);
     logic.canDo("clear", (m: { locked?: boolean }) => !m.locked);
     root.setupGroupLogic(logic);
@@ -370,10 +370,10 @@ describe("UiViewContext", () => {
   });
 
   it("行删：row.deletable 与 itemDeletableFunc AND；beforeItemRemove 可取消", async () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", status: "NEW", items: [] as object[] };
-    const root = new UiViewContext({ model, metaui, view: "edit" });
-    const grp = metaui.getGroup("items")!;
+    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const grp = metaUi.getGroup("items")!;
     const logic = new MetaUiGroupLogic<{ status: string }, { locked?: boolean }>(grp);
     logic.itemDeletable((row, master) => !row.locked && master.status === "NEW");
     let blocked = true;
@@ -398,15 +398,15 @@ describe("UiViewContext", () => {
   });
 
   it("newSubGroupItem 先入集，对话框取消则移除，确定则保留", async () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
     const dialog = vi
       .fn()
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
-    const root = new UiViewContext({
+    const root = new VueUiContext({
       model,
-      metaui,
+      metaUi,
       view: "edit",
       app: {
         ui: { buildView: () => ({}), dialog },
@@ -437,9 +437,9 @@ describe("UiViewContext", () => {
   });
 
   it("批量字段赋值会校验，重置筛选保留固定 GET 查询参数", () => {
-    const { metaui } = createOrderMetaUi();
+    const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new UiViewContext({ model, metaui, view: "edit" });
+    const ctx = new VueUiContext({ model, metaUi, view: "edit" });
 
     ctx.batchSetFieldValue({ orderNo: "  SO-2  " });
     ctx.addQueryParam("ownerID", "u1");
@@ -466,7 +466,7 @@ describe("UiViewContext", () => {
       nullable: true,
       selectOptions: "HAS_ONE MaterialPackage(packID,packFullName) AS pack",
     });
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "MaterialPartner",
       displayLabel: "供货号",
       primaryKey: "id",
@@ -485,9 +485,9 @@ describe("UiViewContext", () => {
         { path: "/BASE/:repository/:id", component: { template: "<div/>" } },
       ],
     });
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { packID: "25", pack: { packID: "25", packFullName: "塑料" } },
-      metaui,
+      metaUi,
       view: "details",
       app: {
         name: "base",
@@ -508,7 +508,7 @@ describe("UiViewContext", () => {
       nullable: true,
       selectOptions: "HAS_ONE WorkOrder(orderID,orderNo) AS workOrder",
     });
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "ProductionTask",
       displayLabel: "任务",
       primaryKey: "id",
@@ -528,12 +528,12 @@ describe("UiViewContext", () => {
         { path: "/BASE/:repository/:id", component: { template: "<div/>" } },
       ],
     });
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: {
         orderID: "9",
         workOrder: { orderID: "9", orderNo: "WO-9" },
       },
-      metaui,
+      metaUi,
       view: "details",
       app: {
         name: "base",
@@ -554,7 +554,7 @@ describe("UiViewContext", () => {
       nullable: true,
       selectOptions: "REF MaterialPackage(packID,packFullName)",
     });
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Material",
       displayLabel: "物料",
       primaryKey: "id",
@@ -570,9 +570,9 @@ describe("UiViewContext", () => {
     const pivot = ["1", "2"];
     const getPivotValues = vi.fn(async () => pivot);
     const searchAll = vi.fn();
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { id: "m1" },
-      metaui,
+      metaUi,
       view: "index",
       app: {
         api: {
@@ -611,7 +611,7 @@ describe("UiViewContext", () => {
       selectOptions: "REF MaterialPackage(packID,packFullName)",
     });
     packField.reference!.refOptions.push({ packID: "1", packFullName: "纸箱" });
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Material",
       displayLabel: "物料",
       primaryKey: "id",
@@ -625,9 +625,9 @@ describe("UiViewContext", () => {
       ],
     });
     const getPivotValues = vi.fn();
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { id: "m1" },
-      metaui,
+      metaUi,
       view: "index",
       app: { api: { getPivotValues, searchAll: vi.fn() } } as any,
     });
@@ -646,7 +646,7 @@ describe("UiViewContext", () => {
       nullable: true,
       selectOptions: "HAS_ONE Material(matID,matName) AS material",
     });
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Order",
       displayLabel: "订单",
       primaryKey: "id",
@@ -661,9 +661,9 @@ describe("UiViewContext", () => {
     });
     const searchAll = vi.fn();
     const getPivotValues = vi.fn();
-    const ctx = new UiViewContext({
+    const ctx = new VueUiContext({
       model: { id: "o1" },
-      metaui,
+      metaUi,
       view: "index",
       app: { api: { searchAll, getPivotValues } } as any,
     });
@@ -673,14 +673,14 @@ describe("UiViewContext", () => {
   });
 
   it("根 context 校验子表每一行并暴露组错误", async () => {
-    const { metaui } = createOrderMetaUi();
-    const root = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const root = new VueUiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
         items: [{ id: "i1", rowNum: "1", itemName: "", quantity: 1 }],
       },
-      metaui,
+      metaUi,
       view: "edit",
     });
 
@@ -690,10 +690,10 @@ describe("UiViewContext", () => {
   });
 
   it("打开列表时勾选缓存的 active 过滤，不从 pack 拉排序", () => {
-    const { metaui } = createOrderMetaUi();
-    const ctx = new UiViewContext({
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
       model: { list: [] },
-      metaui,
+      metaUi,
       view: "index",
       logic: {
         meta: {

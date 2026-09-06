@@ -63,11 +63,11 @@ const EMPTY_SELECTION: unknown[] = [];
 const invoke = (value: unknown) =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-const listedFields = (metaui: MetaUi) => {
-  const fields = metaui.getListedFields();
+const listedFields = (metaUi: MetaUi) => {
+  const fields = metaUi.getListedFields();
   return fields.length
     ? fields
-    : metaui.groups
+    : metaUi.groups
         .filter((group) => !group.many)
         .flatMap((group) => group.fields);
 };
@@ -150,8 +150,8 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       slots,
     );
 
-  const table = <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) => {
-    const fields = listedFields(metaui);
+  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
+    const fields = listedFields(metaUi);
     const selectionMode =
       props.selectionMode === "multiple"
         ? "multiple"
@@ -380,7 +380,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
 
     const tableProps: Record<string, unknown> = {
       value: model,
-      dataKey: metaui.primaryKey,
+      dataKey: metaUi.primaryKey,
       stripedRows: props.striped ?? true,
       showGridlines: props.showGridlines ?? false,
       loading: unref(props.loading),
@@ -619,10 +619,10 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           }),
       }),
     tree: (props) => h(MmdaPrimeTree, props as any),
-    treeGrid: <T>(model: T[], metaui: MetaUi, props: UiTreeGridPropsType<T>) => {
-      const fields = listedTableFields(metaui);
+    treeGrid: <T>(model: T[], metaUi: MetaUi, props: UiTreeGridPropsType<T>) => {
+      const fields = listedTableFields(metaUi);
       const { treeShape, shapeKey, idField, childrenKey, assembled } =
-        assembleTreeGridRows(model, metaui, {
+        assembleTreeGridRows(model, metaUi, {
           ...props,
           bindShape: props.bindShape ?? "nestedChildren",
         });
@@ -667,7 +667,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           ),
       });
     },
-    list: <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
+    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
       h(
         DataView,
         { value: model, layout: "list", class: "mmda-prime-list" },
@@ -684,8 +684,8 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                     key:
                       props.itemKey?.(item) ??
                       String(
-                        metaui.primaryKey
-                          ? (item as any)[metaui.primaryKey]
+                        metaUi.primaryKey
+                          ? (item as any)[metaUi.primaryKey]
                           : index,
                       ),
                     class: ["mmda-prime-list__item", props.itemClass?.(item)],
@@ -702,7 +702,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     table,
     pagableTable: (loader, metadata, props) =>
       h("div", { class: "mmda-prime-pagable-table" }, [
-        table(loader.model.list as any[], metadata.metaui, props as any),
+        table(loader.model.list as any[], metadata.metaUi, props as any),
         factory.paginator(loader.model.pagination, props),
       ]),
     loading: (props) => h("div", { class: "mmda-prime-loading", ...props }),

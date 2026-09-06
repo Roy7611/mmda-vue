@@ -5,7 +5,7 @@ import {
   type MetaUiPack,
 } from "@mmda/core";
 import type { UiFactory } from "../ui/factory/factory";
-import type { UiViewContext } from "../contexts/view_context";
+import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { UiDialogPropsType } from "../ui/factory/dialog";
 import {
   applyListSettingsFields,
@@ -31,7 +31,7 @@ interface ListSettingHost {
   factory: UiFactory;
   dialog(
     content: ReturnType<typeof h>,
-    context: UiViewContext<any>,
+    context: VueUiContext<any>,
     props: UiDialogPropsType,
   ): Promise<boolean>;
 }
@@ -318,17 +318,17 @@ export const ListSettingView = defineComponent({
 
 export async function openListSettingDialog(
   host: ListSettingHost,
-  context: UiViewContext<any>,
+  context: VueUiContext<any>,
 ) {
   const t = (key: string) => context.t(key);
-  const rows = reactive(snapshotListLayoutRows(context.metaui));
+  const rows = reactive(snapshotListLayoutRows(context.metaUi));
   const persistForever = reactive({ value: false });
   const restoring = reactive({ value: false });
   const saving = reactive({ value: false });
 
   const applyRows = () => {
     applyListSettingsFields(
-      context.metaui,
+      context.metaUi,
       rows.map((row) => ({
         fieldName: row.fieldName,
         listed: row.listed,
@@ -363,9 +363,9 @@ export async function openListSettingDialog(
         reloadFromDb,
       );
       logic.meta = pack;
-      context.metaui = pack.metaui;
+      context.metaUi = pack.metaUi;
       context.configureSearch(pack.filters ?? [], logic.beforeSearch?.());
-      rows.splice(0, rows.length, ...snapshotListLayoutRows(pack.metaui));
+      rows.splice(0, rows.length, ...snapshotListLayoutRows(pack.metaUi));
       bumpListLayout(context);
       await (context as any).search?.();
     } catch {
@@ -398,7 +398,7 @@ export async function openListSettingDialog(
           await logic.metaUiService?.saveListSettings({
             service: listServiceName(context) ?? "",
             repository: logic.repository ?? "",
-            fields: collectListSettingsFields(context.metaui),
+            fields: collectListSettingsFields(context.metaUi),
           });
         } catch {
           await context.app?.ui?.toast?.(context as any, {

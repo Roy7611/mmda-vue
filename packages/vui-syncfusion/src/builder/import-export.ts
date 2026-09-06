@@ -12,7 +12,7 @@ export function buildImportOrExportAction(
   const runtime = context as any;
   const repository = runtime.isRoot
     ? runtime.logic.repository
-    : pluralize(context.metaui.objName);
+    : pluralize(context.metaUi.objName);
   const { role, handlerFn, importFn, exportFn } = props;
   const action =
     role === "import"

@@ -23,7 +23,7 @@ import {
 	EntityAction,
 	type Pager,
 } from '@mmda/core';
-import { type UiViewContext, type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
@@ -700,7 +700,7 @@ export class LinesideInventoryItemLogic extends UiGroupLogic<LinesideInventoryIt
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('transNo').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('transNo').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal ?? '',

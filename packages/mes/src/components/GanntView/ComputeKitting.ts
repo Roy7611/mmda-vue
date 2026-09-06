@@ -4,7 +4,7 @@ import '../GanntView/GanntView.less';
 import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
 import { useRouter, useRoute } from 'vue-router';
-import { loading, UiBuildContext, type UiContext, UI_CREATE } from '@mmda/vui';
+import { loading, VueUiContext, type UiContext, UI_CREATE } from '@mmda/vui';
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
@@ -312,7 +312,7 @@ export default defineComponent({
 		const logic =
 			di.tryInject<ProjectScheduleLogic>('productionScheduleLogic') ??
 			ProjectScheduleLogicCtor(metaUiService, router, module as Module | undefined);
-		let ctx: UiBuildContext<any>;
+		let ctx: VueUiContext<any>;
 
 		const showLoading = ref(false);
 		const selectgProject = ref();
@@ -528,7 +528,7 @@ export default defineComponent({
 							width: '80%',
 							accept: async () => {
 								return await materialTransCtx.save().then(() => {
-									const key = materialTransCtx.metaui.primaryKey ?? 'id';
+									const key = materialTransCtx.metaUi.primaryKey ?? 'id';
 									const id = materialTransCtx.model.id ?? materialTransCtx.model[key];
 									const service = (materialTransCtx.app?.name ?? 'mes').toUpperCase();
 									const href = router.resolve(
@@ -583,13 +583,13 @@ export default defineComponent({
 				repository: logic.repository,
 				service: 'mes',
 			});
-			if (!pack?.metaui) {
+			if (!pack?.metaUi) {
 				throw new Error($t('invalid.repositoryMissing', { repository: logic.repository }));
 			}
 			logic.meta = pack;
-			ctx = new UiBuildContext({
+			ctx = new VueUiContext({
 				model: defineEntity(),
-				metaui: pack.metaui,
+				metaUi: pack.metaUi,
 				view: viewProps.view,
 				loader: async () => {
 					await logic.getData();
@@ -618,9 +618,9 @@ export default defineComponent({
 				getPreparationPlan(ctx, true);
 			}
 
-			// const { metaui } = await ctx.loadMetadata('ProjectMaterials', 'mes', true);
-			// console.log('metaui', metaui);
-			// metauiData.value = metaui;
+			// const { metaUi } = await ctx.loadMetadata('ProjectMaterials', 'mes', true);
+			// console.log('metaUi', metaUi);
+			// metauiData.value = metaUi;
 		});
 
 		const searchParam = reactive(<any>{

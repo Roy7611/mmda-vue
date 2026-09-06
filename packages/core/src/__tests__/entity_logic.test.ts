@@ -14,21 +14,21 @@ class Item extends Entity {
 class ItemLogic extends EntityLogic<Item> {}
 
 function createLogic(api: Record<string, unknown> = {}) {
-  const metaui = createMockMetaUi([
+  const metaUi = createMockMetaUi([
     createMockField({ fieldName: "name", displayLabel: "名称" }),
   ]);
   const init: EntityLogicInit = {
     repository: "Items",
     apiService: "base",
-    meta: { metaui } as any,
+    meta: { metaUi } as any,
     module: { moduleCode: "A.01", objName: "Item" } as any,
     metaUiService: {
       getApiClient: () => api,
-      getPack: vi.fn(async () => ({ metaui })),
+      getPack: vi.fn(async () => ({ metaUi })),
       findModule: vi.fn(),
     } as any,
   };
-  return { logic: new ItemLogic((o) => new Item(o), init), metaui, init };
+  return { logic: new ItemLogic((o) => new Item(o), init), metaUi, init };
 }
 
 describe("EntityLogic", () => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   MetaUiFieldLogic,
   emptyPagedList,
@@ -8,13 +7,14 @@ import {
   type MetaUiField,
   type EntitySelectParam,
 } from "@mmda/core";
-import { UiViewMany } from "./view";
-import type { UiViewContext } from "./view_context";
+import { UiViewMany } from "../view";
+import { createSession } from "./session";
+import type { Constructor } from "./types";
 
-type Host = UiViewContext<any>;
-
-export function attachContextReference(ctor: { prototype: Host }) {
-  Object.assign(ctor.prototype, {
+export function WithReference<TBase extends Constructor>(
+  Base: TBase,
+) {
+  return class Reference extends Base {
     async searchRelative(
       field: MetaUiField,
       searchWord = "",
@@ -48,7 +48,7 @@ export function attachContextReference(ctor: { prototype: Host }) {
       } finally {
         options.searching = false;
       }
-    },
+    }
 
     /**
      * 为下拉类控件按需加载 REF / 枚举选项，并写回共享 refOptions。
@@ -75,10 +75,11 @@ export function attachContextReference(ctor: { prototype: Host }) {
           ) => Promise<string[]>;
           config?: { repository?: string; service?: string };
         };
-        const values = (await api.getPivotValues?.(field.fieldName, {
-          repository: this.listRepository(),
-          service: ref.service ?? api.config?.service,
-        })) ?? [];
+        const values =
+          (await api.getPivotValues?.(field.fieldName, {
+            repository: this.listRepository(),
+            service: ref.service ?? api.config?.service,
+          })) ?? [];
         const valueKey = ref.refFlds?.[0] ?? field.fieldName;
         const options = values.map((value) => ({ [valueKey]: value }));
         ref.refOptions.splice(0, ref.refOptions.length, ...options);
@@ -92,7 +93,8 @@ export function attachContextReference(ctor: { prototype: Host }) {
       } finally {
         this.referenceOptionLoads.delete(cacheKey);
       }
-    },
+    }
+
     async select<T>(
       fieldOrParam: MetaUiField | string | EntitySelectParam<T>,
     ): Promise<any> {
@@ -127,7 +129,7 @@ export function attachContextReference(ctor: { prototype: Host }) {
           options.currentSelectOption = picked[0];
           if (
             !options.selectOptions.some(
-              (item) => ref.valueOf(item) === ref.valueOf(picked[0]),
+              (item: any) => ref.valueOf(item) === ref.valueOf(picked[0]),
             )
           ) {
             options.selectOptions.unshift(picked[0]);
@@ -154,9 +156,8 @@ export function attachContextReference(ctor: { prototype: Host }) {
       const ctor =
         param.ctor ??
         ((source: object) =>
-          MetaModel.createEntity(pack.metaui, defineEntity, source) as T);
-        const { GenericUiLogic } = await import("../logic/logic");
-        const { UiBuildContext } = await import("./build_context");
+          MetaModel.createEntity(pack.metaUi, defineEntity, source) as T);
+      const { GenericUiLogic } = await import("../../logic/logic");
       const logic = new GenericUiLogic(ctor as any, {
         metaUiService: this.app.meta,
         repository: param.repository,
@@ -165,9 +166,9 @@ export function attachContextReference(ctor: { prototype: Host }) {
         apiService: param.service,
       });
       const selectionMode = param.selectionMode ?? "multiple";
-      const selectCtx = new UiBuildContext({
+      const selectCtx = createSession({
         model: emptyPagedList<T>() as any,
-        metaui: pack.metaui,
+        metaUi: pack.metaUi,
         view:
           selectionMode === "single"
             ? UiViewMany.SelectOne
@@ -186,7 +187,6 @@ export function attachContextReference(ctor: { prototype: Host }) {
       selectCtx.selectedItems = [];
       await selectCtx.init();
       this.root.showDialog = true;
-      // 对话框卸载时 Grid 可能 rowDeselected 清空 selectedItems，用本地副本承接结果
       let picked: T[] = [];
       try {
         const accepted = await this.app.ui.dialog(
@@ -199,7 +199,6 @@ export function attachContextReference(ctor: { prototype: Host }) {
             showColumnWithAction: false,
             onSelect: (selection: T[]) => {
               selectCtx.selectedItems = selection ?? [];
-              // 忽略关闭时的清空，避免冲掉已选结果
               if (selection?.length) picked = selection;
             },
             onItemDoubleClick:
@@ -214,7 +213,7 @@ export function attachContextReference(ctor: { prototype: Host }) {
           selectCtx,
           {
             name: "select",
-            title: pack.metaui.displayLabel ?? param.repository,
+            title: pack.metaUi.displayLabel ?? param.repository,
             width: "80vw",
             height: "80vh",
             maxHeight: "90vh",
@@ -229,6 +228,6 @@ export function attachContextReference(ctor: { prototype: Host }) {
       } finally {
         this.root.showDialog = false;
       }
-    },
-  });
+    }
+  };
 }

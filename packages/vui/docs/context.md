@@ -1,87 +1,81 @@
 # 会话上下文
 
-屏级运行时是 `UiBuildContext`（继承 `UiViewContext`，对标 Flutter `BuildContext`）。
-行为由 `view` 决定，不再按 Index/Edit/Details 拆类。
+屏级运行时是 **`VueUiContext`**（对标 Flutter `BuildContext`）。行为由 `view` + 可选 `logic` 决定。
 
-业务 Logic 回调使用 core 的 `UiContext`（不要写成 `UiBuildContext` 类）。
+业务 Logic 回调使用 core 的 **`UiContext`**（从 `@mmda/core` 导入），不要写成 vui `VueUiContext`。
 会话上走 `uiBuilder` / `apiClient` / `app`；`globalProps` 只是把 Vue `globalProperties` 传递下来，极少用。
-分层与图见仓库根 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
 
-`UiViewContext` 仍是**一个类**（`implements` core `UiContext`）。实现按职责拆在 `packages/vui/src/contexts/`：
+分层见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。**为何一个类、mixin 怎么叠**见设计 [vue_ui_context.md](./vue_ui_context.md)。
+
+## 从哪导入
+
+```ts
+import type { UiContext } from "@mmda/core";
+import { VueUiContext, UiViewMany, UiViewOne } from "@mmda/vui";
+```
+
+| 场景 | 写什么 |
+|---|---|
+| Logic 钩子、`onChange`、`customRenderer` 参数 | `UiContext` |
+| `new`、组件 `PropType` | `VueUiContext` |
+| 旧名 `UiViewContext` / `UiBuildContext` | 不要写（同值 deprecated 别名） |
+
+`new VueUiContext` 只出现在 vui（`EntityView`、选择器、树对话框）和少数 mes **Vue 组件**。不要在 Logic 里构造会话。
+
+## 源码（按能力，不是按视图）
 
 | 文件 | 职责 |
 |---|---|
-| [`view_context.ts`](../src/contexts/view_context.ts) | 门面：构造、Logic 绑定、筛选会话、`with` / `release`；`uiBuilder` 类型是 core `UiBuilder` |
-| `validate.ts` | `validate` / 字段错误态 |
-| `reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()` |
-| `subgroup.ts` | 子表上下文与增删行 |
+| [`vue_ui_context.ts`](../src/contexts/vue_ui_context.ts) | 本体：构造、Logic 绑定、选择态、`with` / `release`；叠 mixin 后导出 |
+| `mixins/data.ts` | 查询态、`init` / `search` / `save`、文件 IO、`doAction` / `print` |
+| `mixins/validate.ts` | `validate` / 字段错误态 |
+| `mixins/reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()`（弹层 `createSession`） |
+| `mixins/subgroup.ts` | 子表上下文与增删行 |
+| `mixins/navigate.ts` | `routeTo` / `edit` / `create` / `confirmAction` / `cancel` |
 
-关联搜索走 Logic + SQL `buildRefWhere`，不调 `globalProps.$api`。
+无 `logic` 时本地会话仍可用（子表行、单测）；有 `logic` 时 data 的 IO 才走远程。
+
+## 关联搜索与选记录
+
+走 Logic + SQL `buildRefWhere`，不调 `globalProps.$api`。细则 [core ui_context_usage](../../core/docs/logic/ui_context_usage.md)。
 
 - `searchRelative(field, word)`：联想 / 列筛，不弹层。
 - `select(field)`：hasOne 弹选并写回字段（原 `pickRelative`）。
-- `select({ repository, service?, selectionMode })`：任意仓库；返回 `false` 或数组。选择器仍是 `selectOne` / `selectMany` 的 `buildView`。
+- `select({ repository, service?, selectionMode })`：任意仓库；返回 `false` 或数组。
 - 本地行：`MetaUiBuilder` + `factory.table` + `dialog`。
 
-细则 [core ui_context_usage](../../core/docs/logic/ui_context_usage.md)。
-
-
-通用 HTTP 用 `context.apiClient`（与 Logic 的 `this.apiClient` 同一实例）。不要掏 `$api`。见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
-
-## 主要内容
-
-- `UiContext`：Logic 与字段回调的统一类型，含 `model` 和常用读写。
-- `UiViewContext`：Vue 会话实现。构造时按 `view` 选择 `reactive` 或 `shallowReactive`。
-- `UiBuildContext`：一屏宿主，挂 Logic，负责 `init` / `search` / `save`。
-- `UiViewOne` / `UiViewMany`：详情、编辑、创建、列表、多选。`view` 是 CRUD 页；`viewKind`（`UiViewManyKind`）是拼屏（list / categoryList / gantt…）。
-- 主从：`subGroupContext` / `with(row)` / `subGroupItemContext`。
-
-```ts
-import {
-  UiViewContext,
-  UiBuildContext,
-  UiViewMany,
-  UiViewOne,
-} from "@mmda/vui";
-```
+通用 HTTP 用 `context.apiClient`（与 Logic 的 `this.apiClient` 同一实例）。
 
 ## 一份会话一棵树
 
 ```text
-编辑页 UiBuildContext view=edit
-├─ 子表集合 UiViewContext    subGroupContext(group)
-└─ 编辑中的子表行 UiViewContext
+编辑页 VueUiContext view=edit
+├─ 子表集合 VueUiContext    subGroupContext(group)
+└─ 编辑中的子表行 VueUiContext
 ```
 
-索引页和详情页不建立逐行上下文。编辑页中，主表、子表集合和正在编辑的行
-才拥有实例。校验树和 `FieldSearchOptions` 不跨实例共享；字段/组的
-**Logic 定义** 可以共享。
+索引页和详情页不建立逐行上下文。校验树和 `FieldSearchOptions` 不跨实例共享；字段/组的 **Logic 定义** 可以共享。
 
-通过 `prev` / `root` 回到父级。`name === '.'` 表示根会话（主列表单元格用这个判断 linkable 列）。
+通过 `prev` / `root` 回父级。`name === '.'` 表示根会话（主列表单元格用这个判断 linkable 列）。
 
 ## 模型与校验
 
-`model` 形状随 `view` 变化：Index/Selector 为分页列表，Details/Edit 为单条实体，
-子表集合为数组。同一 `UiContext` 类型覆盖这些形状。
+`model` 形状随 `view` 变化：Index/Selector 为分页列表，Details/Edit 为单条实体，子表集合为数组。同一 `UiContext` 类型覆盖这些形状。
 
-编辑场景使用 Vue `reactive`；索引和详情使用 `shallowReactive`，避免只读行
-被深层代理。详情仍走同一套 `setFieldValue`（校验和 `onChange`），以便
-in-place 编辑（如流程确认字段）能联动改其他字段。
+编辑用 Vue `reactive`；索引和详情用 `shallowReactive`，避免只读行被深层代理。详情仍走 `setFieldValue`（校验和 `onChange`），以便 in-place 编辑能联动。
 
 ```ts
 context.getFieldValue("whName");
 context.setFieldValue("whName", "主仓");
-context.displayField("partnerID"); // 关联字段展示文本
+context.displayField("partnerID");
 context.getFieldCurrentOption("categoryID");
 ```
 
-关联搜索候选项在 `getFieldOptions(field)`，类型是 core 的 `FieldSearchOptions`。
+候选项在 `getFieldOptions(field)`，类型是 core `FieldSearchOptions`。
 
 ## 主列表单元格
 
-主列表把页面 context 和显式 `row` 交给单元格渲染器，不调用
-`context.with(row)`。旧 `customRenderer` 会收到一个不缓存、不响应式、
-不含校验树的轻量行视图作为兼容层。
+主列表把页面 context 和显式 `row` 交给单元格，不调用 `context.with(row)`。
 
 子表 `buildGroup` 先 `subGroupContext(group)`，再对每行 `groupCtx.with(row)`。已删除行用 `rowStyle` 隐藏，不要在 render 里改 `model`。
 
@@ -89,14 +83,12 @@ context.getFieldCurrentOption("categoryID");
 
 ## 关联导航
 
-`routeToRelative(field)` 生成 HAS_ONE 详情 URL：优先 `/{APP}/{refRepository}/{id}`（与通用 `EntityView` 路由一致），没有匹配时再尝试旧的命名路由 `refObjName`。
+`routeToRelative(field)` 生成 HAS_ONE 详情 URL：优先 `/{APP}/{refRepository}/{id}`，没有匹配再试旧命名路由 `refObjName`。点击外链前 `app.syncAuthState()`，见 [应用壳](./application.md)。
 
-点击外链前调用 `app.syncAuthState()`，见 [应用壳](./application.md)。
-
-## UiBuildContext
+## 构造与 init
 
 ```ts
-const context = new UiBuildContext({
+const context = new VueUiContext({
   model: { id },
   metaui: pack.metaui,
   view: UiViewOne.Details,
@@ -106,18 +98,21 @@ const context = new UiBuildContext({
 await context.init();
 ```
 
-| `view`                         | `init()`                       |
-| ------------------------------ | ------------------------------ |
+| `view` | `init()` |
+| --- | --- |
 | Index / SelectOne / SelectMany | `configureSearch` + `search()` |
-| Create                         | `logic.create`                 |
-| Details / Edit                 | `refresh()` → `logic.load`     |
+| Create | `logic.create` |
+| Details / Edit | `refresh()` → `logic.load` |
 
-保存路径：`beforeSave` → `beforeValidate` → `validate()` → `afterValidate` → `logic.save` → `afterSave`。
+保存：`beforeSave` → `beforeValidate` → `validate()` → `afterValidate` → `logic.save` → `afterSave`。
 
-`many` 为 true 时 `model` 是分页列表形状（`list` + `pagination`），不是单行实体。
+`many` 为 true 时 `model` 是分页列表（`list` + `pagination`）。
+
+列表查询状态只有 `searchParam`，见 [列表与过滤](./list.md)。
 
 ## 边界
 
 - 不要在单元格 render 里调用会改响应式依赖的 `router.resolve` 并写回 props；导航放到 click。
-- 不要为只读展示包装 `reactive(row)`；行对象由列表模型直接提供。
-- 实体整页使用 `new UiBuildContext`。
+- 不要为只读展示包装 `reactive(row)`。
+- 不要按 Index/Edit 再拆 Context 子类；`view` 只作运行时门控。
+- 皮肤可以读 `context`，不要在 factory 里 `new VueUiContext`。

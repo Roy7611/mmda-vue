@@ -10,7 +10,6 @@ import { getSqlOperator, MetaModel } from '@mmda/core';
 import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type AlternativeStrategy, defineAlternativeStrategy } from '@/models/AlternativeStrategy';
 import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/models/AlternativeStrategyItem';
-import type { UiViewContext } from '@mmda/vui';
 /**
  * 替代料策略交互逻辑
  * @author mmda codebot

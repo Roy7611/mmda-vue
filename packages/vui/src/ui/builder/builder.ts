@@ -52,7 +52,7 @@ import type {
 } from "../factory/filter";
 import type { UiAction } from "../factory/action";
 import type { UiButtonProps } from "../factory/button";
-import type { UiViewContext } from "../../contexts/view_context";
+import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./overlay";
 import { DocxFilePreview } from "../../components/DocxFilePreview";
 import { XlsxFilePreview } from "../../components/XlsxFilePreview";
@@ -69,7 +69,7 @@ import { attachTreeBuilder } from "./tree";
 export { UiActionFactory };
 
 /** Vue 拼屏会话；弹层 API 仍走 core `UiContext`。 */
-type UiContext = UiViewContext<any>;
+type UiContext = VueUiContext<any>;
 
 export interface ImportOrExportParam extends EntityUrlParam {
   handlerFn?: (context: UiContext, response: any) => void;
@@ -237,11 +237,11 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
   }
 
   openListSettings(context: CoreUiContext) {
-    return openListSettingDialog(this, context as UiViewContext);
+    return openListSettingDialog(this, context as VueUiContext);
   }
 
   build(context: CoreUiContext, extra: Record<string, unknown> = {}): VNode {
-    const runtime = context as UiViewContext;
+    const runtime = context as VueUiContext;
     const view = String(runtime.view ?? "") as UiViewType;
     const factories = runtime.logic?.viewOptions;
     const option = factories?.[view]?.(runtime) ?? {};
@@ -448,7 +448,7 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
   ) => VNode;
   declare buildTreeGrid: <T = any>(
     rows: T[],
-    metaui: MetaUi,
+    metaUi: MetaUi,
     rowContext: (row: T) => UiContext,
     props?: UiTreeGridPropsType<T>,
   ) => VNode;
@@ -470,7 +470,7 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
     props?: UiListPropsType<T>,
   ) => VNode;
   declare buildColumns: <T = any>(
-    metaui: MetaUi,
+    metaUi: MetaUi,
     context: UiContext,
     props?: UiListPropsType<T>,
   ) => VNode[];
@@ -485,11 +485,11 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
   ) => VNode;
   declare buildGroupHeaderActions: (
     group: MetaUiGroup,
-    context: UiViewContext<any>,
+    context: VueUiContext<any>,
   ) => VNode | undefined;
   declare tableWithCells: (
     rows: any[],
-    metaui: MetaUi,
+    metaUi: MetaUi,
     rowContext: (row: any) => UiContext,
     tableProps?: UiListPropsType<any>,
   ) => VNode;

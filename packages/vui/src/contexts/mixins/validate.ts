@@ -1,14 +1,11 @@
-// @ts-nocheck
-import type { MetaUiField, MetaUiGroup, UiFieldValidation } from "@mmda/core";
-import type { UiViewContext } from "./view_context";
+import type { MetaUiField, MetaUiGroup, UiFieldValidation, UiValidation } from "@mmda/core";
+import type { Constructor } from "./types";
 
-type Host = UiViewContext<any>;
-
-export function attachContextValidate(ctor: { prototype: Host }) {
-  Object.assign(ctor.prototype, {
+export function WithValidate<TBase extends Constructor>(Base: TBase) {
+  return class Validate extends Base {
     async validate() {
       let valid = true;
-      for (const group of this.metaui.groups) {
+      for (const group of this.metaUi.groups) {
         if ((await this.validateGroup(group)) > 0) valid = false;
       }
       const summary = (this.validationState.summary ??= { errorNum: 0 });
@@ -16,7 +13,7 @@ export function attachContextValidate(ctor: { prototype: Host }) {
         ? 0
         : this.countValidationErrors(this.validationState);
       return valid;
-    },
+    }
 
     validateField(
       field: MetaUiField | string,
@@ -29,14 +26,14 @@ export function attachContextValidate(ctor: { prototype: Host }) {
         this.model as Record<string, any>,
         this.validationState,
       );
-    },
+    }
 
     async validateGroup(group: MetaUiGroup | string) {
       const grp = this.resolveGroup(group);
       if (this.isGroupHidden(grp)) return 0;
       if (!grp.many) {
         return grp.fields.reduce(
-          (count, field) =>
+          (count: number, field: MetaUiField) =>
             count +
             this.validateSingleField(
               field,
@@ -62,9 +59,9 @@ export function attachContextValidate(ctor: { prototype: Host }) {
           rowNum: rowKey,
           summary: { errorNum: 0 },
         }) as UiValidation;
-        const rowContext = this.subGroupItemContext(grp, row as Entity);
+        const rowContext = this.subGroupItemContext(grp, row);
         let rowErrors = 0;
-        for (const field of grp.groupUi?.groups.flatMap((g) => g.fields) ?? []) {
+        for (const field of grp.groupUi?.groups.flatMap((g: MetaUiGroup) => g.fields) ?? []) {
           rowErrors += rowContext.validateSingleField(
             field,
             rowContext.getFieldValue(field),
@@ -77,21 +74,21 @@ export function attachContextValidate(ctor: { prototype: Host }) {
         errorCount += rowErrors;
       });
       return errorCount;
-    },
+    }
 
     resetValidation() {
       for (const state of Object.values(this.validationState)) {
         if (state && typeof state === "object" && "touched" in state) {
-          state.touched = false;
-          state.message = "";
-          if ("warning" in state) state.warning = "";
+          (state as UiFieldValidation).touched = false;
+          (state as UiFieldValidation).message = "";
+          if ("warning" in state) (state as UiFieldValidation).warning = "";
         }
       }
-    },
+    }
 
     hasFieldError(field: MetaUiField | string) {
       return this.getInvalidMessage(field) !== "";
-    },
+    }
 
     isInvalid(field: MetaUiField | string) {
       const state = this.validationState[this.resolveField(field).fieldName];
@@ -99,24 +96,24 @@ export function attachContextValidate(ctor: { prototype: Host }) {
         state &&
         typeof state === "object" &&
         "touched" in state &&
-        state.touched &&
-        state.message
+        (state as UiFieldValidation).touched &&
+        (state as UiFieldValidation).message
       );
-    },
+    }
 
     getInvalidMessage(field: MetaUiField | string) {
       const state = this.validationState[this.resolveField(field).fieldName];
       return state &&
         typeof state === "object" &&
         "message" in state &&
-        typeof state.message === "string"
-        ? state.message
+        typeof (state as UiFieldValidation).message === "string"
+        ? (state as UiFieldValidation).message
         : "";
-    },
+    }
 
     getFieldError(field: MetaUiField | string) {
       return this.getInvalidMessage(field);
-    },
+    }
 
     setFieldError(field: MetaUiField | string, error: string) {
       const name = this.resolveField(field).fieldName;
@@ -126,10 +123,11 @@ export function attachContextValidate(ctor: { prototype: Host }) {
       }) as UiFieldValidation;
       state.touched = true;
       state.message = error;
-    },
+    }
+
     hasGroupError(group: MetaUiGroup | string) {
       const state = this.validationState[this.resolveGroup(group).groupName];
       return this.countValidationErrors(state) > 0;
-    },
-  });
+    }
+  };
 }

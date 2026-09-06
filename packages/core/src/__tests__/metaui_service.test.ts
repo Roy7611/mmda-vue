@@ -32,7 +32,7 @@ describe("MetaUiService 从 JSON 构造 MetaUi", () => {
     expect(getJson).toHaveBeenCalledWith(
       expect.stringMatching(/Things\/metaUiPack/),
     );
-    expect(pack.metaui).toBeInstanceOf(MetaUi);
-    expect(pack.metaui.objName).toBe("Thing");
+    expect(pack.metaUi).toBeInstanceOf(MetaUi);
+    expect(pack.metaUi.objName).toBe("Thing");
   });
 });

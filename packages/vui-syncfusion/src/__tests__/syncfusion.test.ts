@@ -547,7 +547,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders the metadata name field as a details link", () => {
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Material",
       displayLabel: "物料",
       primaryKey: "materialID",
@@ -574,17 +574,17 @@ describe("Syncfusion skin", () => {
     const context = {
       name: ".",
       editing: false,
-      metaui,
+      metaUi,
       module: {},
       getFieldLogic: () => ({}),
       details,
     } as any;
     const builder = new SyncfusionUiBuilder();
     const link = builder.displayCellFor(
-      metaui.getField("materialCode")!,
+      metaUi.getField("materialCode")!,
       { materialID: "m1", materialCode: "M001" },
       context,
-      { tableMetaui: metaui },
+      { tableMetaui: metaUi },
     ) as any;
 
     expect(link.type).toBe("a");
@@ -808,14 +808,14 @@ describe("Syncfusion skin", () => {
   it("binds table dataSource as a plain array copy", () => {
     const factory = createSyncfusionUiFactory();
     const selectedItems: any[] = [];
-    const metaui = {
+    const metaUi = {
       getListedFields: () => [{ fieldName: "name", displayLabel: "名称" }],
       groups: [],
       primaryKey: "id",
     } as any;
     const rows = [{ id: "1", name: "a" }];
     const vnode = gridOf(
-      factory.table(rows, metaui, {
+      factory.table(rows, metaUi, {
         selectedItems,
         selectionMode: "multiple",
       }),
@@ -827,7 +827,7 @@ describe("Syncfusion skin", () => {
 
   it("enables Grid column grouping by default and can disable it", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Material",
       getListedFields: () => [
         { fieldName: "categoryName", displayLabel: "物料类别" },
@@ -836,7 +836,7 @@ describe("Syncfusion skin", () => {
       groups: [],
       primaryKey: "id",
     } as any;
-    const enabledHost = factory.table([], metaui, {
+    const enabledHost = factory.table([], metaUi, {
       pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
     });
     const enabled = gridOf(enabledHost);
@@ -845,7 +845,7 @@ describe("Syncfusion skin", () => {
     expect(enabled.props?.allowPaging).toBe(false);
     expect(enabled.props?.groupSettings).toBeUndefined();
 
-    const disabled = gridOf(factory.table([], metaui, { enableGroup: false }));
+    const disabled = gridOf(factory.table([], metaUi, { enableGroup: false }));
     expect(disabled.props?.allowGrouping).toBe(false);
     expect(disabled.props?.groupSettings).toBeUndefined();
   });
@@ -853,7 +853,7 @@ describe("Syncfusion skin", () => {
   it("uses row virtualization and an external Pager for list pages", () => {
     const factory = createSyncfusionUiFactory();
     const onPage = vi.fn();
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         {
@@ -871,7 +871,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const rows = [{ id: "1", rowNum: "21", name: "alpha" }];
-    const host = factory.table(rows, metaui, {
+    const host = factory.table(rows, metaUi, {
       pagination: { pageNo: 3, pageSize: 10, recordCount: 45 },
       onPage,
       selectionMode: "multiple",
@@ -952,7 +952,7 @@ describe("Syncfusion skin", () => {
 
   it("custom-binds only a virtual window, not the full server page", async () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         { fieldName: "name", displayLabel: "名称", dataType: 48 },
@@ -966,7 +966,7 @@ describe("Syncfusion skin", () => {
       name: `row-${index + 1}`,
     }));
     const vnode = gridOf(
-      factory.table(rows, metaui, {
+      factory.table(rows, metaUi, {
         pagination: { pageNo: 1, pageSize: 1000, recordCount: 3392 },
       }),
     );
@@ -1009,7 +1009,7 @@ describe("Syncfusion skin", () => {
         labelOf: (option: any) => option.label,
       },
     };
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         {
@@ -1032,7 +1032,7 @@ describe("Syncfusion skin", () => {
       },
     ];
     const vnode = gridOf(
-      factory.table(rows, metaui, {
+      factory.table(rows, metaUi, {
         pagination: { pageNo: 1, pageSize: 1000, recordCount: 1000 },
         templateCellFields: ["name"],
         renderCell: (_field: any, row: any) =>
@@ -1059,7 +1059,7 @@ describe("Syncfusion skin", () => {
 
   it("renders three flat row actions by default without a dropdown", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         {
@@ -1084,7 +1084,7 @@ describe("Syncfusion skin", () => {
       deletable: false,
     };
     const vnode = gridOf(
-      factory.table([row], metaui, {
+      factory.table([row], metaUi, {
         rowMenu: (item: any) => [
           ...(item.editable !== false
             ? [{ name: "edit", label: "编辑", onAction: edit }]
@@ -1129,7 +1129,7 @@ describe("Syncfusion skin", () => {
 
   it("renders details SplitButton dropdown only when showActions is true", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         {
@@ -1154,7 +1154,7 @@ describe("Syncfusion skin", () => {
       deletable: false,
     };
     const vnode = gridOf(
-      factory.table([row], metaui, {
+      factory.table([row], metaUi, {
         showActions: true,
         rowMenu: (item: any) => [
           ...(item.editable !== false
@@ -1185,7 +1185,7 @@ describe("Syncfusion skin", () => {
 
   it("defaults numeric columns to right and enum columns to left", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         {
@@ -1213,7 +1213,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([{ id: "1", qty: 12, status: 1, name: "a" }], metaui, {}),
+      factory.table([{ id: "1", qty: 12, status: 1, name: "a" }], metaUi, {}),
     );
     const columns = vnode.props.columns.filter(
       (column: any) => column?.field && column.field !== "rowNum",
@@ -1236,7 +1236,7 @@ describe("Syncfusion skin", () => {
     const onItemDoubleClick = vi.fn();
     const editCell = vi.fn();
     const row = { id: "1", name: "旧名称", code: "P-1", editable: true };
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         { fieldName: "name", displayLabel: "名称", dataType: 48 },
@@ -1246,7 +1246,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([row], metaui, {
+      factory.table([row], metaUi, {
         inplaceEdit: true,
         inplaceEditStart: "click",
         editableFields: ["name"],
@@ -1333,7 +1333,7 @@ describe("Syncfusion skin", () => {
     const factory = createSyncfusionUiFactory();
     const editCell = vi.fn();
     const host = document.createElement("div");
-    const metaui = {
+    const metaUi = {
       objName: "Product",
       getListedFields: () => [
         { fieldName: "name", displayLabel: "名称", dataType: 48 },
@@ -1342,7 +1342,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([{ id: "1", name: "旧" }], metaui, {
+      factory.table([{ id: "1", name: "旧" }], metaUi, {
         inplaceEdit: true,
         inplaceEditStart: "excel",
         editableFields: ["name"],
@@ -1380,7 +1380,7 @@ describe("Syncfusion skin", () => {
       { value: "RAW", label: "原材料" },
       { value: "PART", label: "零件" },
     ];
-    const metaui = {
+    const metaUi = {
       objName: "Material",
       getListedFields: () => [
         {
@@ -1407,7 +1407,7 @@ describe("Syncfusion skin", () => {
     } as any;
     const rows = [{ id: "1", category: "RAW", name: "a" }];
     const vnode = gridOf(
-      factory.table(rows, metaui, {
+      factory.table(rows, metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
         onFilterModelChange,
@@ -1519,7 +1519,7 @@ describe("Syncfusion skin", () => {
       valueOf: (option: any) => option.code,
       labelOf: (option: any) => option.label,
     };
-    const metaui = {
+    const metaUi = {
       objName: "Material",
       getListedFields: () => [
         {
@@ -1533,7 +1533,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
       }),
@@ -1555,7 +1555,7 @@ describe("Syncfusion skin", () => {
       { id: "p1", partnerName: "甲公司" },
       { id: "p2", partnerName: "乙公司" },
     ];
-    const metaui = {
+    const metaUi = {
       objName: "Order",
       getListedFields: () => [
         {
@@ -1577,7 +1577,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
       }),
@@ -1595,7 +1595,7 @@ describe("Syncfusion skin", () => {
 
   it("uses reference valueOf/labelOf for multi-field labels", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Material",
       getListedFields: () => [
         {
@@ -1622,7 +1622,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
       }),
@@ -1638,7 +1638,7 @@ describe("Syncfusion skin", () => {
   it("extends number/date Menu filters and keeps bool/text on default Menu", () => {
     const factory = createSyncfusionUiFactory();
     const onFilterModelChange = vi.fn();
-    const metaui = {
+    const metaUi = {
       objName: "Order",
       getListedFields: () => [
         { fieldName: "amount", displayLabel: "金额", dataType: 68 },
@@ -1650,7 +1650,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
         onFilterModelChange,
@@ -1733,7 +1733,7 @@ describe("Syncfusion skin", () => {
   it("shows a second native input for BETWEEN and emits range predicates", () => {
     const factory = createSyncfusionUiFactory();
     const onFilterModelChange = vi.fn();
-    const metaui = {
+    const metaUi = {
       objName: "Order",
       getListedFields: () => [
         { fieldName: "amount", displayLabel: "金额", dataType: 68 },
@@ -1743,7 +1743,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
         onFilterModelChange,
@@ -1844,7 +1844,7 @@ describe("Syncfusion skin", () => {
 
   it("uses DateTimePicker controls for datetime BETWEEN", () => {
     const factory = createSyncfusionUiFactory();
-    const metaui = {
+    const metaUi = {
       objName: "Order",
       getListedFields: () => [
         { fieldName: "orderedAt", displayLabel: "日期", dataType: 184 },
@@ -1853,7 +1853,7 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const vnode = gridOf(
-      factory.table([], metaui, {
+      factory.table([], metaUi, {
         filterDisplay: "menu",
         pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
       }),
@@ -1973,7 +1973,7 @@ describe("Syncfusion skin", () => {
       many: true,
       editing: false,
       title: "部门",
-      metaui: { objName: "Department", displayLabel: "部门" },
+      metaUi: { objName: "Department", displayLabel: "部门" },
       model: { list: [] },
       logic: { module, repository: "Departments" },
       module,
@@ -2025,7 +2025,7 @@ describe("Syncfusion skin", () => {
     gridEl.className = "e-grid mmda-sf-table";
     document.body.appendChild(gridEl);
 
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: "Item",
       displayLabel: "Item",
       primaryKey: "id",
@@ -2062,7 +2062,7 @@ describe("Syncfusion skin", () => {
     columns[2].width = "96px";
 
     const updateForCache = vi.fn().mockResolvedValue(undefined);
-    const pack = { metaui, filters: [], sorts: [] };
+    const pack = { metaUi, filters: [], sorts: [] };
     const staleMetaUi = new MetaUi({
       objName: "Item",
       displayLabel: "Item",
@@ -2097,13 +2097,13 @@ describe("Syncfusion skin", () => {
       ],
     });
     const context = {
-      metaui,
+      metaUi,
       t: (key: string) => key,
       filters: [],
       searchParam: { pager: { sorts: [] } },
       logic: {
         repository: "Items",
-        meta: { metaui: staleMetaUi, filters: [], sorts: [] },
+        meta: { metaUi: staleMetaUi, filters: [], sorts: [] },
         metaUiService: { updateForCache },
       },
     } as any;
@@ -2111,12 +2111,12 @@ describe("Syncfusion skin", () => {
     await autoFitSyncfusionListGrid(context);
 
     expect(autoFitColumns).toHaveBeenCalledWith(["name", "code"]);
-    expect(metaui.getField("name")?.listSize).toBe(180);
-    expect(metaui.getField("code")?.listSize).toBe(96);
+    expect(metaUi.getField("name")?.listSize).toBe(180);
+    expect(metaUi.getField("code")?.listSize).toBe(96);
     expect(staleMetaUi.getField("name")?.listSize).toBe(120);
     expect(updateForCache).toHaveBeenCalledWith(
       "Items",
-      expect.objectContaining({ metaui }),
+      expect.objectContaining({ metaUi }),
       undefined,
     );
 
@@ -2147,7 +2147,7 @@ describe("Syncfusion skin", () => {
     const context = {
       many: false,
       editing: false,
-      metaui: { objName: "Material", displayLabel: "物料" },
+      metaUi: { objName: "Material", displayLabel: "物料" },
       model: {
         actions: [{ name: "deprecate", label: "弃用", role: "DANGER" }],
       },

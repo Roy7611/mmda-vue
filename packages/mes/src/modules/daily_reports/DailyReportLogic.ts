@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, defaultPager, MetaUiBuilder } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type DailyReport, defineDailyReport } from '@/models/DailyReport';
 import { type DailyReportTask, defineDailyReportTask } from '@/models/DailyReportTask';
 import { type DailyReportEvent, defineDailyReportEvent } from '@/models/DailyReportEvent';
@@ -274,7 +274,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('refPhotos').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('refPhotos').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const factory = ctx.uiBuilder.factory;
 					const t = ctx.t.bind(ctx);
 					return factory.buttonGroup(() => [
@@ -306,7 +306,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 					// 	onAction: () => chooseImages(ctx, this.master, 'simple'),
 					// });
 				}),
-				this.field('taskID').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('taskID').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps;
 					const tasks = getReportTasks(ctx);
 					const selectedId = ctx.model.taskID?.taskID ?? ctx.model.taskID;
@@ -324,7 +324,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 							ctx.setFieldValue('taskID', value ?? null);
 						},
 						toSearch: async () => {
-							const metaFields = ctx.root.logic!.meta.metaui.groups.filter((item: any) => item.relObjName === 'DailyReportTask');
+							const metaFields = ctx.root.logic!.meta.metaUi.groups.filter((item: any) => item.relObjName === 'DailyReportTask');
 							const taskGroup = metaFields[0];
 							if (!taskGroup?.groupUi) return false;
 							const rows = filterReportTasks(getReportTasks(ctx), '');

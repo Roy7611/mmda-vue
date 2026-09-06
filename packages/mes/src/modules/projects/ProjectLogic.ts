@@ -96,9 +96,9 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 	const mUI = await metaUiService.get('ProjectMaterials', 'mes');
 	metarlDataKEY.value = 'itemID';
 	await getMetarlList(context, model, 'noMAKE');
-	const metaui = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
+	const metaUi = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
 	return await context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(metarlData.value, metaui, {
+		context.uiBuilder.factory.table(metarlData.value, metaUi, {
 			selectionMode: 'multiple',
 			onSelect: (selection: any) => { selectMetarlList.data = selection; },
 		}),
@@ -121,9 +121,9 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 	const mUI = await metaUiService.get('ProjectMaterials', 'mes');
 	metarlDataKEY.value = 'itemID';
 	await getMetarlList(context, model, 'noMAKE');
-	const metaui = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
+	const metaUi = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
 	context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(metarlData.value, metaui, {
+		context.uiBuilder.factory.table(metarlData.value, metaUi, {
 			selectionMode: 'multiple',
 			onSelect: (selection: any) => { selectMetarlList.data = selection; },
 		}),

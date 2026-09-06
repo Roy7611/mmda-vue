@@ -11,9 +11,9 @@
 
 ## 目的
 
-- **Logic（交互逻辑）**：显示、锁定、校验、引用加码、`onChange`、业务动作。纯 TypeScript，无 Vue/React 类型。只认 core **`UiContext` 接口**，不要写成 vui `UiBuildContext` 类。
+- **Logic（交互逻辑）**：显示、锁定、校验、引用加码、`onChange`、业务动作。纯 TypeScript，无 Vue/React 类型。只认 core **`UiContext` 接口**，不要写成 vui `VueUiContext` 类。
 - **Data**：元数据、`MetaModel`、`ApiClient`。不要自己拼 HTTP，不要改写共享元数据。
-- **UI**：vui + 皮肤配置与展现，挂上 Logic。不写业务计算。控件在皮肤 `components/`，`factory/` 用元数据生产，vui Builder 只拼复杂视图。不要把厂商表格写进 `@mmda/vui`。`UiBuildContext` 对标 Flutter `BuildContext`，给渲染 / 拼屏用。
+- **UI**：vui + 皮肤配置与展现，挂上 Logic。不写业务计算。控件在皮肤 `components/`，`factory/` 用元数据生产，vui Builder 只拼复杂视图。不要把厂商表格写进 `@mmda/vui`。`VueUiContext` 对标 Flutter `BuildContext`，给渲染 / 拼屏用。
 
 ## 会话上怎么走
 

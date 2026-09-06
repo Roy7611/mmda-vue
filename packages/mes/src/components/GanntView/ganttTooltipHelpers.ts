@@ -62,7 +62,7 @@ export const appendGanttTooltipFieldHtml = (
 			if (parsed) {
 				return appendGanttTooltipRowHtml(acc, parsed.label, parsed.value, seen);
 			}
-			// 无法解析时回退：沿用 metaui 字段 displayLabel
+			// 无法解析时回退：沿用 metaUi 字段 displayLabel
 			return appendGanttTooltipRowHtml(acc, label, line, seen);
 		}, html);
 	}

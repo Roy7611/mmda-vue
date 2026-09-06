@@ -20,7 +20,7 @@ import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { isActionEnabled } from "../factory/action";
 import { MmdaGroupCard } from "../../components/GroupCard";
 import { translateMessage } from "../../i18n/i18n";
-import type { UiViewContext } from "../../contexts/view_context";
+import type { VueUiContext } from "../../contexts/vue_ui_context";
 import type { UiViewPropsType } from "../../contexts/view";
 import type { UiGanttChartProps, UiGanttViewProps } from "../factory/gantt";
 import {
@@ -184,7 +184,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
     
     /** 子表 header 工具栏（对齐老代码 Panel icons）— 平面图标，文案进 tooltip */
     buildGroupHeaderActions(group: MetaUiGroup, context: UiContext) {
-      const runtime = context as UiViewContext;
+      const runtime = context as VueUiContext;
       const actions = runtime.getGroupActions?.(group) ?? [];
       if (!actions.length) return undefined;
       const t = (message: any) => context.t(message);
@@ -239,7 +239,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         const rows =
           ((context.model as Record<string, any>)[group.groupName] as any[]) ??
           [];
-        const groupCtx = (context as UiViewContext).subGroupContext(group);
+        const groupCtx = (context as VueUiContext).subGroupContext(group);
         const readOnlyRows = !context.editing;
         const groupLogic = context.getGroupLogic(group) as any;
         const customGroupView = context.editing
@@ -586,7 +586,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
     },
     
     buildView(context: UiContext, props: UiViewPropsType = {}): VNode {
-      const groups = context.metaui.groups.filter(
+      const groups = context.metaUi.groups.filter(
         (group) => !context.isGroupHidden(group),
       );
       const primaryCols = props.primaryCols ?? 2;

@@ -53,7 +53,7 @@ export function attachNavigationRenderers(factory: any) {
 
   factory.tree = (props: any) => h(SfTree, props as any);
 
-  factory.list = <T>(model: T[], metaui: MetaUi, props: UiListPropsType<T>) =>
+  factory.list = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
     h("div", { class: "mmda-sf-list" }, [
       model.length
         ? model.map((item, index) =>
@@ -63,8 +63,8 @@ export function attachNavigationRenderers(factory: any) {
                 key:
                   props.itemKey?.(item) ??
                   String(
-                    metaui.primaryKey
-                      ? (item as any)[metaui.primaryKey]
+                    metaUi.primaryKey
+                      ? (item as any)[metaUi.primaryKey]
                       : index,
                   ),
                 class: ["mmda-sf-list__item", props.itemClass?.(item)],

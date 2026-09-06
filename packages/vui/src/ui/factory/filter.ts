@@ -1,11 +1,3 @@
-/*
- * @Author: kuayue 1594492894@qq.com
- * @Date: 2024-09-18 19:15:16
- * @LastEditors: kuayue 1594492894@qq.com
- * @LastEditTime: 2026-04-24 13:57:53
- * @FilePath: /mmda-vue/packages/vui/src/ui/ui_filter.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import {
   MetaUiField,
   SqlDataType,

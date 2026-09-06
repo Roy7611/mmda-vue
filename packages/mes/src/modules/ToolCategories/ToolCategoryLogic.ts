@@ -13,8 +13,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, MetaUiPack } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, MetaUiPack, type UiContext } from '@mmda/core';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ToolCategory, defineToolCategory } from "@/models/ToolCategory";
 import { MaterialTypeEnum, MaterialType } from '@mmda/base/src/enums/MaterialType';
 
@@ -75,15 +75,15 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
 			fields.push(
 				this.field('materialType')
 					.lockIf((model, ctx) => true)
-					.setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 						return ctx.uiBuilder.factory.textSpan(MaterialTypeEnum.textOf(MaterialType.TOOLS));
 					}),
 				this.field('materialX')
 					.lockIf((model, ctx) => !!model.parentCatID)
-					.setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? ctx.t(this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text ?? '') : '-');
 					})
-					.setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						return ctx.uiBuilder.factory.select({
 							options: this.materialXOptions.map(option => ({ ...option, text: ctx.t(option.text) })),
 							optionLabel: 'text',

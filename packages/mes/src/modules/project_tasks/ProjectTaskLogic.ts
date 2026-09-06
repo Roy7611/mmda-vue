@@ -5,8 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined } from '@mmda/core';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined, type UiContext } from '@mmda/core';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectTask, defineProjectTask } from '@/models/ProjectTask';
 import { stringify } from 'querystring';
 //计算两个天数之间的日期
@@ -93,7 +93,7 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
 				this.field('taskLevel').lockIf(model => model.ganttLevel),
 				this.field('taskPhase').lockIf(model => model.ganttLevel),
 
-				this.field('expectedStart').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('expectedStart').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps;
 
 					// console.log("ctx.model.mStart", ctx.model.mStart);
@@ -123,7 +123,7 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
 
 				}),
 
-				this.field('expectedFinish').setCustomEditor((fld, ctx: UiViewContext<any>, props) => {
+				this.field('expectedFinish').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const { $ui: ui, $t: t } = ctx.globalProps;
 
 

@@ -224,8 +224,8 @@ export const categoryMeta = new MetaUi({
   ],
 });
 
-const productPack: MetaUiPack = { metaui: productMeta };
-const categoryPack: MetaUiPack = { metaui: categoryMeta };
+const productPack: MetaUiPack = { metaUi: productMeta };
+const categoryPack: MetaUiPack = { metaUi: categoryMeta };
 
 export const playgroundPacks: Record<string, MetaUiPack> = {
   Products: productPack,

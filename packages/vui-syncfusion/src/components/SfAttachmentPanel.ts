@@ -8,7 +8,7 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import { encodeUriAndFix } from "@mmda/core";
-import { getFileInfo, type UiBuildContext } from "@mmda/vui";
+import { getFileInfo, type VueUiContext } from "@mmda/vui";
 
 type AttachmentItem = {
   fileName: string;
@@ -56,7 +56,7 @@ export const SfAttachmentPanel = defineComponent({
   name: "SfAttachmentPanel",
   props: {
     context: {
-      type: Object as PropType<UiBuildContext<any>>,
+      type: Object as PropType<VueUiContext<any>>,
       required: true,
     },
   },

@@ -88,8 +88,8 @@ describe("列表列顺序", () => {
 });
 
 describe("updateForCache", () => {
-  it("把 metaui/filters 与 lastQuery 写入缓存，不写 sorts", async () => {
-    const metaui = metaOf(field("code", { listSize: 120, listPos: 0 }));
+  it("把 metaUi/filters 与 lastQuery 写入缓存，不写 sorts", async () => {
+    const metaUi = metaOf(field("code", { listSize: 120, listPos: 0 }));
     const apiClient = {
       config: { service: "base", locale: "zh" },
       http: { postJson: async () => ({}) },
@@ -111,9 +111,9 @@ describe("updateForCache", () => {
         ],
       },
     ];
-    await service.updateForCache("Things", { metaui, filters, lastQuery: { pager: { pageSize: 20, pageNo: 1 }, searchWord: "x" }, sorts: [{ sortBy: "code", sortOrder: "ASC" }] } as any, "base");
+    await service.updateForCache("Things", { metaUi, filters, lastQuery: { pager: { pageSize: 20, pageNo: 1 }, searchWord: "x" }, sorts: [{ sortBy: "code", sortOrder: "ASC" }] } as any, "base");
     const cached = await service.getPack({ repository: "Things", service: "base" });
-    expect(cached.metaui.getField("code")?.listSize).toBe(120);
+    expect(cached.metaUi.getField("code")?.listSize).toBe(120);
     expect(cached.filters?.[0]?.filterConditions[0].active).toBe(true);
     expect((cached as { sorts?: unknown }).sorts).toBeUndefined();
     expect(cached.lastQuery?.searchWord).toBe("x");

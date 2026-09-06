@@ -10,7 +10,7 @@
 
 ## 主要内容
 
-`UiContext`：Logic 与字段回调的统一入口。运行时行为由 `view` 决定。用法 [ui_context_usage.md](./logic/ui_context_usage.md)。弹层 [ui_builder_usage.md](./ui/ui_builder_usage.md)。
+`UiContext`：Logic 与字段回调的统一入口。运行时行为由 `view` 决定。用法 [ui_context_usage.md](./logic/ui_context_usage.md)。vui 实现 [VueUiContext 设计](../../vui/docs/vue_ui_context.md) / [怎么写](../../vui/docs/context.md)。弹层 [ui_builder_usage.md](./ui/ui_builder_usage.md)。
 
 - `MetaUiFieldLogic`：字段只读、隐藏、校验、搜索和自定义渲染。
 - `MetaUiGroupLogic`：子表行为、导入导出、聚合和自定义操作。

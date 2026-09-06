@@ -2,7 +2,7 @@ import type { ActionCallback, EntityAction } from "@mmda/core";
 import { entityActionFactory } from "@mmda/core";
 import { UiContextAction, type IconResolver } from "../factory/action";
 import type { VueUiBuilder, ImportOrExportParam } from "./builder";
-import { deletableSelectedItems } from "../../contexts/build_context";
+import { deletableSelectedItems } from "../../contexts/vue_ui_context";
 import type { UiContext } from "./helpers";
 
 export class UiActionFactory {
@@ -58,7 +58,7 @@ export class UiActionFactory {
       const result = await runtime.save?.();
       // 创建/编辑保存成功后进详情（对话框 confirm 走 confirmAction，不经此路径）
       if (result !== false && result != null && runtime.editing) {
-        const key = runtime.metaui?.primaryKey as string | undefined;
+        const key = runtime.metaUi?.primaryKey as string | undefined;
         const id =
           result?.id ??
           runtime.model?.id ??
@@ -108,10 +108,10 @@ export class UiActionFactory {
         message:
           deletable.length === 1
             ? (runtime.translate?.("confirmation.delete", {
-                it: runtime.metaui?.displayLabel,
+                it: runtime.metaUi?.displayLabel,
               }) ?? "Delete this item?")
             : (runtime.translate?.("confirmation.deleteAll", {
-                it: runtime.metaui?.displayLabel,
+                it: runtime.metaUi?.displayLabel,
               }) ?? "Delete selected items?"),
         buttons: ["yes", "no"],
       });

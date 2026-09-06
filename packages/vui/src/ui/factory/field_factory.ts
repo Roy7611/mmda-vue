@@ -5,9 +5,9 @@ import {
   type MetaUiGroup,
 } from "@mmda/core";
 import type { PropData } from "../layout/layout";
-import type { UiViewContext } from "../../contexts/view_context";
+import type { VueUiContext } from "../../contexts/vue_ui_context";
 
-type UiContext = UiViewContext<any>;
+type UiContext = VueUiContext<any>;
 
 export type UiFieldRenderer = (
   field: MetaUiField,

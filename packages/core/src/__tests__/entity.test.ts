@@ -84,7 +84,7 @@ describe('entity factory', () => {
 
 describe('MetaUi name column', () => {
   it('marks the legacy nameCol field as the list details link', () => {
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Material',
       displayLabel: '物料',
       primaryKey: 'materialID',
@@ -106,12 +106,12 @@ describe('MetaUi name column', () => {
       ],
     })
 
-    expect(metaui.labelField).toBe('materialCode')
-    expect(metaui.getField('materialCode')?.linkable).toBe(true)
+    expect(metaUi.labelField).toBe('materialCode')
+    expect(metaUi.getField('materialCode')?.linkable).toBe(true)
   })
 
   it('reports missing child groupUi', () => {
-    const metaui = new MetaUi({
+    const metaUi = new MetaUi({
       objName: 'Role',
       displayLabel: '角色',
       groups: [
@@ -130,7 +130,7 @@ describe('MetaUi name column', () => {
         },
       ],
     })
-    expect(metaui.hasSubGroupUis()).toBe(false)
+    expect(metaUi.hasSubGroupUis()).toBe(false)
     const complete = new MetaUi({
       objName: 'Role',
       displayLabel: '角色',

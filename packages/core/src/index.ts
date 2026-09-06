@@ -1,6 +1,6 @@
 /**
  * 元模型驱动架构核心（@mmda/core）
- * 产品层：Logic（logic/）+ Data（metaui / models / net / …）+ UI 契约（ui/，无实现）。
+ * 产品层：Logic（logic/）+ Data（metaUi / models / net / …）+ UI 契约（ui/，无实现）。
  */
 export { DateTime, Duration, Interval } from 'luxon'
 
@@ -18,7 +18,7 @@ export * from './extensions/datetime_extensions'
 export * from './extensions/number_extensions'
 export * from './extensions/array_extensions'
 
-// Data：metaui（含 Module）
+// Data：metaUi（含 Module）
 export * from './metaui/datatype'
 export * from './metaui/metaui_dialog'
 export * from './metaui/metaui_action'

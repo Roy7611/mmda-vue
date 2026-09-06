@@ -28,8 +28,8 @@ import {
   rememberPivotDays,
 } from './ag_filter'
 
-export function listedFieldsOf(metaui: MetaUi): MetaUiField[] {
-  return listedMetaFields(metaui)
+export function listedFieldsOf(metaUi: MetaUi): MetaUiField[] {
+  return listedMetaFields(metaUi)
 }
 
 const headerName = (field: MetaUiField) => field.displayLabel || field.fieldName
@@ -155,10 +155,10 @@ const setFilterParamsOf = (
 })
 
 export function buildColumnDefs<T>(
-  metaui: MetaUi,
+  metaUi: MetaUi,
   props: UiListPropsType<T> = {} as UiListPropsType<T>,
 ): ColDef<T>[] {
-  const fields = listedFieldsOf(metaui)
+  const fields = listedFieldsOf(metaUi)
   const enableSort = props.enableSort !== false
   const filterDisplay = props.filterDisplay ?? 'menu'
   const cols: ColDef<T>[] = fields.map(field => {

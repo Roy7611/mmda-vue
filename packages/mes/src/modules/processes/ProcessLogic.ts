@@ -7,7 +7,7 @@
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, inFilter, notInFilter, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
 import { processBpmnNode } from '@/components/BpmnModeler';
-import { type UiViewContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
 import { type ProcessRoute, defineProcessRoute } from '@/models/ProcessRoute';
@@ -65,7 +65,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param {unknown} cycleMinutes - 当前生产节拍
 	 * @returns {number} - 节拍产量
 	 */
-	syncCycleOutputQty(ctx: UiViewContext<any>, cycleMinutes: unknown) {
+	syncCycleOutputQty(ctx: UiContext<any>, cycleMinutes: unknown) {
 		const value = typeof cycleMinutes === 'number' ? cycleMinutes : Number(cycleMinutes ?? 0);
 		const cycleOutputQty = Number.isFinite(value) && value > 0
 			? Number((1 / value).toFixed(3))
@@ -93,7 +93,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param {UiContext} ctx - 制程上下文
 	 * @param {ProcessOperation[] | undefined} operations - 当前制程下的所有工序
 	 */
-	updateProcessCycleData(ctx: UiViewContext<any>, operations: ProcessOperation[] | undefined) {
+	updateProcessCycleData(ctx: UiContext<any>, operations: ProcessOperation[] | undefined) {
 		const validOperations = (operations ?? []).filter(op => !MetaModel.deleted(op));
 		const leadTime = Number((validOperations.reduce((sum, op) => sum + this.getOutputRateValue(op.cycleTime), 0) / 60).toFixed(2));
 		const maxCycleTime = validOperations.reduce((max, op) => Math.max(max, this.getOutputRateValue(op.cycleTime)), 0);
@@ -207,7 +207,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	// #endregion
 
 	// 获取子表工序/路线数据
-	getGroupItem(context: UiViewContext<any>, groupName: string, element: any) {
+	getGroupItem(context: UiContext<any>, groupName: string, element: any) {
 		if (!element || (element.type !== 'bpmn:Task' && element.type !== 'bpmn:SequenceFlow')) return null;
 		// 根据元素属性找到对应的工序/路线数据
 		const id = element.businessObject.$attrs[`camunda:id`];
@@ -240,7 +240,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		}
 	};
 
-	handlerRoute(modeler: any, context: UiViewContext<any>, connection: any, type: 'update' | 'delete' = 'update') {
+	handlerRoute(modeler: any, context: UiContext<any>, connection: any, type: 'update' | 'delete' = 'update') {
 		const route = this.getGroupItem(context, 'routes', connection);
 		switch (type) {
 			case 'update':
@@ -259,7 +259,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	}
 
 	// 删除与工序相关的所有路线
-	removeRelatedRoutes(modeler: any, context: UiViewContext<any>, incoming: any[], outgoing: any[]) {
+	removeRelatedRoutes(modeler: any, context: UiContext<any>, incoming: any[], outgoing: any[]) {
 		if (!context.model.routes) return;
 		if (incoming.length) {
 			incoming.forEach((item: any) => {
@@ -280,7 +280,7 @@ export class ProcessLogic extends UiLogic<Process> {
 
 
 
-	changeRoutes(modeler: any, context: UiViewContext<any>, incoming: any[], outgoing: any[],) {
+	changeRoutes(modeler: any, context: UiContext<any>, incoming: any[], outgoing: any[],) {
 		if (!context.model.routes) return;
 		if (incoming.length) {
 			incoming.forEach((item: any) => {
@@ -305,7 +305,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param target - 连线的结束节点
 	 * @returns boolean - true表示校验通过，false表示校验失败
 	 */
-	validateConnection(context: UiViewContext<any>, source: any, target: any): string {
+	validateConnection(context: UiContext<any>, source: any, target: any): string {
 		const { uiBuilder } = context
 		const prevOp = this.getGroupItem(context, 'operations', source)
 		const nextOp = this.getGroupItem(context, 'operations', target)
@@ -413,7 +413,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		return '';
 	};
 
-	validateRemoveShape(modeler: any, context: UiViewContext<any>, shape: any): boolean {
+	validateRemoveShape(modeler: any, context: UiContext<any>, shape: any): boolean {
 		// 当前操作的工序
 		const currentOp = this.getGroupItem(context, 'operations', shape) as ProcessOperation;
 
@@ -450,7 +450,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		modeling.updateProperties(element, updateObj);
 	}
 
-	async saveXML(context: UiViewContext<any>, modeler: any) {
+	async saveXML(context: UiContext<any>, modeler: any) {
 		try {
 			const res = await modeler.saveXML({ format: true });
 			context.setFieldValue('xmlJson', res.xml);
@@ -463,7 +463,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	/**
 	 * 返回上级流程
 	 */
-	async goToPrevProcess(context: UiViewContext<any>, modeler: any) {
+	async goToPrevProcess(context: UiContext<any>, modeler: any) {
 		try {
 			if (this.subProcessStack && this.subProcessStack.length > 0) {
 				this.subProcessStack.pop();
@@ -497,7 +497,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		}
 	}
 
-	updateSelectionCtx(ctx: UiViewContext<any>, element: any) {
+	updateSelectionCtx(ctx: UiContext<any>, element: any) {
 		this.currentElement = element;
 		if (element.type === 'bpmn:Task') {
 			this.groupName = 'operations';
@@ -522,7 +522,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		}
 	}
 
-	async elementChanged(ctx: UiViewContext<any>, modeler: any, event: any) {
+	async elementChanged(ctx: UiContext<any>, modeler: any, event: any) {
 		const { element } = event;
 		if (element.type === "label") return; // 标签变化不处理
 		const { incoming, outgoing } = element;
@@ -586,7 +586,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		this.nextElement = null;
 	}
 
-	async elementDblcick(ctx: UiViewContext<any>, modeler: any, event: any) {
+	async elementDblcick(ctx: UiContext<any>, modeler: any, event: any) {
 		const { element } = event;
 
 		const item = this.getGroupItem(ctx, 'operations', element);
@@ -604,7 +604,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		}
 	}
 
-	updateRoute(modeler: any, context: UiViewContext<any>, connection: any) {
+	updateRoute(modeler: any, context: UiContext<any>, connection: any) {
 		const oldRoute = this.getGroupItem(context, 'routes', connection);
 		if (!oldRoute) return; // 无法找到路由
 		const { source, target } = connection;
@@ -658,7 +658,7 @@ export class ProcessLogic extends UiLogic<Process> {
 						})
 						.join(" AND ");
 				}),
-				this.field('cycleMinutes').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('cycleMinutes').onChange((ctx: UiContext<any>, model, newVal) => {
 					this.syncCycleOutputQty(ctx, newVal);
 				}),
 				this.field('cycleOutputQty').lockIf(() => true),
@@ -669,7 +669,7 @@ export class ProcessLogic extends UiLogic<Process> {
 				this.group<ProcessLine>('lines').defaultAdder(this.addLines),
 				this.group<ProcessOperation>('operations')
 					.hideIf(() => true)
-					.onChange((ctx: UiViewContext<any>, model, items) => {
+					.onChange((ctx: UiContext<any>, model, items) => {
 						items.forEach(item => {
 							if (item.opPhase === OpPhase.END) {
 								ctx.setFieldValue('endOpCode', item)
@@ -678,7 +678,7 @@ export class ProcessLogic extends UiLogic<Process> {
 						this.updateProcessCycleData(ctx, items);
 					}),
 				this.group<ProcessRoute>('routes')
-					.setCustomEditor((group, ctx: UiViewContext<any>, props) => {
+					.setCustomEditor((group, ctx: UiContext<any>, props) => {
 						const { uiBuilder } = ctx;
 						return processBpmnNode({
 									context: ctx,
@@ -900,7 +900,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param context 
 	 * @param target 
 	 */
-	addLines(context: UiViewContext<any>, target: Process) {
+	addLines(context: UiContext<any>, target: Process) {
 		context
 			.select<ProductionLine>({
 				repository: 'ProductionLines',
@@ -941,7 +941,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param context 
 	 * @param target 
 	 */
-	async createRoute(context: UiViewContext<any>, prevOp: ProcessOperation, nextOp: ProcessOperation): Promise<ProcessRoute> {
+	async createRoute(context: UiContext<any>, prevOp: ProcessOperation, nextOp: ProcessOperation): Promise<ProcessRoute> {
 		try {
 			if (MetaModel.deleted(prevOp) || MetaModel.deleted(nextOp)) return null;
 			//路线创建
@@ -981,7 +981,7 @@ export class ProcessLogic extends UiLogic<Process> {
 	 * @param context 
 	 * @param target 
 	 */
-	async createOperation(context: UiViewContext<any>, target: Process) {
+	async createOperation(context: UiContext<any>, target: Process) {
 		// console.log(context.model, target)
 		return await context
 			.newSubGroupItem<ProcessOperation>({
@@ -1014,7 +1014,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (fields.length == 0) {
 			fields.push(
 				//当前没有制品类别模块，先以普通文本形式显示
-				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiViewContext<any>, props) => {
+				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});
 				})
 			);
@@ -1023,7 +1023,7 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (groups.length === 0) {
 			groups.push(
 				this.group<ProcessRoute>('routes')
-					.setCustomRenderer((group, ctx: UiViewContext<any>, props) => {
+					.setCustomRenderer((group, ctx: UiContext<any>, props) => {
 						return processBpmnNode({
 								context: ctx,
 								selectionCtx: this.selectionCtx.value,
@@ -1147,7 +1147,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 		if (fields.length == 0) {
 			const rootLogic = this.parent as ProcessLogic;
 			fields.push(
-				this.field('outputRate').onValidate((value, model, ctx: UiViewContext<any>) => {
+				this.field('outputRate').onValidate((value, model, ctx: UiContext<any>) => {
 					const outputRate = rootLogic.getOutputRateValue(value);
 					const remainingRate = rootLogic.getRemainOutputRate(ctx.root.model.operations, model.id);
 
@@ -1161,14 +1161,14 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 						return ctx.globalProps.$t('process.outputRateRemainingMax', { n: (remainingRate * 100).toFixed(2) });
 					}
 				}),
-				this.field('setupTime').onChange((ctx: UiViewContext<any>, model) => {
+				this.field('setupTime').onChange((ctx: UiContext<any>, model) => {
 					this.syncCycleTime(ctx, model);
 				}),
-				this.field('opTime').onChange((ctx: UiViewContext<any>, model) => {
+				this.field('opTime').onChange((ctx: UiContext<any>, model) => {
 					this.syncCycleTime(ctx, model);
 				}),
 				this.field('cycleTime')
-					.onChange((ctx: UiViewContext<any>, model, newVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal) => {
 						rootLogic.updateProcessCycleData(ctx.root, ctx.root.model.operations);
 					})
 					.onValidate((value, model, ctx) => {
@@ -1179,7 +1179,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 						return '';
 					}),
 				this.field('qcInProcessTypes')
-					.onChange((ctx: UiViewContext<any>, model, newVal) => {
+					.onChange((ctx: UiContext<any>, model, newVal) => {
 						if (!newVal || newVal === QcInProcessType.NONE) {
 							model.qcsID = null;
 							model.qcStandard = null;
@@ -1218,7 +1218,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 						.join(" AND ");
 				}),
 				// todo 参与唯一键组装，不好判断
-				// this.field('opCode').onValidate((value, model, ctx: UiViewContext<any>) => {
+				// this.field('opCode').onValidate((value, model, ctx: UiContext<any>) => {
 				// 	if (ctx.root.model.operations?.length) {
 				// 		// const op = ctx.root.model.operations.find((op: ProcessOperation) => op.opCode === value)
 				// 		const ops = ctx.root.model.operations.filter((op: ProcessOperation) => op.opCode === value)
@@ -1232,10 +1232,10 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 				// 	}
 				// }),
 				this.field('opName')
-					.onChange((ctx: UiViewContext<any>, model) => {
+					.onChange((ctx: UiContext<any>, model) => {
 						if (model.opPhase === OpPhase.END) MetaModel.setRefProp(ctx.root.model, 'endOpCode', model.opName);
 					})
-					.onValidate((value, model, ctx: UiViewContext<any>) => {
+					.onValidate((value, model, ctx: UiContext<any>) => {
 					if (!value) {
 						return ctx.t('process.operationNameRequired');
 					}
@@ -1247,7 +1247,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 					}
 				}),
 				this.field('opPhase')
-					.onValidate((value, model, ctx: UiViewContext<any>) => {
+					.onValidate((value, model, ctx: UiContext<any>) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
 						const endOps = ctx.root.model.operations?.filter((op: ProcessOperation) => !MetaModel.deleted(op) && op.opPhase === OpPhase.END)
 						let validateStr: string;
@@ -1277,9 +1277,9 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 
 						return validateStr;
 					}),
-				this.field('wipTransBatchQty').hideIf((m, ctx: UiViewContext<any>) => m.wipTransMode !== WipTransMode.BATCH),
-				this.field('wipTransDuration').hideIf((m, ctx: UiViewContext<any>) => m.wipTransMode !== WipTransMode.PERIODIC),
-				this.field('wipTransMode').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('wipTransBatchQty').hideIf((m, ctx: UiContext<any>) => m.wipTransMode !== WipTransMode.BATCH),
+				this.field('wipTransDuration').hideIf((m, ctx: UiContext<any>) => m.wipTransMode !== WipTransMode.PERIODIC),
+				this.field('wipTransMode').onChange((ctx: UiContext<any>, model, newVal) => {
 					if (newVal === WipTransMode.BATCH) {
 						ctx.setFieldValue('wipTransDuration', null);
 						return;
@@ -1375,8 +1375,8 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 
 		if (fields.length == 0) {
 			fields.push(
-				this.field('wipTransBatchQty').hideIf((m, ctx: UiViewContext<any>) => m.wipTransMode !== WipTransMode.BATCH),
-				this.field('wipTransDuration').hideIf((m, ctx: UiViewContext<any>) => m.wipTransMode !== WipTransMode.PERIODIC),
+				this.field('wipTransBatchQty').hideIf((m, ctx: UiContext<any>) => m.wipTransMode !== WipTransMode.BATCH),
+				this.field('wipTransDuration').hideIf((m, ctx: UiContext<any>) => m.wipTransMode !== WipTransMode.PERIODIC),
 			)
 		}
 
@@ -1478,7 +1478,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('prevOpCode').refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 					return { processID: ctx.model.processID };
 				})(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
@@ -1493,7 +1493,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 						.join(" AND ");
 				}),
 				this.field('nextOpCode').refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 					return { processID: ctx.model.processID };
 				})(ctx as any, model as any, undefined as any);
 					if (!__p) return "";
@@ -1508,9 +1508,9 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 						.join(" AND ");
 				}),
 				this.field('toSubOpCode')
-					.hideIf((m, ctx: UiViewContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
+					.hideIf((m, ctx: UiContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
 					.refWhere((model, ctx) => {
-					const __p = ((ctx: UiViewContext<any>, model) => {
+					const __p = ((ctx: UiContext<any>, model) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
 
 						return { processID: rootLogic?.nextOp?.subProcessID };
@@ -1530,9 +1530,9 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 		}
 		if (groups.length == 0) {
 			groups.push(
-				this.group('s9').hideIf((model, ctx: UiViewContext<any>) => {
+				this.group('s9').hideIf((model, ctx: UiContext<any>) => {
 						if (ctx.view === UiViewOne.Create) return false;
-						const fields = ctx.metaui.getGroup('s9')?.fields;
+						const fields = ctx.metaUi.getGroup('s9')?.fields;
 						return fields ? fields.every((f: any) => !model[f.fieldName]) : true;
 					})
 			);
@@ -1548,13 +1548,13 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('toSubOpCode')
-					.hideIf((m, ctx: UiViewContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
+					.hideIf((m, ctx: UiContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
 			)
 		}
 		if (groups.length == 0) {
 			groups.push(
-				this.group('s9').hideIf((model, ctx: UiViewContext<any>) => {		
-						const fields = ctx.metaui.getGroup('s9')?.fields;
+				this.group('s9').hideIf((model, ctx: UiContext<any>) => {		
+						const fields = ctx.metaUi.getGroup('s9')?.fields;
 						return fields ? fields.every((f: any) => !model[f.fieldName]) : true;
 					})
 			);
@@ -1574,7 +1574,7 @@ export class ProcessLineLogic extends UiGroupLogic<ProcessLine, Process> {
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length === 0) {
 			fields.push(
-				this.field('cycleMinutes').onChange((ctx: UiViewContext<any>, model, newVal) => {
+				this.field('cycleMinutes').onChange((ctx: UiContext<any>, model, newVal) => {
 					(this.parent as ProcessLogic).syncCycleOutputQty(ctx, newVal);
 				}),
 				this.field('cycleOutputQty').lockIf(() => true),

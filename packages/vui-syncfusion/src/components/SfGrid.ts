@@ -26,7 +26,7 @@ export type { SfGridScene }
 /**
  * Syncfusion 皮肤的通用表格契约实现。
  *
- * - 不持有 UiContext；只吃 metaui + dataSource + 回调
+ * - 不持有 UiContext；只吃 metaUi + dataSource + 回调
  * - 列过滤读 MetaUiField.filterTypes（TINYINT 位掩码；0 = 推断）
  * - 现网列表：**只**走 `factory.table`（`factory/table.ts`）。新功能加在那里。
  * - `components/SfGrid` 是目标契约控件；在 vui `buildTable` 改调 `factory.grid` 之前，不要两边同时加功能。
@@ -38,7 +38,7 @@ export const SfGrid = defineComponent({
       type: String as PropType<SfGridScene>,
       default: 'index',
     },
-    metaui: {
+    metaUi: {
       type: Object as PropType<MetaUi>,
       required: true,
     },
@@ -101,7 +101,7 @@ export const SfGrid = defineComponent({
     )
 
     const columns = computed(() =>
-      buildSfGridColumns(props.metaui, {
+      buildSfGridColumns(props.metaUi, {
         allowFiltering: allowFiltering.value,
         allowSorting: allowSorting.value,
         allowEditing: allowEditing.value,
@@ -110,8 +110,8 @@ export const SfGrid = defineComponent({
 
     const emitFilterFromGrid = (ej2: any) => {
       const fields =
-        props.metaui.getListedFields?.() ??
-        props.metaui.groups
+        props.metaUi.getListedFields?.() ??
+        props.metaUi.groups
           ?.filter((group: any) => !group.many)
           .flatMap((group: any) => group.fields) ??
         []

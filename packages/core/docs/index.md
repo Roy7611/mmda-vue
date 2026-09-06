@@ -7,6 +7,8 @@
 - [core / vui / syncfusion 评估（工作稿）](../../../docs/reviews/core-vui-syncfusion.md)
 - [UiBuilder：程序员怎么写](./ui/ui_builder_usage.md)
 - [UiContext：程序员怎么写](./logic/ui_context_usage.md)
+- [vui 会话设计（VueUiContext）](../../vui/docs/vue_ui_context.md)
+- [vui 会话：程序员怎么写](../../vui/docs/context.md)
 - [MetaUiBuilder](./metaui/metaui_builder.md)
 - [校验框架设计](./logic/validation_design.md)
 - [校验：程序员怎么写](./logic/validation_usage.md)

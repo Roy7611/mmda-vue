@@ -155,7 +155,7 @@ export type EntityCtor<E> = (o: object) => E;
  * export default {
  *  props: ["id"]
  *  data() {
- *    return buildViewModel(Putaway, metaui)
+ *    return buildViewModel(Putaway, metaUi)
  *  },
  *  computed: {
  *    totalQuantity(){ return this.items.reduce((prev,curr)=>prev+curr.quantity),0},

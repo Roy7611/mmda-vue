@@ -153,7 +153,7 @@ export const AgGrid = defineComponent({
   inheritAttrs: false,
   props: {
     data: { type: Array as PropType<any[]>, default: () => [] },
-    metaui: { type: Object as PropType<MetaUi>, required: true },
+    metaUi: { type: Object as PropType<MetaUi>, required: true },
   },
   setup(props, { attrs }) {
     const listProps = attrs as UiListPropsType<any>
@@ -161,7 +161,7 @@ export const AgGrid = defineComponent({
     const applyingFilter = ref(false)
     const theme = computed(() => buildAgGridTheme())
     const columnDefs = computed(() =>
-      buildColumnDefs(props.metaui, listProps),
+      buildColumnDefs(props.metaUi, listProps),
     )
 
     const syncFilterModel = () => {
@@ -170,7 +170,7 @@ export const AgGrid = defineComponent({
       applyingFilter.value = true
       try {
         grid.setFilterModel(
-          entityFilterToAgModel(listProps.filterModel, props.metaui),
+          entityFilterToAgModel(listProps.filterModel, props.metaUi),
         )
       } finally {
         applyingFilter.value = false
@@ -202,7 +202,7 @@ export const AgGrid = defineComponent({
 
     const onFilterChanged = (event: FilterChangedEvent) => {
       if (applyingFilter.value) return
-      const model = agFilterModelToEntity(event.api.getFilterModel(), props.metaui)
+      const model = agFilterModelToEntity(event.api.getFilterModel(), props.metaUi)
       return listProps.onFilterModelChange?.(model)
     }
 
@@ -273,9 +273,9 @@ export const AgGrid = defineComponent({
               suppressCellFocus: false,
               getRowId: listProps.itemKey
                 ? (params: { data: any }) => listProps.itemKey!(params.data)
-                : props.metaui.primaryKey
+                : props.metaUi.primaryKey
                   ? (params: { data: any }) =>
-                      String(params.data?.[props.metaui.primaryKey!] ?? '')
+                      String(params.data?.[props.metaUi.primaryKey!] ?? '')
                   : undefined,
               rowSelection: selectionMode
                 ? {
