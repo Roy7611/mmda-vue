@@ -8,7 +8,7 @@ import {
   treeIdField,
   treeRowId,
   treeRowParentId,
-} from "../ui/ui_tree_data";
+} from "../ui/builder/tree_data";
 
 describe("TreeDataProvider", () => {
   it("点分编码取父", () => {

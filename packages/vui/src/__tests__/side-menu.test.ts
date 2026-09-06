@@ -9,7 +9,7 @@ import {
   activeAncestorKeys,
   assembleMenuItems,
   isLocalAppModuleUrl,
-} from '../ui/components/AppSideMenu'
+} from '../components/AppSideMenu'
 
 const sampleModules = new ModuleFactory([
   {

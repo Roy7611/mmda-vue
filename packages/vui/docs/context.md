@@ -7,14 +7,14 @@
 会话上走 `uiBuilder` / `apiClient` / `app`；`globalProps` 只是把 Vue `globalProperties` 传递下来，极少用。
 分层与图见仓库根 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。
 
-`UiViewContext` 仍是**一个类**（`implements` core `UiContext`）。实现按职责拆在 `packages/vui/src/ui/contexts/`：
+`UiViewContext` 仍是**一个类**（`implements` core `UiContext`）。实现按职责拆在 `packages/vui/src/contexts/`：
 
 | 文件 | 职责 |
 |---|---|
-| [`ui_context.ts`](../src/ui/ui_context.ts) | 门面：构造、Logic 绑定、筛选会话、`with` / `release` |
-| `contexts/validate.ts` | `validate` / 字段错误态 |
-| `contexts/reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()` |
-| `contexts/subgroup.ts` | 子表上下文与增删行 |
+| [`view_context.ts`](../src/contexts/view_context.ts) | 门面：构造、Logic 绑定、筛选会话、`with` / `release`；`uiBuilder` 类型是 core `UiBuilder` |
+| `validate.ts` | `validate` / 字段错误态 |
+| `reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()` |
+| `subgroup.ts` | 子表上下文与增删行 |
 
 关联搜索走 Logic + SQL `buildRefWhere`，不调 `globalProps.$api`。
 

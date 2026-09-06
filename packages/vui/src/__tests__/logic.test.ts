@@ -7,8 +7,8 @@ import {
   MetaUiGroupLogic,
   SqlDataType,
 } from '@mmda/core'
-import { UiLogic } from '../ui/ui_logic'
-import { UiViewContext } from '../ui/ui_context'
+import { UiLogic } from '../logic/logic'
+import { UiViewContext } from '../contexts/view_context'
 
 const field = (fieldName: string, fieldIdx = 0) =>
   new MetaUiField({

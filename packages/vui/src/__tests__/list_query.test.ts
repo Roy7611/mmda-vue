@@ -3,7 +3,7 @@ import {
   settleRemoteListQuery,
   writeListFilterModel,
   writeListSorts,
-} from '../ui/ui_list_query'
+} from '../ui/builder/list_query'
 import { SortOrder, type EntitySearchParam } from '@mmda/core'
 
 describe('list remote query', () => {

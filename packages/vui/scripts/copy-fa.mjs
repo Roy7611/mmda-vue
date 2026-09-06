@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -14,10 +14,14 @@ if (!existsSync(src)) {
 mkdirSync(dirname(dest), { recursive: true })
 cpSync(src, dest, { recursive: true })
 
-// 供 package exports ./fontawesome.css 指向 dist
+const cssSrc = join(root, 'src', 'assets', 'css')
 const cssDest = join(root, 'dist', 'fontawesome.css')
-cpSync(join(root, 'src', 'fontawesome.css'), cssDest)
-cpSync(join(root, 'src', 'theme.css'), join(root, 'dist', 'theme.css'))
-cpSync(join(root, 'src', 'material-symbols.css'), join(root, 'dist', 'material-symbols.css'))
+const faCss = readFileSync(join(cssSrc, 'fontawesome.css'), 'utf8').replace(
+  '../fa/css/all.min.css',
+  './assets/fa/css/all.min.css',
+)
+writeFileSync(cssDest, faCss)
+cpSync(join(cssSrc, 'theme.css'), join(root, 'dist', 'theme.css'))
+cpSync(join(cssSrc, 'material-symbols.css'), join(root, 'dist', 'material-symbols.css'))
 
 console.log('Copied shared CSS and Font Awesome assets to dist')

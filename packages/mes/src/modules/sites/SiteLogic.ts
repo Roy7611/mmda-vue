@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, isRefNone, ApiClient, defaultPager, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiBuilder, UI_BUILDER_KEY } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Site, defineSite } from '@/models/Site';
 import { type SiteShift, defineSiteShift } from '@/models/SiteShift';
 import { type Shift, defineShift } from '@/models/Shift';

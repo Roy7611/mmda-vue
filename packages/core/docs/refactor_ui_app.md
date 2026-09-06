@@ -13,9 +13,10 @@
 
 | 从 | 到 | 说明 |
 |---|---|---|
-| `logic/ui_builder.ts`、`logic/ui_context.ts`、`logic/ui_types.ts` | `src/ui/`（无 `ui_` 前缀） | 契约属 UI 层。旧路径只做 re-export |
+| `logic/ui_builder.ts`、`logic/ui_context.ts`、`logic/ui_types.ts` | `src/ui/`（无 `ui_` 前缀） | 契约属 UI 层。**转发文件已删**；从 `@mmda/core` / `ui/` 导入 |
 | vui `interface UiBuilder` | 删除 | 只保留 core 接口 |
-| vui `AbstractUiBuilder` | **`VueUiBuilder implements UiBuilder<VNode>`** | 拼屏实现，不是抽象基类 |
+| vui `AbstractUiBuilder` | **`VueUiBuilder implements UiBuilder<VNode>`** | Vue 抽象类：模板方法填共用拼屏；皮肤 `extends` |
+| 曾短暂存在的 `VueUiBuilderHost` | **删除** | 注入/类型一律用 `VueUiBuilder` |
 | 皮肤类名 | **不改** | 仍是 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` / `AgNaiveUiBuilder` |
 | vui 壳类名 `MmdaApplication` | **`MmdaVueApp`** | core 占用 `MmdaApplication` |
 

@@ -4,7 +4,7 @@ import {
   UI_APP_KEY,
   UI_BUILDER_KEY,
   type MmdaApplication,
-  type UiBuilder,
+  type VueUiBuilder,
 } from '@mmda/vui'
 import { AppLogo } from './components/AppLogo'
 import { AppUserFooter } from './components/AppUserFooter'
@@ -14,7 +14,7 @@ export const AppShell = defineComponent({
   name: 'AppShell',
   setup() {
     const app = inject(UI_APP_KEY)! as MmdaApplication
-    const builder = inject(UI_BUILDER_KEY)! as UiBuilder
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const route = useRoute()
     const router = useRouter()
 

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const buildersDir = join(process.cwd(), 'src/ui/builders')
+const buildersDir = join(process.cwd(), 'src/ui/builder')
 
 function collectTsFiles(dir: string): string[] {
   const out: string[] = []

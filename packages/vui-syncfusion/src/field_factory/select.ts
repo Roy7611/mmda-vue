@@ -146,7 +146,7 @@ export const searchBox = (
   if (!reference) {
     return h("span", { class: "warning" }, "不是引用字段");
   }
-  const builder = context.uiBuilder;
+  const builder = context.app?.ui;
   if (!builder?.buildSearchForRelative) {
     return fallbackDisplay(field, context, props);
   }

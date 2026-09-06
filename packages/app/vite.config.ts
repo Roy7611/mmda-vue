@@ -55,19 +55,19 @@ export default defineConfig({
       },
       {
         find: '@mmda/vui/fontawesome.css',
-        replacement: root('../vui/src/fontawesome.css'),
+        replacement: root('../vui/src/assets/css/fontawesome.css'),
       },
       {
         find: '@mmda/vui/theme.css',
-        replacement: root('../vui/src/theme.css'),
+        replacement: root('../vui/src/assets/css/theme.css'),
       },
       {
         find: '@mmda/vui/material-symbols.css',
-        replacement: root('../vui/src/material-symbols.css'),
+        replacement: root('../vui/src/assets/css/material-symbols.css'),
       },
       {
         find: '@mmda/vui-syncfusion/fontawesome.css',
-        replacement: root('../vui/src/fontawesome.css'),
+        replacement: root('../vui/src/assets/css/fontawesome.css'),
       },
       ...syncfusionThemeAliases,
       { find: '@mmda/core', replacement: pkg('core') },

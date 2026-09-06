@@ -1,12 +1,12 @@
 # 列表与过滤
 
-列表页的查询状态只有一份：`UiViewContext.searchParam`（core 的 `EntitySearchParam`）。对外契约叫 **list**（`ui_list.ts`、`buildListView`）；桌面子表走 **table**（`factory.table`）；皮肤实现用 **grid**（`SfGrid` / `AgGrid`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
+列表页的查询状态只有一份：`UiViewContext.searchParam`（core 的 `EntitySearchParam`）。对外契约叫 **list**（`ui/factory/list.ts`、`buildListView`）；桌面子表走 **table**（`factory.table`）；皮肤实现用 **grid**（`SfGrid` / `AgGrid`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
 
 core 设计与用法：[entity_search.md](../../core/docs/models/entity_search.md) · [entity_query_usage.md](../../core/docs/logic/entity_query_usage.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)
 
 ## 主要内容
 
-- `buildListView`（`builders/list.ts`）：工具栏、搜索栏、表、分页；表本身由 `factory.table` 生产皮肤组件。
+- `buildListView`（`ui/builder/list.ts`）：工具栏、搜索栏、表、分页；表本身由 `factory.table` 生产皮肤组件。
 - 左树右表是 Builder 组合（`buildTreeListView`），见 [Builder](./builder.md)；树契约见 [树](./tree.md)；Logic 用 `viewOptions` 挂接，见 [实体交互逻辑](./logic.md)。
 - `UiFilter`：快捷过滤，编译进 `queryParams.filter`（兼容路径）。
 - `filterModel`：表头结构化 `EntityFilterModel`。

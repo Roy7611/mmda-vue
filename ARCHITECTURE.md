@@ -33,7 +33,7 @@ Data 回新数据 → Logic 更新状态 → UI 重绘
 
 | 方向 | 通道 | 干什么 |
 |---|---|---|
-| **Logic → Data** | `ApiClient` | 读写实体、动作、查询。与 `this.apiClient`、`context.apiClient` 同一实例。不要在 Logic 再包一层 `get` / `doAction` |
+| **Logic → Data** | `ApiClient` | 读写实体、动作、查询。`this.apiClient` 与 `context.apiClient` 同一实例。实体 CRUD 用 Logic 方法；不要在 Logic 再包一层 `get` / `doAction` |
 | **Logic → UI** | `context.uiBuilder` | toast / confirm / dialog / `factory.table` / `buildView`。换皮换实现，Logic 只认 core `UiBuilder` |
 | **职责** | 处理用户交互 | 钩子、校验、`refWhere`、把业务函数挂到会话。不认 Vue/React 类型，不碰皮肤控件 |
 
@@ -78,6 +78,27 @@ flowchart LR
 ```
 
 不要把 `SfGrid` / `AgGrid` 写进 `@mmda/vui`。细则用词见 [naming.md](docs/naming.md)。
+
+### Builder：契约 → Vue 抽象类 → 皮肤
+
+拼屏走模板方法，不要平行造一份 Host 接口，也不要把 vui 实现 alias 成 core 的 `UiBuilder`。
+
+```text
+UiBuilder              core 契约（框架无关）
+    ↑ implements
+VueUiBuilder           vui 抽象类：模板方法填共用拼屏（取代 AbstractUiBuilder）
+    ↑ extends
+SyncfusionUiBuilder / PrimeVueUiBuilder / …
+                       皮肤：控件与壳的具体落地
+```
+
+| 名字 | 包 | 职责 |
+|---|---|---|
+| **`UiBuilder<TNode>`** | `@mmda/core` | 接口：`toast` / `confirm` / `dialog` / `buildView` / `factory`。Logic 只认这个 |
+| **`VueUiBuilder`** | `@mmda/vui` | 抽象类，`implements UiBuilder<VNode>`。共用拼屏（列表/表单/树分发、动作工厂）。注入类型用本类 |
+| **皮肤 Builder** | `@mmda/vui-*` | `extends VueUiBuilder`：壳、overlay、具体控件。如 `SyncfusionUiBuilder`、`PrimeVueUiBuilder`、`AgNaiveUiBuilder` |
+
+rui 若落地，另写 `ReactUiBuilder implements UiBuilder`，不要从 vui 抄 `VueUiBuilder`。程序员细则：[Builder 与皮肤](packages/vui/docs/builder.md)。
 
 ### 会话：两层 Context
 
@@ -133,15 +154,16 @@ flowchart TB
 ### 三条路径
 
 ```text
-通用数据 ── context.apiClient                 → Data（不必经 Logic 再包）
-业务操作 ── Logic 函数组装到 context           → 本屏交互 / 专用动作
-UI       ── context.uiBuilder                 → 换皮（统一接口）
-应用壳    ── context.app                       → MmdaApplication（读 app.state）
+通用数据 ── context.apiClient（= logic.apiClient） → Data（会话/UI 助手；不必经 Logic 再包）
+业务实体 ── Logic 方法 / this.apiClient            → Data（CRUD、动作；与上同一实例）
+业务操作 ── Logic 函数组装到 context               → 本屏交互 / 专用动作
+UI       ── context.uiBuilder                     → 换皮（统一接口）
+应用壳    ── context.app                           → MmdaApplication（读 app.state）
 ```
 
-`this.apiClient` 与 `context.apiClient` 同一实例。日常不要掏 `context.globalProps.$ui` / `$api`。
+`this.apiClient` 与 `context.apiClient` 同一实例。实体 CRUD 优先走 Logic 方法；日常不要掏 `context.globalProps.$ui` / `$api`。
 
-vui 现状：`UiViewContext` 实现 core `UiContext`；`uiBuilder` 来自 `app.ui`。core 契约是 **`UiBuilder<TNode>`** 与 abstract class **`MmdaApplication`**；vui 拼屏类是 **`VueUiBuilder implements UiBuilder<VNode>`**，应用壳是 **`MmdaVueApp extends MmdaApplication`**。皮肤 **`SyncfusionUiBuilder extends VueUiBuilder`**。业务钩子参数用 core `UiContext`，不要 vui `UiBuildContext`。
+vui 现状：`UiViewContext` 实现 core `UiContext`（含 `apiClient` getter）；`uiBuilder` 来自 `app.ui`。core 契约是 **`UiBuilder<TNode>`** 与 abstract class **`MmdaApplication`**；vui 拼屏抽象类是 **`VueUiBuilder implements UiBuilder<VNode>`**（模板方法，取代 `AbstractUiBuilder`）；应用壳是 **`MmdaVueApp extends MmdaApplication`**。皮肤 **`SyncfusionUiBuilder` / `PrimeVueUiBuilder` extends `VueUiBuilder`**。业务钩子参数用 core `UiContext`，不要 vui `UiBuildContext`。注入拼屏用 **`VueUiBuilder`**，不要再造 Host，也不要把实现 alias 成 `UiBuilder`。
 
 ### 弹层与选记录
 

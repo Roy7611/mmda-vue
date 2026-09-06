@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../metaui/metaui_field'
 import type { Translatable } from '../metaui/metaui_field'
-import type { UiContext } from './ui_context'
+import type { UiContext } from '../ui/context'
 
 /** 实体/行条件。程序员在 lockIf / hideIf / requiredIf 中使用。 */
 export type Predicate<T = unknown> = (t: T, context?: UiContext) => boolean

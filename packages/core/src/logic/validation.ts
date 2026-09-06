@@ -4,7 +4,7 @@ import { MetaUi } from '../metaui/metaui_group'
 import { MetaUiField } from '../metaui/metaui_field'
 import type { OnValidateFn } from './logic_functions'
 import { Entity } from '../models/entity'
-import type { UiContext } from './ui_context'
+import type { UiContext } from '../ui/context'
 import {
   customValidator,
   descriptorsToValidators,

@@ -7,12 +7,15 @@
 ## 会话上三条通道
 
 ```ts
-context.apiClient    // 通用 HTTP，与 this.apiClient 同一实例
-context.uiBuilder    // toast / confirm / dialog / factory
+context.apiClient    // = logic.apiClient；会话/UI 助手
+this.apiClient       // Logic 内实体 CRUD（同一实例）
+context.uiBuilder    // toast / confirm / dialog / factory（core 契约）
 context.app          // MmdaApplication；业务读 app.state
 ```
 
-不要掏 `globalProps.$ui` / `$api`。弹层不要调 `app.confirm`（已删除）。
+实体 CRUD 优先走 Logic 方法。不要掏 `globalProps.$ui` / `$api`。弹层不要调 `app.confirm`（已删除）。
+
+从 `@mmda/vui` 注入拼屏实现时用 **`VueUiBuilder`**（抽象类；皮肤再 extends）。不要把 core 的 `UiBuilder` 盖成别名，也不要另造 Host 接口。
 
 ## searchRelative vs select
 

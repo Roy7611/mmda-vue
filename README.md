@@ -71,6 +71,7 @@ pnpm dev:app
 
 - [架构（真源）](ARCHITECTURE.md)
 - [术语与命名](docs/naming.md)
+- [core / vui / syncfusion 评估（工作稿）](docs/reviews/core-vui-syncfusion.md)
 - [重构说明（迁仓历史）](REFACTOR.md)
 - [本轮 UI / 应用壳重构](packages/core/docs/refactor_ui_app.md)
 - [统一应用壳](docs/unified-app.md)

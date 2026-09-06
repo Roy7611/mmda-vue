@@ -11,7 +11,7 @@ import {
   useMessage,
   useNotification,
 } from 'naive-ui'
-import { UI_APP_KEY, type MmdaApplication } from '@mmda/vui'
+import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type AgNaiveOverlay,
@@ -26,7 +26,7 @@ import {
 const OverlayInner = defineComponent({
   name: 'AgNaiveOverlayInner',
   setup() {
-    const app = inject(UI_APP_KEY) as MmdaApplication | undefined
+    const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
     const overlay = app?.ui.overlay as AgNaiveOverlay | undefined
     const message = useMessage()
     const dialog = useDialog()

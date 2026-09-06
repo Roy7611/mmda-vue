@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
 import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, type UiContext } from "@mmda/core";
-import { UiViewContext } from "../ui/ui_context";
+import { UiViewContext } from "../contexts/view_context";
 import { TestUiBuilder } from "./test_builder";
 
 const field = (fieldName: string, nullable = true, fieldIdx = 0) =>

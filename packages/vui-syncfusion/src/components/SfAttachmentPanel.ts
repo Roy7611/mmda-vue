@@ -77,7 +77,7 @@ export const SfAttachmentPanel = defineComponent({
     };
 
     const toast = (severity: "success" | "error" | "info", detail: string) =>
-      props.context.app?.toast(props.context as any, {
+      props.context.uiBuilder?.toast(props.context, {
         severity,
         detail,
         life: 3000,
@@ -135,11 +135,10 @@ export const SfAttachmentPanel = defineComponent({
           .map((file) => file.name),
       );
       if (replacing.size) {
-        const accepted = await props.context.app?.confirm(props.context as any, {
+        const accepted = await props.context.uiBuilder?.confirm(props.context, {
           message: `文件 ${Array.from(replacing).join("、")} 已存在，是否覆盖？`,
-          buttons: ["yes", "no"],
         });
-        if (accepted !== "yes") return;
+        if (!accepted) return;
       }
 
       const fetchApi = (props.context.app?.api as any)?.fetchApi;
@@ -227,11 +226,10 @@ export const SfAttachmentPanel = defineComponent({
 
     const remove = async (item: AttachmentItem) => {
       const fileName = getFileInfo(item.fileName).fileName;
-      const accepted = await props.context.app?.confirm(props.context as any, {
+      const accepted = await props.context.uiBuilder?.confirm(props.context, {
         message: `确定删除文件 ${fileName} 吗？`,
-        buttons: ["yes", "no"],
       });
-      if (accepted !== "yes") return;
+      if (!accepted) return;
       try {
         await (props.context.uploadAttachments as any)(
           {

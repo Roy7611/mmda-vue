@@ -28,7 +28,8 @@ export type { SfGridScene }
  *
  * - 不持有 UiContext；只吃 metaui + dataSource + 回调
  * - 列过滤读 MetaUiField.filterTypes（TINYINT 位掩码；0 = 推断）
- * - 现网列表仍可走 factory.table；新代码 / factory.grid 用本组件
+ * - 现网列表：**只**走 `factory.table`（`factory/table.ts`）。新功能加在那里。
+ * - `components/SfGrid` 是目标契约控件；在 vui `buildTable` 改调 `factory.grid` 之前，不要两边同时加功能。
  */
 export const SfGrid = defineComponent({
   name: 'SfGrid',

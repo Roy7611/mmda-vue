@@ -4,7 +4,7 @@ import {
   categoryMoveParams,
   categoryTreeAuth,
   categoryTreeAuthHasAction,
-} from "../ui/ui_tree_category";
+} from "../ui/builder/tree_category";
 import {
   collectNodeAndDescendantIds,
   mapTreeNodes,
@@ -12,7 +12,7 @@ import {
   treeCannotDropOn,
   treeDropParent,
   treeShouldLoadChildren,
-} from "../ui/ui_tree";
+} from "../ui/factory/tree";
 
 const fields = {
   id: "categoryID",

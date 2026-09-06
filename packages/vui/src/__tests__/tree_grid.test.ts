@@ -6,9 +6,9 @@ import {
   MetaUiGroupLogic,
   SqlDataType,
 } from "@mmda/core";
-import { UiViewContext } from "../ui/ui_context";
-import { UiViewManyKind } from "../ui/ui_view";
-import { treeGridSpecFromGroup } from "../ui/ui_tree_grid";
+import { UiViewContext } from "../contexts/view_context";
+import { UiViewManyKind } from "../contexts/view";
+import { treeGridSpecFromGroup } from "../ui/factory/tree_grid";
 import { TestUiBuilder } from "./test_builder";
 
 const field = (name: string, label: string) =>

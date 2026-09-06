@@ -31,7 +31,11 @@ export interface EntityLogicInit {
 /**
  * Entity Logic base: ApiClient + MetaModel CRUD, no Vue.
  * vui UiLogic extends this (router / view wiring).
- * Business IO uses these methods or `this.apiClient`, never `context.apiClient`.
+ *
+ * Data 通道：
+ * - 实体 CRUD / 动作：用本类方法或 `this.apiClient`（不要在 Logic 再包一层 get/doAction）。
+ * - `context.apiClient` 与 `this.apiClient` 同一实例，给会话/UI 助手（联想、选仓库等）；
+ *   业务 Logic 不要绕过本类方法去直接打实体 CRUD。
  */
 export abstract class EntityLogic<E extends Entity> {
   meta: MetaUiPack;
@@ -342,7 +346,7 @@ export abstract class EntityLogic<E extends Entity> {
     }
   }
 
-  /** API service name (routes, etc.); do not take apiClient from UiContext. */
+  /** API service name (routes, etc.); prefer `this.apiClient`, not a different client from context. */
   get serviceName() {
     return (
       this.apiService ??
@@ -353,7 +357,7 @@ export abstract class EntityLogic<E extends Entity> {
 
   /**
    * Raw action (cross-repo / custom path). Prefer {@link doAction} for entity actions.
-   * Business Logic: use this or `this.apiClient`, never `context.apiClient`.
+   * Use `this.apiClient` (same instance as `context.apiClient` when wired).
    */
   invokeAction(urlParam: EntityUrlParam, body?: unknown) {
     return this.apiClient.doAction(

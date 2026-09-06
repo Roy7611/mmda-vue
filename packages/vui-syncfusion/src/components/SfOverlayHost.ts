@@ -1,7 +1,7 @@
 import { computed, defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToastComponent } from '@syncfusion/ej2-vue-notifications'
-import { UI_APP_KEY, type MmdaApplication } from '@mmda/vui'
+import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type SyncfusionOverlay,
@@ -10,7 +10,7 @@ import {
 export const SfOverlayHost = defineComponent({
   name: 'SfOverlayHost',
   setup() {
-    const app = inject(UI_APP_KEY) as MmdaApplication | undefined
+    const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
     const overlay = (app?.ui as any)?.overlay as SyncfusionOverlay | undefined
     const toastRef = ref<any>()
 

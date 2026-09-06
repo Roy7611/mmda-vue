@@ -3,7 +3,7 @@ import {
   UI_APP_KEY,
   UI_BUILDER_KEY,
   type MmdaApplication,
-  type UiBuilder,
+  type VueUiBuilder,
 } from "@mmda/vui";
 import { defineComponent, h, inject } from "vue";
 import { useRouter } from "vue-router";
@@ -50,7 +50,7 @@ function injectResponsiveCSS() {
 export const HomeView = defineComponent({
   name: "HomeView",
   setup: () => {
-    const b = inject<UiBuilder>(UI_BUILDER_KEY)!;
+    const b = inject<VueUiBuilder>(UI_BUILDER_KEY)!;
     const { factory } = b;
     const app = (inject(MMDA_BASE_KEY) ??
       inject(UI_APP_KEY)) as MmdaApplication;

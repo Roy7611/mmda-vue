@@ -6,8 +6,8 @@ import {
   layoutField,
   layoutFieldGroup,
   layoutPage,
-} from "../ui/ui_layout";
-import { UiViewContext } from "../ui/ui_context";
+} from "../ui/layout/layout";
+import { UiViewContext } from "../contexts/view_context";
 import { TestUiBuilder } from "./test_builder";
 
 const hosts: HTMLElement[] = [];

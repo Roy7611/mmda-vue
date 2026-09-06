@@ -1,6 +1,14 @@
 # UiBuilder：程序员怎么写
 
-契约在 [`src/ui/builder.ts`](../../src/ui/builder.ts)。vui 实现是 **`VueUiBuilder`**；皮肤再 `extends`（类名不改）。业务 Logic **不要 import 皮肤、不要 `h()`**。
+契约在 [`src/ui/builder.ts`](../../src/ui/builder.ts)。vui 里一定是 **`VueUiBuilder`**（抽象类，模板方法）；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
+
+```text
+UiBuilder              core 契约
+    ↑ implements
+VueUiBuilder           vui 抽象类
+    ↑ extends
+SyncfusionUiBuilder / PrimeVueUiBuilder / …
+```
 
 架构见 [ARCHITECTURE.md](../../../../ARCHITECTURE.md)。本轮改名见 [refactor_ui_app.md](../refactor_ui_app.md)。
 

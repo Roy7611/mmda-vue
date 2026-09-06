@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref, render } from "vue";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
-import { UiViewContext } from "../ui/ui_context";
-import { UiViewManyKind } from "../ui/ui_view";
-import { renderTreeView } from "../ui/ui_tree_view";
+import { UiViewContext } from "../contexts/view_context";
+import { UiViewManyKind } from "../contexts/view";
+import { renderTreeView } from "../components/MmdaTreeView";
 import { TestUiBuilder } from "./test_builder";
 
 const metaui = new MetaUi({

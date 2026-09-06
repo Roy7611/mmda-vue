@@ -7,13 +7,13 @@ const pkg = (name: string) =>
   fileURLToPath(new URL(`../${name}/src/index.ts`, import.meta.url))
 
 const vuiFa = fileURLToPath(
-  new URL('../vui/src/fontawesome.css', import.meta.url),
+  new URL('../vui/src/assets/css/fontawesome.css', import.meta.url),
 )
 const vuiTheme = fileURLToPath(
-  new URL('../vui/src/theme.css', import.meta.url),
+  new URL('../vui/src/assets/css/theme.css', import.meta.url),
 )
 const vuiMaterialSymbols = fileURLToPath(
-  new URL('../vui/src/material-symbols.css', import.meta.url),
+  new URL('../vui/src/assets/css/material-symbols.css', import.meta.url),
 )
 
 export default defineConfig({

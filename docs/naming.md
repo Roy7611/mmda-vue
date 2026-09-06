@@ -2,7 +2,7 @@
 
 本文约定产品里**叫什么、怎么写**。代码、路由、文档、Logic 钩子用同一套词，不要各起别名。
 
-源码：视图枚举在 [`packages/vui/src/ui/ui_view.ts`](../packages/vui/src/ui/ui_view.ts)；表格 `scene` 在 [表格契约](../packages/vui-syncfusion/docs/sf-grid.md)。UI 构造见 vui [`builders/`](../packages/vui/src/ui/builders/) 与 [Builder 文档](../packages/vui/docs/builder.md)。**分层架构只写在** [ARCHITECTURE.md](../ARCHITECTURE.md)，本文不重复。
+源码：视图枚举在 [`packages/vui/src/contexts/view.ts`](../packages/vui/src/contexts/view.ts)；表格 `scene` 在 [表格契约](../packages/vui-syncfusion/docs/sf-grid.md)。UI 构造见 vui [`ui/builder/`](../packages/vui/src/ui/builder/) 与 [Builder 文档](../packages/vui/docs/builder.md)。**分层架构只写在** [ARCHITECTURE.md](../ARCHITECTURE.md)，本文不重复。
 
 ## 目录
 
@@ -65,7 +65,7 @@
 | 会话接口 | `UiContext` | core；业务 Logic 只认这个。声明 `uiBuilder` / `apiClient` / `app` |
 | 应用壳 | `MmdaApplication` | core abstract class；鉴权、MetaUi、DI、locale。`context.app` 的类型。业务读 **`app.state`** |
 | Vue 应用壳 | `MmdaVueApp` | vui `extends MmdaApplication`；不是 Vue `createApp()` |
-| 拼屏实现 | `VueUiBuilder` | vui `implements UiBuilder<VNode>`；皮肤 `SyncfusionUiBuilder` 等再 extends。不要叫 AbstractUiBuilder |
+| 拼屏实现 | `VueUiBuilder` | vui 抽象类，`implements UiBuilder<VNode>`（模板方法）；皮肤 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等再 extends。取代 `AbstractUiBuilder`。注入类型用本类，不要另造 Host，也不要 alias 成 `UiBuilder` |
 | 会话实现 | `UiViewContext` | vui 实现 `UiContext`；不要叫 ViewModel / Store |
 | 屏级构建上下文 | `UiBuildContext` | vui；对标 Flutter `BuildContext`，给渲染 / 拼屏，不是业务钩子类型 |
 
@@ -83,12 +83,22 @@
 vui Builder        buildListView        拼工具栏、搜索、分组、分页、对话框
 ```
 
+Builder 继承（设计真源 [ARCHITECTURE.md](../ARCHITECTURE.md)）：
+
+```text
+UiBuilder              core 契约
+    ↑ implements
+VueUiBuilder           vui 抽象类（模板方法；取代 AbstractUiBuilder）
+    ↑ extends
+SyncfusionUiBuilder / PrimeVueUiBuilder / …
+```
+
 | 词 | 英文 | 典型写法 | 是什么 |
 | --- | --- | --- | --- |
-| 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `ui/components/` 只有无厂商壳 |
-| 工厂 | Factory / `UiFactory` | `factory.table`、`fldFactory.dropdown` | 皮肤实现；vui 只留契约 [`ui_factory.ts`](../packages/vui/src/ui/ui_factory.ts) |
+| 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳 |
+| 工厂 | Factory / `UiFactory` | `factory.table`、`fldFactory.dropdown` | 皮肤实现；vui 契约 [`ui/factory/factory.ts`](../packages/vui/src/ui/factory/factory.ts) |
 | 构建器契约 | `UiBuilder` | `confirm` / `dialog` / `buildView` | **core** `src/ui/builder.ts`，无 Vue |
-| 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui；实现在 `ui/builders/`。皮肤 Builder 只补壳 |
+| 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
 vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮肤已有 `factory/`。细则见 [Builder 与皮肤](../packages/vui/docs/builder.md)。
@@ -328,7 +338,7 @@ grid     高能力实现    皮肤 SfGrid / AgGrid；不要当成 Builder 对外
 
 | 词 | 用在 | 典型写法 | 不要 |
 |---|---|---|---|
-| **list** | 契约、index 页 | [`ui_list.ts`](../packages/vui/src/ui/ui_list.ts)、`UiListProps`、`buildListView`、`factory.list` | 把视图叫 `list`（视图是 `index`） |
+| **list** | 契约、index 页 | [`ui/factory/list.ts`](../packages/vui/src/ui/factory/list.ts)、`UiListProps`、`buildListView`、`factory.list` | 把视图叫 `list`（视图是 `index`） |
 | **table** | 桌面端的 list；**子表** | `buildTable`、`factory.table`、`UiTableCellRenderer` | 移动端主列表（那边用 ListView） |
 | **grid** | 皮肤实现、更高能力（虚滚、列筛、进格编） | `SfGrid`、`AgGrid`、`UiGridScene` | vui 再建 `ui_grid.ts` 当对外契约 |
 
@@ -561,7 +571,7 @@ export const UserStatusEnum = {
 | 业务一对一    | `hasOne`（按需取整份实体）                 | 当小表 `loadReferenceOptions`            |
 | 关联对象      | relative：`relObjName`、`addRelativeLogic` | `relation`、CSS `relative`、`relativeTime` |
 | 无 Vue CRUD 基类 | `EntityLogic`（core）                 | `EntityManager`、`RepositoryLogic`   |
-| 拼复杂视图    | `buildListView` / `VueUiBuilder`  | `AbstractUiBuilder`、皮肤 Builder 里调 API、拼查询 |
+| 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
 | 生产控件      | 皮肤 `factory.table` → `h(SfGrid)`     | `UiActionFactory`（那是标准按钮）         |
 | 业务读接口    | `this.getAll` / `this.load` / `this.doAction` / `context.apiClient` | `context.globalProps.$api` |
 | 应用壳        | core `MmdaApplication`；vui `MmdaVueApp` | Vue `App`、`$app`、把 vui 壳仍叫 `MmdaApplication` |

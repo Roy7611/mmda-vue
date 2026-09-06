@@ -8,22 +8,22 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
-import { VueUiBuilder } from "../ui/ui_builder";
-import type { UiViewContext } from "../ui/ui_context";
-import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/ui_auth";
+import { VueUiBuilder } from "../ui/builder/builder";
+import type { UiViewContext } from "../contexts/view_context";
+import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/factory/auth";
 import type {
   AppSideBarProps,
   AppTopBarProps,
   ModuleBreadcrumbProps,
   ModuleSearchbarProps,
   ModuleToolbarProps,
-} from "../ui/ui_app";
-import type { UiFactory, UiFieldFactory } from "../ui/ui_factory";
-import type { PropData, UiLayout, UiSlots } from "../ui/ui_layout";
-import type { UiListPropsType } from "../ui/ui_list";
-import type { UiSplitterPane, UiSplitterProps } from "../ui/ui_factory";
-import { treeIdOf, treeLabelOf, type UiTreePropsType } from "../ui/ui_tree";
-import type { SearchForRelativeProps, UiSearchField } from "../ui/ui_filter";
+} from "../app/app";
+import type { UiFactory, UiFieldFactory } from "../ui/factory/factory";
+import type { PropData, UiLayout, UiSlots } from "../ui/layout/layout";
+import type { UiListPropsType } from "../ui/factory/list";
+import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/factory";
+import { treeIdOf, treeLabelOf, type UiTreePropsType } from "../ui/factory/tree";
+import type { SearchForRelativeProps, UiSearchField } from "../ui/factory/filter";
 
 type UiContext = UiViewContext<any>;
 

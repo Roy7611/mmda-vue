@@ -4,6 +4,7 @@
 - **本包目录**：[core_architecture.md](./core_architecture.md)
 - [本轮分层清理（历史）](./refactor.md)
 - [UI 契约 / 应用壳 / 选记录（本轮）](./refactor_ui_app.md)
+- [core / vui / syncfusion 评估（工作稿）](../../../docs/reviews/core-vui-syncfusion.md)
 - [UiBuilder：程序员怎么写](./ui/ui_builder_usage.md)
 - [UiContext：程序员怎么写](./logic/ui_context_usage.md)
 - [MetaUiBuilder](./metaui/metaui_builder.md)

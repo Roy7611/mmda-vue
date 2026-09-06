@@ -250,7 +250,7 @@ const searchBox = (
   if (!reference) {
     return h('span', { class: 'warning' }, '不是引用字段')
   }
-  const builder = context.uiBuilder
+  const builder = context.app?.ui
   if (!builder?.buildSearchForRelative) {
     return fallbackDisplay(field, context, props)
   }
@@ -397,8 +397,8 @@ const externalLink = (
     return h('span', { name: field.fieldName, ...domProps }, fldText)
   }
 
-  const { modules = [], context: appContext } = app
-  const systemList: any[] = appContext?.systemList ?? []
+  const { modules = [] } = app
+  const systemList: any[] = app.state.systemList ?? []
   const api = context.logic?.apiClient ?? app.api
   const isCurrentSystem =
     !reference.refDbName || reference.refDbName === api?.config.service

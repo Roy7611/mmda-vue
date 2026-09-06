@@ -4,7 +4,7 @@ import {
   createIconVNode,
   isMaterialSymbol,
   mergeIconClass,
-} from "../ui/ui_icon";
+} from "../app/icon";
 
 describe("ui_icon", () => {
   it("merges icon and extra classes", () => {

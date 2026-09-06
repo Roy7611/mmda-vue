@@ -16,15 +16,15 @@
     },
     "./fontawesome.css": {
       "import": "./dist/fontawesome.css",
-      "default": "./src/fontawesome.css"
+      "default": "./src/assets/css/fontawesome.css"
     },
     "./theme.css": {
       "import": "./dist/theme.css",
-      "default": "./src/theme.css"
+      "default": "./src/assets/css/theme.css"
     },
     "./material-symbols.css": {
-      "import": "./src/material-symbols.css",
-      "default": "./src/material-symbols.css"
+      "import": "./src/assets/css/material-symbols.css",
+      "default": "./src/assets/css/material-symbols.css"
     }
   },
   "files": [

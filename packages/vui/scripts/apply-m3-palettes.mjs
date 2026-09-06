@@ -77,8 +77,8 @@ function sfVars(S) {
   ];
 }
 
-// --- ui_theme.ts ---
-const themePath = join(root, "src/ui/ui_theme.ts");
+// --- app/theme.ts ---
+const themePath = join(root, "src/app/theme.ts");
 let themeTs = readFileSync(themePath, "utf8");
 const paletteBody = ids
   .map((id) => {
@@ -116,7 +116,7 @@ ${paletteBody},
 writeFileSync(themePath, themeTs);
 
 // --- theme.css ---
-const themeCssPath = join(root, "src/theme.css");
+const themeCssPath = join(root, "src/assets/css/theme.css");
 let themeCss = readFileSync(themeCssPath, "utf8");
 const rootL = P.purple.light;
 
@@ -282,7 +282,7 @@ if (!primeCss.includes(`--p-primary-600: ${P.indigo.scale["600"]}`)) {
 writeFileSync(primePath, primeCss);
 
 console.log(
-  "Applied MD3 accent+surface palettes to ui_theme.ts, theme.css, syncfusion, primevue",
+  "Applied MD3 accent+surface palettes to app/theme.ts, theme.css, syncfusion, primevue",
 );
 console.log(
   `sample green ground=${P.green.light.surfaceGround} card=${P.green.light.surfaceCard}`,

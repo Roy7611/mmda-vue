@@ -7,7 +7,7 @@ import {
   UI_BUILDER_KEY,
   writeMmdaPref,
   type MmdaApplication,
-  type UiBuilder,
+  type VueUiBuilder,
 } from '@mmda/vui'
 import { ChangePasswordForm } from './ChangePasswordForm'
 import { appPluginRegistry } from '../registry'
@@ -16,7 +16,7 @@ export const AppUserFooter = defineComponent({
   name: 'AppUserFooter',
   setup() {
     const app = inject(UI_APP_KEY)! as MmdaApplication
-    const builder = inject(UI_BUILDER_KEY)! as UiBuilder
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const router = useRouter()
     const route = useRoute()
     const password = reactive({ newPwd: '', newPwdAgain: '' })

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, inject } from 'vue'
 import { setupI18n } from '../i18n/i18n'
-import { MmdaVueApp } from '../ui/ui_app'
-import { createStubUiBuilder } from '../ui/ui_builder'
-import { UI_APP_KEY, UI_BUILDER_KEY } from '../ui/ui_keys'
-import { getFileInfo } from '../ui/components/FileIcons'
+import { MmdaVueApp } from '../app/app'
+import { createStubUiBuilder } from '../ui/builder/builder'
+import { UI_APP_KEY, UI_BUILDER_KEY } from '../app/keys'
+import { getFileInfo } from '../components/FileIcons'
 
 describe('MmdaVueApp', () => {
   it('装配 DI、locale 和弹层转发，不依赖 echarts', () => {

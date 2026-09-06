@@ -15,7 +15,7 @@
 ```text
 皮肤组件：SfGrid / AgGrid（treeData）等
 Factory 短名：treeGrid
-Builder 薄包：buildTreeGrid（builders/list.ts）
+Builder 薄包：buildTreeGrid（ui/builder/list.ts）
 Builder 拼屏：buildTreeGridView
 build()：viewKind === treeGrid → buildTreeGridView
 ```

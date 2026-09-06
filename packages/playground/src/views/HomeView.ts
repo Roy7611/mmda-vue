@@ -1,6 +1,6 @@
 import { defineComponent, h, inject } from "vue";
 import { useRouter } from "vue-router";
-import { UI_BUILDER_KEY, type UiBuilder } from "@mmda/vui";
+import { UI_BUILDER_KEY, type VueUiBuilder } from "@mmda/vui";
 import { DEMO_PREFIX } from "../catalog";
 
 const cards = [
@@ -24,7 +24,7 @@ const cards = [
 export const HomeView = defineComponent({
   name: "HomeView",
   setup() {
-    const builder = inject(UI_BUILDER_KEY)! as UiBuilder;
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder;
     const router = useRouter();
     return () =>
       h("div", { class: "mmda-playground-home" }, [

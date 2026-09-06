@@ -1,5 +1,5 @@
 import type { Translatable } from '../../metaui/metaui_field'
-import type { UiContext } from '../ui_context'
+import type { UiContext } from '../../ui/context'
 
 export type ValidatorSeverity = 'error' | 'warning'
 

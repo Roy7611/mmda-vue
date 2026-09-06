@@ -8,10 +8,10 @@ import {
   resolveSearchParam,
   resolveViewManyType,
   resolveViewOneType,
-} from "../ui/ui_view";
-import { UiActionDivider, UiActionCtor } from "../ui/ui_action";
-import { loading, UiDataState } from "../ui/ui_state";
-import { quickFiltersToSQL, UiFilter, UiSearchField } from "../ui/ui_filter";
+} from "../contexts/view";
+import { UiActionDivider, UiActionCtor } from "../ui/factory/action";
+import { loading, UiDataState } from "../app/state";
+import { quickFiltersToSQL, UiFilter, UiSearchField } from "../ui/factory/filter";
 import { SqlDataType, MetaUiField } from "@mmda/core";
 
 const t: TranslateFn = (message) =>

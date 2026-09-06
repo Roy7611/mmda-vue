@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import { setupI18n } from "../i18n/i18n";
-import { MmdaVueApp } from "../ui/ui_app";
-import { createStubUiBuilder } from "../ui/ui_builder";
+import { MmdaVueApp } from "../app/app";
+import { createStubUiBuilder } from "../ui/builder/builder";
 import { TestUiBuilder } from "./test_builder";
-import { ColorPalettePicker } from "../ui/components/ColorPalettePicker";
+import { ColorPalettePicker } from "../components/ColorPalettePicker";
 import {
   DEFAULT_COLOR_PALETTE,
   MMDA_COLOR_PALETTES,
@@ -12,7 +12,7 @@ import {
   readStoredPageSize,
   resolveColorPalette,
   writeStoredPageSize,
-} from "../ui/ui_theme";
+} from "../app/theme";
 
 afterEach(() => {
   localStorage.clear();

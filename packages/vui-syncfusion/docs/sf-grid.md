@@ -3,7 +3,8 @@
 本文是 **vui Grid 的对外接口**：`scene`、`metaui`、`dataSource`、开关、回调、Logic 钩子。**不出现任何厂商类型、模块名或列配置对象。** Syncfusion 的 `SfGrid` 与日后 AgGrid 包装层实现 **同一套 props / 事件 / 方法**；Builder 只调 `factory.grid`。
 
 - 本包皮肤：[`SfGrid.ts`](../src/components/SfGrid.ts)（契约控件）、[`SfGridLayout.ts`](../src/components/SfGridLayout.ts)（布局伴侣）。EJ2 宿主为 `SfGridHost`。列映射见 `sf_grid_column.ts`（读 `filterTypes`）。
-- **实现笔记（本皮肤）** 见 [sf-grid-design.md](./sf-grid-design.md)。现网仍走 `factory.table`；日后 `factory.grid` 接线。
+- **实现笔记（本皮肤）** 见 [sf-grid-design.md](./sf-grid-design.md)。
+- **现网唯一生长路径：`factory.table`**。`components/SfGrid` 是目标契约；vui `buildTable` 改调 `factory.grid` 之前，不要两边同时加功能。
 
 表格 **不持有** `UiContext`。传入行对象 + 回调。查询见 vui [列表与过滤](../../vui/docs/list.md)。enum / ref / hasOne 只走 `valueOf` / `labelOf`。
 

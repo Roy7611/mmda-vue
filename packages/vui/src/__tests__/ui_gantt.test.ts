@@ -6,8 +6,8 @@ import {
   type UiGanttChartProps,
   type UiGanttViewProps,
   type UiGanttTask,
-} from '../ui/ui_gantt'
-import { VueUiBuilder, createStubUiBuilder } from '../ui/ui_builder'
+} from '../ui/factory/gantt'
+import { VueUiBuilder, createStubUiBuilder } from '../ui/builder/builder'
 
 describe('ui gantt contract', () => {
   it('maps link types and predecessor strings', () => {

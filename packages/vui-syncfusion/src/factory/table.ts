@@ -1,4 +1,8 @@
 // @ts-nocheck
+/**
+ * 现网列表表格渲染器（factory.table）。
+ * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
+ */
 import { h, nextTick, toRaw, unref } from 'vue'
 import {
   DEFAULT_PAGE_SIZE,

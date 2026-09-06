@@ -455,6 +455,7 @@ describe("Syncfusion skin", () => {
       }),
       searchRelative: vi.fn(),
       setFieldValue: vi.fn(),
+      app: { ui: { buildSearchForRelative } },
       uiBuilder: { buildSearchForRelative },
       isFieldReadonly: () => false,
       isInvalid: () => false,

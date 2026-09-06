@@ -6,7 +6,7 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import { UI_APP_KEY, type MmdaApplication } from '@mmda/vui'
+import { UI_APP_KEY, type MmdaVueApp } from "@mmda/vui";
 import {
   closeOverlayDialog,
   type PrimeOverlay,
@@ -15,7 +15,7 @@ import {
 export const PrimeVueOverlayHost = defineComponent({
   name: 'PrimeVueOverlayHost',
   setup() {
-    const app = inject(UI_APP_KEY) as MmdaApplication | undefined
+    const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
     const overlay = app?.ui.overlay as PrimeOverlay | undefined
 
     try {

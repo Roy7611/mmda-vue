@@ -3,7 +3,7 @@ import {
   UI_BUILDER_KEY,
   type MmdaApplication,
   type SigninUser,
-  type UiBuilder,
+  type VueUiBuilder,
 } from "@mmda/vui";
 import { defineComponent, h, inject } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -13,7 +13,7 @@ import { installGuestSession } from "../host";
 export const SigninView = defineComponent({
   name: "SigninView",
   setup() {
-    const builder = inject(UI_BUILDER_KEY)! as UiBuilder;
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder;
     const app = inject(UI_APP_KEY)! as MmdaApplication;
     const router = useRouter();
     const route = useRoute();
