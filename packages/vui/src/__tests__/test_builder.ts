@@ -139,8 +139,19 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
     label: (text, props) => h("label", props, text),
     image: (src, props) => h("img", { src, ...props }),
     icon: (icon, props) => h("span", { class: ["mmda-icon", icon], ...props }),
-    badge: ({ value, class: className, ...props }) =>
-      h("span", { ...props, class: ["mmda-badge", className] }, String(value)),
+    badge: ({ value, class: className, shape, overlay, position, colorRole, ...props }) =>
+      h(
+        "span",
+        {
+          ...props,
+          "data-color-role": colorRole,
+          "data-shape": shape,
+          "data-overlay": overlay,
+          "data-position": position,
+          class: ["mmda-badge", className],
+        },
+        value == null ? undefined : String(value),
+      ),
     title: (text, props) => h("h1", props, text),
     subtitle: (text, props) => h("h2", props, text),
     link: (props, slots) =>

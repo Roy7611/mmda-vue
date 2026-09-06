@@ -717,3 +717,45 @@ html.mmda-dark .p-button.mmda-btn-tonal:hover,
 html.mmda-dark .p-splitbutton.mmda-btn-tonal > .p-button:hover {
   background: rgb(255 255 255 / 22%);
 }
+
+.mmda-badge--circle {
+  border-radius: 50%;
+}
+
+.mmda-badge--pill {
+  border-radius: 999px;
+}
+
+.mmda-badge--dot {
+  min-width: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+}
+
+.mmda-badge--overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(40%, -40%);
+}
+
+.mmda-badge--overlay.mmda-badge--top-left {
+  right: auto;
+  left: 0;
+  transform: translate(-40%, -40%);
+}
+
+.mmda-badge--overlay.mmda-badge--bottom-right {
+  top: auto;
+  bottom: 0;
+  transform: translate(40%, 40%);
+}
+
+.mmda-badge--overlay.mmda-badge--bottom-left {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  transform: translate(-40%, 40%);
+}

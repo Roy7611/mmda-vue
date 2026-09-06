@@ -130,6 +130,9 @@ await context.init()
 | [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |
+| [Factory 控件契约](./docs/factory.md) | chrome：`shape` / `size` / `colorRole` / `position` |
+| [Badge 设计](./docs/badge.md) | `factory.badge` |
+| [Badge：怎么写](./docs/badge_usage.md) | 行内 / 角标 |
 | [列表与过滤](./docs/list.md) | 工具栏、搜索、`UiFilter`、`select()` |
 | [表格契约](../vui-syncfusion/docs/sf-grid.md) | 厂商无关的 Grid 接口（各皮肤共用） |
 | [SfGrid 设计](../vui-syncfusion/docs/sf-grid-design.md) | Syncfusion 皮肤如何实现该契约 |

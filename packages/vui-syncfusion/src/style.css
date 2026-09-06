@@ -2733,3 +2733,12 @@ html.mmda-dark .e-grid .e-table {
   .e-btn-icon {
   color: var(--mmda-text-muted-color);
 }
+
+/* Badge 角标：EJ2 只有上下，左右用 class 覆盖 */
+.e-badge.e-badge-notification.mmda-badge--top-left,
+.e-badge.e-badge-dot.mmda-badge--top-left,
+.e-badge.e-badge-notification.mmda-badge--bottom-left,
+.e-badge.e-badge-dot.mmda-badge--bottom-left {
+  right: auto;
+  left: -10px;
+}

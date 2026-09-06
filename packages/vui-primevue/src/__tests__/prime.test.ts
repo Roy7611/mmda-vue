@@ -50,6 +50,20 @@ describe('PrimeVue skin', () => {
     expect(factory.resolveIcon('save')).toBe('pi pi-check')
   })
 
+  it('maps factory.badge colorRole and circle shape', () => {
+    const factory = createPrimeVueUiFactory()
+    const vnode = factory.badge({
+      value: 10,
+      colorRole: 'primary',
+      shape: 'circle',
+    })
+    expect(vnode.props?.value).toBe(10)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-badge--circle')
+  })
+
   it('registers old metadata editor aliases', () => {
     const fields = createPrimeVueFieldFactory()
     expect(fields.TextBox).toBe(fields.textInput)

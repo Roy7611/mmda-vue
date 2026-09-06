@@ -134,7 +134,7 @@ export const AppUserFooter = defineComponent({
                 ? builder.factory.badge({
                     value:
                       todoCount.value > 99 ? '99+' : String(todoCount.value),
-                    severity: 'danger',
+                    colorRole: 'danger',
                     class: 'mmda-user-footer__badge',
                   })
                 : null,

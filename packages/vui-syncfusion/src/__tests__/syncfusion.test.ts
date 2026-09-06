@@ -117,6 +117,23 @@ describe("Syncfusion skin", () => {
     expect(factory.dataViewBox).toBeTypeOf("function");
   });
 
+  it("maps factory.badge colorRole and circle shape to e-badge classes", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.badge({
+      value: 10,
+      colorRole: "primary",
+      shape: "circle",
+    });
+    const cls = String(vnode.props?.class ?? vnode.props?.className ?? "");
+    const joined = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.filter(Boolean).join(" ")
+      : cls;
+    expect(joined).toContain("e-badge");
+    expect(joined).toContain("e-badge-primary");
+    expect(joined).toContain("e-badge-circle");
+    expect(vnode.children).toBe("10");
+  });
+
   it("maps unified gantt tasks onto EJ2 fields and view modes", async () => {
     const { mapUiTasksToEj2, GANTT_VIEW_MODES } = await import("../components/SfGanttChart");
     const rows = mapUiTasksToEj2(

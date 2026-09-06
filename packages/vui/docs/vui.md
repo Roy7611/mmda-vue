@@ -9,6 +9,9 @@
 | [会话上下文](./context.md) | 程序员：`VueUiContext` / core `UiContext` |
 | [会话设计](./vue_ui_context.md) | 一个类 + mixin 叠放；不是本地/远程两层 |
 | [Builder 与皮肤](./builder.md) | `UiBuilder` → `VueUiBuilder` → 皮肤；组件 → Factory |
+| [Factory 控件契约](./factory.md) | chrome 参数：`shape` / `size` / `colorRole` / `position` |
+| [Badge 设计](./badge.md) | `factory.badge` 属性与皮肤映射 |
+| [Badge：怎么写](./badge_usage.md) | 行内标记、角标 overlay |
 | [列表与过滤](./list.md) | 工具栏、搜索、表头日期 multi、`select()` / selectMany |
 | [表格契约](../../vui-syncfusion/docs/sf-grid.md) | 厂商无关的 Grid 接口（各皮肤共用） |
 | [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md) | Syncfusion 皮肤如何实现该契约 |

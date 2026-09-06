@@ -21,11 +21,11 @@ import type {
   UiTreeGridPropsType,
 } from "@mmda/vui";
 import { assembleTreeGridRows, listedTableFields, treeRowId } from "@mmda/vui";
+import { createBadge } from "./factory/badge";
 import {
   createIconVNode,
   MATERIAL_SYMBOL_PREFIX,
 } from "@mmda/vui";
-import Badge from "primevue/badge";
 import Button from "primevue/button";
 import ButtonGroup from "primevue/buttongroup";
 import Chart from "primevue/chart";
@@ -481,12 +481,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     label: (text, props) => h("label", props, text),
     image: (src, props) => h(Image, { src, preview: props?.preview, ...props }),
     icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
-    badge: (props) =>
-      h(Badge, {
-        value: props.value,
-        severity: props.severity,
-        class: props.class,
-      }),
+    badge: (props) => createBadge(props),
     title: (text, props) => h("h2", props, text),
     subtitle: (text, props) => h("h3", props, text),
     link: (props, slots) =>

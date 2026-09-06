@@ -1,6 +1,5 @@
 import { h, unref, type VNode } from 'vue'
 import {
-  NBadge,
   NButton,
   NDrawer,
   NDropdown,
@@ -35,6 +34,7 @@ import {
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { NaiveTree } from './components/NaiveTree'
+import { createBadge } from './factory/badge'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
@@ -163,8 +163,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     label: (text, props) => h('label', props, text),
     image: (src, props) => h(NImage, { src, previewDisabled: !props?.preview, ...props }),
     icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
-    badge: props =>
-      h(NBadge, { value: props.value, type: naiveType(props.severity) as any, class: props.class }),
+    badge: props => createBadge(props),
     title: (text, props) => h('h2', props, text),
     subtitle: (text, props) => h('h3', props, text),
     link: (props, slots) =>

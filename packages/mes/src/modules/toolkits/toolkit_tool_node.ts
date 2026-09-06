@@ -30,7 +30,7 @@ export function toolkitToolCardNode(
 	}, [
 		uiBuilder.factory.badge({
 			value: item.toolkitIndex,
-			severity: 'info',
+			colorRole: 'info',
 			class: 'absolute top-2 left-2 z-10',
 		}),
 		h('div', { class: 'w-full h-36 flex-shrink-0 flex items-center justify-center rounded-lg relative overflow-hidden bg-gray-50' }, [

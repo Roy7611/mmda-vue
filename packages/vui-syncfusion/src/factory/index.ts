@@ -13,6 +13,7 @@ import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid-inject";
 import { createTableRenderer } from "./table";
 import { attachButtonRenderers, createButton } from "./buttons";
+import { createBadge } from "./badge";
 import { attachOverlayRenderers } from "./overlays";
 import { createSplitterRenderer } from "./splitter";
 import { attachChartRenderers } from "./charts";
@@ -90,24 +91,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     label: (text: any, props: any) => h("label", props, text),
     icon: (name: string, props: any) =>
       createIconVNode(factory.resolveIcon(name), props),
-    badge: (props: any) =>
-      h(
-        "span",
-        {
-          class: [
-            "e-badge",
-            props.severity === "danger"
-              ? "e-badge-danger"
-              : props.severity === "warning"
-                ? "e-badge-warning"
-                : props.severity === "success"
-                  ? "e-badge-success"
-                  : "e-badge-info",
-            props.class,
-          ],
-        },
-        String(props.value),
-      ),
+    badge: (props: any) => createBadge(props),
     title: (text: any, props: any) => h("h2", props, text),
     subtitle: (text: any, props: any) => h("h3", props, text),
     link: (props: any, slots: any) =>

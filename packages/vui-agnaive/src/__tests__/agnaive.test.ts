@@ -74,6 +74,21 @@ describe('vui-agnaive skin', () => {
     expect(factory.resolveIcon('save')).toBe('fas fa-check')
   })
 
+  it('maps factory.badge colorRole and circle shape', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.badge({
+      value: 10,
+      colorRole: 'primary',
+      shape: 'circle',
+    })
+    expect(vnode.props?.value).toBe(10)
+    expect(vnode.props?.type).toBe('primary')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-badge--circle')
+  })
+
   it('registers old metadata editor aliases', () => {
     const fields = createAgNaiveFieldFactory()
     expect(fields.TextBox).toBe(fields.textInput)

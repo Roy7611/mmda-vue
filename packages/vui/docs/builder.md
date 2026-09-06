@@ -53,7 +53,7 @@ logic/              UiLogic
 contexts/           VueUiContext（会话；设计见 docs/vue_ui_context.md）
 components/         无厂商壳
 ui/layout/          UiLayout
-ui/factory/         一控件一文件的 props；factory.ts + field_factory.ts
+ui/factory/         一控件一文件的 props；参数约定见 [factory.md](./factory.md)
 ui/builder/         VueUiBuilder、form/list/tree mixin、overlay
 ```
 
@@ -139,7 +139,7 @@ buildField
 `UiFactory` 至少覆盖：
 
 - 布局：`layout.row` / `column` / `cell`
-- 动作：`button`、`badge`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`
+- 动作：`button`、`badge`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`（chrome 四参数见 [factory.md](./factory.md)；Badge 见 [badge.md](./badge.md)）
 - 列表：`table`、`treeGrid`、`list`、`paginator`
 - chrome：`dialog`、`drawer`、`searchForRelative`
 - 弹层：`UiOverlay`（toast / confirm / `dialog` 队列）；不要把 toast 写进 Factory

@@ -35,9 +35,16 @@ import type { UiTreePropsType } from './tree'
 import type { UiTreeGridPropsType } from './tree_grid'
 import type { Rx } from '../../rx'
 import type { ChildSlot } from '../../contexts/view'
+import type { UiBadgeProps } from './badge'
 
 export * from './field_factory'
 export type { UiTableCellRenderer } from './list'
+export type {
+  UiBadgeColor,
+  UiBadgePosition,
+  UiBadgeProps,
+  UiBadgeShape,
+} from './badge'
 
 export interface UiSplitterPane {
   content: VNode
@@ -84,11 +91,6 @@ export type UiButtonRenderer = (
   props: UiButtonProps,
   slots?: UiButtonSlots,
 ) => VNode
-
-export interface UiBadgeProps extends PropData {
-  value: string | number
-  severity?: 'info' | 'success' | 'warning' | 'danger'
-}
 
 export interface UiImageGalleryItem {
   src: string

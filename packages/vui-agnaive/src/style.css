@@ -195,3 +195,45 @@ html.mmda-dark .ag-root-wrapper {
   background: var(--mmda-surface-group, var(--mmda-surface-card));
   border-color: var(--mmda-content-border-color);
 }
+
+.mmda-badge--circle {
+  border-radius: 50%;
+}
+
+.mmda-badge--pill {
+  border-radius: 999px;
+}
+
+.mmda-badge--dot {
+  min-width: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+}
+
+.mmda-badge--overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(40%, -40%);
+}
+
+.mmda-badge--overlay.mmda-badge--top-left {
+  right: auto;
+  left: 0;
+  transform: translate(-40%, -40%);
+}
+
+.mmda-badge--overlay.mmda-badge--bottom-right {
+  top: auto;
+  bottom: 0;
+  transform: translate(40%, 40%);
+}
+
+.mmda-badge--overlay.mmda-badge--bottom-left {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  transform: translate(-40%, 40%);
+}

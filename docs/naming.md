@@ -9,6 +9,7 @@
 - [产品与包](#产品与包)
 - [分层词](#分层词)
 - [UI 构造：组件 → Factory → Builder](#ui-构造组件--factory--builder)
+  - [chrome 参数](#chrome-参数)
 - [服务、模块、实体、仓库、交互逻辑](#服务模块实体仓库交互逻辑)
   - [relation 与 relative](#relation-与-relative)
   - [文件与目录](#文件与目录)
@@ -100,7 +101,20 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
-vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮肤已有 `factory/`。细则见 [Builder 与皮肤](../packages/vui/docs/builder.md)。
+vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮肤已有 `factory/`。细则见 [Builder 与皮肤](../packages/vui/docs/builder.md)。chrome 控件参数名见 [Factory 控件契约](../packages/vui/docs/factory.md)。
+
+### chrome 参数
+
+按钮、Badge 等皮肤无关的视觉参数，vui 里只准这四个名：
+
+| 中文 | 属性 | 不要写成 |
+| --- | --- | --- |
+| 形状 | `shape` | `variant`、`type` |
+| 大小 | `size` | 把厂商 `xlarge` 写进契约 |
+| 颜色 | `colorRole` | `severity`、`type`、`color` |
+| 位置 | `position` | 角标四角不要复用 tooltip 的 `UiPosition` |
+
+`severity` 留给 toast / 校验轻重。Badge 细节：[设计](../packages/vui/docs/badge.md) / [怎么写](../packages/vui/docs/badge_usage.md)。
 
 以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用 `MetaUi` 生产 → vui Builder 只决定何时分页、分组、弹选择器。**不要**把 EJ2 / ag-grid / PrimeVue 控件写进 `@mmda/vui`。对外接口以 **list** 命名，子表走 **table**，皮肤实现用 **grid**，见 [list、table、grid](#listtablegrid)。
 
@@ -571,7 +585,8 @@ export const UserStatusEnum = {
 | 关联对象      | relative：`relObjName`、`addRelativeLogic` | `relation`、CSS `relative`、`relativeTime` |
 | 无 Vue CRUD 基类 | `EntityLogic`（core）                 | `EntityManager`、`RepositoryLogic`   |
 | 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
-| 生产控件      | 皮肤 `factory.table` → `h(SfGrid)`     | `UiActionFactory`（那是标准按钮）         |
+| 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
+| 角标叠放     | `factory.badge` + `overlay`            | Prime `OverlayBadge`、EJ2 `notification` 写进业务 |
 | 业务读接口    | `this.getAll` / `this.load` / `this.doAction` / `context.apiClient` | `context.globalProps.$api` |
 | 应用壳        | core `MmdaApplication`；vui `MmdaVueApp` | Vue `App`、`$app`、把 vui 壳仍叫 `MmdaApplication` |
 | 字段逻辑     | `MetaUiFieldLogic` / `this.field('x')` | 改共享的 `MetaUiField`               |
