@@ -9,6 +9,7 @@ import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMod
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
 import { reject } from 'lodash';
+import { plainTableColumn } from '@/components/plain_table';
 
 const PROJECT_GROUP_ID = 'projectID';
 const ORDER_GROUP_ID = 'orderID';
@@ -308,7 +309,7 @@ export default defineComponent({
 			sort: undefined,
 			view: 'index',
 		};
-		const { $t, $toast: toast } = getCurrentInstance().appContext.app.config.globalProperties;
+		const {$t} = getCurrentInstance().appContext.app.config.globalProperties;
 		const logic =
 			di.tryInject<ProjectScheduleLogic>('productionScheduleLogic') ??
 			ProjectScheduleLogicCtor(metaUiService, router, module as Module | undefined);
@@ -444,11 +445,10 @@ export default defineComponent({
 				shortageQty: item.kittingQty,
 			}));
 			if (!filterData.value.length)
-				return toast.add({
+				return ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: t('kitting.noRequisitionData'),
-					summary: t('auth.operationFailed'),
-					group: 'br',
+					message: t('kitting.noRequisitionData'),
+					title: t('auth.operationFailed'),
 					life: 5000,
 				});
 
@@ -489,9 +489,8 @@ export default defineComponent({
 									}).catch((error: any) => {
 										ctx.uiBuilder.toast(ctx, {
 											severity: 'error',
-											summary: t('dialog.title.error'),
-											detail: error.message ?? t('auth.operationFailed'),
-											group: 'br',
+											title: t('dialog.title.error'),
+											message: error.message ?? t('auth.operationFailed'),
 											life: 3000
 										})
 									});
@@ -526,7 +525,7 @@ export default defineComponent({
 							name: 'createKittingMaterialTrans',
 							title: t('kitting.createRequisition'),
 							width: '80%',
-							accept: async () => {
+							onAccept: async () => {
 								return await materialTransCtx.save().then(() => {
 									const key = materialTransCtx.metaUi.primaryKey ?? 'id';
 									const id = materialTransCtx.model.id ?? materialTransCtx.model[key];
@@ -542,7 +541,7 @@ export default defineComponent({
 								});
 							},
 							// 取消
-							reject: async () => {
+							onReject: async () => {
 								// 关闭弹窗
 								return true;
 							},
@@ -553,9 +552,8 @@ export default defineComponent({
 			} catch (error:any) {
 				ctx.uiBuilder.toast(ctx, {
 					 severity: 'error',
-                    summary: t('dialog.title.error'),
-                    detail: error.message ?? t('auth.operationFailed'),
-                    group: 'br',
+                    title: t('dialog.title.error'),
+                    message: error.message ?? t('auth.operationFailed'),
 				})
 			}
 		};
@@ -679,10 +677,10 @@ export default defineComponent({
 					}
 				}
 			} catch (error: any) {
-				toast.add({
+				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: error.message ?? '',
-					summary: error.detail ?? '',
+					message: error.message ?? '',
+					title: error.detail ?? '',
 					life: 5000,
 				});
 				showLoading.value = false;
@@ -728,10 +726,10 @@ export default defineComponent({
 					temporarilySelectOrder.value = orderData.value[0];
 				}
 			} catch (error: any) {
-				toast.add({
+				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: error.message ?? '',
-					summary: error.detail ?? '',
+					message: error.message ?? '',
+					title: error.detail ?? '',
 					life: 5000,
 				});
 				return false;
@@ -798,10 +796,10 @@ export default defineComponent({
 
 				showLoading.value = false;
 			} catch (error: any) {
-				toast.add({
+				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: error.message ?? '',
-					summary: error.detail ?? '',
+					message: error.message ?? '',
+					title: error.detail ?? '',
 					life: 5000,
 				});
 				showLoading.value = false;
@@ -844,10 +842,10 @@ export default defineComponent({
 				}
 				showLoading.value = false;
 			} catch (error: any) {
-				toast.add({
+				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: error.message ?? '',
-					summary: error.detail ?? '',
+					message: error.message ?? '',
+					title: error.detail ?? '',
 					life: 5000,
 				});
 				showLoading.value = false;
@@ -875,7 +873,7 @@ export default defineComponent({
 						h('div', { class: 'opearBox' }, [
 							h('div', { class: 'selfFulldivBox' }, [
 								!kittingMode.value && showProjectFilter.value
-									? ui.factory.formItem(
+									? ui.factory.formField(
 										{
 											label: $t('ganttLabel.sProject'),
 										},
@@ -900,9 +898,8 @@ export default defineComponent({
 															if (!Array.isArray(picked) || !picked.length) {
 																ctx.uiBuilder.toast(ctx, {
 																	severity: 'error',
-																	summary: $t('dialog.title.error'),
-																	detail: $t('invalid.requiredSelectAny'),
-																	group: 'br',
+																	title: $t('dialog.title.error'),
+																	message: $t('invalid.requiredSelectAny'),
 																	life: 3000,
 																});
 																return false;
@@ -934,7 +931,7 @@ export default defineComponent({
 									)
 									: null,
 								!kittingMode.value && showOrderFilter.value
-									? ui.factory.formItem(
+									? ui.factory.formField(
 										{
 											label: $t('ganttLabel.sProductionOrder'),
 										},
@@ -959,9 +956,8 @@ export default defineComponent({
 															if (!Array.isArray(picked) || !picked.length) {
 																ctx.uiBuilder.toast(ctx, {
 																	severity: 'error',
-																	summary: $t('dialog.title.error'),
-																	detail: $t('invalid.requiredSelectAny'),
-																	group: 'br',
+																	title: $t('dialog.title.error'),
+																	message: $t('invalid.requiredSelectAny'),
 																	life: 3000,
 																});
 																return false;
@@ -989,22 +985,21 @@ export default defineComponent({
 									)
 									: null,
 								!kittingMode.value
-									? ui.factory.formItem(
+									? ui.factory.formField(
 										{
 											label: $t('ganttLabel.groups'),
 										},
 										{
 											default: () =>
 												hasSelectableGroupOptions.value
-													? ui.factory.multiSelect({
+													? ui.factory.multiValueSelect({
 														labelStyle: { textAlign: 'left' },
 														id: 'statusModel',
-														showClear: true,
 														class: 'w-full',
-														modelValue: groupBy.value,
+														value: groupBy.value,
 														options: groupOption.value,
 														placeholder: $t('ganttLabel.chooseGroups'),
-														onUpdate: (value: string) => {
+														onChange: (value: unknown) => {
 															const optionIds = new Set(
 																(groupOption.value ?? [])
 																	.map((o: any) => o?.id)
@@ -1016,8 +1011,8 @@ export default defineComponent({
 																optionIds.has(String(id))
 															);
 														},
-														optionValue: 'id',
-														optionLabel: 'label',
+														valueField: 'id',
+														labelField: 'label',
 													})
 													: ui.factory.textSpan(getSingleGroupLabel() || $t('ganttLabel.chooseGroups'), {
 														class: 'gantt-group-single-label',
@@ -1026,14 +1021,15 @@ export default defineComponent({
 									)
 									: null,
 								!kittingMode.value
-									? ui.factory.formItem(
+									? ui.factory.formField(
 										{
 											label: $t('action.searchFuzzy'),
 										},
 										{
 											default: () =>
-												ui.factory.input(reloadParam.searchWord, {
-													onUpdate: (value: any) => {
+												ui.factory.textInput({
+													value: reloadParam.searchWord,
+													onChange: (value: string) => {
 														reloadParam.searchWord = value;
 													},
 												}),
@@ -1124,7 +1120,7 @@ export default defineComponent({
 												.forEach((item: any, index: number) => {
 													if (item.field === '缺料数量') {
 														columns.push(
-															ui.factory.column(
+															plainTableColumn(
 																{ header: item.header, field: item.field },
 																{
 																	body: (row: any) => {
@@ -1146,7 +1142,7 @@ export default defineComponent({
 														// // todo 领料数量可编�?暂时设计为缺多少领多�?
 														// if (kittingMode.value) {
 														// 	columns.push(
-														// 		ui.factory.column(
+														// 		plainTableColumn(
 														// 			{ header: '领料数量', field: 'kittingQty', style: { width: '200px', minWidth: '200px' } },
 														// 			{
 														// 				body: (row: any) => {
@@ -1176,7 +1172,7 @@ export default defineComponent({
 														// }
 													} else if (item.field === '材料图片') {
 														columns.push(
-															ui.factory.column(
+															plainTableColumn(
 																{ header: item.header, field: item.field, expander: item.expander ?? false, style: item.style },
 																{
 																	body: (row: any) => {
@@ -1192,7 +1188,7 @@ export default defineComponent({
 														);
 													} else if (item.field === '追踪方式') {
 														columns.push(
-															ui.factory.column(
+															plainTableColumn(
 																{ header: item.header, field: item.field, style: item.style },
 																{
 																	body: (row: any) => {
@@ -1203,7 +1199,7 @@ export default defineComponent({
 															)
 														);
 													} else {
-														columns.push(ui.factory.column({ header: item.header, field: item.field, expander: item.expander ?? false, style: item.style }));
+														columns.push(plainTableColumn({ header: item.header, field: item.field, expander: item.expander ?? false, style: item.style }));
 													}
 												});
 											return columns;

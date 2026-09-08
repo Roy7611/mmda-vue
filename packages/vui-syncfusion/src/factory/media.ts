@@ -1,13 +1,41 @@
 import { h } from "vue";
 import { SfImageGallery } from "../components/SfImageGallery";
-import { SfFilesUploader } from "../components/SfFilesUploader";
+import {
+  createFileUploader,
+  createFilesUploader,
+  createImageUploader,
+  createImagesUploader,
+  renderFileLink,
+} from "@mmda/vui";
 
-export function attachMediaRenderers(factory: any) {
-  factory.image = (src: string, props: any) => h("img", { src, ...props });
-  factory.imageGallery = (items: any, props: any) =>
+const fileLink = (props: any = {}) => renderFileLink(props);
+const fileUploader = (props: any = {}) => createFileUploader(props);
+const filesUploader = (props: any = {}) => createFilesUploader(props);
+const imageUploader = (props: any = {}) => createImageUploader(props);
+const imagesUploader = (props: any = {}) => createImagesUploader(props);
+
+export const mediaRenderers = {
+  image: (src: string, props: any) => h("img", { src, ...props }),
+  imageGallery: (items: any, props: any) =>
     h(SfImageGallery, {
       items,
       ...props,
-    });
-  factory.filesUploader = (props: any) => h(SfFilesUploader, props);
-}
+    }),
+  fileLink,
+  Url: fileLink,
+  FileLink: fileLink,
+  fileUploader,
+  filePicker: fileUploader,
+  FilePicker: fileUploader,
+  FileUploader: fileUploader,
+  filesUploader,
+  fileUpload: filesUploader,
+  FileUpload: filesUploader,
+  FilesUploader: filesUploader,
+  imageUploader,
+  imagePicker: imageUploader,
+  ImagePicker: imageUploader,
+  ImageUploader: imageUploader,
+  imagesUploader,
+  ImagesUploader: imagesUploader,
+};

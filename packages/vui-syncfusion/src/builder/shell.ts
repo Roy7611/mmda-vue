@@ -10,7 +10,7 @@ import {
   type UiViewContext,
 } from "@mmda/vui";
 import { SfAppMenu } from "../components/SfAppMenu";
-import { SfPageLoading } from "../components/SfPageLoading";
+import { createLoading } from "../factory/loading";
 import { invoke, type UiContext } from "./utils";
 
 export function applyColorScheme(dark: boolean) {
@@ -59,7 +59,7 @@ export function renderAppMenu(modules: Module[], props?: PropData) {
 }
 
 export function renderLoading(props?: PropData) {
-  return h(SfPageLoading, props);
+  return createLoading(props);
 }
 
 export function renderError(context: UiContext, props?: PropData) {

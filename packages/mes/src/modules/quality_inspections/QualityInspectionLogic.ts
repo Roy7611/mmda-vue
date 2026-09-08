@@ -88,9 +88,8 @@ const beforeMaterialTransCreateRedirect = async (
 	} catch (error: any) {
 		context.uiBuilder.toast(context, {
 			severity: 'error',
-			summary: context.t('dialog.title.error'),
-			detail: error.message ?? context.t('auth.operationFailed'),
-			group: 'br',
+			title: context.t('dialog.title.error'),
+			message: error.message ?? context.t('auth.operationFailed'),
 			life: 3000,
 		});
 		return false;
@@ -138,8 +137,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
 				detail,
-				summary: context.t('dialog.title.error'),
-				group: 'br',
+				title: context.t('dialog.title.error'),
 				life: 3000,
 			});
 			return Promise.resolve(false);
@@ -533,9 +531,8 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			if (requestID !== this.taskMaterialRequestID) return;
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				detail: context.t('qualityInspection.taskMaterialsLoadFailed'),
-				summary: context.t('dialog.title.error'),
-				group: 'br',
+				message: context.t('qualityInspection.taskMaterialsLoadFailed'),
+				title: context.t('dialog.title.error'),
 				life: 3000,
 			});
 		}
@@ -574,7 +571,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			{
 				title: context.t('qualityInspection.batchQualified'),
 				style: { width: '75vw', maxHeight: '90%' },
-				accept: async () => {
+				onAccept: async () => {
 					const ids = new Set(selected.map(i => i.itemID));
 					const hasBadItemAfter = pending.some(i => !ids.has(i.itemID));
 					// 全部改为合格前，先确认当前质检结果允许该操作。
@@ -586,12 +583,11 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 								.some(status => QaStatusEnum.valueOf(status) === result)) {
 								context.uiBuilder.toast(context, {
 									severity: 'error',
-									detail: context.t({
+									message: context.t({
 										message: 'invalid.itemQualifiedWhenBadResult',
 										param: { status: qcResultLabel(material.qcResult) },
 									}),
-									summary: context.t('dialog.title.error'),
-									group: 'br',
+									title: context.t('dialog.title.error'),
 									life: 3000,
 								});
 								return false;
@@ -713,7 +709,8 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 								text: ctx.t('auth.unqualified'),
 							},
 						];
-						return ctx.globalProps.$ui.factory.radioGroup(ctx.model.qualified, {
+						return ctx.globalProps.$ui.factory.radioButtonGroup({
+							value: ctx.model.qualified,
 							options: checkTyoeList,
 							optionLabel: 'text',
 							optionValue: 'value',
@@ -744,9 +741,8 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 								if (blockedMessage) {
 									ctx.uiBuilder.toast(ctx, {
 										severity: 'error',
-										detail: blockedMessage,
-										summary: ctx.t('dialog.title.error'),
-										group: 'br',
+										message: blockedMessage,
+										title: ctx.t('dialog.title.error'),
 										life: 3000,
 									});
 									ctx.setFieldValue(fld, ctx.model.qualified);
@@ -917,13 +913,31 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 								options = all.filter((opt: any) => !isPassQcOption(opt));
 							}
 						}
-						return ui.factory.select({
-							invalid: ctx.isInvalid(fld),
-							modelValue: ctx.getFieldValue(fld),
-							options,
-							optionLabel,
-							dataKey: optionValue,
-							showClear: fld.nullable,
+						return ui.factory.dropDownList({
+							value: ctx.getFieldValue(fld),
+							options: options.map((opt: any) => {
+								if (ref) {
+									try {
+										return {
+											value: ref.valueOf(opt),
+											label: String(ref.labelOf(opt)),
+										};
+									} catch {
+										// fall through
+									}
+								}
+								if (typeof opt === 'string') {
+									const parts = opt.split(';');
+									return {
+										value: parts[0],
+										label: parts[2] ?? parts[1] ?? parts[0],
+									};
+								}
+								return {
+									value: opt?.[optionValue] ?? opt?.value,
+									label: opt?.[optionLabel] ?? opt?.label ?? opt?.text ?? String(opt ?? ''),
+								};
+							}),
 							onChange: (value: any) => {
 								const currentItems = activeItems(inspection);
 								const currentHasBadItem = currentItems.some(item => item.qualified === false);
@@ -946,9 +960,8 @@ export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspecti
 								if (blockedMessage) {
 									ctx.uiBuilder.toast(ctx, {
 										severity: 'error',
-										detail: blockedMessage,
-										summary: ctx.t('dialog.title.error'),
-										group: 'br',
+										message: blockedMessage,
+										title: ctx.t('dialog.title.error'),
 										life: 3000,
 									});
 									return;

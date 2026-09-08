@@ -15,7 +15,7 @@ export function WithNavigate<TBase extends Constructor>(
         if (!this.selectedItems.length) {
           await this.app?.ui?.toast(this, {
             severity: "error",
-            detail: this.t("invalid.requiredSelectAny"),
+            message: this.t("invalid.requiredSelectAny"),
           });
           return false;
         }

@@ -3,7 +3,7 @@ import { MetaModel, encodeUriAndFix, formatFileSize, isFunction, isNullOrUndefin
 import { defineComponent, h, getCurrentInstance, reactive, onMounted, ref } from 'vue'
 import { getFileInfo, PropData } from "@mmda/vui";
 export const FileUploadContent = (context: any, props: PropData) => {
-    const { $ui: ui, $toast: toast, $dialog, $t: t, $router } = context.globalProps ?? context
+    const {$ui: ui, $dialog, $t: t, $router} = context.globalProps ?? context
     const apiClient = context.logic?.apiClient ?? context.app?.api ?? context.$app?.api
     const showPreView = props.showPreView ?? true
     // 上传控件的文件列�?

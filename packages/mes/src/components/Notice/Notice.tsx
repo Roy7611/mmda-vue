@@ -142,28 +142,20 @@ export default defineComponent({
 			}
 		};
 		//人员选中
-		const userChange = (event: any) => {
-			submitModel.data.ownerDeptName = isRefNone(event.value) ? '' : event.value.deptName;
-			submitModel.data.ownerID = isRefNone(event.value) ? '' : event.value.ownerID;
-			submitModel.data.ownerDeptID = isRefNone(event.value) ? '' : event.value.deptID;
-			if (submitModel.data.ownerID) {
-				submitModel.data.ownerInvalid = false;
-			}
-			else {
-				submitModel.data.ownerInvalid = true;
-			}
+		const userChange = (value: any) => {
+			const picked = (userOptionsAll.value as any[]).find((item: any) => item.ownerID === value);
+			submitModel.data.ownerDeptName = picked?.deptName ?? '';
+			submitModel.data.ownerID = picked?.ownerID ?? '';
+			submitModel.data.ownerDeptID = picked?.deptID ?? '';
+			submitModel.data.ownerInvalid = !submitModel.data.ownerID;
 			submitFun();
 		};
-		//重要性
-		const importanceChange = (event: any) => {
-			console.log('event', event);
-			submitModel.data.importance = isRefNone(event.value) ? '' : event.value;
+		const importanceChange = (value: any) => {
+			submitModel.data.importance = isRefNone(value) ? '' : value;
 			submitFun();
 		};
-		//紧急性
-		const urgencyChange = (event: any) => {
-			console.log('event', event);
-			submitModel.data.urgency = isRefNone(event.value) ? '' : event.value;
+		const urgencyChange = (value: any) => {
+			submitModel.data.urgency = isRefNone(value) ? '' : value;
 			submitFun();
 		};
 
@@ -188,18 +180,16 @@ export default defineComponent({
 							{$t('auth.selectAUser')}:
 						</div>
 						<div class="w-2/3 p-1 box-border">
-							{ui.factory.select({
-								labelStyle: { textAlign: 'left' },
+							{ui.factory.dropDownList({
 								id: 'ownerName',
 								class: 'w-full',
-								invalid: submitModel.data.ownerInvalid,
-								showClear: submitModel.data.ownerName !== '' ? true : false,
-								filter: true,
 								placeholder: $t('auth.selectAUser'),
-								modelValue: submitModel.data.ownerName,
-								options: userOptionsAll.value,
-								onUpdate: (value: string) => (submitModel.data.ownerName = value),
-								optionLabel: 'label',
+								allowFiltering: true,
+								value: submitModel.data.ownerID,
+								options: (userOptionsAll.value as any[]).map((item: any) => ({
+									value: item.ownerID,
+									label: item.label,
+								})),
 								onChange: userChange,
 							})}
 							{
@@ -225,17 +215,14 @@ export default defineComponent({
 							{$t('auth.importance')}:
 						</div>
 						<div class="w-2/3 p-1 box-border">
-							{ui.factory.select({
-								labelStyle: { textAlign: 'left' },
+							{ui.factory.dropDownList({
 								id: 'importance',
 								class: 'w-full',
-								modelValue: submitModel.data.importance,
-								options: inspectedList,
-								onUpdate: (value: string) => {
-									submitModel.data.importance = value;
-								},
-								optionLabel: 'text',
-								optionValue: 'value',
+								value: submitModel.data.importance,
+								options: inspectedList.map((item) => ({
+									value: item.value,
+									label: item.text,
+								})),
 								onChange: importanceChange,
 							})}
 						</div>
@@ -246,17 +233,14 @@ export default defineComponent({
 							{$t('auth.urgency')}:
 						</div>
 						<div class="w-2/3 p-1 flex justify-start box-border">
-							{ui.factory.select({
-								labelStyle: { textAlign: 'left' },
+							{ui.factory.dropDownList({
 								id: 'urgency',
 								class: 'w-full',
-								modelValue: submitModel.data.urgency,
-								options: emergencyList,
-								onUpdate: (value: string) => {
-									submitModel.data.urgency = value;
-								},
-								optionLabel: 'text',
-								optionValue: 'value',
+								value: submitModel.data.urgency,
+								options: emergencyList.map((item) => ({
+									value: item.value,
+									label: item.text,
+								})),
 								onChange: urgencyChange,
 							})}
 						</div>
@@ -271,21 +255,15 @@ export default defineComponent({
 							{$t('auth.copyTo')}:
 						</div>
 						<div class="w-2/3 p-1 box-border">
-							{ui.factory.multiSelect({
+							{ui.factory.multiValueSelect({
 								labelStyle: { textAlign: 'left' },
-								showClear: true,
-								editable: true,
-								filter: true,
-								invalid: submitModel.data.copyToInvalid,
-								display: 'chip',
 								placeholder: $t('auth.copyTo'),
-								optionLabel: 'label',
-								optionValue: 'ownerID',
+								labelField: 'label',
+								valueField: 'ownerID',
 								class: 'w-full',
 								options: userOptionsAll.value,
-								modelValue: submitModel.data.copyTo,
-								maxSelectedLabels: 3,
-								onUpdate: (value: any) => {
+								value: submitModel.data.copyTo,
+								onChange: (value: any) => {
 									submitModel.data.copyTo = value;
 									if (submitModel.data.copyTo && submitModel.data.copyTo.length > 0) {
 										submitModel.data.copyToInvalid = false;
@@ -306,10 +284,11 @@ export default defineComponent({
 					<div class="w-1/2 flex items-center box-border">
 						<div class="w-1/3 p-1 box-border">{$t('auth.notification')}:</div>
 						<div class="w-2/3 p-1 flex justify-start box-border">
-							{ui.factory.textarea(submitModel.data.notification, {
+							{ui.factory.textArea({
+								value: submitModel.data.notification,
 								class: 'w-full',
 								autoResize: true,
-								'onUpdate:modelValue': (value: any) => {
+								onChange: (value: any) => {
 									submitModel.data.notification = value;
 									submitFun();
 								},

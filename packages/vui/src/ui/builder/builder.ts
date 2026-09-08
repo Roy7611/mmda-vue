@@ -1,5 +1,5 @@
 import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
-import type { EntityUrlParam, MetaUi, MetaUiField, MetaUiGroup, Module, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
+import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
 import { openListSettingDialog } from "../../components/ListSettingView";
 import {
   AppLayout,
@@ -10,21 +10,62 @@ import {
 import type {
   UiFactory,
   UiFieldFactory,
-  UiFieldRenderer,
-  UiGroupRenderer,
 } from "../factory/factory";
-import type {
-  UiListPropsType,
-  UiListViewPropsType,
-  UiPaginatorPropsType,
-} from "../factory/list";
-import type {
-  UiTreeGridPropsType,
-  UiTreeGridViewPropsType,
-} from "../factory/tree_grid";
-import type { UiTreeListViewPropsType } from "../factory/tree_category_list";
-import type { UiTreePropsType, UiTreeViewPropsType } from "../factory/tree";
-import type { UiGanttChartProps, UiGanttViewProps } from "../factory/gantt";
+import {
+  unimplementedChartFactory,
+  type UiChartFactory,
+} from "../factory/chart";
+import {
+  diagramReadonlyOf,
+  unimplementedDiagramPlugin,
+  type UiDiagramPlugin,
+  type UiDiagramViewProps,
+} from "../factory/diagram";
+import {
+  unimplementedMarkdownEditorPlugin,
+  type UiMarkdownEditorPlugin,
+  type UiMarkdownEditorProps,
+} from "../factory/markdown_editor";
+import {
+  unimplementedImageEditorPlugin,
+  type UiImageEditorPlugin,
+  type UiImageEditorProps,
+} from "../factory/image_editor";
+import {
+  unimplementedKanbanPlugin,
+  type UiKanbanPlugin,
+  type UiKanbanViewProps,
+} from "../factory/kanban";
+import {
+  unimplementedGanttPlugin,
+  type UiGanttChartProps,
+  type UiGanttPlugin,
+  type UiGanttViewProps,
+} from "../factory/gantt";
+import {
+  unimplementedRibbonPlugin,
+  type UiRibbonPlugin,
+  type UiRibbonProps,
+} from "../factory/ribbon";
+import {
+  unimplementedSchedulerPlugin,
+  type UiSchedulerPlugin,
+  type UiSchedulerViewProps,
+} from "../factory/scheduler";
+import {
+  unimplementedPivotPlugin,
+  type UiPivotPlugin,
+  type UiPivotTableProps,
+} from "../factory/pivot_table";
+import {
+  unimplementedAiAssistantPlugin,
+  type UiAiAssistantPlugin,
+  type UiAiAssistantProps,
+} from "../factory/ai_assistant";
+import {
+  bindTimelineFactory,
+  type UiTimelinePlugin,
+} from "../factory/timeline";
 import {
   isViewMany,
   UiViewManyKind,
@@ -51,20 +92,19 @@ import type {
   UiSearchField,
 } from "../factory/filter";
 import type { UiAction } from "../factory/action";
-import type { UiButtonProps } from "../factory/button";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./overlay";
 import { DocxFilePreview } from "../../components/DocxFilePreview";
 import { XlsxFilePreview } from "../../components/XlsxFilePreview";
 import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
+  UiConfirmProps,
+  UiDialogProps,
   UiToastProps,
 } from "../factory/dialog";
 import { UiActionFactory } from "./actions";
-import { attachFormBuilder } from "./form";
-import { attachListBuilder } from "./list";
-import { attachTreeBuilder } from "./tree";
+import { WithForm } from "./form";
+import { WithList } from "./list_view";
+import { WithTree } from "./tree";
 
 export { UiActionFactory };
 
@@ -155,10 +195,22 @@ const unimplemented = (name: string) => {
 /**
  * Vue 拼屏抽象实现：实现 core `UiBuilder`，模板方法填好共用拼屏。
  * 皮肤再 `extends VueUiBuilder`（SyncfusionUiBuilder / PrimeVueUiBuilder / …）。
- * 取代旧名 AbstractUiBuilder。vui 生态里类型就用本类，不要另造 Host 接口。
+ * form / list / tree 用 Handbook mixin 叠在 `VueUiBuilderBase` 上。
  */
-export abstract class VueUiBuilder implements CoreUiBuilder {
+export abstract class VueUiBuilderBase {
   readonly actionFactory: UiActionFactory;
+  chartFactory: UiChartFactory = unimplementedChartFactory();
+  diagramPlugin: UiDiagramPlugin = unimplementedDiagramPlugin();
+  markdownEditorPlugin: UiMarkdownEditorPlugin =
+    unimplementedMarkdownEditorPlugin();
+  imageEditorPlugin: UiImageEditorPlugin = unimplementedImageEditorPlugin();
+  kanbanPlugin: UiKanbanPlugin = unimplementedKanbanPlugin();
+  ganttPlugin: UiGanttPlugin = unimplementedGanttPlugin();
+  ribbonPlugin: UiRibbonPlugin = unimplementedRibbonPlugin();
+  schedulerPlugin: UiSchedulerPlugin = unimplementedSchedulerPlugin();
+  pivotPlugin: UiPivotPlugin = unimplementedPivotPlugin();
+  aiAssistantPlugin: UiAiAssistantPlugin = unimplementedAiAssistantPlugin();
+  timelinePlugin: UiTimelinePlugin | null = null;
 
   constructor(
     public readonly factory: UiFactory,
@@ -166,7 +218,109 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
     public readonly layout: UiLayout,
     public overlay: UiOverlay = createHtmlOverlay(),
   ) {
-    this.actionFactory = new UiActionFactory(this, factory.resolveIcon);
+    this.actionFactory = new UiActionFactory(
+      this as unknown as VueUiBuilder,
+      factory.resolveIcon,
+    );
+    if (typeof factory.timeline === "function") {
+      bindTimelineFactory(factory, () => this.timelinePlugin);
+    }
+  }
+
+  setChartFactory(factory: UiChartFactory): this {
+    this.chartFactory = factory;
+    return this;
+  }
+
+  setDiagramPlugin(plugin: UiDiagramPlugin): this {
+    this.diagramPlugin = plugin;
+    return this;
+  }
+
+  setMarkdownEditorPlugin(plugin: UiMarkdownEditorPlugin): this {
+    this.markdownEditorPlugin = plugin;
+    return this;
+  }
+
+  setImageEditorPlugin(plugin: UiImageEditorPlugin): this {
+    this.imageEditorPlugin = plugin;
+    return this;
+  }
+
+  setKanbanPlugin(plugin: UiKanbanPlugin): this {
+    this.kanbanPlugin = plugin;
+    return this;
+  }
+
+  setGanttPlugin(plugin: UiGanttPlugin): this {
+    this.ganttPlugin = plugin;
+    return this;
+  }
+
+  setRibbonPlugin(plugin: UiRibbonPlugin): this {
+    this.ribbonPlugin = plugin;
+    return this;
+  }
+
+  setSchedulerPlugin(plugin: UiSchedulerPlugin): this {
+    this.schedulerPlugin = plugin;
+    return this;
+  }
+
+  setPivotPlugin(plugin: UiPivotPlugin): this {
+    this.pivotPlugin = plugin;
+    return this;
+  }
+
+  setAiAssistantPlugin(plugin: UiAiAssistantPlugin): this {
+    this.aiAssistantPlugin = plugin;
+    return this;
+  }
+
+  setTimelinePlugin(plugin: UiTimelinePlugin | null): this {
+    this.timelinePlugin = plugin;
+    return this;
+  }
+
+  buildGanttView(_context: any, props: UiGanttViewProps): VNode {
+    return this.ganttPlugin.ganttView(props);
+  }
+
+  buildGanttChart(context: any, props: UiGanttChartProps): VNode {
+    return this.buildGanttView(context, props);
+  }
+
+  buildRibbon(props: UiRibbonProps): VNode {
+    return this.ribbonPlugin.ribbon(props);
+  }
+
+  buildSchedulerView(_context: any, props: UiSchedulerViewProps): VNode {
+    return this.schedulerPlugin.schedulerView(props);
+  }
+
+  buildPivotTable(props: UiPivotTableProps): VNode {
+    return this.pivotPlugin.pivotTable(props);
+  }
+
+  buildDiagramView(context: any, props: UiDiagramViewProps): VNode {
+    const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
+    return this.diagramPlugin.diagramView({ ...props, readonly });
+  }
+
+  buildMarkdownEditor(props: UiMarkdownEditorProps): VNode {
+    return this.markdownEditorPlugin.markdownEditor(props);
+  }
+
+  buildImageEditor(props: UiImageEditorProps): VNode {
+    return this.imageEditorPlugin.imageEditor(props);
+  }
+
+  buildKanbanView(props: UiKanbanViewProps): VNode {
+    return this.kanbanPlugin.kanbanView(props);
+  }
+
+  buildAiAssistant(props: UiAiAssistantProps): VNode {
+    return this.aiAssistantPlugin.aiAssistant(props);
   }
 
   get overlayHost(): Component | undefined {
@@ -184,109 +338,43 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
     document.documentElement.dataset.mmdaPalette = resolveColorPalette(palette);
   }
 
-  dropdownMenuButton(
-    props: UiButtonProps,
-    actions: UiAction[],
-    slots?: UiSlots,
-  ) {
-    return this.factory.menuButton(
-      {
-        buttonType: "tonal",
-        colorRole: "secondary",
-        ...props,
-      },
-      actions,
-      slots,
+  openListSettings(context: CoreUiContext) {
+    return openListSettingDialog(
+      this as any,
+      context as any,
     );
   }
 
-  moreMenuButton(
-    context: UiContext,
-    items: Array<{
-      name?: string;
-      label?: string;
-      icon?: string;
-      command?: () => void;
-      onAction?: (...args: any[]) => any;
-      items?: any[];
-      divider?: boolean;
-    }>,
-  ) {
-    if (!items.length) return [];
-    return [
-      this.dropdownMenuButton(
-        {
-          label: context.t("action.more"),
-          tooltip: context.t("action.more"),
-          "aria-label": context.t("action.more"),
-          class: "mmda-more-menu-button",
-        },
-        items.map((item, index) =>
-          item.divider
-            ? { divider: true }
-            : {
-                name: item.name ?? `more-${index}`,
-                label: item.label,
-                icon: item.icon,
-                onAction: item.command ?? item.onAction,
-                items: item.items,
-              },
-        ),
-      ),
-    ];
-  }
-
-  openListSettings(context: CoreUiContext) {
-    return openListSettingDialog(this, context as VueUiContext);
-  }
-
-  build(context: CoreUiContext, extra: Record<string, unknown> = {}): VNode {
-    const runtime = context as VueUiContext;
-    const view = String(runtime.view ?? "") as UiViewType;
-    const factories = runtime.logic?.viewOptions;
-    const option = factories?.[view]?.(runtime) ?? {};
-    const merged = { ...option, ...extra } as Record<string, any>;
-    if (isViewMany(view)) {
-      const kind = merged.viewKind;
-      if (
-        merged.treeOption ||
-        merged.tree ||
-        kind === UiViewManyKind.categoryList ||
-        kind === "categoryList"
-      ) {
-        return this.buildTreeListView(runtime, merged);
-      }
-      if (kind === UiViewManyKind.gantt || kind === "gantt") {
-        return this.buildGanttView(runtime, merged);
-      }
-      if (kind === UiViewManyKind.treeGrid || kind === "treeGrid") {
-        return this.buildTreeGridView(runtime, merged);
-      }
-      return this.buildListView(runtime, merged);
-    }
-    return this.buildView(runtime, merged as UiViewPropsType);
-  }
-
-  abstract buildContainer(
+  buildContainer(
     subContainer: VNode | VNodeArrayChildren,
     props?: PropData,
-  ): VNode;
-  abstract buildHeader(
+  ): VNode {
+    return unimplemented("buildContainer") as VNode;
+  }
+  buildHeader(
     content: VNode | VNodeArrayChildren,
     props?: PropData,
-  ): VNode;
-  abstract buildAside(
+  ): VNode {
+    return unimplemented("buildHeader") as VNode;
+  }
+  buildAside(
     content: VNode | VNodeArrayChildren,
     props?: PropData,
-  ): VNode;
-  abstract buildMain(
+  ): VNode {
+    return unimplemented("buildAside") as VNode;
+  }
+  buildMain(
     content: VNode | VNodeArrayChildren,
     props?: PropData,
-  ): VNode;
-  abstract buildFooter(
+  ): VNode {
+    return unimplemented("buildMain") as VNode;
+  }
+  buildFooter(
     content: VNode | VNodeArrayChildren,
     props?: PropData,
-  ): VNode;
+  ): VNode {
+    return unimplemented("buildFooter") as VNode;
+  }
   buildAppScaffold(props: AppScaffoldProps = {}): VNode {
     const invoke = (value: unknown): VNodeChild =>
       typeof value === "function"
@@ -301,58 +389,90 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
       bottomBar: invoke(props.bottomBar),
     });
   }
-  abstract buildAppTopBar(props?: AppTopBarProps): VNode;
-  abstract buildAppSideBar(props?: AppSideBarProps): VNode;
-  abstract buildAppMenu(modules: Module[], props?: PropData): VNode;
-  abstract buildLoading(context: UiContext, props?: PropData): VNode;
-  abstract buildError(context: UiContext, props?: PropData): VNode;
-  abstract buildModuleBreadcrumb(
+  buildAppTopBar(props?: AppTopBarProps): VNode {
+    return unimplemented("buildAppTopBar") as VNode;
+  }
+  buildAppSideBar(props?: AppSideBarProps): VNode {
+    return unimplemented("buildAppSideBar") as VNode;
+  }
+  buildAppMenu(modules: Module[], props?: PropData): VNode {
+    return unimplemented("buildAppMenu") as VNode;
+  }
+  buildLoading(context: UiContext, props?: PropData): VNode {
+    return unimplemented("buildLoading") as VNode;
+  }
+  buildError(context: UiContext, props?: PropData): VNode {
+    return unimplemented("buildError") as VNode;
+  }
+  buildModuleBreadcrumb(
     context: UiContext,
     props: ModuleBreadcrumbProps,
-  ): VNode;
-  abstract buildModuleToolbar(
+  ): VNode {
+    return unimplemented("buildModuleBreadcrumb") as VNode;
+  }
+  buildModuleToolbar(
     context: UiContext,
     props: ModuleToolbarProps,
     slots?: UiSlots,
-  ): VNode;
-  abstract buildSearchField(
+  ): VNode {
+    return unimplemented("buildModuleToolbar") as VNode;
+  }
+  buildSearchField(
     field: UiSearchField,
     context: UiContext,
     props: PropData,
-  ): VNode;
-  abstract buildSearchForm(context: UiContext, props?: PropData): VNode;
-  abstract buildModuleSearchbar(
+  ): VNode {
+    return unimplemented("buildSearchField") as VNode;
+  }
+  buildSearchForm(context: UiContext, props?: PropData): VNode {
+    return unimplemented("buildSearchForm") as VNode;
+  }
+  buildModuleSearchbar(
     context: UiContext,
     props: ModuleSearchbarProps,
-  ): VNode;
-  abstract buildSearchForRelative(
+  ): VNode {
+    return unimplemented("buildModuleSearchbar") as VNode;
+  }
+  buildSearchPage(context: UiContext, props?: ModuleSearchbarProps) {
+    const content = this.buildModuleSearchbar(context, props ?? {});
+    return this.dialog(content, context, {
+      title: context.t("action.search"),
+    });
+  }
+  buildSearchForRelative(
     context: UiContext,
     field: MetaUiField,
     props: SearchForRelativeProps,
-  ): VNode;
-  abstract buildSigninForm(
+  ): VNode {
+    return unimplemented("buildSearchForRelative") as VNode;
+  }
+  buildSigninForm(
     props: SigninFormProps,
     slots?: SigninFormSlots,
-  ): VNode;
-  abstract buildSignupForm(props: SignupFormProps): VNode;
+  ): VNode {
+    return unimplemented("buildSigninForm") as VNode;
+  }
+  buildSignupForm(props: SignupFormProps): VNode {
+    return unimplemented("buildSignupForm") as VNode;
+  }
 
-  toast(_context: CoreUiContext, props: UiToastProps | PropData) {
+  toast(_context: CoreUiContext, props: Record<string, unknown>) {
     this.overlay.toast(props as UiToastProps);
     return Promise.resolve();
   }
 
-  async confirm(_context: CoreUiContext, props: UiMessageBoxProps | PropData) {
-    return (await this.overlay.confirm(props as UiMessageBoxProps)) === "yes";
+  async confirm(_context: CoreUiContext, props: Record<string, unknown>) {
+    return this.overlay.confirm(props as unknown as UiConfirmProps);
   }
 
   dialog(
     content: VNode | VNode[],
     _context: CoreUiContext,
-    props?: UiDialogPropsType,
+    props?: Record<string, unknown>,
   ) {
     return this.overlay.dialog(
       content as VNode,
-      (props ?? { name: "dialog" }) as UiDialogPropsType,
+      (props as UiDialogProps | undefined) ?? { title: "" },
     );
   }
 
@@ -403,111 +523,71 @@ export abstract class VueUiBuilder implements CoreUiBuilder {
       `Preview is not available for .${extension || "unknown"} files.`,
     );
   }
-
-  // form / list / tree mixin（模板方法共用部分）
-  declare labelFor: (field: MetaUiField, props?: PropData) => VNode;
-  declare editFor: (field: MetaUiField, context: UiContext, props?: PropData) => VNode;
-  declare displayFor: (field: MetaUiField, context: UiContext, props?: PropData) => VNode;
-  declare displayCellFor: (
-    field: MetaUiField,
-    row: any,
-    context: UiContext,
-    props?: PropData,
-  ) => VNode | VNode[];
-  declare buildField: UiFieldRenderer;
-  declare buildResponsiveField: UiFieldRenderer;
-  declare buildGroup: UiGroupRenderer;
-  declare buildGroupCard: (
-    group: MetaUiGroup,
-    body: VNode | VNode[],
-    props?: PropData,
-  ) => VNode;
-  declare buildGroupFieldSet: (
-    group: MetaUiGroup,
-    body: VNode | VNode[],
-    props?: PropData,
-  ) => VNode;
-  declare buildBpmnDiagram: (
-    flowTrails: any[],
-    context: UiContext,
-    props?: PropData,
-  ) => VNode;
-  declare buildGanttView: (context: UiContext, props: UiGanttViewProps) => VNode;
-  /** @deprecated 使用 buildGanttView */
-  declare buildGanttChart: (context: UiContext, props: UiGanttChartProps) => VNode;
-  declare buildAttachmentGroup: (context: UiContext, props?: PropData) => VNode;
-  declare buildView: (context: UiContext, props?: UiViewPropsType) => VNode;
-  declare buildTree: <T = any>(props: UiTreePropsType<T>) => VNode;
-  declare buildTreeView: <T = any>(
-    props: UiTreeViewPropsType<T>,
-    context?: UiContext,
-  ) => VNode;
-  declare buildListView: <T = any>(
-    context: UiContext,
-    props?: UiListViewPropsType<T>,
-  ) => VNode;
-  declare buildTreeGrid: <T = any>(
-    rows: T[],
-    metaUi: MetaUi,
-    rowContext: (row: T) => UiContext,
-    props?: UiTreeGridPropsType<T>,
-  ) => VNode;
-  declare buildTreeGridView: <T = any>(
-    context: UiContext,
-    props?: UiTreeGridViewPropsType<T>,
-  ) => VNode;
-  declare buildTreeListView: <T = any>(
-    context: UiContext,
-    props?: UiTreeListViewPropsType<T>,
-  ) => VNode;
-  declare buildCustomView: <T = any>(
-    context: UiContext,
-    props?: UiListViewPropsType<T>,
-  ) => VNode;
-  declare buildList: <T = any>(context: UiContext, props?: UiListPropsType<T>) => VNode;
-  declare buildTable: <T = any>(
-    context: UiContext,
-    props?: UiListPropsType<T>,
-  ) => VNode;
-  declare buildColumns: <T = any>(
-    metaUi: MetaUi,
-    context: UiContext,
-    props?: UiListPropsType<T>,
-  ) => VNode[];
-  declare buildPaginator: (context: UiContext, props?: UiPaginatorPropsType) => VNode;
-  declare fieldDisplayName: (field: MetaUiField) => string;
-  declare groupWrapClass: (group: MetaUiGroup, props?: PropData) => string;
-  declare wrapGroupContent: (body: VNode | VNode[], props?: PropData) => VNode;
-  declare wrapGroup: (
-    group: MetaUiGroup,
-    body: VNode | VNode[],
-    props?: PropData,
-  ) => VNode;
-  declare buildGroupHeaderActions: (
-    group: MetaUiGroup,
-    context: VueUiContext<any>,
-  ) => VNode | undefined;
-  declare tableWithCells: (
-    rows: any[],
-    metaUi: MetaUi,
-    rowContext: (row: any) => UiContext,
-    tableProps?: UiListPropsType<any>,
-  ) => VNode;
-  declare listViewParts: (
-    context: UiContext,
-    props?: UiListViewPropsType<any>,
-  ) => {
-    runtime: any;
-    toolbar: VNode | null;
-    searchbar: VNode | null;
-    list: VNode;
-    paginator: VNode | null;
-  };
 }
 
-attachFormBuilder(VueUiBuilder);
-attachListBuilder(VueUiBuilder);
-attachTreeBuilder(VueUiBuilder);
+/**
+ * Vue 拼屏入口：本体 + WithForm / WithList / WithTree。
+ * 皮肤继续 `extends VueUiBuilder`。
+ * mixin 推断成员为属性，这里用 interface 合成方法签名，皮肤才能 `override`。
+ */
+export interface VueUiBuilder {
+  buildGroupCard(
+    group: MetaUiGroup,
+    body: VNode | VNode[],
+    props?: PropData,
+  ): VNode;
+  buildAttachmentGroup(context: any, props?: PropData): VNode;
+  buildGanttView(context: any, props: UiGanttViewProps): VNode;
+  buildGanttChart(context: any, props: UiGanttChartProps): VNode;
+  buildRibbon(props: UiRibbonProps): VNode;
+  buildSchedulerView(context: any, props: UiSchedulerViewProps): VNode;
+  buildPivotTable(props: UiPivotTableProps): VNode;
+  buildBpmnDiagram(
+    flowTrails: any[],
+    context: any,
+    props?: PropData,
+  ): VNode;
+  buildDiagramView(context: any, props: UiDiagramViewProps): VNode;
+  buildKanbanView(props: UiKanbanViewProps): VNode;
+  buildListView(context: any, props?: any): VNode;
+  buildView(context: any, props?: UiViewPropsType): VNode;
+  groupWrapClass(group: MetaUiGroup, props?: PropData): string;
+}
+
+export abstract class VueUiBuilder
+  extends WithTree(WithList(WithForm(VueUiBuilderBase)))
+  implements CoreUiBuilder
+{
+  build(context: CoreUiContext, extra: Record<string, unknown> = {}): VNode {
+    const runtime = context as any;
+    const view = String(runtime.view ?? "") as UiViewType;
+    const factories = runtime.logic?.viewOptions;
+    const option = factories?.[view]?.(runtime) ?? {};
+    const merged = { ...option, ...extra } as Record<string, any>;
+    if (isViewMany(view)) {
+      const kind = merged.viewKind;
+      if (
+        merged.treeOption ||
+        merged.tree ||
+        kind === UiViewManyKind.categoryList ||
+        kind === "categoryList"
+      ) {
+        return this.buildTreeListView(runtime, merged);
+      }
+      if (kind === UiViewManyKind.gantt || kind === "gantt") {
+        return this.buildGanttView(runtime, merged);
+      }
+      if (kind === UiViewManyKind.scheduler || kind === "scheduler") {
+        return this.buildSchedulerView(runtime, merged);
+      }
+      if (kind === UiViewManyKind.treeGrid || kind === "treeGrid") {
+        return this.buildTreeGridView(runtime, merged);
+      }
+      return this.buildListView(runtime, merged);
+    }
+    return this.buildView(runtime, merged as UiViewPropsType);
+  }
+}
 
 const emptyNode = () => h("div");
 
@@ -528,8 +608,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildResponsiveField: emptyNode,
     buildGroup: emptyNode,
     buildBpmnDiagram: emptyNode,
-    buildGanttView: emptyNode,
-    buildGanttChart: emptyNode,
     buildView: emptyNode,
     build: emptyNode,
     buildTree: emptyNode,
@@ -539,6 +617,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildListView: emptyNode,
     buildTreeListView: emptyNode,
     buildCustomView: emptyNode,
+    buildGrid: emptyNode,
     buildList: emptyNode,
     buildTable: emptyNode,
     buildColumns: (): unknown[] => [],
@@ -558,8 +637,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
     buildModuleToolbar: emptyNode,
-    dropdownMenuButton: emptyNode,
-    moreMenuButton: (): unknown[] => [],
     openListSettings: async () => false,
     buildSearchField: emptyNode,
     buildSearchForm: emptyNode,
@@ -569,6 +646,92 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildSignupForm: emptyNode,
     overlay: createHtmlOverlay(),
     overlayHost: undefined,
+    chartFactory: unimplementedChartFactory(),
+    setChartFactory(factory: UiChartFactory) {
+      this.chartFactory = factory;
+      return this;
+    },
+    diagramPlugin: unimplementedDiagramPlugin(),
+    setDiagramPlugin(plugin: UiDiagramPlugin) {
+      this.diagramPlugin = plugin;
+      return this;
+    },
+    buildDiagramView(context: any, props: UiDiagramViewProps) {
+      const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
+      return this.diagramPlugin.diagramView({ ...props, readonly });
+    },
+    markdownEditorPlugin: unimplementedMarkdownEditorPlugin(),
+    setMarkdownEditorPlugin(plugin: UiMarkdownEditorPlugin) {
+      this.markdownEditorPlugin = plugin;
+      return this;
+    },
+    buildMarkdownEditor(props: UiMarkdownEditorProps) {
+      return this.markdownEditorPlugin.markdownEditor(props);
+    },
+    imageEditorPlugin: unimplementedImageEditorPlugin(),
+    setImageEditorPlugin(plugin: UiImageEditorPlugin) {
+      this.imageEditorPlugin = plugin;
+      return this;
+    },
+    buildImageEditor(props: UiImageEditorProps) {
+      return this.imageEditorPlugin.imageEditor(props);
+    },
+    kanbanPlugin: unimplementedKanbanPlugin(),
+    setKanbanPlugin(plugin: UiKanbanPlugin) {
+      this.kanbanPlugin = plugin;
+      return this;
+    },
+    buildKanbanView(props: UiKanbanViewProps) {
+      return this.kanbanPlugin.kanbanView(props);
+    },
+    ganttPlugin: unimplementedGanttPlugin(),
+    setGanttPlugin(plugin: UiGanttPlugin) {
+      this.ganttPlugin = plugin;
+      return this;
+    },
+    buildGanttView(_context: any, props: UiGanttViewProps) {
+      return this.ganttPlugin.ganttView(props);
+    },
+    buildGanttChart(context: any, props: UiGanttChartProps) {
+      return this.buildGanttView(context, props);
+    },
+    ribbonPlugin: unimplementedRibbonPlugin(),
+    setRibbonPlugin(plugin: UiRibbonPlugin) {
+      this.ribbonPlugin = plugin;
+      return this;
+    },
+    buildRibbon(props: UiRibbonProps) {
+      return this.ribbonPlugin.ribbon(props);
+    },
+    schedulerPlugin: unimplementedSchedulerPlugin(),
+    setSchedulerPlugin(plugin: UiSchedulerPlugin) {
+      this.schedulerPlugin = plugin;
+      return this;
+    },
+    buildSchedulerView(_context: any, props: UiSchedulerViewProps) {
+      return this.schedulerPlugin.schedulerView(props);
+    },
+    pivotPlugin: unimplementedPivotPlugin(),
+    setPivotPlugin(plugin: UiPivotPlugin) {
+      this.pivotPlugin = plugin;
+      return this;
+    },
+    buildPivotTable(props: UiPivotTableProps) {
+      return this.pivotPlugin.pivotTable(props);
+    },
+    aiAssistantPlugin: unimplementedAiAssistantPlugin(),
+    setAiAssistantPlugin(plugin: UiAiAssistantPlugin) {
+      this.aiAssistantPlugin = plugin;
+      return this;
+    },
+    timelinePlugin: null as UiTimelinePlugin | null,
+    setTimelinePlugin(plugin: UiTimelinePlugin | null) {
+      this.timelinePlugin = plugin;
+      return this;
+    },
+    buildAiAssistant(props: UiAiAssistantProps) {
+      return this.aiAssistantPlugin.aiAssistant(props);
+    },
     toast: async (): Promise<void> => undefined,
     confirm: async () => false,
     dialog: async () => false,

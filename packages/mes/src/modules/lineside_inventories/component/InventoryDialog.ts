@@ -4,6 +4,7 @@ import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignmentEnum, Met
 import { CustomColumn, type VueUiContext } from "@mmda/vui";
 import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
+import { plainTableColumn, renderPlainTable } from '@/components/plain_table'
 
 
 const InventoryDialog = defineComponent({
@@ -94,7 +95,7 @@ const InventoryDialog = defineComponent({
                         class: 'flex_content_start flex_item_center h-auto',
                     },
                     [
-                        uiBuilder.factory.formItem({
+                        uiBuilder.factory.formField({
                             role: 'dlg-searchWord',
                             id: 'dlg-searchWord',
                             label: $t('action.searchFuzzy'),
@@ -136,10 +137,10 @@ const InventoryDialog = defineComponent({
                     },
                     lockMsgTreeLoading.value
                         ? uiBuilder.factory.loading()
-                        : uiBuilder.factory.primeVueTable(
+                        : renderPlainTable(
                             lockMsgTree.value,
                             [
-                                uiBuilder.factory.column({
+                                plainTableColumn({
                                     header: '',
                                     expander: true,
                                     style: {
@@ -147,7 +148,7 @@ const InventoryDialog = defineComponent({
                                     },
                                 }),
                                 ...lockMsgColumns.map((col: CustomColumn) =>
-                                    uiBuilder.factory.column(
+                                    plainTableColumn(
                                         {
                                             header: col.header,
                                             field: col.field,
@@ -218,7 +219,7 @@ const InventoryDialog = defineComponent({
                             {
                                 expansion: ({ data, index }: any) => {
                                     const columns = props.context.metaUi.getListedFields().map(f =>
-                                        uiBuilder.factory.column(
+                                        plainTableColumn(
                                             {
                                                 header: f.displayLabel,
                                                 field: f.fieldName,
@@ -273,7 +274,7 @@ const InventoryDialog = defineComponent({
                                         )
                                     );
 
-                                    return uiBuilder.factory.primeVueTable(data.inventories, columns, {
+                                    return renderPlainTable(data.inventories, columns, {
                                         virtualScrollerOptions: {
                                             id: 'id',
                                             itemSize: 50,
@@ -295,9 +296,12 @@ const InventoryDialog = defineComponent({
                         )
                 ),
                 uiBuilder.factory.paginator(
-                    lockMsgSearchParams.pager,
                     {
-                        totalRecords: recordCount.value,
+                        pageNo: lockMsgSearchParams.pager.pageNo,
+                        pageSize: lockMsgSearchParams.pager.pageSize,
+                        recordCount: recordCount.value,
+                    },
+                    {
                         onPage(pager: any) {
                             pageFn(pager);
                         },

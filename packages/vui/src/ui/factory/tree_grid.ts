@@ -1,5 +1,6 @@
 import type { MetaUi, MetaUiGroup } from '@mmda/core'
-import type { UiListPropsType, UiListViewPropsType } from './list'
+import type { UiListViewPropsType } from "../builder/list_view";
+import type { UiListPropsType } from "./list";
 import type { TreeBindShape, TreeSourceShape } from '../builder/tree_data'
 import {
   detectChildrenKey,

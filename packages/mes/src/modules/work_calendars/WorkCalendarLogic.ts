@@ -100,7 +100,7 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 			title: field.displayLabel,
 			height: "62vh",
 			width: "80vw",
-			accept: () => {
+			onAccept: () => {
 				console.log(group);
 
 				return Promise.resolve(true)

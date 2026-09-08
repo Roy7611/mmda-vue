@@ -1,16 +1,15 @@
 import { reactive, type VNode } from 'vue'
-import type { UiFactory, UiOverlay } from '@mmda/vui'
+import type { UiOverlay } from '@mmda/vui'
 import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
-  UiMessageBoxResult,
+  UiConfirmProps,
+  UiDialogProps,
   UiToastProps,
 } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
   content: VNode
-  props: UiDialogPropsType
+  props: UiDialogProps
   resolve: (accepted: boolean) => void
 }
 
@@ -19,7 +18,6 @@ export interface PrimeOverlayServices {
   confirm?: {
     require: (options: Record<string, unknown>) => void
   }
-  factory?: UiFactory
 }
 
 export interface PrimeOverlay extends UiOverlay {
@@ -38,36 +36,26 @@ export function createPrimeOverlay(): PrimeOverlay {
     services,
     toast(props: UiToastProps) {
       services.toast?.add({
-        severity: props.severity ?? props.type ?? 'info',
-        summary: props.summary ?? props.title,
-        detail: props.detail ?? props.message,
-        group: props.group,
+        severity: props.severity ?? 'info',
+        summary: props.title,
+        detail: props.message,
         life: props.life ?? 3000,
       })
     },
-    confirm(props: UiMessageBoxProps) {
+    confirm(props: UiConfirmProps) {
       const service = services.confirm
       if (!service) {
         const accepted =
           typeof window !== 'undefined' &&
           window.confirm(String(props.message ?? 'Confirm?'))
-        return Promise.resolve(accepted ? 'yes' : 'no')
+        return Promise.resolve(accepted)
       }
-      return new Promise<UiMessageBoxResult>(resolve => {
+      return new Promise<boolean>(resolve => {
         service.require({
           message: String(props.message ?? ''),
-          header: props.header,
-          icon: props.icon,
-          rejectProps: props.rejectProps,
-          acceptProps: props.acceptProps,
-          accept: () => {
-            props.accept?.()
-            resolve('yes')
-          },
-          reject: () => {
-            props.reject?.()
-            resolve('no')
-          },
+          header: props.title,
+          accept: () => resolve(true),
+          reject: () => resolve(false),
         })
       })
     },
@@ -90,9 +78,13 @@ export async function closeOverlayDialog(
   accepted: boolean,
 ) {
   if (accepted) {
-    if (request.props.accept && (await request.props.accept()) === false) return
+    if (request.props.onAccept && (await request.props.onAccept()) === false)
+      return
     request.props.onConfirm?.()
-  } else if (request.props.reject && (await request.props.reject()) === false) {
+  } else if (
+    request.props.onReject &&
+    (await request.props.onReject()) === false
+  ) {
     return
   }
   request.props.onClose?.()

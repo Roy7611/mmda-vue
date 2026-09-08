@@ -25,10 +25,12 @@ export function createBadge(props: UiBadgeProps) {
     overlay: _overlay,
     position: _position,
     class: _class,
+    htmlAttributes,
     ...rest
   } = props;
   return h(Badge, {
     ...rest,
+    ...htmlAttributes,
     value: shape === "dot" ? undefined : value,
     severity: primeSeverity(colorRole),
     class: ["mmda-badge", badgeModifierClasses(props)],

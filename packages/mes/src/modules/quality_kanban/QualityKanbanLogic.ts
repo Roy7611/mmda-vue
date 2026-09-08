@@ -410,12 +410,13 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
                                 { name: ctx.t('dateRange.LAST_YEAR'), value: 'LAST_YEAR' },
                             ],
                         })
-                        return ctx.uiBuilder.factory.select({
-                            modelValue: csf.searchVal.value ?? 'THIS_WEEK',
-                            options: searchData.timeSelect,
-                            optionLabel: 'name',
-                            optionValue: 'value',
-                            onUpdate: (value: any) => {
+                        return ctx.uiBuilder.factory.dropDownList({
+                            value: csf.searchVal.value ?? 'THIS_WEEK',
+                            options: searchData.timeSelect.map((item: any) => ({
+                                value: item.value,
+                                label: item.name,
+                            })),
+                            onChange: (value) => {
                                 csf.searchVal.value = value
                                 ctx.app.localDb.put(`search/${ctx.logic.repository}/date`, JSON.parse(JSON.stringify(value)))
                             },

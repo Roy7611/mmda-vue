@@ -276,9 +276,6 @@ class VueUiContextBase<E extends object = Record<string, any>>
       $t: (message: string, param?: Record<string, any>) =>
         this.translate(message, param),
       $router: this.logic?.router,
-      $toast: {
-        add: (props: Record<string, any>) => this.app?.ui.toast(this, props),
-      },
     };
   }
 

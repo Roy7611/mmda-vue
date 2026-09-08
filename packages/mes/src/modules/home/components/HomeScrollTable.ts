@@ -6,6 +6,7 @@
 import { defineComponent, h, onMounted, onUnmounted, ref, nextTick, watch } from 'vue';
 import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 
 export interface ScrollColumn {
 	key: string;
@@ -33,7 +34,6 @@ export const HomeScrollTable = defineComponent({
 		let intervalId: number | null = null;
 		let autoScrollEnabled = true;
 		let cleanupContainer: (() => void) | null = null;
-		const { factory } = props;
 
 		/* 启动自动滚动：外层 div 直接作为滚动容器，不依赖 PrimeVue 内部 DOM */
 		const setupScroll = () => {
@@ -109,7 +109,7 @@ export const HomeScrollTable = defineComponent({
 			}
 
 			const cols = props.columns.map(col =>
-				factory.column(
+				plainTableColumn(
 					{ header: col.label, field: col.key, ...(col.width ? { style: { width: col.width } } : {}) },
 					{ body: (slotProps: any) => props.renderCell(slotProps.data, col, slotProps.index) }
 				)
@@ -121,16 +121,7 @@ export const HomeScrollTable = defineComponent({
 				class: 'home-scroll-table',
 				style: { overflowY: 'auto', height: props.height },
 			}, [
-				factory.primeVueTable(cloned.value, cols, {
-					scrollable: false,
-					dataKey: props.rowKey,
-					showGridlines: false,
-					resizableColumns: false,
-					reorderableColumns: false,
-					removableSort: false,
-					rowHover: false,
-					tableStyle: { minWidth: 'auto' },
-				}),
+				renderPlainTable(cloned.value, cols, {}),
 			]);
 		};
 	},

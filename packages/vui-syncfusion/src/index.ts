@@ -14,8 +14,6 @@ export * from './syncfusion_overlay'
 export * from './syncfusion_i18n'
 export * from './components/SfOverlayHost'
 export * from './components/SfBpmnDiagram'
-// GanttChart is loaded lazily via SyncfusionUiBuilder.buildGanttChart
-export * from './components/SfBarcode'
 export * from './components/SfHelpPanel'
 export * from './components/SfSigninForm'
 export * from './components/AppSideMenu'
@@ -24,9 +22,11 @@ export * from './components/SfDropupMenuButton'
 export * from './components/SfAttachmentPanel'
 export * from './components/SfImageGallery'
 export * from './components/SfFilesUploader'
+export * from './components/SfFileUploader'
 export { SfGrid } from './components/SfGrid'
 export { SfGridLayout } from './components/SfGridLayout'
 export { SfGridHost, SfGridLoadingHost } from './factory/grid'
+export { SfLoadingHost, SfPageLoading } from './components/SfLoadingHost'
 export {
   buildSfGridColumns,
   buildSfTreeGridColumns,

@@ -1,4 +1,4 @@
-import type { VNode, VNodeArrayChildren, VNodeChild, Ref } from "vue";
+import { h, type VNode, type VNodeChild, type Ref } from "vue";
 import type {
   EntityFilterModel,
   MetaUiField,
@@ -9,7 +9,6 @@ import type {
 } from "@mmda/core";
 import type { ChildSlot } from "../../contexts/view";
 import type { UiSlots } from "../layout/layout";
-import type { CustomFilter } from "./filter";
 import type { UiAction } from "./action";
 
 export type UiTableCellRenderer<T = any> = (
@@ -23,8 +22,16 @@ export type { UiSlots } from "../layout/layout";
 /** 表格场景；三套皮肤同一组字面量，不要各自再定义。 */
 export type UiGridScene = "index" | "selector" | "edit" | "details";
 
+/** 同一套 UiListProps 的呈现意图。 */
+export type UiListDisplay = "list" | "table" | "grid" | "treeGrid";
+
 export interface UiListProps<T = any> {
   [index: string]: any;
+  /**
+   * 呈现：list 移动端卡片；table 只读高性能；grid 可编；treeGrid 树形表。
+   * 缺省由 factory.list / table / grid / treeGrid 捷径写入。
+   */
+  display?: UiListDisplay;
   /** 列表页 / 选记录 / 子表编辑 / 子表只读。缺省由 Builder 按 view 推断。 */
   scene?: UiGridScene;
   striped?: boolean;
@@ -110,6 +117,26 @@ export interface UiListProps<T = any> {
    * 未传则皮肤可自行判断或退回全列模板。
    */
   templateCellFields?: string[];
+  /**
+   * 行展开：该行底下的异构孙子组（如 BomItem.operations），不是本行列。
+   * 不要 childGrid / detailTemplate / expandedRows（厂商面）。
+   */
+  rowDetail?: UiRowDetail<T>;
+}
+
+/** 表格行明细。`detail` 单数，避免和 scene `details`（详情页）撞名。 */
+export interface UiRowDetail<T = any> {
+  /** 挂载后全部展开。编辑/详情子表默认 true。 */
+  expandAll?: boolean;
+  detail: (row: T) => VNodeChild;
+}
+
+export function wrapRowDetail(content: VNodeChild): VNode {
+  return h(
+    "div",
+    { class: "mmda-row-detail", "data-row-detail": "" },
+    content as any,
+  );
 }
 
 export interface UiListEmits<T = any> {
@@ -182,29 +209,87 @@ export type UiPaginatorPropsType = UiPaginatorProps & UiPaginatorEmits;
 export type UiPagableListPropsType<T> = UiPaginatorPropsType &
   UiListPropsType<T>;
 
-export interface UiListViewProps<T> extends UiListProps<T> {
-  showToolbar?: boolean;
-  showBreadcrumb?: boolean;
-  showSearchbar?: boolean;
-  showMainHead?: boolean;
-  linkField?: string;
-  linkable?: boolean;
-  customCellRenderers?: Record<string, UiTableCellRenderer>;
-}
-
-export interface UiListViewSlots<T> extends UiListSlots<T> {
-  toolbar?: () => VNode | VNodeArrayChildren;
-  header?: () => VNode | VNodeArrayChildren;
-  content?: () => VNode | VNodeArrayChildren;
-  footer?: () => VNode | VNodeArrayChildren;
-  subMainFooter?: () => VNode | VNodeArrayChildren;
-  defaultFilter?: () => VNode;
-  customFilters?: CustomFilter[];
-}
-
-export interface UiListViewEmits<T> extends UiListEmits<T> {}
-export type UiListViewPropsType<T> = UiListViewProps<T> &
-  UiListViewEmits<T> &
-  UiListViewSlots<T>;
-
 export type { Pager };
+
+type ListFamily = {
+  list: (...args: any[]) => unknown;
+  table: (...args: any[]) => unknown;
+  treeGrid: (...args: any[]) => unknown;
+  grid?: (...args: any[]) => unknown;
+};
+
+/** 把 list / table / grid / treeGrid 接到同一套 display 分发；table 与 grid 可共用 renderer。 */
+export function bindListDisplayRenderers(factory: ListFamily) {
+  const list = factory.list.bind(factory);
+  const table = factory.table.bind(factory);
+  const treeGrid = factory.treeGrid.bind(factory);
+  const dispatch = (model: unknown, metaUi: unknown, props: UiListPropsType<any> = {}) => {
+    const display = props.display ?? "list";
+    if (display === "treeGrid") return treeGrid(model, metaUi, props);
+    if (display === "list") return list(model, metaUi, props);
+    return table(model, metaUi, props);
+  };
+  factory.list = (model, metaUi, props = {}) =>
+    dispatch(model, metaUi, { ...props, display: props.display ?? "list" });
+  factory.table = (model, metaUi, props = {}) =>
+    dispatch(model, metaUi, { ...props, display: props.display ?? "table" });
+  factory.grid = (model, metaUi, props = {}) =>
+    dispatch(model, metaUi, { ...props, display: props.display ?? "grid" });
+  factory.treeGrid = (model, metaUi, props = {}) =>
+    dispatch(model, metaUi, { ...props, display: props.display ?? "treeGrid" });
+}
+
+/** 有 `pagination` 时在内容下方接 `factory.paginator`；子表不传则原样返回。 */
+export function wrapWithPaginator(
+  factory: {
+    paginator: (
+      model: Pagination,
+      props: UiPaginatorPropsType,
+    ) => VNode;
+  },
+  node: VNode,
+  pagination: Pagination | undefined,
+  props: {
+    onPage?: UiListProps["onPage"];
+    pageSizeOptions?: number[];
+  },
+  className = "mmda-pagable",
+): VNode {
+  if (!pagination) return node;
+  return h("div", { class: className }, [
+    node,
+    factory.paginator(pagination, {
+      onPage: (pager) => {
+        void props.onPage?.(pager);
+      },
+      pageSizeOptions: props.pageSizeOptions,
+    }),
+  ]);
+}
+
+export function wrapListFamilyPaginator(
+  factory: {
+    paginator: (
+      model: Pagination,
+      props: UiPaginatorPropsType,
+    ) => VNode;
+    list: (...args: any[]) => VNode;
+    table?: (...args: any[]) => VNode;
+    treeGrid?: (...args: any[]) => VNode;
+  },
+  names: Array<"list" | "table" | "treeGrid">,
+  className = "mmda-pagable",
+) {
+  for (const name of names) {
+    const orig = factory[name];
+    if (typeof orig !== "function") continue;
+    factory[name] = (model: unknown, metaUi: unknown, props: UiListPropsType<any> = {}) =>
+      wrapWithPaginator(
+        factory,
+        orig(model, metaUi, props),
+        props.pagination,
+        props,
+        className,
+      );
+  }
+}

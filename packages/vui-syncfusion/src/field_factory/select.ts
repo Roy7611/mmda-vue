@@ -2,116 +2,234 @@ import { h, type VNode } from "vue";
 import { MetaModel, type MetaUiField } from "@mmda/core";
 import type { PropData } from "@mmda/vui";
 import {
-  CheckBoxComponent,
-  SwitchComponent,
-} from "@syncfusion/ej2-vue-buttons";
+  autoCompleteBindValue,
+  autoCompletePropsFromField,
+  bitCheckBoxListPropsFromField,
+  checkBoxListPropsFromField,
+  checkBoxPropsFromField,
+  switchPropsFromField,
+  comboBoxPropsFromField,
+  dropDownListPropsFromField,
+  radioButtonGroupPropsFromField,
+  treeSelectPropsFromField,
+  multiBitSelectPropsFromField,
+  multiItemSelectPropsFromField,
+  multiSelectPropsFromField,
+  multiTextSelectPropsFromField,
+  multiValueSelectPropsFromField,
+  tagAutoCompletePropsFromField,
+  routeAutoCompleteField,
+} from "@mmda/vui";
+import { createAutoComplete } from "../factory/autocomplete";
+import { createCheckBox } from "../factory/checkbox";
+import { createSwitch } from "../factory/switch";
+import { createBitCheckBoxList, createCheckBoxList } from "../factory/check_box_list";
+import { createComboBox } from "../factory/combo_box";
+import { createDropDownList } from "../factory/drop_down_list";
+import { createRadioButtonGroup } from "../factory/radio_button_group";
 import {
-  DropDownListComponent,
-  MultiSelectComponent,
-} from "@syncfusion/ej2-vue-dropdowns";
+  createMultiBitSelect,
+  createMultiItemSelect,
+  createMultiSelect,
+  createMultiTextSelect,
+  createMultiValueSelect,
+} from "../factory/multi_select";
+import { createTagAutoComplete } from "../factory/tag_auto_complete";
+import { createTreeSelect } from "../factory/tree_select";
 import { fallbackDisplay } from "./display";
 import {
   control,
   invalidOf,
-  referenceDataSource,
-  referenceFieldKeys,
-  referenceSelectedValue,
-  resolveReferenceOption,
   update,
   type UiContext,
 } from "./utils";
 
-export const dropdown = (
+export const dropDownList = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
 ) => {
-  const reference = field.reference;
-  if (!reference) {
-    return control(DropDownListComponent as any, field, context, props, {
-      dataSource: props?.options ?? [],
-      fields: props?.fields,
-      allowFiltering: true,
-      showClearButton: field.nullable,
-    });
-  }
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createDropDownList(
+      dropDownListPropsFromField(field, context, props ?? {}),
+    ),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
 
-  const { valueKey, textKey } = referenceFieldKeys(reference);
-  const dataSource = referenceDataSource(reference, props?.options);
+export const treeSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createTreeSelect(
+      treeSelectPropsFromField(field, context, props ?? {}),
+    ),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
 
-  return control(
-    DropDownListComponent as any,
+export const comboBox = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
+
+function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    child,
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+}
+
+export const radioButtonGroup = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
     field,
     context,
-    {
-      ...props,
-      change: (args: any) => {
-        update(
-          field,
-          context,
-        )(resolveReferenceOption(reference, args?.value, args?.itemData));
-      },
-    },
-    {
-      dataSource,
-      fields: { text: textKey, value: valueKey },
-      value: referenceSelectedValue(field, context, reference),
-      allowFiltering: true,
-      showClearButton: field.nullable,
-    },
+    createRadioButtonGroup(
+      radioButtonGroupPropsFromField(field, context, props ?? {}),
+    ),
   );
-};
 
 export const multiSelect = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
-) => {
-  const reference = field.reference;
-  if (!reference) {
-    return control(MultiSelectComponent as any, field, context, props, {
-      dataSource: props?.options ?? [],
-      mode: "CheckBox",
-    });
-  }
-
-  const { valueKey, textKey } = referenceFieldKeys(reference);
-  const dataSource = referenceDataSource(reference, props?.options);
-  const current = context.getFieldValue(field);
-  const selected = Array.isArray(current)
-    ? current
-        .map((item) =>
-          item != null && typeof item === "object"
-            ? reference.valueOf(item)
-            : item,
-        )
-        .filter((value) => value !== 0 && value !== "0")
-    : current;
-
-  return control(
-    MultiSelectComponent as any,
+) =>
+  wrapSf(
     field,
     context,
-    {
-      ...props,
-      change: (args: any) => {
-        const values = Array.isArray(args?.value) ? args.value : [];
-        update(
-          field,
-          context,
-        )(
-          values.map((value: unknown) =>
-            resolveReferenceOption(reference, value),
-          ),
-        );
-      },
-    },
-    {
-      dataSource,
-      fields: { text: textKey, value: valueKey },
-      value: selected,
-      mode: "CheckBox",
-    },
+    createMultiSelect(
+      multiSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const multiItemSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createMultiItemSelect(
+      multiItemSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const multiValueSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createMultiValueSelect(
+      multiValueSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const multiTextSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createMultiTextSelect(
+      multiTextSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const multiBitSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createMultiBitSelect(
+      multiBitSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const checkBoxList = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createCheckBoxList(
+      checkBoxListPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const bitCheckBoxList = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapSf(
+    field,
+    context,
+    createBitCheckBoxList(
+      bitCheckBoxListPropsFromField(field, context as any, props ?? {}),
+    ),
+  );
+
+export const tagAutoComplete = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
+  const mapped = tagAutoCompletePropsFromField(
+    field,
+    context as any,
+    props ?? {},
+  );
+  return wrapSf(
+    field,
+    context,
+    createTagAutoComplete(mapped.value, mapped.props),
   );
 };
 
@@ -119,20 +237,37 @@ export const checkbox = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
-) =>
-  control(CheckBoxComponent as any, field, context, props, {
-    checked: context.getFieldValue(field),
-    label: props?.label === "" ? "" : (props?.label ?? field.displayLabel),
-  });
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
 
-export const switcher = (
+export const switchControl = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
-) =>
-  control(SwitchComponent as any, field, context, props, {
-    checked: context.getFieldValue(field),
-  });
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createSwitch(switchPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
+
+export const switcher = switchControl;
 
 /**
  * HAS_ONE / 远程 REF：对齐老 SearchBox = 可编辑 ComboBox 联想 + 搜索按钮弹窗。
@@ -213,4 +348,32 @@ export const searchBox = (
       return true;
     },
   });
+};
+
+export const autoComplete = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+): VNode => {
+  const route = routeAutoCompleteField(field);
+  if (route === "dropDownList") return dropDownList(field, context, props);
+  if (route === "searchBox") return searchBox(field, context, props);
+  const invalid = invalidOf(field, context);
+  const reference = field.reference?.isRef ? field.reference : undefined;
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createAutoComplete(
+      autoCompleteBindValue(context.getFieldValue(field), { reference }),
+      {
+        ...autoCompletePropsFromField(field, props ?? {}),
+        disabled: context.isFieldReadonly(field),
+        onUpdate: update(field, context),
+      },
+    ),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
 };

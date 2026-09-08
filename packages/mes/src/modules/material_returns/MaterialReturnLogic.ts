@@ -226,9 +226,8 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 					const items = selection.filter((item:any) => MetaModel.hasAnyLike(target.items, { partNo: item.partNo }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						group: 'br',
-						detail: context.globalProps.$t('auth.MaterialReturnItemError'),
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.globalProps.$t('auth.MaterialReturnItemError'),
 						life: 3000
 					})
 					context.addSubGroupItems<MaterialReturnItem>({
@@ -270,9 +269,8 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
 					const items = selection.filter((item:any) => MetaModel.hasAnyLike(target.items, { partNo: item.partNo }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						group: 'br',
-						detail: context.globalProps.$t('auth.MaterialReturnItemError'),
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.globalProps.$t('auth.MaterialReturnItemError'),
 						life: 3000
 					})
 					context.addSubGroupItems<MaterialReturnItem>({

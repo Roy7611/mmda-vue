@@ -315,9 +315,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			target && (target.type === 'bpmn:EndEvent' || target.id.includes('EndEvent'))) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('process.invalidConnection'),
-				detail: context.t('process.startToEnd'),
-				group: 'br',
+				title: context.t('process.invalidConnection'),
+				message: context.t('process.startToEnd'),
 				life: 3000
 			});
 			return context.t('process.startToEnd'); // 校验失败
@@ -328,9 +327,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (nextOp?.opPhase === 'END') {
 				uiBuilder.toast(context, {
 					severity: 'error',
-					summary: context.t('process.invalidConnection'),
-					detail: context.t('process.startToEndPhase'),
-					group: 'br',
+					title: context.t('process.invalidConnection'),
+					message: context.t('process.startToEndPhase'),
 					life: 3000
 				});
 				return context.t('process.startToEndPhase');
@@ -341,9 +339,8 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (target && (target.type === 'bpmn:EndEvent' || target.id.includes('EndEvent')) && prevOp?.opPhase !== 'END') {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('process.invalidConnection'),
-				detail: context.t('process.endFromNonEndPhase'),
-				group: 'br',
+				title: context.t('process.invalidConnection'),
+				message: context.t('process.endFromNonEndPhase'),
 				life: 3000
 			});
 			return context.t('process.endFromNonEndPhase');
@@ -353,9 +350,8 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (prevOp?.opPhase === 'END' && nextOp) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('process.invalidConnection'),
-				detail: context.t('process.endPhaseOnlyToEnd'),
-				group: 'br',
+				title: context.t('process.invalidConnection'),
+				message: context.t('process.endPhaseOnlyToEnd'),
 				life: 3000
 			});
 			return context.t('process.endPhaseOnlyToEnd');
@@ -372,9 +368,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (isRouteExists) {
 				uiBuilder.toast(context, {
 					severity: 'error',
-					summary: context.t('failure.failed'),
-					detail: context.t('process.routeExists'),
-					group: 'br',
+					title: context.t('failure.failed'),
+					message: context.t('process.routeExists'),
 					life: 3000
 				});
 				return context.t('process.routeExists');
@@ -385,9 +380,8 @@ export class ProcessLogic extends UiLogic<Process> {
 		if (prevOp && nextOp && (prevOp.opCode === nextOp.opCode)) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('failure.failed'),
-				detail: context.t('process.selfConnection'),
-				group: 'br',
+				title: context.t('failure.failed'),
+				message: context.t('process.selfConnection'),
 				life: 3000
 			});
 			return context.t('process.selfConnection');
@@ -401,9 +395,9 @@ export class ProcessLogic extends UiLogic<Process> {
 
 		// 		context.uiBuilder.toast(context, {
 		// 			severity: 'error',
-		// 			summary: '删除失败',
-		// 			detail: '只能有一条终结路线！',
-		// 			group: 'br',
+		// 			title: '删除失败',
+		// 			message: '只能有一条终结路线！',
+		//,
 		// 			life: 3000
 		// 		});
 		// 		return '只能有一条终结路线！';
@@ -428,9 +422,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			if (startNodeCount <= 1) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: context.t('failure.failed'),
-					detail: context.t('process.atLeastOneStart'),
-					group: 'br',
+					title: context.t('failure.failed'),
+					message: context.t('process.atLeastOneStart'),
 					life: 3000
 				});
 				return false;
@@ -489,9 +482,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			console.error('返回上级制程失败:', error);
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('dialog.title.error'),
-				detail: context.t('process.returnToParentFailed'),
-				group: 'br',
+				title: context.t('dialog.title.error'),
+				message: context.t('process.returnToParentFailed'),
 				life: 3000
 			});
 		}
@@ -729,17 +721,17 @@ export class ProcessLogic extends UiLogic<Process> {
 
 												if (item) {
 													if (shape.type === 'bpmn:Task' && !this.isdeleted) {
-														ctx.uiBuilder.confirm(ctx, {
-															header: ctx.t('action.confirm'),
+														if (await ctx.uiBuilder.confirm(ctx, {
+															title: ctx.t('action.confirm'),
 															message: ctx.t('confirmation.delete'),
-														}).then(() => {
-															this.isdeleted = true;
-															// 先删除关联的连线，然后再删除形状
-															// 这样可以阻止 bpmn.js 自动将删除元素前后的元素重新连线
-															modeling.removeElements([...shape.incoming, ...shape.outgoing, shape]);
-														}).finally(() => {
-															this.isdeleted = false;
-														});
+														})) {
+															this.isdeleted = true
+															try {
+																modeling.removeElements([...shape.incoming, ...shape.outgoing, shape]);
+															} finally {
+																this.isdeleted = false
+															}
+														}
 														return false;
 													} else {
 														return true;
@@ -967,9 +959,8 @@ export class ProcessLogic extends UiLogic<Process> {
 			console.error('创建路线异常:', error);
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('dialog.title.error'),
-				detail: error.message ?? context.t('process.createRouteFailed'),
-				group: 'br',
+				title: context.t('dialog.title.error'),
+				message: error.message ?? context.t('process.createRouteFailed'),
 				life: 3000
 			});
 			Promise.reject(error.message);

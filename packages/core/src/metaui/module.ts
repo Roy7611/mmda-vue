@@ -21,7 +21,8 @@ export const enum ModuleOp {
   PRINT = 16, //0001 0000 打印 => 统计报表
   EXPORT = 32, //0010 0000 导出
   IMPORT = 64, //0100 0000 导入
-  UPLOAD = 128, //1000 0000 上传模版
+  UPLOAD = 128, //1000 0000 上传
+  DOWNLOAD = 256 //下载
 }
 
 /**
@@ -207,6 +208,7 @@ export interface ModuleAuth {
   allowExport: boolean;
   allowImport: boolean;
   allowUpload: boolean;
+  allowDownload: boolean;
   authScope?: string;
   authActions?: string;
   authRule?: string;
@@ -228,6 +230,7 @@ export function auth(allowOps: ModuleOp): ModuleAuth {
     allowExport: hasBit(allowOps, ModuleOp.EXPORT),
     allowImport: hasBit(allowOps, ModuleOp.IMPORT),
     allowUpload: hasBit(allowOps, ModuleOp.UPLOAD),
+    allowDownload: hasBit(allowOps, ModuleOp.DOWNLOAD)
   };
 }
 

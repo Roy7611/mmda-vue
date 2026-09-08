@@ -76,6 +76,90 @@ export type EntityFieldFilter =
 /** 字段过滤文档，键是实体字段名。 */
 export type EntityFilterModel = Record<string, EntityFieldFilter>;
 
+/**
+ * AG Advanced Filter 树（Query Builder）。
+ * 顶层 join 可跨字段 OR；与列 FilterModel 里同字段的 EntityJoinFieldFilter 不是同一套。
+ * 本轮 searchAll 不 POST 这棵树。
+ */
+export type EntityAdvancedFilterModel =
+  | EntityAdvancedJoinFilter
+  | EntityAdvancedColumnFilter;
+
+export interface EntityAdvancedJoinFilter {
+  filterType: "join";
+  operator: "AND" | "OR";
+  conditions: EntityAdvancedFilterModel[];
+}
+
+/** 叶子：带 fieldName（≈ AG colId）。 */
+export interface EntityAdvancedColumnFilter {
+  fieldName: string;
+  filterType: "text" | "number" | "date" | "set" | "boolean";
+  operator?: EntityFilterOperator;
+  value?: unknown;
+  valueTo?: unknown;
+  values?: unknown[];
+}
+
+export function isAdvancedJoinFilter(
+  model?: EntityAdvancedFilterModel | null,
+): model is EntityAdvancedJoinFilter {
+  return (
+    !!model &&
+    model.filterType === "join" &&
+    "conditions" in model &&
+    Array.isArray(model.conditions)
+  );
+}
+
+export function cloneAdvancedFilter(
+  model?: EntityAdvancedFilterModel | null,
+): EntityAdvancedFilterModel | undefined {
+  if (!model) return undefined;
+  if (isAdvancedJoinFilter(model)) {
+    return {
+      filterType: "join",
+      operator: model.operator,
+      conditions: model.conditions
+        .map((item) => cloneAdvancedFilter(item))
+        .filter((item): item is EntityAdvancedFilterModel => item != null),
+    };
+  }
+  return {
+    ...model,
+    values: model.values ? [...model.values] : undefined,
+  };
+}
+
+function isEmptyAdvancedColumn(filter: EntityAdvancedColumnFilter): boolean {
+  if (filter.filterType === "set") return !filter.values?.length;
+  if (filter.filterType === "boolean") return filter.value == null;
+  if (filter.operator === "IS_ALL") return true;
+  if (filter.operator === "IS_NULL" || filter.operator === "IS_NOT_NULL") {
+    return false;
+  }
+  if (filter.operator === "BETWEEN") {
+    return filter.value == null && filter.valueTo == null;
+  }
+  return filter.value == null || filter.value === "";
+}
+
+export function compactAdvancedFilter(
+  model?: EntityAdvancedFilterModel | null,
+): EntityAdvancedFilterModel | undefined {
+  if (!model) return undefined;
+  if (isAdvancedJoinFilter(model)) {
+    const conditions = model.conditions
+      .map((item) => compactAdvancedFilter(item))
+      .filter((item): item is EntityAdvancedFilterModel => item != null);
+    if (!conditions.length) return undefined;
+    if (conditions.length === 1) return conditions[0];
+    return { filterType: "join", operator: model.operator, conditions };
+  }
+  if (isEmptyAdvancedColumn(model)) return undefined;
+  return cloneAdvancedFilter(model);
+}
+
 /** Module.defaultFilter 段：queryID;queryName */
 export interface NamedQueryRef {
   queryID: string;
@@ -93,6 +177,8 @@ export interface EntityQuery {
   objName?: string;
   remark?: string;
   filterModel?: EntityFilterModel;
+  /** Query Builder / AG Advanced Filter 树。searchAll 本轮不传。 */
+  advancedFilterModel?: EntityAdvancedFilterModel;
   pager: Pager;
   searchWord?: string;
 }
@@ -167,6 +253,7 @@ export function toEntityQuery(src: EntityQuery): EntityQuery {
     objName: src.objName,
     remark: src.remark,
     filterModel: cloneFilterModel(src.filterModel),
+    advancedFilterModel: cloneAdvancedFilter(src.advancedFilterModel),
     pager: clonePager(src.pager ?? defaultPager()),
     searchWord: src.searchWord,
   };
@@ -184,6 +271,9 @@ export function applyEntityQuery(to: EntitySearchParam, src: EntityQuery) {
   to.pager.sorts = pager.sorts?.map((sort) => ({ ...sort }));
   if (src.filterModel) to.filterModel = cloneFilterModel(src.filterModel);
   else delete to.filterModel;
+  if (src.advancedFilterModel) {
+    to.advancedFilterModel = cloneAdvancedFilter(src.advancedFilterModel);
+  } else delete to.advancedFilterModel;
   return to;
 }
 
@@ -218,6 +308,10 @@ export function isDifferentSearchParam(
 
 export const hasFilterModel = (param: Pick<EntityQuery, "filterModel">) =>
   param.filterModel != null && Object.keys(param.filterModel).length > 0;
+
+export const hasAdvancedFilterModel = (
+  param: Pick<EntityQuery, "advancedFilterModel">,
+) => compactAdvancedFilter(param.advancedFilterModel) != null;
 
 export function inFilter(
   values: unknown | unknown[],
@@ -354,6 +448,7 @@ function isEntityQueryLike(value: unknown): value is EntityQuery {
   return (
     "pager" in o ||
     "filterModel" in o ||
+    "advancedFilterModel" in o ||
     "queryID" in o ||
     "queryName" in o ||
     "searchWord" in o

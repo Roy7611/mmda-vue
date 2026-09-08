@@ -86,7 +86,7 @@ const getMetarlList = async (ctx: any, model?: any, filter?: any, value?: any) =
 
 //请购
 const beforeRequest = async (context: UiContext, model: Project, action: EntityAction) => {
-	const { $ui: ui, $router, $toast: toast, $t: t } = context.globalProps;
+	const {$ui: ui, $router, $t: t} = context.globalProps;
 	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
@@ -111,7 +111,7 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 
 //采购
 const beforePurchase = async (context: UiContext, model: Project, action: EntityAction) => {
-	const { $ui: ui, $router, $toast: toast, $t: t } = context.globalProps;
+	const {$ui: ui, $router, $t: t} = context.globalProps;
 	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
@@ -131,7 +131,7 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 		{
 			title: t('bom.selectMaterial'),
 			footer: createSelectMaterialFooter({ t, context, selectMetarlList, apiClient }),
-			// accept: async () => {
+			// onAccept: async () => {
 			// 	console.log('aaaaaa');
 			// 	// if (selectionRows.value.length > 0) {
 			// 	// 	//提交模型
@@ -164,7 +164,7 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 			// 	// 	if (resPackages == true) {
 			// 	// 		appContext.uiBuilder.toast(appContext, {
 			// 	// 			severity: 'success',
-			// 	// 			summary: t('success.operationSuccessful'),
+			// 	// 			title: t('success.operationSuccessful'),
 			// 	// 			life: 3000,
 			// 	// 		});
 			// 	// 		setTimeout(() => {
@@ -175,13 +175,13 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 			// 	// } else {
 			// 	// 	appContext.uiBuilder.toast(appContext, {
 			// 	// 		severity: 'error',
-			// 	// 		summary: t('invalid.requiredSelectAny'),
+			// 	// 		title: t('invalid.requiredSelectAny'),
 			// 	// 		life: 3000,
 			// 	// 	});
 			// 	// 	// appContext.uiBuilder.toast(appContext, {
 			// 	// 	// 	severity: 'error',
 			// 	// 	// 	title: t('invalid.requiredSelectAny'),
-			// 	// 	// 	summary: t('invalid.requiredSelectAny'),
+			// 	// 	// 	title: t('invalid.requiredSelectAny'),
 			// 	// 	// 	life: 3000,
 			// 	// 	// });
 			// 	// 	return false;
@@ -199,7 +199,7 @@ const beforeProduction = async (context: UiContext, model: Project, action: Enti
 };
 
 const beforeStage = async (context: UiContext, model: Project, action: EntityAction) => {
-	const { $toast: toast, $t } = context.globalProps;
+	const { $t} = context.globalProps;
 	const apiClient = this.apiClient;
 	wbsData.payload.refID = '';
 	try {
@@ -216,12 +216,11 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 				width: '30vw',
 				height: '15vh',
 				title: $t('project.selectWbs'),
-				accept: async () => {
+				onAccept: async () => {
 					if (!wbsData.payload.refID) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							summary: $t('invalid.selectWbs'),
-							group: 'br',
+							title: $t('invalid.selectWbs'),
 							life: 3000,
 						});
 						return false;
@@ -248,11 +247,11 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 										width: '30vw',
 										height: '10vh',
 										title: '',
-										accept: async () => {
+										onAccept: async () => {
 											console.log('model.projectID', model.projectID);
 											window.open(`/MES/ProjectSchedule?projectID=${model.projectID}`, '_blank');
 										},
-										reject: async () => {
+										onReject: async () => {
 											context.reload();
 										},
 									}
@@ -263,11 +262,10 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 							}
 							return true;
 						} catch (error: any) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'error',
-								detail: error.message,
-								summary: $t('dialog.title.error'),
-								group: 'br',
+								message: error.message,
+								title: $t('dialog.title.error'),
 								life: 3000,
 							});
 							return false;
@@ -464,7 +462,7 @@ export class ProjectLogic extends UiLogic<Project> {
 	}
 
 	// importDeliveryItems(context: UiContext, target: Project) {
-	// 	const { $router, $toast, $t } = context.globalProps;
+	// 	const {$router, $t} = context.globalProps;
 
 	// 	context.uiBuilder.dialog(
 	// 		context.uiBuilder.buildFileUpload(context, {
@@ -474,20 +472,20 @@ export class ProjectLogic extends UiLogic<Project> {
 	// 			onUpload: (scope: any) => {
 	// 				console.log('scope', scope);
 	// 				if (!scope.files || scope.files.length == 0) {
-	// 					$toast.add({
-	// 						severity: 'warn',
-	// 						summary: $t('dialog.title.warning'),
-	// 						detail: $t('action.chooseFile'),
+	// 					context.uiBuilder.toast(context, {
+	// 						severity: 'warning',
+	// 						title: $t('dialog.title.warning'),
+	// 						message: $t('action.chooseFile'),
 	// 						life: 3000,
 	// 					});
 	// 				} else {
 	// 					if (scope.response?.data && scope.response?.data > 0) {
 	// 						console.log('有数据');
 	// 					}
-	// 					$toast.add({
+	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'info',
-	// 						summary: $t('dialog.title.prompt'),
-	// 						detail: $t('success.upLoadSuccess'),
+	// 						title: $t('dialog.title.prompt'),
+	// 						message: $t('success.upLoadSuccess'),
 	// 						life: 3000,
 	// 					});
 	// 				}
@@ -676,10 +674,9 @@ export class ProjectLogic extends UiLogic<Project> {
 				if (toAdd.length === 0) {
 					if (skipped > 0) {
 						context.uiBuilder.toast(context, {
-							severity: 'warn',
-							summary: context.globalProps.$t('dialog.title.prompt'),
-							detail: context.t('project.allMembersAlreadyAdded'),
-							group: 'br',
+							severity: 'warning',
+							title: context.globalProps.$t('dialog.title.prompt'),
+							message: context.t('project.allMembersAlreadyAdded'),
 							life: 3000,
 						});
 					}
@@ -687,10 +684,9 @@ export class ProjectLogic extends UiLogic<Project> {
 				}
 				if (skipped > 0) {
 					context.uiBuilder.toast(context, {
-						severity: 'warn',
-						summary: context.globalProps.$t('dialog.title.prompt'),
-						detail: context.globalProps.$t('project.skippedExistingMembers', { count: skipped }),
-						group: 'br',
+						severity: 'warning',
+						title: context.globalProps.$t('dialog.title.prompt'),
+						message: context.globalProps.$t('project.skippedExistingMembers', { count: skipped }),
 						life: 3000,
 					});
 				}
@@ -799,23 +795,23 @@ export class ProjectLogic extends UiLogic<Project> {
 	 * 导入
 	 */
 	// async importFiles(context: UiContext) {
-	// 	const { $toast, $t } = context.globalProps;
+	// 	const { $t} = context.globalProps;
 	// 	context.uiBuilder.buildFileUpload(context, {
 	// 		url: '', //上传地址
 	// 		onUpload: (scope: any) => {
 	// 			console.log(scope.files);
 	// 			if (!scope.files || scope.files.length == 0) {
-	// 				$toast.add({
-	// 					severity: 'warn',
-	// 					summary: $t('dialog.title.warning'),
-	// 					detail: $t('action.chooseFile'),
+	// 				context.uiBuilder.toast(context, {
+	// 					severity: 'warning',
+	// 					title: $t('dialog.title.warning'),
+	// 					message: $t('action.chooseFile'),
 	// 					life: 3000,
 	// 				});
 	// 			} else {
-	// 				$toast.add({
+	// 				context.uiBuilder.toast(context, {
 	// 					severity: 'info',
-	// 					summary: $t('dialog.title.prompt'),
-	// 					detail: $t('success.upLoadSuccess'),
+	// 					title: $t('dialog.title.prompt'),
+	// 					message: $t('success.upLoadSuccess'),
 	// 					life: 3000,
 	// 				});
 	// 			}

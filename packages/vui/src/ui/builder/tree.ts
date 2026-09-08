@@ -24,19 +24,18 @@ import { resolveRepositoryModule } from "../../components/EntityView";
 import { renderTreeView } from "../../components/MmdaTreeView";
 import { UiViewOne } from "../../contexts/view";
 import { VueUiContext } from "../../contexts/vue_ui_context";
-import type { VueUiBuilder } from "./builder";
 import type { UiContext } from "./helpers";
+import type { AbstractConstructor } from "./mixin";
 
-type Host = VueUiBuilder;
+export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
+  abstract class TreeBuilder extends Base {
 
-export function attachTreeBuilder(ctor: { prototype: Host }) {
-  Object.assign(ctor.prototype, {
     buildTree<T = any>(props: UiTreePropsType<T>): VNode {
       return this.factory.tree({
         selectionMode: props.selectionMode ?? "single",
         ...props,
       });
-    },
+    }
     
     buildTreeView<T = any>(
       props: UiTreeViewPropsType<T>,
@@ -99,7 +98,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
           ? (parent?: T) => this.loadCategoryTreeNodes(context, wired, parent)
           : undefined;
       return renderTreeView(this.factory, wired, loadChildren);
-    },
+    }
     
     async loadCategoryTreeNodes<T>(
       context: UiContext,
@@ -111,22 +110,34 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
       }
       const repository = props.repository;
       if (!repository || !context.app?.meta) return props.data ?? [];
-      const catLogic = await resolveCategoryTreeLogicOp(context, repository);
+      const catLogic = await resolveCategoryTreeLogicOp(context, repository) as {
+        getAll?: (param: unknown) => Promise<{ list?: unknown[] }>
+        getRoots?: () => Promise<unknown[]>
+        getChildren?: (parentId: string) => Promise<unknown[]>
+      }
       const lazy = props.loadMode === "lazy";
       if (!lazy && !parent) {
-        const page = await catLogic.getAll({
+        const page = await catLogic.getAll?.({
           pager: { pageNo: 1, pageSize: 1000 },
         });
         return (page?.list ?? []) as T[];
       }
+      if (!parent && typeof catLogic.getRoots === "function") {
+        return (await catLogic.getRoots()) as T[];
+      }
+      if (parent && typeof catLogic.getChildren === "function") {
+        return (await catLogic.getChildren(
+          treeIdOf(parent, props.fields),
+        )) as T[];
+      }
       const parentField = treeParentFieldName(props.fields);
       const parentId = parent ? treeIdOf(parent, props.fields) : "";
-      const page = await catLogic.getAll({
+      const page = await catLogic.getAll?.({
         pager: { pageNo: 1, pageSize: 1000 },
         queryParams: { [parentField]: parentId },
       });
       return (page?.list ?? []) as T[];
-    },
+    }
     
     resolveCategoryTreeAuth<T>(
       context: UiContext,
@@ -145,7 +156,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
       return catModule?.authority && categoryTreeAuthHasAction(catAuth)
         ? catAuth
         : listAuth;
-    },
+    }
     
     treeCategoryMenu<T>(
       context: UiContext,
@@ -225,23 +236,23 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
         );
       }
       return items;
-    },
+    }
     
     async resolveCategoryTreeLogic(
       context: UiContext,
       repository: string,
     ) {
       return resolveCategoryTreeLogicOp(context, repository);
-    },
+    }
     
     
     async refreshCategoryTree<T>(
       _context: UiContext,
       props: UiTreeViewPropsType<T>,
-      logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> },
+      logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> }
     ) {
       await refreshCategoryTreeData(props, logic);
-    },
+    }
     
     async openCategoryTreeDialog<T>(
       context: UiContext,
@@ -278,13 +289,12 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
         this.buildView(ctx, { showBreadcrumb: false }),
         ctx,
         {
-          name: view,
           title: pack.metaUi.displayLabel,
           width: "70vw",
           height: "80vh",
           maxHeight: "90vh",
           showFooter: editing,
-          accept: editing
+          onAccept: editing
             ? async () => {
                 const saved = await ctx.save();
                 return saved !== false;
@@ -300,7 +310,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
       if (accepted || view === UiViewOne.Details) {
         if (accepted) await refreshCategoryTreeData(props, catLogic);
       }
-    },
+    }
     
     async deleteCategoryTreeNode<T>(
       context: UiContext,
@@ -319,11 +329,10 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
         message:
           context.translate?.("confirmation.delete", { it: title }) ??
           `Delete ${title}?`,
-        buttons: ["yes", "no"],
       });
       if (!result) return;
       await deleteCategoryTreeNodeData(context, props, node);
-    },
+    }
     
     async renameCategoryTreeNode<T>(
       context: UiContext,
@@ -332,7 +341,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
       text: string,
     ) {
       await renameCategoryTreeNodeData(context, props, node, text);
-    },
+    }
     
     async moveCategoryTreeNode<T>(
       context: UiContext,
@@ -342,6 +351,7 @@ export function attachTreeBuilder(ctor: { prototype: Host }) {
     ) {
       if (!this.resolveCategoryTreeAuth(context, props, node).allowEdit) return;
       await moveCategoryTreeNodeData(context, props, node, parent);
-    },
-  } as any);
+    }
+  }
+  return TreeBuilder;
 }

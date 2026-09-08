@@ -5,7 +5,6 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { RouterLink } from "vue-router";
 import {
   ModuleActionMode,
   ModuleActionPromptType,
@@ -39,8 +38,9 @@ import {
   type UiSearchField,
   type UiSlots,
   type UiViewContext,
+  paintModuleToolbar,
+  defaultToolbarMoreActions,
 } from "@mmda/vui";
-import Breadcrumb from "primevue/breadcrumb";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -49,15 +49,12 @@ import InputText from "primevue/inputtext";
 import Message from "primevue/message";
 import MultiSelect from "primevue/multiselect";
 import Password from "primevue/password";
-import ProgressSpinner from "primevue/progressspinner";
 import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
-import Toolbar from "primevue/toolbar";
 import { PrimeGroupCard } from "./components/PrimeGroupCard";
 import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
 import { createPrimeOverlay } from "./prime_overlay";
 import { BpmnModeler } from "./components/BpmnModeler";
-import { CodeImage } from "./components/CodeImage";
 import { SigninForm } from "./components/SigninForm";
 import { createPrimeVueFieldFactory } from "./prime_field_factory";
 import { createPrimeVueUiFactory } from "./prime_factory";
@@ -79,28 +76,6 @@ const moduleChain = (module: Module): Module[] => {
   const withoutSystem = chain.filter((item) => item.moduleType !== "SYSTEM");
   return withoutSystem.length ? withoutSystem : chain;
 };
-
-const breadcrumbItem = (item: {
-  label?: string;
-  icon?: string;
-  route?: string;
-  leaf?: boolean;
-}) =>
-  h(
-    item.leaf || !item.route ? "span" : RouterLink,
-    item.leaf || !item.route
-      ? { class: "mmda-breadcrumb__item" }
-      : { to: item.route!, class: "mmda-breadcrumb__link" },
-    () => [
-      item.icon
-        ? h("i", {
-            class: [item.icon, "mmda-breadcrumb__icon"],
-            "aria-hidden": "true",
-          })
-        : null,
-      h("span", item.label),
-    ],
-  );
 
 type UiContext = UiViewContext<any>;
 
@@ -238,9 +213,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return h("div", { class: "mmda-prime-loading", ...props }, [
-      h(ProgressSpinner as any, { strokeWidth: "4" }),
-    ]);
+    return this.factory.loading(props);
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -254,39 +227,34 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
     const { module, label } = props;
     if (!module) {
-      return h(
-        "span",
-        { class: "mmda-prime-breadcrumb" },
-        label || context.title,
-      );
-    }
-
-    const model = moduleChain(module).map((item, index, items) => ({
-      key: item.moduleCode,
-      label: item.moduleLabel ?? (item as any).moduleName,
-      icon: item.moduleIcon,
-      route: item.moduleUrl,
-      leaf: index === items.length - 1 && !label,
-    }));
-
-    if (label) {
-      model.push({
-        key: `${module.moduleCode}-title`,
-        label,
-        icon: undefined,
-        route: undefined,
-        leaf: true,
+      return this.factory.breadcrumb({
+        items: [{ label: label || context.title }],
+        class: "mmda-prime-breadcrumb",
       });
     }
 
-    return h(
-      Breadcrumb,
-      { model, class: "mmda-prime-breadcrumb" },
-      {
-        item: ({ item }: { item: (typeof model)[number] }) =>
-          breadcrumbItem(item),
-      },
-    );
+    const chain = moduleChain(module);
+    const items = chain.map((item, index) => {
+      const leaf = index === chain.length - 1 && !label;
+      return {
+        key: item.moduleCode,
+        label: item.moduleLabel ?? (item as any).moduleName,
+        icon: item.moduleIcon || undefined,
+        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+      };
+    });
+
+    if (label) {
+      items.push({
+        key: `${module.moduleCode}-title`,
+        label,
+      });
+    }
+
+    return this.factory.breadcrumb({
+      items,
+      class: "mmda-prime-breadcrumb",
+    });
   }
 
   buildImportOrExportAction(
@@ -392,7 +360,29 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   }
 
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
-    return this.moreMenuButton(context, items);
+    if (!items.length) return [];
+    return [
+      this.factory.moreMenuButton(
+        {
+          label: context.t("action.more"),
+          tooltip: context.t("action.more"),
+          "aria-label": context.t("action.more"),
+          buttonType: "tonal",
+          colorRole: "secondary",
+        },
+        items.map((item, index) =>
+          item.divider
+            ? { divider: true }
+            : {
+                name: item.name ?? `more-${index}`,
+                label: item.label,
+                icon: item.icon,
+                onAction: item.command ?? item.onAction,
+                items: item.items,
+              },
+        ),
+      ),
+    ];
   }
 
   private assembleMultipleSelectionButtons(
@@ -416,10 +406,12 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     if (actions.length === 1) return [render(actions[0]!)];
 
     return [
-      this.dropdownMenuButton(
+      this.factory.dropDownButton(
         {
           label: context.t("action.batchOperation"),
           class: "mmda-batch-menu-button",
+          buttonType: "tonal",
+          colorRole: "secondary",
         },
         actions.map((action) => ({
           name: action.name,
@@ -708,44 +700,36 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   ) {
     const runtime = context as any;
     const module = moduleOf(context);
-    const hasCenter = !!slots?.center;
-
-    return h(
-      Toolbar,
-      {
-        class: [
-          "mmda-prime-toolbar",
-          hasCenter && "mmda-prime-toolbar--with-center",
-        ],
+    return paintModuleToolbar(this.factory, context, props, slots, {
+      className: "mmda-prime-toolbar",
+      breadcrumb: () => {
+        if (module) {
+          return this.buildModuleBreadcrumb(context, {
+            module,
+            label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
+          });
+        }
+        return h("strong", context.title);
       },
-      {
-        start: () => {
-          if (props.showBreadcrumb === false) return undefined;
-          if (slots?.default) return slots.default();
-          if (module) {
-            return this.buildModuleBreadcrumb(context, {
-              module,
-              label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
-            });
-          }
-          return h("strong", context.title);
-        },
-        center: () =>
-          hasCenter
-            ? h("div", { class: "mmda-prime-toolbar-center" }, slots!.center!())
-            : undefined,
-        end: () =>
-          props.showActions === false
-            ? undefined
-            : this.factory.buttonGroup(
-                () => this.toolbarActionButtons(context),
-                {
-                  class: "mmda-prime-toolbar-actions",
-                  role: `${UI_NAME}-toolbar-action-group`,
-                },
-              ),
+      actionGroup: () =>
+        this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
+          class: "mmda-prime-toolbar-actions",
+          role: `${UI_NAME}-toolbar-action-group`,
+        }),
+      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
+      navActions: () =>
+        module
+          ? moduleChain(module).map((item) => ({
+              name: item.moduleCode,
+              label: item.moduleLabel ?? (item as any).moduleName,
+              icon: item.moduleIcon,
+            }))
+          : [],
+      openSearchPage: () => {
+        if (props.onSearchPage) props.onSearchPage();
+        else void this.buildSearchPage(context);
       },
-    );
+    });
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
@@ -982,14 +966,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           )
         : undefined,
     ]);
-  }
-
-  buildQrcode(value: string, props: PropData = {}) {
-    return h(CodeImage, { value, type: "qr", ...props });
-  }
-
-  buildBarcode(value: string, props: PropData = {}) {
-    return h(CodeImage, { value, type: "barcode", ...props });
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {

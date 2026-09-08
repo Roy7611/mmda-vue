@@ -2,7 +2,16 @@ import { h, type VNode, type VNodeChild, type VNodeArrayChildren } from "vue";
 import type { ChildSlot } from "../../contexts/view";
 import { MmdaPageRegions } from "../../components/PageRegions";
 
-export type PropData = Record<string, any>;
+/** 落到真实 input / 根节点的 HTML 属性。chrome 默认透传，不要改名。 */
+export type HtmlAttributes = Record<string, string>
+
+export type PropData = Record<string, any> & {
+  htmlAttributes?: HtmlAttributes
+}
+
+export function htmlAttributesOf(props?: PropData): HtmlAttributes {
+  return props?.htmlAttributes ?? {}
+}
 export type CustomProps<T> = T & PropData;
 export type UiSlots = {
   [index: string]: any;
@@ -15,10 +24,14 @@ export type UiSlots = {
  */
 export type UiDirection = "vertical" | "horizontal";
 export type UiFieldLayout = UiDirection;
+/** 控件 orientation 属性用这个名；值域与 UiDirection 同一份。不要再造 *Orientation。 */
+export type UiOrientation = UiDirection;
 /**
  * 对齐方式
  */
 export type UiVertAlign = "top" | "middle" | "bottom";
+/** 内容横对齐，对偶 UiVertAlign。不是槽名 start/end，不是 UiHorzJustify。 */
+export type UiHorzAlign = "left" | "center" | "right";
 export type UiHorzJustify =
   | "start"
   | "end"

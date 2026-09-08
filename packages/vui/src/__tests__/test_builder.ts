@@ -21,9 +21,10 @@ import type {
 import type { UiFactory, UiFieldFactory } from "../ui/factory/factory";
 import type { PropData, UiLayout, UiSlots } from "../ui/layout/layout";
 import type { UiListPropsType } from "../ui/factory/list";
-import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/factory";
-import { treeIdOf, treeLabelOf, type UiTreePropsType } from "../ui/factory/tree";
-import type { SearchForRelativeProps, UiSearchField } from "../ui/factory/filter";
+import { bindListDisplayRenderers } from "../ui/factory/list";
+import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
+import { treeIdOf, treeLabelOf, treeModifierClasses, type UiTreePropsType } from "../ui/factory/tree";
+import { paintModuleToolbar, defaultToolbarMoreActions } from "../ui/builder/module_toolbar";
 
 type UiContext = VueUiContext<any>;
 
@@ -101,13 +102,14 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
 
   const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
     const fields = listedFields(metaUi);
+    const detail = props.rowDetail;
     return h("table", { class: "mmda-table" }, [
       h("thead", [h("tr", fields.map((field) => h("th", field.displayLabel)))]),
       h(
         "tbody",
         model.length
-          ? model.map((row: any, index) =>
-              h(
+          ? model.flatMap((row: any, index) => {
+              const dataRow = h(
                 "tr",
                 {
                   key: props.itemKey?.(row) ?? row.id ?? index,
@@ -122,14 +124,25 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
                       : String(row[field.fieldName] ?? ""),
                   ),
                 ),
-              ),
-            )
+              );
+              if (!detail) return [dataRow];
+              return [
+                dataRow,
+                h("tr", { key: `detail-${props.itemKey?.(row) ?? row.id ?? index}` }, [
+                  h(
+                    "td",
+                    { colspan: Math.max(fields.length, 1) },
+                    [detail.detail(row) as any],
+                  ),
+                ]),
+              ];
+            })
           : [h("tr", [h("td", { colspan: Math.max(fields.length, 1) }, "No data")])],
       ),
     ]);
   };
 
-  return {
+  const factory = {
     layout,
     actionIcons: {},
     viewIcons: {},
@@ -152,30 +165,515 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
         },
         value == null ? undefined : String(value),
       ),
+    avatar: ({ src, icon, label, class: className, shape, size, colorRole, ...props }) =>
+      h(
+        "span",
+        {
+          ...props,
+          "data-src": src,
+          "data-icon": icon,
+          "data-color-role": colorRole,
+          "data-shape": shape,
+          "data-size": size,
+          class: ["mmda-avatar", className],
+        },
+        label ?? src ?? icon,
+      ),
+    card: (props, slots) =>
+      h(
+        "article",
+        {
+          class: ["mmda-card", props.class],
+          "data-surface": props.surface,
+          "data-color-role": props.colorRole,
+          "data-image": props.image,
+          "data-header-image": props.headerImage,
+          "data-divider": props.divider,
+        },
+        [
+          slots?.image?.() ??
+            (props.image
+              ? h("img", { src: props.image, alt: props.imageAlt })
+              : null),
+          slots?.header?.() ??
+            (props.title ? h("header", props.title) : null),
+          props.divider ? h("hr", { class: "mmda-divider" }) : null,
+          slots?.default?.(),
+          slots?.footer?.(),
+        ],
+      ),
+    divider: (props = {}) =>
+      h("hr", {
+        class: ["mmda-divider", props.class],
+        "data-orientation": props.orientation,
+      }, props.label),
+    tooltip: (props: any = {}, slots?: any) =>
+      h(
+        "span",
+        {
+          class: [
+            "mmda-tooltip",
+            `mmda-tooltip--${props.position ?? "top"}`,
+            props.disabled ? "mmda-tooltip--disabled" : undefined,
+            props.class,
+          ],
+          "data-content": props.content,
+          "data-opens-on": props.opensOn ?? "auto",
+          title: props.disabled ? undefined : props.content,
+        },
+        slots?.default?.() ?? slots?.content?.(),
+      ),
+    inplaceEditor: (props: any = {}, slots?: any) =>
+      h(
+        "div",
+        {
+          class: [
+            "mmda-inplace-editor",
+            props.active ? "mmda-inplace-editor--open" : undefined,
+            props.disabled ? "mmda-inplace-editor--disabled" : undefined,
+            props.class,
+          ],
+        },
+        props.disabled || !props.active
+          ? slots?.display?.()
+          : slots?.content?.(),
+      ),
+    fileLink: (props: any = {}) =>
+      h(
+        "a",
+        {
+          class: "mmda-file-link",
+          href: props.downloadable === false ? undefined : props.url,
+        },
+        props.fileName ?? props.url,
+      ),
+    fileUploader: (props: any = {}) =>
+      h("div", {
+        class: "mmda-file-uploader",
+      }),
+    filesUploader: (props: any = {}) =>
+      h("div", { class: "mmda-files-uploader", ...props }),
+    imageUploader: (props: any = {}) =>
+      h("div", { class: "mmda-image-uploader", ...props }),
+    imagesUploader: (props: any = {}) =>
+      h("div", { class: "mmda-images-uploader", ...props }),
+    barcode: ({ value, class: className, format, displayText, ...props }) =>
+      h(
+        "span",
+        {
+          ...props,
+          "data-format": format,
+          class: ["mmda-barcode", className],
+        },
+        typeof displayText === "function" ? displayText(value) : (displayText ?? value),
+      ),
+    qrCode: ({ value, class: className, format, displayText, ...props }) =>
+      h(
+        "span",
+        {
+          ...props,
+          "data-format": format,
+          class: ["mmda-qrcode", className],
+        },
+        typeof displayText === "function" ? displayText(value) : (displayText ?? value),
+      ),
+    breadcrumb: ({ items, class: className, separator, ...props }) =>
+      h(
+        "nav",
+        { ...props, class: ["mmda-breadcrumb", className], "data-separator": separator },
+        (items ?? []).map((item: any) =>
+          h("span", { key: item.key ?? item.label, "data-to": item.to }, item.label),
+        ),
+      ),
+    calendar: ({
+      value,
+      selectionMode,
+      class: className,
+      min,
+      max,
+      locale,
+      ...props
+    }) =>
+      h("div", {
+        ...props,
+        class: ["mmda-calendar", selectionMode === "multiple" ? "mmda-calendar--multiple" : undefined, className],
+        "data-mode": selectionMode ?? "single",
+        "data-min": min,
+        "data-max": max,
+        "data-locale": locale,
+        "data-value": Array.isArray(value)
+          ? value.map((d: Date) => d?.toISOString?.() ?? d).join(",")
+          : value instanceof Date
+            ? value.toISOString()
+            : value,
+      }),
+    carousel: ({
+      items,
+      selectedIndex,
+      autoPlay,
+      interval,
+      loop,
+      animation,
+      class: className,
+      ...props
+    }) =>
+      h("div", {
+        ...props,
+        class: ["mmda-carousel", animation ? `mmda-carousel--${animation}` : undefined, className],
+        "data-mode": animation,
+        "data-index": selectedIndex,
+        "data-autoplay": autoPlay,
+        "data-interval": interval,
+        "data-loop": loop,
+        "data-count": (items ?? []).length,
+      }),
+    checkBox: (props: any = {}) =>
+      h(
+        "label",
+        {
+          ...props,
+          class: [
+            "mmda-checkbox",
+            props.indeterminate === true ? "mmda-checkbox--indeterminate" : undefined,
+            props.class,
+          ],
+          "data-checked": props.checked ?? props.modelValue,
+        },
+        props.label,
+      ),
+    switch: (value?: any, props: any = {}) => {
+      const merged =
+        value != null && typeof value === "object"
+          ? { ...value, ...props }
+          : { ...props, checked: value };
+      return h("button", {
+        type: "button",
+        role: "switch",
+        class: [
+          "mmda-switch",
+          (merged.checked ?? merged.modelValue)
+            ? "mmda-switch--checked"
+            : undefined,
+          merged.disabled ? "mmda-switch--disabled" : undefined,
+          merged.class,
+        ],
+        "aria-checked": Boolean(merged.checked ?? merged.modelValue),
+        disabled: merged.disabled,
+        "data-on-label": merged.onLabel,
+        "data-off-label": merged.offLabel,
+      });
+    },
+    checkBoxList: (props: any = {}) =>
+      h("div", {
+        class: ["mmda-checkbox-list", props.class],
+        "data-value": String(props.value ?? props.modelValue ?? ""),
+      }),
+    bitCheckBoxList: (props: any = {}) =>
+      factory.checkBoxList({ ...props, bindMode: "or_bits" }),
+    colorPicker: (props: any = {}) =>
+      h("span", {
+        ...props,
+        class: [
+          "mmda-colorpicker",
+          props.mode && props.mode !== "picker"
+            ? `mmda-colorpicker--${props.mode}`
+            : undefined,
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue,
+        "data-mode": props.mode,
+        "data-mode-switcher": props.showModeSwitcher,
+      }),
+    maskedTextBox: (props: any = {}) =>
+      h("input", {
+        class: ["mmda-maskedtextbox", props.class],
+        value: props.value ?? props.modelValue,
+        placeholder: props.placeholder,
+        disabled: props.disabled,
+        "data-mask": props.mask,
+      }),
+    oneTimePasswordInput: (props: any = {}) =>
+      h("input", {
+        class: ["mmda-otpinput", props.class],
+        value: props.value ?? props.modelValue,
+        placeholder: props.placeholder,
+        disabled: props.disabled,
+        "data-length": props.length ?? 4,
+        "data-type": props.type ?? "number",
+      }),
+    queryBuilder: (props: any = {}) =>
+      h("div", {
+        class: ["mmda-querybuilder", props.class],
+        "data-disabled": props.disabled,
+      }),
+    slider: (props: any = {}) =>
+      h("input", {
+        class: ["mmda-slider", props.class],
+        type: "range",
+        min: props.min,
+        max: props.max,
+        step: props.step,
+        disabled: props.disabled,
+        "data-type": props.type ?? "Default",
+      }),
+    rating: (props: any = {}) =>
+      h("div", {
+        class: ["mmda-rating", props.class],
+        "data-items-count": props.itemsCount ?? 5,
+        "data-readonly": props.readOnly,
+        "data-value": props.value ?? props.modelValue,
+      }),
+    numberInput: (props: any = {}) =>
+      h("input", {
+        class: ["mmda-numberinput", props.class],
+        type: "number",
+        value: props.value ?? props.modelValue,
+        min: props.min,
+        max: props.max,
+        step: props.step,
+        disabled: props.disabled,
+        "data-format": props.format,
+        "data-kind": props.kind,
+      }),
+    progressBar: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-progressbar",
+          props.kind === "circular" ? "mmda-progressbar--circular" : undefined,
+          props.size ? `mmda-progressbar--${props.size}` : undefined,
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue ?? 0,
+        "data-kind": props.kind ?? "linear",
+      }),
+    signaturePad: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-signature-pad",
+          props.readOnly ? "mmda-signature-pad--readonly" : undefined,
+          props.disabled ? "mmda-signature-pad--disabled" : undefined,
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue ?? "",
+      }),
+    stepper: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-stepper",
+          props.orientation === "vertical"
+            ? "mmda-stepper--vertical"
+            : "mmda-stepper--horizontal",
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue ?? 0,
+      }),
+    timeline: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-timeline",
+          props.orientation === "horizontal"
+            ? "mmda-timeline--horizontal"
+            : "mmda-timeline--vertical",
+          props.class,
+        ],
+        "data-items": props.items?.length ?? 0,
+      }),
+    skeleton: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-skeleton",
+          `mmda-skeleton--${props.shape ?? "text"}`,
+          `mmda-skeleton--${props.shimmer ?? "wave"}`,
+          props.class,
+        ],
+        "data-shape": props.shape ?? "text",
+        "data-shimmer": props.shimmer ?? "wave",
+        style: {
+          width: props.width,
+          height: props.height,
+        },
+      }),
+    speechToText: (props: any = {}) =>
+      h("button", {
+        class: [
+          "mmda-speech-to-text",
+          props.listening ? "mmda-speech-to-text--listening" : undefined,
+          props.disabled ? "mmda-speech-to-text--disabled" : undefined,
+          props.class,
+        ],
+        type: "button",
+        disabled: props.disabled,
+        "data-lang": props.lang,
+        "data-interim": props.interim !== false,
+        "data-value": props.value ?? props.modelValue,
+      }),
+    datePicker: (props: any = {}) =>
+      h("span", {
+        ...props,
+        class: [
+          "mmda-datepicker",
+          props.precision === "month" ? "mmda-datepicker--month" : undefined,
+          props.class,
+        ],
+        "data-precision": props.precision ?? "day",
+        "data-format": props.format,
+        "data-allow-input": props.allowInput,
+      }),
+    monthPicker: (props: any = {}) =>
+      factory.datePicker({
+        ...props,
+        precision: "month",
+        format: props.format ?? "yyyy-MM",
+      }),
+    dateTimePicker: (props: any = {}) =>
+      h("span", {
+        ...props,
+        class: ["mmda-datetimepicker", props.class],
+        "data-format": props.format,
+        "data-step": props.step,
+      }),
+    timePicker: (props: any = {}) =>
+      h("span", {
+        ...props,
+        class: ["mmda-timepicker", props.class],
+        "data-format": props.format,
+        "data-step": props.step,
+      }),
+    dateRangePicker: (props: any = {}) =>
+      h("span", {
+        ...props,
+        class: ["mmda-daterangepicker", props.class],
+        "data-separator": props.separator,
+      }),
+    chips: (props: any = {}) =>
+      h(
+        "div",
+        {
+          ...props,
+          class: [
+            "mmda-chips",
+            props.kind && props.kind !== "action" ? `mmda-chips--${props.kind}` : undefined,
+            props.class,
+          ],
+          "data-kind": props.kind,
+        },
+        (props.items ?? []).map((item: any) =>
+          h("span", { class: "mmda-chip" }, typeof item === "string" ? item : item.label),
+        ),
+      ),
+    contextMenu: (props: any = {}) =>
+      h("div", {
+        ...props,
+        class: ["mmda-context-menu", props.class],
+        "data-target": props.target,
+        "data-count": (props.items ?? []).length,
+      }),
     title: (text, props) => h("h1", props, text),
     subtitle: (text, props) => h("h2", props, text),
     link: (props, slots) =>
       h("a", props, slots?.default?.() ?? props.text ?? String(props.href ?? "")),
-    input: (value, props = {}) =>
+    textInput: (props: any = {}) =>
       h("input", {
-        class: "mmda-factory-input",
-        value: props.modelValue ?? value,
+        class: ["mmda-textinput", props.class],
+        value: props.value ?? props.modelValue ?? "",
+        "data-value": props.value ?? props.modelValue ?? "",
+        placeholder: props.placeholder,
+        type: (props.type ?? "Text").toString().toLowerCase(),
+        onInput: (event: Event) => {
+          const next = (event.target as HTMLInputElement).value;
+          props.onChange?.(next);
+          props["onUpdate:modelValue"]?.(next);
+          props.onUpdate?.(next);
+        },
+      }),
+    textArea: (props: any = {}) =>
+      h("textarea", {
+        class: ["mmda-textarea", props.class],
+        value: props.value ?? props.modelValue ?? "",
+        "data-value": props.value ?? props.modelValue ?? "",
+        rows: props.rows ?? 3,
+        placeholder: props.placeholder,
+      }),
+    iconField: (value, props) => h("span", props, value),
+    dropDownList: (props: any = {}) =>
+      h("div", {
         ...props,
+        class: ["mmda-dropdown-list", props.class],
+        "data-value": props.value ?? props.modelValue,
+      }),
+    radioButtonGroup: (props: any = {}) =>
+      h("div", {
+        class: [
+          "mmda-radiobuttongroup",
+          props.orientation === "vertical"
+            ? "mmda-radiobuttongroup--vertical"
+            : undefined,
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue,
+        "data-name": props.name,
+      }),
+    multiSelect: (props: any = {}) =>
+      h("div", {
+        class: ["mmda-multi-select", props.class],
+        "data-bind": props.bindMode ?? "item_array",
+        "data-value": String(props.value ?? props.modelValue ?? ""),
+      }),
+    multiItemSelect: (props: any = {}) =>
+      factory.multiSelect({ ...props, bindMode: "item_array" }),
+    multiValueSelect: (props: any = {}) =>
+      factory.multiSelect({ ...props, bindMode: "value_array" }),
+    multiTextSelect: (props: any = {}) =>
+      factory.multiSelect({ ...props, bindMode: "join_text" }),
+    multiBitSelect: (props: any = {}) =>
+      factory.multiSelect({ ...props, bindMode: "or_bits" }),
+    treeSelect: (props: any = {}) =>
+      h("div", {
+        ...props,
+        class: ["mmda-tree-select", props.class],
+        "data-value": props.value ?? props.modelValue,
+        "data-mode": props.selectionMode,
+      }),
+    dropDownTree: (props: any = {}) => factory.treeSelect(props),
+    comboBox: (props: any = {}) =>
+      h("div", {
+        ...props,
+        class: [
+          "mmda-combobox",
+          props.allowCustom !== false ? "mmda-combobox--custom" : undefined,
+          props.class,
+        ],
+        "data-value": props.value ?? props.modelValue,
+        "data-custom": props.allowCustom,
+      }),
+    autoComplete: (value, props = {}) =>
+      h("input", {
+        class: ["mmda-autocomplete", props.class],
+        value: props.modelValue ?? value,
+        placeholder: props.placeholder,
+        ...props.htmlAttributes,
         onInput: (event: Event) => {
           const next = (event.target as HTMLInputElement).value;
           props["onUpdate:modelValue"]?.(next);
           props.onUpdate?.(next);
         },
       }),
-    iconField: (value, props) => h("span", props, value),
-    dropdown: () => stub("dropdown"),
+    tagAutoComplete: (value, props = {}) =>
+      h("div", {
+        class: ["mmda-tag-autocomplete", props.class],
+        "data-value": props.modelValue ?? value,
+      }),
     button,
     buttonGroup: (buttons, props) => h("div", props, buttons()),
     splitButton: (props) => button(props),
-    menuButton: (buttonProps) => button(buttonProps),
+    dropDownButton: (buttonProps) => button(buttonProps),
+    moreMenuButton: (buttonProps) => button(buttonProps),
     floatingActionButton: (props) => button(props),
-    selectButton: (value, props) =>
-      button({ ...props, label: String(value ?? props.label ?? "") }),
+    selectButtonGroup: (value, props = {}) =>
+      h("div", {
+        class: "mmda-select-button-group",
+        "data-value": String(props.modelValue ?? value ?? ""),
+      }),
     actionButton: (action, _t, _resolve, props) =>
       button({ ...action, ...props, onClick: action.onAction }),
     paginator: () => stub("paginator"),
@@ -206,17 +704,77 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
       }, [table(model, metaUi, props)]),
     pagableTable: (loader, metadata, props) =>
       table(loader.model.list as any[], metadata.metaUi, props as any),
-    loading: (props) => h("div", { class: "mmda-loading", ...props }, "Loading…"),
+    loading: (props: any = {}) =>
+      h(
+        "div",
+        {
+          class: ["mmda-loading", props.class],
+          "data-size": props.size ?? "medium",
+          "data-label": props.label,
+        },
+        props.label ?? "Loading…",
+      ),
     scrollbar: (content, props) =>
       h("div", { style: { overflow: "auto" }, ...props }, content as any),
     menu: () => stub("menu"),
     panelMenu: () => stub("panelMenu"),
     menubar: () => stub("menubar"),
-    dialog: () => stub("dialog"),
-    drawer: () => stub("drawer"),
+    sidebar: (props: any = {}, slots?: any) =>
+      h(
+        "aside",
+        {
+          class: ["mmda-sidebar", props.class],
+          "data-open": props.isOpen,
+          "data-type": props.type ?? "Auto",
+        },
+        slots?.default?.(),
+      ),
+    drawer: (props: any = {}, slots?: any) =>
+      h(
+        "aside",
+        {
+          class: ["mmda-sidebar", "mmda-sidebar--drawer", props.class],
+          "data-open": props.isOpen ?? props.visible,
+        },
+        slots?.default?.(),
+      ),
+    tabs: (props: any = {}) =>
+      h("div", {
+        class: ["mmda-tabs", props.class],
+        "data-value": props.value ?? props.modelValue ?? 0,
+        "data-header-placement": props.headerPlacement ?? "Top",
+        "data-scrollable": props.scrollable !== false,
+      }),
+    toolbar: (props: any = {}, slots?: any) =>
+      h(
+        "div",
+        {
+          class: ["mmda-test-chrome-toolbar", "mmda-toolbar", props.class],
+          "data-layout": props.layout ?? "full",
+          "data-align-start": props.align?.start ?? "left",
+          "data-align-center": props.align?.center ?? "center",
+          "data-align-end": props.align?.end ?? "right",
+        },
+        [
+          h("div", { class: "mmda-toolbar__start" }, slots?.start?.()),
+          slots?.center
+            ? h("div", { class: "mmda-toolbar__center" }, slots.center())
+            : null,
+          h("div", { class: "mmda-toolbar__end" }, slots?.end?.()),
+        ],
+      ),
     splitter: (panes, props) => renderTestSplitter(panes, props),
     searchForRelative: () => stub("searchForRelative"),
+    formField: (props: any = {}, slots?: UiSlots) =>
+      h("div", { class: ["mmda-form-field", props.class], style: props.style }, [
+        props.label
+          ? h("label", { class: "mmda-form-field__label" }, String(props.label))
+          : null,
+        slots?.default?.(),
+      ]),
   } as UiFactory;
+  bindListDisplayRenderers(factory);
+  return factory;
 }
 
 function createTestFieldFactory(): UiFieldFactory {
@@ -300,7 +858,7 @@ export class TestUiBuilder extends VueUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return h("div", { class: "mmda-loading", ...props }, "Loading…");
+    return this.factory.loading(props);
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -308,8 +866,31 @@ export class TestUiBuilder extends VueUiBuilder {
   }
 
   buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
-    const text = [context.title, props.label].filter(Boolean).join(" / ");
-    return h("span", { class: "mmda-breadcrumb" }, text || context.title);
+    const { module, label } = props;
+    if (!module) {
+      return this.factory.breadcrumb({
+        items: [{ label: label || context.title }],
+        class: "mmda-test-breadcrumb",
+      });
+    }
+    const chain: any[] = [];
+    for (let cur: any = module; cur; cur = cur.parent) chain.unshift(cur);
+    const items = chain.map((item, index) => {
+      const leaf = index === chain.length - 1 && !label;
+      return {
+        key: item.moduleCode,
+        label: item.moduleLabel ?? item.moduleName,
+        icon: item.moduleIcon || undefined,
+        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+      };
+    });
+    if (label) {
+      items.push({ key: `${module.moduleCode}-title`, label });
+    }
+    return this.factory.breadcrumb({
+      items,
+      class: "mmda-test-breadcrumb",
+    });
   }
 
   buildModuleToolbar(
@@ -317,15 +898,24 @@ export class TestUiBuilder extends VueUiBuilder {
     props: ModuleToolbarProps,
     slots?: UiSlots,
   ) {
-    return h("div", { class: "mmda-toolbar" }, [
-      props.showBreadcrumb === false
-        ? null
-        : this.buildModuleBreadcrumb(context, {
-            module: (context as any).module,
-            label: props.breadcrumbLeaf || "",
-          }),
-      slots?.center?.(),
-    ]);
+    return paintModuleToolbar(this.factory, context, props, slots, {
+      className: "mmda-toolbar",
+      breadcrumb: () =>
+        this.buildModuleBreadcrumb(context, {
+          module: (context as any).module,
+          label: props.breadcrumbLeaf || "",
+        }),
+      actionGroup: () =>
+        this.factory.buttonGroup(() => [], {
+          class: "mmda-test-toolbar-actions",
+        }),
+      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
+      navActions: () => [],
+      openSearchPage: () => {
+        if (props.onSearchPage) props.onSearchPage();
+        else void this.buildSearchPage(context);
+      },
+    });
   }
 
   buildSearchField(_field: UiSearchField) {
@@ -483,7 +1073,7 @@ const TestTree = defineComponent({
         h(
           "ul",
           {
-            class: ["mmda-tree", props.class],
+            class: treeModifierClasses(props),
             "data-has-context-menu": props.contextMenu ? "1" : undefined,
             "data-allow-drag-drop": props.allowDragDrop ? "1" : undefined,
           },

@@ -42,7 +42,7 @@ const search: EntitySearchParam = {
 }
 ```
 
-`ApiClient.searchAll()` 是统一入口：空 `filterModel` → GET `getAll`；否则 POST `.../searchAll`（body 为 FilterModel 映射）。新代码不要往 `queryParams` 写字段条件。
+`ApiClient.searchAll()` 是统一入口：空 `filterModel` → GET `getAll`；否则 POST `.../searchAll`（body 为 FilterModel 映射）。新代码不要往 `queryParams` 写字段条件。Query Builder 用 `advancedFilterModel`（本轮不进 POST）。
 
 - 设计：[entity_search.md](./models/entity_search.md)
 - 日期过滤设计 / 用法：[date_filter.md](./models/date_filter.md) · [date_filter_usage.md](./logic/date_filter_usage.md)

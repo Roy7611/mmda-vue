@@ -99,13 +99,14 @@ export class MaterialCatLogic extends UiLogic<MaterialCat> {
             );
           })
           .setCustomEditor((fld, ctx: UiContext<MaterialCat>, props) => {
-            return ctx.uiBuilder.factory.select({
-              options: this.materialXOptions(ctx),
-              optionLabel: "text",
-              optionValue: "value",
-              modelValue: ctx.model.materialX,
-              onUpdate: (value: any) => {
-                ctx.model.materialX = value;
+            return ctx.uiBuilder.factory.dropDownList({
+              options: this.materialXOptions(ctx).map((x) => ({
+                value: x.value,
+                label: x.text,
+              })),
+              value: ctx.model.materialX,
+              onChange: (value) => {
+                ctx.model.materialX = value as any;
               },
             });
           }),

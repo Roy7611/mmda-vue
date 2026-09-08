@@ -201,7 +201,7 @@ describe('VueUiContext', () => {
 
   it('批量删除动作在 index 确认后提交，不依赖 selectMany', async () => {
     const toast = vi.fn()
-    const confirm = vi.fn(async () => 'yes')
+    const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn(async () => true)
     const { UiActionFactory } = await import('../ui/builder/builder')
     const factory = new UiActionFactory(
@@ -229,7 +229,7 @@ describe('VueUiContext', () => {
 
   it('批量删除动作在全不可删时只提示不提交', async () => {
     const toast = vi.fn()
-    const confirm = vi.fn(async () => 'yes')
+    const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn()
     const { UiActionFactory } = await import('../ui/builder/builder')
     const factory = new UiActionFactory(
@@ -248,7 +248,7 @@ describe('VueUiContext', () => {
     await factory.deleteAll(ctx as any).onAction?.()
     expect(toast).toHaveBeenCalledWith(
       ctx,
-      expect.objectContaining({ detail: 'invalid.noDeletable' }),
+      expect.objectContaining({ message: 'invalid.noDeletable' }),
     )
     expect(confirm).not.toHaveBeenCalled()
     expect(deleteAll).not.toHaveBeenCalled()

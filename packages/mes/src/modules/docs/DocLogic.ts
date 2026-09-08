@@ -82,7 +82,7 @@ const beforeshare = async (context: UiContext<Doc>, model: Doc, action: EntityAc
  * @returns
  */
 const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $toast, $t } = context.globalProps;
+	const { $t} = context.globalProps;
 	return context
 		.select<User>({
 			service: 'base',
@@ -103,7 +103,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
 					ownerDeptID: selection.deptID,
 				};
 				action.param = submitBody;
-				$toast.add({ severity: 'success', summary: $t('dialog.title.prompt'), detail: $t('success.operationSuccessful'), group: 'br', life: 3000 });
+				context.uiBuilder.toast(context, { severity: 'success', title: $t('dialog.title.prompt'), message: $t('success.operationSuccessful'), life: 3000 });
 				return true;
 			}
 		});
@@ -116,7 +116,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
  * @returns
  */
 const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $toast, $t } = context.globalProps;
+	const { $t} = context.globalProps;
 	// 列表页可能未加载 shares，需补拉文档详情
 	let shares = model.shares;
 	if (!shares?.length) {
@@ -129,11 +129,10 @@ const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: Entity
 		.map(share => share.shareeID)
 		.filter(Boolean);
 	if (!shareeIDs.length) {
-		$toast.add({
+		context.uiBuilder.toast(context, {
 			severity: 'info',
-			summary: $t('dialog.title.prompt'),
-			detail: $t('doc.noShareRecords'),
-			group: 'br',
+			title: $t('dialog.title.prompt'),
+			message: $t('doc.noShareRecords'),
 			life: 3000,
 		});
 		return false;
@@ -209,9 +208,8 @@ export class DocLogic extends UiLogic<Doc> {
 			} catch (error: any) {
 				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					summary: ctx.t('dialog.title.error'),
-					detail: error?.message,
-					group: 'br',
+					title: ctx.t('dialog.title.error'),
+					message: error?.message,
 					life: 3000,
 				});
 				throw error;
@@ -262,9 +260,8 @@ export class DocLogic extends UiLogic<Doc> {
 							} catch (error: any) {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
-									summary: ctx.t('dialog.title.error'),
-									detail: error.message,
-									group: 'br',
+									title: ctx.t('dialog.title.error'),
+									message: error.message,
 									life: 3000
 								})
 							}

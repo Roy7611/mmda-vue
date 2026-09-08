@@ -37,7 +37,7 @@ export const SfTree = defineComponent({
       default: undefined,
     },
     showIcon: { type: Boolean, default: false },
-    class: { type: String, default: '' },
+    class: { type: [String, Array, Object], default: undefined },
     onNodeSelect: {
       type: Function as PropType<UiTreeEmits['onNodeSelect']>,
       default: undefined,
@@ -214,7 +214,7 @@ export const SfTree = defineComponent({
       h(
         'div',
         {
-          class: ['mmda-sf-tree-host', props.class].filter(Boolean).join(' '),
+          class: ['mmda-sf-tree-host', props.class],
           onContextmenuCapture: openContextMenu,
           onMousemove: (event: MouseEvent) => {
             const node = nodeFromEvent(event)
@@ -237,7 +237,10 @@ export const SfTree = defineComponent({
         [
           h(TreeViewComponent as any, {
             ref: treeRef,
-            cssClass: ['mmda-sf-tree', props.class].filter(Boolean).join(' '),
+            cssClass: ['mmda-sf-tree', props.class]
+              .flat(8)
+              .filter(Boolean)
+              .join(' '),
             fields: boundFields.value,
             showCheckBox: (props.selectionMode ?? 'single') === 'checkbox',
             selectedNodes: selectedProp.value,

@@ -1,26 +1,61 @@
 import { h } from "vue";
 import type { PropData, SyncfusionUiFactory, UiSlots } from "@mmda/vui";
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from "@mmda/vui";
-import { SwitchComponent } from "@syncfusion/ej2-vue-buttons";
-import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
-import { DropDownListComponent } from "@syncfusion/ej2-vue-dropdowns";
-import {
-  NumericTextBoxComponent,
-  TextAreaComponent,
-  TextBoxComponent,
-} from "@syncfusion/ej2-vue-inputs";
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, switchArgs } from "@mmda/vui";
 import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid-inject";
 import { createTableRenderer } from "./table";
-import { attachButtonRenderers, createButton } from "./buttons";
+import { buttonRenderers, createButton } from "./buttons";
 import { createBadge } from "./badge";
-import { attachOverlayRenderers } from "./overlays";
+import { createAvatar } from "./avatar";
+import { createBarcode } from "./barcode";
+import { createQrCode } from "./qrcode";
+import { createBreadcrumb } from "./breadcrumb";
+import { createCalendar } from "./calendar";
+import { createCarousel } from "./carousel";
+import { createCheckBox } from "./checkbox";
+import { createSwitch } from "./switch";
+import { createCheckBoxList, createBitCheckBoxList } from "./check_box_list";
+import { createChips } from "./chips";
+import { createContextMenu } from "./context_menu";
+import { createCard } from "./card";
+import { createDivider } from "./divider";
+import { createTooltip } from "./tooltip";
+import { createInplaceEditor } from "./inplace_editor";
+import { createColorPicker } from "./color_picker";
+import { createMaskedTextBox } from "./maskedTextBox";
+import { createOneTimePasswordInput } from "./oneTimePasswordInput";
+import { createQueryBuilder } from "./query_builder";
+import { createSlider } from "./slider";
+import { createRating } from "./rating";
+import { createTabs } from "./tabs";
+import { createToolbar } from "./toolbar";
+import { createNumberInput } from "./number_input";
+import { createTextArea } from "./text_area";
+import { createTextInput } from "./text_input";
+import { createProgressBar } from "./progress_bar";
+import { createSignaturePad } from "./signature_pad";
+import { createStepper } from "./stepper";
+import { createTimeline } from "./timeline";
+import { createSkeleton } from "./skeleton";
+import { createLoading } from "./loading";
+import { createSpeechToText } from "./speech_to_text";
+import { createDatePicker } from "./date_picker";
+import { createDateTimePicker } from "./date_time_picker";
+import { createTimePicker } from "./time_picker";
+import { createDateRangePicker } from "./date_range_picker";
+import { createDropDownList } from "./drop_down_list";
+import { createRadioButtonGroup } from "./radio_button_group";
+import { createMultiSelect, createMultiItemSelect, createMultiValueSelect, createMultiTextSelect, createMultiBitSelect } from "./multi_select";
+import { createTreeSelect } from "./tree_select";
+import { createComboBox } from "./combo_box";
+import { createAutoComplete } from "./autocomplete";
+import { createTagAutoComplete } from "./tag_auto_complete";
+import { overlayRenderers } from "./overlays";
 import { createSplitterRenderer } from "./splitter";
-import { attachChartRenderers } from "./charts";
-import { attachMediaRenderers } from "./media";
-import { attachNavigationRenderers } from "./navigation";
-import { attachTreeGridRenderer } from "./tree-grid";
-import { attachMiscellaneousRenderers } from "./miscellaneous";
+import { mediaRenderers } from "./media";
+import { navigationRenderers } from "./navigation";
+import { treeGridRenderers } from "./tree-grid";
+import { miscellaneousRenderers } from "./miscellaneous";
 
 export { autoFitSyncfusionListGrid } from "./grid";
 export { splitterEventIndex } from "./splitter";
@@ -37,8 +72,6 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   const factory: any = {
     layout: syncfusionLayout,
     nativeInplaceEdit: true,
-    integratedTablePaging: true,
-    defaultFilterDisplay: "menu",
     actionIcons: {
       details: "e-icons e-eye",
       create: "e-icons e-plus",
@@ -92,6 +125,68 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     icon: (name: string, props: any) =>
       createIconVNode(factory.resolveIcon(name), props),
     badge: (props: any) => createBadge(props),
+    avatar: (props: any) =>
+      createAvatar(props, (name: string) => factory.resolveIcon(name)),
+    barcode: (props: any) => createBarcode(props),
+    qrCode: (props: any) => createQrCode(props),
+    breadcrumb: (props: any) =>
+      createBreadcrumb(props, (name: string) => factory.resolveIcon(name)),
+    calendar: (props: any) => createCalendar(props),
+    carousel: (props: any) => createCarousel(props),
+    checkBox: (props: any) => createCheckBox(props),
+    switch: (value?: any, props?: any) =>
+      createSwitch(switchArgs(value, props)),
+    checkBoxList: (props: any) => createCheckBoxList(props),
+    bitCheckBoxList: (props: any) => createBitCheckBoxList(props),
+    chips: (props: any) =>
+      createChips(props, (name: string) => factory.resolveIcon(name)),
+    contextMenu: (props: any) =>
+      createContextMenu(props, (name: string) => factory.resolveIcon(name)),
+    card: (props: any, slots?: any) => createCard(props, slots),
+    divider: (props: any = {}) => createDivider(props),
+    tooltip: (props: any = {}, slots?: any) => createTooltip(props, slots),
+    inplaceEditor: (props: any = {}, slots?: any) =>
+      createInplaceEditor(props, slots),
+    colorPicker: (props: any) => createColorPicker(props),
+    maskedTextBox: (props: any) => createMaskedTextBox(props),
+    oneTimePasswordInput: (props: any) => createOneTimePasswordInput(props),
+    queryBuilder: (props: any) => createQueryBuilder(props),
+    slider: (props: any) => createSlider(props),
+    rating: (props: any) => createRating(props),
+    tabs: (props: any) => createTabs(props),
+    toolbar: (props: any, slots?: any) => createToolbar(props, slots),
+    numberInput: (props: any) => createNumberInput(props),
+    textInput: (props: any) => createTextInput(props),
+    textArea: (props: any) => createTextArea(props),
+    progressBar: (props: any) => createProgressBar(props),
+    signaturePad: (props: any) => createSignaturePad(props),
+    stepper: (props: any) =>
+      createStepper(props, (name: string) => factory.resolveIcon(name)),
+    timeline: (props: any) =>
+      createTimeline(props, (name: string) => factory.resolveIcon(name)),
+    skeleton: (props: any = {}) => createSkeleton(props),
+    loading: (props: any = {}) => createLoading(props),
+    speechToText: (props: any = {}) => createSpeechToText(props),
+    datePicker: (props: any) => createDatePicker(props),
+    monthPicker: (props: any) =>
+      createDatePicker({
+        ...props,
+        precision: "month",
+        format: props.format ?? "yyyy-MM",
+      }),
+    dateTimePicker: (props: any) => createDateTimePicker(props),
+    timePicker: (props: any) => createTimePicker(props),
+    dateRangePicker: (props: any) => createDateRangePicker(props),
+    dropDownList: (props: any) => createDropDownList(props),
+    radioButtonGroup: (props: any) => createRadioButtonGroup(props),
+    multiSelect: (props: any) => createMultiSelect(props),
+    multiItemSelect: (props: any) => createMultiItemSelect(props),
+    multiValueSelect: (props: any) => createMultiValueSelect(props),
+    multiTextSelect: (props: any) => createMultiTextSelect(props),
+    multiBitSelect: (props: any) => createMultiBitSelect(props),
+    treeSelect: createTreeSelect,
+    dropDownTree: createTreeSelect,
+    comboBox: (props: any) => createComboBox(props),
     title: (text: any, props: any) => h("h2", props, text),
     subtitle: (text: any, props: any) => h("h3", props, text),
     link: (props: any, slots: any) =>
@@ -100,177 +195,63 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         { ...props, class: ["e-link", props.class] },
         slots?.default?.() ?? props.text,
       ),
-    input: (value: any, props: PropData = {}) =>
-      h(TextBoxComponent as any, {
-        value: props.modelValue ?? value,
-        input: (args: any) =>
-          (props["onUpdate:modelValue"] ?? props.onUpdate)?.(args.value),
-        change: (args: any) =>
-          (props["onUpdate:modelValue"] ?? props.onUpdate)?.(args.value),
-        ...props,
-      }),
     iconField: (value: any, props: PropData = {}) =>
       h("span", { class: "e-input-group" }, [
         props.icon && h("span", { class: factory.resolveIcon(props.icon) }),
-        factory.input(value, props),
+        createTextInput({
+          ...props,
+          value: props.modelValue ?? value,
+        }),
       ]),
-    dropdown: (value: any, props: PropData = {}) =>
-      h(DropDownListComponent as any, {
-        value: props.modelValue ?? value,
-        dataSource: props.options ?? props.dataSource,
-        change: (args: any) =>
-          (props["onUpdate:modelValue"] ?? props.onUpdate)?.(args.value),
-        ...props,
-      }),
-    formItem: (props: PropData = {}, slots?: UiSlots) =>
+    autoComplete: (value: string, props: PropData = {}) =>
+      createAutoComplete(value, props),
+    tagAutoComplete: (value: string, props: PropData = {}) =>
+      createTagAutoComplete(value, props),
+    formField: (props: PropData = {}, slots?: UiSlots) =>
       h(
         "div",
-        { class: ["mmda-sf-form-item", props.class], style: props.style },
+        { class: ["mmda-form-field", "mmda-sf-form-field", props.class], style: props.style },
         [
           props.label
             ? h(
                 "label",
-                { class: "mmda-sf-form-item__label" },
+                { class: "mmda-form-field__label" },
                 String(props.label),
               )
             : null,
           slots?.default?.() ??
-            factory.input(props.modelValue, {
+            createTextInput({
               ...props,
-              onUpdate: props.onUpdate ?? props["onUpdate:modelValue"],
+              value: props.modelValue,
+              onChange: props.onChange ?? props.onUpdate ?? props["onUpdate:modelValue"],
             }),
         ],
       ),
-    column: (props: PropData = {}, slots?: UiSlots) => ({
-      ...props,
-      header: props.header,
-      field: props.field,
-      body: slots?.body ?? props.body,
-    }),
-    primeVueTable: (data: any[] = [], columns: any[] = [], props: PropData = {}) =>
-      factory.dataTable(data, columns, props),
-    dataTable: (data: any[] = [], columns: any[] = [], props: PropData = {}) =>
-      h(
-        "div",
-        {
-          class: ["mmda-sf-data-table", "e-grid", props.class],
-          style: props.style,
-        },
-        [
-          h("table", { class: "e-table" }, [
-            h(
-              "thead",
-              h(
-                "tr",
-                columns.map((col, i) =>
-                  h(
-                    "th",
-                    { key: col.field ?? i, style: col.style },
-                    typeof col.header === "function"
-                      ? col.header()
-                      : (col.header ?? col.field),
-                  ),
-                ),
-              ),
-            ),
-            h(
-              "tbody",
-              (data ?? []).map((row, index) =>
-                h(
-                  "tr",
-                  {
-                    key: row?.id ?? index,
-                    onDblclick: () => props.onItemDoubleClick?.(row),
-                  },
-                  columns.map((col, i) =>
-                    h(
-                      "td",
-                      { key: col.field ?? i, style: col.style },
-                      col.body
-                        ? col.body({ data: row, index })
-                        : row?.[col.field],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ]),
-        ],
-      ),
-    datePicker: (props: PropData = {}) =>
-      h(DatePickerComponent as any, {
-        value: props.modelValue ?? props.value,
-        change: (args: any) =>
-          (
-            props.onUpdatePicker ??
-            props.onUpdate ??
-            props["onUpdate:modelValue"]
-          )?.(args.value),
-        ...props,
-      }),
-    numberInput: (props: PropData = {}) =>
-      h(NumericTextBoxComponent as any, {
-        value: props.modelValue ?? props.value,
-        change: (args: any) =>
-          (props.onUpdate ?? props["onUpdate:modelValue"])?.(args.value),
-        ...props,
-      }),
-    select: (props: PropData = {}) =>
-      factory.dropdown(props.modelValue, {
-        ...props,
-        fields: props.optionLabel
-          ? { text: props.optionLabel, value: props.dataKey ?? "value" }
-          : props.fields,
-      }),
-    toggleSwitch: (value: any, props: PropData = {}) =>
-      h(SwitchComponent as any, {
-        checked: props.modelValue ?? value,
-        change: (args: any) =>
-          (props.onUpdate ?? props["onUpdate:modelValue"])?.(args.checked),
-        ...props,
-      }),
-    textarea: (value: any, props: PropData = {}) =>
-      h(TextAreaComponent as any, {
-        value: props.modelValue ?? value,
-        input: (args: any) =>
-          (props.onUpdate ?? props["onUpdate:modelValue"])?.(args.value),
-        ...props,
-      }),
-    dataViewBox: (props: PropData = {}, slots?: UiSlots) =>
-      h(
-        "div",
-        {
-          class: ["mmda-sf-data-view", props.class],
-          style: props.listStyle ?? props.style,
-        },
-        (props.value ?? []).map((item: any, index: number) =>
-          h(
-            "div",
-            { key: item?.id ?? index, class: "mmda-sf-data-view__item" },
-            slots?.item?.(item, index) ?? String(item),
-          ),
-        ),
-      ),
+    ...navigationRenderers,
+    ...treeGridRenderers,
+    ...mediaRenderers,
+    ...miscellaneousRenderers,
   };
 
-  attachButtonRenderers(factory, button);
-  attachNavigationRenderers(factory);
-  attachTreeGridRenderer(factory);
-  attachOverlayRenderers(factory);
-  attachChartRenderers(factory);
-  attachMediaRenderers(factory);
-  attachMiscellaneousRenderers(factory);
+  Object.assign(
+    factory,
+    buttonRenderers(factory, button),
+    overlayRenderers(),
+  );
   factory.splitter = createSplitterRenderer();
   factory.table = createTableRenderer({
     button,
     paginator: factory.paginator,
     resolveIcon: (icon: string) => factory.resolveIcon(icon),
   });
+  wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-sf-pagable");
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
-    h("div", { class: "mmda-sf-pagable-table" }, [
-      factory.table(loader.model.list as any[], metadata.metaUi, props as any),
-      factory.paginator(loader.model.pagination, props),
-    ]);
+    factory.table(loader.model.list as any[], metadata.metaUi, {
+      ...props,
+      pagination: props.pagination ?? loader.model.pagination,
+      onPage: props.onPage,
+    });
+  bindListDisplayRenderers(factory);
 
   return factory as SyncfusionUiFactory;
 }

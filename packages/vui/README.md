@@ -14,7 +14,7 @@ import {
 import type { MmdaApplication } from '@mmda/core'
 ```
 
-**不包含** PrimeVue / Syncfusion / Naive 控件。vui 只提供拼屏契约与 Builder 组合；皮肤由 `@mmda/vui-primevue`、`@mmda/vui-syncfusion`、`@mmda/vui-agnaive` 实现。
+**不包含** PrimeVue / Syncfusion / Naive 控件。vui 只提供拼屏契约与 Builder 组合；皮肤由 `@mmda/vui-primevue`、`@mmda/vui-syncfusion`、`@mmda/vui-agnaive` 实现。图表是可选插件：皮肤 `./charts` 或独立引擎包，见 [图表](./docs/chart.md)。
 
 UI 构造：**皮肤 `components/` 写控件**（`SfGrid`、`AgGrid`）→ **皮肤 `factory/` 用 `MetaUi` 生产** → **vui Builder 拼复杂视图**。vui 不 import 厂商表格。目录与约定见 [Builder 与皮肤](./docs/builder.md)。
 
@@ -111,7 +111,7 @@ const logic = app.di.get('MaterialsLogic')
 const pack = await app.meta.getPack({ repository: 'Materials' })
 const context = new VueUiContext({
   model: { list: [] },
-  metaui: pack.metaui,
+  metaUi: pack.metaUi,
   view: UiViewMany.Index,
   app,
   logic,
@@ -130,9 +130,21 @@ await context.init()
 | [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |
-| [Factory 控件契约](./docs/factory.md) | chrome：`shape` / `size` / `colorRole` / `position` |
+| [Factory 控件契约](./docs/factory.md) | chrome：`shape` / `size` / `colorRole` / `position` / `htmlAttributes` |
 | [Badge 设计](./docs/badge.md) | `factory.badge` |
 | [Badge：怎么写](./docs/badge_usage.md) | 行内 / 角标 |
+| [Avatar 设计](./docs/avatar.md) | `factory.avatar` |
+| [Avatar：怎么写](./docs/avatar_usage.md) | 图 / 缩写 / 图标 |
+| [Card 设计](./docs/card.md) | `factory.card` |
+| [Card：怎么写](./docs/card_usage.md) | 封面 / headerImage / divider |
+| [Divider 设计](./docs/divider.md) | `factory.divider` |
+| [Divider：怎么写](./docs/divider_usage.md) | 横/竖、label |
+| [ColorPicker 设计](./docs/color_picker.md) | `factory.colorPicker` |
+| [ColorPicker：怎么写](./docs/color_picker_usage.md) | hex / mode / 字段 |
+| [DatePicker 设计](./docs/date_picker.md) | `factory.datePicker` / `monthPicker` |
+| [ColorPicker：怎么写](./docs/color_picker_usage.md) | hex / mode / 字段 |
+| [AutoComplete 设计](./docs/autocomplete.md) | `factory.autoComplete` |
+| [AutoComplete：怎么写](./docs/autocomplete_usage.md) | 自定义 / suggest / REF |
 | [列表与过滤](./docs/list.md) | 工具栏、搜索、`UiFilter`、`select()` |
 | [表格契约](../vui-syncfusion/docs/sf-grid.md) | 厂商无关的 Grid 接口（各皮肤共用） |
 | [SfGrid 设计](../vui-syncfusion/docs/sf-grid-design.md) | Syncfusion 皮肤如何实现该契约 |

@@ -46,6 +46,9 @@ importers:
       '@mmda/vui-syncfusion':
         specifier: workspace:^
         version: link:../vui-syncfusion
+      '@mmda/vuix-vditor-markdown':
+        specifier: workspace:^
+        version: link:../vuix-vditor-markdown
       '@vue-office/docx':
         specifier: ^1.6.3
         version: 1.6.3(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
@@ -113,6 +116,9 @@ importers:
       '@syncfusion/ej2-vue-grids':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-inplace-editor':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-inputs':
         specifier: 34.2.2
         version: 34.2.2
@@ -129,6 +135,9 @@ importers:
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-progressbar':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-querybuilder':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-splitbuttons':
@@ -226,6 +235,9 @@ importers:
       '@syncfusion/ej2-vue-grids':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-inplace-editor':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-inputs':
         specifier: 34.2.2
         version: 34.2.2
@@ -242,6 +254,9 @@ importers:
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-progressbar':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-querybuilder':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-splitbuttons':
@@ -320,6 +335,15 @@ importers:
       '@mmda/vui-agnaive':
         specifier: workspace:^
         version: link:../vui-agnaive
+      '@mmda/vuix-fc-scheduler':
+        specifier: workspace:^
+        version: link:../vuix-fc-scheduler
+      '@mmda/vuix-svar-kanban':
+        specifier: workspace:^
+        version: link:../vuix-svar-kanban
+      '@mmda/vuix-vditor-markdown':
+        specifier: workspace:^
+        version: link:../vuix-vditor-markdown
       ag-grid-community:
         specifier: ^34.3.1
         version: 34.3.1
@@ -412,6 +436,9 @@ importers:
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
+      signature_pad:
+        specifier: ^5.1.1
+        version: 5.1.4
     devDependencies:
       '@types/jsbarcode':
         specifier: ^3.11.4
@@ -428,6 +455,9 @@ importers:
       '@vitejs/plugin-vue-jsx':
         specifier: ^5.1.1
         version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      ag-charts-vue3:
+        specifier: ^12.3.1
+        version: 12.3.1(vue@3.5.41(typescript@5.9.3))
       ag-grid-community:
         specifier: ^34.3.1
         version: 34.3.1
@@ -479,6 +509,9 @@ importers:
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
+      signature_pad:
+        specifier: ^5.1.1
+        version: 5.1.4
     devDependencies:
       '@bpmn-io/properties-panel':
         specifier: ^3.51.2
@@ -576,6 +609,9 @@ importers:
       '@syncfusion/ej2-charts':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-circulargauge':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-diagrams':
         specifier: 34.2.2
         version: 34.2.2
@@ -588,10 +624,28 @@ importers:
       '@syncfusion/ej2-grids':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-heatmap':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-image-editor':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-inplace-editor':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-inputs':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-interactive-chat':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-kanban':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-layouts':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-lineargauge':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-lists':
@@ -600,10 +654,16 @@ importers:
       '@syncfusion/ej2-locale':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-maps':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-navigations':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-notifications':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-pivotview':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-popups':
@@ -612,10 +672,19 @@ importers:
       '@syncfusion/ej2-progressbar':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-querybuilder':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-schedule':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-splitbuttons':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-treegrid':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-treemap':
         specifier: 34.2.2
         version: 34.2.2
     devDependencies:
@@ -631,6 +700,9 @@ importers:
       '@syncfusion/ej2-vue-charts':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-circulargauge':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-diagrams':
         specifier: 34.2.2
         version: 34.2.2
@@ -643,13 +715,34 @@ importers:
       '@syncfusion/ej2-vue-grids':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-heatmap':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-image-editor':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-inplace-editor':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-inputs':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-interactive-chat':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-kanban':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-layouts':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-lineargauge':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-lists':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-maps':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-navigations':
@@ -658,13 +751,25 @@ importers:
       '@syncfusion/ej2-vue-notifications':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-pivotview':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-popups':
         specifier: 34.2.2
         version: 34.2.2
       '@syncfusion/ej2-vue-progressbar':
         specifier: 34.2.2
         version: 34.2.2
+      '@syncfusion/ej2-vue-querybuilder':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-schedule':
+        specifier: 34.2.2
+        version: 34.2.2
       '@syncfusion/ej2-vue-splitbuttons':
+        specifier: 34.2.2
+        version: 34.2.2
+      '@syncfusion/ej2-vue-treemap':
         specifier: 34.2.2
         version: 34.2.2
       '@types/node':
@@ -697,6 +802,268 @@ importers:
       vue-router:
         specifier: ^4.5.1
         version: 4.6.4(vue@3.5.41(typescript@5.9.3))
+
+  packages/vuix-echarts:
+    dependencies:
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      echarts:
+        specifier: ^5.6.0
+        version: 5.6.0
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-fc-scheduler:
+    dependencies:
+      '@fullcalendar/core':
+        specifier: ^6.1.19
+        version: 6.1.21
+      '@fullcalendar/daygrid':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)
+      '@fullcalendar/interaction':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)
+      '@fullcalendar/list':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)
+      '@fullcalendar/multimonth':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)
+      '@fullcalendar/rrule':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)(rrule@2.8.1)
+      '@fullcalendar/timegrid':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)
+      '@fullcalendar/vue3':
+        specifier: ^6.1.19
+        version: 6.1.21(@fullcalendar/core@6.1.21)(vue@3.5.41(typescript@5.9.3))
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+      rrule:
+        specifier: ^2.8.1
+        version: 2.8.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-hyper-gantt:
+    dependencies:
+      '@dlhsoft/ganttcharthyperlibrary':
+        specifier: '*'
+        version: 5.3.38
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-svar-kanban:
+    dependencies:
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+      '@svar-ui/vue-kanban':
+        specifier: ^2.6.0
+        version: 2.6.0(vue@3.5.41(typescript@5.9.3))
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-tempis-timeline:
+    dependencies:
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+      '@tempis/timeline':
+        specifier: '*'
+        version: 1.3.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-vditor-markdown:
+    dependencies:
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+      vditor:
+        specifier: ^3.11.2
+        version: 3.11.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
+
+  packages/vuix-vf-diagram:
+    dependencies:
+      '@mmda/vui':
+        specifier: workspace:^
+        version: link:../vui
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.8(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^5.1.1
+        version: 5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))
+      '@vue-flow/core':
+        specifier: ^1.41.0
+        version: 1.48.2(vue@3.5.41(typescript@5.9.3))
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+      vue:
+        specifier: ^3.5.25
+        version: 3.5.41(typescript@5.9.3)
 
 packages:
 
@@ -951,6 +1318,9 @@ packages:
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
 
+  '@dlhsoft/ganttcharthyperlibrary@5.3.38':
+    resolution: {integrity: sha512-NJNIN90nRNWXqy7fFbt79gYeUTGiMYTRTwLL+/WVb8xemrtuRn/KJO/jt5IH4JjChLuB53oa90SrThLY3Z1YcA==}
+
   '@emotion/hash@0.8.0':
     resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
 
@@ -962,6 +1332,46 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@fullcalendar/core@6.1.21':
+    resolution: {integrity: sha512-t3u/+sqh3Iq7TWtUnVLcGDUE6OWZh0UD3c04bI/l7lSLAgAKr3kngBmhHiQD1QXpwC8ZN5iNqG7a7gOVixhSKQ==}
+
+  '@fullcalendar/daygrid@6.1.21':
+    resolution: {integrity: sha512-QYb1y40RGYLlOxKpYWg8O+7njEnKnFG8Tt7qjnubJGR35s1phQg67E+81y2TyAbbm59p2JFOCXGDk9t6KDujIA==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+
+  '@fullcalendar/interaction@6.1.21':
+    resolution: {integrity: sha512-WPYpqtljDWmU0Xm2cOtFrLlocgxv7cgkOppj34Q6OUUat8a6Cnd6kYo2JR+irP223PE5lBYHFNp1qh7SIpJc0w==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+
+  '@fullcalendar/list@6.1.21':
+    resolution: {integrity: sha512-2rpIhs5pJmV7jyk4oX4bckNqurt6iHcsweE3FDYDdNpmRukPrARnyQYcaVFNVw2bnBFeR/jQW/St2MlauxF3GQ==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+
+  '@fullcalendar/multimonth@6.1.21':
+    resolution: {integrity: sha512-/5IZDDcdRzgO/h7V3RBEhzhrza5TIQ2T025IjA2Dfq3xbvxSnMAl2CMcy7VrSHsKaY1eWvxQXg/NZZm7hLmDYA==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+
+  '@fullcalendar/rrule@6.1.21':
+    resolution: {integrity: sha512-WPA/2bx6OrVLrD2kz2Go7JGCgTs9PjLuHC+sqvPp+ihZ8cPP1oQdnck6XUbAROFW+FAaI/+LUTmLB4EZFLxLJw==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+      rrule: ^2.6.0
+
+  '@fullcalendar/timegrid@6.1.21':
+    resolution: {integrity: sha512-2DnShx/jallGmb8QCkr6pAOu/zuPhJrP7+uTrAtSnbqsX7GF3lTxqSeNGkTQwsgF5g/ia8udhQ+JNYaE+TN1cQ==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+
+  '@fullcalendar/vue3@6.1.21':
+    resolution: {integrity: sha512-OGt6WSC+/zz/ej6a0KfIBNl7BYuGchpZU49SsedYyv3WZWbghAE+D8YD6nhH1ia/I4p5Gcsv/nEXgEkT/I8aYQ==}
+    peerDependencies:
+      '@fullcalendar/core': ~6.1.21
+      vue: ^3.0.11
 
   '@intlify/core-base@11.4.9':
     resolution: {integrity: sha512-qbGZHXBUwodVCxm6E/IXY0yVLGHuh0GDxnoeCZ5FB75Wq5koKHLrANw5cFhC8fT3WyrkDyvesRzMoFOWsLpPOw==}
@@ -1245,6 +1655,79 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@svar-ui/comments-locales@2.6.0':
+    resolution: {integrity: sha512-ctpmaE0BN2sXRc9MuCMzIut/2Piudnsxno7RoadJ8uIe3bZGRRSZfDW+kJ5pWgYmgdofLlWawTr3PCNjxt7R3w==}
+
+  '@svar-ui/core-locales@2.6.0':
+    resolution: {integrity: sha512-Sma/BkR3we76Ix/67NmSh511yvtKVpi8LFK06ZbWSiC3xEsCSoKsJ5AtLmi8dxaXPa5HuCWI/jMwJsKRwQ0F2Q==}
+
+  '@svar-ui/editor-locales@2.6.0':
+    resolution: {integrity: sha512-xgLLHMi1rvIor+X9u3JChNEkjztZZxpwfpsUocUBIZ07jKqu+h0a/4Vqyue9ZMq3gIq2oyo+HP5Q9Ydb44CrqQ==}
+
+  '@svar-ui/kanban-locales@2.6.0':
+    resolution: {integrity: sha512-WchNgOChoCn6V+pw4/uGHLHarAjpwDLS5KgWHsT1PzvxtSuuY1L0hJbuiNjab38aQTEniRvfkAmsRZN4VkcNpA==, tarball: https://registry.npmjs.org/@svar-ui/kanban-locales/-/kanban-locales-2.6.0.tgz}
+
+  '@svar-ui/kanban-provider@2.6.0':
+    resolution: {integrity: sha512-JUVY1NtzMMmyHe6JJh6yW8UQ8WR+z/2AYAJ6W/KKcgSWVBsJVPnbM1ITgKxUqFxDghOCRu7wobV7l9mCBvhA7g==, tarball: https://registry.npmjs.org/@svar-ui/kanban-provider/-/kanban-provider-2.6.0.tgz}
+
+  '@svar-ui/kanban-store@2.6.0':
+    resolution: {integrity: sha512-mA3rQ1O+o5i1TowAk/jtnpkquilun5JLtWxz8k3ilQnokKEUVY7LgTrwAZgkry+0GO3eT3OcT5iZ3Jowat0hTw==, tarball: https://registry.npmjs.org/@svar-ui/kanban-store/-/kanban-store-2.6.0.tgz}
+
+  '@svar-ui/lib-data-provider@1.7.1':
+    resolution: {integrity: sha512-5Bi9ywngcMTKpGtan0s7q8ivd84Bp0ZnRP+5bLZg6oiRB7YMyN5D5X+apc3CWDAnG4zZn3en4YwS2qc/aHIIuQ==}
+
+  '@svar-ui/lib-dom@0.13.1':
+    resolution: {integrity: sha512-e9+RIEkppVkAUJqfHEr7KmiVXi3uf+qddr513h5mhgSx3PNYtG9eHwtI8OQf4JMc6Hvuu3y0iv+fL6jqE340yw==}
+
+  '@svar-ui/lib-state@1.9.6':
+    resolution: {integrity: sha512-twoHa8wZvzdxtES68s6Wnp4Xi1WivScNaFFK6sJ6WDgqVYOzJw0ZhVVrdwHQgieLITTKl/DYh/U3nuqtMetKYw==}
+
+  '@svar-ui/lib-state@1.9.7':
+    resolution: {integrity: sha512-nxRdk+54m1RJjGT2yDH7NjxAM5KECxA39kdTZezEIj1ixykyefssB9BrgxKy2jIseYxJMtd6lPZvQ3SZXuvn2g==}
+
+  '@svar-ui/lib-vue@1.1.0':
+    resolution: {integrity: sha512-fv+2jpCGKWSUlB8cVuipHV6IgngxvA8bjnqMOd9klJAQ+JaV+mOl0oV6UoR7MrLBJ03WD3g7uK+jR5c85+ByCw==}
+    peerDependencies:
+      vue: ^3.5.29
+
+  '@svar-ui/tasklist-locales@2.5.0':
+    resolution: {integrity: sha512-4S3Q1y5wfYDOt4LsTMpJfJ/5p/chyBtiyxpUaKX3vBu0l81/MuyPhihpoc2imAvwRPdQ+VblUqXKlOMZc31O7Q==}
+
+  '@svar-ui/vue-comments@2.6.0':
+    resolution: {integrity: sha512-Q5hN+76fai9g0ZXq9v+zOPjkGu83wQFkSk64LwqEaJJirzJr4hxKtQORSZcm/5r39P1y4t6UzhDO36sJ/gxvDA==}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-core@2.6.0':
+    resolution: {integrity: sha512-UHGNTs7pjDqeQ34xQvYtZXtg3EghiEvVTO1WKktaG/VOV4xyKvaSICsihSWj/BMbjQyf47qHsO16Wvcrt6TvZA==}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-editor@2.6.0':
+    resolution: {integrity: sha512-omXH44YPJ3SzD+kEHk5Y3DwZmS4WRprrT9tioaY+z3TZoCGgc4DO0/MN/G2hnKYom3ubc7TISKnXiy4zZ4Rhhw==}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-kanban@2.6.0':
+    resolution: {integrity: sha512-6nPzQZ1pd/89Vh8ZHuZ65ax5qyd1Ve0AliQNwKl85po1kdE5usYfV7vBl03ClK3gxsrU7pc7kVXYvShhToDkEg==, tarball: https://registry.npmjs.org/@svar-ui/vue-kanban/-/vue-kanban-2.6.0.tgz}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-menu@2.6.0':
+    resolution: {integrity: sha512-GTSqnFFWmYLJHqqGdxcdm6xB1HbEVZYUjQhNsB0452heKYr1o4fdnf4JdAKm1yZs1knPaSiLYaDSrwFAHud3Cg==}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-tasklist@2.6.0':
+    resolution: {integrity: sha512-HbAScmDWv2KA/6OhLGXdJ9FYiFWFZ80Z+RO1HT0rEQpN+E0RPPkfu+j/pk7SfarDqGELfT/DeDXp1SPEJV9v5w==}
+    peerDependencies:
+      vue: ^3.0.0
+
+  '@svar-ui/vue-toolbar@2.6.0':
+    resolution: {integrity: sha512-aiFQYHIzFYP7oTXEjoWMyh0YglQdKfMshG/7OuxGCq0OS+8bUQB/n81IKRYbRVa9kZMjH9zk6a3HosYjo/eqjg==}
+    peerDependencies:
+      vue: ^3.0.0
+
   '@syncfusion/ej2-barcode-generator@34.2.2':
     resolution: {integrity: sha512-8s7kuC9kPxwa6eoZ1Znes2zoiL0ecyqaGEf8ND6RP7OgzIfxsELPTYHk4cc12jPJcR6loArN3hNNJoxizpetpQ==}
 
@@ -1266,6 +1749,9 @@ packages:
 
   '@syncfusion/ej2-charts@34.2.2':
     resolution: {integrity: sha512-CN/ff5btCWoWqIwk0FigxwoNnu+IEg98YledOE9wf1d3SStl7eWu6R5Pm94FyW516WTbmDMrRCqo3ES4LsZOIw==}
+
+  '@syncfusion/ej2-circulargauge@34.2.2':
+    resolution: {integrity: sha512-hpFOXH4Ba95bGOD01EtnbauqemMlieSplVp3fCsXNdDTwVBC3fY5kqFWVu7nO4Ti5YNnJ7qKwsfrt8lhTNM8tQ==}
 
   '@syncfusion/ej2-compression@34.2.6':
     resolution: {integrity: sha512-9NvaiQt2EZPy9GHTm9jRB2hGJlC/Q27EO4UdPO4nz+HBFP4TPeClGGclhXm4UxrNSmrYgofBJv2Ffbui2/5o9g==}
@@ -1300,8 +1786,17 @@ packages:
   '@syncfusion/ej2-grids@34.2.6':
     resolution: {integrity: sha512-fO3WKsiS4azrZgGP44tk7TXD4Z123PcTCJynIIbV4zIUny8Asx9Znoc9URtqFy0WFD90W1C4EuAxyoY5DBvQNw==}
 
+  '@syncfusion/ej2-heatmap@34.2.2':
+    resolution: {integrity: sha512-2Jpf6RWGhsxbkn4kx+84KwRYtWHUH629sa1sVa50k3P4Av1HmnODDZsNt6cpf2M2jScjiFcJovvEcWRPr3M9tw==}
+
   '@syncfusion/ej2-icons@34.2.6':
     resolution: {integrity: sha512-/tsckmdKqJtceYJODCsf6gK6mzpaY7GN5fy/B73081pqOTXKDLA5GVJiU66DiHTVedbHHtyODSMo+mBR1RlJQA==}
+
+  '@syncfusion/ej2-image-editor@34.2.2':
+    resolution: {integrity: sha512-gg9RX7gycvC6XD9CcjXUR6lBcMMdPK46HiJTUMZr14APYiI2gi45+1ZQHNSg6e48qZDHdA21ZNeggXc9OIXmaQ==}
+
+  '@syncfusion/ej2-inplace-editor@34.2.2':
+    resolution: {integrity: sha512-9vAXzO0kIiUifvmSZCCRLPATPkzNVtD+J2R1uX9Drk1Q73JVNjbOePQHGcjgo3LSjCgnvW4NMI2jVL4apVDv5w==}
 
   '@syncfusion/ej2-inputs@34.2.2':
     resolution: {integrity: sha512-FxEsXDCcLSMvg8v8zdqgnw6HFXZk1iEFIpp5eG0hShHUp+WEMtwUAkLxLWYSBiIalcTOjHREnesJvfKExzqG7g==}
@@ -1309,14 +1804,23 @@ packages:
   '@syncfusion/ej2-inputs@34.2.6':
     resolution: {integrity: sha512-VugOo69KmToxtE040eMEbIRXhV6ilrri5+ZgXaPxZK6LMZ4ui6RT42KHFdko9IEIrJ8UG8DNRtVlq/sWOQ9z5Q==}
 
+  '@syncfusion/ej2-interactive-chat@34.2.2':
+    resolution: {integrity: sha512-MO3TXJWZG2jpAY0BgBvWNWTKUMbcr1F5XXlo921cytHPjp1+6NpTm/7gXKzljSKPwtTae0jJO2Yl885ajGoURQ==}
+
   '@syncfusion/ej2-interactive-chat@34.2.6':
     resolution: {integrity: sha512-sn6FRYZTPYB56UlQNlxpLKRe0uzFI1CzHmOrLXVhKp4WNyduThn/FHfNpSZln37Ez7E8qDSp1hsnQUgM+6NeRw==}
+
+  '@syncfusion/ej2-kanban@34.2.2':
+    resolution: {integrity: sha512-ZCn9WwEif/NtrgcCSiTB3dyYz1A06QlNFyLt2hamHUSjhcZvE8WdiRoTUy/I1rWkIOBYURtcgoUQqRm4YU+Dww==}
 
   '@syncfusion/ej2-layouts@34.2.2':
     resolution: {integrity: sha512-4j9o+Unq8uNVWTjWKKRpFzfk70GCq/+wrGO1MYjp823d7RC3o5lRHz7pmIKbG3uzkLq81SW9Hb76kl/flKndQg==}
 
   '@syncfusion/ej2-layouts@34.2.6':
     resolution: {integrity: sha512-mPL/ceFnGOz8EsrYNxc2ARp5D6B7uoh1aqk39GEejJuM4yoXpVnsmwvMAc8fiQGrBq3pgKSf1XIXx+TSZxahVQ==}
+
+  '@syncfusion/ej2-lineargauge@34.2.2':
+    resolution: {integrity: sha512-q9sjRGcrJkvCw+utW6erPa9xhdS8ljsc9gRA5/QqNgjaoQI58a1ZywJKcVL4Oth/ejIPV77NNWE3IImuebiNlg==}
 
   '@syncfusion/ej2-lists@34.2.2':
     resolution: {integrity: sha512-pazMz/EQTBxSO+7iQq+GoEcpeEvvfDsL5Fjk1SNjXglTFQH4cUToHLLzuwEr6kH5/0iVYoxi4lrIFVBXWfcznQ==}
@@ -1326,6 +1830,9 @@ packages:
 
   '@syncfusion/ej2-locale@34.2.2':
     resolution: {integrity: sha512-cnR/0Kx5J2aNALmd2Oq3boK8we2Rs2a0WmzJL3F/DoHHuPra1+YLQeLts1zVOGBhJ4naPk1la8mLtn/BZbHMaw==}
+
+  '@syncfusion/ej2-maps@34.2.2':
+    resolution: {integrity: sha512-oKBg8jvTc5/QBIIz8AZdP2dFgESQFnNSPXW7MV0IABJBxZ1WH4t0EuklqNMIFhu+01FVvHx3RGChymnLoI+IRA==}
 
   '@syncfusion/ej2-markdown-converter@34.2.6':
     resolution: {integrity: sha512-3It7fck+Bxsnp0j75DHlENP0U7FvYPhIYRzj3z827bJobXUA43ZRtNLwtLdbzLsol/AR7D+nSRCfIXlAWt/o8A==}
@@ -1345,6 +1852,9 @@ packages:
   '@syncfusion/ej2-pdf-export@34.2.6':
     resolution: {integrity: sha512-3hoEwF//2PHSrn2RXqyH6gpyXpwXz+Z4p/H9sWf7CGQWYs4RtsgUDH2JUcS1CFBbuKz3X2rU+Kzxqvg3I18M0w==}
 
+  '@syncfusion/ej2-pivotview@34.2.2':
+    resolution: {integrity: sha512-KNmyizVLw8MqyuOluOnRm7lqBbe6cLvD+oSVTXApW50ny8Sd/z+x4n93gPNKrvdxKQBtEkWsMnhhYQzpoopPQw==}
+
   '@syncfusion/ej2-popups@34.2.2':
     resolution: {integrity: sha512-3tjgcG2VqZ+koDvl2pzfvpPNTh6ZAr/N4MCKSCg4NX9QjtgqWT2eCIaR4UiLFz6wh5xOzqqb0GHow7UnfwUVLg==}
 
@@ -1354,8 +1864,14 @@ packages:
   '@syncfusion/ej2-progressbar@34.2.2':
     resolution: {integrity: sha512-QpA3s6dp2ssmxqbKBg4rEJy1SUEsuHDW1pvf1c5uyMQGeTh9KY07PNDga9EVP+JEOa56t0UKyQ2J9jdYkZSJFQ==}
 
+  '@syncfusion/ej2-querybuilder@34.2.2':
+    resolution: {integrity: sha512-/E9Dke7nzQg8G0kfDm0uqr30rzarFOO7qOQQ+oqMIz3i9mPIyU7ynlQeKY+B2G8dtr5PoltWZvFnnb0nyU8T5g==}
+
   '@syncfusion/ej2-richtexteditor@34.2.6':
     resolution: {integrity: sha512-WOe2NeZ4rU+izCmp6eWSY7hh+P6xsH54O+QiXx2mNna07URXh07UL0XVnYmMf35KGmLKkinAMTakjGaQCnQ+Fg==}
+
+  '@syncfusion/ej2-schedule@34.2.2':
+    resolution: {integrity: sha512-PmSMabj5LCOgMtqcSKt/TQ6yFwNF1dFmGXL0iuzcmGGh30boSaP+UiissWMgQmNr1qQRLJb1BCZWojoEyjhyqg==}
 
   '@syncfusion/ej2-splitbuttons@34.2.2':
     resolution: {integrity: sha512-KgOEYroG1ePJBX9Y8LbSBX0Rh13zpu7yqM+J9uOKqwD6YS9PKf256XWVjZfZB0+CVnekJNGSuMuKrcLlQbSPvg==}
@@ -1368,6 +1884,9 @@ packages:
 
   '@syncfusion/ej2-treegrid@34.2.2':
     resolution: {integrity: sha512-4a3z1stTX1TvKljvX58As53fbNCgYuugWURnPK7HazKo0J0PS88fsEgPKQPOF59jUaI/nUVTJbGLMMGIZmz0WA==}
+
+  '@syncfusion/ej2-treemap@34.2.2':
+    resolution: {integrity: sha512-c82Pjq18Qem331V2wEoaxfKMpcOw3JKqvf1zNclgtGrOv1lFIjMEpJYe+t/UUJsnd6PV1E4TfBdvhpYvqYwFeg==}
 
   '@syncfusion/ej2-vue-barcode-generator@34.2.2':
     resolution: {integrity: sha512-j91+N/7G2frrik6SxiaLD5R1q7vAOYHkmwomBERzOehje39RMyyc8CScivY2xQ2lUK9dJVy/ru6wW5csmIyvJA==}
@@ -1384,6 +1903,9 @@ packages:
   '@syncfusion/ej2-vue-charts@34.2.2':
     resolution: {integrity: sha512-dIQkgXEqm96UKD93ga20uNo/fttOigxRhKJCX9DKUmxb31tjFntGvuEdDuPGeHA+Nf4ZnZbG8L2xPJ/wI4BW9A==}
 
+  '@syncfusion/ej2-vue-circulargauge@34.2.2':
+    resolution: {integrity: sha512-k2YtOpXfMfTgmDUoF6WrlWBH2WZtOuXksHFBSjlXHLI8lsnn8hVn+LR1NwGDcHO/ZFEFG0u1g30FRPXLtOVYSw==}
+
   '@syncfusion/ej2-vue-diagrams@34.2.2':
     resolution: {integrity: sha512-CbEwKS1uVLhUDJFVIj742MdnQyFc21kDl0Q5dPi/lq/hSTFa4binR4JJ3wMEDk8isfNJCmPDAqowCPXUkqxgxA==}
 
@@ -1396,14 +1918,35 @@ packages:
   '@syncfusion/ej2-vue-grids@34.2.2':
     resolution: {integrity: sha512-wH5VNAlKO8Fjgv429C2KMc/Yq11hFCENCPyr2I4h+bY6yEuz/Wtayz5/4hDWiNScgDfZa9ikdCl+2kGL5fMGmA==}
 
+  '@syncfusion/ej2-vue-heatmap@34.2.2':
+    resolution: {integrity: sha512-mwJALdUBW3RSvIecXWGAu9zE594j2v0uNS//faa0NeHY1iuxDoqieqw+kseKoTapaeh/iqdo1DwLxAKyrzY5VA==}
+
+  '@syncfusion/ej2-vue-image-editor@34.2.2':
+    resolution: {integrity: sha512-0mSfKSbNTwqYpobAS1aLA/EHPE1sOhqy8EmbJL7aTssqEdmAkD65VSVHW+U+EgCNHBz6C1jMfToqbpYquQWtNQ==}
+
+  '@syncfusion/ej2-vue-inplace-editor@34.2.2':
+    resolution: {integrity: sha512-M4rK5uQghPrxXI95zG//gPyo8b1ucgEluFJF7SqdTFweHDk8NOzSMJ9BwWkL5hFY9OfS/DUUVGMN2scxvhsSJQ==}
+
   '@syncfusion/ej2-vue-inputs@34.2.2':
     resolution: {integrity: sha512-PWLvME7eH2ZORKdUeB1EBZAAY6jOCdBbCPXSB8huHOxija2H9IjJ3N3ZvApJLmPgm5pbwoLu7oN8dPxfjIk6Bw==}
+
+  '@syncfusion/ej2-vue-interactive-chat@34.2.2':
+    resolution: {integrity: sha512-tZ/XHlsdCF1wdb/gyaNPZIHiDydUpRxBJ3rzJANldz032mJR9sgItdeS1Qb0wP2Zmg478cTIjHWDu0urIoSFSg==}
+
+  '@syncfusion/ej2-vue-kanban@34.2.2':
+    resolution: {integrity: sha512-JpaYhOg/LBdEuLI04ou3SXr32Y8nrWs4pdsUmaTVMtR8anyM8J97DlkT0WdOaqEHPLlPD7NBLkaRWUmXqkyRKg==}
 
   '@syncfusion/ej2-vue-layouts@34.2.2':
     resolution: {integrity: sha512-/nZH1v25FsnpxgbFmjMCCYOoUZMTZKm+3DrKbKFXDaYVYKuHvAIm3rEtxvBlHO/gS197HiQ144z/PbY0J4Vqdg==}
 
+  '@syncfusion/ej2-vue-lineargauge@34.2.2':
+    resolution: {integrity: sha512-bFKF2K7Ww8W2S14A5jrWRlExj1BewQsRJYYINocEuPuDAuD3zHfsQy39a24X9coZka71c/fxmYwZz1axN1G5pg==}
+
   '@syncfusion/ej2-vue-lists@34.2.2':
     resolution: {integrity: sha512-oIeqKAi+AADHlOEiJM6YkPOaPb57eiQ9xZFdfHDCXKDUAckjhp3rNsAF0FM/3AQRwYhhHRKxEy+Iuz7Fk9g+Mg==}
+
+  '@syncfusion/ej2-vue-maps@34.2.2':
+    resolution: {integrity: sha512-Snc8LXmPjVyVxLB/5a9VMQk/Od3HD74kF/CQt2luIYbuTikbLpw5N51gFX8dwFUGSRjb4AWfOBc20Ch5Vz121w==}
 
   '@syncfusion/ej2-vue-navigations@34.2.2':
     resolution: {integrity: sha512-hQ0O8Dju6GGvhBhAOfedH33clmdsMAdHRfkE359hhNLP7OeQwGW0gxLaOGKb/NlgA4YCFrqK0XT8vVBkGUMdKw==}
@@ -1411,14 +1954,29 @@ packages:
   '@syncfusion/ej2-vue-notifications@34.2.2':
     resolution: {integrity: sha512-aclpIRt3fgoIrOZMu3jVfVsv2cvcvlRDqRtSjEZU8Unx2LDGIkxtdyV/5BF0RKY+SfpS0vDowHsYDUHq+/A/uw==}
 
+  '@syncfusion/ej2-vue-pivotview@34.2.2':
+    resolution: {integrity: sha512-MjHs0YlxqhjZbbEPO/H8SjnidPg1Xmsd+V4RrzrKOBf5GpIWR0BaIIiGtdV9Zo4QbpRBOqAl8pZixkZbZc7J6A==}
+
   '@syncfusion/ej2-vue-popups@34.2.2':
     resolution: {integrity: sha512-Yxk1flFr+XTR6tPnzHdzvlRupGSVxy5+a5o+GGa3aJA9vzO864JeEKp5iI+f6j1FxyOTH8jvGfQRJNzKol7DOA==}
 
   '@syncfusion/ej2-vue-progressbar@34.2.2':
     resolution: {integrity: sha512-/XvF1WH/emCi8GxSoj3RbVVdSJHr+Va++yANc2AXbhYZryi1tYlMaKhIG2P1ozEgYrogHeVLtyh35CdXGfqfjA==}
 
+  '@syncfusion/ej2-vue-querybuilder@34.2.2':
+    resolution: {integrity: sha512-YHiZCg7BW0abBLfslu/Qy27Dxq0JxjV/cjZNZoZasaQtcheExuTO9ml3HXsUGqob1Xtys0NvUx5h81tnQ1/MLA==}
+
+  '@syncfusion/ej2-vue-schedule@34.2.2':
+    resolution: {integrity: sha512-84PAH4RobZS1/QdgYlVC67Qqc2Dtk5Z58ji14Brhztw6NgQz+PwnxcN7cOGO9hrgi/nBvKNyUgZKTV4Y11tv0A==}
+
   '@syncfusion/ej2-vue-splitbuttons@34.2.2':
     resolution: {integrity: sha512-Ka0obkSxfNEBBDJGY2mWFchDBgXg5YdyzACgmTKa3Fl5Sv+LJSuhQKyAMgiJtmERMwMu9am4S7lfAQofiF89gA==}
+
+  '@syncfusion/ej2-vue-treemap@34.2.2':
+    resolution: {integrity: sha512-I8JGb4u77ZjSAhKwRh1EqYaWJY/fMp0HPc9Oty/BHUPkXYNTmY40CxaQtDi1F8ilex6NwJl2hxcsY46AOlRmKQ==}
+
+  '@tempis/timeline@1.3.0':
+    resolution: {integrity: sha512-2Pfsr+uWzjCPpSMVZljg1dTL+zroQyVvBaY8W84VgQO2I+VmYDYX/UjGEFW6IHYVNIGyeHqHZC/6RHn1tuEM1w==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1449,6 +2007,9 @@ packages:
 
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
+
+  '@types/web-bluetooth@0.0.20':
+    resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
 
   '@vitejs/plugin-vue-jsx@5.1.6':
     resolution: {integrity: sha512-YXvi4as2clxt6DFw5+a0tTA97ntiQXm/raR8ofNj3aNwwdlVGTiG2gp7EvfZW17P50acL/9bP0ccF4XnqNmlgA==}
@@ -1501,6 +2062,11 @@ packages:
 
   '@volar/typescript@2.4.15':
     resolution: {integrity: sha512-2aZ8i0cqPGjXb4BhkMsPYDkkuc2ZQ6yOpqwAuNwUoncELqoy5fRgOQtLR9gB0g902iS0NAkvpIzs27geVyVdPg==}
+
+  '@vue-flow/core@1.48.2':
+    resolution: {integrity: sha512-raxhgKWE+G/mcEvXJjGFUDYW9rAI3GOtiHR3ZkNpwBWuIaCC1EYiBmKGwJOoNzVFgwO7COgErnK7i08i287AFA==}
+    peerDependencies:
+      vue: ^3.3.0
 
   '@vue-office/docx@1.6.3':
     resolution: {integrity: sha512-Cs+3CAaRBOWOiW4XAhTwwxJ0dy8cPIf6DqfNvYcD3YACiLwO4kuawLF2IAXxyijhbuOeoFsfvoVbOc16A/4bZA==}
@@ -1579,6 +2145,15 @@ packages:
   '@vue/shared@3.5.41':
     resolution: {integrity: sha512-IOnwSCma8j+9xJT6b8H0dEYidC80NsYmNMlZxRsukYcSoGaDBohog5hDxzeUXdFeGWFA++vWvxqOmrr96VlqMA==}
 
+  '@vueuse/core@10.11.1':
+    resolution: {integrity: sha512-guoy26JQktXPcz+0n3GukWIy/JDNKti9v6VEMu6kV2sYBsWuGiTU8OWdg+ADfUbHg3/3DlqySDe7JmdHrktiww==}
+
+  '@vueuse/metadata@10.11.1':
+    resolution: {integrity: sha512-IGa5FXd003Ug1qAZmyE8wF3sJ81xGLSqTqtQ6jaVfkeZ4i5kS2mwQF61yhVqojRnenVew5PldLyRgvdl4YYuSw==}
+
+  '@vueuse/shared@10.11.1':
+    resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
+
   ag-charts-community@12.3.1:
     resolution: {integrity: sha512-uRaUFmCl8e0Y3KxjaHUYlkCPS5OtwtfTChkdpoZuBKDXqerCPTjPu+uvlun3rYUSYxScwVf2LZCI0Hfw4Vc+WQ==}
 
@@ -1593,6 +2168,11 @@ packages:
 
   ag-charts-types@12.3.1:
     resolution: {integrity: sha512-5216xYoawnvMXDFI6kTpPku+mH0Csiwu/FE7lsAm8Z22HEN6ciSG/V7g+IrpLWncELqksgENebCTP75PZ3CsHA==}
+
+  ag-charts-vue3@12.3.1:
+    resolution: {integrity: sha512-NGiElSQjBNzMLrKE2Tmry7T9DplvOtDsyY6GSDc8aLDMUf39l8C/t8G6aC71f7cexSnuYs9azW45fth47WrJiA==}
+    peerDependencies:
+      vue: ^3.5.0
 
   ag-grid-community@34.3.1:
     resolution: {integrity: sha512-PwlrPudsFOzGumphi2y9ihWeaUlIwKhOra/MXu2LjeV2U8DgLLcYS8CartE5Hszhn1poJHawwI9HWrxlKliwdw==}
@@ -1743,6 +2323,44 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
+  d3-color@3.1.0:
+    resolution: {integrity: sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==}
+    engines: {node: '>=12'}
+
+  d3-dispatch@3.0.1:
+    resolution: {integrity: sha512-rzUyPU/S7rwUflMyLc1ETDeBj0NRuHKKAcvukozwhshr6g6c5d8zh4c2gQjY2bZ0dXeGLWc1PF174P2tVvKhfg==}
+    engines: {node: '>=12'}
+
+  d3-drag@3.0.0:
+    resolution: {integrity: sha512-pWbUJLdETVA8lQNJecMxoXfH6x+mO2UQo8rSmZ+QqxcbyA3hfeprFgIT//HW2nlHChWeIIMwS2Fq+gEARkhTkg==}
+    engines: {node: '>=12'}
+
+  d3-ease@3.0.1:
+    resolution: {integrity: sha512-wR/XK3D3XcLIZwpbvQwQ5fK+8Ykds1ip7A2Txe0yxncXSdq1L9skcG7blcedkOX+ZcgxGAmLX1FrRGbADwzi0w==}
+    engines: {node: '>=12'}
+
+  d3-interpolate@3.0.1:
+    resolution: {integrity: sha512-3bYs1rOD33uo8aqJfKP3JWPAibgw8Zm2+L9vBKEHJ2Rg+viTR7o5Mmv5mZcieN+FRYaAOWX5SJATX6k1PWz72g==}
+    engines: {node: '>=12'}
+
+  d3-selection@3.0.0:
+    resolution: {integrity: sha512-fmTRWbNMmsmWq6xJV8D19U/gw/bwrHfNXxrIN+HfZgnzqTHp9jOmKMhsTUjXOJnZOdZY9Q28y4yebKzqDKlxlQ==}
+    engines: {node: '>=12'}
+
+  d3-timer@3.0.1:
+    resolution: {integrity: sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==}
+    engines: {node: '>=12'}
+
+  d3-transition@3.0.1:
+    resolution: {integrity: sha512-ApKvfjsSR6tg06xrL434C0WydLr7JewBB3V+/39RMHsaXTOG0zmt/OAXeng5M5LBm0ojmxJrpomQVZ1aPvBL4w==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      d3-selection: 2 - 3
+
+  d3-zoom@3.0.0:
+    resolution: {integrity: sha512-b8AmV3kfQaqWAuacbPuNbL6vahnOJflOhexLzMMNLga62+/nh0JzvJ0aO/5a5MVgUFGS7Hu1P9P03o3fJkDCyw==}
+    engines: {node: '>=12'}
+
   data-urls@7.0.0:
     resolution: {integrity: sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
@@ -1805,6 +2423,9 @@ packages:
   didi@11.0.0:
     resolution: {integrity: sha512-PzCfRzQttvFpVcYMbSF7h8EsWjeJpVjWH4qDhB5LkMi1ILvHq4Ob0vhM2wLFziPkbUBi+PAo7ODbe2sacR7nJQ==}
     engines: {node: '>= 20.12'}
+
+  diff-match-patch@1.0.5:
+    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
 
   dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
@@ -2203,6 +2824,9 @@ packages:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  preact@10.12.1:
+    resolution: {integrity: sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==}
+
   preact@10.29.8:
     resolution: {integrity: sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==}
     peerDependencies:
@@ -2258,6 +2882,9 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
+  rrule@2.8.1:
+    resolution: {integrity: sha512-hM3dHSBMeaJ0Ktp7W38BJZ7O1zOgaFEsn41PDk+yHoEtfLV+PoJt9E9xAlZiWgf/iqEqionN0ebHFZIDAp+iGw==}
+
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
 
@@ -2302,6 +2929,9 @@ packages:
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
+
+  signature_pad@5.1.4:
+    resolution: {integrity: sha512-q0wO5a+U+AWPVcVmiNXz7FY4Ad1QiE8wto/3Yn41WVqepoVVYMvkb1CTokaWPUUAHWDLLabH3/acODeWM9jCrg==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -2389,6 +3019,9 @@ packages:
   tslib@2.3.0:
     resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
 
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -2411,6 +3044,9 @@ packages:
     resolution: {integrity: sha512-H9V1zGRLQZg9b+GdMk8MXDN2Lva0zx72MPahDKc30v+DtwKjfyOSXWRIX4t2mhDubM1H09gPhWeth/BJWPHGUw==}
     peerDependencies:
       vue: ^3.0.11
+
+  vditor@3.11.3:
+    resolution: {integrity: sha512-9SXqM81fFbQJoOiRIxYj7TJmIhh1nfNyZ4fpAlicL+zc4DvGKhfppIhlVN0rN/Ks3uthjy8VaQqh2Dw1HTXUCA==}
 
   vite@8.2.2:
     resolution: {integrity: sha512-cFKLV/PRgAUlIRm5WjMjJ86jrftzpqcgH+Us+DS8mI3CDNiH30Whrz8uHL3+MOLPAgqbMBAqWdAHAphOAM+z/Q==}
@@ -3010,11 +3646,49 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.0': {}
 
+  '@dlhsoft/ganttcharthyperlibrary@5.3.38': {}
+
   '@emotion/hash@0.8.0': {}
 
   '@exodus/bytes@1.15.1(@noble/hashes@2.2.0)':
     optionalDependencies:
       '@noble/hashes': 2.2.0
+
+  '@fullcalendar/core@6.1.21':
+    dependencies:
+      preact: 10.12.1
+
+  '@fullcalendar/daygrid@6.1.21(@fullcalendar/core@6.1.21)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+
+  '@fullcalendar/interaction@6.1.21(@fullcalendar/core@6.1.21)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+
+  '@fullcalendar/list@6.1.21(@fullcalendar/core@6.1.21)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+
+  '@fullcalendar/multimonth@6.1.21(@fullcalendar/core@6.1.21)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+      '@fullcalendar/daygrid': 6.1.21(@fullcalendar/core@6.1.21)
+
+  '@fullcalendar/rrule@6.1.21(@fullcalendar/core@6.1.21)(rrule@2.8.1)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+      rrule: 2.8.1
+
+  '@fullcalendar/timegrid@6.1.21(@fullcalendar/core@6.1.21)':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+      '@fullcalendar/daygrid': 6.1.21(@fullcalendar/core@6.1.21)
+
+  '@fullcalendar/vue3@6.1.21(@fullcalendar/core@6.1.21)(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@fullcalendar/core': 6.1.21
+      vue: 3.5.41(typescript@5.9.3)
 
   '@intlify/core-base@11.4.9':
     dependencies:
@@ -3231,6 +3905,108 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
+  '@svar-ui/comments-locales@2.6.0': {}
+
+  '@svar-ui/core-locales@2.6.0': {}
+
+  '@svar-ui/editor-locales@2.6.0': {}
+
+  '@svar-ui/kanban-locales@2.6.0': {}
+
+  '@svar-ui/kanban-provider@2.6.0': {}
+
+  '@svar-ui/kanban-store@2.6.0':
+    dependencies:
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-state': 1.9.7
+
+  '@svar-ui/lib-data-provider@1.7.1':
+    dependencies:
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/lib-dom@0.13.1': {}
+
+  '@svar-ui/lib-state@1.9.6': {}
+
+  '@svar-ui/lib-state@1.9.7': {}
+
+  '@svar-ui/lib-vue@1.1.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/tasklist-locales@2.5.0': {}
+
+  '@svar-ui/vue-comments@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/comments-locales': 2.6.0
+      '@svar-ui/core-locales': 2.6.0
+      '@svar-ui/lib-data-provider': 1.7.1
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-state': 1.9.7
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-menu': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-core@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/core-locales': 2.6.0
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-editor@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/editor-locales': 2.6.0
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-state': 1.9.7
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-comments': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-tasklist': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-toolbar': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-kanban@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/core-locales': 2.6.0
+      '@svar-ui/kanban-locales': 2.6.0
+      '@svar-ui/kanban-provider': 2.6.0
+      '@svar-ui/kanban-store': 2.6.0
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-state': 1.9.7
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-editor': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-menu': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-toolbar': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-menu@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-tasklist@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/core-locales': 2.6.0
+      '@svar-ui/lib-data-provider': 1.7.1
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-state': 1.9.7
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/tasklist-locales': 2.5.0
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
+  '@svar-ui/vue-toolbar@2.6.0(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@svar-ui/lib-dom': 0.13.1
+      '@svar-ui/lib-vue': 1.1.0(vue@3.5.41(typescript@5.9.3))
+      '@svar-ui/vue-core': 2.6.0(vue@3.5.41(typescript@5.9.3))
+      vue: 3.5.41(typescript@5.9.3)
+
   '@syncfusion/ej2-barcode-generator@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3271,6 +4047,12 @@ snapshots:
       '@syncfusion/ej2-data': 34.2.2
       '@syncfusion/ej2-excel-export': 34.2.6
       '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-svg-base': 34.2.6
+
+  '@syncfusion/ej2-circulargauge@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
       '@syncfusion/ej2-pdf-export': 34.2.6
       '@syncfusion/ej2-svg-base': 34.2.6
 
@@ -3386,7 +4168,41 @@ snapshots:
       '@syncfusion/ej2-popups': 34.2.6
       '@syncfusion/ej2-splitbuttons': 34.2.6
 
+  '@syncfusion/ej2-heatmap@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-compression': 34.2.6
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-file-utils': 34.2.6
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-svg-base': 34.2.6
+
   '@syncfusion/ej2-icons@34.2.6': {}
+
+  '@syncfusion/ej2-image-editor@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-popups': 34.2.2
+      '@syncfusion/ej2-splitbuttons': 34.2.2
+
+  '@syncfusion/ej2-inplace-editor@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-calendars': 34.2.2
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-lists': 34.2.2
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-notifications': 34.2.2
+      '@syncfusion/ej2-popups': 34.2.2
+      '@syncfusion/ej2-richtexteditor': 34.2.6
+      '@syncfusion/ej2-splitbuttons': 34.2.2
 
   '@syncfusion/ej2-inputs@34.2.2':
     dependencies:
@@ -3402,6 +4218,18 @@ snapshots:
       '@syncfusion/ej2-popups': 34.2.6
       '@syncfusion/ej2-splitbuttons': 34.2.6
 
+  '@syncfusion/ej2-interactive-chat@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-layouts': 34.2.2
+      '@syncfusion/ej2-markdown-converter': 34.2.6
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-notifications': 34.2.2
+      '@syncfusion/ej2-popups': 34.2.2
+      '@syncfusion/ej2-splitbuttons': 34.2.2
+
   '@syncfusion/ej2-interactive-chat@34.2.6':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3414,6 +4242,18 @@ snapshots:
       '@syncfusion/ej2-popups': 34.2.6
       '@syncfusion/ej2-splitbuttons': 34.2.6
 
+  '@syncfusion/ej2-kanban@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-layouts': 34.2.2
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-notifications': 34.2.2
+      '@syncfusion/ej2-popups': 34.2.2
+
   '@syncfusion/ej2-layouts@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3421,6 +4261,12 @@ snapshots:
   '@syncfusion/ej2-layouts@34.2.6':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
+
+  '@syncfusion/ej2-lineargauge@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-svg-base': 34.2.6
 
   '@syncfusion/ej2-lists@34.2.2':
     dependencies:
@@ -3437,6 +4283,16 @@ snapshots:
       '@syncfusion/ej2-popups': 34.2.6
 
   '@syncfusion/ej2-locale@34.2.2': {}
+
+  '@syncfusion/ej2-maps@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-compression': 34.2.6
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-file-utils': 34.2.6
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-svg-base': 34.2.6
 
   '@syncfusion/ej2-markdown-converter@34.2.6':
     dependencies:
@@ -3478,6 +4334,26 @@ snapshots:
     dependencies:
       '@syncfusion/ej2-compression': 34.2.6
 
+  '@syncfusion/ej2-pivotview@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-calendars': 34.2.2
+      '@syncfusion/ej2-charts': 34.2.2
+      '@syncfusion/ej2-compression': 34.2.6
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-excel-export': 34.2.6
+      '@syncfusion/ej2-file-utils': 34.2.6
+      '@syncfusion/ej2-grids': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-lists': 34.2.2
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-popups': 34.2.2
+      '@syncfusion/ej2-splitbuttons': 34.2.2
+      '@syncfusion/ej2-svg-base': 34.2.6
+
   '@syncfusion/ej2-popups@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3494,6 +4370,15 @@ snapshots:
       '@syncfusion/ej2-data': 34.2.2
       '@syncfusion/ej2-svg-base': 34.2.6
 
+  '@syncfusion/ej2-querybuilder@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-calendars': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-splitbuttons': 34.2.2
+
   '@syncfusion/ej2-richtexteditor@34.2.6':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3506,6 +4391,19 @@ snapshots:
       '@syncfusion/ej2-navigations': 34.2.6
       '@syncfusion/ej2-popups': 34.2.6
       '@syncfusion/ej2-splitbuttons': 34.2.6
+
+  '@syncfusion/ej2-schedule@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-buttons': 34.2.2
+      '@syncfusion/ej2-calendars': 34.2.2
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-dropdowns': 34.2.2
+      '@syncfusion/ej2-excel-export': 34.2.6
+      '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-lists': 34.2.2
+      '@syncfusion/ej2-navigations': 34.2.2
+      '@syncfusion/ej2-popups': 34.2.2
 
   '@syncfusion/ej2-splitbuttons@34.2.2':
     dependencies:
@@ -3527,6 +4425,15 @@ snapshots:
       '@syncfusion/ej2-data': 34.2.2
       '@syncfusion/ej2-grids': 34.2.2
       '@syncfusion/ej2-popups': 34.2.2
+
+  '@syncfusion/ej2-treemap@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-compression': 34.2.6
+      '@syncfusion/ej2-data': 34.2.2
+      '@syncfusion/ej2-file-utils': 34.2.6
+      '@syncfusion/ej2-pdf-export': 34.2.6
+      '@syncfusion/ej2-svg-base': 34.2.6
 
   '@syncfusion/ej2-vue-barcode-generator@34.2.2':
     dependencies:
@@ -3556,6 +4463,12 @@ snapshots:
       '@syncfusion/ej2-charts': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
+  '@syncfusion/ej2-vue-circulargauge@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-circulargauge': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
   '@syncfusion/ej2-vue-diagrams@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3580,10 +4493,40 @@ snapshots:
       '@syncfusion/ej2-grids': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
+  '@syncfusion/ej2-vue-heatmap@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-heatmap': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-image-editor@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-image-editor': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-inplace-editor@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-inplace-editor': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
   '@syncfusion/ej2-vue-inputs@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
       '@syncfusion/ej2-inputs': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-interactive-chat@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-interactive-chat': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-kanban@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-kanban': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
   '@syncfusion/ej2-vue-layouts@34.2.2':
@@ -3592,10 +4535,22 @@ snapshots:
       '@syncfusion/ej2-layouts': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
+  '@syncfusion/ej2-vue-lineargauge@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-lineargauge': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
   '@syncfusion/ej2-vue-lists@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
       '@syncfusion/ej2-lists': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-maps@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-maps': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
   '@syncfusion/ej2-vue-navigations@34.2.2':
@@ -3610,6 +4565,12 @@ snapshots:
       '@syncfusion/ej2-notifications': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
+  '@syncfusion/ej2-vue-pivotview@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-pivotview': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
   '@syncfusion/ej2-vue-popups@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
@@ -3622,11 +4583,31 @@ snapshots:
       '@syncfusion/ej2-progressbar': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
 
+  '@syncfusion/ej2-vue-querybuilder@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-querybuilder': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-schedule@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-schedule': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
   '@syncfusion/ej2-vue-splitbuttons@34.2.2':
     dependencies:
       '@syncfusion/ej2-base': 34.2.2
       '@syncfusion/ej2-splitbuttons': 34.2.2
       '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@syncfusion/ej2-vue-treemap@34.2.2':
+    dependencies:
+      '@syncfusion/ej2-base': 34.2.2
+      '@syncfusion/ej2-treemap': 34.2.2
+      '@syncfusion/ej2-vue-base': 34.2.2
+
+  '@tempis/timeline@1.3.0': {}
 
   '@types/chai@5.2.3':
     dependencies:
@@ -3658,6 +4639,8 @@ snapshots:
   '@types/qrcode@1.5.6':
     dependencies:
       '@types/node': 20.19.43
+
+  '@types/web-bluetooth@0.0.20': {}
 
   '@vitejs/plugin-vue-jsx@5.1.6(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))(vue@3.5.41(typescript@5.9.3))':
     dependencies:
@@ -3729,6 +4712,17 @@ snapshots:
       '@volar/language-core': 2.4.15
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
+
+  '@vue-flow/core@1.48.2(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@vueuse/core': 10.11.1(vue@3.5.41(typescript@5.9.3))
+      d3-drag: 3.0.0
+      d3-interpolate: 3.0.1
+      d3-selection: 3.0.0
+      d3-zoom: 3.0.0
+      vue: 3.5.41(typescript@5.9.3)
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   '@vue-office/docx@1.6.3(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))':
     dependencies:
@@ -3843,17 +4837,34 @@ snapshots:
 
   '@vue/shared@3.5.41': {}
 
+  '@vueuse/core@10.11.1(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.20
+      '@vueuse/metadata': 10.11.1
+      '@vueuse/shared': 10.11.1(vue@3.5.41(typescript@5.9.3))
+      vue-demi: 0.14.10(vue@3.5.41(typescript@5.9.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+
+  '@vueuse/metadata@10.11.1': {}
+
+  '@vueuse/shared@10.11.1(vue@3.5.41(typescript@5.9.3))':
+    dependencies:
+      vue-demi: 0.14.10(vue@3.5.41(typescript@5.9.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+
   ag-charts-community@12.3.1:
     dependencies:
       ag-charts-core: 12.3.1
       ag-charts-locale: 12.3.1
       ag-charts-types: 12.3.1
-    optional: true
 
   ag-charts-core@12.3.1:
     dependencies:
       ag-charts-types: 12.3.1
-    optional: true
 
   ag-charts-enterprise@12.3.1:
     dependencies:
@@ -3861,10 +4872,14 @@ snapshots:
       ag-charts-core: 12.3.1
     optional: true
 
-  ag-charts-locale@12.3.1:
-    optional: true
+  ag-charts-locale@12.3.1: {}
 
   ag-charts-types@12.3.1: {}
+
+  ag-charts-vue3@12.3.1(vue@3.5.41(typescript@5.9.3)):
+    dependencies:
+      ag-charts-community: 12.3.1
+      vue: 3.5.41(typescript@5.9.3)
 
   ag-grid-community@34.3.1:
     dependencies:
@@ -4029,6 +5044,42 @@ snapshots:
 
   csstype@3.2.3: {}
 
+  d3-color@3.1.0: {}
+
+  d3-dispatch@3.0.1: {}
+
+  d3-drag@3.0.0:
+    dependencies:
+      d3-dispatch: 3.0.1
+      d3-selection: 3.0.0
+
+  d3-ease@3.0.1: {}
+
+  d3-interpolate@3.0.1:
+    dependencies:
+      d3-color: 3.1.0
+
+  d3-selection@3.0.0: {}
+
+  d3-timer@3.0.1: {}
+
+  d3-transition@3.0.1(d3-selection@3.0.0):
+    dependencies:
+      d3-color: 3.1.0
+      d3-dispatch: 3.0.1
+      d3-ease: 3.0.1
+      d3-interpolate: 3.0.1
+      d3-selection: 3.0.0
+      d3-timer: 3.0.1
+
+  d3-zoom@3.0.0:
+    dependencies:
+      d3-dispatch: 3.0.1
+      d3-drag: 3.0.0
+      d3-interpolate: 3.0.1
+      d3-selection: 3.0.0
+      d3-transition: 3.0.1(d3-selection@3.0.0)
+
   data-urls@7.0.0(@noble/hashes@2.2.0):
     dependencies:
       whatwg-mimetype: 5.0.0
@@ -4085,6 +5136,8 @@ snapshots:
       - preact-render-to-string
 
   didi@11.0.0: {}
+
+  diff-match-patch@1.0.5: {}
 
   dijkstrajs@1.0.3: {}
 
@@ -4434,6 +5487,8 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  preact@10.12.1: {}
+
   preact@10.29.8: {}
 
   prettier@3.9.6: {}
@@ -4499,6 +5554,10 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.5
       '@rolldown/binding-win32-x64-msvc': 1.2.5
 
+  rrule@2.8.1:
+    dependencies:
+      tslib: 2.8.1
+
   rxjs@7.8.2:
     dependencies:
       tslib: 2.3.0
@@ -4534,6 +5593,8 @@ snapshots:
   shell-quote@1.9.0: {}
 
   siginfo@2.0.0: {}
+
+  signature_pad@5.1.4: {}
 
   source-map-js@1.2.1: {}
 
@@ -4608,6 +5669,8 @@ snapshots:
 
   tslib@2.3.0: {}
 
+  tslib@2.8.1: {}
+
   typescript@5.9.3: {}
 
   undici-types@6.21.0: {}
@@ -4624,6 +5687,10 @@ snapshots:
     dependencies:
       evtd: 0.2.4
       vue: 3.5.41(typescript@5.9.3)
+
+  vditor@3.11.3:
+    dependencies:
+      diff-match-patch: 1.0.5
 
   vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1):
     dependencies:

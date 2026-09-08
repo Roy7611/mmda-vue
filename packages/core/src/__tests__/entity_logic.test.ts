@@ -32,6 +32,27 @@ function createLogic(api: Record<string, unknown> = {}) {
 }
 
 describe("EntityLogic", () => {
+  it("group.rowDetail 记下孙子组名", () => {
+    const metaUi = createMockMetaUi(
+      [createMockField({ fieldName: "name", displayLabel: "名称" })],
+      { groupName: "items", fields: [createMockField({ fieldName: "qty" })] },
+    );
+    const init: EntityLogicInit = {
+      repository: "Items",
+      apiService: "base",
+      meta: { metaUi } as any,
+      module: { moduleCode: "A.01", objName: "Item" } as any,
+      metaUiService: {
+        getApiClient: () => ({}),
+        getPack: vi.fn(async () => ({ metaUi })),
+        findModule: vi.fn(),
+      } as any,
+    };
+    const logic = new ItemLogic((o) => new Item(o), init);
+    const group = logic.group("items").rowDetail("operations");
+    expect(group.rowDetailGroup).toBe("operations");
+  });
+
   it("field 从元数据取出 FieldLogic", () => {
     const { logic } = createLogic();
     expect(logic.field("name").field.fieldName).toBe("name");

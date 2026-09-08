@@ -76,14 +76,14 @@ export class UnitLogic extends UiLogic<Unit> {
           (fld, ctx: UiContext<Unit>, props) => {
             const { $ui: ui, $t: t } = ctx.globalProps;
             const fldRef = fld.reference;
-            return ui.factory.select({
-              modelValue: ctx.model.roundMode,
-              optionLabel: "text",
-              optionValue: "id",
-              options: fldRef.refOptions,
-              onUpdate: (value: string) => {
+            return ui.factory.dropDownList({
+              value: ctx.model.roundMode,
+              options: (fldRef.refOptions ?? []).map((option: any) => ({
+                value: fldRef.valueOf(option),
+                label: fldRef.labelOf(option),
+              })),
+              onChange: (value) => {
                 ctx.model.roundMode = value as any;
-                // 状态改为已修改
                 MetaModel.modify(ctx.model);
               },
             });
@@ -93,14 +93,14 @@ export class UnitLogic extends UiLogic<Unit> {
           (fld, ctx: UiContext<Unit>, props) => {
             const { $ui: ui, $t: t } = ctx.globalProps;
             const fldRef = fld.reference;
-            return ui.factory.select({
-              modelValue: ctx.model.unitType,
-              optionLabel: "text",
-              optionValue: "id",
-              options: fldRef.refOptions,
-              onUpdate: (value: string) => {
+            return ui.factory.dropDownList({
+              value: ctx.model.unitType,
+              options: (fldRef.refOptions ?? []).map((option: any) => ({
+                value: fldRef.valueOf(option),
+                label: fldRef.labelOf(option),
+              })),
+              onChange: (value) => {
                 ctx.model.unitType = value as any;
-                // 状态改为已修改
                 MetaModel.modify(ctx.model);
               },
             });

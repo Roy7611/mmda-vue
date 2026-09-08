@@ -8,7 +8,6 @@ import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
-import ProgressSpinner from 'primevue/progressspinner'
 import {
   defineComponent,
   h,
@@ -19,6 +18,7 @@ import {
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { createLoading } from '../factory/loading'
 
 export const SigninForm = defineComponent({
   name: 'SigninForm',
@@ -97,7 +97,7 @@ export const SigninForm = defineComponent({
           ? h(
               'div',
               { class: 'mmda-signin-form__loading' },
-              h(ProgressSpinner as any, { strokeWidth: '4' }),
+              createLoading(),
             )
           : null,
         h('form', { class: 'mmda-prime-auth-form mmda-signin-form', onSubmit: withModifiers(() => {}, ['prevent']) }, [

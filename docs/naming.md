@@ -46,11 +46,19 @@
 | `@mmda/core`               | 包名小写 | 框架无关：元数据、实体、Logic、HTTP、DI、**UI 契约**（`src/ui/`，无实现） |
 | `@mmda/vui`                |      | Vue 3 运行时：会话、拼屏、Builder；应用壳实现为 `MmdaVueApp` |
 | `@mmda/vui-*`              | 皮肤包  | PrimeVue / Syncfusion / Naive 控件实现     |
+| `@mmda/vuix-*`             |      | 跨皮肤或替代厂商的可选 UI 插件 |
+| `@mmda/vuix-echarts`        |      | ECharts 图表插件，应用 `setChartFactory` |
+| `@mmda/vuix-vf-diagram`        |      | Vue Flow 图插件，应用 `setDiagramPlugin` |
+| `@mmda/vuix-vditor-markdown` |     | Vditor Markdown 插件，应用 `setMarkdownEditorPlugin` |
+| `@mmda/vuix-svar-kanban`    |      | SVAR 看板插件，应用 `setKanbanPlugin` |
+| `@mmda/vuix-hyper-gantt`    |      | DlhSoft Hyper 甘特插件，应用 `setGanttPlugin` |
+| `@mmda/vuix-tempis-timeline` |     | Tempis 时间轴插件，应用 `setTimelinePlugin` 替换 `factory.timeline` |
+| `@mmda/vuix-fc-scheduler`   |      | FullCalendar 排程插件，应用 `setSchedulerPlugin` |
 | `@mmda/app`                |      | 统一 SPA 壳、Router、部署入口                   |
 | `@mmda/base` / `@mmda/mes` |      | 业务插件，不是独立 SPA                          |
 
 
-口语「vui」指运行时；「皮肤 / skin」指 `vui-primevue` 等。计划中的 React 运行时叫 `rui`，不要从 vui 抄组件。
+口语「vui」指运行时；「皮肤 / skin」指 `vui-primevue` 等；「vuix」指可选 UI 插件。计划中的 React 运行时叫 `rui`，不要从 vui 抄组件。
 
 ---
 
@@ -96,8 +104,8 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | 词 | 英文 | 典型写法 | 是什么 |
 | --- | --- | --- | --- |
 | 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳 |
-| 工厂 | Factory / `UiFactory` | `factory.table`、`fldFactory.dropdown` | 皮肤实现；vui 契约 [`ui/factory/factory.ts`](../packages/vui/src/ui/factory/factory.ts) |
-| 构建器契约 | `UiBuilder` | `confirm` / `dialog` / `buildView` | **core** `src/ui/builder.ts`，无 Vue |
+| 工厂 | Factory / `UiFactory` | `factory.table`、`fldFactory.dropDownList` | 皮肤实现；vui 契约 [`ui/factory/factory.ts`](../packages/vui/src/ui/factory/factory.ts) |
+| 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildView` | **core** `src/ui/builder.ts`，无 Vue |
 | 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
@@ -105,7 +113,7 @@ vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮
 
 ### chrome 参数
 
-按钮、Badge 等皮肤无关的视觉参数，vui 里只准这四个名：
+按钮、Badge 等皮肤无关的视觉参数，vui 里用这些名：
 
 | 中文 | 属性 | 不要写成 |
 | --- | --- | --- |
@@ -113,10 +121,16 @@ vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮
 | 大小 | `size` | 把厂商 `xlarge` 写进契约 |
 | 颜色 | `colorRole` | `severity`、`type`、`color` |
 | 位置 | `position` | 角标四角不要复用 tooltip 的 `UiPosition` |
+| 横竖 | `orientation`（类型 `UiOrientation` = `UiDirection`） | 控件私有 `*Orientation`（Splitter 的 `'Horizontal'\|'Vertical'` 除外） |
+| HTML | `htmlAttributes` | `attrs`、把 `title`/`name` 拆成 vui 专用字段 |
 
-`severity` 留给 toast / 校验轻重。Badge 细节：[设计](../packages/vui/docs/badge.md) / [怎么写](../packages/vui/docs/badge_usage.md)。
+`placeholder` / `disabled` 是控件具名属性，不进 `htmlAttributes`。皮肤默认把 `htmlAttributes` 透传到真实节点（EJ2 接组件的 `htmlAttributes`）。
+
+`severity` 留给 toast / 校验轻重。Badge 细节：[设计](../packages/vui/docs/badge.md) / [怎么写](../packages/vui/docs/badge_usage.md)。内容面板是 `factory.card`（[设计](../packages/vui/docs/card.md)），不是 `GroupCard`。分隔线是 `factory.divider`（[设计](../packages/vui/docs/divider.md)），不是菜单 `action.divider`。提示气泡是 `factory.tooltip`（[设计](../packages/vui/docs/tooltip.md)）包一层子节点；按钮上的 `tooltip` 仍是原生 `title`。就地编辑壳是 `factory.inplaceEditor`（[设计](../packages/vui/docs/inplace_editor.md)），点 display 换成 content；字段是 `inplaceFieldEditor` / `InplaceFieldEditor`，不要 `inplace` / `inplaceEdit` / `InplaceEditor`（后两个是表格 Logic / SF 类名）。表单还没接线。芯片列表是 `factory.chips`（[设计](../packages/vui/docs/chips.md)）。自由文本字段是 `tags`；枚举多值是 `enumChipSet` / `EnumChipSet`；按位勾选是 `bitChipSet` / `BitChipSet`。不要 `enumSetTags` / `BitTags`。横排位勾选仍是 `bitCheckBoxList`。文件链接是 `factory.fileLink`（[设计](../packages/vui/docs/file_link.md)），`Url` / `FileLink` 别名；值是 URL，不是 `externalLink`。单文件上传是 `factory.fileUploader`，多文件是 `filesUploader`（[设计](../packages/vui/docs/file_uploader.md)）；件数写在方法名里，不要 `factory.uploader` / `multiple`。单文件是 SearchBox 形输入框，框内可拖文件，**没有** `layout: 'dropArea'`。`fileUpload`→`filesUploader`。`FilePicker` / `ImagePicker` 现在暂时画 Uploader；以后是跟表单一起上传、只选和预览，见 [怎么写](../packages/vui/docs/file_uploader_usage.md)。图片上传是 `imageUploader` / `imagesUploader`（[设计](../packages/vui/docs/image_uploader.md)）。详情只读图是 `factory.image` / 子表 `imageGallery`。`UploadFile.uploader` 是上传人。取色是 `factory.colorPicker`（[设计](../packages/vui/docs/color_picker.md)），值是 hex，不是 `colorRole`。掩码输入是 `factory.maskedTextBox`（[设计](../packages/vui/docs/masked_text_box.md)），mask 用 EJ2 元素，不要 `InputMask` / `ejs-maskedtextbox` 当 vui 名。OTP 是 `factory.oneTimePasswordInput`（[设计](../packages/vui/docs/one_time_password_input.md)），不要 `InputOtp` / `ejs-otpinput` 当 vui 名。数值输入是 `factory.numberInput`（[设计](../packages/vui/docs/number_input.md)），format 用 EJ2 语法，不要 `NumericTextBox` / `InputNumber` 当 vui 名。进度条是 `factory.progressBar`（[设计](../packages/vui/docs/progress_bar.md)），值 0–100，不要 `ejs-progressbar` / `NProgress` 当 vui 名，不要当成 `factory.loading`。签名面板是 `factory.signaturePad`（[设计](../packages/vui/docs/signature_pad.md)），值是 PNG data URL，不要 `ejs-signature` / `SignatureComponent` / npm `signature_pad` 当 vui 名，不要当成 `imageEditor`。步骤条是 `factory.stepper`（[设计](../packages/vui/docs/stepper.md)），值是当前步索引；`items` 可绑子表行（`labelField` 等），不要 `ejs-stepper` / `StepperComponent` / `NSteps` 当 vui 名。时间轴是 `factory.timeline`（[设计](../packages/vui/docs/timeline.md)），默认事件列表，对侧缺省 `relativeTime`；`setTimelinePlugin` 换成 Tempis，不要 `ejs-timeline` / `TempisTimeline` / `NTimeline`。带输入选日是 `factory.datePicker`（[设计](../packages/vui/docs/date_picker.md)），选月是 `monthPicker` 捷径，不是 `factory.calendar`。封闭下拉是 `factory.dropDownList`（[设计](../packages/vui/docs/drop_down_list.md)），不要叫 `dropdown`。少选项单选组是 `factory.radioButtonGroup`（[设计](../packages/vui/docs/radio_button_group.md)），绑定对齐 DropDownList，不要 `ejs-radiobutton` / `radioGroup`，不要当成 `selectButtonGroup`。可编下拉是 `factory.comboBox`（[设计](../packages/vui/docs/combo_box.md)）。整钮菜单是 `factory.dropDownButton`（[设计](../packages/vui/docs/drop_down_button.md)），不要 `menuButton` / `dropdownMenuButton`。更多菜单是 `factory.moreMenuButton`（只调 `dropDownButton`）。主段+箭头是 `factory.splitButton`（[设计](../packages/vui/docs/split_button.md)）。浮钮是 `factory.floatingActionButton`（[设计](../packages/vui/docs/floating_action_button.md)），不是 SpeedDial，不要 `Fab` / `ejs-fab` 当 vui 名。
 
 以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用 `MetaUi` 生产 → vui Builder 只决定何时分页、分组、弹选择器。**不要**把 EJ2 / ag-grid / PrimeVue 控件写进 `@mmda/vui`。对外接口以 **list** 命名，子表走 **table**，皮肤实现用 **grid**，见 [list、table、grid](#listtablegrid)。
+
+表单标签+槽走 `factory.formField`（不要 `formItem`）。勾选 chrome 只有 `factory.checkBox`（不要两参 `checkbox`）。开关只有 `factory.switch`（不要 `toggleSwitch`）。封闭下拉走 `dropDownList`（不要 `factory.select`；`select(field)` 是选记录）。列表主路径是 `factory.table`（不要 `dataTable` / `primeVueTable` / `factory.column`）。卡片墙自己 `h` 拼，不要 `dataViewBox`。表头列筛只认 `UiListProps.filterDisplay`，Builder 缺省 `'none'`（不要 `factory.defaultFilterDisplay`）。字段配置名 `hasOneText` 落到实现 `externalLink`（`HasOneText` 别名仍有效）；文件 URL 仍是 `fileLink`。不要 `associationTable`。PascalCase 字段别名本轮仍双轨。
 
 ---
 
@@ -341,23 +355,27 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 
 ## list、table、grid
 
-三个词都是「把多行实体画出来」，层不同。**对外接口以 list 命名。**
+同一套 [`UiListProps`](../packages/vui/src/ui/factory/list.ts)，`display` 表示呈现意图，不是多套 props。契约文件仍是 `factory/list.ts`，不要再建 `ui_grid.ts`。整页（工具栏、搜索、分页）在 [`builder/list_view.ts`](../packages/vui/src/ui/builder/list_view.ts)。树形表额外字段在 [`factory/tree_grid.ts`](../packages/vui/src/ui/factory/tree_grid.ts)。
 
 ```text
-list     产品/契约     index 列出实体；ui_list.ts、UiListProps、buildListView
-table    桌面形态      list 的一种；子表用 table（factory.table / buildTable）
-grid     高能力实现    皮肤 SfGrid / AgGrid；不要当成 Builder 对外名
+list      display / 捷径    移动端卡片、行条；表格不合适
+table     display / 捷径    只读桌面：少模板、适合大行数浏览
+grid      display / 捷径    可编桌面：进格编辑、列筛、虚滚
+treeGrid  display / 捷径    嵌套/父子行；树字段仍在 tree_grid.ts
 ```
 
-| 词 | 用在 | 典型写法 | 不要 |
-|---|---|---|---|
-| **list** | 契约、index 页 | [`ui/factory/list.ts`](../packages/vui/src/ui/factory/list.ts)、`UiListProps`、`buildListView`、`factory.list` | 把视图叫 `list`（视图是 `index`） |
-| **table** | 桌面端的 list；**子表** | `buildTable`、`factory.table`、`UiTableCellRenderer` | 移动端主列表（那边用 ListView） |
-| **grid** | 皮肤实现、更高能力（虚滚、列筛、进格编） | `SfGrid`、`AgGrid`、`UiGridScene` | vui 再建 `ui_grid.ts` 当对外契约 |
+| `display` | 给谁 | 写法 |
+|---|---|---|
+| **list** | 移动端 | `buildList`、`factory.list` |
+| **table** | 只读桌面、只读子表 | `buildTable`、`factory.table` |
+| **grid** | 可编桌面、进格子表 | `buildGrid`、`factory.grid` |
+| **treeGrid** | 树形表 | `buildTreeGrid`、`factory.treeGrid` |
 
-`index` / `selectOne` / `selectMany` 列出实体：Builder 走 `buildListView`（props 在 `ui_list.ts`）。桌面皮肤把 list 画成 table/grid；手机一般是自己的 ListView，仍吃同一套 `UiListProps`。
+`index` / `selectOne` / `selectMany` 列出实体：Builder 走 `buildListView`（`UiListViewProps` 在 `list_view.ts`）。`display` 缺省：`inplaceEdit` 则 `grid`，否则 `table`；Logic 也可传 `list` / `treeGrid`。
 
-编辑/详情里的 **HAS_MANY 子表**用 table：`buildTable` → `factory.table`。实现仍可以是 Grid（能力够：进格编辑、合计），但调用名是 table，不是 `buildGrid`。
+表单 HAS_MANY：可编走 `display: grid`（`buildGrid` / `tableWithCells`），只读走 `table`；组 `displayShape` 是树则 `treeGrid`。
+
+本轮 table 与 grid **实现**可落到同一皮肤表格（SF 现网 `factory.table`、Naive AgGrid、Prime DataTable）。以后 table 收成轻量只读路径时，调用点不用改。皮肤控件名仍是 `SfGrid` / `AgGrid`。
 
 `scene`（`UiGridScene`）是表格默认开关，见下一节。`viewKind: list` 是整页形态，不是控件名。
 
@@ -374,7 +392,7 @@ grid     高能力实现    皮肤 SfGrid / AgGrid；不要当成 Builder 对外
 | `categoryList`   | 左树右表    |
 | `treeGrid`       | 树形表     |
 | `gantt`          | 甘特      |
-| `scheduler`      | 排程      |
+| `scheduler`      | 排程（日/周/月事件；皮肤 Sf / Fc） |
 
 
 不要把 `treeGrid` 写成 `view`。
@@ -476,9 +494,12 @@ export const UserStatusEnum = {
 | 出   | `EXPORT`   | 32  | `allowExport` | `export`               |
 | 入   | `IMPORT`   | 64  | `allowImport` | `import`               |
 | 模   | `UPLOAD`   | 128 | `allowUpload` | 上传模板                   |
+| 下   | `DOWNLOAD` | 256 | `allowDownload` | 文件 `fileLink` 能否包下载链 |
 
 
-组合口语句：`CRUD = 15`，`ALL = 255`。代码里用 `hasBit(allowOps, ModuleOp.EDIT)`，不要手写魔法数。
+组合口语句：`CRUD = 15`，`ALL = 255`（不含下载位）。代码里用 `hasBit(allowOps, ModuleOp.EDIT)`，不要手写魔法数。
+
+`factory.fileLink` 的 `downloadable` 接 `allowDownload !== false`（旧 authority 没这字段当能下）。无下载权仍可用 `preview`。不要另加权限位。
 
 权限字段一律 `allow` + 动词，**camelCase**：`allowRead`，不要 `canRead`、`readAuth`。行上还有实体标志 `editable` / `deletable`：会话里 `getModuleAuth(row)` 会把 `allowEdit && row.editable !== false` 合成后给按钮。
 
@@ -566,13 +587,16 @@ export const UserStatusEnum = {
 | 想说的      | 正确名字                                   | 不要写成                             |
 | -------- | -------------------------------------- | -------------------------------- |
 | 列表页      | `index`                                | 把视图写成 `list` / `table` / `grid`   |
-| 列出实体的契约 | `UiListProps` / `buildListView` / `ui_list.ts` | Builder 对外叫 `grid`、vui 建 `ui_grid.ts` |
-| 子表        | `buildTable` / `factory.table`         | `buildGrid`、移动端 ListView 顶主列表   |
-| 高能力表实现  | 皮肤 `SfGrid` / `AgGrid`                | 写进 vui、vui 再建 `ui/factories/`     |
+| 列出实体的契约 | `UiListProps`（`factory/list.ts`）+ 整页 `UiListViewProps`（`builder/list_view.ts`） | vui 建 `ui_grid.ts`、过时路径 `ui_list.ts` |
+| 只读表 / 只读子表 | `buildTable` / `factory.table` / `display: table` | 移动端主列表顶桌面表 |
+| 可编表 / 进格子表 | `buildGrid` / `factory.grid` / `display: grid` | 另起一套 grid props 文件 |
+| 树形表 | `buildTreeGrid` / `factory.treeGrid`；字段 `tree_grid.ts` | 把 `treeGrid` 写成 `view` |
+| 高能力表实现  | 皮肤 `SfGrid` / `AgGrid`（本轮可同时承接 table 与 grid） | 写进 vui、vui 再建 `ui/factories/`     |
 | 选一条 / 多条 | `selectOne` / `selectMany`             | `select`、`selector`（后者是表格 scene） |
 | 打开选记录弹层  | `context.select(field)` 或 `select({ repository })` | `pickRelative`、`buildSearchForRelativeContent`、新写 `UiSelector` |
-| 是/否确认      | `uiBuilder.confirm`                    | `confirmMessage`、`app.confirm`      |
-| 弹层塞内容      | `uiBuilder.dialog`                     | `confirmDialog`                      |
+| 是/否确认      | `uiBuilder.confirm`                    | `confirmMessage`、`app.confirm`、`accept` 回调      |
+| 弹层塞内容      | `uiBuilder.dialog`                     | `confirmDialog`、`factory.dialog`、`$toast`                      |
+| 提示           | `uiBuilder.toast`                      | `$toast.add`、`summary`/`detail`、`group` |
 | 壳上用户/模块   | `app.state`                            | `app.context`                        |
 | 新建       | `create`（视图）/ `Create`（路径）             | `new`、`add`（`add` 是子表加行动作）       |
 | 详情       | `details`                              | `detail`、`show`、`view`           |
@@ -586,7 +610,33 @@ export const UserStatusEnum = {
 | 无 Vue CRUD 基类 | `EntityLogic`（core）                 | `EntityManager`、`RepositoryLogic`   |
 | 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
 | 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
+| 取色         | `factory.colorPicker`（hex）           | `colorRole`、厂商 `modeSwitcher`     |
+| 掩码输入     | `factory.maskedTextBox`                | 普通 `input`、`InputMask`、`ejs-maskedtextbox` |
+| OTP          | `factory.oneTimePasswordInput`         | `InputOtp`、`ejs-otpinput`、普通 `input` |
+| 数值输入     | `factory.numberInput`                  | 普通 `input`、`NumericTextBox`、`InputNumber` |
+| 进度条       | `factory.progressBar`                  | `factory.loading`、`ejs-progressbar`、`NProgress` |
+| 签名面板     | `factory.signaturePad`（PNG data URL） | `imageEditor`、`ejs-signature`、`SignatureComponent`、npm `signature_pad` |
+| 步骤条       | `factory.stepper`（当前步索引；子表用 `*Field`） | `ejs-stepper`、`StepperComponent`、Prime `Stepper`、`NSteps` |
+| 时间轴       | `factory.timeline`（默认列表；插件 Tempis） | `ejs-timeline`、`TempisTimeline`、`NTimeline`；甘特；scheduler `timelineWeek` |
+| 相对时间     | `relativeTime`（core 函数 + vui 单元格） | `pastTime`、`futureTime` |
+| 横竖方向     | `UiOrientation`（=`UiDirection`）       | 控件私有 `UiStepperOrientation` / `UiDividerOrientation` / `UiChartOrientation`（已弃用）；Splitter 的 PascalCase 除外 |
+| 带输入选日   | `factory.datePicker` / `monthPicker`   | `factory.calendar`、厂商 `start`/`depth` |
+| 月视选日     | `factory.calendar`                     | `scheduler`、甘特                      |
+| 排程日历     | `scheduler` 插件 / `buildSchedulerView` | `factory.calendar`、`factory.scheduler`、`ejs-schedule`、`FullCalendar` |
+| 日期时间     | `factory.dateTimePicker`               | 当成 `datePicker` + 自己拼时间         |
+| 时刻         | `factory.timePicker`                   | 字符串 `"HH:mm"` 当 chrome 值          |
+| 日期区间     | `factory.dateRangePicker`（`[Date, Date]`） | `datePicker` + `selectionMode: range` |
+| 封闭下拉     | `factory.dropDownList`                 | `dropdown`、`DropdownList`           |
+| 少选项单选组 | `factory.radioButtonGroup`             | `radioGroup`、`ejs-radiobutton`、`selectButtonGroup` |
+| 整钮菜单     | `factory.dropDownButton`               | `menuButton`、`dropdownMenuButton`、`factory.dropDownMenu` |
+| 更多菜单     | `factory.moreMenuButton`               | `builder.moreMenuButton`（已删）     |
+| 主段+箭头    | `factory.splitButton`                  | 当成 `dropDownButton`（Naive 才降级） |
+| 浮钮         | `factory.floatingActionButton`         | `Fab`、`ejs-fab`、SpeedDial、`splitButton` |
+| 可编下拉     | `factory.comboBox`                     | 当成 `dropDownList` / `autoComplete` |
 | 角标叠放     | `factory.badge` + `overlay`            | Prime `OverlayBadge`、EJ2 `notification` 写进业务 |
+| 内容面板     | `factory.card`                         | `GroupCard` / `buildGroupCard`（那是表单分组） |
+| 分隔线       | `factory.divider`                      | 菜单 `action.divider`、breadcrumb `separator` |
+| 提示气泡     | `factory.tooltip`（包一层）            | 按钮 `tooltip` 原生 title、`ejs-tooltip`、`v-tooltip`、`NTooltip` |
 | 业务读接口    | `this.getAll` / `this.load` / `this.doAction` / `context.apiClient` | `context.globalProps.$api` |
 | 应用壳        | core `MmdaApplication`；vui `MmdaVueApp` | Vue `App`、`$app`、把 vui 壳仍叫 `MmdaApplication` |
 | 字段逻辑     | `MetaUiFieldLogic` / `this.field('x')` | 改共享的 `MetaUiField`               |

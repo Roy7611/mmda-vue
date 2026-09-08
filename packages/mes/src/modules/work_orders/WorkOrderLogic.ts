@@ -152,9 +152,8 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
 					const items = selection.filter((item: any) => MetaModel.hasAnyLike(target.members, { workerID: item.workerID }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						group: 'br',
-						detail: context.globalProps.$t('auth.WorkerError'),
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.globalProps.$t('auth.WorkerError'),
 						life: 3000
 					})
 					context.addSubGroupItems<WorkOrderMember>({

@@ -11,6 +11,8 @@ import {
 import {
   applyGanttLinksToTasks,
   createNoopGanttController,
+  ganttHookClass,
+  htmlAttributesOf,
   type UiGanttChartProps,
   type UiGanttController,
   type UiGanttLink,
@@ -219,7 +221,14 @@ export const SfGanttChart = defineComponent({
     )
 
     return () =>
-      h('div', { class: 'mmda-sf-gantt', 'data-loading': props.loading || undefined }, [
+      h(
+        'div',
+        {
+          class: ganttHookClass('mmda-sf-gantt', props.readonly),
+          'data-loading': props.loading || undefined,
+          ...htmlAttributesOf(props as any),
+        },
+        [
         h(GanttImpl, {
           ref: (el: any) => {
             instance.value = el?.ej2Instances ?? el

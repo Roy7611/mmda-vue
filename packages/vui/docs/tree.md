@@ -1,8 +1,14 @@
 # 树
 
-单纯树（节点标签 + 展开）。树形表格是另一套，见 [treegrid.md](./treegrid.md)。
+chrome 导航树走 `factory.tree`。[EJ2 Vue TreeView](https://ej2.syncfusion.com/vue/documentation/treeview/vue-3-getting-started)（[API](https://ej2.syncfusion.com/vue/documentation/api/treeview/index-default)）是 `TreeViewComponent` / `ejs-treeview`。vui 名是 **`tree`**。不要 `TreeView` / `ejs-treeview` / `NTree` 当 vui 名。
 
-`factory.tree` 是皮肤树控件（皮肤 `components/` 里实现，如 `NaiveTree` / `SfTree`）。`buildTree`（vui `ui/builder/tree.ts`）薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
+程序员用法：[tree_usage.md](./tree_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
+
+**没有** `fldFactory.tree`。树下拉是 [TreeSelect](./tree_select.md)；多列表格是 [树形表格](./treegrid.md)。`buildTreeView` 是 Builder 组合（搜索 + `factory.tree` + 底栏），不是厂商控件。
+
+单纯树（节点标签 + 展开）。
+
+`factory.tree` 是皮肤树控件（`SfTree` / `PrimeTree` / `NaiveTree`）。`buildTree`（vui `ui/builder/tree.ts`）薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
 
 ## 单纯树
 
@@ -78,14 +84,14 @@ export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
 }
 ```
 
-- 树顶：`header()` 有内容时画自定义顶栏（`mmda-tree-view-header`），替换内置过滤框。没有 `header` 且 `showSearchBar` 时，走 `factory.input` 本地过滤。左树右表的 `showTreeSearchBar` 在 `UiTreeListViewProps` 上，内部传给树的 `showSearchBar`。点节点仍走 `onNodeSelect`。
+- 树顶：`header()` 有内容时画自定义顶栏（`mmda-tree-view-header`），替换内置过滤框。没有 `header` 且 `showSearchBar` 时，走 `factory.textInput` 本地过滤。左树右表的 `showTreeSearchBar` 在 `UiTreeListViewProps` 上，内部传给树的 `showSearchBar`。点节点仍走 `onNodeSelect`。
 - `showTreeFooter`：树底栏，风格与 `AppUserFooter` 一致。优先级：`footer()` → `footerContent(selectedNode)` → `selectedNode` 的 label。
-- `loadMode`：有 `repository` 时默认 `eager`（一次 `getAll` 整树）。`lazy` 挂载走无参 `preloader()`（只拉顶层）；展开按 `fields.parentId` 查子节点，写回 `fields.children`。
+- `loadMode`：有 `repository` 时默认 `eager`（一次 `getAll` 整树）。`lazy` 时：分类 Logic **若实现了** `getRoots` / `getChildren` 就调用（程序员写在树实体 Logic 上，不是 `EntityLogic` 默认方法）；否则仍 `getAll` + `fields.parentId`。挂载还可走无参 `preloader()`（只拉顶层）；展开写回 `fields.children`。
 - `categoryList` 默认打开树顶搜索和底栏。点选节点只给右表 `search()` 过滤，不因 `loading` 整页 `build`。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。左树独立挂载：右表查询不重绘树，展开/选中走皮肤树控件 API。折叠只改布局，不听、不改查询。折叠控件走 `factory.splitter`（Syncfusion 为 `paneSettings.collapsible`）。
 - `editable`：工具条上的添加 / 重命名 / 删除（演示用）。默认不可编辑。
 - `allowDragDrop`：拖放到另一节点上改父节点。未设时：`editable === true`，或分类树有 `repository` 且模块 `allowEdit`。不要只因默认 `editMode: 'hover'` 就打开。`node.editable === false` 不能拖。拖到自己或子孙上取消。`Inside` 新父是目标节点；`Before` / `After` 新父是目标的父（空即升到根）。分类树 `save` 写 `fields.parentId` / `parentCatID` / `depth`，不 `reloadTick`（避免懒加载整树重拉）。落库失败才递增 `reloadTick`。
 - `repository`：分类仓库。节点操作用皮肤树控件：默认 `editMode: 'hover'`，悬停出现添加子节点；`contextMenu` 才启用各皮肤自带 ContextMenu。物料分类树示例开 `editMode: 'contextMenu'`。菜单按分类模块 `allowRead` / `allowCreate` / `allowEdit` / `allowDelete` 显示：查看、分隔、添加根/子/兄弟、分隔、删除（含子孙）、分隔、编辑、原地重命名。分类模块没有可用权限时回退到当前列表页模块权限。可编辑时一并打开拖放改父。
-- `buildTreeView` 只拼顶栏（`header()` 或 `factory.input`）+ `factory.tree` + 底栏，不自造树或菜单。左树右表的分隔条和折叠走 `factory.splitter`（各皮肤自己的 Splitter / `paneSettings`）。
+- `buildTreeView` 只拼顶栏（`header()` 或 `factory.textInput`）+ `factory.tree` + 底栏，不自造树或菜单。左树右表的分隔条和折叠走 `factory.splitter`（各皮肤自己的 Splitter / `paneSettings`）。
 
 ## 皮肤
 
@@ -93,8 +99,8 @@ export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
 
 | 皮肤 | 控件 | 菜单 | 重命名 | 拖放 |
 |---|---|---|---|---|
-| Syncfusion | `TreeViewComponent`；`iconCss` / `imageUrl`；`showCheckBox`；`nodeExpanded` → `onExpand` | `ContextMenuComponent.open` | `allowEditing` / F2 / 双击 / `beginEdit`；`nodeEdited` | `allowDragAndDrop`；`nodeDragStop` 防环；`nodeDropped` → `onNodeMove` |
-| Prime | `primevue/tree`；`selectionMode`；`@node-expand` → `onExpand` | 节点槽 `@contextmenu` + `ContextMenu.show` | 节点槽 `InputText`；F2 / 双击 | `dragdrop`；`@node-drop` → `onNodeMove` |
-| Agnaive | `NTree`；`checkable`；图标走节点 `prefix` | `node-props.onContextmenu` + `NDropdown` | `render-label` + `NInput`；F2 / 双击 | `draggable`；`on-drop` → `onNodeMove` |
+| Syncfusion | `SfTree` + `TreeViewComponent`；`iconCss` / `imageUrl`；`showCheckBox`；`nodeExpanded` → `onExpand` | `ContextMenuComponent.open` | `allowEditing` / F2 / 双击 / `beginEdit`；`nodeEdited` | `allowDragAndDrop`；`nodeDragStop` 防环；`nodeDropped` → `onNodeMove` |
+| Prime | `PrimeTree` + `primevue/tree`；`selectionMode`；`@node-expand` → `onExpand` | 节点槽 `@contextmenu` + `ContextMenu.show` | 节点槽 `InputText`；F2 / 双击 | `dragdrop`；`@node-drop` → `onNodeMove` |
+| Agnaive | `NaiveTree` + `NTree`；`checkable`；图标走节点 `prefix` | `node-props.onContextmenu` + `NDropdown` | `render-label` + `NInput`；F2 / 双击 | `draggable`；`on-drop` → `onNodeMove` |
 
 类型在 [`ui/factory/tree.ts`](../src/ui/factory/tree.ts)。

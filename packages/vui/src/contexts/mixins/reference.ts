@@ -109,9 +109,8 @@ export function WithReference<TBase extends Constructor>(
         if (!ref?.refRepository || !this.app) {
           this.app?.ui.toast(this, {
             severity: "error",
-            summary: this.t("dialog.title.error"),
-            detail: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
-            group: "br",
+            title: this.t("dialog.title.error"),
+            message: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
             life: 3000,
           });
           return false;
@@ -139,9 +138,8 @@ export function WithReference<TBase extends Constructor>(
           console.error(error);
           this.app.ui.toast(this, {
             severity: "error",
-            summary: this.t("dialog.title.error"),
-            detail: error instanceof Error ? error.message : String(error),
-            group: "br",
+            title: this.t("dialog.title.error"),
+            message: error instanceof Error ? error.message : String(error),
             life: 3000,
           });
           return false;

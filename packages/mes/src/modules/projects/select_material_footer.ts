@@ -25,7 +25,7 @@ export function createSelectMaterialFooter(param: {
 						class: 'mr-2',
 						icon: 'pi pi-times',
 						colorRole: 'info',
-						severity: 'danger',
+						severity: 'error',
 						id: 'dlg-cancel-button',
 						role: 'dlg-cancel-pick-button',
 						onAction: async () => {
@@ -44,8 +44,7 @@ export function createSelectMaterialFooter(param: {
 							if (selectMetarlList.data.length <= 0) {
 								context.uiBuilder.toast(context, {
 									severity: 'error',
-									summary: t('invalid.requiredSelectAny'),
-									group: 'br',
+									title: t('invalid.requiredSelectAny'),
 									life: 3000,
 								})
 								return false
@@ -73,7 +72,7 @@ export function createSelectMaterialFooter(param: {
 								if (resPackages) {
 									context.uiBuilder.toast(context, {
 										severity: 'success',
-										summary: t('success.operationSuccessful'),
+										title: t('success.operationSuccessful'),
 										life: 3000,
 									})
 									return true
@@ -82,8 +81,7 @@ export function createSelectMaterialFooter(param: {
 								context.uiBuilder.toast(context, {
 									severity: 'error',
 									title: t('dialog.title.error'),
-									summary: error.detail ?? '',
-									group: 'br',
+									title: error.detail ?? '',
 									life: 3000,
 								})
 								return false
@@ -102,8 +100,7 @@ export function createSelectMaterialFooter(param: {
 							if (selectMetarlList.data.length <= 0) {
 								context.uiBuilder.toast(context, {
 									severity: 'error',
-									summary: t('invalid.requiredSelectAny'),
-									group: 'br',
+									title: t('invalid.requiredSelectAny'),
 									life: 3000,
 								})
 								return false
@@ -131,7 +128,7 @@ export function createSelectMaterialFooter(param: {
 								if (resPackages) {
 									context.uiBuilder.toast(context, {
 										severity: 'success',
-										summary: t('success.operationSuccessful'),
+										title: t('success.operationSuccessful'),
 										life: 3000,
 									})
 									setTimeout(() => {
@@ -142,8 +139,7 @@ export function createSelectMaterialFooter(param: {
 								context.uiBuilder.toast(context, {
 									severity: 'error',
 									title: t('dialog.title.error'),
-									summary: error.detail ?? '',
-									group: 'br',
+									title: error.detail ?? '',
 									life: 3000,
 								})
 								return false

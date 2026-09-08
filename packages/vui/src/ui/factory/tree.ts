@@ -1,3 +1,11 @@
+/*
+ * Syncfusion: https://ej2.syncfusion.com/vue/documentation/treeview/vue-3-getting-started
+ * API: https://ej2.syncfusion.com/vue/documentation/api/treeview/index-default
+ *
+ * chrome 导航树走 factory.tree。vui 名是 tree，不要 TreeView / ejs-treeview / NTree。
+ * 不是 treeSelect（树下拉）、不是 treeGrid（多列表格）。没有 fldFactory.tree。
+ * buildTreeView 是 Builder 组合，不是厂商控件名。
+ */
 import type { VNodeChild } from 'vue'
 import type { UiAction } from './action'
 
@@ -52,6 +60,29 @@ export interface UiTreeEmits<T = any> {
 }
 
 export type UiTreePropsType<T = any> = UiTreeProps<T> & UiTreeEmits<T>
+
+export type UiTreeSelectionMode = NonNullable<UiTreeProps['selectionMode']>
+
+export function treeSelectionModeOf(
+  props: UiTreeProps = {},
+): UiTreeSelectionMode {
+  if (props.selectionMode === 'checkbox' || props.selectionMode === 'none') {
+    return props.selectionMode
+  }
+  return 'single'
+}
+
+export function treeModifierClasses(props: UiTreeProps = {}): unknown[] {
+  const mode = treeSelectionModeOf(props)
+  return [
+    'mmda-tree',
+    mode === 'checkbox' ? 'mmda-tree--checkbox' : undefined,
+    mode === 'none' ? 'mmda-tree--none' : undefined,
+    props.showIcon ? 'mmda-tree--icons' : undefined,
+    props.allowDragDrop ? 'mmda-tree--drag' : undefined,
+    props.class,
+  ]
+}
 
 export interface UiTreeViewProps<T = any> extends UiTreeProps<T> {
   /** 树顶搜索框，按节点文本本地过滤。 */

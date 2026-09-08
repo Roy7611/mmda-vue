@@ -6,31 +6,99 @@ import {
   type Module,
 } from '@mmda/core'
 import {
+  autoCompleteBindValue,
+  autoCompletePropsFromField,
+  checkBoxPropsFromField,
+  switchPropsFromField,
+  colorPickerPropsFromField,
+  maskedTextBoxPropsFromField,
+  numberInputPropsFromField,
+  textAreaPropsFromField,
+  textInputPropsFromField,
+  progressBarPropsFromField,
+  signaturePadPropsFromField,
+  stepperPropsFromField,
+  timelinePropsFromField,
+  timelineSqlOf,
+  relativeTime as relativeTimeView,
+  oneTimePasswordPropsFromField,
+  sliderPropsFromField,
+  ratingPropsFromField,
+  MOBILE_MASK,
+  ZIP_MASK,
+  datePickerPropsFromField,
+  dateRangePickerPropsFromField,
+  dateTimePickerPropsFromField,
+  monthPickerPropsFromField,
+  timePickerPropsFromField,
+  comboBoxPropsFromField,
+  dropDownListPropsFromField,
+  radioButtonGroupPropsFromField,
+  treeSelectPropsFromField,
+  multiSelectPropsFromField,
+  multiItemSelectPropsFromField,
+  multiValueSelectPropsFromField,
+  multiTextSelectPropsFromField,
+  multiBitSelectPropsFromField,
+  checkBoxListPropsFromField,
+  bitCheckBoxListPropsFromField,
+  tagAutoCompletePropsFromField,
+  chipsPropsFromField,
+  bitChipSetPropsFromField,
+  enumChipSetPropsFromField,
   cleanProps,
   fasIcon,
+  routeAutoCompleteField,
   TABLE_CELL_PROP_KEYS,
   type PropData,
   type UiFieldFactory,
   type UiViewContext,
 } from '@mmda/vui'
-import Checkbox from 'primevue/checkbox'
-import ColorPicker from 'primevue/colorpicker'
-import DatePicker from 'primevue/datepicker'
-import FileUpload from 'primevue/fileupload'
+import { createAutoComplete } from './factory/autocomplete'
+import { createCheckBox } from './factory/checkbox'
+import { createSwitch } from './factory/switch'
+import { createColorPicker } from './factory/color_picker'
+import { createMaskedTextBox } from './factory/maskedTextBox'
+import { createOneTimePasswordInput } from './factory/oneTimePasswordInput'
+import { createSlider } from './factory/slider'
+import { createRating } from './factory/rating'
+import { createNumberInput } from './factory/number_input'
+import { createTextArea } from './factory/text_area'
+import { createTextInput } from './factory/text_input'
+import { createProgressBar } from './factory/progress_bar'
+import { createSignaturePad } from './factory/signature_pad'
+import { createStepper } from './factory/stepper'
+import { createTimeline } from './factory/timeline'
+import { createDatePicker } from './factory/date_picker'
+import { createDateTimePicker } from './factory/date_time_picker'
+import { createTimePicker } from './factory/time_picker'
+import { createDateRangePicker } from './factory/date_range_picker'
+import { createComboBox } from './factory/combo_box'
+import { createDropDownList } from './factory/drop_down_list'
+import { createRadioButtonGroup } from './factory/radio_button_group'
+import {
+  createMultiBitSelect,
+  createMultiItemSelect,
+  createMultiSelect,
+  createMultiTextSelect,
+  createMultiValueSelect,
+} from './factory/multi_select'
+import { createBitCheckBoxList, createCheckBoxList } from './factory/check_box_list'
+import { createTagAutoComplete } from './factory/tag_auto_complete'
+import { createTreeSelect } from './factory/tree_select'
+import { createChips } from './factory/chips'
+import {
+  renderFileLinkField,
+  renderFileUploaderField,
+  renderFilesUploaderField,
+  renderImageUploaderField,
+  renderImagesUploaderField,
+  renderInplaceFieldEditor,
+} from '@mmda/vui'
 import Image from 'primevue/image'
-import InputMask from 'primevue/inputmask'
-import InputNumber from 'primevue/inputnumber'
-import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
-import MultiSelect from 'primevue/multiselect'
 import Password from 'primevue/password'
-import ProgressBar from 'primevue/progressbar'
-import Select from 'primevue/select'
-import Slider from 'primevue/slider'
 import Tag from 'primevue/tag'
-import Chip from 'primevue/chip'
-import Textarea from 'primevue/textarea'
-import ToggleSwitch from 'primevue/toggleswitch'
 
 type UiContext = UiViewContext<any>
 
@@ -74,10 +142,25 @@ const control = (
 }
 
 const textInput = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(InputText, field, context, props)
+  wrapChrome(
+    field,
+    context,
+    createTextInput(textInputPropsFromField(field, context, props ?? {})),
+  )
 
 const textArea = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(Textarea, field, context, props, { autoResize: true, rows: 3 })
+  wrapChrome(
+    field,
+    context,
+    createTextArea(
+      textAreaPropsFromField(field, context, {
+        rows: 3,
+        resizeMode: 'Vertical',
+        autoResize: true,
+        ...props,
+      }),
+    ),
+  )
 
 const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
   control(Password, field, context, props, {
@@ -85,60 +168,162 @@ const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
     toggleMask: true,
   })
 
-const dropdown = (field: MetaUiField, context: UiContext, props?: PropData) => {
-  const reference = field.reference
-  if (!reference) {
-    return control(Select, field, context, props, {
-      options: props?.options ?? [],
-      optionLabel: props?.optionLabel,
-      optionValue: props?.optionValue,
-      filter: true,
-      showClear: field.nullable,
-    })
-  }
-  // 对齐老代码：不设 optionValue，modelValue 为 getFieldValue 整对象（HAS_ONE 导航 / REF getRefObject）
-  const refFlds = reference.refFlds?.length ? reference.refFlds : ['value', 'text']
-  const valueKey = refFlds[0] ?? 'value'
-  const labelKey = refFlds[1] ?? valueKey
-  return control(Select, field, context, props, {
-    options: reference.refOptions ?? props?.options ?? [],
-    optionLabel:
-      refFlds.length > 2
-        ? (option: any) => reference.labelOf(option)
-        : labelKey,
-    dataKey: valueKey,
-    filter: true,
-    showClear: field.nullable,
-  })
+const dropDownList = (field: MetaUiField, context: UiContext, props?: PropData) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createDropDownList(dropDownListPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
+
+const radioButtonGroup = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createRadioButtonGroup(
+      radioButtonGroupPropsFromField(field, context, props ?? {}),
+    ),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
+
+const treeSelect = (field: MetaUiField, context: UiContext, props?: PropData) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
+
+const comboBox = (field: MetaUiField, context: UiContext, props?: PropData) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
 }
 
 const multiSelect = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createMultiSelect(
+      multiSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const multiItemSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createMultiItemSelect(
+      multiItemSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const multiValueSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createMultiValueSelect(
+      multiValueSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const multiTextSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createMultiTextSelect(
+      multiTextSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const multiBitSelect = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createMultiBitSelect(
+      multiBitSelectPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const checkBoxList = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createCheckBoxList(
+      checkBoxListPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const bitCheckBoxListField = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) =>
+  wrapChrome(
+    field,
+    context,
+    createBitCheckBoxList(
+      bitCheckBoxListPropsFromField(field, context as any, props ?? {}),
+    ),
+  )
+
+const tagAutoComplete = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
 ) => {
-  const reference = field.reference
-  if (!reference) {
-    return control(MultiSelect, field, context, props, {
-      options: props?.options ?? [],
-      optionLabel: props?.optionLabel,
-      filter: true,
-      display: 'chip',
-    })
-  }
-  const refFlds = reference.refFlds?.length ? reference.refFlds : ['value', 'text']
-  const valueKey = refFlds[0] ?? 'value'
-  const labelKey = refFlds[1] ?? valueKey
-  return control(MultiSelect, field, context, props, {
-    options: reference.refOptions ?? props?.options ?? [],
-    optionLabel:
-      refFlds.length > 2
-        ? (option: any) => reference.labelOf(option)
-        : labelKey,
-    dataKey: valueKey,
-    filter: true,
-    display: 'chip',
-  })
+  const mapped = tagAutoCompletePropsFromField(
+    field,
+    context as any,
+    props ?? {},
+  )
+  return wrapChrome(
+    field,
+    context,
+    createTagAutoComplete(mapped.value, mapped.props),
+  )
 }
 
 const numberInput = (
@@ -146,66 +331,106 @@ const numberInput = (
   context: UiContext,
   props?: PropData,
 ) =>
-  control(InputNumber, field, context, props, {
-    minFractionDigits: (field as any).scale,
-    maxFractionDigits: (field as any).scale,
-    useGrouping: false,
-  })
+  wrapChrome(
+    field,
+    context,
+    createNumberInput(
+      numberInputPropsFromField(field, context, props ?? {}),
+    ),
+  )
 
 const percentInput = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
 ) =>
-  control(InputNumber, field, context, props, {
-    mode: 'decimal',
-    suffix: '%',
-    min: 0,
-    max: 100,
-  })
+  wrapChrome(
+    field,
+    context,
+    createNumberInput(
+      numberInputPropsFromField(field, context, {
+        kind: 'percent',
+        min: 0,
+        max: 100,
+        ...props,
+      }),
+    ),
+  )
 
-const checkbox = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(Checkbox, field, context, props, { binary: true, fluid: false })
+const checkbox = (field: MetaUiField, context: UiContext, props?: PropData) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
 
-const switcher = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(ToggleSwitch, field, context, props, { fluid: false })
+const switchControl = (field: MetaUiField, context: UiContext, props?: PropData) => {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createSwitch(switchPropsFromField(field, context, props ?? {})),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
+
+function wrapChrome(
+  field: MetaUiField,
+  context: UiContext,
+  child: VNode,
+) {
+  const invalid = invalidOf(field, context)
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    child,
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
 
 const datePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(DatePicker, field, context, props, {
-    dateFormat: 'yy-mm-dd',
-    showIcon: true,
-  })
+  wrapChrome(
+    field,
+    context,
+    createDatePicker(datePickerPropsFromField(field, context, props ?? {})),
+  )
 
 const dateTimePicker = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
 ) =>
-  control(DatePicker, field, context, props, {
-    dateFormat: 'yy-mm-dd',
-    showTime: true,
-    showSeconds: true,
-    hourFormat: '24',
-    showIcon: true,
-  })
+  wrapChrome(
+    field,
+    context,
+    createDateTimePicker(
+      dateTimePickerPropsFromField(field, context, props ?? {}),
+    ),
+  )
 
 const monthPicker = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
 ) =>
-  control(DatePicker, field, context, props, {
-    view: 'month',
-    dateFormat: 'yy-mm',
-    showIcon: true,
-  })
+  wrapChrome(
+    field,
+    context,
+    createDatePicker(monthPickerPropsFromField(field, context, props ?? {})),
+  )
 
 const timePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  control(DatePicker, field, context, props, {
-    timeOnly: true,
-    showSeconds: true,
-    hourFormat: '24',
-  })
+  wrapChrome(
+    field,
+    context,
+    createTimePicker(timePickerPropsFromField(field, context, props ?? {})),
+  )
 
 const fallbackDisplay = (
   field: MetaUiField,
@@ -231,7 +456,7 @@ const fallbackInput = (
     return searchBox(field, context, props)
   }
   if (field.reference?.refOptions?.length)
-    return dropdown(field, context, props)
+    return dropDownList(field, context, props)
   if (SqlDataType.isBool(field.dataType)) return checkbox(field, context, props)
   if (SqlDataType.isNum(field.dataType))
     return numberInput(field, context, props)
@@ -312,6 +537,32 @@ const searchBox = (
   })
 }
 
+const autoComplete = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+): VNode => {
+  const route = routeAutoCompleteField(field)
+  if (route === 'dropDownList') return dropDownList(field, context, props)
+  if (route === 'searchBox') return searchBox(field, context, props)
+  const invalid = invalidOf(field, context)
+  const reference = field.reference?.isRef ? field.reference : undefined
+  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    createAutoComplete(
+      autoCompleteBindValue(context.getFieldValue(field), { reference }),
+      {
+        ...autoCompletePropsFromField(field, props ?? {}),
+        disabled: context.isFieldReadonly(field),
+        onUpdate: update(field, context),
+      },
+    ),
+    invalid &&
+      h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ])
+}
+
 const tag = (field: MetaUiField, context: UiContext, props?: PropData) =>
   h(Tag, {
     value: context.displayField(field, props?.row),
@@ -320,50 +571,15 @@ const tag = (field: MetaUiField, context: UiContext, props?: PropData) =>
   })
 
 const tags = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  h(
-    'div',
-    { class: 'mmda-prime-tags' },
-    tagLabels(field, context, props).map((label) =>
-      h(Tag, { value: label, ...props }),
-    ),
-  )
+  createChips(chipsPropsFromField(field, context, props ?? {}))
 
-const chips = (field: MetaUiField, context: UiContext, props?: PropData) =>
-  h(
-    'div',
-    { ...props, class: ['mmda-chips', props?.class] },
-    tagLabels(field, context, props).map((label) =>
-      h(Chip, { label }),
-    ),
-  )
+const chips = tags
 
-const tagLabels = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: PropData,
-): string[] => {
-  const raw = context.getFieldValue(field, props?.row)
-  const labelOf = (value: any) =>
-    String(
-      field.reference?.labelOf?.(value) ??
-        value?.label ??
-        value?.text ??
-        value ??
-        '',
-    ).trim()
-  if (raw == null || raw === '') return []
-  if (Array.isArray(raw)) return raw.map(labelOf).filter(Boolean)
-  if (typeof raw === 'number' && field.reference?.refOptions?.length) {
-    return field.reference.refOptions
-      .filter((item: any) => Number(field.reference!.valueOf(item)) & raw)
-      .map(labelOf)
-      .filter(Boolean)
-  }
-  return String(raw)
-    .split(/[,;|]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-}
+const bitChipSet = (field: MetaUiField, context: UiContext, props?: PropData) =>
+  createChips(bitChipSetPropsFromField(field, context, props ?? {}))
+
+const enumChipSet = (field: MetaUiField, context: UiContext, props?: PropData) =>
+  createChips(enumChipSetPropsFromField(field, context, props ?? {}))
 
 const cellDomProps = (props?: PropData) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
@@ -457,83 +673,118 @@ const externalLink = (
   )
 }
 
-const fileLink = (field: MetaUiField, context: UiContext, props?: PropData) => {
-  const value = context.getFieldValue(field, props?.row)
-  return h(
-    'a',
-    {
-      href: value,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      ...cellDomProps(props),
-    },
-    context.displayField(field, props?.row) || String(value ?? ''),
-  )
-}
-
 const factory: UiFieldFactory = {
   fallbackDisplay,
   fallbackInput,
   textInput,
   textArea,
   password,
-  dropdown,
-  select: dropdown,
+  dropDownList,
+  select: dropDownList,
+  radioButtonGroup,
   multiSelect,
+  multiItemSelect,
+  multiValueSelect,
+  multiTextSelect,
+  multiBitSelect,
+  checkBoxList,
+  bitCheckBoxList: bitCheckBoxListField,
   numberInput,
   positiveNumberInput: (field, context, props) =>
     numberInput(field, context, { min: 0, ...props }),
   negativenumberInput: (field, context, props) =>
     numberInput(field, context, { max: 0, ...props }),
   percentInput,
-  checkbox,
-  switcher,
-  Switcher: switcher,
+  checkBox: checkbox,
+  switch: switchControl,
+  Switcher: switchControl,
+  switcher: switchControl,
   datePicker,
   dateTimePicker,
   monthPicker,
   timePicker,
   dateRangePicker: (field, context, props) =>
-    control(DatePicker, field, context, props, {
-      selectionMode: 'range',
-      dateFormat: 'yy-mm-dd',
-      showIcon: true,
-    }),
+    wrapChrome(
+      field,
+      context,
+      createDateRangePicker(
+        dateRangePickerPropsFromField(field, context, props ?? {}),
+      ),
+    ),
+  maskedTextBox: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      createMaskedTextBox(
+        maskedTextBoxPropsFromField(field, context, props ?? {}),
+      ),
+    ),
+  oneTimePasswordInput: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      createOneTimePasswordInput(
+        oneTimePasswordPropsFromField(field, context, props ?? {}),
+      ),
+    ),
   mobileInput: (field, context, props) =>
-    control(InputMask, field, context, props, { mask: '999 9999 9999' }),
+    wrapChrome(
+      field,
+      context,
+      createMaskedTextBox(
+        maskedTextBoxPropsFromField(field, context, {
+          ...props,
+          mask: MOBILE_MASK,
+        }),
+      ),
+    ),
   zipCodeInput: (field, context, props) =>
-    control(InputMask, field, context, props, { mask: '999999' }),
+    wrapChrome(
+      field,
+      context,
+      createMaskedTextBox(
+        maskedTextBoxPropsFromField(field, context, {
+          ...props,
+          mask: ZIP_MASK,
+        }),
+      ),
+    ),
   slider: (field, context, props) =>
-    control(Slider, field, context, props, { fluid: false }),
-  colorPicker: (field, context, props) =>
-    control(ColorPicker, field, context, props, { fluid: false }),
+    wrapChrome(
+      field,
+      context,
+      createSlider(sliderPropsFromField(field, context, props ?? {})),
+    ),
+  rating: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      createRating(ratingPropsFromField(field, context, props ?? {})),
+    ),
+  colorPicker: (field, context, props) => {
+    const invalid = invalidOf(field, context)
+    return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+      createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
+      invalid &&
+        h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
+          (context as any).getInvalidMessage?.(field),
+        ),
+    ])
+  },
   filePicker: (field, context, props) =>
-    h(FileUpload, {
-      mode: 'basic',
-      name: field.fieldName,
-      chooseLabel: field.displayLabel,
-      disabled: context.isFieldReadonly(field),
-      customUpload: true,
-      auto: true,
-      onUploader: (event: any) =>
-        context.setFieldValue(field, event.files?.[0] ?? event.files),
-      ...props,
-    }),
+    renderFileUploaderField(field, context as any, props ?? {}),
   fileUpload: (field, context, props) =>
-    h(FileUpload, {
-      name: field.fieldName,
-      multiple: true,
-      disabled: context.isFieldReadonly(field),
-      customUpload: true,
-      onUploader: (event: any) => context.setFieldValue(field, event.files),
-      ...props,
-    }),
+    renderFilesUploaderField(field, context as any, props ?? {}),
+  fileUploader: (field, context, props) =>
+    renderFileUploaderField(field, context as any, props ?? {}),
+  filesUploader: (field, context, props) =>
+    renderFilesUploaderField(field, context as any, props ?? {}),
   imagePicker: (field, context, props) =>
-    h(Image, {
-      src: context.getFieldValue(field, props?.row),
-      preview: true,
-      ...props,
-    }),
+    renderImageUploaderField(field, context as any, props ?? {}),
+  imageUploader: (field, context, props) =>
+    renderImageUploaderField(field, context as any, props ?? {}),
+  imagesUploader: (field, context, props) =>
+    renderImagesUploaderField(field, context as any, props ?? {}),
   image: (field, context, props) =>
     h(Image, {
       src: context.getFieldValue(field, props?.row),
@@ -541,15 +792,38 @@ const factory: UiFieldFactory = {
       ...props,
     }),
   progressBar: (field, context, props) =>
-    h(ProgressBar, {
-      value: Number(context.getFieldValue(field, props?.row) ?? 0),
-      ...props,
+    createProgressBar(progressBarPropsFromField(field, context, props ?? {})),
+  signaturePad: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      createSignaturePad(signaturePadPropsFromField(field, context, props ?? {})),
+    ),
+  stepper: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      createStepper(stepperPropsFromField(field, context, props ?? {})),
+    ),
+  timeline: (field, context, props) =>
+    wrapChrome(
+      field,
+      context,
+      ((context as any).uiBuilder?.factory?.timeline ?? createTimeline)(
+        timelinePropsFromField(field, context, props ?? {}),
+      ),
+    ),
+  relativeTime: (field, context, props) =>
+    relativeTimeView(timelineSqlOf(context.getFieldValue(field, props?.row)) ?? '', {
+      locale: (context as any).locale,
     }),
   tag,
   tags,
   chips,
-  enumSetTags: tags,
-  fileLink,
+  bitChipSet,
+  enumChipSet,
+  fileLink: (field, context, props) =>
+    renderFileLinkField(field, context as any, props ?? {}),
   externalLink,
   textSpan: fallbackDisplay,
   span: fallbackDisplay,
@@ -593,11 +867,11 @@ const factory: UiFieldFactory = {
     }),
   searchInput: textInput,
   searchBox,
-  comboBox: dropdown,
-  autoComplete: dropdown,
-  associationTable: fallbackDisplay,
-  treeSelect: dropdown,
-  enumSetCheckboxGroup: multiSelect,
+  comboBox,
+  autoComplete,
+  tagAutoComplete,
+  treeSelect,
+  enumSetCheckboxGroup: multiBitSelect,
   toHoursInput: numberInput,
   toMinutesInput: numberInput,
   toSecondsInput: numberInput,
@@ -617,17 +891,23 @@ const factory: UiFieldFactory = {
   statusLight: tag,
 }
 
+factory.inplaceFieldEditor = (field, context, props) =>
+  renderInplaceFieldEditor(field, context as any, props ?? {}, factory)
+
 const aliases: Record<string, string> = {
   TextBox: 'textInput',
   TextField: 'textInput',
   TextArea: 'textArea',
   AutoComplete: 'autoComplete',
-  DropdownList: 'dropdown',
+  TagAutoComplete: 'tagAutoComplete',
+  DropDownList: 'dropDownList',
+  RadioButtonGroup: 'radioButtonGroup',
   Combobox: 'comboBox',
   DatePicker: 'datePicker',
   DateTimePicker: 'dateTimePicker',
   MonthPicker: 'monthPicker',
   TimePicker: 'timePicker',
+  DateRangePicker: 'dateRangePicker',
   NumberInput: 'numberInput',
   ToHoursInput: 'toHoursInput',
   ToMinutesInput: 'toMinutesInput',
@@ -636,18 +916,32 @@ const aliases: Record<string, string> = {
   NegativenumberInput: 'negativenumberInput',
   PercentInput: 'percentInput',
   SpinBox: 'numberInput',
-  CheckBox: 'checkbox',
-  Checkbox: 'checkbox',
+  CheckBox: 'checkBox',
+  Checkbox: 'checkBox',
+  checkbox: 'checkBox',
+  Switch: 'switch',
+  Switcher: 'switch',
   SearchBox: 'searchBox',
-  AssociationTable: 'associationTable',
-  CheckBoxList: 'enumSetCheckboxGroup',
-  BitCheckBoxList: 'enumSetCheckboxGroup',
+  CheckBoxList: 'checkBoxList',
+  BitCheckBoxList: 'bitCheckBoxList',
+  MultiSelect: 'multiSelect',
+  MultiItemSelect: 'multiItemSelect',
+  MultiValueSelect: 'multiValueSelect',
+  MultiTextSelect: 'multiTextSelect',
+  MultiBitSelect: 'multiBitSelect',
   Slider: 'slider',
+  Rating: 'rating',
   ColorPicker: 'colorPicker',
   FilePicker: 'filePicker',
   FileUpload: 'fileUpload',
+  FileUploader: 'fileUploader',
+  FilesUploader: 'filesUploader',
   ImagePicker: 'imagePicker',
-  PastTime: 'fallbackDisplay',
+  ImageUploader: 'imageUploader',
+  ImagesUploader: 'imagesUploader',
+  FileLink: 'fileLink',
+  Url: 'fileLink',
+  InplaceFieldEditor: 'inplaceFieldEditor',
   MultilineText: 'multilineText',
   Percentage: 'percentage',
   AmountText: 'amountText',
@@ -655,14 +949,18 @@ const aliases: Record<string, string> = {
   Tag: 'tag',
   Tags: 'tags',
   Chips: 'chips',
-  BitTags: 'enumSetTags',
-  BitChipSet: 'enumSetTags',
-  EnumChipSet: 'enumSetTags',
+  BitChipSet: 'bitChipSet',
+  EnumChipSet: 'enumChipSet',
   CheckIcon: 'checkIcon',
   CheckedIcon: 'checkedIcon',
   HasOneText: 'externalLink',
+  hasOneText: 'externalLink',
   ColorBox: 'colorBox',
   ProgressBar: 'progressBar',
+  SignaturePad: 'signaturePad',
+  Stepper: 'stepper',
+  Timeline: 'timeline',
+  RelativeTime: 'relativeTime',
   Image: 'image',
   StatusLight: 'statusLight',
 }

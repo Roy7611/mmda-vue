@@ -25,10 +25,12 @@ export function createBadge(props: UiBadgeProps) {
     overlay: _overlay,
     position: _position,
     class: _class,
+    htmlAttributes,
     ...rest
   } = props
   return h(NBadge, {
     ...rest,
+    ...htmlAttributes,
     value: shape === 'dot' ? undefined : value,
     type: naiveType(colorRole) as any,
     dot: shape === 'dot',

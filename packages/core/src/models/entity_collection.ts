@@ -1,6 +1,7 @@
 import { isEmpty, isString } from '../utils/is'
 import type { Entity } from './entity'
-import { created, deleted, destroy } from './entity_state'
+import { EntityState } from './entity'
+import { created, deleted, destroy, isEntity, reset } from './entity_state'
 
 export type NumberGetter<E> = (e: E) => number | null | undefined;
 const getNumProp = (e: any, prop: string) => e[prop] as number;
@@ -138,4 +139,56 @@ export function clearItems<E extends Entity>(entities: E[]) {
   for (const item of entities) {
     destroy(item);
   }
+}
+
+export type SyncSelectionOptions<E extends Entity> = {
+  keyOf: (item: unknown) => unknown
+  createFrom: (selected: unknown) => E
+}
+
+/**
+ * 把勾选结果同步到子表：去掉走 deleteItem，新增 CREATED，已删再勾 reset。
+ * 原地改 `current`，不要整表替换。
+ */
+export function syncSelection<E extends Entity>(
+  current: E[],
+  selected: unknown[],
+  opts: SyncSelectionOptions<E>,
+): E[] {
+  const selectedKeys = new Set(
+    selected
+      .map((item) => opts.keyOf(item))
+      .filter((key) => key != null && key !== ''),
+  )
+  const byKey = new Map<unknown, E>()
+  for (const row of current) {
+    byKey.set(opts.keyOf(row), row)
+  }
+  for (const row of [...current]) {
+    const key = opts.keyOf(row)
+    if (selectedKeys.has(key)) {
+      if (deleted(row)) reset(row)
+      continue
+    }
+    deleteItem(current, row)
+    if (!current.includes(row)) byKey.delete(key)
+  }
+  for (const item of selected) {
+    const key = opts.keyOf(item)
+    if (key == null || key === '') continue
+    const existing = byKey.get(key)
+    if (existing) {
+      if (deleted(existing)) reset(existing)
+      continue
+    }
+    const createdRow = opts.createFrom(item)
+    if (!isEntity(createdRow) || createdRow.entityState == null) {
+      ;(createdRow as E).entityState = EntityState.CREATED
+    } else if (!created(createdRow)) {
+      createdRow.entityState = EntityState.CREATED
+    }
+    addItem(current, createdRow)
+    byKey.set(key, createdRow)
+  }
+  return current
 }

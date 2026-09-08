@@ -1,13 +1,4 @@
-import {
-  defineComponent,
-  h,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  unref,
-  watch,
-} from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import {
   ensureListFieldVisibleWhenFrozen,
   isListFrozen,
@@ -19,9 +10,10 @@ import {
   persistListPack,
   type UiViewContext,
 } from "@mmda/vui";
-import { createSpinner, hideSpinner, showSpinner } from "@syncfusion/ej2-popups";
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid-inject";
+
+export { SfGridLoadingHost } from "../components/SfLoadingHost";
 
 /**
  * EJ2 GridComponent 外壳（provide 注入模块）。
@@ -46,66 +38,6 @@ export const SfGridHost = defineComponent({
 
 /** @deprecated 使用 SfGridHost；保留别名以免旧 import 断裂 */
 export const SfGrid = SfGridHost;
-
-/**
- * 绑定 context.loading（Ref 或 boolean）：查询中盖住表格并用 EJ2 Spinner。
- * `e-icons e-spin` 不是有效字形，必须用 createSpinner/showSpinner。
- */
-export const SfGridLoadingHost = defineComponent({
-  name: "SfGridLoadingHost",
-  props: {
-    loading: { type: [Boolean, Object], default: false },
-  },
-  setup(props, { slots }) {
-    const hostRef = ref<HTMLElement | null>(null);
-    let spinnerReady = false;
-
-    const ensureSpinner = (el: HTMLElement) => {
-      if (spinnerReady) return;
-      createSpinner({
-        target: el,
-        width: 42,
-        type: "Material3",
-      });
-      spinnerReady = true;
-    };
-
-    const sync = () => {
-      const el = hostRef.value;
-      if (!el) return;
-      ensureSpinner(el);
-      if (Boolean(unref(props.loading as any))) showSpinner(el);
-      else hideSpinner(el);
-    };
-
-    onMounted(() => {
-      void nextTick(sync);
-    });
-    onBeforeUnmount(() => {
-      const el = hostRef.value;
-      if (el && spinnerReady) hideSpinner(el);
-    });
-    watch(
-      () => unref(props.loading as any),
-      () => {
-        void nextTick(sync);
-      },
-    );
-
-    return () =>
-      h(
-        "div",
-        {
-          ref: hostRef,
-          class: [
-            "mmda-sf-grid-loading-host",
-            Boolean(unref(props.loading as any)) ? "is-loading" : null,
-          ],
-        },
-        slots.default?.(),
-      );
-  },
-});
 
 /** EJ2 autoFit 会把 width 写成 `180px`；Number('180px') 是 NaN，listSize 就写不回去。 */
 export const parseGridColumnWidth = (width: unknown): number | undefined => {

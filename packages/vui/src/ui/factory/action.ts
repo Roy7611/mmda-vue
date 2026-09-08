@@ -73,6 +73,8 @@ export interface UiAction {
   group?: string;
   loading?: boolean; // 是否正在加载
   view?: string; //显示在那几个视图，比如details,edit，若为空则全部显示
+  /** 子菜单。dropDownButton / splitButton 皮肤读取。 */
+  items?: UiAction[];
 }
 
 /** Normalize backend action roles before passing them to a UI skin. */
@@ -172,10 +174,9 @@ export const UiContextAction = (
       if (context.executing) {
         context.uiBuilder
           .toast(context, {
-            severity: "warn",
-            group: "br",
-            summary: context.translate("dialog.title.warning"),
-            detail: context.translate("failure.executing"),
+            severity: "warning",
+            title: context.translate("dialog.title.warning"),
+            message: context.translate("failure.executing"),
             life: 3000,
           })
         return Promise.reject({ cause: "executing" })

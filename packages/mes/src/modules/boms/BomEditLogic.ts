@@ -263,6 +263,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 	if (groups.length == 0) {
 		groups.push(
 			this.group<BomItem>('items')
+				.rowDetail('operations')
 				.lockIf((m, ctx) => !isCurrentBomRow(m, ctx))
 				.itemDeletable((row, _master, ctx) => isCurrentBomRow(row, ctx))
 				.onChange((ctx: UiContext<any>, model, items) => {

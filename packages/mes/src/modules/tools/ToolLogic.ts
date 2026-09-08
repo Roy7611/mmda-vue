@@ -107,9 +107,8 @@ const getCreateData = async (params: any, propData: any, context: UiContext) => 
 			context,
 			{
 				severity: 'error',
-				summary: context.t('dialog.title.error'),
-				detail: error.message ?? context.t('invalid.requestFailed'),
-				group: 'br',
+				title: context.t('dialog.title.error'),
+				message: error.message ?? context.t('invalid.requestFailed'),
 				life: 3000
 			}
 		)
@@ -118,7 +117,7 @@ const getCreateData = async (params: any, propData: any, context: UiContext) => 
 }
 // 借出
 const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $t: t } = context.globalProps;
+	const { $t: t} = context.globalProps;
 	try {
 		await context.uiBuilder.dialog(
 			toolsLendNode({
@@ -139,14 +138,13 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				accept: async () => {
+				onAccept: async () => {
 					console.log('lendData.data.ownerID', lendData.data.ownerID);
 					if (isRefNone(lendData.data.ownerID)) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							detail: t('auth.selectASuperintendent'),
-							summary: context.t('dialog.title.error'),
-							group: 'br',
+							message: t('auth.selectASuperintendent'),
+							title: context.t('dialog.title.error'),
 							// position: 'bottom-right',
 							life: 3000,
 						});
@@ -166,10 +164,10 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 							}
 						);
 						if (res) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'success',
-								detail: t('auth.LendSuccess'),
-								summary: t('dialog.success'),
+								message: t('auth.LendSuccess'),
+								title: t('dialog.success'),
 								// position: 'bottom-right',
 								life: 3000,
 							});
@@ -194,7 +192,7 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 
 // 移动
 const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $t: t } = context.globalProps;
+	const { $t: t} = context.globalProps;
 	try {
 		await context.uiBuilder.dialog(
 			toolsMoveNode({
@@ -214,13 +212,12 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				accept: async () => {
+				onAccept: async () => {
 					if (isRefNone(moveData.data.moveTo)) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							detail: t('auth.writetMoveTo'),
-							summary: context.t('dialog.title.error'),
-							group: 'br',
+							message: t('auth.writetMoveTo'),
+							title: context.t('dialog.title.error'),
 							// position: 'bottom-right',
 							life: 3000,
 						});
@@ -242,10 +239,10 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 							}
 						);
 						if (res) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'success',
-								detail: t('auth.MoveSuccess'),
-								summary: t('dialog.success'),
+								message: t('auth.MoveSuccess'),
+								title: t('dialog.success'),
 								// position: 'bottom-right',
 								life: 3000,
 							});
@@ -267,7 +264,7 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 
 // 维修
 const beforeToolsRepair = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $t: t } = context.globalProps;
+	const { $t: t} = context.globalProps;
 	try {
 		await context.uiBuilder.dialog(
 			toolsLendNode({
@@ -287,13 +284,12 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				accept: async () => {
+				onAccept: async () => {
 					if (isRefNone(repairData.data.ownerID)) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							detail: t('auth.selectASuperintendent'),
-							summary: context.t('dialog.title.error'),
-							group: 'br',
+							message: t('auth.selectASuperintendent'),
+							title: context.t('dialog.title.error'),
 							// position: 'bottom-right',
 							life: 3000,
 						});
@@ -312,10 +308,10 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 							}
 						);
 						if (res) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'success',
-								detail: t('auth.RepairSuccess'),
-								summary: t('dialog.success'),
+								message: t('auth.RepairSuccess'),
+								title: t('dialog.success'),
 								// position: 'bottom-right',
 								life: 3000,
 							});
@@ -337,7 +333,7 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 
 // 归还
 const beforeToolsReturn = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $toast: toast, $t: t } = context.globalProps;
+	const { $t: t} = context.globalProps;
 	try {
 		await context.uiBuilder.dialog(
 			toolsMoveNode({
@@ -355,13 +351,12 @@ const beforeToolsReturn = async (context: UiContext, model: Tool, action: Entity
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				accept: async () => {
+				onAccept: async () => {
 					if (isRefNone(returnData.data.moveTo)) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							detail: t('auth.writetMoveTo'),
-							summary: context.t('dialog.title.error'),
-							group: 'br',
+							message: t('auth.writetMoveTo'),
+							title: context.t('dialog.title.error'),
 							// position: 'bottom-right',
 							life: 3000,
 						});
@@ -383,10 +378,10 @@ const beforeToolsReturn = async (context: UiContext, model: Tool, action: Entity
 							}
 						);
 						if (res) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'success',
-								detail: t('auth.ReturnSuccess'),
-								summary: t('dialog.success'),
+								message: t('auth.ReturnSuccess'),
+								title: t('dialog.success'),
 								// position: 'bottom-right',
 								life: 3000,
 							});
@@ -616,9 +611,8 @@ export class ToolLogic extends UiLogic<Tool> {
 			await context.uiBuilder
 				.toast(context, {
 					severity: "error",
-					group: "br",
-					summary: t("invalid.error"),
-					detail: t("invalid.requiredSelectAny"),
+					title: t("invalid.error"),
+					message: t("invalid.requiredSelectAny"),
 					life: 3000,
 				})
 				.then(() => {
@@ -642,18 +636,16 @@ export class ToolLogic extends UiLogic<Tool> {
 					});
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						summary: t('dialog.success'),
-						detail: t('success.toolsStored'),
-						group: 'br',
+						title: t('dialog.success'),
+						message: t('success.toolsStored'),
 						life: 3000,
 					});
 					return true;
 				} catch (error: any) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message ?? t('invalid.requestFailed'),
-						group: 'br',
+						title: t('dialog.title.error'),
+						message: error.message ?? t('invalid.requestFailed'),
 						life: 3000
 					})
 				}
@@ -670,19 +662,18 @@ export class ToolLogic extends UiLogic<Tool> {
 		// if (!MetaModel.hasAny(selectedItems)) {
 		// 	await context.uiBuilder.toast(context, {
 		// 		severity: "error",
-		// 		group: "br",
-		// 		summary: t("invalid.error"),
-		// 		detail: t("invalid.requiredSelectAny"),
+		//,
+		// 		title: t("invalid.error"),
+		// 		message: t("invalid.requiredSelectAny"),
 		// 		life: 3000,
 		// 	});
 		// 	return Promise.reject(new Error("没有选择数据"));
 		// }
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchEnable', { count: selectedItems.length }),
-			header: t('tool.batchEnable'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				try {
+			title: t('tool.batchEnable')
+		})) {
+try {
 					await this.apiClient.doAction({
 						action: 'batchStartUsing',
 						repository: 'Tools',
@@ -692,9 +683,8 @@ export class ToolLogic extends UiLogic<Tool> {
 
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						summary: t('dialog.success'),
-						detail: t('success.toolsEnabled'),
-						group: 'br',
+						title: t('dialog.success'),
+						message: t('success.toolsEnabled'),
 						life: 3000,
 					});
 
@@ -702,16 +692,13 @@ export class ToolLogic extends UiLogic<Tool> {
 				} catch (error: any) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message ?? t('invalid.requestFailed'),
-						group: 'br',
+						title: t('dialog.title.error'),
+						message: error.message ?? t('invalid.requestFailed'),
 						life: 3000,
 					});
 					return false;
 				}
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量借出
@@ -722,9 +709,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t('invalid.error'),
-				detail: t('invalid.requiredSelectAny'),
+				title: t('invalid.error'),
+				message: t('invalid.requiredSelectAny'),
 				life: 3000,
 			});
 			throw new Error(t('invalid.requiredSelectAny'));
@@ -744,18 +730,16 @@ export class ToolLogic extends UiLogic<Tool> {
 		}).then(() => {
 			context.uiBuilder.toast(context, {
 				severity: 'success',
-				summary: t('dialog.success'),
-				detail: t('success.toolsLent'),
-				group: 'br',
+				title: t('dialog.success'),
+				message: t('success.toolsLent'),
 				life: 3000,
 			});
 			return true;
 		}).catch((error: any) => {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: t('dialog.title.error'),
-				detail: error.message ?? t('invalid.requestFailed'),
-				group: 'br',
+				title: t('dialog.title.error'),
+				message: error.message ?? t('invalid.requestFailed'),
 				life: 3000,
 			});
 			return false;
@@ -770,9 +754,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			await context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
@@ -792,18 +775,16 @@ export class ToolLogic extends UiLogic<Tool> {
 		}).then(() => {
 			context.uiBuilder.toast(context, {
 				severity: 'success',
-				summary: t('dialog.success'),
-				detail: t('success.toolsMoved'),
-				group: 'br',
+				title: t('dialog.success'),
+				message: t('success.toolsMoved'),
 				life: 3000,
 			});
 			return true;
 		}).catch((error: any) => {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: t('dialog.title.error'),
-				detail: error.message ?? t('invalid.requestFailed'),
-				group: 'br',
+				title: t('dialog.title.error'),
+				message: error.message ?? t('invalid.requestFailed'),
 				life: 3000,
 			});
 			return false;
@@ -818,9 +799,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
@@ -855,7 +835,7 @@ export class ToolLogic extends UiLogic<Tool> {
 				closeOnClickModal: false,
 				acceptLabel: t('tool.confirmReturn'),
 				rejectLabel: t('action.cancel'),
-				accept: async () => {
+				onAccept: async () => {
 					// 检查使用次数是否超限
 					const exceededTools = selectedItems.filter((item: any) => {
 						const inputCycles = returnParmas.value?.[item.toolID] || 0;
@@ -865,9 +845,8 @@ export class ToolLogic extends UiLogic<Tool> {
 						const toolNos = exceededTools.map((item: any) => item.toolNo).join('、');
 						context.uiBuilder.toast(context, {
 							severity: 'error',
-							summary: t('dialog.title.prompt'),
-							detail: t('tool.toolsOverMaxUseCount', { it: toolNos }),
-							group: 'br',
+							title: t('dialog.title.prompt'),
+							message: t('tool.toolsOverMaxUseCount', { it: toolNos }),
 							life: 3000,
 						});
 						return false;
@@ -882,9 +861,8 @@ export class ToolLogic extends UiLogic<Tool> {
 						});
 						context.uiBuilder.toast(context, {
 							severity: 'success',
-							summary: t('dialog.success'),
-							detail: t('success.toolsReturned'),
-							group: 'br',
+							title: t('dialog.success'),
+							message: t('success.toolsReturned'),
 							life: 3000,
 						});
 
@@ -892,9 +870,8 @@ export class ToolLogic extends UiLogic<Tool> {
 					} catch (error: any) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
-							summary: t('dialog.title.error'),
-							detail: error.message ?? t('invalid.requestFailed'),
-							group: 'br',
+							title: t('dialog.title.error'),
+							message: error.message ?? t('invalid.requestFailed'),
 							life: 3000,
 						});
 						return false;
@@ -905,12 +882,11 @@ export class ToolLogic extends UiLogic<Tool> {
 		);
 
 		// old logic 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchReturn', { count: selectedItems.length }),
-			header: t('tool.batchReturn'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				try {
+			title: t('tool.batchReturn')
+		})) {
+try {
 					await this.apiClient.doAction({
 						action: 'batchReturn',
 						repository: 'Tools',
@@ -919,9 +895,8 @@ export class ToolLogic extends UiLogic<Tool> {
 					});
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						summary: t('dialog.success'),
-						detail: t('success.toolsReturned'),
-						group: 'br',
+						title: t('dialog.success'),
+						message: t('success.toolsReturned'),
 						life: 3000,
 					});
 
@@ -929,16 +904,13 @@ export class ToolLogic extends UiLogic<Tool> {
 				} catch (error: any) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message ?? t('invalid.requestFailed'),
-						group: 'br',
+						title: t('dialog.title.error'),
+						message: error.message ?? t('invalid.requestFailed'),
 						life: 3000,
 					});
 					return false;
 				}
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量检修
@@ -950,28 +922,25 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
 		}
 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchRepair', { count: selectedItems.length }),
-			header: t('tool.batchRepair'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				Overhaulparams.batchOverhaul.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
+			title: t('tool.batchRepair')
+		})) {
+Overhaulparams.batchOverhaul.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
 					refID: v.toolID
 				})))
 				const data = await getCreateData(Overhaulparams.batchOverhaul, propsData.batchOverhaul, context)
 				context.uiBuilder.toast(context, {
 					severity: 'success',
-					summary: t('dialog.success'),
-					detail: t('success.toolsRepaired'),
-					group: 'br',
+					title: t('dialog.success'),
+					message: t('success.toolsRepaired'),
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
@@ -981,9 +950,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					query: { id: data.maintenanceID },
 				})
 				window.open(routerURL.href, '_blank')
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量改制
@@ -995,28 +962,25 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
 		}
 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchRemake', { count: selectedItems.length }),
-			header: t('tool.batchRemake'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				Retrofitparams.batchRetrofit.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
+			title: t('tool.batchRemake')
+		})) {
+Retrofitparams.batchRetrofit.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
 					refID: v.toolID
 				})))
 				const data = await getCreateData(Retrofitparams.batchRetrofit, propsData.batchOverhaul, context)
 				context.uiBuilder.toast(context, {
 					severity: 'success',
-					summary: t('dialog.success'),
-					detail: t('success.toolsRemade'),
-					group: 'br',
+					title: t('dialog.success'),
+					message: t('success.toolsRemade'),
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
@@ -1026,9 +990,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					query: { id: data.maintenanceID },
 				})
 				window.open(routerURL.href, '_blank')
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量维修
@@ -1040,28 +1002,25 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
 		}
 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchMaintain', { count: selectedItems.length }),
-			header: t('tool.batchMaintain'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				Repairparams.batchRepair.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
+			title: t('tool.batchMaintain')
+		})) {
+Repairparams.batchRepair.refItemKeys = selectedItems.map((v: any) => (Object.assign({}, {
 					refID: v.toolID
 				})))
 				const data = await getCreateData(Repairparams.batchRepair, propsData.batchOverhaul, context)
 				context.uiBuilder.toast(context, {
 					severity: 'success',
-					summary: t('dialog.success'),
-					detail: t('success.toolsMaintained'),
-					group: 'br',
+					title: t('dialog.success'),
+					message: t('success.toolsMaintained'),
 					life: 3000,
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
@@ -1071,9 +1030,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					query: { id: data.maintenanceID },
 				})
 				window.open(routerURL.href, '_blank')
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量报废
@@ -1084,20 +1041,18 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
 		}
 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchScrap', { count: selectedItems.length }),
-			header: t('tool.batchScrap'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				try {
+			title: t('tool.batchScrap')
+		})) {
+try {
 					await this.apiClient.doAction({
 						action: 'batchScrap',
 						repository: 'Tools',
@@ -1106,9 +1061,8 @@ export class ToolLogic extends UiLogic<Tool> {
 					});
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						summary: t('dialog.success'),
-						detail: t('success.toolsScrapped'),
-						group: 'br',
+						title: t('dialog.success'),
+						message: t('success.toolsScrapped'),
 						life: 3000,
 					});
 
@@ -1116,16 +1070,13 @@ export class ToolLogic extends UiLogic<Tool> {
 				} catch (error: any) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message ?? t('invalid.requestFailed'),
-						group: 'br',
+						title: t('dialog.title.error'),
+						message: error.message ?? t('invalid.requestFailed'),
 						life: 3000,
 					});
 					return false;
 				}
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 批量处置
@@ -1136,20 +1087,18 @@ export class ToolLogic extends UiLogic<Tool> {
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(context, {
 				severity: "error",
-				group: "br",
-				summary: t("invalid.error"),
-				detail: t("invalid.requiredSelectAny"),
+				title: t("invalid.error"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000,
 			});
 			return;
 		}
 
-		return await context.uiBuilder.confirm(context, {
+		if (await context.uiBuilder.confirm(context, {
 			message: t('tool.confirmBatchDispose', { count: selectedItems.length }),
-			header: t('tool.batchDispose'),
-			icon: "pi pi-exclamation-triangle",
-			accept: async () => {
-				try {
+			title: t('tool.batchDispose')
+		})) {
+try {
 					await this.apiClient.doAction({
 						action: 'batchDispose',
 						repository: 'Tools',
@@ -1158,25 +1107,21 @@ export class ToolLogic extends UiLogic<Tool> {
 					});
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						summary: t('dialog.success'),
-						detail: t('success.toolsDisposed'),
-						group: 'br',
+						title: t('dialog.success'),
+						message: t('success.toolsDisposed'),
 						life: 3000,
 					});
 					return true;
 				} catch (error: any) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message ?? t('invalid.requestFailed'),
-						group: 'br',
+						title: t('dialog.title.error'),
+						message: error.message ?? t('invalid.requestFailed'),
 						life: 3000,
 					});
 					return false;
 				}
-			},
-			reject: () => false,
-		});
+};
 	}
 
 	// 领料
@@ -1204,7 +1149,7 @@ export class ToolLogic extends UiLogic<Tool> {
 					},
 					showCancelButton: true,
 					closeOnClickModal: false,
-					accept: async () => {
+					onAccept: async () => {
 						if (submitFn.value) {
 							const result = await submitFn.value();
 							if (result) {
@@ -1672,11 +1617,11 @@ export class ToolLogic extends UiLogic<Tool> {
 		}), {
 			title: title,
 			name: 'addDirectory',
-			accept: async () => {
+			onAccept: async () => {
 				await this.saveFn(ctx, toolCategory);
 				return true
 			},
-			reject: async () => {
+			onReject: async () => {
 				return false
 			}
 		})
@@ -1714,7 +1659,7 @@ export class ToolLogic extends UiLogic<Tool> {
 	async editHandle(ctx: UiContext, node: ToolCategory) {
 		this.categoryName.value = node.categoryName
 		try {
-			ctx.uiBuilder.dialog(ctx.uiBuilder.factory.formItem(
+			ctx.uiBuilder.dialog(ctx.uiBuilder.factory.formField(
 				{
 					label: ctx.t('tool.categoryName'),
 					name: 'categoryName',
@@ -1731,12 +1676,12 @@ export class ToolLogic extends UiLogic<Tool> {
 				height: '30%',
 				name: 'editDirectory',
 				showFooter: true,
-				accept: async () => {
+				onAccept: async () => {
 					MetaModel.modify(node)
 					await this.saveFn(ctx, { ...node, categoryName: this.categoryName.value });
 					return ctx.refresh(false)
 				},
-				reject: async () => {
+				onReject: async () => {
 					return false
 				}
 			}).finally(() => this.categoryName.value = '')
@@ -1744,9 +1689,8 @@ export class ToolLogic extends UiLogic<Tool> {
 		} catch (error: any) {
 			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',
-				summary: ctx.t('dialog.title.error'),
-				detail: error.message ?? ctx.t('auth.operationFailed'),
-				group: 'br',
+				title: ctx.t('dialog.title.error'),
+				message: error.message ?? ctx.t('auth.operationFailed'),
 				life: 3000
 			})
 		}
@@ -1765,8 +1709,8 @@ export class ToolLogic extends UiLogic<Tool> {
 				this.searchFn(ctx);
 				ctx.uiBuilder.toast(ctx, {
 					severity: 'success',
-					summary: ctx.t('dialog.success'),
-					detail: ctx.t('success.operationSuccessful'),
+					title: ctx.t('dialog.success'),
+					message: ctx.t('success.operationSuccessful'),
 					life: 3000
 				})
 			})
@@ -1774,9 +1718,8 @@ export class ToolLogic extends UiLogic<Tool> {
 				const errmsg = err.validationErrors[0]?.error
 				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					summary: ctx.t('dialog.title.error'),
-					detail: errmsg ?? ctx.t('auth.operationFailed'),
-					group: 'br',
+					title: ctx.t('dialog.title.error'),
+					message: errmsg ?? ctx.t('auth.operationFailed'),
 					life: 3000
 				})
 			});
@@ -1790,37 +1733,25 @@ export class ToolLogic extends UiLogic<Tool> {
 	 */
 	deleteFn(ctx: UiContext, childrenCount: number, params: any) {
 		try {
-			ctx.uiBuilder.confirm(ctx, {
+			if (await ctx.uiBuilder.confirm(ctx, {
 				message: ctx.t('tool.deleteCategoryConfirm'),
-				header: ctx.t('tool.category'),
-				icon: "pi pi-exclamation-triangle",
-				rejectProps: {
-					id: "delete_no",
-					label: ctx.t("dialog.cancel"),
-					severity: "secondary",
-					outlined: true,
-				},
-				acceptProps: {
-					id: "delete_yes",
-					label: ctx.t("dialog.ok"),
-				},
-				accept: async () => {
-					if (childrenCount) {
+				title: ctx.t('tool.category')
+			})) {
+if (childrenCount) {
 						return await this.apiClient.deleteAll(params, this.treeProps.deleteAllUrlParams).then((res: any) => {
 							this.searchFn(ctx);
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'success',
-								summary: ctx.t('dialog.success'),
-								detail: ctx.t('success.operationSuccessful'),
+								title: ctx.t('dialog.success'),
+								message: ctx.t('success.operationSuccessful'),
 								life: 3000
 							})
 						})
 							.catch((err: any) => {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
-									summary: ctx.t('dialog.title.error'),
-									detail: err.message ?? ctx.t('auth.operationFailed'),
-									group: 'br',
+									title: ctx.t('dialog.title.error'),
+									message: err.message ?? ctx.t('auth.operationFailed'),
 									life: 3000
 								})
 							});
@@ -1831,30 +1762,26 @@ export class ToolLogic extends UiLogic<Tool> {
 								this.searchFn(ctx);
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'success',
-									summary: ctx.t('dialog.success'),
-									detail: ctx.t('success.operationSuccessful'),
+									title: ctx.t('dialog.success'),
+									message: ctx.t('success.operationSuccessful'),
 									life: 3000
 								})
 							})
 							.catch((err: any) => {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
-									summary: ctx.t('dialog.title.error'),
-									detail: err.message ?? ctx.t('auth.operationFailed'),
-									group: 'br',
+									title: ctx.t('dialog.title.error'),
+									message: err.message ?? ctx.t('auth.operationFailed'),
 									life: 3000
 								})
 							});
 					}
-
-				},
-			});
+};
 		} catch (error: any) {
 			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',
-				summary: ctx.t('dialog.title.error'),
-				detail: error.message ?? ctx.t('auth.operationFailed'),
-				group: 'br',
+				title: ctx.t('dialog.title.error'),
+				message: error.message ?? ctx.t('auth.operationFailed'),
 				life: 3000
 			})
 		}

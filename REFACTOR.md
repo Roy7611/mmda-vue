@@ -105,11 +105,11 @@ vui-primevue 把 bpmn-js、`@vue-office/*`、Chart.js、二维码、Font Awesome
 
 - `PrimeVueUiBuilder` 继承 `VueUiBuilder`，实现 chrome、搜索栏、登录、toast/confirm。
 - `createPrimeVueUiFactory()`：按钮、DataTable、分页、菜单、dialog/drawer、Chart 入口。
-- `createPrimeVueFieldFactory()`：旧 metadata editor/renderer 名（`TextBox`、`DropdownList` 等）映射到 PrimeVue 控件。
+- `createPrimeVueFieldFactory()`：旧 metadata editor/renderer 名（`TextBox`、`DropDownList` 等）映射到 PrimeVue 控件。
 - `layout.fieldMessage = false`，校验走控件 `invalid` + `Message`。
 - 列过滤写 `filterModel` → `searchParam.searchParams`，不拼 SQL。
 - `mmdaPrimeVue` 安装 PrimeVue + Confirmation / Dialog / Toast；根上要挂 `PrimeVueOverlayHost` 或 `MmdaPrimeApp`。
-- 可选：`BpmnModeler`、`FilePreview`、`CodeImage`、HelpPanel、图表。
+- 可选：`BpmnModeler`、`FilePreview`、`factory.barcode` / `factory.qrCode`、HelpPanel、图表。
 
 PrimeVue 版本：默认 **4.5.5** + `@primevue/themes` 4.5.4 + PrimeIcons 7。PrimeVue 5 需要 PrimeUI 商业许可证，无许可证时页面被「Invalid PrimeUI License」阻断，因此不作为默认皮肤。
 

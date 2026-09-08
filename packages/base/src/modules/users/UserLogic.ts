@@ -66,7 +66,7 @@ const beforeChangePwd = async (
     const factory = context.uiBuilder.factory;
     await context.uiBuilder.dialog(
       [
-        factory.formItem?.(
+        factory.formField?.(
           {
             name: "newPwd",
             label: context.t("auth.newPassword"),
@@ -75,16 +75,17 @@ const beforeChangePwd = async (
           },
           {
             default: () =>
-              factory.input?.(pwdData.data.newPwd, {
-                type: "password",
+              factory.textInput({
+                value: pwdData.data.newPwd,
+                type: "Password",
                 autocomplete: "new-password",
-                "onUpdate:modelValue": (value: string) => {
+                onChange: (value: string) => {
                   pwdData.data.newPwd = value;
                 },
               }),
           },
         ),
-        factory.formItem?.(
+        factory.formField?.(
           {
             name: "newPwdAgain",
             label: context.t("auth.confirmNewPassword"),
@@ -93,10 +94,11 @@ const beforeChangePwd = async (
           },
           {
             default: () =>
-              factory.input?.(pwdData.data.newPwdAgain, {
-                type: "password",
+              factory.textInput({
+                value: pwdData.data.newPwdAgain,
+                type: "Password",
                 autocomplete: "new-password",
-                "onUpdate:modelValue": (value: string) => {
+                onChange: (value: string) => {
                   pwdData.data.newPwdAgain = value;
                 },
               }),
@@ -110,7 +112,7 @@ const beforeChangePwd = async (
         height: "auto",
         maxHeight: "70vh",
         showFooter: true,
-        accept: async () => {
+        onAccept: async () => {
           pwdData.data.userID = model.userID ?? "";
           const toast = (props: Record<string, unknown>) =>
             context.uiBuilder.toast(context, props);
@@ -118,9 +120,8 @@ const beforeChangePwd = async (
           if (!pwdData.data.userID) {
             toast({
               severity: "error",
-              detail: context.t("auth.userIdMissing"),
-              summary: context.t("dialog.title.error"),
-              group: "br",
+              message: context.t("auth.userIdMissing"),
+              title: context.t("dialog.title.error"),
               life: 3000,
             });
             return false;
@@ -129,9 +130,8 @@ const beforeChangePwd = async (
           if (!pwdData.data.newPwd) {
             toast({
               severity: "error",
-              detail: context.t("auth.pleaseEnterNewPassword"),
-              summary: context.t("dialog.title.error"),
-              group: "br",
+              message: context.t("auth.pleaseEnterNewPassword"),
+              title: context.t("dialog.title.error"),
               life: 3000,
             });
             return false;
@@ -140,9 +140,8 @@ const beforeChangePwd = async (
           if (pwdData.data.newPwd !== pwdData.data.newPwdAgain) {
             toast({
               severity: "error",
-              detail: context.t("auth.passwordMismatch"),
-              summary: context.t("dialog.title.error"),
-              group: "br",
+              message: context.t("auth.passwordMismatch"),
+              title: context.t("dialog.title.error"),
               life: 3000,
             });
             return false;
@@ -166,8 +165,8 @@ const beforeChangePwd = async (
             if (res) {
               toast({
                 severity: "success",
-                detail: context.t("auth.changePasswordSuccess"),
-                summary: context.t("dialog.success"),
+                message: context.t("auth.changePasswordSuccess"),
+                title: context.t("dialog.success"),
                 life: 3000,
               });
               await context.app?.signOut();
@@ -177,15 +176,14 @@ const beforeChangePwd = async (
           } catch (error: any) {
             toast({
               severity: "error",
-              detail: error.message,
-              summary: context.t("dialog.title.error"),
-              group: "br",
+              message: error.message,
+              title: context.t("dialog.title.error"),
               life: 3000,
             });
             return false;
           }
         },
-        reject: async () => {
+        onReject: async () => {
           return false;
         },
       },
@@ -204,7 +202,7 @@ const beforeDisapprove = async (
   const { $ui: ui, $api: apiBox } = context.globalProps;
   const params = { disapproveReason: "" };
   await context.uiBuilder.dialog(
-    ui.factory.formItem(
+    ui.factory.formField(
       {
         name: "disapproveReason",
         label: context.t("auth.disapproveReason"),
@@ -213,10 +211,11 @@ const beforeDisapprove = async (
       },
       {
         default: () =>
-          ui.factory.textarea(params.disapproveReason, {
+          ui.factory.textArea({
+            value: params.disapproveReason,
             autoResize: true,
             placeholder: context.t("invalid.requireDisapproveReason"),
-            "onUpdate:modelValue": (value: any) => {
+            onChange: (value) => {
               params.disapproveReason = value;
             },
           }),
@@ -229,13 +228,12 @@ const beforeDisapprove = async (
       height: "auto",
       maxHeight: "70vh",
       showFooter: true,
-      accept: async () => {
+      onAccept: async () => {
         if (params.disapproveReason === "") {
           context.uiBuilder.toast(context, {
             severity: "error",
-            summary: context.t("dialog.title.error"),
-            detail: context.t("invalid.requireDisapproveReason"),
-            group: "br",
+            title: context.t("dialog.title.error"),
+            message: context.t("invalid.requireDisapproveReason"),
             life: 3000,
           });
           return false;
@@ -256,9 +254,8 @@ const beforeDisapprove = async (
           if (res) {
             context.uiBuilder.toast(context, {
               severity: "success",
-              summary: context.t("dialog.success"),
-              detail: context.t("success.disapproveAccount"),
-              group: "br",
+              title: context.t("dialog.success"),
+              message: context.t("success.disapproveAccount"),
               life: 3000,
             });
             context.reload();
@@ -267,16 +264,15 @@ const beforeDisapprove = async (
         } catch (error: any) {
           context.uiBuilder.toast(context, {
             severity: "error",
-            detail: error.message,
-            summary: context.t("dialog.title.error"),
-            group: "br",
+            message: error.message,
+            title: context.t("dialog.title.error"),
             position: "bottom-right",
             life: 3000,
           });
           return false;
         }
       },
-      reject: async () => {},
+      onReject: async () => {},
     },
   );
   return false;
@@ -377,7 +373,7 @@ export class UserLogic extends UiLogic<User> {
             const r = $router.resolve(namedRoute);
             if (!url || !refModule?.authority?.allowRead)
               return ui.factory.textSpan(ctx.model.customProperties.$deptID);
-            return ctx.uiBuilder.fldFactory.HasOneText(fld, ctx);
+            return ctx.uiBuilder.fldFactory.hasOneText(fld, ctx);
           },
         ),
       );
@@ -529,9 +525,8 @@ export class UserLogic extends UiLogic<User> {
           if (items.length > 0)
             return context.uiBuilder.toast(context, {
               severity: "error",
-              summary: context.globalProps.$t("dialog.title.error"),
-              group: "br",
-              detail: context.globalProps.$t("invalid.duplicateRole"),
+              title: context.globalProps.$t("dialog.title.error"),
+              message: context.globalProps.$t("invalid.duplicateRole"),
               life: 3000,
             });
           context.addSubGroupItems<UserRole>({

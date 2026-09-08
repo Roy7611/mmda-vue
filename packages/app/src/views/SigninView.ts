@@ -55,8 +55,8 @@ export const SigninView = defineComponent({
             formError.value = detail
             await app.ui.toast({} as any, {
               severity: 'error',
-              detail,
-              summary: '登录失败',
+              title: '登录失败',
+              message: detail,
               life: 5000,
             })
           }

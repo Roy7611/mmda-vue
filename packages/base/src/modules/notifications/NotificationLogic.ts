@@ -98,7 +98,7 @@ export class NotificationLogic extends UiLogic<Notification> {
     return { fields, groups, customActions };
   }
   async readAll(context: UiContext<Notification>) {
-    const { $toast: toast, $t: t } = context.globalProps;
+    const { $t: t} = context.globalProps;
     // 过滤掉已读/已办，仅提交未读消息
     const unreadItems = (context.selectedItems ?? []).filter(
       (item: Notification) =>
@@ -106,10 +106,10 @@ export class NotificationLogic extends UiLogic<Notification> {
         item.status === NotificationStatus.NEW,
     );
     if (!unreadItems.length) {
-      toast.add({
-        severity: "warn",
-        summary: t("dialog.title.warning"),
-        detail: t("invalid.requiredSelectAny"),
+      context.uiBuilder.toast(context, {
+        severity: 'warning',
+        title: t("dialog.title.warning"),
+        message: t("invalid.requiredSelectAny"),
         life: 3000,
       });
       return Promise.reject(false);
@@ -163,20 +163,11 @@ export class NotificationLogic extends UiLogic<Notification> {
             const { model } = ctx;
             const { factory } = ctx.uiBuilder;
 
-            return factory.rating(
-              ImportanceEnum.valueOf(model[fld.fieldName]),
-              {
-                readonly: true,
-                stars: 2,
-                // tooltip: ImportanceEnum.textOf(model[fld.fieldName]),
-                // tooltipPosition: 'bottom',
-                pt: {
-                  onIcon: () => ({
-                    class: "!text-yellow-500",
-                  }),
-                },
-              },
-            );
+            return factory.rating({
+              value: ImportanceEnum.valueOf(model[fld.fieldName]),
+              readOnly: true,
+              itemsCount: 2,
+            });
           },
         ),
       );

@@ -6,7 +6,7 @@
 - **对照：** [ARCHITECTURE.md](../../ARCHITECTURE.md) 的 UI → Logic → Data
 - **原则：** 看分层、命名与代码现状，不是再搬一次目录
 - **分数：** 10 分制，相对本仓目标分层，不是相对业界 UI 框架，也不是测试覆盖率
-- **最新快照：** [2026-09-06 晚重评](#快照-2026-09-06-晚重评)（文末）
+- **最新快照：** [2026-09-08 重评](#快照-2026-09-08-重评)（文末）
 
 ## 新开会话怎么评
 
@@ -247,3 +247,97 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 10. 生产代码大量 `any`；`mmda_app` / `SfGrid` 契约路径测试薄
 
 上午「仍开」10 条本晚全部仍开；vui 分数上涨只来自已处理项不再扣分，不是这 10 条有关闭。
+
+---
+
+## 快照 2026-09-08（重评）
+
+当时总评：vui **会话侧**收口了一截（Handbook class mixin、context 去掉 `@ts-nocheck`、`VueUiContext` 正名）；**拼屏与皮肤**没有跟着走。core 热点文件和 `any` 还涨了。换皮最大的洞仍是皮肤鉴权工具栏 + `factory.table`。
+
+相对 09-06 晚：vui 设计/质量各 +0.5；core 质量 −0.5；皮肤质量 +0.5（插件测试铺开，主表格债未减）。
+
+### 按包打分（相对 2026-09-06 晚）
+
+| 包 | 架构 | 设计 | 代码质量 | Δ | 一句话 |
+|---|---|---|---|---|---|
+| `@mmda/core` | 7.5 | 7 | 6.0 | 质量 −0.5 | 契约未动；生产 `any` ~299（晚评 ~263）；`fetch_api` / `metaui_field` 回胀 |
+| `@mmda/vui` | 7.0 | 7.0 | 6.0 | 设计/质量 +0.5 | 会话 mixin 已 typed；form/list/tree 仍 nocheck；`list_view` 更长 |
+| `@mmda/vui-syncfusion` | 5.5 | 5.5 | 5.0 | 质量 +0.5 | 插件测试多了；鉴权工具栏、附件 HTTP、双表格、猜字段名仍在 |
+
+### 架构：分层与依赖
+
+| 规则 | core | vui | vui-syncfusion |
+|---|---|---|---|
+| 层只碰相邻层 | Data 不 import logic；ui 无 Vue | 只依赖 core + Vue peers；`ui/factory/` 是 props 契约不是 EJ2 | 仍碰 `MetaModel`、`fetchApi` |
+| 皮肤不感知 Data | 合约在 `src/ui/` | 列表查询在 vui；Builder 仍管单元格 | `factory.table` 显示、附件、ref 清空仍读 Data |
+| Logic 无 Vue | 通过 | 钩子认 core `UiContext`；实现类 `VueUiContext`（旧名 alias 已 deprecated） | Builder 仍拼鉴权工具栏 |
+| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VueUiBuilder = WithTree(WithList(WithForm(Base)))`；`buildModuleToolbar` 仍 unimplemented | 不重写列表查询 |
+
+**本快照新立住（下次不扣）：** vui context 从 `Object.assign(prototype)` 改为 Handbook mixin；`validate` / `reference` / `subgroup`（及 `data` / `navigate`）生产代码无 `@ts-nocheck`。`UiViewContext` / `UiBuildContext` 标成 `VueUiContext` 的 deprecated 别名。vui 工厂契约一控件一文件，皮肤实现。vui 测试文件约 69 个（控件契约变厚）。皮肤插件测试（gantt / kanban / chart 等）从「几乎一份大文件」扩到 11 个测试文件。
+
+**仍开的裂缝：** 与 09-06 晚同一张 10 条清单；第 2 条部分关闭（只剩 form / list / tree）。
+
+### 设计：命名与概念
+
+| 概念 | 现在怎么叫 | 问题 |
+|---|---|---|
+| 会话 | `VueUiContext` | 旧 `UiViewContext` / `UiBuildContext` 仍 re-export |
+| 拼屏 | `VueUiBuilder` + `WithForm/List/Tree` | 三个 mixin 文件仍 `@ts-nocheck` |
+| 列表控件 | `factory.table` 现网 / `components/SfGrid` 目标 | 未接线；table ~1472 行 |
+| 选记录 | 三条语义清楚 | 皮肤相对搜索仍猜 `categoryName` / `name` / `label` / `text` |
+| 应用状态 | `app.state` | `$api` / `$ui` / `$v` 仍在 |
+
+#### 模块切分（本快照行数）
+
+| 热点文件 | 行数 | 相对 09-06 晚 |
+|---|---|---|
+| `core/net/fetch_api.ts` | ~1008 | 939 → 回胀 |
+| `core/metaui/metaui_field.ts` | ~726 | 623 → 回胀 |
+| `core/models/metamodel.ts` | ~687 | 616 |
+| `vui/builder/list_view.ts` | ~1176 | 原 list.ts 1065 |
+| `vui/contexts/vue_ui_context.ts` | ~751 | 原 ui_context ~972（mixin 拆出） |
+| `vui-syncfusion/factory/table.ts` | ~1472 | 1436 |
+| `vui-syncfusion/style.css` | ~2756 | 2736 |
+| `vui-syncfusion/__tests__/syncfusion.test.ts` | ~3298 | 2312 |
+
+### 代码质量
+
+- **core：** 生产 `any` 约 **299**（晚评 263）。0 `ts-nocheck`。`mmda_app` 仍无测。`Entity` 索引 `any`；Group 自定义渲染仍 `Function`。
+- **vui：** context mixin 进类型检查；**form / list_view / tree 仍 `@ts-nocheck`**。单元格管道仍在 `list_view`。约 69 个测试文件，多数打 factory 契约，不是 list 拼屏。
+- **皮肤：** `factory.table` 仍 nocheck。`components/SfGrid` 仍无专用测。EJ2 monkey-patch 仍在。插件测变多。
+
+#### 仍开 10 条（第 2 条收窄）
+
+1. 鉴权工具栏集合仍在皮肤 `indexViewActionButtons`
+2. **form / list_view / tree 仍 `@ts-nocheck`**（context mixin 已 typed，不再列入）
+3. `factory.table` 与 `components/SfGrid` 仍并存
+4. HTTP 旧栈仍从 core barrel 导出
+5. `UiContext` 三通道仍可选；ui ↔ logic 类型环
+6. `refLabelFn` 仍写回共享元数据
+7. `SfAttachmentPanel` 仍 `fetchApi.uploadFiles`
+8. `$api` / `$ui` / `$v`
+9. 皮肤相对搜索仍猜字段名
+10. 生产 `any` 上升；`mmda_app` / 契约 `SfGrid` 测试仍薄
+
+### 本快照建议顺序
+
+| 优先级 | 动作 | 为什么先做 |
+|---|---|---|
+| 1 | 鉴权工具栏上收到 vui | 换皮最大架构项，两轮未动 |
+| 2 | 附件走 `context.apiClient`；相对搜索只信 `labelOf` | 皮肤感知 Data，改动面小于并表 |
+| 3 | 去掉 form/list/tree 的 `@ts-nocheck`（已有 mixin 手法可抄 context） | 拼屏主体才进类型检查 |
+| 4 | HTTP 旧栈移出 barrel；`UiContext` 三通道必填 | core 契约 |
+| 5 | `refLabelFn` 不写共享元数据；并表到 `components/SfGrid` | 分 PR |
+
+### 仍开（下次会话优先）
+
+1. 鉴权工具栏集合仍在皮肤 Builder
+2. form / list_view / tree 仍 `@ts-nocheck`
+3. `factory.table` 与 `components/SfGrid` 两套实现仍并存
+4. HTTP 旧栈仍从 core barrel 导出
+5. `UiContext` 上 `app` / `apiClient` / `uiBuilder` 仍可选；ui ↔ logic 类型环
+6. `refLabelFn` 仍写回共享元数据
+7. 皮肤 `SfAttachmentPanel` 仍直接 HTTP
+8. `$api` / `$ui` 仍挂 `globalProperties`；`$v` 命名
+9. 皮肤相对搜索仍猜字段名
+10. 生产代码大量 `any`（core 还在涨）；`mmda_app` / `SfGrid` 契约路径测试薄

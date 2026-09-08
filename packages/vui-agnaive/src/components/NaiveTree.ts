@@ -1,4 +1,4 @@
-﻿import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
+import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
 import { NDropdown, NInput, NTree, type TreeOption } from 'naive-ui'
 import {
   createIconVNode,
@@ -27,7 +27,7 @@ export const NaiveTree = defineComponent({
       default: undefined,
     },
     showIcon: { type: Boolean, default: false },
-    class: { type: String, default: '' },
+    class: { type: [String, Array, Object], default: undefined },
     onNodeSelect: {
       type: Function as PropType<UiTreeEmits['onNodeSelect']>,
       default: undefined,
@@ -152,7 +152,7 @@ export const NaiveTree = defineComponent({
     }
 
     return () =>
-      h('div', { class: 'mmda-agnaive-tree-host' }, [
+      h('div', { class: ['mmda-agnaive-tree-host', props.class] }, [
         h(NDropdown, {
           trigger: 'manual',
           show: menuShow.value,
@@ -168,7 +168,7 @@ export const NaiveTree = defineComponent({
           },
         }),
         h(NTree, {
-          class: ['mmda-agnaive-tree', props.class].filter(Boolean).join(' '),
+          class: ['mmda-agnaive-tree', props.class],
           data: options.value,
           checkable: checkable.value,
           draggable: props.allowDragDrop === true,

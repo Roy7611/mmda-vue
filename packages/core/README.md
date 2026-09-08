@@ -25,13 +25,13 @@ import {
 ## 最小用法
 
 ```ts
-const { metaui } = await metaUiService.getPack({ repository: 'Warehouses' })
+const { metaUi } = await metaUiService.getPack({ repository: 'Warehouses' })
 
-const model = MetaModel.createEntity(metaui, defineWarehouse, source)
+const model = MetaModel.createEntity(metaUi, defineWarehouse, source)
 model.whName = '主仓'
 MetaModel.modify(model)
 
-const payload = MetaModel.savable(metaui, model, {
+const payload = MetaModel.savable(metaUi, model, {
   ignoreProperties: ['actions'],
   ignoreNullish: true,
   ignoreDeeply: false,
@@ -40,7 +40,7 @@ const payload = MetaModel.savable(metaui, model, {
 
 await api.save(payload)
 
-const name = new MetaUiFieldLogic(metaui.getField('whName')!)
+const name = new MetaUiFieldLogic(metaUi.getField('whName')!)
 name.lockIf((m) => !m.editable).required()
 ```
 

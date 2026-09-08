@@ -1,44 +1,151 @@
 import { h, type VNode } from "vue";
 import { SqlDataType, type MetaUiField } from "@mmda/core";
-import { type PropData, type UiFieldFactory } from "@mmda/vui";
 import {
-  ColorPickerComponent,
-  MaskedTextBoxComponent,
-  SliderComponent,
-} from "@syncfusion/ej2-vue-inputs";
-import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
-import { control, type UiContext } from "./utils";
+  colorPickerPropsFromField,
+  maskedTextBoxPropsFromField,
+  oneTimePasswordPropsFromField,
+  sliderPropsFromField,
+  ratingPropsFromField,
+  MOBILE_MASK,
+  ZIP_MASK,
+  renderInplaceFieldEditor,
+  type PropData,
+  type UiFieldFactory,
+} from "@mmda/vui";
+import { createColorPicker } from "../factory/color_picker";
+import { createMaskedTextBox } from "../factory/maskedTextBox";
+import { createOneTimePasswordInput } from "../factory/oneTimePasswordInput";
+import { createSlider } from "../factory/slider";
+import { createRating } from "../factory/rating";
+import { invalidOf, type UiContext } from "./utils";
 import { numberInput, percentInput } from "./number";
 import { password, textArea, textInput } from "./text";
 import {
   checkbox,
-  dropdown,
+  comboBox,
+  dropDownList,
+  radioButtonGroup,
+  treeSelect,
   multiSelect,
+  multiItemSelect,
+  multiValueSelect,
+  multiTextSelect,
+  multiBitSelect,
+  checkBoxList,
+  bitCheckBoxList,
   searchBox,
   switcher,
+  switchControl,
+  autoComplete,
+  tagAutoComplete,
 } from "./select";
 import {
   datePicker,
   dateTimePicker,
   monthPicker,
   timePicker,
+  dateRangePicker,
 } from "./date";
-import { filePicker, fileUpload, imagePicker } from "./upload";
+import {
+  filePicker,
+  fileUpload,
+  fileUploader,
+  filesUploader,
+  imagePicker,
+  imageUploader,
+  imagesUploader,
+  fileLinkField,
+} from "./upload";
 import {
   boolIcon,
-  chips,
   colorBox,
   externalLink,
   fallbackDisplay,
   fieldImage,
-  fileLink,
   multilineText,
   percentage,
   progressBar,
   quantityUnit,
+  relativeTimeField,
+  signaturePad,
+  stepper,
+  timeline,
   tag,
   tags,
+  chips,
+  bitChipSet,
+  enumChipSet,
 } from "./display";
+
+const wrapMasked = (
+  field: MetaUiField,
+  context: UiContext,
+  extra: PropData = {},
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createMaskedTextBox(maskedTextBoxPropsFromField(field, context, extra)),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
+
+const wrapOtp = (
+  field: MetaUiField,
+  context: UiContext,
+  extra: PropData = {},
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createOneTimePasswordInput(
+      oneTimePasswordPropsFromField(field, context, extra),
+    ),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
+
+const wrapSlider = (
+  field: MetaUiField,
+  context: UiContext,
+  extra: PropData = {},
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createSlider(sliderPropsFromField(field, context, extra)),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
+
+const wrapRating = (
+  field: MetaUiField,
+  context: UiContext,
+  extra: PropData = {},
+) => {
+  const invalid = invalidOf(field, context);
+  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    createRating(ratingPropsFromField(field, context, extra)),
+    invalid &&
+      h(
+        "span",
+        { class: "e-error" },
+        (context as any).getInvalidMessage?.(field),
+      ),
+  ]);
+};
 
 const fallbackInput = (
   field: MetaUiField,
@@ -53,7 +160,7 @@ const fallbackInput = (
     return searchBox(field, context, props);
   }
   if (field.reference?.refOptions?.length)
-    return dropdown(field, context, props);
+    return dropDownList(field, context, props);
   if (SqlDataType.isBool(field.dataType))
     return checkbox(field, context, props);
   if (SqlDataType.isNum(field.dataType))
@@ -69,46 +176,74 @@ const factory: UiFieldFactory = {
   textInput,
   textArea,
   password,
-  dropdown,
-  select: dropdown,
+  dropDownList,
+  select: dropDownList,
+  radioButtonGroup,
   multiSelect,
+  multiItemSelect,
+  multiValueSelect,
+  multiTextSelect,
+  multiBitSelect,
+  checkBoxList,
+  bitCheckBoxList,
   numberInput,
   positiveNumberInput: (field, context, props) =>
     numberInput(field, context, { min: 0, ...props }),
   negativenumberInput: (field, context, props) =>
     numberInput(field, context, { max: 0, ...props }),
   percentInput,
-  checkbox,
+  checkBox: checkbox,
+  switch: switchControl,
+  Switcher: switchControl,
   switcher,
-  Switcher: switcher,
   datePicker,
   dateTimePicker,
   monthPicker,
   timePicker,
-  dateRangePicker: (field, context, props) =>
-    control(DatePickerComponent as any, field, context, props),
+  dateRangePicker,
   mobileInput: (field, context, props) =>
-    control(MaskedTextBoxComponent as any, field, context, props, {
-      mask: "000 0000 0000",
-    }),
+    wrapMasked(field, context, { ...props, mask: MOBILE_MASK }),
   zipCodeInput: (field, context, props) =>
-    control(MaskedTextBoxComponent as any, field, context, props, {
-      mask: "000000",
-    }),
+    wrapMasked(field, context, { ...props, mask: ZIP_MASK }),
+  maskedTextBox: (field, context, props) =>
+    wrapMasked(field, context, props ?? {}),
+  oneTimePasswordInput: (field, context, props) =>
+    wrapOtp(field, context, props ?? {}),
   slider: (field, context, props) =>
-    control(SliderComponent as any, field, context, props),
-  colorPicker: (field, context, props) =>
-    control(ColorPickerComponent as any, field, context, props),
+    wrapSlider(field, context, props ?? {}),
+  rating: (field, context, props) =>
+    wrapRating(field, context, props ?? {}),
+  colorPicker: (field, context, props) => {
+    const invalid = invalidOf(field, context);
+    return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+      createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
+      invalid &&
+        h(
+          "span",
+          { class: "e-error" },
+          (context as any).getInvalidMessage?.(field),
+        ),
+    ]);
+  },
   filePicker,
   fileUpload,
+  fileUploader,
+  filesUploader,
   imagePicker,
+  imageUploader,
+  imagesUploader,
   image: fieldImage,
   progressBar,
+  signaturePad,
+  stepper,
+  timeline,
+  relativeTime: relativeTimeField,
   tag,
   tags,
   chips,
-  enumSetTags: tags,
-  fileLink,
+  bitChipSet,
+  enumChipSet,
+  fileLink: fileLinkField,
   externalLink,
   textSpan: fallbackDisplay,
   span: fallbackDisplay,
@@ -120,11 +255,11 @@ const factory: UiFieldFactory = {
   checkedIcon: (field, context, props) => boolIcon(field, context, props),
   searchInput: textInput,
   searchBox,
-  comboBox: dropdown,
-  autoComplete: dropdown,
-  associationTable: fallbackDisplay,
-  treeSelect: dropdown,
-  enumSetCheckboxGroup: multiSelect,
+  comboBox,
+  autoComplete,
+  tagAutoComplete,
+  treeSelect,
+  enumSetCheckboxGroup: multiBitSelect,
   toHoursInput: numberInput,
   toMinutesInput: numberInput,
   toSecondsInput: numberInput,
@@ -132,17 +267,23 @@ const factory: UiFieldFactory = {
   statusLight: tag,
 };
 
+factory.inplaceFieldEditor = (field, context, props) =>
+  renderInplaceFieldEditor(field, context as any, props ?? {}, factory);
+
 const aliases: Record<string, string> = {
   TextBox: "textInput",
   TextField: "textInput",
   TextArea: "textArea",
   AutoComplete: "autoComplete",
-  DropdownList: "dropdown",
+  TagAutoComplete: "tagAutoComplete",
+  DropDownList: "dropDownList",
+  RadioButtonGroup: "radioButtonGroup",
   Combobox: "comboBox",
   DatePicker: "datePicker",
   DateTimePicker: "dateTimePicker",
   MonthPicker: "monthPicker",
   TimePicker: "timePicker",
+  DateRangePicker: "dateRangePicker",
   NumberInput: "numberInput",
   ToHoursInput: "toHoursInput",
   ToMinutesInput: "toMinutesInput",
@@ -151,18 +292,32 @@ const aliases: Record<string, string> = {
   NegativenumberInput: "negativenumberInput",
   PercentInput: "percentInput",
   SpinBox: "numberInput",
-  CheckBox: "checkbox",
-  Checkbox: "checkbox",
+  CheckBox: "checkBox",
+  Checkbox: "checkBox",
+  checkbox: "checkBox",
+  Switch: "switch",
+  Switcher: "switch",
   SearchBox: "searchBox",
-  AssociationTable: "associationTable",
-  CheckBoxList: "enumSetCheckboxGroup",
-  BitCheckBoxList: "enumSetCheckboxGroup",
+  CheckBoxList: "checkBoxList",
+  BitCheckBoxList: "bitCheckBoxList",
+  MultiSelect: "multiSelect",
+  MultiItemSelect: "multiItemSelect",
+  MultiValueSelect: "multiValueSelect",
+  MultiTextSelect: "multiTextSelect",
+  MultiBitSelect: "multiBitSelect",
   Slider: "slider",
+  Rating: "rating",
   ColorPicker: "colorPicker",
   FilePicker: "filePicker",
   FileUpload: "fileUpload",
+  FileUploader: "fileUploader",
+  FilesUploader: "filesUploader",
   ImagePicker: "imagePicker",
-  PastTime: "fallbackDisplay",
+  ImageUploader: "imageUploader",
+  ImagesUploader: "imagesUploader",
+  FileLink: "fileLink",
+  Url: "fileLink",
+  InplaceFieldEditor: "inplaceFieldEditor",
   MultilineText: "multilineText",
   Percentage: "percentage",
   AmountText: "amountText",
@@ -170,14 +325,18 @@ const aliases: Record<string, string> = {
   Tag: "tag",
   Tags: "tags",
   Chips: "chips",
-  BitTags: "enumSetTags",
-  BitChipSet: "enumSetTags",
-  EnumChipSet: "enumSetTags",
+  BitChipSet: "bitChipSet",
+  EnumChipSet: "enumChipSet",
   CheckIcon: "checkIcon",
   CheckedIcon: "checkedIcon",
   HasOneText: "externalLink",
+  hasOneText: "externalLink",
   ColorBox: "colorBox",
   ProgressBar: "progressBar",
+  SignaturePad: "signaturePad",
+  Stepper: "stepper",
+  Timeline: "timeline",
+  RelativeTime: "relativeTime",
   Image: "image",
   StatusLight: "statusLight",
 };

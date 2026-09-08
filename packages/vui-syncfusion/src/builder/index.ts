@@ -39,8 +39,6 @@ import {
   type UiSearchField,
   type UiSlots,
   type UiViewContext,
-  type UiGanttChartProps,
-  type UiGanttViewProps,
 } from "@mmda/vui";
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfOverlayHost } from "../components/SfOverlayHost";
@@ -66,10 +64,7 @@ import {
   buildSearchForm as renderSearchForm,
 } from "./module-bar";
 import {
-  buildGanttView as renderGanttView,
   buildBpmnDiagram as renderBpmnDiagram,
-  buildQrcode as renderQrcode,
-  buildBarcode as renderBarcode,
   buildSigninForm as renderSigninForm,
   buildSignupForm as renderSignupForm,
 } from "./features";
@@ -81,7 +76,6 @@ import {
   renderError,
   renderFooter,
   renderHeader,
-  renderLoading,
   renderMain,
 } from "./shell";
 
@@ -268,7 +262,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return renderLoading(props);
+    return this.factory.loading(props);
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -339,7 +333,29 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
-    return this.moreMenuButton(context, items);
+    if (!items.length) return [];
+    return [
+      this.factory.moreMenuButton(
+        {
+          label: context.t("action.more"),
+          tooltip: context.t("action.more"),
+          "aria-label": context.t("action.more"),
+          buttonType: "tonal",
+          colorRole: "secondary",
+        },
+        items.map((item, index) =>
+          item.divider
+            ? { divider: true }
+            : {
+                name: item.name ?? `more-${index}`,
+                label: item.label,
+                icon: item.icon,
+                onAction: item.command ?? item.onAction,
+                items: item.items,
+              },
+        ),
+      ),
+    ];
   }
 
   private assembleMultipleSelectionButtons(
@@ -363,10 +379,12 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     if (actions.length === 1) return [render(actions[0]!)];
 
     return [
-      this.dropdownMenuButton(
+      this.factory.dropDownButton(
         {
           label: context.t("action.batchOperation"),
           class: "mmda-batch-menu-button",
+          buttonType: "tonal",
+          colorRole: "secondary",
         },
         actions.map((action) => ({
           name: action.name,
@@ -386,11 +404,18 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     action: UiAction,
     props?: PropData,
   ) {
+    // secondary（返回等）与「更多」一致用 tonal，避免默认实心/透明底和工具栏糊在一起
+    const secondary =
+      (action.colorRole ?? action.role)?.toLowerCase() === "secondary";
     return this.factory.actionButton(
       action,
       (message) => context.t(message),
       false,
-      { size: "small", ...props },
+      {
+        size: "small",
+        ...(secondary ? { buttonType: "tonal", colorRole: "secondary" } : {}),
+        ...props,
+      },
     );
   }
 
@@ -797,9 +822,8 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         console.error(error)
         context.uiBuilder?.toast?.(context, {
           severity: 'error',
-          summary: context.translate?.('dialog.title.error') ?? '错误',
-          detail: error instanceof Error ? error.message : String(error),
-          group: 'br',
+          title: context.translate?.('dialog.title.error') ?? '错误',
+          message: error instanceof Error ? error.message : String(error),
           life: 3000,
         })
       }
@@ -904,24 +928,8 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     )
   }
 
-  buildGanttView(_context: UiContext, props: UiGanttViewProps) {
-    return renderGanttView(_context, props);
-  }
-
-  buildGanttChart(context: UiContext, props: UiGanttChartProps) {
-    return this.buildGanttView(context, props);
-  }
-
   buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: PropData = {}) {
     return renderBpmnDiagram(flowTrails, _context, props);
-  }
-
-  buildQrcode(value: string, props: PropData = {}) {
-    return renderQrcode(value, props);
-  }
-
-  buildBarcode(value: string, props: PropData = {}) {
-    return renderBarcode(value, props);
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {

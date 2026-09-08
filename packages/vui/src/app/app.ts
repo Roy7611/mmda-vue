@@ -9,6 +9,7 @@ import {
 import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "../contexts/view";
 import type { AppLayoutVariant } from "../ui/layout/layout";
+import type { UiToolbarLayout } from "../ui/factory/toolbar";
 import type { VueUiBuilder } from "../ui/builder/builder";
 import type { UiAction } from "../ui/factory/action";
 import type { CustomFilter } from "../ui/factory/filter";
@@ -58,10 +59,13 @@ export interface ModuleToolbarProps {
   role?: string;
   showBreadcrumb?: boolean;
   showActions?: boolean;
-  showSearchBox?: boolean;
+  showSearchBar?: boolean;
+  layout?: UiToolbarLayout;
   /** 模块链后再加一级，例如选中的分类名。 */
   breadcrumbLeaf?: string;
   actions?: Record<string, (...args: any[]) => any>;
+  /** compact 放大镜：进搜索页。省略时 Builder 用 dialog 打开搜索条。 */
+  onSearchPage?: () => void;
 }
 
 export interface ImportAndExportActionProps {

@@ -9,6 +9,7 @@ import {
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { treeGridSpecFromGroup } from "../ui/factory/tree_grid";
+import { wrapWithPaginator } from "../ui/factory/list";
 import { TestUiBuilder } from "./test_builder";
 
 const field = (name: string, label: string) =>
@@ -66,7 +67,7 @@ describe("TreeGrid builder", () => {
     });
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.treeGrid = (rows, _metaUi, props) => {
+    builder.factory.list = (rows, _metaUi, props) => {
       captured = { rows, props };
       return h("div", { class: "mmda-tree-grid" });
     };
@@ -100,12 +101,8 @@ describe("TreeGrid builder", () => {
     });
     let used = "none";
     const builder = new TestUiBuilder();
-    builder.factory.table = () => {
-      used = "table";
-      return h("div");
-    };
-    builder.factory.treeGrid = () => {
-      used = "treeGrid";
+    builder.factory.list = (_rows, _metaUi, props) => {
+      used = String(props?.display ?? "list");
       return h("div");
     };
     builder.buildGroup(group, context);
@@ -131,12 +128,8 @@ describe("TreeGrid builder", () => {
     let used = "none";
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.table = () => {
-      used = "table";
-      return h("div");
-    };
-    builder.factory.treeGrid = (_rows, _metaUi, props) => {
-      used = "treeGrid";
+    builder.factory.list = (_rows, _metaUi, props) => {
+      used = String(props?.display ?? "list");
       captured = props;
       return h("div");
     };
@@ -198,3 +191,69 @@ describe("TreeGrid builder", () => {
     expect(spy).toHaveBeenCalled();
   });
 });
+
+describe("index pagination wiring", () => {
+  it("wrapWithPaginator 无 pagination 不包一层", () => {
+    const inner = h("div", { class: "inner" });
+    const factory = {
+      paginator: () => h("div", { class: "pager" }),
+    };
+    expect(wrapWithPaginator(factory as any, inner, undefined, {})).toBe(inner);
+    const wrapped = wrapWithPaginator(
+      factory as any,
+      inner,
+      { pageNo: 1, pageSize: 20, recordCount: 3 },
+      { onPage: () => undefined },
+    );
+    expect(wrapped.props?.class).toBe("mmda-pagable");
+  });
+
+  it("把 pagination 传给 table，页脚不再渲染 paginator", () => {
+    const metaUi = new MetaUi({
+      objName: "Order",
+      displayLabel: "订单",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "基本",
+          many: false,
+          fields: [field("name", "名称")],
+        },
+      ],
+    });
+    const context = new VueUiContext({
+      model: {
+        list: [{ id: "1", name: "a" }],
+        pagination: { pageNo: 2, pageSize: 20, recordCount: 40 },
+      },
+      metaUi,
+      view: "index",
+    });
+    let captured: any;
+    const builder = new TestUiBuilder();
+    builder.factory.list = (_rows, _metaUi, props) => {
+      captured = props;
+      return h("div", { class: "mmda-table" });
+    };
+    const vnode = builder.buildListView(context);
+    expect(captured.pagination).toMatchObject({
+      pageNo: 2,
+      pageSize: 20,
+      recordCount: 40,
+    });
+    expect(captured.onPage).toBeTypeOf("function");
+    expect(hasUnimplemented(vnode, "paginator")).toBe(false);
+  });
+});
+
+function hasUnimplemented(node: any, name: string): boolean {
+  if (!node || typeof node !== "object") return false;
+  if (node.props?.["data-unimplemented"] === name) return true;
+  const kids = node.children;
+  const list = Array.isArray(kids)
+    ? kids
+    : kids && typeof kids === "object"
+      ? Object.values(kids)
+      : [];
+  return list.some((child) => hasUnimplemented(child, name));
+}

@@ -102,9 +102,8 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 						if (finish && new Date(newVal).getTime() > new Date(finish).getTime()) {
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'error',
-								summary: ctx.t('dialog.title.error'),
-								detail: ctx.t('productionItem.startAfterEnd'),
-								group: 'br',
+								title: ctx.t('dialog.title.error'),
+								message: ctx.t('productionItem.startAfterEnd'),
 							});
 						}
 					})
@@ -115,9 +114,8 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
 						if (start && new Date(newVal).getTime() < new Date(start).getTime()) {
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'error',
-								summary: ctx.t('dialog.title.error'),
-								detail: ctx.t('productionItem.endBeforeStart'),
-								group: 'br',
+								title: ctx.t('dialog.title.error'),
+								message: ctx.t('productionItem.endBeforeStart'),
 							});
 						}
 					})

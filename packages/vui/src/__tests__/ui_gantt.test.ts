@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { h } from 'vue'
 import {
+  GANTT_PLUGIN_NOT_INSTALLED,
   applyGanttLinksToTasks,
   createNoopGanttController,
+  ganttHookClass,
   ganttLinkTypeCode,
-  type UiGanttChartProps,
-  type UiGanttViewProps,
+  unimplementedGanttPlugin,
+  type UiGanttPlugin,
   type UiGanttTask,
 } from '../ui/factory/gantt'
-import { VueUiBuilder, createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder/builder'
+import { TestUiBuilder } from './test_builder'
 
 describe('ui gantt contract', () => {
   it('maps link types and predecessor strings', () => {
@@ -20,27 +24,53 @@ describe('ui gantt contract', () => {
     const linked = applyGanttLinksToTasks(tasks, [
       { id: 'l1', source: 1, target: 2, type: 0 },
     ])
-    expect(linked.find(t => t.id === 2)?.dependency).toBe('1FS')
+    expect(linked.find((t) => t.id === 2)?.dependency).toBe('1FS')
   })
 
-  it('renders a stub gantt when no skin override exists', () => {
-    const vnode = VueUiBuilder.prototype.buildGanttView.call(
-      {} as VueUiBuilder,
-      {} as any,
-      { tasks: [{ id: 1, name: 'Cut' }] },
+  it('throws until setGanttPlugin', () => {
+    const ui = new TestUiBuilder()
+    expect(() => ui.ganttPlugin.ganttView({})).toThrow(GANTT_PLUGIN_NOT_INSTALLED)
+    expect(() => ui.buildGanttView({} as any, { tasks: [{ id: 1 }] })).toThrow(
+      GANTT_PLUGIN_NOT_INSTALLED,
     )
-    expect(vnode.props?.class).toBe('mmda-gantt-stub')
-    expect((vnode.children as any)?.[0]?.children).toContain('1 tasks')
+    expect(unimplementedGanttPlugin().ganttView).toBeTypeOf('function')
   })
 
-  it('stub builder exposes buildGanttView and a no-op controller', () => {
+  it('uses the plugin after setGanttPlugin', () => {
+    const ui = new TestUiBuilder()
+    const plugin: UiGanttPlugin = {
+      ganttView: (props) =>
+        h('div', {
+          class: 'mmda-gantt',
+          'data-count': props.tasks?.length ?? 0,
+        }),
+    }
+    ui.setGanttPlugin(plugin)
+    const node = ui.buildGanttChart({} as any, { tasks: [{ id: 1, name: 'Cut' }] })
+    expect(node.props?.['data-count']).toBe(1)
+  })
+
+  it('stub builder throws until a plugin is set and exposes a no-op controller', () => {
     const stub = createStubUiBuilder()
-    expect(typeof stub.buildGanttView).toBe('function')
-    expect(stub.buildGanttView({} as any, {} as UiGanttViewProps).type).toBe('div')
-    expect(stub.buildGanttChart({} as any, {} as UiGanttChartProps).type).toBe('div')
+    expect(() => stub.buildGanttView({} as any, {})).toThrow(
+      GANTT_PLUGIN_NOT_INSTALLED,
+    )
+    stub.setGanttPlugin({
+      ganttView: () => h('div', { class: 'mmda-gantt' }),
+    })
+    expect(stub.buildGanttView({} as any, {}).props?.class).toBe('mmda-gantt')
     const controller = createNoopGanttController()
     controller.refresh()
     controller.setViewMode('week')
     expect(controller.undo).toBeTypeOf('function')
+    expect(controller.print).toBeTypeOf('function')
+    expect(controller.exportHtml()).toBe('')
+    expect(controller.getProjectXml()).toBe('')
+    expect(controller.criticalTaskIds()).toEqual([])
+    expect(ganttHookClass(undefined, true)).toEqual([
+      'mmda-gantt',
+      'mmda-gantt--readonly',
+      undefined,
+    ])
   })
 })

@@ -37,7 +37,7 @@ import {
   type MetaUiField,
   type Pagination,
 } from '@mmda/core'
-import type { UiListPropsType } from '@mmda/vui'
+import { wrapRowDetail, type UiListPropsType } from '@mmda/vui'
 import {
   agFilterModelToEntity,
   entityFilterToAgModel,
@@ -148,6 +148,21 @@ const AgGridEditor = defineComponent({
   },
 })
 
+const AgRowDetail = defineComponent({
+  name: 'AgRowDetail',
+  props: {
+    params: { type: Object as PropType<ICellRendererParams>, required: true },
+  },
+  setup(props) {
+    return () => {
+      const spec = (props.params.context as { rowDetail?: UiListPropsType['rowDetail'] })
+        ?.rowDetail
+      const row = props.params.data
+      return wrapRowDetail(spec?.detail?.(row))
+    }
+  },
+})
+
 export const AgGrid = defineComponent({
   name: 'AgGrid',
   inheritAttrs: false,
@@ -188,6 +203,14 @@ export const AgGrid = defineComponent({
         api.value?.refreshCells({ force: true })
       },
     )
+    watch(
+      () => props.data,
+      () => {
+        const detail = listProps.rowDetail
+        if (!detail || detail.expandAll === false) return
+        api.value?.forEachNode(node => node.setExpanded(true))
+      },
+    )
 
     const onGridReady = (event: GridReadyEvent) => {
       api.value = event.api
@@ -197,6 +220,10 @@ export const AgGrid = defineComponent({
         event.api.forEachNode(node => {
           if (selected.includes(node.data)) node.setSelected(true)
         })
+      }
+      const detail = listProps.rowDetail
+      if (detail && detail.expandAll !== false) {
+        event.api.forEachNode(node => node.setExpanded(true))
       }
     }
 
@@ -263,12 +290,20 @@ export const AgGrid = defineComponent({
                 AgGridCell,
                 AgGridEditor,
                 AgHasOneFilter,
+                AgRowDetail,
               },
               context: {
                 renderCell: listProps.renderCell,
+                rowDetail: listProps.rowDetail,
               },
-              treeData: Boolean((listProps as any).treeData),
-              getDataPath: (listProps as any).getDataPath,
+              treeData: Boolean((listProps as any).treeData) && !listProps.rowDetail,
+              getDataPath: listProps.rowDetail
+                ? undefined
+                : (listProps as any).getDataPath,
+              masterDetail: Boolean(listProps.rowDetail),
+              detailCellRenderer: listProps.rowDetail ? 'AgRowDetail' : undefined,
+              detailRowAutoHeight: Boolean(listProps.rowDetail),
+              isRowMaster: listProps.rowDetail ? () => true : undefined,
               animateRows: true,
               suppressCellFocus: false,
               getRowId: listProps.itemKey

@@ -72,9 +72,9 @@ export class EmployeeLogic extends UiLogic<Employee> {
     const { selectedItems, translate: t } = context;
     if (!MetaModel.hasAny(selectedItems)) {
       context.uiBuilder.toast(this, {
-        severity: "warn",
-        summary: t("dialog.title.warning"),
-        detail: t("invalid.requiredSelectAny"),
+        severity: 'warning',
+        title: t("dialog.title.warning"),
+        message: t("invalid.requiredSelectAny"),
         life: 3000,
       });
       throw new Error(t("invalid.requiredSelectAny"));
@@ -95,9 +95,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
       if (res) {
         context.uiBuilder.toast(context, {
           severity: "success",
-          summary: t("dialog.success"),
-          detail: t("success.accountsGenerated"),
-          group: "br",
+          title: t("dialog.success"),
+          message: t("success.accountsGenerated"),
           life: 3000,
         });
         await context.refresh?.();
@@ -105,9 +104,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
     } catch (errorC: any) {
       context.uiBuilder.toast(context, {
         severity: "error",
-        summary: t("failure.failed"),
-        group: "br",
-        detail: errorC.message,
+        title: t("failure.failed"),
+        message: errorC.message,
         life: 3000,
       });
       return false;
@@ -144,8 +142,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
             } catch (error: any) {
               toast({
                 severity: "error",
-                summary: t("dialog.title.error"),
-                detail: error?.message ?? String(error),
+                title: t("dialog.title.error"),
+                message: error?.message ?? String(error),
                 life: 3000,
               });
               return false;
@@ -179,8 +177,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
               if (res) {
                 toast({
                   severity: "success",
-                  detail: t("success.operationSuccessful"),
-                  summary: t("dialog.success"),
+                  message: t("success.operationSuccessful"),
+                  title: t("dialog.success"),
                   life: 3000,
                 });
                 await context.refresh?.();
@@ -188,8 +186,8 @@ export class EmployeeLogic extends UiLogic<Employee> {
             } catch (error: any) {
               toast({
                 severity: "error",
-                summary: t("dialog.title.error"),
-                detail: error?.message ?? String(error),
+                title: t("dialog.title.error"),
+                message: error?.message ?? String(error),
                 life: 3000,
               });
             }

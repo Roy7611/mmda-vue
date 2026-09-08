@@ -49,7 +49,7 @@ export const HomeView = defineComponent({
     const b = inject<VueUiBuilder>(UI_BUILDER_KEY)!
     const { factory } = b
     const app = (inject(MES_KEY) ?? inject(UI_APP_KEY)) as MmdaApplication
-    const { modules, user, context } = app
+    const { modules, user } = app
     const router = useRouter()
     void app.getTodoCount()
     injectResponsiveCSS()
@@ -198,7 +198,7 @@ export const HomeView = defineComponent({
                           marginTop: '4px',
                         },
                       },
-                      String(context.todoCount ?? 0),
+                      String(app.state.todoCount ?? 0),
                     ),
                   ]),
                 ],

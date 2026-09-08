@@ -37,6 +37,7 @@ export function beforeDetails(this: BomLogic): UiLogicFnResult<Bom> {
 	if (groups.length == 0) {
 		groups.push(
 			this.group<BomItem>('items')
+				.rowDetail('operations')
 				.field('materialPic')
 				.setCustomRenderer(renderBomItemMaterialPic)
 				.setCustomCellRenderer(renderBomItemMaterialPic)

@@ -1,6 +1,6 @@
 import { h } from "vue";
 import type { UiBadgeColor, UiBadgeProps, UiBadgeShape } from "@mmda/vui";
-import { badgePositionClass } from "@mmda/vui";
+import { badgeModifierClasses } from "@mmda/vui";
 
 const COLOR_CLASS: Record<UiBadgeColor, string> = {
   primary: "e-badge-primary",
@@ -27,7 +27,8 @@ export function createBadge(props: UiBadgeProps) {
     shape = "default",
     overlay,
     position,
-    class: className,
+    class: _className,
+    htmlAttributes,
     ...rest
   } = props;
   const overlayish = overlay === true;
@@ -35,6 +36,7 @@ export function createBadge(props: UiBadgeProps) {
     "span",
     {
       ...rest,
+      ...htmlAttributes,
       class: [
         "e-badge",
         colorRole ? COLOR_CLASS[colorRole] : "",
@@ -43,8 +45,8 @@ export function createBadge(props: UiBadgeProps) {
         overlayish && (position === "bottomRight" || position === "bottomLeft")
           ? "e-badge-bottom"
           : "",
-        overlayish ? badgePositionClass(position) : "",
-        className,
+        "mmda-badge",
+        badgeModifierClasses(props),
       ],
     },
     shape === "dot" || value == null ? undefined : String(value),

@@ -57,13 +57,32 @@ describe("VueUiBuilder tree chrome", () => {
     expect(context.model.name).toBe("新名称");
   });
 
-  it("原生确认框返回统一的 yes/no 结果", async () => {
+  it("原生确认框返回 boolean", async () => {
     const context = new VueUiContext({ model: {}, metaUi });
     const original = window.confirm;
     window.confirm = () => true;
     await expect(
       new TestUiBuilder().confirm(context, { message: "确认吗？" }),
     ).resolves.toBe(true);
+    window.confirm = original;
+  });
+
+  it("html overlay toast 用 title/message，confirm 为 boolean", async () => {
+    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const overlay = createHtmlOverlay();
+    overlay.toast({
+      severity: "success",
+      title: "已保存",
+      message: "订单已更新",
+    });
+    const node = document.querySelector(".mmda-toast");
+    expect(node?.textContent).toContain("已保存");
+    expect(node?.textContent).toContain("订单已更新");
+    const original = window.confirm;
+    window.confirm = () => false;
+    await expect(
+      overlay.confirm({ title: "删除", message: "确定？" }),
+    ).resolves.toBe(false);
     window.confirm = original;
   });
 
@@ -93,7 +112,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-list-view.mmda-tree-list-view")).toBeTruthy();
     expect(host.querySelector(".mmda-splitter")).toBeTruthy();
     expect(host.querySelector(".mmda-tree-view")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-search .mmda-factory-input")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
     expect(host.querySelector(".mmda-tree-view-footer")).toBeTruthy();
     expect(host.querySelector(".mmda-test-tree")?.textContent).toContain("分类");
     expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
@@ -258,7 +277,7 @@ describe("VueUiBuilder tree chrome", () => {
       }),
       host,
     );
-    expect(host.querySelector(".mmda-tree-view-search .mmda-factory-input")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
     expect(host.querySelector(".mmda-test-tree-footer")?.textContent).toBe("脚");
     expect(host.textContent).toContain("苹果");
     expect(host.textContent).toContain("香蕉");
@@ -325,7 +344,7 @@ describe("VueUiBuilder tree chrome", () => {
       host,
     );
     expect(host.querySelector(".mmda-tree-view-header")).toBeFalsy();
-    expect(host.querySelector(".mmda-tree-view-search .mmda-factory-input")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
   });
 
   it("buildTreeView footerContent 渲染选中节点描述，footer 仍优先", () => {

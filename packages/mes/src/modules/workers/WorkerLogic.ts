@@ -68,7 +68,7 @@ export class WorkerLogic extends UiLogic<Worker> {
 				onAction: async (context: UiContext<Worker>) => {
 					//多选职员变成工人
 					// context.toSelectManyIndex('importWorkerEmployees', () => this.importWorkerEmployees(context));
-					const { $toast, $t } = context.globalProps;
+					const { $t} = context.globalProps;
 					const apiClient = this.apiClient;
 					return context
 						.select<Employee>({
@@ -97,13 +97,13 @@ export class WorkerLogic extends UiLogic<Worker> {
 									},
 									submitBody
 								).then(() => {
-									$toast.add({ severity: "success", summary: $t('dialog.title.prompt'), group: 'br', detail: $t('success.operationSuccessful'), life: 3000 });
+									context.uiBuilder.toast(context, { severity: "success", title: $t('dialog.title.prompt'), message: $t('success.operationSuccessful'), life: 3000 });
 									context.reload();
 								}).catch((error: any) => {
-									$toast.add({ severity: 'error', summary: $t('dialog.title.warning'), group: 'br', detail: error.message, life: 3000 });
+									context.uiBuilder.toast(context, { severity: 'error', title: $t('dialog.title.warning'), message: error.message, life: 3000 });
 								})
 							} else {
-								// $toast.add({ severity: 'warn', summary: $t('dialog.title.warning'), detail: $t('view.selectOne'), life: 3000 });
+								// context.uiBuilder.toast(context, { severity: 'warning', title: $t('dialog.title.warning'), message: $t('view.selectOne'), life: 3000 });
 								// return false;
 							}
 						});
@@ -126,9 +126,9 @@ export class WorkerLogic extends UiLogic<Worker> {
 		const { selectedItems, translate: t } = context;
 		if (!MetaModel.hasAny(selectedItems)) {
 			context.uiBuilder.toast(this, {
-				severity: 'warn',
-				summary: t('dialog.title.warning'),
-				detail: t('invalid.requiredSelectAny'),
+				severity: 'warning',
+				title: t('dialog.title.warning'),
+				message: t('invalid.requiredSelectAny'),
 				life: 3000
 			})
 			throw new Error(t('invalid.requiredSelectAny'));
@@ -158,13 +158,37 @@ export class WorkerLogic extends UiLogic<Worker> {
 			//关闭窗口
 			if (res.code == 'success') {
 				if (res.data.errors <= 0) {
-					context.uiBuilder.toast({ severity: 'success', summary: t('dialog.title.success'), detail: context.t({ message: 'worker.batchResult', param: { success: res.data.success, failed: res.data.failed } }), life: 3000 });
+					context.uiBuilder.toast(context, {
+						severity: 'success',
+						title: t('dialog.title.success'),
+						message: context.t({
+							message: 'worker.batchResult',
+							param: { success: res.data.success, failed: res.data.failed },
+						}),
+						life: 3000,
+					});
 				} else {
-					context.uiBuilder.toast({ severity: 'error', summary: t('failure.failed'), group: 'br', detail: context.t({ message: 'worker.batchFailure', param: { it: res.data.errors[0].workerNo, message: res.data.errors[0].errors[0].error } }), life: 3000 });
+					context.uiBuilder.toast(context, {
+						severity: 'error',
+						title: t('failure.failed'),
+						message: context.t({
+							message: 'worker.batchFailure',
+							param: {
+								it: res.data.errors[0].workerNo,
+								message: res.data.errors[0].errors[0].error,
+							},
+						}),
+						life: 3000,
+					});
 				}
 			}
 		} catch (errorC: any) {
-			context.uiBuilder.toast({ severity: 'error', summary: t('failure.failed'), group: 'br', detail: errorC.message, life: 3000 });
+			context.uiBuilder.toast(context, {
+				severity: 'error',
+				title: t('failure.failed'),
+				message: errorC.message,
+				life: 3000,
+			});
 
 			return false;
 		}
@@ -249,9 +273,8 @@ export class WorkerLogic extends UiLogic<Worker> {
 					const items = selection.filter((item: any) => MetaModel.hasAnyLike(target.skills, { skillID: item.skillID }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						group: 'br',
-						detail: context.globalProps.$t('invalid.requiredWorkerSkill'),
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.globalProps.$t('invalid.requiredWorkerSkill'),
 						life: 3000
 					})
 					context.addSubGroupItems({

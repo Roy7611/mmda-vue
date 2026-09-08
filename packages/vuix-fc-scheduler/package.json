@@ -1,0 +1,51 @@
+{
+  "name": "@mmda/vuix-fc-scheduler",
+  "description": "FullCalendar plugin for MMDA Vue UiSchedulerPlugin",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "main": "./dist/mmda-vuix-fc-scheduler.es.js",
+  "module": "./dist/mmda-vuix-fc-scheduler.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/list": "^6.1.19",
+    "@fullcalendar/multimonth": "^6.1.19",
+    "@fullcalendar/rrule": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
+    "@mmda/vui": "workspace:^",
+    "rrule": "^2.8.1"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.25"
+  }
+}

@@ -252,22 +252,12 @@ export const ListSettingView = defineComponent({
               "label",
               { class: "mmda-list-setting__persist" },
               [
-                factory.toggleSwitch
-                  ? factory.toggleSwitch(props.persistForever.value, {
-                      modelValue: props.persistForever.value,
-                      onUpdate: (checked: boolean) => {
-                        props.persistForever.value = checked;
-                      },
-                    })
-                  : h("input", {
-                      type: "checkbox",
-                      checked: props.persistForever.value,
-                      onChange: (event: Event) => {
-                        props.persistForever.value = (
-                          event.target as HTMLInputElement
-                        ).checked;
-                      },
-                    }),
+                factory.switch(props.persistForever.value, {
+                  modelValue: props.persistForever.value,
+                  onUpdate: (checked: boolean) => {
+                    props.persistForever.value = checked;
+                  },
+                }),
                 h("span", t("listSettings.persistForever")),
               ],
             ),
@@ -432,15 +422,13 @@ export async function openListSettingDialog(
     });
 
   return host.dialog(content() as any, context, {
-    name: "list-settings",
     title: t("listSettings.title"),
-    header: () => t("listSettings.title"),
     modal: false,
     width: "min(92vw, 30rem)",
     maxHeight: "80vh",
     showFooter: false,
     cssClass: "mmda-list-setting-dialog",
-    accept: async () => {
+    onAccept: async () => {
       await saveSettings(true);
       return true;
     },

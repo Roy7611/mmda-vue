@@ -194,7 +194,7 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
 			{
 				title: context.t('equipmentTally.selectInspectionRecords'),
 				width: '80%',
-				accept: async () => {
+				onAccept: async () => {
 					target.records.forEach(value => {
 						collectmaterialparams.tableData.forEach((id: any) => {
 							if (value.itemID === id) {

@@ -13,6 +13,7 @@ toSearchRequest(param)
   filterModel  ← 有键才带
 → 无 filterModel：GET getAll
 → 有 filterModel：POST .../searchAll，body = JSON(EntityFilterModel)
+→ advancedFilterModel 不进入 toSearchRequest（服务端后续）
 ```
 
 | API | 说明 |

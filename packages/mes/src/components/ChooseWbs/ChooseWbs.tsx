@@ -97,9 +97,10 @@ const ChooseWbs = defineComponent({
 		};
 		const selectModel = ref();
 		//选中
-		const userChange = (event: any) => {
-			submitModel.refID = event.wbsID;
-			submitModel.refName = event.refName;
+		const userChange = (value: any) => {
+			const picked = (userOptionsAll.value as any[]).find((item: any) => item.wbsID === value);
+			submitModel.refID = picked?.wbsID ?? '';
+			submitModel.refName = picked?.wbsName ?? picked?.refName ?? '';
 			submitFun();
 		};
 
@@ -124,21 +125,19 @@ const ChooseWbs = defineComponent({
 							{$t('auth.selectAUser')}:
 						</div> */}
 						<div class="w-full p-1 box-border  flex items-center flex_center ">
-							{userOptionsAll.value.length > 0 ? ui.factory.select({
-								labelStyle: { textAlign: 'left' },
+							{userOptionsAll.value.length > 0 ? ui.factory.dropDownList({
 								id: 'refID',
 								class: 'w-full',
-								showClear: submitModel.refName !== '' ? true : false,
-								// filter: true,
 								placeholder: $t('invalid.selectWbs'),
-								modelValue: selectModel.value,
-								options: userOptionsAll.value,
-								onUpdate: (value: any) => {
+								value: selectModel.value,
+								options: (userOptionsAll.value as any[]).map((item: any) => ({
+									value: item.wbsID,
+									label: item.wbsName,
+								})),
+								onChange: (value: any) => {
 									selectModel.value = value;
+									userChange(value);
 								},
-								//(submitModel.data.refName = value)
-								optionLabel: 'wbsName',
-								onChange: userChange,
 							}) : 'loading...'}
 							{/* {
 								submitModel.data.ownerInvalid ? <div class='text-left text-sm text-red-400'>

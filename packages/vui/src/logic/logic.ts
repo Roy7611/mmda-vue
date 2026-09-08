@@ -26,7 +26,7 @@ import { UiCustomSearchField, UiSearchField } from "../ui/factory/filter";
 import type { UniListViewProps } from "../app/state";
 import { createDefaultSearchParam, type UiViewPropsType, type UiViewType } from "../contexts/view";
 import type { VueUiContext } from "../contexts/vue_ui_context";
-import type { UiListViewPropsType } from "../ui/factory/list";
+import type { UiListViewPropsType } from "../ui/builder/list_view";
 import type { UiTreeListViewPropsType } from "../ui/factory/tree_category_list";
 import type { UiGanttViewProps } from "../ui/factory/gantt";
 

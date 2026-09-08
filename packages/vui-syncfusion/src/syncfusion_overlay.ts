@@ -1,22 +1,20 @@
 import { reactive, type VNode } from 'vue'
-import type { UiFactory, UiOverlay } from '@mmda/vui'
+import type { UiOverlay } from '@mmda/vui'
 import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
-  UiMessageBoxResult,
+  UiConfirmProps,
+  UiDialogProps,
   UiToastProps,
 } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
   content: VNode
-  props: UiDialogPropsType
+  props: UiDialogProps
   resolve: (accepted: boolean) => void
 }
 
 export interface SyncfusionOverlayServices {
   toast?: { show: (model: Record<string, unknown>) => void }
-  factory?: UiFactory
 }
 
 export interface SyncfusionOverlay extends UiOverlay {
@@ -31,9 +29,7 @@ const severityClass = (severity?: string) => {
     success: 'e-toast-success',
     info: 'e-toast-info',
     warning: 'e-toast-warning',
-    warn: 'e-toast-warning',
     error: 'e-toast-danger',
-    danger: 'e-toast-danger',
   }
   return map[severity ?? 'info'] ?? 'e-toast-info'
 }
@@ -46,12 +42,12 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
     dialogs,
     services,
     toast(props: UiToastProps) {
-      const content = String(props.detail ?? props.message ?? '')
-      const title = props.summary ?? props.title ?? ''
+      const content = String(props.message ?? '')
+      const title = props.title ?? ''
       const model = {
         title,
         content,
-        cssClass: severityClass(props.severity ?? props.type),
+        cssClass: severityClass(props.severity),
         timeOut: props.life ?? 3000,
         position: { X: 'Right', Y: 'Top' },
       }
@@ -59,7 +55,6 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
         services.toast.show(model)
         return
       }
-      // OverlayHost 尚未就绪时仍要让登录等场景看得到错误
       if (typeof window !== 'undefined' && content) {
         window.setTimeout(() => {
           if (services.toast?.show) services.toast.show(model)
@@ -67,37 +62,35 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
         }, 0)
       }
     },
-    async confirm(props: UiMessageBoxProps) {
+    async confirm(props: UiConfirmProps) {
       try {
         const { DialogUtility } = await import('@syncfusion/ej2-popups')
-        return await new Promise<UiMessageBoxResult>(resolve => {
+        return await new Promise<boolean>(resolve => {
           const dlg = DialogUtility.confirm({
-            title: props.header ?? props.title,
+            title: props.title,
             content: String(props.message ?? ''),
             okButton: {
               click: () => {
-                props.accept?.()
                 dlg.hide()
-                resolve('yes')
+                resolve(true)
               },
             },
             cancelButton: {
               click: () => {
-                props.reject?.()
                 dlg.hide()
-                resolve('no')
+                resolve(false)
               },
             },
           })
         })
       } catch {
-        const accepted =
+        return (
           typeof window !== 'undefined' &&
           window.confirm(String(props.message ?? 'Confirm?'))
-        return accepted ? 'yes' : 'no'
+        )
       }
     },
-    dialog(content: VNode, props: UiDialogPropsType) {
+    dialog(content: VNode, props: UiDialogProps) {
       return new Promise<boolean>(resolve => {
         dialogs.push({ id: nextDialogId++, content, props, resolve })
       })
@@ -116,9 +109,13 @@ export async function closeOverlayDialog(
   accepted: boolean,
 ) {
   if (accepted) {
-    if (request.props.accept && (await request.props.accept()) === false) return
+    if (request.props.onAccept && (await request.props.onAccept()) === false)
+      return
     request.props.onConfirm?.()
-  } else if (request.props.reject && (await request.props.reject()) === false) {
+  } else if (
+    request.props.onReject &&
+    (await request.props.onReject()) === false
+  ) {
     return
   }
   request.props.onClose?.()

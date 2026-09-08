@@ -4,42 +4,12 @@ import type {
   SigninFormProps,
   SignupFormProps,
   SigninFormSlots,
-  UiGanttViewProps,
 } from "@mmda/vui";
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import { SfBpmnDiagram } from "../components/SfBpmnDiagram";
-import { SfBarcodeGenerator, SfQRCodeGenerator } from "../components/SfBarcode";
 import { SfSigninForm } from "../components/SfSigninForm";
-import { defineAsyncComponent } from "vue";
 import type { UiContext } from "./utils";
-
-const SfGanttChart = defineAsyncComponent(() =>
-  import("../components/SfGanttChart").then((m) => m.SfGanttChart),
-);
-
-export function buildGanttView(_context: UiContext, props: UiGanttViewProps) {
-  return h(SfGanttChart, {
-    tasks: props.tasks,
-    links: props.links,
-    columns: props.columns,
-    height: props.height ?? "100%",
-    readonly: props.readonly,
-    allowTaskDrag: props.allowTaskDrag ?? true,
-    allowTaskResize: props.allowTaskResize ?? true,
-    allowLinks: props.allowLinks ?? true,
-    allowRowReorder: props.allowRowReorder ?? false,
-    viewMode: props.viewMode ?? "week",
-    loading: props.loading,
-    locale: props.locale,
-    onReady: props.onReady,
-    onTaskChange: props.onTaskChange,
-    onLinkChange: props.onLinkChange,
-    onTaskSelect: props.onTaskSelect,
-    onTaskDblClick: props.onTaskDblClick,
-    onRowReorder: props.onRowReorder,
-  });
-}
 
 export function buildBpmnDiagram(
   flowTrails: any[],
@@ -67,14 +37,6 @@ export function buildBpmnDiagram(
         )
       : undefined,
   ]);
-}
-
-export function buildQrcode(value: string, props: PropData = {}) {
-  return h(SfQRCodeGenerator, { value, ...props });
-}
-
-export function buildBarcode(value: string, props: PropData = {}) {
-  return h(SfBarcodeGenerator, { value, ...props });
 }
 
 export function buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {

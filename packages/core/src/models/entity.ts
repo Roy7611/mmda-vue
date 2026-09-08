@@ -9,7 +9,7 @@ export type LooseRequired<T> = { [P in keyof (T & Required<T>)]: T[P] };
 /**
  * 实体状态
  */
-export const enum EntityState {
+export enum EntityState {
   //默认前端未修改
   DEFAULT = 0,
 

@@ -200,18 +200,15 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
 						}
 
 						// csf.searchVal.value = null;
-						return ui.factory.multiSelect({
-							showClear: true,
+						return ui.factory.multiValueSelect({
 							id: `search_taskPhase`,
-							editable: true,
-							// display: 'chip',
 							placeholder: t('action.select'),
-							optionLabel: 'text',
-							optionValue: 'value',
+							labelField: 'text',
+							valueField: 'value',
 							class: 'ui-searchOp w-full',
 							options: options,
-							modelValue: csf.searchVal.value,
-							onUpdate: (val: string) => {
+							value: csf.searchVal.value,
+							onChange: (val: unknown) => {
 								csf.searchVal.value = val;
 								ctx.app.localDb.put(`search/${ctx.logic.repository}/taskPhase`, val);
 							},

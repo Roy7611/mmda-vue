@@ -22,8 +22,8 @@ function renderWithAppContext(
   render(vnode, host);
 }
 
-export function attachTreeGridRenderer(factory: any) {
-  factory.treeGrid = <T>(
+export const treeGridRenderers = {
+  treeGrid: <T>(
     model: T[],
     metaUi: MetaUi,
     props: UiTreeGridPropsType<T>,
@@ -139,6 +139,29 @@ export function attachTreeGridRenderer(factory: any) {
           const row = rowOf(args) as T | undefined;
           if (row) props.onItemDoubleClick?.(row);
         },
+        ...(props.rowDetail
+          ? {
+              detailTemplate: "<div class=\"mmda-sf-row-detail-host\"></div>",
+              detailDataBound(this: any, args: any) {
+                const root = args?.detailElement as HTMLElement | undefined;
+                const host =
+                  (root?.querySelector?.(
+                    ".mmda-sf-row-detail-host",
+                  ) as HTMLElement | null) ?? root;
+                if (!host) return;
+                const row = rowOf(args) as T | undefined;
+                if (!row) return;
+                const content = props.rowDetail!.detail(row);
+                renderWithAppContext(h("div", content as any), host, appContext);
+              },
+              dataBound(this: any) {
+                if (props.rowDetail?.expandAll === false) return;
+                queueMicrotask(() => {
+                  this?.detailRowModule?.expandAll?.();
+                });
+              },
+            }
+          : {}),
         queryCellInfo(this: any, args: any) {
           try {
             if (args?.cell?.classList?.contains("e-editedcell")) return;
@@ -186,5 +209,5 @@ export function attachTreeGridRenderer(factory: any) {
         },
       },
     });
-  };
-}
+  },
+};

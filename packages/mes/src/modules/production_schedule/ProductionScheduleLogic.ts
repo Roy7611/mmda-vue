@@ -82,7 +82,7 @@ const dailyPlanning: GanttPlanningShell = {
 
 //甘特图日计划调用接口返回
 const submitPlan = async (planItem: any, content: any) => {
-	const { $router, $toast, $t: t } = content.globalProps;
+	const {$router, $t: t} = content.globalProps;
 	planItem.action = null;
 	try {
 		let res: any = null;
@@ -100,7 +100,7 @@ const submitPlan = async (planItem: any, content: any) => {
 		if (res == true) {
 			content.uiBuilder.toast(content, {
 				severity: 'success',
-				summary: t('success.operationSuccessful'),
+				title: t('success.operationSuccessful'),
 				life: 3000,
 			});
 			getSub(content, planItem);
@@ -113,11 +113,10 @@ const submitPlan = async (planItem: any, content: any) => {
 		if (error.validationErrors && error.validationErrors.length > 0) {
 			errorMessage = error.validationErrors[0].error;
 		}
-		$toast.add({
+		context.uiBuilder.toast(context, {
 			severity: 'error',
 			title: 'dialog.title.error',
-			summary: errorMessage ?? '',
-			group: 'br',
+			title: errorMessage ?? '',
 			life: 3000,
 		});
 		return false;
@@ -130,7 +129,7 @@ const submitPlan = async (planItem: any, content: any) => {
 
 //根据ID获取 task
 const getSub = async (appContext: any, task: any) => {
-	const { $router, $toast } = appContext.globalProps;
+	const {$router} = appContext.globalProps;
 	const updateObj = {
 		subList: <any>[],
 		subLinkList: <any>[],
@@ -179,11 +178,10 @@ const getSub = async (appContext: any, task: any) => {
 		console.log('updateObj', updateObj);
 		getProSub(updateObj);
 	} catch (error: any) {
-		$toast.add({
+		appContext.uiBuilder.toast(appContext, {
 			severity: 'error',
 			title: 'dialog.title.error',
-			summary: error.detail ?? '',
-			group: 'br',
+			title: error.detail ?? '',
 			life: 3000,
 		});
 	}
@@ -211,7 +209,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		// 		searchLabel: '状态',
 		// 		searchParam: 'search',
 		// 		renderer: (ctx: UiContext & any, csf) => {
-		// 			const { $ui: ui, $t: t, $toast: toast } = ctx.globalProps;
+		// 			const {$ui: ui, $t: t} = ctx.globalProps;
 		// 			const searchValue = { value:  };
 		// 			const tableData = {
 		// 				list: [],
@@ -253,7 +251,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	// 	console.log('query', query);
 
 	// 	const gp = appContext.app?.config?.globalProperties ?? appContext.globalProps;
-	// 	const { $router, $toast } = gp;
+	// 	const {$router} = gp;
 	// 	const apiClient = appContext.logic?.apiClient ?? gp.$app.api;
 	// 	const task = {
 	// 		taskData: {
@@ -303,10 +301,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	// 			return (this.taskDatas = res.list);
 	// 		}
 	// 	} catch (error: any) {
-	// 		$toast.add({
+	// 		ctx.uiBuilder.toast(ctx, {
 	// 			severity: 'error',
 	// 			title: 'dialog.title.error',
-	// 			summary: error.detail ?? '',
+	// 			title: error.detail ?? '',
 	// 			life: 3000,
 	// 		});
 	// 		return task.taskData;
@@ -322,7 +320,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
 				//调用接口
-				const { $t: t, $toast: toast } = appContext.globalProps;
+				const {$t: t} = appContext.globalProps;
 				//调用接口
 				try {
 					const res: boolean = await this.apiClient.doAction(
@@ -336,11 +334,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 					);
 					//关闭窗口
 					if (res) {
-						toast.add({
+						ctx.uiBuilder.toast(ctx, {
 							severity: 'success',
-							detail: `${t('dialog.success')}`,
-							summary: t('dialog.success'),
-							group: 'br',
+							message: `${t('dialog.success')}`,
+							title: t('dialog.success'),
 							life: 3000,
 						});
 
@@ -348,11 +345,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 					}
 					return true;
 				} catch (error: any) {
-					toast.add({
+					ctx.uiBuilder.toast(ctx, {
 						severity: 'error',
-						detail: error.message ?? `${t('invalid.error')}`,
-						summary: t('invalid.error'),
-						group: 'br',
+						message: error.message ?? `${t('invalid.error')}`,
+						title: t('invalid.error'),
 						life: 3000,
 					});
 					return false;
@@ -366,7 +362,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 	}
 	//甘特图 拖拉拽
 	async changeTasks(tasksItem: any, appContext: any) {
-		const { $router, $toast } = appContext.app.config.globalProperties;
+		const {$router} = appContext.app.config.globalProperties;
 		if (tasksItem.action) {
 			tasksItem.action = null;
 		}
@@ -402,11 +398,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 				getTaskData(updateRes.data);
 			}
 		} catch (error: any) {
-			$toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			return false;
@@ -426,7 +421,7 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const { $router, $toast } = appContext.app.config.globalProperties;
+		const {$router} = appContext.app.config.globalProperties;
 		try {
 			let res: any = null;
 			const apiClient = this.apiClient;
@@ -441,11 +436,10 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
 			linkRes.data = res;
 			getLinkRes(linkRes.data);
 		} catch (error: any) {
-			$toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			return false;

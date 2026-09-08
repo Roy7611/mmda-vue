@@ -16,6 +16,7 @@ import { MES_KEY } from '@/keys';
 import type { Bom } from '@/models/Bom';
 import { BomLogic, BomLogicCtor } from '@/modules/boms/BomLogic';
 import type { Worksite } from "@/models/Worksite";
+import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 
 const CompleteShipment = defineComponent({
     name: 'CompleteShipment',
@@ -71,9 +72,8 @@ const CompleteShipment = defineComponent({
                 }).catch((err: any) => {
                     uiBuilder.toast(bomCtx, {
                         severity: 'error',
-                        summary: bomCtx.t('dialog.title.error'),
-                        detail: err.message ?? err,
-                        group: 'br',
+                        title: bomCtx.t('dialog.title.error'),
+                        message: err.message ?? err,
                         life: 3000
                     })
                 }).finally(() => {
@@ -139,9 +139,8 @@ const CompleteShipment = defineComponent({
                 kitCompletenessLoading.value = false
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
-                    summary: bomCtx.t('dialog.title.error'),
-                    detail: $t('linesideInventory.selectKittingData'),
-                    group: 'br',
+                    title: bomCtx.t('dialog.title.error'),
+                    message: $t('linesideInventory.selectKittingData'),
                     life: 3000
                 })
             }
@@ -197,15 +196,10 @@ const CompleteShipment = defineComponent({
         const selectPanel = () => {
             return h('div', { class: 'w-full h-full flex flex-col p-4 gap-4' }, [
                 // 制品列表
-                uiBuilder.factory.dataViewBox({
-                    value: bomList.value,
-                    showLayout: false,
-                    paginator: false,
-                    // max-h-[45vh]
+                h('div', {
                     class: 'flex-1 overflow-y-auto p-2!',
-                    listStyle: { background: 'var(--ground-background)' }
-                }, {
-                    item: (item: any, index: number) => {
+                    style: { background: 'var(--ground-background)' },
+                }, (bomList.value ?? []).map((item: any, index: number) => {
                         const isSelected = selectedData.value.includes(item.bomID);
 
                         return h('div', {
@@ -295,7 +289,7 @@ const CompleteShipment = defineComponent({
                             ])
                         ]);
                     }
-                }),
+                })),
             ])
         }
         //#endregion
@@ -395,9 +389,8 @@ const CompleteShipment = defineComponent({
             }).catch((error: any) => {
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
-                    summary: bomCtx.t('dialog.title.error'),
-                    detail: error.message ?? error ?? $t('auth.operationFailed'),
-                    group: 'br',
+                    title: bomCtx.t('dialog.title.error'),
+                    message: error.message ?? error ?? $t('auth.operationFailed'),
                     life: 3000
                 })
             })
@@ -410,18 +403,16 @@ const CompleteShipment = defineComponent({
             if (!selectedKittingResult.value.length) {
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
-                    summary: bomCtx.t('dialog.title.error'),
-                    detail: $t('linesideInventory.shipmentQuantityNonZero'),
-                    group: 'br',
+                    title: bomCtx.t('dialog.title.error'),
+                    message: $t('linesideInventory.shipmentQuantityNonZero'),
                     life: 3000
                 });
             }
             if (selectedKittingResult.value.filter((kr: any) => kr.lessQty > 0).length) {
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
-                    summary: bomCtx.t('dialog.title.error'),
-                    detail: $t('linesideInventory.insufficientInventory'),
-                    group: 'br',
+                    title: bomCtx.t('dialog.title.error'),
+                    message: $t('linesideInventory.insufficientInventory'),
                     life: 3000
                 });
             }
@@ -430,9 +421,8 @@ const CompleteShipment = defineComponent({
                 if (res) {
                     uiBuilder.toast(bomCtx, {
                         severity: 'success',
-                        summary: bomCtx.t('dialog.success'),
-                        detail: $t('linesideInventory.shipmentSucceeded'),
-                        group: 'br',
+                        title: bomCtx.t('dialog.success'),
+                        message: $t('linesideInventory.shipmentSucceeded'),
                         life: 3000
                     });
                     kitCompleteness.value = [];
@@ -441,9 +431,8 @@ const CompleteShipment = defineComponent({
             }).catch((error: any) => {
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
-                    summary: bomCtx.t('dialog.title.error'),
-                    detail: error.message ?? error ?? $t('auth.operationFailed'),
-                    group: 'br',
+                    title: bomCtx.t('dialog.title.error'),
+                    message: error.message ?? error ?? $t('auth.operationFailed'),
                     life: 3000
                 })
                 return false
@@ -455,11 +444,11 @@ const CompleteShipment = defineComponent({
                 class: 'flex-1 min-h-0 overflow-auto',
                 style: { maxHeight: 'calc(100% - 60px)' }
             }, [
-                uiBuilder.factory.primeVueTable(
+                renderPlainTable(
                     kitCompleteness.value,
                     [
                         // 展开：仅当该行有子项数据时显示展开按钮，无数据时隐藏
-                        uiBuilder.factory.column(
+                        plainTableColumn(
                             {
                                 header: '',
                                 style: {
@@ -492,7 +481,7 @@ const CompleteShipment = defineComponent({
                         ),
                         // 内容
                         ...kittingResultColumns.map((col: CustomColumn) =>
-                            uiBuilder.factory.column(
+                            plainTableColumn(
                                 {
                                     header: col.header,
                                     field: col.field,
@@ -534,7 +523,7 @@ const CompleteShipment = defineComponent({
                             )
                         ),
                         // 选择至站点
-                        uiBuilder.factory.column(
+                        plainTableColumn(
                             {
                                 header: $t('linesideInventory.selectDestinationSite'),
                                 field: 'worksite',
@@ -624,7 +613,7 @@ const CompleteShipment = defineComponent({
                     {
                         expansion: ({ data, index }: any) => {
                             const columns = kittingResultColumns.map((col: CustomColumn) =>
-                                uiBuilder.factory.column(
+                                plainTableColumn(
                                     {
                                         header: col.header,
                                         field: col.field,
@@ -665,17 +654,7 @@ const CompleteShipment = defineComponent({
                                 )
                             )
 
-                            return data.childKittings ? uiBuilder.factory.primeVueTable(data.childKittings, columns, {
-                                dataKey: dataKeyFn,
-                                scrollHeight: '220px',
-                                scrollable: true, // 启用滚动
-                                virtualScrollerOptions: {
-                                    id: 'id',
-                                    itemSize: 50,
-                                    numToleratedItems: 10,
-                                }
-                                // todo 子表现未做选择，目前只允许选择父表
-                            }) : h(
+                            return data.childKittings ? renderPlainTable(data.childKittings, columns, {}) : h(
                                 'div',
                                 {
                                     class: 'flex_content_start flex_item_center',

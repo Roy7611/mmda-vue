@@ -45,7 +45,7 @@ vui 一屏会话的实现设计。产品分层真源仍是仓库 [ARCHITECTURE.m
 - Mixin 类里不要声明 TypeScript `private` / `protected`（和交叉类型打架）；封装用 ES `#field`。
 - Mixin 文件之间禁止互相 import。`select({ repository })` 禁止顶层 import 导出的 `VueUiContext`；组装后走 `createSession`。
 - 构造器 `...args: any[]` 传到 `super(...)`；泛型 `E` 放在最终 `VueUiContext<E>`。
-- 本轮 **不动** Builder 的 `attachForm` / `attachList` / `attachTree`。
+- Builder 同样用 Handbook mixin：`WithForm` / `WithList` / `WithTree` 叠在 `VueUiBuilderBase` 上（见 [builder.md](./builder.md)）。不要再 `attachForm` / `Object.assign(prototype)`。
 
 叠放（内 → 外；只许向外调用）：
 

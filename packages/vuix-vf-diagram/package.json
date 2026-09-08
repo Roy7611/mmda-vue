@@ -1,0 +1,49 @@
+{
+  "name": "@mmda/vuix-vf-diagram",
+  "description": "Vue Flow plugin for MMDA Vue UiDiagramPlugin",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "main": "./dist/mmda-vuix-vf-diagram.es.js",
+  "module": "./dist/mmda-vuix-vf-diagram.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-vuix-vf-diagram.es.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/vui": "workspace:^"
+  },
+  "peerDependencies": {
+    "@vue-flow/core": "^1.41.0",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@vue-flow/core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "@vue-flow/core": "^1.41.0",
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.25"
+  }
+}

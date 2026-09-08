@@ -1,17 +1,5 @@
 import { h, unref, type VNode } from 'vue'
-import {
-  NButton,
-  NDrawer,
-  NDropdown,
-  NImage,
-  NInput,
-  NMenu,
-  NModal,
-  NPagination,
-  NSelect,
-  NSpin,
-  NSplit,
-} from 'naive-ui'
+import { NImage, NMenu, NPagination } from 'naive-ui'
 import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
@@ -30,28 +18,84 @@ import {
   assembleTreeGridRows,
   createIconVNode,
   MATERIAL_SYMBOL_PREFIX,
+  bindListDisplayRenderers,
+  wrapListFamilyPaginator,
+  renderSearchForRelativeField,
+  switchArgs,
+  createFileUploader,
+  createFilesUploader,
+  createImageUploader,
+  createImagesUploader,
+  renderFileLink,
 } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
-import { NaiveTree } from './components/NaiveTree'
+import { createTree } from './factory/tree'
 import { createBadge } from './factory/badge'
+import { createAvatar } from './factory/avatar'
+import { createBarcode } from './factory/barcode'
+import { createQrCode } from './factory/qrcode'
+import { createBreadcrumb } from './factory/breadcrumb'
+import { createCalendar } from './factory/calendar'
+import { createCarousel } from './factory/carousel'
+import { createCheckBox } from './factory/checkbox'
+import { createSwitch } from './factory/switch'
+import { createCheckBoxList, createBitCheckBoxList } from './factory/check_box_list'
+import { createChips } from './factory/chips'
+import { createContextMenu } from './factory/context_menu'
+import { createCard } from './factory/card'
+import { createDivider } from './factory/divider'
+import { createTooltip } from './factory/tooltip'
+import { createInplaceEditor } from './factory/inplace_editor'
+import { createColorPicker } from './factory/color_picker'
+import { createMaskedTextBox } from './factory/maskedTextBox'
+import { createOneTimePasswordInput } from './factory/oneTimePasswordInput'
+import { createQueryBuilder } from './factory/query_builder'
+import { createSlider } from './factory/slider'
+import { createRating } from './factory/rating'
+import { createTabs } from './factory/tabs'
+import { createToolbar } from './factory/toolbar'
+import { createDrawer, createSidebar } from './factory/sidebar'
+import { createSplitter } from './factory/splitter'
+import { createNumberInput } from './factory/number_input'
+import { createTextArea } from './factory/text_area'
+import { createTextInput } from './factory/text_input'
+import { createProgressBar } from './factory/progress_bar'
+import { createSignaturePad } from './factory/signature_pad'
+import { createStepper } from './factory/stepper'
+import { createTimeline } from './factory/timeline'
+import { createSkeleton } from './factory/skeleton'
+import { createLoading } from './factory/loading'
+import { createSpeechToText } from './factory/speech_to_text'
+import { createDatePicker } from './factory/date_picker'
+import { createDateTimePicker } from './factory/date_time_picker'
+import { createTimePicker } from './factory/time_picker'
+import { createDateRangePicker } from './factory/date_range_picker'
+import { createDropDownList } from './factory/drop_down_list'
+import { createRadioButtonGroup } from './factory/radio_button_group'
+import {
+  createMultiSelect,
+  createMultiItemSelect,
+  createMultiValueSelect,
+  createMultiTextSelect,
+  createMultiBitSelect,
+} from './factory/multi_select'
+import { createTreeSelect } from './factory/tree_select'
+import { createComboBox } from './factory/combo_box'
+import { createAutoComplete } from './factory/autocomplete'
+import { createTagAutoComplete } from './factory/tag_auto_complete'
+import { createButton } from './factory/button'
+import { createButtonGroup } from './factory/buttonGroup'
+import { createSelectButtonGroup } from './factory/selectButtonGroup'
+import {
+  createDropDownButton,
+  createMoreMenuButton,
+} from './factory/dropDownButton'
+import { createSplitButton } from './factory/splitButton'
+import { createFloatingActionButton } from './factory/floatingActionButton'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
-
-const naiveType = (role?: string) => {
-  const roles: Record<string, 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'> = {
-    primary: 'primary',
-    secondary: 'default',
-    success: 'success',
-    info: 'info',
-    warning: 'warning',
-    warn: 'warning',
-    danger: 'error',
-    error: 'error',
-  }
-  return role ? roles[role] : undefined
-}
 
 const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
   label:
@@ -63,63 +107,13 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
   command: action.onAction ?? action.command,
 })
 
-const dropdownOptions = (actions: UiAction[]) =>
-  actions.map(action => {
-    if (action.divider) return { type: 'divider' as const, key: `div-${action.name}` }
-    const item = normalizeAction(action)
-    return {
-      label: item.label,
-      key: String(item.key),
-      disabled: item.disabled,
-      icon: item.icon
-        ? () => createIconVNode(item.icon as string)
-        : undefined,
-    }
-  })
-
 export function createAgNaiveUiFactory(): UiFactory {
-  const button = (props: any, slots?: any) => {
-    const iconName = props.icon as string | undefined
-    const hideLabel = props.shape === 'circle' && !props.label
-    return h(
-      NButton,
-      {
-        attrType: props.type ?? 'button',
-        type: naiveType(
-          props.colorRole ??
-            props.severity ??
-            (props.buttonType === 'tonal' ? 'secondary' : undefined),
-        ),
-        secondary: props.buttonType === 'tonal',
-        ghost: props.buttonType === 'outlined',
-        text: props.buttonType === 'text' || props.buttonType === 'link',
-        circle: props.shape === 'circle',
-        round: props.shape === 'round',
-        disabled: props.disabled === true || props.disabled === 'true',
-        loading: props.loading,
-        title: props.tooltip,
-        size: props.size === 'small' ? 'small' : props.size === 'large' ? 'large' : 'medium',
-        class: props.class,
-        id: props.id,
-        name: props.name,
-        label: props.label,
-        onClick: props.onClick ?? props.onAction ?? props.command,
-      },
-      {
-        default: () =>
-          slots?.default?.() ?? (hideLabel ? undefined : props.label),
-        icon: iconName
-          ? () => createIconVNode(factory.resolveIcon(iconName))
-          : slots?.icon,
-      },
-    )
-  }
+  const button = (props: any, slots?: any) =>
+    createButton(props, slots, (name) => factory.resolveIcon(name))
 
   const factory: UiFactory = {
     layout: agNaiveLayout,
-    integratedTablePaging: true,
     nativeInplaceEdit: true,
-    defaultFilterDisplay: 'menu',
     actionIcons: {
       create: 'fas fa-plus',
       edit: 'fas fa-pencil-alt',
@@ -164,6 +158,77 @@ export function createAgNaiveUiFactory(): UiFactory {
     image: (src, props) => h(NImage, { src, previewDisabled: !props?.preview, ...props }),
     icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
     badge: props => createBadge(props),
+    avatar: props => createAvatar(props, name => factory.resolveIcon(name)),
+    barcode: props => createBarcode(props),
+    qrCode: props => createQrCode(props),
+    breadcrumb: props => createBreadcrumb(props, name => factory.resolveIcon(name)),
+    calendar: props => createCalendar(props),
+    carousel: props => createCarousel(props),
+    checkBox: props => createCheckBox(props),
+    switch: (value, props) => createSwitch(switchArgs(value, props)),
+    checkBoxList: props => createCheckBoxList(props),
+    bitCheckBoxList: props => createBitCheckBoxList(props),
+    chips: props => createChips(props, name => factory.resolveIcon(name)),
+    contextMenu: props =>
+      createContextMenu(props, name => factory.resolveIcon(name)),
+    card: (props, slots) => createCard(props, slots),
+    divider: (props = {}) => createDivider(props),
+    tooltip: (props = {}, slots) => createTooltip(props, slots),
+    inplaceEditor: (props = {}, slots) => createInplaceEditor(props, slots),
+    fileLink: (props = {}) => renderFileLink(props),
+    Url: (props = {}) => renderFileLink(props),
+    FileLink: (props = {}) => renderFileLink(props),
+    fileUploader: (props = {}) => createFileUploader(props),
+    filePicker: (props = {}) => createFileUploader(props),
+    FileUploader: (props = {}) => createFileUploader(props),
+    filesUploader: (props = {}) => createFilesUploader(props),
+    fileUpload: (props = {}) => createFilesUploader(props),
+    FileUpload: (props = {}) => createFilesUploader(props),
+    imageUploader: (props = {}) => createImageUploader(props),
+    imagePicker: (props = {}) => createImageUploader(props),
+    ImagePicker: (props = {}) => createImageUploader(props),
+    imagesUploader: (props = {}) => createImagesUploader(props),
+    colorPicker: props => createColorPicker(props),
+    maskedTextBox: props => createMaskedTextBox(props),
+    oneTimePasswordInput: props => createOneTimePasswordInput(props),
+    queryBuilder: props => createQueryBuilder(props),
+    slider: props => createSlider(props),
+    rating: props => createRating(props),
+    tabs: props => createTabs(props),
+    toolbar: (props, slots) => createToolbar(props, slots),
+    sidebar: (props, slots) => createSidebar(props, slots),
+    drawer: (props, slots) => createDrawer(props, slots),
+    numberInput: props => createNumberInput(props),
+    textInput: props => createTextInput(props),
+    textArea: props => createTextArea(props),
+    progressBar: props => createProgressBar(props),
+    signaturePad: props => createSignaturePad(props),
+    stepper: props => createStepper(props, name => factory.resolveIcon(name)),
+    timeline: props => createTimeline(props, name => factory.resolveIcon(name)),
+    skeleton: (props = {}) => createSkeleton(props),
+    loading: (props = {}) => createLoading(props),
+    speechToText: (props = {}) =>
+      createSpeechToText(props, name => factory.resolveIcon(name)),
+    datePicker: props => createDatePicker(props),
+    monthPicker: props =>
+      createDatePicker({
+        ...props,
+        precision: 'month',
+        format: props.format ?? 'yyyy-MM',
+      }),
+    dateTimePicker: props => createDateTimePicker(props),
+    timePicker: props => createTimePicker(props),
+    dateRangePicker: props => createDateRangePicker(props),
+    dropDownList: props => createDropDownList(props),
+    radioButtonGroup: props => createRadioButtonGroup(props),
+    multiSelect: props => createMultiSelect(props),
+    multiItemSelect: props => createMultiItemSelect(props),
+    multiValueSelect: props => createMultiValueSelect(props),
+    multiTextSelect: props => createMultiTextSelect(props),
+    multiBitSelect: props => createMultiBitSelect(props),
+    treeSelect: createTreeSelect,
+    dropDownTree: createTreeSelect,
+    comboBox: props => createComboBox(props),
     title: (text, props) => h('h2', props, text),
     subtitle: (text, props) => h('h3', props, text),
     link: (props, slots) =>
@@ -172,101 +237,27 @@ export function createAgNaiveUiFactory(): UiFactory {
         { ...props, class: ['mmda-agnaive-link', props.class] },
         slots?.default?.() ?? props.text,
       ),
-    input: (value, props = {}) =>
-      h(NInput, {
-        value: props.modelValue ?? props.value ?? value,
-        'onUpdate:value': props['onUpdate:modelValue'] ?? props['onUpdate:value'] ?? props.onUpdate,
-        ...props,
-      }),
     iconField: (value, props = {}) =>
       h('span', { class: 'mmda-agnaive-icon-field' }, [
         props.icon && createIconVNode(factory.resolveIcon(props.icon)),
-        h(NInput, {
-          value: props.modelValue ?? props.value ?? value,
-          'onUpdate:value':
-            props['onUpdate:modelValue'] ?? props['onUpdate:value'] ?? props.onUpdate,
+        createTextInput({
           ...props,
+          value: props.modelValue ?? props.value ?? value,
         }),
       ]),
-    dropdown: (value, props = {}) =>
-      h(NSelect, {
-        value: props.modelValue ?? props.value ?? value,
-        'onUpdate:value':
-          props['onUpdate:modelValue'] ?? props['onUpdate:value'] ?? props.onUpdate,
-        ...props,
-      }),
+    autoComplete: (value, props = {}) => createAutoComplete(value, props),
+    tagAutoComplete: (value, props = {}) => createTagAutoComplete(value, props),
     button,
-    buttonGroup: (buttons, props) =>
-      h(
-        'div',
-        {
-          ...props,
-          class: ['mmda-agnaive-button-group', props?.class],
-          role: 'group',
-        },
-        buttons().filter(Boolean),
-      ),
-    splitButton: (props, slots) =>
-      factory.menuButton(
-        { ...props, label: props.label, icon: props.icon },
-        props.actions ?? [],
-        slots,
-      ),
-    menuButton: (props, actions, slots) => {
-      const hideCaret =
-        props.hideCaret === true ||
-        props.shape === 'circle' ||
-        (!props.label && Boolean(props.icon))
-      const options = dropdownOptions(actions)
-      return h(
-        NDropdown,
-        {
-          trigger: 'click',
-          options,
-          label: props.label,
-          class: props.class,
-          onSelect: (key: string) => {
-            const action = actions.find(item => (item.name ?? item.label) === key)
-            ;(action?.onAction ?? action?.command)?.()
-          },
-        },
-        {
-          default: () =>
-            button(
-              {
-                ...props,
-                label: hideCaret ? undefined : props.label,
-                shape: hideCaret ? 'circle' : props.shape,
-                buttonType: props.buttonType ?? (hideCaret ? 'text' : undefined),
-                colorRole: props.colorRole ?? (props.buttonType === 'tonal' ? 'secondary' : undefined),
-                class: [
-                  props.class,
-                  hideCaret ? 'mmda-menu-button--icon-only' : '',
-                  props.buttonType === 'tonal' ? 'mmda-btn-tonal' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' '),
-              },
-              slots,
-            ),
-        },
-      )
-    },
-    floatingActionButton: props =>
-      button({
-        ...props,
-        shape: 'circle',
-        class: ['mmda-agnaive-fab', props.class],
-      }),
-    selectButton: (value, props, slots) =>
-      h(
-        NSelect,
-        {
-          value: props.modelValue ?? value,
-          'onUpdate:value': props['onUpdate:modelValue'] ?? props.onUpdate,
-          ...props,
-        },
-        slots,
+    buttonGroup: createButtonGroup,
+    selectButtonGroup: createSelectButtonGroup,
+    splitButton: (props, slots) => createSplitButton(props, slots, button),
+    dropDownButton: (props, actions, slots) =>
+      createDropDownButton(props, actions, slots, button),
+    moreMenuButton: (props, actions, slots) =>
+      createMoreMenuButton(props, actions, slots, button),
+    floatingActionButton: (props, slots) =>
+      createFloatingActionButton(props, slots, (name) =>
+        factory.resolveIcon(name),
       ),
     actionButton: (action, t, _resolve, props) =>
       button({
@@ -291,8 +282,11 @@ export function createAgNaiveUiFactory(): UiFactory {
         'onUpdate:pageSize': (pageSize: number) =>
           props.onPage({ pageNo: 1, pageSize }),
       }),
-    tree: (props) => h(NaiveTree, props as any),
+    tree: (props) => createTree(props),
     treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) => {
+      if (props.rowDetail) {
+        return h(AgGrid, { data: model, metaUi, ...props, treeData: false } as any)
+      }
       const { assembled } = assembleTreeGridRows(model, metaUi, {
         ...props,
         bindShape: props.bindShape ?? 'dataPath',
@@ -332,11 +326,11 @@ export function createAgNaiveUiFactory(): UiFactory {
     table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
       h(AgGrid, { data: model, metaUi, ...props } as any),
     pagableTable: (loader, metadata, props) =>
-      h('div', { class: 'mmda-agnaive-pagable-table' }, [
-        factory.table(loader.model.list as any[], metadata.metaUi, props as any),
-      ]),
-    loading: props =>
-      h('div', { class: 'mmda-agnaive-loading', ...props }, [h(NSpin)]),
+      factory.table(loader.model.list as any[], metadata.metaUi, {
+        ...props,
+        pagination: props.pagination ?? loader.model.pagination,
+        onPage: props.onPage,
+      }),
     scrollbar: (content, props) =>
       h('div', { class: 'mmda-agnaive-scrollbar', ...props }, content as any),
     menu: (items, props) =>
@@ -376,71 +370,31 @@ export function createAgNaiveUiFactory(): UiFactory {
         },
         slots,
       ),
-    dialog: (
-      props: PropData & {
-        visible: boolean
-        onUpdateVisible: (value: boolean) => void
-      },
-      slots?: UiSlots,
-    ) =>
+    splitter: (panes, props) => createSplitter(panes, props),
+    searchForRelative: (props) =>
+      renderSearchForRelativeField(props as any),
+    formField: (props: PropData = {}, slots?: UiSlots) =>
       h(
-        NModal,
-        {
-          show: props.visible,
-          preset: 'dialog',
-          title: props.header ?? props.title,
-          'onUpdate:show': props.onUpdateVisible,
-          ...props,
-        },
-        slots,
-      ),
-    drawer: (props, slots) =>
-      h(
-        NDrawer,
-        {
-          show: props.visible ?? props.show,
-          'onUpdate:show': props.onUpdateVisible ?? props['onUpdate:show'],
-          ...props,
-        },
-        slots,
-      ),
-    splitter: (panes, props) =>
-      h(
-        NSplit,
-        {
-          class: ['mmda-agnaive-splitter', props?.class].filter(Boolean).join(' '),
-          direction: props?.orientation === 'Vertical' ? 'vertical' : 'horizontal',
-          defaultSize: panes[0]?.collapsed
-            ? 0
-            : (parseCssSize(panes[0]?.size) ?? 256),
-          min: parseCssSize(panes[0]?.min) ?? 192,
-          max: parseCssSize(panes[0]?.max),
-        },
-        {
-          1: () => panes[0]?.content,
-          2: () => panes[1]?.content,
-        },
-      ),
-    searchForRelative: (props, slots) =>
-      h(
-        NModal,
-        {
-          show: props.visible,
-          preset: 'dialog',
-          title: props.title,
-          'onUpdate:show': props.onUpdateVisible,
-        },
-        slots,
+        'div',
+        { class: ['mmda-form-field', 'mmda-agnaive-form-field', props.class], style: props.style },
+        [
+          props.label
+            ? h('label', { class: 'mmda-form-field__label' }, String(props.label))
+            : null,
+          slots?.default?.() ??
+            createTextInput({
+              ...props,
+              value: props.modelValue ?? props.value,
+              onChange:
+                props.onChange ??
+                props.onUpdate ??
+                props['onUpdate:modelValue'],
+            }),
+        ],
       ),
   }
 
+  wrapListFamilyPaginator(factory, ['list'], 'mmda-agnaive-pagable')
+  bindListDisplayRenderers(factory)
   return factory
-}
-
-function parseCssSize(value?: string): number | undefined {
-  if (!value) return undefined
-  const n = parseFloat(value)
-  if (!Number.isFinite(n)) return undefined
-  if (value.endsWith('rem')) return n * 16
-  return n
 }

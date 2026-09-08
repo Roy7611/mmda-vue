@@ -14,6 +14,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/mmda-vui-agnaive.es.js"
     },
+    "./charts": {
+      "types": "./dist/chart_factory.d.ts",
+      "import": "./src/chart_factory.ts"
+    },
+    "./pivot": {
+      "types": "./dist/pivot_plugin.d.ts",
+      "import": "./src/pivot_plugin.ts"
+    },
     "./style.css": "./dist/style.css"
   },
   "files": [
@@ -29,12 +37,14 @@
   },
   "dependencies": {
     "@mmda/core": "workspace:^",
-    "@mmda/vui": "workspace:^"
+    "@mmda/vui": "workspace:^",
+    "signature_pad": "^5.1.1"
   },
   "peerDependencies": {
     "ag-grid-community": "^34.0.0",
     "ag-grid-enterprise": "^34.0.0",
     "ag-grid-vue3": "^34.0.0",
+    "ag-charts-vue3": "^12.0.0",
     "bpmn-js": "^18.25.1",
     "jsbarcode": "^3.12.3",
     "naive-ui": "^2.45.0",
@@ -44,6 +54,9 @@
     "vue-router": "^4.3.0"
   },
   "peerDependenciesMeta": {
+    "ag-charts-vue3": {
+      "optional": true
+    },
     "bpmn-js": {
       "optional": true
     },
@@ -63,6 +76,7 @@
     "ag-grid-community": "^34.3.1",
     "ag-grid-enterprise": "^34.3.1",
     "ag-grid-vue3": "^34.3.1",
+    "ag-charts-vue3": "^12.3.1",
     "bpmn-js": "^18.25.1",
     "jsbarcode": "^3.12.3",
     "jsdom": "^30.0.1",

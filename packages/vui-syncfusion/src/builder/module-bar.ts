@@ -21,15 +21,15 @@ import {
 import {
   SfSearchTextInput,
   UI_NAME,
-  breadcrumbItem,
   moduleChain,
   moduleOf,
   type UiContext,
 } from "./utils";
+import { paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui";
 
 type ModuleBarHost = any;
 
-export { SfSearchTextInput, breadcrumbItem, moduleChain } from "./utils";
+export { SfSearchTextInput, moduleChain } from "./utils";
 
 export function buildModuleBreadcrumb(
   this: VueUiBuilder,
@@ -38,57 +38,38 @@ export function buildModuleBreadcrumb(
 ) {
   const { module, label } = props;
   if (!module) {
-    return h(
-      "span",
-      { class: "mmda-sf-breadcrumb" },
-      label || context.title,
-    );
-  }
-
-  const model = moduleChain(module).map((item, index, items) => ({
-    key: item.moduleCode,
-    label: item.moduleLabel ?? (item as any).moduleName,
-    icon: item.moduleIcon ?? "",
-    route: item.moduleUrl,
-    leaf: index === items.length - 1 && !label,
-  }));
-
-  if (label) {
-    model.push({
-      key: `${module.moduleCode}-title`,
-      label,
-      icon: "",
-      route: "",
-      leaf: true,
+    return this.factory.breadcrumb({
+      items: [{ label: label || context.title }],
+      class: "mmda-sf-breadcrumb",
+      separator: "/",
     });
   }
 
-  return h(
-    "nav",
-    {
-      class: "mmda-sf-breadcrumb e-breadcrumb",
-      "aria-label": "breadcrumb",
-    },
-    model.flatMap((item, index) => [
-      ...(index > 0
-        ? [
-            h(
-              "span",
-              {
-                class: "e-breadcrumb-separator mmda-breadcrumb__sep",
-                "aria-hidden": "true",
-              },
-              "/",
-            ),
-          ]
-        : []),
-      h(
-        "span",
-        { class: "e-breadcrumb-item", key: item.key },
-        [breadcrumbItem(item)],
-      ),
-    ]),
-  );
+  const chain = moduleChain(module);
+  const items = chain.map((item, index) => {
+    const leaf = index === chain.length - 1 && !label;
+    return {
+      key: item.moduleCode,
+      label: item.moduleLabel ?? (item as any).moduleName,
+      icon: item.moduleIcon || undefined,
+      to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+    };
+  });
+
+  if (label) {
+    items.push({
+      key: `${module.moduleCode}-title`,
+      label,
+      icon: undefined,
+      to: undefined,
+    });
+  }
+
+  return this.factory.breadcrumb({
+    items,
+    class: "mmda-sf-breadcrumb",
+    separator: "/",
+  });
 }
 
 export function buildModuleToolbar(
@@ -99,51 +80,36 @@ export function buildModuleToolbar(
 ) {
   const runtime = context as any;
   const module = moduleOf(context);
-  const hasCenter = !!slots?.center;
-
-  const start = () => {
-    if (props.showBreadcrumb === false) return undefined;
-    if (slots?.default) return slots.default();
-    if (module) {
-      return buildModuleBreadcrumb.call(this, context, {
-        module,
-        label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
-      });
-    }
-    return h("strong", context.title);
-  };
-  const center = () =>
-    hasCenter
-      ? h(
-          "div",
-          { class: "mmda-sf-toolbar__center-inner" },
-          slots!.center!(),
-        )
-      : undefined;
-  const end = () =>
-    props.showActions === false
-      ? undefined
-      : this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
-          class: "mmda-sf-toolbar-actions",
-          role: `${UI_NAME}-toolbar-action-group`,
+  return paintModuleToolbar(this.factory, context, props, slots, {
+    className: "mmda-sf-toolbar",
+    breadcrumb: () => {
+      if (module) {
+        return buildModuleBreadcrumb.call(this, context, {
+          module,
+          label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
         });
-
-  return h(
-    "div",
-    {
-      class: [
-        "mmda-sf-toolbar",
-        hasCenter && "mmda-sf-toolbar--with-center",
-      ],
+      }
+      return h("strong", context.title);
     },
-    [
-      h("div", { class: "mmda-sf-toolbar__start" }, start() as any),
-      hasCenter
-        ? h("div", { class: "mmda-sf-toolbar__center" }, center() as any)
-        : null,
-      h("div", { class: "mmda-sf-toolbar__end" }, end() as any),
-    ],
-  );
+    actionGroup: () =>
+      this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
+        class: "mmda-sf-toolbar-actions",
+        role: `${UI_NAME}-toolbar-action-group`,
+      }),
+    moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
+    navActions: () =>
+      module
+        ? moduleChain(module).map((item) => ({
+            name: item.moduleCode,
+            label: item.moduleLabel ?? (item as any).moduleName,
+            icon: item.moduleIcon,
+          }))
+        : [],
+    openSearchPage: () => {
+      if (props.onSearchPage) props.onSearchPage();
+      else void this.buildSearchPage(context);
+    },
+  });
 }
 
 export function buildSearchField(
@@ -281,7 +247,7 @@ export function buildModuleSearchbar(
     h("div", { class: "mmda-sf-quick-filter" }, [
       h("span", { class: "mmda-sf-quick-filter__label" }, filter.label),
       filter.metaUiFilter.fixed
-        ? this.factory.selectButton(filter.selectedConditions.value[0], {
+        ? this.factory.selectButtonGroup(filter.selectedConditions.value[0], {
             options: filter.selectOptions,
             modelValue: filter.selectedConditions.value[0],
             "onUpdate:modelValue": (condition: any) => {

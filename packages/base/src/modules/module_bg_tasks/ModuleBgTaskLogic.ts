@@ -101,7 +101,7 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
               (ctx.model.status as unknown as string) === "SUSPENDED"
             ) {
               return ctx.uiBuilder.factory.button({
-                severity: "danger",
+                severity: 'error',
                 label: ctx.globalProps.$t("action.cancel"),
                 class: "mr-2",
                 onAction: async () => {
@@ -121,9 +121,8 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
                   } catch (error: any) {
                     ctx.uiBuilder.toast(ctx, {
                       severity: "error",
-                      summary: ctx.t("dialog.title.error"),
-                      detail: error.message ?? ctx.t("auth.operationFailed"),
-                      group: "br",
+                      title: ctx.t("dialog.title.error"),
+                      message: error.message ?? ctx.t("auth.operationFailed"),
                       life: 3000,
                     });
                   }

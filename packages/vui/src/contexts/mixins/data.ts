@@ -296,7 +296,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       await this.logic.afterSave?.(this, this.model, undefined, result);
       await this.app?.ui?.toast(this, {
         severity: "success",
-        detail: this.translate("success.saved"),
+        message: this.translate("success.saved"),
       });
       return result;
     }

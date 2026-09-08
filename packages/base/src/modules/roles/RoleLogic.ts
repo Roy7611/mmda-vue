@@ -126,17 +126,17 @@ const editAuthorizedActions = (
 		authorizedActions?: unknown[];
 		authority?: { authorizedActions?: unknown[] };
 	};
-	return ui.factory.multiSelect({
-		showClear: true,
-		editable: true,
+	if (!row.authorizedActions) {
+		row.authorizedActions = [];
+	}
+	return ui.factory.multiItemSelect({
 		placeholder: t('action.select'),
-		dataKey: 'actionName',
-		optionLabel: 'displayLabel',
+		valueField: 'actionName',
+		labelField: 'displayLabel',
 		class: 'ui-searchOp w-full',
 		options: row.moduleActions ?? row.actions ?? [],
-		modelValue: row.authorizedActions ?? row.authority?.authorizedActions,
-		onUpdate: (value: unknown) => {
-			row.authorizedActions = value as typeof row.authorizedActions;
+		value: row.authorizedActions ?? row.authority?.authorizedActions,
+		onChange: () => {
 			MetaModel.modify(row);
 		},
 	});
@@ -296,20 +296,17 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 				this.field('authActions')
 					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps
-						return ui.factory.multiSelect({
-							showClear: true,
-							// id: `search_${fld.fieldName}`,
-							editable: true,
-							// display: 'chip',
+						if (!ctx.model.authorizedActions) {
+							ctx.model.authorizedActions = []
+						}
+						return ui.factory.multiItemSelect({
 							placeholder: t('action.select'),
-							dataKey: 'actionName',
-							optionLabel: 'displayLabel',
-							// optionValue: 'actionName',
+							valueField: 'actionName',
+							labelField: 'displayLabel',
 							class: 'ui-searchOp w-full',
 							options: ctx.model.moduleActions,
-							modelValue: ctx.model.authorizedActions,
-							onUpdate: (value: any) => {
-								ctx.model.authorizedActions = value;
+							value: ctx.model.authorizedActions,
+							onChange: () => {
 								const { name } = ctx
 								const str = name.split(',')
 								const arr1 = str[1].split('.')
@@ -323,7 +320,6 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 										}
 									})
 								})
-								// 状态改为已修改
 								MetaModel.modify(ctx.model);
 							},
 						});

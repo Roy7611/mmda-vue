@@ -34,6 +34,8 @@ export default defineConfig({
         id === 'ag-grid-enterprise' ||
         id === 'ag-grid-vue3' ||
         id.startsWith('ag-grid-') ||
+        id === 'ag-charts-vue3' ||
+        id.startsWith('ag-charts-') ||
         id === 'bpmn-js' ||
         id.startsWith('bpmn-js/') ||
         id === 'jsbarcode' ||

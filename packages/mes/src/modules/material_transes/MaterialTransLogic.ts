@@ -101,198 +101,32 @@ const getValidationErrors = (context: UiContext, errors: any): string => {
 }
 // 确认收料
 const beforeReceive = async (context: UiContext, model: MaterialTrans, action: EntityAction) => {
-	const { $t: t, $toast: toast } = context.globalProps;
-	try {
-		const isHasShip = await context.apiClient.getAll({
-			repository: 'MaterialTranses',
-			path: `${model.transID ?? ''}/hasShip`,
-			service: 'mes',
-		});
-		if (isHasShip.list) {
-			return context.uiBuilder.confirm(context, {
-				header: t('action.confirm'),
-				message: t('confirmation.hasShipMsg'),
-				type: action.param.hint,
-				rejectLabel: t('action.cancel'),
-				acceptLabel: t('action.confirm'),
-				// 确认
-				accept: async () => {
-					context.uiBuilder.confirm(context, {
-						header: t('action.confirm'),
-						message: t('dialog.areYourSure'),
-						type: action.param.hint,
-						rejectLabel: t('auth.AllReceive'),
-						acceptLabel: t('auth.PartReceive'),
-						// 部分到货
-						accept: async () => {
-							try {
-								context.uiBuilder.dialog(
-									materialRItemNode({
-										id: 'materialRItems',
-										name: 'materialRItems',
-										ctx: context,
-										proModel: model.items.sort((a: any, b: any) => a.rowNum - b.rowNum).filter((item: any) => (item.leftOverQuantity - item.quantity) < 0),
-										//字表emit提交父组件方法
-										onGetTepModel(val: any) {
-											subData.data = val;
-										},
-									}),
-									context,
-									{
-										title: t('auth.MaterialTransItem'),
-										width: '70%',
-										accept: async () => {
-											const paramData = subData.data.map(item => ({ refID: item.transID, refItemID: item.itemID, refName: item.arrivedQuantity }));
-											try {
-												const res: boolean = await context.apiClient.doAction(
-													{
-														path: model.transID ?? '',
-														action: action.name,
-														repository: 'MaterialTranses',
-														service: 'mes',
-													},
-													{
-														payload: {
-															refItemKeys: paramData,
-														},
-													}
-												);
-												// 关闭窗口
-												if (res) {
-													toast.add({
-														severity: 'success',
-														detail: t('dialog.success'),
-														summary: t('dialog.success'),
-														group: 'br',
-														life: 3000,
-													});
-													context.reload();
-												}
-											} catch (error: any) {
-												context.uiBuilder.toast(context, {
-													severity: 'error',
-													summary: t('dialog.title.error'),
-													detail: error.message ?? t('auth.operationFailed'),
-													group: 'br',
-													life: 3000,
-												});
-											}
-										},
-									}
-								);
-							} catch (error) {
-								console.error(error);
-							}
-						},
-						// 全部到货
-						reject: async () => {
-							try {
-								const res: boolean = await context.apiClient.doAction(
-									{
-										path: model.transID ?? '',
-										action: action.name,
-										repository: 'MaterialTranses',
-										service: 'mes',
-									},
-									{}
-								);
-								// 关闭窗口
-								if (res) {
-									toast.add({
-										severity: 'success',
-										detail: t('dialog.success'),
-										summary: t('dialog.success'),
-										group: 'br',
-										life: 3000,
-									});
-									context.reload();
-								}
-							} catch (error: any) {
-								context.uiBuilder.toast(context, {
-									severity: 'error',
-									summary: t('dialog.title.error'),
-									detail: error.validationErrors && error.validationErrors.length ? getValidationErrors(context, error.validationErrors) : error.message ?? t('auth.operationFailed'),
-									group: 'br',
-									life: 3000,
-								});
-							}
-						},
-						onHide: () => { },
-					});
+	const t = context.t.bind(context)
+	const toast = (props: Record<string, unknown>) =>
+		context.uiBuilder.toast(context, props)
+	const openPartial = () =>
+		context.uiBuilder.dialog(
+			materialRItemNode({
+				id: 'materialRItems',
+				name: 'materialRItems',
+				ctx: context,
+				proModel: model.items
+					.sort((a: any, b: any) => a.rowNum - b.rowNum)
+					.filter((item: any) => item.leftOverQuantity - item.quantity < 0),
+				onGetTepModel(val: any) {
+					subData.data = val
 				},
-				reject: async () => { },
-				onHide: async () => { },
-			});
-		} else {
-			return context.uiBuilder.confirm(context, {
-				header: t('action.confirm'),
-				message: t('dialog.areYourSure'),
-				type: action.param.hint,
-				rejectLabel: t('auth.AllReceive'),
-				acceptLabel: t('auth.PartReceive'),
-				// 部分到货
-				accept: async () => {
-					try {
-						context.uiBuilder.dialog(
-							materialRItemNode({
-								id: 'materialRItems',
-								name: 'materialRItems',
-								ctx: context,
-								proModel: model.items.sort((a: any, b: any) => a.rowNum - b.rowNum).filter((item: any) => (item.leftOverQuantity - item.quantity) < 0),
-								//字表emit提交父组件方法
-								onGetTepModel(val: any) {
-									subData.data = val;
-								},
-							}),
-							context,
-							{
-								title: t('auth.MaterialTransItem'),
-								width: '70%',
-								accept: async () => {
-									const paramData = subData.data.map(item => ({ refID: item.transID, refItemID: item.itemID, refName: item.arrivedQuantity }));
-									try {
-										const res: boolean = await context.apiClient.doAction(
-											{
-												path: model.transID ?? '',
-												action: action.name,
-												repository: 'MaterialTranses',
-												service: 'mes',
-											},
-											{
-												payload: {
-													refItemKeys: paramData,
-												},
-											}
-										);
-										// 关闭窗口
-										if (res) {
-											toast.add({
-												severity: 'success',
-												detail: t('dialog.success'),
-												summary: t('dialog.success'),
-												group: 'br',
-												life: 3000,
-											});
-											context.reload();
-										}
-									} catch (error: any) {
-										context.uiBuilder.toast(context, {
-											severity: 'error',
-											summary: t('dialog.title.error'),
-											detail: error.message ?? t('auth.operationFailed'),
-											group: 'br',
-											life: 3000,
-										});
-									}
-								},
-							}
-						);
-					} catch (error) {
-						console.error(error);
-					}
-				},
-				// 全部到货
-				reject: async () => {
+			}),
+			context,
+			{
+				title: t('auth.MaterialTransItem'),
+				width: '70%',
+				onAccept: async () => {
+					const paramData = subData.data.map((item: any) => ({
+						refID: item.transID,
+						refItemID: item.itemID,
+						refName: item.arrivedQuantity,
+					}))
 					try {
 						const res: boolean = await context.apiClient.doAction(
 							{
@@ -301,37 +135,86 @@ const beforeReceive = async (context: UiContext, model: MaterialTrans, action: E
 								repository: 'MaterialTranses',
 								service: 'mes',
 							},
-							{}
-						);
-						// 关闭窗口
+							{ payload: { refItemKeys: paramData } },
+						)
 						if (res) {
-							toast.add({
+							toast({
 								severity: 'success',
-								detail: t('dialog.success'),
-								summary: t('dialog.success'),
-								group: 'br',
+								title: t('dialog.success'),
+								message: t('dialog.success'),
 								life: 3000,
-							});
-							context.reload();
+							})
+							context.reload()
 						}
 					} catch (error: any) {
-						context.uiBuilder.toast(context, {
+						toast({
 							severity: 'error',
-							summary: t('dialog.title.error'),
-							detail: error.validationErrors && error.validationErrors.length ? getValidationErrors(context, error.validationErrors) : error.message,
-							group: 'br',
+							title: t('dialog.title.error'),
+							message: error.message ?? t('auth.operationFailed'),
 							life: 3000,
-						});
+						})
 					}
+					return true
 				},
-				onHide: () => { },
-			});
+			},
+		)
+	const allReceive = async () => {
+		try {
+			const res: boolean = await context.apiClient.doAction(
+				{
+					path: model.transID ?? '',
+					action: action.name,
+					repository: 'MaterialTranses',
+					service: 'mes',
+				},
+				{},
+			)
+			if (res) {
+				toast({
+					severity: 'success',
+					title: t('dialog.success'),
+					message: t('dialog.success'),
+					life: 3000,
+				})
+				context.reload()
+			}
+		} catch (error: any) {
+			toast({
+				severity: 'error',
+				title: t('dialog.title.error'),
+				message:
+					error.validationErrors && error.validationErrors.length
+						? getValidationErrors(context, error.validationErrors)
+						: (error.message ?? t('auth.operationFailed')),
+				life: 3000,
+			})
 		}
-	} catch (error) {
-		console.error(error);
 	}
-	// return false
-};
+	try {
+		const isHasShip = await context.apiClient.getAll({
+			repository: 'MaterialTranses',
+			path: `${model.transID ?? ''}/hasShip`,
+			service: 'mes',
+		})
+		if (isHasShip.list) {
+			if (
+				!(await context.uiBuilder.confirm(context, {
+					title: t('action.confirm'),
+					message: t('confirmation.hasShipMsg'),
+				}))
+			)
+				return
+		}
+		const part = await context.uiBuilder.confirm(context, {
+			title: t('action.confirm'),
+			message: t('dialog.areYourSure'),
+		})
+		if (part) await openPartial()
+		else await allReceive()
+	} catch (error) {
+		console.error(error)
+	}
+}
 // // 放行
 // const beforeRelease = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
 // 	title: context.globalProps.$t('auth.Release'),
@@ -1014,9 +897,8 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				if (target?.reason?.requiredFromSiteID && isRefNone(target.fromSiteID)) {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						detail: context.t('materialTrans.selectFromSite'),
-						group: 'br',
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.t('materialTrans.selectFromSite'),
 						life: 3000,
 					});
 				}
@@ -1026,9 +908,9 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 				// } else {
 				// 	context.uiBuilder.toast(context, {
 				// 		severity: 'error',
-				// 		summary: context.globalProps.$t('dialog.title.error'),
-				// 		detail: context.t('materialTrans.selectFromSite'),
-				// 		group: 'br',
+				// 		title: context.globalProps.$t('dialog.title.error'),
+				// 		message: context.t('materialTrans.selectFromSite'),
+				//,
 				// 		life: 3000
 				// 	})
 				// }
@@ -1049,9 +931,8 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 		} else {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.globalProps.$t('dialog.title.error'),
-				detail: context.t('materialTrans.selectReason'),
-				group: 'br',
+				title: context.globalProps.$t('dialog.title.error'),
+				message: context.t('materialTrans.selectReason'),
 				life: 3000,
 			});
 		}

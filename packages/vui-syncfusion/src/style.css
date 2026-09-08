@@ -12,12 +12,15 @@
 @import '@syncfusion/ej2-lists/styles/material3.css';
 @import '@syncfusion/ej2-navigations/styles/material3.css';
 @import '@syncfusion/ej2-popups/styles/material3.css';
+@import '@syncfusion/ej2-inplace-editor/styles/material3.css';
 @import '@syncfusion/ej2-notifications/styles/material3.css';
 @import '@syncfusion/ej2-grids/styles/material3.css';
+@import '@syncfusion/ej2-querybuilder/styles/material3.css';
 @import '@syncfusion/ej2-diagrams/styles/material3.css';
 @import '@syncfusion/ej2-layouts/styles/card/material3.css';
 @import '@syncfusion/ej2-layouts/styles/splitter/material3.css';
-/* ej2-gantt / ej2-treegrid CSS are loaded only by GanttChart (MES), not the shared skin. */
+@import '@syncfusion/ej2-layouts/styles/avatar/material3.css';
+/* ej2-gantt / ej2-treegrid CSS are loaded only by the gantt plugin, not the shared skin. */
 
 /*
  * MD3：Theme Studio 种子 = light primary；accent + surface/outline 均跟色板。
@@ -566,6 +569,8 @@ html.mmda-dark[data-mmda-palette="cyan"] {
  * 若写成 .mmda-sf-table { width:100% }，筛选/清除会变成全宽竖排。 */
 .e-grid.mmda-sf-table {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .mmda-sf-cell {
@@ -1128,6 +1133,7 @@ html.e-dark-mode .mmda-sf-dropup {
   position: relative;
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
@@ -1186,13 +1192,15 @@ html.e-dark-mode .mmda-sf-dropup {
   background-color: var(--mmda-surface-ground);
 }
 
-.mmda-sf-page-loading-host {
+.mmda-sf-page-loading-host,
+.mmda-loading:not(.mmda-loading--overlay) {
   position: relative;
   width: 4rem;
   height: 4rem;
 }
 
-.mmda-sf-page-loading-host > .e-spinner-pane {
+.mmda-sf-page-loading-host > .e-spinner-pane,
+.mmda-loading:not(.mmda-loading--overlay) > .e-spinner-pane {
   position: absolute;
   inset: 0;
 }
@@ -1231,6 +1239,10 @@ html.e-dark-mode .mmda-sf-dropup {
 
 .mmda-sf-maincontent .mmda-list-view .mmda-list-scroll {
   flex: 1 1 auto;
+  /* flex 默认 min-width:auto = 列宽之和，父级会被撑出视口，EJ2 就不再出横向条 */
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   min-height: 0;
   overflow: hidden !important;
 }
@@ -1280,9 +1292,9 @@ html.e-dark-mode .mmda-sf-dropup {
   height: 100% !important;
 }
 
-/* 列表内滚：最后一行下面留空，才能滚离开分页器 */
-.mmda-sf-maincontent .mmda-list-view .e-grid .e-content {
-  padding-bottom: var(--mmda-page-end-space, 3rem);
+/* 列表内滚：末行留空，避免被分页条挡住；不要垫在 .e-content 上，否则会顶掉横向滚动条 */
+.mmda-sf-maincontent .mmda-list-view .e-grid .e-content .e-table {
+  margin-bottom: var(--mmda-page-end-space, 3rem);
 }
 
 .mmda-sf-maincontent .mmda-view {
@@ -1320,12 +1332,6 @@ html.e-dark-mode .mmda-sf-dropup {
   grid-template-columns: 72px;
 }
 
-.mmda-sf-fab {
-  position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
-}
-
 /* 工具栏默认左右两栏；有搜索中区时再三列均分。
  * 独立使用（列表页）：固定高度、贴顶直角。
  * 嵌在 .mmda-page-toolbar 内时由主题层盖底（padding/border 清零）。 */
@@ -1340,6 +1346,7 @@ html.e-dark-mode .mmda-sf-dropup {
   width: 100%;
   min-width: 0;
   height: 3rem;
+  max-height: 3rem;
   margin: 0;
   padding: 0 0.75rem;
   border: 0;
@@ -1387,10 +1394,20 @@ html.e-dark-mode .mmda-sf-dropup {
 .mmda-sf-toolbar-actions.e-btn-group,
 .mmda-sf-toolbar-actions {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
   flex-wrap: nowrap;
+  flex: 0 0 auto;
   gap: 0;
-  min-width: 0;
+  min-width: max-content;
+  max-height: 2.25rem;
+}
+
+.mmda-sf-toolbar-actions .e-btn,
+.mmda-sf-toolbar-actions .e-dropdown-btn,
+.mmda-sf-toolbar__end .e-btn,
+.mmda-sf-toolbar__end .e-dropdown-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .mmda-sf-searchbar,
@@ -1537,22 +1554,23 @@ html.e-dark-mode .mmda-sf-dropup {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  height: 100%;
+  /* 不要 height:100%：和底部分页条叠在一起会把 EJ2 横向滚动条挤出裁剪区 */
 }
 
 .mmda-sf-grid-loading-host > .e-grid {
   flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   height: 100% !important;
 }
 
 /* EJ2 createSpinner 挂在 host 上；loading 时半透明挡操作 */
-.mmda-sf-grid-loading-host.is-loading > .e-grid {
+.mmda-loading--overlay.is-loading > .e-grid {
   pointer-events: none;
   opacity: 0.55;
 }
 
-.mmda-sf-grid-loading-host > .e-spinner-pane {
+.mmda-loading--overlay > .e-spinner-pane {
   z-index: 4;
 }
 
@@ -2440,14 +2458,14 @@ html.mmda-dark .e-grid .e-table {
   white-space: nowrap;
 }
 
-.mmda-sf-breadcrumb {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+.mmda-sf-breadcrumb.e-breadcrumb,
+.e-breadcrumb.mmda-sf-breadcrumb {
+  display: block;
   font-size: 0.875rem;
+  line-height: 1.25;
 }
 
+.mmda-sf-breadcrumb .e-breadcrumb-item .e-breadcrumb-text,
 .mmda-sf-breadcrumb .mmda-breadcrumb__item,
 .mmda-sf-breadcrumb .mmda-breadcrumb__link {
   display: inline-flex;
@@ -2457,7 +2475,8 @@ html.mmda-dark .e-grid .e-table {
   text-decoration: none;
 }
 
-.mmda-sf-breadcrumb .mmda-breadcrumb__link:hover {
+.mmda-sf-breadcrumb .mmda-breadcrumb__link:hover,
+.mmda-sf-breadcrumb .e-breadcrumb-item a.e-breadcrumb-text:hover {
   text-decoration: underline;
 }
 
@@ -2466,8 +2485,26 @@ html.mmda-dark .e-grid .e-table {
   opacity: 0.85;
 }
 
+/*
+ * EJ2 Vue 下 separator li 经常是空节点（无 wrapper、无文本）。
+ * 用 ::before 画分隔符。注意：--mmda-breadcrumb-sep 必须是带引号的 CSS 字符串，
+ * 否则 content: var(...) 非法，伪元素高度为 0。
+ */
+.mmda-sf-breadcrumb .e-breadcrumb-separator::before,
+.mmda-breadcrumb__sep::before {
+  content: var(--mmda-breadcrumb-sep, "/");
+  display: inline-block;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.mmda-sf-breadcrumb .e-breadcrumb-separator,
 .mmda-breadcrumb__sep {
-  opacity: 0.55;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.35rem;
+  color: var(--mmda-text-muted-color, #49454f);
+  opacity: 0.75;
   user-select: none;
 }
 
@@ -2734,11 +2771,23 @@ html.mmda-dark .e-grid .e-table {
   color: var(--mmda-text-muted-color);
 }
 
-/* Badge 角标：EJ2 只有上下，左右用 class 覆盖 */
-.e-badge.e-badge-notification.mmda-badge--top-left,
-.e-badge.e-badge-dot.mmda-badge--top-left,
-.e-badge.e-badge-notification.mmda-badge--bottom-left,
-.e-badge.e-badge-dot.mmda-badge--bottom-left {
-  right: auto;
-  left: -10px;
+/* 应用主题可钩：.mmda-card / .mmda-card--{role} / --outlined / --elevated */
+/* 应用主题可钩：.mmda-divider / .mmda-divider--vertical / --labeled */
+/* 应用主题可钩：.mmda-datepicker / --month / .mmda-datetimepicker / .mmda-timepicker / .mmda-daterangepicker */
+/* 应用主题可钩：.mmda-dropdown-list / .mmda-combobox / .mmda-combobox--custom */
+/* 应用主题可钩：.mmda-chart / .mmda-circular-gauge */
+/* 应用主题可钩：.mmda-signature-pad / --readonly / --disabled */
+/* 应用主题可钩：.mmda-stepper / --horizontal / --vertical / --linear / --readonly */
+/* 应用主题可钩：.mmda-tabs / --top / --bottom / --left / --right / --scrollable / --popup / --fill */
+
+.mmda-checkbox-list__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
+
+.mmda-row-detail {
+  padding: 0.5rem 0.75rem;
+}
+
+

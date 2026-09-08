@@ -419,7 +419,7 @@ export class MetaUiField {
 /**
  * 关系类型：HAS_ONE,HAS_MANY,REF
  */
-export const enum MetaRelationType {
+export enum MetaRelationType {
   HAS_ONE = 'HAS_ONE', // 一对一
   HAS_MANY = 'HAS_MANY', // 一对多
   REF = 'REF', // 引用
@@ -428,7 +428,7 @@ export const enum MetaRelationType {
 /**
  * 选择源数据形状
  */
-export const enum MetaOptionsShape {
+export enum MetaOptionsShape {
   FLAT,
   GROUPED,
   TREE,

@@ -42,8 +42,10 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 
 - `BpmnModeler`：需要 `bpmn-js`
 - `FilePreview`：DOCX/XLSX 需要 `@vue-office/docx` / `@vue-office/excel`
-- `CodeImage`：需要 `qrcode` 或 `jsbarcode`
-- factory 图表方法：需要 `chart.js`
+- `factory.barcode` / `factory.qrCode`：需要 `jsbarcode` / `qrcode`
+- 图表插件：`createPrimeChartFactory` 从 `@mmda/vui-primevue/charts` 引入，需要 `chart.js`。Gauge / 热图 / 桑基 / 史密斯图 / sparkline / stockChart / treeMap / funnel 等 `not supported`。`bubble` / `comboChart` 有 Chart.js 原生。完整图用 `@mmda/vuix-echarts`
+- 图插件：Prime / Naive 共用 `@mmda/vuix-vf-diagram` 的 `createVueDiagramPlugin()`。`buildBpmnDiagram` 仍是 bpmn-js XML
+- Markdown：共用 `@mmda/vuix-vditor-markdown` 的 `createMarkdownEditorPlugin()`（Vditor）
 
 这些包是 optional peer dependencies；只使用基础控件时不会进入默认 bundle。
 

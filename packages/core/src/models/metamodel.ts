@@ -20,6 +20,7 @@ import {
   isEntity,
   modified,
   modify,
+  reset,
 } from './entity_state'
 import {
   addItem,
@@ -34,6 +35,7 @@ import {
   min,
   removeItem,
   sum,
+  syncSelection,
 } from './entity_collection'
 export type { NumberGetter } from './entity_collection'
 import type { NumberGetter } from './entity_collection'
@@ -643,6 +645,7 @@ export const MetaModel = {
   dirty,
   modify,
   destroy,
+  reset,
 
   createEntity,
 
@@ -674,6 +677,7 @@ export const MetaModel = {
   deleteItem,
   deleteItemByIndex,
   clearItems,
+  syncSelection,
 
   assign,
   createSubGroupItems,

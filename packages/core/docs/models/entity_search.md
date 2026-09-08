@@ -24,7 +24,8 @@
 |---|---|
 | **EntityQuery** | 可保存的查询定义（客户端名） |
 | **EntitySearchParam** | 当次列表请求 ≈ EntityQuery，另带兼容字段 `queryParams?` |
-| **EntityFilterModel** | `Record<fieldName, EntityFieldFilter>`，Query 里的过滤文档 |
+| **EntityFilterModel** | `Record<fieldName, EntityFieldFilter>`，列过滤文档（表头 / 列间 AND） |
+| **EntityAdvancedFilterModel** | Query Builder / AG Advanced Filter 树，可跨字段 OR。**searchAll 本轮不传** |
 | **EntityFieldFilter** | 单字段条件（`EntitySimpleFieldFilter` \| set \| boolean；对齐 Java ColumnFilter） |
 | **EntityFilterOperator** | `EQ` / `GE` / `IN` / `BETWEEN` …（JSON 成员名不变） |
 | **NamedQueryRef** | `Module.defaultFilter` 解析出的 `{ queryID, queryName }` |
@@ -36,6 +37,7 @@ interface EntityQuery {
   objName?: string
   remark?: string
   filterModel?: EntityFilterModel
+  advancedFilterModel?: EntityAdvancedFilterModel  // 客户端树；searchAll 本轮不 POST
   pager: Pager          // 含 sorts；唯一排序来源
   searchWord?: string
 }
@@ -61,6 +63,20 @@ interface EntitySearchParam extends EntityQuery {
 | `multi` | 同一列叠 **不同种类** 子过滤：`filterModels[]`（服务端 AND） |
 
 `join` ≠ `multi`：两段 CONTAINS 用 join；CONTAINS + 选项 set 用 multi。只填一块时摊平为 simple/set，不要包一层空的 join/multi。
+
+## 双轨：列 Filter vs Advanced Filter
+
+AG Grid 也是两套：
+
+| | 列 FilterModel | Advanced Filter |
+|---|---|---|
+| AG API | `getFilterModel` | `getAdvancedFilterModel` |
+| MMDA | `EntityFilterModel` | `EntityAdvancedFilterModel` |
+| 形状 | `Record<field, …>`，列间 AND；`join`/`multi` 只在同一列 | 根可以是 join，叶子带 `fieldName`，可跨列 OR |
+| UI | 表头 Excel/Menu | `factory.queryBuilder` |
+| 服务端 | `searchAll` POST body | **尚未接**；不要摊成 `filterModel` |
+
+控件与映射见 vui [query_builder.md](../../vui/docs/query_builder.md)。
 
 工厂：`inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `joinFilter` / `multiFilter` / `combineCompareAndSet`。
 
@@ -106,6 +122,7 @@ EntitySearchParam
       filterModel  ← 有键才带（POST body）
   → 无 filterModel：GET getAll
   → 有 filterModel：POST .../searchAll，body = EntityFilterModel 映射
+  → advancedFilterModel 不进入 toSearchRequest
 ```
 
 要点：
@@ -166,6 +183,7 @@ if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
 | 场景 | 用什么 |
 |---|---|
 | 列表 / 表头 / 搜索栏字段条件 | `EntityFilterOperator` + `filterModel` |
+| Query Builder / 跨字段 OR | `EntityAdvancedFilterModel`（客户端；searchAll 后续） |
 | 元数据 `reference.where`、Logic `refWhere` | `SqlOperator`（`getSqlOperator` / `toSQL`） |
 | 尚未迁完的快捷过滤 SQL、旧 MES URL | `queryParams`（兼容，新代码不要加） |
 

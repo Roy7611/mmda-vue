@@ -24,8 +24,8 @@ export const AppUserFooter = defineComponent({
     const todoCount = computed(() => Number(app.state.todoCount ?? 0))
     const icon = (name: string) => builder.factory.resolveIcon(name)
 
-    const toast = (severity: string, summary: string, detail: string) =>
-      void app.ui.toast({} as any, { severity, summary, detail, life: 3000 })
+    const toast = (severity: string, title: string, message: string) =>
+      void app.ui.toast({} as any, { severity, title, message, life: 3000 })
 
     const setDark = (dark: boolean) => {
       app.state.isDark = dark
@@ -50,7 +50,7 @@ export const AppUserFooter = defineComponent({
         {
           title: '修改密码',
           width: 'min(90vw, 30rem)',
-          accept: async () => {
+          onAccept: async () => {
             if (!password.newPwd) {
               toast('error', '错误', '请填写新密码')
               return false
@@ -106,9 +106,13 @@ export const AppUserFooter = defineComponent({
 
     return () =>
       h('div', { class: 'mmda-user-footer' }, [
-        h('span', { class: 'mmda-user-footer__avatar' }, [
-          builder.factory.icon('fas fa-user'),
-        ]),
+        builder.factory.avatar({
+          src: app.user?.portrait,
+          icon: 'fas fa-user',
+          shape: 'circle',
+          size: 'small',
+          class: 'mmda-user-footer__avatar',
+        }),
         h(
           'span',
           { class: 'mmda-user-footer__name', title: username.value },
@@ -149,7 +153,7 @@ export const AppUserFooter = defineComponent({
             onClick: () => setDark(!app.state.isDark),
           }),
           h(ColorPalettePicker),
-          builder.factory.menuButton(
+          builder.factory.dropDownButton(
             {
               icon: icon('more'),
               class: 'mmda-user-footer__button',

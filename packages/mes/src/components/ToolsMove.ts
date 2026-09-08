@@ -16,36 +16,38 @@ export const ToolsMove = defineComponent(
         },
         emits: ['getMoveData'],
         setup: (props, { emit }) => {
-            const { $ui: ui, $t: t, $toast: toast } = props.ctx.globalProps
+            const {$ui: ui, $t: t} = props.ctx.globalProps
             const ToolsMoveData = reactive({
                 moveTo: '',
                 remark: ''
             })
             return () => [
                 h('div', { class: 'w-full h-full flex pt-2 pb-2 box-border flex-col items-center justify-center ' }, [
-                    h('div', { class: 'w-full  flex items-center box-border' }, ui.factory.formItem({
+                    h('div', { class: 'w-full  flex items-center box-border' }, ui.factory.formField({
                         class: 'w-full ',
                         name: 'moveTo',
                         label: t('auth.moveTo')
                     }, {
-                        default: () => ui.factory.input(ToolsMoveData.moveTo, {
+                        default: () => ui.factory.textInput({
+                            value: ToolsMoveData.moveTo,
                             class: 'w-full ',
                             placeholder: t('auth.writetMoveTo'),
-                            onUpdate: (val: any) => {
+                            onChange: (val: string) => {
                                 ToolsMoveData.moveTo = val
                                 emit('getMoveData', ToolsMoveData)
                             }
                         })
                     })),
-                    h('div', { class: 'w-full  flex items-center box-border' }, ui.factory.formItem({
+                    h('div', { class: 'w-full  flex items-center box-border' }, ui.factory.formField({
                         class: 'w-full ',
                         name: 'remark',
                         label: t('auth.remark')
                     }, {
-                        default: () => ui.factory.textarea(ToolsMoveData.remark, {
+                        default: () => ui.factory.textArea({
+                            value: ToolsMoveData.remark,
                             class: 'w-full',
                             placeholder: t('auth.writeRemark'),
-                            'onUpdate:modelValue': (value: string) => {
+                            onChange: (value: string) => {
                                 ToolsMoveData.remark = value
                                 emit('getMoveData', ToolsMoveData)
                             },

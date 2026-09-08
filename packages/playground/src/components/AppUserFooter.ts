@@ -28,9 +28,13 @@ export const AppUserFooter = defineComponent({
 
     return () =>
       h("div", { class: "mmda-user-footer" }, [
-        h("span", { class: "mmda-user-footer__avatar" }, [
-          builder.factory.icon("fas fa-user"),
-        ]),
+        builder.factory.avatar({
+          src: app.user?.portrait,
+          icon: "fas fa-user",
+          shape: "circle",
+          size: "small",
+          class: "mmda-user-footer__avatar",
+        }),
         h(
           "span",
           { class: "mmda-user-footer__name", title: username.value },

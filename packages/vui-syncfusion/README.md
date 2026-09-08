@@ -43,6 +43,98 @@ app
 
 动作图标用 Syncfusion `e-icons`；业务图标（`Module.moduleIcon`、`far fa-*`）走 `@mmda/vui/fontawesome.css`（插件已引入）。
 
+## 图表插件
+
+默认不挂，不进 `createSyncfusionUiFactory`。应用按需：
+
+```ts
+import { createSfChartFactory } from '@mmda/vui-syncfusion/charts'
+
+ui.setChartFactory(createSfChartFactory())
+```
+
+需要 optional peer `@syncfusion/ej2-vue-charts`、`@syncfusion/ej2-vue-circulargauge`、`@syncfusion/ej2-vue-lineargauge`、`@syncfusion/ej2-vue-heatmap`、`@syncfusion/ej2-vue-maps`。漏斗 / 金字塔 / 瀑布 / 箱线 / 直方图 / 气泡 / 子弹图 / combo 走 EJ2；`sunburst` 为 `not supported`。也可用 `@mmda/vuix-echarts`。见 [vui 图表](../vui/docs/chart.md)。
+
+## 图插件
+
+默认不挂。EJ2 Diagram 在本包：
+
+```ts
+import { createSfDiagramEditorPlugin } from '@mmda/vui-syncfusion/diagram-editor'
+
+ui.setDiagramPlugin(createSfDiagramEditorPlugin())
+```
+
+兼容：`@mmda/vui-syncfusion/diagrams` 的 `createSfDiagramPlugin` 是同一函数。
+
+Prime / Naive 共用 `@mmda/vuix-vf-diagram`（Vue Flow）。`buildBpmnDiagram` 仍走 bpmn-js XML，不要和 `diagramPlugin` 混用。见 [vui 图插件](../vui/docs/diagram.md)。
+
+## 图片编辑器
+
+默认不挂。需要 optional peer `@syncfusion/ej2-vue-image-editor`：
+
+```ts
+import { createSfImageEditorPlugin } from '@mmda/vui-syncfusion/image-editor'
+
+ui.setImageEditorPlugin(createSfImageEditorPlugin())
+```
+
+## Markdown
+
+三家皮肤共用 `@mmda/vuix-vditor-markdown`（Vditor），见 [vui Markdown](../vui/docs/markdown_editor.md)。
+
+## 甘特插件
+
+默认不挂。EJ2 Gantt 在本包：
+
+```ts
+import { createSfGanttPlugin } from '@mmda/vui-syncfusion/gantt'
+
+ui.setGanttPlugin(createSfGanttPlugin())
+```
+
+需要 optional peer `@syncfusion/ej2-vue-gantt`。Prime / Naive 本轮不实现。见 [vui 甘特插件](../vui/docs/gantt.md)。
+
+另有独立包 [`@mmda/vuix-hyper-gantt`](../vuix-hyper-gantt)（DlhSoft Hyper Library），`setGanttPlugin(createHyperGanttPlugin())`，不换本皮肤默认实现。
+
+## Ribbon 插件
+
+默认不挂。EJ2 Ribbon 在本包（不是 `factory.toolbar`）：
+
+```ts
+import { createSfRibbonPlugin } from '@mmda/vui-syncfusion/ribbon'
+
+ui.setRibbonPlugin(createSfRibbonPlugin())
+```
+
+需要 optional peer `@syncfusion/ej2-vue-ribbon`。Prime / Naive 无对等控件。见 [vui Ribbon 插件](../vui/docs/ribbon.md)。
+
+## 看板插件
+
+默认不挂。EJ2 Kanban 在本包：
+
+```ts
+import { createSfKanbanPlugin } from '@mmda/vui-syncfusion/kanban'
+
+ui.setKanbanPlugin(createSfKanbanPlugin())
+```
+
+需要 optional peer `@syncfusion/ej2-vue-kanban`。见 [vui 看板插件](../vui/docs/kanban.md)。
+
+另有独立包 [`@mmda/vuix-svar-kanban`](../vuix-svar-kanban)（SVAR），`setKanbanPlugin(createVueKanbanPlugin())`，不换本皮肤默认实现。
+
+## AI 助手
+
+默认不挂。需要 optional peer `@syncfusion/ej2-vue-interactive-chat`：
+
+```ts
+import { createSfAiAssistantPlugin } from '@mmda/vui-syncfusion/ai-assistant'
+
+ui.setAiAssistantPlugin(createSfAiAssistantPlugin())
+```
+
+见 [vui AI 助手](../vui/docs/ai_assistant.md)。
+
 ## 文档
 
 - [表格契约](./docs/sf-grid.md)：厂商无关的 Grid 接口（scene、props、事件、方法）。本包以 `SfGrid` 实现；AgGrid 包装应对齐同一份。

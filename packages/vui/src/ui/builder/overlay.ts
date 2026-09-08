@@ -1,15 +1,14 @@
 import { h, render, type VNode } from 'vue'
 import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
-  UiMessageBoxResult,
+  UiConfirmProps,
+  UiDialogProps,
   UiToastProps,
 } from '../factory/dialog'
 
 export interface UiOverlay {
   toast(props: UiToastProps): void
-  confirm(props: UiMessageBoxProps): Promise<UiMessageBoxResult>
-  dialog(content: VNode, props: UiDialogPropsType): Promise<boolean>
+  confirm(props: UiConfirmProps): Promise<boolean>
+  dialog(content: VNode, props: UiDialogProps): Promise<boolean>
   /** 关闭最上层对话框（如选择列表双击确认）。 */
   settleTopDialog?(accepted: boolean): Promise<void>
 }
@@ -20,18 +19,17 @@ export function createHtmlOverlay(): UiOverlay {
     toast(props) {
       if (typeof document === 'undefined') return
       const node = document.createElement('div')
-      node.className = `mmda-toast is-${props.severity ?? props.type ?? 'info'}`
-      node.textContent = String(
-        props.detail ?? props.message ?? props.summary ?? props.title ?? '',
-      )
+      node.className = `mmda-toast is-${props.severity ?? 'info'}`
+      node.textContent = [props.title, props.message ?? props.detail]
+        .filter(Boolean)
+        .join(' ')
       document.body.append(node)
       setTimeout(() => node.remove(), props.life ?? 3000)
     },
     confirm(props) {
-      if (typeof window === 'undefined') return Promise.resolve('no')
-      return Promise.resolve(
-        window.confirm(String(props.message ?? 'Confirm?')) ? 'yes' : 'no',
-      )
+      if (typeof window === 'undefined') return Promise.resolve(false)
+      const text = [props.title, props.message].filter(Boolean).join('\n')
+      return Promise.resolve(window.confirm(text || 'Confirm?'))
     },
     async settleTopDialog(accepted) {
       const top = stack[stack.length - 1]
@@ -44,9 +42,9 @@ export function createHtmlOverlay(): UiOverlay {
         document.body.append(host)
         const close = async (accepted: boolean) => {
           if (accepted) {
-            if (props.accept && (await props.accept()) === false) return
+            if (props.onAccept && (await props.onAccept()) === false) return
             props.onConfirm?.()
-          } else if (props.reject && (await props.reject()) === false) {
+          } else if (props.onReject && (await props.onReject()) === false) {
             return
           }
           const idx = stack.lastIndexOf(close)
@@ -57,8 +55,6 @@ export function createHtmlOverlay(): UiOverlay {
           resolve(accepted)
         }
         stack.push(close)
-        const accept = () => close(true)
-        const reject = () => close(false)
         render(
           h('div', { class: 'mmda-dialog-backdrop' }, [
             h(
@@ -72,13 +68,21 @@ export function createHtmlOverlay(): UiOverlay {
                 },
               },
               [
-                h('header', props.title ?? props.name),
+                h('header', props.title ?? ''),
                 h('main', [content]),
                 props.showFooter === false
                   ? null
                   : h('footer', [
-                      h('button', { type: 'button', onClick: reject }, 'Cancel'),
-                      h('button', { type: 'button', onClick: accept }, 'OK'),
+                      h(
+                        'button',
+                        { type: 'button', onClick: () => close(false) },
+                        'Cancel',
+                      ),
+                      h(
+                        'button',
+                        { type: 'button', onClick: () => close(true) },
+                        'OK',
+                      ),
                     ]),
               ],
             ),

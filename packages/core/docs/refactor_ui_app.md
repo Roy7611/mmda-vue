@@ -70,7 +70,7 @@ packages/core/src
 
 ## MetaUiBuilder
 
-流式拼一份**列表用** `MetaUi`，再 `factory.table(rows, metaui)`。内部数组叫 `_fields`，避免和方法 `fields()` 撞名。用法 [metaui_builder.md](./metaui/metaui_builder.md)。
+流式拼一份**列表用** `MetaUi`，再 `factory.table(rows, metaUi)`。内部数组叫 `_fields`，避免和方法 `fields()` 撞名。用法 [metaui_builder.md](./metaui/metaui_builder.md)。
 
 ## Logic 边界
 

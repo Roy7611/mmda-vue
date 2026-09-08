@@ -92,10 +92,9 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
 						if (partCount > 0) {
 							context.setFieldValue('useParts', true);
 							context.uiBuilder.toast(context, {
-								severity: 'warn',
-								summary: context.t('dialog.title.prompt'),
-								group: 'br',
-								detail: context.t('maintenance.clearPartsFirst'),
+								severity: 'warning',
+								title: context.t('dialog.title.prompt'),
+								message: context.t('maintenance.clearPartsFirst'),
 								life: 3000,
 							});
 						}

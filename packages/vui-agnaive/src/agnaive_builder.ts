@@ -5,7 +5,6 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from 'vue'
-import { RouterLink } from 'vue-router'
 import {
   SqlDataType,
   pluralize,
@@ -38,6 +37,8 @@ import {
   type UiSearchField,
   type UiSlots,
   type UiViewContext,
+  paintModuleToolbar,
+  defaultToolbarMoreActions,
 } from '@mmda/vui'
 import {
   NAlert,
@@ -46,11 +47,9 @@ import {
   NInput,
   NInputNumber,
   NSelect,
-  NSpin,
 } from 'naive-ui'
 import { AgNaiveOverlayHost } from './components/AgNaiveOverlayHost'
 import { BpmnModeler } from './components/BpmnModeler'
-import { CodeImage } from './components/CodeImage'
 import { SigninForm } from './components/SigninForm'
 import { createAgNaiveOverlay } from './agnaive_overlay'
 import { createAgNaiveFieldFactory } from './agnaive_field_factory'
@@ -223,7 +222,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   }
 
   buildLoading(_context: UiContext, props?: PropData) {
-    return h('div', { class: 'mmda-agnaive-loading', ...props }, [h(NSpin)])
+    return this.factory.loading(props)
   }
 
   buildError(context: UiContext, props?: PropData) {
@@ -237,36 +236,31 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
     const { module, label } = props
     if (!module) {
-      return h('span', { class: 'mmda-agnaive-breadcrumb' }, label || context.title)
-    }
-    const model = moduleChain(module).map((item, index, items) => ({
-      key: item.moduleCode,
-      label: item.moduleLabel ?? (item as any).moduleName,
-      icon: item.moduleIcon ?? '',
-      route: item.moduleUrl ?? '',
-      leaf: index === items.length - 1 && !label,
-    }))
-    if (label) {
-      model.push({
-        key: `${module.moduleCode}-title`,
-        label,
-        icon: '',
-        route: '',
-        leaf: true,
+      return this.factory.breadcrumb({
+        items: [{ label: label || context.title }],
+        class: 'mmda-agnaive-breadcrumb',
       })
     }
-    return h(
-      'nav',
-      { class: 'mmda-agnaive-breadcrumb' },
-      model.map((item, index) =>
-        h('span', { key: item.key, class: 'mmda-breadcrumb__item' }, [
-          index > 0 ? h('span', { class: 'mmda-breadcrumb__sep' }, '/') : null,
-          item.leaf || !item.route
-            ? h('span', item.label)
-            : h(RouterLink, { to: item.route!, class: 'mmda-breadcrumb__link' }, () => item.label),
-        ]),
-      ),
-    )
+    const chain = moduleChain(module)
+    const items = chain.map((item, index) => {
+      const leaf = index === chain.length - 1 && !label
+      return {
+        key: item.moduleCode,
+        label: item.moduleLabel ?? (item as any).moduleName,
+        icon: item.moduleIcon || undefined,
+        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+      }
+    })
+    if (label) {
+      items.push({
+        key: `${module.moduleCode}-title`,
+        label,
+      })
+    }
+    return this.factory.breadcrumb({
+      items,
+      class: 'mmda-agnaive-breadcrumb',
+    })
   }
 
   buildImportOrExportAction(
@@ -352,7 +346,29 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   }
 
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
-    return this.moreMenuButton(context, items)
+    if (!items.length) return []
+    return [
+      this.factory.moreMenuButton(
+        {
+          label: context.t('action.more'),
+          tooltip: context.t('action.more'),
+          'aria-label': context.t('action.more'),
+          buttonType: 'tonal',
+          colorRole: 'secondary',
+        },
+        items.map((item, index) =>
+          item.divider
+            ? { divider: true }
+            : {
+                name: item.name ?? `more-${index}`,
+                label: item.label,
+                icon: item.icon,
+                onAction: item.command ?? item.onAction,
+                items: item.items,
+              },
+        ),
+      ),
+    ]
   }
 
   private assembleMultipleSelectionButtons(
@@ -374,10 +390,12 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       )
     if (actions.length === 1) return [render(actions[0]!)]
     return [
-      this.dropdownMenuButton(
+      this.factory.dropDownButton(
         {
           label: context.t('action.batchOperation'),
           class: 'mmda-batch-menu-button',
+          buttonType: 'tonal',
+          colorRole: 'secondary',
         },
         actions.map(action => ({
           name: action.name,
@@ -638,30 +656,36 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   ) {
     const runtime = context as any
     const module = moduleOf(context)
-    const hasCenter = !!slots?.center
-    return h('div', { class: 'mmda-agnaive-toolbar' }, [
-      h('div', { class: 'mmda-agnaive-toolbar__start' }, [
-        props.showBreadcrumb === false
-          ? undefined
-          : slots?.default
-            ? slots.default()
-            : module
-              ? this.buildModuleBreadcrumb(context, {
-                  module,
-                  label: props.breadcrumbLeaf || (runtime.many ? '' : context.title),
-                })
-              : h('strong', context.title),
-      ]),
-      hasCenter
-        ? h('div', { class: 'mmda-agnaive-toolbar-center' }, slots!.center!())
-        : undefined,
-      props.showActions === false
-        ? undefined
-        : this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
-            class: 'mmda-agnaive-toolbar-actions',
-            role: `${UI_NAME}-toolbar-action-group`,
-          }),
-    ])
+    return paintModuleToolbar(this.factory, context, props, slots, {
+      className: 'mmda-agnaive-toolbar',
+      breadcrumb: () => {
+        if (module) {
+          return this.buildModuleBreadcrumb(context, {
+            module,
+            label: props.breadcrumbLeaf || (runtime.many ? '' : context.title),
+          })
+        }
+        return h('strong', context.title)
+      },
+      actionGroup: () =>
+        this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
+          class: 'mmda-agnaive-toolbar-actions',
+          role: `${UI_NAME}-toolbar-action-group`,
+        }),
+      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
+      navActions: () =>
+        module
+          ? moduleChain(module).map(item => ({
+              name: item.moduleCode,
+              label: item.moduleLabel ?? (item as any).moduleName,
+              icon: item.moduleIcon,
+            }))
+          : [],
+      openSearchPage: () => {
+        if (props.onSearchPage) props.onSearchPage()
+        else void this.buildSearchPage(context)
+      },
+    })
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
@@ -859,14 +883,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
           )
         : undefined,
     ])
-  }
-
-  buildQrcode(value: string, props: PropData = {}) {
-    return h(CodeImage, { value, type: 'qr', ...props })
-  }
-
-  buildBarcode(value: string, props: PropData = {}) {
-    return h(CodeImage, { value, type: 'barcode', ...props })
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {

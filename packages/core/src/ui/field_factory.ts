@@ -13,7 +13,8 @@ export interface UiFieldFactory<TNode = any>
   extends Record<string, UiFieldRenderer<TNode> | undefined> {
   fallbackDisplay: UiFieldRenderer<TNode>
   fallbackInput: UiFieldRenderer<TNode>
+  checkBox?: UiFieldRenderer<TNode>
+  hasOneText?: UiFieldRenderer<TNode>
   HasOneText?: UiFieldRenderer<TNode>
-  imageUpload?: UiFieldRenderer<TNode>
-  associationTable?: UiFieldRenderer<TNode>
+  imageUploader?: UiFieldRenderer<TNode>
 }

@@ -16,6 +16,7 @@ import {
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { createLoading } from '../factory/loading'
 
 export const SfSigninForm = defineComponent({
   name: 'SfSigninForm',
@@ -92,7 +93,7 @@ export const SfSigninForm = defineComponent({
           ? h(
               'div',
               { class: 'mmda-signin-form__loading' },
-              h('div', { class: 'e-icons e-spin mmda-signin-form__spinner' }),
+              createLoading(),
             )
           : null,
         h(

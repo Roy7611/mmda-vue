@@ -32,7 +32,6 @@ import {
 } from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
 import { SfImageGallery } from "../components/SfImageGallery";
-import { SfFilesUploader } from "../components/SfFilesUploader";
 import { gridFiltersToModel, isChoiceFilterField } from "../factory/utils";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
@@ -77,9 +76,13 @@ describe("Syncfusion skin", () => {
     const factory = createSyncfusionUiFactory();
     expect(factory.layout).toBe(syncfusionLayout);
     expect(factory.nativeInplaceEdit).toBe(true);
+    expect(factory.paginator).toBeTypeOf("function");
     expect(factory.table).toBeTypeOf("function");
-    expect(factory.dialog).toBeTypeOf("function");
+    expect(factory.grid).toBeTypeOf("function");
+    expect(factory.dialog).toBeUndefined();
     expect(factory.splitter).toBeTypeOf("function");
+    expect(factory.tabs).toBeTypeOf("function");
+    expect(factory.toolbar).toBeTypeOf("function");
     const split = factory.splitter(
       [
         { content: h("span", "L"), size: "16rem", min: "12rem", collapsible: true },
@@ -105,16 +108,66 @@ describe("Syncfusion skin", () => {
     expect(tree.props.allowDragDrop).toBe(true);
     expect(factory.imageGallery).toBeTypeOf("function");
     expect(factory.filesUploader).toBeTypeOf("function");
+    expect(factory.inplaceEditor).toBeTypeOf("function");
     expect(factory.resolveIcon("save")).toBe("e-icons e-save");
     expect(factory.resolveIcon("clear")).toBe("e-icons e-erase");
     expect(factory.resolveIcon("add")).toBe("e-icons e-plus");
-    expect(factory.formItem).toBeTypeOf("function");
-    expect(factory.dataTable).toBeTypeOf("function");
+    expect(factory.formField).toBeTypeOf("function");
     expect(factory.datePicker).toBeTypeOf("function");
     expect(factory.numberInput).toBeTypeOf("function");
-    expect(factory.select).toBeTypeOf("function");
-    expect(factory.toggleSwitch).toBeTypeOf("function");
-    expect(factory.dataViewBox).toBeTypeOf("function");
+    expect(factory.progressBar).toBeTypeOf("function");
+    expect(factory.skeleton).toBeTypeOf("function");
+    expect(factory.speechToText).toBeTypeOf("function");
+    expect(factory.dropDownList).toBeTypeOf("function");
+    expect(factory.switch).toBeTypeOf("function");
+    expect(factory.formItem).toBeUndefined();
+    expect(factory.dataTable).toBeUndefined();
+    expect(factory.primeVueTable).toBeUndefined();
+    expect(factory.select).toBeUndefined();
+    expect(factory.toggleSwitch).toBeUndefined();
+    expect(factory.dataViewBox).toBeUndefined();
+    expect(factory.defaultFilterDisplay).toBeUndefined();
+    expect(factory.checkbox).toBeUndefined();
+  });
+
+  it("maps factory.splitter reverse and resizeStop", () => {
+    const factory = createSyncfusionUiFactory();
+    const onResizeStop = vi.fn();
+    const vnode = factory.splitter(
+      [
+        { content: h("span", "L"), size: "16rem" },
+        { content: h("span", "R") },
+      ],
+      {
+        enableReversePanes: true,
+        class: "mmda-tree-list-splitter",
+        onResizeStop,
+      },
+    );
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-splitter");
+    expect(cls).toContain("mmda-splitter--reverse");
+    expect(vnode.props?.enableReversePanes).toBe(true);
+    vnode.props?.onResizeStop?.({ index: 0, paneSize: [40, 60] });
+    expect(onResizeStop).toHaveBeenCalled();
+  });
+
+  it("factory.list wraps paginator only when pagination is set", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = new MetaUi({
+      objName: "Item",
+      displayLabel: "项",
+      groups: [{ groupName: "base", groupLabel: "基本", many: false, fields: [] }],
+    });
+    const paged = factory.list([{ id: "1" }], metaUi, {
+      pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+      onPage: () => undefined,
+    });
+    expect(paged.props?.class).toBe("mmda-sf-pagable");
+    const bare = factory.list([{ id: "1" }], metaUi, {});
+    expect(bare.props?.class).toBe("mmda-sf-list");
   });
 
   it("maps factory.badge colorRole and circle shape to e-badge classes", () => {
@@ -134,26 +187,584 @@ describe("Syncfusion skin", () => {
     expect(vnode.children).toBe("10");
   });
 
-  it("maps unified gantt tasks onto EJ2 fields and view modes", async () => {
-    const { mapUiTasksToEj2, GANTT_VIEW_MODES } = await import("../components/SfGanttChart");
-    const rows = mapUiTasksToEj2(
-      [
-        { id: 1, name: "Cut", startDate: "2026-01-01", parentId: null, type: "task" },
-        { id: 2, name: "Pack", startDate: "2026-01-02", parentId: 1, type: "milestone" },
-      ],
-      [{ source: 1, target: 2, type: "FS" }],
-    );
-    expect(rows[1].Predecessor).toBe("1FS");
-    expect(rows[1].Milestone).toBe(true);
-    expect(rows[0].TaskName).toBe("Cut");
-    expect(GANTT_VIEW_MODES.week.timelineViewMode).toBe("Week");
-    const builder = new SyncfusionUiBuilder();
-    const vnode = builder.buildGanttView({} as any, {
-      tasks: [{ id: 1, name: "Cut" }],
-      readonly: true,
+  it("maps factory.avatar circle large label to e-avatar classes", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.avatar({
+      label: "GR",
+      shape: "circle",
+      size: "large",
     });
-    expect(vnode.props.tasks).toEqual([{ id: 1, name: "Cut" }]);
-    expect(vnode.props.readonly).toBe(true);
+    const joined = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(joined).toContain("e-avatar");
+    expect(joined).toContain("e-avatar-circle");
+    expect(joined).toContain("e-avatar-large");
+    expect(vnode.children).toBe("GR");
+  });
+
+  it("maps factory.card surface, colorRole, image, headerImage, divider", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.card(
+      {
+        title: "Summary",
+        colorRole: "primary",
+        surface: "outlined",
+        image: "/cover.png",
+        headerImage: "/face.png",
+        divider: true,
+      },
+      { default: () => [h("p", "body")] },
+    );
+    const joined = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(joined).toContain("e-card");
+    expect(joined).toContain("mmda-card");
+    expect(joined).toContain("mmda-card--primary");
+    expect(joined).toContain("mmda-card--outlined");
+    const kids = Array.isArray(vnode.children) ? vnode.children : [];
+    const classOf = (node: any) =>
+      Array.isArray(node?.props?.class)
+        ? node.props.class.flat(8).filter(Boolean).join(" ")
+        : String(node?.props?.class ?? "");
+    expect(kids.some((n: any) => classOf(n).includes("e-card-image"))).toBe(true);
+    expect(
+      kids.some((n: any) => classOf(n).includes("e-card-separator")),
+    ).toBe(true);
+    const header = kids.find((n: any) => classOf(n).includes("e-card-header"));
+    const headerKids = Array.isArray(header?.children) ? header.children : [];
+    expect(
+      headerKids.some((n: any) => classOf(n).includes("e-card-header-image")),
+    ).toBe(true);
+  });
+
+  it("maps factory.divider orientation and label", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.divider({
+      orientation: "vertical",
+      label: "或",
+    });
+    const joined = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(joined).toContain("e-separator");
+    expect(joined).toContain("mmda-divider");
+    expect(joined).toContain("mmda-divider--vertical");
+    expect(joined).toContain("mmda-divider--labeled");
+    expect(vnode.props?.["aria-orientation"]).toBe("vertical");
+    const labelNode = Array.isArray(vnode.children)
+      ? vnode.children[0]
+      : vnode.children;
+    expect(labelNode?.children).toBe("或");
+  });
+
+  it("maps factory.tooltip TopCenter and Hover opensOn", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.tooltip(
+      { content: "说明", position: "top", opensOn: "hover" },
+      { default: () => [h("button", "保存")] },
+    );
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Tooltip/);
+    expect(vnode.props?.content).toBe("说明");
+    expect(vnode.props?.position).toBe("TopCenter");
+    expect(vnode.props?.opensOn).toBe("Hover");
+    expect(vnode.props?.showTipPointer).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tooltip--top");
+  });
+
+  it("exposes factory.inplaceEditor and fld InplaceFieldEditor", () => {
+    const factory = createSyncfusionUiFactory();
+    expect(factory.inplaceEditor).toBeTypeOf("function");
+    const vnode = factory.inplaceEditor(
+      {},
+      {
+        display: () => [h("span", "显示")],
+        content: () => [h("input")],
+      },
+    );
+    expect(String(vnode.type?.name ?? vnode.type?.__name ?? "")).toMatch(
+      /InplaceEditor/,
+    );
+    const fields = createSyncfusionFieldFactory();
+    expect(fields.inplaceFieldEditor).toBeTypeOf("function");
+    expect(fields.InplaceFieldEditor).toBe(fields.inplaceFieldEditor);
+    expect(fields.InplaceEditor).toBeUndefined();
+  });
+
+  it("maps factory.colorPicker mode, value, and emits hex", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.colorPicker({
+      value: "#035a",
+      mode: "palette",
+      showModeSwitcher: false,
+      onChange,
+    });
+    expect(vnode.props?.value).toBe("#035a");
+    expect(vnode.props?.mode).toBe("Palette");
+    expect(vnode.props?.modeSwitcher).toBe(false);
+    const joined = String(vnode.props?.cssClass ?? "");
+    expect(joined).toContain("mmda-colorpicker");
+    expect(joined).toContain("mmda-colorpicker--palette");
+    vnode.props?.change?.({
+      currentValue: { hex: "#7b1fa2", rgba: "rgba(123,31,162,1)" },
+    });
+    expect(onChange).toHaveBeenCalledWith("#7b1fa2");
+  });
+
+  it("maps factory.numberInput format, decimals, and value", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.numberInput({
+      value: 12.5,
+      decimals: 2,
+      min: 0,
+      format: "n2",
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/NumericTextBox/i);
+    expect(vnode.props?.format).toBe("n2");
+    expect(vnode.props?.decimals).toBe(2);
+    expect(vnode.props?.min).toBe(0);
+    expect(vnode.props?.value).toBe(12.5);
+    expect(vnode.props?.step).toBe(1);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-numberinput");
+  });
+
+  it("maps factory.textArea value rows and resizeMode", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.textArea({
+      value: "hello",
+      rows: 5,
+      resizeMode: "None",
+      onChange,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/TextArea/i);
+    expect(vnode.props?.value).toBe("hello");
+    expect(vnode.props?.rows).toBe(5);
+    expect(vnode.props?.resizeMode).toBe("None");
+    expect(vnode.props?.enabled).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-textarea");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-textarea--none");
+    vnode.props?.input?.({ value: "next" });
+    expect(onChange).toHaveBeenCalledWith("next");
+  });
+
+  it("maps factory.textInput placeholder type and showClearButton", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    const vnode = factory.textInput({
+      value: "hello",
+      placeholder: "hint",
+      type: "Password",
+      showClearButton: true,
+      onChange,
+      onFocus,
+      onBlur,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/TextBox/i);
+    expect(vnode.props?.value).toBe("hello");
+    expect(vnode.props?.placeholder).toBe("hint");
+    expect(vnode.props?.type).toBe("Password");
+    expect(vnode.props?.showClearButton).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-textinput");
+    vnode.props?.input?.({ value: "next" });
+    expect(onChange).toHaveBeenCalledWith("next");
+    vnode.props?.focus?.();
+    vnode.props?.blur?.();
+    expect(onFocus).toHaveBeenCalledOnce();
+    expect(onBlur).toHaveBeenCalledOnce();
+  });
+
+  it("maps factory.progressBar value and Linear type", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.progressBar({
+      value: 42,
+      size: "small",
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/ProgressBar/);
+    expect(vnode.props?.value).toBe(42);
+    expect(vnode.props?.type).toBe("Linear");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-progressbar--small");
+  });
+
+  it("maps factory.signaturePad strokeColor and isReadOnly", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.signaturePad({
+      value: "data:image/png;base64,abc",
+      strokeColor: "#111111",
+      readOnly: true,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Signature/);
+    expect(vnode.props?.strokeColor).toBe("#111111");
+    expect(vnode.props?.isReadOnly).toBe(true);
+  });
+
+  it("maps factory.stepper activeStep and Vertical orientation", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.stepper({
+      value: 1,
+      orientation: "vertical",
+      items: [{ label: "甲" }, { label: "乙" }],
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Stepper/);
+    expect(vnode.props?.activeStep).toBe(1);
+    expect(vnode.props?.orientation).toBe("Vertical");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-stepper--vertical");
+  });
+
+  it("maps factory.timeline Vertical and Before align", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.timeline({
+      orientation: "vertical",
+      align: "before",
+      items: [{ label: "发运", time: "2026-01-01 00:00:00" }],
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Timeline/);
+    expect(vnode.props?.orientation).toBe("Vertical");
+    expect(vnode.props?.align).toBe("Before");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-timeline--vertical");
+  });
+
+  it("maps factory.skeleton shape and shimmerEffect", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.skeleton({
+      shape: "circle",
+      width: 40,
+      height: 40,
+      shimmer: "pulse",
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Skeleton/);
+    expect(vnode.props?.shape).toBe("Circle");
+    expect(vnode.props?.shimmerEffect).toBe("Pulse");
+    expect(vnode.props?.width).toBe(40);
+    expect(vnode.props?.visible).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-skeleton--circle");
+  });
+
+  it("maps factory.loading to spinner host not e-spin", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.loading({ label: "加载中", size: "small" });
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-loading");
+    expect(cls).not.toContain("e-spin");
+    expect(vnode.props?.label).toBe("加载中");
+    expect(vnode.props?.size).toBe("small");
+    expect(vnode.props?.loading).toBe(true);
+  });
+
+  it("maps factory.tree to SfTree with mmda-tree", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.tree({
+      data: [{ id: "1", label: "根" }],
+      selectionMode: "checkbox",
+    });
+    expect(vnode.type?.name ?? vnode.type?.__name).toBe("SfTree");
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-tree");
+    expect(cls).toContain("mmda-tree--checkbox");
+    expect(vnode.props?.selectionMode).toBe("checkbox");
+  });
+
+  it("maps factory.speechToText transcript lang and interim", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.speechToText({
+      value: "你好",
+      lang: "zh-CN",
+      interim: false,
+      onChange,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/SpeechToText/);
+    expect(vnode.props?.transcript).toBe("你好");
+    expect(vnode.props?.lang).toBe("zh-CN");
+    expect(vnode.props?.allowInterimResults).toBe(false);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-speech-to-text");
+    vnode.props?.transcriptChanged?.({ transcript: "好的" });
+    expect(onChange).toHaveBeenCalledWith("好的");
+  });
+
+  it("maps factory.radioButtonGroup RadioButton name and checked", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.radioButtonGroup({
+      value: "b",
+      name: "kind",
+      options: [
+        { value: "a", label: "甲" },
+        { value: "b", label: "乙" },
+      ],
+    });
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-radiobuttongroup");
+    const kids = Array.isArray(vnode.children) ? vnode.children : [];
+    expect(kids.length).toBe(2);
+    const types = kids.map(
+      (child) => child?.type?.name ?? child?.type?.__name ?? String(child?.type),
+    );
+    expect(types.join(" ")).toMatch(/RadioButton/);
+    expect(kids[0].props?.name).toBe("kind");
+    expect(kids[1].props?.name).toBe("kind");
+    expect(kids[0].props?.checked).toBe(false);
+    expect(kids[1].props?.checked).toBe(true);
+    expect(kids[1].props?.value).toBe("b");
+  });
+
+
+  it("maps factory.maskedTextBox mask and value", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.maskedTextBox({
+      mask: "000 0000 0000",
+      value: "13800138000",
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/MaskedTextBox/i);
+    expect(vnode.props?.mask).toBe("000 0000 0000");
+    expect(vnode.props?.value).toBe("13800138000");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-maskedtextbox");
+  });
+
+  it("maps factory.oneTimePasswordInput length type and value", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.oneTimePasswordInput({
+      length: 6,
+      type: "number",
+      value: "123456",
+      onChange,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/OtpInput/i);
+    expect(vnode.props?.length).toBe(6);
+    expect(vnode.props?.type).toBe("number");
+    expect(vnode.props?.value).toBe("123456");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-otpinput");
+    vnode.props?.valueChanged?.({ value: "654321" });
+    expect(onChange).toHaveBeenCalledWith("654321");
+  });
+
+  it("maps factory.queryBuilder to QueryBuilder", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.queryBuilder({
+      columns: [{ fieldName: "age", label: "Age", valueType: "number" }],
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/QueryBuilder/i);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-querybuilder");
+    expect(vnode.props?.columns?.[0]?.field).toBe("age");
+  });
+
+  it("maps factory.slider type Range and value", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.slider({
+      type: "Range",
+      min: 0,
+      max: 50,
+      step: 5,
+      value: [10, 40],
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Slider/i);
+    expect(vnode.props?.type).toBe("Range");
+    expect(vnode.props?.min).toBe(0);
+    expect(vnode.props?.max).toBe(50);
+    expect(vnode.props?.step).toBe(5);
+    expect(vnode.props?.value).toEqual([10, 40]);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-slider--range");
+  });
+
+  it("maps factory.rating itemsCount and readOnly", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.rating({
+      value: 2,
+      itemsCount: 5,
+      readOnly: true,
+      onChange,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Rating/i);
+    expect(vnode.props?.value).toBe(2);
+    expect(vnode.props?.itemsCount).toBe(5);
+    expect(vnode.props?.readOnly).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-rating");
+    vnode.props?.valueChanged?.({ value: 4 });
+    expect(onChange).toHaveBeenCalledWith(4);
+  });
+
+  it("maps factory.sidebar dock target mediaQuery gestures", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.sidebar({
+      isOpen: true,
+      type: "Push",
+      enableDock: true,
+      dockSize: 72,
+      target: "#main",
+      mediaQuery: "(min-width: 600px)",
+      enableGestures: false,
+      onChange,
+    });
+    expect(vnode.props?.isOpen).toBe(true);
+    expect(vnode.props?.type).toBe("Push");
+    expect(vnode.props?.enableDock).toBe(true);
+    expect(vnode.props?.dockSize).toBe(72);
+    expect(vnode.props?.target).toBe("#main");
+    expect(vnode.props?.mediaQuery).toBe("(min-width: 600px)");
+    expect(vnode.props?.enableGestures).toBe(false);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-sidebar--dock");
+    vnode.props?.close?.();
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it("maps factory.tabs value headerPlacement scrollable", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.tabs({
+      items: [
+        { header: "One", content: "a" },
+        { header: { text: "Two", iconCss: "e-icons e-home" }, content: "b" },
+      ],
+      value: 1,
+      headerPlacement: "Left",
+      scrollable: false,
+      onChange,
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Tab/i);
+    expect(vnode.props?.selectedItem).toBe(1);
+    expect(vnode.props?.headerPlacement).toBe("Left");
+    expect(vnode.props?.overflowMode).toBe("Popup");
+    expect(vnode.props?.heightAdjustMode).toBe("Fill");
+    expect(vnode.props?.items?.[0]?.header).toEqual({
+      text: "One",
+      iconCss: undefined,
+    });
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--left");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--popup");
+    vnode.props?.selected?.({ selectedIndex: 0 });
+    expect(onChange).toHaveBeenCalledWith(0);
+  });
+
+  it("maps factory.toolbar slots and align", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.toolbar(
+      { layout: "medium", align: { end: "left" }, class: "skin" },
+      {
+        start: () => "S",
+        center: () => "C",
+        end: () => "E",
+      },
+    );
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-toolbar");
+    expect(cls).toContain("mmda-toolbar--medium");
+    expect(cls).toContain("mmda-toolbar--with-center");
+    const kids = vnode.children as any[];
+    const endCls = Array.isArray(kids[2].props.class)
+      ? kids[2].props.class.flat(8).filter(Boolean).join(" ")
+      : String(kids[2].props.class ?? "");
+    expect(endCls).toContain("mmda-toolbar__end--left");
+  });
+
+  it("maps factory.drawer to Over with backdrop", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.drawer({ visible: true } as any);
+    expect(vnode.props?.type).toBe("Over");
+    expect(vnode.props?.showBackdrop).toBe(true);
+    expect(vnode.props?.isOpen).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-sidebar--drawer");
+  });
+
+  it("maps factory.datePicker format, Monday week, and no typing", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const day = new Date(2026, 8, 7);
+    const vnode = factory.datePicker({
+      value: day,
+      onChange,
+    });
+    expect(vnode.props?.format).toBe("yyyy-MM-dd");
+    expect(vnode.props?.allowEdit).toBe(false);
+    expect(vnode.props?.firstDayOfWeek).toBe(1);
+    expect(vnode.props?.strictMode).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-datepicker");
+    vnode.props?.change?.({ value: day });
+    expect(onChange).toHaveBeenCalledWith(day);
+    const month = factory.monthPicker({ value: day });
+    expect(month.props?.start).toBe("Year");
+    expect(month.props?.format).toBe("yyyy-MM");
+    expect(String(month.props?.cssClass ?? "")).toContain("mmda-datepicker--month");
+    const start = new Date(2026, 8, 1);
+    const end = new Date(2026, 8, 7);
+    const range = factory.dateRangePicker({ value: [start, end] });
+    expect(range.props?.startDate).toEqual(start);
+    expect(range.props?.endDate).toEqual(end);
+    expect(String(range.props?.cssClass ?? "")).toContain("mmda-daterangepicker");
+  });
+
+  it("maps factory.barcode format to EJ2 type", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.barcode({
+      value: "123456789",
+      format: "ean13",
+      displayText: "SN-1",
+    });
+    expect(vnode.props?.type).toBe("Ean13");
+    expect(vnode.props?.value).toBe("123456789");
+    expect(vnode.props?.mode).toBe("SVG");
+    expect(vnode.props?.displayText).toEqual({
+      text: "SN-1",
+      visibility: true,
+    });
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-barcode--ean13");
+  });
+
+  it("maps factory.qrCode dataMatrix to DataMatrixGenerator", () => {
+    const factory = createSyncfusionUiFactory();
+    const qr = factory.qrCode({ value: "https://example.com" });
+    const dm = factory.qrCode({ value: "SYNC123", format: "dataMatrix" });
+    expect(qr.type?.name ?? qr.type).toBeTruthy();
+    expect(qr.props?.value).toBe("https://example.com");
+    expect(qr.props?.displayText?.visibility).toBe(false);
+    expect(String(dm.props?.cssClass ?? "")).toContain("mmda-qrcode--data-matrix");
+    expect(dm.props?.value).toBe("SYNC123");
   });
 
   it("renders photo thumbnails and opens the fullscreen carousel", () => {
@@ -199,74 +810,20 @@ describe("Syncfusion skin", () => {
     );
   });
 
-  it("queues multiple files and reports custom upload progress", async () => {
-    const emit = vi.fn();
-    const upload = vi.fn(
-      async (
-        files: File[],
-        control: { onProgress: (value: number) => void },
-      ) => {
-        control.onProgress(48);
-        return files.map((file) => `/files/${file.name}`);
-      },
-    );
-    let exposed: any;
-    const render = (SfFilesUploader as any).setup(
-      {
-        upload,
-        multiple: true,
-        autoUpload: false,
-        disabled: false,
-        allowedExtensions: ".jpg,.png",
-        maxFileSize: undefined,
-        dropText: "拖放图片",
-        chooseText: "选择图片",
-        uploadText: "上传",
-        clearText: "清空",
-      },
-      {
-        emit,
-        expose: (value: any) => {
-          exposed = value;
-        },
-      },
-    );
-    const first = new File(["a"], "front.jpg", { type: "image/jpeg" });
-    const second = new File(["b"], "back.png", { type: "image/png" });
-    const initial = render();
-    const uploader = initial.children[0].children[0];
-    uploader.props.selected({
-      filesData: [{ rawFile: first }, { rawFile: second }],
-    });
-    await nextTick();
-
-    expect(render().children[1].children[0].children).toHaveLength(2);
-    await exposed.start();
-    expect(upload).toHaveBeenCalledWith(
-      [first, second],
-      expect.objectContaining({
-        signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
-      }),
-    );
-    expect(emit).toHaveBeenCalledWith(
-      "success",
-      ["/files/front.jpg", "/files/back.png"],
-      [first, second],
-    );
-  });
-
-  it("dialog defaults to draggable, resizable, and close icon", () => {
+  it("maps fileLink and uploader chrome", () => {
     const factory = createSyncfusionUiFactory();
-    const vnode = factory.dialog(
-      { visible: true, onUpdateVisible: () => undefined, header: "选择" },
-      { default: () => null },
-    );
-    expect(vnode.props?.allowDragging).toBe(true);
-    expect(vnode.props?.enableResize).toBe(true);
-    expect(vnode.props?.showCloseIcon).toBe(true);
-    expect(vnode.props?.header).toContain("选择");
-    expect(vnode.props?.header).toContain("mmda-sf-dialog__title");
+    expect(factory.fileLink).toBeTypeOf("function");
+    expect(factory.fileUploader).toBeTypeOf("function");
+    expect(factory.filesUploader).toBeTypeOf("function");
+    expect(factory.imageUploader).toBeTypeOf("function");
+    expect(factory.imagesUploader).toBeTypeOf("function");
+    expect(factory.filePicker).toBe(factory.fileUploader);
+    expect(factory.FileUpload).toBe(factory.filesUploader);
+    expect(factory.imagePicker).toBe(factory.imageUploader);
+    const link = factory.fileLink({ url: "/f/a.pdf", downloadable: false });
+    expect(link.type).toBe("span");
+    expect(JSON.stringify(link.props.class)).toContain("mmda-file-link");
+    expect(JSON.stringify(link.props.class)).toContain("mmda-file-link--blocked");
   });
 
   it("forces action buttons to type=button so form pages do not submit", () => {
@@ -295,11 +852,21 @@ describe("Syncfusion skin", () => {
   it("registers old metadata editor aliases", () => {
     const fields = createSyncfusionFieldFactory();
     expect(fields.TextBox).toBe(fields.textInput);
-    expect(fields.DropdownList).toBe(fields.dropdown);
+    expect(fields.DropDownList).toBe(fields.dropDownList);
+    expect(fields.dropdown).toBeUndefined();
     expect(fields.DatePicker).toBe(fields.datePicker);
     expect(fields.FileUpload).toBe(fields.fileUpload);
+    expect(fields.FileUploader).toBe(fields.fileUploader);
+    expect(fields.FilesUploader).toBe(fields.filesUploader);
+    expect(fields.ImageUploader).toBe(fields.imageUploader);
+    expect(fields.Url).toBe(fields.fileLink);
     expect(fields.QuantityUnit).toBe(fields.quantityUnit);
     expect(fields.Chips).toBe(fields.chips);
+    expect(fields.BitChipSet).toBe(fields.bitChipSet);
+    expect(fields.EnumChipSet).toBe(fields.enumChipSet);
+    expect(fields.enumSetTags).toBeUndefined();
+    expect(fields.BitTags).toBeUndefined();
+    expect(fields.InplaceFieldEditor).toBe(fields.inplaceFieldEditor);
   });
 
   it("renders QuantityUnit as value, space, and suffix unit", () => {
@@ -321,9 +888,17 @@ describe("Syncfusion skin", () => {
       { fieldName: "tags", renderer: "Chips" } as any,
       { getFieldValue: () => "原料,辅料, 包装" } as any,
     );
-    const chips = vnode.children as any[];
-    expect(vnode.props.class).toContain("e-chip-list");
-    expect(chips.map((chip) => chip.children[0].children)).toEqual([
+    expect(String(vnode.props.cssClass ?? "")).toContain("mmda-chips");
+    expect(vnode.props.chips.map((chip: any) => chip.text)).toEqual([
+      "原料",
+      "辅料",
+      "包装",
+    ]);
+    const tags = fields.tags(
+      { fieldName: "tags" } as any,
+      { getFieldValue: () => "原料,辅料, 包装" } as any,
+    );
+    expect(tags.props.chips.map((chip: any) => chip.text)).toEqual([
       "原料",
       "辅料",
       "包装",
@@ -397,15 +972,16 @@ describe("Syncfusion skin", () => {
     document.body.innerHTML = "";
   });
 
-  it("maps reference dropdown options to text/value instead of raw objects", () => {
+  it("maps reference dropDownList options to value/label chrome options", () => {
     const fields = createSyncfusionFieldFactory();
     const category = {
       categoryID: "C1",
       categoryName: "原料",
     };
     const reference = {
-      hasOne: true,
-      isRef: false,
+      hasOne: false,
+      isRef: true,
+      isEnum: false,
       alias: "category",
       refFlds: ["categoryID", "categoryName"],
       refOptions: [category],
@@ -415,7 +991,6 @@ describe("Syncfusion skin", () => {
     const setFieldValue = vi.fn();
     const context = {
       model: { categoryID: "C1", category },
-      // HAS_ONE：getFieldValue 返回导航属性
       getFieldValue: () => category,
       setFieldValue,
       isFieldReadonly: () => false,
@@ -429,17 +1004,138 @@ describe("Syncfusion skin", () => {
       reference,
     } as any;
 
-    const vnode = fields.dropdown(field, context);
-    const dropdown = vnode.children[0] as any;
-    expect(dropdown.props.dataSource).toEqual([category]);
-    expect(dropdown.props.fields).toEqual({
-      text: "categoryName",
-      value: "categoryID",
+    const vnode = fields.dropDownList(field, context);
+    const chrome = vnode.children[0] as any;
+    expect(chrome.props.dataSource).toEqual([
+      { value: "C1", label: "原料" },
+    ]);
+    expect(chrome.props.fields).toEqual({
+      text: "label",
+      value: "value",
     });
-    expect(dropdown.props.value).toBe("C1");
+    expect(chrome.props.value).toBe("C1");
+    const joined = String(chrome.props?.cssClass ?? "");
+    expect(joined).toContain("mmda-dropdown-list");
 
-    dropdown.props.change({ value: "C1", itemData: category });
+    chrome.props.change({ value: "C1" });
     expect(setFieldValue).toHaveBeenCalledWith(field, category);
+  });
+
+  it("maps factory.dropDownList options, group, icon, and suggest", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const suggest = vi.fn(async () => [{ value: "x", label: "X" }]);
+    const vnode = factory.dropDownList({
+      value: "a",
+      options: [
+        { value: "a", label: "甲", group: "G", icon: "flag" },
+        { value: "b", label: "乙", group: "G" },
+      ],
+      suggest,
+      onChange,
+    });
+    expect(vnode.props?.value).toBe("a");
+    expect(vnode.props?.dataSource?.[0]).toMatchObject({
+      value: "a",
+      label: "甲",
+      group: "G",
+      icon: "flag",
+    });
+    expect(vnode.props?.fields?.groupBy).toBe("group");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-dropdown-list");
+    expect(typeof vnode.props?.filtering).toBe("function");
+    vnode.props?.change?.({ value: "b" });
+    expect(onChange).toHaveBeenCalledWith("b");
+  });
+
+  it("maps factory.multiSelect CheckBox keys and bindMode class", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.multiValueSelect({
+      value: [1],
+      options: [
+        { value: 1, label: "读" },
+        { value: 2, label: "写" },
+      ],
+      onChange,
+    });
+    expect(vnode.props?.mode).toBe("CheckBox");
+    expect(vnode.props?.value).toEqual([1]);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-multi-select");
+    vnode.props?.change?.({ value: [1, 2] });
+    expect(onChange).toHaveBeenCalledWith([1, 2]);
+  });
+
+  it("maps factory.bitCheckBoxList or_bits layout", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.bitCheckBoxList({
+      value: 1,
+      options: [
+        { value: 1, label: "读" },
+        { value: 2, label: "写" },
+      ],
+    });
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
+      : String(vnode.props?.class ?? "");
+    expect(cls).toContain("mmda-checkbox-list");
+    expect(cls).toContain("mmda-checkbox-list--bits");
+  });
+
+  it("maps factory.tagAutoComplete Box custom values", () => {
+    const factory = createSyncfusionUiFactory();
+    const onUpdate = vi.fn();
+    const vnode = factory.tagAutoComplete("a,b", {
+      options: ["a", "b"],
+      onUpdate,
+    });
+    expect(vnode.props?.mode).toBe("Box");
+    expect(vnode.props?.allowCustomValue).toBe(true);
+    expect(vnode.props?.value).toEqual(["a", "b"]);
+    vnode.props?.change?.({ value: ["a", "c"] });
+    expect(onUpdate).toHaveBeenCalledWith("a,c");
+  });
+
+  it("maps factory.treeSelect nested data, checkbox array, and hook class", () => {
+    const factory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = factory.treeSelect({
+      value: "a",
+      data: [{ id: "a", label: "甲", children: [{ id: "a1", label: "甲1" }] }],
+      fields: { id: "id", label: "label", children: "children" },
+      selectionMode: "checkbox",
+      onChange,
+    });
+    expect(vnode.props?.value).toEqual(["a"]);
+    expect(vnode.props?.showCheckBox).toBe(true);
+    expect(vnode.props?.allowMultiSelection).toBe(true);
+    expect(vnode.props?.allowFiltering).toBe(true);
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tree-select");
+    expect(factory.dropDownTree).toBe(factory.treeSelect);
+    vnode.props?.change?.({ value: ["a", "a1"] });
+    expect(onChange).toHaveBeenCalledWith(["a", "a1"]);
+  });
+
+  it("maps factory.comboBox allowCustom and custom class", () => {
+    const factory = createSyncfusionUiFactory();
+    const custom = factory.comboBox({
+      value: "t",
+      options: ["a"],
+    });
+    expect(custom.props?.allowCustom).toBe(true);
+    expect(String(custom.props?.cssClass ?? "")).toContain("mmda-combobox");
+    expect(String(custom.props?.cssClass ?? "")).toContain(
+      "mmda-combobox--custom",
+    );
+    const closed = factory.comboBox({
+      value: "a",
+      options: ["a"],
+      allowCustom: false,
+    });
+    expect(closed.props?.allowCustom).toBe(false);
+    expect(String(closed.props?.cssClass ?? "")).not.toContain(
+      "mmda-combobox--custom",
+    );
   });
 
   it("SearchBox uses relative search control instead of plain text input", () => {
@@ -563,6 +1259,47 @@ describe("Syncfusion skin", () => {
     expect(className).toContain("mmda-sf-toolbar-actions");
   });
 
+  it("maps button colorRole onto EJ2 style classes", () => {
+    const factory = createSyncfusionUiFactory();
+    const danger = factory.button({
+      label: "Delete",
+      colorRole: "danger",
+      buttonType: "outlined",
+    });
+    const css = String(danger.props?.cssClass ?? "");
+    expect(css).toContain("e-danger");
+    expect(css).toContain("e-outline");
+    expect(css).toContain("mmda-button--danger");
+  });
+
+  it("renders selectButtonGroup as radio or checkbox", () => {
+    const factory = createSyncfusionUiFactory();
+    const options = [
+      { label: "Left", value: "left" },
+      { label: "Center", value: "center" },
+    ];
+    const single = factory.selectButtonGroup("center", {
+      options,
+      optionLabel: "label",
+      optionValue: "value",
+    });
+    const radios = (single.children ?? []).filter(
+      (node: any) => node?.props?.type === "radio",
+    );
+    expect(radios.length).toBe(2);
+
+    const multi = factory.selectButtonGroup(["left"], {
+      selectionMode: "multiple",
+      options,
+      optionLabel: "label",
+      optionValue: "value",
+    });
+    const checks = (multi.children ?? []).filter(
+      (node: any) => node?.props?.type === "checkbox",
+    );
+    expect(checks.length).toBe(2);
+  });
+
   it("renders the metadata name field as a details link", () => {
     const metaUi = new MetaUi({
       objName: "Material",
@@ -615,11 +1352,18 @@ describe("Syncfusion skin", () => {
 
   it("builds more actions as DropDownButton, not horizontal Menu", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.moreMenuButton({ t: (k: string) => k } as any, [
-      { name: "import", label: "导入", onAction: () => undefined },
-      { name: "export", label: "导出", onAction: () => undefined },
-      { name: "print", label: "打印", onAction: () => undefined },
-    ])[0];
+    const vnode = builder.factory.moreMenuButton(
+      {
+        label: "action.more",
+        buttonType: "tonal",
+        colorRole: "secondary",
+      },
+      [
+        { name: "import", label: "导入", onAction: () => undefined },
+        { name: "export", label: "导出", onAction: () => undefined },
+        { name: "print", label: "打印", onAction: () => undefined },
+      ],
+    );
     expect(
       vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
     ).toMatch(/DropDownButton/i);
@@ -634,22 +1378,29 @@ describe("Syncfusion skin", () => {
 
   it("renders more-menu dividers as separators without more-N labels", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.moreMenuButton({ t: (k: string) => k } as any, [
-      { name: "import", label: "导入", onAction: () => undefined },
-      { name: "export", label: "导出", onAction: () => undefined },
-      { name: "print", label: "打印", onAction: () => undefined },
-      { divider: true },
+    const vnode = builder.factory.moreMenuButton(
       {
-        name: "autoFitColumns",
-        label: "自动列宽",
-        onAction: () => undefined,
+        label: "action.more",
+        buttonType: "tonal",
+        colorRole: "secondary",
       },
-      {
-        name: "listSettings",
-        label: "表格设置",
-        onAction: () => undefined,
-      },
-    ])[0];
+      [
+        { name: "import", label: "导入", onAction: () => undefined },
+        { name: "export", label: "导出", onAction: () => undefined },
+        { name: "print", label: "打印", onAction: () => undefined },
+        { divider: true },
+        {
+          name: "autoFitColumns",
+          label: "自动列宽",
+          onAction: () => undefined,
+        },
+        {
+          name: "listSettings",
+          label: "表格设置",
+          onAction: () => undefined,
+        },
+      ],
+    );
     expect(vnode.props?.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ text: "导入" }),
@@ -662,9 +1413,27 @@ describe("Syncfusion skin", () => {
     expect(vnode.props?.items?.find((item: any) => item.separator)?.text).toBeUndefined();
   });
 
+  it("renders FabComponent for floatingActionButton", () => {
+    const builder = new SyncfusionUiBuilder();
+    const vnode = builder.factory.floatingActionButton({
+      icon: "e-icons e-plus",
+      label: "新建",
+      target: "#main",
+    });
+    expect(
+      vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
+    ).toMatch(/Fab/i);
+    expect(vnode.props?.position).toBe("BottomRight");
+    expect(vnode.props?.iconCss).toBe("e-icons e-plus");
+    expect(vnode.props?.content).toBe("新建");
+    expect(vnode.props?.target).toBe("#main");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("e-primary");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-fab--bottomRight");
+  });
+
   it("uses DropupMenuButton when popupPlacement opens upward", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.factory.menuButton(
+    const vnode = builder.factory.dropDownButton(
       {
         icon: "fas fa-palette",
         popupPlacement: "top-end",
@@ -840,6 +1609,22 @@ describe("Syncfusion skin", () => {
     expect(vnode.props?.dataSource).toEqual(rows);
     expect(vnode.props?.dataSource).not.toBe(rows);
     expect(vnode.key).toContain("mmda-sf-grid-");
+  });
+
+  it("wires Grid detailTemplate when rowDetail is set", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      getListedFields: () => [{ fieldName: "name", displayLabel: "名称" }],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([{ id: "1", name: "a" }], metaUi, {
+        rowDetail: { detail: () => h("div") },
+      }),
+    );
+    expect(vnode.props?.detailTemplate).toBeTruthy();
+    expect(vnode.props?.enableVirtualization).toBe(false);
   });
 
   it("enables Grid column grouping by default and can disable it", () => {
@@ -1859,7 +2644,7 @@ describe("Syncfusion skin", () => {
     target.remove();
   });
 
-  it("uses DateTimePicker controls for datetime BETWEEN", () => {
+  it("uses multi Menu filter UI for datetime columns (DATE|SET|MULTI)", () => {
     const factory = createSyncfusionUiFactory();
     const metaUi = {
       objName: "Order",
@@ -1886,18 +2671,13 @@ describe("Syncfusion skin", () => {
       column: dateColumn,
       getOptrInstance: {
         dropOptr: {
-          value: "between",
+          value: "equal",
           change: undefined,
         },
       },
     });
-    const controls = Array.from(target.querySelectorAll("input"))
-      .map((input: any) => input.ej2_instances?.[0])
-      .filter(Boolean);
-    expect(controls.map((control: any) => control.getModuleName())).toEqual([
-      "datetimepicker",
-      "datetimepicker",
-    ]);
+    expect(target.querySelector(".mmda-sf-filter-multi")).toBeTruthy();
+    expect(target.querySelector(".e-flmenu-input")).toBeTruthy();
     dateColumn.filter.ui.destroy();
     target.remove();
   });
@@ -1949,18 +2729,256 @@ describe("Syncfusion skin", () => {
     const vnode = builder.buildModuleBreadcrumb({ title: "部门" } as any, {
       module: dept,
     });
-    expect(vnode.type).toBe("nav");
-    expect((vnode.props as any)?.class).toContain("mmda-sf-breadcrumb");
-    const kids = vnode.children as any[];
-    const linkItem = kids.find((c) => c?.props?.class === "e-breadcrumb-item");
-    const link = linkItem?.children?.[0];
-    expect(link?.props?.to).toBe("/BASE/org");
-    expect(link?.type?.name ?? link?.type).toMatch(/RouterLink/);
-    const leafItem = [...kids]
-      .reverse()
-      .find((c) => c?.props?.class === "e-breadcrumb-item");
-    const leafLabel = leafItem?.children?.[0]?.children?.[1]?.children;
-    expect(leafLabel).toBe("部门");
+    expect((vnode.props as any)?.enableNavigation).toBe(false);
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-sf-breadcrumb",
+    );
+    const items = (vnode.props as any)?.items as any[];
+    expect(items).toHaveLength(2);
+    expect(items.map((item) => item.text)).not.toContain("基础数据");
+    expect(items[0].text).toBe("组织架构");
+    expect(items[0].url).toBe("/BASE/org");
+    expect(items[1].text).toBe("部门");
+    expect(items[1].url).toBeUndefined();
+  });
+
+  it("keeps feature moduleUrl clickable when details leaf label is present", () => {
+    const factory = new ModuleFactory([
+      {
+        moduleCode: "B",
+        moduleLabel: "基础数据",
+        moduleType: "SYSTEM",
+        moduleVersion: ModuleVersion.TEAM,
+        allowOps: 1,
+        moduleUrl: "/BASE",
+        requiredCreateParam: false,
+        status: ModuleStatus.RELEASED,
+        divider: false,
+        subModules: [
+          {
+            moduleCode: "B.01",
+            moduleLabel: "组织架构",
+            moduleType: "MODULE",
+            moduleVersion: ModuleVersion.TEAM,
+            allowOps: 1,
+            moduleUrl: "/BASE/org",
+            requiredCreateParam: false,
+            status: ModuleStatus.RELEASED,
+            divider: false,
+            subModules: [
+              {
+                moduleCode: "B.01.01",
+                moduleLabel: "部门",
+                moduleType: "FEATURE",
+                moduleVersion: ModuleVersion.TEAM,
+                allowOps: 7,
+                moduleUrl: "/BASE/Departments",
+                requiredCreateParam: false,
+                status: ModuleStatus.RELEASED,
+                divider: false,
+                objName: "Department",
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    const dept = factory.findModuleByName("Department")!;
+    const builder = new SyncfusionUiBuilder();
+    const vnode = builder.buildModuleBreadcrumb({ title: "部门" } as any, {
+      module: dept,
+      label: "部门【D001】",
+    });
+    const items = (vnode.props as any)?.items as any[];
+    expect(items).toHaveLength(3);
+    expect(items[1].text).toBe("部门");
+    expect(items[1].url).toBe("/BASE/Departments");
+    expect(items[2].text).toBe("部门【D001】");
+    expect(items[2].url).toBeUndefined();
+  });
+
+  it("maps factory.breadcrumb items onto EJ2 BreadcrumbComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const vnode = uiFactory.breadcrumb({
+      items: [
+        { label: "组织", to: "/org", icon: "home" },
+        { label: "部门" },
+      ],
+      separator: ">",
+    });
+    expect((vnode.props as any)?.enableNavigation).toBe(false);
+    expect((vnode.props as any)?.items?.[0]?.text).toBe("组织");
+    expect((vnode.props as any)?.items?.[0]?.url).toBe("/org");
+    expect((vnode.props as any)?.items?.[1]?.text).toBe("部门");
+    expect((vnode.props as any)?.style?.["--mmda-breadcrumb-sep"]).toBe('">"');
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-breadcrumb",
+    );
+  });
+
+  it("maps factory.calendar onto EJ2 CalendarComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const min = new Date(2017, 4, 9);
+    const max = new Date(2017, 4, 15);
+    const values = [new Date(2020, 0, 1), new Date(2020, 0, 15)];
+    const vnode = uiFactory.calendar({
+      value: values,
+      selectionMode: "multiple",
+      min,
+      max,
+      firstDayOfWeek: 1,
+      view: "month",
+      depth: "year",
+      locale: "zh-Hans",
+    });
+    expect((vnode.props as any)?.isMultiSelection).toBe(true);
+    expect((vnode.props as any)?.values).toEqual(values);
+    expect((vnode.props as any)?.min).toBe(min);
+    expect((vnode.props as any)?.max).toBe(max);
+    expect((vnode.props as any)?.firstDayOfWeek).toBe(1);
+    expect((vnode.props as any)?.start).toBe("Month");
+    expect((vnode.props as any)?.depth).toBe("Year");
+    expect((vnode.props as any)?.locale).toBe("zh-Hans");
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-calendar",
+    );
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-calendar--multiple",
+    );
+  });
+
+  it("maps factory.carousel onto EJ2 CarouselComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const items = [
+      { src: "/a.jpg", title: "A" },
+      { src: "/b.jpg", title: "B" },
+    ];
+    const vnode = uiFactory.carousel({
+      items,
+      selectedIndex: 1,
+      autoPlay: true,
+      interval: 4000,
+      loop: true,
+      animation: "fade",
+    });
+    expect((vnode.props as any)?.dataSource).toHaveLength(2);
+    expect((vnode.props as any)?.selectedIndex).toBe(1);
+    expect((vnode.props as any)?.autoPlay).toBe(true);
+    expect((vnode.props as any)?.interval).toBe(4000);
+    expect((vnode.props as any)?.infinite).toBe(true);
+    expect((vnode.props as any)?.animationEffect).toBe("Fade");
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-carousel",
+    );
+  });
+
+  it("maps factory.checkBox onto EJ2 CheckBoxComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const vnode = uiFactory.checkBox({
+      checked: true,
+      label: "同意条款",
+      indeterminate: true,
+    });
+    expect((vnode.props as any)?.checked).toBe(true);
+    expect((vnode.props as any)?.label).toBe("同意条款");
+    expect((vnode.props as any)?.indeterminate).toBe(true);
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-checkbox",
+    );
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-checkbox--indeterminate",
+    );
+    const omitted = uiFactory.checkBox({ checked: false, label: "未半选" });
+    expect((omitted.props as any)?.indeterminate).toBeUndefined();
+  });
+
+  it("maps factory.switch onto EJ2 SwitchComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const onChange = vi.fn();
+    const vnode = uiFactory.switch({
+      checked: true,
+      onLabel: "开",
+      offLabel: "关",
+      onChange,
+    });
+    expect((vnode.props as any)?.checked).toBe(true);
+    expect((vnode.props as any)?.onLabel).toBe("开");
+    expect((vnode.props as any)?.offLabel).toBe("关");
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain("mmda-switch");
+    vnode.props?.change?.({ checked: false });
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it("renders fields.checkbox from displayLabel and getFieldValue", () => {
+    const fields = createSyncfusionFieldFactory();
+    const field = {
+      fieldName: "active",
+      displayLabel: "启用",
+    } as any;
+    const vnode = fields.checkBox(field, {
+      getFieldValue: () => true,
+      setFieldValue: vi.fn(),
+      isFieldReadonly: () => false,
+      isInvalid: () => false,
+    } as any);
+    expect(vnode.props.class).toContain("mmda-sf-control");
+    const chrome = vnode.children[0];
+    expect(chrome.props.label).toBe("启用");
+    expect(chrome.props.checked).toBe(true);
+    expect(String(chrome.props.cssClass ?? "")).toContain("mmda-checkbox");
+  });
+
+  it("maps factory.chips onto EJ2 ChipListComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const action = uiFactory.chips({ items: ["原料", "辅料"] });
+    expect((action.props as any)?.selection).toBeUndefined();
+    expect((action.props as any)?.chips?.map((c: any) => c.text)).toEqual([
+      "原料",
+      "辅料",
+    ]);
+    expect(String((action.props as any)?.cssClass ?? "")).toContain("mmda-chips");
+    const choice = uiFactory.chips({ kind: "choice", items: ["S", "M"] });
+    expect((choice.props as any)?.selection).toBe("Single");
+    const filter = uiFactory.chips({ kind: "filter", items: ["A"] });
+    expect((filter.props as any)?.selection).toBe("Multiple");
+    const input = uiFactory.chips({ kind: "input", items: ["A"] });
+    expect((input.props as any)?.enableDelete).toBe(true);
+    const colored = uiFactory.chips({
+      items: [{ label: "成功", colorRole: "success", icon: "check" }],
+    });
+    expect((colored.props as any)?.chips?.[0]?.cssClass).toContain("e-success");
+    expect((colored.props as any)?.chips?.[0]?.leadingIconCss).toBeTruthy();
+  });
+
+  it("maps factory.contextMenu onto EJ2 ContextMenuComponent", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const onAction = vi.fn();
+    const vnode = uiFactory.contextMenu({
+      target: "#editor",
+      items: [
+        { name: "cut", label: "剪切", icon: "cut", onAction },
+        { divider: true },
+        { name: "paste", label: "粘贴", disabled: true },
+      ],
+    });
+    expect((vnode.props as any)?.target).toBe("#editor");
+    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+      "mmda-context-menu",
+    );
+    const items = (vnode.props as any)?.items ?? [];
+    expect(items[0].text).toBe("剪切");
+    expect(items[0].id).toBe("cut");
+    expect(items[1].separator).toBe(true);
+    expect(items[2].disabled).toBe(true);
+    expect(typeof (vnode.props as any)?.select).toBe("function");
+    (vnode.props as any).select({ item: { id: "cut", text: "剪切" } });
+    expect(onAction).toHaveBeenCalledTimes(1);
+    const disabled = uiFactory.contextMenu({
+      target: "#editor",
+      disabled: true,
+      items: [{ name: "a", label: "A" }],
+    });
+    expect((disabled.props as any)?.target).toBeUndefined();
   });
 
   it("renders list toolbar actions from module authority", () => {
@@ -2196,9 +3214,9 @@ describe("Syncfusion skin", () => {
       "action.export",
       "action.import",
     ]);
-    expect(String(buttons[5].props.cssClass ?? "")).toContain("mmda-btn-tonal");
+    expect(String(buttons[5].props.cssClass ?? "")).toContain("e-secondary");
     expect(buttons[5].props.iconCss).toBeFalsy();
-    expect(String(buttons[0].props.cssClass ?? "")).toContain("mmda-btn-tonal");
+    expect(String(buttons[0].props.cssClass ?? "")).toContain("e-secondary");
   });
 
   it("maps vui locales onto EJ2 cultures and loads L10n", () => {
@@ -2261,6 +3279,20 @@ describe("gridFiltersToModel join/multi", () => {
         { filterType: "text", operator: "CONTAINS", value: "a" },
         { filterType: "text", operator: "CONTAINS", value: "b" },
       ],
+    });
+  });
+
+  it("maps single date equal to EQ, not set", () => {
+    const dateField = { fieldName: "orderedAt", dataType: 184 };
+    const start = new Date("2026-08-01");
+    const model = gridFiltersToModel(
+      [{ field: "orderedAt", operator: "equal", value: start }],
+      [dateField] as any,
+    );
+    expect(model.orderedAt).toEqual({
+      filterType: "date",
+      operator: "EQ",
+      value: start,
     });
   });
 

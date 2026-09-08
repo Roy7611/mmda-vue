@@ -20,6 +20,9 @@ export default defineConfig({
       '@mmda/vui/material-symbols.css': fileURLToPath(
         new URL('../vui/src/assets/css/material-symbols.css', import.meta.url),
       ),
+      '@mmda/core': fileURLToPath(
+        new URL('../core/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

@@ -1,0 +1,49 @@
+{
+  "name": "@mmda/vuix-echarts",
+  "description": "ECharts plugin for MMDA Vue UiChartFactory",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "main": "./dist/mmda-vuix-echarts.es.js",
+  "module": "./dist/mmda-vuix-echarts.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-vuix-echarts.es.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/vui": "workspace:^"
+  },
+  "peerDependencies": {
+    "echarts": "^5.6.0",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "echarts": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "echarts": "^5.6.0",
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.25"
+  }
+}

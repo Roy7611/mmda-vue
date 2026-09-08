@@ -212,9 +212,8 @@ export class RectificationLogic extends UiLogic<Rectification> {
 				if (items.length > 0) {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.t('dialog.title.error'),
-						detail: context.t('rectification.duplicatePendingProduct'),
-						group: 'br',
+						title: context.t('dialog.title.error'),
+						message: context.t('rectification.duplicatePendingProduct'),
 						life: 3000
 					})
 				}
@@ -336,7 +335,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 								{
 									title: fld.displayLabel,
 									width: '80%',
-									accept: async () => {
+									onAccept: async () => {
 										if (!data) return false
 										ctx.model.reworkTaskID = data.taskID
 										ctx.model.reworkTask = data

@@ -133,6 +133,37 @@ describe("MetaModel 状态与集合", () => {
     expect(items).toHaveLength(1);
     expect(MetaModel.deleted(items[0])).toBe(true);
   });
+
+  it("syncSelection 增删行并保留 DELETED", () => {
+    const items: any[] = [
+      row({ actionName: "read", entityState: EntityState.DEFAULT }),
+    ];
+    MetaModel.syncSelection(
+      items,
+      [{ actionName: "write" }],
+      {
+        keyOf: (item: any) => item.actionName,
+        createFrom: (item: any) =>
+          row({ actionName: item.actionName, entityState: EntityState.CREATED }),
+      },
+    );
+    expect(MetaModel.deleted(items[0])).toBe(true);
+    expect(items).toHaveLength(2);
+    expect(items[1].actionName).toBe("write");
+    expect(MetaModel.created(items[1])).toBe(true);
+
+    MetaModel.syncSelection(
+      items,
+      [{ actionName: "read" }],
+      {
+        keyOf: (item: any) => item.actionName,
+        createFrom: (item: any) =>
+          row({ actionName: item.actionName, entityState: EntityState.CREATED }),
+      },
+    );
+    expect(MetaModel.deleted(items[0])).toBe(false);
+    expect(items.some((it) => it.actionName === "write")).toBe(false);
+  });
 });
 
 describe("Module.auth", () => {

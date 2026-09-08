@@ -21,7 +21,7 @@ export function stationPortalColWrap(children: any[]) {
 export function productionLotReportNode(context: UiContext<any>) {
 	const factory = context.uiBuilder.factory
 	return stationPortalFormWrap([
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.batchesquantity'),
 			},
@@ -35,13 +35,13 @@ export function productionLotReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.({
+		factory.formField?.({
 			label: context.t('stationlabel.Batchnumber'),
 			placeholder: context.t('action.input'),
 			modelValue: context.model.lotNo,
 			onUpdate: (val: string) => (context.model.lotNo = val),
 		}),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.goodsQuality'),
 			},
@@ -56,7 +56,7 @@ export function productionLotReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.concessionQuantity'),
 			},
@@ -71,7 +71,7 @@ export function productionLotReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.Quantityofdefectivegoods'),
 			},
@@ -86,7 +86,7 @@ export function productionLotReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.Badquantity'),
 			},
@@ -101,7 +101,7 @@ export function productionLotReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.Quantityofwasteproducts'),
 			},
@@ -122,7 +122,7 @@ export function productionLotReportNode(context: UiContext<any>) {
 export function productionPlateReportNode(context: UiContext<any>) {
 	const factory = context.uiBuilder.factory
 	return stationPortalColWrap([
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.outputQuantity'),
 				required: true,
@@ -142,7 +142,7 @@ export function productionPlateReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.packagingQuantity'),
 			},
@@ -160,27 +160,27 @@ export function productionPlateReportNode(context: UiContext<any>) {
 					}),
 			},
 		),
-		factory.formItem?.({
+		factory.formField?.({
 			label: context.t('stationlabel.Batchnumber'),
 			placeholder: context.t('action.input'),
 			modelValue: context.model.lotNo,
 			onUpdate: (val: string) => (context.model.lotNo = val),
 		}),
-		factory.formItem?.(
+		factory.formField?.(
 			{
 				label: context.t('stationlabel.Qualityinspectionresults'),
 				modelValue: context.model.qcResult,
 			},
 			{
 				default: () =>
-					factory.select?.({
-						modelValue: context.model.qcResult,
-						options: qualityStatusOptions(context.t),
-						dataKey: 'id',
+					factory.dropDownList({
+						value: context.model.qcResult,
+						options: qualityStatusOptions(context.t).map((opt: any) => ({
+							value: opt.value ?? opt.id,
+							label: opt.label,
+						})),
 						placeholder: context.t('action.select'),
-						optionLabel: 'label',
-						optionValue: 'value',
-						onUpdate: (value: string) => {
+						onChange: (value) => {
 							context.model.qcResult = value
 						},
 					}),

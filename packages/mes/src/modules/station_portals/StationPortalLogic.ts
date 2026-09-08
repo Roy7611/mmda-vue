@@ -126,7 +126,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				title: context.t('stationlabel.productionEvent'),
 				height: '65vh',
 				width: '80vw',
-				accept: async () => {
+				onAccept: async () => {
 					if (eventCtx) {
 						return await eventCtx.save().then((res: any) => true);
 				}
@@ -162,7 +162,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 		return () =>
 		// 			h('div', { class: 'flex flex_wrap' }, [
 		// 				//textarea
-		// 				context.uiBuilder.factory.formItem(
+		// 				context.uiBuilder.factory.formField(
 		// 					{
 		// 						id: 'search_eventtitle',
 		// 						label: context.t('stationlabel.eventtitle'),
@@ -174,16 +174,16 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 					},
 		// 					{
 		// 						default: () =>
-		// 							context.uiBuilder.factory.textarea(context.model.eventtitle, {
-		// 								modelValue: context.model.eventtitle,
+		// 							context.uiBuilder.factory.textArea({
+		// 								value: context.model.eventtitle,
 		// 								rows: 5,
-		// 								'onUpdate:modelValue': (value: string) => {
+		// 								onChange: (value: string) => {
 		// 									context.model.eventtitle = value;
 		// 								},
 		// 							}),
 		// 				}
 		// 				),
-		// 				context.uiBuilder.factory.formItem(
+		// 				context.uiBuilder.factory.formField(
 		// 					{
 		// 						id: 'search_eventtype',
 		// 						label: context.t('stationlabel.eventtype'),
@@ -207,7 +207,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 							}),
 		// 				}
 		// 				),
-		// 				context.uiBuilder.factory.formItem(
+		// 				context.uiBuilder.factory.formField(
 		// 					{
 		// 						id: 'search_eventcause',
 		// 						label: context.t('stationlabel.eventcause'),
@@ -237,12 +237,12 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 	class: '',
 		// 	height: '15rem',
 		// 	width: '60rem',
-		// 	accept: async () => {
+		// 	onAccept: async () => {
 		// 		// console.log(context.model)
 		// 		return await this.comfirmsubmitevent(context, taskID);
 		// 	},
 		// 	reject: () => {
-		// 		context.globalProps.$toast.add({ severity: 'info', summary: context.t('action.cancel'), detail: context.t('failure.canceloperation'), life: 3000 });
+		// 		context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
 		// 		return true;
 		// 	},
 		// });
@@ -285,7 +285,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								context.model.eventcause = 0;
 								context.model.eventtype = '';
 								context.model.eventtitle = '';
-								context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.title.success'), detail: context.t('success.eventReported'), life: 3000 });
+								context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.title.success'), message: context.t('success.eventReported'), life: 3000 });
 
 								context.globalProps.$router.go(0);
 								return true;
@@ -294,7 +294,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						}
 						})
 						.catch((error: any) => {
-							context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+							context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 							return true;
 						})
 						.finally(() => {
@@ -302,12 +302,12 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						});
 				})
 				.catch((error: any) => {
-					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 					return true;
 				});
 			return true;
 		} else {
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: context.t('stationlabel.Requiredfieldscannotbeblank'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: context.t('stationlabel.Requiredfieldscannotbeblank'), life: 3000 });
 		}
 	};
 	/**
@@ -319,7 +319,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.dialog(productionLotReportNode(context), context, {
 				title: context.t('stationlabel.batchReport'),
 				height: '18rem',
-				accept: async () => {
+				onAccept: async () => {
 					return await this.submitProductionLot(context, reportparams);
 				},
 
@@ -332,7 +332,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					context.model.defectiveQuantity = 0;
 					context.model.ngQuantity = 0;
 					context.model.scrapQuantity = 0;
-					context.globalProps.$toast.add({ severity: 'info', summary: context.t('action.cancel'), detail: context.t('failure.canceloperation'), life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
 					return false;
 				},
 				// 关闭弹窗时同样重置数据
@@ -355,7 +355,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 		setup() {
 		// 			return () =>
 		// 				h('div', { class: 'flex flex-col flex_wrap' }, [
-		// 					context.uiBuilder.factory.formItem({
+		// 					context.uiBuilder.factory.formField({
 		// 						label: '瑕疵数量',
 		// 						placeholder: '请输入瑕疵数量',
 		// 						modelValue: context.model.ngTimes,
@@ -366,25 +366,25 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 		// 	});
 		// 	context.uiBuilder.dialog(h(ProductionItemdialog, {}), context, {
 		// 		title: '报工',
-		// 		accept: async () => {
+		// 		onAccept: async () => {
 		// 			// console.log(context.model)
 		// 			return await this.submitProductionItem(context, reportparams);
 		// 		},
 		// 		reject: () => {
-		// 			context.globalProps.$toast.add({ severity: 'error', summary: '取消', detail: context.t('failure.canceloperation'), life: 3000 });
+		// 			context.uiBuilder.toast(context, { severity: 'error', title: '取消', message: context.t('failure.canceloperation'), life: 3000 });
 		// 			return true
 		// 		},
 		// 	});
 		// }
 		else if (reportparamspath.objName == 'ProductionItem') {
-			context.globalProps.$toast.add({ severity: 'info', summary: context.t('dialog.title.prompt'), detail: context.t('stationlabel.singlePieceAutoReport'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'info', title: context.t('dialog.title.prompt'), message: context.t('stationlabel.singlePieceAutoReport'), life: 3000 });
 		} else if (reportparamspath.objName == 'ProductionPlate') {
 			context.model.quantity = null;
 			context.model.packQty = null;
 			context.uiBuilder.dialog(productionPlateReportNode(context), context, {
 				title: context.t('stationlabel.lotReport'),
 				height: '15rem',
-				accept: async () => {
+				onAccept: async () => {
 					// console.log(context.model)
 					return await this.submitProductionPlate(context, reportparams);
 				},
@@ -392,7 +392,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					context.model.quantity = null;
 					context.model.packQty = null;
 					context.model.lotNo = '';
-					context.globalProps.$toast.add({ severity: 'info', summary: context.t('action.cancel'), detail: context.t('failure.canceloperation'), life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
 					return false;
 				},
 				onHide: () => {
@@ -411,11 +411,11 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 */
 	async submitProductionLot(context: UiContext<any>, reportparams: any) {
 		if (!context.model.quantity || Number(context.model.quantity) <= 0) {
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.batchQuantityPositive'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.prompt'), message: context.t('stationlabel.batchQuantityPositive'), life: 3000 });
 			return false;
 		}
 		if (Number(context.model.goodQuantity) > Number(context.model.quantity)) {
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.goodQuantityTooLarge'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.prompt'), message: context.t('stationlabel.goodQuantityTooLarge'), life: 3000 });
 			return false;
 		}
 		try {
@@ -435,14 +435,14 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{ action: 'save', service: 'mes', repository: 'ProductionLots' },
 				res
 			);
-			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: context.t('success.workReported'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.workReported'), life: 3000 });
 			context.globalProps.$router.go(0);
 			return true;
 		} catch (error: any) {
 			const detail = error.validationErrors?.length
 				? error.validationErrors.map((e: any) => e.error).join('；')
 				: error.message;
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail, life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), detail, life: 3000 });
 			return false;
 		}
 	}
@@ -452,7 +452,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	 */
 	async submitProductionPlate(context: UiContext<any>, reportparams: any) {
 		if (!context.model.quantity || Number(context.model.quantity) <= 0) {
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.prompt'), group: 'br', detail: context.t('stationlabel.outputQuantityPositive'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.prompt'), message: context.t('stationlabel.outputQuantityPositive'), life: 3000 });
 			return false;
 		}
 		try {
@@ -468,14 +468,14 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{ action: 'save', service: 'mes', repository: 'ProductionPlates' },
 				res
 			);
-			context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: context.t('success.workReported'), life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.workReported'), life: 3000 });
 			context.globalProps.$router.go(0);
 			return true;
 		} catch (error: any) {
 			const detail = error.validationErrors?.length
 				? error.validationErrors.map((e: any) => e.error).join('；')
 				: error.message;
-			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail, life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), detail, life: 3000 });
 			return false;
 		}
 	}
@@ -505,44 +505,44 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					context.model.createMaterialtrack.list.fedQuantity = data.data.reqQuantity;
 				})
 				.catch((error: any) => {
-					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 				});
 			context.uiBuilder.dialog(
 				stationPortalFormWrap([
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
 						},
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.productionDate'),
 						},
@@ -557,7 +557,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								}),
 					}
 					),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.expiryDate'),
 						},
@@ -577,7 +577,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					accept: async () => {
+					onAccept: async () => {
 						return await this.confirmMaterialtrack(context);
 					},
 					reject: () => {
@@ -602,30 +602,30 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					// createMaterialtrack.list.fedQuantity = 1;
 				})
 				.catch((error: any) => {
-					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 				});
 			context.uiBuilder.dialog(
 				stationPortalFormWrap([
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
 						onUpdate: (val: any) => {
@@ -639,14 +639,14 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						// 	console.log(value,comma);
 						// },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.productionDate'),
 						},
@@ -661,7 +661,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								}),
 					}
 					),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.expiryDate'),
 						},
@@ -681,7 +681,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					accept: async () => {
+					onAccept: async () => {
 						return await this.confirmMaterialtrack(context);
 					},
 					reject: () => {
@@ -706,30 +706,30 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					context.model.createMaterialtrack.list.fedQuantity = 1;
 				})
 				.catch((error: any) => {
-					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 				});
 			context.uiBuilder.dialog(
 				stationPortalFormWrap([
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
 						modelValue: data.data.materialName,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
 						modelValue: data.data.materialCode,
 						onUpdate: (val: string) => { },
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
 						modelValue: context.model.createMaterialtrack.list.fedQuantity,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
 						id: 'scanInput',
 						modelValue: context.model.createMaterialtrack.list.traceCodes,
@@ -747,14 +747,14 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 						}
 						},
 					}),
-					context.uiBuilder.factory.formItem({
+					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
 						modelValue: context.model.createMaterialtrack.list.manufacturer,
 						onUpdate: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.productionDate'),
 						},
@@ -769,7 +769,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 								}),
 					}
 					),
-					context.uiBuilder.factory.formItem(
+					context.uiBuilder.factory.formField(
 						{
 							label: context.t('stationlabel.expiryDate'),
 						},
@@ -789,7 +789,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '10rem',
-					accept: async () => {
+					onAccept: async () => {
 						return await this.confirmMaterialtrack(context);
 					},
 					reject: () => {
@@ -801,7 +801,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	}
 	async confirmMaterialtrack(context: UiContext<any>) {
 		if (!context.model.createMaterialtrack.list.fedQuantity)
-			return context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: context.t('stationlabel.inputfedQuantity'), life: 3000 });
+			return context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: context.t('stationlabel.inputfedQuantity'), life: 3000 });
 		await this.apiClient
 			.doAction(
 				{
@@ -813,13 +813,13 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			)
 			.then((res: any) => {
 				if (res) {
-					context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: context.t('success.operationSuccessful'), life: 3000 });
+					context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.operationSuccessful'), life: 3000 });
 					context.globalProps.$router.go(0);
 					return true;
 				}
 			})
 			.catch((error: any) => {
-				context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), group: 'br', detail: error.message, life: 3000 });
+				context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 				return true;
 			});
 		return true;
@@ -849,19 +849,19 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 					res
 	// 				)
 	// 				.then((result: any) => {
-	// 					context.globalProps.$toast.add({ severity: 'success', summary: context.t('dialog.success'), detail: '报工成功', life: 3000 });
+	// 					context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: '报工成功', life: 3000 });
 	// 					context.globalProps.$router.go(0)
 	// 					return true;
 	// 				})
 	// 				.catch((error: any) => {
-	// 					context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), detail: error.message, life: 3000 });
+	// 					context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 	// 				})
 	// 				.finally(() => {
 	// 					return true;
 	// 				});
 	// 		})
 	// 		.catch((error: any) => {
-	// 			context.globalProps.$toast.add({ severity: 'error', summary: context.t('dialog.title.error'), detail: error.message, life: 3000 });
+	// 			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: error.message, life: 3000 });
 	// 			return true;
 	// 		});
 	// 	return true;
@@ -872,7 +872,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	//  */
 	// async createGroupDisk(context: UiContext, groupDiskParams: any) {
 	// 	const { uiBuilder, globalProps } = context;
-	// 	const { $toast, $logger } = globalProps || {}; // 增加空值判断，避免报错
+	// 	const { $logger} = globalProps || {}; // 增加空值判断，避免报错
 
 	// 	// 1. 操作配置
 	// 	const groupDiskAction: EntityAction = {
@@ -917,10 +917,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 						// 增加错误捕获
 	// 						onError: (err: any) => {
 	// 							$logger?.error("组盘编辑器加载失败", err);
-	// 							$toast?.add({
+	// 							context.uiBuilder.toast(context, {
 	// 								severity: 'error',
-	// 								summary: context.t('error.loadFailed'),
-	// 								detail: context.t('error.editorLoadError'),
+	// 								title: context.t('error.loadFailed'),
+	// 								message: context.t('error.editorLoadError'),
 	// 								life: 5000
 	// 							});
 	// 					}
@@ -934,12 +934,12 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 			title:'生产准备-组盘创建',
 	// 			height: '70vh',
 	// 			width: '85vw',
-	// 			accept: async () => {
+	// 			onAccept: async () => {
 	// 				if (!groupDiskCtx) {
-	// 					$toast?.add({
+	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'error',
-	// 						summary: context.t('error.invalidContext'),
-	// 						detail: context.t('error.noEditorContext'),
+	// 						title: context.t('error.invalidContext'),
+	// 						message: context.t('error.noEditorContext'),
 	// 						life: 3000
 	// 					});
 	// 					return false;
@@ -947,10 +947,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 
 	// 				try {
 	// 					// 保存组盘数据，增加加载状态提示
-	// 					$toast?.add({
+	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'info',
-	// 						summary: context.t('info.saving'),
-	// 						detail: context.t('info.savingGroupDisk'),
+	// 						title: context.t('info.saving'),
+	// 						message: context.t('info.savingGroupDisk'),
 	// 						life: 0 // 不自动关闭，保存完成后手动关闭
 	// 					});
 
@@ -967,10 +967,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 						// }
 	// 						return true;
 	// 					} else {
-	// 						$toast?.add({
+	// 						context.uiBuilder.toast(context, {
 	// 							severity: 'error',
-	// 							summary: context.t('failure.saveFailed'),
-	// 							detail: res?.message || context.t('failure.unknownError'),
+	// 							title: context.t('failure.saveFailed'),
+	// 							message: res?.message || context.t('failure.unknownError'),
 	// 							life: 5000
 	// 						});
 	// 						return false;
@@ -978,20 +978,20 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 				} catch (err: any) {
 	// 					$toast?.removeAll();
 	// 					$logger?.error("组盘保存失败", err);
-	// 					$toast?.add({
+	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'error',
-	// 						summary: context.t('failure.saveError'),
-	// 						detail: err.message || context.t('failure.operationFailed'),
+	// 						title: context.t('failure.saveError'),
+	// 						message: err.message || context.t('failure.operationFailed'),
 	// 						life: 5000
 	// 					});
 	// 					return false;
 	// 				}
 	// 			},
 	// 			reject: () => {
-	// 				$toast?.add({
+	// 				context.uiBuilder.toast(context, {
 	// 					severity: 'info',
-	// 					summary: context.t('action.cancel'),
-	// 					detail: context.t('failure.cancelGroupDisk'),
+	// 					title: context.t('action.cancel'),
+	// 					message: context.t('failure.cancelGroupDisk'),
 	// 					life: 3000
 	// 				});
 	// 				return false;
@@ -1011,29 +1011,29 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 							onHide: async () => {
 	// 								try {
 	// 									await groupDiskCtx!.logic.doAction(groupDiskCtx!.model, groupDiskAction);
-	// 									$toast?.add({
+	// 									context.uiBuilder.toast(context, {
 	// 										severity: 'success',
-	// 										summary: context.t('success.groupDiskCreated'),
-	// 										detail: context.t('success.groupDiskBindSuccess'),
+	// 										title: context.t('success.groupDiskCreated'),
+	// 										message: context.t('success.groupDiskBindSuccess'),
 	// 										life: 3000
 	// 									});
 	// 									resolve(true);
 	// 								} catch (err: any) {
 	// 									$logger?.error("组盘提交后操作失败", err);
-	// 									$toast?.add({
+	// 									context.uiBuilder.toast(context, {
 	// 										severity: 'error',
-	// 										summary: context.t('failure.postOperationFailed'),
-	// 										detail: err.message || context.t('failure.tryAgainLater'),
+	// 										title: context.t('failure.postOperationFailed'),
+	// 										message: err.message || context.t('failure.tryAgainLater'),
 	// 										life: 5000
 	// 									});
 	// 									resolve(false); // 此处用resolve避免Promise链中断
 	// 							}
 	// 							},
 	// 							reject: () => {
-	// 								$toast?.add({
+	// 								context.uiBuilder.toast(context, {
 	// 									severity: 'info',
-	// 									summary: context.t('action.cancel'),
-	// 									detail: context.t('failure.operationCancelled'),
+	// 									title: context.t('action.cancel'),
+	// 									message: context.t('failure.operationCancelled'),
 	// 									life: 3000
 	// 								});
 	// 								reject(false);
@@ -1043,10 +1043,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 				})
 	// 				.catch((err: any) => {
 	// 					$logger?.error("组盘准备函数执行失败", err);
-	// 					$toast?.add({
+	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'error',
-	// 						summary: context.t('failure.prepareFailed'),
-	// 						detail: err.message || context.t('failure.operationFailed'),
+	// 						title: context.t('failure.prepareFailed'),
+	// 						message: err.message || context.t('failure.operationFailed'),
 	// 						life: 5000
 	// 					});
 	// 					return false;
@@ -1059,7 +1059,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 物料转器具
 	// async function convertMaterialToTool(context: UiContext, materials: any[]) {
 	//   const { globalProps } = context;
-	//   const { $toast, $logger } = globalProps;
+	//   const { $logger} = globalProps;
 	//   try {
 	//     const res = await this.apiClient.post('/api/tool/materialToTool', {
 	//       materials: materials.map(m => ({
@@ -1073,10 +1073,10 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	//     }
 	//   } catch (err: any) {
 	//     $logger.error('物料转器具接口调用失败', err);
-	//     $toast.add({
+	//     context.uiBuilder.toast(context, {
 	//       severity: 'error',
-	//       summary: '物料转器具失败',
-	//       detail: err.message || '请联系管理员处理',
+	//       title: '物料转器具失败',
+	//       message: err.message || '请联系管理员处理',
 	//       life: 5000
 	//     });
 	//     throw err; // 抛出错误，中断后续流程
@@ -1236,7 +1236,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 									if (!Array.isArray(picked) || !picked.length) return false
 									const data = picked[0]
 									if (!data?.planID) {
-										ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
+										ctx.uiBuilder.toast(ctx, { severity: 'error', title: ctx.t('dialog.title.prompt'), message: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
 										return false
 									}
 									csf.searchWord.value = csf.searchVal.value = data
@@ -1300,7 +1300,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 									if (!Array.isArray(picked) || !picked.length) return false
 									const data = picked[0]
 									if (!data?.taskID) {
-										ctx.globalProps.$toast.add({ severity: 'error', summary: ctx.t('dialog.title.prompt'), group: 'br', detail: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
+										ctx.uiBuilder.toast(ctx, { severity: 'error', title: ctx.t('dialog.title.prompt'), message: ctx.t('stationlabel.mustSelectOne'), life: 3000 })
 										return false
 									}
 									csf.searchWord.value = csf.searchVal.value = data ?? null

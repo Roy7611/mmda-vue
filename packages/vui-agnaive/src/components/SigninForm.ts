@@ -1,12 +1,13 @@
 import { defineComponent, h, onBeforeMount, reactive, ref, withModifiers } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NButton, NCheckbox, NInput, NSpin } from 'naive-ui'
+import { NButton, NCheckbox, NInput } from 'naive-ui'
 import { required } from '@mmda/core'
 import {
   signinFormEmits,
   signinFormProps,
   type SigninUser,
 } from '@mmda/vui'
+import { createLoading } from '../factory/loading'
 
 export const SigninForm = defineComponent({
   name: 'AgNaiveSigninForm',
@@ -97,7 +98,7 @@ export const SigninForm = defineComponent({
             {
               default: () =>
                 loading.value
-                  ? h(NSpin, { size: 'small' })
+                  ? createLoading({ size: 'small' })
                   : t('auth.signin') || 'Sign in',
             },
           ),

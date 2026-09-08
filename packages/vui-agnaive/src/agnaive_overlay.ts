@@ -1,23 +1,21 @@
 import { reactive, type VNode } from 'vue'
-import type { UiFactory, UiOverlay } from '@mmda/vui'
+import type { UiOverlay } from '@mmda/vui'
 import type {
-  UiDialogPropsType,
-  UiMessageBoxProps,
-  UiMessageBoxResult,
+  UiConfirmProps,
+  UiDialogProps,
   UiToastProps,
 } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
   content: VNode
-  props: UiDialogPropsType
+  props: UiDialogProps
   resolve: (accepted: boolean) => void
 }
 
 export interface AgNaiveOverlayServices {
   toast?: (props: UiToastProps) => void
-  confirm?: (props: UiMessageBoxProps) => Promise<UiMessageBoxResult>
-  factory?: UiFactory
+  confirm?: (props: UiConfirmProps) => Promise<boolean>
 }
 
 export interface AgNaiveOverlay extends UiOverlay {
@@ -37,12 +35,12 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
     toast(props: UiToastProps) {
       services.toast?.(props)
     },
-    confirm(props: UiMessageBoxProps) {
+    confirm(props: UiConfirmProps) {
       if (services.confirm) return services.confirm(props)
       const accepted =
         typeof window !== 'undefined' &&
         window.confirm(String(props.message ?? 'Confirm?'))
-      return Promise.resolve(accepted ? 'yes' : 'no')
+      return Promise.resolve(accepted)
     },
     dialog(content, props) {
       return new Promise<boolean>(resolve => {
@@ -63,9 +61,13 @@ export async function closeOverlayDialog(
   accepted: boolean,
 ) {
   if (accepted) {
-    if (request.props.accept && (await request.props.accept()) === false) return
+    if (request.props.onAccept && (await request.props.onAccept()) === false)
+      return
     request.props.onConfirm?.()
-  } else if (request.props.reject && (await request.props.reject()) === false) {
+  } else if (
+    request.props.onReject &&
+    (await request.props.onReject()) === false
+  ) {
     return
   }
   request.props.onClose?.()

@@ -179,14 +179,15 @@ const MmdaTreeView = defineComponent({
               ? h(
                   "div",
                   { class: "mmda-tree-view-search" },
-                  factory.input(query.value, {
+                  factory.textInput({
+                    value: query.value,
                     placeholder: translateMessage("action.filter"),
-                    "aria-label": translateMessage("action.filter"),
+                    htmlAttributes: {
+                      "aria-label": translateMessage("action.filter"),
+                    },
                     width: "100%",
-                    floatLabelType: "Never",
                     showClearButton: true,
-                    onUpdate: onSearch,
-                    "onUpdate:modelValue": onSearch,
+                    onChange: onSearch,
                   }),
                 )
               : null,

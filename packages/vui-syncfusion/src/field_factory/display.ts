@@ -3,11 +3,24 @@ import { MetaModel, type MetaUiField, type Module } from "@mmda/core";
 import {
   cleanProps,
   fasIcon,
+  chipsPropsFromField,
+  bitChipSetPropsFromField,
+  enumChipSetPropsFromField,
+  progressBarPropsFromField,
+  signaturePadPropsFromField,
+  stepperPropsFromField,
+  timelinePropsFromField,
+  timelineSqlOf,
+  relativeTime,
   TABLE_CELL_PROP_KEYS,
   type PropData,
 } from "@mmda/vui";
-import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import { resolveFieldUnit } from "../factory/utils";
+import { createChips } from "../factory/chips";
+import { createProgressBar } from "../factory/progress_bar";
+import { createSignaturePad } from "../factory/signature_pad";
+import { createStepper } from "../factory/stepper";
+import { createTimeline } from "../factory/timeline";
 import type { UiContext } from "./utils";
 
 const cellDomProps = (props?: PropData) =>
@@ -35,64 +48,25 @@ export const tag = (
     context.displayField(field, props?.row),
   );
 
-const tagLabels = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: PropData,
-): string[] => {
-  const raw = context.getFieldValue(field, props?.row);
-  const labelOf = (value: any) =>
-    String(
-      field.reference?.labelOf?.(value) ??
-        value?.label ??
-        value?.text ??
-        value ??
-        "",
-    ).trim();
-  if (raw == null || raw === "") return [];
-  if (Array.isArray(raw)) return raw.map(labelOf).filter(Boolean);
-  if (typeof raw === "number" && field.reference?.refOptions?.length) {
-    return field.reference.refOptions
-      .filter((item: any) => Number(field.reference!.valueOf(item)) & raw)
-      .map(labelOf)
-      .filter(Boolean);
-  }
-  return String(raw)
-    .split(/[,;|]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
 export const tags = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
-) =>
-  h(
-    "div",
-    { class: "mmda-sf-tags" },
-    tagLabels(field, context, props).map((label) =>
-      h("span", { class: "e-badge", ...props }, label),
-    ),
-  );
+) => createChips(chipsPropsFromField(field, context, props ?? {}));
 
-export const chips = (
+export const chips = tags;
+
+export const bitChipSet = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
-) =>
-  h(
-    "div",
-    {
-      ...props,
-      class: ["e-chip-list", "mmda-chips", props?.class],
-    },
-    tagLabels(field, context, props).map((label) =>
-      h("div", { class: "e-chip", tabindex: -1 }, [
-        h("span", { class: "e-chip-text" }, label),
-      ]),
-    ),
-  );
+) => createChips(bitChipSetPropsFromField(field, context, props ?? {}));
+
+export const enumChipSet = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => createChips(enumChipSetPropsFromField(field, context, props ?? {}));
 
 export const externalLink = (
   field: MetaUiField,
@@ -223,11 +197,39 @@ export const progressBar = (
   field: MetaUiField,
   context: UiContext,
   props?: PropData,
+) => createProgressBar(progressBarPropsFromField(field, context, props ?? {}));
+
+export const signaturePad = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => createSignaturePad(signaturePadPropsFromField(field, context, props ?? {}));
+
+export const stepper = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => createStepper(stepperPropsFromField(field, context, props ?? {}));
+
+export const timeline = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
+) => {
+  const render =
+    (context as any).uiBuilder?.factory?.timeline ?? createTimeline;
+  return render(timelinePropsFromField(field, context, props ?? {}));
+};
+
+export const relativeTimeField = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: PropData,
 ) =>
-  h(ProgressBarComponent as any, {
-    value: Number(context.getFieldValue(field, props?.row) ?? 0),
-    ...props,
-  });
+  relativeTime(
+    timelineSqlOf(context.getFieldValue(field, props?.row)) ?? "",
+    { locale: (context as any).locale },
+  );
 
 export const quantityUnit = (
   field: MetaUiField,

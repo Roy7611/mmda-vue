@@ -105,10 +105,9 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	async oneClickStorage(context: UiContext) {
 		if (!this.selectedWorksite.value) {
 			context.uiBuilder.toast(context, {
-				severity: 'warn',
-				summary: context.translate('dialog.title.warning'),
-				detail: context.t('linesideInventory.selectWarehouseFirst'),
-				group: 'br',
+				severity: 'warning',
+				title: context.translate('dialog.title.warning'),
+				message: context.t('linesideInventory.selectWarehouseFirst'),
 				life: 3000,
 			});
 			return false;
@@ -120,9 +119,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				context.uiBuilder
 					.toast(context, {
 						severity: "error",
-						group: "br",
-						summary: context.translate("invalid.error"),
-						detail: context.translate("invalid.requiredSelectAny"),
+						title: context.translate("invalid.error"),
+						message: context.translate("invalid.requiredSelectAny"),
 						life: 3000,
 					})
 				return Promise.reject(false);
@@ -161,7 +159,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					{
 						title: context.t('linesideInventory.oneClickStorage'),
 						width: '80%',
-						accept: async () => {
+						onAccept: async () => {
 							return await materialTransCtx.save().then(() => {
 								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
 								window.open(url, '_blank');
@@ -189,9 +187,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					// 增加异常捕获
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.t('dialog.title.error'),
-						detail: error.message ?? context.t('auth.operationFailed'),
-						group: 'br',
+						title: context.t('dialog.title.error'),
+						message: error.message ?? context.t('auth.operationFailed'),
 						life: 3000
 					})
 				}
@@ -202,10 +199,9 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 	async oneClickReturn(context: UiContext) {
 		if (!this.selectedWorksite.value) {
 			context.uiBuilder.toast(context, {
-				severity: 'warn',
-				summary: context.translate('dialog.title.warning'),
-				detail: context.t('linesideInventory.selectWarehouseFirst'),
-				group: 'br',
+				severity: 'warning',
+				title: context.translate('dialog.title.warning'),
+				message: context.t('linesideInventory.selectWarehouseFirst'),
 				life: 3000,
 			});
 			return false;
@@ -217,9 +213,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 				context.uiBuilder
 					.toast(context, {
 						severity: "error",
-						group: "br",
-						summary: context.translate("invalid.error"),
-						detail: context.translate("invalid.requiredSelectAny"),
+						title: context.translate("invalid.error"),
+						message: context.translate("invalid.requiredSelectAny"),
 						life: 3000,
 					})
 				return Promise.reject(false);
@@ -258,7 +253,7 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					{
 						title: context.t('linesideInventory.oneClickReturn'),
 						width: '80%',
-						accept: async () => {
+						onAccept: async () => {
 							return await materialTransCtx.save().then(() => {
 								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
 								window.open(url, '_blank');
@@ -286,9 +281,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					// 增加异常捕获
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.t('dialog.title.error'),
-						detail: error.message ?? context.t('auth.operationFailed'),
-						group: 'br',
+						title: context.t('dialog.title.error'),
+						message: error.message ?? context.t('auth.operationFailed'),
 						life: 3000
 					})
 				}
@@ -350,9 +344,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		if (isRefNone(selectedItems))
 			return context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: t('dialog.title.error'),
-				detail: t('invalid.requiredSelectAny'),
-				group: 'br',
+				title: t('dialog.title.error'),
+				message: t('invalid.requiredSelectAny'),
 				life: 3000,
 			});
 		// 获取参数
@@ -382,9 +375,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		} catch (error: any) {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: t('dialog.title.error'),
-				detail: error.message ?? context.t('auth.operationFailed'),
-				group: 'br',
+				title: t('dialog.title.error'),
+				message: error.message ?? context.t('auth.operationFailed'),
 				life: 3000,
 			});
 		}
@@ -547,14 +539,13 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			context.uiBuilder.dialog(inventoryDialogNode({ context }), context, {
 				title: $t('linesideInventory.queryInventory'),
 				width: '60vw',
-				accept: async () => { },
+				onAccept: async () => { },
 			});
 		} catch (error: any) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				detail: error.message,
-				summary: $t('invalid.error'),
-				group: 'br',
+				message: error.message,
+				title: $t('invalid.error'),
 				life: 3000,
 			});
 		}
@@ -573,9 +564,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 		} catch (error: any) {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				detail: error.message,
-				summary: $t('invalid.error'),
-				group: 'br',
+				message: error.message,
+				title: $t('invalid.error'),
 				life: 3000,
 			});
 		}

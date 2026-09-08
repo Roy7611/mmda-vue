@@ -7,6 +7,8 @@
 
 `EntityLogic`：无 Vue 的 ApiClient + MetaModel CRUD。vui 的 `UiLogic` 继承它。业务 `XxxLogic` 仍 `extends UiLogic`。本文件再导出 field/group logic 与 logic_functions。业务读写用本类方法，不要 `context.globalProps.$api`。本仓库 `getAll` / `load`；别的仓库 `getAllOf<T>` / `loadOf<T>`（不走本类 `createEntity`）；关联检索 `searchRelative<T>`。
 
+树下拉 / 分类树的 `getRoots` / `getChildren` **只写在父子结构的业务 Logic 上**。`EntityLogic` 不提供这两方法：不是每个实体都是树。
+
 不要叫 `EntityManager`、`RepositoryLogic`。`repository` 是 API 路径；`createRepositoryLogic` 是按仓库名取 Logic 的工厂函数。术语见 [docs/naming.md](../../../../docs/naming.md)。
 
 ## 不要

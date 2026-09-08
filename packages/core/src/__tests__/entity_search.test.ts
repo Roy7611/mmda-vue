@@ -53,6 +53,33 @@ describe("ApiClient.searchAll", () => {
     expect(request.filterModel).toEqual(param.filterModel);
   });
 
+  it("advancedFilterModel 不进入 searchAll 请求", () => {
+    const param = defaultSearchParam();
+    param.filterModel = { status: inFilter("OPEN") };
+    param.advancedFilterModel = {
+      filterType: "join",
+      operator: "OR",
+      conditions: [
+        {
+          fieldName: "age",
+          filterType: "number",
+          operator: "GT",
+          value: 23,
+        },
+        {
+          fieldName: "sport",
+          filterType: "text",
+          operator: "ENDS_WITH",
+          value: "ing",
+        },
+      ],
+    };
+    const request = toSearchRequest(param);
+    expect(request.filterModel).toEqual(param.filterModel);
+    expect(JSON.stringify(request)).not.toContain("sport");
+    expect(request.queryParams).not.toHaveProperty("advancedFilterModel");
+  });
+
   it("有 filterModel 时 POST JSON body，不发送非法 GET body", async () => {
     const http = {
       baseUrl: "",
@@ -195,6 +222,12 @@ describe("EntityQuery", () => {
   it("queryExpression 编解码 EntityQuery，旧 SQL 双读", () => {
     const param = defaultSearchParam("仓");
     param.filterModel = { status: inFilter("USED") };
+    param.advancedFilterModel = {
+      fieldName: "qty",
+      filterType: "number",
+      operator: "GT",
+      value: 10,
+    };
     param.pager.sorts = [{ sortBy: "code", sortOrder: SortOrder.ASC }];
     const expr = stringifyQueryExpression(param);
     const parsed = parseQueryExpression(expr);
@@ -202,6 +235,7 @@ describe("EntityQuery", () => {
     if (parsed?.kind === "query") {
       expect(parsed.query.searchWord).toBe("仓");
       expect(parsed.query.filterModel).toEqual(param.filterModel);
+      expect(parsed.query.advancedFilterModel).toEqual(param.advancedFilterModel);
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");
     }
     expect(parseQueryExpression("status='OPEN'")?.kind).toBe("sql");

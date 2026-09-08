@@ -46,7 +46,7 @@ const getOrderSummary = (model: any, context: UiContext) => {
 // 旧逻辑保留：输入制品编码后自动查找 BOM 并回填相关字段，当前已停用。
 // const getBoms = async (ctx: any, model: any, newVal: any) => {
 // 	if (newVal) {
-// 		const { $toast, $t } = ctx.globalProps;
+// 		const { $t} = ctx.globalProps;
 // 		const bomFilters = 'alternate IS NULL';
 // 		const queryInfo: any = {
 // 			status: 4,
@@ -81,11 +81,11 @@ const getOrderSummary = (model: any, context: UiContext) => {
 // 				return;
 // 			}
 // 		} catch (error: any) {
-// 			$toast.add({
+// 			context.uiBuilder.toast(context, {
 // 				severity: 'error',
 // 				title: $t('dialog.title.error'),
-// 				summary: error.detail ?? '',
-// 				group: 'br',
+// 				title: error.detail ?? '',
+//,
 // 				life: 3000,
 // 			});
 // 			return false;
@@ -200,9 +200,8 @@ const beforeLinkBom = async (context: UiContext, model: ProductionOrder, action:
 	if (!model.productCode) {
 		uiBuilder.toast(context, {
 			severity: 'info',
-			summary: context.t('dialog.title.prompt'),
-			group: 'br',
-			detail: context.t('productionOrder.selectProductCode'),
+			title: context.t('dialog.title.prompt'),
+			message: context.t('productionOrder.selectProductCode'),
 			life: 3000,
 		});
 		return false;
@@ -212,10 +211,9 @@ const beforeLinkBom = async (context: UiContext, model: ProductionOrder, action:
 	await getBom(context, model, '');
 	if (!bomList.value?.length) {
 		uiBuilder.toast(context, {
-			severity: 'warn',
-			summary: context.t('dialog.title.warning'),
-			group: 'br',
-			detail: context.t('productionOrder.noBom'),
+			severity: 'warning',
+			title: context.t('dialog.title.warning'),
+			message: context.t('productionOrder.noBom'),
 			life: 3000,
 		});
 		return false;
@@ -241,9 +239,8 @@ const beforeLinkBom = async (context: UiContext, model: ProductionOrder, action:
 	if (!selectBom.value || !selectBom.value?.bomID) {
 		uiBuilder.toast(context, {
 			severity: 'error',
-			summary: context.t('dialog.title.error'),
-			group: 'br',
-			detail: context.t('invalid.requiredSelectAny'),
+			title: context.t('dialog.title.error'),
+			message: context.t('invalid.requiredSelectAny'),
 			life: 3000,
 		});
 		return false;
@@ -267,9 +264,8 @@ const beforeLinkBom = async (context: UiContext, model: ProductionOrder, action:
 		.catch((err: any) => {
 			uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.t('dialog.title.error'),
-				group: 'br',
-				detail: err.message,
+				title: context.t('dialog.title.error'),
+				message: err.message,
 				life: 3000,
 			});
 			return true;
@@ -301,12 +297,11 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 		})
 		if (res) {
 			// 给提示并跳转齐料检查
-			context.uiBuilder.confirm(context, {
-				header: context.t('action.confirm'),
+			if (await context.uiBuilder.confirm(context, {
+				title: context.t('action.confirm'),
 				message: context.t('productionOrder.shortagePrompt'),
-				type: 'warn',
-				accept: () => {
-					const route = {
+			})) {
+const route = {
 						path: '/MES/ComputeKitting',
 						query: {
 							projectID: '',
@@ -318,9 +313,7 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 					// 在新标签页打开
 					const routeUrl = $router.resolve(route);
 					window.open(routeUrl.href, '_blank');
-
-				}
-			})
+}
 		} else {
 			// 继续执行
 			return true
@@ -328,9 +321,8 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 	} catch (error: any) {
 		context.uiBuilder.toast(context, {
 			severity: 'error',
-			summary: context.t('dialog.title.error'),
-			detail: error.message ?? context.t('auth.operationFailed'),
-			group: 'br',
+			title: context.t('dialog.title.error'),
+			message: error.message ?? context.t('auth.operationFailed'),
 			life: 3000
 		})
 	}
@@ -370,13 +362,8 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				})
 				if (result.list.length > 1) {
 					const isComfirm = await context.uiBuilder.confirm(context, {
-						header: t('action.confirm'),
-						message: t('productionOrder.multipleBomPrompt'),
-						type: 'warn',
-						accept: () => {
-							return true;
-						}
-					})
+						title: t('action.confirm'),
+						message: t('productionOrder.multipleBomPrompt')})
 					return Promise.resolve(isComfirm);
 				} else {
 					return Promise.resolve(true);
@@ -421,7 +408,7 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
 				renderer: (ctx: UiContext & any, csf) => {
 					isClick.value = false
 					const { factory } = ctx.uiBuilder;
-					return factory.selectButton(showChildOrders.value[0].value, {
+					return factory.selectButtonGroup(showChildOrders.value[0].value, {
 						optionLabel: 'name',
 						optionValue: 'value',
 						options: showChildOrders.value,

@@ -84,7 +84,7 @@ describe("MMDA color palettes", () => {
   it("renders ten choices and persists the selected palette", async () => {
     const ui = createStubUiBuilder();
     ui.factory.resolveIcon = (icon: string) => icon;
-    ui.factory.menuButton = (_props, actions) =>
+    ui.factory.dropDownButton = (_props, actions) =>
       h(
         "div",
         actions.map((action) =>

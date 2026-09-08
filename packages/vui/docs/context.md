@@ -90,7 +90,7 @@ context.getFieldCurrentOption("categoryID");
 ```ts
 const context = new VueUiContext({
   model: { id },
-  metaui: pack.metaui,
+  metaUi: pack.metaUi,
   view: UiViewOne.Details,
   app,
   logic,

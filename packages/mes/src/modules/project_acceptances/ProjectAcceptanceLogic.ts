@@ -83,9 +83,8 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
 							if (!ctx.model.projectID || ctx.model.projectID === '0') {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
-									summary: ctx.globalProps.$t('dialog.title.error'),
-									detail: ctx.t('projectAcceptance.selectProjectFirst'),
-									group: 'br',
+									title: ctx.globalProps.$t('dialog.title.error'),
+									message: ctx.t('projectAcceptance.selectProjectFirst'),
 									life: 3000,
 								});
 								return;

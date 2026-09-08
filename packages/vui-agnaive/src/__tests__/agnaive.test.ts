@@ -65,13 +65,22 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     expect(factory.layout).toBe(agNaiveLayout)
     expect(factory.table).toBeTypeOf('function')
-    expect(factory.dialog).toBeTypeOf('function')
+    expect(factory.grid).toBeTypeOf('function')
+    expect(factory.dialog).toBeUndefined()
+    expect((factory as any).diagram).toBeUndefined()
     expect(factory.splitter).toBeTypeOf('function')
+    expect(factory.tabs).toBeTypeOf('function')
+    expect(factory.toolbar).toBeTypeOf('function')
     expect(factory.tree).toBeTypeOf('function')
-    expect(factory.integratedTablePaging).toBe(true)
+    expect(factory.paginator).toBeTypeOf('function')
     expect(factory.nativeInplaceEdit).toBe(true)
-    expect(factory.defaultFilterDisplay).toBe('menu')
+    expect(factory.defaultFilterDisplay).toBeUndefined()
+    expect(factory.formField).toBeTypeOf('function')
+    expect(factory.formItem).toBeUndefined()
+    expect(factory.toggleSwitch).toBeUndefined()
+    expect(factory.checkbox).toBeUndefined()
     expect(factory.resolveIcon('save')).toBe('fas fa-check')
+    expect(factory.inplaceEditor).toBeTypeOf('function')
   })
 
   it('maps factory.badge colorRole and circle shape', () => {
@@ -89,13 +98,792 @@ describe('vui-agnaive skin', () => {
     expect(cls).toContain('mmda-badge--circle')
   })
 
+  it('maps factory.avatar circle large label', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.avatar({
+      label: 'GR',
+      shape: 'circle',
+      size: 'large',
+    })
+    expect(vnode.props?.round).toBe(true)
+    expect(vnode.props?.size).toBe('large')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-avatar--circle')
+  })
+
+  it('maps factory.card surface, colorRole, image, headerImage, divider', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.card(
+      {
+        title: 'Summary',
+        colorRole: 'primary',
+        surface: 'outlined',
+        image: '/cover.png',
+        headerImage: '/face.png',
+        divider: true,
+      },
+      { default: () => [h('p', 'body')] },
+    )
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-card')
+    expect(cls).toContain('mmda-card--primary')
+    expect(cls).toContain('mmda-card--outlined')
+    expect(vnode.props?.bordered).toBe(true)
+    const slots = vnode.children as Record<string, () => unknown>
+    const cover = slots.cover?.()
+    const coverList = Array.isArray(cover) ? cover : [cover]
+    expect(
+      coverList.some(
+        (node: any) => node?.type === 'img' && node?.props?.src === '/cover.png',
+      ),
+    ).toBe(true)
+    const header = slots.header?.()
+    const walk = (node: any): any[] => {
+      if (!node) return []
+      const kids = Array.isArray(node.children) ? node.children.flatMap(walk) : []
+      return [node, ...kids]
+    }
+    expect(
+      walk(header).some(
+        (node: any) =>
+          node?.type === 'img' &&
+          node?.props?.src === '/face.png' &&
+          String(node?.props?.class ?? '').includes('mmda-card-header-image'),
+      ),
+    ).toBe(true)
+    const body = slots.default?.()
+    const bodyList = Array.isArray(body) ? body : [body]
+    expect(
+      bodyList.some((node: any) => {
+        const c = Array.isArray(node?.props?.class)
+          ? node.props.class.flat(8).filter(Boolean).join(' ')
+          : String(node?.props?.class ?? '')
+        return c.includes('mmda-divider')
+      }),
+    ).toBe(true)
+  })
+
+  it('maps factory.divider orientation and label', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.divider({
+      orientation: 'vertical',
+      label: '或',
+    })
+    expect(vnode.props?.vertical).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-divider')
+    expect(cls).toContain('mmda-divider--vertical')
+    expect(cls).toContain('mmda-divider--labeled')
+    const text = (vnode.children as any)?.default?.()
+    expect(text).toBe('或')
+  })
+
+  it('maps factory.colorPicker mode, value, and emits hex', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const vnode = factory.colorPicker({
+      value: '#035a',
+      mode: 'palette',
+      showModeSwitcher: false,
+      onChange,
+    })
+    expect(vnode.props?.value).toBe('#035a')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-colorpicker')
+    expect(cls).toContain('mmda-colorpicker--palette')
+    vnode.props?.['onUpdate:value']?.('rgba(123, 31, 162, 1)')
+    expect(onChange).toHaveBeenCalledWith('#7b1fa2')
+  })
+
+  it('maps factory.maskedTextBox to NInput without live mask', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.maskedTextBox({
+      mask: '000 0000 0000',
+      value: '13800138000',
+    })
+    expect(vnode.props?.placeholder).toBe('000 0000 0000')
+    expect(vnode.props?.value).toBe('13800138000')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-maskedtextbox')
+  })
+
+  it('maps factory.oneTimePasswordInput to a row of NInput cells', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.oneTimePasswordInput({
+      length: 4,
+      type: 'number',
+      value: '12',
+    })
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-otpinput')
+    expect(vnode.children?.length).toBe(4)
+  })
+
+  it('maps factory.queryBuilder to QueryBuilderHost', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.queryBuilder({
+      columns: [{ fieldName: 'age', label: 'Age', valueType: 'number' }],
+    })
+    const qbClass = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(qbClass).toContain('mmda-querybuilder')
+  })
+
+  it('maps factory.slider Range to NSlider range', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.slider({
+      type: 'Range',
+      value: [10, 40],
+      min: 0,
+      max: 50,
+    })
+    expect(vnode.props?.range).toBe(true)
+    expect(vnode.props?.value).toEqual([10, 40])
+    const sliderClass = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(sliderClass).toContain('mmda-slider--range')
+  })
+
+  it('maps factory.rating itemsCount to NRate count', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.rating({
+      value: 2,
+      itemsCount: 5,
+      readOnly: true,
+    })
+    expect(vnode.props?.count).toBe(5)
+    expect(vnode.props?.readonly).toBe(true)
+    expect(vnode.props?.value).toBe(2)
+    const ratingClass = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(ratingClass).toContain('mmda-rating')
+  })
+
+  it('maps factory.sidebar and drawer to NDrawer', () => {
+    const factory = createAgNaiveUiFactory()
+    const sidebar = factory.sidebar({ isOpen: true, type: 'Push', enableDock: true })
+    expect(sidebar.props?.show).toBe(true)
+    expect(sidebar.props?.placement).toBe('left')
+    const sidebarClass = Array.isArray(sidebar.props?.class)
+      ? sidebar.props.class.flat(8).filter(Boolean).join(' ')
+      : String(sidebar.props?.class ?? '')
+    expect(sidebarClass).toContain('mmda-sidebar--push')
+    expect(sidebarClass).toContain('mmda-sidebar--dock')
+    const drawer = factory.drawer({ isOpen: true })
+    expect(drawer.props?.mask).toBe(true)
+    const drawerClass = Array.isArray(drawer.props?.class)
+      ? drawer.props.class.flat(8).filter(Boolean).join(' ')
+      : String(drawer.props?.class ?? '')
+    expect(drawerClass).toContain('mmda-sidebar--drawer')
+    expect(drawerClass).toContain('mmda-sidebar--over')
+  })
+
+  it('maps factory.tabs value and Naive placement', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.tabs({
+      items: [
+        { header: 'One', content: 'a' },
+        { header: 'Two', content: 'b' },
+      ],
+      value: 1,
+      headerPlacement: 'Left',
+      scrollable: false,
+    })
+    expect(vnode.props?.value).toBe(1)
+    expect(vnode.props?.placement).toBe('left')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-tabs')
+    expect(cls).toContain('mmda-tabs--left')
+    expect(cls).toContain('mmda-tabs--popup')
+    expect(cls).toContain('mmda-tabs--fill')
+  })
+
+  it('maps factory.toolbar slots and align', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.toolbar(
+      { layout: 'medium', align: { end: 'left' } },
+      {
+        start: () => 'S',
+        center: () => 'C',
+        end: () => 'E',
+      },
+    )
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-toolbar')
+    expect(cls).toContain('mmda-toolbar--medium')
+    const kids = vnode.children as any[]
+    const endCls = Array.isArray(kids[2].props.class)
+      ? kids[2].props.class.flat(8).filter(Boolean).join(' ')
+      : String(kids[2].props.class ?? '')
+    expect(endCls).toContain('mmda-toolbar__end--left')
+  })
+
+  it('maps factory.splitter orientation to NSplit direction', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.splitter(
+      [
+        { content: h('span', 'L'), size: '16rem' },
+        { content: h('span', 'R') },
+      ],
+      { orientation: 'Vertical', enableReversePanes: true },
+    )
+    expect(vnode.props?.direction).toBe('vertical')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-splitter')
+    expect(cls).toContain('mmda-splitter--vertical')
+    expect(cls).toContain('mmda-splitter--reverse')
+  })
+
+  it('maps factory.numberInput precision and value', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.numberInput({
+      value: 12.5,
+      decimals: 2,
+      showSpinButton: false,
+    })
+    expect(vnode.props?.value).toBe(12.5)
+    expect(vnode.props?.precision).toBe(2)
+    expect(vnode.props?.showButton).toBe(false)
+    expect(vnode.props?.step).toBe(1)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-numberinput')
+  })
+
+  it('maps factory.textArea value to NInput textarea', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.textArea({
+      value: 'hello',
+      rows: 5,
+      resizeMode: 'None',
+      autoResize: true,
+    } as any)
+    expect(vnode.props?.type).toBe('textarea')
+    expect(vnode.props?.value).toBe('hello')
+    expect(vnode.props?.rows).toBe(5)
+    expect(vnode.props?.autosize).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-textarea')
+    expect(cls).toContain('mmda-textarea--none')
+  })
+
+  it('maps factory.textInput value placeholder and clearable', () => {
+    const factory = createAgNaiveUiFactory()
+    const onFocus = vi.fn()
+    const onBlur = vi.fn()
+    const vnode = factory.textInput({
+      value: 'hello',
+      placeholder: 'hint',
+      type: 'Password',
+      showClearButton: true,
+      onFocus,
+      onBlur,
+    })
+    expect(vnode.props?.value).toBe('hello')
+    expect(vnode.props?.placeholder).toBe('hint')
+    expect(vnode.props?.type).toBe('password')
+    expect(vnode.props?.clearable).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-textinput')
+    vnode.props?.onFocus?.()
+    vnode.props?.onBlur?.()
+    expect(onFocus).toHaveBeenCalledOnce()
+    expect(onBlur).toHaveBeenCalledOnce()
+  })
+
+  it('maps factory.progressBar percentage and circular type', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.progressBar({
+      value: 42,
+      kind: 'circular',
+    })
+    expect(vnode.props?.percentage).toBe(42)
+    expect(vnode.props?.type).toBe('circle')
+  })
+
+  it('maps factory.signaturePad host class', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.signaturePad({
+      value: '',
+    })
+    expect(vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type)).toMatch(
+      /Signature/,
+    )
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-signature-pad')
+  })
+
+  it('maps factory.stepper current and vertical', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.stepper({
+      value: 1,
+      orientation: 'vertical',
+      items: [{ label: '甲' }, { label: '乙' }],
+    })
+    expect(vnode.props?.current).toBe(1)
+    expect(vnode.props?.vertical).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-stepper--vertical')
+  })
+
+  it('maps factory.skeleton text to NSkeleton text', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.skeleton({
+      shape: 'text',
+      width: '100%',
+      height: 32,
+      shimmer: 'none',
+    })
+    expect(vnode.props?.text).toBe(true)
+    expect(vnode.props?.avatar).toBe(false)
+    expect(vnode.props?.animated).toBe(false)
+    expect(vnode.props?.height).toBe(32)
+  })
+
+  it('maps factory.loading to NSpin', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.loading({ label: '加载中', size: 'small' })
+    expect(vnode.props?.size).toBe('small')
+    expect(vnode.props?.description).toBe('加载中')
+    expect(String(vnode.type?.name ?? vnode.type?.__name ?? vnode.type)).toMatch(
+      /Spin/i,
+    )
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-loading')
+  })
+
+  it('maps factory.tree to NaiveTree with mmda-tree', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.tree({
+      data: [{ id: '1', label: '根' }],
+      selectionMode: 'checkbox',
+    })
+    expect(vnode.type?.name ?? vnode.type?.__name).toBe('NaiveTree')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-tree')
+    expect(cls).toContain('mmda-tree--checkbox')
+  })
+
+  it('maps factory.speechToText lang and interim onto the host', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.speechToText({
+      value: '你好',
+      lang: 'zh-CN',
+      interim: false,
+    })
+    expect(vnode.props?.value).toBe('你好')
+    expect(vnode.props?.lang).toBe('zh-CN')
+    expect(vnode.props?.interim).toBe(false)
+    expect(vnode.props?.renderButton).toBeTypeOf('function')
+  })
+
+  it('maps factory.radioButtonGroup NRadioGroup value', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.radioButtonGroup({
+      value: 'b',
+      name: 'kind',
+      options: [
+        { value: 'a', label: '甲' },
+        { value: 'b', label: '乙' },
+      ],
+    })
+    expect(vnode.props?.value).toBe('b')
+    expect(vnode.props?.name).toBe('kind')
+    expect(vnode.props?.['onUpdate:value']).toBeTypeOf('function')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-radiobuttongroup')
+  })
+
+  it('maps factory.datePicker format, Monday week, and no typing', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const day = new Date(2026, 8, 7)
+    const vnode = factory.datePicker({
+      value: day,
+      onChange,
+    })
+    expect(vnode.props?.format).toBe('YYYY-MM-DD')
+    expect(vnode.props?.inputReadonly).toBe(true)
+    expect(vnode.props?.firstDayOfWeek).toBe(0)
+    expect(vnode.props?.type).toBe('date')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-datepicker')
+    vnode.props?.['onUpdate:value']?.(day.getTime())
+    expect(onChange.mock.calls[0][0]).toBeInstanceOf(Date)
+    const month = factory.monthPicker({ value: day })
+    expect(month.props?.type).toBe('month')
+    expect(month.props?.format).toBe('YYYY-MM')
+    const start = new Date(2026, 8, 1)
+    const end = new Date(2026, 8, 7)
+    const range = factory.dateRangePicker({ value: [start, end] })
+    expect(range.props?.type).toBe('daterange')
+    expect(range.props?.value).toHaveLength(2)
+  })
+
+  it('maps factory.dropDownList options, group, and onChange', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const vnode = factory.dropDownList({
+      value: 'a',
+      options: [
+        { value: 'a', label: '甲', group: 'G', icon: 'flag' },
+        { value: 'b', label: '乙', group: 'G' },
+      ],
+      onChange,
+    })
+    expect(vnode.props?.value).toBe('a')
+    expect(vnode.props?.options?.[0]?.type).toBe('group')
+    expect(vnode.props?.options?.[0]?.children?.[0]).toMatchObject({
+      value: 'a',
+      label: '甲',
+      icon: 'flag',
+    })
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-dropdown-list')
+    vnode.props?.['onUpdate:value']?.('b')
+    expect(onChange).toHaveBeenCalledWith('b')
+  })
+
+  it('maps factory.multiSelect multiple keys', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const vnode = factory.multiValueSelect({
+      value: ['a'],
+      options: [
+        { value: 'a', label: '甲' },
+        { value: 'b', label: '乙' },
+      ],
+      onChange,
+    })
+    expect(vnode.props?.multiple).toBe(true)
+    expect(vnode.props?.value).toEqual(['a'])
+    vnode.props?.['onUpdate:value']?.(['a', 'b'])
+    expect(onChange).toHaveBeenCalledWith(['a', 'b'])
+  })
+
+  it('maps factory.tagAutoComplete tag select', () => {
+    const factory = createAgNaiveUiFactory()
+    const onUpdate = vi.fn()
+    const vnode = factory.tagAutoComplete('a', { options: ['a'], onUpdate })
+    expect(vnode.props?.tag).toBe(true)
+    expect(vnode.props?.multiple).toBe(true)
+    vnode.props?.['onUpdate:value']?.(['a', 'b'])
+    expect(onUpdate).toHaveBeenCalledWith('a,b')
+  })
+
+  it('maps factory.treeSelect multiple value and hook class', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const vnode = factory.treeSelect({
+      value: 'a',
+      data: [{ id: 'a', label: '甲' }],
+      fields: { id: 'id', label: 'label' },
+      selectionMode: 'checkbox',
+      onChange,
+    })
+    expect(vnode.props?.value).toEqual(['a'])
+    expect(vnode.props?.multiple).toBe(true)
+    expect(vnode.props?.checkable).toBe(true)
+    expect(vnode.props?.filterable).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-tree-select')
+    expect(factory.dropDownTree).toBe(factory.treeSelect)
+    vnode.props?.['onUpdate:value']?.(['a', 'b'])
+    expect(onChange).toHaveBeenCalledWith(['a', 'b'])
+  })
+
+  it('maps factory.comboBox custom AutoComplete vs closed Select', () => {
+    const factory = createAgNaiveUiFactory()
+    const custom = factory.comboBox({ value: 't', options: ['a'] })
+    const cls = Array.isArray(custom.props?.class)
+      ? custom.props.class.flat(8).filter(Boolean).join(' ')
+      : String(custom.props?.class ?? '')
+    expect(cls).toContain('mmda-combobox')
+    expect(cls).toContain('mmda-combobox--custom')
+    const closed = factory.comboBox({
+      value: 'a',
+      options: ['a'],
+      allowCustom: false,
+    })
+    expect(closed.props?.filterable).toBe(true)
+    const closedCls = Array.isArray(closed.props?.class)
+      ? closed.props.class.flat(8).filter(Boolean).join(' ')
+      : String(closed.props?.class ?? '')
+    expect(closedCls).not.toContain('mmda-combobox--custom')
+  })
+
+  it('maps factory.barcode format class', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.barcode({ value: '123', format: 'code39' })
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-barcode--code39')
+  })
+
+  it('does not draw QR for dataMatrix', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.qrCode({ value: 'SYNC123', format: 'dataMatrix' })
+    expect(vnode.type).toBe('span')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-qrcode--unsupported')
+    expect(vnode.children).toBe('SYNC123')
+  })
+
+  it('maps factory.breadcrumb items', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.breadcrumb({
+      items: [
+        { label: '组织', to: '/org' },
+        { label: '部门' },
+      ],
+      separator: '>',
+    })
+    expect(vnode.type).toBe('nav')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-breadcrumb')
+    const kids = vnode.children as any[]
+    expect(kids).toHaveLength(2)
+    expect(kids[1].children?.[0]?.children).toBe('>')
+  })
+
+  it('maps factory.calendar to a date panel', () => {
+    const factory = createAgNaiveUiFactory()
+    const values = [new Date(2020, 0, 1), new Date(2020, 0, 15)]
+    const vnode = factory.calendar({
+      value: values,
+      selectionMode: 'multiple',
+      firstDayOfWeek: 1,
+    })
+    expect((vnode.props as any)?.panel).toBe(true)
+    expect((vnode.props as any)?.type).toBe('dates')
+    expect((vnode.props as any)?.firstDayOfWeek).toBe(1)
+    expect(Array.isArray((vnode.props as any)?.value)).toBe(true)
+    expect((vnode.props as any)?.value).toHaveLength(2)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-calendar')
+  })
+
+  it('maps factory.carousel to NCarousel', () => {
+    const factory = createAgNaiveUiFactory()
+    const items = [
+      { src: '/a.jpg', title: 'A' },
+      { src: '/b.jpg', title: 'B' },
+    ]
+    const vnode = factory.carousel({
+      items,
+      selectedIndex: 1,
+      autoPlay: true,
+      interval: 4000,
+      loop: true,
+      animation: 'fade',
+    })
+    expect((vnode.props as any)?.defaultIndex).toBe(1)
+    expect((vnode.props as any)?.autoplay).toBe(true)
+    expect((vnode.props as any)?.interval).toBe(4000)
+    expect((vnode.props as any)?.loop).toBe(true)
+    expect((vnode.props as any)?.effect).toBe('fade')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-carousel')
+    const slides =
+      typeof (vnode.children as any)?.default === 'function'
+        ? (vnode.children as any).default()
+        : vnode.children
+    expect(slides).toHaveLength(2)
+  })
+
+  it('maps factory.checkBox to NCheckbox', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.checkBox({
+      checked: true,
+      label: '同意条款',
+      indeterminate: true,
+    })
+    expect((vnode.props as any)?.checked).toBe(true)
+    expect((vnode.props as any)?.indeterminate).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-checkbox')
+    expect(cls).toContain('mmda-checkbox--indeterminate')
+    const label =
+      typeof (vnode.children as any)?.default === 'function'
+        ? (vnode.children as any).default()
+        : vnode.children
+    expect(label).toBe('同意条款')
+    const omitted = factory.checkBox({ checked: false, label: '未半选' })
+    expect((omitted.props as any)?.indeterminate).toBeUndefined()
+  })
+
+  it('maps factory.switch to NSwitch', () => {
+    const factory = createAgNaiveUiFactory()
+    const onChange = vi.fn()
+    const vnode = factory.switch({
+      checked: true,
+      onChange,
+    })
+    expect((vnode.props as any)?.value).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-switch')
+    vnode.props?.['onUpdate:value']?.(false)
+    expect(onChange).toHaveBeenCalledWith(false)
+  })
+
+  it('renders fields.checkbox from displayLabel and getFieldValue', () => {
+    const fields = createAgNaiveFieldFactory()
+    const wrap = fields.checkBox(
+      { fieldName: 'active', displayLabel: '启用' } as any,
+      {
+        getFieldValue: () => true,
+        setFieldValue: vi.fn(),
+        isFieldReadonly: () => false,
+        isInvalid: () => false,
+      } as any,
+    )
+    const cls = Array.isArray(wrap.props?.class)
+      ? wrap.props.class.flat(8).filter(Boolean).join(' ')
+      : String(wrap.props?.class ?? '')
+    expect(cls).toContain('mmda-agnaive-control')
+    const chrome = (wrap.children as any[])[0]
+    const chromeCls = Array.isArray(chrome.props?.class)
+      ? chrome.props.class.flat(8).filter(Boolean).join(' ')
+      : String(chrome.props?.class ?? '')
+    expect(chromeCls).toContain('mmda-checkbox')
+    expect(chrome.props.checked).toBe(true)
+    const label =
+      typeof chrome.children?.default === 'function'
+        ? chrome.children.default()
+        : chrome.children
+    expect(label).toBe('启用')
+  })
+
+  it('maps factory.chips to NTag list', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.chips({
+      kind: 'filter',
+      items: [{ label: '成功', colorRole: 'success' }, '辅料'],
+    })
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-chips')
+    expect(cls).toContain('mmda-chips--filter')
+    const kids = vnode.children as any[]
+    expect(kids).toHaveLength(2)
+    expect(kids[0].props.type).toBe('success')
+    expect(kids[0].props.checkable).toBe(true)
+    const input = factory.chips({ kind: 'input', items: ['A'] })
+    expect((input.children as any[])[0].props.closable).toBe(true)
+  })
+
+  it('maps factory.contextMenu to Naive dropdown host', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.contextMenu({
+      target: '#editor',
+      items: [
+        { name: 'cut', label: '剪切' },
+        { divider: true },
+        { name: 'paste', label: '粘贴', disabled: true },
+      ],
+    })
+    expect(vnode.props?.menuProps?.target).toBe('#editor')
+    expect(vnode.props?.menuProps?.items?.[0]?.label).toBe('剪切')
+    expect(String(vnode.type?.name ?? vnode.type)).toMatch(/ContextMenu/)
+  })
+
+  it('renders fields.tags from comma-separated text', () => {
+    const fields = createAgNaiveFieldFactory()
+    const vnode = fields.tags(
+      { fieldName: 'tags' } as any,
+      { getFieldValue: () => '原料,辅料, 包装' } as any,
+    )
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-chips')
+    const labels = (vnode.children as any[]).map((child) =>
+      typeof child.children?.default === 'function'
+        ? child.children.default()
+        : child.children,
+    )
+    expect(labels.map((part: any) => (Array.isArray(part) ? part[0] : part))).toEqual([
+      '原料',
+      '辅料',
+      '包装',
+    ])
+    expect(fields.chips).toBe(fields.tags)
+  })
+
   it('registers old metadata editor aliases', () => {
     const fields = createAgNaiveFieldFactory()
     expect(fields.TextBox).toBe(fields.textInput)
-    expect(fields.DropdownList).toBe(fields.dropdown)
+    expect(fields.DropDownList).toBe(fields.dropDownList)
+    expect(fields.dropdown).toBeUndefined()
     expect(fields.DatePicker).toBe(fields.datePicker)
     expect(fields.FileUpload).toBe(fields.fileUpload)
+    expect(fields.FileUploader).toBe(fields.fileUploader)
+    expect(fields.Url).toBe(fields.fileLink)
     expect(fields.HasOneText).toBe(fields.externalLink)
+    expect(fields.hasOneText).toBe(fields.externalLink)
+    expect(fields.CheckBox).toBe(fields.checkBox)
+    expect(fields.associationTable).toBeUndefined()
+    expect(fields.InplaceFieldEditor).toBe(fields.inplaceFieldEditor)
+    expect(fields.BitChipSet).toBe(fields.bitChipSet)
+    expect(fields.EnumChipSet).toBe(fields.enumChipSet)
+    expect(fields.enumSetTags).toBeUndefined()
+    expect(fields.BitTags).toBeUndefined()
   })
 
   it('constructs the builder against VueUiBuilder', () => {
@@ -104,11 +892,43 @@ describe('vui-agnaive skin', () => {
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
+  it('wraps actions in NButtonGroup', () => {
+    const factory = createAgNaiveUiFactory()
+    const group = factory.buttonGroup(() => [
+      factory.button({ label: 'A' }),
+      factory.button({ label: 'B' }),
+    ])
+    expect(String(group.type?.name ?? group.type)).toMatch(/ButtonGroup/)
+    const select = factory.selectButtonGroup('a', {
+      options: [
+        { label: 'A', value: 'a' },
+        { label: 'B', value: 'b' },
+      ],
+    })
+    expect(String(select.type?.name ?? select.type)).toMatch(/ButtonGroup/)
+    expect(select.type).not.toBeUndefined()
+  })
+
   it('wraps table in AgGrid', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.table([], productMeta(), { selectionMode: 'multiple' })
     expect(vnode.type).toBe(AgGrid)
     expect(vnode.props?.metaUi.objName).toBe('Product')
+  })
+
+  it('passes rowDetail through factory.table', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.table([{ id: '1', code: 'P-001' }], productMeta(), {
+      rowDetail: { detail: () => h('div') },
+    })
+    expect(vnode.props?.rowDetail).toBeTruthy()
+    const flat = factory.treeGrid([{ id: '1', code: 'P-001' }], productMeta(), {
+      rowDetail: { detail: () => h('div') },
+      treeShape: 'TREE',
+      shapeKey: 'parentId',
+    })
+    expect(flat.type).toBe(AgGrid)
+    expect(flat.props?.treeData).toBe(false)
   })
 
   it('builds column defs from listed metadata', () => {

@@ -28,7 +28,6 @@ export const PrimeVueOverlayHost = defineComponent({
     } catch {
       /* ConfirmationService not installed */
     }
-    if (overlay) overlay.services.factory = app?.ui.factory
 
     let translate: ((key: string) => string) | undefined
     try {
@@ -52,12 +51,9 @@ export const PrimeVueOverlayHost = defineComponent({
     )
 
     return () => {
-      const factory = overlay?.services.factory
       const dialogs = overlay?.dialogs ?? []
       return h('div', { class: 'mmda-prime-overlays' }, [
         h(Toast),
-        h(Toast, { group: 'br', position: 'bottom-right' }),
-        h(Toast, { group: 'notification', position: 'top-right' }),
         h(ConfirmDialog),
         ...dialogs.map(request => {
           const height =
@@ -71,7 +67,7 @@ export const PrimeVueOverlayHost = defineComponent({
           const dialogProps = {
             visible: true,
             modal: request.props.modal ?? true,
-            header: request.props.title ?? request.props.name,
+            header: request.props.title,
             style: {
               width:
                 typeof request.props.width === 'number'
@@ -90,7 +86,7 @@ export const PrimeVueOverlayHost = defineComponent({
             },
             maximizable: true,
             onHide: () => closeOverlayDialog(overlay!, request, false),
-            onUpdateVisible: (visible: boolean) => {
+            'onUpdate:visible': (visible: boolean) => {
               if (!visible) void closeOverlayDialog(overlay!, request, false)
             },
           }
@@ -123,9 +119,7 @@ export const PrimeVueOverlayHost = defineComponent({
                       ),
                     ]),
           }
-          return factory
-            ? factory.dialog(dialogProps, slots)
-            : h(Dialog, { key: request.id, ...dialogProps, 'onUpdate:visible': dialogProps.onUpdateVisible }, slots)
+          return h(Dialog, { key: request.id, ...dialogProps }, slots)
         }),
       ])
     }

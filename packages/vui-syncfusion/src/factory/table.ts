@@ -3,7 +3,7 @@
  * 现网列表表格渲染器（factory.table）。
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
-import { h, nextTick, toRaw, unref } from 'vue'
+import { h, nextTick, toRaw, unref, render, getCurrentInstance } from 'vue'
 import {
   DEFAULT_PAGE_SIZE,
   MetaModel,
@@ -97,6 +97,34 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     let focusedEditCell: { rowIndex: number; field: string } | null = null
     let contentTable: HTMLElement | null = null
     let gridHost: HTMLElement | null = null
+    const appContext = getCurrentInstance()?.appContext ?? null
+    const rowDetail = props.rowDetail
+    const detailHosts = new Set<Element>()
+    const unmountRowDetails = () => {
+      for (const host of detailHosts) {
+        render(null, host)
+      }
+      detailHosts.clear()
+    }
+    const bindRowDetail = (args: any) => {
+      const root = args?.detailElement as HTMLElement | undefined
+      const host =
+        (root?.querySelector?.('.mmda-sf-row-detail-host') as Element | null) ??
+        root
+      if (!host || !rowDetail) return
+      const row = (args?.data ?? args?.rowData) as T
+      const vnode = rowDetail.detail(row) as any
+      if (appContext && vnode && typeof vnode === 'object') vnode.appContext = appContext
+      render(vnode, host)
+      detailHosts.add(host)
+    }
+    const expandAllDetails = () => {
+      if (rowDetail?.expandAll === false) return
+      if (!rowDetail) return
+      queueMicrotask(() => {
+        ej2Grid?.detailRowModule?.expandAll?.()
+      })
+    }
 
     /** 原位编辑只认行号 → features[i]，不信任 Batch 的 rowData 副本。 */
     const rowIndexFrom = (args?: any) => {
@@ -1058,7 +1086,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           : rows,
         locale: getSyncfusionCulture(),
         allowPaging: false,
-        enableVirtualization: Boolean(pagination),
+        enableVirtualization: Boolean(pagination) && !rowDetail,
         // Material 3 Theme Studio 默认无斑马纹，交替行会让分页器/表体色阶显得碎
         enableAltRow: false,
         // 索引页：占满父容器，行区内部滚动，分页条贴底（避免撑出页面滚动）
@@ -1102,6 +1130,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             ? { mode: 'Cell', type: 'Single' }
             : { type: 'None' },
         cssClass: ['mmda-sf-table', props.class].filter(Boolean).join(' '),
+        ...(rowDetail
+          ? {
+              detailTemplate: '<div class="mmda-sf-row-detail-host"></div>',
+              detailDataBound: bindRowDetail,
+              dataBound: expandAllDetails,
+            }
+          : {}),
         ref: (comp: any) => {
           const grid = comp?.ej2Instances ?? comp ?? null
           if (ej2Grid && ej2Grid !== grid) {
@@ -1129,6 +1164,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           ej2Grid?.off?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
           flushPendingCellEdit()
           unbindInplaceEditTriggers()
+          unmountRowDetails()
         },
         rowSelected: (args: any) => {
           const grid = args.grid ?? args.sender

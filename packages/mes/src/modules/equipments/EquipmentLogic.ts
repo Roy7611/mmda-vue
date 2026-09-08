@@ -28,7 +28,7 @@ const maxStationPriority = (stations?: EquipmentStation[]) =>
  * @returns
  */
 const beforehandover = async (context: UiContext<Equipment>, model: Equipment, action: EntityAction) => {
-	const { $toast } = context.globalProps;
+	context.globalProps;
 	const user = localStorage.getItem('user')
 	return context
 		.select<User>({
@@ -64,7 +64,7 @@ const beforehandover = async (context: UiContext<Equipment>, model: Equipment, a
  * @returns
  */
 const beforeInstall = async (context: UiContext<Equipment>, model: Equipment, action: EntityAction) => {
-	const { $toast } = context.globalProps;
+	context.globalProps;
 	return context
 		.select<Station>({
 			repository: 'Stations',
@@ -98,7 +98,7 @@ const beforeInstall = async (context: UiContext<Equipment>, model: Equipment, ac
  */
 const beforecheck = async (context: UiContext, model: Equipment, action: EntityAction) => {
 	// EquipmentChecklistCreate  createParam
-	// const { $toast ,$router} = context.globalProps;
+	// const {$router} = context.globalProps;
 	// const createParam = {
 	// 	refName: 'Equipment',
 	// 	refID: model.equipID,
@@ -217,10 +217,9 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 							if (existsInStations) {
 								ctx.setFieldValue('stationID', oldVal);
 								ctx.uiBuilder.toast(ctx, {
-									severity: 'warn',
-									summary: ctx.t('dialog.title.prompt'),
-									group: 'br',
-									detail: ctx.t('equipment.stationAlreadyInList'),
+									severity: 'warning',
+									title: ctx.t('dialog.title.prompt'),
+									message: ctx.t('equipment.stationAlreadyInList'),
 									life: 3000,
 								});
 								return;
@@ -382,10 +381,9 @@ export class EquipmentLogic extends UiLogic<Equipment> {
 						if (stationCount > 1) {
 							context.setFieldValue('movable', true);
 							context.uiBuilder.toast(context, {
-								severity: 'warn',
-								summary: context.t('dialog.title.prompt'),
-								group: 'br',
-								detail: context.t('equipment.clearMovableStationsFirst'),
+								severity: 'warning',
+								title: context.t('dialog.title.prompt'),
+								message: context.t('equipment.clearMovableStationsFirst'),
 								life: 3000,
 							});
 							return;

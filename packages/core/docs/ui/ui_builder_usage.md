@@ -24,26 +24,43 @@ const fld = ui.fldFactory
 
 ## toast / confirm / dialog
 
+程序员只走 **`context.uiBuilder`**（与 `app.ui` 同一实例）。弹层由 OverlayHost 画厂商窗，**没有 `factory.dialog`**。
+
 ```ts
-await ui.toast(context, { severity: 'success', summary: '已保存' })
+ui.toast(context, {
+  severity: 'success', // success | info | warning | error
+  title: '已保存',
+  message: '订单已更新',
+  life: 3000, // 可省，缺省 3000
+})
 
 const ok = await ui.confirm(context, {
-  header: '删除',
+  title: '删除',
   message: '确定删除？',
 })
 if (!ok) return
+// 业务写在这里，不要塞进 accept 回调
 
-const picked = await ui.dialog(content, context, { header: '选择物料' })
+const accepted = await ui.dialog(content, context, {
+  title: '选择物料',
+  width: 'min(90vw, 60rem)',
+  onAccept: async () => {
+    // 返回 false 不关窗
+    return true
+  },
+})
 ```
 
-| 方法 | 干什么 |
-|---|---|
-| `toast` | 提示，不必等用户 |
-| `confirm` | 是/否（原 `confirmMessage`） |
-| `dialog` | 弹层塞节点（原 `confirmDialog`） |
-| `buildView` | 按 `context.view` 拼整页或选择器 |
+| 方法 | 干什么 | 具名参数 |
+|---|---|---|
+| `toast` | 提示，不必等 | `severity` / `title` / `message` / `life` |
+| `confirm` | 是/否 → `boolean` | `title` / `message` |
+| `dialog` | 弹层塞节点 → 是否确定 | `title` / `width` / `showFooter` / `onAccept` |
+| `buildView` | 按 `context.view` 拼整页或选择器 | |
 
-`dialog` 的 `content` 类型是 `TNode | TNode[]`。Logic 里用 `factory.*` 产出节点，不要自己造 VNode。
+不要写：`summary`、`detail`、`header`、`type`、`group`、`icon`（pi-*）、`acceptProps`、`$toast.add`、`factory.dialog`。
+
+`dialog` 的 `content` 类型是 `TNode | TNode[]`。Logic 里用 `factory.*` 产出节点，不要自己造 VNode。选相对实体继续 `context.select` / 字段控件，真正要窗就走 `ui.dialog`。
 
 ## 表格（本地行）
 
@@ -52,17 +69,17 @@ const picked = await ui.dialog(content, context, { header: '选择物料' })
 ```ts
 import { MetaUiBuilder } from '@mmda/core'
 
-const metaui = MetaUiBuilder.create('PickRow')
+const metaUi = MetaUiBuilder.create('PickRow')
   .rowNumber()
   .field('code', '编码')
   .field('name', '名称')
   .listed()
   .build()
 
-const table = ui.factory.table(rows, metaui, {
+const table = ui.factory.table(rows, metaUi, {
   selectionMode: 'single',
 })
-const result = await ui.dialog(table, context, { header: '选择' })
+const result = await ui.dialog(table, context, { title: '选择' })
 ```
 
 仓库实体用 [`context.select`](../logic/ui_context_usage.md)，不要再抄一份列表查询。

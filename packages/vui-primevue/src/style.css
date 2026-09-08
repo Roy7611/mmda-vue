@@ -692,12 +692,6 @@ html[data-mmda-palette="cyan"] {
   min-height: 0;
 }
 
-.mmda-prime-fab {
-  position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
-}
-
 /* tonal secondary：亮色 soft；暗色 surface 抬升，避免贴背景或抢色 */
 .p-button.mmda-btn-tonal,
 .p-splitbutton.mmda-btn-tonal > .p-button {
@@ -733,29 +727,60 @@ html.mmda-dark .p-splitbutton.mmda-btn-tonal > .p-button:hover {
   padding: 0;
 }
 
-.mmda-badge--overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(40%, -40%);
+/* 应用主题可钩：.mmda-card / .mmda-card--{role} / --outlined / --elevated */
+/* 应用主题可钩：.mmda-divider / .mmda-divider--vertical / --labeled */
+/* 应用主题可钩：.mmda-datepicker / --month / .mmda-datetimepicker / .mmda-timepicker / .mmda-daterangepicker */
+/* 应用主题可钩：.mmda-dropdown-list / .mmda-combobox / .mmda-combobox--custom */
+/* 应用主题可钩：.mmda-chart / .mmda-circular-gauge */
+/* 应用主题可钩：.mmda-signature-pad / --readonly / --disabled */
+/* 应用主题可钩：.mmda-stepper / --horizontal / --vertical / --linear / --readonly */
+/* 应用主题可钩：.mmda-tabs / --top / --bottom / --left / --right / --scrollable / --popup / --fill */
+
+.mmda-tabs {
+  display: flex;
+  min-height: 0;
 }
 
-.mmda-badge--overlay.mmda-badge--top-left {
-  right: auto;
-  left: 0;
-  transform: translate(-40%, -40%);
+.mmda-tabs--top {
+  flex-direction: column;
 }
 
-.mmda-badge--overlay.mmda-badge--bottom-right {
-  top: auto;
-  bottom: 0;
-  transform: translate(40%, 40%);
+.mmda-tabs--bottom {
+  flex-direction: column-reverse;
 }
 
-.mmda-badge--overlay.mmda-badge--bottom-left {
-  top: auto;
-  right: auto;
-  bottom: 0;
-  left: 0;
-  transform: translate(-40%, 40%);
+.mmda-tabs--left {
+  flex-direction: row;
 }
+
+.mmda-tabs--right {
+  flex-direction: row-reverse;
+}
+
+.mmda-tabs--fill {
+  height: 100%;
+}
+
+.mmda-tabs--fill .p-tabpanels {
+  flex: 1;
+  min-height: 0;
+}
+
+.mmda-checkbox-list__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.mmda-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mmda-row-detail {
+  padding: 0.5rem 0.75rem;
+}
+
+

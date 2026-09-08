@@ -195,7 +195,7 @@ export class DailyReportTaskLogic extends UiGroupLogic<DailyReportTask, DailyRep
 
 //选择图片
 const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string) => {
-	const { $ui: ui, $t: t, $toast: toast } = ctx.globalProps;
+	const {$ui: ui, $t: t} = ctx.globalProps;
 	const selectData = { value: [] };
 	console.log('phptos');
 	const photoList = { value: [] };
@@ -228,13 +228,12 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 			title: t('action.chooseOneImage'),
 			width: '45%',
 			height: '80%',
-			accept: async () => {
+			onAccept: async () => {
 				if (selectData.value && selectData.value.length <= 0) {
-					toast.add({
-						severity: 'warn',
-						detail: t('invalid.chooseImage'),
-						summary: `${t('dialog.title.warning')}`,
-						group: 'br',
+					context.uiBuilder.toast(context, {
+						severity: 'warning',
+						message: t('invalid.chooseImage'),
+						title: `${t('dialog.title.warning')}`,
 						life: 5000,
 					});
 					return false;
@@ -341,7 +340,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 								{
 									title: t('dailyReport.selectRelatedTask'),
 									width: '80%',
-									accept: async () => {
+									onAccept: async () => {
 										if (!data) return false;
 										ctx.setFieldValue('taskID', data.taskID);
 										return true;

@@ -93,10 +93,9 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
 				if (isDuplicate) {
 					ctx.removeSubGroupItem('items', item);
 					ctx.uiBuilder.toast(ctx, {
-						severity: 'warn',           // warn 提示
-						summary: ctx.t('invalid.duplicateMaterial'),
-						detail: ctx.t({ message: 'invalid.duplicateMaterialDetail', param: { it: item.materialID } }),
-						group: 'br',
+						severity: 'warning',
+						title: ctx.t('invalid.duplicateMaterial'),
+						message: ctx.t({ message: 'invalid.duplicateMaterialDetail', param: { it: item.materialID } }),
 						life: 3000,
 					});
 				}

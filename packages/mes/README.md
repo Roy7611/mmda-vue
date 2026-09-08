@@ -20,7 +20,7 @@
 - 标准 CRUD 走元数据路由 `/MES/:repository`、`/Create`、`/Edit/:id`、`/:id`，交互逻辑在 `src/modules/**/*Logic.ts`。
 - 编译期可引用 `@mmda/base/src/...`（枚举与跨服务模型类型），不引用 `@mmda/iot` / `@mmda/srm`（仅 `src/compat` 桩）。
 - AppShell 与通用 EntityView 位于 `@mmda/app`；MES 只注册业务 Logic 与自定义页面。
-- 生产排程 / 项目排程走 `UiBuilder.buildGanttChart`（Syncfusion EJ2 Gantt），BPMN 使用 `bpmn-js`。
+- 生产排程 / 项目排程走 `ui.buildGanttChart`（需 App `setGanttPlugin(createSfGanttPlugin())`），BPMN 使用 `bpmn-js`。
 
 ## 分层约束
 

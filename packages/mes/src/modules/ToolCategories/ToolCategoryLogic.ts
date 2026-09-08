@@ -84,12 +84,10 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
 						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? ctx.t(this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text ?? '') : '-');
 					})
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
-						return ctx.uiBuilder.factory.select({
-							options: this.materialXOptions.map(option => ({ ...option, text: ctx.t(option.text) })),
-							optionLabel: 'text',
-							optionValue: 'value',
-							modelValue: ctx.model.materialX,
-							onUpdate: (value: any) => {
+						return ctx.uiBuilder.factory.dropDownList({
+							options: this.materialXOptions.map(option => ({ value: option.value, label: ctx.t(option.text) })),
+							value: ctx.model.materialX,
+							onChange: (value) => {
 								ctx.model.materialX = value;
 							}
 						})

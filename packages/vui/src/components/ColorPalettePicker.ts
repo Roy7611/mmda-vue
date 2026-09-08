@@ -38,7 +38,7 @@ export const ColorPalettePicker = defineComponent({
           class: "mmda-color-palette-picker",
         },
         [
-          builder.factory.menuButton(
+          builder.factory.dropDownButton(
             {
               icon: builder.factory.resolveIcon("fas fa-palette"),
               class:

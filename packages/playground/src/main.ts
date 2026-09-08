@@ -1,6 +1,10 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
 import { AgNaiveUiBuilder, mmdaAgNaive } from "@mmda/vui-agnaive";
+import { createAgPivotPlugin } from "@mmda/vui-agnaive/pivot";
+import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
+import { createVueKanbanPlugin } from "@mmda/vuix-svar-kanban";
+import { createFcSchedulerPlugin } from "@mmda/vuix-fc-scheduler";
 import { AppShell } from "./App";
 import {
   installGuestSession,
@@ -12,6 +16,10 @@ import "./style.css";
 
 const i18n = setupI18n({}, "zh");
 const builder = new AgNaiveUiBuilder();
+builder.setMarkdownEditorPlugin(createMarkdownEditorPlugin());
+builder.setKanbanPlugin(createVueKanbanPlugin());
+builder.setSchedulerPlugin(createFcSchedulerPlugin());
+builder.setPivotPlugin(createAgPivotPlugin());
 const mmda = new MmdaVueApp("/api", "demo", builder, i18n, {
   clientId: "mmda-playground",
   signinPath: "/Signin",

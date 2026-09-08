@@ -13,8 +13,13 @@ const themePackages = [
   'ej2-notifications',
   'ej2-grids',
   'ej2-diagrams',
+  'ej2-image-editor',
   'ej2-layouts',
   'ej2-gantt',
+  'ej2-kanban',
+  'ej2-schedule',
+  'ej2-pivotview',
+  'ej2-querybuilder',
   'ej2-treegrid',
 ]
 

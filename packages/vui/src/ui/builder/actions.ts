@@ -77,7 +77,6 @@ export class UiActionFactory {
           runtime.translate?.("confirmation.delete", {
             it: runtime.getModelTitle?.(),
           }) ?? "Delete this item?",
-        buttons: ["yes", "no"],
       });
       if (result) return runtime.delete?.();
     });
@@ -90,7 +89,7 @@ export class UiActionFactory {
       if (selected.length === 0) {
         return this.builder.toast(context, {
           severity: "error",
-          detail:
+          message:
             runtime.translate?.("invalid.requiredSelectAny") ??
             "Select at least one item.",
         });
@@ -99,7 +98,7 @@ export class UiActionFactory {
       if (deletable.length === 0) {
         return this.builder.toast(context, {
           severity: "error",
-          detail:
+          message:
             runtime.translate?.("invalid.noDeletable") ??
             "Selected records cannot be deleted.",
         });
@@ -113,7 +112,6 @@ export class UiActionFactory {
             : (runtime.translate?.("confirmation.deleteAll", {
                 it: runtime.metaUi?.displayLabel,
               }) ?? "Delete selected items?"),
-        buttons: ["yes", "no"],
       });
       if (!result) return;
       const ids = deletable

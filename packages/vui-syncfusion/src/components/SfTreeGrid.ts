@@ -7,10 +7,10 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { TreeGrid, Edit, Filter, Resize, Selection, Sort } from '@syncfusion/ej2-treegrid'
+import { TreeGrid, DetailRow, Edit, Filter, Resize, Selection, Sort } from '@syncfusion/ej2-treegrid'
 import '@syncfusion/ej2-treegrid/styles/material3.css'
 
-TreeGrid.Inject(Edit, Filter, Resize, Selection, Sort)
+TreeGrid.Inject(DetailRow, Edit, Filter, Resize, Selection, Sort)
 
 export const SfTreeGrid = defineComponent({
   name: 'SfTreeGrid',

@@ -9,7 +9,6 @@ import {
   NNotificationProvider,
   useDialog,
   useMessage,
-  useNotification,
 } from 'naive-ui'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
@@ -30,40 +29,25 @@ const OverlayInner = defineComponent({
     const overlay = app?.ui.overlay as AgNaiveOverlay | undefined
     const message = useMessage()
     const dialog = useDialog()
-    const notification = useNotification()
 
     if (overlay) {
-      overlay.services.factory = app?.ui.factory
       overlay.services.toast = props => {
-        const text = String(props.detail ?? props.message ?? props.summary ?? '')
-        const type = props.severity ?? props.type ?? 'info'
-        if (type === 'error' || type === 'danger') message.error(text)
-        else if (type === 'warning' || type === 'warn') message.warning(text)
+        const text = String(props.message ?? props.title ?? '')
+        const type = props.severity ?? 'info'
+        if (type === 'error') message.error(text)
+        else if (type === 'warning') message.warning(text)
         else if (type === 'success') message.success(text)
         else message.info(text)
-        if (props.group === 'notification') {
-          notification.create({ title: props.summary ?? props.title, content: text })
-        }
       }
       overlay.services.confirm = props =>
         new Promise(resolve => {
           dialog.warning({
-            title: String(props.header ?? props.title ?? ''),
+            title: String(props.title ?? ''),
             content: String(props.message ?? ''),
-            positiveText: String(
-              (props.acceptProps as any)?.label ?? 'OK',
-            ),
-            negativeText: String(
-              (props.rejectProps as any)?.label ?? 'Cancel',
-            ),
-            onPositiveClick: () => {
-              props.accept?.()
-              resolve('yes')
-            },
-            onNegativeClick: () => {
-              props.reject?.()
-              resolve('no')
-            },
+            positiveText: 'OK',
+            negativeText: 'Cancel',
+            onPositiveClick: () => resolve(true),
+            onNegativeClick: () => resolve(false),
           })
         })
     }
@@ -81,7 +65,6 @@ const OverlayInner = defineComponent({
     const okLabel = computed(() => translate?.('dialog.ok') || 'OK')
 
     return () => {
-      const factory = overlay?.services.factory
       const dialogs = overlay?.dialogs ?? []
       return h(
         'div',
@@ -91,18 +74,6 @@ const OverlayInner = defineComponent({
             typeof request.props.width === 'number'
               ? `${request.props.width}px`
               : request.props.width ?? 'min(90vw, 60rem)'
-          const dialogProps = {
-            show: true,
-            title: request.props.title ?? request.props.name,
-            style: { width },
-            class: ['mmda-agnaive-dialog', request.props.cssClass]
-              .filter(Boolean)
-              .join(' '),
-            onClose: () => closeOverlayDialog(overlay!, request, false),
-            'onUpdate:show': (show: boolean) => {
-              if (!show) void closeOverlayDialog(overlay!, request, false)
-            },
-          }
           const slots = {
             default: () => request.content,
             action:
@@ -129,31 +100,23 @@ const OverlayInner = defineComponent({
                       ),
                     ]),
           }
-          return factory
-            ? factory.dialog(
-                {
-                  visible: true,
-                  onUpdateVisible: (visible: boolean) => {
-                    if (!visible)
-                      void closeOverlayDialog(overlay!, request, false)
-                  },
-                  ...dialogProps,
-                },
-                slots,
-              )
-            : h(
-                NModal,
-                {
-                  key: request.id,
-                  show: true,
-                  preset: 'dialog',
-                  title: dialogProps.title,
-                  style: dialogProps.style,
-                  class: dialogProps.class,
-                  'onUpdate:show': dialogProps['onUpdate:show'],
-                },
-                slots,
-              )
+          return h(
+            NModal,
+            {
+              key: request.id,
+              show: true,
+              preset: 'dialog',
+              title: request.props.title,
+              style: { width },
+              class: ['mmda-agnaive-dialog', request.props.cssClass]
+                .filter(Boolean)
+                .join(' '),
+              'onUpdate:show': (show: boolean) => {
+                if (!show) void closeOverlayDialog(overlay!, request, false)
+              },
+            },
+            slots,
+          )
         }),
       )
     }

@@ -7,6 +7,7 @@ import { computed, defineComponent, h, onMounted, reactive, ref, watch, type Pro
 import type { VueUiContext } from '@mmda/vui';
 import { ToolStatusEnum } from '@/enums/ToolStatus';
 import { type MaterialTrans } from '@/models/MaterialTrans';
+import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 import './ToolsPicking.less';
 import { useI18n } from 'vue-i18n';
 
@@ -106,7 +107,7 @@ export const ToolsPicking = defineComponent({
 	},
 	setup: (props) => {
 		const { t } = useI18n();
-		const { $ui: ui, $toast: toast } = props.ctx.globalProps;
+		const {$ui: ui} = props.ctx.globalProps;
 		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const { uiBuilder } = props.ctx;
 
@@ -189,7 +190,7 @@ export const ToolsPicking = defineComponent({
 		});
 
 		const showToast = (severity: string, detail: string, summary = t('dialog.title.prompt')) => {
-			toast.add({ severity, detail, summary, group: 'br', life: 3000 });
+			context.uiBuilder.toast(context, { severity, detail, summary, life: 3000 });
 		};
 
 		const createTransState = (detail: MaterialTrans): TransState => {
@@ -420,12 +421,15 @@ export const ToolsPicking = defineComponent({
 		const renderHeader = () => h('div', { class: 'tools-picking__header' }, [
 			h('div', { class: 'tools-picking__search' }, [
 				h('span', { class: 'tools-picking__label' }, t('toolPicking.trans')),
-				ui.factory.input(transSearchWord.value, {
-					id: 'toolsPickingTransNo',
-					name: 'toolsPickingTransNo',
+				ui.factory.textInput({
+					value: transSearchWord.value,
+					htmlAttributes: {
+						id: 'toolsPickingTransNo',
+						name: 'toolsPickingTransNo',
+					},
 					placeholder: t('toolPicking.transNoPlaceholder'),
 					class: 'tools-picking__search-input',
-					onUpdate: (value: string) => { transSearchWord.value = value ?? ''; },
+					onChange: (value: string) => { transSearchWord.value = value ?? ''; },
 					onKeydown: (event: KeyboardEvent) => {
 						if (event.key === 'Enter') searchTransDirectly();
 					},
@@ -508,29 +512,29 @@ export const ToolsPicking = defineComponent({
 		}
 
 		const buildColumns = () => [
-				ui.factory.column(
+				plainTableColumn(
 					{ header: ' ', style: { width: '48px', textAlign: 'center' as const } },
 					{
 						body: ({ data }: { data: ToolRow }) => {
 							const reason = getDisabledReason(data);
-							return h('span', { title: reason || undefined }, [ui.factory.checkbox(Boolean(data.__checked), {
-								binary: true,
+							return h('span', { title: reason || undefined }, [ui.factory.checkBox({
+								checked: Boolean(data.__checked),
 								disabled: Boolean(reason),
-								onUpdate: () => handleToggleOne(data),
+								onChange: () => handleToggleOne(data),
 							})]);
 						},
 					},
 				),
-				ui.factory.column({ header: t('toolPicking.toolNo'), field: 'toolNo', style: { width: '150px' } }),
-				ui.factory.column({ header: t('toolPicking.serialNo'), field: 'serialNo', style: { width: '140px' } }),
-				ui.factory.column({ header: t('toolPicking.toolName'), field: 'toolName', style: { width: '180px' } }),
-				ui.factory.column({ header: t('toolPicking.specs'), field: 'specs', style: { width: '130px' } }),
-				ui.factory.column(
+				plainTableColumn({ header: t('toolPicking.toolNo'), field: 'toolNo', style: { width: '150px' } }),
+				plainTableColumn({ header: t('toolPicking.serialNo'), field: 'serialNo', style: { width: '140px' } }),
+				plainTableColumn({ header: t('toolPicking.toolName'), field: 'toolName', style: { width: '180px' } }),
+				plainTableColumn({ header: t('toolPicking.specs'), field: 'specs', style: { width: '130px' } }),
+				plainTableColumn(
 					{ header: t('toolPicking.status'), field: 'status', style: { width: '90px' } },
 					{ body: ({ data }: { data: ToolRow }) => h('span', { class: 'tools-picking__status' },
 						String(data.status ? ToolStatusEnum[`${data.status}_TEXT` as keyof typeof ToolStatusEnum] ?? data.status : '-')) },
 				),
-				ui.factory.column(
+				plainTableColumn(
 					{ header: t('toolPicking.availability'), style: { width: '210px' } },
 					{ body: ({ data }: { data: ToolRow }) => {
 						const reason = getDisabledReason(data);
@@ -553,11 +557,11 @@ export const ToolsPicking = defineComponent({
 						h('strong', `#${currentItem.value?.itemID} ${currentItem.value?.materialName || currentItem.value?.materialCode || ''}`),
 					]),
 					h('div', { class: 'tools-picking__selection-count' }, [
-						ui.factory.checkbox(allEditableSelected.value, {
-							binary: true,
+						ui.factory.checkBox({
+							checked: allEditableSelected.value,
 							disabled: editableTools.value.length === 0,
 							label: t('toolPicking.selectAll'),
-							onUpdate: handleToggleAll,
+							onChange: handleToggleAll,
 						}),
 						h('strong', String(selectedCount)),
 						h('span', t('toolPicking.selectedDemandUnlimited', { quantity })),
@@ -567,13 +571,7 @@ export const ToolsPicking = defineComponent({
 					toolsLoading.value
 						? h('div', { class: 'tools-picking__loading' }, [ui.factory.loading({}), h('span', t('toolPicking.loadingTools'))])
 						: tableTools.value.length
-							? ui.factory.primeVueTable(tableTools.value as any, buildColumns() as any, {
-								scrollable: true,
-								scrollHeight: 'flex',
-								dataKey: 'id',
-								emptyMessage: t('toolPicking.noMatchingTools'),
-								rowClass: (data: ToolRow) => getDisabledReason(data) ? 'tools-picking__disabled-row' : '',
-							} as any)
+							? renderPlainTable(tableTools.value as any, buildColumns() as any, {})
 							: renderEmpty('pi pi-wrench', t('toolPicking.materialNoTools')),
 			]),
 		]);

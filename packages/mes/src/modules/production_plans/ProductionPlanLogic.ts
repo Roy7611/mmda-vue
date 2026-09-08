@@ -134,21 +134,19 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 		this.afterAction = (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction, apiResultOrError?: any) => {
 			const err = apiResultOrError;
 			if (err?.status == 400 && err?.code == 'task.relasedQuantity.exceed') {
-				const { $router, $toast, $t: t } = context.globalProps;
+				const {$router, $t: t} = context.globalProps;
 				const apiClient = this.apiClient;
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: err.message ?? context.t('auth.operationFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: err.message ?? context.t('auth.operationFailed'),
 					// life: 3000
 				})
-				context.uiBuilder.confirm(context, {
-					header: t('dialog.title.prompt'),
+				if (await context.uiBuilder.confirm(context, {
+					title: t('dialog.title.prompt'),
 					message: t('ganttLabel.jumpMaterialInspection'),
-					type: 'warn',
-					accept: async () => {
-						//调用接口，查询 projectID 跳转
+				})) {
+//调用接口，查询 projectID 跳转
 						try {
 							const res = await apiClient.getAll({
 								repository: 'Projects',
@@ -179,17 +177,15 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 							}
 							return true;
 						} catch (error: any) {
-							$toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'error',
-								detail: error.message,
-								summary: context.t('dialog.title.error'),
-								group: 'br',
+								message: error.message,
+								title: context.t('dialog.title.error'),
 								life: 3000,
 							});
 							return false;
 						}
-					},
-				})
+}
 				// context.uiBuilder.dialog(
 				// 	h(
 				// 		'div',
@@ -210,7 +206,7 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				// 		width: '25%',
 				// 		height: '30%',
 				// 		showFooter: true,
-				// 		accept: async () => {
+				// 		onAccept: async () => {
 				// 			//调用接口，查询 projectID 跳转
 				// 			try {
 				// 				const res = await apiClient.getAll({
@@ -241,11 +237,11 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 				// 				}
 				// 				return true;
 				// 			} catch (error: any) {
-				// 				$toast.add({
+				// 				context.uiBuilder.toast(context, {
 				// 					severity: 'error',
-				// 					detail: error.message,
-				// 					summary: context.t('dialog.title.error'),
-				// 					group: 'br',
+				// 					message: error.message,
+				// 					title: context.t('dialog.title.error'),
+				//,
 				// 					life: 3000,
 				// 				});
 				// 				return false;
@@ -260,9 +256,8 @@ export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
 			if (err?.message || err?.detail) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: context.t('dialog.title.error'),
-					detail: err.message ?? err.detail,
-					group: 'br',
+					title: context.t('dialog.title.error'),
+					message: err.message ?? err.detail,
 					life: 3000,
 				});
 				return Promise.resolve(false);
@@ -572,13 +567,13 @@ export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, Pr
 						.join(" AND ");
 				}),
 				this.field('taskQuantity').onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
-					const { $router, $toast, $t: t } = ctx.globalProps;
+					const {$router, $t: t} = ctx.globalProps;
 					//判断newVal是不是小数
 					if (isDecimal(newVal) && newVal > 0) {
-						$toast.add({
-							severity: 'warn',
+						context.uiBuilder.toast(context, {
+							severity: 'warning',
 							title: t('dialog.title.error'),
-							detail: t('invalid.notPorint'),
+							message: t('invalid.notPorint'),
 							life: 3000,
 						});
 						console.log('model', model);

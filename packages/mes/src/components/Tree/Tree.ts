@@ -108,9 +108,8 @@ export const Tree = defineComponent({
 			} catch (error: any) {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? t('auth.operationFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? t('auth.operationFailed'),
 					life: 3000,
 				});
 			}
@@ -120,9 +119,8 @@ export const Tree = defineComponent({
 			if (data.categoryID == '-1') {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: t('invalid.rootDirectoryCannotDelete'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: t('invalid.rootDirectoryCannotDelete'),
 					life: 3000,
 				});
 				return false;
@@ -151,9 +149,8 @@ export const Tree = defineComponent({
 			} catch (error: any) {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? t('auth.operationFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? t('auth.operationFailed'),
 					life: 3000,
 				});
 			}
@@ -167,8 +164,8 @@ export const Tree = defineComponent({
 						getRootData();
 						props.context.uiBuilder.toast(props.context, {
 							severity: 'success',
-							summary: t('dialog.success'),
-							detail: t('success.operationSuccessful'),
+							title: t('dialog.success'),
+							message: t('success.operationSuccessful'),
 							life: 3000,
 						});
 						materialsName.list.RootDirectory = '';
@@ -179,9 +176,8 @@ export const Tree = defineComponent({
 					.catch((err: any) => {
 						props.context.uiBuilder.toast(props.context, {
 							severity: 'error',
-							summary: t('dialog.title.error'),
-							detail: err.message ?? t('auth.operationFailed'),
-							group: 'br',
+							title: t('dialog.title.error'),
+							message: err.message ?? t('auth.operationFailed'),
 							life: 3000,
 						});
 						console.log('saveFn2', err);
@@ -189,9 +185,8 @@ export const Tree = defineComponent({
 			} catch (error: any) {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? t('auth.operationFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? t('auth.operationFailed'),
 					life: 3000,
 				});
 			}
@@ -206,17 +201,16 @@ export const Tree = defineComponent({
 							getRootData();
 							props.context.uiBuilder.toast(props.context, {
 								severity: 'success',
-								summary: t('dialog.success'),
-								detail: t('success.operationSuccessful'),
+								title: t('dialog.success'),
+								message: t('success.operationSuccessful'),
 								life: 3000,
 							});
 						})
 						.catch((err: any) => {
 							props.context.uiBuilder.toast(props.context, {
                                 severity: 'error',
-                                summary: t('dialog.title.error'),
-                                detail: err.message ?? t('auth.operationFailed'),
-                                group: 'br',
+                                title: t('dialog.title.error'),
+                                message: err.message ?? t('auth.operationFailed'),
                                 life: 3000
                             })
 						});
@@ -229,8 +223,8 @@ export const Tree = defineComponent({
 							getRootData();
 							props.context.uiBuilder.toast(props.context, {
 								severity: 'success',
-								summary: t('dialog.success'),
-								detail: t('success.operationSuccessful'),
+								title: t('dialog.success'),
+								message: t('success.operationSuccessful'),
 								life: 3000,
 							});
 						})
@@ -238,9 +232,8 @@ export const Tree = defineComponent({
 							console.log('deleteFn', err);
 							props.context.uiBuilder.toast(props.context, {
 								severity: 'error',
-								summary: t('dialog.title.error'),
-								detail: err.message ?? t('auth.operationFailed'),
-								group: 'br',
+								title: t('dialog.title.error'),
+								message: err.message ?? t('auth.operationFailed'),
 								life: 3000,
 							});
 						});
@@ -250,9 +243,8 @@ export const Tree = defineComponent({
 			} catch (error: any) {
 				props.context.uiBuilder.toast(props.context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? t('auth.operationFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? t('auth.operationFailed'),
 					life: 3000,
 				});
 			}
@@ -293,7 +285,7 @@ export const Tree = defineComponent({
 				h(
 					'div',
 					{ class: 'form' },
-					ui.factory.formItem(
+					ui.factory.formField(
 						{
 							label: t('tool.categoryFilter'),
 							class: 'flex_item_center',
@@ -370,12 +362,11 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													accept: async () => {
+													onAccept: async () => {
 														if (materialsName.list.RootDirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
-															summary: t('dialog.title.error'),
-															detail: t('invalid.required'),
-															group: 'br',
+															title: t('dialog.title.error'),
+															message: t('invalid.required'),
 															life: 3000
 														})
 														handleFn('addRootDirectory', nodes.value);
@@ -404,12 +395,11 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													accept: async () => {
+													onAccept: async () => {
 														if (materialsName.list.RootDirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
-															summary: t('dialog.title.error'),
-															detail: t('invalid.required'),
-															group: 'br',
+															title: t('dialog.title.error'),
+															message: t('invalid.required'),
 															life: 3000
 														})
 														handleFn('addRootDirectory', nodes.value);
@@ -436,12 +426,11 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													accept: async () => {
+													onAccept: async () => {
 														if (materialsName.list.Brothers.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
-															summary: t('dialog.title.error'),
-															detail: t('invalid.required'),
-															group: 'br',
+															title: t('dialog.title.error'),
+															message: t('invalid.required'),
 															life: 3000
 														})
 														handleFn('addBrothers', nodes.value);
@@ -468,12 +457,11 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													accept: async () => {
+													onAccept: async () => {
 														if (materialsName.list.Subdirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
-															summary: t('dialog.title.error'),
-															detail: t('invalid.required'),
-															group: 'br',
+															title: t('dialog.title.error'),
+															message: t('invalid.required'),
 															life: 3000
 														})
 														handleFn('addSubdirectory', nodes.value);
@@ -487,15 +475,13 @@ export const Tree = defineComponent({
 										label: t('tool.deleteDirectory'),
 										key: 'delete',
 										command: () => {
-											props.context.uiBuilder.confirm(props.context, {
-												header: t('action.confirm'),
+											if (await props.context.uiBuilder.confirm(props.context, {
+												title: t('action.confirm'),
 												message: t('dialog.areYourSure'),
-												type: 'warn',
-												accept: () => {
-													handleFn('delete', nodes.value);
-													return true;
-												},
-											});
+											})) {
+												handleFn('delete', nodes.value);
+												return true;
+											}
 										},
 									},
 									{
@@ -516,12 +502,11 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													accept: async () => {
+													onAccept: async () => {
 														if (materialsName.list.rename.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
-															summary: t('dialog.title.error'),
-															detail: t('invalid.required'),
-															group: 'br',
+															title: t('dialog.title.error'),
+															message: t('invalid.required'),
 															life: 3000
 														})
 														handleFn('rename', nodes.value);

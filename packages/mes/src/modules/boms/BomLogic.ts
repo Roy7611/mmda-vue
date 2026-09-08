@@ -25,6 +25,7 @@ import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { ResourceType } from '@/enums/ResourceType';
 import { ProcessOperationResource } from '@/models/ProcessOperationResource';
 import type { UiBuildContext } from '@mmda/vui';
+import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 
 const tableData = { value: [] };
 const tablecolumns = { value: [] };
@@ -379,9 +380,9 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 	ensureBomItemCommunicatePicStyle();
 	const maxH = COMMUNICATE_PIC_MAX_HEIGHT;
 
-	// 编辑态：复用框架 ImageUpload（选择/清除/上传逻辑不变），外层 CSS 约束为缩略图
-	if (ctx.editing && ctx.uiBuilder.fldFactory?.imageUpload) {
-		return ctx.uiBuilder.fldFactory.imageUpload(fld, ctx, props);
+	// 编辑态：复用框架 imageUploader（选择/清除/上传逻辑不变），外层 CSS 约束为缩略图
+	if (ctx.editing && ctx.uiBuilder.fldFactory?.imageUploader) {
+		return ctx.uiBuilder.fldFactory.imageUploader(fld, ctx, props);
 	}
 
 	const urls = getBomItemCommunicatePicUrls(fld, ctx);
@@ -468,11 +469,10 @@ export const checkBomHasTask = async (context: UiContext, model: Bom, action: En
 			});
 			return res;
 		} catch (error: any) {
-			context.globalProps.$toast.add({
+			context.uiBuilder.toast(context, {
 				severity: 'error',
-				summary: context.globalProps.$t('dialog.title.error'),
-				group: 'br',
-				detail: error.message,
+				title: context.globalProps.$t('dialog.title.error'),
+				message: error.message,
 				life: 3000,
 			});
 			return false;
@@ -490,7 +490,7 @@ export const checkBomHasTask = async (context: UiContext, model: Bom, action: En
 export const beforeapprove = async (context: UiContext, model: Bom, action: EntityAction) => {
 	//根据bomID 查询是否存在项目任务，如果存在，弹窗展示项目任务 ProjectTask 多选，过滤 taskPhase=MAKE，taskLevel=TASK
 	const metaUiService = context.logic!.metaUiService;
-	const { $ui: ui, $t: t, $toast: Toast } = context.globalProps;
+	const {$ui: ui, $t: t} = context.globalProps;
 
 	const hasTask = await checkBomHasTask(context, model, action);
 	if (hasTask) {
@@ -526,11 +526,10 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 				}
 			})
 			.catch((err: any) => {
-				Toast.add({
+				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					group: 'br',
-					detail: err.message,
+					title: t('dialog.title.error'),
+					message: err.message,
 					life: 3000,
 				});
 				return true;
@@ -541,7 +540,7 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 		// 	header: t('action.confirm'),
 		// 	message: t('dialog.areYourSure'),
 		// 	type: action.param.hint,
-		// 	accept: async () => {
+		// 	onAccept: async () => {
 		// 		return await context.apiClient
 		// 			.doAction(
 		// 				{
@@ -560,8 +559,8 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 		// 			})
 		// 			.catch((err: any) => {
 		// 				const message = err?.validationErrors?.length ? err.validationErrors.map((ve: any) => ve.error).join(';') : err.message ?? err;
-		// 				// Toast.add({ severity: 'error', summary: t('dialog.title.error'), group: 'br', detail: err.message, life: 3000 });
-		// 				Toast.add({ severity: 'error', summary: t('dialog.title.error'), group: 'br', detail: message, life: 3000 });
+		// 				// context.uiBuilder.toast(context, { severity: 'error', title: t('dialog.title.error'), message: err.message, life: 3000 });
+		// 				context.uiBuilder.toast(context, { severity: 'error', title: t('dialog.title.error'), message: message, life: 3000 });
 		// 				return Promise.reject(false);
 		// 			});
 		// 	},
@@ -579,7 +578,7 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 export const beforematchStd = async (context: UiContext, model: Bom, action: EntityAction) => {
 	// if (context.actionLoadings[action.name]) return false; // 防止重复点击
 	const metaUiService = context.logic!.metaUiService;
-	const { $ui: ui, $t: t, $toast: Toast } = context.globalProps;
+	const {$ui: ui, $t: t} = context.globalProps;
 	// 获取物料数据
 	await getmaterial(context, '');
 
@@ -614,8 +613,8 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 
 	// 构建表格列
 	const columns = [
-		ui.factory.column({ header: t('bom.sequence'), field: 'rowNum', style: { width: '80px' } }),
-		ui.factory.column(
+		plainTableColumn({ header: t('bom.sequence'), field: 'rowNum', style: { width: '80px' } }),
+		plainTableColumn(
 			{
 				header: t('bom.materialImage'),
 				field: 'materialPic',
@@ -630,13 +629,13 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 					}),
 			}
 		),
-		ui.factory.column({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
-		ui.factory.column({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
-		ui.factory.column({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
-		ui.factory.column({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
-		ui.factory.column({ header: t('bom.modelType'), field: 'modelType', style: 'width: 100px' }),
-		ui.factory.column({ header: t('bom.nationalStandardNo'), field: 'gbNo', style: 'width: 100px' }),
-		ui.factory.column(
+		plainTableColumn({ header: t('view.materialCode'), field: 'materialCode', style: 'width: 100px' }),
+		plainTableColumn({ header: t('view.materialName'), field: 'materialName', style: 'width: 100px' }),
+		plainTableColumn({ header: t('bom.brand'), field: 'brand', style: 'width: 100px' }),
+		plainTableColumn({ header: t('bom.specification'), field: 'specs', style: 'width: 100px' }),
+		plainTableColumn({ header: t('bom.modelType'), field: 'modelType', style: 'width: 100px' }),
+		plainTableColumn({ header: t('bom.nationalStandardNo'), field: 'gbNo', style: 'width: 100px' }),
+		plainTableColumn(
 			{
 				header: t('bom.selectMatchingStandardPart'),
 				style: 'width: 100px',
@@ -698,12 +697,12 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 	const initialPage = tableData.value.slice(start, start + pageSize);
 
 	context.uiBuilder.dialog(
-		ui.factory.dataTable!(initialPage, columns, {}),
+		renderPlainTable(initialPage, columns, {}),
 		context,
 		{
 			title: t('bom.matchStandardParts'),
 			style: { width: '80vw', maxHeight: '95%' },
-			accept: async () => {
+			onAccept: async () => {
 				const refItemKeys: { refID: string; refItemID: string; refName: string }[] = [];
 				// 在确认时更新 model.items
 				model.items.forEach((item: BomItem) => {
@@ -726,10 +725,10 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 					);
 
 					if (res) {
-						Toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'success',
-							summary: t('dialog.success'),
-							detail: t('success.operationSuccessful'),
+							title: t('dialog.success'),
+							message: t('success.operationSuccessful'),
 							life: 3000,
 						});
 						// 成功后隔1s刷新页面
@@ -739,10 +738,10 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 						return true;
 					}
 				} catch (error: any) {
-					Toast.add({
+					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: t('dialog.title.error'),
-						detail: error.message,
+						title: t('dialog.title.error'),
+						message: error.message,
 						life: 3000,
 					});
 					return false;
@@ -765,7 +764,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
  * 指派设计任务：筛选来源=自制且未绑定子件BOM的项次，弹窗多选后放行给FLOW_TO处理通知
  */
 export const beforeAssignDesignTask = async (context: UiContext, model: Bom, action: EntityAction) => {
-	const { $ui: ui, $toast: Toast, $t: t } = context.globalProps;
+	const {$ui: ui, $t: t} = context.globalProps;
 
 	// 过滤符合条件的 BomItem：来源=自制 且 未绑定子件BOM
 	const targetItems = (model.items || []).filter((item: BomItem) =>
@@ -775,11 +774,10 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 	);
 
 	if (targetItems.length === 0) {
-		Toast.add({
-			severity: 'warn',
-			summary: context.t('dialog.title.warning'),
-			detail: context.t('bom.noAssignableParts'),
-			group: 'br',
+		context.uiBuilder.toast(context, {
+			severity: 'warning',
+			title: context.t('dialog.title.warning'),
+			message: context.t('bom.noAssignableParts'),
 			life: 3000,
 		});
 		return false;
@@ -804,13 +802,12 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 		{
 			title: context.t('bom.selectPartsForDesign'),
 			style: { width: '70vw' },
-			accept: async () => {
+			onAccept: async () => {
 				if (selectedItems.length === 0) {
-					Toast.add({
+					context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.t('dialog.title.error'),
-						detail: context.t('bom.selectAtLeastOnePart'),
-						group: 'br',
+						title: context.t('dialog.title.error'),
+						message: context.t('bom.selectAtLeastOnePart'),
 						life: 3000,
 					});
 					return false;
@@ -1376,15 +1373,6 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 						}
 					}),
 				this.field('formula').hideIf(model => model.formulaType !== FormulaType.FORMULA),
-				this.field('opCodes').setCustomCellRenderer((fld, ctx, props) => {
-					const { uiBuilder } = ctx;
-					const text = ctx.getFieldValue(fld) as string;
-
-					return uiBuilder.fldFactory.associationTable(fld, ctx, {
-						group: 'operations',
-						// onClick: () => this.newBomItemOperation(ctx, ctx.model),
-					});
-				}),
 				this.field('drawingNo').onValidate<string>((value, model, ctx) => {
 					if (!isNullOrUndefined(value) && value.length > 50) {
 						return ctx.t('bom.drawingNoLengthRange');
@@ -1478,15 +1466,6 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 				}),
 				this.field('partBomID')
 					.hideIf(model => model.sourcingMode == SourcingMode.INVENTORY || model.sourcingMode == SourcingMode.DIRECT_PURCHASE),
-				this.field('opCodes').setCustomCellRenderer((fld, ctx, props) => {
-					const { uiBuilder } = ctx;
-					const text = ctx.getFieldValue(fld) as string;
-
-					return uiBuilder.fldFactory.associationTable(fld, ctx, {
-						group: 'operations',
-						// onClick: () => this.newBomItemOperation(ctx, ctx.model),
-					});
-				}),
 				// 替代料策略，有替代料策略ID时可跳转至详情，没有则不能跳转
 				this.field('altStrategyID').setCustomRenderer((fld, ctx: UiContext<any>, prop) => {
 					const fldVal = ctx.getFieldValue(fld);

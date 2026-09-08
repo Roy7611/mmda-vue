@@ -11,15 +11,15 @@ import {
   MenuComponent,
 } from "@syncfusion/ej2-vue-navigations";
 import { getSyncfusionCulture } from "../syncfusion_i18n";
-import { SfTree } from "../components/SfTree";
+import { createTree } from "./tree";
 import {
   STABLE_PAGE_SIZE_OPTIONS,
   invoke,
   normalizeMenuItem,
 } from "./utils";
 
-export function attachNavigationRenderers(factory: any) {
-  factory.paginator = (pagination: Pagination, props: UiPaginatorPropsType) => {
+export const navigationRenderers = {
+  paginator: (pagination: Pagination, props: UiPaginatorPropsType) => {
     const pageSizeOptions = props.pageSizeOptions
       ? props.pageSizeOptions.map(String)
       : STABLE_PAGE_SIZE_OPTIONS;
@@ -49,11 +49,11 @@ export function attachNavigationRenderers(factory: any) {
         notifyPage(1, nextSize);
       },
     });
-  };
+  },
 
-  factory.tree = (props: any) => h(SfTree, props as any);
+  tree: (props: any) => createTree(props),
 
-  factory.list = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
+  list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
     h("div", { class: "mmda-sf-list" }, [
       model.length
         ? model.map((item, index) =>
@@ -76,9 +76,9 @@ export function attachNavigationRenderers(factory: any) {
             ),
           )
         : (props.empty?.() ?? ""),
-    ]);
+    ]),
 
-  factory.menubar = (items: any[], props: any, slots: any) =>
+  menubar: (items: any[], props: any, slots: any) =>
     h(
       AppBarComponent as any,
       { class: "mmda-sf-menubar", ...props },
@@ -89,5 +89,5 @@ export function attachNavigationRenderers(factory: any) {
           }),
         ...slots,
       },
-    );
-}
+    ),
+};

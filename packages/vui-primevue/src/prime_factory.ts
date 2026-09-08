@@ -20,21 +20,92 @@ import type {
   UiSlots,
   UiTreeGridPropsType,
 } from "@mmda/vui";
-import { assembleTreeGridRows, listedTableFields, treeRowId } from "@mmda/vui";
+import {
+  assembleTreeGridRows,
+  listedTableFields,
+  treeRowId,
+  bindListDisplayRenderers,
+  wrapListFamilyPaginator,
+  renderSearchForRelativeField,
+  switchArgs,
+  createFileUploader,
+  createFilesUploader,
+  createImageUploader,
+  createImagesUploader,
+  renderFileLink,
+  wrapRowDetail,
+} from "@mmda/vui";
 import { createBadge } from "./factory/badge";
+import { createAvatar } from "./factory/avatar";
+import { createBarcode } from "./factory/barcode";
+import { createQrCode } from "./factory/qrcode";
+import { createBreadcrumb } from "./factory/breadcrumb";
+import { createCalendar } from "./factory/calendar";
+import { createCarousel } from "./factory/carousel";
+import { createCheckBox } from "./factory/checkbox";
+import { createSwitch } from "./factory/switch";
+import { createCheckBoxList, createBitCheckBoxList } from "./factory/check_box_list";
+import { createChips } from "./factory/chips";
+import { createContextMenu } from "./factory/context_menu";
+import { createCard } from "./factory/card";
+import { createDivider } from "./factory/divider";
+import { createTooltip } from "./factory/tooltip";
+import { createInplaceEditor } from "./factory/inplace_editor";
+import { createColorPicker } from "./factory/color_picker";
+import { createMaskedTextBox } from "./factory/maskedTextBox";
+import { createOneTimePasswordInput } from "./factory/oneTimePasswordInput";
+import { createQueryBuilder } from "./factory/query_builder";
+import { createSlider } from "./factory/slider";
+import { createRating } from "./factory/rating";
+import { createTabs } from "./factory/tabs";
+import { createToolbar } from "./factory/toolbar";
+import { createDrawer, createSidebar } from "./factory/sidebar";
+import { createSplitter } from "./factory/splitter";
+import { createNumberInput } from "./factory/number_input";
+import { createTextArea } from "./factory/text_area";
+import { createTextInput } from "./factory/text_input";
+import { createProgressBar } from "./factory/progress_bar";
+import { createSignaturePad } from "./factory/signature_pad";
+import { createStepper } from "./factory/stepper";
+import { createTimeline } from "./factory/timeline";
+import { createSkeleton } from "./factory/skeleton";
+import { createLoading } from "./factory/loading";
+import { createSpeechToText } from "./factory/speech_to_text";
+import { createDatePicker } from "./factory/date_picker";
+import { createDateTimePicker } from "./factory/date_time_picker";
+import { createTimePicker } from "./factory/time_picker";
+import { createDateRangePicker } from "./factory/date_range_picker";
+import { createDropDownList } from "./factory/drop_down_list";
+import { createRadioButtonGroup } from "./factory/radio_button_group";
+import {
+  createMultiSelect,
+  createMultiItemSelect,
+  createMultiValueSelect,
+  createMultiTextSelect,
+  createMultiBitSelect,
+} from "./factory/multi_select";
+import { createTreeSelect } from "./factory/tree_select";
+import { createComboBox } from "./factory/combo_box";
+import { createAutoComplete } from "./factory/autocomplete";
+import { createTagAutoComplete } from "./factory/tag_auto_complete";
+import { createButton } from "./factory/button";
+import { createButtonGroup } from "./factory/buttonGroup";
+import { createSelectButtonGroup } from "./factory/selectButtonGroup";
+import {
+  createDropDownButton,
+  createMoreMenuButton,
+} from "./factory/dropDownButton";
+import { createSplitButton } from "./factory/splitButton";
+import { createFloatingActionButton } from "./factory/floatingActionButton";
 import {
   createIconVNode,
   MATERIAL_SYMBOL_PREFIX,
 } from "@mmda/vui";
 import Button from "primevue/button";
-import ButtonGroup from "primevue/buttongroup";
-import Chart from "primevue/chart";
 import Column from "primevue/column";
 import DatePicker from "primevue/datepicker";
 import DataTable from "primevue/datatable";
 import DataView from "primevue/dataview";
-import Dialog from "primevue/dialog";
-import Drawer from "primevue/drawer";
 import Image from "primevue/image";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
@@ -43,15 +114,11 @@ import Menu from "primevue/menu";
 import PanelMenu from "primevue/panelmenu";
 import Paginator from "primevue/paginator";
 import Select from "primevue/select";
-import SelectButton from "primevue/selectbutton";
 import AutoComplete from "primevue/autocomplete";
 import MultiSelect from "primevue/multiselect";
-import SplitButton from "primevue/splitbutton";
-import Splitter from "primevue/splitter";
-import SplitterPanel from "primevue/splitterpanel";
 import Tag from "primevue/tag";
 import { primeLayout } from "./prime_layout";
-import { MmdaPrimeTree } from "./components/MmdaPrimeTree";
+import { createTree } from "./factory/tree";
 import {
   applyPrimeColumnFilter,
   hydratePrimeColumnFilter,
@@ -72,19 +139,38 @@ const listedFields = (metaUi: MetaUi) => {
         .flatMap((group) => group.fields);
 };
 
-const severity = (role?: string) => {
-  const roles: Record<string, string> = {
-    primary: "primary",
-    secondary: "secondary",
-    success: "success",
-    info: "info",
-    warning: "warn",
-    warn: "warn",
-    danger: "danger",
-    error: "danger",
-    contrast: "contrast",
+const primeCellEditor = (
+  field: MetaUiField,
+  data: Record<string, unknown>,
+) => {
+  const name = field.fieldName;
+  const onChange = (value: unknown) => {
+    data[name] = value;
   };
-  return role ? roles[role] : undefined;
+  if (SqlDataType.isBool(field.dataType)) {
+    return createCheckBox({
+      checked: Boolean(data[name]),
+      onChange,
+    });
+  }
+  if (SqlDataType.isNum(field.dataType)) {
+    return h(InputNumber as any, {
+      modelValue: data[name],
+      "onUpdate:modelValue": onChange,
+    });
+  }
+  if (SqlDataType.isDate(field.dataType)) {
+    return h(DatePicker as any, {
+      modelValue: data[name],
+      dateFormat: "yy-mm-dd",
+      showTime: SqlDataType.isDateTime(field.dataType),
+      "onUpdate:modelValue": onChange,
+    });
+  }
+  return h(InputText as any, {
+    modelValue: data[name],
+    "onUpdate:modelValue": onChange,
+  });
 };
 
 const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
@@ -121,37 +207,13 @@ const normalizeMenuItem = (item: any): any => {
 };
 
 export function createPrimeVueUiFactory(): PrimeVueUiFactory {
-  const button = (props: any, slots?: any) =>
-    h(
-      Button,
-      {
-        type: props.type ?? "button",
-        label: props.label,
-        icon: props.icon,
-        severity: severity(
-          props.colorRole ??
-            props.severity ??
-            (props.buttonType === "tonal" ? "secondary" : undefined),
-        ),
-        variant:
-          props.buttonType === "outlined"
-            ? "outlined"
-            : props.buttonType === "text" || props.buttonType === "link"
-              ? "text"
-              : undefined,
-        rounded: props.shape === "round" || props.shape === "circle",
-        disabled: props.disabled === true || props.disabled === "true",
-        loading: props.loading,
-        title: props.tooltip,
-        size: props.size,
-        onClick: props.onClick ?? props.onAction ?? props.command,
-        ...props,
-      },
-      slots,
-    );
+  const button = createButton;
 
   const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
     const fields = listedFields(metaUi);
+    const editableFields = new Set(props.editableFields ?? []);
+    const inplaceEdit =
+      props.inplaceEdit === true && editableFields.size > 0;
     const selectionMode =
       props.selectionMode === "multiple"
         ? "multiple"
@@ -337,6 +399,10 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           ? field.reference.labelOf(value)
           : String(value ?? "");
       };
+      const editable =
+        inplaceEdit &&
+        editableFields.has(field.fieldName) &&
+        !field.readOnly;
       return h(
         Column,
         {
@@ -362,11 +428,25 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
               }
             : {}),
           body: ({ data }: { data: T }) => renderRow(data),
+          ...(editable
+            ? {
+                editor: ({ data }: { data: T }) =>
+                  primeCellEditor(field, data as Record<string, unknown>),
+              }
+            : {}),
         },
       );
     });
 
     const columns: VNode[] = [
+      ...(props.rowDetail
+        ? [
+            h(Column, {
+              expander: true,
+              headerStyle: "width: 3rem",
+            }),
+          ]
+        : []),
       ...(selectionMode
         ? [
             h(Column, {
@@ -378,9 +458,20 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       ...dataColumns,
     ];
 
+    const dataKey = metaUi.primaryKey ?? "id";
+    const expandAll = props.rowDetail && props.rowDetail.expandAll !== false;
+    const expandedRows = expandAll
+      ? Object.fromEntries(
+          model.map((row, index) => [
+            String((row as any)?.[dataKey] ?? index),
+            true,
+          ]),
+        )
+      : {};
+
     const tableProps: Record<string, unknown> = {
       value: model,
-      dataKey: metaUi.primaryKey,
+      dataKey,
       stripedRows: props.striped ?? true,
       showGridlines: props.showGridlines ?? false,
       loading: unref(props.loading),
@@ -412,6 +503,46 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       class: ["mmda-prime-table", props.class].filter(Boolean).join(" "),
     };
 
+    if (inplaceEdit) {
+      tableProps.editMode = "cell";
+      tableProps.onCellEditInit = (event: any) => {
+        const field = fields.find((item) => item.fieldName === event.field);
+        const row = event.data as T;
+        if (
+          !field ||
+          (props.canEditCell && !props.canEditCell(row, field))
+        ) {
+          event.preventDefault?.();
+        }
+      };
+      tableProps.onCellEditComplete = (event: any) => {
+        const field = fields.find((item) => item.fieldName === event.field);
+        if (!field) return;
+        const previous = event.data?.[event.field];
+        const next = event.newValue;
+        const allowed = props.onCellSave?.(
+          event.data,
+          field,
+          next,
+          previous,
+        );
+        if (allowed === false) {
+          event.preventDefault?.();
+          return;
+        }
+        if (event.data && event.field) {
+          (event.data as any)[event.field] = next;
+        }
+      };
+    }
+
+    if (props.rowDetail) {
+      tableProps.expandedRows = expandedRows;
+      tableProps["onUpdate:expandedRows"] = (value: unknown) => {
+        tableProps.expandedRows = value;
+      };
+    }
+
     if (selectionMode) {
       tableProps.selection = (props.selectedItems ??
         EMPTY_SELECTION) as T[];
@@ -434,12 +565,17 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     return h(DataTable as any, tableProps, {
       empty: () => props.empty?.() ?? "",
       loading: () => props.loadingSlot?.(),
+      expansion: props.rowDetail
+        ? (slot: { data: T }) =>
+            wrapRowDetail(props.rowDetail!.detail(slot.data))
+        : undefined,
       default: () => columns,
     });
   };
 
   const factory: PrimeVueUiFactory = {
     layout: primeLayout,
+    nativeInplaceEdit: true,
     actionIcons: {
       create: "pi pi-plus",
       edit: "pi pi-pencil",
@@ -482,6 +618,81 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     image: (src, props) => h(Image, { src, preview: props?.preview, ...props }),
     icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
     badge: (props) => createBadge(props),
+    avatar: (props) =>
+      createAvatar(props, (name) => factory.resolveIcon(name)),
+    barcode: (props) => createBarcode(props),
+    qrCode: (props) => createQrCode(props),
+    breadcrumb: (props) =>
+      createBreadcrumb(props, (name) => factory.resolveIcon(name)),
+    calendar: (props) => createCalendar(props),
+    carousel: (props) => createCarousel(props),
+    checkBox: (props) => createCheckBox(props),
+    switch: (value, props) => createSwitch(switchArgs(value, props)),
+    checkBoxList: (props) => createCheckBoxList(props),
+    bitCheckBoxList: (props) => createBitCheckBoxList(props),
+    chips: (props) =>
+      createChips(props, (name) => factory.resolveIcon(name)),
+    contextMenu: (props) =>
+      createContextMenu(props, (name) => factory.resolveIcon(name)),
+    card: (props, slots) => createCard(props, slots),
+    divider: (props = {}) => createDivider(props),
+    tooltip: (props = {}, slots) => createTooltip(props, slots),
+    inplaceEditor: (props = {}, slots) => createInplaceEditor(props, slots),
+    fileLink: (props = {}) => renderFileLink(props),
+    Url: (props = {}) => renderFileLink(props),
+    FileLink: (props = {}) => renderFileLink(props),
+    fileUploader: (props = {}) => createFileUploader(props),
+    filePicker: (props = {}) => createFileUploader(props),
+    FileUploader: (props = {}) => createFileUploader(props),
+    filesUploader: (props = {}) => createFilesUploader(props),
+    fileUpload: (props = {}) => createFilesUploader(props),
+    FileUpload: (props = {}) => createFilesUploader(props),
+    imageUploader: (props = {}) => createImageUploader(props),
+    imagePicker: (props = {}) => createImageUploader(props),
+    ImagePicker: (props = {}) => createImageUploader(props),
+    imagesUploader: (props = {}) => createImagesUploader(props),
+    colorPicker: (props) => createColorPicker(props),
+    maskedTextBox: (props) => createMaskedTextBox(props),
+    oneTimePasswordInput: (props) => createOneTimePasswordInput(props),
+    queryBuilder: (props) => createQueryBuilder(props),
+    slider: (props) => createSlider(props),
+    rating: (props) => createRating(props),
+    tabs: (props) => createTabs(props),
+    toolbar: (props, slots) => createToolbar(props, slots),
+    sidebar: (props, slots) => createSidebar(props, slots),
+    drawer: (props, slots) => createDrawer(props, slots),
+    numberInput: (props) => createNumberInput(props),
+    textInput: (props) => createTextInput(props),
+    textArea: (props) => createTextArea(props),
+    progressBar: (props) => createProgressBar(props),
+    signaturePad: (props) => createSignaturePad(props),
+    stepper: (props) =>
+      createStepper(props, (name) => factory.resolveIcon(name)),
+    timeline: (props) =>
+      createTimeline(props, (name) => factory.resolveIcon(name)),
+    skeleton: (props = {}) => createSkeleton(props),
+    loading: (props = {}) => createLoading(props),
+    speechToText: (props = {}) => createSpeechToText(props),
+    datePicker: (props) => createDatePicker(props),
+    monthPicker: (props) =>
+      createDatePicker({
+        ...props,
+        precision: "month",
+        format: props.format ?? "yyyy-MM",
+      }),
+    dateTimePicker: (props) => createDateTimePicker(props),
+    timePicker: (props) => createTimePicker(props),
+    dateRangePicker: (props) => createDateRangePicker(props),
+    dropDownList: (props) => createDropDownList(props),
+    radioButtonGroup: (props) => createRadioButtonGroup(props),
+    multiSelect: (props) => createMultiSelect(props),
+    multiItemSelect: (props) => createMultiItemSelect(props),
+    multiValueSelect: (props) => createMultiValueSelect(props),
+    multiTextSelect: (props) => createMultiTextSelect(props),
+    multiBitSelect: (props) => createMultiBitSelect(props),
+    treeSelect: createTreeSelect,
+    dropDownTree: createTreeSelect,
+    comboBox: (props) => createComboBox(props),
     title: (text, props) => h("h2", props, text),
     subtitle: (text, props) => h("h3", props, text),
     link: (props, slots) =>
@@ -490,100 +701,23 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         { ...props, class: ["p-button p-button-link", props.class] },
         slots?.default?.() ?? props.text,
       ),
-    input: (value, props = {}) =>
-      h(InputText, {
-        modelValue: props.modelValue ?? value,
-        "onUpdate:modelValue": props["onUpdate:modelValue"] ?? props.onUpdate,
-        ...props,
-      }),
     iconField: (value, props = {}) =>
       h("span", { class: "p-input-icon-left" }, [
         props.icon && h("i", { class: factory.resolveIcon(props.icon) }),
-        h(InputText, {
-          modelValue: props.modelValue ?? value,
-          "onUpdate:modelValue": props["onUpdate:modelValue"] ?? props.onUpdate,
+        createTextInput({
           ...props,
+          value: props.modelValue ?? value,
         }),
       ]),
-    dropdown: (value, props = {}) =>
-      h(Select, {
-        modelValue: props.modelValue ?? value,
-        "onUpdate:modelValue": props["onUpdate:modelValue"] ?? props.onUpdate,
-        ...props,
-      }),
+    autoComplete: (value, props = {}) => createAutoComplete(value, props),
+    tagAutoComplete: (value, props = {}) => createTagAutoComplete(value, props),
     button,
-    buttonGroup: (buttons, props) =>
-      h(
-        ButtonGroup,
-        {
-          ...props,
-          class: ["mmda-prime-button-group", props?.class],
-        },
-        {
-          default: () => buttons().filter(Boolean),
-        },
-      ),
-    splitButton: (props, slots) =>
-      h(
-        SplitButton as any,
-        {
-          ...props,
-          model: (props.actions ?? []).map((action) => normalizeAction(action)),
-          onClick: props.onAction ?? props.command,
-        },
-        slots,
-      ),
-    menuButton: (props, actions, slots) => {
-      const hideCaret =
-        props.hideCaret === true ||
-        props.shape === "circle" ||
-        (!props.label && Boolean(props.icon));
-      const isText = hideCaret || props.buttonType === "text";
-      // icon-only：用下拉半边承载图标，避免 SplitButton 双段把 footer 撑乱
-      return h(
-        SplitButton as any,
-        {
-          ...props,
-          label: hideCaret ? undefined : props.label,
-          icon: hideCaret ? undefined : props.icon,
-          dropdownIcon: hideCaret ? props.icon : props.dropdownIcon,
-          rounded: hideCaret || props.shape === "circle" || props.shape === "round",
-          text: isText,
-          outlined: props.buttonType === "outlined",
-          severity: severity(
-            props.colorRole ??
-              props.severity ??
-              (props.buttonType === "tonal" ? "secondary" : undefined),
-          ),
-          class: [
-            props.class,
-            hideCaret ? "mmda-menu-button--icon-only" : "",
-            props.buttonType === "tonal" ? "mmda-btn-tonal" : "",
-          ]
-            .filter(Boolean)
-            .join(" "),
-          model: actions.map((action) => normalizeAction(action)),
-          onClick: props.onAction ?? props.command,
-        },
-        slots,
-      );
-    },
-    floatingActionButton: (props) =>
-      button({
-        ...props,
-        rounded: true,
-        class: ["mmda-prime-fab", props.class],
-      }),
-    selectButton: (value, props, slots) =>
-      h(
-        SelectButton,
-        {
-          modelValue: props.modelValue ?? value,
-          "onUpdate:modelValue": props["onUpdate:modelValue"] ?? props.onUpdate,
-          ...props,
-        },
-        slots,
-      ),
+    buttonGroup: createButtonGroup,
+    selectButtonGroup: createSelectButtonGroup,
+    splitButton: createSplitButton,
+    dropDownButton: createDropDownButton,
+    moreMenuButton: createMoreMenuButton,
+    floatingActionButton: createFloatingActionButton,
     actionButton: (action, t, _resolve, props) =>
       button({
         ...action,
@@ -613,8 +747,11 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
             pageSize: event.rows,
           }),
       }),
-    tree: (props) => h(MmdaPrimeTree, props as any),
+    tree: (props) => createTree(props),
     treeGrid: <T>(model: T[], metaUi: MetaUi, props: UiTreeGridPropsType<T>) => {
+      if (props.rowDetail) {
+        return table(model, metaUi, props as UiListPropsType<T>);
+      }
       const fields = listedTableFields(metaUi);
       const { treeShape, shapeKey, idField, childrenKey, assembled } =
         assembleTreeGridRows(model, metaUi, {
@@ -696,11 +833,11 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       ),
     table,
     pagableTable: (loader, metadata, props) =>
-      h("div", { class: "mmda-prime-pagable-table" }, [
-        table(loader.model.list as any[], metadata.metaUi, props as any),
-        factory.paginator(loader.model.pagination, props),
-      ]),
-    loading: (props) => h("div", { class: "mmda-prime-loading", ...props }),
+      factory.table(loader.model.list as any[], metadata.metaUi, {
+        ...props,
+        pagination: props.pagination ?? loader.model.pagination,
+        onPage: props.onPage,
+      }),
     scrollbar: (content, props) =>
       h("div", { class: "mmda-prime-scrollbar", ...props }, content as any),
     menu: (items, props) =>
@@ -720,87 +857,35 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         { model: items.map((item) => normalizeMenuItem(item)), ...props },
         slots,
       ),
-    dialog: (
-      props: PropData & {
-        visible: boolean;
-        onUpdateVisible: (value: boolean) => void;
-      },
-      slots?: UiSlots,
-    ) =>
+    splitter: (panes, props) => createSplitter(panes, props),
+    searchForRelative: (props) =>
+      renderSearchForRelativeField(props as any),
+    formField: (props = {}, slots) =>
       h(
-        Dialog,
-        {
-          modal: true,
-          ...props,
-          "onUpdate:visible": props.onUpdateVisible,
-        },
-        slots,
+        "div",
+        { class: ["mmda-form-field", "mmda-prime-form-field", props.class], style: props.style },
+        [
+          props.label
+            ? h("label", { class: "mmda-form-field__label" }, String(props.label))
+            : null,
+          slots?.default?.() ??
+            createTextInput({
+              ...props,
+              value: props.modelValue ?? props.value,
+              onChange:
+                props.onChange ??
+                props.onUpdate ??
+                props["onUpdate:modelValue"],
+            }),
+        ],
       ),
-    drawer: (props, slots) =>
-      h(Drawer, { ...props, "onUpdate:visible": props.onUpdateVisible }, slots),
-    splitter: (panes, props) =>
-      h(
-        Splitter,
-        {
-          class: ["mmda-prime-splitter", props?.class].filter(Boolean).join(" "),
-          layout: props?.orientation === "Vertical" ? "vertical" : "horizontal",
-        },
-        {
-          default: () =>
-            panes.map((pane, index) =>
-              h(
-                SplitterPanel,
-                {
-                  size: pane.collapsed
-                    ? 0
-                    : paneSizePercent(pane.size, index === 0 ? 20 : 80),
-                  minSize: paneSizePercent(pane.min, index === 0 ? 12 : 20),
-                  class: pane.cssClass,
-                  style: pane.size?.endsWith("rem")
-                    ? {
-                        flexBasis: pane.collapsed ? "0" : pane.size,
-                        flexGrow: pane.collapsed ? 0 : undefined,
-                      }
-                    : undefined,
-                },
-                { default: () => pane.content },
-              ),
-            ),
-        },
-      ),
-    searchForRelative: (props, slots) =>
-      h(
-        Dialog,
-        {
-          modal: true,
-          header: props.title,
-          visible: props.visible,
-          "onUpdate:visible": props.onUpdateVisible,
-        },
-        slots,
-      ),
-    chart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: props.type ?? "bar", data, ...props }),
-    barChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "bar", data, ...props }),
-    lineChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "line", data, ...props }),
-    pieChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "pie", data, ...props }),
-    doughnutChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "doughnut", data, ...props }),
-    polarAreaChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "polarArea", data, ...props }),
-    radarChart: (data: any, props: PropData = {}) =>
-      h(Chart as any, { type: "radar", data, ...props }),
   };
 
+  wrapListFamilyPaginator(
+    factory,
+    ["list", "table", "treeGrid"],
+    "mmda-prime-pagable",
+  );
+  bindListDisplayRenderers(factory);
   return factory;
-}
-
-function paneSizePercent(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number.parseFloat(value);
-  if (!Number.isFinite(n)) return fallback;
-  return value.endsWith("%") ? n : fallback;
 }

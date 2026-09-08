@@ -52,6 +52,8 @@ export class MetaUiGroupLogic<E, G> {
   defaultAddFn?: ActionCallback
   beforeAddFn?: CreateGroupItemsFn
   onChangeFn?: OnChangeGroupFn
+  /** 行实体上的 many 组名；表格行展开画该孙子组，不是 TreeGrid 子行。 */
+  rowDetailGroup?: string
 
   constructor(public readonly group: MetaUiGroup) {
     this.fields = []
@@ -131,6 +133,12 @@ export class MetaUiGroupLogic<E, G> {
 
   onChange(change: OnChangeGroupFn<E, G>) {
     this.onChangeFn = change
+    return this
+  }
+
+  /** 行展开嵌套另一套 MetaUi 的 many 组（如 items → operations）。只嵌一层。 */
+  rowDetail(name: string) {
+    this.rowDetailGroup = name
     return this
   }
   setCustomRenderer(renderFn: Function) {

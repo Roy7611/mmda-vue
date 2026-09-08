@@ -1,4 +1,5 @@
 import type { MetaUi } from '../metaui/metaui_group'
+import type { Pagination } from '../models/pagination'
 import type { UiLayout } from './layout'
 
 /**
@@ -10,16 +11,20 @@ export interface UiFactory<TNode = any> {
   textSpan(text: string, props?: Record<string, unknown>): TNode
   button(props?: Record<string, unknown>): TNode
   buttonGroup(children: any, props?: Record<string, unknown>): TNode
-  formItem?(
+  formField?(
     props: Record<string, unknown>,
-    children?: TNode | TNode[],
+    slots?: { default?: () => TNode },
   ): TNode
   table(
     rows: unknown[],
     metaUi: MetaUi,
     props?: Record<string, unknown>,
   ): TNode
-  select?(props?: Record<string, unknown>): TNode
+  /** 分页条。第一参是结果 `Pagination`，`onPage` 写回 `searchParam.pager`。 */
+  paginator?(
+    pagination: Pagination,
+    props?: Record<string, unknown>,
+  ): TNode
   image?(src: string, props?: Record<string, unknown>): TNode
   datePicker?(props?: Record<string, unknown>): TNode
   numberInput?(props?: Record<string, unknown>): TNode

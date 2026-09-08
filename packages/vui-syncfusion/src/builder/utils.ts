@@ -5,10 +5,11 @@ import {
   unref,
   watch,
 } from "vue";
-import { RouterLink } from "vue-router";
 import type { Module, ModuleAuth } from "@mmda/core";
 import { isActionVisible, type UiAction, type UiViewContext } from "@mmda/vui";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
+
+export type UiContext = UiViewContext<any>;
 
 const SfSearchTextInput = defineComponent({
   name: "SfSearchTextInput",
@@ -74,30 +75,6 @@ const moduleChain = (module: Module): Module[] => {
   return withoutSystem.length ? withoutSystem : chain;
 };
 
-const breadcrumbItem = (item: {
-  label?: string;
-  icon?: string;
-  route?: string;
-  leaf?: boolean;
-}) =>
-  h(
-    item.leaf || !item.route ? "span" : (RouterLink as any),
-    item.leaf || !item.route
-      ? { class: "mmda-breadcrumb__item" }
-      : { to: item.route!, class: "mmda-breadcrumb__link" },
-    () => [
-      item.icon
-        ? h("i", {
-            class: [item.icon, "mmda-breadcrumb__icon"],
-            "aria-hidden": "true",
-          })
-        : null,
-      h("span", item.label),
-    ],
-  );
-
-export type UiContext = UiViewContext<any>;
-
 const moduleOf = (context: UiContext): Module | undefined => {
   const runtime = context as any;
   return (runtime.module ?? runtime.logic?.module) as Module | undefined;
@@ -109,13 +86,11 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
 const visibleActions = (actions: UiAction[]) =>
   actions.filter((action) => isActionVisible(action));
 
-
 export {
   SfSearchTextInput,
   UI_NAME,
   invoke,
   moduleChain,
-  breadcrumbItem,
   moduleOf,
   moduleAuth,
   visibleActions,

@@ -1,3 +1,8 @@
+/*
+ * 甘特是 Builder 插件，不进 chrome UiFactory。
+ * App：ui.setGanttPlugin(createSfGanttPlugin()) 等。
+ */
+import type { VNode } from 'vue'
 import type { PropData } from '../layout/layout'
 
 export type UiGanttTaskType = 'task' | 'milestone' | 'project'
@@ -15,6 +20,12 @@ export interface UiGanttTask {
   type?: UiGanttTaskType
   readonly?: boolean
   color?: string
+  assignments?: string
+  expanded?: boolean
+  hidden?: boolean
+  baselineStart?: string | Date | null
+  baselineEnd?: string | Date | null
+  description?: string
   [field: string]: unknown
 }
 
@@ -23,6 +34,8 @@ export interface UiGanttLink {
   source: string | number
   target: string | number
   type?: string | number
+  /** Lag in milliseconds (DlhSoft predecessor lag). */
+  lag?: number
 }
 
 export interface UiGanttColumn {
@@ -31,6 +44,17 @@ export interface UiGanttColumn {
   width?: number
   minWidth?: number
   readonly?: boolean
+}
+
+export interface UiGanttPrintOptions {
+  title?: string
+  gridVisible?: boolean
+  columnIndexes?: number[]
+  timelineStart?: string | Date
+  timelineFinish?: string | Date
+  hourWidth?: number
+  rotate?: boolean
+  preparingMessage?: string
 }
 
 export interface UiGanttController {
@@ -43,6 +67,15 @@ export interface UiGanttController {
   undo: () => void
   scrollToDate: (date: string | Date) => void
   openEditor: (id: string | number) => void
+  print: (options?: UiGanttPrintOptions) => void
+  exportHtml: (options?: UiGanttPrintOptions) => string
+  getProjectXml: () => string
+  loadProjectXml: (xml: string) => void
+  setupBaseline: () => void
+  optimizeWork: () => void
+  levelAllocations: () => void
+  levelResources: () => void
+  criticalTaskIds: () => Array<string | number>
 }
 
 export interface UiGanttChangeEvent<T = unknown> {
@@ -66,6 +99,23 @@ export interface UiGanttViewProps extends PropData {
   viewMode?: UiGanttViewMode
   loading?: boolean
   locale?: string
+  timelineStart?: string | Date
+  timelineFinish?: string | Date
+  currentTime?: string | Date
+  hourWidth?: number
+  gridVisible?: boolean
+  gridWidth?: string | number
+  chartWidth?: string | number
+  virtualizing?: boolean
+  dependencyConstraints?: boolean
+  baselineVisible?: boolean
+  workingWeekStart?: number
+  workingWeekFinish?: number
+  specialNonworkingDays?: Array<string | Date>
+  license?: string
+  assignableResources?: string[]
+  resourceHourCosts?: Record<string, number>
+  resourceQuantities?: Record<string, number>
   onReady?: (controller: UiGanttController) => void
   onTaskChange?: (
     event: UiGanttChangeEvent,
@@ -80,6 +130,31 @@ export interface UiGanttViewProps extends PropData {
 
 /** @deprecated 使用 UiGanttViewProps */
 export type UiGanttChartProps = UiGanttViewProps
+
+export interface UiGanttPlugin {
+  ganttView: (props: UiGanttViewProps) => VNode
+}
+
+export const GANTT_PLUGIN_NOT_INSTALLED = 'gantt plugin not installed'
+
+function notInstalled(): never {
+  throw new Error(GANTT_PLUGIN_NOT_INSTALLED)
+}
+
+export function unimplementedGanttPlugin(): UiGanttPlugin {
+  return { ganttView: notInstalled }
+}
+
+export function ganttHookClass(
+  extra?: unknown,
+  readonly?: boolean,
+): unknown[] {
+  return [
+    'mmda-gantt',
+    readonly ? 'mmda-gantt--readonly' : undefined,
+    extra,
+  ]
+}
 
 export const UI_GANTT_LINK_TYPES = ['FS', 'SS', 'FF', 'SF'] as const
 
@@ -120,5 +195,14 @@ export function createNoopGanttController(): UiGanttController {
     undo: () => undefined,
     scrollToDate: () => undefined,
     openEditor: () => undefined,
+    print: () => undefined,
+    exportHtml: () => '',
+    getProjectXml: () => '',
+    loadProjectXml: () => undefined,
+    setupBaseline: () => undefined,
+    optimizeWork: () => undefined,
+    levelAllocations: () => undefined,
+    levelResources: () => undefined,
+    criticalTaskIds: () => [],
   }
 }

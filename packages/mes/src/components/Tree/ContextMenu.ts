@@ -16,11 +16,12 @@ export const ContextMenu = defineComponent({
                 justifyContent: 'center',
                 width: '100%'
             }
-        }, ui.factory.formItem({
+        }, ui.factory.formField({
             label: props.propsData.label
         }, {
-            default: () => ui.factory.input(materialsName.value, {
-                onUpdate: (value: string) => {
+            default: () => ui.factory.textInput({
+                value: materialsName.value,
+                onChange: (value: string) => {
                     materialsName.value = value
                     emit('getData', materialsName.value)
                 }

@@ -86,24 +86,22 @@ export default defineComponent({
       const factory = ui.factory
       return h('div', { class: 'ganttBoxWrapper ganttBoxWrapper--schedule' }, [
         h('div', { class: 'opearBox' }, [
-          factory.formItem?.(
+          factory.formField?.(
             { label: t('ganttLabel.timeScale') },
             {
               default: () =>
-                factory.select?.({
-                  modelValue: viewMode.value,
+                factory.dropDownList({
+                  value: viewMode.value,
                   options: [
-                    { name: t('ganttLabel.day'), value: 'day' },
-                    { name: t('ganttLabel.week'), value: 'week' },
-                    { name: t('ganttLabel.month'), value: 'month' },
-                    { name: t('ganttLabel.quarter'), value: 'quarter' },
-                    { name: t('ganttLabel.year'), value: 'year' },
+                    { label: t('ganttLabel.day'), value: 'day' },
+                    { label: t('ganttLabel.week'), value: 'week' },
+                    { label: t('ganttLabel.month'), value: 'month' },
+                    { label: t('ganttLabel.quarter'), value: 'quarter' },
+                    { label: t('ganttLabel.year'), value: 'year' },
                   ],
-                  optionLabel: 'name',
-                  dataKey: 'value',
-                  onUpdate: (value: UiGanttViewMode) => {
-                    viewMode.value = value
-                    controller.value?.setViewMode(value)
+                  onChange: (value) => {
+                    viewMode.value = value as UiGanttViewMode
+                    controller.value?.setViewMode(value as UiGanttViewMode)
                   },
                 }),
             },

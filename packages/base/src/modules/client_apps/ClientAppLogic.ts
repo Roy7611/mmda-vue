@@ -60,9 +60,8 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
       if (model.monthlyRent < 0)
         return context.uiBuilder.toast(context, {
           severity: "error",
-          summary: context.t("dialog.title.error"),
-          detail: context.t("invalid.monthlyRentNegative"),
-          group: "br",
+          title: context.t("dialog.title.error"),
+          message: context.t("invalid.monthlyRentNegative"),
           life: 3000,
         });
       else return Promise.resolve(true);

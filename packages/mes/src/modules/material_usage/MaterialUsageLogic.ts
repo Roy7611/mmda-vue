@@ -37,7 +37,7 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
         super(defineMaterialUsage, init);
     }
     async getAll(param: any, ctx?: any) {
-        const { $toast: toast } = !isNullOrUndefined(ctx.globalProps) ? ctx.globalProps : ctx.app.config.globalProperties
+        !isNullOrUndefined(ctx.globalProps) ? ctx.globalProps : ctx.app.config.globalProperties
         const res = await this.apiClient.getAll({
             repository: 'MaterialUsage',
             service: 'mes',

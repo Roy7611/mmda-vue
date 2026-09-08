@@ -183,8 +183,9 @@ const GanttPlanning = defineComponent({
 										},
 									},
 									{
-										footer: ui.factory.radioGroup(selectedPreset.value, {
-											id: 'importance',
+										footer: ui.factory.radioButtonGroup({
+											value: selectedPreset.value,
+											name: 'importance',
 											class: 'w-full justify-center ',
 											options: dateTypeList,
 											optionLabel: 'text',
@@ -204,11 +205,12 @@ const GanttPlanning = defineComponent({
 								{$t('auth.planNumber')}:
 							</div>
 							<div class="w-2/3 p-3 box-border flex justify-start flex-col ">
-								{ui.factory.input(fd.planNo ?? '', {
+								{ui.factory.textInput({
+									value: fd.planNo ?? '',
 									key: 'gantt-planning-plan-no',
-									maxlength: '64',
+									maxLength: 64,
 									placeholder: $t('auth.planNumber'),
-									onUpdate: (value: string) => {
+									onChange: (value: string) => {
 										fd.planNo = value;
 										if (visibleErrors.planNo) {
 											visibleErrors.planNo = false;
@@ -223,14 +225,15 @@ const GanttPlanning = defineComponent({
 						<div class="w-full flex box-border items-start">
 							<div class="w-1/3 p-3 box-border text-right  flex justify-end">{$t('auth.remark')}:</div>
 							<div class="w-2/3 p-3 box-border flex justify-start">
-								{ui.factory.textarea(fd.remark, {
+								{ui.factory.textArea({
+									value: fd.remark,
 									style: {
 										width: '100%',
 									},
-									rows: '5',
-									cols: '30',
+									rows: 5,
+									cols: 30,
 									placeholder: $t('ganttLabel.RemarkMessage'),
-									onUpdate: (value: string) => {
+									onChange: (value: string) => {
 										fd.remark = value;
 									},
 								})}

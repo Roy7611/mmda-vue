@@ -41,7 +41,7 @@ const mountView = () => {
           props.actions[0].label,
         ),
       ]),
-    toggleSwitch: (value: boolean, props: Record<string, any>) =>
+    switch: (value: boolean, props: Record<string, any>) =>
       h("input", {
         type: "checkbox",
         checked: props.modelValue ?? value,

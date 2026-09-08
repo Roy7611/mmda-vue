@@ -91,7 +91,7 @@ export function toolkitToolCardNode(
 					outlined: true,
 					icon: 'pi pi-trash',
 					colorRole: 'info',
-					severity: 'danger',
+					severity: 'error',
 					label: context.t('action.delete'),
 					onAction: () => {
 						context.removeSubGroupItem(group, item)
@@ -108,17 +108,20 @@ export function toolkitToolListNode(
 	currentId?: string,
 	targetId?: string,
 ) {
-	const { uiBuilder } = context
 	const activeTools = (context.model.tools ?? []).filter((item: Tool) => !MetaModel.deleted(item))
 	if (activeTools.length === 0) return toolkitEmptyNode(context)
-	return uiBuilder.factory.dataViewBox({
-		value: activeTools,
-		showLayout: false,
-		layout: 'grid',
-		paginator: false,
-		class: 'flex-1 overflow-y-auto p-2! col-span-full',
-		id: 'tool-list',
-	}, {
-		item: (item: Tool) => toolkitToolCardNode(item, group, context, props, currentId !== targetId),
-	})
+	return h(
+		'div',
+		{
+			class: 'flex-1 overflow-y-auto p-2! col-span-full',
+			id: 'tool-list',
+		},
+		activeTools.map((item: Tool) =>
+			h(
+				'div',
+				{ key: item.toolID, class: 'mmda-tool-card-wrap' },
+				toolkitToolCardNode(item, group, context, props, currentId !== targetId),
+			),
+		),
+	)
 }

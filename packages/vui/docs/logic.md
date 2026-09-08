@@ -27,7 +27,7 @@ UiLogic.beforeEdit()
 VueUiContext.bindLogics(...)
 ```
 
-`applyTo(context, view)` 根据 `view` 调用对应 `beforeXxx`，把结果写进当前会话。`VueUiContext` 构造和 `init()` 时会再调一次，确保 `initMetadata` 之后定制 `field()` / `group()` 能拿到 `metaui`。
+`applyTo(context, view)` 根据 `view` 调用对应 `beforeXxx`，把结果写进当前会话。`VueUiContext` 构造和 `init()` 时会再调一次，确保 `initMetadata` 之后定制 `field()` / `group()` 能拿到 `metaUi`。
 
 ## 业务 Logic
 

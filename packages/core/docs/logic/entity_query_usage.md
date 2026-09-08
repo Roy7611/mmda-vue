@@ -28,6 +28,18 @@ const page = await this.apiClient.searchAll(param, {
 
 - 空 `filterModel`（或没有键）：客户端 **GET** `getAll`。
 - 有字段条件：客户端 **POST** `.../searchAll`，body 是 `EntityFilterModel` 映射。
+- Query Builder 的树写在 `advancedFilterModel`，**不要** POST 进 `searchAll`（服务端尚未接）。
+
+```ts
+search.advancedFilterModel = {
+  filterType: 'join',
+  operator: 'OR',
+  conditions: [
+    { fieldName: 'age', filterType: 'number', operator: 'GT', value: 23 },
+    { fieldName: 'sport', filterType: 'text', operator: 'ENDS_WITH', value: 'ing' },
+  ],
+}
+```
 - `moduleCode` 等鉴权放 **第二个参数** 的 `queryParams`，不要塞进 EntityQuery。
 
 ## 条件进 `filterModel`
@@ -163,6 +175,7 @@ UI 文案：`t('matcher.' + op)`。
 | 错误 | 正确 |
 |---|---|
 | 字段条件写进 `queryParams` | 写进 `filterModel` |
+| Query Builder 树摊进 `filterModel` | 放 `advancedFilterModel`；跨列 OR 不能压成列 map |
 | 列表调 `getAll` 拼过滤 | 调 `searchAll` |
 | 另存一份 sorts 到 IndexedDB | 只存 EntityQuery（含 `pager.sorts`） |
 | `defaultFilter` 当 FilterModel JSON 解析 | 按 `queryID;queryName\|…` 解析芯片 |

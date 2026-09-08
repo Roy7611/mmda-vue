@@ -71,13 +71,13 @@ const ProjectGanttPlanning = defineComponent({
 							{$t('auth.planNumber')}:
 						</div>
 						<div class="w-2/3 p-3 box-border flex justify-start flex-col ">
-							{ui.factory.input(submitModel.data.planNo, {
+							{ui.factory.textInput({
+								value: submitModel.data.planNo,
 								placeholder: $t('auth.planNumber'),
-								'onUpdate:modelValue': (value: string) => {
+								onChange: (value: string) => {
 									submitModel.data.planNo = value;
-									submitFun();
+									planNoChange();
 								},
-								onInput: planNoChange
 							})}
 							{submitModel.data.planNoInvalid ?
 								<div class="text-left text-sm text-red-400 p-1">{$t('invalid.requiredPlanNo')}</div> : <div></div>}
@@ -87,14 +87,15 @@ const ProjectGanttPlanning = defineComponent({
 					<div class="w-full flex items-center box-border">
 						<div class="w-1/3 p-3 box-border text-right">{$t('auth.remark')}:</div>
 						<div class="w-2/3 p-3 box-border flex justify-start">
-							{ui.factory.textarea(submitModel.data.remark, {
+							{ui.factory.textArea({
+								value: submitModel.data.remark,
 								style: {
 									width: '100%'
 								},
-								rows: '5',
-								cols: '30',
+								rows: 5,
+								cols: 30,
 								placeholder: $t('auth.remark'),
-								'onUpdate:modelValue': (value: string) => {
+								onChange: (value: string) => {
 									submitModel.data.remark = value;
 									submitFun();
 								},

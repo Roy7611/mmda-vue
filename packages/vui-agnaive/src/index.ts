@@ -17,7 +17,6 @@ export * from './ag_columns'
 export * from './components/AgGrid'
 export * from './components/AgNaiveOverlayHost'
 export * from './components/SigninForm'
-export * from './components/CodeImage'
 export * from './components/BpmnModeler'
 
 export interface AgNaiveOptions {

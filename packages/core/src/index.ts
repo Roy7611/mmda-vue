@@ -20,7 +20,6 @@ export * from './extensions/array_extensions'
 
 // Data：metaUi（含 Module）
 export * from './metaui/datatype'
-export * from './metaui/metaui_dialog'
 export * from './metaui/metaui_action'
 export * from './metaui/metaui_field'
 export * from './metaui/metaui_group'

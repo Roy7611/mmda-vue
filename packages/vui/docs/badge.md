@@ -2,7 +2,7 @@
 
 chrome 计数/状态标记，走 `factory.badge`。EJ2 类型见 [Syncfusion Badge types](https://ej2.syncfusion.com/vue/documentation/badge/types)；语义对齐 [Material 3](https://m3.material.io/)。
 
-程序员用法：[badge_usage.md](./badge_usage.md)。四参数总约定：[factory.md](./factory.md)。
+程序员用法：[badge_usage.md](./badge_usage.md)。chrome 参数约定：[factory.md](./factory.md)（含 `htmlAttributes` 透传）。
 
 ## 分层
 
@@ -37,8 +37,8 @@ EJ2 Badge 是纯 CSS，Syncfusion 皮肤不要造 `SfBadge.vue`。
 | `colorRole` | `e-badge-{role}` | `severity`（`warning`→`warn`，`dark`→`contrast`，`light`→`secondary`） | `type`（`danger`→`error`，`secondary`/`light`/`dark`→`default`） |
 | `circle` / `pill` / `dot` | `e-badge-circle` 等 | `mmda-badge--*` | 同左；`dot` 另开 `NBadge.dot` |
 | `overlay` | `e-badge-notification` + `e-badge-overlap` | class `mmda-badge--overlay`；不包 `OverlayBadge`（调用方已叠在按钮上） | 同 Prime |
-| `bottomRight` | `e-badge-bottom` | `mmda-badge--bottom-right` | 同左 |
-| `topLeft` / `bottomLeft` | `mmda-badge--top-left` 等（EJ2 无左右类） | 同左 | 同左 |
+| `bottomRight` | `e-badge-bottom` | `mmda-badge--bottom-right` 钩子 | 同左 |
+| `topLeft` / `bottomLeft` | `mmda-badge--top-left` 等钩子。EJ2 无左右角，**不写 CSS 补**，可以没有视觉效果 | 同左 | 同左 |
 
 ## 源码
 

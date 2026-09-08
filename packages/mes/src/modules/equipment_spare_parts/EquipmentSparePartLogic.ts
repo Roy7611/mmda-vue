@@ -73,7 +73,7 @@ const propsData = {
  *  请购（跳转到请购单）
  */
 const beforeRequest = async (context: UiContext, model: EquipmentSparePart, action: EntityAction) => {
-	const { $toast: toast, $t: t } = context.globalProps
+	const { $t: t} = context.globalProps
 	params.detailPurchaseRequests.refItemKeys = [{
 		refID: model.partID
 	}]
@@ -83,9 +83,8 @@ const beforeRequest = async (context: UiContext, model: EquipmentSparePart, acti
 	} catch (error: any) {
 		context.uiBuilder.toast(context, {
 			severity: 'error',
-			summary: t('dialog.title.error'),
-			detail: error.message ?? context.t('invalid.requestFailed'),
-			group: 'br',
+			title: t('dialog.title.error'),
+			message: error.message ?? context.t('invalid.requestFailed'),
 			life: 3000
 		})
 	}
@@ -125,12 +124,12 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 		})
 	}
 	async request(context: UiContext<EquipmentSparePart>) {
-		const { $toast: toast, $t: t } = context.globalProps
+		const { $t: t} = context.globalProps
 		if (!context.selectedItems || !context.selectedItems.length) {
-			toast.add({
-				severity: "warn",
-				summary: t("dialog.title.warning"),
-				detail: t("invalid.requiredSelectAny"),
+			context.uiBuilder.toast(context, {
+				severity: 'warning',
+				title: t("dialog.title.warning"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000
 			});
 			return Promise.reject(false);
@@ -144,21 +143,20 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 			} catch (error: any) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? context.t('invalid.requestFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? context.t('invalid.requestFailed'),
 					life: 3000
 				})
 			}
 		}
 	}
 	async withdrawMaterials(context: UiContext<EquipmentSparePart>) {
-		const { $toast: toast, $t: t } = context.globalProps
+		const { $t: t} = context.globalProps
 		if (!context.selectedItems || !context.selectedItems.length) {
-			toast.add({
-				severity: "warn",
-				summary: t("dialog.title.warning"),
-				detail: t("invalid.requiredSelectAny"),
+			context.uiBuilder.toast(context, {
+				severity: 'warning',
+				title: t("dialog.title.warning"),
+				message: t("invalid.requiredSelectAny"),
 				life: 3000
 			});
 			return Promise.reject(false);
@@ -172,9 +170,8 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
 			} catch (error: any) {
 				context.uiBuilder.toast(context, {
 					severity: 'error',
-					summary: t('dialog.title.error'),
-					detail: error.message ?? context.t('invalid.requestFailed'),
-					group: 'br',
+					title: t('dialog.title.error'),
+					message: error.message ?? context.t('invalid.requestFailed'),
 					life: 3000
 				})
 			}

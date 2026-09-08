@@ -144,9 +144,8 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 					const sameArr = selections.filter((item) => target.tools.filter((tool) => !MetaModel.deleted(tool)).findIndex((tool) => item.toolID === tool.toolID) != -1);
 					if (sameArr.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						summary: context.globalProps.$t('dialog.title.error'),
-						group: 'br',
-						detail: context.globalProps.$t('invalid.requiredTools'),
+						title: context.globalProps.$t('dialog.title.error'),
+						message: context.globalProps.$t('invalid.requiredTools'),
 						life: 3000
 					})
 
@@ -273,7 +272,7 @@ export class ToolLogic extends UiGroupLogic<Tool, Toolkit> {
 				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 
-					return ctx.uiBuilder.fldFactory.HasOneText(fld, ctx)
+					return ctx.uiBuilder.fldFactory.hasOneText(fld, ctx)
 				})
 			)
 		}

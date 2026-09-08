@@ -201,7 +201,7 @@ export function createEntityView(options: EntityViewOptions) {
               "aria-busy": "true",
               "aria-label": translateMessage("state.loading"),
             },
-            [ (app.ui as VueUiBuilder).buildLoading({} as any)],
+            [ (app.ui as VueUiBuilder).factory.loading() ],
           );
         }
         const context = current.value;

@@ -17,9 +17,9 @@ import type {
   EntityFieldFilter,
   EntityFilterOperator,
 } from "@mmda/core";
+import { h, ref, unref, type Ref, type VNode } from "vue";
 
 import type { PropData } from "../layout/layout";
-import { ref, unref, type Ref, type VNode } from "vue";
 
 export interface SearchForRelativeProps extends PropData {
   contentProps?: Record<string, any>;
@@ -240,4 +240,48 @@ export class UiSearchField {
       valueTo: values[1],
     };
   }
+}
+
+export function displaySearchForRelativeLabel(props: SearchForRelativeProps): string {
+  const value = props.modelValue
+  const optionLabel = (props as { optionLabel?: unknown }).optionLabel
+  if (typeof optionLabel === 'function' && value != null) {
+    return String(optionLabel(value) ?? '')
+  }
+  if (
+    typeof optionLabel === 'string' &&
+    value != null &&
+    typeof value === 'object'
+  ) {
+    return String((value as Record<string, unknown>)[optionLabel] ?? '')
+  }
+  if (value == null) return ''
+  if (typeof value === 'object') {
+    const rec = value as Record<string, unknown>
+    return String(rec.label ?? rec.name ?? rec.text ?? rec.id ?? '')
+  }
+  return String(value)
+}
+
+/** 关联选择字段 chrome：显示当前值，点选走 toSearch / context.select。不是 Dialog。 */
+export function renderSearchForRelativeField(
+  props: SearchForRelativeProps,
+): VNode {
+  const label = displaySearchForRelativeLabel(props)
+  return h('span', { class: ['mmda-search-relative', props.class] }, [
+    h('input', {
+      class: 'mmda-search-relative__input',
+      value: label,
+      onInput: (event: Event) =>
+        (props as { onInput?: (value: string) => void }).onInput?.(
+          (event.target as HTMLInputElement).value,
+        ),
+      onClick: (event: Event) => void props.toSearch?.(event),
+    }),
+    h('button', {
+      type: 'button',
+      class: 'mmda-search-relative__pick',
+      onClick: (event: Event) => void props.toSearch?.(event),
+    }, '…'),
+  ])
 }

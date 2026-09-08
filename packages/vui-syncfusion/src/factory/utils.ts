@@ -327,11 +327,20 @@ export const gridFiltersToModel = (
       };
       continue;
     }
+    // SET 位现在也挂在 date/text（Excel 勾选）上，不能把单段 Menu equal 一律当成 set。
+    // 纯 set 列、in/notin、数组值、或多段 equal → set；单段标量 equal → 比较条件。
+    const kind = columnFilterKindOf(field);
+    const setLikeCount = items.filter((item) =>
+      isSetLikeOperator(String(item.operator ?? "").toLowerCase()),
+    ).length;
     const compareItems = items.filter((item) => {
       const op = String(item.operator ?? "").toLowerCase();
-      if (isChoiceFilterField(field) && isSetLikeOperator(op)) return false;
       if (op === "in" || op === "notin") return false;
       if (Array.isArray(item.value) && isSetLikeOperator(op)) return false;
+      if (kind === "set" && isSetLikeOperator(op)) return false;
+      if (kind === "multi" && isSetLikeOperator(op) && setLikeCount > 1) {
+        return false;
+      }
       return true;
     });
     const setItems = items.filter((item) => !compareItems.includes(item));
@@ -364,10 +373,11 @@ export const gridFiltersToModel = (
   return model;
 };
 
+/** EJ2 Button types-and-styles：`e-primary` / `e-success` / `e-info` / `e-warning` / `e-danger`，可与 `e-outline` / `e-flat` 叠用。无 colorRole 不加色。 */
 export const cssClassFor = (role?: string) => {
   const roles: Record<string, string> = {
     primary: "e-primary",
-    secondary: "mmda-btn-tonal",
+    secondary: "e-secondary",
     success: "e-success",
     info: "e-info",
     warning: "e-warning",
@@ -375,7 +385,7 @@ export const cssClassFor = (role?: string) => {
     danger: "e-danger",
     error: "e-danger",
   };
-  return role ? roles[role] : "e-primary";
+  return role ? roles[role] ?? "" : "";
 };
 
 /** EJ2 Vue Dialog：纯文本 header 经 compile 会渲染为空，需包一层 HTML。 */
@@ -422,13 +432,6 @@ export const buttonRoleClass = (props: {
   severity?: string;
   shape?: string;
 }) => {
-  const flat = props.buttonType === "text" || props.buttonType === "link";
-  const role = props.colorRole ?? props.severity;
-  if (flat && props.shape !== "round" && props.shape !== "circle") {
-    if (role === "secondary") return "e-secondary";
-    return "";
-  }
-  if (props.buttonType === "outlined") return "";
   return cssClassFor(props.colorRole ?? props.severity);
 };
 

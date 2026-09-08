@@ -150,7 +150,7 @@ const searchParam = {
 
 // //获取交付物
 // const getProjectMaterial = async (ctx: any, taskItem?: any, value?: any) => {
-// 	const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
+// 	const {$ui: ui, $router, $t: t} = ctx.globalProps;
 // 	const apiClient = this.apiClient;
 // 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 // 	if (taskItem.action) {
@@ -182,7 +182,7 @@ const searchParam = {
 
 //获取项目工作包
 const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: string) => {
-	const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
+	const {$ui: ui, $router, $t: t} = ctx.globalProps;
 	const apiClient = ctx.logic?.apiClient ?? ctx.app?.api;
 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 	if (taskItem.action) {
@@ -215,7 +215,7 @@ const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: stri
 //获取甘特图子任务
 const getSub = async (appContext: any, task: any) => {
 	console.log('task', task);
-	const { $router, $toast, $t: t } = appContext.globalProps;
+	const {$router, $t: t} = appContext.globalProps;
 	const updateObj = {
 		deleteID: task.id,
 		subList: <any>[],
@@ -314,7 +314,7 @@ const getSub = async (appContext: any, task: any) => {
 		} else {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'info',
-				summary: t('state.noData'),
+				title: t('state.noData'),
 				life: 3000,
 			});
 		}
@@ -328,8 +328,7 @@ const getSub = async (appContext: any, task: any) => {
 		appContext.uiBuilder.toast(appContext, {
 			severity: 'error',
 			title: t('dialog.title.error'),
-			summary: error.detail ?? '',
-			group: 'br',
+			title: error.detail ?? '',
 			life: 3000,
 		});
 	}
@@ -406,7 +405,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	setResponsible = async (ctx: any, taskItems?: any) => {
 		console.log('ctx', ctx);
 		console.log('taskItems', taskItems);
-		const { $ui: ui, $router, $toast, $t: t } = ctx.globalProps;
+		const {$ui: ui, $router, $t: t} = ctx.globalProps;
 
 		//弹窗选择负责人
 		const apiClient = this.apiClient;
@@ -424,13 +423,12 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 					width: '30vw',
 					height: '15vh',
 					title: t('ganttLabel.selectResponsiblePerson'),
-					accept: async () => {
+					onAccept: async () => {
 						console.log('chargePerson', chargePerson);
 						if (!chargePerson.data.userID) {
-							$toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'error',
-								summary: t('ganttLabel.selectResponsiblePerson'),
-								group: 'br',
+								title: t('ganttLabel.selectResponsiblePerson'),
 								life: 3000,
 							});
 							return false;
@@ -465,10 +463,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 										payLoad
 									);
 									if (res) {
-										$toast.add({
+										context.uiBuilder.toast(context, {
 											severity: 'success',
-											detail: t('success.operationSuccessful'),
-											summary: t('dialog.success'),
+											message: t('success.operationSuccessful'),
+											title: t('dialog.success'),
 											life: 3000,
 										});
 										//成功后更新数据 放回去
@@ -484,11 +482,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 									}
 									return true;
 								} catch (error: any) {
-									$toast.add({
+									context.uiBuilder.toast(context, {
 										severity: 'error',
-										detail: error.message,
-										summary: t('dialog.title.error'),
-										group: 'br',
+										message: error.message,
+										title: t('dialog.title.error'),
 										life: 3000,
 									});
 									return false;
@@ -500,11 +497,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			);
 			return false;
 		} catch (error: any) {
-			$toast.add({
+			context.uiBuilder.toast(context, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			return false;
@@ -522,7 +518,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				renderer: (ctx: UiContext & any, csf) => {
 					const { $ui: ui } = ctx.globalProps;
 					console.log('csf', csf);
-					return ui.factory.toggleSwitch(csf.searchVal.value, {
+					return ui.factory.switch(csf.searchVal.value, {
 						onValueChange: async (val: boolean) => {
 							csf.searchVal.value = val;
 							ctx.app.localDb.put(`search/${ctx.logic.repository}/my`, JSON.parse(JSON.stringify(val)));
@@ -544,7 +540,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	//获取甘特图任务数据
 	async getProSchedule(appContext: any, query: any) {
 		const gp = appContext.app?.config?.globalProperties ?? appContext.globalProps;
-		const { $router, $toast, $t: t } = gp;
+		const {$router, $t: t} = gp;
 		const apiClient = appContext.logic?.apiClient ?? gp.$app.api;
 		const task = {
 			taskData: {
@@ -631,11 +627,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				return this.taskDatas;
 			}
 		} catch (error: any) {
-			$toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			return task.taskData;
@@ -644,7 +639,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 
 	//获取甘特图任务数据
 	async getProScheduleR(appContext: any, query: any) {
-		const { $router, $toast, $t: t } = appContext.globalProps;
+		const {$router, $t: t} = appContext.globalProps;
 		const task = {
 			taskData: {
 				data: <any>[],
@@ -727,11 +722,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				getReload(refLashDatas.data);
 			}
 		} catch (error: any) {
-			$toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			//return task.taskData;
@@ -746,7 +740,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		//appContext.uiBuilder.
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
-				const { $t: t, $toast: toast } = appContext.globalProps;
+				const {$t: t} = appContext.globalProps;
 				//调用接口
 				try {
 					const res: boolean = await this.apiClient.doAction(
@@ -760,11 +754,10 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 					);
 					//关闭窗口
 					if (res) {
-						toast.add({
+						appContext.uiBuilder.toast(appContext, {
 							severity: 'success',
-							detail: `${t('dialog.success')}`,
-							summary: t('dialog.success'),
-							group: 'br',
+							message: `${t('dialog.success')}`,
+							title: t('dialog.success'),
 							life: 3000,
 						});
 						//调用接口
@@ -774,9 +767,8 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 				} catch (error: any) {
 					appContext.uiBuilder.toast(appContext, {
 						severity: 'error',
-						detail: error.message ?? `${t('invalid.error')}`,
-						summary: t('invalid.error'),
-						group: 'br',
+						message: error.message ?? `${t('invalid.error')}`,
+						title: t('invalid.error'),
 						life: 3000,
 					});
 					return false;
@@ -800,7 +792,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+		const {$ui: ui, $router, $t: t} = appContext.globalProps;
 		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
@@ -815,9 +807,9 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			},
 		});
 		if (!Array.isArray(picked) || !picked.length) {
-			toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'info',
-				detail: `${t('invalid.noDeliverables')}`,
+				message: `${t('invalid.noDeliverables')}`,
 				life: 3000,
 			});
 			return;
@@ -846,7 +838,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			if (resPackages == true) {
 				appContext.uiBuilder.toast(appContext, {
 					severity: 'success',
-					summary: t('success.operationSuccessful'),
+					title: t('success.operationSuccessful'),
 					life: 3000,
 				});
 				await getSub(appContext, taskItem);
@@ -855,8 +847,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 		}
@@ -867,7 +858,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+		const {$ui: ui, $router, $t: t} = appContext.globalProps;
 		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
@@ -883,9 +874,9 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			},
 		});
 		if (!Array.isArray(picked) || !picked.length) {
-			toast.add({
+			appContext.uiBuilder.toast(appContext, {
 				severity: 'info',
-				detail: `${t('invalid.noDeliverables')}`,
+				message: `${t('invalid.noDeliverables')}`,
 				life: 3000,
 			});
 			return;
@@ -914,7 +905,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			if (resPackages == true) {
 				appContext.uiBuilder.toast(appContext, {
 					severity: 'success',
-					summary: t('success.operationSuccessful'),
+					title: t('success.operationSuccessful'),
 					life: 3000,
 				});
 				await getSub(appContext, taskItem);
@@ -923,8 +914,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 		}
@@ -934,7 +924,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 		taskItem.action = null;
 	// 	}
 
-	// 	const { $ui: ui, $router, $toast, $t: t, $toast: toast } = appContext.globalProps;
+	// 	const {$ui: ui, $router, $t: t} = appContext.globalProps;
 	// 	const apiClient = appContext.logic?.apiClient;
 	// 	const { model, metaUiService } = appContext;
 
@@ -975,7 +965,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 			{
 	// 				title: t('projectSchedule.selectProjectDeliverables'),
 	// 				width: '90vw',
-	// 				accept: async () => {
+	// 				onAccept: async () => {
 	// 					if (selectionRows.value.length > 0) {
 	// 						//提交模型
 	// 						const payLoad = {
@@ -1008,7 +998,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 							if (resPackages == true) {
 	// 								appContext.uiBuilder.toast(appContext, {
 	// 									severity: 'success',
-	// 									summary: t('success.operationSuccessful'),
+	// 									title: t('success.operationSuccessful'),
 	// 									life: 3000,
 	// 								});
 	// 								//调用接口更新数据
@@ -1019,7 +1009,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 							appContext.uiBuilder.toast(appContext, {
 	// 								severity: 'error',
 	// 								title: 'dialog.title.error',
-	// 								summary: error.detail ?? '',
+	// 								title: error.detail ?? '',
 	// 								life: 3000,
 	// 							});
 	// 							return false;
@@ -1029,13 +1019,13 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 					} else {
 	// 						appContext.uiBuilder.toast(appContext, {
 	// 							severity: 'error',
-	// 							summary: t('invalid.requiredSelectAny'),
+	// 							title: t('invalid.requiredSelectAny'),
 	// 							life: 3000,
 	// 						});
 	// 						// appContext.uiBuilder.toast(appContext, {
 	// 						// 	severity: 'error',
 	// 						// 	title: t('invalid.requiredSelectAny'),
-	// 						// 	summary: t('invalid.requiredSelectAny'),
+	// 						// 	title: t('invalid.requiredSelectAny'),
 	// 						// 	life: 3000,
 	// 						// });
 	// 						return false;
@@ -1044,9 +1034,9 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	// 			}
 	// 		);
 	// 	} else {
-	// 		toast.add({
+	// 		appContext.uiBuilder.toast(appContext, {
 	// 			severity: 'info',
-	// 			detail: `${t('invalid.noDeliverables')}`,
+	// 			message: `${t('invalid.noDeliverables')}`,
 	// 			life: 3000,
 	// 		});
 	// 	}
@@ -1063,7 +1053,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const { $router, $toast } = appContext.globalProps;
+		const {$router} = appContext.globalProps;
 		try {
 			let res: any = null;
 			const apiClient = this.apiClient;
@@ -1082,8 +1072,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: error.detail ?? '',
-				group: 'br',
+				title: error.detail ?? '',
 				life: 3000,
 			});
 			return false;
@@ -1093,17 +1082,16 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 	//甘特图日计划弹窗
 	async subPlanning(planDate: any, appContext: any) {
 		dailyPlanning.data.date = planDate;
-		appContext.uiBuilder.confirm(appContext, {
+		if (await appContext.uiBuilder.confirm(appContext, {
 			title: appContext.t('ganttLabel.PrepareDaily'),
 			message: projectGanttPlanningNode({
 				dataModel: dailyPlanning.data,
 				ctx: appContext,
 				onChangePlanningData(val: any) {
 					dailyPlanning.data = val.data;
-				},
-			}),
-			accept: async () => {
-				//选中人必填
+				}})
+		})) {
+//选中人必填
 				if (!dailyPlanning.data.planNo) {
 					dailyPlanning.data.planNoInvalid = true;
 					return false;
@@ -1111,12 +1099,11 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 					dailyPlanning.data.planNoInvalid = false;
 					return this.submitPlan(dailyPlanning.data, appContext);
 				}
-			},
-		});
+};
 	}
 	//甘特图日计划调用接口返回
 	async submitPlan(planItem: any, content: any) {
-		const { $router, $toast } = content.globalProps;
+		const {$router} = content.globalProps;
 
 		if (planItem.action) {
 			planItem.action = null;
@@ -1144,8 +1131,7 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 			content.appContext.uiBuilder.toast(content.appContext, {
 				severity: 'error',
 				title: 'dialog.title.error',
-				summary: errorMessage ?? '',
-				group: 'br',
+				title: errorMessage ?? '',
 				life: 3000,
 			});
 			return false;

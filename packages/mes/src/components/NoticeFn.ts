@@ -42,7 +42,7 @@ export const NoticeFn = async (
 	context: UiContext & Required<Pick<UiContext, 'reload'>>,
 	props?: PropsData,
 ): Promise<boolean> => {
-	const { $t: t, $toast: toast } = context.globalProps;
+	const {$t: t} = context.globalProps;
 	props.data = notice.data;
 	try {
 		context.uiBuilder.dialog(
@@ -56,7 +56,7 @@ export const NoticeFn = async (
 			context,
 			{
 				title: props.title,
-				accept: async () => {
+				onAccept: async () => {
 					//选中人必�?
 					if (!props.data.ownerID) {
 						props.data.ownerInvalid = true;
@@ -80,22 +80,20 @@ export const NoticeFn = async (
 						);
 						//关闭窗口
 						if (res) {
-							toast.add({
+							context.uiBuilder.toast(context, {
 								severity: 'success',
-								detail: props.detail ?? `${props.title}${t('dialog.success')}`,
-								summary: t('dialog.success'),
-								group: 'br',
+								message: props.detail ?? `${props.title}${t('dialog.success')}`,
+								title: t('dialog.success'),
 								life: 3000,
 							});
 							context.reload();
 						}
 						return true;
 					} catch (error: any) {
-						toast.add({
+						context.uiBuilder.toast(context, {
 							severity: 'error',
-							detail: error.message ?? `${props.title}${t('invalid.error')}`,
-							summary: t('invalid.error'),
-							group: 'br',
+							message: error.message ?? `${props.title}${t('invalid.error')}`,
+							title: t('invalid.error'),
 							life: 3000,
 						});
 						return false;

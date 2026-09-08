@@ -1,4 +1,4 @@
-import type { UiListViewEmits, UiListViewPropsType, UiListViewSlots } from './list'
+import type { UiListViewEmits, UiListViewPropsType, UiListViewSlots } from '../builder/list_view'
 import type { UiTreeViewPropsType } from './tree'
 import type { UiViewManyKind } from '../../contexts/view'
 

@@ -17,12 +17,12 @@ import {
 } from "../layout/layout";
 import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
+import { wrapRowDetail } from "../factory/list";
 import { isActionEnabled } from "../factory/action";
 import { MmdaGroupCard } from "../../components/GroupCard";
 import { translateMessage } from "../../i18n/i18n";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import type { UiViewPropsType } from "../../contexts/view";
-import type { UiGanttChartProps, UiGanttViewProps } from "../factory/gantt";
 import {
   groupZone,
   hiddenDeletedSubRowStyle,
@@ -30,19 +30,18 @@ import {
   uploadedFileNames,
   type UiContext,
 } from "./helpers";
-import type { VueUiBuilder } from "./builder";
+import type { AbstractConstructor } from "./mixin";
 
-type Host = VueUiBuilder;
+export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
+  abstract class FormBuilder extends Base {
 
-export function attachFormBuilder(ctor: { prototype: Host }) {
-  Object.assign(ctor.prototype, {
     labelFor(field: MetaUiField, props?: PropData) {
       return h(
         "label",
         { for: field.fieldName, key: field.fieldName, ...props },
         field.displayLabel,
       );
-    },
+    }
     
     editFor(field: MetaUiField, context: UiContext, props: PropData = {}) {
       const logic = context.getFieldLogic(field) as any;
@@ -51,13 +50,13 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         (field.editor ? this.fldFactory[field.editor] : undefined) ??
         this.fldFactory.fallbackInput;
       return renderer(field, context, props);
-    },
+    }
     
     fieldDisplayName(field: MetaUiField) {
       if (field.renderer) return field.renderer;
       if (SqlDataType.isBool(field.dataType)) return "checkedIcon";
       return "textSpan";
-    },
+    }
     
     displayFor(field: MetaUiField, context: UiContext, props: PropData = {}) {
       const logic = context.getFieldLogic(field) as any;
@@ -66,7 +65,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         this.fldFactory[this.fieldDisplayName(field)] ??
         this.fldFactory.fallbackDisplay;
       return renderer(field, context, props);
-    },
+    }
     
     buildField(field, context, props = {}) {
       if (context.isFieldHidden(field)) return h("span", { hidden: true });
@@ -100,11 +99,11 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           (direction as UiDirection | undefined) ?? this.layout.fieldLayout,
         props: { key: field.fieldName },
       });
-    },
+    }
     
     buildResponsiveField(field, context, props = {}) {
       return this.buildField(field, context, props);
-    },
+    }
     
     groupWrapClass(group: MetaUiGroup, props: PropData = {}) {
       const raw = String(props.region ?? groupZone(group));
@@ -115,7 +114,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
       return ["mmda-group", many ? "sub" : "master", zone, props.class]
         .filter(Boolean)
         .join(" ");
-    },
+    }
     
     /** 组内容容器：字段/表格布局归这里管，Card 只做外壳 */
     wrapGroupContent(body: VNode | VNode[], props: PropData = {}) {
@@ -124,13 +123,13 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         { class: ["mmda-group-body", props.class].filter(Boolean) },
         body,
       );
-    },
+    }
     
     /** FieldSet 外壳：骑边 legend（经典） */
     buildGroupFieldSet(
       group: MetaUiGroup,
       body: VNode | VNode[],
-      props: PropData = {},
+      props: PropData = {}
     ) {
       const {
         container: _container,
@@ -149,13 +148,13 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           this.wrapGroupContent(body),
         ],
       );
-    },
+    }
     
     /** Card 外壳：可折叠 header；内容由 wrapGroupContent 自管布局 */
     buildGroupCard(
       group: MetaUiGroup,
       body: VNode | VNode[],
-      props: PropData = {},
+      props: PropData = {}
     ) {
       const {
         container: _container,
@@ -180,7 +179,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           actions: headerActions ? () => headerActions : undefined,
         },
       );
-    },
+    }
     
     /** 子表 header 工具栏（对齐老代码 Panel icons）— 平面图标，文案进 tooltip */
     buildGroupHeaderActions(group: MetaUiGroup, context: UiContext) {
@@ -209,24 +208,28 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           });
         }),
       );
-    },
+    }
     
     wrapGroup(group: MetaUiGroup, body: VNode | VNode[], props: PropData = {}) {
       const shell = props.container ?? "card";
+      if (shell === "none") {
+        return Array.isArray(body) ? h("div", body) : body;
+      }
       if (shell === "fieldset") {
         return this.buildGroupFieldSet(group, body, props);
       }
       return this.buildGroupCard(group, body, props);
-    },
+    }
     
     buildGroup(group, context, children, props = {}) {
       if (context.isGroupHidden(group)) return h("span", { hidden: true });
-      const {
+        const {
         direction = group.isSecondary() ? "column" : "row",
         cols = group.isSecondary() ? 1 : 2,
         container = "card",
         class: className,
         showGroupActions = true,
+        skipRowDetail = false,
         ...fieldProps
       } = props;
       const wrapProps: PropData = {
@@ -263,8 +266,8 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           this.factory.imageGallery
         ) {
           const shapeKey = group.shapeKey || "mediaFile";
-          const uploadMediaFiles = async (
-            files: File[],
+          const uploadOneImage = async (
+            file: File,
             control: {
               signal: AbortSignal;
               onProgress: (progress: number) => void;
@@ -289,11 +292,13 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
                 });
                 response = await fetchApi.uploadFiles(
                   url,
-                  files.map((file) => ({
-                    fieldName: "files",
-                    data: file,
-                    fileName: file.name,
-                  })),
+                  [
+                    {
+                      fieldName: "files",
+                      data: file,
+                      fileName: file.name,
+                    },
+                  ],
                   {
                     signal: control.signal,
                     onUploadProgress: (event: {
@@ -308,8 +313,16 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
                     },
                   },
                 );
+              } else if (typeof runtime.uploadFile === "function") {
+                response = await runtime.uploadFile(file, {
+                  repository: logic?.repository,
+                  path: modelId,
+                  action: "multi",
+                  service: "files",
+                  signal: control.signal,
+                });
               } else if (typeof runtime.uploadFiles === "function") {
-                response = await runtime.uploadFiles(files, {
+                response = await runtime.uploadFiles([file], {
                   repository: logic?.repository,
                   path: modelId,
                   action: "multi",
@@ -318,75 +331,61 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
               } else {
                 throw new Error(translateMessage("upload.unsupported"));
               }
-    
+
               const urls = await uploadedFileNames(response);
-              if (urls.length !== files.length || urls.some((url) => !url)) {
+              const fileUrl = urls[0];
+              if (!fileUrl) {
                 throw new Error(translateMessage("upload.fileCountMismatch"));
               }
-              const added = [];
-              for (let index = 0; index < urls.length; index += 1) {
-                const item = await runtime.createSubGroupItems({
-                  group,
-                  source: {
-                    [shapeKey]: urls[index],
-                    mediaType: 0,
-                    description: files[index]?.name ?? "",
-                  },
-                  target: runtime.model,
-                });
-                runtime.addSubGroupItem(group, item);
-                added.push(item);
-              }
-              return added;
+              const item = await runtime.createSubGroupItems({
+                group,
+                source: {
+                  [shapeKey]: fileUrl,
+                  mediaType: 0,
+                  description: file.name,
+                },
+                target: runtime.model,
+              });
+              runtime.addSubGroupItem(group, item);
+              return fileUrl;
             } finally {
               if (runtime.uploading?.value != null)
                 runtime.uploading.value = false;
             }
           };
-          const gallery = this.factory.imageGallery(
-            rows
-              .map((row) => ({
-                src: String(row?.[shapeKey] ?? ""),
-                thumbnail: String(row?.thumbnail ?? row?.[shapeKey] ?? ""),
-                alt: String(row?.description ?? ""),
-                title: String(row?.description ?? ""),
-                description: String(row?.description ?? ""),
-                data: row,
-              }))
-              .filter((item) => item.src),
-            {
-              onItemDblclick: (item: { data?: unknown }) =>
-                (context as any).subGroupItem?.(group, item.data),
-            },
-          );
+          const galleryItems = rows
+            .map((row) => ({
+              src: String(row?.[shapeKey] ?? ""),
+              thumbnail: String(row?.thumbnail ?? row?.[shapeKey] ?? ""),
+              alt: String(row?.description ?? ""),
+              title: String(row?.description ?? ""),
+              description: String(row?.description ?? ""),
+              data: row,
+            }))
+            .filter((item) => item.src);
+          const gallery = !context.editing
+            ? this.factory.imageGallery(galleryItems, {
+                onItemDblclick: (item: { data?: unknown }) =>
+                  (context as any).subGroupItem?.(group, item.data),
+              })
+            : undefined;
           const uploader =
-            context.editing && this.factory.filesUploader
-              ? this.factory.filesUploader({
-                  upload: uploadMediaFiles,
-                  multiple: true,
+            context.editing && this.factory.imagesUploader
+              ? this.factory.imagesUploader({
+                  urls: galleryItems.map((item) => item.src),
                   autoUpload: true,
-                  disabled: (context.model as any)?.id == null,
                   allowedExtensions: ".bmp,.gif,.jpeg,.jpg,.png,.webp",
-                  dropText:
-                    (context.model as any)?.id == null
-                      ? (context.translate("upload.saveBeforeImage") as string)
-                      : (context.translate("upload.dropImages") as string),
-                  chooseText: context.translate("action.chooseImage") as string,
-                  onSuccess: () =>
-                    (context as any).app?.toast(context as any, {
-                      severity: "success",
-                      detail: context.translate("upload.imageSuccess"),
-                      life: 3000,
-                    }),
-                  onError: (error: unknown) =>
-                    (context as any).app?.toast(context as any, {
-                      severity: "error",
-                      detail:
-                        error instanceof Error
-                          ? error.message
-                          : (context.translate("upload.imageFail") as string),
-                      life: 3000,
-                    }),
+                  dropText: context.translate("upload.dropImages") as string,
+                  showImageEditor:
+                    this.imageEditorPlugin?.installed === true,
+                  onUpload: uploadOneImage,
+                  onRemove: (item: { url?: string }) => {
+                    const runtime = context as any;
+                    const row = rows.find(
+                      (entry) => String(entry?.[shapeKey] ?? "") === item.url,
+                    );
+                    if (row) runtime.removeSubGroupItem?.(group, row);
+                  },
                 })
               : undefined;
           if (showGroupActions !== false) {
@@ -429,6 +428,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           .map((field) => field.fieldName);
         const treeSpec = treeGridSpecFromGroup(group, rows);
         const gridProps = {
+            display: nativeGridEditing ? "grid" : "table",
             enableSort: false,
             enableGroup: false,
             showGridlines: true,
@@ -487,11 +487,35 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
             group,
             groupUi: group.groupUi,
             isTree: Boolean(treeSpec),
+            class: skipRowDetail ? "mmda-row-detail" : className,
+            height: skipRowDetail ? "auto" : undefined,
             rowMenu: readOnlyRows
               ? undefined
               : (item: any) =>
                   this.subGroupRowMenu(context, group, item),
           };
+        const detailGroupName = skipRowDetail
+          ? undefined
+          : groupLogic?.rowDetailGroup;
+        const detailGroup =
+          detailGroupName && group.groupUi
+            ? group.groupUi.getGroup(detailGroupName)
+            : undefined;
+        if (detailGroup?.many) {
+          gridProps.rowDetail = {
+            expandAll: true,
+            detail: (row: any) => {
+              const rowCtx = groupCtx.with(row);
+              return wrapRowDetail(
+                this.buildGroup(detailGroup, rowCtx, undefined, {
+                  container: "none",
+                  skipRowDetail: true,
+                  showGroupActions: true,
+                }),
+              );
+            },
+          };
+        }
         const table = treeSpec
           ? this.buildTreeGrid(
               rows,
@@ -500,6 +524,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
               {
                 ...gridProps,
                 ...treeSpec,
+                display: "treeGrid",
               },
             )
           : this.tableWithCells(
@@ -535,7 +560,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         }),
         wrapProps,
       );
-    },
+    }
     
     buildBpmnDiagram(
       flowTrails: any[],
@@ -547,20 +572,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         props,
         flowTrails.map((item) => h("div", String(item))),
       );
-    },
-    
-    buildGanttView(_context: UiContext, props: UiGanttViewProps): VNode {
-      const count = props.tasks?.length ?? 0;
-      return h("section", { class: "mmda-gantt-stub", ...props }, [
-        count
-          ? h("p", `${count} tasks (skin required)`)
-          : h("p", "Gantt (skin required)"),
-      ]);
-    },
-    
-    buildGanttChart(context: UiContext, props: UiGanttChartProps): VNode {
-      return this.buildGanttView(context, props);
-    },
+    }
     
     buildAttachmentGroup(context: UiContext, props?: PropData): VNode {
       const attachments =
@@ -583,16 +595,24 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
         body,
         { region: "secondary", class: "mmda-attachments", ...props },
       );
-    },
+    }
     
-    buildView(context: UiContext, props: UiViewPropsType = {}): VNode {
+    buildView(context: any, props: UiViewPropsType = {}): VNode {
       const groups = context.metaUi.groups.filter(
         (group) => !context.isGroupHidden(group),
+      );
+      const nestedRowDetail = new Set(
+        groups
+          .map((group) => context.getGroupLogic(group)?.rowDetailGroup)
+          .filter((name): name is string => Boolean(name)),
+      );
+      const viewGroups = groups.filter(
+        (group) => !nestedRowDetail.has(group.groupName),
       );
       const primaryCols = props.primaryCols ?? 2;
       // 主区：主表组（按 groupName）→ 子表组（按 groupIdx）
       const primary = sortViewGroups(
-        groups.filter((group) => group.isPrimary()),
+        viewGroups.filter((group) => group.isPrimary()),
       ).map((group) =>
         this.buildGroup(group, context, undefined, {
           direction: "row",
@@ -612,7 +632,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
       }
       if (props.showSecondaryGroup !== false) {
         summary.push(
-          ...sortViewGroups(groups.filter((group) => group.isSecondary())).map(
+          ...sortViewGroups(viewGroups.filter((group) => group.isSecondary())).map(
             (group) =>
               this.buildGroup(group, context, undefined, {
                 direction: "column",
@@ -621,7 +641,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
           ),
         );
       }
-      const tails = sortViewGroups(groups.filter((group) => group.isTails())).map(
+      const tails = sortViewGroups(viewGroups.filter((group) => group.isTails())).map(
         (group) =>
           this.buildGroup(group, context, undefined, {
             direction: "row",
@@ -662,6 +682,7 @@ export function attachFormBuilder(ctor: { prototype: Host }) {
             page,
           )
         : page;
-    },
-  } as any);
+    }
+  }
+  return FormBuilder;
 }

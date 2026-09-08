@@ -8,6 +8,13 @@
 packages/
   core/          @mmda/core          框架无关：元数据、实体、交互接口、HTTP、DI
   vui/           @mmda/vui           Vue 3 运行时
+  vuix-echarts/          @mmda/vuix-echarts          ECharts 图表插件
+  vuix-vf-diagram/       @mmda/vuix-vf-diagram       Vue Flow 图插件
+  vuix-vditor-markdown/  @mmda/vuix-vditor-markdown  Vditor Markdown 插件
+  vuix-svar-kanban/      @mmda/vuix-svar-kanban      SVAR 看板插件
+  vuix-hyper-gantt/      @mmda/vuix-hyper-gantt      DlhSoft Hyper 甘特插件
+  vuix-tempis-timeline/  @mmda/vuix-tempis-timeline  Tempis 时间轴插件
+  vuix-fc-scheduler/     @mmda/vuix-fc-scheduler     FullCalendar 排程插件
   vui-primevue/  @mmda/vui-primevue  PrimeVue 皮肤
   vui-syncfusion/ @mmda/vui-syncfusion Syncfusion EJ2 Vue 3 皮肤（BASE / MES）
   playground/    vui-agnaive 假数据把玩（仿 app 壳）

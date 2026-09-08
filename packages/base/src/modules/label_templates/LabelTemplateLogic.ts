@@ -96,9 +96,8 @@ export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
 				const sameArr = target.partners.filter(item => item.partnerID === selection.partnerID)
 				if (sameArr.length > 0) return context.uiBuilder.toast(context, {
 					severity: 'error',
-                    summary: context.globalProps.$t('dialog.title.error'),
-					group: 'br',
-                    detail: context.globalProps.$t('invalid.requiredPartners'),
+                    title: context.globalProps.$t('dialog.title.error'),
+                    message: context.globalProps.$t('invalid.requiredPartners'),
                     life: 3000
 				})
 				context.addSubGroupItems<LabelTemplatePartner>({

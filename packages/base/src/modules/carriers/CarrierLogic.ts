@@ -72,9 +72,8 @@ export class CarrierLogic extends UiLogic<Carrier> {
         ) {
           context.uiBuilder.toast(context, {
             severity: "error",
-            summary: context.t("dialog.title.error"),
-            detail: context.t("invalid.carrierCodeRequired"),
-            group: "br",
+            title: context.t("dialog.title.error"),
+            message: context.t("invalid.carrierCodeRequired"),
           });
           return Promise.reject(false);
         } else {
@@ -103,9 +102,9 @@ export class CarrierLogic extends UiLogic<Carrier> {
           if (isRefNone(model.carrierCode))
             return context.uiBuilder.toast(context, {
               severity: "error",
-              summary: context.t("dialog.title.error"),
-              detail: context.t("invalid.carrierCodeRequired"),
-              // group: 'br',
+              title: context.t("dialog.title.error"),
+              message: context.t("invalid.carrierCodeRequired"),
+              //,
               life: 3000,
             });
         }),

@@ -7,7 +7,7 @@ import { UI_APP_KEY, UI_BUILDER_KEY } from '../app/keys'
 import { getFileInfo } from '../components/FileIcons'
 
 describe('MmdaVueApp', () => {
-  it('装配 DI、locale 和弹层转发，不依赖 echarts', () => {
+  it('装配 DI、locale 和弹层转发，不依赖图表引擎', () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
     const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
@@ -23,7 +23,7 @@ describe('MmdaVueApp', () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
     const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
-    await expect(app.ui.dialog({} as any, {} as any, { name: 'x' })).resolves.toBe(
+    await expect(app.ui.dialog({} as any, {} as any, { title: 'x' })).resolves.toBe(
       false,
     )
   })

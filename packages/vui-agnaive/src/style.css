@@ -89,6 +89,10 @@
   justify-content: flex-end;
 }
 
+.mmda-row-detail {
+  padding: 0.5rem 0.75rem;
+}
+
 .mmda-agnaive-control.is-invalid .n-input,
 .mmda-agnaive-control.is-invalid .n-select {
   --n-border-color: var(--mmda-danger-color);
@@ -145,12 +149,6 @@
 .mmda-agnaive-link {
   color: var(--mmda-primary-color);
   cursor: pointer;
-}
-
-.mmda-agnaive-loading {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
 }
 
 .mmda-agnaive-dialog__footer {
@@ -211,29 +209,62 @@ html.mmda-dark .ag-root-wrapper {
   padding: 0;
 }
 
-.mmda-badge--overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(40%, -40%);
+/* 应用主题可钩：.mmda-card / .mmda-card--{role} / --outlined / --elevated */
+/* 应用主题可钩：.mmda-divider / .mmda-divider--vertical / --labeled */
+/* 应用主题可钩：.mmda-datepicker / --month / .mmda-datetimepicker / .mmda-timepicker / .mmda-daterangepicker */
+/* 应用主题可钩：.mmda-dropdown-list / .mmda-combobox / .mmda-combobox--custom */
+/* 应用主题可钩：.mmda-chart / .mmda-circular-gauge */
+/* 应用主题可钩：.mmda-signature-pad / --readonly / --disabled */
+/* 应用主题可钩：.mmda-stepper / --horizontal / --vertical / --linear / --readonly */
+/* 应用主题可钩：.mmda-tabs / --top / --bottom / --left / --right / --scrollable / --popup / --fill */
+
+.mmda-tabs {
+  display: flex;
+  min-height: 0;
 }
 
-.mmda-badge--overlay.mmda-badge--top-left {
-  right: auto;
-  left: 0;
-  transform: translate(-40%, -40%);
+.mmda-tabs--top {
+  flex-direction: column;
 }
 
-.mmda-badge--overlay.mmda-badge--bottom-right {
-  top: auto;
-  bottom: 0;
-  transform: translate(40%, 40%);
+.mmda-tabs--bottom {
+  flex-direction: column-reverse;
 }
 
-.mmda-badge--overlay.mmda-badge--bottom-left {
-  top: auto;
-  right: auto;
-  bottom: 0;
-  left: 0;
-  transform: translate(-40%, 40%);
+.mmda-tabs--left {
+  flex-direction: row;
 }
+
+.mmda-tabs--right {
+  flex-direction: row-reverse;
+}
+
+.mmda-tabs--fill {
+  height: 100%;
+}
+
+.mmda-checkbox-list__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.mmda-otpinput {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mmda-otpinput__cell {
+  width: 2.25rem;
+  text-align: center;
+}
+
+.mmda-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+

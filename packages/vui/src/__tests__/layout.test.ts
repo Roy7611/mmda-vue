@@ -506,7 +506,7 @@ describe("VueUiBuilder layout wiring", () => {
       const builder = new TestUiBuilder();
       let tableProps: any;
       (builder.factory as any).nativeInplaceEdit = true;
-      (builder.factory as any).table = (
+      (builder.factory as any).list = (
         _rows: any[],
         _metaUi: MetaUi,
         props: any,

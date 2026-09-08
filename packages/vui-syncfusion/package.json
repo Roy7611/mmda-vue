@@ -14,6 +14,42 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/mmda-vui-syncfusion.es.js"
     },
+    "./charts": {
+      "types": "./dist/chart_factory.d.ts",
+      "import": "./src/chart_factory.ts"
+    },
+    "./diagrams": {
+      "types": "./dist/plugins/diagram_editor.d.ts",
+      "import": "./src/plugins/diagram_editor.ts"
+    },
+    "./diagram-editor": {
+      "types": "./dist/plugins/diagram_editor.d.ts",
+      "import": "./src/plugins/diagram_editor.ts"
+    },
+    "./gantt": {
+      "types": "./dist/gantt_plugin.d.ts",
+      "import": "./src/gantt_plugin.ts"
+    },
+    "./kanban": {
+      "types": "./dist/kanban_plugin.d.ts",
+      "import": "./src/kanban_plugin.ts"
+    },
+    "./schedule": {
+      "types": "./dist/schedule_plugin.d.ts",
+      "import": "./src/schedule_plugin.ts"
+    },
+    "./pivot": {
+      "types": "./dist/pivot_plugin.d.ts",
+      "import": "./src/pivot_plugin.ts"
+    },
+    "./ai-assistant": {
+      "types": "./dist/ai_assistant_plugin.d.ts",
+      "import": "./src/ai_assistant_plugin.ts"
+    },
+    "./image-editor": {
+      "types": "./dist/plugins/image_editor.d.ts",
+      "import": "./src/plugins/image_editor.ts"
+    },
     "./style.css": "./dist/style.css",
     "./vite": "./vite_aliases.ts",
     "./fontawesome.css": {
@@ -44,6 +80,10 @@
     "@syncfusion/ej2-diagrams": "34.2.2",
     "@syncfusion/ej2-dropdowns": "34.2.2",
     "@syncfusion/ej2-gantt": "34.2.2",
+    "@syncfusion/ej2-kanban": "34.2.2",
+    "@syncfusion/ej2-pivotview": "34.2.2",
+    "@syncfusion/ej2-querybuilder": "34.2.2",
+    "@syncfusion/ej2-schedule": "34.2.2",
     "@syncfusion/ej2-grids": "34.2.2",
     "@syncfusion/ej2-inputs": "34.2.2",
     "@syncfusion/ej2-layouts": "34.2.2",
@@ -54,7 +94,15 @@
     "@syncfusion/ej2-popups": "34.2.2",
     "@syncfusion/ej2-progressbar": "34.2.2",
     "@syncfusion/ej2-splitbuttons": "34.2.2",
-    "@syncfusion/ej2-treegrid": "34.2.2"
+    "@syncfusion/ej2-treegrid": "34.2.2",
+    "@syncfusion/ej2-circulargauge": "34.2.2",
+    "@syncfusion/ej2-lineargauge": "34.2.2",
+    "@syncfusion/ej2-heatmap": "34.2.2",
+    "@syncfusion/ej2-treemap": "34.2.2",
+    "@syncfusion/ej2-maps": "34.2.2",
+    "@syncfusion/ej2-image-editor": "34.2.2",
+    "@syncfusion/ej2-inplace-editor": "34.2.2",
+    "@syncfusion/ej2-interactive-chat": "34.2.2"
   },
   "peerDependencies": {
     "@syncfusion/ej2-base": "34.2.2",
@@ -63,11 +111,23 @@
     "@syncfusion/ej2-vue-buttons": "34.2.2",
     "@syncfusion/ej2-vue-calendars": "34.2.2",
     "@syncfusion/ej2-vue-charts": "34.2.2",
+    "@syncfusion/ej2-vue-circulargauge": "34.2.2",
+    "@syncfusion/ej2-vue-lineargauge": "34.2.2",
+    "@syncfusion/ej2-vue-heatmap": "34.2.2",
+    "@syncfusion/ej2-vue-treemap": "34.2.2",
+    "@syncfusion/ej2-vue-maps": "34.2.2",
     "@syncfusion/ej2-vue-diagrams": "34.2.2",
+    "@syncfusion/ej2-vue-image-editor": "34.2.2",
+    "@syncfusion/ej2-vue-interactive-chat": "34.2.2",
     "@syncfusion/ej2-vue-dropdowns": "34.2.2",
     "@syncfusion/ej2-vue-gantt": "34.2.2",
+    "@syncfusion/ej2-vue-kanban": "34.2.2",
+    "@syncfusion/ej2-vue-schedule": "34.2.2",
+    "@syncfusion/ej2-vue-pivotview": "34.2.2",
+    "@syncfusion/ej2-vue-querybuilder": "34.2.2",
     "@syncfusion/ej2-vue-grids": "34.2.2",
     "@syncfusion/ej2-vue-inputs": "34.2.2",
+    "@syncfusion/ej2-vue-inplace-editor": "34.2.2",
     "@syncfusion/ej2-vue-layouts": "34.2.2",
     "@syncfusion/ej2-vue-lists": "34.2.2",
     "@syncfusion/ej2-vue-navigations": "34.2.2",
@@ -86,10 +146,43 @@
     "@syncfusion/ej2-vue-charts": {
       "optional": true
     },
+    "@syncfusion/ej2-vue-circulargauge": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-lineargauge": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-heatmap": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-treemap": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-maps": {
+      "optional": true
+    },
     "@syncfusion/ej2-vue-diagrams": {
       "optional": true
     },
+    "@syncfusion/ej2-vue-image-editor": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-interactive-chat": {
+      "optional": true
+    },
     "@syncfusion/ej2-vue-gantt": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-kanban": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-pivotview": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-querybuilder": {
+      "optional": true
+    },
+    "@syncfusion/ej2-vue-schedule": {
       "optional": true
     }
   },
@@ -100,11 +193,23 @@
     "@syncfusion/ej2-vue-buttons": "34.2.2",
     "@syncfusion/ej2-vue-calendars": "34.2.2",
     "@syncfusion/ej2-vue-charts": "34.2.2",
+    "@syncfusion/ej2-vue-circulargauge": "34.2.2",
+    "@syncfusion/ej2-vue-lineargauge": "34.2.2",
+    "@syncfusion/ej2-vue-heatmap": "34.2.2",
+    "@syncfusion/ej2-vue-treemap": "34.2.2",
+    "@syncfusion/ej2-vue-maps": "34.2.2",
     "@syncfusion/ej2-vue-diagrams": "34.2.2",
+    "@syncfusion/ej2-vue-image-editor": "34.2.2",
+    "@syncfusion/ej2-vue-interactive-chat": "34.2.2",
     "@syncfusion/ej2-vue-dropdowns": "34.2.2",
     "@syncfusion/ej2-vue-gantt": "34.2.2",
+    "@syncfusion/ej2-vue-kanban": "34.2.2",
+    "@syncfusion/ej2-vue-schedule": "34.2.2",
+    "@syncfusion/ej2-vue-pivotview": "34.2.2",
+    "@syncfusion/ej2-vue-querybuilder": "34.2.2",
     "@syncfusion/ej2-vue-grids": "34.2.2",
     "@syncfusion/ej2-vue-inputs": "34.2.2",
+    "@syncfusion/ej2-vue-inplace-editor": "34.2.2",
     "@syncfusion/ej2-vue-layouts": "34.2.2",
     "@syncfusion/ej2-vue-lists": "34.2.2",
     "@syncfusion/ej2-vue-navigations": "34.2.2",

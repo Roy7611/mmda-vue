@@ -5,7 +5,7 @@ core **不是没有 UI**，是 **没有 UI 实现**。程序员对着这些接�
 | 文件 | 接口 |
 |---|---|
 | `builder.ts` | `UiBuilder<TNode>`：`toast` / `confirm` / `dialog` / `buildView` |
-| `factory.ts` | `UiFactory<TNode>`：含 `table(rows, metaui)` |
+| `factory.ts` | `UiFactory<TNode>`：含 `table(rows, metaUi)` |
 | `field_factory.ts` | `UiFieldFactory<TNode>` |
 | `layout.ts` | `UiLayout<TNode>` |
 | `context.ts` | `UiContext`（含 `searchRelative` / `select`；`UiSelectionMode` / `UiSubGroupView`） |

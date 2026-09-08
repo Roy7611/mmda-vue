@@ -48,9 +48,8 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
 				if (isSave === 1) {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						group: 'br',
-						summary: context.globalProps.$t('dialog.success'),
-						detail: context.globalProps.$t('success.beforeSave'),
+						title: context.globalProps.$t('dialog.success'),
+						message: context.globalProps.$t('success.beforeSave'),
 						life: 3000,
 					});
 					return true

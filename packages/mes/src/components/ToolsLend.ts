@@ -16,7 +16,7 @@ export const ToolsLend = defineComponent({
 	},
 	emits: ['getUserID'],
 	setup: (props, { emit }) => {
-		const { $ui: ui, $t: t, $toast: toast } = props.ctx.globalProps;
+		const {$ui: ui, $t: t} = props.ctx.globalProps;
 		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const owner = ref('');
 		//人员下拉选择
@@ -38,19 +38,18 @@ export const ToolsLend = defineComponent({
 				});
 				userOptionsAll.value = res.list && res.list.length > 0 ? res.list : [];
 			} catch (error: any) {
-				toast.add({
+				ctx.uiBuilder.toast(ctx, {
 					severity: 'error',
-					detail: error.detail ?? '',
-					summary: t('dialog.title.error'),
+					message: error.detail ?? '',
+					title: t('dialog.title.error'),
 					// position: 'bottom-right',
-					group: 'br',
 					life: 3000,
 				});
 			}
 		};
 		return () =>
 			h('div', { class: 'w-full h-full flex pt-2 pb-2 box-border flex-col items-center justify-center ' }, [
-				// ui.factory.formItem(
+				// ui.factory.formField(
 				// 	{
 				//         style:{width:'18rem'},
 				// 		name: 'userID',
@@ -80,24 +79,18 @@ export const ToolsLend = defineComponent({
 				// 			}),
 				// 	}
 				// ),
-				ui.factory.select({
+				ui.factory.dropDownList({
 					class: 'w-full',
 					placeholder: t('auth.selectASuperintendent'),
-					modelValue: unref(owner),
-					filter: true,
-					options: unref(userOptionsAll),
-					showClear: isRefNone(owner.value) ? false : true,
-					labelStyle: {
-						textAlign: 'left',
-					},
-					optionLabel: 'username',
-					onUpdate: (value: string) => (owner.value = value),
-					onChange: (event: any) => {
-						if (event) {
-							emit('getUserID', event.userID);
-						} else {
-							emit('getUserID', '');
-						}
+					value: unref(owner),
+					allowFiltering: true,
+					options: (unref(userOptionsAll) as any[]).map((item: any) => ({
+						value: item.userID,
+						label: item.username,
+					})),
+					onChange: (value) => {
+						owner.value = value as string;
+						emit('getUserID', value ?? '');
 					},
 				}),
 			]);

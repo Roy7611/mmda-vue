@@ -10,23 +10,24 @@ export interface UiBuilder<TNode = any> {
   readonly factory: UiFactory<TNode>
   readonly fldFactory: UiFieldFactory<TNode>
 
+  /** 提示，不必等。props：severity / title / message / life。 */
   toast(
     context: UiContext,
     props: Record<string, unknown>,
   ): void | Promise<void>
 
-  /** 是/否。原 confirmMessage。 */
+  /** 是/否 → boolean。props：title / message。业务写在 if (ok) 里，不要 accept 回调。 */
   confirm(
     context: UiContext,
     props: Record<string, unknown>,
   ): Promise<boolean>
 
-  /** 弹层里塞内容。原 confirmDialog。 */
+  /** 弹层塞内容 → 是否确定。props：title / width / showFooter / onAccept。不要 factory.dialog。 */
   dialog(
     content: TNode | TNode[],
     context: UiContext,
     props?: Record<string, unknown>,
-  ): Promise<unknown>
+  ): Promise<boolean>
 
   /**
    * 按 context.view 拼整页/弹层。many → 列表，one → 表单。

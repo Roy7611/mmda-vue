@@ -24,6 +24,23 @@ export type UiGroupRenderer = (
 export interface UiFieldFactory extends Record<string, UiFieldRenderer> {
   fallbackDisplay: UiFieldRenderer;
   fallbackInput: UiFieldRenderer;
+  maskedTextBox?: UiFieldRenderer;
+  oneTimePasswordInput?: UiFieldRenderer;
+  slider?: UiFieldRenderer;
+  rating?: UiFieldRenderer;
+  mobileInput?: UiFieldRenderer;
+  zipCodeInput?: UiFieldRenderer;
+  numberInput?: UiFieldRenderer;
+  percentInput?: UiFieldRenderer;
+  positiveNumberInput?: UiFieldRenderer;
+  negativenumberInput?: UiFieldRenderer;
+  progressBar?: UiFieldRenderer;
+  signaturePad?: UiFieldRenderer;
+  stepper?: UiFieldRenderer;
+  timeline?: UiFieldRenderer;
+  radioButtonGroup?: UiFieldRenderer;
+  imageUploader?: UiFieldRenderer;
+  inplaceFieldEditor?: UiFieldRenderer;
 }
 
 export const defineFieldProps = (field: MetaUiField): PropData => ({
