@@ -1,30 +1,38 @@
-# 实体交互逻辑
+# 实体交互逻辑（vui）
 
-`EntityLogic` 是**实体在 UI 层的交互逻辑**：按视图声明字段/组/动作，并调用 `ApiClient` 做 load/save/search。它绑定该实体的仓库（`repository`，通常为实体模型的复数）和一份 `MetaUi`。
+业务怎么写见 core [EntityLogic 用法](../../core/docs/logic/entity_logic_usage.md) 与 [设计](../../core/docs/logic/entity_logic_design.md)。本文只写 **Vue 壳** 多出来的部分。
 
-## 主要内容
+## 壳里的类
 
-- `EntityLogic<E>`（`@mmda/core`）：CRUD + 视图钩子装配，**无 Vue**。业务 `XxxLogic extends EntityLogic`。不要叫 `EntityManager` / `RepositoryLogic`。
-- `VueEntityLogic<E>`（仅 vui）：搜索表单响应式包装。**业务不要继承**。
-- `GenericUiLogic<E>`：无定制时的默认实现（继承 `VueEntityLogic`），通用 CRUD 页和跨服务 `select` 使用。
-- `SubEntityLogic<G, P>`（core）：子表 Logic，挂在主表 Logic 上。
-- `createRepositoryLogic(repository)`：按仓库名取出 Logic 的工厂函数（名字保留）。
-- `beforeIndex` / `beforeDetails` / `beforeEdit` / `beforeSearch`：按视图装配。
-- `viewOptions`：按 `UiViewType` 登记拼屏选项。Builder 按 `context.view` 精确查找。
-- `beforeSave` / `afterLoad` 等钩子：CRUD 前后拦截。
-- 面向用户文案用 `context.t()`（vui 由 `VueUiContext` 实现）。路由在 `VueUiContext.router`，不在 Logic 上。
+- 业务：`XxxLogic extends EntityLogic`（core）。vui 再导出 `EntityLogic` / `SubEntityLogic` / `EntityLogicInit`。
+- 无定制：`new VueEntityLogic(defineEntity, init)`。**不要**再引入已删除的 `GenericUiLogic`。
+- `VueEntityLogic` 只覆盖搜索表单 `rx`。业务不要继承它。
 
 ```ts
-import { EntityLogic, GenericUiLogic, type EntityLogicInit } from '@mmda/vui'
-import type { UiContext } from '@mmda/core'
+import { EntityLogic, VueEntityLogic, type EntityLogicInit } from '@mmda/vui'
 ```
 
-```ts
-export class OrderLogic extends EntityLogic<Order> {
-  constructor(init: EntityLogicInit) {
-    super(defineOrder, init)
-  }
-}
-```
+## 谁 new Logic
 
-大型 Logic 按视图拆文件时，调用基类须 `EntityLogic.prototype.beforeIndex.call(this)`。
+[`EntityView`](../src/components/EntityView.ts) 打开仓库页：
+
+1. `app.di.injectAsync('${service}:${repository}Logic')` → 业务 `MaterialLogic`
+2. 未注册 → `new VueEntityLogic(defineEntity, init)`
+
+`init` 只有 `metaUiService` / `repository` / `module` / `apiService`。`useRouter()` 的结果进 **`VueUiContext({ router })`**，不进 Logic。
+
+跨仓库 `context.select({ repository })`、分类树同样：有 DI 用业务类，否则 `VueEntityLogic`。
+
+## 路由
+
+`context.index()` / `edit` / `details` / `create` 在 [`navigate.ts`](../src/contexts/mixins/navigate.ts)，使用 `this.router`（会话上的 vue-router）。动作 `redirectTo` 同样 `context.router.push`。
+
+## 搜索响应式
+
+列表 `init()`：`configureSearch(filters, logic.beforeSearch())`。
+
+界面用的 `searchParam` 在 Context 上已经 `rx`。业务 Logic 的 `beforeSearch` 返回普通对象即可。只有 `VueEntityLogic` 会在 `createSearchForm` 里再 `rx`。
+
+## 国际化
+
+用户可见字符串：`context.t('invalid.required')`。实现是 `VueUiContext` 接到应用 i18n。

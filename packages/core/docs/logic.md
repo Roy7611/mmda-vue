@@ -1,6 +1,6 @@
 # 前端交互逻辑
 
-`logic` 是给程序员的规范接口（纯 TS）。业务基类叫 **`EntityLogic`**（CRUD + 视图钩子，无 Vue；不要叫 `EntityManager` / `RepositoryLogic`）。vui 的 `VueEntityLogic` 只做响应式扩展，业务类 `extends EntityLogic`。回调类型在 [`logic_functions.ts`](./logic/logic_functions.md)。字段行为见 [`field_logic.ts`](./logic/field_logic.md)。引用过滤用 `refWhere` 叠加，与元数据 `where` AND，不要写回 `MetaUiField`。命名见仓库 [术语与命名](../../../docs/naming.md)。
+`logic` 是给程序员的规范接口（纯 TS）。业务基类叫 **`EntityLogic`**（CRUD + 视图钩子，无 Vue；不要叫 `EntityManager` / `RepositoryLogic`）。vui 的 `VueEntityLogic` 只给壳 `new`，业务类 `extends EntityLogic`。设计 [entity_logic_design.md](./logic/entity_logic_design.md)，用法 [entity_logic_usage.md](./logic/entity_logic_usage.md)。vui 壳 [logic.md](../../vui/docs/logic.md)。回调类型在 [`logic_functions.ts`](./logic/logic_functions.md)。字段行为见 [`field_logic.ts`](./logic/field_logic.md)。引用过滤用 `refWhere` 叠加，与元数据 `where` AND，不要写回 `MetaUiField`。命名见仓库 [术语与命名](../../../docs/naming.md)。
 
 详见 [index.md](./index.md) 与 [core_architecture.md](./core_architecture.md)。
 

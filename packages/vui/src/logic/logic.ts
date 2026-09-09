@@ -5,7 +5,6 @@ import {
   beforeView,
   clearView,
   type Entity,
-  type EntityCtor,
   type EntityLogicInit,
   type EntitySearchForm,
   type UiLogicAfterFn,
@@ -40,20 +39,10 @@ export {
   type UiViewOptions,
 };
 
-/** @deprecated 使用 EntityLogicInit；不再含 router / i18n。 */
-export type UiLogicInit = EntityLogicInit;
-
-/** @deprecated 使用 EntityLogic；业务应 extends EntityLogic。 */
-export const UiLogic = EntityLogic;
-/** @deprecated 使用 EntityLogic。 */
-export type UiLogic<E extends Entity> = EntityLogic<E>;
-
 export interface UiSearchForm extends EntitySearchForm {
   searchFields: Array<UiSearchField>;
   customSearchFields: Array<UiCustomSearchField>;
 }
-
-export type BoolFn = () => boolean;
 
 export interface WatchFn {
   cb: WatchCallback;
@@ -61,10 +50,11 @@ export interface WatchFn {
 }
 
 /**
- * vui 专用：搜索表单响应式包装。业务类不要继承本类。
+ * vui 壳用的默认可实例化 Logic：搜索表单 `rx`。业务类不要继承本类。
+ * 无定制仓库、跨服务 select、分类树走 `new VueEntityLogic(...)`。
  * 路由挂在 VueUiContext / app，不在 Logic 上。
  */
-export abstract class VueEntityLogic<E extends Entity> extends EntityLogic<E> {
+export class VueEntityLogic<E extends Entity = Entity> extends EntityLogic<E> {
   protected createSearchForm(): UiSearchForm {
     return {
       searchParam: rx(createDefaultSearchParam()),
@@ -76,12 +66,5 @@ export abstract class VueEntityLogic<E extends Entity> extends EntityLogic<E> {
 
   beforeSearch(): UiSearchForm {
     return super.beforeSearch() as UiSearchForm;
-  }
-}
-
-/** 无定制字段逻辑时的默认实现，供通用 CRUD 页与跨服务 select 使用 */
-export class GenericUiLogic<E extends Entity = Entity> extends VueEntityLogic<E> {
-  constructor(createEntity: EntityCtor<E>, init: EntityLogicInit) {
-    super(createEntity, init);
   }
 }

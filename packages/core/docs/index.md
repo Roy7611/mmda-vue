@@ -9,6 +9,8 @@
 - [布局设计](./ui/layout.md) / [怎么写](../../vui/docs/layout_usage.md)
 - [UiBuilder：程序员怎么写](./ui/ui_builder_usage.md)
 - [UiContext：程序员怎么写](./logic/ui_context_usage.md)
+- [EntityLogic 重构设计](./logic/entity_logic_design.md)
+- [EntityLogic：程序员怎么写](./logic/entity_logic_usage.md)
 - [vui 会话设计（VueUiContext）](../../vui/docs/vue_ui_context.md)
 - [vui 会话：程序员怎么写](../../vui/docs/context.md)
 - [MetaUiBuilder](./metaui/metaui_builder.md)
@@ -40,6 +42,8 @@
 - [ui_context.ts](./logic/ui_context.md)（类型在 `src/ui/context.ts`）
 - [ui_context_usage.md](./logic/ui_context_usage.md)
 - [entity_logic.ts](./logic/entity_logic.md)
+- [entity_logic_design.md](./logic/entity_logic_design.md)
+- [entity_logic_usage.md](./logic/entity_logic_usage.md)
 - [validation.ts](./logic/validation.md)
 - [validators/](./logic/validators.md)
 - [validator.md](./logic/validator.md)（内置名字）

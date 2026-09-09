@@ -25,7 +25,7 @@ i18n / keys          语言包、provide/inject token
         ↓
 MmdaVueApp           应用壳：DI、鉴权、locale；弹层在 app.ui（VueUiBuilder）
         ↓
-EntityLogic              实体在 UI 层的交互逻辑：beforeEdit / load / save，装配字段与组
+EntityLogic              实体交互逻辑（core）；vui 再导出。无定制页用 VueEntityLogic
         ↓
 VueUiContext         一实体一份 Vue 会话（实现 core 的 UiContext；含查询与 IO）
         ↓
@@ -119,14 +119,14 @@ const context = new VueUiContext({
 await context.init()
 ```
 
-无定制字段逻辑时用 `GenericUiLogic`。换皮肤只换 Builder（如 `PrimeVueUiBuilder` / `SyncfusionUiBuilder`），vui 其余代码不变。
+无定制字段逻辑时用 `VueEntityLogic`。换皮肤只换 Builder（如 `PrimeVueUiBuilder` / `SyncfusionUiBuilder`），vui 其余代码不变。
 
 ## 文档
 
 | 文档 | 内容 |
 |---|---|
 | [应用壳](./docs/application.md) | `MmdaVueApp`、`app.state`、鉴权、i18n |
-| [实体交互逻辑](./docs/logic.md) | `EntityLogic` / `GenericUiLogic` / `SubEntityLogic` |
+| [实体交互逻辑](./docs/logic.md) | `EntityLogic` / `VueEntityLogic` / `SubEntityLogic` |
 | [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |

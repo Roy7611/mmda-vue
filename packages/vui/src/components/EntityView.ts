@@ -27,7 +27,7 @@ import type { MmdaVueApp } from "../app/app";
 import type { VueUiBuilder } from "../ui/builder/builder";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
-import { GenericUiLogic, type EntityLogicInit } from "../logic/logic";
+import { VueEntityLogic, type EntityLogicInit } from "../logic/logic";
 import type { EntityLogic } from "@mmda/core";
 import {
   resolveSearchParam,
@@ -187,7 +187,7 @@ async function openEntityContext(
   const logic =
     injected ??
     (await options.createLogic(repository, init)) ??
-    new GenericUiLogic(defineEntity, init);
+    new VueEntityLogic(defineEntity, init);
   if (module) logic.module = module;
 
   const pack = await app.meta.getPack({ repository, service });

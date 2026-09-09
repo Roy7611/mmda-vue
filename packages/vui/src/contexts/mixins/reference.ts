@@ -155,8 +155,8 @@ export function WithReference<TBase extends Constructor>(
         param.ctor ??
         ((source: object) =>
           MetaModel.createEntity(pack.metaUi, defineEntity, source) as T);
-      const { GenericUiLogic } = await import("../../logic/logic");
-      const logic = new GenericUiLogic(ctor as any, {
+      const { VueEntityLogic } = await import("../../logic/logic");
+      const logic = new VueEntityLogic(ctor as any, {
         metaUiService: this.app.meta,
         repository: param.repository,
         meta: pack,

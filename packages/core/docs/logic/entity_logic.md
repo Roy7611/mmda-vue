@@ -5,7 +5,13 @@
 
 ## 职责
 
-`EntityLogic`：无 Vue 的 ApiClient + MetaModel CRUD，以及视图钩子 / `viewLogicLoaders` / `applyTo(UiContext)`。业务 `XxxLogic extends EntityLogic`（从 `@mmda/core` 或 `@mmda/vui` 再导出）。vui 的 `VueEntityLogic` 只做响应式搜索表单，业务不要继承。本文件再导出 field/group logic、`SubEntityLogic` 与 logic_functions。业务读写用本类方法，不要 `context.globalProps.$api`。面向用户文案用 `context.t()`。本仓库 `getAll` / `load`；别的仓库 `getAllOf<T>` / `loadOf<T>`；关联检索 `searchRelative<T>`。
+`EntityLogic`：无 Vue 的 ApiClient + MetaModel CRUD，以及视图钩子 / `viewLogicLoaders` / `applyTo(UiContext)`。
+
+- 设计：[entity_logic_design.md](./entity_logic_design.md)
+- 用法：[entity_logic_usage.md](./entity_logic_usage.md)
+- vui 壳：[../../vui/docs/logic.md](../../../vui/docs/logic.md)
+
+业务 `XxxLogic extends EntityLogic`。vui 的 `VueEntityLogic` 只给无定制页 `new`，业务不要继承。本文件再导出 field/group logic、`SubEntityLogic` 与 logic_functions。业务读写用本类方法，不要 `context.globalProps.$api`。面向用户文案用 `context.t()`。本仓库 `getAll` / `load`；别的仓库 `getAllOf<T>` / `loadOf<T>`；关联检索 `searchRelative<T>`。
 
 树下拉 / 分类树的 `getRoots` / `getChildren` **只写在父子结构的业务 Logic 上**。`EntityLogic` 不提供这两方法：不是每个实体都是树。
 

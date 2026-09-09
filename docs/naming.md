@@ -161,7 +161,7 @@ VueEntityLogic  （仅 vui）             搜索表单等响应式包装；业�
 
 程序员写的是 **实体 Logic**（`XxxLogic extends EntityLogic`），不是「仓库 Logic」。`repository` 只是该实体对应的 API / 元数据包主键。
 
-`EntityLogic` 在 `@mmda/core`：CRUD、视图装配与钩子，无 Vue。面向用户文案用 `context.t()`。vui 的 `VueEntityLogic` 只给壳用；无定制时用 `GenericUiLogic`。细则见 [Logic](#logic)。
+`EntityLogic` 在 `@mmda/core`：CRUD、视图装配与钩子，无 Vue。面向用户文案用 `context.t()`。vui 的 `VueEntityLogic` 只给壳用（无定制仓库也可 `new VueEntityLogic`）。细则见 [Logic](#logic)。
 
 不要叫 **`EntityManager`**（ORM/Data 味道，且与 JPA 同名）。不要叫 **`RepositoryLogic`**（会和 `repository` 字符串、`createRepositoryLogic()` 搅在一起）。
 
@@ -221,7 +221,7 @@ packages/base/src/modules/materials/MaterialLogic.ts
 - 目录：`production_orders`、`quality_inspections`
 - 类：`ProductionOrderLogic`、`QualityInspectionLogic`
 - 子表：`SubEntityLogic`，挂在主表 Logic 上，例如 `MaterialPartnerLogic`
-- 无定制时用 `GenericUiLogic`，不要空类撑场面
+- 无定制时用 `VueEntityLogic`，不要空类撑场面
 
 **源文件大小写（vui / 皮肤）：**
 
@@ -244,7 +244,7 @@ packages/base/src/modules/materials/MaterialLogic.ts
 
 **Logic** 是横向分层里的交互层：显示、锁定、校验、引用加码、`onChange`、CRUD 前后拦截。程序员写 `XxxLogic.ts`。它不是皮肤、不是 `MetaUi`、不是 ViewModel / Store。
 
-写法见 vui [实体交互逻辑](../packages/vui/docs/logic.md)、core [前端交互逻辑](../packages/core/docs/logic.md)。
+写法见 core [EntityLogic 设计](../packages/core/docs/logic/entity_logic_design.md) / [怎么写](../packages/core/docs/logic/entity_logic_usage.md)、vui [壳](../packages/vui/docs/logic.md)。
 
 ### 类名与继承
 
@@ -252,16 +252,13 @@ packages/base/src/modules/materials/MaterialLogic.ts
 EntityLogic<E>          @mmda/core     CRUD + 视图钩子；无 Vue
     ↑
 MaterialLogic                          业务：该实体的交互逻辑
-VueEntityLogic          @mmda/vui      仅壳：响应式搜索表单（业务不继承）
-    ↑
-GenericUiLogic                         无定制时的默认实现
+VueEntityLogic          @mmda/vui      仅壳：响应式搜索表单；无定制也可 new（业务不继承）
 ```
 
 | 类 | 包 | 命名 | 是什么 |
 |---|---|---|---|
 | `EntityLogic` | core | 业务基类 | CRUD + 视图装配；`context.t()` 做文案 |
-| `VueEntityLogic` | vui | 不要业务继承 | 搜索表单 `rx` 等 Vue 扩展 |
-| `GenericUiLogic` | vui | — | 通用 CRUD / 跨服务 `select` |
+| `VueEntityLogic` | vui | 不要业务继承 | 搜索表单 `rx`；无定制 CRUD / 跨服务 `select` |
 | `SubEntityLogic` | core | `{子实体}Logic` | 子表，挂在主表 Logic 上 |
 | `MetaUiFieldLogic` | core | `this.field('x')` | 单字段 hide / lock / validate / 渲染 |
 | `MetaUiGroupLogic` | core | `this.group('y')` | 子表组行为 |
@@ -313,7 +310,7 @@ DI token 按**仓库**（实体复数）：`${service}:${repository}Logic`，例
 mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 ```
 
-无定制：`new GenericUiLogic(defineNote, init)`。子表：`addRelativeLogic('partNos', (master) => new MaterialPartnerLogic(this, master))`。
+无定制：`new VueEntityLogic(defineNote, init)`。子表：`addRelativeLogic('partNos', (master) => new MaterialPartnerLogic(this, master))`。
 
 ### 不要
 
@@ -321,7 +318,7 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 - 把 Vue/React 类型写进 `@mmda/core` 的 `EntityLogic` 或业务 `*Logic.ts`
 - 使用已删除的 `pickRelative` / `buildSearchForRelativeContent` / `confirmMessage` / `app.context`
 - 用 JS 过滤器代替 `refWhere`
-- 空的 `XxxLogic` 类撑场面（改用 `GenericUiLogic`）
+- 空的 `XxxLogic` 类撑场面（改用 `VueEntityLogic`）
 
 ---
 

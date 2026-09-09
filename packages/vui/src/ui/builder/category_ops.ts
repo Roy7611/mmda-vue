@@ -1,7 +1,7 @@
 import { defineEntity } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { resolveRepositoryModule } from "../../components/EntityView";
-import { GenericUiLogic } from "../../logic/logic";
+import { VueEntityLogic } from "../../logic/logic";
 import { categoryMoveParams } from "./tree_category";
 import {
   collectNodeAndDescendantIds,
@@ -27,7 +27,7 @@ export async function resolveCategoryTreeLogic(
   const token = `${service}:${repository}Logic`;
   try {
     const injected = await app?.di.injectAsync<
-      InstanceType<typeof GenericUiLogic>
+      InstanceType<typeof VueEntityLogic>
     >(token);
     if (injected) return injected;
   } catch {
@@ -35,7 +35,7 @@ export async function resolveCategoryTreeLogic(
   }
   const module =
     resolveRepositoryModule(app, repository) ?? app?.findModule(repository);
-  return new GenericUiLogic(defineEntity, {
+  return new VueEntityLogic(defineEntity, {
     metaUiService: app!.meta,
     repository,
     module,
