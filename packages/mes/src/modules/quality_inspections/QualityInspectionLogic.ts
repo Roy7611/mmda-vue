@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, MetaUiBuilder, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';
@@ -105,10 +105,10 @@ const beforeMaterialTransCreateRedirect = async (
 export const shouldBackfillFromQcs = (inspection?: QualityInspection, createRefName?: string) =>
 	!isProductionInspectionSource(inspection, createRefName);
 
-export class QualityInspectionLogic extends UiLogic<QualityInspection> {
+export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 	private taskMaterialRequestID = 0;
 	private qcPhaseAllOptions?: any[];
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineQualityInspection, init);
 		this.addRelativeLogic<QualityInspectionItem>('items', master => new QualityInspectionItemLogic(this, master));
 		this.addRelativeLogic<QualityInspectionMaterial>('materials', master => new QualityInspectionMaterialLogic(this, master));
@@ -645,17 +645,17 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
  * @param module 模块
  * @returns
  */
-export const QualityInspectionLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const QualityInspectionLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new QualityInspectionLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityInspections',
-		router,
+		
 		module: module || metaUiService.findModule('QualityInspection'),
 	});
 /**
  * 检验项交互逻辑
  */
-export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionItem, QualityInspection> {
+export class QualityInspectionItemLogic extends SubEntityLogic<QualityInspectionItem, QualityInspection> {
 	constructor(parent: QualityInspectionLogic, master: QualityInspection) {
 		super(defineQualityInspectionItem, parent, master, 'items');
 	}
@@ -822,7 +822,7 @@ export class QualityInspectionItemLogic extends UiGroupLogic<QualityInspectionIt
 /**
  * 检验物交互逻辑
  */
-export class QualityInspectionMaterialLogic extends UiGroupLogic<QualityInspectionMaterial, QualityInspection> {
+export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspectionMaterial, QualityInspection> {
 	constructor(parent: QualityInspectionLogic, master: QualityInspection) {
 		super(defineQualityInspectionMaterial, parent, master, 'materials');
 	}

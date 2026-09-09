@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 /**
  * 工作技能交互逻辑
@@ -18,8 +18,8 @@ import { type WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 	/**
 	 * 工作技能交互逻辑
 	 */
-	export class WorkingSkillLogic extends UiLogic<WorkingSkill>{
-		constructor(init: UiLogicInit){
+	export class WorkingSkillLogic extends EntityLogic<WorkingSkill>{
+		constructor(init: EntityLogicInit){
 			super(defineWorkingSkill,init);
 		}
 
@@ -63,10 +63,10 @@ import { type WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const WorkingSkillLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new WorkingSkillLogic({
+	export const WorkingSkillLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new WorkingSkillLogic({
 		metaUiService: metaUiService,
 		repository: 'WorkingSkills',
-		router,
+		
 		module: module || metaUiService.findModule('WorkingSkill'),
 	})
 	//#endregion ~GENERATED PARTS END

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Bank, defineBank } from '../../models/Bank';
 /**
  * 银行交互逻辑
@@ -18,8 +18,8 @@ import { type Bank, defineBank } from '../../models/Bank';
 /**
  * 银行交互逻辑
  */
-export class BankLogic extends UiLogic<Bank> {
-	constructor(init: UiLogicInit) {
+export class BankLogic extends EntityLogic<Bank> {
+	constructor(init: EntityLogicInit) {
 		super(defineBank, init);
 	}
 	beforeIndex(): UiLogicFnResult<Bank> {
@@ -71,10 +71,10 @@ export class BankLogic extends UiLogic<Bank> {
  * @param module 模块
  * @returns 
  */
-export const BankLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new BankLogic({
+export const BankLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new BankLogic({
 	metaUiService: metaUiService,
 	repository: 'Banks',
-	router,
+	
 	module: module || metaUiService.findModule('Bank'),
 })
 //#endregion ~GENERATED PARTS END

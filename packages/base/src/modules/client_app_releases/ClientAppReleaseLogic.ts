@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ClientAppRelease, defineClientAppRelease } from '../../models/ClientAppRelease';
 /**
  * 客户端应用发布交互逻辑
@@ -18,8 +18,8 @@ import { type ClientAppRelease, defineClientAppRelease } from '../../models/Clie
 	/**
 	 * 客户端应用发布交互逻辑
 	 */
-	export class ClientAppReleaseLogic extends UiLogic<ClientAppRelease>{
-		constructor(init: UiLogicInit){
+	export class ClientAppReleaseLogic extends EntityLogic<ClientAppRelease>{
+		constructor(init: EntityLogicInit){
 			super(defineClientAppRelease,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ClientAppRelease, defineClientAppRelease } from '../../models/Clie
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ClientAppReleaseLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ClientAppReleaseLogic({
+	export const ClientAppReleaseLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ClientAppReleaseLogic({
 		metaUiService: metaUiService,
 		repository: 'ClientAppReleases',
-		router,
+		
 		module: module || metaUiService.findModule('ClientAppRelease'),
 	})
 	//#endregion ~GENERATED PARTS END

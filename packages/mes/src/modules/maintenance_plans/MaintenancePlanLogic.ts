@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaintenancePlan, defineMaintenancePlan } from '@/models/MaintenancePlan';
 /**	/** 原有逻辑
  * import { MaintenanceFrequencyEnum, MaintenanceFrequency } from '@/enums/MaintenanceFrequency';
@@ -23,8 +23,8 @@ import { type MaintenancePlan, defineMaintenancePlan } from '@/models/Maintenanc
 	/**
 	 * 维护计划交互逻辑
 	 */
-	export class MaintenancePlanLogic extends UiLogic<MaintenancePlan>{
-		constructor(init: UiLogicInit){
+	export class MaintenancePlanLogic extends EntityLogic<MaintenancePlan>{
+		constructor(init: EntityLogicInit){
 			super(defineMaintenancePlan,init);
 		}
 		beforeIndex() {
@@ -82,10 +82,10 @@ import { type MaintenancePlan, defineMaintenancePlan } from '@/models/Maintenanc
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const MaintenancePlanLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new MaintenancePlanLogic({
+	export const MaintenancePlanLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new MaintenancePlanLogic({
 		metaUiService: metaUiService,
 		repository: 'MaintenancePlans',
-		router,
+		
 		module: module || metaUiService.findModule('MaintenancePlan'),
 	})
 	//#endregion ~GENERATED PARTS END

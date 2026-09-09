@@ -20,9 +20,9 @@ import {
   hasBit,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -41,8 +41,8 @@ import {
 /**
  * 计量单位交互逻辑
  */
-export class UnitLogic extends UiLogic<Unit> {
-  constructor(init: UiLogicInit) {
+export class UnitLogic extends EntityLogic<Unit> {
+  constructor(init: EntityLogicInit) {
     super(defineUnit, init);
     this.addRelativeLogic<UnitConversion>(
       "conversions",
@@ -174,19 +174,19 @@ export class UnitLogic extends UiLogic<Unit> {
  */
 export const UnitLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new UnitLogic({
     metaUiService: metaUiService,
     repository: "Units",
-    router,
+    
     module: module || metaUiService.findModule("Unit"),
   });
 /**
  * 单位转换交互逻辑
  */
-export class UnitConversionLogic extends UiGroupLogic<UnitConversion, Unit> {
+export class UnitConversionLogic extends SubEntityLogic<UnitConversion, Unit> {
   constructor(parent: UnitLogic, master: Unit) {
     super(defineUnitConversion, parent, master, "conversions");
   }

@@ -412,8 +412,8 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     }
 
     async doRedirectAction(action: EntityAction) {
-      if (!action.redirectTo || !this.logic?.router) return;
-      return this.logic.router.push(action.redirectTo);
+      if (!action.redirectTo || !this.router) return;
+      return this.router.push(action.redirectTo);
     }
 
     async print() {

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectInProgress, defineProjectInProgress } from '@/models/ProjectInProgress';
 /**
  * 在建项目交互逻辑
@@ -18,8 +18,8 @@ import { type ProjectInProgress, defineProjectInProgress } from '@/models/Projec
 	/**
 	 * 在建项目交互逻辑
 	 */
-	export class ProjectInProgressLogic extends UiLogic<ProjectInProgress>{
-		constructor(init: UiLogicInit){
+	export class ProjectInProgressLogic extends EntityLogic<ProjectInProgress>{
+		constructor(init: EntityLogicInit){
 			super(defineProjectInProgress,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ProjectInProgress, defineProjectInProgress } from '@/models/Projec
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProjectInProgressLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProjectInProgressLogic({
+	export const ProjectInProgressLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProjectInProgressLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectInProgresses',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectInProgress'),
 	})
 	//#endregion ~GENERATED PARTS END

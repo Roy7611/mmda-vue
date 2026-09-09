@@ -8,7 +8,7 @@
 import { useRouter } from 'vue-router';
 import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
 import { type BomItem, defineBomItem } from '@/models/BomItem';
 import { type BomItemOperation, defineBomItemOperation } from '@/models/BomItemOperation';
@@ -823,8 +823,8 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 /**
  * 物料清单交互逻辑cancelAlter
  */
-export class BomLogic extends UiLogic<Bom> {
-	constructor(init: UiLogicInit) {
+export class BomLogic extends EntityLogic<Bom> {
+	constructor(init: EntityLogicInit) {
 		super(defineBom, init);
 		this.addRelativeLogic<BomItem>('items', master => new BomItemLogic(this, master));
 
@@ -1195,17 +1195,17 @@ export class BomLogic extends UiLogic<Bom> {
  * @param module 模块
  * @returns
  */
-export const BomLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const BomLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new BomLogic({
 		metaUiService: metaUiService,
 		repository: 'Boms',
-		router,
+		
 		module: module || metaUiService.findModule('Bom'),
 	});
 /**
  * 物料清单交互逻辑
  */
-export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
+export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 	constructor(parent: BomLogic, master: Bom) {
 		super(defineBomItem, parent, master, 'items');
 		this.addRelativeLogic<BomItemOperation>('operations', master => new BomItemOperationLogic(this, master));
@@ -1483,7 +1483,7 @@ export class BomItemLogic extends UiGroupLogic<BomItem, Bom> {
 	}
 }
 
-export class BomItemOperationLogic extends UiGroupLogic<BomItemOperation, BomItem> {
+export class BomItemOperationLogic extends SubEntityLogic<BomItemOperation, BomItem> {
 	constructor(parent: BomItemLogic, master: BomItem) {
 		super(defineBomItemOperation, parent, master, 'operations');
 	}

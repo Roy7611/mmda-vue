@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkOrder, defineWorkOrder } from '@/models/WorkOrder';
 import { EmployeeStatus } from '@mmda/base/src/enums/EmployeeStatus';
 import { type WorkOrderMember, defineWorkOrderMember } from '@/models/WorkOrderMember';
@@ -43,8 +43,8 @@ const getDaysBetweenDates = (date1: any, date2: any) => {
 /**
  * 派工单交互逻辑
  */
-export class WorkOrderLogic extends UiLogic<WorkOrder> {
-	constructor(init: UiLogicInit) {
+export class WorkOrderLogic extends EntityLogic<WorkOrder> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorkOrder, init);
 		this.addRelativeLogic<WorkOrderMember>('members', (master) => new WorkOrderMemberLogic(this, master));
 
@@ -200,16 +200,16 @@ export class WorkOrderLogic extends UiLogic<WorkOrder> {
  * @param module 模块
  * @returns 
  */
-export const WorkOrderLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkOrderLogic({
+export const WorkOrderLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new WorkOrderLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkOrders',
-	router,
+	
 	module: module || metaUiService.findModule('WorkOrder'),
 })
 /**
  * 派工人员交互逻辑
  */
-export class WorkOrderMemberLogic extends UiGroupLogic<WorkOrderMember, WorkOrder> {
+export class WorkOrderMemberLogic extends SubEntityLogic<WorkOrderMember, WorkOrder> {
 	constructor(parent: WorkOrderLogic, master: WorkOrder) {
 		super(defineWorkOrderMember, parent, master, 'members')
 	}

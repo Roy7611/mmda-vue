@@ -5,8 +5,8 @@
  */
 
 import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, inFilter, defaultPager } from '@mmda/core'
-import type { UiLogicInit } from '@mmda/vui'
-import { UiLogic } from '@mmda/vui'
+import type { EntityLogicInit } from '@mmda/vui'
+import { EntityLogic } from '@mmda/vui'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage'
 import type { HomeKpi, Worker, Equipment, Material, ProductionChartData, SafetyAlert, EquipmentAlarm, TodaySummary, QcStats, EquipmentOverview, PendingNotification } from './types'
@@ -19,8 +19,8 @@ const searchParamSite = {
   searchParams: {},
 })
 
-export class HomeLogic extends UiLogic<CustomPage> {
-  constructor(init: UiLogicInit) {
+export class HomeLogic extends EntityLogic<CustomPage> {
+  constructor(init: EntityLogicInit) {
     super(defineCustomPage, init)
   }
 
@@ -373,10 +373,10 @@ export class HomeLogic extends UiLogic<CustomPage> {
   }
 }
 
-export const HomeLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const HomeLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
   new HomeLogic({
     metaUiService: metaUiService,
     repository: 'StationPortals',
-    router,
+    
     module: module || metaUiService.findModule('StationPortal'),
   })

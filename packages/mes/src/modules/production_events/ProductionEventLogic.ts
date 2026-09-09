@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSqlOperator } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionEvent, defineProductionEvent } from '@/models/ProductionEvent';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { ProductionEventPhoto, defineProductionEventPhoto } from '@/models/ProductionEventPhoto';
@@ -20,8 +20,8 @@ import { ProductionEventPhoto, defineProductionEventPhoto } from '@/models/Produ
 /**
  * 生产事件交互逻辑
  */
-export class ProductionEventLogic extends UiLogic<ProductionEvent> {
-	constructor(init: UiLogicInit) {
+export class ProductionEventLogic extends EntityLogic<ProductionEvent> {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionEvent, init);
 		this.addRelativeLogic<ProductionEventPhoto>('photos', master => new ProductionEventPhotoLogic(this, master));
 	}
@@ -150,18 +150,18 @@ export class ProductionEventLogic extends UiLogic<ProductionEvent> {
  * @param module 模块
  * @returns
  */
-export const ProductionEventLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionEventLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionEventLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionEvents',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionEvent'),
 	});
 //#endregion ~GENERATED PARTS END
 /**
  * 生产事件照片交互逻辑
  */
-export class ProductionEventPhotoLogic extends UiGroupLogic<ProductionEventPhoto, ProductionEvent> {
+export class ProductionEventPhotoLogic extends SubEntityLogic<ProductionEventPhoto, ProductionEvent> {
 	constructor(parent: ProductionEventLogic, master: ProductionEvent) {
 		super(defineProductionEventPhoto, parent, master, 'photos');
 	}

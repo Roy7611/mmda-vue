@@ -6,7 +6,7 @@
  *
  */
 import { DEFAULT_PAGE_SIZE, type EntitySearchParam, type MetaUiService, type Module, type MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialPackage, defineMaterialPackage } from '../../models/MaterialPackage';
 import { UsageStatus } from '../../enums/UsageStatus';
 
@@ -21,8 +21,8 @@ const disableEditIfUsed = (item: MaterialPackage) => {
  * @since 2024-07-17 07:38:58.0
  * @revision 2024-09-01 23:08:30.0
  */
-export class MaterialPackageLogic extends UiLogic<MaterialPackage> {
-	constructor(init: UiLogicInit) {
+export class MaterialPackageLogic extends EntityLogic<MaterialPackage> {
+	constructor(init: EntityLogicInit) {
 		super(defineMaterialPackage, init);
 		// 详情/编辑页加载后处理
 		this.afterLoad = (_context, model) => {
@@ -84,10 +84,10 @@ export class MaterialPackageLogic extends UiLogic<MaterialPackage> {
  * @param module 模块
  * @returns
  */
-export const MaterialPackageLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new MaterialPackageLogic({
+export const MaterialPackageLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new MaterialPackageLogic({
 	metaUiService: metaUiService,
 	repository: 'MaterialPackages',
-	router,
+	
 	module: module || metaUiService.findModule('MaterialPackage'),
 })
 //#endregion ~GENERATED PARTS END

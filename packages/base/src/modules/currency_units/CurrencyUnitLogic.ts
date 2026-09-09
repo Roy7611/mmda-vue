@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CurrencyUnit, defineCurrencyUnit } from '../../models/CurrencyUnit';
 /**
  * 货币单位交互逻辑
@@ -18,8 +18,8 @@ import { type CurrencyUnit, defineCurrencyUnit } from '../../models/CurrencyUnit
 /**
  * 货币单位交互逻辑
  */
-export class CurrencyUnitLogic extends UiLogic<CurrencyUnit> {
-	constructor(init: UiLogicInit) {
+export class CurrencyUnitLogic extends EntityLogic<CurrencyUnit> {
+	constructor(init: EntityLogicInit) {
 		super(defineCurrencyUnit, init);
 	}
 	beforeIndex(): UiLogicFnResult<CurrencyUnit> {
@@ -71,10 +71,10 @@ export class CurrencyUnitLogic extends UiLogic<CurrencyUnit> {
  * @param module 模块
  * @returns 
  */
-export const CurrencyUnitLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new CurrencyUnitLogic({
+export const CurrencyUnitLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new CurrencyUnitLogic({
 	metaUiService: metaUiService,
 	repository: 'CurrencyUnits',
-	router,
+	
 	module: module || metaUiService.findModule('CurrencyUnit'),
 })
 //#endregion ~GENERATED PARTS END

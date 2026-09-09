@@ -135,6 +135,19 @@ export function resolveSearchParam(
 
 export type UiViewType = UiViewOneType | UiViewManyType
 
+/** 移动端列表项展示约定（无框架依赖）。 */
+export interface UniListViewProps {
+  titleKey?: string
+  subtitle?: string | ((data: any) => string) | undefined
+  subtitleKey?: string
+  noteKey?: string
+  thumbKey?: string
+  thumbSize?: string
+  showImage?: boolean
+  imageKey?: string
+  showSearch?: boolean
+}
+
 export interface UiViewProps {
   showToolbar?: boolean
   primaryCols?: 2 | 3

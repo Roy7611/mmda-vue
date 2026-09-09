@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, inFilter, notInFilter, debounce, EntityUrlParam } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
 import { type MaterialTrans, defineMaterialTrans } from '@/models/MaterialTrans';
 import { type MaterialTransItem, defineMaterialTransItem } from '@/models/MaterialTransItem';
 import { type MaterialTransTool, defineMaterialTransTool } from '@/models/MaterialTransTool';
@@ -242,7 +242,7 @@ const beforeReceive = async (context: UiContext, model: MaterialTrans, action: E
 // 	repository: 'MaterialTranses',
 // 	detail: context.globalProps.$t('auth.TransportSuccess')
 // })
-export class MaterialTransLogic extends UiLogic<MaterialTrans> {
+export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 	/** 侧边栏移料原因列表（分页加载，首屏 30 条） */
 	transReasons = { value: [] };
 	/** 当前选中的移料原因，null 表示未筛选 */
@@ -257,7 +257,7 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
 	 */
 	private _debouncedRefreshList: (ctx: UiContext<MaterialTrans>) => void;
 
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineMaterialTrans, init);
 
 		// 300ms 防抖：末次选中变更后才刷新移料单列表
@@ -956,17 +956,17 @@ export class MaterialTransLogic extends UiLogic<MaterialTrans> {
  * @param module 模块
  * @returns
  */
-export const MaterialTransLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const MaterialTransLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new MaterialTransLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialTranses',
-		router,
+		
 		module: module || metaUiService.findModule('MaterialTrans'),
 	});
 /**
  * 移料清单交互逻辑
  */
-export class MaterialTransItemLogic extends UiGroupLogic<MaterialTransItem, MaterialTrans> {
+export class MaterialTransItemLogic extends SubEntityLogic<MaterialTransItem, MaterialTrans> {
 	constructor(parent: MaterialTransLogic, master: MaterialTrans) {
 		super(defineMaterialTransItem, parent, master, 'items');
 	}
@@ -1021,7 +1021,7 @@ export class MaterialTransItemLogic extends UiGroupLogic<MaterialTransItem, Mate
 /**
  * 器具清单交互逻辑
  */
-export class MaterialTransToolLogic extends UiGroupLogic<MaterialTransTool, MaterialTrans> {
+export class MaterialTransToolLogic extends SubEntityLogic<MaterialTransTool, MaterialTrans> {
 	constructor(parent: MaterialTransLogic, master: MaterialTrans) {
 		super(defineMaterialTransTool, parent, master, 'tools');
 	}

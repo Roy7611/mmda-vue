@@ -7,7 +7,7 @@
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, inFilter, notInFilter, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
 import { processBpmnNode } from '@/components/BpmnModeler';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
 import { type ProcessRoute, defineProcessRoute } from '@/models/ProcessRoute';
@@ -31,8 +31,8 @@ import { type MaterialCat, defineMaterialCat } from '@mmda/base/src/models/Mater
  * @since 2024-08-07 10:30:04.0
  * @revision 2024-09-01 23:04:29.0
  */
-export class ProcessLogic extends UiLogic<Process> {
-	constructor(init: UiLogicInit) {
+export class ProcessLogic extends EntityLogic<Process> {
+	constructor(init: EntityLogicInit) {
 		super(defineProcess, init);
 		this.addRelativeLogic<ProcessOperation>('operations', master => new ProcessOperationLogic(this, master));
 		this.addRelativeLogic<ProcessRoute>('routes', master => new ProcessRouteLogic(this, master));
@@ -1085,17 +1085,17 @@ export class ProcessLogic extends UiLogic<Process> {
  * @param module 模块
  * @returns
  */
-export const ProcessLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProcessLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProcessLogic({
 		metaUiService: metaUiService,
 		repository: 'Processes',
-		router,
+		
 		module: module || metaUiService.findModule('Process'),
 	});
 /**
  * 工序交互逻辑
  */
-export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Process> {
+export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Process> {
 	constructor(parent: ProcessLogic, master: Process) {
 		super(defineProcessOperation, parent, master, 'operations');
 		this.addRelativeLogic<ProcessOperationResource>('resources', master => new ProcessOperationResourceLogic(this, master));
@@ -1385,7 +1385,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 /**
  * 资源池交互逻辑
  */
-export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperationResource, ProcessOperation> {
+export class ProcessOperationResourceLogic extends SubEntityLogic<ProcessOperationResource, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationResource, parent, master, 'resources');
 	}
@@ -1436,7 +1436,7 @@ export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperation
 /**
  * 报警交互逻辑
  */
-export class ProcessOperationAlarmLogic extends UiGroupLogic<ProcessOperationAlarm, ProcessOperation> {
+export class ProcessOperationAlarmLogic extends SubEntityLogic<ProcessOperationAlarm, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationAlarm, parent, master, 'alarms');
 	}
@@ -1444,7 +1444,7 @@ export class ProcessOperationAlarmLogic extends UiGroupLogic<ProcessOperationAla
 /**
  * 参数交互逻辑
  */
-export class ProcessOperationParamLogic extends UiGroupLogic<ProcessOperationParam, ProcessOperation> {
+export class ProcessOperationParamLogic extends SubEntityLogic<ProcessOperationParam, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationParam, parent, master, 'params');
 	}
@@ -1452,7 +1452,7 @@ export class ProcessOperationParamLogic extends UiGroupLogic<ProcessOperationPar
 /**
  * 图表交互逻辑
  */
-export class ProcessOperationChartLogic extends UiGroupLogic<ProcessOperationChart, ProcessOperation> {
+export class ProcessOperationChartLogic extends SubEntityLogic<ProcessOperationChart, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationChart, parent, master, 'charts');
 	}
@@ -1460,7 +1460,7 @@ export class ProcessOperationChartLogic extends UiGroupLogic<ProcessOperationCha
 /**
  * 路线交互逻辑
  */
-export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
+export class ProcessRouteLogic extends SubEntityLogic<ProcessRoute, Process> {
 	constructor(parent: ProcessLogic, master: Process) {
 		super(defineProcessRoute, parent, master, 'routes');
 	}
@@ -1557,7 +1557,7 @@ export class ProcessRouteLogic extends UiGroupLogic<ProcessRoute, Process> {
 /**
  * 产线交互逻辑
  */
-export class ProcessLineLogic extends UiGroupLogic<ProcessLine, Process> {
+export class ProcessLineLogic extends SubEntityLogic<ProcessLine, Process> {
 	constructor(parent: ProcessLogic, master: Process) {
 		super(defineProcessLine, parent, master, 'lines');
 	}

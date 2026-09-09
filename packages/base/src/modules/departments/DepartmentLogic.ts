@@ -18,9 +18,9 @@ import {
   isNullOrUndefined,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
 } from "@mmda/vui";
 import { type Department, defineDepartment } from "../../models/Department";
@@ -37,8 +37,8 @@ import { EmployeeStatus } from "../../enums/EmployeeStatus";
 /**
  * 部门交互逻辑
  */
-export class DepartmentLogic extends UiLogic<Department> {
-  constructor(init: UiLogicInit) {
+export class DepartmentLogic extends EntityLogic<Department> {
+  constructor(init: EntityLogicInit) {
     super(defineDepartment, init);
     this.beforeSave = (
       context: UiContext,
@@ -164,13 +164,13 @@ export class DepartmentLogic extends UiLogic<Department> {
  */
 export const DepartmentLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new DepartmentLogic({
     metaUiService: metaUiService,
     repository: "Departments",
-    router,
+    
     module: module || metaUiService.findModule("Department"),
   });
 //#endregion ~GENERATED PARTS END

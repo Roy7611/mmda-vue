@@ -20,7 +20,7 @@ import {
 	defaultPager,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, getFileInfo, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, getFileInfo, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type Doc, defineDoc } from '@/models/Doc';
 import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';
@@ -174,11 +174,11 @@ const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: Entity
 /**
  * 文档交互逻辑
  */
-export class DocLogic extends UiLogic<Doc> {
+export class DocLogic extends EntityLogic<Doc> {
 	static getAll() {
 		throw new Error('Method not implemented.');
 	}
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineDoc, init);
 		this.addRelativeLogic<DocAudit>('audits', master => new DocAuditLogic(this, master));
 		this.addRelativeLogic<DocShare>('shares', master => new DocShareLogic(this, master));
@@ -463,17 +463,17 @@ export class DocLogic extends UiLogic<Doc> {
  * @param module 模块
  * @returns
  */
-export const DocLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const DocLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new DocLogic({
 		metaUiService: metaUiService,
 		repository: 'Docs',
-		router,
+		
 		module: module || metaUiService.findModule('Doc'),
 	});
 /**
  * 访问记录交互逻辑
  */
-export class DocAuditLogic extends UiGroupLogic<DocAudit, Doc> {
+export class DocAuditLogic extends SubEntityLogic<DocAudit, Doc> {
 	constructor(parent: DocLogic, master: Doc) {
 		super(defineDocAudit, parent, master, 'audits');
 	}
@@ -481,7 +481,7 @@ export class DocAuditLogic extends UiGroupLogic<DocAudit, Doc> {
 /**
  * 分享交互逻辑
  */
-export class DocShareLogic extends UiGroupLogic<DocShare, Doc> {
+export class DocShareLogic extends SubEntityLogic<DocShare, Doc> {
 	constructor(parent: DocLogic, master: Doc) {
 		super(defineDocShare, parent, master, 'shares');
 	}

@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type MaterialHandlingJob, defineMaterialHandlingJob } from '@/models/MaterialHandlingJob';
 import { type MaterialHandlingJobStep, defineMaterialHandlingJobStep } from '@/models/MaterialHandlingJobStep';
 import { type MaterialHandlingJobRelation, defineMaterialHandlingJobRelation } from '@/models/MaterialHandlingJobRelation';
@@ -37,8 +37,8 @@ const getTimes = (startTime: any, endTime: any) => {
 	const totalTime2 = h2 * 3600 + m2 * 60
 	return totalTime2 - totalTime1
 }
-export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
-	constructor(init: UiLogicInit) {
+export class MaterialHandlingJobLogic extends EntityLogic<MaterialHandlingJob> {
+	constructor(init: EntityLogicInit) {
 		super(defineMaterialHandlingJob, init);
 		this.addRelativeLogic<MaterialHandlingJobStep>('steps', (master) => new MaterialHandlingJobStepLogic(this, master));
 		this.addRelativeLogic<MaterialHandlingJobRelation>('relations', (master) => new MaterialHandlingJobRelationLogic(this, master));
@@ -175,16 +175,16 @@ export class MaterialHandlingJobLogic extends UiLogic<MaterialHandlingJob> {
  * @param module 模块
  * @returns 
  */
-export const MaterialHandlingJobLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new MaterialHandlingJobLogic({
+export const MaterialHandlingJobLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new MaterialHandlingJobLogic({
 	metaUiService: metaUiService,
 	repository: 'MaterialHandlingJobs',
-	router,
+	
 	module: module || metaUiService.findModule('MaterialHandlingJob'),
 })
 /**
  * 作业步骤交互逻辑
  */
-export class MaterialHandlingJobStepLogic extends UiGroupLogic<MaterialHandlingJobStep, MaterialHandlingJob> {
+export class MaterialHandlingJobStepLogic extends SubEntityLogic<MaterialHandlingJobStep, MaterialHandlingJob> {
 	constructor(parent: MaterialHandlingJobLogic, master: MaterialHandlingJob) {
 		super(defineMaterialHandlingJobStep, parent, master, 'steps')
 	}
@@ -192,7 +192,7 @@ export class MaterialHandlingJobStepLogic extends UiGroupLogic<MaterialHandlingJ
 /**
  * 作业关系交互逻辑
  */
-export class MaterialHandlingJobRelationLogic extends UiGroupLogic<MaterialHandlingJobRelation, MaterialHandlingJob> {
+export class MaterialHandlingJobRelationLogic extends SubEntityLogic<MaterialHandlingJobRelation, MaterialHandlingJob> {
 	constructor(parent: MaterialHandlingJobLogic, master: MaterialHandlingJob) {
 		super(defineMaterialHandlingJobRelation, parent, master, 'relations')
 	}

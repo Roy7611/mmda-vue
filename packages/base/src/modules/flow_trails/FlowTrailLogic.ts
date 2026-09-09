@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
 /**
  * 流程追踪交互逻辑
@@ -18,8 +18,8 @@ import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
 	/**
 	 * 流程追踪交互逻辑
 	 */
-	export class FlowTrailLogic extends UiLogic<FlowTrail>{
-		constructor(init: UiLogicInit){
+	export class FlowTrailLogic extends EntityLogic<FlowTrail>{
+		constructor(init: EntityLogicInit){
 			super(defineFlowTrail,init);
 		}
 
@@ -63,10 +63,10 @@ import { type FlowTrail, defineFlowTrail } from '../../models/FlowTrail';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const FlowTrailLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new FlowTrailLogic({
+	export const FlowTrailLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new FlowTrailLogic({
 		metaUiService: metaUiService,
 		repository: 'FlowTrails',
-		router,
+		
 		module: module || metaUiService.findModule('FlowTrail'),
 	})
 	//#endregion ~GENERATED PARTS END

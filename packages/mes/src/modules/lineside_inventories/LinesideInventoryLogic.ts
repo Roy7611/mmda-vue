@@ -23,7 +23,7 @@ import {
 	EntityAction,
 	type Pager,
 } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
@@ -62,12 +62,12 @@ const searchParamOrder= {
 	searchWord: '',
 	searchParams: {},
 });
-export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
+export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 	worksites = { value: [] };
 	selectedWorksite = { value: null };
 	quantityInStock = { value: 0 };
 
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineLinesideInventory, init);
 		this.addRelativeLogic<LinesideInventoryItem>('items', master => new LinesideInventoryItemLogic(this, master));
 
@@ -663,17 +663,17 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
  * @param module 模块
  * @returns
  */
-export const LinesideInventoryLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const LinesideInventoryLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new LinesideInventoryLogic({
 		metaUiService: metaUiService,
 		repository: 'LinesideInventories',
-		router,
+		
 		module: module || metaUiService.findModule('LinesideInventory'),
 	});
 /**
  * 明细项交互逻辑
  */
-export class LinesideInventoryItemLogic extends UiGroupLogic<LinesideInventoryItem, LinesideInventory> {
+export class LinesideInventoryItemLogic extends SubEntityLogic<LinesideInventoryItem, LinesideInventory> {
 	constructor(parent: LinesideInventoryLogic, master: LinesideInventory) {
 		super(defineLinesideInventoryItem, parent, master, 'items');
 	}

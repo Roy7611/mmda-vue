@@ -2,7 +2,7 @@ import { ApiClient, type EntityUrlParam } from "../net/api_client";
 import { ApiProblem, toApiProblem } from "../net/api_problem";
 import { ApiError, isApiErrorPayload, toApiError } from "../net/api_error";
 import { isObject, isNullObject } from "../utils/is";
-import { Entity, type EntityCtor, type EntitySearchParam } from "../models/entity";
+import { Entity, type EntityCtor, type EntitySearchParam, type SelectableFn } from "../models/entity";
 import {
   MetaModel,
   defaultEntitySimplifyOptions,
@@ -10,12 +10,20 @@ import {
   type EntitySimplifyOptions,
 } from "../models/metamodel";
 import type { PagedList } from "../models/pagination";
-import { DEFAULT_PAGE_SIZE } from "../models/pagination";
+import { DEFAULT_PAGE_SIZE, NO_PAGINATION } from "../models/pagination";
 import type { EntityAction } from "../metaui/metaui_action";
+import type { MetaUiGroup } from "../metaui/metaui_group";
 import { MetaUiFieldLogic } from "./field_logic";
 import { MetaUiGroupLogic } from "./group_logic";
 import type { MetaUiPack, MetaUiService } from "../metaui/metaui_service";
 import type { Module } from "../metaui/module";
+import type { UiContext } from "../ui/context";
+import type { UiValidation } from "./validation";
+import type { Predicate } from "./logic_functions";
+import type { UniListViewProps, UiViewType } from "../ui/view";
+import { getSqlOperator } from "./sql_operator";
+import { defaultSearchParam } from "../models/entity_search";
+import "../extensions/string_extensions";
 
 export interface EntityLogicInit {
   metaUiService: MetaUiService;
@@ -28,14 +36,63 @@ export interface EntityLogicInit {
   apiService?: string;
 }
 
+/** 搜索栏装配结果；searchFields 元素由 UI 壳提供（vui 为 UiSearchField）。 */
+export interface EntitySearchForm {
+  searchParam?: EntitySearchParam;
+  queryParams?: Record<string, any>;
+  searchFields: any[];
+  customSearchFields: any[];
+}
+
+export type UiViewOptions = Partial<
+  Record<UiViewType, (ctx: UiContext) => Record<string, any>>
+>;
+
+export const beforeView = (viewType: string) =>
+  `before${viewType.firstLetterUpper()}`;
+export const clearView = (viewType: string) =>
+  `clear${viewType.firstLetterUpper()}Logic`;
+
+export type UiLogicFnResult<E> = {
+  fields: MetaUiFieldLogic<E>[];
+  groups: MetaUiGroupLogic<E, any>[];
+  customActions: EntityAction[];
+};
+export type UiLogicFn<E> = () => UiLogicFnResult<E>;
+export type UiViewLogicModule<E> =
+  | UiLogicFn<E>
+  | Record<string, UiLogicFn<E> | unknown>;
+export type UiViewLogicLoader<E> = () => Promise<UiViewLogicModule<E>>;
+
+export type UiLogicBeforeFn<E> = (
+  context: UiContext,
+  model?: E,
+  ...args: any[]
+) => Promise<boolean>;
+export type UiLogicAfterFn<E> = (
+  context: UiContext,
+  model: E,
+  action?: EntityAction,
+  apiResultOrError?: unknown,
+) => any;
+export type UiLogicManyBeforeFn<E> = (
+  context: UiContext,
+  models: E[],
+  ...args: any[]
+) => Promise<boolean>;
+export type UiLogicManyAfterFn<E> = (
+  context: UiContext,
+  models: E[],
+  ...args: any[]
+) => void;
+
 /**
- * Entity Logic base: ApiClient + MetaModel CRUD, no Vue.
- * vui UiLogic extends this (router / view wiring).
+ * Entity Logic：ApiClient + MetaModel CRUD + 视图钩子装配。无 Vue。
  *
  * Data 通道：
- * - 实体 CRUD / 动作：用本类方法或 `this.apiClient`（不要在 Logic 再包一层 get/doAction）。
- * - `context.apiClient` 与 `this.apiClient` 同一实例，给会话/UI 助手（联想、选仓库等）；
- *   业务 Logic 不要绕过本类方法去直接打实体 CRUD。
+ * - 实体 CRUD / 动作：用本类方法或 `this.apiClient`。
+ * - `context.apiClient` 与 `this.apiClient` 同一实例。
+ * - 面向用户文案用 `context.t()`（vui 由 VueUiContext 实现）。
  */
 export abstract class EntityLogic<E extends Entity> {
   meta: MetaUiPack;
@@ -47,6 +104,57 @@ export abstract class EntityLogic<E extends Entity> {
   readonly isChild: boolean;
   readonly customPage: boolean;
   readonly apiService?: string;
+
+  listViewProps?: UniListViewProps;
+  viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
+  viewOptions?: UiViewOptions;
+
+  private readonly relativeLogics: Record<
+    string,
+    (master: E) => SubEntityLogic<any, E>
+  >;
+  private searchForm?: EntitySearchForm;
+
+  private editFields?: MetaUiFieldLogic<E>[];
+  private editGroups?: MetaUiGroupLogic<E, any>[];
+  private editActions?: EntityAction[];
+  private detailsFields?: MetaUiFieldLogic<E>[];
+  private detailsGroups?: MetaUiGroupLogic<E, any>[];
+  private detailsActions?: EntityAction[];
+  private listFields?: MetaUiFieldLogic<E>[];
+  private listGroups?: MetaUiGroupLogic<E, any>[];
+  private listActions?: EntityAction[];
+  private selectManyFields?: MetaUiFieldLogic<E>[];
+  private selectManyGroups?: MetaUiGroupLogic<E, any>[];
+  private selectManyActions?: EntityAction[];
+  private readonly loadingViewLogics = new Map<UiViewType, Promise<void>>();
+
+  beforeLoad?: UiLogicBeforeFn<E>;
+  afterLoad?: UiLogicAfterFn<E>;
+  beforeValidate?: UiLogicBeforeFn<E>;
+  afterValidate?: (
+    context: UiContext,
+    model: E,
+    validation: UiValidation,
+  ) => Promise<number>;
+  beforeSave?: UiLogicBeforeFn<E>;
+  afterSave?: UiLogicAfterFn<E>;
+  beforeImport?: UiLogicBeforeFn<E>;
+  afterImport?: UiLogicAfterFn<E>;
+  beforePrint?: UiLogicBeforeFn<E>;
+  afterPrint?: UiLogicAfterFn<E>;
+  beforeUpload?: UiLogicBeforeFn<E>;
+  afterUpload?: UiLogicAfterFn<E>;
+  beforeAction?: UiLogicBeforeFn<E>;
+  afterAction?: UiLogicAfterFn<E>;
+  beforeDelete?: UiLogicBeforeFn<E>;
+  afterDelete?: UiLogicAfterFn<E>;
+  beforeDeleteAll?: UiLogicManyBeforeFn<E>;
+  afterDeleteAll?: UiLogicManyAfterFn<E>;
+  beforeResetFilters?: UiLogicManyBeforeFn<E>;
+  afterResetFilters?: UiLogicManyAfterFn<E>;
+  groupActionVisibles?: Record<string, Record<string, Predicate>>;
+  selectableList?: Record<string, SelectableFn<E>>;
 
   constructor(
     public readonly createEntity: EntityCtor<E>,
@@ -60,6 +168,92 @@ export abstract class EntityLogic<E extends Entity> {
     this.customPage = init.customPage ?? false;
     this.apiService = init.apiService;
     this.apiClient = this.metaUiService.getApiClient(this.repository);
+    this.relativeLogics = {};
+  }
+
+  get logicFields() {
+    return this.editFields || this.detailsFields || this.listFields || [];
+  }
+
+  getLogicField(fieldName: string) {
+    return this.logicFields.find((field) => field.field.fieldName === fieldName)
+      ?.field;
+  }
+
+  get searchParams() {
+    const fields = Object.fromEntries(
+      (this.searchForm?.searchFields ?? []).map((field) => [
+        field.field.fieldName,
+        field.hasVal
+          ? (getSqlOperator(field.currentOp)?.toSQL(field.searchValue) ?? "")
+          : "",
+      ]),
+    );
+    const custom = Object.fromEntries(
+      (this.searchForm?.customSearchFields ?? []).map((field) => [
+        field.searchParam,
+        field.hasVal ? field.searchValue : "",
+      ]),
+    );
+    return { ...fields, ...custom };
+  }
+
+  addRelativeLogic<R extends Entity>(
+    name: string,
+    logicCreator: (master: E) => SubEntityLogic<R, E>,
+  ) {
+    this.relativeLogics[name] = logicCreator;
+  }
+
+  createRelativeLogic<R extends Entity>(name: string, master: E) {
+    const logicCreator = this.relativeLogics[name];
+    return logicCreator ? (logicCreator(master) as SubEntityLogic<R, E>) : null;
+  }
+
+  getLogicFn(
+    view: UiViewType,
+    type: "before" | "clear" = "before",
+  ): UiLogicFn<E> {
+    return (this as any)[
+      type === "before" ? beforeView(view) : clearView(view)
+    ];
+  }
+
+  private resolveLogicView(view: UiViewType): UiViewType {
+    if (view === "create" || view === "editMany") return "edit";
+    if (view === "selectOne") return "index";
+    if (
+      view === "selectMany" &&
+      !this.viewLogicLoaders.selectMany &&
+      this.beforeSelectMany === EntityLogic.prototype.beforeSelectMany
+    ) {
+      return "index";
+    }
+    return view;
+  }
+
+  async ensureViewLogic(view: UiViewType): Promise<UiViewType> {
+    const logicView = this.resolveLogicView(view);
+    const loader = this.viewLogicLoaders[logicView];
+    if (!loader) return logicView;
+
+    let loading = this.loadingViewLogics.get(logicView);
+    if (!loading) {
+      loading = loader().then((loaded) => {
+        const methodName = beforeView(logicView);
+        if (typeof loaded === "function") {
+          (this as any)[methodName] = loaded;
+          return;
+        }
+        const method = loaded[methodName];
+        if (typeof method === "function") {
+          (this as any)[methodName] = method;
+        }
+      });
+      this.loadingViewLogics.set(logicView, loading);
+    }
+    await loading;
+    return logicView;
   }
 
   getModelTitle(model: E) {
@@ -106,6 +300,96 @@ export abstract class EntityLogic<E extends Entity> {
       );
     }
     return new MetaUiGroupLogic<E, G>(group);
+  }
+
+  /** vui 可覆盖以注入响应式包装。 */
+  protected createSearchForm(): EntitySearchForm {
+    return {
+      searchParam: defaultSearchParam(),
+      queryParams: {},
+      searchFields: [],
+      customSearchFields: [],
+    };
+  }
+
+  beforeSearch(): EntitySearchForm {
+    return (this.searchForm ??= this.createSearchForm());
+  }
+
+  beforeEdit(): UiLogicFnResult<E> {
+    this.editFields ??= [];
+    this.editGroups ??= [];
+    this.editActions ??= [];
+    return {
+      fields: this.editFields,
+      groups: this.editGroups,
+      customActions: this.editActions,
+    };
+  }
+
+  clearEditLogic() {
+    this.editFields = [];
+    this.editGroups = [];
+    this.editActions = [];
+  }
+
+  beforeDetails(): UiLogicFnResult<E> {
+    this.detailsFields ??= [];
+    this.detailsGroups ??= [];
+    this.detailsActions ??= [];
+    return {
+      fields: this.detailsFields,
+      groups: this.detailsGroups,
+      customActions: this.detailsActions,
+    };
+  }
+
+  clearDetailsLogic() {
+    this.detailsFields = [];
+    this.detailsGroups = [];
+    this.detailsActions = [];
+  }
+
+  beforeIndex(): UiLogicFnResult<E> {
+    this.listFields ??= [];
+    this.listGroups ??= [];
+    this.listActions ??= [];
+    return {
+      fields: this.listFields,
+      groups: this.listGroups,
+      customActions: this.listActions,
+    };
+  }
+
+  clearIndexLogic() {
+    this.listFields = [];
+    this.listGroups = [];
+    this.listActions = [];
+  }
+
+  beforeSelectMany(): UiLogicFnResult<E> {
+    this.selectManyFields ??= [];
+    this.selectManyGroups ??= [];
+    this.selectManyActions ??= [];
+    return {
+      fields: this.selectManyFields,
+      groups: this.selectManyGroups,
+      customActions: this.selectManyActions,
+    };
+  }
+
+  clearSelectManyLogic() {
+    this.selectManyFields = [];
+    this.selectManyGroups = [];
+    this.selectManyActions = [];
+  }
+
+  async applyTo(context: UiContext, view: UiViewType = "edit") {
+    const logicView = await this.ensureViewLogic(view);
+    const fn = this.getLogicFn(logicView);
+    if (!fn) return;
+    const { fields, groups, customActions } = fn.call(this);
+    context.bindLogics?.(fields, groups, customActions);
   }
 
   getSimplifyOptions(): EntitySimplifyOptions {
@@ -419,6 +703,89 @@ export abstract class EntityLogic<E extends Entity> {
 
   loadMetadata(repository: string, service?: string, reload = false) {
     return this.metaUiService.getPack({ repository, service }, reload);
+  }
+}
+
+export class SubEntityLogic<
+  G extends Entity,
+  P extends Entity,
+> extends EntityLogic<G> {
+  items: G[];
+  metaUiGroup: MetaUiGroup;
+
+  constructor(
+    defineGroupItem: EntityCtor<G>,
+    public readonly parent: EntityLogic<P>,
+    public readonly master: P,
+    public readonly groupName: string,
+  ) {
+    const { meta, metaUiService, module } = parent;
+    const metaUiGroup = meta.metaUi.getGroup(groupName)!;
+    super(defineGroupItem, {
+      module,
+      meta: { metaUi: metaUiGroup.groupUi! },
+      metaUiService: metaUiService,
+      repository: groupName,
+      isChild: true,
+      apiService: parent.apiService,
+    });
+    this.items = master[groupName] ?? [];
+    this.metaUiGroup = metaUiGroup;
+  }
+
+  getAll() {
+    return Promise.resolve({
+      pagination: NO_PAGINATION,
+      list: this.items,
+    });
+  }
+
+  create(param?: any) {
+    this.createParam = param;
+    return Promise.resolve(
+      MetaModel.createEntity(this.meta.metaUi, this.createEntity, param),
+    );
+  }
+
+  load(id: any) {
+    const e = this.items.find((it: any) => it.id == id);
+    return e ? Promise.resolve(e) : Promise.reject(Error(`${id} not found`));
+  }
+
+  delete(id: any) {
+    const idx = this.items.findIndex((it: any) => it.id == id);
+    if (idx >= 0)
+      return Promise.resolve(MetaModel.deleteItemByIndex(this.items, idx));
+    return Promise.reject(Error(`${id} not found`));
+  }
+
+  save(child: G) {
+    const idx = this.items.findIndex((it: any) => it.id == child.id);
+    if (idx >= 0) Object.assign(this.items[idx], child);
+    else {
+      Object.entries(this.metaUiGroup.joinFields ?? {}).forEach(([k, v]) => {
+        (child as any)[k] = this.master[v];
+      });
+      this.items.push(child);
+    }
+    return Promise.resolve(1);
+  }
+
+  async initMetadata(reload = false, params?: EntityUrlParam) {
+    if (params?.redirection) {
+      this.meta = await this.metaUiService.getPack(
+        Object.assign(
+          {},
+          { repository: this.repository, service: this.apiService },
+          params,
+        ),
+        reload,
+      );
+    } else {
+      this.metaUiGroup = this.parent.meta.metaUi.getGroup(this.groupName)!;
+      this.meta = { metaUi: this.metaUiGroup.groupUi! };
+    }
+    return this.meta;
   }
 }
 

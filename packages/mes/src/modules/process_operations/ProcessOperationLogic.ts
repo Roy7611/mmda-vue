@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
 import { type ProcessOperationResource, defineProcessOperationResource } from '@/models/ProcessOperationResource';
@@ -24,7 +24,7 @@ import { type ProcessLogic } from '@/modules/processes/ProcessLogic';
 /**
  * 制程工序交互逻辑
  */
-export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Process> {
+export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Process> {
 	constructor(parent: ProcessLogic, master: Process) {
 		// 		super(defineProcessOperation, parent, master, 'operations');
 		super(defineProcessOperation, parent, master, 'operations');
@@ -80,7 +80,7 @@ export class ProcessOperationLogic extends UiGroupLogic<ProcessOperation, Proces
 /**
 	 * 所需资源交互逻辑
 	 */
-export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperationResource, ProcessOperation> {
+export class ProcessOperationResourceLogic extends SubEntityLogic<ProcessOperationResource, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationResource, parent, master, 'resources')
 	}
@@ -88,7 +88,7 @@ export class ProcessOperationResourceLogic extends UiGroupLogic<ProcessOperation
 /**
 * 报警交互逻辑
 */
-export class ProcessOperationAlarmLogic extends UiGroupLogic<ProcessOperationAlarm, ProcessOperation> {
+export class ProcessOperationAlarmLogic extends SubEntityLogic<ProcessOperationAlarm, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationAlarm, parent, master, 'alarms');
 	}
@@ -96,7 +96,7 @@ export class ProcessOperationAlarmLogic extends UiGroupLogic<ProcessOperationAla
 /**
  * 参数交互逻辑
  */
-export class ProcessOperationParamLogic extends UiGroupLogic<ProcessOperationParam, ProcessOperation> {
+export class ProcessOperationParamLogic extends SubEntityLogic<ProcessOperationParam, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationParam, parent, master, 'params');
 	}
@@ -104,7 +104,7 @@ export class ProcessOperationParamLogic extends UiGroupLogic<ProcessOperationPar
 /**
  * 图表交互逻辑
  */
-export class ProcessOperationChartLogic extends UiGroupLogic<ProcessOperationChart, ProcessOperation> {
+export class ProcessOperationChartLogic extends SubEntityLogic<ProcessOperationChart, ProcessOperation> {
 	constructor(parent: ProcessOperationLogic, master: ProcessOperation) {
 		super(defineProcessOperationChart, parent, master, 'charts');
 	}

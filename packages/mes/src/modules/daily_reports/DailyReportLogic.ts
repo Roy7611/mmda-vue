@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, defaultPager, MetaUiBuilder } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type DailyReport, defineDailyReport } from '@/models/DailyReport';
 import { type DailyReportTask, defineDailyReportTask } from '@/models/DailyReportTask';
 import { type DailyReportEvent, defineDailyReportEvent } from '@/models/DailyReportEvent';
@@ -34,8 +34,8 @@ const searchParam = {
 	searchParams: {}
 })
 const taskData = { value: [] }
-export class DailyReportLogic extends UiLogic<DailyReport> {
-	constructor(init: UiLogicInit) {
+export class DailyReportLogic extends EntityLogic<DailyReport> {
+	constructor(init: EntityLogicInit) {
 		super(defineDailyReport, init);
 		this.addRelativeLogic<DailyReportTask>('tasks', master => new DailyReportTaskLogic(this, master));
 		this.addRelativeLogic<DailyReportEvent>('events', master => new DailyReportEventLogic(this, master));
@@ -174,17 +174,17 @@ export class DailyReportLogic extends UiLogic<DailyReport> {
  * @param module 模块
  * @returns
  */
-export const DailyReportLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const DailyReportLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new DailyReportLogic({
 		metaUiService: metaUiService,
 		repository: 'DailyReports',
-		router,
+		
 		module: module || metaUiService.findModule('DailyReport'),
 	});
 /**
  * 任务进展交互逻辑
  */
-export class DailyReportTaskLogic extends UiGroupLogic<DailyReportTask, DailyReport> {
+export class DailyReportTaskLogic extends SubEntityLogic<DailyReportTask, DailyReport> {
 	constructor(parent: DailyReportLogic, master: DailyReport) {
 		super(defineDailyReportTask, parent, master, 'tasks');
 	}
@@ -265,7 +265,7 @@ const filterReportTasks = (tasks: any[], keyword?: string) => {
 		return label.includes(kw) || id.includes(kw);
 	});
 };
-export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyReport> {
+export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, DailyReport> {
 	constructor(parent: DailyReportLogic, master: DailyReport) {
 		super(defineDailyReportEvent, parent, master, 'events');
 	}
@@ -389,7 +389,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 /**
  * 照片交互逻辑
  */
-export class DailyReportPhotoLogic extends UiGroupLogic<DailyReportPhoto, DailyReport> {
+export class DailyReportPhotoLogic extends SubEntityLogic<DailyReportPhoto, DailyReport> {
 	constructor(parent: DailyReportLogic, master: DailyReport) {
 		super(defineDailyReportPhoto, parent, master, 'photos');
 	}

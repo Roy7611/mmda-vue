@@ -7,7 +7,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Address, defineAddress } from '../../models/Address';
 import { type Country } from '../../models/Country';
 
@@ -21,8 +21,8 @@ import { type Country } from '../../models/Country';
 /**
  * 常用地址交互逻辑
  */
-export class AddressLogic extends UiLogic<Address> {
-	constructor(init: UiLogicInit) {
+export class AddressLogic extends EntityLogic<Address> {
+	constructor(init: EntityLogicInit) {
 		super(defineAddress, init);
 		this.beforeSave = (context: UiContext, model: Address, action: EntityAction) => {
 			const { tel, email, telPrefix } = model
@@ -113,10 +113,10 @@ export class AddressLogic extends UiLogic<Address> {
  * @param module 模块
  * @returns 
  */
-export const AddressLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new AddressLogic({
+export const AddressLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new AddressLogic({
 	metaUiService: metaUiService,
 	repository: 'Addresses',
-	router,
+	
 	module: module || metaUiService.findModule('Address'),
 })
 //#endregion ~GENERATED PARTS END

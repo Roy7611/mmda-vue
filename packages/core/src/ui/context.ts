@@ -14,6 +14,7 @@ import type { UiValidation } from '../logic/validation'
 import type { ApiClient } from '../net/api_client'
 import type { UiBuilder } from './builder'
 import type { MmdaApplication } from '../mmda_app'
+import type { EntityAction } from '../metaui/metaui_action'
 
 export type UiSelectionMode = 'single' | 'multiple' | 'none' | undefined | ''
 
@@ -150,4 +151,11 @@ export interface UiContext<M extends object = any> {
     handleFn: (...args: any[]) => unknown,
   ): void
   addQueryParam?(name: string, value: any): void
+
+  /** 把视图 Field/Group Logic 与自定义动作绑到当前会话。 */
+  bindLogics?(
+    fields?: MetaUiFieldLogic<any>[],
+    groups?: MetaUiGroupLogic<any, any>[],
+    customActions?: EntityAction[],
+  ): void
 }

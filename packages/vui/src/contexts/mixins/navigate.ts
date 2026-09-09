@@ -68,8 +68,8 @@ export function WithNavigate<TBase extends Constructor>(
     }
 
     routeTo(view: UiViewType, id?: string) {
-      const router = this.logic?.router;
-      if (!router) return;
+      const router = this.router;
+      if (!router || !this.logic) return;
       const service = (this.logic.serviceName ?? "base").toUpperCase();
       const repo = this.logic.repository;
       const root = `/${service}/${repo}`;

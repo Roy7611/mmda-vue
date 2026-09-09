@@ -265,12 +265,6 @@ export default {
     loginInvalid: "请输入用户名和密码",
     repositoryMissing: "未加载到仓库元数据：{repository}",
     fieldNoRef: "字段 {field} 未配置 refRepository",
-    logicNoMetaField:
-      "UiLogic[{repository}] 尚未加载元数据，无法配置字段 {field}",
-    logicMissingField: "UiLogic[{repository}] 元数据中不存在字段 {field}",
-    logicNoMetaGroup:
-      "UiLogic[{repository}] 尚未加载元数据，无法配置分组 {group}",
-    logicMissingGroup: "UiLogic[{repository}] 元数据中不存在分组 {group}",
   },
   warn: {
     uploadingWait: "正在上传文件...请稍候",

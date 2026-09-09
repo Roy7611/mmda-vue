@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Notice, defineNotice } from '../../models/Notice';
 /**
  * 通知交互逻辑
@@ -18,8 +18,8 @@ import { type Notice, defineNotice } from '../../models/Notice';
 	/**
 	 * 通知交互逻辑
 	 */
-	export class NoticeLogic extends UiLogic<Notice>{
-		constructor(init: UiLogicInit){
+	export class NoticeLogic extends EntityLogic<Notice>{
+		constructor(init: EntityLogicInit){
 			super(defineNotice,init);
 		}
 		beforeIndex(): UiLogicFnResult<Notice> {
@@ -75,10 +75,10 @@ import { type Notice, defineNotice } from '../../models/Notice';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const NoticeLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new NoticeLogic({
+	export const NoticeLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new NoticeLogic({
 		metaUiService: metaUiService,
 		repository: 'Notices',
-		router,
+		
 		module: module || metaUiService.findModule('Notice'),
 	})
 	//#endregion ~GENERATED PARTS END

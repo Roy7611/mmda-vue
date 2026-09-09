@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, isNullOrUndefined, MetaModel } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewMany } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewMany } from '@mmda/vui';
 import { type ProductionTask, defineProductionTask } from '@/models/ProductionTask';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
@@ -60,8 +60,8 @@ const getAllplan = async (context: UiContext, value?: any) => {
 /**
  * 生产任务交互逻辑
  */
-export class ProductionTaskLogic extends UiLogic<ProductionTask> {
-	constructor(init: UiLogicInit) {
+export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionTask, init);
 		this.addRelativeLogic<ProductionTaskFeeding>('feedings', master => new ProductionTaskFeedingLogic(this, master));
 	}
@@ -253,17 +253,17 @@ export class ProductionTaskLogic extends UiLogic<ProductionTask> {
  * @param module 模块
  * @returns
  */
-export const ProductionTaskLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionTaskLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionTaskLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionTasks',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionTask'),
 	});
 /**
  * 投料清单交互逻辑
  */
-export class ProductionTaskFeedingLogic extends UiGroupLogic<ProductionTaskFeeding, ProductionTask> {
+export class ProductionTaskFeedingLogic extends SubEntityLogic<ProductionTaskFeeding, ProductionTask> {
 	constructor(parent: ProductionTaskLogic, master: ProductionTask) {
 		super(defineProductionTaskFeeding, parent, master, 'feedings');
 	}

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Holiday, defineHoliday } from '../../models/Holiday';
 /**
  * 节假日交互逻辑
@@ -18,8 +18,8 @@ import { type Holiday, defineHoliday } from '../../models/Holiday';
 	/**
 	 * 节假日交互逻辑
 	 */
-	export class HolidayLogic extends UiLogic<Holiday>{
-		constructor(init: UiLogicInit){
+	export class HolidayLogic extends EntityLogic<Holiday>{
+		constructor(init: EntityLogicInit){
 			super(defineHoliday,init);
 		}
 
@@ -63,10 +63,10 @@ import { type Holiday, defineHoliday } from '../../models/Holiday';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const HolidayLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new HolidayLogic({
+	export const HolidayLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new HolidayLogic({
 		metaUiService: metaUiService,
 		repository: 'Holidays',
-		router,
+		
 		module: module || metaUiService.findModule('Holiday'),
 	})
 	//#endregion ~GENERATED PARTS END

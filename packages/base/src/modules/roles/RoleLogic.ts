@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Role, defineRole } from '../../models/Role';
 import { type RoleModuleAuth, defineRoleModuleAuth } from '../../models/RoleModuleAuth';
 import { type RoleDataAuth, defineRoleDataAuth } from '../../models/RoleDataAuth';
@@ -141,8 +141,8 @@ const editAuthorizedActions = (
 		},
 	});
 };
-export class RoleLogic extends UiLogic<Role> {
-	constructor(init: UiLogicInit) {
+export class RoleLogic extends EntityLogic<Role> {
+	constructor(init: EntityLogicInit) {
 		super(defineRole, init);
 		this.addRelativeLogic<RoleModuleAuth>('moduleAuths', master => new RoleModuleAuthLogic(this, master));
 		this.addRelativeLogic<RoleDataAuth>('dataAuths', master => new RoleDataAuthLogic(this, master));
@@ -260,17 +260,17 @@ export class RoleLogic extends UiLogic<Role> {
  * @param module 模块
  * @returns
  */
-export const RoleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const RoleLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new RoleLogic({
 		metaUiService: metaUiService,
 		repository: 'Roles',
-		router,
+		
 		module: module || metaUiService.findModule('Role'),
 	});
 /**
  * 功能权限交互逻辑
  */
-export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
+export class RoleModuleAuthLogic extends SubEntityLogic<RoleModuleAuth, Role> {
 	constructor(parent: RoleLogic, master: Role) {
 		super(defineRoleModuleAuth, parent, master, 'moduleAuths');
 	}
@@ -335,7 +335,7 @@ export class RoleModuleAuthLogic extends UiGroupLogic<RoleModuleAuth, Role> {
 /**
  * 数据权限交互逻辑
  */
-export class RoleDataAuthLogic extends UiGroupLogic<RoleDataAuth, Role> {
+export class RoleDataAuthLogic extends SubEntityLogic<RoleDataAuth, Role> {
 	constructor(parent: RoleLogic, master: Role) {
 		super(defineRoleDataAuth, parent, master, 'dataAuths');
 	}
@@ -343,7 +343,7 @@ export class RoleDataAuthLogic extends UiGroupLogic<RoleDataAuth, Role> {
 /**
  * UI权限交互逻辑
  */
-export class RoleUiAuthLogic extends UiGroupLogic<RoleUiAuth, Role> {
+export class RoleUiAuthLogic extends SubEntityLogic<RoleUiAuth, Role> {
 	constructor(parent: RoleLogic, master: Role) {
 		super(defineRoleUiAuth, parent, master, 'uiAuths');
 	}

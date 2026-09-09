@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worksite, defineWorksite } from '@/models/Worksite';
 /**
  * 工作中心交互逻辑
@@ -18,8 +18,8 @@ import { type Worksite, defineWorksite } from '@/models/Worksite';
 /**
  * 工作中心交互逻辑
  */
-export class WorksiteLogic extends UiLogic<Worksite> {
-	constructor(init: UiLogicInit) {
+export class WorksiteLogic extends EntityLogic<Worksite> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorksite, init);
 	}
 
@@ -63,11 +63,11 @@ export class WorksiteLogic extends UiLogic<Worksite> {
  * @param module 模块
  * @returns
  */
-export const WorksiteLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const WorksiteLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new WorksiteLogic({
 		metaUiService: metaUiService,
 		repository: 'Worksites',
-		router,
+		
 		module: module || metaUiService.findModule('Worksite'),
 	});
 //#endregion ~GENERATED PARTS END

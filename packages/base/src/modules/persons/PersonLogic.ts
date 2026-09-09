@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Person, definePerson } from '../../models/Person';
 /**
  * 人员交互逻辑
@@ -18,8 +18,8 @@ import { type Person, definePerson } from '../../models/Person';
 	/**
 	 * 人员交互逻辑
 	 */
-	export class PersonLogic extends UiLogic<Person>{
-		constructor(init: UiLogicInit){
+	export class PersonLogic extends EntityLogic<Person>{
+		constructor(init: EntityLogicInit){
 			super(definePerson,init);
 		}
 
@@ -63,10 +63,10 @@ import { type Person, definePerson } from '../../models/Person';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const PersonLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new PersonLogic({
+	export const PersonLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new PersonLogic({
 		metaUiService: metaUiService,
 		repository: 'Persons',
-		router,
+		
 		module: module || metaUiService.findModule('Person'),
 	})
 	//#endregion ~GENERATED PARTS END

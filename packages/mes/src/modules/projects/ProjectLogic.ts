@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel, MetaUiBuilder } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Project, defineProject } from '@/models/Project';
 import { type ProjectMember, defineProjectMember } from '@/models/ProjectMember';
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
@@ -302,8 +302,8 @@ const getDaysBetweenDates = (date1: any, date2: any) => {
 	return diffDays + 1;
 };
 
-export class ProjectLogic extends UiLogic<Project> {
-	constructor(init: UiLogicInit) {
+export class ProjectLogic extends EntityLogic<Project> {
+	constructor(init: EntityLogicInit) {
 		super(defineProject, init);
 
 		this.addRelativeLogic<ProjectMember>('members', master => new ProjectMemberLogic(this, master));
@@ -829,17 +829,17 @@ export class ProjectLogic extends UiLogic<Project> {
  * @param module 模块
  * @returns
  */
-export const ProjectLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectLogic({
 		metaUiService: metaUiService,
 		repository: 'Projects',
-		router,
+		
 		module: module || metaUiService.findModule('Project'),
 	});
 /**
  * 团队成员交互逻辑
  */
-export class ProjectMemberLogic extends UiGroupLogic<ProjectMember, Project> {
+export class ProjectMemberLogic extends SubEntityLogic<ProjectMember, Project> {
 	constructor(parent: ProjectLogic, master: Project) {
 		super(defineProjectMember, parent, master, 'members');
 	}
@@ -847,7 +847,7 @@ export class ProjectMemberLogic extends UiGroupLogic<ProjectMember, Project> {
 /**
  * 物料清单交互逻辑
  */
-export class ProjectMaterialLogic extends UiGroupLogic<ProjectMaterial, Project> {
+export class ProjectMaterialLogic extends SubEntityLogic<ProjectMaterial, Project> {
 	constructor(parent: ProjectLogic, master: Project) {
 		super(defineProjectMaterial, parent, master, 'materials');
 	}
@@ -888,7 +888,7 @@ export class ProjectMaterialLogic extends UiGroupLogic<ProjectMaterial, Project>
 /**
  * 交付物交互逻辑
  */
-export class ProjectDeliveryItemLogic extends UiGroupLogic<ProjectDeliveryItem, Project> {
+export class ProjectDeliveryItemLogic extends SubEntityLogic<ProjectDeliveryItem, Project> {
 	constructor(parent: ProjectLogic, master: Project) {
 		super(defineProjectDeliveryItem, parent, master, 'deliveryItems');
 	}

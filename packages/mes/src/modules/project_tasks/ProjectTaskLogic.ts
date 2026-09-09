@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined, type UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectTask, defineProjectTask } from '@/models/ProjectTask';
 import { stringify } from 'querystring';
 //计算两个天数之间的日期
@@ -31,8 +31,8 @@ const edTime = { value: null as any };
 /**
  * 项目任务交互逻辑
  */
-export class ProjectTaskLogic extends UiLogic<ProjectTask> {
-	constructor(init: UiLogicInit) {
+export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectTask, init);
 	}
 	async getChangeData(value: any) {
@@ -198,10 +198,10 @@ export class ProjectTaskLogic extends UiLogic<ProjectTask> {
  * @param module 模块
  * @returns 
  */
-export const ProjectTaskLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProjectTaskLogic({
+export const ProjectTaskLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ProjectTaskLogic({
 	metaUiService: metaUiService,
 	repository: 'ProjectTasks',
-	router,
+	
 	module: module || metaUiService.findModule('ProjectTask'),
 })
 //#endregion ~GENERATED PARTS END

@@ -3,7 +3,7 @@
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 import { isNullOrUndefined, type UiContext } from '@mmda/core';
-import { UiLogic, type UiLogicFnResult } from '@mmda/vui';
+import { EntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
 import type { BomItem } from '@/models/BomItem';
 import { BomType } from '@/enums/BomType';
@@ -13,7 +13,7 @@ import {
 } from './BomLogic';
 
 export function beforeDetails(this: BomLogic): UiLogicFnResult<Bom> {
-	const { fields, groups, customActions } = UiLogic.prototype.beforeDetails.call(this);
+	const { fields, groups, customActions } = EntityLogic.prototype.beforeDetails.call(this);
 	if (fields.length == 0) {
 		fields.push(
 			this.field('alternate').hideIf(model => model.bomType !== BomType.ALTERNATE),

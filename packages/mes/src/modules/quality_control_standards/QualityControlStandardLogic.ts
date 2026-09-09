@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type QualityControlStandard, defineQualityControlStandard } from '@/models/QualityControlStandard';
 import { type QualityControlStandardItem, defineQualityControlStandardItem } from '@/models/QualityControlStandardItem';
 import { QualityInspectionMethod } from '@/enums/QualityInspectionMethod';
@@ -21,8 +21,8 @@ import { QualityInspectionMethod } from '@/enums/QualityInspectionMethod';
 /**
  * 质量控制标准交互逻辑
  */
-export class QualityControlStandardLogic extends UiLogic<QualityControlStandard> {
-	constructor(init: UiLogicInit) {
+export class QualityControlStandardLogic extends EntityLogic<QualityControlStandard> {
+	constructor(init: EntityLogicInit) {
 		super(defineQualityControlStandard, init);
 		this.addRelativeLogic<QualityControlStandardItem>('items', master => new QualityControlStandardItemLogic(this, master));
 	}
@@ -110,17 +110,17 @@ export class QualityControlStandardLogic extends UiLogic<QualityControlStandard>
  * @param module 模块
  * @returns
  */
-export const QualityControlStandardLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const QualityControlStandardLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new QualityControlStandardLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityControlStandards',
-		router,
+		
 		module: module || metaUiService.findModule('QualityControlStandard'),
 	});
 /**
  * 检查项交互逻辑
  */
-export class QualityControlStandardItemLogic extends UiGroupLogic<QualityControlStandardItem, QualityControlStandard> {
+export class QualityControlStandardItemLogic extends SubEntityLogic<QualityControlStandardItem, QualityControlStandard> {
 	constructor(parent: QualityControlStandardLogic, master: QualityControlStandard) {
 		super(defineQualityControlStandardItem, parent, master, 'items');
 	}

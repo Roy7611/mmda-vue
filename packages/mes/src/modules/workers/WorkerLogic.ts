@@ -7,7 +7,7 @@
  */
 
 import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, inFilter } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
 import { WorkingSkill, defineWorkingSkill } from '@/models/WorkingSkill';
@@ -25,8 +25,8 @@ import { WorkTeamStatus } from '@/enums/WorkTeamStatus'
 /**
  * 工人交互逻辑
  */
-export class WorkerLogic extends UiLogic<Worker> {
-	constructor(init: UiLogicInit) {
+export class WorkerLogic extends EntityLogic<Worker> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorker, init);
 		this.addRelativeLogic<WorkerSkill>('skills', master => new WorkerSkillLogic(this, master));
 		this.beforeSave = (context: UiContext, model: Worker, action: EntityAction) => {
@@ -308,17 +308,17 @@ export class WorkerLogic extends UiLogic<Worker> {
  * @param module 模块
  * @returns
  */
-export const WorkerLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const WorkerLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new WorkerLogic({
 		metaUiService: metaUiService,
 		repository: 'Workers',
-		router,
+		
 		module: module || metaUiService.findModule('Worker'),
 	});
 /**
  * 技能交互逻辑
  */
-export class WorkerSkillLogic extends UiGroupLogic<WorkerSkill, Worker> {
+export class WorkerSkillLogic extends SubEntityLogic<WorkerSkill, Worker> {
 	constructor(parent: WorkerLogic, master: Worker) {
 		super(defineWorkerSkill, parent, master, 'skills');
 	}

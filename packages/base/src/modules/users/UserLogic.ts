@@ -19,9 +19,9 @@ import {
   isNullOrUndefined,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -273,8 +273,8 @@ const beforeDisapprove = async (
   );
   return false;
 };
-export class UserLogic extends UiLogic<User> {
-  constructor(init: UiLogicInit) {
+export class UserLogic extends EntityLogic<User> {
+  constructor(init: EntityLogicInit) {
     super(defineUser, init);
     this.addRelativeLogic<UserRole>(
       "roles",
@@ -630,19 +630,19 @@ export class UserLogic extends UiLogic<User> {
  */
 export const UserLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new UserLogic({
     metaUiService: metaUiService,
     repository: "Users",
-    router,
+    
     module: module || metaUiService.findModule("User"),
   });
 /**
  * ??????
  */
-export class UserRoleLogic extends UiGroupLogic<UserRole, User> {
+export class UserRoleLogic extends SubEntityLogic<UserRole, User> {
   constructor(parent: UserLogic, master: User) {
     super(defineUserRole, parent, master, "roles");
   }
@@ -650,7 +650,7 @@ export class UserRoleLogic extends UiGroupLogic<UserRole, User> {
 /**
  * ??????
  */
-export class UserDeviceLogic extends UiGroupLogic<UserDevice, User> {
+export class UserDeviceLogic extends SubEntityLogic<UserDevice, User> {
   constructor(parent: UserLogic, master: User) {
     super(defineUserDevice, parent, master, "devices");
   }
@@ -658,7 +658,7 @@ export class UserDeviceLogic extends UiGroupLogic<UserDevice, User> {
 /**
  * ????????
  */
-export class UserOpenIdentityLogic extends UiGroupLogic<
+export class UserOpenIdentityLogic extends SubEntityLogic<
   UserOpenIdentity,
   User
 > {
@@ -669,7 +669,7 @@ export class UserOpenIdentityLogic extends UiGroupLogic<
 /**
  * ????????
  */
-export class UserRelationLogic extends UiGroupLogic<UserRelation, User> {
+export class UserRelationLogic extends SubEntityLogic<UserRelation, User> {
   constructor(parent: UserLogic, master: User) {
     super(defineUserRelation, parent, master, "relations");
   }

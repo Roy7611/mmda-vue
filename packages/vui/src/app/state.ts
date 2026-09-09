@@ -23,15 +23,4 @@ export function error(message?: string): UiLoadingState {
   return { state: UiDataState.ERROR, message }
 }
 
-/** 移动端列表项展示约定，实现仍在后续 VueUiContext。 */
-export interface UniListViewProps {
-  titleKey?: string
-  subtitle?: string | ((data: any) => string) | undefined
-  subtitleKey?: string
-  noteKey?: string
-  thumbKey?: string
-  thumbSize?: string
-  showImage?: boolean
-  imageKey?: string
-  showSearch?: boolean
-}
+export type { UniListViewProps } from '@mmda/core'

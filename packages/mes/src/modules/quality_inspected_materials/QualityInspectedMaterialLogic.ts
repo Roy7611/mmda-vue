@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type QualityInspectedMaterial, defineQualityInspectedMaterial } from '@/models/QualityInspectedMaterial';
 /**
  * 已检验物料交互逻辑
@@ -18,8 +18,8 @@ import { type QualityInspectedMaterial, defineQualityInspectedMaterial } from '@
 	/**
 	 * 已检验物料交互逻辑
 	 */
-	export class QualityInspectedMaterialLogic extends UiLogic<QualityInspectedMaterial>{
-		constructor(init: UiLogicInit){
+	export class QualityInspectedMaterialLogic extends EntityLogic<QualityInspectedMaterial>{
+		constructor(init: EntityLogicInit){
 			super(defineQualityInspectedMaterial,init);
 		}
 
@@ -63,10 +63,10 @@ import { type QualityInspectedMaterial, defineQualityInspectedMaterial } from '@
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const QualityInspectedMaterialLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new QualityInspectedMaterialLogic({
+	export const QualityInspectedMaterialLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new QualityInspectedMaterialLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityInspectedMaterials',
-		router,
+		
 		module: module || metaUiService.findModule('QualityInspectedMaterial'),
 	})
 	//#endregion ~GENERATED PARTS END

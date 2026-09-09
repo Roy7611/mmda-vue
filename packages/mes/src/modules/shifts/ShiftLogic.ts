@@ -16,7 +16,7 @@ import {
 	PagedList,
 	MetaModel,
 } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Shift, defineShift } from '@/models/Shift';
 /**
  * 班次交互逻辑
@@ -63,11 +63,11 @@ const hourToHm = (hour: number): string => {
 	const sign = hour < 0 ? '-' : hour < 10 ? '0' : '';
 	return `${sign}${h}:${String(m).padStart(2, '0')}:00`;
 }
-export class ShiftLogic extends UiLogic<Shift> {
+export class ShiftLogic extends EntityLogic<Shift> {
 	static getAll() {
 		throw new Error('Method not implemented.');
 	}
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineShift, init);
 	}
 
@@ -166,11 +166,11 @@ export class ShiftLogic extends UiLogic<Shift> {
  * @param module 模块
  * @returns
  */
-export const ShiftLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ShiftLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ShiftLogic({
 		metaUiService: metaUiService,
 		repository: 'Shifts',
-		router,
+		
 		module: module || metaUiService.findModule('Shift'),
 	});
 //#endregion ~GENERATED PARTS END

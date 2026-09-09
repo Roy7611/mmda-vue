@@ -7,9 +7,9 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -35,8 +35,8 @@ import {
 /**
  * 项目模板交互逻辑
  */
-export class ContractTemplateLogic extends UiLogic<ContractTemplate> {
-  constructor(init: UiLogicInit) {
+export class ContractTemplateLogic extends EntityLogic<ContractTemplate> {
+  constructor(init: EntityLogicInit) {
     super(defineContractTemplate, init);
     this.addRelativeLogic<ContractTemplateTask>(
       "tasks",
@@ -156,19 +156,19 @@ export class ContractTemplateLogic extends UiLogic<ContractTemplate> {
  */
 export const ContractTemplateLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new ContractTemplateLogic({
     metaUiService: metaUiService,
     repository: "ContractTemplates",
-    router,
+    
     module: module || metaUiService.findModule("ContractTemplate"),
   });
 /**
  * 任务交互逻辑
  */
-export class ContractTemplateTaskLogic extends UiGroupLogic<
+export class ContractTemplateTaskLogic extends SubEntityLogic<
   ContractTemplateTask,
   ContractTemplate
 > {
@@ -179,7 +179,7 @@ export class ContractTemplateTaskLogic extends UiGroupLogic<
 /**
  * 任务关系交互逻辑
  */
-export class ContractTemplateTaskRelationLogic extends UiGroupLogic<
+export class ContractTemplateTaskRelationLogic extends SubEntityLogic<
   ContractTemplateTaskRelation,
   ContractTemplate
 > {

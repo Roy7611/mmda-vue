@@ -53,7 +53,7 @@ flowchart LR
 | 层 | 包 / 目录 |
 |---|---|
 | UI | `@mmda/vui`（拼屏、会话）、`@mmda/vui-*`（皮肤控件与 factory） |
-| Logic | `@mmda/core` 的 `src/logic/`（`EntityLogic` 等规范接口）；业务 `*Logic.ts` 在 `@mmda/base` / `@mmda/mes`，经 vui 的 `UiLogic` 接到视图 |
+| Logic | `@mmda/core` 的 `src/logic/`（`EntityLogic` 等）；业务 `*Logic.ts` 在 `@mmda/base` / `@mmda/mes` 继承 `EntityLogic`；vui 的 `VueEntityLogic` 只做响应式扩展 |
 | Data | `@mmda/core` 的 `metaui` / `models` / `net` / `di` / `utils` / `extensions` |
 
 `@mmda/core` **没有 UI 实现**；契约在 `src/ui/`（`UiBuilder` / `UiFactory` / `UiContext`）。core 里的 `logic/` 是产品 **Logic 层**，不是 Data 的子目录。

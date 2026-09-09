@@ -17,9 +17,9 @@ import {
   isRefNone,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -47,8 +47,8 @@ import {
 /**
  * 承运商交互逻辑
  */
-export class CarrierLogic extends UiLogic<Carrier> {
-  constructor(init: UiLogicInit) {
+export class CarrierLogic extends EntityLogic<Carrier> {
+  constructor(init: EntityLogicInit) {
     super(defineCarrier, init);
     this.addRelativeLogic<CarrierCatalog>(
       "catalogs",
@@ -222,19 +222,19 @@ export class CarrierLogic extends UiLogic<Carrier> {
  */
 export const CarrierLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new CarrierLogic({
     metaUiService: metaUiService,
     repository: "Carriers",
-    router,
+    
     module: module || metaUiService.findModule("Carrier"),
   });
 /**
  * 产品目录交互逻辑
  */
-export class CarrierCatalogLogic extends UiGroupLogic<CarrierCatalog, Carrier> {
+export class CarrierCatalogLogic extends SubEntityLogic<CarrierCatalog, Carrier> {
   constructor(parent: CarrierLogic, master: Carrier) {
     super(defineCarrierCatalog, parent, master, "catalogs");
   }
@@ -242,7 +242,7 @@ export class CarrierCatalogLogic extends UiGroupLogic<CarrierCatalog, Carrier> {
 /**
  * 产品交互逻辑
  */
-export class CarrierProductLogic extends UiGroupLogic<CarrierProduct, Carrier> {
+export class CarrierProductLogic extends SubEntityLogic<CarrierProduct, Carrier> {
   constructor(parent: CarrierLogic, master: Carrier) {
     super(defineCarrierProduct, parent, master, "products");
   }

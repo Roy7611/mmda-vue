@@ -18,9 +18,9 @@ import {
   isRefNone,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
 } from "@mmda/vui";
 import { type Country, defineCountry } from "../../models/Country";
@@ -34,8 +34,8 @@ import { type Country, defineCountry } from "../../models/Country";
 /**
  * 国家交互逻辑
  */
-export class CountryLogic extends UiLogic<Country> {
-  constructor(init: UiLogicInit) {
+export class CountryLogic extends EntityLogic<Country> {
+  constructor(init: EntityLogicInit) {
     super(defineCountry, init);
     this.beforeSave = (
       context: UiContext,
@@ -117,13 +117,13 @@ export class CountryLogic extends UiLogic<Country> {
  */
 export const CountryLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new CountryLogic({
     metaUiService: metaUiService,
     repository: "Countries",
-    router,
+    
     module: module || metaUiService.findModule("Country"),
   });
 //#endregion ~GENERATED PARTS END

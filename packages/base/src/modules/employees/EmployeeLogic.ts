@@ -18,9 +18,9 @@ import {
   isRefNone,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
 } from "@mmda/vui";
 import { type Employee, defineEmployee } from "../../models/Employee";
@@ -36,8 +36,8 @@ import { EmployeeStatus } from "../../enums/EmployeeStatus";
 /**
  * čĺäş¤äşéťčž
  */
-export class EmployeeLogic extends UiLogic<Employee> {
-  constructor(init: UiLogicInit) {
+export class EmployeeLogic extends EntityLogic<Employee> {
+  constructor(init: EntityLogicInit) {
     super(defineEmployee, init);
     this.beforeSave = (
       context: UiContext,
@@ -252,13 +252,13 @@ export class EmployeeLogic extends UiLogic<Employee> {
  */
 export const EmployeeLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new EmployeeLogic({
     metaUiService: metaUiService,
     repository: "Employees",
-    router,
+    
     module: module || metaUiService.findModule("Employee"),
   });
 //#endregion ~GENERATED PARTS END

@@ -7,7 +7,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Region, defineRegion } from '../../models/Region';
 /**
  * 区域交互逻辑
@@ -19,8 +19,8 @@ import { type Region, defineRegion } from '../../models/Region';
 /**
  * 区域交互逻辑
  */
-export class RegionLogic extends UiLogic<Region> {
-	constructor(init: UiLogicInit) {
+export class RegionLogic extends EntityLogic<Region> {
+	constructor(init: EntityLogicInit) {
 		super(defineRegion, init);
 		this.beforeSave = (context: UiContext, model: Region, action: EntityAction) => {
 			const { telPrefix, localeCode, countryCode } = model
@@ -84,10 +84,10 @@ export class RegionLogic extends UiLogic<Region> {
  * @param module 模块
  * @returns 
  */
-export const RegionLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new RegionLogic({
+export const RegionLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new RegionLogic({
 	metaUiService: metaUiService,
 	repository: 'Regions',
-	router,
+	
 	module: module || metaUiService.findModule('Region'),
 })
 //#endregion ~GENERATED PARTS END

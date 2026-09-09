@@ -15,9 +15,9 @@ import {
   UiValidation,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -41,8 +41,8 @@ import {
 /**
  * 客户端应用交互逻辑
  */
-export class ClientAppLogic extends UiLogic<ClientApp> {
-  constructor(init: UiLogicInit) {
+export class ClientAppLogic extends EntityLogic<ClientApp> {
+  constructor(init: EntityLogicInit) {
     super(defineClientApp, init);
     this.addRelativeLogic<ClientAppModule>(
       "modules",
@@ -213,19 +213,19 @@ export class ClientAppLogic extends UiLogic<ClientApp> {
  */
 export const ClientAppLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new ClientAppLogic({
     metaUiService: metaUiService,
     repository: "ClientApps",
-    router,
+    
     module: module || metaUiService.findModule("ClientApp"),
   });
 /**
  * 功能模块交互逻辑
  */
-export class ClientAppModuleLogic extends UiGroupLogic<
+export class ClientAppModuleLogic extends SubEntityLogic<
   ClientAppModule,
   ClientApp
 > {
@@ -236,7 +236,7 @@ export class ClientAppModuleLogic extends UiGroupLogic<
 /**
  * 发布历史交互逻辑
  */
-export class ClientAppReleaseLogic extends UiGroupLogic<
+export class ClientAppReleaseLogic extends SubEntityLogic<
   ClientAppRelease,
   ClientApp
 > {

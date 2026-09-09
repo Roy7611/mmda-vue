@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Plant, definePlant } from '@/models/Plant';
 /**
  * 工厂交互逻辑
@@ -18,8 +18,8 @@ import { type Plant, definePlant } from '@/models/Plant';
 	/**
 	 * 工厂交互逻辑
 	 */
-	export class PlantLogic extends UiLogic<Plant>{
-		constructor(init: UiLogicInit){
+	export class PlantLogic extends EntityLogic<Plant>{
+		constructor(init: EntityLogicInit){
 			super(definePlant,init);
 		}
 
@@ -63,10 +63,10 @@ import { type Plant, definePlant } from '@/models/Plant';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const PlantLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new PlantLogic({
+	export const PlantLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new PlantLogic({
 		metaUiService: metaUiService,
 		repository: 'Plants',
-		router,
+		
 		module: module || metaUiService.findModule('Plant'),
 	})
 	//#endregion ~GENERATED PARTS END

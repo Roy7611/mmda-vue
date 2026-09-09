@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isRefNone, EntityAction, isNullOrUndefined, triggerEscKey, isObject, debounce } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectWorkPackage, defineProjectWorkPackage } from '@/models/ProjectWorkPackage';
 import { type ProjectWorkPackageItem, defineProjectWorkPackageItem } from '@/models/ProjectWorkPackageItem';
 import { MES_KEY } from '@/keys';
@@ -73,8 +73,8 @@ const getAllProjects = async (context: UiContext, value?: any) => {
 		});
 };
 
-export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
-	constructor(init: UiLogicInit) {
+export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectWorkPackage, init);
 		this.addRelativeLogic<ProjectWorkPackageItem>('items', master => new ProjectWorkPackageItemLogic(this, master));
 		// this.afterAction = (context: UiContext, model: ProjectWorkPackage, action: EntityAction) => {
@@ -320,17 +320,17 @@ export class ProjectWorkPackageLogic extends UiLogic<ProjectWorkPackage> {
  * @param module 模块
  * @returns
  */
-export const ProjectWorkPackageLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectWorkPackageLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectWorkPackageLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectWorkPackages',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectWorkPackage'),
 	});
 /**
  * 执行追踪交互逻辑
  */
-export class ProjectWorkPackageItemLogic extends UiGroupLogic<ProjectWorkPackageItem, ProjectWorkPackage> {
+export class ProjectWorkPackageItemLogic extends SubEntityLogic<ProjectWorkPackageItem, ProjectWorkPackage> {
 	constructor(parent: ProjectWorkPackageLogic, master: ProjectWorkPackage) {
 		super(defineProjectWorkPackageItem, parent, master, 'items');
 	}

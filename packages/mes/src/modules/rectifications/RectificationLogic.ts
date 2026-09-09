@@ -8,7 +8,7 @@
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined, debounce, isObject } from '@mmda/core';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Rectification, defineRectification } from '@/models/Rectification';
 import { type RectificationItem, defineRectificationItem } from '@/models/RectificationItem';
 import { RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';
@@ -62,8 +62,8 @@ const compareTime = (time1: any, time2: any) => {
 	}
 	return 1;
 };
-export class RectificationLogic extends UiLogic<Rectification> {
-	constructor(init: UiLogicInit) {
+export class RectificationLogic extends EntityLogic<Rectification> {
+	constructor(init: EntityLogicInit) {
 		super(defineRectification, init);
 		this.addRelativeLogic<RectificationItem>('items', (master) => new RectificationItemLogic(this, master));
 		this.beforeSave = (context: UiContext, model: Rectification, action: EntityAction) => {
@@ -244,16 +244,16 @@ export class RectificationLogic extends UiLogic<Rectification> {
  * @param module 模块
  * @returns 
  */
-export const RectificationLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new RectificationLogic({
+export const RectificationLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new RectificationLogic({
 	metaUiService: metaUiService,
 	repository: 'Rectifications',
-	router,
+	
 	module: module || metaUiService.findModule('Rectification'),
 })
 /**
  * 整改项交互逻辑
  */
-export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rectification> {
+export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Rectification> {
 	constructor(parent: RectificationLogic, master: Rectification) {
 		super(defineRectificationItem, parent, master, 'items')
 	}

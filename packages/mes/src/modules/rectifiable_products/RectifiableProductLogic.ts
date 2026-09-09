@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';
 /**
  * 待整改制品交互逻辑
@@ -18,8 +18,8 @@ import { type RectifiableProduct, defineRectifiableProduct } from '@/models/Rect
 	/**
 	 * 待整改制品交互逻辑
 	 */
-	export class RectifiableProductLogic extends UiLogic<RectifiableProduct>{
-		constructor(init: UiLogicInit){
+	export class RectifiableProductLogic extends EntityLogic<RectifiableProduct>{
+		constructor(init: EntityLogicInit){
 			super(defineRectifiableProduct,init);
 		}
 
@@ -63,10 +63,10 @@ import { type RectifiableProduct, defineRectifiableProduct } from '@/models/Rect
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const RectifiableProductLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new RectifiableProductLogic({
+	export const RectifiableProductLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new RectifiableProductLogic({
 		metaUiService: metaUiService,
 		repository: 'RectifiableProducts',
-		router,
+		
 		module: module || metaUiService.findModule('RectifiableProduct'),
 	})
 	//#endregion ~GENERATED PARTS END

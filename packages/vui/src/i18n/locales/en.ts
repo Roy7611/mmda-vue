@@ -218,12 +218,6 @@ export default {
     loginInvalid: "Please enter the username and password",
     repositoryMissing: "Repository metadata was not loaded: {repository}",
     fieldNoRef: "Field {field} has no refRepository",
-    logicNoMetaField:
-      "UiLogic[{repository}] has no metadata; cannot configure field {field}",
-    logicMissingField: "UiLogic[{repository}] metadata has no field {field}",
-    logicNoMetaGroup:
-      "UiLogic[{repository}] has no metadata; cannot configure group {group}",
-    logicMissingGroup: "UiLogic[{repository}] metadata has no group {group}",
   },
   matcher: {
     EQ: "=",

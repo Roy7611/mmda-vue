@@ -8,8 +8,8 @@
 
 import { inFilter, isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
-import type { UiLogicInit } from '@mmda/vui';
-import { UiLogic } from '@mmda/vui';
+import type { EntityLogicInit } from '@mmda/vui';
+import { EntityLogic } from '@mmda/vui';
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
@@ -39,11 +39,11 @@ const searchParamCategory = {
  * @revision 2023-11-28 01:38:08.0
  */
 //#region ~GENERATED PARTS BEGIN
-export class QualityKanbanLogic extends UiLogic<CustomPage> {
+export class QualityKanbanLogic extends EntityLogic<CustomPage> {
     //skin = 'material'; //传入dark为黑暗模式
     scheduleroleaction: any = {}; //权限
     roleaction: any[] = [];
-    constructor(init: UiLogicInit) {
+    constructor(init: EntityLogicInit) {
         super(defineCustomPage, init);
     }
     private bindApp(context: UiContext) {
@@ -450,11 +450,11 @@ export class QualityKanbanLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const QualityKanbanLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const QualityKanbanLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
     new QualityKanbanLogic({
         metaUiService: metaUiService,
         repository: 'QualityKanban',
-        router,
+        
         module: module || metaUiService.findModule('QualityKanban'),
         customPage: true,
     });

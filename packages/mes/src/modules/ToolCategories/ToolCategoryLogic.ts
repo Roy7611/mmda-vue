@@ -14,7 +14,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, MetaUiPack, type UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ToolCategory, defineToolCategory } from "@/models/ToolCategory";
 import { MaterialTypeEnum, MaterialType } from '@mmda/base/src/enums/MaterialType';
 
@@ -29,8 +29,8 @@ import { MaterialTypeEnum, MaterialType } from '@mmda/base/src/enums/MaterialTyp
 /**
  * 物料交互逻辑
  */
-export class ToolCategoryLogic extends UiLogic<ToolCategory> {
-	constructor(init: UiLogicInit) {
+export class ToolCategoryLogic extends EntityLogic<ToolCategory> {
+	constructor(init: EntityLogicInit) {
 		super(defineToolCategory, init);
 	}
 
@@ -119,10 +119,10 @@ export class ToolCategoryLogic extends UiLogic<ToolCategory> {
  * @param module 模块
  * @returns 
  */
-export const ToolCategoryLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ToolCategoryLogic({
+export const ToolCategoryLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ToolCategoryLogic({
 	metaUiService: metaUiService,
 	repository: 'ToolCategories',
-	router,
+	
 	module: module || metaUiService.findModule('ToolCategories'),
 })
 //#endregion ~GENERATED PARTS END

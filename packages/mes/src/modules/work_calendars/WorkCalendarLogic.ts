@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkCalendar, defineWorkCalendar } from '@/models/WorkCalendar';
 import { type WorkCalendarDay, defineWorkCalendarDay } from '@/models/WorkCalendarDay';
 import { type WorkShift, defineWorkShift } from '@/models/WorkShift';
@@ -21,8 +21,8 @@ import { ShiftSystem, ShiftSystemEnum } from '@mmda/base/src/enums/ShiftSystem';
 /**
  * 工作日历交互逻辑
  */
-export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
-	constructor(init: UiLogicInit) {
+export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorkCalendar, init);
 		this.addRelativeLogic<WorkCalendarDay>('days', master => new WorkCalendarDayLogic(this, master));
 		this.addRelativeLogic<WorkShift>('shifts', master => new WorkShiftLogic(this, master));
@@ -205,17 +205,17 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
  * @param module 模块
  * @returns
  */
-export const WorkCalendarLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const WorkCalendarLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new WorkCalendarLogic({
 		metaUiService: metaUiService,
 		repository: 'WorkCalendars',
-		router,
+		
 		module: module || metaUiService.findModule('WorkCalendar'),
 	});
 /**
  * 节假调休日交互逻辑
  */
-export class WorkCalendarDayLogic extends UiGroupLogic<WorkCalendarDay, WorkCalendar> {
+export class WorkCalendarDayLogic extends SubEntityLogic<WorkCalendarDay, WorkCalendar> {
 	constructor(parent: WorkCalendarLogic, master: WorkCalendar) {
 		super(defineWorkCalendarDay, parent, master, 'days');
 	}
@@ -267,7 +267,7 @@ export class WorkCalendarDayLogic extends UiGroupLogic<WorkCalendarDay, WorkCale
 /**
  * 轮班调整交互逻辑
  */
-export class WorkShiftLogic extends UiGroupLogic<WorkShift, WorkCalendar> {
+export class WorkShiftLogic extends SubEntityLogic<WorkShift, WorkCalendar> {
 	constructor(parent: WorkCalendarLogic, master: WorkCalendar) {
 		super(defineWorkShift, parent, master, 'shifts');
 	}

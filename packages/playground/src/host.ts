@@ -1,5 +1,5 @@
 import type { MetaUiPack, MetaUiService, Module } from "@mmda/core";
-import type { MmdaApplication, UiLogic, UiLogicInit } from "@mmda/vui";
+import type { MmdaApplication, EntityLogic, EntityLogicInit } from "@mmda/vui";
 import {
   playgroundModuleFactory,
   playgroundModules,
@@ -9,7 +9,7 @@ import { CatalogLogic, CategoryLogic, ProductLogic } from "./logics";
 
 export const PLAYGROUND_SERVICE = "demo";
 
-const logicCtors: Record<string, new (init: UiLogicInit) => UiLogic<any>> = {
+const logicCtors: Record<string, new (init: EntityLogicInit) => EntityLogic<any>> = {
   Products: ProductLogic,
   Catalog: CatalogLogic,
   Categories: CategoryLogic,
@@ -58,15 +58,14 @@ export function registerPlaygroundLogic(app: MmdaApplication, router: unknown) {
       return new Ctor({
         metaUiService: app.meta,
         repository,
-        router,
         module,
         apiService: PLAYGROUND_SERVICE,
-      }) as UiLogic<any>;
+      }) as EntityLogic<any>;
     });
   }
 }
 
-export function createPlaygroundLogic(repository: string, init: UiLogicInit) {
+export function createPlaygroundLogic(repository: string, init: EntityLogicInit) {
   const Ctor = logicCtors[repository];
   return Ctor ? new Ctor(init) : undefined;
 }

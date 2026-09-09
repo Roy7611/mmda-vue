@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionItem, defineProductionItem } from '@/models/ProductionItem';
 import { type ProductionItemTool, defineProductionItemTool } from '@/models/ProductionItemTool';
 import { type ProductionItemJournal, defineProductionItemJournal } from '@/models/ProductionItemJournal';
@@ -24,9 +24,9 @@ import { type ProductionItemAlarm, defineProductionItemAlarm } from '@/models/Pr
  * 生产单件交互逻辑
  */
 
-export class ProductionItemLogic extends UiLogic<ProductionItem> {
+export class ProductionItemLogic extends EntityLogic<ProductionItem> {
 	isEdit: any;
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionItem, init);
 			this.addRelativeLogic<ProductionItemTool>('tools',(master)=>new ProductionItemToolLogic(this,master));
 			this.addRelativeLogic<ProductionItemJournal>('journals',(master)=>new ProductionItemJournalLogic(this,master));
@@ -215,17 +215,17 @@ export class ProductionItemLogic extends UiLogic<ProductionItem> {
  * @param module 模块
  * @returns
  */
-export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionItemLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionItems',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionItem'),
 	})
 	/**
 	 * 用具交互逻辑
 	 */
-	export class ProductionItemToolLogic extends UiGroupLogic<ProductionItemTool,ProductionItem>{
+	export class ProductionItemToolLogic extends SubEntityLogic<ProductionItemTool,ProductionItem>{
 		constructor(parent: ProductionItemLogic, master: ProductionItem){
 			super(defineProductionItemTool,parent,master,'tools')
 		}
@@ -233,7 +233,7 @@ export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: Ui
 	/**
 	 * 日志交互逻辑
 	 */
-	export class ProductionItemJournalLogic extends UiGroupLogic<ProductionItemJournal,ProductionItem>{
+	export class ProductionItemJournalLogic extends SubEntityLogic<ProductionItemJournal,ProductionItem>{
 		constructor(parent: ProductionItemLogic, master: ProductionItem){
 			super(defineProductionItemJournal,parent,master,'journals')
 		}
@@ -241,7 +241,7 @@ export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: Ui
 	/**
 	 * 参数交互逻辑
 	 */
-	export class ProductionItemParamLogic extends UiGroupLogic<ProductionItemParam,ProductionItem>{
+	export class ProductionItemParamLogic extends SubEntityLogic<ProductionItemParam,ProductionItem>{
 		constructor(parent: ProductionItemLogic, master: ProductionItem){
 			super(defineProductionItemParam,parent,master,'params')
 		}
@@ -249,7 +249,7 @@ export const ProductionItemLogicCtor = (metaUiService: MetaUiService, router: Ui
 /**
  * 报警交互逻辑
  */
-export class ProductionItemAlarmLogic extends UiGroupLogic<ProductionItemAlarm, ProductionItem> {
+export class ProductionItemAlarmLogic extends SubEntityLogic<ProductionItemAlarm, ProductionItem> {
 	constructor(parent: ProductionItemLogic, master: ProductionItem) {
 		super(defineProductionItemAlarm, parent, master, 'alarms');
 	}

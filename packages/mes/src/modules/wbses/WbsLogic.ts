@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Wbs, defineWbs } from '@/models/Wbs';
 import { type WbsTask, defineWbsTask } from '@/models/WbsTask';
 import { UserStatus } from '@mmda/base/src/enums/UserStatus';
@@ -20,8 +20,8 @@ import { UserStatus } from '@mmda/base/src/enums/UserStatus';
 /**
  * 工作分解结构交互逻辑
  */
-export class WbsLogic extends UiLogic<Wbs> {
-	constructor(init: UiLogicInit) {
+export class WbsLogic extends EntityLogic<Wbs> {
+	constructor(init: EntityLogicInit) {
 		super(defineWbs, init);
 		this.addRelativeLogic<WbsTask>('tasks', (master) => new WbsTaskLogic(this, master));
 	}
@@ -94,16 +94,16 @@ export class WbsLogic extends UiLogic<Wbs> {
  * @param module 模块
  * @returns 
  */
-export const WbsLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WbsLogic({
+export const WbsLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new WbsLogic({
 	metaUiService: metaUiService,
 	repository: 'Wbses',
-	router,
+	
 	module: module || metaUiService.findModule('Wbs'),
 })
 /**
  * 分解任务交互逻辑
  */
-export class WbsTaskLogic extends UiGroupLogic<WbsTask, Wbs> {
+export class WbsTaskLogic extends SubEntityLogic<WbsTask, Wbs> {
 	constructor(parent: WbsLogic, master: Wbs) {
 		super(defineWbsTask, parent, master, 'tasks')
 	}

@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectSettlement, defineProjectSettlement } from '@/models/ProjectSettlement';
 import { type ProjectSettlementItem, defineProjectSettlementItem } from '@/models/ProjectSettlementItem';
 import { CapitalFlows } from '@mmda/base/src/enums/CapitalFlows';
@@ -20,8 +20,8 @@ import { CapitalFlows } from '@mmda/base/src/enums/CapitalFlows';
 /**
  * 项目结算交互逻辑
  */
-export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
-	constructor(init: UiLogicInit) {
+export class ProjectSettlementLogic extends EntityLogic<ProjectSettlement> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectSettlement, init);
 		this.addRelativeLogic<ProjectSettlementItem>('items', master => new ProjectSettlementItemLogic(this, master));
 	}
@@ -99,17 +99,17 @@ export class ProjectSettlementLogic extends UiLogic<ProjectSettlement> {
  * @param module 模块
  * @returns
  */
-export const ProjectSettlementLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectSettlementLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectSettlementLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectSettlements',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectSettlement'),
 	});
 /**
  * 结算分项交互逻辑
  */
-export class ProjectSettlementItemLogic extends UiGroupLogic<ProjectSettlementItem, ProjectSettlement> {
+export class ProjectSettlementItemLogic extends SubEntityLogic<ProjectSettlementItem, ProjectSettlement> {
 	constructor(parent: ProjectSettlementLogic, master: ProjectSettlement) {
 		super(defineProjectSettlementItem, parent, master, 'items');
 	}

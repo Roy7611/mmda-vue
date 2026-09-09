@@ -3,7 +3,7 @@
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 import { MetaModel, isNullOrUndefined, getSqlOperator, type UiContext } from '@mmda/core';
-import { UiLogic, UiViewOne, type UiLogicFnResult } from '@mmda/vui';
+import { EntityLogic, UiViewOne, type UiLogicFnResult } from '@mmda/vui';
 import type { Bom } from '@/models/Bom';
 import type { BomItem } from '@/models/BomItem';
 import { BomStatus } from '@/enums/BomStatus';
@@ -28,7 +28,7 @@ import {
 } from './BomLogic';
 
 export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
-	const { fields, groups, customActions } = UiLogic.prototype.beforeEdit.call(this);
+	const { fields, groups, customActions } = EntityLogic.prototype.beforeEdit.call(this);
 	if (fields.length == 0) {
 		fields.push(
 			this.field('bomUsage').onValidate((value, model, ctx: UiContext<any>) => {

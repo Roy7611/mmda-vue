@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type UiContext, MetaModel, MetaAggregation, defaultPager, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Maintenance, defineMaintenance } from '@/models/Maintenance';
 import { type MaintenancePart, defineMaintenancePart } from '@/models/MaintenancePart';
 import { type EquipmentSparePart, defineEquipmentSparePart } from '@/models/EquipmentSparePart';
@@ -37,8 +37,8 @@ function rollupMaintenanceCost(m: Maintenance) {
 /**
  * 设备维护工单交互逻辑
  */
-export class MaintenanceLogic extends UiLogic<Maintenance> {
-	constructor(init: UiLogicInit) {
+export class MaintenanceLogic extends EntityLogic<Maintenance> {
+	constructor(init: EntityLogicInit) {
 		super(defineMaintenance, init);
 		this.addRelativeLogic<MaintenancePart>('parts', master => new MaintenancePartLogic(this, master));
 		this.addRelativeLogic<MaintenanceItem>('items', master => new MaintenanceItemLogic(this, master));
@@ -230,17 +230,17 @@ export class MaintenanceLogic extends UiLogic<Maintenance> {
  * @param module 模块
  * @returns
  */
-export const MaintenanceLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const MaintenanceLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new MaintenanceLogic({
 		metaUiService: metaUiService,
 		repository: 'Maintenances',
-		router,
+		
 		module: module || metaUiService.findModule('Maintenance'),
 	});
 /**
  * 配件交互逻辑
  */
-export class MaintenancePartLogic extends UiGroupLogic<MaintenancePart, Maintenance> {
+export class MaintenancePartLogic extends SubEntityLogic<MaintenancePart, Maintenance> {
 	constructor(parent: MaintenanceLogic, master: Maintenance) {
 		super(defineMaintenancePart, parent, master, 'parts');
 		this.afterDelete = () => rollupMaintenanceCost(this.master);
@@ -270,7 +270,7 @@ export class MaintenancePartLogic extends UiGroupLogic<MaintenancePart, Maintena
 /**
  * 清单交互逻辑
  */
-export class MaintenanceItemLogic extends UiGroupLogic<MaintenanceItem, Maintenance> {
+export class MaintenanceItemLogic extends SubEntityLogic<MaintenanceItem, Maintenance> {
 	constructor(parent: MaintenanceLogic, master: Maintenance) {
 		super(defineMaintenanceItem, parent, master, 'items');
 		this.afterDelete = () => rollupMaintenanceCost(this.master);

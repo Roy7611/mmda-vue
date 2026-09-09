@@ -7,7 +7,7 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { getSqlOperator, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type AlternativeStrategy, defineAlternativeStrategy } from '@/models/AlternativeStrategy';
 import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/models/AlternativeStrategyItem';
 /**
@@ -20,8 +20,8 @@ import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/m
 /**
  * 替代料策略交互逻辑
  */
-export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
-	constructor(init: UiLogicInit) {
+export class AlternativeStrategyLogic extends EntityLogic<AlternativeStrategy> {
+	constructor(init: EntityLogicInit) {
 		super(defineAlternativeStrategy, init);
 		this.addRelativeLogic<AlternativeStrategyItem>('items', (master) => new AlternativeStrategyItemLogic(this, master));
 	}
@@ -113,16 +113,16 @@ export class AlternativeStrategyLogic extends UiLogic<AlternativeStrategy> {
  * @param module 模块
  * @returns 
  */
-export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new AlternativeStrategyLogic({
+export const AlternativeStrategyLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new AlternativeStrategyLogic({
 	metaUiService: metaUiService,
 	repository: 'AlternativeStrategies',
-	router,
+	
 	module: module || metaUiService.findModule('AlternativeStrategy'),
 })
 /**
  * 替代料清单交互逻辑
  */
-export class AlternativeStrategyItemLogic extends UiGroupLogic<AlternativeStrategyItem, AlternativeStrategy> {
+export class AlternativeStrategyItemLogic extends SubEntityLogic<AlternativeStrategyItem, AlternativeStrategy> {
 	constructor(parent: AlternativeStrategyLogic, master: AlternativeStrategy) {
 		super(defineAlternativeStrategyItem, parent, master, 'items')
 	}

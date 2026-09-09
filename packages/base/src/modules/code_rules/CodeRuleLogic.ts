@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 /**
  * 编码规则交互逻辑
@@ -18,8 +18,8 @@ import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 	/**
 	 * 编码规则交互逻辑
 	 */
-	export class CodeRuleLogic extends UiLogic<CodeRule>{
-		constructor(init: UiLogicInit){
+	export class CodeRuleLogic extends EntityLogic<CodeRule>{
+		constructor(init: EntityLogicInit){
 			super(defineCodeRule,init);
 		}
 		beforeIndex(): UiLogicFnResult<CodeRule> {
@@ -71,10 +71,10 @@ import { type CodeRule, defineCodeRule } from '../../models/CodeRule';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const CodeRuleLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new CodeRuleLogic({
+	export const CodeRuleLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new CodeRuleLogic({
 		metaUiService: metaUiService,
 		repository: 'CodeRules',
-		router,
+		
 		module: module || metaUiService.findModule('CodeRule'),
 	})
 	//#endregion ~GENERATED PARTS END

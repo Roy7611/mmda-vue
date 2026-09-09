@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionLine, defineProductionLine } from '@/models/ProductionLine';
 import { type Station, defineStation } from '@/models/Station';
 import { type StationOperation, defineStationOperation } from '@/models/StationOperation';
@@ -21,8 +21,8 @@ import { type StationOperation, defineStationOperation } from '@/models/StationO
 /**
  * 生产线交互逻辑
  */
-export class ProductionLineLogic extends UiLogic<ProductionLine> {
-	constructor(init: UiLogicInit) {
+export class ProductionLineLogic extends EntityLogic<ProductionLine> {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionLine, init);
 		this.addRelativeLogic<Station>('stations', (master) => new StationLogic(this, master));
 	}
@@ -83,16 +83,16 @@ export class ProductionLineLogic extends UiLogic<ProductionLine> {
  * @param module 模块
  * @returns 
  */
-export const ProductionLineLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProductionLineLogic({
+export const ProductionLineLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ProductionLineLogic({
 	metaUiService: metaUiService,
 	repository: 'ProductionLines',
-	router,
+	
 	module: module || metaUiService.findModule('ProductionLine'),
 })
 /**
  * 工位交互逻辑
  */
-export class StationLogic extends UiGroupLogic<Station, ProductionLine> {
+export class StationLogic extends SubEntityLogic<Station, ProductionLine> {
 	constructor(parent: ProductionLineLogic, master: ProductionLine) {
 		super(defineStation, parent, master, 'stations')
 		this.addRelativeLogic<StationOperation>('operations', master => new StationOperationLogic(this, master));
@@ -101,7 +101,7 @@ export class StationLogic extends UiGroupLogic<Station, ProductionLine> {
 /**
  * 工序交互逻辑
  */
-export class StationOperationLogic extends UiGroupLogic<StationOperation, Station> {
+export class StationOperationLogic extends SubEntityLogic<StationOperation, Station> {
 	constructor(parent: StationLogic, master: Station) {
 		super(defineStationOperation, parent, master, 'operations');
 	}

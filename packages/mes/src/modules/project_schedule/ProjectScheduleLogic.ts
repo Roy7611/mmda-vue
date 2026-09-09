@@ -9,8 +9,8 @@ import { resolve } from 'node:path';
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
 import { MetaUiPack } from '@mmda/core';
-import type { UiLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
-import { UiLogic } from '@mmda/vui';
+import type { EntityLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { EntityLogic } from '@mmda/vui';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
 import { getTaskData, getLinkRes, getProSub, getPlanRes, getBreaks, getReflash, getReload } from '@/components/ProjectGanntView/ProjectGanttUpdate';
@@ -340,13 +340,13 @@ const refLashDatas = {
 		links: [],
 	},
 });
-export class ProjectScheduleLogic extends UiLogic<CustomPage> {
+export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	taskDatas: any;
 	//甘特图模版
 	skin = 'material'; //传入dark为黑暗模式
 	scheduleroleaction: any = {}; //权限
 	roleaction: any[] = [];
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineCustomPage, init);
 	}
 	async initMetadata(reload: boolean = false) {
@@ -1159,11 +1159,11 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const ProjectScheduleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectScheduleLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectScheduleLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectSchedule',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectSchedule'),
 		customPage: true,
 	});

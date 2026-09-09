@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/models/ProductionScheduleTask';
 /**
  * 生产排程任务交互逻辑
@@ -18,8 +18,8 @@ import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/mod
 	/**
 	 * 生产排程任务交互逻辑
 	 */
-	export class ProductionScheduleTaskLogic extends UiLogic<ProductionScheduleTask>{
-		constructor(init: UiLogicInit){
+	export class ProductionScheduleTaskLogic extends EntityLogic<ProductionScheduleTask>{
+		constructor(init: EntityLogicInit){
 			super(defineProductionScheduleTask,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ProductionScheduleTask, defineProductionScheduleTask } from '@/mod
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductionScheduleTaskLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductionScheduleTaskLogic({
+	export const ProductionScheduleTaskLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProductionScheduleTaskLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionScheduleTasks',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionScheduleTask'),
 	})
 	//#endregion ~GENERATED PARTS END

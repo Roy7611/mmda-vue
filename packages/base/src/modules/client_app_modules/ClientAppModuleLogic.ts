@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ClientAppModule, defineClientAppModule } from '../../models/ClientAppModule';
 /**
  * 客户端应用模块交互逻辑
@@ -18,8 +18,8 @@ import { type ClientAppModule, defineClientAppModule } from '../../models/Client
 	/**
 	 * 客户端应用模块交互逻辑
 	 */
-	export class ClientAppModuleLogic extends UiLogic<ClientAppModule>{
-		constructor(init: UiLogicInit){
+	export class ClientAppModuleLogic extends EntityLogic<ClientAppModule>{
+		constructor(init: EntityLogicInit){
 			super(defineClientAppModule,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ClientAppModule, defineClientAppModule } from '../../models/Client
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ClientAppModuleLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ClientAppModuleLogic({
+	export const ClientAppModuleLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ClientAppModuleLogic({
 		metaUiService: metaUiService,
 		repository: 'ClientAppModules',
-		router,
+		
 		module: module || metaUiService.findModule('ClientAppModule'),
 	})
 	//#endregion ~GENERATED PARTS END

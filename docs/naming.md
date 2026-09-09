@@ -155,13 +155,13 @@ vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮
 ```text
 Entity          Material              实体模型（单数 PascalCase）
 repository      Materials             通常是实体模型的复数（API 路径，不是 Logic 类名）
-EntityLogic     （core 基类）           无 Vue：ApiClient + MetaModel CRUD
-UiLogic         MaterialLogic         该实体的交互逻辑（继承 EntityLogic；vui 补视图装配）
+EntityLogic     MaterialLogic         该实体的交互逻辑（core：CRUD + 视图钩子；无 Vue）
+VueEntityLogic  （仅 vui）             搜索表单等响应式包装；业务不要继承
 ```
 
-程序员写的是 **实体 Logic**（`XxxLogic extends UiLogic`），不是「仓库 Logic」。`repository` 只是该实体对应的 API / 元数据包主键。
+程序员写的是 **实体 Logic**（`XxxLogic extends EntityLogic`），不是「仓库 Logic」。`repository` 只是该实体对应的 API / 元数据包主键。
 
-`EntityLogic` 在 `@mmda/core`，无 Vue。`UiLogic` 在 `@mmda/vui`：router、i18n、按视图装配。业务类仍 `extends UiLogic`。无定制时用 `GenericUiLogic`。细则见 [Logic](#logic)。
+`EntityLogic` 在 `@mmda/core`：CRUD、视图装配与钩子，无 Vue。面向用户文案用 `context.t()`。vui 的 `VueEntityLogic` 只给壳用；无定制时用 `GenericUiLogic`。细则见 [Logic](#logic)。
 
 不要叫 **`EntityManager`**（ORM/Data 味道，且与 JPA 同名）。不要叫 **`RepositoryLogic`**（会和 `repository` 字符串、`createRepositoryLogic()` 搅在一起）。
 
@@ -174,7 +174,7 @@ UiLogic         MaterialLogic         该实体的交互逻辑（继承 EntityLo
 | 关系 | relation | `MetaRelationType` | **元数据**上实体之间怎么连（HAS_ONE / HAS_MANY / REF / ENUM） |
 | 关联对象 | relative | `relObjName`、`addRelativeLogic` | 当作「亲戚」的那一个实体/对象，不是关系类型本身 |
 | 仓库 | repository | `Materials` | API / 元数据包主键；**通常为实体复数** |
-| 交互逻辑 | Logic | `MaterialLogic` | 该实体在各视图上的交互；类继承 `UiLogic` |
+| 交互逻辑 | Logic | `MaterialLogic` | 该实体在各视图上的交互；类继承 `EntityLogic` |
 
 不规则复数照后端仓库名：`Countries`、`Wbses`。不要把目录 `materials` 或类名 `Material` 当成 `repository`。
 
@@ -220,7 +220,7 @@ packages/base/src/modules/materials/MaterialLogic.ts
 
 - 目录：`production_orders`、`quality_inspections`
 - 类：`ProductionOrderLogic`、`QualityInspectionLogic`
-- 子表：`UiGroupLogic`，挂在主表 Logic 上，例如 `MaterialPartnerLogic`
+- 子表：`SubEntityLogic`，挂在主表 Logic 上，例如 `MaterialPartnerLogic`
 - 无定制时用 `GenericUiLogic`，不要空类撑场面
 
 **源文件大小写（vui / 皮肤）：**
@@ -249,20 +249,20 @@ packages/base/src/modules/materials/MaterialLogic.ts
 ### 类名与继承
 
 ```text
-EntityLogic<E>          @mmda/core     无 Vue：ApiClient + MetaModel CRUD
-    ↑
-UiLogic<E>              @mmda/vui      视图装配、router、i18n
+EntityLogic<E>          @mmda/core     CRUD + 视图钩子；无 Vue
     ↑
 MaterialLogic                          业务：该实体的交互逻辑
+VueEntityLogic          @mmda/vui      仅壳：响应式搜索表单（业务不继承）
+    ↑
 GenericUiLogic                         无定制时的默认实现
 ```
 
 | 类 | 包 | 命名 | 是什么 |
 |---|---|---|---|
-| `EntityLogic` | core | 不要业务直接继承 | 无 Vue 的 CRUD 基类 |
-| `UiLogic` | vui | 业务基类 | 该实体的交互逻辑 |
+| `EntityLogic` | core | 业务基类 | CRUD + 视图装配；`context.t()` 做文案 |
+| `VueEntityLogic` | vui | 不要业务继承 | 搜索表单 `rx` 等 Vue 扩展 |
 | `GenericUiLogic` | vui | — | 通用 CRUD / 跨服务 `select` |
-| `UiGroupLogic` | vui | `{子实体}Logic` | 子表，挂在主表 Logic 上 |
+| `SubEntityLogic` | core | `{子实体}Logic` | 子表，挂在主表 Logic 上 |
 | `MetaUiFieldLogic` | core | `this.field('x')` | 单字段 hide / lock / validate / 渲染 |
 | `MetaUiGroupLogic` | core | `this.group('y')` | 子表组行为 |
 
@@ -289,7 +289,7 @@ GenericUiLogic                         无定制时的默认实现
 | `selectMany` | `beforeSelectMany` | 未覆盖则 `beforeIndex` |
 | `search` | `beforeSearch` | 返回 `UiSearchForm`，不是 fields/groups |
 
-大型 Logic 按视图拆文件，`viewLogicLoaders` 的键必须是 `UiViewType`。`create` 加载 `edit` 那份。调用基类须 `UiLogic.prototype.beforeIndex.call(this)`，不能 `this.beforeIndex()`（加载后该方法就是当前函数）。
+大型 Logic 按视图拆文件，`viewLogicLoaders` 的键必须是 `UiViewType`。`create` 加载 `edit` 那份。调用基类须 `EntityLogic.prototype.beforeIndex.call(this)`，不能 `this.beforeIndex()`（加载后该方法就是当前函数）。
 
 ```ts
 viewLogicLoaders = {
@@ -647,12 +647,12 @@ export const UserStatusEnum = {
 | 详情       | `details`                              | `detail`、`show`、`view`           |
 | 后端服务     | `service: 'base'`                      | 包名 `@mmda/base` 当 API 名          |
 | 仓库        | `repository: 'Materials'`（实体复数）       | 目录名 `materials`、实体类 `Material`    |
-| 实体交互逻辑  | `UiLogic` / `MaterialLogic`            | 「仓库逻辑」、`RepositoryLogic`、`EntityManager`、ViewModel、皮肤组件 |
+| 实体交互逻辑  | `EntityLogic` / `MaterialLogic`            | 「仓库逻辑」、`RepositoryLogic`、`EntityManager`、ViewModel、皮肤组件 |
 | 实体间关系    | `relation` / `MetaRelationType`        | `relative`（那是关联对象）               |
 | 小表引用      | `ref`（全量缓存 `refOptions`）           | 当成 `hasOne` 灌缓存                     |
 | 业务一对一    | `hasOne`（按需取整份实体）                 | 当小表 `loadReferenceOptions`            |
 | 关联对象      | relative：`relObjName`、`addRelativeLogic` | `relation`、CSS `relative`、`relativeTime` |
-| 无 Vue CRUD 基类 | `EntityLogic`（core）                 | `EntityManager`、`RepositoryLogic`   |
+| 无 Vue 业务 Logic 基类 | `EntityLogic`（core）                 | `UiLogic`、`EntityManager`、`RepositoryLogic`、`VueEntityLogic`（后者仅 vui） |
 | 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
 | 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
 | 取色         | `factory.colorPicker`（hex）           | `colorRole`、厂商 `modeSwitcher`     |

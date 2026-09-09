@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiBuildContext, UI_BUILDER_KEY, UiGroupLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, UiBuildContext, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
 import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';
@@ -72,12 +72,12 @@ const maxDateprodDate = { value: new Date() };
 /**
  * 智能工位交互逻辑
  */
-export class StationPortalLogic extends UiLogic<StationPortal> {
+export class StationPortalLogic extends EntityLogic<StationPortal> {
 	static getAllplan() {
 		throw new Error('Method not implemented.');
 	}
 	allstations: any;
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineStationPortal, init);
 		// this.selectableList = { onSelectmaterial: (item: any) => item.materialID != null };
 	}
@@ -1379,11 +1379,11 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
  * @param module 模块
  * @returns
  */
-export const StationPortalLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const StationPortalLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new StationPortalLogic({
 		metaUiService: metaUiService,
 		repository: 'StationPortals',
-		router,
+		
 		module: module || metaUiService.findModule('StationPortal'),
 	});
 //#endregion ~GENERATED PARTS END

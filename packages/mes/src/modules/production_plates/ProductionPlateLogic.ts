@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionPlate, defineProductionPlate } from '@/models/ProductionPlate';
 /**
  * 生产货组交互逻辑
@@ -18,9 +18,9 @@ import { type ProductionPlate, defineProductionPlate } from '@/models/Production
 /**
  * 生产货组交互逻辑
  */
-export class ProductionPlateLogic extends UiLogic<ProductionPlate> {
+export class ProductionPlateLogic extends EntityLogic<ProductionPlate> {
 	isEdit: any;
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionPlate, init);
 	}
 	beforeIndex() {
@@ -129,11 +129,11 @@ export class ProductionPlateLogic extends UiLogic<ProductionPlate> {
  * @param module 模块
  * @returns
  */
-export const ProductionPlateLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionPlateLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionPlateLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionPlates',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionPlate'),
 	});
 //#endregion ~GENERATED PARTS END

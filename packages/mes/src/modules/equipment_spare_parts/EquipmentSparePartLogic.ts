@@ -7,7 +7,7 @@
  */
 
 import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey, EntityAction } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type EquipmentSparePart, defineEquipmentSparePart } from '@/models/EquipmentSparePart';
 /**
  * 备品备件交互逻辑
@@ -90,8 +90,8 @@ const beforeRequest = async (context: UiContext, model: EquipmentSparePart, acti
 	}
 	return false
 }
-export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
-	constructor(init: UiLogicInit) {
+export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
+	constructor(init: EntityLogicInit) {
 		super(defineEquipmentSparePart, init);
 		this.beforeAction = (context: UiContext, model: EquipmentSparePart, action: EntityAction) => {
 			try {
@@ -291,10 +291,10 @@ export class EquipmentSparePartLogic extends UiLogic<EquipmentSparePart> {
  * @param module 模块
  * @returns 
  */
-export const EquipmentSparePartLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new EquipmentSparePartLogic({
+export const EquipmentSparePartLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new EquipmentSparePartLogic({
 	metaUiService: metaUiService,
 	repository: 'EquipmentSpareParts',
-	router,
+	
 	module: module || metaUiService.findModule('EquipmentSparePart'),
 })
 //#endregion ~GENERATED PARTS END

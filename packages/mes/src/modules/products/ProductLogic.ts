@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Product, defineProduct } from '@/models/Product';
 /**
  * 制品交互逻辑
@@ -18,8 +18,8 @@ import { type Product, defineProduct } from '@/models/Product';
 	/**
 	 * 制品交互逻辑
 	 */
-	export class ProductLogic extends UiLogic<Product>{
-		constructor(init: UiLogicInit){
+	export class ProductLogic extends EntityLogic<Product>{
+		constructor(init: EntityLogicInit){
 			super(defineProduct,init);
 		}
 
@@ -63,10 +63,10 @@ import { type Product, defineProduct } from '@/models/Product';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductLogic({
+	export const ProductLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProductLogic({
 		metaUiService: metaUiService,
 		repository: 'Products',
-		router,
+		
 		module: module || metaUiService.findModule('Product'),
 	})
 	//#endregion ~GENERATED PARTS END

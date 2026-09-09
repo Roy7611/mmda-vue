@@ -1,6 +1,6 @@
 import { useRouter } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UI_BUILDER_KEY, UiGroupLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction, UiSearchForm } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction, UiSearchForm } from '@mmda/vui';
 import { type MaterialUsage, defineMaterialUsage } from '@/models/MaterialUsage';
 /**
  * 用料分析交互逻辑
@@ -32,8 +32,8 @@ const searchParamTask = {
     searchWord: '',
     searchParams: {}
 });
-export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
-    constructor(init: UiLogicInit) {
+export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
+    constructor(init: EntityLogicInit) {
         super(defineMaterialUsage, init);
     }
     async getAll(param: any, ctx?: any) {
@@ -201,10 +201,10 @@ export class MaterialUsageLogic extends UiLogic<MaterialUsage> {
  * @param module 模块
  * @returns
  */
-export const MaterialUsageLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const MaterialUsageLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
     new MaterialUsageLogic({
         metaUiService: metaUiService,
         repository: 'StationPortals',
-        router,
+        
         module: module || metaUiService.findModule('StationPortal'),
     });

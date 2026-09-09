@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, isNullOrUndefined } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Partner, definePartner } from '../../models/Partner';
 import { PartnerCat } from '../../models/PartnerCat';
 /**
@@ -19,8 +19,8 @@ import { PartnerCat } from '../../models/PartnerCat';
 /**
  * 贸易伙伴交互逻辑
  */
-export class PartnerLogic extends UiLogic<Partner> {
-	constructor(init: UiLogicInit) {
+export class PartnerLogic extends EntityLogic<Partner> {
+	constructor(init: EntityLogicInit) {
 		super(definePartner, init);
 		this.beforeSave = (context: UiContext, model: Partner, action: EntityAction) => {
 			const { tel } = model
@@ -124,10 +124,10 @@ export class PartnerLogic extends UiLogic<Partner> {
  * @param module 模块
  * @returns 
  */
-export const PartnerLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new PartnerLogic({
+export const PartnerLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new PartnerLogic({
 	metaUiService: metaUiService,
 	repository: 'Partners',
-	router,
+	
 	module: module || metaUiService.findModule('Partner'),
 })
 //#endregion ~GENERATED PARTS END

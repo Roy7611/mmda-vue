@@ -16,9 +16,9 @@ import {
   ApiClient,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -37,8 +37,8 @@ import {
 /**
  * 反馈交互逻辑
  */
-export class FeedbackLogic extends UiLogic<Feedback> {
-  constructor(init: UiLogicInit) {
+export class FeedbackLogic extends EntityLogic<Feedback> {
+  constructor(init: EntityLogicInit) {
     super(defineFeedback, init);
     this.addRelativeLogic<FeedbackPhoto>(
       "photos",
@@ -136,19 +136,19 @@ export class FeedbackLogic extends UiLogic<Feedback> {
  */
 export const FeedbackLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new FeedbackLogic({
     metaUiService: metaUiService,
     repository: "Feedbacks",
-    router,
+    
     module: module || metaUiService.findModule("Feedback"),
   });
 /**
  * 照片交互逻辑
  */
-export class FeedbackPhotoLogic extends UiGroupLogic<FeedbackPhoto, Feedback> {
+export class FeedbackPhotoLogic extends SubEntityLogic<FeedbackPhoto, Feedback> {
   constructor(parent: FeedbackLogic, master: Feedback) {
     super(defineFeedbackPhoto, parent, master, "photos");
   }

@@ -14,9 +14,9 @@ import {
   SortOrder,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
 } from "@mmda/vui";
 import {
@@ -33,8 +33,8 @@ import {
 /**
  * 后台任务交互逻辑
  */
-export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
-  constructor(init: UiLogicInit) {
+export class ModuleBgTaskLogic extends EntityLogic<ModuleBgTask> {
+  constructor(init: EntityLogicInit) {
     super(defineModuleBgTask, init);
   }
   async getAll(params: any) {
@@ -154,13 +154,13 @@ export class ModuleBgTaskLogic extends UiLogic<ModuleBgTask> {
  */
 export const ModuleBgTaskLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new ModuleBgTaskLogic({
     metaUiService: metaUiService,
     repository: "ModuleBgTasks",
-    router,
+    
     module: module || metaUiService.findModule("ModuleBgTask"),
   });
 //#endregion ~GENERATED PARTS END

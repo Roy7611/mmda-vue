@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialReturn, defineMaterialReturn } from '@/models/MaterialReturn';
 import { type MaterialReturnItem, defineMaterialReturnItem } from '@/models/MaterialReturnItem';
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
@@ -87,8 +87,8 @@ import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/model
 // 	detail: context.globalProps.$t('auth.ApproveSuccess')
 // })
 
-export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
-	constructor(init: UiLogicInit) {
+export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
+	constructor(init: EntityLogicInit) {
 		super(defineMaterialReturn, init);
 		this.addRelativeLogic<MaterialReturnItem>('items', master => new MaterialReturnItemLogic(this, master));
 		// this.beforeAction = (context: UiContext, model: MaterialReturn, action: EntityAction) => {
@@ -302,17 +302,17 @@ export class MaterialReturnLogic extends UiLogic<MaterialReturn> {
  * @param module 模块
  * @returns
  */
-export const MaterialReturnLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const MaterialReturnLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new MaterialReturnLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialReturns',
-		router,
+		
 		module: module || metaUiService.findModule('MaterialReturn'),
 	});
 /**
  * 退料清单交互逻辑
  */
-export class MaterialReturnItemLogic extends UiGroupLogic<MaterialReturnItem, MaterialReturn> {
+export class MaterialReturnItemLogic extends SubEntityLogic<MaterialReturnItem, MaterialReturn> {
 	constructor(parent: MaterialReturnLogic, master: MaterialReturn) {
 		super(defineMaterialReturnItem, parent, master, 'items');
 	}

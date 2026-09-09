@@ -5,7 +5,7 @@
 | 文档 | 内容 |
 |---|---|
 | [应用壳](./application.md) | `MmdaVueApp`、`app.state`、鉴权、i18n |
-| [实体交互逻辑](./logic.md) | `UiLogic` / `UiGroupLogic` |
+| [实体交互逻辑](./logic.md) | `EntityLogic` / `SubEntityLogic` |
 | [会话上下文](./context.md) | 程序员：`VueUiContext` / core `UiContext` |
 | [会话设计](./vue_ui_context.md) | 一个类 + mixin 叠放；不是本地/远程两层 |
 | [Builder 与皮肤](./builder.md) | `VueUiBuilder` = Form/List/Tree mixin；皮肤 factory 对象组合 |

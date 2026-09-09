@@ -9,8 +9,8 @@ import { resolve } from 'node:path';
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
 import { MetaUiPack } from '@mmda/core';
-import type { UiLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
-import { UiLogic } from '@mmda/vui';
+import type { EntityLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { EntityLogic } from '@mmda/vui';
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
 import { applyScheduleGanttTaskDates } from '@/components/GanntView/ganttScheduleDateHelpers';
 import { primeVueFactory } from '@/compat/primevue_legacy'
@@ -187,13 +187,13 @@ const getSub = async (appContext: any, task: any) => {
 	}
 };
 
-export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
+export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 	taskDatas: any;
 	//甘特图模版
 	skin = 'material'; //传入dark为黑暗模式
 	scheduleroleaction: any = {}; //权限
 	roleaction: any[] = [];
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionSchedule, init);
 	}
 	async initMetadata(reload: boolean = false) {
@@ -491,11 +491,11 @@ export class ProductionScheduleLogic extends UiLogic<ProductionSchedule> {
  * @param module 模块
  * @returns
  */
-export const ProductionScheduleLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionScheduleLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionScheduleLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionSchedule',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionSchedule'),
 		customPage: true,
 	});

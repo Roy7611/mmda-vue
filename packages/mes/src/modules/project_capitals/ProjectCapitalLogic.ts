@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectCapital, defineProjectCapital } from '@/models/ProjectCapital';
 import { type ProjectCapitalItem, defineProjectCapitalItem } from '@/models/ProjectCapitalItem';
 /**
@@ -19,8 +19,8 @@ import { type ProjectCapitalItem, defineProjectCapitalItem } from '@/models/Proj
 /**
  * 项目资金交互逻辑
  */
-export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
-	constructor(init: UiLogicInit) {
+export class ProjectCapitalLogic extends EntityLogic<ProjectCapital> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectCapital, init);
 		this.addRelativeLogic<ProjectCapitalItem>('items', master => new ProjectCapitalItemLogic(this, master));
 	}
@@ -90,17 +90,17 @@ export class ProjectCapitalLogic extends UiLogic<ProjectCapital> {
  * @param module 模块
  * @returns
  */
-export const ProjectCapitalLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectCapitalLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectCapitalLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectCapitals',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectCapital'),
 	});
 /**
  * 资金项交互逻辑
  */
-export class ProjectCapitalItemLogic extends UiGroupLogic<ProjectCapitalItem, ProjectCapital> {
+export class ProjectCapitalItemLogic extends SubEntityLogic<ProjectCapitalItem, ProjectCapital> {
 	constructor(parent: ProjectCapitalLogic, master: ProjectCapital) {
 		super(defineProjectCapitalItem, parent, master, 'items');
 	}

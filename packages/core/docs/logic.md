@@ -1,6 +1,6 @@
 # 前端交互逻辑
 
-`logic` 是给程序员的规范接口（纯 TS）。无 Vue 的 CRUD 基类叫 **`EntityLogic`**（不要叫 `EntityManager` / `RepositoryLogic`）。vui 的 `UiLogic` 继承它，业务类仍 `extends UiLogic`。回调类型在 [`logic_functions.ts`](./logic/logic_functions.md)。字段行为见 [`field_logic.ts`](./logic/field_logic.md)。引用过滤用 `refWhere` 叠加，与元数据 `where` AND，不要写回 `MetaUiField`。命名见仓库 [术语与命名](../../../docs/naming.md)。
+`logic` 是给程序员的规范接口（纯 TS）。业务基类叫 **`EntityLogic`**（CRUD + 视图钩子，无 Vue；不要叫 `EntityManager` / `RepositoryLogic`）。vui 的 `VueEntityLogic` 只做响应式扩展，业务类 `extends EntityLogic`。回调类型在 [`logic_functions.ts`](./logic/logic_functions.md)。字段行为见 [`field_logic.ts`](./logic/field_logic.md)。引用过滤用 `refWhere` 叠加，与元数据 `where` AND，不要写回 `MetaUiField`。命名见仓库 [术语与命名](../../../docs/naming.md)。
 
 详见 [index.md](./index.md) 与 [core_architecture.md](./core_architecture.md)。
 
@@ -21,11 +21,11 @@
 ## 按视图拆分 Logic
 
 业务 Logic 较大时，把 Index、Edit、Details 配置放在独立文件，并由
-`UiLogic.viewLogicLoaders` 按当前视图动态加载。这样进入列表页不会执行编辑页的
+`EntityLogic.viewLogicLoaders` 按当前视图动态加载。这样进入列表页不会执行编辑页的
 字段校验、自定义渲染和子表配置。这与 Context **类型**无关。
 
 ```ts
-export class OrderLogic extends UiLogic<Order> {
+export class OrderLogic extends EntityLogic<Order> {
   viewLogicLoaders = {
     index: () => import('./OrderIndexLogic'),
     edit: () => import('./OrderEditLogic'),
@@ -39,7 +39,7 @@ export class OrderLogic extends UiLogic<Order> {
 
 ```ts
 export function beforeIndex(this: OrderLogic) {
-  const result = UiLogic.prototype.beforeIndex.call(this)
+  const result = EntityLogic.prototype.beforeIndex.call(this)
   result.fields.push(this.field('status'))
   return result
 }

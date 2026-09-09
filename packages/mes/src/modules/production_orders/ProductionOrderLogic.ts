@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionOrderMaterial, defineProductionOrderMaterial } from '@/models/ProductionOrderMaterial';
 import { ProductionOrderStatusEnum } from '@/enums/ProductionOrderStatus';
@@ -331,8 +331,8 @@ const route = {
 /**
  * 生产订单交互逻辑
  */
-export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
-	constructor(init: UiLogicInit) {
+export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionOrder, init);
 		this.addRelativeLogic<ProductionOrderMaterial>('materials', master => new ProductionOrderMaterialLogic(this, master));
 		this.beforeAction = (context: UiContext, model: ProductionOrder, action: EntityAction) => {
@@ -725,17 +725,17 @@ export class ProductionOrderLogic extends UiLogic<ProductionOrder> {
  * @param module 模块
  * @returns
  */
-export const ProductionOrderLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionOrderLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionOrderLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionOrders',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionOrder'),
 	});
 /**
  * 原材料交互逻辑
  */
-export class ProductionOrderMaterialLogic extends UiGroupLogic<ProductionOrderMaterial, ProductionOrder> {
+export class ProductionOrderMaterialLogic extends SubEntityLogic<ProductionOrderMaterial, ProductionOrder> {
 	constructor(parent: ProductionOrderLogic, master: ProductionOrder) {
 		super(defineProductionOrderMaterial, parent, master, 'materials');
 	}

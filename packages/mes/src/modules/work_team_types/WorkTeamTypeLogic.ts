@@ -14,7 +14,7 @@
  * 
  */
 import { type UiContext, type MetaUiService, type Module, defaultPager } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkTeamType, defineWorkTeamType } from '@/models/WorkTeamType';
 import { type WorkTeamTypeCert, defineWorkTeamTypeCert } from '@/models/WorkTeamTypeCert';
 
@@ -28,8 +28,8 @@ import { type WorkTeamTypeCert, defineWorkTeamTypeCert } from '@/models/WorkTeam
 /**
  * 班组类型交互逻辑
  */
-export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
-	constructor(init: UiLogicInit) {
+export class WorkTeamTypeLogic extends EntityLogic<WorkTeamType> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorkTeamType, init);
 
 		this.addRelativeLogic<WorkTeamTypeCert>('workTeamTypeCerts', master => new WorkTeamTypeCertLogic(this, master));
@@ -136,17 +136,17 @@ export class WorkTeamTypeLogic extends UiLogic<WorkTeamType> {
  * @param module 模块
  * @returns 
  */
-export const WorkTeamTypeLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkTeamTypeLogic({
+export const WorkTeamTypeLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new WorkTeamTypeLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkTeamTypes',
-	router,
+	
 	module: module || metaUiService.findModule('WorkTeamType'),
 })
 
 /**
  * 班组类型证书交互逻辑
  */
-export class WorkTeamTypeCertLogic extends UiGroupLogic<WorkTeamTypeCert, WorkTeamType> {
+export class WorkTeamTypeCertLogic extends SubEntityLogic<WorkTeamTypeCert, WorkTeamType> {
 	constructor(parent: WorkTeamTypeLogic, master: WorkTeamType) {
 		super(defineWorkTeamTypeCert, parent, master, 'workTeamTypeCerts');
 	}

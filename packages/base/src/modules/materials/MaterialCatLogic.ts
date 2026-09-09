@@ -18,9 +18,9 @@ import {
   EntityUrlParam,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -38,8 +38,8 @@ import { MaterialTypeEnum, MaterialType } from "../../enums/MaterialType";
  * 物料交互逻辑
  */
 
-export class MaterialCatLogic extends UiLogic<MaterialCat> {
-  constructor(init: UiLogicInit) {
+export class MaterialCatLogic extends EntityLogic<MaterialCat> {
+  constructor(init: EntityLogicInit) {
     super(defineMaterialCat, init);
   }
   async create(
@@ -147,13 +147,13 @@ export class MaterialCatLogic extends UiLogic<MaterialCat> {
  */
 export const MaterialCatLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new MaterialCatLogic({
     metaUiService: metaUiService,
     repository: "MaterialCats",
-    router,
+    
     module: module || metaUiService.findModule("MaterialCats"),
   });
 //#endregion ~GENERATED PARTS END

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectInspection, defineProjectInspection } from '@/models/ProjectInspection';
 /**
  * 项目自检交互逻辑
@@ -18,8 +18,8 @@ import { type ProjectInspection, defineProjectInspection } from '@/models/Projec
 	/**
 	 * 项目自检交互逻辑
 	 */
-	export class ProjectInspectionLogic extends UiLogic<ProjectInspection>{
-		constructor(init: UiLogicInit){
+	export class ProjectInspectionLogic extends EntityLogic<ProjectInspection>{
+		constructor(init: EntityLogicInit){
 			super(defineProjectInspection,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ProjectInspection, defineProjectInspection } from '@/models/Projec
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProjectInspectionLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProjectInspectionLogic({
+	export const ProjectInspectionLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProjectInspectionLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectInspections',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectInspection'),
 	})
 	//#endregion ~GENERATED PARTS END

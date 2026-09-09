@@ -19,9 +19,9 @@ import {
   type UiContext,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
 } from "@mmda/vui";
 import {
@@ -57,8 +57,8 @@ import {
 /**
  * 通知交互逻辑
  */
-export class NotificationLogic extends UiLogic<Notification> {
-  constructor(init: UiLogicInit) {
+export class NotificationLogic extends EntityLogic<Notification> {
+  constructor(init: EntityLogicInit) {
     super(defineNotification, init);
 
     this.selectableList = {
@@ -324,13 +324,13 @@ export class NotificationLogic extends UiLogic<Notification> {
  */
 export const NotificationLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new NotificationLogic({
     metaUiService: metaUiService,
     repository: "Notifications",
-    router,
+    
     module: module || metaUiService.findModule("Notification"),
   });
 //#endregion ~GENERATED PARTS END

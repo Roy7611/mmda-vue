@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ScadaBlock, defineScadaBlock } from '@/models/ScadaBlock';
 import { type ScadaCell, defineScadaCell } from '@/models/ScadaCell';
 /**
@@ -19,8 +19,8 @@ import { type ScadaCell, defineScadaCell } from '@/models/ScadaCell';
 	/**
 	 * 数控块交互逻辑
 	 */
-	export class ScadaBlockLogic extends UiLogic<ScadaBlock>{
-		constructor(init: UiLogicInit){
+	export class ScadaBlockLogic extends EntityLogic<ScadaBlock>{
+		constructor(init: EntityLogicInit){
 			super(defineScadaBlock,init);
 			this.addRelativeLogic<ScadaCell>('cells',(master)=>new ScadaCellLogic(this,master));
 		}
@@ -65,16 +65,16 @@ import { type ScadaCell, defineScadaCell } from '@/models/ScadaCell';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ScadaBlockLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ScadaBlockLogic({
+	export const ScadaBlockLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ScadaBlockLogic({
 		metaUiService: metaUiService,
 		repository: 'ScadaBlocks',
-		router,
+		
 		module: module || metaUiService.findModule('ScadaBlock'),
 	})
 	/**
 	 * 数控单元交互逻辑
 	 */
-	export class ScadaCellLogic extends UiGroupLogic<ScadaCell,ScadaBlock>{
+	export class ScadaCellLogic extends SubEntityLogic<ScadaCell,ScadaBlock>{
 		constructor(parent: ScadaBlockLogic, master: ScadaBlock){
 			super(defineScadaCell,parent,master,'cells')
 		}

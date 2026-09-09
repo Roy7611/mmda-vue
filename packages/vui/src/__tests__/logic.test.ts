@@ -7,7 +7,6 @@ import {
   MetaUiGroupLogic,
   SqlDataType,
 } from '@mmda/core'
-import { UiLogic } from '../logic/logic'
 import { VueUiContext } from '../contexts/vue_ui_context'
 
 const field = (fieldName: string, fieldIdx = 0) =>
@@ -51,7 +50,7 @@ const metaUi = new MetaUi({
   ],
 })
 
-class OrderLogic extends UiLogic<any> {}
+class OrderLogic extends EntityLogic<any> {}
 
 const service = {
   getApiClient: (): Record<string, never> => ({}),
@@ -60,7 +59,7 @@ const service = {
   locale: 'zh',
 } as any
 
-describe('UiLogic', () => {
+describe('EntityLogic', () => {
   it('继承 EntityLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
@@ -104,7 +103,7 @@ describe('UiLogic', () => {
         indexLoads++
         return {
           beforeIndex(this: OrderLogic) {
-            const result = UiLogic.prototype.beforeIndex.call(this)
+            const result = EntityLogic.prototype.beforeIndex.call(this)
             result.fields.push(this.field('orderNo').lock())
             return result
           },
@@ -112,7 +111,7 @@ describe('UiLogic', () => {
       },
       edit: async () => {
         editLoads++
-        return () => UiLogic.prototype.beforeEdit.call(logic)
+        return () => EntityLogic.prototype.beforeEdit.call(logic)
       },
     }
 

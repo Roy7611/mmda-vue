@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku';
 /**
  * 物料SKU交互逻辑
@@ -18,8 +18,8 @@ import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku
 	/**
 	 * 物料SKU交互逻辑
 	 */
-	export class MaterialNSkuLogic extends UiLogic<MaterialNSku>{
-		constructor(init: UiLogicInit){
+	export class MaterialNSkuLogic extends EntityLogic<MaterialNSku>{
+		constructor(init: EntityLogicInit){
 			super(defineMaterialNSku,init);
 		}
 
@@ -63,10 +63,10 @@ import { type MaterialNSku, defineMaterialNSku } from '../../models/MaterialNSku
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const MaterialNSkuLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new MaterialNSkuLogic({
+	export const MaterialNSkuLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new MaterialNSkuLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialNSkus',
-		router,
+		
 		module: module || metaUiService.findModule('MaterialNSku'),
 	})
 	//#endregion ~GENERATED PARTS END

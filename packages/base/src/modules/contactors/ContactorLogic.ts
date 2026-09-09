@@ -7,7 +7,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Contactor, defineContactor } from '../../models/Contactor';
 import { UsageStatus } from '../../enums/UsageStatus';
 /**
@@ -20,8 +20,8 @@ import { UsageStatus } from '../../enums/UsageStatus';
 /**
  * 联系人交互逻辑
  */
-export class ContactorLogic extends UiLogic<Contactor> {
-	constructor(init: UiLogicInit) {
+export class ContactorLogic extends EntityLogic<Contactor> {
+	constructor(init: EntityLogicInit) {
 		super(defineContactor, init);
 		this.beforeSave = (context: UiContext, model: Contactor, action: EntityAction) => {
 			const { mobile, qq, email, officeTel } = model
@@ -110,10 +110,10 @@ export class ContactorLogic extends UiLogic<Contactor> {
  * @param module 模块
  * @returns 
  */
-export const ContactorLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ContactorLogic({
+export const ContactorLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ContactorLogic({
 	metaUiService: metaUiService,
 	repository: 'Contactors',
-	router,
+	
 	module: module || metaUiService.findModule('Contactor'),
 })
 //#endregion ~GENERATED PARTS END

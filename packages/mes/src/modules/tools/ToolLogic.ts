@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 import { type MaintenancePlan } from '@/models/MaintenancePlan';
@@ -405,8 +405,8 @@ const beforeToolsReturn = async (context: UiContext, model: Tool, action: Entity
 const actionName = { value: '' };
 const refToolUseActions = ['store', 'lend', 'return', 'move', 'batchStore', 'batchLend', 'batchMove']; // 关联toolUse的field-logic
 
-export class ToolLogic extends UiLogic<Tool> {
-	constructor(init: UiLogicInit) {
+export class ToolLogic extends EntityLogic<Tool> {
+	constructor(init: EntityLogicInit) {
 		super(defineTool, init);
 		this.addRelativeLogic<ToolUse>('uses', master => new ToolUseLogic(this, master));
 		this.beforeAction = (context: UiContext, model: Tool, action: EntityAction) => {
@@ -1847,17 +1847,17 @@ if (childrenCount) {
  * @param module 模块
  * @returns
  */
-export const ToolLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ToolLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ToolLogic({
 		metaUiService: metaUiService,
 		repository: 'Tools',
-		router,
+		
 		module: module || metaUiService.findModule('Tool'),
 	});
 /**
  * 使用记录交互逻辑
  */
-export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
+export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 	constructor(parent: ToolLogic, master: Tool) {
 		super(defineToolUse, parent, master, 'uses');
 	}

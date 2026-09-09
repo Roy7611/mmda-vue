@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type EquipmentChecklist, defineEquipmentChecklist } from '@/models/EquipmentChecklist';
 import { type EquipmentChecklistItem, defineEquipmentChecklistItem } from '@/models/EquipmentChecklistItem';
 /**
@@ -19,8 +19,8 @@ import { type EquipmentChecklistItem, defineEquipmentChecklistItem } from '@/mod
 /**
  * 设备点检表交互逻辑
  */
-export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
-	constructor(init: UiLogicInit) {
+export class EquipmentChecklistLogic extends EntityLogic<EquipmentChecklist> {
+	constructor(init: EntityLogicInit) {
 		super(defineEquipmentChecklist, init);
 		this.addRelativeLogic<EquipmentChecklistItem>('items', master => new EquipmentChecklistItemLogic(this, master));
 	}
@@ -108,16 +108,16 @@ export class EquipmentChecklistLogic extends UiLogic<EquipmentChecklist> {
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const EquipmentChecklistLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new EquipmentChecklistLogic({
+	export const EquipmentChecklistLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new EquipmentChecklistLogic({
 		metaUiService: metaUiService,
 		repository: 'EquipmentChecklists',
-		router,
+		
 		module: module || metaUiService.findModule('EquipmentChecklist'),
 	})
 	/**
 	 * 点检项交互逻辑
 	 */
-	export class EquipmentChecklistItemLogic extends UiGroupLogic<EquipmentChecklistItem,EquipmentChecklist>{
+	export class EquipmentChecklistItemLogic extends SubEntityLogic<EquipmentChecklistItem,EquipmentChecklist>{
 		constructor(parent: EquipmentChecklistLogic, master: EquipmentChecklist){
 			super(defineEquipmentChecklistItem,parent,master,'items')
 		}

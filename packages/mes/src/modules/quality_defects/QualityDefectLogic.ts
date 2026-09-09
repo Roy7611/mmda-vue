@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect';
 /**
  * 质量缺陷交互逻辑
@@ -18,8 +18,8 @@ import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect'
 	/**
 	 * 质量缺陷交互逻辑
 	 */
-	export class QualityDefectLogic extends UiLogic<QualityDefect>{
-		constructor(init: UiLogicInit){
+	export class QualityDefectLogic extends EntityLogic<QualityDefect>{
+		constructor(init: EntityLogicInit){
 			super(defineQualityDefect,init);
 		}
 		beforeIndex() {
@@ -69,10 +69,10 @@ import { type QualityDefect, defineQualityDefect } from '@/models/QualityDefect'
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const QualityDefectLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new QualityDefectLogic({
+	export const QualityDefectLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new QualityDefectLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityDefects',
-		router,
+		
 		module: module || metaUiService.findModule('QualityDefect'),
 	})
 	//#endregion ~GENERATED PARTS END

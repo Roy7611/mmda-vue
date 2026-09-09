@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type PaymentMethod, definePaymentMethod } from '../../models/PaymentMethod';
 /**
  * 支付方式交互逻辑
@@ -18,8 +18,8 @@ import { type PaymentMethod, definePaymentMethod } from '../../models/PaymentMet
 /**
  * 支付方式交互逻辑
  */
-export class PaymentMethodLogic extends UiLogic<PaymentMethod> {
-	constructor(init: UiLogicInit) {
+export class PaymentMethodLogic extends EntityLogic<PaymentMethod> {
+	constructor(init: EntityLogicInit) {
 		super(definePaymentMethod, init);
 	}
 	beforeIndex(): UiLogicFnResult<PaymentMethod> {
@@ -71,10 +71,10 @@ export class PaymentMethodLogic extends UiLogic<PaymentMethod> {
  * @param module 模块
  * @returns 
  */
-export const PaymentMethodLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new PaymentMethodLogic({
+export const PaymentMethodLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new PaymentMethodLogic({
 	metaUiService: metaUiService,
 	repository: 'PaymentMethods',
-	router,
+	
 	module: module || metaUiService.findModule('PaymentMethod'),
 })
 //#endregion ~GENERATED PARTS END

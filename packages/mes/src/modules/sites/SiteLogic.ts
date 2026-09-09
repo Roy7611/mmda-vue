@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, isRefNone, ApiClient, defaultPager, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Site, defineSite } from '@/models/Site';
 import { type SiteShift, defineSiteShift } from '@/models/SiteShift';
 import { type Shift, defineShift } from '@/models/Shift';
@@ -23,8 +23,8 @@ import { WorkCenterLevel, WorkCenterLevelEnum } from '@/enums/WorkCenterLevel';
 /**
  * 生产站点交互逻辑
  */
-export class SiteLogic extends UiLogic<Site> {
-	constructor(init: UiLogicInit) {
+export class SiteLogic extends EntityLogic<Site> {
+	constructor(init: EntityLogicInit) {
 		super(defineSite, init);
 		this.addRelativeLogic<SiteShift>('shifts',(master)=>new SiteShiftLogic(this,master));
 	}
@@ -167,17 +167,17 @@ export class SiteLogic extends UiLogic<Site> {
  * @param module 模块
  * @returns
  */
-export const SiteLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const SiteLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new SiteLogic({
 		metaUiService: metaUiService,
 		repository: 'Sites',
-		router,
+		
 		module: module || metaUiService.findModule('Site'),
 	})
 	/**
 	 * 开动班次交互逻辑
 	 */
-	export class SiteShiftLogic extends UiGroupLogic<SiteShift,Site>{
+	export class SiteShiftLogic extends SubEntityLogic<SiteShift,Site>{
 		constructor(parent: SiteLogic, master: Site){
 			super(defineSiteShift,parent,master,'shifts')
 		}

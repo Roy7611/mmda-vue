@@ -20,6 +20,7 @@ export interface ContextHost {
   locale: string;
   logic?: any;
   app?: any;
+  router?: any;
   editing: boolean;
   loading: { value: boolean };
   showDialog: boolean;

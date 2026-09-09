@@ -49,7 +49,7 @@ vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`
 
 ```text
 app/                MmdaVueApp、inject keys、主题
-logic/              UiLogic
+logic/              EntityLogic
 contexts/           VueUiContext（会话；设计见 docs/vue_ui_context.md）
 components/         无厂商壳
 ui/layout/          UiLayout

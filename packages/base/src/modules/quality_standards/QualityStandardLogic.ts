@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type QualityStandard, defineQualityStandard } from '../../models/QualityStandard';
 /**
  * 质量标准交互逻辑
@@ -18,8 +18,8 @@ import { type QualityStandard, defineQualityStandard } from '../../models/Qualit
 	/**
 	 * 质量标准交互逻辑
 	 */
-	export class QualityStandardLogic extends UiLogic<QualityStandard>{
-		constructor(init: UiLogicInit){
+	export class QualityStandardLogic extends EntityLogic<QualityStandard>{
+		constructor(init: EntityLogicInit){
 			super(defineQualityStandard,init);
 		}
 
@@ -63,10 +63,10 @@ import { type QualityStandard, defineQualityStandard } from '../../models/Qualit
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const QualityStandardLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new QualityStandardLogic({
+	export const QualityStandardLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new QualityStandardLogic({
 		metaUiService: metaUiService,
 		repository: 'QualityStandards',
-		router,
+		
 		module: module || metaUiService.findModule('QualityStandard'),
 	})
 	//#endregion ~GENERATED PARTS END

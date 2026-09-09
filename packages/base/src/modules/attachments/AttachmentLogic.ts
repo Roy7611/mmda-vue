@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Attachment, defineAttachment } from '../../models/Attachment';
 /**
  * 附件交互逻辑
@@ -18,8 +18,8 @@ import { type Attachment, defineAttachment } from '../../models/Attachment';
 	/**
 	 * 附件交互逻辑
 	 */
-	export class AttachmentLogic extends UiLogic<Attachment>{
-		constructor(init: UiLogicInit){
+	export class AttachmentLogic extends EntityLogic<Attachment>{
+		constructor(init: EntityLogicInit){
 			super(defineAttachment,init);
 		}
 
@@ -63,10 +63,10 @@ import { type Attachment, defineAttachment } from '../../models/Attachment';
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const AttachmentLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new AttachmentLogic({
+	export const AttachmentLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new AttachmentLogic({
 		metaUiService: metaUiService,
 		repository: 'Attachments',
-		router,
+		
 		module: module || metaUiService.findModule('Attachment'),
 	})
 	//#endregion ~GENERATED PARTS END

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd';
 /**
  * 承运商和产品交互逻辑
@@ -18,8 +18,8 @@ import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd
 	/**
 	 * 承运商和产品交互逻辑
 	 */
-	export class CarrierNProdLogic extends UiLogic<CarrierNProd>{
-		constructor(init: UiLogicInit){
+	export class CarrierNProdLogic extends EntityLogic<CarrierNProd>{
+		constructor(init: EntityLogicInit){
 			super(defineCarrierNProd,init);
 		}
 		beforeIndex(): UiLogicFnResult<CarrierNProd> {
@@ -71,10 +71,10 @@ import { type CarrierNProd, defineCarrierNProd } from '../../models/CarrierNProd
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const CarrierNProdLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new CarrierNProdLogic({
+	export const CarrierNProdLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new CarrierNProdLogic({
 		metaUiService: metaUiService,
 		repository: 'CarrierNProds',
-		router,
+		
 		module: module || metaUiService.findModule('CarrierNProd'),
 	})
 	//#endregion ~GENERATED PARTS END

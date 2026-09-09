@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionLot, defineProductionLot } from '@/models/ProductionLot';
 /**
  * 生产批次交互逻辑
@@ -18,9 +18,9 @@ import { type ProductionLot, defineProductionLot } from '@/models/ProductionLot'
 /**
  * 生产批次交互逻辑
  */
-export class ProductionLotLogic extends UiLogic<ProductionLot> {
+export class ProductionLotLogic extends EntityLogic<ProductionLot> {
 	isEdit: any;
-	constructor(init: UiLogicInit) {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionLot, init);
 
 		this.beforeSave = (context: UiContext<ProductionLot>, model: ProductionLot, action: EntityAction) => {
@@ -125,11 +125,11 @@ export class ProductionLotLogic extends UiLogic<ProductionLot> {
  * @param module 模块
  * @returns
  */
-export const ProductionLotLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionLotLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionLotLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionLots',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionLot'),
 	});
 //#endregion ~GENERATED PARTS END

@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type EquipmentTally, defineEquipmentTally } from '@/models/EquipmentTally';
 import { type EquipmentTallyRecord, defineEquipmentTallyRecord } from '@/models/EquipmentTallyRecord';
 import { EquipmentCheckResult, EquipmentCheckResultEnum } from '@/enums/EquipmentCheckResult';
@@ -33,8 +33,8 @@ const searchParam = {
 const collectmaterialparams = {
 	tableData: []
 } as any
-export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
-	constructor(init: UiLogicInit) {
+export class EquipmentTallyLogic extends EntityLogic<EquipmentTally> {
+	constructor(init: EntityLogicInit) {
 		super(defineEquipmentTally, init);
 		this.addRelativeLogic<EquipmentTallyRecord>('records', master => new EquipmentTallyRecordLogic(this, master));
 		this.beforeSave = (context: UiContext<EquipmentTally>, model: EquipmentTally, action: EntityAction) => {
@@ -238,17 +238,17 @@ export class EquipmentTallyLogic extends UiLogic<EquipmentTally> {
  * @param module 模块
  * @returns
  */
-export const EquipmentTallyLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const EquipmentTallyLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new EquipmentTallyLogic({
 		metaUiService: metaUiService,
 		repository: 'EquipmentTallies',
-		router,
+		
 		module: module || metaUiService.findModule('EquipmentTally'),
 	});
 /**
  * 点检记录交互逻辑
  */
-export class EquipmentTallyRecordLogic extends UiGroupLogic<EquipmentTallyRecord, EquipmentTally> {
+export class EquipmentTallyRecordLogic extends SubEntityLogic<EquipmentTallyRecord, EquipmentTally> {
 	constructor(parent: EquipmentTallyLogic, master: EquipmentTally) {
 		super(defineEquipmentTallyRecord, parent, master, 'records');
 	}

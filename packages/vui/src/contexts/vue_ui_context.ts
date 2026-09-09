@@ -33,8 +33,9 @@ import {
   type UiViewType,
 } from "./view";
 import type { MmdaVueApp } from "../app/app";
-import type { UiLogic } from "../logic/logic";
+import type { EntityLogic } from "@mmda/core";
 import type { UiAction } from "../ui/factory/action";
+import type { Router } from "vue-router";
 import { WithSubgroup } from "./mixins/subgroup";
 import { WithValidate } from "./mixins/validate";
 import { WithReference } from "./mixins/reference";
@@ -63,7 +64,9 @@ export interface VueUiContextOptions<E extends object> {
   fieldLogics?: FieldLogicMap;
   groupLogics?: GroupLogicMap;
   app?: MmdaVueApp;
-  logic?: UiLogic<any>;
+  logic?: EntityLogic<any>;
+  /** vue-router；导航用，不放在 Logic 上。 */
+  router?: Router | any;
 }
 
 /** @deprecated 使用 VueUiContextOptions；logic 在有 IO 时传入即可。 */
@@ -71,7 +74,7 @@ export type UiViewContextOptions<E extends object> = VueUiContextOptions<E>;
 
 export interface UiBuildContextOptions<E extends Entity>
   extends VueUiContextOptions<E> {
-  logic: UiLogic<E>;
+  logic: EntityLogic<E>;
 }
 
 const identityTranslate: TranslateFn = (message) =>
@@ -90,7 +93,8 @@ class VueUiContextBase<E extends object = Record<string, any>>
   readonly locale: string;
   readonly loading: Ref<boolean>;
   readonly app?: MmdaVueApp;
-  logic?: UiLogic<any>;
+  logic?: EntityLogic<any>;
+  router?: Router | any;
   customActions: EntityAction[] = [];
   actionLoadings: Record<string, boolean> = reactive({});
   executing = false;
@@ -158,6 +162,8 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.groupLogics = options.groupLogics ?? {};
     this.app = app;
     this.logic = options.logic ?? (child?.parent as any)?.logic;
+    this.router =
+      options.router ?? (child?.parent as any)?.router;
     this.parent = child?.parent as any;
     this.cache = (child?.cache as unknown as ContextCache | undefined) ?? new Map();
     this.cachePath = child?.cachePath ?? "@root";
@@ -280,7 +286,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
       $ui: this.app?.ui,
       $t: (message: string, param?: Record<string, any>) =>
         this.translate(message, param),
-      $router: this.logic?.router,
+      $router: this.router,
     };
   }
 

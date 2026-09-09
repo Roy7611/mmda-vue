@@ -1,6 +1,6 @@
-import type { UiLogic, UiLogicInit } from '@mmda/vui'
+import type { EntityLogic, EntityLogicInit } from '@mmda/vui'
 
-type LogicCtor = new (init: UiLogicInit) => UiLogic<any>
+type LogicCtor = new (init: EntityLogicInit) => EntityLogic<any>
 type LogicLoader = () => Promise<LogicCtor>
 const logic = <M>(load: () => Promise<M>, name: keyof M): LogicLoader =>
   async () => (await load())[name] as LogicCtor
@@ -51,7 +51,7 @@ export const LOGIC_LOADERS: Record<string, LogicLoader> = {
   Users: logic(() => import('./modules/users/UserLogic'), 'UserLogic'),
 }
 
-export async function createRepositoryLogic(repository: string, init: UiLogicInit) {
+export async function createRepositoryLogic(repository: string, init: EntityLogicInit) {
   const loader = LOGIC_LOADERS[repository]
   return loader ? new (await loader())(init) : undefined
 }

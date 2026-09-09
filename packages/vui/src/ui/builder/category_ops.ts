@@ -38,7 +38,6 @@ export async function resolveCategoryTreeLogic(
   return new GenericUiLogic(defineEntity, {
     metaUiService: app!.meta,
     repository,
-    router: context.logic?.router,
     module,
     apiService: service,
   });

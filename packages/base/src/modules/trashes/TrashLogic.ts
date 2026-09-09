@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Trash, defineTrash } from '../../models/Trash';
 /**
  * 垃圾交互逻辑
@@ -18,8 +18,8 @@ import { type Trash, defineTrash } from '../../models/Trash';
 /**
  * 垃圾交互逻辑
  */
-export class TrashLogic extends UiLogic<Trash> {
-	constructor(init: UiLogicInit) {
+export class TrashLogic extends EntityLogic<Trash> {
+	constructor(init: EntityLogicInit) {
 		super(defineTrash, init);
 	}
 	beforeIndex(): UiLogicFnResult<Trash> {
@@ -72,10 +72,10 @@ export class TrashLogic extends UiLogic<Trash> {
  * @param module 模块
  * @returns 
  */
-export const TrashLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new TrashLogic({
+export const TrashLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new TrashLogic({
 	metaUiService: metaUiService,
 	repository: 'Trashes',
-	router,
+	
 	module: module || metaUiService.findModule('Trash'),
 })
 //#endregion ~GENERATED PARTS END

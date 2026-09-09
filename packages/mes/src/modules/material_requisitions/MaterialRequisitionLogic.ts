@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialRequisition, defineMaterialRequisition } from '@/models/MaterialRequisition';
 import { type MaterialRequisitionItem, defineMaterialRequisitionItem } from '@/models/MaterialRequisitionItem';
 import { type ProductionTaskFeeding, defineProductionTaskFeeding } from '@/models/ProductionTaskFeeding';
@@ -22,8 +22,8 @@ import { Material, defineMaterial } from '@mmda/base/src/models/Material';
 /**
  * 领料单交互逻辑
  */
-export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
-	constructor(init: UiLogicInit) {
+export class MaterialRequisitionLogic extends EntityLogic<MaterialRequisition> {
+	constructor(init: EntityLogicInit) {
 		super(defineMaterialRequisition, init);
 		this.addRelativeLogic<MaterialRequisitionItem>('items', master => new MaterialRequisitionItemLogic(this, master));
 	}
@@ -223,17 +223,17 @@ export class MaterialRequisitionLogic extends UiLogic<MaterialRequisition> {
  * @param module 模块
  * @returns
  */
-export const MaterialRequisitionLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const MaterialRequisitionLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new MaterialRequisitionLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialRequisitions',
-		router,
+		
 		module: module || metaUiService.findModule('MaterialRequisition'),
 	});
 /**
  * 领料清单交互逻辑
  */
-export class MaterialRequisitionItemLogic extends UiGroupLogic<MaterialRequisitionItem, MaterialRequisition> {
+export class MaterialRequisitionItemLogic extends SubEntityLogic<MaterialRequisitionItem, MaterialRequisition> {
 	constructor(parent: MaterialRequisitionLogic, master: MaterialRequisition) {
 		super(defineMaterialRequisitionItem, parent, master, 'items');
 	}

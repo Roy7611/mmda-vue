@@ -7,7 +7,7 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup, UiProps } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
@@ -24,8 +24,8 @@ import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 /**
  * 工具包交互逻辑
  */
-export class ToolkitLogic extends UiLogic<Toolkit> {
-	constructor(init: UiLogicInit) {
+export class ToolkitLogic extends EntityLogic<Toolkit> {
+	constructor(init: EntityLogicInit) {
 		super(defineToolkit, init);
 		this.addRelativeLogic<Tool>('tools', (master) => new ToolLogic(this, master));
 
@@ -202,16 +202,16 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
  * @param module 模块
  * @returns 
  */
-export const ToolkitLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ToolkitLogic({
+export const ToolkitLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ToolkitLogic({
 	metaUiService: metaUiService,
 	repository: 'Toolkits',
-	router,
+	
 	module: module || metaUiService.findModule('Toolkit'),
 })
 /**
  * 工具交互逻辑
  */
-export class ToolLogic extends UiGroupLogic<Tool, Toolkit> {
+export class ToolLogic extends SubEntityLogic<Tool, Toolkit> {
 	constructor(parent: ToolkitLogic, master: Toolkit) {
 		super(defineTool, parent, master, 'tools')
 		this.addRelativeLogic<ToolUse>('uses', master => new ToolUseLogic(this, master));
@@ -288,7 +288,7 @@ export class ToolLogic extends UiGroupLogic<Tool, Toolkit> {
 /**
  * 使用记录交互逻辑
  */
-export class ToolUseLogic extends UiGroupLogic<ToolUse, Tool> {
+export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 	constructor(parent: ToolLogic, master: Tool) {
 		super(defineToolUse, parent, master, 'uses');
 	}

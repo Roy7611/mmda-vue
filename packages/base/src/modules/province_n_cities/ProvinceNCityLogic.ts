@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProvinceNCity, defineProvinceNCity } from '../../models/ProvinceNCity';
 /**
  * 省市交互逻辑
@@ -18,8 +18,8 @@ import { type ProvinceNCity, defineProvinceNCity } from '../../models/ProvinceNC
 	/**
 	 * 省市交互逻辑
 	 */
-	export class ProvinceNCityLogic extends UiLogic<ProvinceNCity>{
-		constructor(init: UiLogicInit){
+	export class ProvinceNCityLogic extends EntityLogic<ProvinceNCity>{
+		constructor(init: EntityLogicInit){
 			super(defineProvinceNCity,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ProvinceNCity, defineProvinceNCity } from '../../models/ProvinceNC
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProvinceNCityLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProvinceNCityLogic({
+	export const ProvinceNCityLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProvinceNCityLogic({
 		metaUiService: metaUiService,
 		repository: 'ProvinceNCities',
-		router,
+		
 		module: module || metaUiService.findModule('ProvinceNCity'),
 	})
 	//#endregion ~GENERATED PARTS END

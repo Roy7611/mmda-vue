@@ -1,5 +1,5 @@
 import { EntityState, type EntitySearchParam } from "@mmda/core";
-import { UiLogic, UiViewManyKind, type UiLogicInit } from "@mmda/vui";
+import { EntityLogic, UiViewManyKind, type EntityLogicInit } from "@mmda/vui";
 import {
   categoryRows,
   descendantIds,
@@ -23,8 +23,8 @@ function matchWord(item: Product, word: string) {
   );
 }
 
-export class ProductLogic extends UiLogic<Product> {
-  constructor(init: UiLogicInit) {
+export class ProductLogic extends EntityLogic<Product> {
+  constructor(init: EntityLogicInit) {
     super(asProduct, init);
   }
 
@@ -92,7 +92,7 @@ export class ProductLogic extends UiLogic<Product> {
 export class CatalogLogic extends ProductLogic {
   currentCategoryId = "";
 
-  constructor(init: UiLogicInit) {
+  constructor(init: EntityLogicInit) {
     super(init);
     this.viewOptions = {
       index: (ctx) => ({
@@ -130,8 +130,8 @@ export class CatalogLogic extends ProductLogic {
   }
 }
 
-export class CategoryLogic extends UiLogic<Category> {
-  constructor(init: UiLogicInit) {
+export class CategoryLogic extends EntityLogic<Category> {
+  constructor(init: EntityLogicInit) {
     super(asCategory, init);
   }
 

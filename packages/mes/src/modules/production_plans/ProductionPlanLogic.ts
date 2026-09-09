@@ -22,7 +22,7 @@ import {
 	MetaUiGroup,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ProductionPlan, defineProductionPlan } from '@/models/ProductionPlan';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionPlanItem, defineProductionPlanItem } from '@/models/ProductionPlanItem';
@@ -115,8 +115,8 @@ const hrefData = { value:  };
 /**
  * 生产计划交互逻辑
  */
-export class ProductionPlanLogic extends UiLogic<ProductionPlan> {
-	constructor(init: UiLogicInit) {
+export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
+	constructor(init: EntityLogicInit) {
 		super(defineProductionPlan, init);
 
 		this.addRelativeLogic<ProductionPlanItem>('items', master => new ProductionPlanItemLogic(this, master));
@@ -523,17 +523,17 @@ const isDecimal = (num: number) => {
  * @param module 模块
  * @returns
  */
-export const ProductionPlanLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProductionPlanLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProductionPlanLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionPlans',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionPlan'),
 	});
 /**
  * 计划任务交互逻辑
  */
-export class ProductionPlanItemLogic extends UiGroupLogic<ProductionPlanItem, ProductionPlan> {
+export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, ProductionPlan> {
 	constructor(parent: ProductionPlanLogic, master: ProductionPlan) {
 		super(defineProductionPlanItem, parent, master, 'items');
 	}

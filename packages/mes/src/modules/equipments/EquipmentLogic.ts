@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Equipment, defineEquipment } from '@/models/Equipment';
 import { type EquipmentStation, defineEquipmentStation } from '@/models/EquipmentStation';
 import { User, defineUser } from '@mmda/base/src/models/User';
@@ -118,8 +118,8 @@ const beforecheck = async (context: UiContext, model: Equipment, action: EntityA
 /**
  * 设备交互逻辑check
  */
-export class EquipmentLogic extends UiLogic<Equipment> {
-	constructor(init: UiLogicInit) {
+export class EquipmentLogic extends EntityLogic<Equipment> {
+	constructor(init: EntityLogicInit) {
 		super(defineEquipment, init);
 		this.addRelativeLogic<EquipmentStation>('stations', (master) => new EquipmentStationLogic(this, master));
 		this.beforeAction = (context: UiContext<Equipment>, model: Equipment, action: EntityAction) => {
@@ -560,17 +560,17 @@ export class EquipmentLogic extends UiLogic<Equipment> {
  * @param module 模块
  * @returns
  */
-export const EquipmentLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const EquipmentLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new EquipmentLogic({
 		metaUiService: metaUiService,
 		repository: 'Equipments',
-		router,
+		
 		module: module || metaUiService.findModule('Equipment'),
 	})
 /**
  * 工位交互逻辑
  */
-export class EquipmentStationLogic extends UiGroupLogic<EquipmentStation, Equipment> {
+export class EquipmentStationLogic extends SubEntityLogic<EquipmentStation, Equipment> {
 	constructor(parent: EquipmentLogic, master: Equipment) {
 		super(defineEquipmentStation, parent, master, 'stations')
 	}

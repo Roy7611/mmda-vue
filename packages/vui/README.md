@@ -7,7 +7,7 @@ Vue 3 运行时。把 `@mmda/core` 的元数据、实体和 `UiContext` 接到 V
 ```ts
 import {
   MmdaVueApp,
-  UiLogic,
+  EntityLogic,
   VueUiContext,
   setupI18n,
 } from '@mmda/vui'
@@ -25,7 +25,7 @@ i18n / keys          语言包、provide/inject token
         ↓
 MmdaVueApp           应用壳：DI、鉴权、locale；弹层在 app.ui（VueUiBuilder）
         ↓
-UiLogic              实体在 UI 层的交互逻辑：beforeEdit / load / save，装配字段与组
+EntityLogic              实体在 UI 层的交互逻辑：beforeEdit / load / save，装配字段与组
         ↓
 VueUiContext         一实体一份 Vue 会话（实现 core 的 UiContext；含查询与 IO）
         ↓
@@ -34,7 +34,7 @@ VueUiBuilder / Factory / Overlay  拼屏实现 + 弹层；PrimeVue / Syncfusion 
 
 约定：
 
-- 先有 core 的 `MetaUi`，再用 `UiLogic` 装配字段逻辑，最后用 `VueUiContext` 跑一屏。
+- 先有 core 的 `MetaUi`，再用 `EntityLogic` 装配字段逻辑，最后用 `VueUiContext` 跑一屏。
 - `VueUiContext` 实现 `@mmda/core` 的 `UiContext`；搜索缓存仍是 `FieldSearchOptions`，不要写回 `MetaUiField`。
 - vui 可以依赖 Vue / vue-i18n / vue-router；不要依赖 PrimeVue。
 - `select(field)` 写回字段；`select({ repository })` 选仓库。弹层走 `app.ui.dialog`（皮肤 overlayHost）。
@@ -50,7 +50,7 @@ VueUiBuilder / Factory / Overlay  拼屏实现 + 弹层；PrimeVue / Syncfusion 
 ```text
 src/
   app/              应用壳：MmdaVueApp、inject keys、主题 / 图标 / Material token、壳 state
-  logic/            UiLogic：对标 core EntityLogic，无 Vue 控件
+  logic/            EntityLogic：对标 core EntityLogic，无 Vue 控件
   contexts/         一屏会话：VueUiContext（Handbook mixin：data / validate / subgroup / navigate / reference）、view
   components/       皮肤无关 Vue 组件（EntityView、TableSettingView、GroupCard、侧栏、预览…）
   ui/
@@ -126,7 +126,7 @@ await context.init()
 | 文档 | 内容 |
 |---|---|
 | [应用壳](./docs/application.md) | `MmdaVueApp`、`app.state`、鉴权、i18n |
-| [实体交互逻辑](./docs/logic.md) | `UiLogic` / `GenericUiLogic` / `UiGroupLogic` |
+| [实体交互逻辑](./docs/logic.md) | `EntityLogic` / `GenericUiLogic` / `SubEntityLogic` |
 | [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |

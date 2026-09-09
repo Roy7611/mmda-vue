@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialTransReason, defineMaterialTransReason } from '@/models/MaterialTransReason';
 /**
  * 移料原因交互逻辑
@@ -18,8 +18,8 @@ import { type MaterialTransReason, defineMaterialTransReason } from '@/models/Ma
 	/**
 	 * 移料原因交互逻辑
 	 */
-	export class MaterialTransReasonLogic extends UiLogic<MaterialTransReason>{
-		constructor(init: UiLogicInit){
+	export class MaterialTransReasonLogic extends EntityLogic<MaterialTransReason>{
+		constructor(init: EntityLogicInit){
 			super(defineMaterialTransReason,init);
 		}
 
@@ -63,10 +63,10 @@ import { type MaterialTransReason, defineMaterialTransReason } from '@/models/Ma
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const MaterialTransReasonLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new MaterialTransReasonLogic({
+	export const MaterialTransReasonLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new MaterialTransReasonLogic({
 		metaUiService: metaUiService,
 		repository: 'MaterialTransReasons',
-		router,
+		
 		module: module || metaUiService.findModule('MaterialTransReason'),
 	})
 	//#endregion ~GENERATED PARTS END

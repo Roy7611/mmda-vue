@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, UiContext, EntityAction } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult } from '@mmda/vui';
 import { type ProjectAcceptance, defineProjectAcceptance } from '@/models/ProjectAcceptance';
 import { type ProjectAcceptanceItem, defineProjectAcceptanceItem } from '@/models/ProjectAcceptanceItem';
 import { type ProjectDeliveryItem, defineProjectDeliveryItem } from '@/models/ProjectDeliveryItem';
@@ -24,8 +24,8 @@ import { ProjectAcceptanceStatusEnum } from '@/enums/ProjectAcceptanceStatus';
 /**
  * 项目验收交互逻辑
  */
-export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
-	constructor(init: UiLogicInit) {
+export class ProjectAcceptanceLogic extends EntityLogic<ProjectAcceptance> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectAcceptance, init);
 		this.addRelativeLogic<ProjectAcceptanceItem>('items', master => new ProjectAcceptanceItemLogic(this, master));
 	}
@@ -178,17 +178,17 @@ export class ProjectAcceptanceLogic extends UiLogic<ProjectAcceptance> {
  * @param module 模块
  * @returns
  */
-export const ProjectAcceptanceLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectAcceptanceLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new ProjectAcceptanceLogic({
 		metaUiService: metaUiService,
 		repository: 'ProjectAcceptances',
-		router,
+		
 		module: module || metaUiService.findModule('ProjectAcceptance'),
 	});
 /**
  * 验收分项交互逻辑
  */
-export class ProjectAcceptanceItemLogic extends UiGroupLogic<ProjectAcceptanceItem, ProjectAcceptance> {
+export class ProjectAcceptanceItemLogic extends SubEntityLogic<ProjectAcceptanceItem, ProjectAcceptance> {
 	constructor(parent: ProjectAcceptanceLogic, master: ProjectAcceptance) {
 		super(defineProjectAcceptanceItem, parent, master, 'items');
 		console.log(parent, master);

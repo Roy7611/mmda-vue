@@ -1,6 +1,6 @@
 import type { Component, InjectionKey } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
-import type { MmdaApplication, UiLogic } from '@mmda/vui'
+import type { MmdaApplication, EntityLogic } from '@mmda/vui'
 
 export interface AppPlugin {
   name: string
@@ -66,7 +66,7 @@ export const APP_PLUGIN_REGISTRY_KEY: InjectionKey<AppPluginRegistry> =
 export async function registerPluginLogic(
   app: MmdaApplication,
   registry: AppPluginRegistry,
-  router: unknown,
+  
 ) {
   for (const plugin of registry.all()) {
     for (const [repository, load] of Object.entries(
@@ -81,10 +81,9 @@ export async function registerPluginLogic(
         return new Ctor({
           metaUiService: app.meta,
           repository,
-          router,
           module,
           apiService: plugin.service,
-        }) as UiLogic<any>
+        }) as EntityLogic<any>
       })
     }
   }

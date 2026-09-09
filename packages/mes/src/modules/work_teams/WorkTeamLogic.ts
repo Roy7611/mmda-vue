@@ -15,7 +15,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityState } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkTeam, defineWorkTeam } from '@/models/WorkTeam';
 import { type Worker, defineSelectWorker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
@@ -32,8 +32,8 @@ import { UrgencyEnum } from '@mmda/base/src/enums/Urgency';
 /**
  * 班组交互逻辑
  */
-export class WorkTeamLogic extends UiLogic<WorkTeam> {
-	constructor(init: UiLogicInit) {
+export class WorkTeamLogic extends EntityLogic<WorkTeam> {
+	constructor(init: EntityLogicInit) {
 		super(defineWorkTeam, init);
 		this.addRelativeLogic<Worker>('members', (master) => new WorkLogic(this, master));
 		this.addRelativeLogic<WorkTeamShift>('shifts', (master) => new WorkTeamShiftLogic(this, master));
@@ -268,16 +268,16 @@ export class WorkTeamLogic extends UiLogic<WorkTeam> {
  * @param module 模块
  * @returns 
  */
-export const WorkTeamLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new WorkTeamLogic({
+export const WorkTeamLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new WorkTeamLogic({
 	metaUiService: metaUiService,
 	repository: 'WorkTeams',
-	router,
+	
 	module: module || metaUiService.findModule('WorkTeam'),
 })
 /**
  * 工人交互逻辑
  */
-export class WorkLogic extends UiGroupLogic<Worker, WorkTeam> {
+export class WorkLogic extends SubEntityLogic<Worker, WorkTeam> {
 	constructor(parent: WorkTeamLogic, master: WorkTeam) {
 		super(defineWorker, parent, master, 'members')
 
@@ -288,7 +288,7 @@ export class WorkLogic extends UiGroupLogic<Worker, WorkTeam> {
 /**
  * 工人技能交互逻辑
  */
-export class WorkerSkillLogic extends UiGroupLogic<WorkerSkill, Worker> {
+export class WorkerSkillLogic extends SubEntityLogic<WorkerSkill, Worker> {
 	constructor(parent: WorkLogic, master: Worker) {
 		super(defineWorkerSkill, parent, master, 'skills')
 	}
@@ -297,7 +297,7 @@ export class WorkerSkillLogic extends UiGroupLogic<WorkerSkill, Worker> {
 /**
  * 出勤班次交互逻辑
  */
-export class WorkTeamShiftLogic extends UiGroupLogic<WorkTeamShift, WorkTeam> {
+export class WorkTeamShiftLogic extends SubEntityLogic<WorkTeamShift, WorkTeam> {
 	constructor(parent: WorkTeamLogic, master: WorkTeam) {
 		super(defineWorkTeamShift, parent, master, 'shifts')
 	}

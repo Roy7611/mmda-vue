@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/ModuleAuditTrail';
 /**
  * 审计追踪交互逻辑
@@ -18,8 +18,8 @@ import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/Modu
 	/**
 	 * 审计追踪交互逻辑
 	 */
-	export class ModuleAuditTrailLogic extends UiLogic<ModuleAuditTrail>{
-		constructor(init: UiLogicInit){
+	export class ModuleAuditTrailLogic extends EntityLogic<ModuleAuditTrail>{
+		constructor(init: EntityLogicInit){
 			super(defineModuleAuditTrail,init);
 		}
 
@@ -63,10 +63,10 @@ import { type ModuleAuditTrail, defineModuleAuditTrail } from '../../models/Modu
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ModuleAuditTrailLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ModuleAuditTrailLogic({
+	export const ModuleAuditTrailLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ModuleAuditTrailLogic({
 		metaUiService: metaUiService,
 		repository: 'ModuleAuditTrails',
-		router,
+		
 		module: module || metaUiService.findModule('ModuleAuditTrail'),
 	})
 	//#endregion ~GENERATED PARTS END

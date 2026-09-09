@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Capital, defineCapital } from '../../models/Capital';
 /**
  * 资金交互逻辑
@@ -18,8 +18,8 @@ import { type Capital, defineCapital } from '../../models/Capital';
 /**
  * 资金交互逻辑
  */
-export class CapitalLogic extends UiLogic<Capital> {
-	constructor(init: UiLogicInit) {
+export class CapitalLogic extends EntityLogic<Capital> {
+	constructor(init: EntityLogicInit) {
 		super(defineCapital, init);
 	}
 	beforeIndex(): UiLogicFnResult<Capital> {
@@ -71,10 +71,10 @@ export class CapitalLogic extends UiLogic<Capital> {
  * @param module 模块
  * @returns 
  */
-export const CapitalLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new CapitalLogic({
+export const CapitalLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new CapitalLogic({
 	metaUiService: metaUiService,
 	repository: 'Capitals',
-	router,
+	
 	module: module || metaUiService.findModule('Capital'),
 })
 //#endregion ~GENERATED PARTS END

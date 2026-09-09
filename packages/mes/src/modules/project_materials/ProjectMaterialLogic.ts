@@ -6,7 +6,7 @@
  * 
  */
 import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 /**
@@ -30,8 +30,8 @@ const searchParamProject = {
 	searchWord: '',
 	searchParams: {}
 });
-export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
-	constructor(init: UiLogicInit) {
+export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
+	constructor(init: EntityLogicInit) {
 		super(defineProjectMaterial, init);
 		this.selectableList = {
 			projectMaterials: (e: any) => {
@@ -224,10 +224,10 @@ export class ProjectMaterialLogic extends UiLogic<ProjectMaterial> {
  * @param module 模块
  * @returns 
  */
-export const ProjectMaterialLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new ProjectMaterialLogic({
+export const ProjectMaterialLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new ProjectMaterialLogic({
 	metaUiService: metaUiService,
 	repository: 'ProjectMaterials',
-	router,
+	
 	module: module || metaUiService.findModule('ProjectMaterial'),
 })
 //#endregion ~GENERATED PARTS END

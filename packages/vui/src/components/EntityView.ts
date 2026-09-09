@@ -27,7 +27,8 @@ import type { MmdaVueApp } from "../app/app";
 import type { VueUiBuilder } from "../ui/builder/builder";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
-import { GenericUiLogic, type UiLogic, type UiLogicInit } from "../logic/logic";
+import { GenericUiLogic, type EntityLogicInit } from "../logic/logic";
+import type { EntityLogic } from "@mmda/core";
 import {
   resolveSearchParam,
   resolveViewManyProps,
@@ -45,8 +46,8 @@ import {
 export interface EntityViewOptions {
   createLogic: (
     repository: string,
-    init: UiLogicInit,
-  ) => UiLogic<any> | undefined | Promise<UiLogic<any> | undefined>;
+    init: EntityLogicInit,
+  ) => EntityLogic<any> | undefined | Promise<EntityLogic<any> | undefined>;
   resolveService?: (path: string) => string;
   resolveLogicToken?: (repository: string, service: string) => string;
   resolveModule?: (
@@ -168,18 +169,17 @@ async function openEntityContext(
     options.resolveModule?.(app, repository, route.path) ??
     app.findModule(route.path) ??
     resolveRepositoryModule(app, repository);
-  const init: UiLogicInit = {
+  const init: EntityLogicInit = {
     metaUiService: app.meta,
     repository,
-    router,
     module,
     apiService: service,
   };
   const token =
     options.resolveLogicToken?.(repository, service) ?? `${repository}Logic`;
-  let injected: UiLogic<any> | undefined;
+  let injected: EntityLogic<any> | undefined;
   try {
-    injected = await app.di.injectAsync<UiLogic<any>>(token);
+    injected = await app.di.injectAsync<EntityLogic<any>>(token);
   } catch {
     // Repository without a registered custom Logic uses the generic one.
   }
@@ -211,6 +211,7 @@ async function openEntityContext(
     view,
     logic,
     app,
+    router,
   });
   if (many) {
     assignSearchParam(

@@ -20,10 +20,10 @@ import {
   isNullOrUndefined,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
+  type EntityLogicInit,
   type UiViewOptions,
-  UiLogic,
-  UiGroupLogic,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewManyKind,
   UiViewOne,
@@ -56,8 +56,8 @@ import { type MaterialCat, defineMaterialCat } from "../../models/MaterialCat";
 /**
  * 物料交互逻辑
  */
-export class MaterialLogic extends UiLogic<Material> {
-  constructor(init: UiLogicInit) {
+export class MaterialLogic extends EntityLogic<Material> {
+  constructor(init: EntityLogicInit) {
     super(defineMaterial, init);
     this.beforeSave = (context: UiContext<Material>, model: Material) => {
       const category =
@@ -412,19 +412,19 @@ export class MaterialLogic extends UiLogic<Material> {
  */
 export const MaterialLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new MaterialLogic({
     metaUiService: metaUiService,
     repository: "Materials",
-    router,
+    
     module: module || metaUiService.findModule("Material"),
   });
 /**
  * 特征交互逻辑
  */
-export class MaterialFeatureLogic extends UiGroupLogic<
+export class MaterialFeatureLogic extends SubEntityLogic<
   MaterialFeature,
   Material
 > {
@@ -435,7 +435,7 @@ export class MaterialFeatureLogic extends UiGroupLogic<
 /**
  * 媒体文件交互逻辑
  */
-export class MaterialMediaLogic extends UiGroupLogic<MaterialMedia, Material> {
+export class MaterialMediaLogic extends SubEntityLogic<MaterialMedia, Material> {
   constructor(parent: MaterialLogic, master: Material) {
     super(defineMaterialMedia, parent, master, "medias");
   }
@@ -443,7 +443,7 @@ export class MaterialMediaLogic extends UiGroupLogic<MaterialMedia, Material> {
 /**
  * 特征交互逻辑
  */
-export class SkuMaterialFeatureLogic extends UiGroupLogic<
+export class SkuMaterialFeatureLogic extends SubEntityLogic<
   MaterialFeature,
   Sku
 > {
@@ -454,7 +454,7 @@ export class SkuMaterialFeatureLogic extends UiGroupLogic<
 /**
  * 特征交互逻辑
  */
-export class SkuMaterialMediaLogic extends UiGroupLogic<MaterialMedia, Sku> {
+export class SkuMaterialMediaLogic extends SubEntityLogic<MaterialMedia, Sku> {
   constructor(parent: SkuLogic, master: Sku) {
     super(defineMaterialMedia, parent, master, "medias");
   }
@@ -462,7 +462,7 @@ export class SkuMaterialMediaLogic extends UiGroupLogic<MaterialMedia, Sku> {
 /**
  * SKU交互逻辑
  */
-export class SkuLogic extends UiGroupLogic<Sku, Material> {
+export class SkuLogic extends SubEntityLogic<Sku, Material> {
   constructor(parent: MaterialLogic, master: Material) {
     super(defineSku, parent, master, "skus");
     this.addRelativeLogic<MaterialFeature>(
@@ -478,7 +478,7 @@ export class SkuLogic extends UiGroupLogic<Sku, Material> {
 /**
  * 供货号交互逻辑
  */
-export class MaterialPartnerLogic extends UiGroupLogic<
+export class MaterialPartnerLogic extends SubEntityLogic<
   MaterialPartner,
   Material
 > {
@@ -510,7 +510,7 @@ export class MaterialPartnerLogic extends UiGroupLogic<
     return { fields, groups, customActions };
   }
 }
-// export class MaterialMediaLogic extends UiGroupLogic<MaterialMedia, Sku> {
+// export class MaterialMediaLogic extends SubEntityLogic<MaterialMedia, Sku> {
 // 	constructor(parent: MaterialLogic, master: Material) {
 // 		super(defineMaterialMedia, parent, master, 'medias')
 

@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type LabelTemplate, defineLabelTemplate } from '../../models/LabelTemplate';
 import { type LabelTemplatePartner, defineLabelTemplatePartner } from '../../models/LabelTemplatePartner';
 import { type LabelTemplateMaterial, defineLabelTemplateMaterial } from '../../models/LabelTemplateMaterial';
@@ -26,8 +26,8 @@ import { type Material, defineMaterial } from '../../models/Material';
 /**
  * 标签模板交互逻辑
  */
-export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
-	constructor(init: UiLogicInit) {
+export class LabelTemplateLogic extends EntityLogic<LabelTemplate> {
+	constructor(init: EntityLogicInit) {
 		super(defineLabelTemplate, init);
 		this.addRelativeLogic<LabelTemplatePartner>('partners', (master) => new LabelTemplatePartnerLogic(this, master));
 		this.addRelativeLogic<LabelTemplateMaterial>('materials', (master) => new LabelTemplateMaterialLogic(this, master));
@@ -157,16 +157,16 @@ export class LabelTemplateLogic extends UiLogic<LabelTemplate> {
  * @param module 模块
  * @returns 
  */
-export const LabelTemplateLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new LabelTemplateLogic({
+export const LabelTemplateLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new LabelTemplateLogic({
 	metaUiService: metaUiService,
 	repository: 'LabelTemplates',
-	router,
+	
 	module: module || metaUiService.findModule('LabelTemplate'),
 })
 /**
  * 专用于贸易伙伴交互逻辑
  */
-export class LabelTemplatePartnerLogic extends UiGroupLogic<LabelTemplatePartner, LabelTemplate> {
+export class LabelTemplatePartnerLogic extends SubEntityLogic<LabelTemplatePartner, LabelTemplate> {
 	constructor(parent: LabelTemplateLogic, master: LabelTemplate) {
 		super(defineLabelTemplatePartner, parent, master, 'partners')
 	}
@@ -174,7 +174,7 @@ export class LabelTemplatePartnerLogic extends UiGroupLogic<LabelTemplatePartner
 /**
  * 专用于物料交互逻辑
  */
-export class LabelTemplateMaterialLogic extends UiGroupLogic<LabelTemplateMaterial, LabelTemplate> {
+export class LabelTemplateMaterialLogic extends SubEntityLogic<LabelTemplateMaterial, LabelTemplate> {
 	constructor(parent: LabelTemplateLogic, master: LabelTemplate) {
 		super(defineLabelTemplateMaterial, parent, master, 'materials')
 	}

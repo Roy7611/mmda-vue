@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Sku, defineSku } from '../../models/Sku';
 import { type SkuFeature, defineSkuFeature } from '../../models/SkuFeature';
 import { type SkuMedia, defineSkuMedia } from '../../models/SkuMedia';
@@ -20,8 +20,8 @@ import { type SkuMedia, defineSkuMedia } from '../../models/SkuMedia';
 /**
  * Sku交互逻辑
  */
-export class SkuLogic extends UiLogic<Sku> {
-	constructor(init: UiLogicInit) {
+export class SkuLogic extends EntityLogic<Sku> {
+	constructor(init: EntityLogicInit) {
 		super(defineSku, init);
 		this.addRelativeLogic<SkuFeature>('features', (master) => new SkuFeatureLogic(this, master));
 		this.addRelativeLogic<SkuMedia>('medias', (master) => new SkuMediaLogic(this, master));
@@ -111,16 +111,16 @@ export class SkuLogic extends UiLogic<Sku> {
  * @param module 模块
  * @returns 
  */
-export const SkuLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) => new SkuLogic({
+export const SkuLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) => new SkuLogic({
 	metaUiService: metaUiService,
 	repository: 'Skus',
-	router,
+	
 	module: module || metaUiService.findModule('Sku'),
 })
 /**
  * 特征交互逻辑
  */
-export class SkuFeatureLogic extends UiGroupLogic<SkuFeature, Sku> {
+export class SkuFeatureLogic extends SubEntityLogic<SkuFeature, Sku> {
 	constructor(parent: SkuLogic, master: Sku) {
 		super(defineSkuFeature, parent, master, 'features')
 	}
@@ -128,7 +128,7 @@ export class SkuFeatureLogic extends UiGroupLogic<SkuFeature, Sku> {
 /**
  * 媒体文件交互逻辑
  */
-export class SkuMediaLogic extends UiGroupLogic<SkuMedia, Sku> {
+export class SkuMediaLogic extends SubEntityLogic<SkuMedia, Sku> {
 	constructor(parent: SkuLogic, master: Sku) {
 		super(defineSkuMedia, parent, master, 'medias')
 	}

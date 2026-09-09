@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionJob, defineProductionJob } from '@/models/ProductionJob';
 import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/ProductionJobFeeding';
 /**
@@ -19,8 +19,8 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 	/**
 	 * 生产作业交互逻辑
 	 */
-	export class ProductionJobLogic extends UiLogic<ProductionJob>{
-		constructor(init: UiLogicInit){
+	export class ProductionJobLogic extends EntityLogic<ProductionJob>{
+		constructor(init: EntityLogicInit){
 			super(defineProductionJob,init);
 			this.addRelativeLogic<ProductionJobFeeding>('feedings',(master)=>new ProductionJobFeedingLogic(this,master));
 		}
@@ -84,16 +84,16 @@ import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const ProductionJobLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new ProductionJobLogic({
+	export const ProductionJobLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new ProductionJobLogic({
 		metaUiService: metaUiService,
 		repository: 'ProductionJobs',
-		router,
+		
 		module: module || metaUiService.findModule('ProductionJob'),
 	})
 	/**
 	 * 投料清单交互逻辑
 	 */
-	export class ProductionJobFeedingLogic extends UiGroupLogic<ProductionJobFeeding,ProductionJob>{
+	export class ProductionJobFeedingLogic extends SubEntityLogic<ProductionJobFeeding,ProductionJob>{
 		constructor(parent: ProductionJobLogic, master: ProductionJob){
 			super(defineProductionJobFeeding,parent,master,'feedings')
 		}

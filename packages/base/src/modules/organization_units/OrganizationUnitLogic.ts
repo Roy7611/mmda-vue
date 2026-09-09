@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type OrganizationUnit, defineOrganizationUnit } from '../../models/OrganizationUnit';
 /**
  * 组织单位交互逻辑
@@ -18,8 +18,8 @@ import { type OrganizationUnit, defineOrganizationUnit } from '../../models/Orga
 	/**
 	 * 组织单位交互逻辑
 	 */
-	export class OrganizationUnitLogic extends UiLogic<OrganizationUnit>{
-		constructor(init: UiLogicInit){
+	export class OrganizationUnitLogic extends EntityLogic<OrganizationUnit>{
+		constructor(init: EntityLogicInit){
 			super(defineOrganizationUnit,init);
 		}
 
@@ -63,10 +63,10 @@ import { type OrganizationUnit, defineOrganizationUnit } from '../../models/Orga
 	 * @param module 模块
 	 * @returns 
 	 */
-	export const OrganizationUnitLogicCtor = (metaUiService:MetaUiService,router: UiLogicInit["router"],module?:Module) => new OrganizationUnitLogic({
+	export const OrganizationUnitLogicCtor = (metaUiService:MetaUiService,router: unknown,module?:Module) => new OrganizationUnitLogic({
 		metaUiService: metaUiService,
 		repository: 'OrganizationUnits',
-		router,
+		
 		module: module || metaUiService.findModule('OrganizationUnit'),
 	})
 	//#endregion ~GENERATED PARTS END

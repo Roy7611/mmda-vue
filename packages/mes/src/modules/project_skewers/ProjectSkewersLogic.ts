@@ -6,8 +6,8 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, ApiClient, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import type { UiLogicInit, UiLogicFnResult } from '@mmda/vui';
-import { UiLogic } from '@mmda/vui';
+import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
+import { EntityLogic } from '@mmda/vui';
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
@@ -17,8 +17,8 @@ import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
  * @since 2023-11-28 00:20:38.0
  * @revision 2023-11-28 01:38:08.0
  */
-export class ProjectSkewersLogic extends UiLogic<CustomPage> {
-    constructor(init: UiLogicInit) {
+export class ProjectSkewersLogic extends EntityLogic<CustomPage> {
+    constructor(init: EntityLogicInit) {
         super(defineCustomPage, init);
     }
     beforeIndex() {
@@ -35,10 +35,10 @@ export class ProjectSkewersLogic extends UiLogic<CustomPage> {
  * @param module 模块
  * @returns
  */
-export const ProjectSkewersLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const ProjectSkewersLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
     new ProjectSkewersLogic({
         metaUiService: metaUiService,
         repository: 'StationPortals',
-        router,
+        
         module: module || metaUiService.findModule('StationPortal'),
     });

@@ -160,7 +160,6 @@ export function WithReference<TBase extends Constructor>(
         metaUiService: this.app.meta,
         repository: param.repository,
         meta: pack,
-        router: this.logic?.router,
         apiService: param.service,
       });
       const selectionMode = param.selectionMode ?? "multiple";
@@ -175,6 +174,7 @@ export function WithReference<TBase extends Constructor>(
         translate: this.translateFn,
         app: this.app,
         logic,
+        router: this.router,
       });
       if (param.searchParam) {
         assignSearchParam(selectCtx.searchParam, param.searchParam);

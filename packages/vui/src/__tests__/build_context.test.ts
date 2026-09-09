@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
-import { UiLogic } from '../logic/logic'
+import { EntityLogic } from '../logic/logic'
 import { VueUiContext } from '../contexts/vue_ui_context'
 
 const metaUi = new MetaUi({
@@ -24,10 +24,10 @@ const metaUi = new MetaUi({
   ],
 })
 
-class OrderLogic extends UiLogic<any> {}
+class OrderLogic extends EntityLogic<any> {}
 
 describe('VueUiContext', () => {
-  it('save 走 UiLogic 并在校验通过后提交', async () => {
+  it('save 走 EntityLogic 并在校验通过后提交', async () => {
     const save = vi.fn(async (model: any) => model)
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
@@ -53,7 +53,6 @@ describe('VueUiContext', () => {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
       meta: { metaUi },
-      router: { push } as any,
     })
     logic.save = save
     const ctx = new VueUiContext({
@@ -61,6 +60,7 @@ describe('VueUiContext', () => {
       metaUi,
       view: 'edit',
       logic,
+      router: { push } as any,
       app: {
         name: 'base',
         toast: async () => undefined,
@@ -83,7 +83,6 @@ describe('VueUiContext', () => {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'EquipmentChecklists',
       meta: { metaUi },
-      router: { push } as any,
       apiService: 'mes',
     })
     const ctx = new VueUiContext({
@@ -91,6 +90,7 @@ describe('VueUiContext', () => {
       metaUi,
       view: 'index',
       logic,
+      router: { push } as any,
       app: { name: 'base' } as any,
     })
     ctx.details('141')

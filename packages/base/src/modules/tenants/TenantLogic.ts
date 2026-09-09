@@ -17,9 +17,9 @@ import {
   isRefNone,
 } from "@mmda/core";
 import {
-  type UiLogicInit,
-  UiLogic,
-  UiGroupLogic,
+  type EntityLogicInit,
+  EntityLogic,
+  SubEntityLogic,
   type UiLogicFnResult,
   UiViewOne,
 } from "@mmda/vui";
@@ -38,8 +38,8 @@ import {
 /**
  * 租户交互逻辑
  */
-export class TenantLogic extends UiLogic<Tenant> {
-  constructor(init: UiLogicInit) {
+export class TenantLogic extends EntityLogic<Tenant> {
+  constructor(init: EntityLogicInit) {
     super(defineTenant, init);
     this.addRelativeLogic<TenantModule>(
       "modules",
@@ -229,19 +229,19 @@ export class TenantLogic extends UiLogic<Tenant> {
  */
 export const TenantLogicCtor = (
   metaUiService: MetaUiService,
-  router: UiLogicInit["router"],
+  
   module?: Module,
 ) =>
   new TenantLogic({
     metaUiService: metaUiService,
     repository: "Tenants",
-    router,
+    
     module: module || metaUiService.findModule("Tenant"),
   });
 /**
  * 租赁模块交互逻辑
  */
-export class TenantModuleLogic extends UiGroupLogic<TenantModule, Tenant> {
+export class TenantModuleLogic extends SubEntityLogic<TenantModule, Tenant> {
   constructor(parent: TenantLogic, master: Tenant) {
     super(defineTenantModule, parent, master, "modules");
   }

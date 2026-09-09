@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, EntityState, isRefNone } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { type Station, defineStation } from '@/models/Station';
 import { type StationOperation, defineStationOperation } from '@/models/StationOperation';
 /**
@@ -19,8 +19,8 @@ import { type StationOperation, defineStationOperation } from '@/models/StationO
 /**
  * 工位交互逻辑
  */
-export class StationLogic extends UiLogic<Station> {
-	constructor(init: UiLogicInit) {
+export class StationLogic extends EntityLogic<Station> {
+	constructor(init: EntityLogicInit) {
 		super(defineStation, init);
 		this.addRelativeLogic<StationOperation>('operations', master => new StationOperationLogic(this, master));
 	}
@@ -187,17 +187,17 @@ export class StationLogic extends UiLogic<Station> {
  * @param module 模块
  * @returns
  */
-export const StationLogicCtor = (metaUiService: MetaUiService, router: UiLogicInit["router"], module?: Module) =>
+export const StationLogicCtor = (metaUiService: MetaUiService, router: unknown, module?: Module) =>
 	new StationLogic({
 		metaUiService: metaUiService,
 		repository: 'Stations',
-		router,
+		
 		module: module || metaUiService.findModule('Station'),
 	});
 /**
  * 工序交互逻辑
  */
-export class StationOperationLogic extends UiGroupLogic<StationOperation, Station> {
+export class StationOperationLogic extends SubEntityLogic<StationOperation, Station> {
 	constructor(parent: StationLogic, master: Station) {
 		super(defineStationOperation, parent, master, 'operations');
 	}
