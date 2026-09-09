@@ -3,13 +3,13 @@ import type { InjectionKey } from "vue";
 import type { VueUiContext } from "./vue_ui_context";
 import type { UiIndexTableHost } from "../ui/factory/list";
 
-export type IndexVisualOp =
+export type IndexModelOp =
   | { kind: "applyRow"; entity: Record<string, unknown> }
   | { kind: "insertAtZero"; entity: Record<string, unknown> }
   | { kind: "remove"; id: string };
 
 /** 模块工作区：Index KeepAlive 与 One 视图之间的列表同步。 */
-export interface ModuleContext {
+export interface VueModuleContext {
   /** 换 repository 时清空（父组件可能被路由复用）。 */
   reset(): void;
   registerIndex(context: VueUiContext): void;
@@ -33,8 +33,8 @@ export interface ModuleContext {
 }
 
 export const MODULE_CONTEXT_KEY = Symbol(
-  "ModuleContext",
-) as InjectionKey<ModuleContext>;
+  "VueModuleContext",
+) as InjectionKey<VueModuleContext>;
 
 function primaryKeyOf(context: VueUiContext): string {
   return context.metaUi?.primaryKey ?? "id";
@@ -47,30 +47,30 @@ function listModel(context: VueUiContext): PagedList<Entity> | null {
 }
 
 function enqueueOrApply(
-  pending: IndexVisualOp[],
+  pending: IndexModelOp[],
   activated: boolean,
   listHost: UiIndexTableHost | undefined,
-  op: IndexVisualOp,
+  op: IndexModelOp,
 ) {
   if (activated && listHost) {
-    applyVisualOp(listHost, op);
+    applyIndexModelOp(listHost, op);
     return;
   }
   pending.push(op);
 }
 
-function applyVisualOp(listHost: UiIndexTableHost, op: IndexVisualOp) {
+function applyIndexModelOp(listHost: UiIndexTableHost, op: IndexModelOp) {
   if (op.kind === "applyRow") listHost.applyRow(op.entity);
   else if (op.kind === "insertAtZero") listHost.insertAtZero(op.entity);
   else listHost.applyRemove(op.id);
 }
 
-export function createModuleContext(): ModuleContext {
+export function createModuleContext(): VueModuleContext {
   let indexContext: VueUiContext | null = null;
   let needsSearch = false;
   let activated = true;
   let scrollToTop = false;
-  const pending: IndexVisualOp[] = [];
+  const pending: IndexModelOp[] = [];
 
   return {
     reset() {
@@ -222,7 +222,7 @@ export function createModuleContext(): ModuleContext {
         pending.length = 0;
         return;
       }
-      for (const op of pending.splice(0)) applyVisualOp(host, op);
+      for (const op of pending.splice(0)) applyIndexModelOp(host, op);
     },
     saveScroll() {
       activated = false;
@@ -242,12 +242,12 @@ export function createModuleContext(): ModuleContext {
   };
 }
 
-const moduleContexts = new WeakMap<object, ModuleContext>();
+const moduleContexts = new WeakMap<object, VueModuleContext>();
 
-/** 在 EntityView open 时把工作区 ModuleContext 挂到 context，供 mixin 使用（非 setup 无法 inject）。 */
+/** 在 EntityView open 时把工作区 VueModuleContext 挂到 context，供 mixin 使用（非 setup 无法 inject）。 */
 export function bindModuleContext(
   context: object,
-  module: ModuleContext | null | undefined,
+  module: VueModuleContext | null | undefined,
 ) {
   if (module) moduleContexts.set(context, module);
   else moduleContexts.delete(context);
@@ -255,6 +255,6 @@ export function bindModuleContext(
 
 export function getModuleContext(
   context: object,
-): ModuleContext | undefined {
+): VueModuleContext | undefined {
   return moduleContexts.get(context);
 }

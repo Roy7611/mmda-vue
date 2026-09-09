@@ -227,7 +227,7 @@ packages/base/src/modules/materials/MaterialLogic.ts
 
 - **`components/`**：只放 Vue 组件，文件 **PascalCase**（`EntityView.ts`、`SfGrid.ts`）
 - **其余**（`factory/`、`builder/`、`contexts/`）：**snake_case**（`drop_down_button.ts`、`module_context.ts`）
-- 不要在 `components/` 里塞助手；模块工作区会话是 `contexts/module_context.ts`（`ModuleContext`）
+- 不要在 `components/` 里塞助手；模块工作区会话是 `contexts/module_context.ts`（`VueModuleContext`）
 - API 方法名仍是 camelCase（`factory.dropDownButton`）
 
 **产品 CSS 钩子：**
