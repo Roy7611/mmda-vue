@@ -32,6 +32,12 @@ export type UiVertAlign =
 /** 分组排法。属性名仍是 orientation。 */
 export type UiFieldGroupOrientation = 'row' | 'column' | 'table'
 
+export interface UiFixedColWidth {
+  fixed: string
+}
+
+export type UiColWidth = number | UiFixedColWidth
+
 export interface UiListTileSlots<TNode = any> {
   leading?: () => TNode
   title: () => TNode
@@ -80,18 +86,13 @@ export interface UiLayout<TNode = any> {
 }
 
 /**
- * 能上移的骨架：field / group / page / listTile。造节点走 wrap / cell。
+ * 能上移的骨架：cell / row / column / grid / field / group / page / listTile。造节点走 wrap。
  */
 export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   abstract fieldLayout: UiFieldLayout
   fieldMessage?: boolean
   abstract wrapManyGroup: boolean
   abstract maxCols: number
-
-  abstract cell(child: TNode, nCol?: number): TNode
-  abstract row(children: TNode[], nCols: number[], props?: UiProps): TNode
-  abstract column(children: TNode[], props?: UiProps): TNode
-  abstract grid(children: TNode[], nCols: number[], props?: UiProps): TNode
 
   protected abstract wrap(
     className: string,
@@ -100,6 +101,65 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     children: TNode[],
     tag?: string,
   ): TNode
+
+  cell(child: TNode, nCol = 1): TNode {
+    return this.wrap(
+      uiCssClass('cell'),
+      { gridColumn: `span ${Math.max(1, nCol)}` },
+      undefined,
+      [child],
+    )
+  }
+
+  row(
+    children: TNode[],
+    nCols: number[],
+    props?: UiProps,
+  ): TNode {
+    return this.wrap(
+      uiCssClass('row'),
+      {
+        display: 'grid',
+        gridTemplateColumns: nCols.map((n) => `${n}fr`).join(' '),
+        gap: '0.75rem',
+      },
+      props,
+      children,
+    )
+  }
+
+  column(children: TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('column'),
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+      },
+      props,
+      children,
+    )
+  }
+
+  grid(
+    children: TNode[],
+    nCols: number[],
+    props?: UiProps,
+  ): TNode {
+    return this.wrap(
+      uiCssClass('grid'),
+      {
+        display: 'grid',
+        gridTemplateColumns:
+          nCols.length > 0
+            ? nCols.map((n) => `${n}fr`).join(' ')
+            : 'repeat(auto-fit, minmax(16rem, 1fr))',
+        gap: '0.75rem',
+      },
+      props,
+      children,
+    )
+  }
 
   /** 页体节点。缺省铺平 primary / tails / summary / footer。vui 覆写成可折叠区域壳。 */
   protected pageBody(options: UiPageLayoutOptions<TNode>): TNode[] {

@@ -69,6 +69,7 @@ export * from './ui/factory'
 export * from './ui/field_factory'
 export * from './ui/layout'
 export * from './ui/context'
+export * from './ui/view'
 export * from './ui/tree'
 
 // Logic

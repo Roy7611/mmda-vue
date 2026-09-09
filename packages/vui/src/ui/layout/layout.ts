@@ -1,5 +1,5 @@
 import { h, type VNode } from 'vue'
-import type { UiLayout as CoreUiLayout, UiProps } from '@mmda/core'
+import type { UiProps } from '@mmda/core'
 import {
   AbstractUiLayout,
   type UiFieldLayout,
@@ -22,17 +22,12 @@ export type {
   AbstractUiLayout,
   UiListTileSlots,
   UiProps,
+  HtmlAttributes,
+  UiFixedColWidth,
+  UiColWidth,
 } from '@mmda/core'
 
-/** 落到真实 input / 根节点的 HTML 属性。读 UiProps 袋键 `htmlAttributes`；皮肤透传，不要改名。 */
-export type HtmlAttributes = Record<string, string>
-
-/** @deprecated 请用 `UiProps`（`@mmda/core`）。 */
-export type PropData = UiProps
-
-export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
-  return (props?.htmlAttributes as HtmlAttributes | undefined) ?? {}
-}
+export { htmlAttributesOf } from '@mmda/core'
 
 /**
  * 字段工厂 `extra` 合并袋：公开契约仍是 UiProps；读取 override 时按 any（过渡）。
@@ -54,17 +49,6 @@ export type UiSlots = {
   header?: ChildSlot
   footer?: ChildSlot
 }
-
-export interface UiFixedColWidth {
-  fixed: string
-}
-
-export type UiColWidth = number | UiFixedColWidth
-
-export type UiListTileRenderer<T = any> = (
-  model: T,
-  layout: CoreUiLayout<VNode>,
-) => VNode
 
 export type AppLayoutVariant = 'sidebarLeft' | 'topBarFull'
 
@@ -126,74 +110,6 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
         },
       ),
     ]
-  }
-
-  cell(child: VNode, nCol = 1): VNode {
-    return h(
-      'div',
-      {
-        class: 'mmda-cell',
-        style: { gridColumn: `span ${Math.max(1, nCol)}` },
-      },
-      child,
-    )
-  }
-
-  row(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
-    const { class: extraClass, style: extraStyle, ...rest } = props
-    return h(
-      'div',
-      {
-        class: ['mmda-row', extraClass],
-        style: {
-          display: 'grid',
-          gridTemplateColumns: nCols.map(value => `${value}fr`).join(' '),
-          gap: '0.75rem',
-          ...(extraStyle as Record<string, unknown> | undefined),
-        },
-        ...rest,
-      },
-      children,
-    )
-  }
-
-  column(children: VNode[], props: UiProps = {}): VNode {
-    const { class: extraClass, style: extraStyle, ...rest } = props
-    return h(
-      'div',
-      {
-        class: ['mmda-column', extraClass],
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          ...(extraStyle as Record<string, unknown> | undefined),
-        },
-        ...rest,
-      },
-      children,
-    )
-  }
-
-  grid(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
-    const { class: extraClass, style: extraStyle, ...rest } = props
-    return h(
-      'div',
-      {
-        class: ['mmda-grid', extraClass],
-        style: {
-          display: 'grid',
-          gridTemplateColumns:
-            nCols.length > 0
-              ? nCols.map(value => `${value}fr`).join(' ')
-              : 'repeat(auto-fit, minmax(16rem, 1fr))',
-          gap: '0.75rem',
-          ...(extraStyle as Record<string, unknown> | undefined),
-        },
-        ...rest,
-      },
-      children,
-    )
   }
 }
 

@@ -3,7 +3,7 @@
  *
  * - `class` / `style`：壳样式（接口字段名合法；读 `props.class`，不要解构绑定名）
  * - 索引签名：袋里可有 `htmlAttributes`（原生 id / data-* / aria-* / name），
- *   由皮肤各自透传（vui `htmlAttributesOf`）；不要整份 props spread 到厂商。
+ *   由皮肤各自透传（`htmlAttributesOf`）；不要整份 props spread 到厂商。
  *   同袋暂供皮肤双读 `modelValue` / `onUpdate:modelValue`；收掉双轨后再收紧。
  * - `placeholder` / `disabled` 是控件具名，不进 `htmlAttributes`。
  */
@@ -33,6 +33,13 @@ export interface UiProps {
   class?: unknown
   style?: unknown
   [key: string]: unknown
+}
+
+/** 落到真实 input / 根节点的 HTML 属性。读 UiProps 袋键 `htmlAttributes`；皮肤透传，不要改名。 */
+export type HtmlAttributes = Record<string, string>
+
+export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
+  return (props?.htmlAttributes as HtmlAttributes | undefined) ?? {}
 }
 
 /** 袋键回调（如 `onUpdate:modelValue`）。索引签名下不是函数类型。 */

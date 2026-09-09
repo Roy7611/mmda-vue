@@ -24,8 +24,8 @@ flowchart TB
 | 层 | 做什么 |
 |---|---|
 | core `interface UiLayout<TNode>` | 契约：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`listTile` |
-| core `abstract AbstractUiLayout<TNode>` | 上移的算法骨架，只调 `wrap` / `row`/`column`；页体走 `pageBody` |
-| vui `class VueUiLayout` | `h()` 实现 `wrap`、`cell` 等；`pageBody` → `PageBody` |
+| core `abstract AbstractUiLayout<TNode>` | 上移的算法骨架，只调 `wrap`：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`listTile`；页体走 `pageBody` |
+| vui `class VueUiLayout` | `h()` 实现 `wrap`；`pageBody` → `PageBody` |
 | 皮肤 `extends VueUiLayout` | 覆盖 `cell`/`row`/`column`/`grid`，可选覆盖 `listTile` |
 
 不要在 vui 再写一份同名 `interface UiLayout`。不要把 Vue 的 `VNodeChild` / `VNodeChildAtom` 写进 core。子节点就是 **`TNode` / `TNode[]`**。文本先 `factory.textSpan` 再进布局。
@@ -53,7 +53,7 @@ CSS class 用 `uiCssClass`：`mmda-field-layout--horizontal`、`mmda-field-group
 
 Toolbar 槽内只用 `left`/`center`/`right`。皮肤把 `between` 等映射成 CSS `space-between`。
 
-`props` 用 **`UiProps`**。vui 旧名 `PropData` 已 deprecated。
+`props` 用 **`UiProps`**。
 
 ## 接口
 

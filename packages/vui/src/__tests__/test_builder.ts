@@ -36,38 +36,6 @@ class TestLayout extends VueUiLayout {
   fieldMessage = true
   wrapManyGroup = true
   maxCols = 12
-  cell(child: VNode, nCol = 1) {
-    return h("div", { class: "mmda-cell", style: { gridColumn: `span ${nCol}` } }, child)
-  }
-  row(children: VNode[], nCols: number[], props: UiProps = {}) {
-    return h(
-      "div",
-      {
-        class: "mmda-row",
-        style: {
-          display: "grid",
-          gridTemplateColumns: nCols.map((n) => `${n}fr`).join(" "),
-          gap: "0.75rem",
-        },
-        ...props,
-      },
-      children,
-    )
-  }
-  column(children: VNode[], props: UiProps = {}) {
-    return h(
-      "div",
-      {
-        class: "mmda-column",
-        style: { display: "flex", flexDirection: "column", gap: "0.75rem" },
-        ...props,
-      },
-      children,
-    )
-  }
-  grid(children: VNode[], _nCols: number[], props: UiProps = {}) {
-    return h("div", { class: "mmda-grid", ...props }, children)
-  }
   listTile(slots) {
     return h("div", { class: "mmda-list-tile" }, [
       slots.leading?.(),

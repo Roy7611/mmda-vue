@@ -51,7 +51,7 @@ chrome 控件方法都在 `UiFactory`。Gantt / Chart / Pivot / Scheduler / Diag
 - **不要** `import from 'vue'`（无 `Ref`、`LinkHTMLAttributes`、`VNode`）
 - `UiListProps.loading`：`UiBoxed`（鸭子类型，兼容 Vue `ref`）
 - `fieldCellRenderers[fieldName]`（仅 `UiTableProps` / `UiGridProps`）返回 `TNode`；签名 `(field, row)`
-- `UiProps`：具名只有 `class` / `style`；`[key: string]: unknown` 袋键可有 `htmlAttributes`（皮肤 `htmlAttributesOf` 透传），并暂供 `modelValue` 双轨；收掉双轨后再收紧，不要 `any` 袋。vui 旧名 `PropData` 已 deprecated，等于 `UiProps`；新代码只用 `UiProps`
+- `UiProps`：具名只有 `class` / `style`；`[key: string]: unknown` 袋键可有 `htmlAttributes`（`htmlAttributesOf` 透传），并暂供 `modelValue` 双轨；收掉双轨后再收紧，不要 `any` 袋。
 - 列筛加载器、列布局、`onIndexTableHostReady` 是会话标准，由 Builder 注入皮肤 extras，**不进**程序员 `UiTableProps`
 - plugin Props（Gantt / Scheduler / …）留 vui/vuix
 
