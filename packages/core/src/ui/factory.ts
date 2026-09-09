@@ -1,93 +1,84 @@
 import type { MetaUi } from '../metaui/metaui_group'
 import type { Pagination } from '../models/pagination'
 import type { UiAction } from './action'
-import type { UiAutoCompleteProps, UiTagAutoCompleteProps } from './autocomplete'
-import type { UiBarcodeProps, UiQrCodeProps } from './code'
+import type { UiLayout } from './layout'
+import type { UiProps } from './props'
+import type { UiAutoCompleteProps } from './factory/autocomplete'
+import type { UiTagAutoCompleteProps } from './factory/tag_auto_complete'
+import type { UiBarcodeProps } from './factory/barcode'
+import type { UiQrCodeProps } from './factory/qrcode'
 import type {
   UiFileLinkProps,
+} from './factory/file_link'
+import type {
   UiFileUploaderProps,
   UiFilesUploaderProps,
+} from './factory/file_uploader'
+import type {
   UiImageUploaderProps,
   UiImagesUploaderProps,
-} from './file'
+} from './factory/image_uploader'
 import type {
   UiInplaceEditorProps,
   UiInplaceEditorSlots,
-} from './inplace_editor'
-import type { UiQueryBuilderProps } from './query_builder'
-import type { UiSignaturePadProps } from './signature_pad'
-import type { UiSpeechToTextProps } from './speech_to_text'
-import type { UiStepperProps } from './stepper'
-import type { UiTimelineProps } from './timeline'
-import type { UiTreeSelectProps } from './tree_select'
+} from './factory/inplace_editor'
+import type { UiQueryBuilderProps } from './factory/query_builder'
+import type { UiSignaturePadProps } from './factory/signature_pad'
+import type { UiSpeechToTextProps } from './factory/speech_to_text'
+import type { UiStepperProps } from './factory/stepper'
+import type { UiTimelineProps } from './factory/timeline'
+import type { UiTreeSelectProps } from './factory/tree_select'
 import type {
   UiButtonGroupProps,
   UiButtonProps,
   UiButtonSlots,
-  UiDropDownButtonProps,
-  UiFloatingActionButtonProps,
   UiLinkProps,
   UiLinkSlots,
   UiSelectButtonGroupProps,
-  UiSplitButtonProps,
-} from './button'
-import type { UiCheckBoxProps, UiSwitchProps } from './check_box'
-import type {
-  UiAvatarProps,
-  UiBadgeProps,
-  UiBreadcrumbProps,
-  UiCardProps,
-  UiCardSlots,
-  UiCarouselProps,
-  UiContextMenuProps,
-  UiDividerProps,
-  UiImageGalleryItem,
-  UiDrawerProps,
-  UiLoadingProps,
-  UiProgressBarProps,
-  UiSidebarProps,
-  UiSkeletonProps,
-  UiSplitterPane,
-  UiSplitterProps,
-  UiTabsProps,
-  UiToolbarProps,
-  UiToolbarSlots,
-  UiTooltipProps,
-  UiTooltipSlots,
-} from './chrome'
-import type {
-  UiCalendarProps,
-  UiDatePickerProps,
-  UiDateRangePickerProps,
-  UiDateTimePickerProps,
-  UiTimePickerProps,
-} from './date_picker'
-import type {
-  UiChipsProps,
-  UiColorPickerProps,
-  UiMaskedTextBoxProps,
-  UiOneTimePasswordInputProps,
-  UiRatingProps,
-  UiSliderProps,
-} from './input_extra'
-import type { UiListProps, UiPaginatorProps } from './list'
-import type { UiTableProps } from './table'
-import type { UiGridProps, UiTreeGridProps } from './grid'
-import type { UiTreeProps } from './tree'
-import type { UiLayout } from './layout'
-import type { UiProps } from './props'
-import type {
-  UiCheckBoxListProps,
-  UiComboBoxProps,
-  UiDropDownListProps,
-  UiMultiSelectProps,
-  UiRadioButtonGroupProps,
-} from './select'
-import type {
-  UiNumberInputProps,
-  UiTextAreaProps,
-  UiTextInputProps,
-} from './text_input'
+} from './factory/button'
+import type { UiDropDownButtonProps } from './factory/drop_down_button'
+import type { UiFloatingActionButtonProps } from './factory/floating_action_button'
+import type { UiSplitButtonProps } from './factory/split_button'
+import type { UiCheckBoxProps } from './factory/checkbox'
+import type { UiSwitchProps } from './factory/switch'
+import type { UiAvatarProps } from './factory/avatar'
+import type { UiBadgeProps } from './factory/badge'
+import type { UiBreadcrumbProps } from './factory/breadcrumb'
+import type { UiCardProps, UiCardSlots } from './factory/card'
+import type { UiCarouselProps, UiImageGalleryItem } from './factory/carousel'
+import type { UiContextMenuProps } from './factory/context_menu'
+import type { UiDividerProps } from './factory/divider'
+import type { UiLoadingProps } from './factory/loading'
+import type { UiProgressBarProps } from './factory/progress_bar'
+import type { UiDrawerProps, UiSidebarProps } from './factory/sidebar'
+import type { UiSkeletonProps } from './factory/skeleton'
+import type { UiSplitterPane, UiSplitterProps } from './factory/splitter'
+import type { UiTabsProps } from './factory/tabs'
+import type { UiToolbarProps, UiToolbarSlots } from './factory/toolbar'
+import type { UiTooltipProps, UiTooltipSlots } from './factory/tooltip'
+import type { UiCalendarProps } from './factory/calendar'
+import type { UiDatePickerProps } from './factory/date_picker'
+import type { UiDateRangePickerProps } from './factory/date_range_picker'
+import type { UiDateTimePickerProps } from './factory/date_time_picker'
+import type { UiTimePickerProps } from './factory/time_picker'
+import type { UiChipsProps } from './factory/chips'
+import type { UiColorPickerProps } from './factory/color_picker'
+import type { UiMaskedTextBoxProps } from './factory/masked_text_box'
+import type { UiOneTimePasswordInputProps } from './factory/one_time_password_input'
+import type { UiRatingProps } from './factory/rating'
+import type { UiSliderProps } from './factory/slider'
+import type { UiListProps, UiPaginatorProps } from './builder/list'
+import type { UiTableProps } from './builder/table'
+import type { UiGridProps, UiTreeGridProps } from './builder/grid'
+import type { UiTreeProps } from './factory/tree'
+import type { UiCheckBoxListProps } from './factory/check_box_list'
+import type { UiComboBoxProps } from './factory/combo_box'
+import type { UiDropDownListProps } from './factory/drop_down_list'
+import type { UiMultiSelectProps } from './factory/multi_select'
+import type { UiRadioButtonGroupProps } from './factory/radio_button_group'
+import type { UiNumberInputProps } from './factory/number_input'
+import type { UiTextAreaProps } from './factory/text_area'
+import type { UiTextInputProps } from './factory/text_input'
 
 /**
  * Logic 拼控件用的工厂。皮肤在 vui-* 实现。

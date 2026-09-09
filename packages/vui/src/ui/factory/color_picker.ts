@@ -6,7 +6,7 @@
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 
@@ -109,7 +109,7 @@ export { colorPickerModifierClasses } from '@mmda/core'
 export function colorPickerPropsFromField(
   field: MetaUiField,
   context: ColorPickerFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiColorPickerProps {
   return {
     value: colorPickerHexOf(context.getFieldValue(field)),

@@ -29,20 +29,6 @@ export type {
 
 export { htmlAttributesOf } from '@mmda/core'
 
-/**
- * 字段工厂 `extra` 合并袋：公开契约仍是 UiProps；读取 override 时按 any（过渡）。
- * 新的控件签名 / Builder 参数继续写 UiProps。
- */
-export type UiBagExtra = UiProps & Record<string, any>
-
-/**
- * 把开放袋收成具体 `Ui*Props`（字段工厂合并 extra 用）。
- */
-export function chromeExtraOf<T extends UiProps>(extra?: UiProps): T {
-  return (extra ?? {}) as T
-}
-
-export type CustomProps<T> = T & UiProps
 export type UiSlots = {
   [index: string]: any
   default?: ChildSlot

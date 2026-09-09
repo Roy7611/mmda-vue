@@ -6,7 +6,7 @@
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 /** 大陆手机：11 位数字，中间空格。EJ2 `0` = 数字。 */
 export const MOBILE_MASK = '000 0000 0000'
@@ -77,7 +77,7 @@ export function primeMaskOf(mask: string): string {
 export function maskedTextBoxPropsFromField(
   field: MetaUiField,
   context: MaskedTextBoxFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiMaskedTextBoxProps {
   const mask = String(extra.mask ?? '')
   return {

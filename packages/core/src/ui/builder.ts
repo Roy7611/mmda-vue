@@ -6,18 +6,18 @@ import type {
   UiDialogButton,
   UiDialogProps,
   UiToastProps,
-} from './dialog'
+} from './builder/dialog'
 import type { UiFactory } from './factory'
 import type { UiFieldFactory } from './field_factory'
-import type { UiListProps, UiPaginatorProps } from './list'
-import type { UiTableProps } from './table'
-import type { UiGridProps, UiTreeGridProps } from './grid'
+import type { UiListProps, UiPaginatorProps } from './builder/list'
+import type { UiTableProps } from './builder/table'
+import type { UiGridProps, UiTreeGridProps } from './builder/grid'
 import type { UiProps } from './props'
+import type { UiTreeProps } from './factory/tree'
 import type {
   UiTreeListViewProps,
-  UiTreeProps,
   UiTreeViewProps,
-} from './tree'
+} from './builder/tree'
 
 /**
  * 拼屏与会话级弹层的契约（无实现、无 Vue）。

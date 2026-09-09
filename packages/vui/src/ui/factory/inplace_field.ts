@@ -5,7 +5,7 @@ import {
   type UiInplaceEditorProps,
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 import type { UiFieldFactory } from './field_factory'
 import type { UiFieldRenderer } from '@mmda/core'
 
@@ -55,7 +55,7 @@ export function inplaceFieldContentRenderer(
 export function renderInplaceFieldEditor(
   field: MetaUiField,
   context: Ctx,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
   fldFactory: UiFieldFactory,
 ): VNode {
   const display = inplaceFieldDisplayRenderer(field, fldFactory)

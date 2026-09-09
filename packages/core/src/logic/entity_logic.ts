@@ -21,6 +21,7 @@ import type { UiContext } from "../ui/context";
 import type { UiValidation } from "./validation";
 import type { Predicate } from "./logic_functions";
 import type { UniListViewProps, UiViewType } from "../ui/view";
+import { UiViewMany, UiViewOne } from "../ui/view";
 import { getSqlOperator } from "./sql_operator";
 import { defaultSearchParam } from "../models/entity_search";
 import "../extensions/string_extensions";
@@ -220,14 +221,14 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   private resolveLogicView(view: UiViewType): UiViewType {
-    if (view === "create" || view === "editMany") return "edit";
-    if (view === "selectOne") return "index";
+    if (view === "create" || view === "editMany") return UiViewOne.Edit;
+    if (view === "selectOne") return UiViewMany.Index;
     if (
       view === "selectMany" &&
       !this.viewLogicLoaders.selectMany &&
       this.beforeSelectMany === EntityLogic.prototype.beforeSelectMany
     ) {
-      return "index";
+      return UiViewMany.Index;
     }
     return view;
   }
@@ -384,7 +385,7 @@ export abstract class EntityLogic<E extends Entity> {
     this.selectManyActions = [];
   }
 
-  async applyTo(context: UiContext, view: UiViewType = "edit") {
+  async applyTo(context: UiContext, view: UiViewType = UiViewOne.Edit) {
     const logicView = await this.ensureViewLogic(view);
     const fn = this.getLogicFn(logicView);
     if (!fn) return;

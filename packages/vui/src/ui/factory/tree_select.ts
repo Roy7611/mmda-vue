@@ -3,7 +3,7 @@
  * 字段 fldFactory.treeSelect 译 MetaUiField 后再调本控件。
  */
 import { MetaOptionsShape, type MetaUiField, type MetaUiFieldRef } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 import { treeDataProvider } from '../builder/tree_data'
 import {
   setTreeChildren,
@@ -70,7 +70,7 @@ export function treeSelectParentFieldOf(
 
 function fieldTreeFields(
   field: MetaUiField,
-  extra: UiBagExtra,
+  extra: UiProps,
 ): UiTreeFields {
   const extraFields = extra.fields as UiTreeFields | undefined
   const reference = field.reference
@@ -120,7 +120,7 @@ function fieldTreeValue(
 
 function resolveTreeWriteback(
   field: MetaUiField,
-  extra: UiBagExtra,
+  extra: UiProps,
   value: UiTreeSelectValue,
   fields: UiTreeFields,
 ): unknown {
@@ -138,7 +138,7 @@ function resolveTreeWriteback(
 export function treeSelectPropsFromField(
   field: MetaUiField,
   context: TreeSelectFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiTreeSelectProps {
   const fields = fieldTreeFields(field, extra)
   const reference = field.reference

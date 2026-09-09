@@ -7,7 +7,7 @@ import {
   resolveDialogButtons,
   shouldCloseDialog,
   type UiDialogButton,
-} from '../ui/dialog'
+} from '../ui/builder/dialog'
 
 describe('dialog buttons', () => {
   it('缺省 okCancel', () => {

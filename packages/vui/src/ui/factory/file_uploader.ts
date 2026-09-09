@@ -18,7 +18,7 @@ import {
   type UiFilesUploaderProps,
   type UiFileUploadStatus,
 } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 import { getFileInfo } from '../../components/FileIcons'
 import { uploadedFileNames } from '../builder/helpers'
 
@@ -86,7 +86,7 @@ export async function defaultUploadFileUrl(
 export function fileUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiFileUploaderProps {
   const raw = context.getFieldValue(field, extra.row)
   const url = typeof raw === 'string' ? raw : String(raw ?? '')
@@ -125,7 +125,7 @@ export function fileUploaderPropsFromField(
 export function filesUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiFilesUploaderProps {
   const auth = context.getModuleAuth?.()
   return {

@@ -4,7 +4,7 @@
 import { isNumber, isString } from '../utils/is'
 import { parseSorts, PagerCtor } from '../models/pagination'
 import type { EntitySearchParam } from '../models/entity_search'
-import type { UiDialogProps } from './dialog'
+import type { UiDialogProps } from './builder/dialog'
 
 export const UI_CREATE = 'create'
 export const UI_SEARCH = 'search'

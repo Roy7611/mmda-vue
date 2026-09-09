@@ -4,7 +4,7 @@ import type {
   UiDialogButton,
   UiDialogProps,
   UiToastProps,
-} from './dialog'
+} from './builder/dialog'
 
 /**
  * 弹层宿主。Builder.toast / confirm / dialog 委托给皮肤 Overlay。

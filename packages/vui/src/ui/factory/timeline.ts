@@ -4,7 +4,7 @@
  */
 import type { MetaUiField, UiTimelineProps } from '@mmda/core'
 import type { VNode } from 'vue'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type {
   UiTimelineAlign,
@@ -50,7 +50,7 @@ export function emitTimelineRangeChange(
 export function timelinePropsFromField(
   field: MetaUiField,
   context: TimelineFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiTimelineProps {
   const value = context.getFieldValue(field)
   const items = Array.isArray(extra.items)

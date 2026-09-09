@@ -43,7 +43,7 @@ export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
 }
 
 /** 袋键回调（如 `onUpdate:modelValue`）。索引签名下不是函数类型。 */
-export function callUiBagFn(
+export function callUiPropFn(
   props: UiProps | undefined,
   key: string,
   ...args: unknown[]

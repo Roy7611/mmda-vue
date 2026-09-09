@@ -10,7 +10,7 @@ import type {
   UiOneTimePasswordInputProps,
   UiOneTimePasswordType,
 } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export const DEFAULT_OTP_LENGTH = 4
 
@@ -63,7 +63,7 @@ export { oneTimePasswordModifierClasses } from '@mmda/core'
 
 function otpLengthFromField(
   field: MetaUiField,
-  extra: UiBagExtra,
+  extra: UiProps,
 ): number {
   if (extra.length != null && extra.length !== '') {
     const n = Number(extra.length)
@@ -77,7 +77,7 @@ function otpLengthFromField(
 export function oneTimePasswordPropsFromField(
   field: MetaUiField,
   context: OneTimePasswordFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiOneTimePasswordInputProps {
   const typeRaw = extra.type
   const type: UiOneTimePasswordType =

@@ -1,7 +1,30 @@
 import { h } from "vue";
 import { ChipListComponent } from "@syncfusion/ej2-vue-buttons";
 import type { IconResolver, UiChipItem, UiChipsProps } from "@mmda/vui"
-import { chipValueOf, chipsItemsOf, chipsKindOf, chipsModifierClasses, chipsSelectedOf, emitChipsChange, htmlAttributesOf, isChipsRemovable, syncfusionChipCssClass, toggleChipSelection } from "@mmda/vui"
+import {
+  chipItemModifierClasses,
+  chipValueOf,
+  chipsItemsOf,
+  chipsKindOf,
+  chipsModifierClasses,
+  chipsSelectedOf,
+  emitChipsChange,
+  htmlAttributesOf,
+  isChipsRemovable,
+  toggleChipSelection,
+} from "@mmda/vui"
+
+/** EJ2 Chip cssClass：secondary 不加 e-；outlined → e-outline。 */
+export function syncfusionChipCssClass(item: UiChipItem): string {
+  const role =
+    item.colorRole && item.colorRole !== "secondary"
+      ? `e-${item.colorRole}`
+      : undefined
+  const outline = item.outlined ? "e-outline" : undefined
+  return [role, outline, ...chipItemModifierClasses(item)]
+    .filter(Boolean)
+    .join(" ")
+}
 
 export function createChips(
   props: UiChipsProps,

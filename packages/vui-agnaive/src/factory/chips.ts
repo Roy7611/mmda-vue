@@ -1,7 +1,28 @@
 import { h } from 'vue'
 import { NTag } from 'naive-ui'
+import type { UiColorRole } from '@mmda/core'
 import type { IconResolver, UiChipsProps } from '@mmda/vui'
-import { chipIsSelected, chipItemModifierClasses, chipsItemsOf, chipsKindOf, chipsModifierClasses, createIconVNode, emitChipsChange, htmlAttributesOf, isChipsRemovable, naiveChipType, toggleChipSelection } from '@mmda/vui'
+import {
+  chipIsSelected,
+  chipItemModifierClasses,
+  chipsItemsOf,
+  chipsKindOf,
+  chipsModifierClasses,
+  createIconVNode,
+  emitChipsChange,
+  htmlAttributesOf,
+  isChipsRemovable,
+  toggleChipSelection,
+} from '@mmda/vui'
+
+/** Naive NTag.type：secondary→default，danger→error。 */
+export function naiveChipType(
+  colorRole?: UiColorRole,
+): 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error' {
+  if (!colorRole || colorRole === 'secondary') return 'default'
+  if (colorRole === 'danger') return 'error'
+  return colorRole
+}
 
 export function createChips(
   props: UiChipsProps,

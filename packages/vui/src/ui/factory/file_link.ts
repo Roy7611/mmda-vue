@@ -12,7 +12,7 @@ import {
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
 import { getFileInfo } from '../../components/FileIcons'
-import {htmlAttributesOf, type UiProps, type UiBagExtra} from '../layout/layout'
+import {htmlAttributesOf, type UiProps} from '../layout/layout'
 
 export type { UiFileLinkPreviewKind, UiFileLinkProps } from '@mmda/core'
 export {
@@ -117,7 +117,7 @@ export function renderFileLink(props: UiFileLinkProps = {}): VNode {
 export function fileLinkPropsFromField(
   field: MetaUiField,
   context: FileLinkFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiFileLinkProps {
   const url = String(
     extra.url ?? context.getFieldValue(field, extra.row) ?? '',

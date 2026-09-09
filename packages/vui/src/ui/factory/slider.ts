@@ -7,7 +7,7 @@
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export const DEFAULT_SLIDER_MIN = 0
 export const DEFAULT_SLIDER_MAX = 100
@@ -103,7 +103,7 @@ export { sliderModifierClasses } from '@mmda/core'
 export function sliderPropsFromField(
   field: MetaUiField,
   context: SliderFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiSliderProps {
   const typeRaw = extra.type
   const type: UiSliderType | undefined =

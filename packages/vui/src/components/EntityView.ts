@@ -41,7 +41,7 @@ import {
   createModuleContext,
   MODULE_CONTEXT_KEY,
   bindModuleContext,
-} from "../contexts/module_context";
+} from "../contexts/vue_module_context";
 
 export interface EntityViewOptions {
   createLogic: (

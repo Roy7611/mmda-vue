@@ -12,7 +12,7 @@ import {
   type UiImageUploaderProps,
   type UiImagesUploaderProps,
 } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 import {
   fileUploaderPropsFromField,
   filesUploaderPropsFromField,
@@ -25,7 +25,7 @@ export { IMAGE_UPLOADER_EXTENSIONS, imageUploaderAcceptOf } from '@mmda/core'
 export function imageUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiImageUploaderProps {
   const base = fileUploaderPropsFromField(field, context, extra)
   return {
@@ -41,7 +41,7 @@ export function imageUploaderPropsFromField(
 export function imagesUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiImagesUploaderProps {
   const base = filesUploaderPropsFromField(field, context, extra)
   return {

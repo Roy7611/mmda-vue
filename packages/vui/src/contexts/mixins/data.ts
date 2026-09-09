@@ -26,7 +26,7 @@ import type { UiSearchForm } from "../../logic/logic";
 import { getFileInfo } from "../../components/FileIcons";
 import { schedulePersistListPack } from "../../ui/builder/list_layout";
 import { rx } from "../../rx";
-import { getModuleContext } from "../module_context";
+import { getModuleContext } from "../vue_module_context";
 import {
   UiViewMany,
   UiViewOne,

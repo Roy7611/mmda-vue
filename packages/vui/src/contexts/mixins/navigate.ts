@@ -1,5 +1,5 @@
 import type { Entity } from "@mmda/core";
-import { getModuleContext } from "../module_context";
+import { getModuleContext } from "../vue_module_context";
 import { UiViewMany, UiViewOne, type UiViewType } from "../view";
 import type { Constructor } from "./types";
 

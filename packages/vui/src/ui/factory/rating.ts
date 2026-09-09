@@ -8,7 +8,7 @@
 import type { VNodeChild } from 'vue'
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField } from '@mmda/core'
-import type {UiProps, UiBagExtra} from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export const DEFAULT_RATING_ITEMS_COUNT = 5
 
@@ -82,7 +82,7 @@ export { ratingModifierClasses } from '@mmda/core'
 
 function itemsCountFromField(
   field: MetaUiField,
-  extra: UiBagExtra,
+  extra: UiProps,
 ): number | undefined {
   if (extra.itemsCount != null && extra.itemsCount !== '') {
     const n = finiteNumber(extra.itemsCount)
@@ -96,7 +96,7 @@ function itemsCountFromField(
 export function ratingPropsFromField(
   field: MetaUiField,
   context: RatingFieldContext,
-  extra: UiBagExtra = {},
+  extra: UiProps = {},
 ): UiRatingProps {
   const raw = context.getFieldValue(field)
   const n = finiteNumber(raw)
