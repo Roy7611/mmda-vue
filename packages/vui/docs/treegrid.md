@@ -42,7 +42,7 @@ TreeGrid = **同构**树（物料套物料，同一套列）。行明细 `rowDet
 
 不要在 vui / Logic 写：`GridColumn`、`columns`、`headerText`、`editType`、`displayAsCheckBox`、`childMapping`、`idMapping`。树缩进列由皮肤用第一列出 expander，vui 不暴露厂商列下标名。
 
-进格走 vui `inplaceEdit` + `editableFields`。enum / ref / hasOne 只走 `valueOf` / `labelOf`。SF 格内编辑类型见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)，不要写进 Logic。
+进格走 vui `editable` + 可选 `fieldCellEditors`。enum / ref / hasOne 只走 `valueOf` / `labelOf`。SF 格内编辑类型见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)，不要写进 Logic。
 
 ## 子表形状
 
@@ -63,7 +63,7 @@ BPMN、GANTT 不进枚举：要拼多表，走组 `customRenderer` / `customEdit
 
 ## 全量 vs 懒加载
 
-**子表（编辑/详情）**：数据已在 `model[groupName]`，一次绑全量，不分页，展开不请求。`loadMode: 'full'`。进格同上节 `inplaceEdit`。
+**子表（编辑/详情）**：数据已在 `model[groupName]`，一次绑全量，不分页，展开不请求。`loadMode: 'full'`。进格同上节 `editable`。
 
 **index**：`viewKind: treeGrid`，默认 `loadMode: 'lazy'`，逐层展开。
 

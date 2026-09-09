@@ -8,17 +8,9 @@ import {
   type PropType,
 } from 'vue'
 import { NDropdown } from 'naive-ui'
-import type {
-  IconResolver,
-  UiContextMenuProps,
-  UiMenuItem,
-} from '@mmda/vui'
-import {
-  contextMenuItemsOf,
-  contextMenuModifierClasses,
-  htmlAttributesOf,
-  invokeContextMenuItem,
-} from '@mmda/vui'
+import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { contextMenuItemsOf, contextMenuModifierClasses, htmlAttributesOf, invokeContextMenuItem } from '@mmda/vui'
 
 function mapNaiveItem(
   item: UiMenuItem,

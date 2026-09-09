@@ -4,28 +4,8 @@
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
 import { h, nextTick, toRaw, unref, render, getCurrentInstance } from 'vue'
-import {
-  DEFAULT_PAGE_SIZE,
-  MetaModel,
-  MetaUiFieldFilterType,
-  SortOrder,
-  SqlDataType,
-  columnFilterKindOf,
-  combineCompareAndSet,
-  hasFilterType,
-  resolveColumnFilterTypes,
-  simpleFilterTypeOf,
-  type EntityFieldFilter,
-  type MetaUi,
-  type MetaUiField,
-} from '@mmda/core'
-import {
-  gridFreezeOf,
-  readStoredPageSize,
-  type UiListPropsType,
-  type UiPaginatorPropsType,
-  settleRemoteListQuery,
-} from '@mmda/vui'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { gridFreezeOf, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { ComboBox } from '@syncfusion/ej2-dropdowns'
@@ -76,16 +56,34 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     const useTemplateCell = (field: MetaUiField) =>
       !restrictTemplates ||
       templateCellFieldNames.has(field.fieldName) ||
-      Boolean(props.customCellRenderers?.[field.fieldName])
+      Boolean(props.fieldCellRenderers?.[field.fieldName])
     const selectionMode = props.selectionMode
     const showColumnFilters =
-      props.filterDisplay === 'row' || props.filterDisplay === 'menu'
-    const showGrouping = false
+      props.filterable !== false &&
+      (props.filterDisplay === 'row' ||
+        props.filterDisplay === 'menu' ||
+        props.filterDisplay == null)
+    const showGrouping = props.groupable !== false
     const pagination = props.pagination
-    const editableFields = new Set(props.editableFields ?? [])
-    const inplaceEdit =
-      props.inplaceEdit === true && !pagination && editableFields.size > 0
+    const fieldEditors = props.fieldCellEditors ?? {}
+    const inplaceEdit = props.editable === true && !pagination
     const inplaceEditStart = props.inplaceEditStart ?? 'excel'
+    const columnAllowsEdit = (fieldName: string) =>
+      fieldCellEditorAllowsColumn(fieldEditors[fieldName])
+    const rowAllowsEdit = (field: MetaUiField, row: T) =>
+      !field.readOnly &&
+      (row as { editable?: boolean })?.editable !== false &&
+      resolveFieldCellCanEdit(fieldEditors[field.fieldName], field, row)
+    const saveCellEdit = (
+      field: MetaUiField,
+      row: T,
+      value: unknown,
+      previousValue: unknown,
+    ) => {
+      const onSave =
+        fieldEditors[field.fieldName]?.onSave ?? props.defaultCellSave
+      return onSave?.(field, row, value, previousValue)
+    }
 
     // dataSource 用快照（新引用才能驱动 EJ2 刷新）；写回用 sourceRows = 调用方传入的集合。
     const sourceRows = Array.isArray(model) ? (model as T[]) : []
@@ -189,7 +187,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             : NaN
       const columns = ej2Grid.getColumns?.() ?? []
       const field = columns[colIndex]?.field as string | undefined
-      if (!Number.isFinite(rowIndex) || !field || !editableFields.has(field)) {
+      if (!Number.isFinite(rowIndex) || !field || !columnAllowsEdit(field)) {
         return null
       }
       return { rowIndex, field }
@@ -763,14 +761,30 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       formattedDisplayText(field, row)
 
     const renderCellVNode = (field: MetaUiField, row: T) => {
+      const mapped = props.fieldCellRenderers?.[field.fieldName]
+      if (mapped) {
+        const node = mapped(field, row)
+        if (node !== undefined && node !== null) return node
+      }
       if (props.renderCell) {
         const node = props.renderCell(field, row)
         if (node !== undefined && node !== null) return node
       }
-      const custom = props.customCellRenderers?.[field.fieldName]
-      if (custom) return custom(field, row)
       return plainCellDisplay(field, row)
     }
+
+    // 行身份：defineEntityWithId 的 id getter。复合主键时 EJ2 只能认一列唯一键。
+    const primaryKey = metaUi.primaryKey
+    const compositePrimaryKey =
+      typeof primaryKey === 'string' && primaryKey.includes(',')
+    const listedIdField = dataFields.find(field => field.fieldName === 'id')
+    const hasListedPk =
+      !compositePrimaryKey &&
+      dataFields.some(field => field.primaryKey === true)
+    // EJ2 只认一列唯一键：有列出主键字段用它；否则用 id（已列出则标，未列出则隐藏列）
+    const useIdAsEj2Pk = compositePrimaryKey || !hasListedPk
+    const needHiddenIdPk = useIdAsEj2Pk && !listedIdField
+    const useVirtualSelection = Boolean(pagination) && !rowDetail
 
     const gridColumns = [
       selectionMode === 'multiple'
@@ -802,6 +816,21 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         customAttributes: { class: 'mmda-sf-rownum-col' },
         // 直接绑服务器下发的 rowNum，无 template / valueAccessor
       },
+      needHiddenIdPk
+        ? {
+            field: 'id',
+            isPrimaryKey: true,
+            visible: false,
+            width: 0,
+            minWidth: 0,
+            maxWidth: 0,
+            allowSorting: false,
+            allowFiltering: false,
+            allowGrouping: false,
+            allowEditing: false,
+            allowReordering: false,
+          }
+        : null,
       ...dataFields.map(field => {
         const textAlign = gridTextAlign(field)
         const freeze = gridFreezeOf(field)
@@ -809,23 +838,26 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return {
           field: field.fieldName,
           headerText: field.displayLabel,
-          isPrimaryKey: field.primaryKey === true,
+          // 列出列照抄 MetaUiField.primaryKey；复合 / 无主键列时 EJ2 只认 id
+          isPrimaryKey: useIdAsEj2Pk
+            ? field.fieldName === 'id'
+            : field.primaryKey === true,
           type: gridColumnType(field),
           format: gridColumnFormat(field),
           textAlign,
           headerTextAlign: textAlign,
           clipMode: templated ? 'EllipsisWithTooltip' : 'Ellipsis',
           allowSorting:
-            props.enableSort !== false && field.sortable !== false,
+            props.sortable !== false && field.sortable !== false,
           allowFiltering: showColumnFilters,
-          allowGrouping: false,
-          allowReordering: Boolean(props.onListLayoutChange),
+          allowGrouping: showGrouping && !pagination,
+          allowReordering: Boolean(props.tableSettings),
           visible: field.listed !== false,
           freeze,
           allowEditing:
             inplaceEdit &&
-            editableFields.has(field.fieldName) &&
-            !field.readOnly,
+            !field.readOnly &&
+            columnAllowsEdit(field.fieldName),
           editType: columnEditType(field),
           edit: inplaceEdit ? referenceEditParams(field) : undefined,
           filter: columnFilter(field),
@@ -840,7 +872,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               }),
         }
       }),
-      typeof (props as any).rowMenu === 'function'
+      typeof (props as any).rowActions === 'function'
         ? {
             field: '__mmdaActions',
             headerText: '操作',
@@ -887,10 +919,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       ]),
     )
 
-    if (typeof (props as any).rowMenu === 'function') {
+    if (typeof (props as any).rowActions === 'function') {
       cellSlots.mmdaCell_actions = (scope: { data?: T } | T) => {
         const row = ((scope as any)?.data ?? scope) as T
-        const actions = (props as any).rowMenu(row) as any[]
+        const actions = (props as any).rowActions(row) as any[]
         const showActionMenu = props.showActions === true
         const dividerIndex = actions.findIndex(action => action?.divider)
         const standard =
@@ -915,13 +947,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           ...(remaining.length && custom.length ? [{ divider: true }] : []),
           ...custom,
         ]
-        const run = (action?: any) =>
-          action?.onAction?.() ?? action?.command?.()
+        const run = (action?: any) => action?.onAction?.()
         const enabled = (action?: any) =>
           action == null ||
           !(
             action.disabled === true ||
-            action.disabled === 'true' ||
             (typeof action.canDo === 'function' && action.canDo(row) === false) ||
             action.canDo === false
           )
@@ -1003,6 +1033,26 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       }
     }
 
+    const rowIdOf = (row: any) => {
+      if (row == null) return ''
+      const id = row.id
+      if (id != null && String(id) !== '') return String(id)
+      if (!primaryKey) return ''
+      if (compositePrimaryKey) {
+        return primaryKey
+          .split(',')
+          .map(key => String(row[key.trim()] ?? ''))
+          .join(',')
+      }
+      return String(row[primaryKey] ?? '')
+    }
+
+    const notifySelection = (records: T[]) => {
+      props.onSelectionChange?.(records)
+      props.onSelect?.(records)
+    }
+
+    /** 无虚拟化：用 getSelectedRecords 整表同步。 */
     const syncSelection = (records: T[]) => {
       const current = (props.selectedItems ?? EMPTY_SELECTION) as T[]
       if (
@@ -1015,12 +1065,84 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (Array.isArray(props.selectedItems)) {
         props.selectedItems.splice(0, props.selectedItems.length, ...records)
       }
-      props.onSelectionChange?.(records)
-      props.onSelect?.(records)
+      notifySelection(records)
     }
 
-    const primaryKey = metaUi.primaryKey
-    const layoutRev = unref(props.layoutRev as any) ?? 0
+    /** 虚拟化：按 id 并入 selectedItems（索引与选择对话框共用，禁止整表替换）。 */
+    const mergeSelectById = (added: T[]) => {
+      if (!Array.isArray(props.selectedItems) || !added.length) return
+      const list = props.selectedItems as T[]
+      if (selectionMode === 'single') {
+        const next = added[0]
+        if (!next) return
+        if (list.length === 1 && rowIdOf(list[0]) === rowIdOf(next)) return
+        list.splice(0, list.length, next)
+        notifySelection(list.slice())
+        return
+      }
+      const have = new Set(list.map(rowIdOf).filter(Boolean))
+      let changed = false
+      for (const row of added) {
+        const id = rowIdOf(row)
+        if (!id || have.has(id)) continue
+        have.add(id)
+        list.push(row)
+        changed = true
+      }
+      if (changed) notifySelection(list.slice())
+    }
+
+    /** 虚拟化：按 id 从 selectedItems 删掉（仅用户取消，非换窗卸行）。 */
+    const mergeDeselectById = (removed: T[]) => {
+      if (!Array.isArray(props.selectedItems) || !removed.length) return
+      const removeIds = new Set(
+        removed.map(rowIdOf).filter(id => id !== ''),
+      )
+      if (!removeIds.size) return
+      const list = props.selectedItems as T[]
+      let changed = false
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (removeIds.has(rowIdOf(list[i]))) {
+          list.splice(i, 1)
+          changed = true
+        }
+      }
+      if (changed) notifySelection(list.slice())
+    }
+
+    const eventRows = (args: any): T[] => {
+      const data = args?.data
+      if (Array.isArray(data)) return data as T[]
+      if (data) return [data as T]
+      return []
+    }
+
+    let selectionSyncSuppressed = false
+
+    /** 只扫当前虚拟窗（几十行），禁止扫整页 1000。 */
+    const reapplySelectionInView = () => {
+      if (!selectionMode || !useVirtualSelection) return
+      const grid = resolveEj2Grid()
+      if (!grid) return
+      const selected = props.selectedItems as T[] | undefined
+      if (!selected?.length) return
+      const ids = new Set(selected.map(rowIdOf).filter(Boolean))
+      if (!ids.size) return
+      const view = (grid.getCurrentViewRecords?.() ?? []) as T[]
+      const indexes: number[] = []
+      for (let i = 0; i < view.length; i++) {
+        if (ids.has(rowIdOf(view[i]))) indexes.push(i)
+      }
+      if (!indexes.length) return
+      // 调用方已置 selectionSyncSuppressed；此处勿提前清
+      try {
+        grid.selectRows?.(indexes)
+      } catch {
+        // ignore
+      }
+    }
+
+    const layoutRev = props.tableSettings?.rev?.value ?? 0
     const listGroupKey = String(metaUi.objName ?? primaryKey ?? 'list')
     const gridKey = `mmda-sf-grid-${listGroupKey}-${layoutRev}`
 
@@ -1057,9 +1179,241 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (state && typeof state.skip === 'number') virtualSkip = state.skip
       const take =
         typeof state?.take === 'number' ? state.take : VIRTUAL_ROW_PAGE_SIZE
-      grid.dataSource = virtualWindow(virtualSkip, take)
-      grid.hideSpinner?.()
+      // 换窗期间整段抑制：EJ2 卸行 deselect 可能晚于 nextTick
+      selectionSyncSuppressed = true
+      try {
+        grid.dataSource = virtualWindow(virtualSkip, take)
+        grid.hideSpinner?.()
+        grid.removeMaskRow?.()
+        await nextTick()
+        reapplySelectionInView()
+      } finally {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            selectionSyncSuppressed = false
+          })
+        })
+      }
     }
+
+    const contentScroller = (): HTMLElement | null => {
+      const grid = resolveEj2Grid()
+      const root = (grid?.element ?? null) as HTMLElement | null
+      if (!root) return null
+      // 有冻结列时竖滚在 movable；querySelector('.e-content') 会先命中 frozen（scrollTop 常为 0）
+      return (
+        (root.querySelector(
+          '.e-movablecontent > .e-content',
+        ) as HTMLElement | null) ??
+        (root.querySelector('.e-gridcontent .e-content') as HTMLElement | null) ??
+        (typeof grid.getContent === 'function'
+          ? (grid.getContent() as HTMLElement | null)
+          : null)
+      )
+    }
+    const captureScroll = () => {
+      const el = contentScroller()
+      if (!el) return null
+      return { top: el.scrollTop, left: el.scrollLeft }
+    }
+    const restoreScroll = (pos: { top: number; left: number } | null) => {
+      if (!pos) return
+      const apply = () => {
+        const el = contentScroller()
+        if (!el) return
+        el.scrollTop = pos.top
+        el.scrollLeft = pos.left
+        // 虚拟滚动：通知 EJ2 按新位置取窗口
+        const grid = resolveEj2Grid()
+        grid?.scrollModule?.setPageSize?.()
+        if (typeof grid?.scrollTo === 'function') {
+          try {
+            grid.scrollTo({ top: pos.top, left: pos.left })
+          } catch {
+            // ignore
+          }
+        }
+      }
+      apply()
+      // KeepAlive 重新插入 / setRowData 后 EJ2 可能再清一次，下一帧再写
+      requestAnimationFrame(() => {
+        apply()
+        requestAnimationFrame(apply)
+      })
+    }
+    const syncRowsFromSource = () => {
+      rows.splice(0, rows.length, ...sourceRows)
+    }
+    const rebindDataSource = (scroll?: { top: number; left: number } | null) => {
+      const grid = resolveEj2Grid()
+      if (!grid) return
+      if (pagination) {
+        selectionSyncSuppressed = true
+        try {
+          grid.dataSource = virtualWindow(virtualSkip)
+          grid.hideSpinner?.()
+          grid.removeMaskRow?.()
+        } finally {
+          queueMicrotask(() => {
+            reapplySelectionInView()
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                selectionSyncSuppressed = false
+              })
+            })
+          })
+        }
+      } else {
+        grid.dataSource = rows.slice()
+      }
+      if (scroll) queueMicrotask(() => restoreScroll(scroll))
+    }
+    const listHost = {
+      applyRow(entity: Record<string, unknown>) {
+        const grid = resolveEj2Grid()
+        if (!grid) return
+        const pk = String(primaryKey ?? 'id')
+        const id = entity[pk] ?? entity.id
+        if (id == null || String(id) === '') return
+        syncRowsFromSource()
+        // 虚拟滚动下禁止用 captureScroll+重绑：KeepAlive 回来 scrollTop 与 skip 易错位白屏
+        if (pagination) {
+          try {
+            grid.setRowData?.(id, entity)
+          } catch {
+            grid.dataSource = virtualWindow(virtualSkip)
+            grid.hideSpinner?.()
+          }
+          return
+        }
+        if (typeof grid.setRowData === 'function') {
+          try {
+            grid.setRowData(id, entity)
+            return
+          } catch {
+            // fall through
+          }
+        }
+        const scroll = captureScroll()
+        rebindDataSource(scroll)
+      },
+      insertAtZero(_entity: Record<string, unknown>) {
+        virtualSkip = 0
+        syncRowsFromSource()
+        rebindDataSource({ top: 0, left: 0 })
+        queueMicrotask(() => listHost.revealIndex(0))
+      },
+      applyRemove(_id: string) {
+        syncRowsFromSource()
+        if (pagination) {
+          const grid = resolveEj2Grid()
+          if (!grid) return
+          // 删行后窗口长度可能变，按当前 skip 重绑，scrollTop 归到 skip 对齐位置
+          const rh = Number(grid.getRowHeight?.() ?? 36) || 36
+          virtualSkip = Math.min(virtualSkip, Math.max(0, rows.length - 1))
+          selectionSyncSuppressed = true
+          try {
+            grid.dataSource = virtualWindow(virtualSkip)
+            grid.hideSpinner?.()
+            grid.removeMaskRow?.()
+          } finally {
+            queueMicrotask(() => {
+              reapplySelectionInView()
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  selectionSyncSuppressed = false
+                })
+              })
+            })
+          }
+          const el = contentScroller()
+          if (el) el.scrollTop = virtualSkip * rh
+          return
+        }
+        const scroll = captureScroll()
+        rebindDataSource(scroll)
+      },
+      revealIndex(index: number) {
+        if (index < 0 || index >= sourceRows.length) return
+        const grid = resolveEj2Grid()
+        if (!grid) return
+        syncRowsFromSource()
+
+        if (!pagination) {
+          try {
+            grid.clearSelection?.()
+            grid.selectRow?.(index)
+          } catch {
+            // ignore
+          }
+          const rowEl = grid.getRowByIndex?.(index) as HTMLElement | undefined
+          rowEl?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+          const record = sourceRows[index]
+          if (record) syncSelection([record])
+          return
+        }
+
+        const take = VIRTUAL_ROW_PAGE_SIZE
+        const rh = Number(grid.getRowHeight?.() ?? 36) || 36
+        const el = contentScroller()
+
+        // 1) 先归零并绑上有效窗口，消掉 KeepAlive 残留的错位白屏
+        virtualSkip = 0
+        if (el) {
+          el.scrollTop = 0
+          el.scrollLeft = 0
+        }
+        grid.dataSource = virtualWindow(0, take)
+        grid.hideSpinner?.()
+
+        const selectOnly = (rowIndex: number) => {
+          try {
+            grid.clearSelection?.()
+            grid.selectRow?.(rowIndex)
+          } catch {
+            // ignore
+          }
+          const record = sourceRows[rowIndex]
+          if (record) syncSelection([record])
+        }
+
+        if (index <= 0) {
+          queueMicrotask(() => selectOnly(0))
+          return
+        }
+
+        // 2) 再滚到目标行：只改 scrollTop，让 dataStateChange→resolveCustomBinding 填窗口
+        //    不要手动 dataSource + 乱设 scrollTop（必白屏）
+        const scrollToIndex = () => {
+          const scroller = contentScroller()
+          if (!scroller) return
+          scroller.scrollTop = index * rh
+        }
+        queueMicrotask(scrollToIndex)
+        requestAnimationFrame(() => {
+          scrollToIndex()
+          // 等 virtualscroll 取数后再选中；勿 scrollIntoView（会再次打乱虚拟偏移）
+          requestAnimationFrame(() => {
+            selectOnly(index)
+            const g = resolveEj2Grid()
+            const rowsNow = g?.getRows?.() ?? []
+            if (!rowsNow.length) {
+              // 兜底：强制窗口盖住 index，并令 scrollTop 与 skip 一致
+              virtualSkip = Math.max(
+                0,
+                Math.min(index, Math.max(0, rows.length - take)),
+              )
+              g.dataSource = virtualWindow(virtualSkip, take)
+              g.hideSpinner?.()
+              const scroller = contentScroller()
+              if (scroller) scroller.scrollTop = virtualSkip * rh
+              selectOnly(index)
+            }
+          })
+        })
+      },
+    }
+    props.onIndexTableHostReady?.(listHost)
 
     const runRemoteQuery = (work: unknown) => {
       void settleRemoteListQuery(work).finally(() => {
@@ -1068,11 +1422,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
 
     const persistLayoutFromGrid = () => {
-      if (!props.onListLayoutChange) return
+      if (!props.tableSettings) return
       const grid = resolveEj2Grid()
       if (!grid) return
       syncMetaUiFromGridColumns(grid, metaUi)
-      props.onListLayoutChange()
+      props.tableSettings.persist()
     }
 
     const gridVNode = h(
@@ -1087,6 +1441,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         locale: getSyncfusionCulture(),
         allowPaging: false,
         enableVirtualization: Boolean(pagination) && !rowDetail,
+        // 本地窗口切片已瞬时可得，虚拟滚动勿闪 skeleton
+        enableVirtualMaskRow: false,
         // Material 3 Theme Studio 默认无斑马纹，交替行会让分页器/表体色阶显得碎
         enableAltRow: false,
         // 索引页：占满父容器，行区内部滚动，分页条贴底（避免撑出页面滚动）
@@ -1096,9 +1452,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               pageSize: VIRTUAL_ROW_PAGE_SIZE,
             }
           : undefined,
-        allowSorting: props.enableSort !== false,
+        allowSorting: props.sortable !== false,
         allowFiltering: showColumnFilters,
-        allowGrouping: false,
+        allowGrouping: showGrouping && !pagination,
         editSettings: inplaceEdit
           ? {
               allowEditing: true,
@@ -1115,8 +1471,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         // 用 columns 数组而非 ColumnDirective，避免 Vue 指令序列化丢掉 filter.ui 函数。
         columns: gridColumns,
         showColumnChooser: false,
-        allowReordering: Boolean(props.onListLayoutChange),
-        allowResizing: props.resizableColumns !== false,
+        allowReordering: Boolean(props.tableSettings),
+        allowResizing: true,
         allowSelection:
           Boolean(selectionMode) ||
           (inplaceEdit && inplaceEditStart === 'excel'),
@@ -1124,17 +1480,25 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           ? {
               type: selectionMode === 'multiple' ? 'Multiple' : 'Single',
               persistSelection: true,
-              checkboxOnly: selectionMode === 'multiple',
+              // false：点行可选；Multiple 下 Shift 连选、Ctrl 点选加减（勿 checkboxOnly）
+              checkboxOnly: false,
+              enableToggle: false,
             }
           : inplaceEdit && inplaceEditStart === 'excel'
             ? { mode: 'Cell', type: 'Single' }
             : { type: 'None' },
         cssClass: ['mmda-sf-table', props.class].filter(Boolean).join(' '),
+        dataBound: () => {
+          if (rowDetail) expandAllDetails()
+          if (useVirtualSelection && selectionSyncSuppressed) {
+            reapplySelectionInView()
+          }
+          resolveEj2Grid()?.removeMaskRow?.()
+        },
         ...(rowDetail
           ? {
               detailTemplate: '<div class="mmda-sf-row-detail-host"></div>',
               detailDataBound: bindRowDetail,
-              dataBound: expandAllDetails,
             }
           : {}),
         ref: (comp: any) => {
@@ -1165,14 +1529,32 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           flushPendingCellEdit()
           unbindInplaceEditTriggers()
           unmountRowDetails()
+          props.onIndexTableHostReady?.(null)
         },
         rowSelected: (args: any) => {
+          if (useVirtualSelection) {
+            // 程序化 selectRows：isInteracted 非 true，且换窗期间 suppress
+            if (args?.isInteracted !== true && selectionSyncSuppressed) return
+            // 用户点选即使仍在 suppress 窗口也要并入
+            if (args?.isInteracted === true || !selectionSyncSuppressed) {
+              mergeSelectById(eventRows(args))
+            }
+            return
+          }
+          if (selectionSyncSuppressed) return
           const grid = args.grid ?? args.sender
           const records = (grid?.getSelectedRecords?.() ??
             (args.data ? [args.data] : [])) as T[]
           syncSelection(records)
         },
         rowDeselected: (args: any) => {
+          if (useVirtualSelection) {
+            // 换窗卸行 isInteracted 常为 false/undefined；仅用户取消才删
+            if (args?.isInteracted !== true) return
+            mergeDeselectById(eventRows(args))
+            return
+          }
+          if (selectionSyncSuppressed) return
           const grid = args.grid ?? args.sender
           const records = (grid?.getSelectedRecords?.() ?? []) as T[]
           syncSelection(records)
@@ -1189,7 +1571,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           if (
             Number.isFinite(rowIndex) &&
             resolvedField &&
-            editableFields.has(resolvedField)
+            columnAllowsEdit(resolvedField)
           ) {
             focusedEditCell = { rowIndex, field: resolvedField }
           }
@@ -1203,11 +1585,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           if (rowIndex >= 0 && fieldName) {
             focusedEditCell = { rowIndex, field: fieldName }
           }
-          if (
-            !field ||
-            !editableFields.has(field.fieldName) ||
-            props.canEditCell?.(row, field) === false
-          ) {
+          if (!field || !rowAllowsEdit(field, row)) {
             args.cancel = true
             return
           }
@@ -1220,12 +1598,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           const row = sourceRowAt(args)
           if (!field || !row) return
           if (
-            props.onCellSave?.(
-              row,
-              field,
-              args.value,
-              args.previousValue,
-            ) === false
+            saveCellEdit(field, row, args.value, args.previousValue) === false
           ) {
             args.cancel = true
           }
@@ -1315,7 +1688,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             void resolveCustomBinding(state)
             return
           }
-          if (requestType === 'sorting' && props.enableSort !== false) {
+          if (requestType === 'sorting' && props.sortable !== false) {
             runRemoteQuery(
               props.onSort?.(
                 (state.sorted ?? []).map((sort: any) => ({
@@ -1404,7 +1777,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           if (
             !pagination &&
             args.requestType === 'sorting' &&
-            props.enableSort !== false
+            props.sortable !== false
           ) {
             const sorts = args.columnName
               ? [
@@ -1432,7 +1805,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         recordDoubleClick: (args: any) => {
           const fieldName = args?.column?.field ?? args?.columnName
           // 可编辑单元格的双击交给 EJ2 Batch 编辑；其它单元格仍打开完整弹窗。
-          if (inplaceEdit && fieldName && editableFields.has(fieldName)) return
+          if (inplaceEdit && fieldName && columnAllowsEdit(fieldName)) return
           const rowIndex = rowIndexFrom(args)
           const row = rowIndex >= 0 ? sourceRows[rowIndex] : args.rowData
           props.onItemDoubleClick?.(row)

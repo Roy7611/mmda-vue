@@ -1,16 +1,7 @@
 import { h } from "vue";
 import Slider from "primevue/slider";
-import type { UiSliderProps } from "@mmda/vui";
-import {
-  emitSliderChange,
-  htmlAttributesOf,
-  sliderMaxOf,
-  sliderMinOf,
-  sliderModifierClasses,
-  sliderStepOf,
-  sliderTypeOf,
-  sliderValueOf,
-} from "@mmda/vui";
+import type { UiSliderProps } from "@mmda/vui"
+import { emitSliderChange, htmlAttributesOf, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf } from "@mmda/vui"
 
 export function createSlider(props: UiSliderProps) {
   const {
@@ -36,7 +27,7 @@ export function createSlider(props: UiSliderProps) {
     max: sliderMaxOf(props),
     step: sliderStepOf(props),
     range: type === "Range",
-    disabled: disabled === true || disabled === "true",
+    disabled: disabled === true,
     class: sliderModifierClasses(props).flat(),
     "onUpdate:modelValue": (next: unknown) => emitSliderChange(props, next),
   });

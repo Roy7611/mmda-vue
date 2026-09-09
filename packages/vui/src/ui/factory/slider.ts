@@ -5,27 +5,15 @@
  * 不要把 Prime range: boolean 写进 vui。Range Slider 文档就是本控件。
  * 字段 fldFactory.slider 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 
 export const DEFAULT_SLIDER_MIN = 0
 export const DEFAULT_SLIDER_MAX = 100
 export const DEFAULT_SLIDER_STEP = 1
 
-export type UiSliderType = 'Default' | 'MinRange' | 'Range'
-
-export type UiSliderValue = number | number[] | null
-
-export interface UiSliderProps extends PropData {
-  value?: UiSliderValue
-  min?: number
-  max?: number
-  step?: number
-  /** EJ2：Default / MinRange / Range。默认 Default。 */
-  type?: UiSliderType
-  disabled?: boolean
-  onChange?: (value: UiSliderValue) => void
-}
+export type { UiSliderType, UiSliderValue, UiSliderProps } from '@mmda/core'
 
 export type SliderFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -106,24 +94,16 @@ export function emitSliderChange(props: UiSliderProps, value: unknown): void {
     next = n ?? null
   }
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
-export function sliderModifierClasses(props: UiSliderProps): unknown[] {
-  const type = sliderTypeOf(props)
-  return [
-    'mmda-slider',
-    type === 'Range' ? 'mmda-slider--range' : undefined,
-    type === 'MinRange' ? 'mmda-slider--minrange' : undefined,
-    props.class,
-  ]
-}
+export { sliderModifierClasses } from '@mmda/core'
 
 export function sliderPropsFromField(
   field: MetaUiField,
   context: SliderFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiSliderProps {
   const typeRaw = extra.type
   const type: UiSliderType | undefined =

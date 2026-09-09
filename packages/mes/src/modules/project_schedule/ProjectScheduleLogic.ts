@@ -423,8 +423,8 @@ export class ProjectScheduleLogic extends UiLogic<CustomPage> {
 					width: '30vw',
 					height: '15vh',
 					title: t('ganttLabel.selectResponsiblePerson'),
-					onAccept: async () => {
-						console.log('chargePerson', chargePerson);
+					onAccept: async (button) => {
+					  console.log('chargePerson', chargePerson);
 						if (!chargePerson.data.userID) {
 							context.uiBuilder.toast(context, {
 								severity: 'error',

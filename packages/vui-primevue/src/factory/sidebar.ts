@@ -1,17 +1,7 @@
 import { h } from "vue";
 import Drawer from "primevue/drawer";
-import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui";
-import {
-  applyDrawerDefaults,
-  emitSidebarChange,
-  htmlAttributesOf,
-  sidebarIsOpenOf,
-  sidebarModifierClasses,
-  sidebarPositionOf,
-  sidebarShowBackdropOf,
-  sidebarSlotsOf,
-  sidebarWidthOf,
-} from "@mmda/vui";
+import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui"
+import { applyDrawerDefaults, emitSidebarChange, htmlAttributesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarWidthOf } from "@mmda/vui"
 
 function widthStyle(width: string | number): Record<string, string> {
   const w = typeof width === "number" ? `${width}px` : String(width);

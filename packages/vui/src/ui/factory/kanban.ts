@@ -3,7 +3,7 @@
  * App：ui.setKanbanPlugin(createSfKanbanPlugin()) 或 createVueKanbanPlugin()
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiKanbanChangeAction = 'move' | 'update' | 'add' | 'delete'
 
@@ -39,7 +39,7 @@ export interface UiKanbanChangeEvent<T = unknown> {
   native?: T
 }
 
-export interface UiKanbanViewProps extends PropData {
+export interface UiKanbanViewProps extends UiProps {
   cards?: UiKanbanCard[]
   columns?: UiKanbanColumn[]
   readonly?: boolean

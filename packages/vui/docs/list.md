@@ -1,18 +1,30 @@
 # 列表与过滤
 
-列表页的查询状态只有一份：`VueUiContext.searchParam`（core 的 `EntitySearchParam`）。单控件契约是 **`UiListProps`**（[`ui/factory/list.ts`](../src/ui/factory/list.ts)），用 `display`: `list` / `table` / `grid` / `treeGrid`。整页在 [`ui/builder/list_view.ts`](../src/ui/builder/list_view.ts)（`UiListViewProps`、`buildListView`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
+列表页的查询状态只有一份：`VueUiContext.searchParam`（core 的 `EntitySearchParam`）。
+
+单控件契约在 **core**，按用途分家（不要一份 Props 糊三种）：
+
+| Props | 文件 | 用途 |
+|---|---|---|
+| `UiListProps` | [`core/.../list.ts`](../../core/src/ui/list.ts) | 移动端卡片 / 行条；`buildList` / `factory.list` |
+| `UiTableProps` | [`core/.../table.ts`](../../core/src/ui/table.ts) | 只读桌面 index；selector **默认同 index**；`buildTable` / `factory.table` |
+| `UiGridProps` | [`core/.../grid.ts`](../../core/src/ui/grid.ts) | edit / details；特殊 selector；`buildGrid` / `factory.grid` |
+| `UiTreeGridProps` | core grid + vui [`tree_grid.ts`](../src/ui/factory/tree_grid.ts) | 树形可编表 |
+
+vui [`ui/factory/list.ts`](../src/ui/factory/list.ts) 只 re-export + Vue slots。整页在 [`ui/builder/list_view.ts`](../src/ui/builder/list_view.ts)（`UiListViewProps`、`buildListView`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
 
 core 设计与用法：[entity_search.md](../../core/docs/models/entity_search.md) · [entity_query_usage.md](../../core/docs/logic/entity_query_usage.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)
 
 ## 主要内容
 
-- `buildListView`（`ui/builder/list_view.ts`）：工具栏、搜索栏、数据区、分页。数据区按 `display` 走 `buildList` / `buildTable` / `buildGrid` / `buildTreeGrid`，内部 `factory.list`（捷径 `factory.table` / `factory.grid` / `factory.treeGrid`）。本轮 table 与 grid 可落到同一皮肤表格。
+- `buildListView`（`ui/builder/list_view.ts`）：工具栏、搜索栏、数据区、分页。数据区按场景走 `buildList`（`UiListProps`）/ `buildTable`（`UiTableProps`）/ `buildGrid`（`UiGridProps`）/ `buildTreeGrid`。table 与 grid 实现可落到同一皮肤表格。
 - 左树右表是 Builder 组合（`buildTreeListView`），见 [Builder](./builder.md)；树契约见 [树](./tree.md)；Logic 用 `viewOptions` 挂接，见 [实体交互逻辑](./logic.md)。
 - `UiFilter`：快捷过滤，编译进 `queryParams.filter`（兼容路径）。
-- `filterModel`：表头结构化 `EntityFilterModel`。
+- `filterModel`：表头结构化 `EntityFilterModel`（只在 `UiTableProps` / `UiGridProps`）。
 - 实体选择：`context.select(field)` 或 `select({ repository })`；视图仍是 `selectOne` / `selectMany`。不要独立 `UiSelector`，不要 `buildSearchForRelativeContent`。
 
 ```ts
+import type { UiListProps, UiTableProps, UiGridProps } from '@mmda/core'
 import type { UiListViewPropsType } from '@mmda/vui'
 ```
 
@@ -57,7 +69,7 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 
 `filterModel` ↔ `searchParam.filterModel`。皮肤用各自的弹出层和编辑器。应用条件后页码回到 1。表头运算符是 `EntityFilterOperator`（i18n `matcher.${op}`，来自 `getFieldFilterOps`）。不要再依赖 SearchOp。
 
-列筛显示只认 `UiListProps.filterDisplay`。Builder 缺省 `'none'`。快捷过滤走 module + searchbar，不要 `factory.defaultFilterDisplay`。
+列筛总开关是 `filterable`（缺省 table 开；树表 / edit 关）。形态只认 `filterDisplay`: `'menu' | 'row'`。不要 `'none'` 兼关。快捷过滤走 module + searchbar。每列过滤器形态认 `MetaUiField.filterTypes`（0 则按 dataType/reference 推断）。
 
 日期列（agnaive）是 **multi 两页**，不要第三套下拉：
 
@@ -66,11 +78,11 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 | 条件 | Date Filter：比较 + `dateRange.*` 语义（本月、今天…） | `date` + `dateKind`，或两段 `join` |
 | 列表 | Set Filter `treeList`，选项 `getPivotDates` | `set` 周期 token（`YYYY` / `YYYY-MM` / `YYYY-MM-DD`） |
 
-选「本月」走条件页 kind，POST 原样带 `dateKind`。勾树上的「2026年9月」是绝对九月。`loadPivotDates` 默认 `logic.getPivotDates`。设计与写法：[date_filter.md](../../core/docs/models/date_filter.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)。
+选「本月」走条件页 kind，POST 原样带 `dateKind`。勾树上的「2026年9月」是绝对九月。日期透视由 Builder 注入皮肤 extras（`loadPivotDates` → `logic.getPivotDates`）。设计与写法：[date_filter.md](../../core/docs/models/date_filter.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)。
 
 ## 远程排序 / 过滤（皮肤契约）
 
-三套皮肤共用 vui `UiListProps`：`onSort` / `onFilterModelChange` / `searchRelative` / `scene`。
+三套皮肤共用 vui 管道类型（最宽为 `UiGridProps` + `UiTableSkinExtras`）：程序员侧 `onSort` / `onFilterModelChange`；列筛加载器与 `tableSettings` 由 Builder 注入 extras，**不进** `UiTableProps`。`scene` 只在 `UiGridProps`。`UiTableProps` 管 index 与默认 selector，没有 `scene`。移动端 `UiListProps` 没有列过滤、没有 `scene`。
 
 1. 只改 `searchParam`（`pager.sorts` + `filterModel`），不要另存一套表格 state。
 2. 回调必须 **return** `search()` 的 Promise。
@@ -88,11 +100,11 @@ Builder 已用 `writeListSorts` / `writeListFilterModel`。Prime / Naive 的表�
 
 路由选择：`EntityView` 认 `?view=selectOne|selectMany`，复用 `beforeIndex`，弹层里允许创建。
 
-关联字段远程联想：`context.searchRelative(field, searchWord)` → Logic `searchRelative`；范围 SQL 用 `reference.where` + Logic `refWhere`（`queryParams.filter`），关键字用 `searchWord`。列筛 hasOne 直接调同一路径（列表 prop `searchRelative`）。
+关联字段远程联想：`context.searchRelative(field, searchWord)` → Logic `searchRelative`；范围 SQL 用 `reference.where` + Logic `refWhere`（`queryParams.filter`），关键字用 `searchWord`。列筛 hasOne 由 Builder 注入同一路径到皮肤 extras，不要写进程序员 `UiTableProps`。
 
 ## 行明细（异构孙子组）
 
-编辑/详情子表已经在本地：`UiListProps.rowDetail`。`detail(row)` 画**这一行底下**另一套 MetaUi 的 many 组（BOM `items` → `operations`），不是本行列。返回 `VNodeChild`。函数名是单数 `detail`，不要 `details`（那是详情页 scene）。
+编辑/详情子表已经在本地：`UiTableProps.rowDetail`。`detail(row)` 画**这一行底下**另一套 MetaUi 的 many 组（BOM `items` → `operations`），不是本行列。返回 `VNodeChild`。函数名是单数 `detail`，不要 `details`（那是详情页 scene）。
 
 Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: true`，皮肤全展开。不要 `childGrid` / `detailTemplate` / `expandedRows` 进 vui。不要 `fldFactory.associationTable`。只嵌一层。
 

@@ -5,7 +5,7 @@ import {
   tagAutoCompleteModifierClasses,
   tagAutoCompletePropsFromField,
   tagAutoCompleteTextOf,
-} from '../ui/factory/tag_auto_complete'
+} from '@mmda/core'
 
 describe('tagAutoComplete', () => {
   it('join / split 逗号 tag', () => {

@@ -74,6 +74,8 @@
 | [Switch：怎么写](./switch_usage.md) | checked / onLabel；字段 `fldFactory.switch` |
 | [Toolbar 设计](./toolbar.md) | `factory.toolbar`；Prime 三槽；**不是** EJ2 items |
 | [Toolbar：怎么写](./toolbar_usage.md) | start / center / end；layout full/medium/compact |
+| [布局设计](./layout.md) | `UiLayout` / `AbstractUiLayout` / `VueUiLayout`；**不是** AppLayout 脚手架 |
+| [布局：怎么写](./layout_usage.md) | `layout.layoutField` / `layoutPage` / `listTile` |
 | [CheckBoxList 设计](./check_box_list.md) | 横排 `checkBoxList` / `bitCheckBoxList` |
 | [CheckBoxList：怎么写](./check_box_list_usage.md) | value_array 与 or_bits |
 | [ColorPicker 设计](./color_picker.md) | `factory.colorPicker`；hex；**不是** `colorRole` |
@@ -148,6 +150,6 @@
 | [树](./tree.md) | `factory.tree`；vui 名 tree，不要 TreeView |
 | [树：怎么写](./tree_usage.md) | `factory.tree` / `buildTree`；链 treeSelect / treeGrid |
 | [树形表格](./treegrid.md) | `factory.treeGrid`；列来自 MetaUi，不是 EJ2 `GridColumn` |
-| [树形表格：怎么写](./treegrid_usage.md) | `viewKind` / 子表 shapeKey / `inplaceEdit` |
+| [树形表格：怎么写](./treegrid_usage.md) | `viewKind` / 子表 shapeKey / `editable` |
 
 core 对照：[core README](../../core/README.md)。

@@ -1,6 +1,6 @@
 import { h } from "vue";
-import type { UiBadgeColor, UiBadgeProps, UiBadgeShape } from "@mmda/vui";
-import { badgeModifierClasses } from "@mmda/vui";
+import type { UiBadgeColor, UiBadgeProps, UiBadgeShape } from "@mmda/vui"
+import { badgeModifierClasses } from "@mmda/vui"
 
 const COLOR_CLASS: Record<UiBadgeColor, string> = {
   primary: "e-badge-primary",

@@ -1,9 +1,7 @@
 import { h } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import {
-  numberInputPropsFromField,
-  type PropData,
-} from "@mmda/vui";
+import { numberInputPropsFromField } from "@mmda/core"
+import { type UiProps } from "@mmda/vui"
 import { resolveFieldUnit } from "../factory/utils";
 import { createNumberInput } from "../factory/number_input";
 import { invalidOf, type UiContext } from "./utils";
@@ -11,7 +9,7 @@ import { invalidOf, type UiContext } from "./utils";
 const wrapNumber = (
   field: MetaUiField,
   context: UiContext,
-  extra: PropData = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
   const suffix =
@@ -37,13 +35,13 @@ const wrapNumber = (
 export const numberInput = (
   field: MetaUiField,
   context: UiContext,
-  props: PropData = {},
+  props: UiProps = {},
 ) => wrapNumber(field, context, props);
 
 export const percentInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapNumber(field, context, {
     kind: "percent",

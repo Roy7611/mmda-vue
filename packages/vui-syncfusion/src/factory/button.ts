@@ -1,7 +1,7 @@
 import { h } from "vue";
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
-import type { UiButtonProps, UiButtonSlots } from "@mmda/vui";
-import { buttonModifierClasses } from "@mmda/vui";
+import type { UiButtonProps, UiButtonSlots } from "@mmda/core"
+import { buttonModifierClasses } from "@mmda/core"
 import {
   buttonRoleClass,
   buttonSurfaceClass,
@@ -45,7 +45,7 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
         .flat()
         .filter(Boolean)
         .join(" "),
-      disabled: disabled === true || disabled === "true",
+      disabled: disabled === true,
       isPrimary: (colorRole ?? (props as { severity?: string }).severity) === "primary",
       title: tooltip ?? htmlAttributes?.title,
       type: type ?? htmlAttributes?.type ?? "button",

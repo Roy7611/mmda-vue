@@ -64,18 +64,17 @@ h(SfGrid, {
   metaui: group.groupUi,
   dataSource: rows,
   height: 360,
-  canEditCell: (row, field) => {
-    const rowCtx = groupCtx.with(row)
-    return row.editable !== false && !rowCtx.isFieldReadonly(field)
-  },
-  onCellSave: (row, field, value) => {
-    groupCtx.with(row).setFieldValue(field, value)
+  editable: page.editing,
+  fieldCellEditors: {
+    // 关列或按行挡；默认全列可编
   },
   onDelete: (row) => page.deleteSubGroupItem(group, row),
   onAdd: () => page.addSubGroupItem(group),
   onOpenEditor: (row) => page.subGroupItem(group, row),
 })
 ```
+
+（现网路径是 `factory.grid` / Builder：默认写回走皮肤 extras `defaultCellSave`，程序员关列用 `fieldCellEditors`。）
 
 布局 / 自动列宽：**表格上不放按钮**。表格始终允许拖列和 `autoFitColumns()`；要不要「表格设置」，只看有没有挂布局伴侣、工具栏有没有 `open`。
 
@@ -161,7 +160,7 @@ this.field('status').setCustomCellRenderer((field, ctx, props) =>
 
 显示侧继续用 **`setCustomCellRenderer`**（与表单格子同一钩子族；大表慎用 Vue 模板）。不要再引入已删除的 `GridCell*` / `setGridCellRenderer`。
 
-表格 **不持有 Context**，读不到 Logic。可选 prop **`customCellRenderers`**：给 **Builder / factory** 把函数灌进列。有 Logic 就别在页面再写一遍。
+可选 prop **`fieldCellRenderers`**：`Record<fieldName, (field, row) => 节点>`。有 key 就是自定义格。有 Logic 就别在页面再写一遍。
 
 函数里 **不要** `with(row)`。引用列不要猜字段、不要做成厂商外键列。
 
@@ -195,7 +194,7 @@ this.field('colorCode').setCustomEditor((field, ctx, props) =>
 
 `index` 默认不可编。edit 行少、通常无行虚拟滚动，才适合 Vue 编辑器进格。
 
-能不能进格：`metaui` + `canEditCell`。行 `editable === false` 整行不能编。
+能不能进格：`editable` + metaui + `fieldCellEditors[name].canEdit`。行 `editable === false` 整行不能编。
 
 ## 行操作：内置 CRUD、业务 `rowActions`、右键
 
@@ -288,9 +287,10 @@ selector 只做选择时：`showActionColumn: false`，`allowContextMenu: false`
 | `allowMultiSorting` | `boolean` | **开关**。默认 `true`：Ctrl+点列头多列 |
 | `allowFiltering` | `boolean` | **开关**。列头过滤，模型为 `EntityFilterModel` |
 | `filterModel` | `EntityFilterModel` | 框架共用模型（各皮肤双向映射） |
-| `loadFilterOptions` | `(field) => Promise<unknown[]>` | 引用列打开筛选项 |
 | `persistSort` | `boolean` | 仅 index/selector；排序条件是否写回 MetaUi（默认开） |
 | `persistFilter` | `boolean` | 仅 index/selector；过滤条件是否写回 MetaUi（默认开） |
+
+列筛选项 / 日期透视 / hasOne 联想由 Builder 注入皮肤 extras（`loadFilterOptions` / `loadPivotDates` / `searchRelative`），不进程序员 `UiTableProps`。index 列布局走 `tableSettings`（与 `TableSettingView` 同一套 persist）。
 
 列头挂哪种过滤控件由 **`MetaUiField.filterTypes`**（TINYINT 位掩码）决定；`0` 则按 `dataType` / `reference` 推断。见 core `MetaUiFieldFilterType`（TEXT=1、NUMBER=2、DATE=4、BOOLEAN=8、SET=16、MULTI=32、JOIN=64）。
 
@@ -301,8 +301,9 @@ index/selector：**禁止**让表格只对当前页再滤/再排。改条件后�
 | Prop | 类型 | 说明 |
 |---|---|---|
 | `editable` | `boolean` | edit 默认 true |
+| `editable` | `boolean` | 整表能不能进格；缺省 grid 为 true |
 | `inplaceEditStart` | `'excel' \| 'click' \| 'dblclick'` | 默认 `excel`（点选后键入即改，像电子表） |
-| `canEditCell` | `(row, field) => boolean` | 行级 / Logic 闸门。**仅此回调**里 `with(row)` |
+| `fieldCellEditors` | `Record<fieldName, { canEdit?, onSave? }>` | 关列 / 按行挡 / 自定义保存；有 key **不是**白名单 |
 | `customCellEditors` | `Record<string, Function>` | Builder 从 `setCustomCellEditor` 灌入 |
 | `confirmDelete` | `boolean` | 删前确认 |
 
@@ -310,7 +311,7 @@ index/selector：**禁止**让表格只对当前页再滤/再排。改条件后�
 
 | Prop | 类型 | 说明 |
 |---|---|---|
-| `customCellRenderers` | `Record<string, Function>` | Builder 从 Logic 灌入；业务请用 `setCustomCellRenderer` |
+| `fieldCellRenderers` | `Record<string, (field, row) => TNode>` | 按字段名；不要表级 `renderCell` |
 | `showActionColumn` | `boolean` | 操作列开关 |
 | `rowActions` | `UiAction[]` | 额外业务操作；`visible` / `canDo` 按行求值 |
 | `allowContextMenu` | `boolean` | 行右键开关；开则 CRUD + `rowActions` 全部弹出 |
@@ -337,7 +338,7 @@ Layout **不含**过滤/排序。写回只有 `listSize` / `listPos` / `listed` 
 | `onFilterModelChange` | `(model: EntityFilterModel) => void \| Promise` | index：写入 `filterModel`，`pageNo=1`，`search()` |
 | `onSort` | `(sorts: Sort[]) => void \| Promise` | index：写入 `pager.sorts`，再查 |
 | `onSelect` | `(selection: T[]) => void` | `context.selectedItems` |
-| `onCellSave` | `(row, field, value, previous?) => boolean \| void` | `with(row).setFieldValue`；`false` 则取消离格 |
+| `fieldCellEditors[].onSave` | `(field, row, value, previous?) => boolean \| void` | 自定义写回；`false` 则取消离格；默认走 Builder `defaultCellSave` |
 | `onAdd` | `() => void` | 末尾 `addSubGroupItem` |
 | `onDelete` | `(row) => void` | `EntityArray.deleteItem` |
 | `onOpenEditor` | `(row) => void` | 打开实体编辑对话框（`subGroupItem`） |
@@ -362,12 +363,12 @@ Layout **不含**过滤/排序。写回只有 `listSize` / `listPos` / `listed` 
 layout.open(metaui) // 确认后写 listed、frozen、listPos；Grid 内部重建列
 ```
 
-对齐 vui `ListSettingView`：拖排序、显隐、左右冻结、永久保存、恢复默认。四种 scene 都由**页面菜单**打开。
+对齐 vui `TableSettingView`：拖排序、显隐、左右冻结、永久保存、恢复默认。四种 scene 都由**页面菜单**打开。
 
 ## 程序员注意
 
 1. **index 必须静态 `height` + 当前页 `dataSource`。** 虚拟滚动的缓冲行数不是业务 pageSize。
-2. **Context：** index/selector/details 渲染禁止 `with(row)`。edit 只在 `canEditCell` / `onCellSave` / 删行里 `with`。对话框用 `subGroupItemContext`。
+2. **Context：** index/selector/details 渲染禁止 `with(row)`。edit 只在 `canEdit` / `onSave` / 删行里 `with`。对话框用 `subGroupItemContext`。
 3. **自定义单元格：** 列表显示用 `setCustomCellRenderer`；Vue 显示模板会打 virt。就地编优先 `setCustomCellEditor`，可回退 `setCustomEditor`。
 4. **过滤**是 `EntityFilterModel`，不是各厂商内部 filter 对象。
 5. **合计：** index 不要用本页 footer 冒充全库 `aggregationSet`。子表用 `EntityArray.sum/count`。

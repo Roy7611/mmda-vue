@@ -18,7 +18,7 @@ import {
   auth,
   columnFilterKindOf,
 } from "@mmda/core";
-import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui";
+import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
 import {
   applySyncfusionLocale,
   resolveSyncfusionCulture,
@@ -1395,7 +1395,7 @@ describe("Syncfusion skin", () => {
           onAction: () => undefined,
         },
         {
-          name: "listSettings",
+          name: "tableSettings",
           label: "表格设置",
           onAction: () => undefined,
         },
@@ -1647,7 +1647,10 @@ describe("Syncfusion skin", () => {
     expect(enabled.props?.allowPaging).toBe(false);
     expect(enabled.props?.groupSettings).toBeUndefined();
 
-    const disabled = gridOf(factory.table([], metaUi, { enableGroup: false }));
+    const local = gridOf(factory.table([], metaUi, {}));
+    expect(local.props?.allowGrouping).toBe(true);
+
+    const disabled = gridOf(factory.table([], metaUi, { groupable: false }));
     expect(disabled.props?.allowGrouping).toBe(false);
     expect(disabled.props?.groupSettings).toBeUndefined();
   });
@@ -1686,6 +1689,7 @@ describe("Syncfusion skin", () => {
     const vnode = gridOf(host);
     expect(vnode.props?.allowPaging).toBe(false);
     expect(vnode.props?.enableVirtualization).toBe(true);
+    expect(vnode.props?.enableVirtualMaskRow).toBe(false);
     expect(vnode.props?.height).toBe("100%");
     expect(vnode.props?.allowResizing).toBe(true);
     expect(vnode.props?.allowFiltering).toBe(true);
@@ -1720,8 +1724,14 @@ describe("Syncfusion skin", () => {
     expect(columns.map((column: any) => column.field)).toEqual([
       undefined,
       "rowNum",
+      "id",
       "name",
     ]);
+    expect(columns[2]).toMatchObject({
+      field: "id",
+      isPrimaryKey: true,
+      visible: false,
+    });
     expect(columns[1]).toMatchObject({
       allowSorting: false,
       textAlign: "Left",
@@ -1732,7 +1742,7 @@ describe("Syncfusion skin", () => {
     });
     expect(columns[1].template).toBeUndefined();
     expect(columns[1].valueAccessor).toBeUndefined();
-    expect(columns[2]).toMatchObject({
+    expect(columns[3]).toMatchObject({
       width: 180,
       textAlign: "Center",
       headerTextAlign: "Center",
@@ -1750,6 +1760,100 @@ describe("Syncfusion skin", () => {
     expect(link.props.href).toBe("#1");
     expect(link.children).toBe("alpha");
     expect(slots.mmdaCell_rowNum).toBeUndefined();
+  });
+
+  it("merges virtualized selection into selectedItems and keeps it across window change", async () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      objName: "Product",
+      getListedFields: () => [
+        { fieldName: "name", displayLabel: "名称", dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = Array.from({ length: 100 }, (_, index) => ({
+      id: String(index + 1),
+      rowNum: String(index + 1),
+      name: `row-${index + 1}`,
+    }));
+    const selectedItems: any[] = [];
+    const onSelect = vi.fn();
+    const vnode = gridOf(
+      factory.table(rows, metaUi, {
+        pagination: { pageNo: 1, pageSize: 1000, recordCount: 100 },
+        selectionMode: "multiple",
+        selectedItems,
+        onSelect,
+      }),
+    );
+    expect(vnode.props.columns.some((c: any) => c.field === "id" && c.isPrimaryKey)).toBe(
+      true,
+    );
+
+    const selectedRow = rows[0];
+    vnode.props.rowSelected({ data: selectedRow, isInteracted: true });
+    expect(selectedItems).toEqual([selectedRow]);
+    expect(onSelect).toHaveBeenCalledWith([selectedRow]);
+
+    const grid = {
+      dataSource: null as any,
+      hideSpinner: vi.fn(),
+      getCurrentViewRecords: vi.fn(() => rows.slice(50, 100)),
+      selectRows: vi.fn(),
+    };
+    vnode.props.ref({ ej2Instances: grid });
+    vnode.props.dataStateChange({
+      action: { requestType: "virtualscroll" },
+      skip: 50,
+      take: 50,
+    });
+    await nextTick();
+    await nextTick();
+    // 换窗不得清空 selectedItems
+    expect(selectedItems).toEqual([selectedRow]);
+    // 卸行 deselect（非用户）忽略
+    vnode.props.rowDeselected({
+      data: selectedRow,
+      isInteracted: false,
+    });
+    expect(selectedItems).toEqual([selectedRow]);
+    vnode.props.rowDeselected({
+      data: selectedRow,
+    });
+    expect(selectedItems).toEqual([selectedRow]);
+
+    expect(vnode.props.enableVirtualMaskRow).toBe(false);
+
+    const other = rows[60];
+    vnode.props.rowSelected({ data: other, isInteracted: true });
+    expect(selectedItems.map((r) => r.id)).toEqual(["1", "61"]);
+    vnode.props.rowDeselected({ data: other, isInteracted: true });
+    expect(selectedItems.map((r) => r.id)).toEqual(["1"]);
+  });
+
+  it("marks listed MetaUiField.primaryKey as isPrimaryKey without hidden id", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      objName: "Product",
+      getListedFields: () => [
+        {
+          fieldName: "productId",
+          displayLabel: "编号",
+          dataType: 48,
+          primaryKey: true,
+        },
+        { fieldName: "name", displayLabel: "名称", dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: "productId",
+    } as any;
+    const vnode = gridOf(factory.table([], metaUi, {}));
+    const columns = vnode.props.columns;
+    expect(columns.find((c: any) => c.field === "id")).toBeUndefined();
+    expect(columns.find((c: any) => c.field === "productId")).toMatchObject({
+      isPrimaryKey: true,
+    });
   });
 
   it("custom-binds only a virtual window, not the full server page", async () => {
@@ -1887,7 +1991,7 @@ describe("Syncfusion skin", () => {
     };
     const vnode = gridOf(
       factory.table([row], metaUi, {
-        rowMenu: (item: any) => [
+        rowActions: (item: any) => [
           ...(item.editable !== false
             ? [{ name: "edit", label: "编辑", onAction: edit }]
             : []),
@@ -1958,7 +2062,7 @@ describe("Syncfusion skin", () => {
     const vnode = gridOf(
       factory.table([row], metaUi, {
         showActions: true,
-        rowMenu: (item: any) => [
+        rowActions: (item: any) => [
           ...(item.editable !== false
             ? [{ name: "edit", label: "编辑", onAction: edit }]
             : []),
@@ -2049,11 +2153,16 @@ describe("Syncfusion skin", () => {
     } as any;
     const vnode = gridOf(
       factory.table([row], metaUi, {
-        inplaceEdit: true,
+        editable: true,
         inplaceEditStart: "click",
-        editableFields: ["name"],
-        canEditCell: (item) => item.editable,
-        onCellSave,
+        fieldCellEditors: {
+          code: { canEdit: false },
+          name: {
+            canEdit: (_field, item: { editable?: boolean }) =>
+              item.editable !== false,
+            onSave: onCellSave,
+          },
+        },
         onItemDoubleClick,
       }),
     );
@@ -2091,12 +2200,12 @@ describe("Syncfusion skin", () => {
       previousValue: "旧名称",
     });
     expect(onCellSave).toHaveBeenCalledWith(
-      row,
       expect.objectContaining({ fieldName: "name" }),
+      row,
       "新名称",
       "旧名称",
     );
-    expect(onCellSave.mock.calls[0][0]).toBe(row);
+    expect(onCellSave.mock.calls[0][1]).toBe(row);
 
     vnode.props.recordDoubleClick({ rowData: row, column: { field: "name" } });
     expect(onItemDoubleClick).not.toHaveBeenCalled();
@@ -2145,9 +2254,8 @@ describe("Syncfusion skin", () => {
     } as any;
     const vnode = gridOf(
       factory.table([{ id: "1", name: "旧" }], metaUi, {
-        inplaceEdit: true,
+        editable: true,
         inplaceEditStart: "excel",
-        editableFields: ["name"],
       }),
     );
     expect(vnode.props.selectionSettings).toMatchObject({
@@ -3035,11 +3143,11 @@ describe("Syncfusion skin", () => {
     );
     expect(JSON.stringify(withDeleteButtons)).toContain("deleteAll");
     expect(JSON.stringify(withoutDeleteButtons)).not.toContain("deleteAll");
-    expect(JSON.stringify(withDeleteButtons)).toContain("listSettings");
-    expect(JSON.stringify(withoutDeleteButtons)).toContain("listSettings");
+    expect(JSON.stringify(withDeleteButtons)).toContain("tableSettings");
+    expect(JSON.stringify(withoutDeleteButtons)).toContain("tableSettings");
     expect(JSON.stringify(withDeleteButtons)).toContain("autoFitColumns");
     expect(JSON.stringify(withDeleteButtons).indexOf("autoFitColumns")).toBeLessThan(
-      JSON.stringify(withDeleteButtons).indexOf("listSettings"),
+      JSON.stringify(withDeleteButtons).indexOf("tableSettings"),
     );
   });
 

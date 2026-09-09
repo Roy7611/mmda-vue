@@ -112,7 +112,7 @@ const beforeChangePwd = async (
         height: "auto",
         maxHeight: "70vh",
         showFooter: true,
-        onAccept: async () => {
+        onAccept: async (button) => {
           pwdData.data.userID = model.userID ?? "";
           const toast = (props: Record<string, unknown>) =>
             context.uiBuilder.toast(context, props);
@@ -183,9 +183,6 @@ const beforeChangePwd = async (
             return false;
           }
         },
-        onReject: async () => {
-          return false;
-        },
       },
     );
   } catch (error: any) {
@@ -228,7 +225,7 @@ const beforeDisapprove = async (
       height: "auto",
       maxHeight: "70vh",
       showFooter: true,
-      onAccept: async () => {
+      onAccept: async (button) => {
         if (params.disapproveReason === "") {
           context.uiBuilder.toast(context, {
             severity: "error",
@@ -271,8 +268,7 @@ const beforeDisapprove = async (
           });
           return false;
         }
-      },
-      onReject: async () => {},
+      }
     },
   );
   return false;

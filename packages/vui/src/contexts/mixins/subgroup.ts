@@ -142,12 +142,12 @@ export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
       if (!this.app) return item;
       this.root.showDialog = (ctx as any).isEditDialog = true;
       try {
-        const accepted = await this.app.ui.dialog(
+        const result = await this.app.ui.dialog(
           this.app.ui.buildView(ctx),
           ctx,
           { name: this.resolveGroup(group).groupName },
         );
-        return accepted ? (ctx.model as G) : false;
+        return result === 'ok' ? (ctx.model as G) : false;
       } finally {
         this.root.showDialog = (ctx as any).isEditDialog = false;
       }
@@ -182,7 +182,14 @@ export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
           const visible = a.visible;
           if (visible == null) return true;
           if (typeof visible === "function") return true;
-          return Boolean(unref(visible));
+          if (
+            typeof visible === "object" &&
+            visible !== null &&
+            "value" in visible
+          ) {
+            return Boolean((visible as { value: boolean }).value);
+          }
+          return Boolean(visible);
         },
       );
     }

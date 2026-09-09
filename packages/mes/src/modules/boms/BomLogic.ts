@@ -702,8 +702,8 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 		{
 			title: t('bom.matchStandardParts'),
 			style: { width: '80vw', maxHeight: '95%' },
-			onAccept: async () => {
-				const refItemKeys: { refID: string; refItemID: string; refName: string }[] = [];
+			onAccept: async (button) => {
+			  const refItemKeys: { refID: string; refItemID: string; refName: string }[] = [];
 				// 在确认时更新 model.items
 				model.items.forEach((item: BomItem) => {
 					refItemKeys.push({
@@ -747,13 +747,6 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 					return false;
 				}
 			},
-			reject: () => {
-				// 删除 model.items 中 _material 的属性
-				// model.items.forEach((item: any) => {
-				// 	item.material = null;
-				// });
-				return true;
-			},
 		}
 	);
 
@@ -793,7 +786,7 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 
 	let selectedItems: BomItem[] = [];
 
-	return await context.uiBuilder.dialog(
+	const result = await context.uiBuilder.dialog(
 		context.uiBuilder.factory.table(targetItems, metaUi, {
 			selectionMode: 'multiple',
 			onSelect: (selection: BomItem[]) => { selectedItems = selection ?? []; },
@@ -802,8 +795,8 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 		{
 			title: context.t('bom.selectPartsForDesign'),
 			style: { width: '70vw' },
-			onAccept: async () => {
-				if (selectedItems.length === 0) {
+			onAccept: async (button) => {
+			  if (selectedItems.length === 0) {
 					context.uiBuilder.toast(context, {
 						severity: 'error',
 						title: context.t('dialog.title.error'),
@@ -818,6 +811,7 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 			},
 		}
 	);
+	return result === 'ok';
 };
 /**
  * 物料清单交互逻辑

@@ -4,25 +4,17 @@
  * chrome 一次性口令走 factory.oneTimePasswordInput。长度 / 类型用 EJ2 词，不要写 Prime mask / integerOnly。
  * 字段 fldFactory.oneTimePasswordInput 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type {
+  MetaUiField,
+  UiOneTimePasswordInputProps,
+  UiOneTimePasswordType,
+} from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 
 export const DEFAULT_OTP_LENGTH = 4
 
-export type UiOneTimePasswordType = 'number' | 'text' | 'password'
-
-export interface UiOneTimePasswordInputProps extends PropData {
-  value?: string
-  /** 格数。默认 4。 */
-  length?: number
-  /** EJ2：number / text / password。默认 number。 */
-  type?: UiOneTimePasswordType
-  /** 格间分隔符。对应 EJ2 separator */
-  separator?: string
-  placeholder?: string
-  disabled?: boolean
-  onChange?: (value: string) => void
-}
+export type { UiOneTimePasswordType, UiOneTimePasswordInputProps } from '@mmda/core'
 
 export type OneTimePasswordFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -63,19 +55,15 @@ export function emitOneTimePasswordChange(
 ): void {
   const next = value == null ? '' : String(value)
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
-export function oneTimePasswordModifierClasses(
-  props: UiOneTimePasswordInputProps,
-): unknown[] {
-  return ['mmda-otpinput', props.class]
-}
+export { oneTimePasswordModifierClasses } from '@mmda/core'
 
 function otpLengthFromField(
   field: MetaUiField,
-  extra: PropData,
+  extra: UiBagExtra,
 ): number {
   if (extra.length != null && extra.length !== '') {
     const n = Number(extra.length)
@@ -89,7 +77,7 @@ function otpLengthFromField(
 export function oneTimePasswordPropsFromField(
   field: MetaUiField,
   context: OneTimePasswordFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiOneTimePasswordInputProps {
   const typeRaw = extra.type
   const type: UiOneTimePasswordType =

@@ -5,9 +5,9 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup } from '@mmda/core';
+import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup, UiProps } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
-import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type PropData } from '@mmda/vui';
+import { type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult } from '@mmda/vui';
 import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
@@ -34,7 +34,7 @@ export class ToolkitLogic extends UiLogic<Toolkit> {
 	}
 
 
-	customToolNode(group: MetaUiGroup, context: UiContext<any>, props: PropData): any {
+	customToolNode(group: MetaUiGroup, context: UiContext<any>, props: UiProps): any {
 		return toolkitToolListNode(group, context, props, this.currentDom.value?.id, this.targetDom.value?.id);
 	}
 

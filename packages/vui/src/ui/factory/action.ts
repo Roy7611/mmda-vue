@@ -1,5 +1,5 @@
 import { computed, unref, type ComputedRef } from "vue";
-import type { UiColorRole } from "../../app/material";
+import type { UiColorRole, UiAction as CoreUiAction, Predicate } from "@mmda/core";
 import {
   parseEntityBoolExpression,
   isPromise,
@@ -7,9 +7,9 @@ import {
   type TranslateFn,
   type ActionCallback,
   type UiContext,
-  type Predicate,
 } from "@mmda/core";
 
+export type { UiColorRole } from "@mmda/core";
 export type IconResolver = (icon: string) => string;
 
 export interface UiActionContext extends UiContext {
@@ -44,37 +44,14 @@ export interface ActionItem {
 }
 
 /**
- * 界面动作，用于构建交互元素，如菜单、按钮
- *
- * @remarks {@link EntityAction}是针对实体{@link Entity}的操作，将转为`UiAction`在UI层展现
+ * 界面动作。core UiAction + 工具栏可绑 ComputedRef。
  */
-export interface UiAction {
-  id?: string;
-  name?: string;
-  role?: string;
-  icon?: string;
-  label?: string;
-  onAction?: ActionCallback;
-  command?: ActionCallback;
-  divider?: boolean;
-  colorRole?: UiColorRole;
-  tooltip?: string;
-  disabled?: boolean | "true" | "false";
+export interface UiAction extends Omit<CoreUiAction, 'visible'> {
   /**
    * 是否出现。工具栏可绑 ComputedRef；表格行用 Predicate(row)。
-   * 缺省出现。
+   * 缺省出现。兼容 core UiBoxed（duck-type ref）。
    */
-  visible?: ComputedRef<boolean> | Predicate<any> | boolean;
-  /**
-   * 当前行/实体是否可执行。false：可见但不可点。
-   * 由 EntityAction.executableExpression 解析；也可手写 Predicate。
-   */
-  canDo?: Predicate<any> | boolean;
-  group?: string;
-  loading?: boolean; // 是否正在加载
-  view?: string; //显示在那几个视图，比如details,edit，若为空则全部显示
-  /** 子菜单。dropDownButton / splitButton 皮肤读取。 */
-  items?: UiAction[];
+  visible?: CoreUiAction['visible'] | ComputedRef<boolean>
 }
 
 /** Normalize backend action roles before passing them to a UI skin. */
@@ -234,7 +211,10 @@ export function isActionVisible(
   if (visible == null) return true;
   if (typeof visible === "boolean") return visible;
   if (typeof visible === "function") return visible(target, ctx as any) !== false;
-  return unref(visible) !== false;
+  if (typeof visible === "object" && visible !== null && "value" in visible) {
+    return (visible as { value: boolean }).value !== false;
+  }
+  return true;
 }
 
 /** 是否可点。先看静态 `disabled`，再看 `canDo`。 */
@@ -243,20 +223,9 @@ export function isActionEnabled(
   target?: unknown,
   ctx?: unknown,
 ): boolean {
-  if (action.disabled === true || action.disabled === "true") return false;
+  if (action.disabled === true) return false;
   const canDo = action.canDo;
   if (canDo == null) return true;
   if (typeof canDo === "boolean") return canDo;
   return canDo(target, ctx as any) !== false;
-}
-
-export interface FlowToModel {
-  ownerID: string
-  ownerName: string | object
-  ownerDeptID: string
-  ownerDeptName: string
-  importance: string //重要性
-  urgency: string //紧急性
-  notification: string //待办事宜
-  copyTo: Array<any> //通知给
 }

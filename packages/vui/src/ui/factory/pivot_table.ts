@@ -6,7 +6,7 @@
  * 不是 AG 内部的 getRows。SF 只适配本地 data，不能打这两个接口。
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export const PIVOT_PLUGIN_NOT_INSTALLED = 'pivot plugin not installed'
 
@@ -29,7 +29,7 @@ export interface UiPivotFormat {
   format: string
 }
 
-export interface UiPivotTableProps extends PropData {
+export interface UiPivotTableProps extends UiProps {
   data?: Record<string, unknown>[]
   rows?: UiPivotField[]
   columns?: UiPivotField[]

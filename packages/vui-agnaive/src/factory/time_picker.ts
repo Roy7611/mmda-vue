@@ -1,21 +1,9 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
-import type { UiTimePickerProps } from '@mmda/vui'
-import {
-  TIME_PICKER_FORMAT,
-  datePickerAllowInput,
-  datePickerDateOf,
-  datePickerFormatOf,
-  datePickerNaiveFormat,
-  datePickerShowClear,
-  dateTimePickerStepOf,
-  emitDateBlur,
-  emitDateChange,
-  emitDateClear,
-  emitDateFocus,
-  htmlAttributesOf,
-  timePickerModifierClasses,
-} from '@mmda/vui'
+import type { UiTimePickerProps } from '@mmda/core'
+import { dateTimePickerStepOf, timePickerModifierClasses } from '@mmda/core'
+import { TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFormatOf, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus } from '@mmda/core'
+import { datePickerNaiveFormat, htmlAttributesOf } from '@mmda/vui'
 import { fromTs, toTs } from './date_picker'
 
 export function createTimePicker(props: UiTimePickerProps) {
@@ -49,7 +37,7 @@ export function createTimePicker(props: UiTimePickerProps) {
     ...rest
   } = props
 
-  return h(NDatePicker, {
+  return h(NDatePicker as any, {
     ...rest,
     ...htmlAttributesOf(props),
     type: 'time',

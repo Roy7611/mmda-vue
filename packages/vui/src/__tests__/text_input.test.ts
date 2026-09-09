@@ -8,7 +8,7 @@ import {
   textInputPropsFromField,
   textInputTypeOf,
   textInputValueOf,
-} from '../ui/factory/text_input'
+} from '@mmda/core'
 
 describe('textInput chrome helpers', () => {
   it('defaults value empty and type Text', () => {

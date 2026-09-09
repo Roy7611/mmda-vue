@@ -1,15 +1,5 @@
-import type {
-  UiSchedulerEvent,
-  UiSchedulerResource,
-  UiSchedulerView,
-  UiSchedulerViewProps,
-} from '@mmda/vui'
-import {
-  isSchedulerTimelineView,
-  schedulerHourHms,
-  schedulerSlotDurationOf,
-  schedulerWorkDaysOf,
-} from '@mmda/vui'
+import type { UiSchedulerEvent, UiSchedulerResource, UiSchedulerView, UiSchedulerViewProps } from '@mmda/vui'
+import { isSchedulerTimelineView, schedulerHourHms, schedulerSlotDurationOf, schedulerWorkDaysOf } from '@mmda/vui'
 
 export const EJ2_SCHEDULER_VIEWS: Record<UiSchedulerView, string> = {
   day: 'Day',

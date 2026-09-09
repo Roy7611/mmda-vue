@@ -1,16 +1,7 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
-import type { UiCalendarProps } from "@mmda/vui";
-import {
-  calendarBoundValue,
-  calendarDaySelected,
-  calendarModifierClasses,
-  calendarPrimeView,
-  emitCalendarChange,
-  htmlAttributesOf,
-  isCalendarDateDisabled,
-  sameCalendarDay,
-} from "@mmda/vui";
+import type { UiCalendarProps } from '@mmda/core';
+import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, calendarPrimeView, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
 import { primeVueI18n } from "../prime_i18n";
 
 function primeLocaleOf(locale?: string, firstDayOfWeek?: number) {

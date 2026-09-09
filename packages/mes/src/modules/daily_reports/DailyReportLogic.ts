@@ -207,7 +207,7 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 		photoList.value = [];
 	}
 
-	return await ctx.uiBuilder.dialog(
+	const result = await ctx.uiBuilder.dialog(
 		chooseImageNode({
 			selectOption: photoList.value,
 			ctx: ctx,
@@ -228,8 +228,8 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 			title: t('action.chooseOneImage'),
 			width: '45%',
 			height: '80%',
-			onAccept: async () => {
-				if (selectData.value && selectData.value.length <= 0) {
+			onAccept: async (button) => {
+			  if (selectData.value && selectData.value.length <= 0) {
 					context.uiBuilder.toast(context, {
 						severity: 'warning',
 						message: t('invalid.chooseImage'),
@@ -245,6 +245,7 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 			},
 		}
 	);
+	return result === 'ok';
 };
 const getReportTasks = (ctx: UiContext<any>) =>
 	(ctx.root?.model?.tasks ?? []).filter((item: any) => !MetaModel.deleted(item));
@@ -328,7 +329,7 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 							if (!taskGroup?.groupUi) return false;
 							const rows = filterReportTasks(getReportTasks(ctx), '');
 							let data = null as any;
-							const accepted = await ctx.uiBuilder.dialog(
+							const result = await ctx.uiBuilder.dialog(
 								ctx.uiBuilder.factory.table(rows, taskGroup.groupUi, {
 									selectionMode: 'single',
 									onSelect: (selection: any) => {
@@ -340,14 +341,14 @@ export class DailyReportEventLogic extends UiGroupLogic<DailyReportEvent, DailyR
 								{
 									title: t('dailyReport.selectRelatedTask'),
 									width: '80%',
-									onAccept: async () => {
-										if (!data) return false;
+									onAccept: async (button) => {
+									  if (!data) return false;
 										ctx.setFieldValue('taskID', data.taskID);
 										return true;
 									},
 								},
 							);
-							return accepted;
+							return result === 'ok';
 						}
 					})
 				}).hideIf((t, context) => {

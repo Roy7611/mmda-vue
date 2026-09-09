@@ -672,7 +672,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
 }
 
-.mmda-page-toolbar-sticky {
+.mmda-page-toolbar--sticky {
   background: var(--mmda-surface-card);
 }
 
@@ -714,8 +714,8 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   --mmda-field-label-col: 7rem;
 }
 
-.mmda-field-group-layout.mmda-field-group-row,
-.mmda-field-group-layout.mmda-field-group-column {
+.mmda-field-group-layout--row,
+.mmda-field-group-layout--column {
   display: grid;
   gap: 0.65rem 0.75rem;
   min-width: 0;
@@ -723,15 +723,15 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /* 2×逻辑列：label 定宽，field 吃满剩余（横排 label|field） */
-.mmda-field-group-layout.mmda-field-group-row[data-cols="1"] {
+.mmda-field-group-layout--row[data-cols="1"] {
   grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
 }
-.mmda-field-group-layout.mmda-field-group-row[data-cols="2"] {
+.mmda-field-group-layout--row[data-cols="2"] {
   grid-template-columns:
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
 }
-.mmda-field-group-layout.mmda-field-group-row[data-cols="3"] {
+.mmda-field-group-layout--row[data-cols="3"] {
   grid-template-columns:
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
@@ -739,30 +739,30 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /* 竖排字段：仍按逻辑列分格（无 label/control 拆列） */
-.mmda-field-group-layout.mmda-field-group-row[data-cols="1"]:not(
-    :has(> .mmda-field-horizontal)
+.mmda-field-group-layout--row[data-cols="1"]:not(
+    :has(> .mmda-field-layout--horizontal)
   ) {
   grid-template-columns: minmax(0, 1fr);
 }
-.mmda-field-group-layout.mmda-field-group-row[data-cols="2"]:not(
-    :has(> .mmda-field-horizontal)
+.mmda-field-group-layout--row[data-cols="2"]:not(
+    :has(> .mmda-field-layout--horizontal)
   ) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.mmda-field-group-layout.mmda-field-group-row[data-cols="3"]:not(
-    :has(> .mmda-field-horizontal)
+.mmda-field-group-layout--row[data-cols="3"]:not(
+    :has(> .mmda-field-layout--horizontal)
   ) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 /* summary：永远 1 逻辑列 */
-.mmda-field-group-layout.mmda-field-group-column,
-.mmda-page-summary .mmda-field-group-layout.mmda-field-group-row {
+.mmda-field-group-layout--column,
+.mmda-page-summary .mmda-field-group-layout--row {
   grid-template-columns: var(--mmda-field-label-col, 7rem) minmax(0, 1fr);
 }
 
 /* 仅横排字段拆开外壳；竖排保持整块 */
-.mmda-field-group-layout > .mmda-field-horizontal {
+.mmda-field-group-layout > .mmda-field-layout--horizontal {
   display: contents !important;
 }
 
@@ -788,14 +788,14 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /* 不在组内的横排字段兜底 */
-.mmda-field-horizontal {
+.mmda-field-layout--horizontal {
   display: grid;
   grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
   align-items: center;
   gap: 0.5rem 0.75rem;
   min-width: 0;
 }
-.mmda-field-horizontal .mmda-field-label {
+.mmda-field-layout--horizontal .mmda-field-label {
   width: 100%;
   text-align: right;
   overflow: hidden;
@@ -803,8 +803,8 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   white-space: nowrap;
 }
 
-/* —— 详情页：左右分区合一，整页滚动；折叠钮 sticky 钉在视口高度 —— */
-.mmda-page-regions {
+/* —— 详情页：左右分区合一，整页滚动；折叠钮 sticky 钉在视口中线 —— */
+.mmda-page-body {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -814,7 +814,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   overflow: visible;
 }
 
-.mmda-page-regions--with-summary {
+.mmda-page-body--with-summary {
   --mmda-page-summary-width: 20rem;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto;
@@ -823,11 +823,11 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   transition: gap 0.28s ease;
 }
 
-.mmda-page-regions--with-summary:has(> .mmda-page-footer) {
+.mmda-page-body--with-summary:has(> .mmda-page-footer) {
   grid-template-rows: auto auto;
 }
 
-.mmda-page-regions--with-summary.is-summary-collapsed {
+.mmda-page-body--with-summary.is-summary-collapsed {
   gap: 0;
 }
 
@@ -868,12 +868,12 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
- * 贴内容区最右侧。sticky 钉在视口约 30vh，整页滚时位置不变。
+ * 贴内容区最右侧。sticky 钉在视口中线（与 Splitter 折叠钮大致同高），整页滚时位置不变。
  * 不再靠主区内滚来“钉住”。
  */
 .mmda-page-summary-toggle {
   position: sticky;
-  top: 30vh;
+  top: 50vh;
   z-index: 4;
   display: inline-flex;
   grid-column: 1 / -1;
@@ -896,6 +896,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   color: var(--mmda-on-primary-container, #21005d);
   box-shadow: -1px 0 4px rgb(0 0 0 / 8%);
   cursor: pointer;
+  transform: translateY(-50%);
 }
 
 .mmda-page-summary-toggle:hover {

@@ -10,7 +10,7 @@ chrome 内容占位，走 `factory.skeleton`。[EJ2 Vue Skeleton](https://ej2.sy
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/skeleton.ts` | `UiSkeletonProps`；`skeletonModifierClasses` |
+| core `UiSkeletonProps` | `UiSkeletonProps` / `skeletonModifierClasses` |
 | 皮肤 `factory/skeleton.ts` | SF `SkeletonComponent`；Prime `Skeleton`；Naive `NSkeleton` |
 
 vui 名是 **`skeleton`** / **`shimmer`**。不要 `SkeletonComponent` / `shimmerEffect` / `ejs-skeleton` / `NSkeleton` 当 vui 名。
@@ -45,7 +45,7 @@ vui 名是 **`skeleton`** / **`shimmer`**。不要 `SkeletonComponent` / `shimme
 
 ## 源码
 
-- vui [`skeleton.ts`](../src/ui/factory/skeleton.ts)
+- core [`chrome.ts`](../../core/src/ui/chrome.ts)
 - Syncfusion [`factory/skeleton.ts`](../../vui-syncfusion/src/factory/skeleton.ts)
 - Prime [`factory/skeleton.ts`](../../vui-primevue/src/factory/skeleton.ts)
 - Naive [`factory/skeleton.ts`](../../vui-agnaive/src/factory/skeleton.ts)

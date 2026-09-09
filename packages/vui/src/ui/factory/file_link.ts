@@ -4,32 +4,25 @@
  * 图片走 factory.image / imageGallery，不要塞进 FileLink。
  */
 import type { MetaUiField } from '@mmda/core'
+import {
+  fileLinkDownloadableOf,
+  fileLinkPreviewKindOf,
+  fileLinkUrlOf,
+  type UiFileLinkProps,
+} from '@mmda/core'
 import { h, type VNode } from 'vue'
 import { getFileInfo } from '../../components/FileIcons'
-import { htmlAttributesOf, type PropData } from '../layout/layout'
+import {htmlAttributesOf, type UiProps, type UiBagExtra} from '../layout/layout'
 
-/** 走 buildFilePreview 的扩展名 */
-export const FILE_LINK_APP_PREVIEW_EXTS = ['xlsx', 'xls', 'docx', 'doc'] as const
-
-/** 浏览器原生打开 */
-export const FILE_LINK_BROWSER_PREVIEW_EXTS = [
-  'pdf',
-  'txt',
-  'csv',
-] as const
-
-export type UiFileLinkPreviewKind = 'none' | 'app' | 'browser'
-
-export interface UiFileLinkProps extends PropData {
-  url?: string
-  /** 缺省 true。false 只显示图标+文件名，不包 a */
-  downloadable?: boolean
-  /** 可预览时出预览。xlsx/docx 走 onPreview / buildFilePreview；pdf/txt/csv 浏览器打开 */
-  preview?: boolean
-  fileName?: string
-  fileIcon?: string
-  onPreview?: (url: string) => void
-}
+export type { UiFileLinkPreviewKind, UiFileLinkProps } from '@mmda/core'
+export {
+  FILE_LINK_APP_PREVIEW_EXTS,
+  FILE_LINK_BROWSER_PREVIEW_EXTS,
+  fileLinkDownloadableOf,
+  fileLinkExtOf,
+  fileLinkPreviewKindOf,
+  fileLinkUrlOf,
+} from '@mmda/core'
 
 export type FileLinkFieldContext = {
   getFieldValue: (field: MetaUiField, row?: unknown) => unknown
@@ -37,33 +30,6 @@ export type FileLinkFieldContext = {
   getModuleAuth?: (entity?: Record<string, any>) =>
     | { allowDownload?: boolean }
     | undefined
-}
-
-export function fileLinkUrlOf(props: UiFileLinkProps): string {
-  return String(props.url ?? '').trim()
-}
-
-export function fileLinkDownloadableOf(props: UiFileLinkProps): boolean {
-  return props.downloadable !== false
-}
-
-export function fileLinkExtOf(url: string, fileName?: string): string {
-  const name = fileName || getFileInfo(url).fileName
-  const dot = name.lastIndexOf('.')
-  if (dot < 0) return ''
-  return name.slice(dot + 1).toLowerCase()
-}
-
-export function fileLinkPreviewKindOf(
-  props: UiFileLinkProps,
-): UiFileLinkPreviewKind {
-  if (props.preview !== true) return 'none'
-  const ext = fileLinkExtOf(fileLinkUrlOf(props), props.fileName)
-  if ((FILE_LINK_APP_PREVIEW_EXTS as readonly string[]).includes(ext))
-    return 'app'
-  if ((FILE_LINK_BROWSER_PREVIEW_EXTS as readonly string[]).includes(ext))
-    return 'browser'
-  return 'none'
 }
 
 export function fileLinkLabelOf(props: UiFileLinkProps): string {
@@ -151,7 +117,7 @@ export function renderFileLink(props: UiFileLinkProps = {}): VNode {
 export function fileLinkPropsFromField(
   field: MetaUiField,
   context: FileLinkFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiFileLinkProps {
   const url = String(
     extra.url ?? context.getFieldValue(field, extra.row) ?? '',

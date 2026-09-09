@@ -1,19 +1,7 @@
 import { h } from 'vue'
 import { NTag } from 'naive-ui'
 import type { IconResolver, UiChipsProps } from '@mmda/vui'
-import {
-  chipIsSelected,
-  chipItemModifierClasses,
-  chipsItemsOf,
-  chipsKindOf,
-  chipsModifierClasses,
-  createIconVNode,
-  emitChipsChange,
-  htmlAttributesOf,
-  isChipsRemovable,
-  naiveChipType,
-  toggleChipSelection,
-} from '@mmda/vui'
+import { chipIsSelected, chipItemModifierClasses, chipsItemsOf, chipsKindOf, chipsModifierClasses, createIconVNode, emitChipsChange, htmlAttributesOf, isChipsRemovable, naiveChipType, toggleChipSelection } from '@mmda/vui'
 
 export function createChips(
   props: UiChipsProps,

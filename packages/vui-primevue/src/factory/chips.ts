@@ -1,18 +1,7 @@
 import { h } from "vue";
 import Chip from "primevue/chip";
-import type { IconResolver, UiChipsProps } from "@mmda/vui";
-import {
-  chipIsSelected,
-  chipItemModifierClasses,
-  chipsItemsOf,
-  chipsKindOf,
-  chipsModifierClasses,
-  createIconVNode,
-  emitChipsChange,
-  htmlAttributesOf,
-  isChipsRemovable,
-  toggleChipSelection,
-} from "@mmda/vui";
+import type { IconResolver, UiChipsProps } from "@mmda/vui"
+import { chipIsSelected, chipItemModifierClasses, chipsItemsOf, chipsKindOf, chipsModifierClasses, createIconVNode, emitChipsChange, htmlAttributesOf, isChipsRemovable, toggleChipSelection } from "@mmda/vui"
 
 export function createChips(
   props: UiChipsProps,

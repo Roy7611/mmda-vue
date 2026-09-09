@@ -3,9 +3,10 @@
  * App：ui.setDiagramPlugin(createSfDiagramPlugin()) 等。
  */
 import type { VNode } from 'vue'
+import { callUiBagFn } from '@mmda/core'
 import type { MetaUi } from '@mmda/core'
 import { UiViewOne } from '../../contexts/view'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiDiagramType = 'org' | 'workflow' | 'dataflow' | 'er' | 'uml'
 
@@ -67,7 +68,7 @@ export type UiDiagramAsideRenderer = (
   kind: 'node' | 'connector' | null,
 ) => VNode | null
 
-export interface UiDiagramViewProps extends PropData {
+export interface UiDiagramViewProps extends UiProps {
   diagramType: UiDiagramType
   nodes?: UiDiagramNode[]
   connectors?: UiDiagramConnector[]
@@ -271,7 +272,7 @@ export function emitDiagramUpdate(
   connectors: UiDiagramConnector[],
 ): void {
   if (props.readonly) return
-  props.onUpdate?.(nodes, connectors)
+  callUiBagFn(props, 'onUpdate', nodes, connectors)
   props['onUpdate:nodes']?.(nodes)
   props['onUpdate:connectors']?.(connectors)
 }

@@ -1,8 +1,19 @@
 import { h } from 'vue'
-import type { MetaUiGroup } from '@mmda/core'
+import type { MetaUiGroup, UiProps } from '@mmda/core'
 import { MetaModel } from '@mmda/core'
-import { UiViewOne, type PropData, type UiViewContext } from '@mmda/vui'
+import { UiViewOne, type UiViewContext } from '@mmda/vui'
 import type { Tool } from '@/models/Tool'
+
+function callBagHandler(
+	props: UiProps,
+	key: string,
+	...args: unknown[]
+): void {
+	const fn = props[key]
+	if (typeof fn === 'function') {
+		;(fn as (...a: unknown[]) => void)(...args)
+	}
+}
 
 export function toolkitEmptyNode(context: UiViewContext<any>) {
 	return h('div', {
@@ -15,7 +26,7 @@ export function toolkitToolCardNode(
 	item: Tool,
 	group: MetaUiGroup,
 	context: UiViewContext<any>,
-	props: PropData,
+	props: UiProps,
 	dimmed: boolean,
 ) {
 	const { uiBuilder } = context
@@ -23,10 +34,10 @@ export function toolkitToolCardNode(
 		class: `tool-item w-full h-full relative flex flex-col col-span-3 items-start justify-center bg-gray-100 pb-2 opacity-${dimmed ? '50' : '100'}`,
 		id: `tool-${item.toolID}`,
 		draggable: true,
-		onDragstart: (e: DragEvent) => props.onDragstart && props.onDragstart(e, context, item),
-		onDragenter: (e: DragEvent) => props.onDragenter && props.onDragenter(e, context, item),
-		onDragover: (e: DragEvent) => props.onDragover && props.onDragover(e, context, item),
-		onDragend: (e: DragEvent) => props.onDragend && props.onDragend(e, context, item),
+		onDragstart: (e: DragEvent) => callBagHandler(props, 'onDragstart', e, context, item),
+		onDragenter: (e: DragEvent) => callBagHandler(props, 'onDragenter', e, context, item),
+		onDragover: (e: DragEvent) => callBagHandler(props, 'onDragover', e, context, item),
+		onDragend: (e: DragEvent) => callBagHandler(props, 'onDragend', e, context, item),
 	}, [
 		uiBuilder.factory.badge({
 			value: item.toolkitIndex,
@@ -104,7 +115,7 @@ export function toolkitToolCardNode(
 export function toolkitToolListNode(
 	group: MetaUiGroup,
 	context: UiViewContext<any>,
-	props: PropData,
+	props: UiProps,
 	currentId?: string,
 	targetId?: string,
 ) {

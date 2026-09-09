@@ -362,13 +362,16 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													onAccept: async () => {
-														if (materialsName.list.RootDirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
+													onAccept: async (button) => {
+													  if (materialsName.list.RootDirectory.trim().length === 0) {
+														props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
 															title: t('dialog.title.error'),
 															message: t('invalid.required'),
 															life: 3000
 														})
+														return false
+													}
 														handleFn('addRootDirectory', nodes.value);
 														return true;
 													},
@@ -395,13 +398,16 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													onAccept: async () => {
-														if (materialsName.list.RootDirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
+													onAccept: async (button) => {
+													  if (materialsName.list.RootDirectory.trim().length === 0) {
+														props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
 															title: t('dialog.title.error'),
 															message: t('invalid.required'),
 															life: 3000
 														})
+														return false
+													}
 														handleFn('addRootDirectory', nodes.value);
 														return true;
 													},
@@ -426,13 +432,16 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													onAccept: async () => {
-														if (materialsName.list.Brothers.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
+													onAccept: async (button) => {
+													  if (materialsName.list.Brothers.trim().length === 0) {
+														props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
 															title: t('dialog.title.error'),
 															message: t('invalid.required'),
 															life: 3000
 														})
+														return false
+													}
 														handleFn('addBrothers', nodes.value);
 														return true;
 													},
@@ -457,13 +466,16 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													onAccept: async () => {
-														if (materialsName.list.Subdirectory.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
+													onAccept: async (button) => {
+													  if (materialsName.list.Subdirectory.trim().length === 0) {
+														props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
 															title: t('dialog.title.error'),
 															message: t('invalid.required'),
 															life: 3000
 														})
+														return false
+													}
 														handleFn('addSubdirectory', nodes.value);
 														return true;
 													},
@@ -502,13 +514,16 @@ export const Tree = defineComponent({
 													width: '30%',
 													height: '30%',
 													showFooter: true,
-													onAccept: async () => {
-														if (materialsName.list.rename.trim().length === 0) return props.context.uiBuilder.toast(props.context, {
+													onAccept: async (button) => {
+													  if (materialsName.list.rename.trim().length === 0) {
+														props.context.uiBuilder.toast(props.context, {
 															severity: 'error',
 															title: t('dialog.title.error'),
 															message: t('invalid.required'),
 															life: 3000
 														})
+														return false
+													}
 														handleFn('rename', nodes.value);
 														return true;
 													},

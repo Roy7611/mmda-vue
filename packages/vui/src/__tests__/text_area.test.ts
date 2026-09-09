@@ -7,7 +7,7 @@ import {
   textAreaResizeModeOf,
   textAreaRowsOf,
   textAreaValueOf,
-} from '../ui/factory/text_area'
+} from '@mmda/core'
 
 describe('textArea chrome helpers', () => {
   it('defaults value empty, rows 3, resizeMode Vertical', () => {

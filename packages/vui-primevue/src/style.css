@@ -472,7 +472,7 @@ html[data-mmda-palette="cyan"] {
   );
 }
 
-.mmda-field-horizontal .mmda-field-label {
+.mmda-field-layout--horizontal .mmda-field-label {
   width: 100%;
   max-width: 8rem;
   text-align: right;
@@ -670,8 +670,7 @@ html[data-mmda-palette="cyan"] {
   gap: 0.5rem;
 }
 
-.mmda-prime-dialog.p-dialog,
-.p-dialog.mmda-select-dialog {
+.mmda-prime-dialog.p-dialog {
   max-height: 90vh;
   display: flex;
   flex-direction: column;

@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
-import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogPropsType, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
+import { type UiBuildContext, type UiLogicInit, UiLogic, UiGroupLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 import { type MaintenancePlan } from '@/models/MaintenancePlan';
@@ -138,8 +138,8 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				onAccept: async () => {
-					console.log('lendData.data.ownerID', lendData.data.ownerID);
+				onAccept: async (button) => {
+				  console.log('lendData.data.ownerID', lendData.data.ownerID);
 					if (isRefNone(lendData.data.ownerID)) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
@@ -212,8 +212,8 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				onAccept: async () => {
-					if (isRefNone(moveData.data.moveTo)) {
+				onAccept: async (button) => {
+				  if (isRefNone(moveData.data.moveTo)) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
 							message: t('auth.writetMoveTo'),
@@ -284,8 +284,8 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				onAccept: async () => {
-					if (isRefNone(repairData.data.ownerID)) {
+				onAccept: async (button) => {
+				  if (isRefNone(repairData.data.ownerID)) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
 							message: t('auth.selectASuperintendent'),
@@ -351,8 +351,8 @@ const beforeToolsReturn = async (context: UiContext, model: Tool, action: Entity
 				},
 				showCancelButton: true,
 				closeOnClickModal: false,
-				onAccept: async () => {
-					if (isRefNone(returnData.data.moveTo)) {
+				onAccept: async (button) => {
+				  if (isRefNone(returnData.data.moveTo)) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
 							message: t('auth.writetMoveTo'),
@@ -835,8 +835,8 @@ try {
 				closeOnClickModal: false,
 				acceptLabel: t('tool.confirmReturn'),
 				rejectLabel: t('action.cancel'),
-				onAccept: async () => {
-					// 检查使用次数是否超限
+				onAccept: async (button) => {
+				  // 检查使用次数是否超限
 					const exceededTools = selectedItems.filter((item: any) => {
 						const inputCycles = returnParmas.value?.[item.toolID] || 0;
 						return ((item.lifecycleModes as any) & 2) == 2 && (inputCycles + item.usedCycles) > item.maxLifeCycles;
@@ -876,8 +876,7 @@ try {
 						});
 						return false;
 					}
-				},
-				reject: () => false,
+				}
 			}
 		);
 
@@ -1130,7 +1129,7 @@ try {
 		const submitFn = { value: null as (() => Promise<boolean>) | null };
 
 		try {
-			return await context.uiBuilder.dialog(
+			const result = await context.uiBuilder.dialog(
 				toolsPickingNode({
 					class: 'w-full h-full',
 					ctx: context,
@@ -1149,21 +1148,21 @@ try {
 					},
 					showCancelButton: true,
 					closeOnClickModal: false,
-					onAccept: async () => {
-						if (submitFn.value) {
-							const result = await submitFn.value();
-							if (result) {
+					onAccept: async (button) => {
+					  if (submitFn.value) {
+							const ok = await submitFn.value();
+							if (ok) {
 								setTimeout(() => {
 									context.reload();
 								}, 1000);
 							}
-							return result;
+							return ok;
 						}
 						return false;
-					},
-					reject: () => false,
+					}
 				}
 			);
+			return result === 'ok';
 		} catch (error: any) {
 			return false;
 		}
@@ -1560,12 +1559,12 @@ try {
 	/**
 	 * 器具类别编辑对话框
 	 * @param {UiBuildContext<any>} ctx - 上下文对象
-	 * @param {UiDialogPropsType & {toolCategory?: ToolCategory,}} props - 对话框props
-	 * @returns {Promise<boolean>} - 保存成功返回true,否则返回false
+	 * @param {UiDialogProps & {toolCategory?: ToolCategory,}} props - 对话框props
+	 * @returns dialog 按钮名
 	 */
-	async categoryConfirmDialog(ctx: UiContext, content: VNode, props: UiDialogPropsType & {
+	async categoryConfirmDialog(ctx: UiContext, content: VNode, props: UiDialogProps & {
 		toolCategory?: ToolCategory,
-	}): Promise<boolean> {
+	}) {
 
 		return ctx.uiBuilder.dialog(
 			content
@@ -1617,12 +1616,9 @@ try {
 		}), {
 			title: title,
 			name: 'addDirectory',
-			onAccept: async () => {
-				await this.saveFn(ctx, toolCategory);
+			onAccept: async (button) => {
+			  await this.saveFn(ctx, toolCategory);
 				return true
-			},
-			onReject: async () => {
-				return false
 			}
 		})
 	}
@@ -1676,13 +1672,10 @@ try {
 				height: '30%',
 				name: 'editDirectory',
 				showFooter: true,
-				onAccept: async () => {
-					MetaModel.modify(node)
+				onAccept: async (button) => {
+				  MetaModel.modify(node)
 					await this.saveFn(ctx, { ...node, categoryName: this.categoryName.value });
 					return ctx.refresh(false)
-				},
-				onReject: async () => {
-					return false
 				}
 			}).finally(() => this.categoryName.value = '')
 

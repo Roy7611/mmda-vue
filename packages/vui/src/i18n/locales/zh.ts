@@ -45,7 +45,7 @@ export default {
   },
   action: {
     more: "更多",
-    listSettings: "表格设置",
+    tableSettings: "表格设置",
     autoFitColumns: "自动列宽",
     batchOperation: "批量操作",
     historyData: "历史数据",
@@ -166,7 +166,7 @@ export default {
     imageSuccess: "图片上传成功",
     imageFail: "图片上传失败",
   },
-  listSettings: {
+  tableSettings: {
     title: "表格设置",
     persistForever: "永久存储",
     save: "存储",

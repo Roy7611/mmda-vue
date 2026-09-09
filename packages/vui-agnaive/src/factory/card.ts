@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import { NCard } from 'naive-ui'
-import type { UiCardProps, UiCardSlots } from '@mmda/vui'
-import { cardModifierClasses } from '@mmda/vui'
+import type { UiCardProps, UiCardSlots } from '@mmda/core'
+import { cardModifierClasses } from '@mmda/core'
 import { createDivider } from './divider'
 
 const cover = (props: UiCardProps, slots?: UiCardSlots) => {

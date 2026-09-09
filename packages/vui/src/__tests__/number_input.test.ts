@@ -3,7 +3,7 @@ import {
   emitNumberInputChange,
   numberInputFormatOf,
   numberInputStepOf,
-} from '../ui/factory/number_input'
+} from '@mmda/core'
 
 describe('number input chrome helpers', () => {
   it('defaults step to 1 for number and 0.01 for percent', () => {

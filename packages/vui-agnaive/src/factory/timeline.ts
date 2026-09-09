@@ -4,17 +4,9 @@
  */
 import { h } from "vue";
 import { NTimeline, NTimelineItem } from "naive-ui";
-import type { IconResolver, UiTimelineProps } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  noopTimelineController,
-  timelineAlignOf,
-  timelineItemsOf,
-  timelineListContentOf,
-  timelineListOppositeOf,
-  timelineModifierClasses,
-  timelineOrientationOf,
-} from "@mmda/vui";
+import type { UiTimelineProps } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from "@mmda/vui"
 
 export function createTimeline(
   props: UiTimelineProps,

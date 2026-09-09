@@ -88,7 +88,7 @@ export const AgHasOneFilter = defineComponent({
       'div',
       { class: 'mmda-ag-hasone-filter', style: 'padding: 8px; min-width: 12rem' },
       [
-        h(NSelect, {
+        h(NSelect as any, {
           value: this.selected,
           multiple: true,
           filterable: true,

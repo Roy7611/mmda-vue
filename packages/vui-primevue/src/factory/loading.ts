@@ -1,12 +1,7 @@
 import { h } from "vue";
 import ProgressSpinner from "primevue/progressspinner";
-import type { UiLoadingProps } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  loadingLabelOf,
-  loadingModifierClasses,
-  loadingWidthOf,
-} from "@mmda/vui";
+import type { UiLoadingProps } from "@mmda/vui"
+import { htmlAttributesOf, loadingLabelOf, loadingModifierClasses, loadingWidthOf } from "@mmda/vui"
 
 export function createLoading(props: UiLoadingProps = {}) {
   const {

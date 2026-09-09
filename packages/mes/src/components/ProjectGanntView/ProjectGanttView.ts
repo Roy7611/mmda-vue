@@ -48,7 +48,7 @@ export default defineComponent({
     const toastError = (error: any) => {
       props.ctx?.uiBuilder?.toast?.(props.ctx as any, {
         severity: 'error',
-        detail: error?.validationErrors?.[0]?.error ?? error?.message ?? String(error),
+        message: error?.validationErrors?.[0]?.error ?? error?.message ?? String(error),
       })
     }
 

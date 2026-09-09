@@ -2,9 +2,8 @@
  * chrome 树下拉走 factory.treeSelect（EJ2 DropDownTree 别名 factory.dropDownTree）。
  * 字段 fldFactory.treeSelect 译 MetaUiField 后再调本控件。
  */
-import type { VNodeChild } from 'vue'
 import { MetaOptionsShape, type MetaUiField, type MetaUiFieldRef } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 import { treeDataProvider } from '../builder/tree_data'
 import {
   setTreeChildren,
@@ -13,36 +12,17 @@ import {
   type UiTreeFields,
 } from './tree'
 
-export type UiTreeSelectDisplay = 'text' | 'chips' | 'delimiter' | 'custom'
-export type UiTreeSelectLoadMode = 'full' | 'lazy'
-export type UiTreeSelectValue = string | number | null | Array<string | number>
-
-export interface UiTreeSelectProps<T = any> extends PropData {
-  data?: T[]
-  fields?: UiTreeFields<T>
-  value?: UiTreeSelectValue
-  placeholder?: string
-  disabled?: boolean
-  /** 厂商弹层 filter bar。缺省 true */
-  allowFiltering?: boolean
-  selectionMode?: 'single' | 'checkbox'
-  showClear?: boolean
-  selectedDisplay?: UiTreeSelectDisplay
-  delimiter?: string
-  popupHeight?: string | number
-  popupWidth?: string | number
-  showSelectAll?: boolean
-  selectAllLabel?: string
-  header?: () => VNodeChild
-  item?: (node: T) => VNodeChild
-  selected?: (nodes: T[]) => VNodeChild
-  loadMode?: UiTreeSelectLoadMode
-  onExpand?: (node: T) => void | Promise<void>
-  loadRoots?: () => T[] | Promise<T[]>
-  treeShape?: string
-  shapeKey?: string
-  onChange?: (value: UiTreeSelectValue) => void
-}
+export type {
+  UiTreeSelectDisplay,
+  UiTreeSelectLoadMode,
+  UiTreeSelectProps,
+  UiTreeSelectValue,
+} from '@mmda/core'
+import type {
+  UiTreeSelectDisplay,
+  UiTreeSelectProps,
+  UiTreeSelectValue,
+} from '@mmda/core'
 
 export type TreeSelectLogic = {
   getRoots?: () => Promise<unknown[]>
@@ -50,11 +30,11 @@ export type TreeSelectLogic = {
 }
 
 export type TreeSelectFieldContext = {
-  getFieldValue: (field: MetaUiField) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
+  getFieldValue: (field: MetaUiField | string) => unknown
+  setFieldValue: (field: MetaUiField | string, value: unknown) => void
   isFieldReadonly: (field: MetaUiField | string) => boolean
-  /** 树形实体的 Logic 才有这两方法；不是 EntityLogic 默认能力。 */
-  logic?: TreeSelectLogic
+  /** 树形实体的 Logic 才有 getRoots / getChildren；不是 EntityLogic 默认能力。 */
+  logic?: any
 }
 
 export function treeSelectNodesOf<T>(props: UiTreeSelectProps<T>): T[] {
@@ -90,7 +70,7 @@ export function treeSelectParentFieldOf(
 
 function fieldTreeFields(
   field: MetaUiField,
-  extra: PropData,
+  extra: UiBagExtra,
 ): UiTreeFields {
   const extraFields = extra.fields as UiTreeFields | undefined
   const reference = field.reference
@@ -140,7 +120,7 @@ function fieldTreeValue(
 
 function resolveTreeWriteback(
   field: MetaUiField,
-  extra: PropData,
+  extra: UiBagExtra,
   value: UiTreeSelectValue,
   fields: UiTreeFields,
 ): unknown {
@@ -158,7 +138,7 @@ function resolveTreeWriteback(
 export function treeSelectPropsFromField(
   field: MetaUiField,
   context: TreeSelectFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiTreeSelectProps {
   const fields = fieldTreeFields(field, extra)
   const reference = field.reference

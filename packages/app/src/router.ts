@@ -60,21 +60,16 @@ function pluginRoutes(): RouteRecordRaw[] {
     }
     records.push(
       {
-        path: `${prefix}/:repository/Create`,
+        path: `${prefix}/:repository`,
         component: EntityView,
         meta,
+        children: [
+          { path: '', component: EntityView.Index },
+          { path: 'Create', component: EntityView.One },
+          { path: 'Edit/:id', component: EntityView.One },
+          { path: ':id', component: EntityView.One },
+        ],
       },
-      {
-        path: `${prefix}/:repository/Edit/:id`,
-        component: EntityView,
-        meta,
-      },
-      {
-        path: `${prefix}/:repository/:id`,
-        component: EntityView,
-        meta,
-      },
-      { path: `${prefix}/:repository`, component: EntityView, meta },
       ...(plugin.routes ?? []),
     )
     return records

@@ -1,8 +1,8 @@
 import { h } from "vue";
 import { RouterLink } from "vue-router";
 import Breadcrumb from "primevue/breadcrumb";
-import type { IconResolver, UiBreadcrumbProps } from "@mmda/vui";
-import { htmlAttributesOf } from "@mmda/vui";
+import type { IconResolver, UiBreadcrumbProps } from "@mmda/vui"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createBreadcrumb(
   props: UiBreadcrumbProps,

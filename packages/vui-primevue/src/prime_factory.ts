@@ -1,40 +1,22 @@
-import { h, reactive, unref, type VNode } from "vue";
+import { h, reactive, type VNode } from "vue";
 import {
   SqlDataType,
   SortOrder,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
   getFieldFilterOps,
+  fieldCellEditorAllowsColumn,
+  resolveFieldCellCanEdit,
+  unboxed,
   type EntityFieldFilter,
   type EntityFilterModel,
   type MetaUi,
   type MetaUiField,
   type Pagination,
 } from "@mmda/core";
-import type {
-  PrimeVueUiFactory,
-  PropData,
-  UiAction,
-  UiListPropsType,
-  UiPaginatorPropsType,
-  UiSlots,
-  UiTreeGridPropsType,
-} from "@mmda/vui";
-import {
-  assembleTreeGridRows,
-  listedTableFields,
-  treeRowId,
-  bindListDisplayRenderers,
-  wrapListFamilyPaginator,
-  renderSearchForRelativeField,
-  switchArgs,
-  createFileUploader,
-  createFilesUploader,
-  createImageUploader,
-  createImagesUploader,
-  renderFileLink,
-  wrapRowDetail,
-} from "@mmda/vui";
+import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
+import { switchArgs } from "@mmda/core"
+import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createAvatar } from "./factory/avatar";
 import { createBarcode } from "./factory/barcode";
@@ -52,8 +34,8 @@ import { createDivider } from "./factory/divider";
 import { createTooltip } from "./factory/tooltip";
 import { createInplaceEditor } from "./factory/inplace_editor";
 import { createColorPicker } from "./factory/color_picker";
-import { createMaskedTextBox } from "./factory/maskedTextBox";
-import { createOneTimePasswordInput } from "./factory/oneTimePasswordInput";
+import { createMaskedTextBox } from "./factory/masked_text_box";
+import { createOneTimePasswordInput } from "./factory/one_time_password_input";
 import { createQueryBuilder } from "./factory/query_builder";
 import { createSlider } from "./factory/slider";
 import { createRating } from "./factory/rating";
@@ -89,18 +71,15 @@ import { createComboBox } from "./factory/combo_box";
 import { createAutoComplete } from "./factory/autocomplete";
 import { createTagAutoComplete } from "./factory/tag_auto_complete";
 import { createButton } from "./factory/button";
-import { createButtonGroup } from "./factory/buttonGroup";
-import { createSelectButtonGroup } from "./factory/selectButtonGroup";
+import { createButtonGroup } from "./factory/button_group";
+import { createSelectButtonGroup } from "./factory/select_button_group";
 import {
   createDropDownButton,
   createMoreMenuButton,
-} from "./factory/dropDownButton";
-import { createSplitButton } from "./factory/splitButton";
-import { createFloatingActionButton } from "./factory/floatingActionButton";
-import {
-  createIconVNode,
-  MATERIAL_SYMBOL_PREFIX,
-} from "@mmda/vui";
+} from "./factory/drop_down_button";
+import { createSplitButton } from "./factory/split_button";
+import { createFloatingActionButton } from "./factory/floating_action_button";
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from "@mmda/vui"
 import Button from "primevue/button";
 import Column from "primevue/column";
 import DatePicker from "primevue/datepicker";
@@ -178,9 +157,9 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
     action.label ??
     (action.name && t ? t(`action.${action.name}`) : action.name),
   icon: action.icon,
-  disabled: action.disabled === true || action.disabled === "true",
+  disabled: action.disabled === true,
   separator: action.divider,
-  command: action.onAction ?? action.command,
+  command: action.onAction,
 });
 
 /** 菜单项保留嵌套 items / url / key，不能走 normalizeAction（会剥掉子菜单） */
@@ -209,11 +188,22 @@ const normalizeMenuItem = (item: any): any => {
 export function createPrimeVueUiFactory(): PrimeVueUiFactory {
   const button = createButton;
 
-  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
+  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) => {
+    const bag = props as UiListPropsType<T> & {
+      fieldCellRenderers?: Record<
+        string,
+        (field: MetaUiField, row: T) => unknown
+      >;
+      scrollable?: boolean;
+      scrollHeight?: string | number;
+      tableStyle?: unknown;
+      size?: string;
+      rowStyle?: unknown;
+      selectedItems?: T[];
+    };
     const fields = listedFields(metaUi);
-    const editableFields = new Set(props.editableFields ?? []);
-    const inplaceEdit =
-      props.inplaceEdit === true && editableFields.size > 0;
+    const fieldEditors = bag.fieldCellEditors ?? {};
+    const inplaceEdit = bag.editable === true;
     const selectionMode =
       props.selectionMode === "multiple"
         ? "multiple"
@@ -221,6 +211,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           ? "single"
           : undefined;
     const showColumnFilters =
+      props.filterable !== false &&
       (props as { filterDisplay?: string }).filterDisplay === "row";
     const columnFilter = (field: MetaUiField) => {
       if (!showColumnFilters) return undefined;
@@ -392,7 +383,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     const dataColumns = fields.map((field) => {
       const renderRow = (data: T) => {
         if (props.renderCell) return props.renderCell(field, data);
-        const custom = props.customCellRenderers?.[field.fieldName];
+        const custom = bag.fieldCellRenderers?.[field.fieldName];
         if (custom) return custom(field, data);
         const value = (data as any)[field.fieldName];
         return field.reference?.refOptions?.length
@@ -401,8 +392,8 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       };
       const editable =
         inplaceEdit &&
-        editableFields.has(field.fieldName) &&
-        !field.readOnly;
+        !field.readOnly &&
+        fieldCellEditorAllowsColumn(fieldEditors[field.fieldName]);
       return h(
         Column,
         {
@@ -410,7 +401,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           field: field.fieldName,
           header: field.displayLabel,
           sortable:
-            props.enableSort === false
+            props.sortable === false
               ? false
               : Boolean((field as any).sortable),
           style: (field as any).width
@@ -474,20 +465,20 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       dataKey,
       stripedRows: props.striped ?? true,
       showGridlines: props.showGridlines ?? false,
-      loading: unref(props.loading),
-      resizableColumns: props.resizableColumns ?? true,
-      scrollable: props.scrollable ?? true,
+      loading: unboxed(props.loading),
+      resizableColumns: true,
+      scrollable: bag.scrollable ?? true,
       scrollHeight:
-        props.scrollHeight ?? props.height ?? props.maxHeight ?? "flex",
-      tableStyle: props.tableStyle ?? { minWidth: "50rem" },
-      size: props.size ?? "small",
+        bag.scrollHeight ?? props.height ?? props.maxHeight ?? "flex",
+      tableStyle: bag.tableStyle ?? { minWidth: "50rem" },
+      size: bag.size ?? "small",
       onRowClick: (event: any) => props.onItemClick?.(event.data),
       onRowDblclick: (event: any) => props.onItemDoubleClick?.(event.data),
       onRowContextmenu: (event: any) => props.onItemContextMenu?.(event.data),
-      rowStyle: props.rowStyle,
-      sortMode: props.enableSort === false ? undefined : "multiple",
+      rowStyle: bag.rowStyle,
+      sortMode: props.sortable === false ? undefined : "multiple",
       onSort: (event: any) => {
-        if (props.enableSort === false) return;
+        if (props.sortable === false) return;
         const sorts = event.multiSortMeta?.length
           ? event.multiSortMeta
           : event.sortField
@@ -510,7 +501,9 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         const row = event.data as T;
         if (
           !field ||
-          (props.canEditCell && !props.canEditCell(row, field))
+          field.readOnly ||
+          (row as { editable?: boolean })?.editable === false ||
+          !resolveFieldCellCanEdit(fieldEditors[field.fieldName], field, row)
         ) {
           event.preventDefault?.();
         }
@@ -520,12 +513,9 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         if (!field) return;
         const previous = event.data?.[event.field];
         const next = event.newValue;
-        const allowed = props.onCellSave?.(
-          event.data,
-          field,
-          next,
-          previous,
-        );
+        const onSave =
+          fieldEditors[field.fieldName]?.onSave ?? bag.defaultCellSave;
+        const allowed = onSave?.(field, event.data, next, previous);
         if (allowed === false) {
           event.preventDefault?.();
           return;
@@ -544,12 +534,12 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     }
 
     if (selectionMode) {
-      tableProps.selection = (props.selectedItems ??
+      tableProps.selection = (bag.selectedItems ??
         EMPTY_SELECTION) as T[];
       tableProps.selectionMode = selectionMode;
       tableProps["onUpdate:selection"] = (value: T | T[]) => {
         const next = Array.isArray(value) ? value : value ? [value] : [];
-        const current = (props.selectedItems ?? EMPTY_SELECTION) as T[];
+        const current = (bag.selectedItems ?? EMPTY_SELECTION) as T[];
         if (
           current === next ||
           (current.length === next.length &&
@@ -724,7 +714,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         ...normalizeAction(action, t),
         ...props,
         icon: factory.resolveIcon(action.icon ?? action.name ?? ""),
-        onClick: action.onAction ?? action.command,
+        onClick: action.onAction,
       }),
     paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
       h(Paginator, {
@@ -799,7 +789,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           ),
       });
     },
-    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
+    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(
         DataView,
         { value: model, layout: "list", class: "mmda-prime-list" },

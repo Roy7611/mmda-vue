@@ -1,4 +1,4 @@
-import { computed, defineComponent, h, inject } from 'vue'
+import { defineComponent, h, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NButton,
@@ -10,6 +10,14 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
+import {
+  dialogButtonColorRole,
+  dialogFooterKind,
+  dialogHeaderKind,
+  isDialogPrimaryButton,
+  resolveDialogButtons,
+  type UiDialogButton,
+} from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -21,6 +29,28 @@ import {
   naiveSkinState,
   naiveThemeRef,
 } from '../agnaive_theme'
+
+const DEFAULT_LABELS: Record<UiDialogButton, string> = {
+  ok: 'OK',
+  cancel: 'Cancel',
+  yes: 'Yes',
+  no: 'No',
+  abort: 'Abort',
+  retry: 'Retry',
+  ignore: 'Ignore',
+}
+
+function naiveTypeForRole(
+  role?: string,
+  primary = false,
+): 'default' | 'primary' | 'error' | 'success' | 'warning' | 'info' {
+  if (role === 'danger') return 'error'
+  if (role === 'success') return 'success'
+  if (role === 'warning') return 'warning'
+  if (role === 'info') return 'info'
+  if (role === 'primary' || primary) return 'primary'
+  return 'default'
+}
 
 const OverlayInner = defineComponent({
   name: 'AgNaiveOverlayInner',
@@ -59,10 +89,12 @@ const OverlayInner = defineComponent({
       translate = undefined
     }
 
-    const cancelLabel = computed(
-      () => translate?.('dialog.cancel') || 'Cancel',
-    )
-    const okLabel = computed(() => translate?.('dialog.ok') || 'OK')
+    const labelOf = (button: UiDialogButton) => {
+      const key = `dialog.${button}`
+      const translated = translate?.(key)
+      if (translated && translated !== key) return translated
+      return DEFAULT_LABELS[button]
+    }
 
     return () => {
       const dialogs = overlay?.dialogs ?? []
@@ -74,31 +106,74 @@ const OverlayInner = defineComponent({
             typeof request.props.width === 'number'
               ? `${request.props.width}px`
               : request.props.width ?? 'min(90vw, 60rem)'
-          const slots = {
+          const headerKind = dialogHeaderKind(request.props)
+          const footerKind = dialogFooterKind(request.props)
+          const standard = resolveDialogButtons(request.props.buttons)
+          const custom = request.props.customActions ?? []
+          const slots: Record<string, unknown> = {
             default: () => request.content,
-            action:
-              request.props.showFooter === false
-                ? undefined
-                : () =>
-                    h('div', { class: 'mmda-agnaive-dialog__footer' }, [
+          }
+          if (headerKind === 'slot') {
+            slots.header = () => request.props.header!()
+          }
+          if (footerKind === 'slot') {
+            slots.action = () => request.props.footer!()
+          } else if (footerKind === 'buttons') {
+            slots.action = () =>
+              h(
+                'div',
+                {
+                  class: 'mmda-agnaive-dialog__footer',
+                  style: {
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    width: '100%',
+                  },
+                },
+                [
+                  h(
+                    'div',
+                    { class: 'mmda-agnaive-dialog__footer-start' },
+                    custom.map(action =>
                       h(
                         NButton,
                         {
+                          type: naiveTypeForRole(action.colorRole),
                           onClick: () =>
-                            closeOverlayDialog(overlay!, request, false),
+                            void action.onAction?.(request.context as any),
                         },
-                        { default: () => cancelLabel.value },
+                        {
+                          default: () => action.label ?? action.name ?? '',
+                        },
                       ),
-                      h(
+                    ),
+                  ),
+                  h(
+                    'div',
+                    { class: 'mmda-agnaive-dialog__footer-end' },
+                    standard.map(button => {
+                      const role = dialogButtonColorRole(button)
+                      return h(
                         NButton,
                         {
-                          type: 'primary',
+                          type: naiveTypeForRole(
+                            role,
+                            isDialogPrimaryButton(button),
+                          ),
                           onClick: () =>
-                            closeOverlayDialog(overlay!, request, true),
+                            void closeOverlayDialog(
+                              overlay!,
+                              request,
+                              button,
+                            ),
                         },
-                        { default: () => okLabel.value },
-                      ),
-                    ]),
+                        { default: () => labelOf(button) },
+                      )
+                    }),
+                  ),
+                ],
+              )
           }
           return h(
             NModal,
@@ -106,13 +181,12 @@ const OverlayInner = defineComponent({
               key: request.id,
               show: true,
               preset: 'dialog',
-              title: request.props.title,
+              title: headerKind === 'title' ? request.props.title : undefined,
               style: { width },
-              class: ['mmda-agnaive-dialog', request.props.cssClass]
-                .filter(Boolean)
-                .join(' '),
+              class: 'mmda-agnaive-dialog',
+              onAfterEnter: () => request.props.onOpen?.(),
               'onUpdate:show': (show: boolean) => {
-                if (!show) void closeOverlayDialog(overlay!, request, false)
+                if (!show) void closeOverlayDialog(overlay!, request, 'cancel')
               },
             },
             slots,

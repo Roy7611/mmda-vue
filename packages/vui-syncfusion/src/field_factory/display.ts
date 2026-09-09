@@ -1,20 +1,7 @@
 import { h, mergeProps } from "vue";
 import { MetaModel, type MetaUiField, type Module } from "@mmda/core";
-import {
-  cleanProps,
-  fasIcon,
-  chipsPropsFromField,
-  bitChipSetPropsFromField,
-  enumChipSetPropsFromField,
-  progressBarPropsFromField,
-  signaturePadPropsFromField,
-  stepperPropsFromField,
-  timelinePropsFromField,
-  timelineSqlOf,
-  relativeTime,
-  TABLE_CELL_PROP_KEYS,
-  type PropData,
-} from "@mmda/vui";
+import { progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField } from "@mmda/core"
+import { cleanProps, fasIcon, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime, TABLE_CELL_PROP_KEYS, type UiProps } from "@mmda/vui"
 import { resolveFieldUnit } from "../factory/utils";
 import { createChips } from "../factory/chips";
 import { createProgressBar } from "../factory/progress_bar";
@@ -23,13 +10,13 @@ import { createStepper } from "../factory/stepper";
 import { createTimeline } from "../factory/timeline";
 import type { UiContext } from "./utils";
 
-const cellDomProps = (props?: PropData) =>
+const cellDomProps = (props?: UiProps) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {});
 
 export const fallbackDisplay = (
   field: MetaUiField,
   context: UiContext,
-  props: PropData = {},
+  props: UiProps = {},
 ) =>
   h(
     "output",
@@ -40,7 +27,7 @@ export const fallbackDisplay = (
 export const tag = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   h(
     "span",
@@ -51,7 +38,7 @@ export const tag = (
 export const tags = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createChips(chipsPropsFromField(field, context, props ?? {}));
 
 export const chips = tags;
@@ -59,19 +46,19 @@ export const chips = tags;
 export const bitChipSet = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createChips(bitChipSetPropsFromField(field, context, props ?? {}));
 
 export const enumChipSet = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createChips(enumChipSetPropsFromField(field, context, props ?? {}));
 
 export const externalLink = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const app = context.app;
   if (!app) return fallbackDisplay(field, context, props);
@@ -122,7 +109,7 @@ export const externalLink = (
     return h("span", { name: field.fieldName, ...domProps }, fldText);
   }
 
-  const iconProps: PropData = {
+  const iconProps: UiProps = {
     role: "external-link-icon",
     style: {
       marginRight: "5px",
@@ -159,7 +146,7 @@ export const externalLink = (
 export const fileLink = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const value = context.getFieldValue(field, props?.row);
   return h(
@@ -177,7 +164,7 @@ export const fileLink = (
 export const boolIcon = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const checked = Boolean(context.getFieldValue(field, props?.row));
   return h("i", {
@@ -196,25 +183,25 @@ export const boolIcon = (
 export const progressBar = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createProgressBar(progressBarPropsFromField(field, context, props ?? {}));
 
 export const signaturePad = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createSignaturePad(signaturePadPropsFromField(field, context, props ?? {}));
 
 export const stepper = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => createStepper(stepperPropsFromField(field, context, props ?? {}));
 
 export const timeline = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const render =
     (context as any).uiBuilder?.factory?.timeline ?? createTimeline;
@@ -224,7 +211,7 @@ export const timeline = (
 export const relativeTimeField = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   relativeTime(
     timelineSqlOf(context.getFieldValue(field, props?.row)) ?? "",
@@ -234,7 +221,7 @@ export const relativeTimeField = (
 export const quantityUnit = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const value = context.getFieldValue(field, props?.row);
   const unit = resolveFieldUnit(field);
@@ -254,7 +241,7 @@ export const quantityUnit = (
 export const percentage = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   h(
     "span",
@@ -265,7 +252,7 @@ export const percentage = (
 export const multilineText = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   h(
     "span",
@@ -276,7 +263,7 @@ export const multilineText = (
 export const colorBox = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   h("span", {
     title: String(context.getFieldValue(field, props?.row) ?? ""),
@@ -294,7 +281,7 @@ export const colorBox = (
 export const fieldImage = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   h("img", {
     src: context.getFieldValue(field, props?.row),

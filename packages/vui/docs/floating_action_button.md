@@ -9,7 +9,7 @@ chrome 浮在页面/容器上的主动作，走 `factory.floatingActionButton`�
 | 层 | 做什么 |
 |---|---|
 | vui `ui/factory/floating_action_button.ts` | `UiFloatingActionButtonProps`：`UiButtonProps` + `position` / `target` / `iconPosition` |
-| 皮肤 `factory/floatingActionButton.ts` | SF `FabComponent`；Prime / Naive 降级为圆钮 + `mmda-fab` 钩子 |
+| 皮肤 `factory/floating_action_button.ts` | SF `FabComponent`；Prime / Naive 降级为圆钮 + `mmda-fab` 钩子 |
 
 钮 chrome（`label` / `icon` / `onAction` / `colorRole` / `buttonType` / `size` / `disabled` / `tooltip`）在 props。没有 `actions`。不要 `builder.buildFab`。
 
@@ -40,4 +40,4 @@ Prime / Naive 没有原生 FAB，不在皮肤 `style.css` 用像素补定位。
 ## 源码
 
 - vui：[`floating_action_button.ts`](../src/ui/factory/floating_action_button.ts)
-- 皮肤：各包 `factory/floatingActionButton.ts`
+- 皮肤：各包 `factory/floating_action_button.ts`

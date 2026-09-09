@@ -1,7 +1,8 @@
 import { h, type VNode } from 'vue'
 import { NButton } from 'naive-ui'
-import type { UiButtonProps, UiButtonSlots } from '@mmda/vui'
-import { buttonModifierClasses, createIconVNode } from '@mmda/vui'
+import type { UiButtonProps, UiButtonSlots } from '@mmda/core'
+import { buttonModifierClasses } from '@mmda/core'
+import { createIconVNode } from '@mmda/vui'
 
 const naiveType = (role?: string) => {
   const roles: Record<
@@ -62,7 +63,7 @@ export function createButton(
       text: buttonType === 'text' || buttonType === 'link',
       circle: shape === 'circle',
       round: shape === 'round',
-      disabled: disabled === true || disabled === 'true',
+      disabled: disabled === true,
       loading,
       title: tooltip ?? htmlAttributes?.title,
       size: size === 'small' ? 'small' : size === 'large' ? 'large' : 'medium',

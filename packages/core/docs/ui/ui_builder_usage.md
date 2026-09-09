@@ -1,20 +1,27 @@
 # UiBuilder：程序员怎么写
 
-契约在 [`src/ui/builder.ts`](../../src/ui/builder.ts)。vui 里一定是 **`VueUiBuilder`**（抽象类，模板方法）；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
+契约在 [`@mmda/core` `src/ui/`](../../src/ui/builder.ts)：**方法 + `Ui*Props` 都在 core**。vui 里是 **`VueUiBuilder`**（抽象类）；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
 
 ```text
-UiBuilder              core 契约
-    ↑ implements
-VueUiBuilder           vui 抽象类
+UiBuilder / UiFactory / Ui*Props     core 契约
+    ↑ implements / type alias
+VueUiBuilder / VueUiFactory          vui（按实现选型）
     ↑ extends
-SyncfusionUiBuilder / PrimeVueUiBuilder / …
+SyncfusionUiBuilder / PrimeUiBuilder / …
 ```
 
-架构见 [ARCHITECTURE.md](../../../../ARCHITECTURE.md)。会话实现 [VueUiContext 设计](../../../vui/docs/vue_ui_context.md) / [怎么写](../../../vui/docs/context.md)。本轮改名见 [refactor_ui_app.md](../refactor_ui_app.md)。
+设计真源：[ui.md](../ui.md)。架构见 [ARCHITECTURE.md](../../../../ARCHITECTURE.md)。
 
 ## 从哪拿
 
 ```ts
+import type {
+  UiButtonProps,
+  UiListProps,
+  UiTableProps,
+  UiGridProps,
+} from '@mmda/core'
+
 const ui = context.uiBuilder
 const factory = ui.factory
 const fld = ui.fldFactory
@@ -22,9 +29,26 @@ const fld = ui.fldFactory
 
 `context.app.ui` 与 `context.uiBuilder` 是同一实例。不要调已删除的 `app.confirm` / `app.dialog`。
 
+## 列表 / 表 / 可编表
+
+契约分家（不要一份 Props + `display`）：
+
+| 方法 | Props | 用途 |
+|---|---|---|
+| `buildList` / `factory.list` | `UiListProps` | 移动端卡片 / 行条 |
+| `buildTable` / `factory.table` | `UiTableProps` | 只读桌面 **index**；**selector 默认同 index**（无 `scene`） |
+| `buildGrid` / `factory.grid` | `UiGridProps` | edit / details；特殊 selector（带 `scene`） |
+| `buildTreeGrid` | `UiTreeGridProps` | 树形可编表 |
+| `buildTree` / `factory.tree` | `UiTreeProps` | chrome 导航树（不是下拉、不是树表） |
+| `buildTreeView` | `UiTreeViewProps` | 分类树组合（搜索 + tree + 底栏） |
+| `buildTreeListView` | `UiTreeListViewProps` | 左树右表 |
+| `fldFactory.treeSelect` | 字段 props | 树下拉 |
+
+整页（工具栏、搜索、分页）走 `buildListView`；本地勾选行仍用 `factory.table` + `dialog`（见下）。选仓库实体用 `context.select`，数据区默认也是 `table`（跟 index 一样）；特殊情况才 `grid` + `scene: 'selector'`。详情见 [list、table、grid](../../../../docs/naming.md#listtablegrid)、[vui list.md](../../../vui/docs/list.md)。
+
 ## toast / confirm / dialog
 
-程序员只走 **`context.uiBuilder`**（与 `app.ui` 同一实例）。弹层由 OverlayHost 画厂商窗，**没有 `factory.dialog`**。
+程序员只走 **`context.uiBuilder`**。弹层由 Overlay 画厂商窗，**没有 `factory.dialog`**。参数类型是 core 的 `UiToastProps` / `UiConfirmProps` / `UiDialogProps`。
 
 ```ts
 ui.toast(context, {
@@ -41,7 +65,7 @@ const ok = await ui.confirm(context, {
 if (!ok) return
 // 业务写在这里，不要塞进 accept 回调
 
-const accepted = await ui.dialog(content, context, {
+const result = await ui.dialog(content, context, {
   title: '选择物料',
   width: 'min(90vw, 60rem)',
   onAccept: async () => {
@@ -49,16 +73,17 @@ const accepted = await ui.dialog(content, context, {
     return true
   },
 })
+if (result !== 'ok') return
 ```
 
 | 方法 | 干什么 | 具名参数 |
 |---|---|---|
 | `toast` | 提示，不必等 | `severity` / `title` / `message` / `life` |
 | `confirm` | 是/否 → `boolean` | `title` / `message` |
-| `dialog` | 弹层塞节点 → 是否确定 | `title` / `width` / `showFooter` / `onAccept` |
+| `dialog` | 弹层塞节点 → `UiDialogButton` | `title` / `header` / `footer` / `width` / `showFooter` / `buttons` / `onAccept` / `onReject` |
 | `buildView` | 按 `context.view` 拼整页或选择器 | |
 
-不要写：`summary`、`detail`、`header`、`type`、`group`、`icon`（pi-*）、`acceptProps`、`$toast.add`、`factory.dialog`。
+不要写：`summary`、`detail`、`type`、`group`、`icon`（pi-*）、`acceptProps`、`$toast.add`、`factory.dialog`。`header` / `footer` 是插槽函数，不要塞厂商 Dialog 的 `header` 字符串。
 
 `dialog` 的 `content` 类型是 `TNode | TNode[]`。Logic 里用 `factory.*` 产出节点，不要自己造 VNode。选相对实体继续 `context.select` / 字段控件，真正要窗就走 `ui.dialog`。
 
@@ -78,11 +103,26 @@ const metaUi = MetaUiBuilder.create('PickRow')
 
 const table = ui.factory.table(rows, metaUi, {
   selectionMode: 'single',
-})
+  fieldCellRenderers: {
+    code: (_field, row) => ui.factory.textSpan(row.code),
+  },
+} satisfies UiTableProps)
 const result = await ui.dialog(table, context, { title: '选择' })
 ```
 
 仓库实体用 [`context.select`](../logic/ui_context_usage.md)，不要再抄一份列表查询。
+
+## 树
+
+`buildTreeView` / `buildTreeGridView` / `buildTreeListView` 都是 context 在前，与 `buildListView(context, props)` 同序。
+
+- `factory.tree`：导航树 chrome
+- `buildTreeView`：分类树组合
+- `buildTreeListView`：左树右表
+- `factory.treeGrid`：树形表
+- `fldFactory.treeSelect`：树下拉
+
+不要把 `treeGrid` 写成 `view`。契约在 core [`tree.ts`](../../src/ui/tree.ts)。
 
 ## 表单 / 选择器页
 

@@ -33,9 +33,18 @@ export const FilePreview = defineComponent({
         height:
           typeof props.height === 'number' ? `${props.height}px` : props.height,
       }
-      if (extension === 'docx') return h(DocxFilePreview, { source, ...props })
+      if (extension === 'docx')
+        return h(DocxFilePreview, {
+          source,
+          title: props.title,
+          height: props.height,
+        })
       if (extension === 'xlsx' || extension === 'xls')
-        return h(XlsxFilePreview, { source, ...props })
+        return h(XlsxFilePreview, {
+          source,
+          title: props.title,
+          height: props.height,
+        })
       if (
         typeof source === 'string' &&
         ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(extension)

@@ -4,7 +4,7 @@
  * 不是 factory.calendar（月视选日），也不是 gantt。
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiSchedulerView =
   | 'day'
@@ -95,7 +95,7 @@ export interface UiSchedulerWorkHours {
   end: string
 }
 
-export interface UiSchedulerViewProps extends PropData {
+export interface UiSchedulerViewProps extends UiProps {
   events?: UiSchedulerEvent[]
   resources?: UiSchedulerResource[]
   selectedDate?: string | Date

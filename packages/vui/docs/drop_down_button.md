@@ -8,8 +8,8 @@ chrome **整钮点开菜单**，走 `factory.dropDownButton`。按钮 chrome 只
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/drop_down_button.ts` | `UiDropDownButtonProps`：`UiButtonProps` + `hideCaret` / `popupPlacement` |
-| 皮肤 `factory/dropDownButton.ts` | SF `DropDownButton`（上弹用 `SfDropupMenuButton`）；Prime 用 SplitButton+`model` 当整钮菜单；Naive `NDropdown`+按钮 |
+| core `UiDropDownButtonProps` | `UiButtonProps` + `hideCaret` / `popupPlacement` |
+| 皮肤 `factory/drop_down_button.ts` | SF `DropDownButton`（上弹用 `SfDropupMenuButton`）；Prime 用 SplitButton+`model` 当整钮菜单；Naive `NDropdown`+按钮 |
 
 `factory.moreMenuButton` **不是**第三套厂商控件：皮肤只给 `dropDownButton` 加上 `mmda-more-menu-button`。文案由调用方传入（`label: context.t('action.more')`），factory 不吃 `UiContext`。
 
@@ -36,5 +36,5 @@ chrome **整钮点开菜单**，走 `factory.dropDownButton`。按钮 chrome 只
 
 ## 源码
 
-- vui：[`drop_down_button.ts`](../src/ui/factory/drop_down_button.ts)
-- 皮肤：各包 `factory/dropDownButton.ts`
+- core：[`button.ts`](../../core/src/ui/button.ts)
+- 皮肤：各包 `factory/drop_down_button.ts`

@@ -97,7 +97,7 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 	metarlDataKEY.value = 'itemID';
 	await getMetarlList(context, model, 'noMAKE');
 	const metaUi = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
-	return await context.uiBuilder.dialog(
+	const result = await context.uiBuilder.dialog(
 		context.uiBuilder.factory.table(metarlData.value, metaUi, {
 			selectionMode: 'multiple',
 			onSelect: (selection: any) => { selectMetarlList.data = selection; },
@@ -107,6 +107,7 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 			title: t('bom.selectMaterial'),
 		}
 	)
+	return result === 'ok'
 };
 
 //采购
@@ -216,8 +217,8 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 				width: '30vw',
 				height: '15vh',
 				title: $t('project.selectWbs'),
-				onAccept: async () => {
-					if (!wbsData.payload.refID) {
+				onAccept: async (button) => {
+				  if (!wbsData.payload.refID) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
 							title: $t('invalid.selectWbs'),
@@ -247,12 +248,14 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 										width: '30vw',
 										height: '10vh',
 										title: '',
-										onAccept: async () => {
-											console.log('model.projectID', model.projectID);
-											window.open(`/MES/ProjectSchedule?projectID=${model.projectID}`, '_blank');
-										},
-										onReject: async () => {
-											context.reload();
+										onAccept: async (button) => {
+											if (button === 'ok') {
+												console.log('model.projectID', model.projectID);
+												window.open(`/MES/ProjectSchedule?projectID=${model.projectID}`, '_blank');
+											} else if (button === 'cancel') {
+												context.reload();
+											}
+											return true;
 										},
 									}
 								);
@@ -278,7 +281,6 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 	} catch (error: any) {
 		return false;
 	}
-};
 
 /**
  * 项目交互逻辑

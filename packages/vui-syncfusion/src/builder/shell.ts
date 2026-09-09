@@ -1,14 +1,6 @@
 import { h, ref, type VNode, type VNodeArrayChildren } from "vue";
 import type { MetaUiGroup, Module } from "@mmda/core";
-import {
-  MmdaGroupCard,
-  hasSystemModules,
-  type AppScaffoldProps,
-  type AppSideBarProps,
-  type AppTopBarProps,
-  type PropData,
-  type UiViewContext,
-} from "@mmda/vui";
+import { MmdaGroupCard, hasSystemModules, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type UiProps, type UiViewContext } from "@mmda/vui"
 import { SfAppMenu } from "../components/SfAppMenu";
 import { createLoading } from "../factory/loading";
 import { invoke, type UiContext } from "./utils";
@@ -21,48 +13,48 @@ export function applyColorScheme(dark: boolean) {
 
 export function renderContainer(
   content: VNode | VNodeArrayChildren,
-  props?: PropData,
+  props?: UiProps,
 ) {
   return h("div", { class: "mmda-sf-container", ...props }, content);
 }
 
 export function renderHeader(
   content: VNode | VNodeArrayChildren,
-  props?: PropData,
+  props?: UiProps,
 ) {
   return h("header", { class: "mmda-sf-header", ...props }, content);
 }
 
 export function renderAside(
   content: VNode | VNodeArrayChildren,
-  props?: PropData,
+  props?: UiProps,
 ) {
   return h("aside", { class: "mmda-sf-aside", ...props }, content);
 }
 
 export function renderMain(
   content: VNode | VNodeArrayChildren,
-  props?: PropData,
+  props?: UiProps,
 ) {
   return h("main", { class: "mmda-sf-main", ...props }, content);
 }
 
 export function renderFooter(
   content: VNode | VNodeArrayChildren,
-  props?: PropData,
+  props?: UiProps,
 ) {
   return h("footer", { class: "mmda-sf-footer", ...props }, content);
 }
 
-export function renderAppMenu(modules: Module[], props?: PropData) {
+export function renderAppMenu(modules: Module[], props?: UiProps) {
   return h(SfAppMenu, { modules, ...props });
 }
 
-export function renderLoading(props?: PropData) {
+export function renderLoading(props?: UiProps) {
   return createLoading(props);
 }
 
-export function renderError(context: UiContext, props?: PropData) {
+export function renderError(context: UiContext, props?: UiProps) {
   return h("div", { class: "mmda-sf-error e-error", ...props }, context.title);
 }
 

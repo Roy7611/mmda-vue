@@ -1,33 +1,9 @@
 import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
-import {
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_PAGE_SIZE_OPTIONS,
-  type MetaUi,
-  type Pagination,
-} from '@mmda/core'
-import type {
-  PropData,
-  UiAction,
-  UiFactory,
-  UiListPropsType,
-  UiPaginatorPropsType,
-  UiSlots,
-} from '@mmda/vui'
-import {
-  assembleTreeGridRows,
-  createIconVNode,
-  MATERIAL_SYMBOL_PREFIX,
-  bindListDisplayRenderers,
-  wrapListFamilyPaginator,
-  renderSearchForRelativeField,
-  switchArgs,
-  createFileUploader,
-  createFilesUploader,
-  createImageUploader,
-  createImagesUploader,
-  renderFileLink,
-} from '@mmda/vui'
+import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
+import type { UiProps, UiAction, UiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
+import { switchArgs } from '@mmda/core'
+import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
@@ -48,8 +24,8 @@ import { createDivider } from './factory/divider'
 import { createTooltip } from './factory/tooltip'
 import { createInplaceEditor } from './factory/inplace_editor'
 import { createColorPicker } from './factory/color_picker'
-import { createMaskedTextBox } from './factory/maskedTextBox'
-import { createOneTimePasswordInput } from './factory/oneTimePasswordInput'
+import { createMaskedTextBox } from './factory/masked_text_box'
+import { createOneTimePasswordInput } from './factory/one_time_password_input'
 import { createQueryBuilder } from './factory/query_builder'
 import { createSlider } from './factory/slider'
 import { createRating } from './factory/rating'
@@ -85,14 +61,14 @@ import { createComboBox } from './factory/combo_box'
 import { createAutoComplete } from './factory/autocomplete'
 import { createTagAutoComplete } from './factory/tag_auto_complete'
 import { createButton } from './factory/button'
-import { createButtonGroup } from './factory/buttonGroup'
-import { createSelectButtonGroup } from './factory/selectButtonGroup'
+import { createButtonGroup } from './factory/button_group'
+import { createSelectButtonGroup } from './factory/select_button_group'
 import {
   createDropDownButton,
   createMoreMenuButton,
-} from './factory/dropDownButton'
-import { createSplitButton } from './factory/splitButton'
-import { createFloatingActionButton } from './factory/floatingActionButton'
+} from './factory/drop_down_button'
+import { createSplitButton } from './factory/split_button'
+import { createFloatingActionButton } from './factory/floating_action_button'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
@@ -103,8 +79,8 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
     (action.name && t ? t(`action.${action.name}`) : action.name),
   key: action.name ?? action.label,
   icon: action.icon,
-  disabled: action.disabled === true || action.disabled === 'true',
-  command: action.onAction ?? action.command,
+  disabled: action.disabled === true,
+  command: action.onAction,
 })
 
 export function createAgNaiveUiFactory(): UiFactory {
@@ -265,7 +241,7 @@ export function createAgNaiveUiFactory(): UiFactory {
         ...normalizeAction(action, t),
         ...props,
         icon: factory.resolveIcon(action.icon ?? action.name ?? ''),
-        onClick: action.onAction ?? action.command,
+        onClick: action.onAction,
       }),
     paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
       h(NPagination, {
@@ -299,7 +275,7 @@ export function createAgNaiveUiFactory(): UiFactory {
         getDataPath: assembled.getDataPath,
       } as any)
     },
-    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
+    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(
         'div',
         { class: 'mmda-agnaive-list' },
@@ -323,7 +299,7 @@ export function createAgNaiveUiFactory(): UiFactory {
             )
           : props.empty?.() ?? '',
       ),
-    table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
+    table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(AgGrid, { data: model, metaUi, ...props } as any),
     pagableTable: (loader, metadata, props) =>
       factory.table(loader.model.list as any[], metadata.metaUi, {
@@ -373,7 +349,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     splitter: (panes, props) => createSplitter(panes, props),
     searchForRelative: (props) =>
       renderSearchForRelativeField(props as any),
-    formField: (props: PropData = {}, slots?: UiSlots) =>
+    formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(
         'div',
         { class: ['mmda-form-field', 'mmda-agnaive-form-field', props.class], style: props.style },

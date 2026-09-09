@@ -1,6 +1,6 @@
 # Query Builder 设计
 
-chrome 查询构建器走 `factory.queryBuilder`。**不是** Builder 插件，不要 `setQueryBuilderPlugin`。
+chrome 查询构建器走 `factory.queryBuilder`。契约 `UiQueryBuilderProps` 在 `@mmda/core`。**不是** Builder 插件，不要 `setQueryBuilderPlugin`。
 
 对齐 AG Grid **Advanced Filter**（`getAdvancedFilterModel`），不是列头 `FilterModel`。程序员用法：[query_builder_usage.md](./query_builder_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 

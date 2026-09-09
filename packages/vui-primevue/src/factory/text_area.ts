@@ -1,20 +1,8 @@
 import { h } from "vue";
 import Textarea from "primevue/textarea";
-import type { UiTextAreaProps } from "@mmda/vui";
-import {
-  emitTextAreaChange,
-  htmlAttributesOf,
-  textAreaAutoResizeOf,
-  textAreaColsOf,
-  textAreaCssResizeOf,
-  textAreaDisabledOf,
-  textAreaMaxLengthOf,
-  textAreaModifierClasses,
-  textAreaReadOnlyOf,
-  textAreaResizeModeOf,
-  textAreaRowsOf,
-  textAreaValueOf,
-} from "@mmda/vui";
+import type { UiTextAreaProps } from "@mmda/core"
+import { emitTextAreaChange, textAreaAutoResizeOf, textAreaColsOf, textAreaCssResizeOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTextArea(props: UiTextAreaProps) {
   const {
@@ -36,7 +24,7 @@ export function createTextArea(props: UiTextAreaProps) {
   const cols = textAreaColsOf(props);
   const maxLength = textAreaMaxLengthOf(props);
 
-  return h(Textarea, {
+  return h(Textarea as any, {
     ...rest,
     ...htmlAttributesOf(props),
     modelValue: textAreaValueOf(props),

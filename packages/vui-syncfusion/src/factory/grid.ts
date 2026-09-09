@@ -5,13 +5,9 @@ import {
   MetaUiFieldFrozen,
   type MetaUi,
 } from "@mmda/core";
-import {
-  isPersistableListColumn,
-  persistListPack,
-  type UiViewContext,
-} from "@mmda/vui";
+import { isPersistableListColumn, persistListPack, type UiViewContext } from "@mmda/vui"
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
-import { SF_GRID_MODULES } from "./grid-inject";
+import { SF_GRID_MODULES } from "./grid_inject";
 
 export { SfGridLoadingHost } from "../components/SfLoadingHost";
 

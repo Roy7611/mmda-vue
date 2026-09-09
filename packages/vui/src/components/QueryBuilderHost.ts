@@ -1,24 +1,22 @@
 import { computed, defineComponent, h, type PropType, type VNode } from 'vue'
 import {
   compactAdvancedFilter,
+  defaultAdvancedColumn,
+  defaultAdvancedJoin,
+  defaultQueryBuilderOperators,
+  emitQueryBuilderChange,
   isAdvancedJoinFilter,
+  queryBuilderColumnsOf,
+  queryBuilderModifierClasses,
+  queryBuilderValueOf,
   type EntityAdvancedColumnFilter,
   type EntityAdvancedFilterModel,
   type EntityAdvancedJoinFilter,
   type EntityFilterOperator,
   type MetaUiField,
-} from '@mmda/core'
-import {
-  defaultAdvancedColumn,
-  defaultAdvancedJoin,
-  defaultQueryBuilderOperators,
-  emitQueryBuilderChange,
-  queryBuilderColumnsOf,
-  queryBuilderModifierClasses,
-  queryBuilderValueOf,
   type UiQueryBuilderColumn,
   type UiQueryBuilderProps,
-} from '../ui/factory/query_builder'
+} from '@mmda/core'
 
 function asJoin(model?: EntityAdvancedFilterModel | null): EntityAdvancedJoinFilter {
   if (model && isAdvancedJoinFilter(model)) return model
@@ -76,7 +74,7 @@ export const QueryBuilderHost = defineComponent({
     const chrome = computed(() => props as UiQueryBuilderProps)
     const columns = computed(() => queryBuilderColumnsOf(chrome.value))
     const disabled = computed(
-      () => props.disabled === true || props.disabled === 'true',
+      () => props.disabled === true,
     )
 
     const emit = (model: EntityAdvancedFilterModel | undefined) => {

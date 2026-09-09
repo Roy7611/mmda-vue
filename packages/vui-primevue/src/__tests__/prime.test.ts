@@ -62,7 +62,7 @@ describe('PrimeVue skin', () => {
     expect(factory.checkbox).toBeUndefined()
   })
 
-  it('sets DataTable cell edit when inplaceEdit and editableFields', () => {
+  it('sets DataTable cell edit when editable', () => {
     const factory = createPrimeVueUiFactory()
     const metaUi = new MetaUi({
       objName: 'Item',
@@ -77,8 +77,7 @@ describe('PrimeVue skin', () => {
       ],
     })
     const vnode = factory.table([{ id: '1', name: 'a' }], metaUi, {
-      inplaceEdit: true,
-      editableFields: ['name'],
+      editable: true,
     })
     expect(vnode.props?.editMode).toBe('cell')
   })

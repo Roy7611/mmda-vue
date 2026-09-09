@@ -21,7 +21,7 @@ import {
   resolveCategoryTreeLogic as resolveCategoryTreeLogicOp,
 } from "./category_ops";
 import { resolveRepositoryModule } from "../../components/EntityView";
-import { renderTreeView } from "../../components/MmdaTreeView";
+import { renderTreeView } from "../../components/TreeView";
 import { UiViewOne } from "../../contexts/view";
 import { VueUiContext } from "../../contexts/vue_ui_context";
 import type { UiContext } from "./helpers";
@@ -38,8 +38,8 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     }
     
     buildTreeView<T = any>(
-      props: UiTreeViewPropsType<T>,
-      context?: UiContext,
+      context: UiContext,
+      props: UiTreeViewPropsType<T> = {} as UiTreeViewPropsType<T>,
     ): VNode {
       const categoryRepo = props.repository;
       const mode = props.editMode ?? "hover";
@@ -285,7 +285,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
       });
       await ctx.init({ path: id, queryParams });
       const editing = view !== UiViewOne.Details;
-      const accepted = await app.ui.dialog(
+      const result = await app.ui.dialog(
         this.buildView(ctx, { showBreadcrumb: false }),
         ctx,
         {
@@ -295,20 +295,20 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
           maxHeight: "90vh",
           showFooter: editing,
           onAccept: editing
-            ? async () => {
+            ? async (button) => {
                 const saved = await ctx.save();
                 return saved !== false;
               }
             : undefined,
         },
       );
-      if (!accepted && view === UiViewOne.Create) {
+      if (result !== 'ok' && view === UiViewOne.Create) {
         const createdId = (ctx.model as { id?: string }).id;
         if (createdId) await catLogic.delete(createdId);
         return;
       }
-      if (accepted || view === UiViewOne.Details) {
-        if (accepted) await refreshCategoryTreeData(props, catLogic);
+      if (result === 'ok' || view === UiViewOne.Details) {
+        if (result === 'ok') await refreshCategoryTreeData(props, catLogic);
       }
     }
     

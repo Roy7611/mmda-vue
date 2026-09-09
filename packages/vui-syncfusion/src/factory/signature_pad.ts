@@ -10,22 +10,9 @@ import {
   type PropType,
 } from "vue";
 import { SignatureComponent } from "@syncfusion/ej2-vue-inputs";
-import type {
-  UiSignaturePadAction,
-  UiSignaturePadController,
-  UiSignaturePadFileType,
-  UiSignaturePadProps,
-} from "@mmda/vui";
-import {
-  emitSignaturePadChange,
-  htmlAttributesOf,
-  signaturePadActionOf,
-  signaturePadFileTypeFromEj2,
-  signaturePadFileTypeOf,
-  signaturePadModifierClasses,
-  signaturePadSizeCss,
-  signaturePadValueOf,
-} from "@mmda/vui";
+import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core';
+import { emitSignaturePadChange, signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;

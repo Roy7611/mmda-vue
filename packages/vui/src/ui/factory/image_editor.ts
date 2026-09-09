@@ -3,7 +3,7 @@
  * App：ui.setImageEditorPlugin(createSfImageEditorPlugin())
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiImageEditorTool = 'crop' | 'rotate' | 'flip'
 
@@ -18,7 +18,7 @@ export interface UiImageEditorSave {
   dataUrl: string
 }
 
-export interface UiImageEditorProps extends PropData {
+export interface UiImageEditorProps extends UiProps {
   src?: string
   readonly?: boolean
   width?: string | number

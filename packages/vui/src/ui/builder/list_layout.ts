@@ -107,7 +107,7 @@ export async function persistListPack(context: VueUiContext<any>) {
   } catch {
     await context.app?.ui?.toast?.(context as any, {
       severity: "error",
-      detail: context.t("listSettings.cacheFailed"),
+      message: context.t("tableSettings.cacheFailed"),
     });
   }
 }

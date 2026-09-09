@@ -1,43 +1,10 @@
 import { h } from 'vue'
-import type {
-  UiChartData,
-  UiChartFactory,
-  UiChartProps,
-  UiCircularGaugeProps,
-  UiLinearGaugeProps,
-  UiGeoHeatMapProps,
-  UiHeatMapProps,
-  UiSankeyProps,
-  UiSparklineProps,
-  UiStockChartProps,
-  UiTreeMapProps,
-  UiFunnelProps,
-  UiPyramidProps,
-  UiWaterfallProps,
-  UiBoxPlotProps,
-  UiHistogramProps,
-  UiBubbleProps,
-  UiSunburstProps,
-} from '@mmda/vui'
-import {
-  chartBoxStyle,
-  chartHookClass,
-  chartShortcuts,
-  htmlAttributesOf,
-  resolveChartData,
-  resolveChartType,
-  sankeyLabelOf,
-  sankeyNodesOf,
-  sparklinePointsOf,
-  stockChartHasVolume,
-  stockChartKeysOf,
-  treeMapLabelOf,
-  treeMapWeightedOf,
-  unsupportedChartMethod,
-  chartNotSupportedMessage,
-} from '@mmda/vui'
+import type { UiChartData, UiChartFactory, UiChartProps, UiCircularGaugeProps, UiLinearGaugeProps, UiGeoHeatMapProps, UiHeatMapProps, UiSankeyProps, UiSparklineProps, UiStockChartProps, UiTreeMapProps, UiFunnelProps, UiPyramidProps, UiWaterfallProps, UiBoxPlotProps, UiHistogramProps, UiBubbleProps, UiSunburstProps } from '@mmda/vui'
+import { chartBoxStyle, chartHookClass, chartShortcuts, htmlAttributesOf, resolveChartData, resolveChartType, sankeyLabelOf, sankeyNodesOf, sparklinePointsOf, stockChartHasVolume, stockChartKeysOf, treeMapLabelOf, treeMapWeightedOf, unsupportedChartMethod, chartNotSupportedMessage } from '@mmda/vui'
 import * as AgChartsVue from 'ag-charts-vue3'
-import { AgCharts, AgGauge, AgSparkline } from 'ag-charts-vue3'
+const AgCharts = (AgChartsVue as any).AgCharts
+const AgGauge = (AgChartsVue as any).AgGauge
+const AgSparkline = (AgChartsVue as any).AgSparkline ?? (AgChartsVue as any).AgCharts
 
 function rowsOf(data: UiChartData): Record<string, unknown>[] {
   const labels = data.labels ?? []

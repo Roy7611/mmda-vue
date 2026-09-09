@@ -1,6 +1,6 @@
 import { h } from "vue";
-import type { IconResolver, UiAvatarProps, UiAvatarSize } from "@mmda/vui";
-import { avatarModifierClasses, createIconVNode } from "@mmda/vui";
+import type { IconResolver, UiAvatarProps, UiAvatarSize } from "@mmda/vui"
+import { avatarModifierClasses, createIconVNode, uiCssClass } from "@mmda/vui"
 
 const SIZE_CLASS: Record<UiAvatarSize, string> = {
   xsmall: "e-avatar-xsmall",
@@ -34,7 +34,7 @@ export function createAvatar(props: UiAvatarProps, resolveIcon: IconResolver) {
       ...htmlAttributes,
       class: [
         "e-avatar",
-        "mmda-avatar",
+        uiCssClass("avatar"),
         shape === "circle" ? "e-avatar-circle" : "",
         SIZE_CLASS[size],
         avatarModifierClasses(props),

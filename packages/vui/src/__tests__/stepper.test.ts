@@ -9,7 +9,7 @@ import {
   stepperPropsFromField,
   stepperStatusToEj2,
   stepperValueOf,
-} from '../ui/factory/stepper'
+} from '@mmda/core'
 
 describe('stepper helpers', () => {
   it('reads index from value over modelValue', () => {

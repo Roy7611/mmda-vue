@@ -1,13 +1,7 @@
 import { h } from "vue";
 import ColorPicker from "primevue/colorpicker";
-import type { UiColorPickerProps } from "@mmda/vui";
-import {
-  colorPickerHexOf,
-  colorPickerModifierClasses,
-  colorPickerValueOf,
-  emitColorPickerChange,
-  htmlAttributesOf,
-} from "@mmda/vui";
+import type { UiColorPickerProps } from "@mmda/vui"
+import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange, htmlAttributesOf } from "@mmda/vui"
 
 export function createColorPicker(props: UiColorPickerProps) {
   const {

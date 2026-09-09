@@ -1,13 +1,7 @@
 import { h } from 'vue'
 import { NCarousel } from 'naive-ui'
-import type { UiCarouselProps } from '@mmda/vui'
-import {
-  carouselBoundIndex,
-  carouselModifierClasses,
-  carouselSlideContent,
-  emitCarouselChange,
-  htmlAttributesOf,
-} from '@mmda/vui'
+import type { UiCarouselProps } from '@mmda/core'
+import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange, htmlAttributesOf } from '@mmda/vui'
 
 export function createCarousel(props: UiCarouselProps) {
   const {

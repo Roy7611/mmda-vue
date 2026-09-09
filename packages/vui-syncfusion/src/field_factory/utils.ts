@@ -1,6 +1,6 @@
 import { h, type Component, type VNode } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import type { PropData, UiViewContext } from "@mmda/vui";
+import type { UiProps, UiViewContext } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n";
 
 export type UiContext = UiViewContext<any>;
@@ -15,8 +15,8 @@ export const control = (
   component: Component,
   field: MetaUiField,
   context: UiContext,
-  props: PropData = {},
-  extra: PropData = {},
+  props: UiProps = {},
+  extra: UiProps = {},
   slots?: Record<string, () => VNode>,
 ) => {
   const invalid = invalidOf(field, context);

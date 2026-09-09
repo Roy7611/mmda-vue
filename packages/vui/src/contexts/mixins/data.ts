@@ -26,6 +26,7 @@ import type { UiSearchForm } from "../../logic/logic";
 import { getFileInfo } from "../../components/FileIcons";
 import { schedulePersistListPack } from "../../ui/builder/list_layout";
 import { rx } from "../../rx";
+import { getModuleContext } from "../module_context";
 import {
   UiViewMany,
   UiViewOne,
@@ -307,8 +308,13 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         const ok = await this.logic.beforeDelete(this, this.model);
         if (ok === false) return false;
       }
-      const result = await this.logic.delete((this.model as Entity).id);
+      const id = (this.model as Entity).id;
+      const result = await this.logic.delete(id);
       await this.logic.afterDelete?.(this, this.model, undefined, result);
+      if (result !== false && !this.many && id != null && String(id) !== "") {
+        getModuleContext(this)?.removeById(String(id));
+        this.index();
+      }
       return result;
     }
 
@@ -392,7 +398,12 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         }
         const result = await this.logic.doAction(this.model, action);
         await this.logic.afterAction?.(this, this.model, action, result);
-        if (action.redirectTo) await this.doRedirectAction(action);
+        if (action.redirectTo) {
+          await this.doRedirectAction(action);
+        } else if (result !== false && !this.many) {
+          // 成功后停在 details/edit 看新数据；不改 KeepAlive 列表，等 back 再 assign
+          await this.reload();
+        }
         return result;
       } finally {
         this.executing = false;

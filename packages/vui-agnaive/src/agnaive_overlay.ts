@@ -1,16 +1,20 @@
 import { reactive, type VNode } from 'vue'
-import type { UiOverlay } from '@mmda/vui'
 import type {
+  UiContext,
   UiConfirmProps,
+  UiDialogButton,
   UiDialogProps,
   UiToastProps,
-} from '@mmda/vui'
+} from '@mmda/core'
+import { shouldCloseDialog } from '@mmda/core'
+import type { UiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
   content: VNode
   props: UiDialogProps
-  resolve: (accepted: boolean) => void
+  context?: UiContext
+  resolve: (button: UiDialogButton) => void
 }
 
 export interface AgNaiveOverlayServices {
@@ -42,14 +46,20 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
         window.confirm(String(props.message ?? 'Confirm?'))
       return Promise.resolve(accepted)
     },
-    dialog(content, props) {
-      return new Promise<boolean>(resolve => {
-        dialogs.push({ id: nextDialogId++, content, props, resolve })
+    dialog(content, props, context) {
+      return new Promise<UiDialogButton>(resolve => {
+        dialogs.push({
+          id: nextDialogId++,
+          content,
+          props,
+          context,
+          resolve,
+        })
       })
     },
-    async settleTopDialog(accepted) {
+    async closeTopDialog(button) {
       const top = dialogs[dialogs.length - 1]
-      if (top) await closeOverlayDialog(overlay, top, accepted)
+      if (top) await closeOverlayDialog(overlay, top, button)
     },
   }
   return overlay
@@ -58,19 +68,12 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
 export async function closeOverlayDialog(
   overlay: AgNaiveOverlay,
   request: DialogRequest,
-  accepted: boolean,
+  button: UiDialogButton,
 ) {
-  if (accepted) {
-    if (request.props.onAccept && (await request.props.onAccept()) === false)
-      return
-    request.props.onConfirm?.()
-  } else if (
-    request.props.onReject &&
-    (await request.props.onReject()) === false
-  ) {
+  if (!(await shouldCloseDialog(request.props, button))) {
     return
   }
-  request.props.onClose?.()
+  request.props.onClose?.(button)
   overlay.dialogs.splice(overlay.dialogs.indexOf(request), 1)
-  request.resolve(accepted)
+  request.resolve(button)
 }

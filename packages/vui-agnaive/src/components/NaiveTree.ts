@@ -1,15 +1,6 @@
 import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
 import { NDropdown, NInput, NTree, type TreeOption } from 'naive-ui'
-import {
-  createIconVNode,
-  mapTreeNodes,
-  resolveMappedTreeDrop,
-  selectedIdSet,
-  type UiTreeEmits,
-  type UiTreeFields,
-  type UiTreeMappedNode,
-  type UiTreeProps,
-} from '@mmda/vui'
+import { createIconVNode, mapTreeNodes, resolveMappedTreeDrop, selectedIdSet, type UiTreeEmits, type UiTreeFields, type UiTreeMappedNode, type UiTreeProps } from '@mmda/vui'
 
 type TreeProps = UiTreeProps & UiTreeEmits
 
@@ -167,7 +158,7 @@ export const NaiveTree = defineComponent({
             menuShow.value = false
           },
         }),
-        h(NTree, {
+        h(NTree as any, {
           class: ['mmda-agnaive-tree', props.class],
           data: options.value,
           checkable: checkable.value,

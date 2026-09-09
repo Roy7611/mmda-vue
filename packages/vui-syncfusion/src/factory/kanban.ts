@@ -8,17 +8,8 @@ import {
   h,
   type PropType,
 } from 'vue'
-import type {
-  UiKanbanCard,
-  UiKanbanColumn,
-  UiKanbanPlugin,
-  UiKanbanViewProps,
-} from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  kanbanDragEnabled,
-  kanbanHookClass,
-} from '@mmda/vui'
+import type { UiKanbanCard, UiKanbanColumn, UiKanbanPlugin, UiKanbanViewProps } from '@mmda/vui'
+import { htmlAttributesOf, kanbanDragEnabled, kanbanHookClass } from '@mmda/vui'
 
 const KNOWN = new Set([
   'id',

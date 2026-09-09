@@ -18,7 +18,7 @@ vui 名是 **`stepper`**。不要 `ejs-stepper` / `StepperComponent` / Prime `St
 
 值 **`value` 是当前步索引**（对应 EJ2 `activeStep`）。空 → `0`。vui 用小写 `orientation` / `display`，皮肤再转 EJ2 PascalCase。
 
-`orientation` 类型是共享的 **`UiOrientation`**（=`UiDirection`：`horizontal` | `vertical`）。不要再造 `UiStepperOrientation`。Splitter 的 `'Horizontal' | 'Vertical'` 除外。
+`orientation` 类型是共享的 **`UiOrientation`**（`horizontal` | `vertical`）。不要再造 `UiStepperOrientation`。Splitter 的 `'Horizontal' | 'Vertical'` 除外。`UiDirection` 已弃用。
 
 ## 属性
 

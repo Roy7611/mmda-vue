@@ -1,11 +1,7 @@
 import { h } from "vue";
 import { BarcodeGeneratorComponent } from "@syncfusion/ej2-vue-barcode-generator";
-import type { UiBarcodeFormat, UiBarcodeProps } from "@mmda/vui";
-import {
-  barcodeFormatClass,
-  codeSizeCss,
-  resolveBarcodeCaption,
-} from "@mmda/vui";
+import type { UiBarcodeFormat, UiBarcodeProps } from '@mmda/core';
+import { barcodeFormatClass, codeSizeCss, resolveBarcodeCaption } from "@mmda/vui"
 
 const EJ2_TYPE: Record<UiBarcodeFormat, string> = {
   code128: "Code128",

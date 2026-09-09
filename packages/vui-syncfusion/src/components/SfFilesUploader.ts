@@ -1,9 +1,6 @@
 import { defineComponent, type PropType } from "vue";
-import {
-  createFilesUploader,
-  type UiFileUploadControl,
-  type UiFileUploadItem,
-} from "@mmda/vui";
+import { type UiFileUploadControl, type UiFileUploadItem } from '@mmda/core'
+import { createFilesUploader } from '@mmda/vui'
 
 export interface FilesUploadControl {
   signal: AbortSignal;

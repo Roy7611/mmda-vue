@@ -5,10 +5,12 @@
 import { h, type VNode } from "vue";
 import { TooltipComponent } from "@syncfusion/ej2-vue-popups";
 import type {
+  UiPosition,
   UiTooltipController,
+  UiTooltipOpensOn,
   UiTooltipProps,
   UiTooltipSlots,
-} from "@mmda/vui";
+} from "@mmda/vui"
 import {
   htmlAttributesOf,
   noopTooltipController,
@@ -16,14 +18,32 @@ import {
   tooltipDisabledOf,
   tooltipModifierClasses,
   tooltipOpensOnOf,
-  tooltipOpensOnToEj2,
   tooltipPositionOf,
-  tooltipPositionToEj2,
   tooltipShowPointerOf,
-} from "@mmda/vui";
+} from "@mmda/vui"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
+}
+
+/** EJ2 四边中点 */
+export function tooltipPositionToEj2(
+  position: UiPosition,
+): "TopCenter" | "BottomCenter" | "LeftCenter" | "RightCenter" {
+  if (position === "bottom") return "BottomCenter";
+  if (position === "left") return "LeftCenter";
+  if (position === "right") return "RightCenter";
+  return "TopCenter";
+}
+
+export function tooltipOpensOnToEj2(
+  opensOn: UiTooltipOpensOn,
+): "Auto" | "Hover" | "Click" | "Focus" | "Custom" {
+  if (opensOn === "hover") return "Hover";
+  if (opensOn === "click") return "Click";
+  if (opensOn === "focus") return "Focus";
+  if (opensOn === "custom") return "Custom";
+  return "Auto";
 }
 
 export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {

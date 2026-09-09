@@ -5,17 +5,8 @@
  */
 import { defineComponent, h, ref, watch, type PropType } from "vue";
 import { InPlaceEditorComponent } from "@syncfusion/ej2-vue-inplace-editor";
-import type {
-  UiInplaceEditorController,
-  UiInplaceEditorProps,
-  UiInplaceEditorSlots,
-} from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  inplaceEditorDisabledOf,
-  inplaceEditorModifierClasses,
-  noopInplaceEditorController,
-} from "@mmda/vui";
+import type { UiInplaceEditorController, UiInplaceEditorProps, UiInplaceEditorSlots } from '@mmda/core';
+import { htmlAttributesOf, inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from "@mmda/vui"
 
 const SfInplaceEditorHost = defineComponent({
   name: "MmdaSfInplaceEditor",

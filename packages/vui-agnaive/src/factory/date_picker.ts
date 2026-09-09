@@ -1,25 +1,8 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
-import type { UiDatePickerProps, UiDateShortcut, UiDateShortcutKind } from '@mmda/vui'
-import {
-  datePickerAllowInput,
-  datePickerDateOf,
-  datePickerFirstDayOfWeek,
-  datePickerFormatOf,
-  datePickerMaxOf,
-  datePickerMinOf,
-  datePickerModifierClasses,
-  datePickerNaiveFirstDayOfWeek,
-  datePickerNaiveFormat,
-  datePickerShowClear,
-  emitDateBlur,
-  emitDateChange,
-  emitDateClear,
-  emitDateFocus,
-  htmlAttributesOf,
-  resolveDateShortcutValue,
-  resolveDateShortcuts,
-} from '@mmda/vui'
+import type { UiDatePickerProps, UiDateShortcut, UiDateShortcutKind } from '@mmda/core'
+import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from '@mmda/core'
+import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat, htmlAttributesOf } from '@mmda/vui'
 
 function toTs(value: Date | null | undefined): number | null {
   if (!value) return null
@@ -87,7 +70,7 @@ export function createDatePicker(props: UiDatePickerProps) {
   const min = datePickerMinOf(props)
   const max = datePickerMaxOf(props)
 
-  return h(NDatePicker, {
+  return h(NDatePicker as any, {
     ...rest,
     ...htmlAttributesOf(props),
     type: month ? 'month' : 'date',

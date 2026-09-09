@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import { NAvatar } from 'naive-ui'
 import type { IconResolver, UiAvatarProps, UiAvatarSize } from '@mmda/vui'
-import { avatarModifierClasses, createIconVNode } from '@mmda/vui'
+import { avatarModifierClasses, createIconVNode, uiCssClass } from '@mmda/vui'
 
 const naiveSize = (size?: UiAvatarSize) => {
   if (size === 'xsmall') return 20
@@ -36,7 +36,7 @@ export function createAvatar(props: UiAvatarProps, resolveIcon: IconResolver) {
       src,
       round: shape !== 'default',
       size: naiveSize(size),
-      class: ['mmda-avatar', avatarModifierClasses(props)],
+      class: [uiCssClass('avatar'), avatarModifierClasses(props)],
     },
     fallback ? { default: fallback } : undefined,
   )

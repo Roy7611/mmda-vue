@@ -525,8 +525,8 @@ export default defineComponent({
 							name: 'createKittingMaterialTrans',
 							title: t('kitting.createRequisition'),
 							width: '80%',
-							onAccept: async () => {
-								return await materialTransCtx.save().then(() => {
+							onAccept: async (button) => {
+							  return await materialTransCtx.save().then(() => {
 									const key = materialTransCtx.metaUi.primaryKey ?? 'id';
 									const id = materialTransCtx.model.id ?? materialTransCtx.model[key];
 									const service = (materialTransCtx.app?.name ?? 'mes').toUpperCase();
@@ -539,12 +539,7 @@ export default defineComponent({
 									kittingMode.value = false;
 									return true;
 								});
-							},
-							// 取消
-							onReject: async () => {
-								// 关闭弹窗
-								return true;
-							},
+							}
 						}
 					);
 				}

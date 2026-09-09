@@ -11,7 +11,7 @@ chrome **主段点击 + 箭头开菜单**，走 `factory.splitButton`。对照 [
 | 层 | 做什么 |
 |---|---|
 | vui `ui/factory/split_button.ts` | `UiSplitButtonProps`：`UiButtonProps` + `actions` |
-| 皮肤 `factory/splitButton.ts` | SF `SplitButtonComponent`；Prime `SplitButton`；Naive **无原生，降级**为 `dropDownButton` |
+| 皮肤 `factory/split_button.ts` | SF `SplitButtonComponent`；Prime `SplitButton`；Naive **无原生，降级**为 `dropDownButton` |
 
 签名是 **一个 props 对象**。主段点 `props.onAction`（`command` 旧同义）。箭头菜单才走 `props.actions`（vui `UiAction[]`，不是 core `EntityAction`）。不要第二个参数（那是 `dropDownButton`）。
 
@@ -57,4 +57,4 @@ chrome **主段点击 + 箭头开菜单**，走 `factory.splitButton`。对照 [
 ## 源码
 
 - vui：[`split_button.ts`](../src/ui/factory/split_button.ts)
-- 皮肤：各包 `factory/splitButton.ts`
+- 皮肤：各包 `factory/split_button.ts`

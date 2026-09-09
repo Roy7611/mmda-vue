@@ -1,4 +1,4 @@
-import { computed, defineComponent, h, inject } from 'vue'
+import { defineComponent, h, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConfirmDialog from 'primevue/confirmdialog'
 import Dialog from 'primevue/dialog'
@@ -6,11 +6,39 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import { UI_APP_KEY, type MmdaVueApp } from "@mmda/vui";
+import {
+  dialogButtonColorRole,
+  dialogFooterKind,
+  dialogHeaderKind,
+  isDialogPrimaryButton,
+  resolveDialogButtons,
+  type UiDialogButton,
+} from '@mmda/core'
+import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type PrimeOverlay,
 } from '../prime_overlay'
+
+const DEFAULT_LABELS: Record<UiDialogButton, string> = {
+  ok: 'OK',
+  cancel: 'Cancel',
+  yes: 'Yes',
+  no: 'No',
+  abort: 'Abort',
+  retry: 'Retry',
+  ignore: 'Ignore',
+}
+
+function primeClassForRole(role?: string, primary = false): string {
+  const classes = ['p-button']
+  if (!primary && role !== 'primary') classes.push('p-button-text')
+  if (role === 'danger') classes.push('p-button-danger')
+  if (role === 'success') classes.push('p-button-success')
+  if (role === 'warning') classes.push('p-button-warning')
+  if (role === 'info') classes.push('p-button-info')
+  return classes.join(' ')
+}
 
 export const PrimeVueOverlayHost = defineComponent({
   name: 'PrimeVueOverlayHost',
@@ -38,17 +66,21 @@ export const PrimeVueOverlayHost = defineComponent({
 
     let primeLocale: Record<string, string> | undefined
     try {
-      primeLocale = usePrimeVue().config.locale as Record<string, string>
+      primeLocale = usePrimeVue().config.locale as unknown as
+        | Record<string, string>
+        | undefined
     } catch {
       primeLocale = undefined
     }
 
-    const cancelLabel = computed(
-      () => translate?.('dialog.cancel') || primeLocale?.cancel || 'Cancel',
-    )
-    const okLabel = computed(
-      () => translate?.('dialog.ok') || primeLocale?.accept || 'OK',
-    )
+    const labelOf = (button: UiDialogButton) => {
+      const key = `dialog.${button}`
+      const translated = translate?.(key)
+      if (translated && translated !== key) return translated
+      if (button === 'ok' && primeLocale?.accept) return primeLocale.accept
+      if (button === 'cancel' && primeLocale?.cancel) return primeLocale.cancel
+      return DEFAULT_LABELS[button]
+    }
 
     return () => {
       const dialogs = overlay?.dialogs ?? []
@@ -64,10 +96,12 @@ export const PrimeVueOverlayHost = defineComponent({
             typeof request.props.maxHeight === 'number'
               ? `${request.props.maxHeight}px`
               : request.props.maxHeight ?? '90vh'
+          const headerKind = dialogHeaderKind(request.props)
+          const footerKind = dialogFooterKind(request.props)
           const dialogProps = {
             visible: true,
             modal: request.props.modal ?? true,
-            header: request.props.title,
+            header: headerKind === 'title' ? request.props.title : undefined,
             style: {
               width:
                 typeof request.props.width === 'number'
@@ -78,46 +112,83 @@ export const PrimeVueOverlayHost = defineComponent({
             },
             pt: {
               root: {
-                class: ['mmda-prime-dialog', request.props.cssClass]
-                  .filter(Boolean)
-                  .join(' '),
+                class: 'mmda-prime-dialog',
               },
               content: { class: 'mmda-prime-dialog__body' },
             },
             maximizable: true,
-            onHide: () => closeOverlayDialog(overlay!, request, false),
+            onShow: () => request.props.onOpen?.(),
+            onHide: () => closeOverlayDialog(overlay!, request, 'cancel'),
             'onUpdate:visible': (visible: boolean) => {
-              if (!visible) void closeOverlayDialog(overlay!, request, false)
+              if (!visible) void closeOverlayDialog(overlay!, request, 'cancel')
             },
           }
-          const slots = {
+          const standard = resolveDialogButtons(request.props.buttons)
+          const custom = request.props.customActions ?? []
+          const slots: Record<string, unknown> = {
             default: () => request.content,
-            footer:
-              request.props.showFooter === false
-                ? undefined
-                : () =>
-                    h('div', { class: 'mmda-prime-dialog__footer' }, [
+          }
+          if (headerKind === 'slot') {
+            slots.header = () => request.props.header!()
+          }
+          if (footerKind === 'slot') {
+            slots.footer = () => request.props.footer!()
+          } else if (footerKind === 'buttons') {
+            slots.footer = () =>
+              h(
+                'div',
+                {
+                  class: 'mmda-prime-dialog__footer',
+                  style: {
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    width: '100%',
+                  },
+                },
+                [
+                  h(
+                    'div',
+                    { class: 'mmda-prime-dialog__footer-start' },
+                    custom.map(action =>
                       h(
                         'button',
                         {
                           type: 'button',
-                          class: 'p-button p-button-text',
+                          class: primeClassForRole(action.colorRole),
                           onClick: () =>
-                            closeOverlayDialog(overlay!, request, false),
+                            void action.onAction?.(request.context as any),
                         },
-                        cancelLabel.value,
+                        action.label ?? action.name ?? '',
                       ),
-                      h(
+                    ),
+                  ),
+                  h(
+                    'div',
+                    { class: 'mmda-prime-dialog__footer-end' },
+                    standard.map(button => {
+                      const role = dialogButtonColorRole(button)
+                      return h(
                         'button',
                         {
                           type: 'button',
-                          class: 'p-button',
+                          class: primeClassForRole(
+                            role,
+                            isDialogPrimaryButton(button),
+                          ),
                           onClick: () =>
-                            closeOverlayDialog(overlay!, request, true),
+                            void closeOverlayDialog(
+                              overlay!,
+                              request,
+                              button,
+                            ),
                         },
-                        okLabel.value,
-                      ),
-                    ]),
+                        labelOf(button),
+                      )
+                    }),
+                  ),
+                ],
+              )
           }
           return h(Dialog, { key: request.id, ...dialogProps }, slots)
         }),

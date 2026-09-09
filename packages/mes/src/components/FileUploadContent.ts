@@ -1,13 +1,13 @@
 // 附件内容
-import { MetaModel, encodeUriAndFix, formatFileSize, isFunction, isNullOrUndefined, relativeTime } from '@mmda/core'
+import { MetaModel, encodeUriAndFix, formatFileSize, isFunction, isNullOrUndefined, relativeTime, type UiProps } from '@mmda/core'
 import { defineComponent, h, getCurrentInstance, reactive, onMounted, ref } from 'vue'
-import { getFileInfo, PropData } from "@mmda/vui";
-export const FileUploadContent = (context: any, props: PropData) => {
+import { getFileInfo } from "@mmda/vui";
+export const FileUploadContent = (context: any, props: UiProps) => {
     const {$ui: ui, $dialog, $t: t, $router} = context.globalProps ?? context
     const apiClient = context.logic?.apiClient ?? context.app?.api ?? context.$app?.api
     const showPreView = props.showPreView ?? true
     // 上传控件的文件列�?
-    const viewFiles = (props.uploadedFiles ?? []).map((f: any) => {
+    const viewFiles = ((props.uploadedFiles as any[]) ?? []).map((f: any) => {
         const { fileName, fileIcon, fileExt } = getFileInfo(f.fileName ?? f.name)
         return {
             fileName,

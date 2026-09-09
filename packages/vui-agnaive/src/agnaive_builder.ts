@@ -1,45 +1,11 @@
 import {
   h,
   reactive,
-  unref,
   type VNode,
   type VNodeArrayChildren,
 } from 'vue'
-import {
-  SqlDataType,
-  pluralize,
-  type MetaUiField,
-  type MetaUiGroup,
-  type Module,
-  type ModuleAction,
-  type ModuleAuth,
-} from '@mmda/core'
-import {
-  VueUiBuilder,
-  AppSideMenu,
-  MmdaGroupCard,
-  UiViewMany,
-  assembleMenuItems,
-  type AppSideBarProps,
-  type AppTopBarProps,
-  type ImportAndExportActionProps,
-  type ModuleBreadcrumbProps,
-  type ModuleSearchbarProps,
-  type ModuleToolbarProps,
-  type PropData,
-  type SearchForRelativeProps,
-  type SigninFormProps,
-  type SigninFormSlots,
-  type SignupFormProps,
-  type UiAction,
-  type UiFactory,
-  type UiFieldFactory,
-  type UiSearchField,
-  type UiSlots,
-  type UiViewContext,
-  paintModuleToolbar,
-  defaultToolbarMoreActions,
-} from '@mmda/vui'
+import { SqlDataType, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
+import { VueUiBuilder, AppSideMenu, MmdaGroupCard, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
 import {
   NAlert,
   NButton,
@@ -85,7 +51,15 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
   moduleOf(context)?.authority
 
 const visibleActions = (actions: UiAction[]) =>
-  actions.filter(action => action.visible == null || unref(action.visible))
+  actions.filter((action) => {
+    const visible = action.visible
+    if (visible == null) return true
+    if (typeof visible === 'function') return true
+    if (typeof visible === 'object' && visible !== null && 'value' in visible) {
+      return Boolean((visible as { value: unknown }).value)
+    }
+    return Boolean(visible)
+  })
 
 export class AgNaiveUiBuilder extends VueUiBuilder {
   declare readonly factory: UiFactory
@@ -123,7 +97,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   override buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props: PropData = {},
+    props: UiProps = {},
   ) {
     const {
       container: _container,
@@ -150,23 +124,23 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     )
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h('div', { class: 'mmda-agnaive-container', ...props }, content)
   }
 
-  buildHeader(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h('header', { class: 'mmda-agnaive-header', ...props }, content)
   }
 
-  buildAside(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h('aside', { class: 'mmda-agnaive-aside', ...props }, content)
   }
 
-  buildMain(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h('main', { class: 'mmda-agnaive-main', ...props }, content)
   }
 
-  buildFooter(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h('footer', { class: 'mmda-agnaive-footer', ...props }, content)
   }
 
@@ -206,7 +180,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     ])
   }
 
-  buildAppMenu(modules: Module[], props?: PropData) {
+  buildAppMenu(modules: Module[], props?: UiProps) {
     const { item, expand, ...rest } = props ?? {}
     if (expand === false) {
       return this.factory.menubar(assembleMenuItems(modules), {
@@ -221,11 +195,11 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     })
   }
 
-  buildLoading(_context: UiContext, props?: PropData) {
+  buildLoading(_context: UiContext, props?: UiProps) {
     return this.factory.loading(props)
   }
 
-  buildError(context: UiContext, props?: PropData) {
+  buildError(context: UiContext, props?: UiProps) {
     return h(
       NAlert,
       { type: 'error', class: 'mmda-agnaive-error', ...props },
@@ -255,6 +229,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       items.push({
         key: `${module.moduleCode}-title`,
         label,
+        icon: undefined,
+        to: undefined,
       })
     }
     return this.factory.breadcrumb({
@@ -413,7 +389,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   private toolbarActionButton(
     context: UiContext,
     action: UiAction,
-    props?: PropData,
+    props?: UiProps,
   ) {
     return this.factory.actionButton(action, message => context.t(message), false, {
       size: 'small',
@@ -559,7 +535,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     if (model?.actions?.length) {
       children.push(
         ...model.actions.map((action: any) =>
-          this.toolbarActionButton(context, this.actionFactory.action(context, action), {
+          this.toolbarActionButton(context, this.actionFactory.action(context, action as any), {
             id: `${action.name ?? action.actionName}-button`,
           }),
         ),
@@ -688,7 +664,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     })
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
+  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
     const meta = field.field
     const common = {
       value: field.searchVal.value,
@@ -731,7 +707,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     ])
   }
 
-  buildSearchForm(context: UiContext, props?: PropData) {
+  buildSearchForm(context: UiContext, props?: UiProps) {
     return h(
       'form',
       {
@@ -863,7 +839,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     })
   }
 
-  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: PropData = {}) {
+  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
     return h('section', { class: 'mmda-agnaive-flow', ...props }, [
       props.xml
         ? h(BpmnModeler, {

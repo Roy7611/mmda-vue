@@ -1,53 +1,61 @@
-import { h, type VNodeChild } from 'vue'
-import type { UiLayout } from '@mmda/vui'
+import { h, type VNode } from 'vue'
+import type { UiListTileSlots, UiProps } from '@mmda/core'
+import { VueUiLayout } from '@mmda/vui'
 
-export const agNaiveLayout: UiLayout = {
-  fieldLayout: 'horizontal',
-  fieldMessage: false,
-  wrapManyGroup: true,
-  maxCols: 12,
-
-  cell: (child: VNodeChild, nCol = 1) =>
-    h(
+export class AgNaiveLayout extends VueUiLayout {
+  cell(child: VNode, nCol = 1): VNode {
+    return h(
       'div',
       {
         class: 'mmda-agnaive-cell',
         style: { gridColumn: `span ${Math.max(1, nCol)}` },
       },
-      child as any,
-    ),
+      child,
+    )
+  }
 
-  row: (children, nCols, props = {}) =>
-    h(
+  row(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
       'div',
       {
-        class: 'mmda-agnaive-row',
+        class: ['mmda-agnaive-row', extraClass],
         style: {
           display: 'grid',
           gridTemplateColumns: nCols.map(value => `${value}fr`).join(' '),
           gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
         },
-        ...props,
+        ...rest,
       },
       children,
-    ),
+    )
+  }
 
-  column: (children, props = {}) =>
-    h(
+  column(children: VNode[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
       'div',
       {
-        class: 'mmda-agnaive-column',
-        style: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-        ...props,
+        class: ['mmda-agnaive-column', extraClass],
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
+        },
+        ...rest,
       },
       children,
-    ),
+    )
+  }
 
-  grid: (children, nCols, props = {}) =>
-    h(
+  grid(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
       'div',
       {
-        class: 'mmda-agnaive-grid',
+        class: ['mmda-agnaive-grid', extraClass],
         style: {
           display: 'grid',
           gridTemplateColumns:
@@ -55,19 +63,24 @@ export const agNaiveLayout: UiLayout = {
               ? nCols.map(value => `${value}fr`).join(' ')
               : 'repeat(auto-fit, minmax(16rem, 1fr))',
           gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
         },
-        ...props,
+        ...rest,
       },
       children,
-    ),
+    )
+  }
 
-  listTile: slots =>
-    h('article', { class: 'mmda-agnaive-list-tile' }, [
+  listTile(slots: UiListTileSlots<VNode>): VNode {
+    return h('article', { class: 'mmda-agnaive-list-tile' }, [
       slots.leading?.(),
       h('div', { class: 'mmda-agnaive-list-tile__content' }, [
         slots.title(),
         slots.subtitle?.(),
       ]),
       slots.trailing?.(),
-    ]),
+    ])
+  }
 }
+
+export const agNaiveLayout = new AgNaiveLayout()

@@ -1,6 +1,6 @@
 # 条码设计
 
-一维码走 `factory.barcode`。EJ2 见 [Barcode getting started](https://ej2.syncfusion.com/vue/documentation/barcode/getting-started-vue-3)。二维码走 [`factory.qrCode`](./qrcode.md)，不要 `format: 'qr'`。
+一维码走 `factory.barcode`。契约 `UiBarcodeProps` 在 `@mmda/core`。EJ2 见 [Barcode getting started](https://ej2.syncfusion.com/vue/documentation/barcode/getting-started-vue-3)。二维码走 [`factory.qrCode`](./qrcode.md)，不要 `format: 'qr'`。
 
 程序员用法：[barcode_usage.md](./barcode_usage.md)。chrome 参数约定：[factory.md](./factory.md)（含 `htmlAttributes` 透传）。
 

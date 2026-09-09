@@ -34,7 +34,7 @@ Index / Selector
 Edit / Details 子表
   buildGroup → subGroupContext(group) → factory.grid(scene=edit|details)
     → SfGrid；dataSource = 行对象
-    → 仅 cellSave / canEditCell / 删行：groupCtx.with(row)
+    → 仅 cellSave / canEdit / 删行：groupCtx.with(row)
     → 对话框：页 subGroupItem / newSubGroupItem（不是 with）
 ```
 
@@ -47,7 +47,7 @@ flowchart TB
   page -->|"index/selector: 自身即整表"| grid
   page -->|"edit/details: subGroupContext"| tableCtx
   tableCtx --> grid
-  grid -->|"cellSave / canEditCell / 删行"| rowEvt
+  grid -->|"cellSave / canEdit / 删行"| rowEvt
 ```
 
 三层：页（`VueUiContext`）→ 整表（index 即页；子表 `subGroupContext`）→ 行（`with(row)`，缓存 `@row/{id}`）。index / selector / details 渲染禁止 `with(row)`；edit 禁止列模板预建，只在回调里按需 `with`。细则见后文「调用路径与 Context」。
@@ -72,7 +72,7 @@ flowchart TB
 | 排序           | **服务端**多列（Ctrl+点列头）；列跟 `field.sortable`                                               | 同 index      | **默认关**                                  | **客户端**多列（真正用 SfGrid 排序）          |
 | 过滤           | 开；**服务端 EntityFilterModel**                                                           | 同 index      | 默认关；若开则**客户端**                           | 默认关                               |
 | 选择           | **单行**                                                                                | **single     | multiple**（传参）                           | **单元格**（配合 Cell 就地编）              |
-| 操作列          | **命令列**（右冻结）承载 rowMenu                                                                | 默认同 index，可关 | **命令列**右冻结，默认删行                          | 默认无                               |
+| 操作列          | **命令列**（右冻结）承载 rowActions                                                                | 默认同 index，可关 | **命令列**右冻结，默认删行                          | 默认无                               |
 | Layout（列宽/序） | Resize + Reorder，**默认写回 MetaUi**                                                      | 同 index      | Resize + Reorder，**默认不写回**               | Resize + Reorder，**默认写回 MetaUi**  |
 | Layout（显隐）   | **SfGridLayout** 能力默认开，可关；**按钮在表格外**                                                  | 同左           | 同左                                       | 同左                                |
 | 自动列宽         | 能力默认开；**外挂菜单调用** `autoFitColumns()`，不每次绑定自动跑                                          | 同左，可关        | 同左                                       | 同左                                |
@@ -153,7 +153,7 @@ provide 仍可注册模块全集（scene 切换不拆包）；index **运行时*
 
 - **选择**：`selectionMode: 'single' | 'multiple'`（默认 `multiple`）；多行勾选列，单行点选
 - 对外暴露 `**selectedItems**`（当前选中行），不负责写回主表字段
-- index 侧能力（操作列、右键 `rowMenu`、自动列宽、SfGridLayout、临时新增/编辑/删除）**默认开，可用传参关掉**。关掉编辑、只做选择时 **不要** 行上下文菜单。允许编辑时右键 **跟 index 一样**
+- index 侧能力（操作列、右键 `rowActions`、自动列宽、SfGridLayout、临时新增/编辑/删除）**默认开，可用传参关掉**。关掉编辑、只做选择时 **不要** 行上下文菜单。允许编辑时右键 **跟 index 一样**
 - Layout 写回 MetaUi 同 index（默认开）
 - 过滤、排序写回 **默认同 index**（`persistFilter` / `persistSort`），可关
 - 合计默认关，可传参开（同 index）
@@ -196,7 +196,7 @@ provide 仍可注册模块全集（scene 切换不拆包）；index **运行时*
 |---|---|---|---|
 | **页** | `VueUiContext` | Index = 分页列表包装；Edit/Details = 主表实体 | `search`、主表保存、打开 `subGroupItem` 对话框 |
 | **整表** | index/selector：**就是页**；子表：`page.subGroupContext(group)`（按 `cachePath/groupName` 缓存一份） | 子表 **EntityArray** | 列元数据、`groupLogic`、组级只读/隐藏、增行 `addSubGroupItem`、合计 `sum/count`、`onAggregatesChange` |
-| **行** | `tableCtx.with(row)`（缓存 `@row/{id}`）；对话框另用 `subGroupItemContext` | **这一行** | `setFieldValue`、`validateField`、`fieldLogic.onChange`、行级 `isFieldReadonly` / `canEditCell` |
+| **行** | `tableCtx.with(row)`（缓存 `@row/{id}`）；对话框另用 `subGroupItemContext` | **这一行** | `setFieldValue`、`validateField`、`fieldLogic.onChange`、行级 `isFieldReadonly` / `fieldCellEditors.canEdit` |
 
 `with(row)` ≠ 对话框。`subGroupItem` / `newSubGroupItem` 才是实体 edit 视图。`beginEdit` / `endEdit` 就是 `with` / `release`。
 
@@ -208,12 +208,12 @@ provide 仍可注册模块全集（scene 切换不拆包）；index **运行时*
 |---|---|---|
 | **index / selector** | **禁止** `with(row)`。`buildTable` 已是 `() => context`。千行 + virt 不能为每行建会话。行菜单只用 `row` 上的 `editable`/`deletable`/`id` + 页上的 `getModuleAuth(row)` | 一般仍禁止。不要为了显示单元格去 `with` |
 | **details** | **禁止**。整表用 `subGroupContext`，只读。客户端排序/合计走 EntityArray，不需要行会话 | 不需要。打开单据仍走页级导航，不是子表行 context |
-| **edit** | **禁止在列模板里预建**。不要 `rowContext(row)` 进每个 Vue cell（现 `tableWithCells` 编辑子表会这样，SfGrid 要改掉） | **按需**：`cellEdit` / `cellSave` / `canEditCell` / 命令删行 → `groupCtx.with(item)`；离格后可 `release`。对话框编辑用 `subGroupItemContext`，不是 `with` |
+| **edit** | **禁止在列模板里预建**。不要 `rowContext(row)` 进每个 Vue cell（现 `tableWithCells` 编辑子表会这样，SfGrid 要改掉） | **按需**：`cellEdit` / `cellSave` / `canEdit` / 命令删行 → `groupCtx.with(item)`；离格后可 `release`。对话框编辑用 `subGroupItemContext`，不是 `with` |
 
 判定「列能不能编」分两档，避免千次 `with`：
 
-1. **整表即可**：`group.readOnly`、`field.readOnly`、`groupLogic.inPlaceEdit`、`fieldLogic.inPlaceEdit(false)`、`groupCtx.isFieldReadonly(field)`（不依赖当前行）→ 配 `allowEditing` / `editableFields`。
-2. **必须行**：`row.editable === false`、`readonlyFn` / `allowOps` 等 → 只在 `canEditCell(row, field)` 里 `with(row)`。
+1. **整表即可**：`group.readOnly`、`field.readOnly`、`groupLogic.inplaceEdit`、`fieldLogic.inplaceEdit(false)`、`groupCtx.isFieldReadonly(field)`（不依赖当前行）→ 配 `editable` / `fieldCellEditors`（关列 `{ canEdit: false }`）。
+2. **必须行**：`row.editable === false`、`readonlyFn` / `allowOps` 等 → 只在 `fieldCellEditors[name].canEdit(field, row)` 里 `with(row)`。
 
 `row.editable` / `row.deletable` 是行数据上的旗，命令列/菜单直接读，不必为了藏按钮先建 context。
 
@@ -221,8 +221,8 @@ provide 仍可注册模块全集（scene 切换不拆包）；index **运行时*
 
 Grid 只认行对象。Builder 闭包住 `groupCtx` 或页 `context`：
 
-- `onCellSave(row, field, value)` → `with(row).setFieldValue` → 刷新该行
-- `canEditCell(row, field)` → 必要时 `with(row)`
+- `fieldCellEditors[].onSave` / `defaultCellSave(field, row, value)` → `with(row).setFieldValue` → 刷新该行
+- `fieldCellEditors[].canEdit(field, row)` → 必要时 `with(row)`
 - `onAdd` / `onDelete(row)` → 整表 `addSubGroupItem` / `deleteItem`；确认后刷 footer
 - `onOpenEdit(row)` → 页 `subGroupItem(group, row)`
 - `onFilterModelChange` / `onSort` → 页 `searchParam`（index）或整表本地滤（edit 若打开）
@@ -232,7 +232,7 @@ Grid 只认行对象。Builder 闭包住 `groupCtx` 或页 `context`：
 
 ## 表格编辑
 
-官方总览：[Editing](https://ej2.syncfusion.com/vue/documentation/grid/editing/edit)。对应框架用语：**就地编辑 = inplaceEdit**（像 Excel）；**对话框编辑 = 打开实体 edit 视图**（不是 EJ2 自绘表单）。
+官方总览：[Editing](https://ej2.syncfusion.com/vue/documentation/grid/editing/edit)。对应框架用语：**就地编辑 = `editable` + Cell**（像 Excel）；**对话框编辑 = 打开实体 edit 视图**（不是 EJ2 自绘表单）。
 
 `scene === 'edit'` 默认就地；index / selector / details 默认不可编。主键列：`field.primaryKey` → `isPrimaryKey`（官方硬条件）。
 
@@ -241,12 +241,12 @@ Grid 只认行对象。Builder 闭包住 `groupCtx` 或页 `context`：
 
 | 官方 `editSettings.mode`                                                                                   | 行为                  | 我们                        |
 | -------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------- |
-| **Cell**（[cell-editing](https://ej2.syncfusion.com/vue/documentation/grid/editing/cell-editing)）         | 点一格编一格，像 Excel      | **默认 = inplaceEdit**      |
+| **Cell**（[cell-editing](https://ej2.syncfusion.com/vue/documentation/grid/editing/cell-editing)）         | 点一格编一格，像 Excel      | **默认 = editable**      |
 | **Normal**（[in-line-editing](https://ej2.syncfusion.com/vue/documentation/grid/editing/in-line-editing)） | 整行进编辑，要 Save/Cancel | 不用作默认；文档里「改 A 更新 B」的钩子仍参考 |
 | Batch                                                                                                    | 多格暂存再一次提交           | 本轮不做                      |
 
 
-结论：要的「单元格就地编辑」就是官方 **Cell**，不是整行 Inline。`groupLogic.inplaceEdit` / `inplaceEditStart`（`excel`  `click`  `dblclick`）映射到 Cell 的进入方式。
+结论：要的「单元格就地编辑」就是官方 **Cell**，不是整行 Inline。`groupLogic.inplaceEdit` / `inplaceEditStart`（`excel`  `click`  `dblclick`）映射到 Cell 的进入方式；表级开关是 props `editable`。
 
 ### 列编辑类型
 
@@ -273,7 +273,7 @@ Grid 只认行对象。Builder 闭包住 `groupCtx` 或页 `context`：
 2. **字段级**：`MetaUiField.readOnly` 为 true → 该列不是用户可编辑字段（优先；就地、对话框都不行）
 3. **就地开关**：`groupLogic.inPlaceEdit` / `fieldLogic.inPlaceEdit(false)` **只关就地编辑**，不表示字段不可编。关了就地点格进不了 Cell，仍可走实体 edit 对话框（若元数据允许）
 
-运行时再叠加行标志和 `canEditCell`。元数据已只读的列，`allowEditing: false`，不必进 `canEditCell`。
+运行时再叠加行标志和 `fieldCellEditors[].canEdit`。元数据已只读的列，`allowEditing: false`，不必再进 `canEdit`。
 
 **行级 `editable` / `deletable`**：每行数据上都有。缺省视为允许（`!== false`）。Logic 可按状态关掉（如已占用 `item.editable = false`）。
 
@@ -302,11 +302,11 @@ flowchart LR
 
 
 1. 业务在 `*Logic` 里：`this.field('quantity').onChange(...)` / `this.field('price').onChange(...)` 改 `model.amount`（见现有 MaintenanceLogic 等）。
-2. SfGrid：`cellSave` → 归一化值 → `onCellSave` / `setFieldValue`（触发上面的 `onChangeFn`）。
+2. SfGrid：`cellSave` → 归一化值 → `onSave` / `defaultCellSave` / `setFieldValue`（触发上面的 `onChangeFn`）。
 3. Logic 改完同行其它字段后，SfGrid **刷新该行**（或 `setCellValue` 关联列），用户立刻看到金额变。
 4. 组级合计：优先组 `aggregates` 的 `SUM(x)=>主表字段`（少写程序）；复杂仍用 `groupLogic.onChange`。footer 变化走 `onAggregatesChange`。
 
-**条件编辑**：元数据已允许编、且 `row.editable !== false` 的列，`cellEdit` 里若 `canEditCell(row, field) === false` 则 `args.cancel`。由 Builder 闭包 `groupCtx`，**仅在该回调**里 `with(row)`（见调用路径）。`row.editable === false` 时整行进不了格。
+**条件编辑**：元数据已允许编、且 `row.editable !== false` 的列，`cellEdit` 里若 `canEdit(field, row) === false` 则 `args.cancel`。由 Builder 闭包 `groupCtx`，**仅在该回调**里 `with(row)`（见调用路径）。`row.editable === false` 时整行进不了格。
 
 **新增行默认值 + 行项次唯一**：不自己造号。走 `[MetaModel.createSubGroupItems` / `EntityArray](packages/core/src/models/metamodel.ts)`：`defaultVal`、`sequenceKey`（如 `itemID`）自增、`joinFields`、`rowNum`。本轮只 **末尾追加**（`addSubGroupItem`）。**指定位置插入列为未来**（见表格排序）。
 
@@ -353,7 +353,7 @@ EJ2 Dialog/Template 文档只作「保存后如何反映到 Grid」参考，不�
 | scene                | 命令列                                                                               |
 | -------------------- | --------------------------------------------------------------------------------- |
 | **edit**             | 默认有；至少 **删除**；不靠命令列进就地编（仍点单元格）。可再挂「打开实体编辑」等                                       |
-| **index / selector** | 用命令列承载现 `rowMenu` / `showActions`（详情/编辑/删除…），替代每行 Vue 模板按钮，更利虚拟滚动；命令行为仍调框架 action |
+| **index / selector** | 用命令列承载现 `rowActions` / `showActions`（详情/编辑/删除…），替代每行 Vue 模板按钮，更利虚拟滚动；命令行为仍调框架 action |
 | **details**          | 默认无                                                                               |
 
 
@@ -439,7 +439,7 @@ UI 叫 **Layout**，数据写 **MetaUi**。不叫 Pack。过滤/排序不是 Lay
 
 - **不是** Grid 模块 / ColumnChooser / 表内工具栏。SfGrid 只管表
 - 与 SfGrid **共用同一份 MetaUi**；确认后写 `listed` / `frozen` / `listPos`（及已有 `listSize`）
-- 能力对齐现 `[ListSettingView](packages/vui/src/ui/components/ListSettingView.ts)`：拖排序、显隐、左/右冻结、永久保存、恢复默认 / 从库重载。新文件独立实现，不改现有 index 管线、不引用 `factory.table`
+- 能力对齐现 `[TableSettingView](packages/vui/src/components/TableSettingView.ts)`：拖排序、显隐、左/右冻结、永久保存、恢复默认 / 从库重载。新文件独立实现，不改现有 index 管线、不引用 `factory.table`
 - 打开方式：`open(metaui)`（或等价 API）。**四种 scene 都由外挂菜单/按钮调出**，SfGrid 表体和表头都不放布局入口
 - **能力默认开、可关**（关了则外挂入口不应再打开）
 - 自动列宽是 SfGrid 方法 `autoFitColumns()`，同样由外挂菜单调用，不是 Layout 对话框里的一项，也不是 Grid 内置按钮
@@ -489,17 +489,17 @@ Syncfusion 另有 **XlsIO for Java**（独立 Excel 引擎，要许可），那�
 
 官方：[Context menu](https://ej2.syncfusion.com/vue/documentation/grid/context-menu)。注入 `ContextMenu`。**不要**用官方默认项（Excel/Pdf/Csv、内置 Edit/Save 进 EJ2 整行编）。
 
-- 数据源：现有 `rowMenu(row) → UiAction[]`（与命令列同一套框架 action）。右键行 → 弹出该行关联操作（详情、编辑、删除、业务命令…）
+- 数据源：现有 `rowActions(row) → UiAction[]`（与命令列同一套框架 action）。右键行 → 弹出该行关联操作（详情、编辑、删除、业务命令…）
 - 仍看 `editable` / `deletable` / 权限：不该出现的项不进菜单或 disabled
-- **表格不内置菜单按钮**；有 `rowMenu` 才开 `contextMenuItems`。点菜单走 `contextMenuClick` → `action.onAction`，带上 `args.rowInfo.rowData`
+- **表格不内置菜单按钮**；有 `rowActions` 才开 `contextMenuItems`。点菜单走 `contextMenuClick` → `action.onAction`，带上 `args.rowInfo.rowData`
 - 表头右键：默认不提供（自动列宽走外挂，不跟官方 AutoFit 菜单绑死）
 
 
 | scene              | 默认                                                       |
 | ------------------ | -------------------------------------------------------- |
-| **index**          | 有 `rowMenu` 则开                                           |
+| **index**          | 有 `rowActions` 则开                                           |
 | **selector**       | **仅选择**（关掉临时增删改）则不开。允许编辑、与 index 同一套操作时 **跟 index 一样** 开 |
-| **edit / details** | 默认关；可传 `rowMenu` 打开（例如删行、打开实体编辑）                         |
+| **edit / details** | 默认关；可传 `rowActions` 打开（例如删行、打开实体编辑）                         |
 
 
 命令列仍可同时存在：常驻几个按钮，其余放右键，避免每行按钮过多（利 virt）。
@@ -598,7 +598,7 @@ SfGrid / SfGridLayout：
 
 - Grid 设 `locale: getSyncfusionCulture()`（与现 `factory/table.ts` 相同），过滤菜单、空数据、确定/取消、分页文案走 EJ2 L10n
 - 列标题、按钮业务文案仍是 MetaUi `displayLabel` / vui `t()`，不是 EJ2 包
-- SfGridLayout 对话框用 vui `t('listSettings.*')`，不要和 Grid L10n 混用
+- SfGridLayout 对话框用 vui `t('tableSettings.*')`，不要和 Grid L10n 混用
 - 切换语言：已有 watch vue-i18n → `applySyncfusionLocale`；Grid 跟 `getSyncfusionCulture()`，不必在 SfGrid 里再 `L10n.load` 一份
 - 日期列 format 跟 culture；不要写死一套中文再忽略 `locale`
 

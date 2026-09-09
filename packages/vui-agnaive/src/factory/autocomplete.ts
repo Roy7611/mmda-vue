@@ -1,17 +1,7 @@
 import { h, reactive } from 'vue'
 import { NAutoComplete } from 'naive-ui'
-import type { UiAutoCompleteProps } from '@mmda/vui'
-import {
-  AUTOCOMPLETE_DEBOUNCE_MS,
-  AUTOCOMPLETE_MIN_LENGTH,
-  AUTOCOMPLETE_SUGGESTION_COUNT,
-  autoCompleteBindValue,
-  autoCompleteModifierClasses,
-  autoCompleteSuggestionLabels,
-  autoCompleteUpdateOf,
-  normalizeAutoCompleteOption,
-} from '@mmda/vui'
-
+import type { UiAutoCompleteProps } from '@mmda/core'
+import { AUTOCOMPLETE_DEBOUNCE_MS, AUTOCOMPLETE_MIN_LENGTH, AUTOCOMPLETE_SUGGESTION_COUNT, autoCompleteBindValue, autoCompleteModifierClasses, autoCompleteSuggestionLabels, autoCompleteUpdateOf, normalizeAutoCompleteOption } from '@mmda/core'
 export function createAutoComplete(
   value: string,
   props: UiAutoCompleteProps = {},

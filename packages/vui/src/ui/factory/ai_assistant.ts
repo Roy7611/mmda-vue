@@ -3,7 +3,7 @@
  * App：ui.setAiAssistantPlugin(createSfAiAssistantPlugin())
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiAiResponseMode = 'inline' | 'popup'
 
@@ -18,7 +18,7 @@ export interface UiAiAssistantController {
   addResponse: (text: string) => void
 }
 
-export interface UiAiAssistantProps extends PropData {
+export interface UiAiAssistantProps extends UiProps {
   relateTo?: string
   prompt?: string
   promptPlaceholder?: string

@@ -10,7 +10,7 @@ chrome 进度条，走 `factory.progressBar`。[EJ2 Vue ProgressBar](https://ej2
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/progress_bar.ts` | `UiProgressBarProps`；`progressBarModifierClasses` / `progressBarPropsFromField` |
+| vui `ui/factory/progress_bar.ts` | `UiProgressBarProps`；core `progressBarModifierClasses` / vui `progressBarPropsFromField` |
 | 皮肤 `factory/progress_bar.ts` | SF `ProgressBarComponent`；Prime `ProgressBar`；Naive `NProgress` |
 | 字段 `fldFactory.progressBar` | 译字段，调 `createProgressBar` |
 

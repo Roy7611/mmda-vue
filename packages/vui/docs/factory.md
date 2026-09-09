@@ -14,7 +14,7 @@ chrome 控件（button、badge、link…）对外用下面这些名。皮肤内�
 | 大小 | `size` | 尺寸档：`small` / `large`（控件按自己的联合类型收窄） | `scale`、厂商 `xlarge` 直接暴露 |
 | 颜色 | `colorRole` | MD3 语义色 [`UiColorRole`](../src/app/material.ts)：`primary` / `secondary` / `success` / `info` / `warning` / `danger` | `severity`、`type`、`color`、`role` |
 | 位置 | `position` | 相对锚点的摆放。单边（tooltip）用 [`UiPosition`](../src/app/material.ts)：`top` / `bottom` / `left` / `right`。四角（角标）用控件自己的联合类型，如 `UiBadgePosition` | 混用 `severity`；角标不要复用 `UiPosition` |
-| HTML | `htmlAttributes` | 落到真实 input / 根节点的原生属性（`title`、`name`、`autocomplete`、`data-*`）。皮肤**默认透传** | 拆成一堆 vui 专用 `title`/`maxLength`；改名成 `attrs` / `inputProps` |
+| HTML | 袋键 `htmlAttributes`（`UiProps` 索引签名，非具名） | 落到真实 input / 根节点的原生属性（`title`、`name`、`autocomplete`、`data-*`）。皮肤**各自透传**（`htmlAttributesOf`） | 拆成一堆 vui 专用 `title`/`maxLength`；改名成 `attrs` / `inputProps` |
 
 `placeholder`、`disabled`、`class` 是控件具名 API，不要塞进 `htmlAttributes`。`MetaUiField` 上的同名项由 **field_factory** 翻译成 chrome props（`placeholder` 具名；`maxLength` / `fieldName` 进 `htmlAttributes`）。
 
@@ -30,7 +30,7 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 皮肤 style.css → 不写长相，也不补厂商缺口
 ```
 
-`htmlAttributes` 透传：Syncfusion 接到组件的 `htmlAttributes`；Prime / Naive / 原生节点合并到 vnode，解构时不要丢掉。
+袋键 `htmlAttributes` 透传：Syncfusion 接到组件的 `htmlAttributes`；Prime / Naive / 原生节点合并到 vnode，解构时不要丢掉。
 
 `colorRole` 能映射到厂商属性就映射（Badge 的 `e-badge-primary` / Prime `severity`）；厂商没有的就只挂 `mmda-*` 钩子，**不要在皮肤里写 background / 量尺 / `left` 覆盖**。EJ2 Badge 只有上下角，`topLeft` / `bottomLeft` 可以没有视觉效果。应用侧怎么钩 class：见 [avatar_usage.md](./avatar_usage.md)、[badge_usage.md](./badge_usage.md)。AutoComplete 定制见 [autocomplete_usage.md](./autocomplete_usage.md)。
 
@@ -39,12 +39,12 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | 文件 | 契约 |
 |---|---|
 | [`button.ts`](../src/ui/factory/button.ts) | `shape`、`size`、`colorRole`、`buttonType`；容器 [ButtonGroup](./button_group.md)；分段 [SelectButtonGroup](./select_button_group.md)；怎么写 [button_usage.md](./button_usage.md) |
-| [`drop_down_button.ts`](../src/ui/factory/drop_down_button.ts) | 整钮菜单 `factory.dropDownButton`；更多 `factory.moreMenuButton`（只委托）。见 [DropDownButton](./drop_down_button.md)、[怎么写](./drop_down_button_usage.md) |
+| core [`button.ts`](../../core/src/ui/button.ts) `UiDropDownButtonProps` | 整钮菜单 `factory.dropDownButton`；更多 `factory.moreMenuButton`（只委托）。见 [DropDownButton](./drop_down_button.md)、[怎么写](./drop_down_button_usage.md) |
 | [`split_button.ts`](../src/ui/factory/split_button.ts) | 主段点击 + 箭头菜单 `factory.splitButton`。对照 EJ2 Getting Started，vui 名见 [SplitButton](./split_button.md)、[怎么写](./split_button_usage.md) |
 | [`floating_action_button.ts`](../src/ui/factory/floating_action_button.ts) | 浮钮 `factory.floatingActionButton`。见 [FAB](./floating_action_button.md)、[怎么写](./floating_action_button_usage.md) |
-| [`badge.ts`](../src/ui/factory/badge.ts) | `shape`、`colorRole`、`position`；角标见 [Badge 设计](./badge.md)、[怎么写](./badge_usage.md) |
-| [`avatar.ts`](../src/ui/factory/avatar.ts) | `shape`、`size`、`colorRole`；见 [Avatar 设计](./avatar.md)、[怎么写](./avatar_usage.md) |
-| [`autocomplete.ts`](../src/ui/factory/autocomplete.ts) | 联想文本：`options` / `suggest` / REF；见 [AutoComplete 设计](./autocomplete.md)、[怎么写](./autocomplete_usage.md)。多 tag 走 [tagAutoComplete](./tag_auto_complete.md) |
+| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiBadgeProps` | `shape`、`colorRole`、`position`；角标见 [Badge 设计](./badge.md)、[怎么写](./badge_usage.md) |
+| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiAvatarProps` | `shape`、`size`、`colorRole`；见 [Avatar 设计](./avatar.md)、[怎么写](./avatar_usage.md) |
+| [`autocomplete.ts`](../src/ui/factory/autocomplete.ts) | 皮肤辅助；契约 `UiAutoCompleteProps` 在 core。见 [AutoComplete 设计](./autocomplete.md)、[怎么写](./autocomplete_usage.md)。多 tag 走 [tagAutoComplete](./tag_auto_complete.md) |
 | [`barcode.ts`](../src/ui/factory/barcode.ts) | 一维码 `factory.barcode`；见 [条码](./barcode.md)、[怎么写](./barcode_usage.md) |
 | [`qrcode.ts`](../src/ui/factory/qrcode.ts) | 二维码 `factory.qrCode`；见 [二维码](./qrcode.md)、[怎么写](./qrcode_usage.md) |
 | [`breadcrumb.ts`](../src/ui/factory/breadcrumb.ts) | 面包屑 `factory.breadcrumb`；见 [面包屑](./breadcrumb.md)、[怎么写](./breadcrumb_usage.md) |
@@ -73,7 +73,7 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`signature_pad.ts`](../src/ui/factory/signature_pad.ts) | 签名面板 `factory.signaturePad`；值 PNG data URL。**不是** `imageEditor`。见 [SignaturePad](./signature_pad.md)、[怎么写](./signature_pad_usage.md) |
 | [`stepper.ts`](../src/ui/factory/stepper.ts) | 步骤条 `factory.stepper`；值当前步索引。见 [Stepper](./stepper.md)、[怎么写](./stepper_usage.md) |
 | [`timeline.ts`](../src/ui/factory/timeline.ts) | 时间轴 `factory.timeline`；默认事件列表。`setTimelinePlugin` 可换成 Tempis。见 [Timeline](./timeline.md)、[怎么写](./timeline_usage.md) |
-| [`skeleton.ts`](../src/ui/factory/skeleton.ts) | 内容占位 `factory.skeleton`。**不是** `factory.loading`，没有 fldFactory。见 [Skeleton](./skeleton.md)、[怎么写](./skeleton_usage.md) |
+| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiSkeletonProps` | 内容占位 `factory.skeleton`。**不是** `factory.loading`，没有 fldFactory。见 [Skeleton](./skeleton.md)、[怎么写](./skeleton_usage.md) |
 | [`loading.ts`](../src/ui/factory/loading.ts) | 忙碌指示 `factory.loading`。EJ2 是 Spinner API，不是 Vue 控件。见 [Loading](./loading.md)、[怎么写](./loading_usage.md) |
 | [`speech_to_text.ts`](../src/ui/factory/speech_to_text.ts) | 麦克风转写 `factory.speechToText`。没有 fldFactory。见 [SpeechToText](./speech_to_text.md)、[怎么写](./speech_to_text_usage.md) |
 | [`drop_down_list.ts`](../src/ui/factory/drop_down_list.ts) | 封闭下拉 `factory.dropDownList`；不要叫 `dropdown`。见 [DropDownList 设计](./drop_down_list.md)、[怎么写](./drop_down_list_usage.md) |
@@ -84,15 +84,15 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`tree_select.ts`](../src/ui/factory/tree_select.ts) | 树下拉 `factory.treeSelect`（`dropDownTree` 别名）。见 [TreeSelect 设计](./tree_select.md)、[怎么写](./tree_select_usage.md) |
 | [`combo_box.ts`](../src/ui/factory/combo_box.ts) | 可编下拉 `factory.comboBox`。见 [ComboBox 设计](./combo_box.md)、[怎么写](./combo_box_usage.md) |
 | [`card.ts`](../src/ui/factory/card.ts) | 内容面板 `factory.card`；封面 / `headerImage` / `divider`。**不是** GroupCard。见 [Card 设计](./card.md)、[怎么写](./card_usage.md) |
-| [`divider.ts`](../src/ui/factory/divider.ts) | 分隔线 `factory.divider`；**不是**菜单 `action.divider`。见 [Divider 设计](./divider.md)、[怎么写](./divider_usage.md) |
+| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiDividerProps` | 分隔线 `factory.divider`；**不是**菜单 `action.divider`。见 [Divider 设计](./divider.md)、[怎么写](./divider_usage.md) |
 | [`tooltip.ts`](../src/ui/factory/tooltip.ts) | 提示气泡 `factory.tooltip` 包一层；**不是**按钮 `tooltip` 原生 title。见 [Tooltip](./tooltip.md)、[怎么写](./tooltip_usage.md) |
-| [`inplace_editor.ts`](../src/ui/factory/inplace_editor.ts) | 就地编辑壳 `factory.inplaceEditor`；字段 `inplaceFieldEditor`。**不是**表格 `inplaceEdit`。见 [InplaceEditor](./inplace_editor.md)、[怎么写](./inplace_editor_usage.md) |
+| [`inplace_editor.ts`](../src/ui/factory/inplace_editor.ts) | 就地编辑壳 `factory.inplaceEditor`；字段 `inplaceFieldEditor`。**不是**表格 `editable`。见 [InplaceEditor](./inplace_editor.md)、[怎么写](./inplace_editor_usage.md) |
 | [`file_link.ts`](../src/ui/factory/file_link.ts) | 文件 URL `factory.fileLink`；`Url` / `FileLink` 别名。见 [FileLink](./file_link.md)、[怎么写](./file_link_usage.md) |
 | [`file_uploader.ts`](../src/ui/factory/file_uploader.ts) | 单文件 `fileUploader`（SearchBox 形，框内可拖；无 `layout`/`dropArea`）/ 多文件 `filesUploader`。见 [FileUploader](./file_uploader.md)、[怎么写](./file_uploader_usage.md) |
 | [`image_uploader.ts`](../src/ui/factory/image_uploader.ts) | 单图 `imageUploader` / 多图 `imagesUploader`。`imageGallery` 详情只读。见 [ImageUploader](./image_uploader.md)、[怎么写](./image_uploader_usage.md) |
 | [`chips.ts`](../src/ui/factory/chips.ts) | 芯片列表 `factory.chips`；字段 `tags` / `enumChipSet` / `bitChipSet`。见 [Chips](./chips.md)、[怎么写](./chips_usage.md) |
 | [`context_menu.ts`](../src/ui/factory/context_menu.ts) | 右键菜单 `factory.contextMenu`；见 [ContextMenu](./context_menu.md)、[怎么写](./context_menu_usage.md) |
-| [`list.ts`](../src/ui/factory/list.ts) | 单控件 `UiListProps`、`display`（list / table / grid / treeGrid）；`factory.list` / `table` / `grid` / `treeGrid` 捷径。整页 props 在 [`builder/list_view.ts`](../src/ui/builder/list_view.ts)。树字段在 [`tree_grid.ts`](../src/ui/factory/tree_grid.ts)。见 [列表与过滤](./list.md)、[树形表格](./treegrid.md)、[怎么写](./treegrid_usage.md)。列来自 MetaUi，不要 `GridColumn` |
+| [`list.ts`](../src/ui/factory/list.ts) | re-export core `UiListProps` / `UiTableProps` / `UiGridProps` + Vue slots；管道最宽类型 `UiListPropsType`（= Grid）。`factory.list` / `table` / `grid` / `treeGrid` 捷径。程序员 API 分家，见 [列表与过滤](./list.md)。整页 props 在 [`builder/list_view.ts`](../src/ui/builder/list_view.ts)。树字段在 [`tree_grid.ts`](../src/ui/factory/tree_grid.ts)。列来自 MetaUi，不要 `GridColumn` |
 | [`tree.ts`](../src/ui/factory/tree.ts) | 导航树 `factory.tree`。vui 名是 tree，不是 TreeView。见 [树](./tree.md)、[怎么写](./tree_usage.md) |
 | [`chart.ts`](../src/ui/factory/chart.ts) | **不是** chrome。`UiChartFactory` 插件，见 [图表](./chart.md)、[怎么写](./chart_usage.md) |
 | [`diagram.ts`](../src/ui/factory/diagram.ts) | **不是** chrome。`UiDiagramPlugin` 插件，见 [图](./diagram.md)、[怎么写](./diagram_usage.md) |

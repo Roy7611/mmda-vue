@@ -3,7 +3,7 @@
  * App：ui.setGanttPlugin(createSfGanttPlugin()) 等。
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiGanttTaskType = 'task' | 'milestone' | 'project'
 
@@ -86,7 +86,7 @@ export interface UiGanttChangeEvent<T = unknown> {
   native?: T
 }
 
-export interface UiGanttViewProps extends PropData {
+export interface UiGanttViewProps extends UiProps {
   tasks?: UiGanttTask[]
   links?: UiGanttLink[]
   columns?: UiGanttColumn[]

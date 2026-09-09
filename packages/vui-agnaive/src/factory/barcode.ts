@@ -5,13 +5,8 @@ import {
   ref,
   watch,
 } from 'vue'
-import type { UiBarcodeFormat, UiBarcodeProps } from '@mmda/vui'
-import {
-  barcodeFormatClass,
-  codeSizeCss,
-  codeSizePx,
-  resolveBarcodeCaption,
-} from '@mmda/vui'
+import type { UiBarcodeFormat, UiBarcodeProps } from '@mmda/core'
+import { barcodeFormatClass, codeSizeCss, codeSizePx, resolveBarcodeCaption } from '@mmda/vui'
 
 const JSBARCODE_FORMAT: Partial<Record<UiBarcodeFormat, string>> = {
   code128: 'CODE128',

@@ -5,7 +5,7 @@
 
 ## 职责
 
-子表组交互。inplaceEditable / inplaceEdit()。标准按钮 add/clear 在 `stdActions`，`canDo` 叠加 `executableExpression`。行删：`itemDeletable` / `beforeItemRemove`。组自定义合计：`aggregateWith` → `customAggregator`。自定义渲染挂 Function，VNode 类型在 vui。行展开异构孙子组：`rowDetail(name)` → `rowDetailGroup`（vui `UiListProps.rowDetail`）。
+子表组交互。inplaceEditable / inplaceEdit()。标准按钮 add/clear 在 `stdActions`，`canDo` 叠加 `executableExpression`。行删：`itemDeletable` / `beforeItemRemove`。组自定义合计：`aggregateWith` → `customAggregator`。自定义渲染挂 Function，VNode 类型在 vui。行展开异构孙子组：`rowDetail(name)` → `rowDetailGroup`（core `UiTableProps.rowDetail`；子表走 `UiGridProps`，`scene: 'edit' | 'details'`）。
 
 ## 不要
 

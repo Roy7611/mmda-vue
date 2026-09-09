@@ -1,16 +1,8 @@
 import { h, reactive } from 'vue'
 import { NSelect } from 'naive-ui'
-import type { UiTagAutoCompleteProps } from '@mmda/vui'
-import {
-  TAG_AUTOCOMPLETE_DEBOUNCE_MS,
-  TAG_AUTOCOMPLETE_MIN_LENGTH,
-  htmlAttributesOf,
-  tagAutoCompleteItemsOf,
-  tagAutoCompleteModifierClasses,
-  tagAutoCompleteSuggestionLabels,
-  tagAutoCompleteTextOf,
-  tagAutoCompleteUpdateOf,
-} from '@mmda/vui'
+import type { UiTagAutoCompleteProps } from '@mmda/core'
+import { TAG_AUTOCOMPLETE_DEBOUNCE_MS, TAG_AUTOCOMPLETE_MIN_LENGTH, tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, tagAutoCompleteUpdateOf } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 export function createTagAutoComplete(
   value: string,

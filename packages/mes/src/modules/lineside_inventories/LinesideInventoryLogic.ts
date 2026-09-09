@@ -159,8 +159,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					{
 						title: context.t('linesideInventory.oneClickStorage'),
 						width: '80%',
-						onAccept: async () => {
-							return await materialTransCtx.save().then(() => {
+						onAccept: async (button) => {
+						  return await materialTransCtx.save().then(() => {
 								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
 								window.open(url, '_blank');
 
@@ -168,13 +168,9 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 							});
 						},
 						// 取消
-						reject: () => {
-							// 关闭弹窗
-							return false;
-						},
 					}
-				).then((res: boolean) => {
-					if (res) {
+				).then((res) => {
+					if (res === 'ok') {
 						context.refresh();
 						return Promise.resolve(res);
 					} else {
@@ -253,8 +249,8 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 					{
 						title: context.t('linesideInventory.oneClickReturn'),
 						width: '80%',
-						onAccept: async () => {
-							return await materialTransCtx.save().then(() => {
+						onAccept: async (button) => {
+						  return await materialTransCtx.save().then(() => {
 								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
 								window.open(url, '_blank');
 
@@ -262,13 +258,9 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 							});
 						},
 						// 取消
-						reject: () => {
-							// 关闭弹窗
-							return false;
-						},
 					}
-				).then((res: boolean) => {
-					if (res) {
+				).then((res) => {
+					if (res === 'ok') {
 						context.refresh();
 						return Promise.resolve(res);
 					} else {
@@ -539,7 +531,6 @@ export class LinesideInventoryLogic extends UiLogic<LinesideInventory> {
 			context.uiBuilder.dialog(inventoryDialogNode({ context }), context, {
 				title: $t('linesideInventory.queryInventory'),
 				width: '60vw',
-				onAccept: async () => { },
 			});
 		} catch (error: any) {
 			uiBuilder.toast(context, {

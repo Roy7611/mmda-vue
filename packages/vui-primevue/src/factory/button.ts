@@ -1,8 +1,7 @@
 import { h } from "vue";
 import Button from "primevue/button";
-import type { UiButtonProps, UiButtonSlots } from "@mmda/vui";
-import { buttonModifierClasses } from "@mmda/vui";
-
+import type { UiButtonProps, UiButtonSlots } from "@mmda/core"
+import { buttonModifierClasses } from "@mmda/core"
 const severity = (role?: string) => {
   const roles: Record<string, string> = {
     primary: "primary",
@@ -38,7 +37,7 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
     ...rest
   } = props;
   return h(
-    Button,
+    Button as any,
     {
       ...rest,
       ...htmlAttributes,
@@ -57,7 +56,7 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
             ? "text"
             : undefined,
       rounded: shape === "round" || shape === "circle",
-      disabled: disabled === true || disabled === "true",
+      disabled: disabled === true,
       loading,
       title: tooltip ?? htmlAttributes?.title,
       size,

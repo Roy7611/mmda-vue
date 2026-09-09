@@ -7,65 +7,56 @@
  * buildTreeView 是 Builder 组合，不是厂商控件名。
  */
 import type { VNodeChild } from 'vue'
-import type { UiAction } from './action'
+import { uiCssClass } from '@mmda/core'
+import type {
+  UiTreeDropPosition,
+  UiTreeFields,
+  UiTreeProps,
+  UiTreeViewProps,
+} from '@mmda/core'
 
-export interface UiTreeFields<T = any> {
-  id?: string
-  label?: string | ((node: T) => string)
-  parentId?: string
-  /** 子节点数组字段名。已加载的儿子从这里取，懒加载展开后写回这里。 */
-  children?: string
-  icon?: string | ((node: T) => string)
-  childrenCount?: string | ((node: T) => number)
+export type {
+  UiTreeDropPosition,
+  UiTreeFields,
+  UiTreeMoveMeta,
+  UiTreeProps,
+  UiTreeSelectionMode,
+  UiTreeViewProps,
+} from '@mmda/core'
+
+/** @deprecated 用 UiTreeProps（props + emits 已合成） */
+export type UiTreePropsType<T = any> = UiTreeProps<T>
+/** @deprecated 用 UiTreeViewProps */
+export type UiTreeViewPropsType<T = any> = UiTreeViewProps<T>
+/** @deprecated 事件已并进 UiTreeProps */
+export type UiTreeEmits<T = any> = Pick<
+  UiTreeProps<T>,
+  | 'onNodeSelect'
+  | 'onExpand'
+  | 'onNodeContextMenu'
+  | 'onNodeRename'
+  | 'onNodeAddChild'
+  | 'onNodeMove'
+>
+/** @deprecated 事件已并进 UiTreeViewProps */
+export type UiTreeViewEmits<T = any> = Pick<
+  UiTreeViewProps<T>,
+  | 'onNodeRename'
+  | 'onNodeAdd'
+  | 'onNodeAddChild'
+  | 'onNodeAddSibling'
+  | 'onNodeDelete'
+  | 'onTreeRefresh'
+>
+export interface UiTreeViewSlots<T = any> {
+  header?: () => VNodeChild
+  footer?: () => VNodeChild
+  footerContent?: (node: T) => VNodeChild
 }
-
-export interface UiTreeProps<T = any> {
-  data?: T[]
-  fields?: UiTreeFields<T>
-  selectionMode?: 'single' | 'checkbox' | 'none'
-  selected?: string | string[]
-  showIcon?: boolean
-  class?: string
-  /** 正在原地重命名的节点 id；皮肤据此 beginEdit。 */
-  editing?: string
-  /** 右键菜单项。有值时皮肤用自带 ContextMenu。 */
-  contextMenu?: (node: T) => UiAction[]
-  /** 悬停添加子节点。函数返回 false 时不显示。 */
-  showHoverAdd?: boolean | ((node: T) => boolean)
-  /**
-   * 拖放改父节点。未设时：`editable === true`，或分类树有 `repository` 且模块 `allowEdit`。
-   * 不要只因默认 `editMode: 'hover'` 就打开。
-   */
-  allowDragDrop?: boolean
-}
-
-export type UiTreeDropPosition = 'inside' | 'before' | 'after'
-
-export interface UiTreeMoveMeta {
-  position: UiTreeDropPosition
-}
-
-export interface UiTreeEmits<T = any> {
-  onNodeSelect?: (node: T | T[]) => void
-  onExpand?: (node: T) => void | Promise<void>
-  onNodeContextMenu?: (node: T, event: MouseEvent) => void
-  onNodeRename?: (node: T, text: string) => void
-  onNodeAddChild?: (parent: T) => void
-  /** 拖到某节点上（Inside）或其兄弟位（Before/After）。`parent` 为空即升到根。 */
-  onNodeMove?: (
-    node: T,
-    parent: T | undefined,
-    meta: UiTreeMoveMeta,
-  ) => void | Promise<void>
-}
-
-export type UiTreePropsType<T = any> = UiTreeProps<T> & UiTreeEmits<T>
-
-export type UiTreeSelectionMode = NonNullable<UiTreeProps['selectionMode']>
 
 export function treeSelectionModeOf(
   props: UiTreeProps = {},
-): UiTreeSelectionMode {
+): NonNullable<UiTreeProps['selectionMode']> {
   if (props.selectionMode === 'checkbox' || props.selectionMode === 'none') {
     return props.selectionMode
   }
@@ -75,59 +66,14 @@ export function treeSelectionModeOf(
 export function treeModifierClasses(props: UiTreeProps = {}): unknown[] {
   const mode = treeSelectionModeOf(props)
   return [
-    'mmda-tree',
-    mode === 'checkbox' ? 'mmda-tree--checkbox' : undefined,
-    mode === 'none' ? 'mmda-tree--none' : undefined,
-    props.showIcon ? 'mmda-tree--icons' : undefined,
-    props.allowDragDrop ? 'mmda-tree--drag' : undefined,
+    uiCssClass('tree'),
+    mode === 'checkbox' ? uiCssClass('tree', 'checkbox') : undefined,
+    mode === 'none' ? uiCssClass('tree', 'none') : undefined,
+    props.showIcon ? uiCssClass('tree', 'icons') : undefined,
+    props.allowDragDrop ? uiCssClass('tree', 'drag') : undefined,
     props.class,
   ]
 }
-
-export interface UiTreeViewProps<T = any> extends UiTreeProps<T> {
-  /** 树顶搜索框，按节点文本本地过滤。 */
-  showSearchBar?: boolean
-  /** 树底插槽。为 true 时渲染 `footer`。 */
-  showTreeFooter?: boolean
-  editable?: boolean
-  /** 分类仓库。CategoryList 用来做节点 CRUD 与模块权限。 */
-  repository?: string
-  /**
-   * 节点编辑方式。默认 `hover`：悬停出现添加子节点。
-   * `contextMenu` 才启用皮肤自带右键菜单。
-   */
-  editMode?: 'hover' | 'contextMenu'
-  /** 当前选中实体，给底栏用。 */
-  selectedNode?: T
-  /** 有 repository 时的取数方式。默认 eager。 */
-  loadMode?: 'eager' | 'lazy'
-  /** 仅 lazy 挂载：拉顶层节点。 */
-  preloader?: () => T[] | Promise<T[]>
-  /** CRUD 后递增，TreeView 重新取数。 */
-  reloadTick?: { value: number }
-}
-
-export interface UiTreeViewEmits<T = any> extends UiTreeEmits<T> {
-  onNodeRename?: (node: T, text: string) => void
-  onNodeAdd?: (parent?: T) => void
-  onNodeAddChild?: (parent: T) => void
-  onNodeAddSibling?: (node: T) => void
-  onNodeDelete?: (node: T) => void
-  /** 分类树落库后刷新节点。 */
-  onTreeRefresh?: () => void | Promise<void>
-}
-
-export interface UiTreeViewSlots<T = any> {
-  /** 自定义树顶。有内容时替换内置过滤框。 */
-  header?: () => VNodeChild
-  footer?: () => VNodeChild
-  /** 用当前选中节点画底栏。无参 `footer()` 优先。 */
-  footerContent?: (node: T) => VNodeChild
-}
-
-export type UiTreeViewPropsType<T = any> = UiTreeViewProps<T> &
-  UiTreeViewEmits<T> &
-  UiTreeViewSlots<T>
 
 export interface UiTreeMappedNode<T = any> {
   id: string

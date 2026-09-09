@@ -7,7 +7,7 @@ chrome 一次性口令走 `factory.oneTimePasswordInput`。[EJ2 Vue OTP Input](h
 ## 分层
 
 - vui `ui/factory/one_time_password_input.ts`：`UiOneTimePasswordInputProps`：`length` / `type` / `separator` / `value`
-- 皮肤 `factory/oneTimePasswordInput.ts`：SF `OtpInputComponent`；Prime `InputOtp`；Naive 分段 `NInput`
+- 皮肤 `factory/one_time_password_input.ts`：SF `OtpInputComponent`；Prime `InputOtp`；Naive 分段 `NInput`
 - 字段 `fldFactory.oneTimePasswordInput`：译字段后调 chrome
 
 vui **type / length / separator 用 EJ2 词**。不要把 Prime 的 `mask` / `integerOnly` 写进 vui。Prime 皮肤在内部转换。
@@ -38,4 +38,4 @@ vui **type / length / separator 用 EJ2 词**。不要把 Prime 的 `mask` / `in
 ## 源码
 
 - vui：[`one_time_password_input.ts`](../src/ui/factory/one_time_password_input.ts)
-- 皮肤：各包 `factory/oneTimePasswordInput.ts`
+- 皮肤：各包 `factory/one_time_password_input.ts`

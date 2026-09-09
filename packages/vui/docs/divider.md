@@ -8,7 +8,7 @@ chrome 分隔线，走 `factory.divider`。不要写成 `separator`（那是 bre
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/divider.ts` | `UiDividerProps`：`orientation` / `label` |
+| core `UiDividerProps` | `orientation` / `label` |
 | 皮肤 `factory/divider.ts` | SF `e-separator`；Prime `Divider`；Naive `NDivider` |
 
 EJ2 没有独立 Divider 控件，Syncfusion 皮肤用 `div.e-separator` + `mmda-divider`。
@@ -32,7 +32,7 @@ EJ2 没有独立 Divider 控件，Syncfusion 皮肤用 `div.e-separator` + `mmda
 
 ## 源码
 
-- vui [`divider.ts`](../src/ui/factory/divider.ts)
+- core [`chrome.ts`](../../core/src/ui/chrome.ts)
 - Syncfusion [`factory/divider.ts`](../../vui-syncfusion/src/factory/divider.ts)
 - Prime [`factory/divider.ts`](../../vui-primevue/src/factory/divider.ts)
 - Naive [`factory/divider.ts`](../../vui-agnaive/src/factory/divider.ts)

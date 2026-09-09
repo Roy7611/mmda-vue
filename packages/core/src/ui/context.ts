@@ -36,6 +36,9 @@ export interface UiContext<M extends object = any> {
   isEditDialog?: boolean
   searchParam?: EntitySearchParam
   selectedItems?: any[]
+  /** 列表进详情/编辑记住的当前行（与勾选 selectedItems 分开）。 */
+  currentItem?: any | null
+  currentIndex?: number
   selectionMode?: 'single' | 'multiple' | null
 
   translate(message: string, param?: Record<string, any>): string

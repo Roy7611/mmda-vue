@@ -190,7 +190,7 @@ export const ToolsPicking = defineComponent({
 		});
 
 		const showToast = (severity: string, detail: string, summary = t('dialog.title.prompt')) => {
-			context.uiBuilder.toast(context, { severity, detail, summary, life: 3000 });
+			context.uiBuilder.toast(context, { severity, message: detail, title: summary, life: 3000 });
 		};
 
 		const createTransState = (detail: MaterialTrans): TransState => {

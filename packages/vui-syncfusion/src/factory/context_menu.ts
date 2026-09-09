@@ -1,17 +1,8 @@
 import { h } from "vue";
 import { ContextMenuComponent } from "@syncfusion/ej2-vue-navigations";
-import type {
-  IconResolver,
-  UiContextMenuProps,
-  UiMenuItem,
-} from "@mmda/vui";
-import {
-  contextMenuItemsOf,
-  contextMenuModifierClasses,
-  findContextMenuItem,
-  htmlAttributesOf,
-  invokeContextMenuItem,
-} from "@mmda/vui";
+import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { contextMenuItemsOf, contextMenuModifierClasses, findContextMenuItem, htmlAttributesOf, invokeContextMenuItem } from "@mmda/vui"
 
 function mapSyncfusionItem(
   item: UiMenuItem,

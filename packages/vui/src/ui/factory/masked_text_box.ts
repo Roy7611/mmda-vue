@@ -4,24 +4,16 @@
  * chrome 掩码输入走 factory.maskedTextBox。vui mask 用 EJ2 元素，不要写 Prime 的 9。
  * 字段 fldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 
 /** 大陆手机：11 位数字，中间空格。EJ2 `0` = 数字。 */
 export const MOBILE_MASK = '000 0000 0000'
 /** 6 位邮编。 */
 export const ZIP_MASK = '000000'
 
-export interface UiMaskedTextBoxProps extends PropData {
-  value?: string
-  /** EJ2 掩码元素：`0` 数字、`L` 字母、`A` 字母数字；字面量原样。 */
-  mask: string
-  placeholder?: string
-  disabled?: boolean
-  /** 未填位提示符。对应 EJ2 promptChar */
-  promptChar?: string
-  onChange?: (value: string) => void
-}
+export type { UiMaskedTextBoxProps } from '@mmda/core'
 
 export type MaskedTextBoxFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -43,15 +35,11 @@ export function emitMaskedTextBoxChange(
 ): void {
   const next = value == null ? '' : String(value)
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
-export function maskedTextBoxModifierClasses(
-  props: UiMaskedTextBoxProps,
-): unknown[] {
-  return ['mmda-maskedtextbox', props.class]
-}
+export { maskedTextBoxModifierClasses } from '@mmda/core'
 
 /**
  * EJ2 mask → Prime InputMask。
@@ -89,7 +77,7 @@ export function primeMaskOf(mask: string): string {
 export function maskedTextBoxPropsFromField(
   field: MetaUiField,
   context: MaskedTextBoxFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiMaskedTextBoxProps {
   const mask = String(extra.mask ?? '')
   return {

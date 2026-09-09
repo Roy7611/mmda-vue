@@ -1,13 +1,13 @@
 import { normalizeAction } from "./utils";
 import { createButton } from "./button";
-import { createButtonGroup } from "./buttonGroup";
-import { createSelectButtonGroup } from "./selectButtonGroup";
+import { createButtonGroup } from "./button_group";
+import { createSelectButtonGroup } from "./select_button_group";
 import {
   createDropDownButton,
   createMoreMenuButton,
-} from "./dropDownButton";
-import { createSplitButton } from "./splitButton";
-import { createFloatingActionButton } from "./floatingActionButton";
+} from "./drop_down_button";
+import { createSplitButton } from "./split_button";
+import { createFloatingActionButton } from "./floating_action_button";
 
 export { createButton } from "./button";
 
@@ -30,7 +30,7 @@ export function buttonRenderers(
         label: normalizeAction(action, t).text,
         ...props,
         icon: factory.resolveIcon(action.icon ?? action.name ?? ""),
-        onClick: action.onAction ?? action.command,
+        onClick: action.onAction,
       }),
   };
 }

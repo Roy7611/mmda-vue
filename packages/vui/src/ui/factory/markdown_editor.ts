@@ -3,9 +3,9 @@
  * App：ui.setMarkdownEditorPlugin(createMarkdownEditorPlugin())
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
-export interface UiMarkdownEditorProps extends PropData {
+export interface UiMarkdownEditorProps extends UiProps {
   value?: string
   readonly?: boolean
   width?: string | number

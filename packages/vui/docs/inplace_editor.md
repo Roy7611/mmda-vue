@@ -6,7 +6,7 @@ chrome 就地编辑走 `factory.inplaceEditor`。[PrimeVue Inplace](https://prim
 
 vui 名是 **`inplaceEditor`**。不要 `inplace` / `ejs-inplaceeditor` / `InPlaceEditor` / Prime `Inplace` 当 vui 名。
 
-**不要**和表格列 `inplaceEdit`、皮肤 `nativeInplaceEdit` 混名。不要暴露 fld **`InplaceEditor`**（撞 SF 类）。
+**不要**和表格列 `editable` / `fieldCellEditors`、皮肤 `nativeInplaceEdit` 混名。不要暴露 fld **`InplaceEditor`**（撞 SF 类）。
 
 字段包装是 **`inplaceFieldEditor`**（PascalCase **`InplaceFieldEditor`**）：用 chrome 包 display + 内层 editor。`editor` / `renderer` 若就是本控件，内层走 `fallbackInput` / `fallbackDisplay`，避免递归。调 `context.uiBuilder.factory.inplaceEditor`。
 
@@ -41,7 +41,7 @@ slots：`display`、`content`。没有 `default`。
 | 模式 | `mode: Inline`，`type: Template` | display / content 槽 | 点 display 换 content |
 | 保存钮 | `showButtons: false` | 厂商默认无保存钮 | 无 |
 | 远程 | 不设 `url` / `adaptor` | — | — |
-| 不要 | EJ2 `type: Text` 自带输入 | 当表格单元格编辑 | 当 `inplaceEdit` |
+| 不要 | EJ2 `type: Text` 自带输入 | 当表格单元格编辑 | 当 `editable` |
 
 ## 源码
 

@@ -19,7 +19,7 @@ import type {
   ModuleToolbarProps,
 } from "../app/app";
 import type { UiFactory, UiFieldFactory } from "../ui/factory/factory";
-import type { PropData, UiLayout, UiSlots } from "../ui/layout/layout";
+import { VueUiLayout, type UiProps, type UiLayout, type UiSlots } from "../ui/layout/layout";
 import type { UiListPropsType } from "../ui/factory/list";
 import { bindListDisplayRenderers } from "../ui/factory/list";
 import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
@@ -28,18 +28,19 @@ import { paintModuleToolbar, defaultToolbarMoreActions } from "../ui/builder/mod
 
 type UiContext = VueUiContext<any>;
 
-const stub = (name: string, extra?: PropData): VNode =>
+const stub = (name: string, extra?: UiProps): VNode =>
   h("span", { class: "mmda-html-stub", "data-unimplemented": name, ...extra }, "not implemented");
 
-const testLayout: UiLayout = {
-  fieldLayout: "vertical",
-  fieldMessage: true,
-  wrapManyGroup: true,
-  maxCols: 12,
-  cell: (child, nCol = 1) =>
-    h("div", { class: "mmda-cell", style: { gridColumn: `span ${nCol}` } }, child as any),
-  row: (children, nCols, props = {}) =>
-    h(
+class TestLayout extends VueUiLayout {
+  fieldLayout = "vertical" as const
+  fieldMessage = true
+  wrapManyGroup = true
+  maxCols = 12
+  cell(child: VNode, nCol = 1) {
+    return h("div", { class: "mmda-cell", style: { gridColumn: `span ${nCol}` } }, child)
+  }
+  row(children: VNode[], nCols: number[], props: UiProps = {}) {
+    return h(
       "div",
       {
         class: "mmda-row",
@@ -51,9 +52,10 @@ const testLayout: UiLayout = {
         ...props,
       },
       children,
-    ),
-  column: (children, props = {}) =>
-    h(
+    )
+  }
+  column(children: VNode[], props: UiProps = {}) {
+    return h(
       "div",
       {
         class: "mmda-column",
@@ -61,16 +63,21 @@ const testLayout: UiLayout = {
         ...props,
       },
       children,
-    ),
-  grid: (children, _nCols, props = {}) =>
-    h("div", { class: "mmda-grid", ...props }, children),
-  listTile: (slots) =>
-    h("div", { class: "mmda-list-tile" }, [
+    )
+  }
+  grid(children: VNode[], _nCols: number[], props: UiProps = {}) {
+    return h("div", { class: "mmda-grid", ...props }, children)
+  }
+  listTile(slots) {
+    return h("div", { class: "mmda-list-tile" }, [
       slots.leading?.(),
       h("div", [slots.title(), slots.subtitle?.()]),
       slots.trailing?.(),
-    ]),
-};
+    ])
+  }
+}
+
+const testLayout = new TestLayout()
 
 const listedFields = (metaUi: MetaUi) => {
   const listed = metaUi.getListedFields();
@@ -120,7 +127,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
                   h(
                     "td",
                     props.renderCell
-                      ? [props.renderCell(field, row, props)]
+                      ? [props.renderCell(field, row)]
                       : String(row[field.fieldName] ?? ""),
                   ),
                 ),
@@ -781,7 +788,7 @@ function createTestFieldFactory(): UiFieldFactory {
   const fallbackDisplay = (
     field: MetaUiField,
     context: UiContext,
-    props: PropData = {},
+    props: UiProps = {},
   ) =>
     h(
       "output",
@@ -825,23 +832,23 @@ export class TestUiBuilder extends VueUiBuilder {
     super(factory, fieldFactory, layout);
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("div", { class: "mmda-container", ...props }, content);
   }
 
-  buildHeader(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("header", props, content);
   }
 
-  buildAside(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("aside", props, content);
   }
 
-  buildMain(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("main", props, content);
   }
 
-  buildFooter(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("footer", props, content);
   }
 
@@ -857,11 +864,11 @@ export class TestUiBuilder extends VueUiBuilder {
     return stub("buildAppMenu");
   }
 
-  buildLoading(_context: UiContext, props?: PropData) {
+  buildLoading(_context: UiContext, props?: UiProps) {
     return this.factory.loading(props);
   }
 
-  buildError(context: UiContext, props?: PropData) {
+  buildError(context: UiContext, props?: UiProps) {
     return h("div", { class: "mmda-error", ...props }, context.title);
   }
 

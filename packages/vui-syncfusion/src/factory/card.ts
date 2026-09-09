@@ -1,7 +1,6 @@
 import { h } from "vue";
-import type { UiCardProps, UiCardSlots } from "@mmda/vui";
-import { cardModifierClasses } from "@mmda/vui";
-
+import type { UiCardProps, UiCardSlots } from "@mmda/core"
+import { cardModifierClasses } from "@mmda/core"
 const coverNode = (props: UiCardProps, slots?: UiCardSlots) => {
   const custom = slots?.image?.();
   if (custom?.length) {

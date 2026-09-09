@@ -1,6 +1,6 @@
 # Tabs
 
-chrome 页签走 `factory.tabs`。[EJ2 Vue Tab](https://ej2.syncfusion.com/vue/documentation/tab/getting-started-vue-3) / [API](https://ej2.syncfusion.com/vue/documentation/api/tab/) 就是这个控件（EJ2 名单数 Tab）。
+chrome 页签走 `factory.tabs`。契约 `UiTabsProps` 在 `@mmda/core`。[EJ2 Vue Tab](https://ej2.syncfusion.com/vue/documentation/tab/getting-started-vue-3) / [API](https://ej2.syncfusion.com/vue/documentation/api/tab/) 就是这个控件（EJ2 名单数 Tab）。
 
 程序员用法：[tabs_usage.md](./tabs_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 

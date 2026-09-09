@@ -1,14 +1,8 @@
 import { h } from "vue";
 import Splitter from "primevue/splitter";
 import SplitterPanel from "primevue/splitterpanel";
-import type { UiSplitterPane, UiSplitterProps } from "@mmda/vui";
-import {
-  emitSplitterResize,
-  htmlAttributesOf,
-  splitterEnabledOf,
-  splitterModifierClasses,
-  splitterOrientationOf,
-} from "@mmda/vui";
+import type { UiSplitterPane, UiSplitterProps } from "@mmda/vui"
+import { emitSplitterResize, htmlAttributesOf, splitterEnabledOf, splitterModifierClasses, splitterOrientationOf } from "@mmda/vui"
 
 function paneSizePercent(value: string | undefined, fallback: number): number {
   if (!value) return fallback;

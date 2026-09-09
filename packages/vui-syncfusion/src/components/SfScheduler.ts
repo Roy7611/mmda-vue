@@ -8,22 +8,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import {
-  createNoopSchedulerController,
-  downloadSchedulerExcel,
-  emitSchedulerChange,
-  emitSchedulerEventClick,
-  excelFileName,
-  htmlAttributesOf,
-  openSchedulerEventUrl,
-  schedulerHookClass,
-  schedulerWorkDaysOf,
-  type UiSchedulerController,
-  type UiSchedulerEvent,
-  type UiSchedulerResource,
-  type UiSchedulerView,
-  type UiSchedulerViewProps,
-} from '@mmda/vui'
+import { createNoopSchedulerController, downloadSchedulerExcel, emitSchedulerChange, emitSchedulerEventClick, excelFileName, htmlAttributesOf, openSchedulerEventUrl, schedulerHookClass, schedulerWorkDaysOf, type UiSchedulerController, type UiSchedulerEvent, type UiSchedulerResource, type UiSchedulerView, type UiSchedulerViewProps } from '@mmda/vui'
 import {
   ej2CurrentViewOf,
   ej2RecordToUiEvent,

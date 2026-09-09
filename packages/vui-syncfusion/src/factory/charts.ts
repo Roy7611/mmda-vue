@@ -1,41 +1,6 @@
 import { defineComponent, h, provide } from 'vue'
-import type {
-  UiCalendarHeatMapProps,
-  UiChartData,
-  UiChartFactory,
-  UiChartProps,
-  UiCircularGaugeProps,
-  UiLinearGaugeProps,
-  UiGeoHeatMapProps,
-  UiHeatMapProps,
-  UiSankeyProps,
-  UiSmithChartProps,
-  UiSparklineProps,
-  UiStockChartProps,
-  UiTreeMapProps,
-  UiFunnelProps,
-  UiPyramidProps,
-  UiWaterfallProps,
-  UiBoxPlotProps,
-  UiHistogramProps,
-  UiBubbleProps,
-  UiBulletProps,
-} from '@mmda/vui'
-import {
-  chartHookClass,
-  chartShortcuts,
-  htmlAttributesOf,
-  resolveChartData,
-  resolveChartType,
-  sankeyLabelOf,
-  sankeyNodesOf,
-  sparklinePointsOf,
-  stockChartHasVolume,
-  stockChartKeysOf,
-  treeMapLabelOf,
-  treeMapWeightedOf,
-  unsupportedChartMethod,
-} from '@mmda/vui'
+import type { UiCalendarHeatMapProps, UiChartData, UiChartFactory, UiChartProps, UiCircularGaugeProps, UiLinearGaugeProps, UiGeoHeatMapProps, UiHeatMapProps, UiSankeyProps, UiSmithChartProps, UiSparklineProps, UiStockChartProps, UiTreeMapProps, UiFunnelProps, UiPyramidProps, UiWaterfallProps, UiBoxPlotProps, UiHistogramProps, UiBubbleProps, UiBulletProps } from '@mmda/vui'
+import { chartHookClass, chartShortcuts, htmlAttributesOf, resolveChartData, resolveChartType, sankeyLabelOf, sankeyNodesOf, sparklinePointsOf, stockChartHasVolume, stockChartKeysOf, treeMapLabelOf, treeMapWeightedOf, unsupportedChartMethod } from '@mmda/vui'
 import {
   CandleSeries,
   ColumnSeries,

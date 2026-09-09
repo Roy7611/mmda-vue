@@ -8,17 +8,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import {
-  applyGanttLinksToTasks,
-  createNoopGanttController,
-  ganttHookClass,
-  htmlAttributesOf,
-  type UiGanttChartProps,
-  type UiGanttController,
-  type UiGanttLink,
-  type UiGanttTask,
-  type UiGanttViewMode,
-} from '@mmda/vui'
+import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttChartProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttViewMode } from '@mmda/vui'
 import '@syncfusion/ej2-treegrid/styles/material3.css'
 import '@syncfusion/ej2-gantt/styles/material3.css'
 

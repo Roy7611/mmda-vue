@@ -7,7 +7,7 @@ describe("cleanTableCellProps", () => {
     const cleaned = cleanTableCellProps({
       rowStyle,
       showGridlines: true,
-      enableSort: false,
+      sortable: false,
       tableMetaui: { objName: "MaterialPartner" },
       class: "mmda-prime-table",
       title: "cell title",

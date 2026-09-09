@@ -42,6 +42,7 @@ import { WithData } from "./mixins/data";
 import { WithNavigate } from "./mixins/navigate";
 import { createSession, setSessionFactory } from "./mixins/session";
 import type { ChildContextOptions } from "./mixins/types";
+import type { UiIndexTableHost } from "../ui/factory/list";
 
 type ContextCache = Map<string, VueUiContextBase<any>>;
 type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
@@ -110,6 +111,10 @@ class VueUiContextBase<E extends object = Record<string, any>>
   readonly unsavedRows = new WeakMap<object, string>();
   unsavedRowSequence = 0;
   #selection: any[] = [];
+  /** 列表进详情/编辑的当前行；与勾选 selectedItems 分开。 */
+  currentItem: any | null = null;
+  currentIndex = -1;
+  indexTableHost?: UiIndexTableHost;
   #selectableKey = "default";
   readonly #selectableFns = new Map<string, SelectableFn<any>>();
   #customManyActionKey = "default";

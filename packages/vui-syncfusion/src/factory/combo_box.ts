@@ -1,15 +1,8 @@
 import { h } from "vue";
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
-import type { UiComboBoxProps } from "@mmda/vui";
-import {
-  SELECT_DEBOUNCE_MS,
-  comboBoxAllowCustom,
-  comboBoxModifierClasses,
-  comboBoxValueOf,
-  emitComboBoxChange,
-  htmlAttributesOf,
-  selectOptionsOf,
-} from "@mmda/vui";
+import type { UiComboBoxProps } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, emitComboBoxChange, selectOptionsOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 import {
   syncfusionSelectFields,
   syncfusionSelectFiltering,

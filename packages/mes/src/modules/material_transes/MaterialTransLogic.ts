@@ -121,8 +121,8 @@ const beforeReceive = async (context: UiContext, model: MaterialTrans, action: E
 			{
 				title: t('auth.MaterialTransItem'),
 				width: '70%',
-				onAccept: async () => {
-					const paramData = subData.data.map((item: any) => ({
+				onAccept: async (button) => {
+				  const paramData = subData.data.map((item: any) => ({
 						refID: item.transID,
 						refItemID: item.itemID,
 						refName: item.arrivedQuantity,

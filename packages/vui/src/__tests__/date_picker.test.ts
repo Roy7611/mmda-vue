@@ -17,7 +17,7 @@ import {
   resolveDateShortcutValue,
   resolveDateShortcuts,
 } from '../ui/factory/date_picker'
-import { dateRangePickerValueOf } from '../ui/factory/date_range_picker'
+import { dateRangePickerValueOf } from '@mmda/core'
 
 describe('datePicker helpers', () => {
   it('parses Date and prefers value over modelValue', () => {

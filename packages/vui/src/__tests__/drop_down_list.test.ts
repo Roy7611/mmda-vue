@@ -9,12 +9,12 @@ import {
   normalizeSelectOption,
   selectOptionFromSource,
   selectOptionsOf,
-} from '../ui/factory/drop_down_list'
+} from '@mmda/core'
 import {
   comboBoxAllowCustom,
   comboBoxModifierClasses,
   comboBoxPropsFromField,
-} from '../ui/factory/combo_box'
+} from '@mmda/core'
 
 describe('dropDownList helpers', () => {
   it('normalizes string and object options with group and icon', () => {
@@ -121,7 +121,8 @@ describe('dropDownList helpers', () => {
       },
     )
     expect(flat.options?.[0]).toEqual({ value: '1', label: 'A 原料' })
-    expect(flat.options?.[0].group).toBeUndefined()
+    const first = flat.options?.[0]
+    expect(typeof first === 'object' && first ? first.group : undefined).toBeUndefined()
   })
 
   it('copies icon from option rows', () => {

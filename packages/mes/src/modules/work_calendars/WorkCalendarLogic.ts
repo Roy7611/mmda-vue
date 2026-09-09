@@ -100,15 +100,15 @@ export class WorkCalendarLogic extends UiLogic<WorkCalendar> {
 			title: field.displayLabel,
 			height: "62vh",
 			width: "80vw",
-			onAccept: () => {
-				console.log(group);
+			onAccept: async (button) => {
+			  console.log(group);
 
 				return Promise.resolve(true)
 			},
 		}
 		)
-			.then((res: boolean) => {
-				return res;
+			.then((res) => {
+				return res === 'ok';
 			}).catch(() => {
 				return false
 			})

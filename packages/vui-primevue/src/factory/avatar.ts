@@ -1,7 +1,7 @@
 import { h } from "vue";
 import Avatar from "primevue/avatar";
-import type { IconResolver, UiAvatarProps, UiAvatarSize } from "@mmda/vui";
-import { avatarModifierClasses } from "@mmda/vui";
+import type { IconResolver, UiAvatarProps, UiAvatarSize } from "@mmda/vui"
+import { avatarModifierClasses, uiCssClass } from "@mmda/vui"
 
 const primeSize = (size?: UiAvatarSize) => {
   if (size === "large" || size === "xlarge") return size;
@@ -28,6 +28,6 @@ export function createAvatar(props: UiAvatarProps, resolveIcon: IconResolver) {
     label: !src && !icon ? label : undefined,
     shape: shape === "circle" ? "circle" : "square",
     size: primeSize(size),
-    class: ["mmda-avatar", avatarModifierClasses(props)],
+    class: [uiCssClass("avatar"), avatarModifierClasses(props)],
   });
 }

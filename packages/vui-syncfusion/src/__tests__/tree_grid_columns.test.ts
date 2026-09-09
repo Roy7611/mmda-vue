@@ -60,8 +60,7 @@ describe('buildSfTreeGridColumns / sfTreeGridColumnOf', () => {
       listed: true,
     })
     const col = sfTreeGridColumnOf(enabled, 1, {
-      inplaceEdit: true,
-      editableFields: ['enabled'],
+      editable: true,
     })
     expect(col.displayAsCheckBox).toBe(true)
     expect(col.textAlign).toBe('Center')
@@ -90,8 +89,7 @@ describe('buildSfTreeGridColumns / sfTreeGridColumnOf', () => {
       listed: true,
     })
     const cols = buildSfTreeGridColumns(metauiOf(title, status), {
-      inplaceEdit: true,
-      editableFields: ['title', 'status'],
+      editable: true,
     })
     expect(cols).toHaveLength(2)
     expect(cols[0]!.width).toBeGreaterThanOrEqual(200)

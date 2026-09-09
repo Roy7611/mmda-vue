@@ -4,20 +4,11 @@
  * chrome 取色走 factory.colorPicker。值一律 hex。
  * 字段 fldFactory.colorPicker 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 
-export type UiColorPickerMode = 'picker' | 'palette'
-
-export interface UiColorPickerProps extends PropData {
-  /** 色值，默认 hex（3/6 位；含透明度 4/8 位）。可带或不带 `#` */
-  value?: string
-  mode?: UiColorPickerMode
-  /** 是否显示 Picker↔Palette 切换。缺省 true */
-  showModeSwitcher?: boolean
-  disabled?: boolean
-  onChange?: (value: string) => void
-}
+export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 
 export type ColorPickerFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -109,22 +100,16 @@ export function emitColorPickerChange(
 ): void {
   const hex = colorPickerHexOf(value)
   props.onChange?.(hex)
-  props['onUpdate:modelValue']?.(hex)
-  props.onUpdate?.(hex)
+  callUiBagFn(props, 'onUpdate:modelValue', hex)
+  callUiBagFn(props, 'onUpdate', hex)
 }
 
-export function colorPickerModifierClasses(props: UiColorPickerProps): unknown[] {
-  const mode =
-    props.mode && props.mode !== 'picker'
-      ? `mmda-colorpicker--${props.mode}`
-      : undefined
-  return ['mmda-colorpicker', mode, props.class]
-}
+export { colorPickerModifierClasses } from '@mmda/core'
 
 export function colorPickerPropsFromField(
   field: MetaUiField,
   context: ColorPickerFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiColorPickerProps {
   return {
     value: colorPickerHexOf(context.getFieldValue(field)),

@@ -1,19 +1,8 @@
 import { h, reactive } from 'vue'
 import { NSelect } from 'naive-ui'
-import type { UiDropDownListProps, UiSelectOption } from '@mmda/vui'
-import {
-  SELECT_DEBOUNCE_MS,
-  SELECT_MIN_LENGTH,
-  dropDownListModifierClasses,
-  dropDownListValueOf,
-  emitDropDownListChange,
-  htmlAttributesOf,
-  nestSelectOptionsByGroup,
-  normalizeSelectOption,
-  selectOptionsGrouped,
-  selectOptionsHaveIcon,
-  selectOptionsOf,
-} from '@mmda/vui'
+import type { UiDropDownListProps, UiSelectOption } from '@mmda/core'
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, emitDropDownListChange, nestSelectOptionsByGroup, normalizeSelectOption, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 export function naiveSelectOptions(options: UiSelectOption[]) {
   if (!selectOptionsGrouped(options)) {

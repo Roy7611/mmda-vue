@@ -2,15 +2,7 @@ import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
 import Tree from 'primevue/tree'
 import ContextMenu from 'primevue/contextmenu'
 import InputText from 'primevue/inputtext'
-import {
-  mapTreeNodes,
-  resolveMappedTreeDrop,
-  selectedIdSet,
-  type UiTreeEmits,
-  type UiTreeFields,
-  type UiTreeMappedNode,
-  type UiTreeProps,
-} from '@mmda/vui'
+import { mapTreeNodes, resolveMappedTreeDrop, selectedIdSet, type UiTreeEmits, type UiTreeFields, type UiTreeMappedNode, type UiTreeProps } from '@mmda/vui'
 
 type TreeProps = UiTreeProps & UiTreeEmits
 

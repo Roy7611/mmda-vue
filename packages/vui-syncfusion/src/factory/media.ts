@@ -1,12 +1,6 @@
 import { h } from "vue";
 import { SfImageGallery } from "../components/SfImageGallery";
-import {
-  createFileUploader,
-  createFilesUploader,
-  createImageUploader,
-  createImagesUploader,
-  renderFileLink,
-} from "@mmda/vui";
+import { createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink } from "@mmda/vui"
 
 const fileLink = (props: any = {}) => renderFileLink(props);
 const fileUploader = (props: any = {}) => createFileUploader(props);

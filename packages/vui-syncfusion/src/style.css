@@ -1232,7 +1232,7 @@ html.e-dark-mode .mmda-sf-dropup {
   padding: 0;
 }
 
-.mmda-sf-maincontent .mmda-page-layout > .mmda-page-regions {
+.mmda-sf-maincontent .mmda-page-layout > .mmda-page-body {
   margin-inline: 1rem;
   margin-block-start: 0.75rem;
 }
@@ -1730,12 +1730,13 @@ html.e-dark-mode .mmda-sf-dropup {
 }
 
 /*
- * 折叠钮：贴在侧栏右缘、与标题行同高的半胶囊浮层（不占文档流）。
+ * 折叠钮：贴在侧栏右缘、相对标题行的半胶囊浮层（不占文档流）。
  * left 与 Sidebar width / dockSize 对齐：展开 300px，收起 72px。
+ * 相对原标题中线再下移 2/3 耳朵高度（高 2.75rem）。
  */
 .mmda-sf-system-collapse {
   position: absolute;
-  top: calc(1.625rem + 8px);
+  top: calc(1.625rem + 8px + 2.75rem * 2 / 3);
   left: 300px;
   z-index: 6;
   display: inline-flex;
@@ -2383,18 +2384,18 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
 }
 
 /* 详情 Card 字段：强制 label 定宽右对齐，field 占满（与 theme 双列网格一致） */
-.e-card.mmda-group .mmda-field-group-layout.mmda-field-group-row[data-cols="2"] {
+.e-card.mmda-group .mmda-field-group-layout--row[data-cols="2"] {
   grid-template-columns:
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
 }
-.e-card.mmda-group .mmda-field-group-layout.mmda-field-group-row[data-cols="3"] {
+.e-card.mmda-group .mmda-field-group-layout--row[data-cols="3"] {
   grid-template-columns:
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
     var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
 }
-.e-card.mmda-group .mmda-field-group-layout > .mmda-field-horizontal {
+.e-card.mmda-group .mmda-field-group-layout > .mmda-field-layout--horizontal {
   display: contents !important;
 }
 .e-card.mmda-group .mmda-field-group-layout .mmda-field-label {
@@ -2734,40 +2735,21 @@ html.mmda-dark .e-grid .e-table {
   min-height: 1.5rem;
 }
 
-/* 表格设置：非模态、限宽限高 */
-.e-dialog.mmda-list-setting-dialog {
-  max-width: min(92vw, 30rem);
-  max-height: 80vh;
-}
-
-.e-dialog.mmda-list-setting-dialog .e-dlg-header-content {
-  flex-shrink: 0;
-}
-
 /* 表格设置：恢复默认 SplitButton 左右两段圆角衔接 */
-.e-dialog.mmda-list-setting-dialog
-  .e-split-btn-wrapper.mmda-list-setting__restore
-  > .e-split-btn {
+.e-split-btn-wrapper.mmda-list-setting__restore > .e-split-btn {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.e-dialog.mmda-list-setting-dialog
-  .e-split-btn-wrapper.mmda-list-setting__restore
-  > .e-dropdown-btn {
+.e-split-btn-wrapper.mmda-list-setting__restore > .e-dropdown-btn {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   min-width: 2rem;
   padding-inline: 0.35rem;
 }
 
-.e-dialog.mmda-list-setting-dialog
-  .mmda-list-setting__row.is-hidden
-  .mmda-list-setting__visibility.e-btn,
-.e-dialog.mmda-list-setting-dialog
-  .mmda-list-setting__row.is-hidden
-  .mmda-list-setting__visibility
-  .e-btn-icon {
+.mmda-list-setting__row.is-hidden .mmda-list-setting__visibility.e-btn,
+.mmda-list-setting__row.is-hidden .mmda-list-setting__visibility .e-btn-icon {
   color: var(--mmda-text-muted-color);
 }
 

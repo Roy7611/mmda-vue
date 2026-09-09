@@ -56,8 +56,8 @@ export const NoticeFn = async (
 			context,
 			{
 				title: props.title,
-				onAccept: async () => {
-					//选中人必�?
+				onAccept: async (button) => {
+				  //选中人必�?
 					if (!props.data.ownerID) {
 						props.data.ownerInvalid = true;
 						return false;

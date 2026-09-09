@@ -1,17 +1,8 @@
 import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
-import type { UiMultiSelectProps } from "@mmda/vui";
-import {
-  SELECT_DEBOUNCE_MS,
-  applyAndEmitMultiSelectKeys,
-  htmlAttributesOf,
-  multiSelectChromeOptionsOf,
-  multiSelectModifierClasses,
-  multiSelectOptionKeyOf,
-  multiSelectOptionLabelOf,
-  multiSelectSelectedKeysOf,
-  withMultiSelectBindMode,
-} from "@mmda/vui";
+import type { UiMultiSelectProps } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, applyAndEmitMultiSelectKeys, multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 function dataSourceOf(props: UiMultiSelectProps) {
   return multiSelectChromeOptionsOf(props).map((item) => ({
@@ -20,52 +11,38 @@ function dataSourceOf(props: UiMultiSelectProps) {
   }));
 }
 
-export function createMultiSelect(props: UiMultiSelectProps) {
-  const {
-    value: _value,
-    modelValue: _modelValue,
-    options: _options,
-    bindMode: _bindMode,
-    valueField: _valueField,
-    labelField: _labelField,
-    separator: _separator,
-    display: _display,
-    placeholder,
-    disabled,
-    allowFiltering,
-    suggest: _suggest,
-    reference: _reference,
-    onChange: _onChange,
-    htmlAttributes,
-    class: _className,
-    ...rest
-  } = props;
-
+function defineInputProps(props: UiMultiSelectProps) {
   const cssClass = multiSelectModifierClasses(props)
     .flat()
     .filter(Boolean)
     .join(" ");
-
-  return h(MultiSelectComponent as any, {
-    ...rest,
+  return {
     ...htmlAttributesOf(props),
+    cssClass,
+    placeholder: props.placeholder,
+    enabled: props.disabled !== true,
+  };
+}
+
+export function createMultiSelect(props: UiMultiSelectProps) {
+  const ej2Props = {
+    ...defineInputProps(props),
     dataSource: dataSourceOf(props),
     fields: { value: "value", text: "label" },
     value: multiSelectSelectedKeysOf(props),
-    mode: "CheckBox",
+    mode: "CheckBox" as const,
     showSelectAll: true,
-    placeholder,
-    enabled: disabled !== true,
-    allowFiltering: allowFiltering !== false,
+    allowFiltering: props.allowFiltering !== false,
     debounceDelay: SELECT_DEBOUNCE_MS,
-    cssClass,
     change: (args: { value?: Array<string | number> }) => {
       applyAndEmitMultiSelectKeys(
         props,
         Array.isArray(args?.value) ? args.value : [],
       );
     },
-  });
+  };
+
+  return h(MultiSelectComponent, ej2Props);
 }
 
 export function createMultiItemSelect(props: UiMultiSelectProps) {

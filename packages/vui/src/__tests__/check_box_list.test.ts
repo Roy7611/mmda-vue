@@ -5,7 +5,7 @@ import {
   checkBoxListKeysAfterSelectAll,
   checkBoxListKeysAfterToggle,
   checkBoxListModifierClasses,
-} from '../ui/factory/check_box_list'
+} from '@mmda/core'
 
 const options = [
   { value: 1, label: '读' },

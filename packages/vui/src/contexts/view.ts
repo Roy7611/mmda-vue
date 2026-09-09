@@ -2,8 +2,8 @@ import type { VNode, VNodeChild } from "vue";
 import { parseSorts, isString, isNumber, PagerCtor, DEFAULT_PAGE_SIZE, defaultSearchParam } from "@mmda/core";
 import type { EntitySearchParam } from "@mmda/core";
 import type { RouteParams } from "vue-router";
-import type { PropData } from "../ui/layout/layout";
-import type { UiDialogPropsType } from "../ui/factory/dialog";
+import type {UiProps} from "../ui/layout/layout";
+import type { UiDialogProps } from "@mmda/core";
 import { readStoredPageSize } from "../app/theme";
 
 export type ChildSlot = (...args: any[]) => VNodeChild;
@@ -79,7 +79,7 @@ export interface UiViewOneProps {
 
 export function resolveViewOneProps(
   routeParam: RouteParams,
-  attrs: PropData,
+  attrs: UiProps,
   props?: any,
 ): UiViewOneProps {
   return {
@@ -201,14 +201,13 @@ export type UiViewType = UiViewOneType | UiViewManyType;
 //#region view props
 export interface UiViewProps {
   showToolbar?: boolean;
-  stickyToolbar?: boolean;
   primaryCols?: 2 | 3;
   showBreadcrumb?: boolean;
   showActions?: boolean;
   showGroupActions?: boolean; //分组操作是否显示
   showSecondaryGroup?: boolean; //是否显示右边辅助栏
   showAttachments?: boolean;
-  dialogs?: UiDialogPropsType[];
+  dialogs?: UiDialogProps[];
 }
 
 export interface UiViewSlot {
@@ -222,7 +221,7 @@ export interface UiViewSlots {
   qrCode?: () => VNode;
   slots?: Array<UiViewSlot>;
 }
-export type UiViewPropsType = UiViewProps & UiViewSlots & PropData;
+export type UiViewPropsType = UiViewProps & UiViewSlots & UiProps;
 //#endregion
 
 //#region Qcode props

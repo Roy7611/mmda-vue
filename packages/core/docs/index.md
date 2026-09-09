@@ -5,6 +5,8 @@
 - [本轮分层清理（历史）](./refactor.md)
 - [UI 契约 / 应用壳 / 选记录（本轮）](./refactor_ui_app.md)
 - [core / vui / syncfusion 评估（工作稿）](../../../docs/reviews/core-vui-syncfusion.md)
+- [Ui 契约（三层）](./ui.md)
+- [布局设计](./ui/layout.md) / [怎么写](../../vui/docs/layout_usage.md)
 - [UiBuilder：程序员怎么写](./ui/ui_builder_usage.md)
 - [UiContext：程序员怎么写](./logic/ui_context_usage.md)
 - [vui 会话设计（VueUiContext）](../../vui/docs/vue_ui_context.md)
@@ -91,6 +93,12 @@
 - [platform.ts](./utils/platform.md)
 - [pluralize.ts](./utils/pluralize.md)
 - [tools.ts](./utils/tools.md)
+
+## ui
+
+- [ui.md](./ui.md) — 契约总览
+- [layout.ts](./ui/layout.md)
+- [ui_builder_usage.md](./ui/ui_builder_usage.md)
 
 ## extensions
 

@@ -1,14 +1,7 @@
 import { h } from "vue";
 import Toolbar from "primevue/toolbar";
-import type { UiToolbarProps, UiToolbarSlots, UiToolbarSlotName } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  toolbarHasCenter,
-  toolbarModifierClasses,
-  toolbarSlotModifierClasses,
-  toolbarSlotStyle,
-  toolbarSlotContent,
-} from "@mmda/vui";
+import type { UiToolbarProps, UiToolbarSlots, UiToolbarSlotName } from "@mmda/vui"
+import { htmlAttributesOf, toolbarHasCenter, toolbarModifierClasses, toolbarSlotModifierClasses, toolbarSlotStyle, toolbarSlotContent } from "@mmda/vui"
 
 function wrap(
   props: UiToolbarProps,

@@ -1,10 +1,6 @@
 import { h, reactive } from "vue";
-import type { PropData } from "@mmda/vui";
-import type {
-  SigninFormProps,
-  SignupFormProps,
-  SigninFormSlots,
-} from "@mmda/vui";
+import type { UiProps } from "@mmda/vui"
+import type { SigninFormProps, SignupFormProps, SigninFormSlots } from "@mmda/vui"
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import { SfBpmnDiagram } from "../components/SfBpmnDiagram";
@@ -14,7 +10,7 @@ import type { UiContext } from "./utils";
 export function buildBpmnDiagram(
   flowTrails: any[],
   _context: UiContext,
-  props: PropData = {},
+  props: UiProps = {},
 ) {
   return h("section", { class: "mmda-sf-flow", ...props }, [
     h(SfBpmnDiagram, {

@@ -2,7 +2,7 @@
 
 从 `@mmda/vui` 导入类型；节点用 `builder.factory.inplaceEditor`。字段用 `fldFactory.inplaceFieldEditor`。设计见 [inplace_editor.md](./inplace_editor.md)。
 
-vui chrome 名是 **`inplaceEditor`**。fld 名是 **`inplaceFieldEditor`** / **`InplaceFieldEditor`**。不要写 `inplace` / `ejs-inplaceeditor` / `InPlaceEditor` / `Inplace` 进 vui。不要当表格 `inplaceEdit`。
+vui chrome 名是 **`inplaceEditor`**。fld 名是 **`inplaceFieldEditor`** / **`InplaceFieldEditor`**。不要写 `inplace` / `ejs-inplaceeditor` / `InPlaceEditor` / `Inplace` 进 vui。不要当表格 `editable`。
 
 ```ts
 factory.inplaceEditor(
@@ -46,4 +46,4 @@ fldFactory.inplaceFieldEditor(field, context)
 - 指望本控件 `saveOne` 或表格批量提交
 - 给 chrome 写 `default` 槽
 - fld 名写成 `InplaceEditor`（SF 类）
-- 和 `nativeInplaceEdit` / 列 `inplaceEdit` 当同一个 API
+- 和 `nativeInplaceEdit` / 表 `editable` 当同一个 API

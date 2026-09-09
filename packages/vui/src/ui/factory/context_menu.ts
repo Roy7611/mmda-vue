@@ -1,26 +1,12 @@
 /*
- * Syncfusion: https://ej2.syncfusion.com/vue/documentation/context-menu/vue-3-getting-started
- *
  * chrome 右键菜单走 factory.contextMenu。与 factory.menu / dropDownButton 不同：锚点是 target 上的右键/长按。
+ * 契约在 @mmda/core。
  */
-import type { PropData } from '../layout/layout'
+import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
 import { isActionEnabled, isActionVisible } from './action'
-import type { UiMenuItem } from './menu'
 
-export interface UiContextMenuProps extends PropData {
-  items?: UiMenuItem[]
-  /** CSS 选择器。对应 EJ2 `target`。 */
-  target?: string
-  disabled?: boolean
-  onSelect?: (item: UiMenuItem) => void
-  onBeforeOpen?: (args: { event?: Event }) => void | boolean
-}
-
-export function contextMenuModifierClasses(
-  props: UiContextMenuProps,
-): unknown[] {
-  return ['mmda-context-menu', props.class]
-}
+export type { UiContextMenuProps } from '@mmda/core'
+export { contextMenuModifierClasses } from '@mmda/core'
 
 function filterContextMenuItems(
   items: UiMenuItem[],
@@ -53,7 +39,7 @@ export function invokeContextMenuItem(
   item: UiMenuItem,
 ): void {
   if (item.divider) return
-  const handler = item.onAction ?? item.command
+  const handler = item.onAction
   void handler?.()
   props.onSelect?.(item)
 }

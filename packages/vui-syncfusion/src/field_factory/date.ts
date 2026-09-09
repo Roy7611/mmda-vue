@@ -1,13 +1,7 @@
 import { h } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import {
-  datePickerPropsFromField,
-  dateRangePickerPropsFromField,
-  dateTimePickerPropsFromField,
-  monthPickerPropsFromField,
-  timePickerPropsFromField,
-  type PropData,
-} from "@mmda/vui";
+import { datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField } from "@mmda/core"
+import { type UiProps } from "@mmda/vui"
 import { createDatePicker } from "../factory/date_picker";
 import { createDateTimePicker } from "../factory/date_time_picker";
 import { createTimePicker } from "../factory/time_picker";
@@ -30,7 +24,7 @@ const wrap = (field: MetaUiField, context: UiContext, child: ReturnType<typeof h
 export const datePicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrap(
     field,
@@ -41,7 +35,7 @@ export const datePicker = (
 export const dateTimePicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrap(
     field,
@@ -54,7 +48,7 @@ export const dateTimePicker = (
 export const monthPicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrap(
     field,
@@ -65,7 +59,7 @@ export const monthPicker = (
 export const timePicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrap(
     field,
@@ -76,7 +70,7 @@ export const timePicker = (
 export const dateRangePicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrap(
     field,

@@ -3,53 +3,59 @@ import {
   isNullObject,
   type MetaUiField,
   type MetaUiGroup,
+  type UiFieldFactory as CoreUiFieldFactory,
+  type UiFieldRenderer,
 } from "@mmda/core";
-import type { PropData } from "../layout/layout";
+import type {UiProps} from "../layout/layout";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 
-type UiContext = VueUiContext<any>;
+export type { UiFieldRenderer } from "@mmda/core";
 
-export type UiFieldRenderer = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: PropData,
-) => VNode;
+type UiContext = VueUiContext<any>;
+type VueFieldRenderer = UiFieldRenderer<VNode>;
+
 export type UiGroupRenderer = (
   group: MetaUiGroup,
   context: UiContext,
   children?: VNode[],
-  props?: PropData,
+  props?: UiProps,
 ) => VNode;
 
-export interface UiFieldFactory extends Record<string, UiFieldRenderer> {
-  fallbackDisplay: UiFieldRenderer;
-  fallbackInput: UiFieldRenderer;
-  maskedTextBox?: UiFieldRenderer;
-  oneTimePasswordInput?: UiFieldRenderer;
-  slider?: UiFieldRenderer;
-  rating?: UiFieldRenderer;
-  mobileInput?: UiFieldRenderer;
-  zipCodeInput?: UiFieldRenderer;
-  numberInput?: UiFieldRenderer;
-  percentInput?: UiFieldRenderer;
-  positiveNumberInput?: UiFieldRenderer;
-  negativenumberInput?: UiFieldRenderer;
-  progressBar?: UiFieldRenderer;
-  signaturePad?: UiFieldRenderer;
-  stepper?: UiFieldRenderer;
-  timeline?: UiFieldRenderer;
-  radioButtonGroup?: UiFieldRenderer;
-  imageUploader?: UiFieldRenderer;
-  inplaceFieldEditor?: UiFieldRenderer;
+/** core 字段工厂钉成 VNode；无额外方法。 */
+export type VueUiFieldFactory = CoreUiFieldFactory<VNode>;
+
+/** 过渡名：皮肤仍写 UiFieldFactory。 */
+export interface UiFieldFactory extends VueUiFieldFactory {
+  fallbackDisplay: VueFieldRenderer;
+  fallbackInput: VueFieldRenderer;
+  maskedTextBox?: VueFieldRenderer;
+  oneTimePasswordInput?: VueFieldRenderer;
+  slider?: VueFieldRenderer;
+  rating?: VueFieldRenderer;
+  mobileInput?: VueFieldRenderer;
+  zipCodeInput?: VueFieldRenderer;
+  numberInput?: VueFieldRenderer;
+  percentInput?: VueFieldRenderer;
+  positiveNumberInput?: VueFieldRenderer;
+  negativenumberInput?: VueFieldRenderer;
+  progressBar?: VueFieldRenderer;
+  signaturePad?: VueFieldRenderer;
+  stepper?: VueFieldRenderer;
+  timeline?: VueFieldRenderer;
+  radioButtonGroup?: VueFieldRenderer;
+  imageUploader?: VueFieldRenderer;
+  inplaceFieldEditor?: VueFieldRenderer;
+  quantityUnit?: VueFieldRenderer;
+  relativeTime?: VueFieldRenderer;
 }
 
-export const defineFieldProps = (field: MetaUiField): PropData => ({
+export const defineFieldProps = (field: MetaUiField): UiProps => ({
   ".id": field.fieldName,
   ".name": field.fieldName,
   required: !field.nullable,
 });
 
-export const defineInputProps = (field: MetaUiField): PropData => ({
+export const defineInputProps = (field: MetaUiField): UiProps => ({
   ".id": field.fieldName,
   ".name": field.fieldName,
   maxlength: field.maxLength,
@@ -66,13 +72,13 @@ export const TABLE_CELL_PROP_KEYS = [
   "readOnlyRows",
   "row",
   "group",
-  "enableSort",
+  "sortable",
   "showGridlines",
+  "fieldCellRenderers",
   "renderCell",
   "templateCellFields",
   "tableMetaui",
   "onItemDoubleClick",
-  "customCellRenderers",
   "onSort",
   "selectionMode",
   "showColumnFilters",
@@ -115,15 +121,12 @@ export const TABLE_CELL_PROP_KEYS = [
   "onItemSelect",
   "onSelectAll",
   "filterDisplay",
-  "inplaceEdit",
+  "editable",
   "inplaceEditStart",
-  "editableFields",
-  "canEditCell",
-  "onCellSave",
-  "showSummary",
-  "showColumnWithAction",
+  "fieldCellEditors",
+  "showActionColumn",
   "showActions",
-  "rowMenu",
+  "rowActions",
   "itemHeight",
   "treeShape",
   "shapeKey",
@@ -135,15 +138,17 @@ export const TABLE_CELL_PROP_KEYS = [
   "childrenKey",
   "childrenCountKey",
   "onExpand",
-  "enableGroup",
+  "pageable",
+  "filterable",
+  "groupable",
 ] as const;
 
 export const cleanProps = (
   unwantedKeys: readonly string[],
-  props: PropData,
-): PropData => {
+  props: UiProps,
+): UiProps => {
   if (!props || isNullObject(props)) return {};
-  const cleaned = Object.assign({}, props) as PropData;
+  const cleaned = Object.assign({}, props) as UiProps;
   for (const key of unwantedKeys) {
     delete cleaned[key];
   }
@@ -151,5 +156,5 @@ export const cleanProps = (
 };
 
 /** 构造列级 cell renderer 时调用一次，勿在逐行循环里重复清理 */
-export const cleanTableCellProps = (props: PropData = {}): PropData =>
+export const cleanTableCellProps = (props: UiProps = {}): UiProps =>
   cleanProps(TABLE_CELL_PROP_KEYS, props);

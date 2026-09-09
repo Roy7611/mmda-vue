@@ -1,6 +1,6 @@
 # 日历设计
 
-chrome 月视选日，走 `factory.calendar`。EJ2 见 [Calendar Vue 3 getting started](https://ej2.syncfusion.com/vue/documentation/calendar/vue3-getting-started)。日/周/月**事件排程**走 [scheduler.md](./scheduler.md)，不是本控件。
+chrome 月视选日，走 `factory.calendar`。契约 `UiCalendarProps` 在 `@mmda/core`。EJ2 见 [Calendar Vue 3 getting started](https://ej2.syncfusion.com/vue/documentation/calendar/vue3-getting-started)。日/周/月**事件排程**走 [scheduler.md](./scheduler.md)，不是本控件。
 
 程序员用法：[calendar_usage.md](./calendar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 

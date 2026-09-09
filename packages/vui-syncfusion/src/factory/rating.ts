@@ -1,15 +1,7 @@
 import { h } from "vue";
 import { RatingComponent } from "@syncfusion/ej2-vue-inputs";
-import type { UiRatingProps, UiRatingTemplate } from "@mmda/vui";
-import {
-  emitRatingChange,
-  htmlAttributesOf,
-  ratingItemsCountOf,
-  ratingModifierClasses,
-  ratingReadOnlyOf,
-  ratingValueOf,
-  resolveRatingTemplate,
-} from "@mmda/vui";
+import type { UiRatingProps, UiRatingTemplate } from "@mmda/vui"
+import { emitRatingChange, htmlAttributesOf, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from "@mmda/vui"
 
 function toEj2Template(
   template: UiRatingTemplate | undefined,
@@ -43,7 +35,7 @@ export function createRating(props: UiRatingProps) {
     .flat()
     .filter(Boolean)
     .join(" ");
-  const isDisabled = disabled === true || disabled === "true";
+  const isDisabled = disabled === true;
 
   return h(RatingComponent as any, {
     ...rest,

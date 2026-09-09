@@ -1,8 +1,8 @@
 import { h } from "vue";
 import { NProgress } from "naive-ui";
-import type { UiColorRole, UiProgressBarProps } from "@mmda/vui";
-import { progressBarModifierClasses } from "@mmda/vui";
-
+import type { UiProgressBarProps } from "@mmda/core"
+import type { UiColorRole } from "@mmda/vui"
+import { progressBarModifierClasses } from "@mmda/core"
 const percentOf = (props: UiProgressBarProps): number => {
   const n = Number(props.value ?? props.modelValue ?? 0);
   const v = Number.isFinite(n) ? n : 0;

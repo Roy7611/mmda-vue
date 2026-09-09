@@ -2,31 +2,31 @@
  * chrome 三栏壳走 factory.toolbar。对标 PrimeVue Toolbar 的 start / center / end。
  * 不是 EJ2 items 命令条。没有 fldFactory。实现函数 createToolbar。
  */
-import { h, type VNode, type VNodeChild } from 'vue'
+import { h, type VNode } from 'vue'
+import type {
+  UiHorzAlign,
+  UiToolbarLayout,
+  UiToolbarProps,
+  UiToolbarSlotName,
+  UiToolbarSlots,
+} from '@mmda/core'
 import {
-  htmlAttributesOf,
-  type PropData,
-  type UiHorzAlign,
-} from '../layout/layout'
+  toolbarModifierClasses,
+  toolbarSlotModifierClasses,
+} from '@mmda/core'
+import { htmlAttributesOf } from '../layout/layout'
 
-export type UiToolbarLayout = 'full' | 'medium' | 'compact'
+export type {
+  UiToolbarLayout,
+  UiToolbarProps,
+  UiToolbarSlotName,
+  UiToolbarSlots,
+} from '@mmda/core'
 
-export type UiToolbarSlotName = 'start' | 'center' | 'end'
-
-export interface UiToolbarProps extends PropData {
-  align?: {
-    start?: UiHorzAlign
-    center?: UiHorzAlign
-    end?: UiHorzAlign
-  }
-  layout?: UiToolbarLayout
-}
-
-export interface UiToolbarSlots {
-  start?: () => VNodeChild
-  center?: () => VNodeChild
-  end?: () => VNodeChild
-}
+export {
+  toolbarModifierClasses,
+  toolbarSlotModifierClasses,
+} from '@mmda/core'
 
 const ALIGN: Record<UiToolbarSlotName, UiHorzAlign> = {
   start: 'left',
@@ -55,32 +55,11 @@ export function toolbarSlotJustifyContent(align: UiHorzAlign): string {
   return 'flex-start'
 }
 
-export function toolbarHasCenter(slots?: UiToolbarSlots): boolean {
+export function toolbarHasCenter(slots?: UiToolbarSlots<VNode>): boolean {
   return typeof slots?.center === 'function'
 }
 
-export function toolbarModifierClasses(
-  props: UiToolbarProps = {},
-  slots?: UiToolbarSlots,
-): unknown[] {
-  const layout = toolbarLayoutOf(props)
-  return [
-    'mmda-toolbar',
-    `mmda-toolbar--${layout}`,
-    toolbarHasCenter(slots) && 'mmda-toolbar--with-center',
-    props.class,
-  ]
-}
-
-export function toolbarSlotModifierClasses(
-  props: UiToolbarProps = {},
-  slot: UiToolbarSlotName,
-): unknown[] {
-  const align = toolbarSlotAlignOf(props, slot)
-  return [`mmda-toolbar__${slot}`, `mmda-toolbar__${slot}--${align}`]
-}
-
-export function toolbarRootStyle(slots?: UiToolbarSlots): Record<string, string> {
+export function toolbarRootStyle(slots?: UiToolbarSlots<VNode>): Record<string, string> {
   // 无中栏时不要 1fr|1fr 均分：右侧动作一多就会被压窄，按钮内文字换行把整栏撑高。
   const columns = toolbarHasCenter(slots)
     ? "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)"
@@ -108,16 +87,16 @@ export function toolbarSlotStyle(
 }
 
 export function toolbarSlotContent(
-  slots: UiToolbarSlots | undefined,
+  slots: UiToolbarSlots<VNode> | undefined,
   slot: UiToolbarSlotName,
-): VNodeChild {
-  return slots?.[slot]?.()
+): VNode | undefined {
+  return slots?.[slot]?.() as VNode | undefined
 }
 
 /** SF / Naive 共用三栏壳。Prime 用厂商 Toolbar 再套槽内 flex。 */
 export function renderToolbarChrome(
   props: UiToolbarProps = {},
-  slots?: UiToolbarSlots,
+  slots?: UiToolbarSlots<VNode>,
 ): VNode {
   const {
     align: _align,

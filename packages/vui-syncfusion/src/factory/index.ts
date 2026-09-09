@@ -1,8 +1,9 @@
 import { h } from "vue";
-import type { PropData, SyncfusionUiFactory, UiSlots } from "@mmda/vui";
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, switchArgs } from "@mmda/vui";
+import type { UiProps, SyncfusionUiFactory, UiSlots } from "@mmda/vui"
+import { switchArgs } from "@mmda/core"
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator } from "@mmda/vui"
 import { syncfusionLayout } from "../syncfusion_layout";
-import { patchChoiceFilter } from "./grid-inject";
+import { patchChoiceFilter } from "./grid_inject";
 import { createTableRenderer } from "./table";
 import { buttonRenderers, createButton } from "./buttons";
 import { createBadge } from "./badge";
@@ -22,8 +23,8 @@ import { createDivider } from "./divider";
 import { createTooltip } from "./tooltip";
 import { createInplaceEditor } from "./inplace_editor";
 import { createColorPicker } from "./color_picker";
-import { createMaskedTextBox } from "./maskedTextBox";
-import { createOneTimePasswordInput } from "./oneTimePasswordInput";
+import { createMaskedTextBox } from "./masked_text_box";
+import { createOneTimePasswordInput } from "./one_time_password_input";
 import { createQueryBuilder } from "./query_builder";
 import { createSlider } from "./slider";
 import { createRating } from "./rating";
@@ -54,7 +55,7 @@ import { overlayRenderers } from "./overlays";
 import { createSplitterRenderer } from "./splitter";
 import { mediaRenderers } from "./media";
 import { navigationRenderers } from "./navigation";
-import { treeGridRenderers } from "./tree-grid";
+import { treeGridRenderers } from "./tree_grid";
 import { miscellaneousRenderers } from "./miscellaneous";
 
 export { autoFitSyncfusionListGrid } from "./grid";
@@ -63,7 +64,7 @@ export { resolveFieldUnit } from "./utils";
 export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
-import "./grid-inject";
+import "./grid_inject";
 
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   patchChoiceFilter();
@@ -195,7 +196,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
         { ...props, class: ["e-link", props.class] },
         slots?.default?.() ?? props.text,
       ),
-    iconField: (value: any, props: PropData = {}) =>
+    iconField: (value: any, props: UiProps = {}) =>
       h("span", { class: "e-input-group" }, [
         props.icon && h("span", { class: factory.resolveIcon(props.icon) }),
         createTextInput({
@@ -203,11 +204,11 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           value: props.modelValue ?? value,
         }),
       ]),
-    autoComplete: (value: string, props: PropData = {}) =>
+    autoComplete: (value: string, props: UiProps = {}) =>
       createAutoComplete(value, props),
-    tagAutoComplete: (value: string, props: PropData = {}) =>
+    tagAutoComplete: (value: string, props: UiProps = {}) =>
       createTagAutoComplete(value, props),
-    formField: (props: PropData = {}, slots?: UiSlots) =>
+    formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(
         "div",
         { class: ["mmda-form-field", "mmda-sf-form-field", props.class], style: props.style },

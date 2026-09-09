@@ -1,21 +1,8 @@
 import { h } from 'vue'
 import { NInput } from 'naive-ui'
-import type { UiTextInputProps } from '@mmda/vui'
-import {
-  emitTextInputBlur,
-  emitTextInputChange,
-  emitTextInputFocus,
-  htmlAttributesOf,
-  textInputAutocompleteOf,
-  textInputDisabledOf,
-  textInputMaxLengthOf,
-  textInputModifierClasses,
-  textInputPlaceholderOf,
-  textInputReadonlyOf,
-  textInputShowClearButtonOf,
-  textInputTypeOf,
-  textInputValueOf,
-} from '@mmda/vui'
+import type { UiTextInputProps } from '@mmda/core'
+import { emitTextInputBlur, emitTextInputChange, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputShowClearButtonOf, textInputTypeOf, textInputValueOf } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 export function createTextInput(props: UiTextInputProps) {
   const {

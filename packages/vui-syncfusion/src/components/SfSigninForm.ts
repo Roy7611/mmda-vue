@@ -1,9 +1,5 @@
 import { required } from '@mmda/core'
-import {
-  signinFormEmits,
-  signinFormProps,
-  type SigninUser,
-} from '@mmda/vui'
+import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-vue-buttons'
 import { TextBoxComponent } from '@syncfusion/ej2-vue-inputs'
 import {

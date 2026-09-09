@@ -16,30 +16,7 @@ import {
   type ModuleAction,
   type ModuleAuth,
 } from "@mmda/core";
-import {
-  VueUiBuilder,
-  MmdaGroupCard,
-  UiViewMany,
-  hasSystemModules,
-  type AppScaffoldProps,
-  type AppSideBarProps,
-  type AppTopBarProps,
-  type ImportAndExportActionProps,
-  type ModuleBreadcrumbProps,
-  type ModuleSearchbarProps,
-  type ModuleToolbarProps,
-  type SyncfusionUiFactory,
-  type PropData,
-  type SearchForRelativeProps,
-  type SigninFormProps,
-  type SigninFormSlots,
-  type SignupFormProps,
-  type UiAction,
-  type UiFieldFactory,
-  type UiSearchField,
-  type UiSlots,
-  type UiViewContext,
-} from "@mmda/vui";
+import { VueUiBuilder, MmdaGroupCard, UiViewMany, hasSystemModules, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfOverlayHost } from "../components/SfOverlayHost";
 import { createSyncfusionOverlay } from "../syncfusion_overlay";
@@ -55,14 +32,14 @@ import {
   visibleActions,
   type UiContext,
 } from "./utils";
-import { buildImportOrExportAction as renderImportOrExportAction } from "./import-export";
+import { buildImportOrExportAction as renderImportOrExportAction } from "./import_export";
 import {
   buildModuleBreadcrumb as renderModuleBreadcrumb,
   buildModuleSearchbar as renderModuleSearchbar,
   buildModuleToolbar as renderModuleToolbar,
   buildSearchField as renderSearchField,
   buildSearchForm as renderSearchForm,
-} from "./module-bar";
+} from "./module_bar";
 import {
   buildBpmnDiagram as renderBpmnDiagram,
   buildSigninForm as renderSigninForm,
@@ -106,7 +83,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   override buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props: PropData = {},
+    props: UiProps = {},
   ) {
     const {
       container: _container,
@@ -143,7 +120,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
 
   override buildAttachmentGroup(
     context: UiViewContext<any>,
-    props: PropData = {},
+    props: UiProps = {},
   ): VNode {
     const panel = ref<{ choose: () => void }>();
     const title = context.translate("attachments") || "附件";
@@ -180,23 +157,23 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return renderContainer(content, props);
   }
 
-  buildHeader(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return renderHeader(content, props);
   }
 
-  buildAside(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return renderAside(content, props);
   }
 
-  buildMain(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return renderMain(content, props);
   }
 
-  buildFooter(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return renderFooter(content, props);
   }
 
@@ -257,15 +234,15 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     ]);
   }
 
-  buildAppMenu(modules: Module[], props?: PropData) {
+  buildAppMenu(modules: Module[], props?: UiProps) {
     return renderAppMenu(modules, props);
   }
 
-  buildLoading(_context: UiContext, props?: PropData) {
+  buildLoading(_context: UiContext, props?: UiProps) {
     return this.factory.loading(props);
   }
 
-  buildError(context: UiContext, props?: PropData) {
+  buildError(context: UiContext, props?: UiProps) {
     return renderError(context, props);
   }
 
@@ -402,7 +379,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   private toolbarActionButton(
     context: UiContext,
     action: UiAction,
-    props?: PropData,
+    props?: UiProps,
   ) {
     // secondary（返回等）与「更多」一致用 tonal，避免默认实心/透明底和工具栏糊在一起
     const secondary =
@@ -428,10 +405,10 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         command: () => void autoFitSyncfusionListGrid(context),
       },
       {
-        name: "listSettings",
-        label: context.t("action.listSettings"),
+        name: "tableSettings",
+        label: context.t("action.tableSettings"),
         icon: this.factory.resolveIcon("settings"),
-        command: () => void this.openListSettings(context),
+        command: () => void this.openTableSettings(context),
       },
     ];
   }
@@ -705,11 +682,11 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     return renderModuleToolbar.call(this as any, context, props, slots);
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
+  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
     return renderSearchField(field, _context, props);
   }
 
-  buildSearchForm(context: UiContext, props?: PropData) {
+  buildSearchForm(context: UiContext, props?: UiProps) {
     return renderSearchForm(context, props);
   }
 
@@ -928,7 +905,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     )
   }
 
-  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: PropData = {}) {
+  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
     return renderBpmnDiagram(flowTrails, _context, props);
   }
 

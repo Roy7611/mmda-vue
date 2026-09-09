@@ -9,7 +9,7 @@ chrome **容器**：只出厂商按钮组壳，不解析子节点。EJ2 是纯 C
 | 层 | 做什么 |
 |---|---|
 | vui `UiButtonGroupProps` | `orientation` + `htmlAttributes` / `class` |
-| 皮肤 `factory/buttonGroup.ts` | SF `div.e-btn-group`；Prime `ButtonGroup`；Naive `NButtonGroup` |
+| 皮肤 `factory/button_group.ts` | SF `div.e-btn-group`；Prime `ButtonGroup`；Naive `NButtonGroup` |
 
 签名：`factory.buttonGroup(() => VNode[], props?)`。子项由调用方造好再塞：`factory.button`、`actionButton`、`splitButton` / `dropDownButton`。
 
@@ -19,4 +19,4 @@ chrome **容器**：只出厂商按钮组壳，不解析子节点。EJ2 是纯 C
 
 ## 源码
 
-- 皮肤：各包 `factory/buttonGroup.ts`
+- 皮肤：各包 `factory/button_group.ts`

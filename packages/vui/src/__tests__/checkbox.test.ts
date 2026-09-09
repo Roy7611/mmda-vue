@@ -4,7 +4,7 @@ import {
   checkBoxModifierClasses,
   checkBoxPropsFromField,
   emitCheckBoxChange,
-} from '../ui/factory/checkbox'
+} from '@mmda/core'
 
 describe('checkBox helpers', () => {
   it('prefers checked over modelValue', () => {

@@ -4,34 +4,28 @@
  * imageGallery 是详情只读，不要混。
  */
 import type { MetaUiField } from '@mmda/core'
-import type { PropData } from '../layout/layout'
+import {
+  IMAGE_UPLOADER_EXTENSIONS,
+  imageUploaderAcceptOf,
+  type UiFileUploaderProps,
+  type UiFilesUploaderProps,
+  type UiImageUploaderProps,
+  type UiImagesUploaderProps,
+} from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 import {
   fileUploaderPropsFromField,
   filesUploaderPropsFromField,
   type FileUploaderFieldContext,
-  type UiFileUploaderProps,
-  type UiFilesUploaderProps,
 } from './file_uploader'
 
-export const IMAGE_UPLOADER_EXTENSIONS =
-  '.bmp,.gif,.jpeg,.jpg,.png,.tif,.webp,.svg'
-
-export interface UiImageUploaderProps extends UiFileUploaderProps {
-  showImageEditor?: boolean
-}
-
-export interface UiImagesUploaderProps extends UiFilesUploaderProps {
-  showImageEditor?: boolean
-}
-
-export function imageUploaderAcceptOf(allowedExtensions?: string): string {
-  return allowedExtensions?.trim() || IMAGE_UPLOADER_EXTENSIONS
-}
+export type { UiImageUploaderProps, UiImagesUploaderProps } from '@mmda/core'
+export { IMAGE_UPLOADER_EXTENSIONS, imageUploaderAcceptOf } from '@mmda/core'
 
 export function imageUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiImageUploaderProps {
   const base = fileUploaderPropsFromField(field, context, extra)
   return {
@@ -47,7 +41,7 @@ export function imageUploaderPropsFromField(
 export function imagesUploaderPropsFromField(
   field: MetaUiField,
   context: FileUploaderFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiImagesUploaderProps {
   const base = filesUploaderPropsFromField(field, context, extra)
   return {

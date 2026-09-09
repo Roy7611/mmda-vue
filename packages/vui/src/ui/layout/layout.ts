@@ -1,358 +1,242 @@
-import { h, type VNode, type VNodeChild, type VNodeArrayChildren } from "vue";
-import type { ChildSlot } from "../../contexts/view";
-import { MmdaPageRegions } from "../../components/PageRegions";
+import { h, type VNode } from 'vue'
+import type { UiLayout as CoreUiLayout, UiProps } from '@mmda/core'
+import {
+  AbstractUiLayout,
+  type UiFieldLayout,
+  type UiPageLayoutOptions,
+} from '@mmda/core'
+import type { ChildSlot } from '../../contexts/view'
+import { PageBody } from '../../components/PageBody'
 
-/** 落到真实 input / 根节点的 HTML 属性。chrome 默认透传，不要改名。 */
+export type {
+  UiOrientation,
+  UiDirection,
+  UiFieldLayout,
+  UiHorzAlign,
+  UiVertAlign,
+  UiFieldGroupOrientation,
+  UiFieldLayoutOptions,
+  UiFieldGroupLayoutOptions,
+  UiPageLayoutOptions,
+  UiLayout,
+  AbstractUiLayout,
+  UiListTileSlots,
+  UiProps,
+} from '@mmda/core'
+
+/** 落到真实 input / 根节点的 HTML 属性。读 UiProps 袋键 `htmlAttributes`；皮肤透传，不要改名。 */
 export type HtmlAttributes = Record<string, string>
 
-export type PropData = Record<string, any> & {
-  htmlAttributes?: HtmlAttributes
+/** @deprecated 请用 `UiProps`（`@mmda/core`）。 */
+export type PropData = UiProps
+
+export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
+  return (props?.htmlAttributes as HtmlAttributes | undefined) ?? {}
 }
 
-export function htmlAttributesOf(props?: PropData): HtmlAttributes {
-  return props?.htmlAttributes ?? {}
+/**
+ * 字段工厂 `extra` 合并袋：公开契约仍是 UiProps；读取 override 时按 any（过渡）。
+ * 新的控件签名 / Builder 参数继续写 UiProps。
+ */
+export type UiBagExtra = UiProps & Record<string, any>
+
+/**
+ * 把开放袋收成具体 `Ui*Props`（字段工厂合并 extra 用）。
+ */
+export function chromeExtraOf<T extends UiProps>(extra?: UiProps): T {
+  return (extra ?? {}) as T
 }
-export type CustomProps<T> = T & PropData;
+
+export type CustomProps<T> = T & UiProps
 export type UiSlots = {
-  [index: string]: any;
-  default?: ChildSlot;
-  header?: ChildSlot;
-  footer?: ChildSlot;
-};
-/**
- * 域布局，竖排或横排
- */
-export type UiDirection = "vertical" | "horizontal";
-export type UiFieldLayout = UiDirection;
-/** 控件 orientation 属性用这个名；值域与 UiDirection 同一份。不要再造 *Orientation。 */
-export type UiOrientation = UiDirection;
-/**
- * 对齐方式
- */
-export type UiVertAlign = "top" | "middle" | "bottom";
-/** 内容横对齐，对偶 UiVertAlign。不是槽名 start/end，不是 UiHorzJustify。 */
-export type UiHorzAlign = "left" | "center" | "right";
-export type UiHorzJustify =
-  | "start"
-  | "end"
-  | "center"
-  | "space-around"
-  | "space-between"
-  | "space-evenly";
-/**
- * 列布局固定宽度类型
- * @example
- * ```ts
- * { fixed: '100px'}
- * ```
- */
+  [index: string]: any
+  default?: ChildSlot
+  header?: ChildSlot
+  footer?: ChildSlot
+}
+
 export interface UiFixedColWidth {
-  fixed: string;
-}
-/**
- * 列布局宽度，通常为1~12的数字或者固定宽度
- *
- * @example
- * ```ts
- * //数字 2 =>
- * {class: 'col-2'}
- * //固定列宽 { fixed: '2rem' } =>
- * {class: 'col-fixed' style: { width: '2em'}}
- * ```
- */
-export type UiColWidth = number | UiFixedColWidth;
-
-/**
- * 移动端列表项具名插槽
- */
-export interface UiListTileSlots {
-  leading?: ChildSlot;
-  title: ChildSlot;
-  subtitle?: ChildSlot;
-  trailing?: ChildSlot;
-}
-export type UiListTileRenderer<T = any> = (model: T, layout: UiLayout) => VNode;
-
-/**
- * 界面布局
- */
-export interface UiLayout {
-  /**
-   * 域布局，竖排或横排
-   */
-  fieldLayout: UiFieldLayout;
-  /**
-   * 是否由默认 FieldLayout 显示校验消息。
-   * 控件库已经内置校验消息时保持 false。
-   */
-  fieldMessage?: boolean;
-  wrapManyGroup: boolean;
-  maxCols: number;
-  /**
-   * 单元格布局
-   * @param child 子元素
-   * @param nCol 占几列
-   * @returns
-   */
-  cell: (child: VNodeChild, nCol?: number) => VNode;
-  /**
-   * 单元格固定列宽布局
-   * @param child 子元素
-   * @param fixedWidth 固定列宽，如`'100px'`
-   * @returns
-   */
-  // cellFw: (child:VNodeChild, fixedWidth: string)=>VNode;
-  /**
-   * 单行布局
-   * @param children 子元素
-   * @param nCols 子元素列宽，总和必须在1~12之间
-   * @returns
-   */
-  row: (
-    children: VNodeArrayChildren,
-    nCols: number[],
-    props?: PropData,
-  ) => VNode;
-  /**
-   * 单列布局
-   * @param children 子元素，每个元素占满一行
-   * @returns
-   */
-  column: (children: VNodeArrayChildren, props?: PropData) => VNode;
-
-  /**
-   * 表格布局，外围只会有一个grid div
-   * @param children 子元素
-   * @param nCols 子元素列宽，总和必须在1~12之间
-   * @returns
-   */
-  grid: (
-    children: VNodeArrayChildren,
-    nCols: number[],
-    props?: PropData,
-  ) => VNode;
-
-  /**
-   * 列表项布局
-   * @param slots 列表项具名插槽
-   * @returns
-   */
-  listTile: (slots: UiListTileSlots) => VNode;
+  fixed: string
 }
 
-export interface FieldLayoutOptions {
-  label: VNodeChild;
-  control: VNodeChild;
-  direction?: UiDirection;
-  message?: VNodeChild;
-  props?: PropData;
-}
+export type UiColWidth = number | UiFixedColWidth
 
-export type FieldGroupDirection = "row" | "column" | "table";
+export type UiListTileRenderer<T = any> = (
+  model: T,
+  layout: CoreUiLayout<VNode>,
+) => VNode
 
-export interface FieldGroupLayoutOptions {
-  fields: VNodeArrayChildren;
-  direction?: FieldGroupDirection;
-  cols?: 1 | 2 | 3;
-  props?: PropData;
-}
-
-export interface PageLayoutOptions {
-  toolbar?: VNodeChild;
-  stickyToolbar?: boolean;
-  primary: VNodeArrayChildren;
-  summary?: VNodeArrayChildren;
-  tails?: VNodeArrayChildren;
-  footer?: VNodeChild;
-  /** 右侧概要栏初始是否展开，默认 true */
-  summaryExpanded?: boolean;
-  props?: PropData;
-}
-
-export type AppLayoutVariant = "sidebarLeft" | "topBarFull";
+export type AppLayoutVariant = 'sidebarLeft' | 'topBarFull'
 
 export interface AppLayoutOptions {
-  topBar?: VNodeChild;
-  nav?: VNodeChild;
-  page?: VNodeChild;
-  bottomBar?: VNodeChild;
-  props?: PropData;
+  topBar?: VNode
+  nav?: VNode
+  page?: VNode
+  bottomBar?: VNode
+  props?: UiProps
 }
 
-const layoutProps = (
+function layoutDomProps(
   className: string,
-  style: Record<string, any>,
-  props: PropData = {},
-) => ({
-  ...props,
-  class: [className, props.class],
-  style: { ...style, ...props.style },
-});
-
-/** 组合字段的标签、控件和可选校验消息。 */
-export function layoutField(options: FieldLayoutOptions): VNode {
-  const { label, control, message, direction = "vertical", props } = options;
-  const horizontal = direction === "horizontal";
-  return h(
-    "div",
-    layoutProps(
-      `mmda-field-layout mmda-field-${direction}`,
-      // 横排不写 display：组内用 contents 参与父网格；独立时靠 CSS .mmda-field-horizontal
-      horizontal
-        ? {}
-        : {
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          },
-      { "data-direction": direction, ...props },
-    ),
-    [
-      h("div", { class: "mmda-field-label" }, label as any),
-      h(
-        "div",
-        {
-          class: "mmda-field-control",
-          style: { minWidth: 0 },
-        },
-        [
-          control as any,
-          message == null
-            ? null
-            : h("div", { class: "mmda-field-message" }, message as any),
-        ],
-      ),
-    ],
-  );
+  style: Record<string, unknown>,
+  props: UiProps = {},
+) {
+  const { class: extraClass, style: extraStyle, ...rest } = props
+  return {
+    ...rest,
+    class: [className, extraClass],
+    style: { ...style, ...(extraStyle as Record<string, unknown> | undefined) },
+  }
 }
 
-/** 在主表分组内排列多个字段。
- * 列数 cols 为逻辑列（1/2/3）；若字段为 label|control 横排，CSS 用 2×cols 轨道对齐。
- */
-export function layoutFieldGroup(options: FieldGroupLayoutOptions): VNode {
-  const {
-    fields,
-    direction = "row",
-    cols = direction === "column" ? 1 : 2,
-    props,
-  } = options;
-  return h(
-    "div",
-    layoutProps(`mmda-field-group-layout mmda-field-group-${direction}`, {}, {
-      role: direction === "table" ? "table" : "group",
-      "data-cols": cols,
-      ...props,
-    }),
-    fields,
-  );
-}
+export class VueUiLayout extends AbstractUiLayout<VNode> {
+  fieldLayout: UiFieldLayout = 'horizontal'
+  fieldMessage = false
+  wrapManyGroup = true
+  maxCols = 12
 
-/**
- * 详情与编辑页共用布局。
- * 先左右分栏：左主区（primary + tails 自上而下），右概要（可折叠以拉宽主区）。
- * 工具栏独立行；整页一起滚，主区不再单独出滚动条。
- */
-export function layoutPage(options: PageLayoutOptions): VNode {
-  const {
-    toolbar,
-    stickyToolbar = true,
-    primary,
-    summary = [],
-    tails = [],
-    footer,
-    summaryExpanded = true,
-    props,
-  } = options;
-  const hasSummary = summary.length > 0;
-  const hasTails = tails.length > 0;
+  protected wrap(
+    className: string,
+    style: Record<string, unknown>,
+    props: UiProps | undefined,
+    children: VNode[],
+    tag = 'div',
+  ): VNode {
+    return h(tag, layoutDomProps(className, style, props ?? {}), children)
+  }
 
-  return h(
-    "section",
-    layoutProps(
-      "mmda-page-layout",
-      {
-        display: "grid",
-        // 工具栏按内容高度；内容区吃剩余空间，避免 auto/auto 被撑成对半高
-        gridTemplateRows: toolbar == null ? "minmax(0, 1fr)" : "auto minmax(0, 1fr)",
-        height: "100%",
-        minHeight: 0,
-        overflow: "auto",
-      },
-      props,
-    ),
-    [
-      toolbar == null
-        ? null
-        : h(
-            "header",
-            {
-              class: [
-                "mmda-page-toolbar",
-                stickyToolbar && "mmda-page-toolbar-sticky",
-              ],
-              style: stickyToolbar
-                ? { position: "sticky", top: 0, zIndex: 2 }
-                : undefined,
-            },
-            toolbar as any,
-          ),
+  protected pageBody(options: UiPageLayoutOptions<VNode>): VNode[] {
+    const summary = options.summary ?? []
+    const tails = options.tails ?? []
+    const hasSummary = summary.length > 0
+    const hasTails = tails.length > 0
+    return [
       h(
-        MmdaPageRegions,
+        PageBody,
         {
           hasSummary,
-          summaryExpanded,
+          summaryExpanded: options.summaryExpanded !== false,
         },
         {
-          primary: () => primary,
+          primary: () => options.primary,
           tails: hasTails ? () => tails : undefined,
           summary: hasSummary ? () => summary : undefined,
-          footer: footer == null ? undefined : () => footer,
+          footer:
+            options.footer == null ? undefined : () => options.footer,
         },
       ),
-    ],
-  );
+    ]
+  }
+
+  cell(child: VNode, nCol = 1): VNode {
+    return h(
+      'div',
+      {
+        class: 'mmda-cell',
+        style: { gridColumn: `span ${Math.max(1, nCol)}` },
+      },
+      child,
+    )
+  }
+
+  row(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
+      'div',
+      {
+        class: ['mmda-row', extraClass],
+        style: {
+          display: 'grid',
+          gridTemplateColumns: nCols.map(value => `${value}fr`).join(' '),
+          gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
+        },
+        ...rest,
+      },
+      children,
+    )
+  }
+
+  column(children: VNode[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
+      'div',
+      {
+        class: ['mmda-column', extraClass],
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
+        },
+        ...rest,
+      },
+      children,
+    )
+  }
+
+  grid(children: VNode[], nCols: number[], props: UiProps = {}): VNode {
+    const { class: extraClass, style: extraStyle, ...rest } = props
+    return h(
+      'div',
+      {
+        class: ['mmda-grid', extraClass],
+        style: {
+          display: 'grid',
+          gridTemplateColumns:
+            nCols.length > 0
+              ? nCols.map(value => `${value}fr`).join(' ')
+              : 'repeat(auto-fit, minmax(16rem, 1fr))',
+          gap: '0.75rem',
+          ...(extraStyle as Record<string, unknown> | undefined),
+        },
+        ...rest,
+      },
+      children,
+    )
+  }
 }
 
 /**
  * 应用脚手架。外壳不滚动，导航和页面容器分别管理滚动。
  */
 export class AppLayout {
-  constructor(public readonly variant: AppLayoutVariant = "sidebarLeft") {}
+  constructor(public readonly variant: AppLayoutVariant = 'sidebarLeft') {}
 
   render(
     options: AppLayoutOptions,
     variant: AppLayoutVariant = this.variant,
   ): VNode {
-    return variant === "topBarFull"
+    return variant === 'topBarFull'
       ? this.topBarFull(options)
-      : this.sidebarLeft(options);
+      : this.sidebarLeft(options)
   }
 
   sidebarLeft(options: AppLayoutOptions): VNode {
     const hasTopBar = options.topBar != null
     return this.scaffold(
       options,
-      "sidebarLeft",
+      'sidebarLeft',
       hasTopBar
         ? {
             gridTemplateAreas: '"nav top" "nav page" "nav bottom"',
-            gridTemplateColumns: "auto minmax(0, 1fr)",
-            gridTemplateRows: "auto minmax(0, 1fr) auto",
+            gridTemplateColumns: 'auto minmax(0, 1fr)',
+            gridTemplateRows: 'auto minmax(0, 1fr) auto',
           }
         : {
             gridTemplateAreas: '"nav page" "nav bottom"',
-            gridTemplateColumns: "auto minmax(0, 1fr)",
-            gridTemplateRows: "minmax(0, 1fr) auto",
+            gridTemplateColumns: 'auto minmax(0, 1fr)',
+            gridTemplateRows: 'minmax(0, 1fr) auto',
           },
-    );
+    )
   }
 
   topBarFull(options: AppLayoutOptions): VNode {
-    return this.scaffold(options, "topBarFull", {
+    return this.scaffold(options, 'topBarFull', {
       gridTemplateAreas: '"top top" "nav page" "bottom bottom"',
-      gridTemplateColumns: "auto minmax(0, 1fr)",
-      gridTemplateRows: "auto minmax(0, 1fr) auto",
-    });
+      gridTemplateColumns: 'auto minmax(0, 1fr)',
+      gridTemplateRows: 'auto minmax(0, 1fr) auto',
+    })
   }
 
   private scaffold(
@@ -360,102 +244,62 @@ export class AppLayout {
     variant: AppLayoutVariant,
     grid: Record<string, string>,
   ): VNode {
-    const { topBar, nav, page, bottomBar, props } = options;
+    const { topBar, nav, page, bottomBar, props } = options
     return h(
-      "div",
-      layoutProps(
-        "mmda-app-layout",
+      'div',
+      layoutDomProps(
+        'mmda-app-layout',
         {
-          display: "grid",
+          display: 'grid',
           ...grid,
-          width: "100%",
-          height: "100%",
+          width: '100%',
+          height: '100%',
           minWidth: 0,
           minHeight: 0,
-          overflow: "hidden",
+          overflow: 'hidden',
         },
-        { "data-layout": variant, ...props },
+        { 'data-layout': variant, ...props },
       ),
       [
         topBar == null
           ? null
           : h(
-              "header",
+              'header',
               {
-                class: "mmda-app-topbar",
-                style: { gridArea: "top", minWidth: 0 },
+                class: 'mmda-app-topbar',
+                style: { gridArea: 'top', minWidth: 0 },
               },
-              topBar as any,
+              topBar,
             ),
         h(
-          "nav",
+          'nav',
           {
-            class: "mmda-app-nav",
-            style: { gridArea: "nav", minHeight: 0, overflow: "auto" },
+            class: 'mmda-app-nav',
+            style: { gridArea: 'nav', minHeight: 0, overflow: 'auto' },
           },
-          nav as any,
+          nav,
         ),
         h(
-          "main",
+          'main',
           {
-            class: "mmda-app-page",
+            class: 'mmda-app-page',
             style: {
-              gridArea: "page",
+              gridArea: 'page',
               minWidth: 0,
               minHeight: 0,
-              overflow: "hidden",
+              overflow: 'hidden',
             },
           },
-          page as any,
+          page,
         ),
         bottomBar == null
           ? null
           : h(
-              "footer",
-              { class: "mmda-app-bottom", style: { gridArea: "bottom" } },
-              bottomBar as any,
+              'footer',
+              { class: 'mmda-app-bottom', style: { gridArea: 'bottom' } },
+              bottomBar,
             ),
       ],
-    );
+    )
   }
-}
-
-/**
- * 移动端默认列表项布局
- * @param layout 布局
- * @param itemSlots 列表项插槽
- * @returns
- */
-export function defaultListTile(
-  layout: UiLayout,
-  itemSlots: UiListTileSlots,
-): VNode {
-  const children: VNodeChild[] = [];
-
-  let leftCols = layout.maxCols;
-  const nCols: number[] = [];
-  if (itemSlots.leading) {
-    const leadingCols = 2;
-    leftCols -= leadingCols;
-    children.push(itemSlots.leading(), leadingCols);
-    nCols.push(leadingCols);
-  }
-
-  if (itemSlots.subtitle) {
-    const bodyNode = layout.column([itemSlots.title(), itemSlots.subtitle()]);
-    children.push(bodyNode);
-  } else {
-    children.push(itemSlots.title());
-  }
-
-  if (itemSlots.trailing) {
-    const tailingCols = 2;
-    leftCols -= tailingCols;
-    nCols.push(leftCols);
-    children.push(itemSlots.trailing());
-    nCols.push(tailingCols);
-  } else {
-    nCols.push(leftCols);
-  }
-  return layout.row(children, nCols);
 }

@@ -20,14 +20,14 @@ import {
 import { readStoredPageSize, writeStoredPageSize } from "../../app/theme";
 import { schedulePersistListPack } from "./list_layout";
 import { cleanTableCellProps } from "../factory/factory";
-import type { PropData } from "../layout/layout";
+import type {UiProps} from "../layout/layout";
 import type {
   UiListProps,
   UiListPropsType,
   UiListEmits,
   UiListSlots,
   UiPaginatorPropsType,
-  UiTableCellRenderer,
+  UiFieldCellRenderer,
 } from "../factory/list";
 import type { CustomFilter } from "../factory/filter";
 import { writeListFilterModel, writeListSorts } from "./list_query";
@@ -57,7 +57,7 @@ export interface UiListViewProps<T = any> extends UiListProps<T> {
   showMainHead?: boolean;
   linkField?: string;
   linkable?: boolean;
-  customCellRenderers?: Record<string, UiTableCellRenderer>;
+  fieldCellRenderers?: Record<string, UiFieldCellRenderer>;
 }
 
 export interface UiListViewSlots<T = any> extends UiListSlots<T> {
@@ -84,20 +84,20 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       rowContext: (row: any) => UiContext,
       tableProps: UiListPropsType<any> = {}
     ): VNode {
-      const customRenderCell = tableProps.renderCell;
+      const cellRenderers = tableProps.fieldCellRenderers;
       const cellProps = cleanTableCellProps({
         tableMetaui: metaUi,
-        ...(tableProps as PropData),
+        ...(tableProps as UiProps),
       });
-      if ((tableProps as PropData).readOnlyRows !== undefined) {
+      if ((tableProps as UiProps).readOnlyRows !== undefined) {
         Object.defineProperty(cellProps, "readOnlyRows", {
-          value: (tableProps as PropData).readOnlyRows,
+          value: (tableProps as UiProps).readOnlyRows,
           enumerable: false,
         });
       }
-      if ((tableProps as PropData).inplaceEdit !== undefined) {
-        Object.defineProperty(cellProps, "inplaceEdit", {
-          value: (tableProps as PropData).inplaceEdit,
+      if ((tableProps as UiProps).editable !== undefined) {
+        Object.defineProperty(cellProps, "editable", {
+          value: (tableProps as UiProps).editable,
           enumerable: false,
         });
       }
@@ -110,11 +110,9 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           ? (metaUi as any).getListedFields()
           : (metaUi as any).listedFields;
       const listed: MetaUiField[] = Array.isArray(listedRaw) ? listedRaw : [];
-      const templateCellFields =
-        tableProps.templateCellFields ??
-        listed
+      const templateCellFields = listed
           .filter((field: MetaUiField) => {
-            if (tableProps.customCellRenderers?.[field.fieldName]) return true;
+            if (cellRenderers?.[field.fieldName]) return true;
             if (field.linkable) return true;
             const logic = probeContext.getFieldLogic?.(field) as any;
             if (logic?.customCellRenderer || logic?.customRenderer) return true;
@@ -128,11 +126,12 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         display: tableProps.display ?? "table",
         templateCellFields,
         renderCell: (field, row) => {
-          if (customRenderCell) return customRenderCell(field, row);
-          if (
-            Array.isArray(templateCellFields) &&
-            !templateCellFields.includes(field.fieldName)
-          ) {
+          const custom = cellRenderers?.[field.fieldName];
+          if (custom) {
+            const node = custom(field, row);
+            if (node !== undefined) return node;
+          }
+          if (!templateCellFields.includes(field.fieldName)) {
             return undefined as any;
           }
           return this.displayCellFor(field, row, rowContext(row), cellProps);
@@ -146,21 +145,21 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       rowContext: (row: T) => UiContext,
       props: UiTreeGridPropsType<T> = {}
     ): VNode {
-      const customRenderCell = props.renderCell;
+      const cellRenderers = props.fieldCellRenderers;
       const cellProps = cleanTableCellProps({
         tableMetaui: metaUi,
         isTree: true,
-        ...(props as PropData),
+        ...(props as UiProps),
       });
-      if ((props as PropData).readOnlyRows !== undefined) {
+      if ((props as UiProps).readOnlyRows !== undefined) {
         Object.defineProperty(cellProps, "readOnlyRows", {
-          value: (props as PropData).readOnlyRows,
+          value: (props as UiProps).readOnlyRows,
           enumerable: false,
         });
       }
-      if ((props as PropData).inplaceEdit !== undefined) {
-        Object.defineProperty(cellProps, "inplaceEdit", {
-          value: (props as PropData).inplaceEdit,
+      if ((props as UiProps).editable !== undefined) {
+        Object.defineProperty(cellProps, "editable", {
+          value: (props as UiProps).editable,
           enumerable: false,
         });
       }
@@ -168,9 +167,14 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         ...props,
         display: "treeGrid",
         isTree: true,
-        renderCell: (field, row) =>
-          customRenderCell?.(field, row) ??
-          this.displayCellFor(field, row, rowContext(row), cellProps),
+        renderCell: (field, row) => {
+          const custom = cellRenderers?.[field.fieldName];
+          if (custom) {
+            const node = custom(field, row);
+            if (node !== undefined) return node;
+          }
+          return this.displayCellFor(field, row, rowContext(row), cellProps);
+        },
       });
     }
     
@@ -208,7 +212,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           props.parentIdField ?? (treeShape === "TREE" ? shapeKey : undefined),
         loadMode,
         onExpand,
-        filterDisplay: props.filterDisplay ?? "none",
+        filterable: props.filterable ?? false,
         loading: props.loading ?? runtime.loading,
         selectedItems: runtime.selectedItems ?? [],
         onSelect: (selection) => {
@@ -280,9 +284,9 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       field: MetaUiField,
       ctx: UiContext,
       inPlaceEdit = false,
-      props: PropData = {}
+      props: UiProps = {}
     ): VNode {
-      const cellProps = { ...props } as PropData;
+      const cellProps = { ...props } as UiProps;
       if (props.row !== undefined) {
         Object.defineProperty(cellProps, "row", {
           value: props.row,
@@ -346,7 +350,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       field: MetaUiField,
       ctx: UiContext,
       inPlaceEdit = false,
-      props: PropData = {}
+      props: UiProps = {}
     ): VNode | VNode[] {
       const cellError = (
         ctx as { getFieldError?: (field: MetaUiField | string) => string }
@@ -367,7 +371,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       field: MetaUiField,
       row: any,
       context: UiContext,
-      props: PropData = {}
+      props: UiProps = {}
     ): VNode | VNode[] {
       const fieldLogic = context.getFieldLogic(field) as any;
       // Syncfusion：nativeInplaceEdit 默认 true，未 inPlaceEdit(false) 即可编。
@@ -410,7 +414,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         boolCell ||
         (Boolean(context.editing) &&
           !isSearch &&
-          !props?.inplaceEdit &&
+          !props?.editable &&
           cellEditable &&
           !context.isFieldReadonly(field));
     
@@ -470,7 +474,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       field: MetaUiField,
       row: any,
       context: UiContext,
-      props: PropData = {}
+      props: UiProps = {}
     ): VNode | VNode[] {
       return this.resolveTableColumnBody(field, row, context, props);
     }
@@ -538,7 +542,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         return runtime.search?.();
       };
       const display =
-        props.display ?? (props.inplaceEdit ? "grid" : "table");
+        props.display ?? (props.editable === true ? "grid" : "table");
       const rowProps = {
         ...props,
         display,
@@ -604,7 +608,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       const { treeOption, listOption } = resolveTreeListOptions(props);
       const treeSpec = typeof treeOption === "function" ? treeOption() : treeOption;
       if (!treeSpec) return this.buildListView(context, listOption);
-      return h(MmdaTreeListView, {
+      return h(TreeListView, {
         builder: this,
         context,
         spec: props,
@@ -667,7 +671,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         context.metaUi,
         () => context,
         {
-          filterDisplay: props.filterDisplay ?? "none",
+          filterDisplay: props.filterDisplay ?? "menu",
           ...props,
           filterLabels: {
             all: context.translate("state.all"),
@@ -678,12 +682,9 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             ...props.filterLabels,
           },
           filterModel: runtime.searchParam?.filterModel,
-          loadFilterOptions:
-            props.loadFilterOptions ??
-            ((field) => runtime.loadReferenceOptions(field)),
-          loadPivotDates:
-            props.loadPivotDates ??
-            ((field) => runtime.logic?.getPivotDates?.(field.fieldName)),
+          loadFilterOptions: (field) => runtime.loadReferenceOptions(field),
+          loadPivotDates: (field) =>
+            runtime.logic?.getPivotDates?.(field.fieldName),
           dateRangeLabels: {
             TODAY: context.translate("dateRange.TODAY"),
             YESTERDAY: context.translate("dateRange.YESTERDAY"),
@@ -704,15 +705,13 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             month: context.translate("dateRange.month"),
             ...props.dateRangeLabels,
           },
-          searchRelative:
-            props.searchRelative ??
-            (async (field, searchWord) => {
-              const options = runtime.getFieldOptions(field);
-              options.searchParam.pager.pageNo = 1;
-              options.searchParam.pager.pageSize = 20;
-              await runtime.searchRelative(field, searchWord);
-              return options.selectOptions;
-            }),
+          searchRelative: async (field, searchWord) => {
+            const options = runtime.getFieldOptions(field);
+            options.searchParam.pager.pageNo = 1;
+            options.searchParam.pager.pageSize = 20;
+            await runtime.searchRelative(field, searchWord);
+            return options.selectOptions;
+          },
           onFilterModelChange: (filterModel) => {
             writeListFilterModel(runtime.searchParam, filterModel);
             if (props.onFilterModelChange) {
@@ -726,10 +725,13 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             if (props.onSort) return props.onSort(sorts);
             return runtime.search?.();
           },
-          onListLayoutChange: () => {
-            schedulePersistListPack(runtime);
+          tableSettings: {
+            persist: () => schedulePersistListPack(runtime),
+            rev: runtime.listLayoutRev,
           },
-          layoutRev: runtime.listLayoutRev,
+          onIndexTableHostReady: (host) => {
+            runtime.indexTableHost = host ?? undefined;
+          },
           onSelect: (selection) => {
             context.selectedItems = selection;
             props.onSelect?.(selection);
@@ -737,17 +739,17 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           selectedItems: runtime.selectedItems ?? [],
           showActions: props.showActions === true,
           loading: props.loading ?? runtime.loading,
-          rowMenu:
-            props.showColumnWithAction === false
+          rowActions:
+            props.showActionColumn === false
               ? undefined
-              : (props.rowMenu ??
-                this.createListRowMenu(context, props.showActions === true)),
+              : (props.rowActions ??
+                this.createListRowActions(context, props.showActions === true)),
         },
       );
     }
     
-    /** 列表行菜单工厂：图标只解析一次，禁止 with(row)。 */
-    createListRowMenu(
+    /** 列表行操作工厂：图标只解析一次，禁止 with(row)。 */
+    createListRowActions(
       context: UiContext,
       includeExtras = false,
     ): (row: any) => UiAction[] {
@@ -756,11 +758,11 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         delete: this.factory.resolveIcon("delete"),
         details: this.factory.resolveIcon("details"),
       };
-      return (row) => this.listRowMenu(context, row, icons, includeExtras);
+      return (row) => this.listRowActions(context, row, icons, includeExtras);
     }
     
     /** 子表行删：可点看 itemDeletableFunc 与 row.deletable；确认后走 beforeItemRemove。 */
-    subGroupRowMenu(
+    subGroupRowActions(
       context: UiContext,
       group: MetaUiGroup,
       row: any,
@@ -790,7 +792,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
     /** 列表行操作：编辑、删除、详情；扩展 actions 置于分隔线后。
      * 禁止 with(row)：索引页千行时不能为每行建 rowContext。
      */
-    listRowMenu(
+    listRowActions(
       context: UiContext,
       row: any,
       icons?: { edit: string; delete: string; details: string },
@@ -815,7 +817,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           name: "edit",
           label: context.t("action.edit"),
           icon: resolved.edit,
-          onAction: () => runtime.edit?.(rowId),
+          onAction: () => runtime.edit?.(row),
         });
       }
       if (entityAuth ? entityAuth.allowDelete : row?.deletable !== false) {
@@ -877,8 +879,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           h(
             "span",
             { key: field.fieldName },
-            props.customCellRenderers?.[field.fieldName]
-              ? props.customCellRenderers[field.fieldName](
+            props.fieldCellRenderers?.[field.fieldName]
+              ? props.fieldCellRenderers[field.fieldName](
                   field,
                   context.model as T,
                 )
@@ -889,7 +891,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
     
     buildPaginator(
       context: UiContext,
-      props: UiPaginatorPropsType = { onPage: () => undefined }
+      props: UiPaginatorPropsType = {},
     ): VNode {
       const runtime = context as any;
       const pagination = runtime.model?.pagination ??
@@ -898,7 +900,11 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           pageSize: runtime.searchParam?.pager?.pageSize ?? readStoredPageSize(),
           recordCount: runtime.model?.list?.length ?? 0,
         };
-      return this.factory.paginator(pagination, props);
+      const paginatorProps = {
+        onPage: () => undefined,
+        ...props,
+      } as UiPaginatorPropsType;
+      return this.factory.paginator(pagination, paginatorProps);
     }
   }
   return ListBuilder;
@@ -912,6 +918,9 @@ function resolveTreeListOptions<T>(props: UiTreeListViewPropsType<T>) {
     showSearchbar?: boolean;
     showBreadcrumb?: boolean;
     showActions?: boolean;
+    selectionMode?: unknown;
+    loading?: unknown;
+    onItemDoubleClick?: unknown;
   };
   return {
     treeOption,
@@ -921,6 +930,10 @@ function resolveTreeListOptions<T>(props: UiTreeListViewPropsType<T>) {
       showSearchbar: props.listOption?.showSearchbar ?? extras.showSearchbar,
       showBreadcrumb: props.listOption?.showBreadcrumb ?? extras.showBreadcrumb,
       showActions: props.listOption?.showActions ?? extras.showActions,
+      selectionMode: props.listOption?.selectionMode ?? extras.selectionMode,
+      loading: props.listOption?.loading ?? extras.loading,
+      onItemDoubleClick:
+        props.listOption?.onItemDoubleClick ?? extras.onItemDoubleClick,
     },
   };
 }
@@ -969,8 +982,8 @@ function hasRightSearch(context: UiContext) {
   return Boolean(context.customSearchFields?.some((field) => field.hasVal));
 }
 
-const MmdaTreeListTreePane = defineComponent({
-  name: "MmdaTreeListTreePane",
+const TreeListTreePane = defineComponent({
+  name: "TreeListTreePane",
   props: {
     builder: { type: Object, required: true },
     context: { type: Object as PropType<UiContext>, required: true },
@@ -986,28 +999,25 @@ const MmdaTreeListTreePane = defineComponent({
       const spec =
         typeof treeOption === "function" ? treeOption() : treeOption;
       return self.buildAside(
-        self.buildTreeView(
-          {
-            ...spec!,
-            reloadTick: props.reloadTick as { value: number },
-            showSearchBar:
-              spec!.showSearchBar ?? viewProps.showTreeSearchBar ?? true,
-            showTreeFooter: spec!.showTreeFooter ?? true,
-            onNodeSelect: (node: unknown) => {
-              spec!.onNodeSelect?.(node);
-              props.onPicked(node);
-            },
+        self.buildTreeView(props.context, {
+          ...spec!,
+          reloadTick: props.reloadTick as { value: number },
+          showSearchBar:
+            spec!.showSearchBar ?? viewProps.showTreeSearchBar ?? true,
+          showTreeFooter: spec!.showTreeFooter ?? true,
+          onNodeSelect: (node: unknown) => {
+            spec!.onNodeSelect?.(node);
+            props.onPicked(node);
           },
-          props.context,
-        ),
+        }),
         { class: "mmda-tree-list-aside" },
       );
     };
   },
 });
 
-const MmdaTreeListView = defineComponent({
-  name: "MmdaTreeListView",
+const TreeListView = defineComponent({
+  name: "TreeListView",
   props: {
     builder: { type: Object, required: true },
     context: { type: Object as PropType<UiContext>, required: true },
@@ -1122,7 +1132,7 @@ const MmdaTreeListView = defineComponent({
       const body = self.factory.splitter(
         [
           {
-            content: h(MmdaTreeListTreePane, {
+            content: h(TreeListTreePane, {
               builder: self,
               context,
               spec: viewProps,

@@ -1,6 +1,6 @@
 # TreeSelect 设计
 
-chrome 树下拉，走 `factory.treeSelect`。EJ2 控件名 DropDownTree 只作别名：`factory.dropDownTree === factory.treeSelect`。
+chrome 树下拉，走 `factory.treeSelect`。契约 `UiTreeSelectProps` 在 `@mmda/core`。EJ2 控件名 DropDownTree 只作别名：`factory.dropDownTree === factory.treeSelect`。
 
 不是 `factory.tree`（导航树），也不是扁平 `factory.dropDownList`。程序员用法：[tree_select_usage.md](./tree_select_usage.md)。
 

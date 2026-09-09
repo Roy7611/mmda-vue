@@ -50,7 +50,7 @@ export const AppUserFooter = defineComponent({
         {
           title: '修改密码',
           width: 'min(90vw, 30rem)',
-          onAccept: async () => {
+          onAccept: async (button) => {
             if (!password.newPwd) {
               toast('error', '错误', '请填写新密码')
               return false

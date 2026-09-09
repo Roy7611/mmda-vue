@@ -4,7 +4,7 @@ import {
   radioButtonGroupItemsOf,
   radioButtonGroupPropsFromField,
   radioButtonGroupValueOf,
-} from '../ui/factory/radio_button_group'
+} from '@mmda/core'
 
 describe('radioButtonGroup helpers', () => {
   it('maps empty field value to null and enum options via valueOf / labelOf', () => {

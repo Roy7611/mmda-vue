@@ -1,17 +1,7 @@
 import { h } from "vue";
 import { TabComponent } from "@syncfusion/ej2-vue-navigations";
-import type { UiTabsProps } from "@mmda/vui";
-import {
-  emitTabsChange,
-  htmlAttributesOf,
-  tabsHeaderPlacementOf,
-  tabsHeightAdjustModeOf,
-  tabsItemContentOf,
-  tabsItemsOf,
-  tabsModifierClasses,
-  tabsOverflowModeOf,
-  tabsValueOf,
-} from "@mmda/vui";
+import type { UiTabsProps } from "@mmda/vui"
+import { emitTabsChange, htmlAttributesOf, tabsHeaderPlacementOf, tabsHeightAdjustModeOf, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsOverflowModeOf, tabsValueOf } from "@mmda/vui"
 
 export function createTabs(props: UiTabsProps) {
   const {

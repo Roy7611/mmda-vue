@@ -4,22 +4,8 @@ import {
   h,
   type PropType,
 } from 'vue'
-import type {
-  UiDiagramConnector,
-  UiDiagramNode,
-  UiDiagramPaletteGroup,
-  UiDiagramPlugin,
-  UiDiagramShape,
-  UiDiagramType,
-  UiDiagramViewProps,
-} from '@mmda/vui'
-import {
-  diagramHookClass,
-  diagramNodeDataOf,
-  emitDiagramUpdate,
-  htmlAttributesOf,
-  resolveDiagramPalette,
-} from '@mmda/vui'
+import type { UiDiagramConnector, UiDiagramNode, UiDiagramPaletteGroup, UiDiagramPlugin, UiDiagramShape, UiDiagramType, UiDiagramViewProps } from '@mmda/vui'
+import { diagramHookClass, diagramNodeDataOf, emitDiagramUpdate, htmlAttributesOf, resolveDiagramPalette } from '@mmda/vui'
 
 const UML_CLASS_KINDS = new Set(['class', 'interface', 'enumeration'])
 const UML_ACTIVITY_KINDS = new Set([

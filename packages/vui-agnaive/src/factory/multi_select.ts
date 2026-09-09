@@ -1,16 +1,8 @@
 import { h } from 'vue'
 import { NSelect } from 'naive-ui'
-import type { UiMultiSelectProps } from '@mmda/vui'
-import {
-  applyAndEmitMultiSelectKeys,
-  htmlAttributesOf,
-  multiSelectChromeOptionsOf,
-  multiSelectModifierClasses,
-  multiSelectOptionKeyOf,
-  multiSelectOptionLabelOf,
-  multiSelectSelectedKeysOf,
-  withMultiSelectBindMode,
-} from '@mmda/vui'
+import type { UiMultiSelectProps } from '@mmda/core'
+import { applyAndEmitMultiSelectKeys, multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 function optionsOf(props: UiMultiSelectProps) {
   return multiSelectChromeOptionsOf(props).map(item => ({

@@ -8,7 +8,8 @@ chrome 联想文本框，走 `factory.autoComplete`。提交的是**输入字符
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/autocomplete.ts` | `UiAutoCompleteProps`：字符串值、`options` / `suggest` / `reference` |
+| `@mmda/core` `ui/autocomplete.ts` | `UiAutoCompleteProps`：字符串值、`options` / `suggest` / `reference` |
+| vui `ui/factory/autocomplete.ts` | 皮肤辅助：modifier / 建议归一 / 字段翻译 |
 | 皮肤 `factory/autocomplete.ts` | SF `AutoCompleteComponent`；Prime `AutoComplete`；Naive `NAutoComplete` |
 | field factory `autoComplete` | 从 `MetaUiField` 翻译 props；enum / hasOne 改道 |
 
@@ -50,7 +51,8 @@ REF 小表（如 `CurrencyUnit(unit, symbol)`）可以当建议源：`refOptions
 
 ## 源码
 
-- vui：[`autocomplete.ts`](../src/ui/factory/autocomplete.ts)
+- 契约：[`@mmda/core` `ui/autocomplete.ts`](../../core/src/ui/autocomplete.ts)
+- vui 辅助：[`autocomplete.ts`](../src/ui/factory/autocomplete.ts)
 - SF：[`vui-syncfusion/src/factory/autocomplete.ts`](../../vui-syncfusion/src/factory/autocomplete.ts)
 - Prime：[`vui-primevue/src/factory/autocomplete.ts`](../../vui-primevue/src/factory/autocomplete.ts)
 - Naive：[`vui-agnaive/src/factory/autocomplete.ts`](../../vui-agnaive/src/factory/autocomplete.ts)

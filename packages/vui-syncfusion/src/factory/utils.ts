@@ -444,7 +444,7 @@ export const normalizeAction = (action: any, t?: (key: string) => string): any =
       action.label ??
       (action.name && t ? t(`action.${action.name}`) : action.name),
     iconCss: action.icon,
-    disabled: action.disabled === true || action.disabled === "true",
+    disabled: action.disabled === true,
     separator: false,
     id: action.name,
     items: Array.isArray(action.items)

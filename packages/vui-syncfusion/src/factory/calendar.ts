@@ -1,16 +1,7 @@
 import { h, render } from "vue";
 import { CalendarComponent } from "@syncfusion/ej2-vue-calendars";
-import type { UiCalendarProps } from "@mmda/vui";
-import {
-  calendarBoundValue,
-  calendarDaySelected,
-  calendarEj2View,
-  calendarModifierClasses,
-  emitCalendarChange,
-  htmlAttributesOf,
-  isCalendarDateDisabled,
-  sameCalendarDay,
-} from "@mmda/vui";
+import type { UiCalendarProps } from '@mmda/core';
+import { calendarBoundValue, calendarDaySelected, calendarEj2View, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
 
 export function createCalendar(props: UiCalendarProps) {
   const {

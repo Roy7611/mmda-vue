@@ -1,14 +1,8 @@
 import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
-import type { UiTagAutoCompleteProps } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  tagAutoCompleteItemsOf,
-  tagAutoCompleteModifierClasses,
-  tagAutoCompleteSuggestionLabels,
-  tagAutoCompleteTextOf,
-  tagAutoCompleteUpdateOf,
-} from "@mmda/vui";
+import type { UiTagAutoCompleteProps } from '@mmda/core';
+import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, tagAutoCompleteUpdateOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTagAutoComplete(
   value: string,

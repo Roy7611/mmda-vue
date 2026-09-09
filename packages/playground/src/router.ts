@@ -22,20 +22,14 @@ export function createPlaygroundRouter() {
         component: HomeView,
       },
       {
-        path: `${DEMO_PREFIX}/:repository/Create`,
-        component: EntityView,
-      },
-      {
-        path: `${DEMO_PREFIX}/:repository/Edit/:id`,
-        component: EntityView,
-      },
-      {
-        path: `${DEMO_PREFIX}/:repository/:id`,
-        component: EntityView,
-      },
-      {
         path: `${DEMO_PREFIX}/:repository`,
         component: EntityView,
+        children: [
+          { path: "", component: EntityView.Index },
+          { path: "Create", component: EntityView.One },
+          { path: "Edit/:id", component: EntityView.One },
+          { path: ":id", component: EntityView.One },
+        ],
       },
     ],
   });

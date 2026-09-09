@@ -1,16 +1,7 @@
 import { h } from "vue";
 import { SliderComponent } from "@syncfusion/ej2-vue-inputs";
-import type { UiSliderProps } from "@mmda/vui";
-import {
-  emitSliderChange,
-  htmlAttributesOf,
-  sliderMaxOf,
-  sliderMinOf,
-  sliderModifierClasses,
-  sliderStepOf,
-  sliderTypeOf,
-  sliderValueOf,
-} from "@mmda/vui";
+import type { UiSliderProps } from "@mmda/vui"
+import { emitSliderChange, htmlAttributesOf, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf } from "@mmda/vui"
 
 export function createSlider(props: UiSliderProps) {
   const {
@@ -31,7 +22,7 @@ export function createSlider(props: UiSliderProps) {
     .flat()
     .filter(Boolean)
     .join(" ");
-  const isDisabled = disabled === true || disabled === "true";
+  const isDisabled = disabled === true;
 
   return h(SliderComponent as any, {
     ...rest,

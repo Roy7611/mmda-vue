@@ -23,9 +23,7 @@ describe('MmdaVueApp', () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
     const app = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
-    await expect(app.ui.dialog({} as any, {} as any, { title: 'x' })).resolves.toBe(
-      false,
-    )
+    await expect(app.ui.dialog({} as any, {} as any, { title: 'x' })).resolves.toBe('cancel')
   })
 
   it('应用壳直接调用 UiBuilder.buildAppScaffold', () => {

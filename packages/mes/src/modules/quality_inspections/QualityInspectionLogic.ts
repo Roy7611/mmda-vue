@@ -135,8 +135,7 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			}
 			if (!detail) return Promise.resolve(true);
 			context.uiBuilder.toast(context, {
-				severity: 'error',
-				detail,
+				severity: 'error', message,
 				title: context.t('dialog.title.error'),
 				life: 3000,
 			});
@@ -571,8 +570,8 @@ export class QualityInspectionLogic extends UiLogic<QualityInspection> {
 			{
 				title: context.t('qualityInspection.batchQualified'),
 				style: { width: '75vw', maxHeight: '90%' },
-				onAccept: async () => {
-					const ids = new Set(selected.map(i => i.itemID));
+				onAccept: async (button) => {
+				  const ids = new Set(selected.map(i => i.itemID));
 					const hasBadItemAfter = pending.some(i => !ids.has(i.itemID));
 					// 全部改为合格前，先确认当前质检结果允许该操作。
 					if (shouldLinkItemAndQcResult(target) && !hasBadItemAfter) {

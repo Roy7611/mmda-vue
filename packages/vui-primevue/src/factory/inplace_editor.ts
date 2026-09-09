@@ -4,17 +4,8 @@
  */
 import { defineComponent, h, ref, watch, type PropType } from 'vue'
 import Inplace from 'primevue/inplace'
-import type {
-  UiInplaceEditorController,
-  UiInplaceEditorProps,
-  UiInplaceEditorSlots,
-} from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  inplaceEditorDisabledOf,
-  inplaceEditorModifierClasses,
-  noopInplaceEditorController,
-} from '@mmda/vui'
+import type { UiInplaceEditorController, UiInplaceEditorProps, UiInplaceEditorSlots } from '@mmda/core'
+import { htmlAttributesOf, inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from '@mmda/vui'
 
 const PrimeInplaceEditorHost = defineComponent({
   name: 'MmdaPrimeInplaceEditor',

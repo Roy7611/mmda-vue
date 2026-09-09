@@ -4,17 +4,9 @@
  */
 import { h } from 'vue'
 import Timeline from 'primevue/timeline'
-import type { IconResolver, UiTimelineAlign, UiTimelineProps } from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  noopTimelineController,
-  timelineAlignOf,
-  timelineItemsOf,
-  timelineListContentOf,
-  timelineListOppositeOf,
-  timelineModifierClasses,
-  timelineOrientationOf,
-} from '@mmda/vui'
+import type { UiTimelineAlign, UiTimelineProps } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from '@mmda/vui'
 
 function primeAlignOf(
   orientation: 'horizontal' | 'vertical',

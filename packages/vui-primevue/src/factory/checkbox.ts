@@ -1,12 +1,8 @@
 import { h } from "vue";
 import Checkbox from "primevue/checkbox";
-import type { UiCheckBoxProps } from "@mmda/vui";
-import {
-  checkBoxCheckedOf,
-  checkBoxModifierClasses,
-  emitCheckBoxChange,
-  htmlAttributesOf,
-} from "@mmda/vui";
+import type { UiCheckBoxProps } from "@mmda/core"
+import { checkBoxCheckedOf, checkBoxModifierClasses, emitCheckBoxChange } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createCheckBox(props: UiCheckBoxProps) {
   const {

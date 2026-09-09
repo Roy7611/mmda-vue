@@ -1,14 +1,8 @@
 import { h } from "vue";
 import InputNumber from "primevue/inputnumber";
-import type { UiNumberInputProps } from "@mmda/vui";
-import {
-  emitNumberInputChange,
-  htmlAttributesOf,
-  numberInputDecimalsOf,
-  numberInputFormatOf,
-  numberInputModifierClasses,
-  numberInputStepOf,
-} from "@mmda/vui";
+import type { UiNumberInputProps } from "@mmda/core"
+import { emitNumberInputChange, numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 const standardFormatKind = (format: string): string | undefined => {
   const ch = format.trim()[0]?.toLowerCase();
@@ -64,7 +58,7 @@ export function createNumberInput(props: UiNumberInputProps) {
     placeholder,
     showButtons: showSpinButton !== false,
     useGrouping: false,
-    disabled: disabled === true || disabled === "true",
+    disabled: disabled === true,
     class: [...numberInputModifierClasses(props)].flat(),
     "onUpdate:modelValue": (next: number | null | undefined) =>
       emitNumberInputChange(props, next ?? null),

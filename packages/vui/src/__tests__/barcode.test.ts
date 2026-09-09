@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveBarcodeCaption, resolveBarcodeDisplayText } from '../ui/factory/barcode'
+import { resolveBarcodeCaption, resolveBarcodeDisplayText } from '@mmda/core'
 
 describe('barcode caption', () => {
   it('resolves function displayText with the encoded value', () => {

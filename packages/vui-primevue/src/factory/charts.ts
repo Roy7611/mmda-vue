@@ -1,20 +1,7 @@
 import { h } from 'vue'
 import Chart from 'primevue/chart'
-import type {
-  UiChartData,
-  UiChartFactory,
-  UiChartProps,
-  UiCircularGaugeProps,
-  UiBubbleProps,
-} from '@mmda/vui'
-import {
-  chartHookClass,
-  chartShortcuts,
-  htmlAttributesOf,
-  resolveChartData,
-  resolveChartType,
-  unsupportedChartMethod,
-} from '@mmda/vui'
+import type { UiChartData, UiChartFactory, UiChartProps, UiCircularGaugeProps, UiBubbleProps } from '@mmda/vui'
+import { chartHookClass, chartShortcuts, htmlAttributesOf, resolveChartData, resolveChartType, unsupportedChartMethod } from '@mmda/vui'
 
 function primeType(type: ReturnType<typeof resolveChartType>): string {
   return type === 'area' ? 'line' : type

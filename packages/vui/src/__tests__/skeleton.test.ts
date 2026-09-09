@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { skeletonModifierClasses } from '../ui/factory/skeleton'
+import { skeletonModifierClasses } from '@mmda/core'
 
 describe('skeleton chrome helpers', () => {
   it('defaults shape text and shimmer wave', () => {

@@ -1,14 +1,8 @@
 import { h } from "vue";
 import { NRadio, NRadioGroup } from "naive-ui";
-import type { UiRadioButtonGroupProps } from "@mmda/vui";
-import {
-  emitRadioButtonGroupChange,
-  htmlAttributesOf,
-  radioButtonGroupItemsOf,
-  radioButtonGroupModifierClasses,
-  radioButtonGroupNameOf,
-  radioButtonGroupValueOf,
-} from "@mmda/vui";
+import type { UiRadioButtonGroupProps } from "@mmda/core"
+import { emitRadioButtonGroupChange, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, radioButtonGroupValueOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const {
@@ -29,7 +23,7 @@ export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const items = radioButtonGroupItemsOf(props);
 
   return h(
-    NRadioGroup,
+    NRadioGroup as any,
     {
       ...rest,
       ...htmlAttributesOf(props),
@@ -44,7 +38,7 @@ export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
       default: () =>
         items.map((item) =>
           h(
-            NRadio,
+            NRadio as any,
             { value: item.value, key: String(item.value) },
             { default: () => item.label },
           ),

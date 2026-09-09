@@ -1,17 +1,5 @@
-import {
-  SqlDataType,
-  columnFilterKindOf,
-  hasFilterType,
-  MetaUiFieldFilterType,
-  resolveColumnFilterTypes,
-  type MetaUi,
-  type MetaUiField,
-} from '@mmda/core'
-import {
-  gridFreezeOf,
-  listedTableFields,
-  type UiGridScene,
-} from '@mmda/vui'
+import { SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, MetaUiFieldFilterType, resolveColumnFilterTypes, type MetaUi, type MetaUiField } from '@mmda/core'
+import { gridFreezeOf, listedTableFields, type UiGridScene } from '@mmda/vui'
 import {
   columnEditType,
   gridColumnFormat,
@@ -132,9 +120,9 @@ export function buildSfGridColumns(
 
 export type SfTreeGridColumnOptions = {
   allowSorting?: boolean
-  /** 与 factory.treeGrid 的 inplaceEdit + editableFields 对齐 */
-  inplaceEdit?: boolean
-  editableFields?: ReadonlySet<string> | readonly string[]
+  /** 与 factory.treeGrid 的 editable + fieldCellEditors 对齐 */
+  editable?: boolean
+  fieldCellEditors?: Record<string, { canEdit?: boolean | ((...args: any[]) => boolean) }>
   /** 树缩进列下标，默认 0 */
   treeColumnIndex?: number
 }
@@ -149,16 +137,12 @@ export function sfTreeGridColumnOf(
   options: SfTreeGridColumnOptions = {},
 ) {
   const treeColumnIndex = options.treeColumnIndex ?? 0
-  const editable =
-    options.editableFields instanceof Set
-      ? options.editableFields
-      : new Set(options.editableFields ?? [])
-  const inplaceEdit = options.inplaceEdit === true && editable.size > 0
+  const inplaceEdit = options.editable === true
   const canEdit =
     inplaceEdit &&
     index !== treeColumnIndex &&
-    editable.has(field.fieldName) &&
-    field.readOnly !== true
+    field.readOnly !== true &&
+    fieldCellEditorAllowsColumn(options.fieldCellEditors?.[field.fieldName])
   const bool = SqlDataType.isBool(field.dataType)
   const listed = field.listSize && field.listSize > 0 ? field.listSize : 0
 

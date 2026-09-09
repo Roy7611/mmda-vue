@@ -5,15 +5,7 @@
 import { h, withDirectives } from 'vue'
 import Tooltip from 'primevue/tooltip'
 import type { UiTooltipProps, UiTooltipSlots } from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  noopTooltipController,
-  tooltipContentOf,
-  tooltipDisabledOf,
-  tooltipModifierClasses,
-  tooltipOpensOnOf,
-  tooltipPositionOf,
-} from '@mmda/vui'
+import { htmlAttributesOf, noopTooltipController, tooltipContentOf, tooltipDisabledOf, tooltipModifierClasses, tooltipOpensOnOf, tooltipPositionOf } from '@mmda/vui'
 
 export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
   const children = slots?.default?.() ?? []

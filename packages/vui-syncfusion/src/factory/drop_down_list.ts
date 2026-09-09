@@ -1,17 +1,8 @@
 import { h } from "vue";
 import { DropDownListComponent } from "@syncfusion/ej2-vue-dropdowns";
-import type { UiDropDownListProps, UiSelectOption } from "@mmda/vui";
-import {
-  SELECT_DEBOUNCE_MS,
-  SELECT_MIN_LENGTH,
-  dropDownListModifierClasses,
-  dropDownListValueOf,
-  emitDropDownListChange,
-  htmlAttributesOf,
-  selectOptionsGrouped,
-  selectOptionsHaveIcon,
-  selectOptionsOf,
-} from "@mmda/vui";
+import type { UiDropDownListProps, UiSelectOption } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, emitDropDownListChange, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function syncfusionSelectFields(options: UiSelectOption[]) {
   const fields: { value: string; text: string; groupBy?: string } = {

@@ -6,36 +6,27 @@
  * 不是字段控件：没有 fldFactory.tabs。
  */
 import type { VNode, VNodeChild } from 'vue'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type {
+  UiTabHeader,
+  UiTabItem,
+  UiTabsHeaderPlacement,
+  UiTabsHeightAdjustMode,
+  UiTabsProps,
+} from '@mmda/core'
 
-export type UiTabsHeaderPlacement = 'Top' | 'Bottom' | 'Left' | 'Right'
-
-export type UiTabsHeightAdjustMode = 'None' | 'Auto' | 'Content' | 'Fill'
-
-export interface UiTabHeader {
-  text?: string
-  iconCss?: string
-}
-
-export interface UiTabItem {
-  header: string | UiTabHeader
-  content?: VNodeChild | (() => VNodeChild)
-  disabled?: boolean
-}
+export type {
+  UiTabHeader,
+  UiTabItem,
+  UiTabsHeaderPlacement,
+  UiTabsHeightAdjustMode,
+  UiTabsProps,
+} from '@mmda/core'
 
 export interface UiNormalizedTabItem {
   header: UiTabHeader
-  content?: VNodeChild | (() => VNodeChild)
+  content?: UiTabItem['content']
   disabled?: boolean
-}
-
-export interface UiTabsProps extends PropData {
-  items?: UiTabItem[]
-  value?: number
-  headerPlacement?: UiTabsHeaderPlacement
-  scrollable?: boolean
-  heightAdjustMode?: UiTabsHeightAdjustMode
-  onChange?: (value: number) => void
 }
 
 function isFalse(raw: unknown): boolean {
@@ -127,20 +118,10 @@ export function emitTabsChange(props: UiTabsProps, raw: unknown): void {
   const next = finiteIndex(unpacked)
   if (next == null) return
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
-export function tabsModifierClasses(props: UiTabsProps): unknown[] {
-  const placement = tabsHeaderPlacementOf(props).toLowerCase()
-  const height = tabsHeightAdjustModeOf(props).toLowerCase()
-  return [
-    'mmda-tabs',
-    `mmda-tabs--${placement}`,
-    tabsScrollableOf(props) ? 'mmda-tabs--scrollable' : 'mmda-tabs--popup',
-    `mmda-tabs--${height}`,
-    props.class,
-  ]
-}
+export { tabsModifierClasses } from '@mmda/core'
 
 export type TabsFactoryFn = (props: UiTabsProps) => VNode

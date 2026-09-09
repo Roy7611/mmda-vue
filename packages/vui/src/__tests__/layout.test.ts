@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
 import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
-import {
-  AppLayout,
-  layoutField,
-  layoutFieldGroup,
-  layoutPage,
-} from "../ui/layout/layout";
+import { AppLayout, VueUiLayout } from "../ui/layout/layout";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
@@ -29,26 +24,28 @@ afterEach(() => {
 });
 
 describe("default VUI layouts", () => {
+  const layout = new VueUiLayout();
+
   it("支持字段横纵方向和可选校验消息", () => {
     const host = mount(
       h("div", [
-        layoutField({
+        layout.layoutField({
           label: h("label", "名称"),
           control: h("input"),
-          direction: "horizontal",
+          orientation: "horizontal",
           message: h("small", "必填"),
         }),
-        layoutField({
+        layout.layoutField({
           label: h("label", "编码"),
           control: h("output", "A01"),
-          direction: "vertical",
+          orientation: "vertical",
         }),
       ]),
     );
 
     const fields = host.querySelectorAll<HTMLElement>(".mmda-field-layout");
-    expect(fields[0].dataset.direction).toBe("horizontal");
-    expect(fields[0].className).toContain("mmda-field-horizontal");
+    expect(fields[0].dataset.orientation).toBe("horizontal");
+    expect(fields[0].className).toContain("mmda-field-layout--horizontal");
     expect(fields[0].querySelector(".mmda-field-message")?.textContent).toBe(
       "必填",
     );
@@ -59,13 +56,13 @@ describe("default VUI layouts", () => {
   it("控制分组内部列数，概要分组可固定为一列", () => {
     const host = mount(
       h("div", [
-        layoutFieldGroup({
+        layout.layoutFieldGroup({
           fields: [h("span", "A"), h("span", "B"), h("span", "C")],
           cols: 3,
         }),
-        layoutFieldGroup({
+        layout.layoutFieldGroup({
           fields: [h("span", "S1"), h("span", "S2")],
-          direction: "column",
+          orientation: "column",
           cols: 1,
         }),
       ]),
@@ -75,14 +72,14 @@ describe("default VUI layouts", () => {
       ".mmda-field-group-layout",
     );
     expect(groups[0].dataset.cols).toBe("3");
-    expect(groups[0].className).toContain("mmda-field-group-row");
+    expect(groups[0].className).toContain("mmda-field-group-layout--row");
     expect(groups[1].dataset.cols).toBe("1");
-    expect(groups[1].className).toContain("mmda-field-group-column");
+    expect(groups[1].className).toContain("mmda-field-group-layout--column");
   });
 
   it("页面工具栏置顶，左右分栏且右侧可折叠", async () => {
     const host = mount(
-      layoutPage({
+      layout.layoutPage({
         toolbar: h("button", "保存"),
         primary: [h("section", "主信息")],
         summary: [h("section", "概要")],
@@ -93,14 +90,14 @@ describe("default VUI layouts", () => {
 
     const page = host.querySelector<HTMLElement>(".mmda-page-layout")!;
     const toolbar = host.querySelector<HTMLElement>(".mmda-page-toolbar")!;
-    const regions = host.querySelector<HTMLElement>(".mmda-page-regions")!;
+    const body = host.querySelector<HTMLElement>(".mmda-page-body")!;
     const main = host.querySelector<HTMLElement>(".mmda-page-main")!;
     expect(page.style.overflow).toBe("auto");
     expect(toolbar.style.position).toBe("sticky");
-    expect(regions.classList.contains("mmda-page-regions--with-summary")).toBe(
+    expect(body.classList.contains("mmda-page-body--with-summary")).toBe(
       true,
     );
-    expect(regions.classList.contains("is-summary-open")).toBe(true);
+    expect(body.classList.contains("is-summary-open")).toBe(true);
     expect(host.querySelector(".mmda-page-scroll")).toBeNull();
     expect(host.querySelector(".mmda-page-primary")).toBeNull();
     expect(host.querySelector(".mmda-page-tails")).toBeNull();
@@ -110,7 +107,7 @@ describe("default VUI layouts", () => {
       "概要",
     );
     expect(host.querySelector(".mmda-page-footer")?.textContent).toBe("页脚");
-    expect(regions.contains(host.querySelector(".mmda-page-footer")!)).toBe(
+    expect(body.contains(host.querySelector(".mmda-page-footer")!)).toBe(
       true,
     );
 
@@ -119,7 +116,7 @@ describe("default VUI layouts", () => {
     ) as HTMLElement;
     toggle.click();
     await Promise.resolve();
-    expect(regions.classList.contains("is-summary-collapsed")).toBe(true);
+    expect(body.classList.contains("is-summary-collapsed")).toBe(true);
   });
 
   it("AppLayout 提供侧栏通高和顶栏通栏两种 grid", () => {
@@ -419,8 +416,8 @@ describe("VueUiBuilder layout wiring", () => {
       new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
 
-    const regions = host.querySelector(".mmda-page-regions")!;
-    expect(regions.querySelector(".mmda-page-summary-toggle")).not.toBeNull();
+    const pageBody = host.querySelector(".mmda-page-body")!;
+    expect(pageBody.querySelector(".mmda-page-summary-toggle")).not.toBeNull();
     const summary = host.querySelector(".mmda-page-summary")!;
     const body = summary.querySelector(".mmda-page-summary-body")!;
     const children = [...body.children];
@@ -524,7 +521,8 @@ describe("VueUiBuilder layout wiring", () => {
     });
     const enabled = createBuilder();
     enabled.builder.buildGroup(medias, enabledContext);
-    expect(enabled.getTableProps().editableFields).toEqual(["mediaUrl"]);
+    expect(enabled.getTableProps().editable).toBe(true);
+    expect(enabled.getTableProps().fieldCellEditors?.mediaUrl).toBeUndefined();
     expect(enabled.getTableProps().inplaceEditStart).toBe("excel");
 
     const features = interleavedMetaui.getGroup("features")!;
@@ -535,11 +533,14 @@ describe("VueUiBuilder layout wiring", () => {
     });
     const featureBuilder = createBuilder();
     featureBuilder.builder.buildGroup(features, featureContext);
-    // 主键字段只要行 editable 且字段未 lock，仍可原位编辑
-    expect(featureBuilder.getTableProps().editableFields).toEqual([
-      "featureCode",
-      "featureName",
-    ]);
+    // 主键字段只要行 editable 且字段未 lock，默认可原位编辑（不必进 Record）
+    expect(featureBuilder.getTableProps().editable).toBe(true);
+    expect(
+      featureBuilder.getTableProps().fieldCellEditors?.featureCode,
+    ).toBeUndefined();
+    expect(
+      featureBuilder.getTableProps().fieldCellEditors?.featureName,
+    ).toBeUndefined();
 
     const disabledContext = new VueUiContext({
       model: { medias: [] },
@@ -551,7 +552,10 @@ describe("VueUiBuilder layout wiring", () => {
     disabledContext.setupGroupLogic(groupLogic);
     const disabled = createBuilder();
     disabled.builder.buildGroup(medias, disabledContext);
-    expect(disabled.getTableProps().editableFields).toEqual([]);
+    expect(disabled.getTableProps().editable).toBe(true);
+    expect(disabled.getTableProps().fieldCellEditors?.mediaUrl).toEqual({
+      canEdit: false,
+    });
 
     const groupDisabledContext = new VueUiContext({
       model: { medias: [] },
@@ -562,7 +566,7 @@ describe("VueUiBuilder layout wiring", () => {
     groupDisabledContext.setupGroupLogic(disabledGroupLogic);
     const groupDisabled = createBuilder();
     groupDisabled.builder.buildGroup(medias, groupDisabledContext);
-    expect(groupDisabled.getTableProps().editableFields).toEqual([]);
+    expect(groupDisabled.getTableProps().editable).toBe(false);
   });
 
   it("编辑页只读字段走 display renderer 而非 editor", () => {

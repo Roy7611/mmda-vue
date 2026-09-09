@@ -326,7 +326,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 							const { metaUi } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
 							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaUi.getListedFields()).build()
 							let data: any = null
-							return ctx.uiBuilder.dialog(
+							const result = await ctx.uiBuilder.dialog(
 								ctx.uiBuilder.factory.table(tableData.value, pickMeta, {
 									selectionMode: 'single',
 									onSelect: (selection: any) => { data = Array.isArray(selection) ? selection[0] : selection },
@@ -335,8 +335,8 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 								{
 									title: fld.displayLabel,
 									width: '80%',
-									onAccept: async () => {
-										if (!data) return false
+									onAccept: async (button) => {
+									  if (!data) return false
 										ctx.model.reworkTaskID = data.taskID
 										ctx.model.reworkTask = data
 										MetaModel.modify(ctx.model)
@@ -344,6 +344,7 @@ export class RectificationItemLogic extends UiGroupLogic<RectificationItem, Rect
 									},
 								},
 							)
+							return result === 'ok'
 						},
 						onUpdate: (value: any) => {
 							ctx.model.reworkTaskID = value || null

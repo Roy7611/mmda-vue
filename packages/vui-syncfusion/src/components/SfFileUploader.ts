@@ -1,8 +1,6 @@
 import { defineComponent, type PropType } from "vue";
-import {
-  createFileUploader,
-  type UiFileUploadControl,
-} from "@mmda/vui";
+import { type UiFileUploadControl } from '@mmda/core'
+import { createFileUploader } from '@mmda/vui'
 
 export const SfFileUploader = defineComponent({
   name: "SfFileUploader",

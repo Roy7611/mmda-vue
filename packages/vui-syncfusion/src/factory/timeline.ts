@@ -4,19 +4,9 @@
  */
 import { h } from "vue";
 import { TimelineComponent } from "@syncfusion/ej2-vue-layouts";
-import type { IconResolver, UiTimelineItem, UiTimelineProps } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  noopTimelineController,
-  timelineAlignOf,
-  timelineAlignToEj2,
-  timelineItemsOf,
-  timelineListContentOf,
-  timelineListOppositeOf,
-  timelineModifierClasses,
-  timelineOrientationOf,
-  timelineOrientationToEj2,
-} from "@mmda/vui";
+import type { UiTimelineItem, UiTimelineProps } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineAlignToEj2, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf, timelineOrientationToEj2 } from "@mmda/vui"
 
 function itemsOf(items: UiTimelineItem[], resolveIcon?: IconResolver) {
   return items.map((item, index) => ({

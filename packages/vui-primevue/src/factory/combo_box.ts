@@ -1,39 +1,22 @@
 import { h, reactive } from "vue";
 import AutoComplete from "primevue/autocomplete";
-import type { UiComboBoxProps, UiSelectOption } from "@mmda/vui";
-import {
-  SELECT_DEBOUNCE_MS,
-  SELECT_MIN_LENGTH,
-  comboBoxAllowCustom,
-  comboBoxModifierClasses,
-  comboBoxValueOf,
-  emitComboBoxChange,
-  htmlAttributesOf,
-  normalizeSelectOption,
-  selectOptionsOf,
-} from "@mmda/vui";
+import type { UiComboBoxProps, UiSelectOption } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, emitComboBoxChange, normalizeSelectOption, selectOptionsOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
+
+function defineInputProps(props: UiComboBoxProps) {
+  return {
+    ...htmlAttributesOf(props),
+    class: [...comboBoxModifierClasses(props)].flat(),
+    disabled: props.disabled === true,
+    placeholder: props.placeholder,
+  };
+}
 
 export function createComboBox(props: UiComboBoxProps) {
-  const {
-    value: _value,
-    modelValue: _modelValue,
-    options: _options,
-    placeholder,
-    disabled,
-    allowFiltering: _allowFiltering,
-    allowCustom: _allowCustom,
-    suggest,
-    minLength,
-    debounceDelay,
-    onChange: _onChange,
-    htmlAttributes,
-    class: _className,
-    ...rest
-  } = props;
-
   const local = selectOptionsOf(props);
   const state = reactive({ suggestions: [...local] });
-  const filterMin = minLength ?? SELECT_MIN_LENGTH;
+  const filterMin = props.minLength ?? SELECT_MIN_LENGTH;
   const forceSelection = !comboBoxAllowCustom(props);
 
   const optionOf = (next: unknown): string | number | null => {
@@ -44,28 +27,24 @@ export function createComboBox(props: UiComboBoxProps) {
     return next as string | number;
   };
 
-  return h(AutoComplete, {
-    ...rest,
-    ...htmlAttributesOf(props),
+  const primeProps = {
+    ...defineInputProps(props),
     modelValue: comboBoxValueOf(props) ?? null,
     suggestions: state.suggestions,
     dropdown: true,
     forceSelection,
-    optionLabel: "label",
-    optionValue: "value",
+    optionLabel: "label" as const,
+    optionValue: "value" as const,
     minLength: filterMin,
-    delay: debounceDelay ?? SELECT_DEBOUNCE_MS,
-    placeholder,
-    disabled,
-    class: [...comboBoxModifierClasses(props)].flat(),
+    delay: props.debounceDelay ?? SELECT_DEBOUNCE_MS,
     completeMethod: (event: { query: string }) => {
       const query = event.query ?? "";
       if (query.length < filterMin) {
         state.suggestions = [];
         return;
       }
-      if (suggest) {
-        void Promise.resolve(suggest(query)).then((rows) => {
+      if (props.suggest) {
+        void Promise.resolve(props.suggest(query)).then((rows) => {
           state.suggestions = (rows ?? []).map((item) =>
             normalizeSelectOption(item as string | UiSelectOption),
           );
@@ -81,5 +60,7 @@ export function createComboBox(props: UiComboBoxProps) {
     },
     "onUpdate:modelValue": (next: unknown) =>
       emitComboBoxChange(props, optionOf(next)),
-  });
+  };
+
+  return h(AutoComplete, primeProps);
 }

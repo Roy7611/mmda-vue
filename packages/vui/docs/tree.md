@@ -13,8 +13,8 @@ chrome 导航树走 `factory.tree`。[EJ2 Vue TreeView](https://ej2.syncfusion.c
 ## 单纯树
 
 ```ts
-factory.tree(props: UiTreePropsType)
-buildTree(props: UiTreePropsType)
+factory.tree(props: UiTreeProps)
+buildTree(props: UiTreeProps)
 ```
 
 默认 `selectionMode: 'single'`。`checkbox` 时 `selected` / `onNodeSelect` 用数组。树的模式是 `'single' | 'checkbox' | 'none'`，不要复用列表的 `UiSelectionMode`。
@@ -57,7 +57,7 @@ export interface UiTreeEmits<T = any> {
 
 `data` 是 `T[]`，不是 `Ref`。接口对着 `h()`，不会自动解包。Logic 里可以 `ref`，调用时传 `.value`。
 
-控件类型拆 Props / Emits，合成 `UiTreePropsType`。树上暂无槽，不建 `UiTreeSlots`。`selected` 属 Props；`onNodeSelect` 属 Emits。
+控件类型合成一份 `UiTreeProps`（契约在 `@mmda/core` `ui/tree.ts`）。`UiTreePropsType` 是 deprecated 别名。`selected` 与 `onNodeSelect` 都在 Props 上。
 
 ## 组合树
 
@@ -95,7 +95,7 @@ export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
 
 ## 皮肤
 
-皮肤内部把扁平 `parentId` 收成树。`factory.tree` 对外只认 `UiTreePropsType`。右键菜单和原地重命名都走各皮肤官方控件，不自绘浮层。
+皮肤内部把扁平 `parentId` 收成树。`factory.tree` 对外只认 `UiTreeProps`。右键菜单和原地重命名都走各皮肤官方控件，不自绘浮层。
 
 | 皮肤 | 控件 | 菜单 | 重命名 | 拖放 |
 |---|---|---|---|---|
@@ -103,4 +103,4 @@ export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
 | Prime | `PrimeTree` + `primevue/tree`；`selectionMode`；`@node-expand` → `onExpand` | 节点槽 `@contextmenu` + `ContextMenu.show` | 节点槽 `InputText`；F2 / 双击 | `dragdrop`；`@node-drop` → `onNodeMove` |
 | Agnaive | `NaiveTree` + `NTree`；`checkable`；图标走节点 `prefix` | `node-props.onContextmenu` + `NDropdown` | `render-label` + `NInput`；F2 / 双击 | `draggable`；`on-drop` → `onNodeMove` |
 
-类型在 [`ui/factory/tree.ts`](../src/ui/factory/tree.ts)。
+类型在 [`@mmda/core` `ui/tree.ts`](../../core/src/ui/tree.ts)；vui 辅助函数在 [`ui/factory/tree.ts`](../src/ui/factory/tree.ts)。

@@ -1,15 +1,8 @@
 import { h, reactive } from 'vue'
 import { NTreeSelect } from 'naive-ui'
-import type { UiTreeSelectProps } from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  treeChildrenOf,
-  treeHasExpandableChildren,
-  treeIdOf,
-  treeLabelOf,
-  treeSelectNodesOf,
-  type UiTreeFields,
-} from '@mmda/vui'
+import type { UiTreeSelectProps } from '@mmda/core'
+import { callUiBagFn } from '@mmda/core'
+import { htmlAttributesOf, treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields } from '@mmda/vui'
 
 type NaiveTreeOption = {
   key: string
@@ -52,8 +45,8 @@ function emitValue(props: UiTreeSelectProps, ids: string[]) {
   const next =
     props.selectionMode === 'checkbox' ? ids : (ids[0] ?? null)
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
 export function createTreeSelect(props: UiTreeSelectProps) {
@@ -95,7 +88,7 @@ export function createTreeSelect(props: UiTreeSelectProps) {
   const ids = idsOf(props)
   const value = checkbox ? ids : (ids[0] ?? null)
 
-  return h(NTreeSelect, {
+  return h(NTreeSelect as any, {
     ...rest,
     ...htmlAttributesOf(props),
     value,

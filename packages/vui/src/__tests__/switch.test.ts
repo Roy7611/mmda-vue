@@ -5,7 +5,7 @@ import {
   switchCheckedOf,
   switchModifierClasses,
   switchPropsFromField,
-} from '../ui/factory/switch'
+} from '@mmda/core'
 
 describe('switch chrome helpers', () => {
   it('merges (value, props) and prefers checked over modelValue', () => {

@@ -8,7 +8,7 @@ chrome 用户头像，走 `factory.avatar`。EJ2 类型见 [Syncfusion Avatar ty
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/avatar.ts` | `UiAvatarProps`：`src` / `icon` / `label` / `shape` / `size` / `colorRole` |
+| core `UiAvatarProps` | `src` / `icon` / `label` / `shape` / `size` / `colorRole` |
 | 皮肤 `factory/avatar.ts` | SF CSS `e-avatar-*`；Prime `Avatar`；Naive `NAvatar` |
 
 EJ2 Avatar 无 Vue 控件，Syncfusion 皮肤不要造 `SfAvatar.vue`。不做 `AvatarGroup`。角标叠头像用 `factory.badge` + `overlay`，Avatar **无** `position`。
@@ -39,7 +39,7 @@ EJ2 Avatar 无 Vue 控件，Syncfusion 皮肤不要造 `SfAvatar.vue`。不做 `
 
 ## 源码
 
-- vui：[`avatar.ts`](../src/ui/factory/avatar.ts)
+- core：[`chrome.ts`](../../core/src/ui/chrome.ts)
 - SF：[`vui-syncfusion/src/factory/avatar.ts`](../../vui-syncfusion/src/factory/avatar.ts)
 - Prime：[`vui-primevue/src/factory/avatar.ts`](../../vui-primevue/src/factory/avatar.ts)
 - Naive：[`vui-agnaive/src/factory/avatar.ts`](../../vui-agnaive/src/factory/avatar.ts)

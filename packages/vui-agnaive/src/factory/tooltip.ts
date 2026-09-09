@@ -6,6 +6,7 @@ import { h, type VNode } from 'vue'
 import { NTooltip } from 'naive-ui'
 import type {
   UiTooltipController,
+  UiTooltipOpensOn,
   UiTooltipProps,
   UiTooltipSlots,
 } from '@mmda/vui'
@@ -16,11 +17,19 @@ import {
   tooltipDisabledOf,
   tooltipModifierClasses,
   tooltipOpensOnOf,
-  tooltipOpensOnToTrigger,
   tooltipPositionOf,
-  tooltipPositionToNaive,
   tooltipShowPointerOf,
 } from '@mmda/vui'
+
+/** Naive trigger */
+export function tooltipOpensOnToTrigger(
+  opensOn: UiTooltipOpensOn,
+): 'hover' | 'click' | 'focus' | 'manual' {
+  if (opensOn === 'click') return 'click'
+  if (opensOn === 'focus') return 'focus'
+  if (opensOn === 'custom') return 'manual'
+  return 'hover'
+}
 
 export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
   const {
@@ -68,14 +77,14 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
   const text = tooltipContentOf(props, slots)
 
   return h(
-    NTooltip,
+    NTooltip as any,
     {
       ...rest,
       ...htmlAttributesOf(props),
       ref: (el: any) => {
         inst = el
       },
-      placement: tooltipPositionToNaive(tooltipPositionOf(props)),
+      placement: tooltipPositionOf(props) as any,
       trigger: tooltipOpensOnToTrigger(tooltipOpensOnOf(props)),
       showArrow: tooltipShowPointerOf(props),
       delay: openDelay ?? 0,

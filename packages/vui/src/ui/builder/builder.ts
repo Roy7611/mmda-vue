@@ -1,12 +1,7 @@
 import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
 import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
-import { openListSettingDialog } from "../../components/ListSettingView";
-import {
-  AppLayout,
-  type PropData,
-  type UiLayout,
-  type UiSlots,
-} from "../layout/layout";
+import { openTableSettingDialog } from "../../components/TableSettingView";
+import {AppLayout, VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
 import type {
   UiFactory,
   UiFieldFactory,
@@ -100,7 +95,7 @@ import type {
   UiConfirmProps,
   UiDialogProps,
   UiToastProps,
-} from "../factory/dialog";
+} from "@mmda/core";
 import { UiActionFactory } from "./actions";
 import { WithForm } from "./form";
 import { WithList } from "./list_view";
@@ -108,8 +103,8 @@ import { WithTree } from "./tree";
 
 export { UiActionFactory };
 
-/** Vue 拼屏会话；弹层 API 仍走 core `UiContext`。 */
-type UiContext = VueUiContext<any>;
+/** 拼屏方法参数用 core UiContext；需要 Vue 会话时再 as VueUiContext。 */
+type UiContext = CoreUiContext;
 
 export interface ImportOrExportParam extends EntityUrlParam {
   handlerFn?: (context: UiContext, response: any) => void;
@@ -120,15 +115,15 @@ export interface ImportOrExportParam extends EntityUrlParam {
 export const isNullish = (value: unknown): value is null | undefined =>
   value == null;
 
-export const hasProp = (name: string, props?: PropData) =>
+export const hasProp = (name: string, props?: UiProps) =>
   props != null && !isNullish(props[name]);
 
-export const hasPropEx = <T>(name: string, value: T, props?: PropData) =>
+export const hasPropEx = <T>(name: string, value: T, props?: UiProps) =>
   props != null && props[name] === value;
 
 export function getProp<T>(
   name: string,
-  props?: PropData,
+  props?: UiProps,
   remove = false,
 ): T | undefined {
   if (!hasProp(name, props)) return undefined;
@@ -137,7 +132,7 @@ export function getProp<T>(
   return value;
 }
 
-export function addProp<T>(name: string, value: T, props: PropData = {}) {
+export function addProp<T>(name: string, value: T, props: UiProps = {}) {
   props[name] = value;
   return props;
 }
@@ -145,20 +140,20 @@ export function addProp<T>(name: string, value: T, props: PropData = {}) {
 export function addDefaultProp<T>(
   name: string,
   value: T,
-  props: PropData = {},
+  props: UiProps = {},
 ) {
   if (!hasProp(name, props)) props[name] = value;
   return props;
 }
 
-export function addDefaultProps(addingProps: PropData, props: PropData = {}) {
+export function addDefaultProps(addingProps: UiProps, props: UiProps = {}) {
   for (const [name, value] of Object.entries(addingProps)) {
     if (!hasProp(name, props)) props[name] = value;
   }
   return props;
 }
 
-export function ignoreNullishProps(props: PropData) {
+export function ignoreNullishProps(props: UiProps) {
   for (const name of Object.keys(props)) {
     if (isNullish(props[name])) delete props[name];
   }
@@ -166,8 +161,8 @@ export function ignoreNullishProps(props: PropData) {
 }
 
 export function copyProps(
-  dest: PropData,
-  src: PropData,
+  dest: UiProps,
+  src: UiProps,
   names: string[],
   ignoreNullish = true,
 ) {
@@ -177,11 +172,11 @@ export function copyProps(
 }
 
 export function selectProps(
-  src: PropData,
+  src: UiProps,
   names: string[],
   ignoreNullish = true,
 ) {
-  const dest: PropData = {};
+  const dest: UiProps = {};
   copyProps(dest, src, names, ignoreNullish);
   return dest;
 }
@@ -338,8 +333,8 @@ export abstract class VueUiBuilderBase {
     document.documentElement.dataset.mmdaPalette = resolveColorPalette(palette);
   }
 
-  openListSettings(context: CoreUiContext) {
-    return openListSettingDialog(
+  openTableSettings(context: CoreUiContext) {
+    return openTableSettingDialog(
       this as any,
       context as any,
     );
@@ -347,31 +342,31 @@ export abstract class VueUiBuilderBase {
 
   buildContainer(
     subContainer: VNode | VNodeArrayChildren,
-    props?: PropData,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildContainer") as VNode;
   }
   buildHeader(
     content: VNode | VNodeArrayChildren,
-    props?: PropData,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildHeader") as VNode;
   }
   buildAside(
     content: VNode | VNodeArrayChildren,
-    props?: PropData,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildAside") as VNode;
   }
   buildMain(
     content: VNode | VNodeArrayChildren,
-    props?: PropData,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildMain") as VNode;
   }
   buildFooter(
     content: VNode | VNodeArrayChildren,
-    props?: PropData,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildFooter") as VNode;
   }
@@ -383,10 +378,10 @@ export abstract class VueUiBuilderBase {
     const variant =
       props.layout ?? (props.model === "Mobile" ? "topBarFull" : "sidebarLeft");
     return new AppLayout(variant).render({
-      topBar: invoke(props.topBar),
-      nav: invoke(props.sideBar),
-      page: invoke(props.body),
-      bottomBar: invoke(props.bottomBar),
+      topBar: invoke(props.topBar) as VNode | undefined,
+      nav: invoke(props.sideBar) as VNode | undefined,
+      page: invoke(props.body) as VNode | undefined,
+      bottomBar: invoke(props.bottomBar) as VNode | undefined,
     });
   }
   buildAppTopBar(props?: AppTopBarProps): VNode {
@@ -395,13 +390,13 @@ export abstract class VueUiBuilderBase {
   buildAppSideBar(props?: AppSideBarProps): VNode {
     return unimplemented("buildAppSideBar") as VNode;
   }
-  buildAppMenu(modules: Module[], props?: PropData): VNode {
+  buildAppMenu(modules: Module[], props?: UiProps): VNode {
     return unimplemented("buildAppMenu") as VNode;
   }
-  buildLoading(context: UiContext, props?: PropData): VNode {
+  buildLoading(context: UiContext, props?: UiProps): VNode {
     return unimplemented("buildLoading") as VNode;
   }
-  buildError(context: UiContext, props?: PropData): VNode {
+  buildError(context: UiContext, props?: UiProps): VNode {
     return unimplemented("buildError") as VNode;
   }
   buildModuleBreadcrumb(
@@ -420,11 +415,11 @@ export abstract class VueUiBuilderBase {
   buildSearchField(
     field: UiSearchField,
     context: UiContext,
-    props: PropData,
+    props: UiProps,
   ): VNode {
     return unimplemented("buildSearchField") as VNode;
   }
-  buildSearchForm(context: UiContext, props?: PropData): VNode {
+  buildSearchForm(context: UiContext, props?: UiProps): VNode {
     return unimplemented("buildSearchForm") as VNode;
   }
   buildModuleSearchbar(
@@ -461,30 +456,31 @@ export abstract class VueUiBuilderBase {
     return Promise.resolve();
   }
 
-  async confirm(_context: CoreUiContext, props: Record<string, unknown>) {
-    return this.overlay.confirm(props as unknown as UiConfirmProps);
+  async confirm(_context: CoreUiContext, props: UiConfirmProps) {
+    return this.overlay.confirm(props);
   }
 
   dialog(
     content: VNode | VNode[],
-    _context: CoreUiContext,
+    context: CoreUiContext,
     props?: Record<string, unknown>,
   ) {
     return this.overlay.dialog(
       content as VNode,
       (props as UiDialogProps | undefined) ?? { title: "" },
+      context,
     );
   }
 
-  buildDocxFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+  buildDocxFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
     return h(DocxFilePreview, { source, ...props });
   }
 
-  buildXlsxFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+  buildXlsxFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
     return h(XlsxFilePreview, { source, ...props });
   }
 
-  buildFilePreview(source: string | ArrayBuffer, props: PropData = {}) {
+  buildFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
     const explicit = String(props.extension ?? "");
     const raw = typeof source === "string" ? source.split(/[?#]/)[0] : explicit;
     const extension = (explicit || raw.split(".").pop() || "")
@@ -534,9 +530,9 @@ export interface VueUiBuilder {
   buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props?: PropData,
+    props?: UiProps,
   ): VNode;
-  buildAttachmentGroup(context: any, props?: PropData): VNode;
+  buildAttachmentGroup(context: any, props?: UiProps): VNode;
   buildGanttView(context: any, props: UiGanttViewProps): VNode;
   buildGanttChart(context: any, props: UiGanttChartProps): VNode;
   buildRibbon(props: UiRibbonProps): VNode;
@@ -545,13 +541,13 @@ export interface VueUiBuilder {
   buildBpmnDiagram(
     flowTrails: any[],
     context: any,
-    props?: PropData,
+    props?: UiProps,
   ): VNode;
   buildDiagramView(context: any, props: UiDiagramViewProps): VNode;
   buildKanbanView(props: UiKanbanViewProps): VNode;
   buildListView(context: any, props?: any): VNode;
   buildView(context: any, props?: UiViewPropsType): VNode;
-  groupWrapClass(group: MetaUiGroup, props?: PropData): string;
+  groupWrapClass(group: MetaUiGroup, props?: UiProps): string;
 }
 
 export abstract class VueUiBuilder
@@ -594,9 +590,9 @@ const emptyNode = () => h("div");
 /** 无皮肤时的占位 Builder，弹层一律取消。 */
 export function createStubUiBuilder(): VueUiBuilder {
   const factory = {
-    layout: {} as UiLayout,
+    layout: new VueUiLayout(),
     resolveIcon: (icon: string) => icon,
-  } as UiFactory;
+  } as unknown as UiFactory;
   const stub: any = {
     factory,
     fldFactory: {} as UiFieldFactory,
@@ -637,7 +633,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
     buildModuleToolbar: emptyNode,
-    openListSettings: async () => false,
+    openTableSettings: async () => false,
     buildSearchField: emptyNode,
     buildSearchForm: emptyNode,
     buildModuleSearchbar: emptyNode,
@@ -734,7 +730,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     },
     toast: async (): Promise<void> => undefined,
     confirm: async () => false,
-    dialog: async () => false,
+    dialog: async () => 'cancel' as const,
     buildDocxFilePreview: emptyNode,
     buildXlsxFilePreview: emptyNode,
     buildFilePreview: emptyNode,

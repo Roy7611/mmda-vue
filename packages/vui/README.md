@@ -52,9 +52,9 @@ src/
   app/              应用壳：MmdaVueApp、inject keys、主题 / 图标 / Material token、壳 state
   logic/            UiLogic：对标 core EntityLogic，无 Vue 控件
   contexts/         一屏会话：VueUiContext（Handbook mixin：data / validate / subgroup / navigate / reference）、view
-  components/       皮肤无关 Vue 组件（EntityView、ListSettingView、GroupCard、侧栏、预览…）
+  components/       皮肤无关 Vue 组件（EntityView、TableSettingView、GroupCard、侧栏、预览…）
   ui/
-    layout/         栅格与槽：UiLayout、AppLayout、PropData、UiSlots
+    layout/         栅格与槽：VueUiLayout、AppLayout、UiProps、UiSlots
     factory/        控件契约（一控件一文件）：UiFactory、UiFieldFactory、list/tree/dialog…
     builder/        VueUiBuilder 拼屏：form/list/tree mixin、overlay、list_query / tree_data 等辅助函数
   i18n/             语言包与 setupI18n
@@ -130,6 +130,8 @@ await context.init()
 | [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |
+| [布局设计](./docs/layout.md) | `UiLayout` / `VueUiLayout`；不是 AppLayout 脚手架 |
+| [布局：怎么写](./docs/layout_usage.md) | `layout.layoutField` / `layoutPage` / `listTile` |
 | [Factory 控件契约](./docs/factory.md) | chrome：`shape` / `size` / `colorRole` / `position` / `htmlAttributes` |
 | [Badge 设计](./docs/badge.md) | `factory.badge` |
 | [Badge：怎么写](./docs/badge_usage.md) | 行内 / 角标 |

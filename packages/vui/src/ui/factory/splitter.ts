@@ -5,50 +5,22 @@
  * 不要 vui 主名 layout / direction / panels / paneSettings。
  * 嵌套：pane.content 再放 factory.splitter(...)，没有第二个 chrome 名。
  */
-import type { VNode } from 'vue'
+import type {
+  UiSplitterCollapseEvent,
+  UiSplitterOrientation,
+  UiSplitterProps,
+  UiSplitterResizeEvent,
+} from '@mmda/core'
+
+export type {
+  UiSplitterCollapseEvent,
+  UiSplitterOrientation,
+  UiSplitterPane,
+  UiSplitterProps,
+  UiSplitterResizeEvent,
+} from '@mmda/core'
 
 export const DEFAULT_SPLITTER_SIZE = '100%'
-
-export type UiSplitterOrientation = 'Horizontal' | 'Vertical'
-
-export interface UiSplitterPane {
-  content: VNode
-  /** 初始尺寸，如 `16rem` / `25%`。对应 SF paneSettings.size */
-  size?: string
-  min?: string
-  max?: string
-  collapsible?: boolean
-  collapsed?: boolean
-  resizable?: boolean
-  cssClass?: string
-}
-
-export interface UiSplitterCollapseEvent {
-  index: number
-  collapsed: boolean
-}
-
-export interface UiSplitterResizeEvent {
-  index: number
-  paneSize?: number[]
-}
-
-export interface UiSplitterProps {
-  orientation?: UiSplitterOrientation
-  class?: string
-  width?: string
-  height?: string
-  separatorSize?: number
-  enabled?: boolean
-  enableReversePanes?: boolean
-  /** vui 扩展：程序化收起第 0 栏。不要写 paneSettings.collapsed */
-  collapseTick?: number
-  onCollapsed?: (event: UiSplitterCollapseEvent) => void
-  onExpanded?: (event: UiSplitterCollapseEvent) => void
-  onResizeStart?: (event: UiSplitterResizeEvent) => void
-  onResizing?: (event: UiSplitterResizeEvent) => void
-  onResizeStop?: (event: UiSplitterResizeEvent) => void
-}
 
 function isFalse(raw: unknown): boolean {
   return raw === false || raw === 'false'
@@ -90,17 +62,7 @@ export function splitterEventIndex(args?: {
   return Number(raw ?? 0)
 }
 
-export function splitterModifierClasses(props: UiSplitterProps = {}): unknown[] {
-  const orientation = splitterOrientationOf(props)
-  return [
-    'mmda-splitter',
-    orientation === 'Vertical'
-      ? 'mmda-splitter--vertical'
-      : 'mmda-splitter--horizontal',
-    splitterReversePanesOf(props) ? 'mmda-splitter--reverse' : undefined,
-    props.class,
-  ]
-}
+export { splitterModifierClasses } from '@mmda/core'
 
 export function emitSplitterResize(
   props: UiSplitterProps,

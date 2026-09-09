@@ -1,15 +1,7 @@
 import { h } from 'vue'
 import { NRate } from 'naive-ui'
 import type { UiRatingProps } from '@mmda/vui'
-import {
-  emitRatingChange,
-  htmlAttributesOf,
-  ratingItemsCountOf,
-  ratingModifierClasses,
-  ratingReadOnlyOf,
-  ratingValueOf,
-  resolveRatingTemplate,
-} from '@mmda/vui'
+import { emitRatingChange, htmlAttributesOf, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from '@mmda/vui'
 
 export function createRating(props: UiRatingProps) {
   const {
@@ -51,7 +43,7 @@ export function createRating(props: UiRatingProps) {
       value: current,
       count: ratingItemsCountOf(props),
       readonly: ratingReadOnlyOf(props),
-      disabled: disabled === true || disabled === 'true',
+      disabled: disabled === true,
       class: ratingModifierClasses(props).flat(),
       'onUpdate:value': (next: unknown) => emitRatingChange(props, next),
     },

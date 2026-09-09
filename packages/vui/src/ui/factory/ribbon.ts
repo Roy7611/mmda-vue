@@ -4,7 +4,7 @@
  * 与 factory.toolbar（三栏壳）无关。
  */
 import type { VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps} from '../layout/layout'
 
 export type UiRibbonItemType =
   | 'button'
@@ -46,7 +46,7 @@ export interface UiRibbonTab {
 
 export type UiRibbonLayout = 'classic' | 'simplified'
 
-export interface UiRibbonProps extends PropData {
+export interface UiRibbonProps extends UiProps {
   tabs: UiRibbonTab[]
   layout?: UiRibbonLayout
   activeTab?: number

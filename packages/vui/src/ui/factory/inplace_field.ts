@@ -1,12 +1,13 @@
-import type { MetaUiField } from '@mmda/core'
-import { h, type VNode } from 'vue'
-import type { PropData } from '../layout/layout'
-import type { UiFieldFactory, UiFieldRenderer } from './field_factory'
 import {
   inplaceEditorDisabledOf,
   isInplaceFieldEditorKey,
+  type MetaUiField,
   type UiInplaceEditorProps,
-} from './inplace_editor'
+} from '@mmda/core'
+import { h, type VNode } from 'vue'
+import type {UiProps, UiBagExtra} from '../layout/layout'
+import type { UiFieldFactory } from './field_factory'
+import type { UiFieldRenderer } from '@mmda/core'
 
 type Ctx = {
   isFieldReadonly: (field: MetaUiField | string) => boolean
@@ -26,7 +27,7 @@ type Ctx = {
 export function inplaceFieldDisplayRenderer(
   field: MetaUiField,
   fldFactory: UiFieldFactory,
-): UiFieldRenderer {
+): UiFieldRenderer<VNode> {
   if (
     field.renderer &&
     !isInplaceFieldEditorKey(field.renderer) &&
@@ -40,7 +41,7 @@ export function inplaceFieldDisplayRenderer(
 export function inplaceFieldContentRenderer(
   field: MetaUiField,
   fldFactory: UiFieldFactory,
-): UiFieldRenderer {
+): UiFieldRenderer<VNode> {
   if (
     field.editor &&
     !isInplaceFieldEditorKey(field.editor) &&
@@ -54,7 +55,7 @@ export function inplaceFieldContentRenderer(
 export function renderInplaceFieldEditor(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
   fldFactory: UiFieldFactory,
 ): VNode {
   const display = inplaceFieldDisplayRenderer(field, fldFactory)

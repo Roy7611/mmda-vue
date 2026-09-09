@@ -1,15 +1,6 @@
 import { defineComponent, h, ref, watch, type PropType } from "vue";
-import type { UiSplitterPane, UiSplitterProps } from "@mmda/vui";
-import {
-  emitSplitterResize,
-  splitterEnabledOf,
-  splitterEventIndex,
-  splitterHeightOf,
-  splitterModifierClasses,
-  splitterOrientationOf,
-  splitterReversePanesOf,
-  splitterWidthOf,
-} from "@mmda/vui";
+import type { UiSplitterPane, UiSplitterProps } from "@mmda/vui"
+import { emitSplitterResize, splitterEnabledOf, splitterEventIndex, splitterHeightOf, splitterModifierClasses, splitterOrientationOf, splitterReversePanesOf, splitterWidthOf } from "@mmda/vui"
 import { SplitterComponent } from "@syncfusion/ej2-vue-layouts";
 
 export { splitterEventIndex };

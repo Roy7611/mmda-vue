@@ -1,6 +1,6 @@
 import { h } from "vue";
-import type { UiDividerProps } from "@mmda/vui";
-import { dividerModifierClasses } from "@mmda/vui";
+import type { UiDividerProps } from "@mmda/vui"
+import { dividerModifierClasses } from "@mmda/vui"
 
 export function createDivider(props: UiDividerProps = {}) {
   const {

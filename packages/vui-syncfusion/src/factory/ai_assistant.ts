@@ -10,13 +10,7 @@ import {
   ref,
   type PropType,
 } from 'vue'
-import type {
-  UiAiAssistantController,
-  UiAiAssistantPlugin,
-  UiAiAssistantProps,
-  UiAiPromptRequest,
-  UiAiResponseMode,
-} from '@mmda/vui'
+import type { UiAiAssistantController, UiAiAssistantPlugin, UiAiAssistantProps, UiAiPromptRequest, UiAiResponseMode } from '@mmda/vui'
 import { aiAssistantHookClass, htmlAttributesOf } from '@mmda/vui'
 
 function ej2ResponseMode(mode?: UiAiResponseMode): string | undefined {

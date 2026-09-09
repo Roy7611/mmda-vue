@@ -10,12 +10,7 @@ import {
   type PropType,
 } from 'vue'
 import { createSpinner, hideSpinner, showSpinner } from '@syncfusion/ej2-popups'
-import {
-  loadingModifierClasses,
-  loadingWidthOf,
-  type UiLoadingProps,
-  type UiLoadingSize,
-} from '@mmda/vui'
+import { loadingModifierClasses, loadingWidthOf, type UiLoadingProps, type UiLoadingSize } from '@mmda/vui'
 
 /**
  * EJ2 Spinner 主机。无子节点 = 区域转圈；有 default slot = 盖住子节点。

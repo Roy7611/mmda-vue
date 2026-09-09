@@ -4,17 +4,8 @@ import TabList from "primevue/tablist";
 import Tab from "primevue/tab";
 import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
-import type { UiNormalizedTabItem, UiTabsProps } from "@mmda/vui";
-import {
-  emitTabsChange,
-  htmlAttributesOf,
-  tabsHostStyle,
-  tabsItemContentOf,
-  tabsItemsOf,
-  tabsModifierClasses,
-  tabsScrollableOf,
-  tabsValueOf,
-} from "@mmda/vui";
+import type { UiNormalizedTabItem, UiTabsProps } from "@mmda/vui"
+import { emitTabsChange, htmlAttributesOf, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsScrollableOf, tabsValueOf } from "@mmda/vui"
 
 function headerNodes(item: UiNormalizedTabItem) {
   const text = item.header.text ?? "";

@@ -1,6 +1,6 @@
 import type { MetaUiField } from "@mmda/core";
-import type { PropData } from "@mmda/vui";
-import { textAreaPropsFromField, textInputPropsFromField } from "@mmda/vui";
+import type { UiProps } from "@mmda/vui"
+import { textAreaPropsFromField, textInputPropsFromField } from "@mmda/core"
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import { createTextArea } from "../factory/text_area";
 import { createTextInput } from "../factory/text_input";
@@ -10,7 +10,7 @@ import { h } from "vue";
 export const textInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -27,7 +27,7 @@ export const textInput = (
 export const textArea = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -50,6 +50,6 @@ export const textArea = (
 export const password = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   control(TextBoxComponent as any, field, context, props, { type: "password" });

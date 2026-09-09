@@ -3,13 +3,7 @@
  * App：ui.setRibbonPlugin(createSfRibbonPlugin())
  */
 import { defineComponent, h, provide } from 'vue'
-import type {
-  UiRibbonItem,
-  UiRibbonMenuItem,
-  UiRibbonPlugin,
-  UiRibbonProps,
-  UiRibbonTab,
-} from '@mmda/vui'
+import type { UiRibbonItem, UiRibbonMenuItem, UiRibbonPlugin, UiRibbonProps, UiRibbonTab } from '@mmda/vui'
 import { htmlAttributesOf, ribbonHookClass } from '@mmda/vui'
 import {
   RibbonButton,

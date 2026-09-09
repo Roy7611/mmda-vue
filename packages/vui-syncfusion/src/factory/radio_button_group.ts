@@ -1,14 +1,8 @@
 import { h } from "vue";
 import { RadioButtonComponent } from "@syncfusion/ej2-vue-buttons";
-import type { UiRadioButtonGroupProps } from "@mmda/vui";
-import {
-  emitRadioButtonGroupChange,
-  htmlAttributesOf,
-  radioButtonGroupItemSelected,
-  radioButtonGroupItemsOf,
-  radioButtonGroupModifierClasses,
-  radioButtonGroupNameOf,
-} from "@mmda/vui";
+import type { UiRadioButtonGroupProps } from "@mmda/core"
+import { emitRadioButtonGroupChange, radioButtonGroupItemSelected, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const {

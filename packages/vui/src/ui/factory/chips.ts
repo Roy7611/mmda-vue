@@ -7,8 +7,9 @@
  * 不要 enumSetTags / BitTags。
  */
 import type { MetaUiField } from '@mmda/core'
+import { callUiBagFn, chipItemModifierClasses  } from '@mmda/core'
 import type { UiColorRole } from '../../app/material'
-import type { PropData } from '../layout/layout'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 import {
   applyMultiSelectSelection,
   multiSelectChromeOptionsOf,
@@ -19,39 +20,10 @@ import {
   resolveMultiSelectItems,
   type UiMultiSelectBindMode,
   type UiMultiSelectProps,
-} from './multi_select'
+} from '@mmda/core'
 
-export type UiChipsKind = 'action' | 'choice' | 'filter' | 'input'
-
-export type UiChipItem = {
-  label: string
-  value?: string | number
-  disabled?: boolean
-  colorRole?: UiColorRole
-  /** 前置图标（EJ2 leadingIconCss）。 */
-  icon?: string
-  /** 头像图（EJ2 avatarIconCss / leadingIconUrl）。 */
-  avatarSrc?: string
-  /** 头像字母（EJ2 avatarText）。 */
-  avatarLabel?: string
-  trailingIcon?: string
-  outlined?: boolean
-}
-
-export interface UiChipsProps extends PropData {
-  items?: Array<string | UiChipItem>
-  kind?: UiChipsKind
-  selected?: string | number | Array<string | number>
-  removable?: boolean
-  disabled?: boolean
-  colorRole?: UiColorRole
-  outlined?: boolean
-  onChange?: (
-    selected: string | number | Array<string | number> | undefined,
-  ) => void
-  onClick?: (item: UiChipItem, index: number) => void
-  onRemove?: (item: UiChipItem, index: number) => void
-}
+export type { UiChipItem, UiChipsKind, UiChipsProps } from '@mmda/core'
+import type { UiChipItem, UiChipsKind, UiChipsProps } from '@mmda/core'
 
 export type ChipsFieldContext = {
   getFieldValue: (field: MetaUiField, row?: unknown) => unknown
@@ -94,7 +66,9 @@ export function chipsSelectedOf(
 ): string | number | Array<string | number> | undefined {
   if (props.selected !== undefined) return props.selected
   const kind = chipsKindOf(props)
-  if (kind === 'choice' || kind === 'filter') return props.modelValue
+  if (kind === 'choice' || kind === 'filter') {
+    return props.modelValue as string | number | Array<string | number> | undefined
+  }
   return undefined
 }
 
@@ -137,26 +111,11 @@ export function emitChipsChange(
   selected: string | number | Array<string | number> | undefined,
 ): void {
   props.onChange?.(selected)
-  props['onUpdate:modelValue']?.(selected)
-  props.onUpdate?.(selected)
+  callUiBagFn(props, 'onUpdate:modelValue', selected)
+  callUiBagFn(props, 'onUpdate', selected)
 }
 
-export function chipsModifierClasses(props: UiChipsProps): unknown[] {
-  const kind = chipsKindOf(props)
-  const kindClass = kind !== 'action' ? `mmda-chips--${kind}` : undefined
-  const removable = isChipsRemovable(props)
-    ? 'mmda-chips--removable'
-    : undefined
-  return ['mmda-chips', kindClass, removable, props.class]
-}
-
-export function chipItemModifierClasses(item: UiChipItem): unknown[] {
-  const color = item.colorRole
-    ? `mmda-chips__item--${item.colorRole}`
-    : undefined
-  const outlined = item.outlined ? 'mmda-chips__item--outlined' : undefined
-  return [color, outlined]
-}
+export { chipsModifierClasses, chipItemModifierClasses } from '@mmda/core'
 
 export function syncfusionChipCssClass(item: UiChipItem): string {
   const role =
@@ -180,7 +139,7 @@ export function naiveChipType(
 export function chipLabelsFromField(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): string[] {
   const raw = context.getFieldValue(field, extra.row)
   const labelOf = (value: any) =>
@@ -202,7 +161,7 @@ export function chipLabelsFromField(
 export function chipsPropsFromField(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiChipsProps {
   return {
     items: extra.items ?? chipLabelsFromField(field, context, extra),
@@ -220,7 +179,7 @@ export function chipsPropsFromField(
   }
 }
 
-function chipSetOptionsOf(field: MetaUiField, extra: PropData): unknown[] {
+function chipSetOptionsOf(field: MetaUiField, extra: UiBagExtra): unknown[] {
   if (Array.isArray(extra.options)) return extra.options
   const reference = field.reference
   if (!reference || reference.hasOne) return []
@@ -229,7 +188,7 @@ function chipSetOptionsOf(field: MetaUiField, extra: PropData): unknown[] {
 
 function chipSetMultiSelectProps(
   field: MetaUiField,
-  extra: PropData,
+  extra: UiBagExtra,
   bindMode: UiMultiSelectBindMode,
   value: unknown,
 ): UiMultiSelectProps {
@@ -261,7 +220,7 @@ function chipsFromSelected(ms: UiMultiSelectProps): UiChipItem[] {
 function chipSetReadonlyOf(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData,
+  extra: UiBagExtra,
 ): boolean {
   return extra.disabled === true || context.isFieldReadonly?.(field) === true
 }
@@ -270,7 +229,7 @@ function writeChipSetSelection(
   field: MetaUiField,
   context: ChipsFieldContext,
   ms: UiMultiSelectProps,
-  extra: PropData,
+  extra: UiBagExtra,
   selected: string | number | Array<string | number> | undefined,
 ): void {
   const keys = Array.isArray(selected)
@@ -285,7 +244,7 @@ function writeChipSetSelection(
 
 export function enumChipSetBindModeOf(
   raw: unknown,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): 'value_array' | 'join_text' {
   if (extra.bindMode === 'value_array' || extra.bindMode === 'join_text') {
     return extra.bindMode
@@ -296,7 +255,7 @@ export function enumChipSetBindModeOf(
 function chipSetPropsFromBindMode(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData,
+  extra: UiBagExtra,
   bindMode: UiMultiSelectBindMode,
 ): UiChipsProps {
   const raw = context.getFieldValue(field, extra.row)
@@ -332,7 +291,7 @@ function chipSetPropsFromBindMode(
 export function bitChipSetPropsFromField(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiChipsProps {
   return chipSetPropsFromBindMode(field, context, extra, 'or_bits')
 }
@@ -340,7 +299,7 @@ export function bitChipSetPropsFromField(
 export function enumChipSetPropsFromField(
   field: MetaUiField,
   context: ChipsFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiChipsProps {
   const raw = context.getFieldValue(field, extra.row)
   return chipSetPropsFromBindMode(

@@ -11,17 +11,8 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import type {
-  UiInplaceEditorController,
-  UiInplaceEditorProps,
-  UiInplaceEditorSlots,
-} from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  inplaceEditorDisabledOf,
-  inplaceEditorModifierClasses,
-  noopInplaceEditorController,
-} from '@mmda/vui'
+import type { UiInplaceEditorController, UiInplaceEditorProps, UiInplaceEditorSlots } from '@mmda/core'
+import { htmlAttributesOf, inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from '@mmda/vui'
 
 const NaiveInplaceEditorHost = defineComponent({
   name: 'MmdaNaiveInplaceEditor',

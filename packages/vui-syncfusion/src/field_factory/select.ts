@@ -1,25 +1,8 @@
 import { h, type VNode } from "vue";
 import { MetaModel, type MetaUiField } from "@mmda/core";
-import type { PropData } from "@mmda/vui";
-import {
-  autoCompleteBindValue,
-  autoCompletePropsFromField,
-  bitCheckBoxListPropsFromField,
-  checkBoxListPropsFromField,
-  checkBoxPropsFromField,
-  switchPropsFromField,
-  comboBoxPropsFromField,
-  dropDownListPropsFromField,
-  radioButtonGroupPropsFromField,
-  treeSelectPropsFromField,
-  multiBitSelectPropsFromField,
-  multiItemSelectPropsFromField,
-  multiSelectPropsFromField,
-  multiTextSelectPropsFromField,
-  multiValueSelectPropsFromField,
-  tagAutoCompletePropsFromField,
-  routeAutoCompleteField,
-} from "@mmda/vui";
+import type { UiProps } from "@mmda/vui"
+import { autoCompleteBindValue, autoCompletePropsFromField, bitCheckBoxListPropsFromField, checkBoxListPropsFromField, checkBoxPropsFromField, switchPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiBitSelectPropsFromField, multiItemSelectPropsFromField, multiSelectPropsFromField, multiTextSelectPropsFromField, multiValueSelectPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
+import { treeSelectPropsFromField } from "@mmda/vui"
 import { createAutoComplete } from "../factory/autocomplete";
 import { createCheckBox } from "../factory/checkbox";
 import { createSwitch } from "../factory/switch";
@@ -47,7 +30,7 @@ import {
 export const dropDownList = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -66,7 +49,7 @@ export const dropDownList = (
 export const treeSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -85,7 +68,7 @@ export const treeSelect = (
 export const comboBox = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -115,7 +98,7 @@ function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
 export const radioButtonGroup = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -128,7 +111,7 @@ export const radioButtonGroup = (
 export const multiSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -141,7 +124,7 @@ export const multiSelect = (
 export const multiItemSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -154,7 +137,7 @@ export const multiItemSelect = (
 export const multiValueSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -167,7 +150,7 @@ export const multiValueSelect = (
 export const multiTextSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -180,7 +163,7 @@ export const multiTextSelect = (
 export const multiBitSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -193,7 +176,7 @@ export const multiBitSelect = (
 export const checkBoxList = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -206,7 +189,7 @@ export const checkBoxList = (
 export const bitCheckBoxList = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapSf(
     field,
@@ -219,7 +202,7 @@ export const bitCheckBoxList = (
 export const tagAutoComplete = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const mapped = tagAutoCompletePropsFromField(
     field,
@@ -236,7 +219,7 @@ export const tagAutoComplete = (
 export const checkbox = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -253,7 +236,7 @@ export const checkbox = (
 export const switchControl = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -275,7 +258,7 @@ export const switcher = switchControl;
 export const searchBox = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   const reference = field.reference;
   if (!reference) {
@@ -353,7 +336,7 @@ export const searchBox = (
 export const autoComplete = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   const route = routeAutoCompleteField(field);
   if (route === "dropDownList") return dropDownList(field, context, props);

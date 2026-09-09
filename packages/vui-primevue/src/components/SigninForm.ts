@@ -1,9 +1,5 @@
 import { required } from '@mmda/core'
-import {
-  signinFormEmits,
-  signinFormProps,
-  type SigninUser,
-} from '@mmda/vui'
+import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
@@ -43,11 +39,11 @@ export const SigninForm = defineComponent({
 
     const requiredUsername = () => {
       v.username.touched = true
-      v.username.message = tx(required(user.username) as string)
+      v.username.message = tx(required(user.username, user) as string)
     }
     const requiredPassword = () => {
       v.password.touched = true
-      v.password.message = tx(required(user.password) as string)
+      v.password.message = tx(required(user.password, user) as string)
     }
     const requiredAgreed = () => {
       v.agreed.touched = true
@@ -82,9 +78,9 @@ export const SigninForm = defineComponent({
 
     onBeforeMount(async () => {
       try {
-        const saved = await props.context?.localDb?.get?.<{ username?: string }>(
+        const saved = await (props.context?.localDb as any)?.get?.(
           'user/username',
-        )
+        ) as { username?: string } | undefined
         if (saved?.username) user.username = saved.username
       } catch {
         // ignore

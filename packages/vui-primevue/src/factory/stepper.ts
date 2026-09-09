@@ -4,15 +4,10 @@
  */
 import { h } from 'vue'
 import Steps from 'primevue/steps'
-import type { IconResolver, UiStepperController, UiStepperProps } from '@mmda/vui'
-import {
-  emitStepperChange,
-  htmlAttributesOf,
-  noopStepperController,
-  stepperItemsOf,
-  stepperModifierClasses,
-  stepperValueOf,
-} from '@mmda/vui'
+import type { UiStepperController, UiStepperProps } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { emitStepperChange, noopStepperController, stepperItemsOf, stepperModifierClasses, stepperValueOf } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 export function createStepper(
   props: UiStepperProps,

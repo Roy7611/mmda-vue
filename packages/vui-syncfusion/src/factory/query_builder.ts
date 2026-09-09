@@ -1,16 +1,7 @@
 import { h } from "vue";
 import { QueryBuilderComponent } from "@syncfusion/ej2-vue-querybuilder";
-import type { UiQueryBuilderProps } from "@mmda/vui";
-import {
-  advancedToQueryBuilderRule,
-  emitQueryBuilderChange,
-  htmlAttributesOf,
-  queryBuilderColumnsOf,
-  queryBuilderColumnsToEj2,
-  queryBuilderModifierClasses,
-  queryBuilderRuleToAdvanced,
-  queryBuilderValueOf,
-} from "@mmda/vui";
+import type { UiQueryBuilderProps } from '@mmda/core';
+import { advancedToQueryBuilderRule, emitQueryBuilderChange, htmlAttributesOf, queryBuilderColumnsOf, queryBuilderColumnsToEj2, queryBuilderModifierClasses, queryBuilderRuleToAdvanced, queryBuilderValueOf } from "@mmda/vui"
 
 export function createQueryBuilder(props: UiQueryBuilderProps) {
   const {
@@ -36,7 +27,7 @@ export function createQueryBuilder(props: UiQueryBuilderProps) {
     ...htmlAttributesOf(props),
     columns: queryBuilderColumnsToEj2(columns),
     rule: advancedToQueryBuilderRule(queryBuilderValueOf(props), columns),
-    readonly: disabled === true || disabled === "true",
+    readonly: disabled === true,
     cssClass,
     change: (args: { rule?: unknown }) => {
       emitQueryBuilderChange(

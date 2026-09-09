@@ -126,18 +126,14 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				title: context.t('stationlabel.productionEvent'),
 				height: '65vh',
 				width: '80vw',
-				onAccept: async () => {
-					if (eventCtx) {
+				onAccept: async (button) => {
+				  if (eventCtx) {
 						return await eventCtx.save().then((res: any) => true);
 				}
-				},
-				reject: () => {
-					return false;
-
-				},
+				}
 			}
-		).then((res: boolean) => {
-			if (res) {
+		).then((res) => {
+			if (res === 'ok') {
 				return eventCtx.prepareFn(reportAction).then((res: any) => {
 					return new Promise<boolean>((resolve, reject) => {
 						uiBuilder.buildNotice(eventCtx, {
@@ -319,12 +315,21 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.dialog(productionLotReportNode(context), context, {
 				title: context.t('stationlabel.batchReport'),
 				height: '18rem',
-				onAccept: async () => {
+				onAccept: async (button) => {
+					if (button === 'cancel') {
+						context.model.quantity = 1;
+						context.model.lotNo = '';
+						context.model.goodQuantity = 0;
+						context.model.aucQuantity = 0;
+						context.model.defectiveQuantity = 0;
+						context.model.ngQuantity = 0;
+						context.model.scrapQuantity = 0;
+						context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
+						return true;
+					}
 					return await this.submitProductionLot(context, reportparams);
 				},
-
-				// 报工取消操作
-				reject: () => {
+				onClose: () => {
 					context.model.quantity = 1;
 					context.model.lotNo = '';
 					context.model.goodQuantity = 0;
@@ -332,19 +337,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 					context.model.defectiveQuantity = 0;
 					context.model.ngQuantity = 0;
 					context.model.scrapQuantity = 0;
-					context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
-					return false;
 				},
-				// 关闭弹窗时同样重置数据
-				onHide: () => {
-					context.model.quantity = 1;
-					context.model.lotNo = '';
-					context.model.goodQuantity = 0;
-					context.model.aucQuantity = 0;
-					context.model.defectiveQuantity = 0;
-					context.model.ngQuantity = 0;
-					context.model.scrapQuantity = 0;
-				}
 			});
 		}
 		//Item报工由设备自动计划报工
@@ -384,18 +377,17 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			context.uiBuilder.dialog(productionPlateReportNode(context), context, {
 				title: context.t('stationlabel.lotReport'),
 				height: '15rem',
-				onAccept: async () => {
-					// console.log(context.model)
+				onAccept: async (button) => {
+					if (button === 'cancel') {
+						context.model.quantity = null;
+						context.model.packQty = null;
+						context.model.lotNo = '';
+						context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
+						return true;
+					}
 					return await this.submitProductionPlate(context, reportparams);
 				},
-				reject: () => {
-					context.model.quantity = null;
-					context.model.packQty = null;
-					context.model.lotNo = '';
-					context.uiBuilder.toast(context, { severity: 'info', title: context.t('action.cancel'), message: context.t('failure.canceloperation'), life: 3000 });
-					return false;
-				},
-				onHide: () => {
+				onClose: () => {
 					context.model.quantity = null;
 					context.model.packQty = null;
 					context.model.lotNo = '';
@@ -442,7 +434,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			const detail = error.validationErrors?.length
 				? error.validationErrors.map((e: any) => e.error).join('；')
 				: error.message;
-			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), detail, life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: detail, life: 3000 });
 			return false;
 		}
 	}
@@ -475,7 +467,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 			const detail = error.validationErrors?.length
 				? error.validationErrors.map((e: any) => e.error).join('；')
 				: error.message;
-			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), detail, life: 3000 });
+			context.uiBuilder.toast(context, { severity: 'error', title: context.t('dialog.title.error'), message: detail, life: 3000 });
 			return false;
 		}
 	}
@@ -577,12 +569,9 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					onAccept: async () => {
-						return await this.confirmMaterialtrack(context);
-					},
-					reject: () => {
-						return true;
-					},
+					onAccept: async (button) => {
+					  return await this.confirmMaterialtrack(context);
+					}
 				}
 			);
 		} else if (data.data.tracingMode == 'SN') {
@@ -681,12 +670,9 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					onAccept: async () => {
-						return await this.confirmMaterialtrack(context);
-					},
-					reject: () => {
-						return true;
-					},
+					onAccept: async (button) => {
+					  return await this.confirmMaterialtrack(context);
+					}
 				}
 			);
 		} else {
@@ -789,12 +775,9 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '10rem',
-					onAccept: async () => {
-						return await this.confirmMaterialtrack(context);
-					},
-					reject: () => {
-						return true;
-					},
+					onAccept: async (button) => {
+					  return await this.confirmMaterialtrack(context);
+					}
 				}
 			);
 		}
@@ -997,7 +980,7 @@ export class StationPortalLogic extends UiLogic<StationPortal> {
 	// 				return false;
 	// 			},
 	// 		}
-	// 	).then((res: boolean) => {
+	// 	).then((res) => {
 	// 		if (res && groupDiskCtx) { // 增加groupDiskCtx存在性判断
 	// 			return groupDiskCtx.prepareFn(groupDiskAction)
 	// 				.then((prepareRes: any) => {

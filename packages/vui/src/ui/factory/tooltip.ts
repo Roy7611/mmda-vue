@@ -7,43 +7,21 @@
  * 没有 target 选择器、没有 fldFactory；目标是 slots.default。
  */
 import type { VNode } from 'vue'
-import type { UiPosition } from '../../app/material'
-import type { PropData } from '../layout/layout'
+import type {
+  UiPosition,
+  UiTooltipController,
+  UiTooltipOpensOn,
+  UiTooltipProps,
+  UiTooltipSlots,
+} from '@mmda/core'
 
-export type UiTooltipOpensOn =
-  | 'auto'
-  | 'hover'
-  | 'click'
-  | 'focus'
-  | 'custom'
-
-export interface UiTooltipController {
-  open: (element?: HTMLElement) => void
-  close: () => void
-  refresh: () => void
-}
-
-export interface UiTooltipProps extends PropData {
-  /** 提示文案。也可用 slots.content */
-  content?: string
-  /** 缺省 top。四边中点，不做十二角 */
-  position?: UiPosition
-  /** 缺省 auto */
-  opensOn?: UiTooltipOpensOn
-  /** 箭头。对应 EJ2 showTipPointer。缺省 true */
-  showPointer?: boolean
-  openDelay?: number
-  closeDelay?: number
-  disabled?: boolean
-  onReady?: (controller: UiTooltipController) => void
-}
-
-export interface UiTooltipSlots {
-  /** 被包的目标节点 */
-  default?: () => VNode[]
-  /** 覆盖 props.content */
-  content?: () => VNode[]
-}
+export type {
+  UiPosition,
+  UiTooltipController,
+  UiTooltipOpensOn,
+  UiTooltipProps,
+  UiTooltipSlots,
+} from '@mmda/core'
 
 export function tooltipPositionOf(props: UiTooltipProps): UiPosition {
   const pos = props.position
@@ -74,54 +52,26 @@ export function tooltipDisabledOf(props: UiTooltipProps): boolean {
 
 export function tooltipContentOf(
   props: UiTooltipProps,
-  slots?: UiTooltipSlots,
+  slots?: UiTooltipSlots<VNode>,
 ): string | undefined {
   if (props.content != null && props.content !== '') return String(props.content)
-  const nodes = slots?.content?.()
-  if (!nodes?.length) return undefined
-  return nodes
-    .map((node) => {
-      if (node == null) return ''
-      if (typeof node.children === 'string') return node.children
-      return ''
-    })
-    .join('')
-    .trim() || undefined
-}
-
-/** EJ2 四边中点 */
-export function tooltipPositionToEj2(
-  position: UiPosition,
-): 'TopCenter' | 'BottomCenter' | 'LeftCenter' | 'RightCenter' {
-  if (position === 'bottom') return 'BottomCenter'
-  if (position === 'left') return 'LeftCenter'
-  if (position === 'right') return 'RightCenter'
-  return 'TopCenter'
-}
-
-export function tooltipOpensOnToEj2(
-  opensOn: UiTooltipOpensOn,
-): 'Auto' | 'Hover' | 'Click' | 'Focus' | 'Custom' {
-  if (opensOn === 'hover') return 'Hover'
-  if (opensOn === 'click') return 'Click'
-  if (opensOn === 'focus') return 'Focus'
-  if (opensOn === 'custom') return 'Custom'
-  return 'Auto'
-}
-
-/** Naive placement */
-export function tooltipPositionToNaive(position: UiPosition): string {
-  return position
-}
-
-/** Naive / Prime 触发 */
-export function tooltipOpensOnToTrigger(
-  opensOn: UiTooltipOpensOn,
-): 'hover' | 'click' | 'focus' | 'manual' {
-  if (opensOn === 'click') return 'click'
-  if (opensOn === 'focus') return 'focus'
-  if (opensOn === 'custom') return 'manual'
-  return 'hover'
+  const raw = slots?.content?.()
+  if (raw == null) return undefined
+  const nodes = Array.isArray(raw) ? raw : [raw]
+  return (
+    nodes
+      .map((node) => {
+        if (node == null) return ''
+        if (typeof node === 'string') return node
+        if (typeof node === 'object' && 'children' in node) {
+          const children = (node as VNode).children
+          if (typeof children === 'string') return children
+        }
+        return ''
+      })
+      .join('')
+      .trim() || undefined
+  )
 }
 
 export const noopTooltipController: UiTooltipController = {
@@ -130,11 +80,4 @@ export const noopTooltipController: UiTooltipController = {
   refresh: () => undefined,
 }
 
-export function tooltipModifierClasses(props: UiTooltipProps): unknown[] {
-  return [
-    'mmda-tooltip',
-    `mmda-tooltip--${tooltipPositionOf(props)}`,
-    tooltipDisabledOf(props) ? 'mmda-tooltip--disabled' : undefined,
-    props.class,
-  ]
-}
+export { tooltipModifierClasses } from '@mmda/core'

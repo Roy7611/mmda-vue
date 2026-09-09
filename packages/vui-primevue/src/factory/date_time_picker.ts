@@ -1,25 +1,9 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
-import type { UiDateTimePickerProps } from "@mmda/vui";
-import {
-  DATE_TIME_PICKER_FORMAT,
-  datePickerAllowInput,
-  datePickerDateOf,
-  datePickerFirstDayOfWeek,
-  datePickerFormatOf,
-  datePickerMaxOf,
-  datePickerMinOf,
-  datePickerPrimeFormat,
-  datePickerShowClear,
-  dateTimePickerModifierClasses,
-  dateTimePickerStepOf,
-  emitDateBlur,
-  emitDateChange,
-  emitDateClear,
-  emitDateFocus,
-  htmlAttributesOf,
-  resolveDateShortcuts,
-} from "@mmda/vui";
+import type { UiDateTimePickerProps } from "@mmda/core"
+import { dateTimePickerModifierClasses, dateTimePickerStepOf } from "@mmda/core"
+import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcuts } from "@mmda/core"
+import { datePickerPrimeFormat, htmlAttributesOf } from "@mmda/vui"
 import { primeDateShortcutFooter } from "./date_picker";
 
 export function createDateTimePicker(props: UiDateTimePickerProps) {
@@ -56,7 +40,7 @@ export function createDateTimePicker(props: UiDateTimePickerProps) {
   const items = resolveDateShortcuts("datetime", props);
 
   return h(
-    DatePicker,
+    DatePicker as any,
     {
       ...rest,
       ...htmlAttributesOf(props),

@@ -6,33 +6,25 @@
  * 不要 vui 主名 visible / show（只在 drawer 入口翻译旧词）。
  */
 import type { VNode } from 'vue'
-import type { PropData, UiSlots } from '../layout/layout'
+import type {UiProps, UiSlots} from '../layout/layout'
 
 export const DEFAULT_SIDEBAR_WIDTH = 280
 
-export type UiSidebarPosition = 'Left' | 'Right'
-
-export type UiSidebarType = 'Over' | 'Push' | 'Slide' | 'Auto'
-
-export interface UiSidebarProps extends PropData {
-  isOpen?: boolean
-  position?: UiSidebarPosition
-  /** 仅 sidebar；drawer 忽略并锁 Over */
-  type?: UiSidebarType
-  width?: string | number
-  showBackdrop?: boolean
-  enableDock?: boolean
-  dockSize?: string | number
-  target?: string | HTMLElement
-  mediaQuery?: string | MediaQueryList
-  /** EJ2：触摸滑动。未写时跟 SF 默认 true */
-  enableGestures?: boolean
-  onChange?: (isOpen: boolean) => void
-}
+export type {
+  UiDrawerProps,
+  UiSidebarPosition,
+  UiSidebarProps,
+  UiSidebarType,
+} from '@mmda/core'
+import { callUiBagFn } from '@mmda/core'
+import type {
+  UiDrawerProps,
+  UiSidebarPosition,
+  UiSidebarProps,
+  UiSidebarType,
+} from '@mmda/core'
 
 export type UiSidebarSlots = UiSlots
-
-export type UiDrawerProps = Omit<UiSidebarProps, 'type'>
 
 function isTrue(raw: unknown): boolean {
   return raw === true || raw === 'true'
@@ -86,7 +78,7 @@ export function sidebarEnableGesturesOf(props: UiSidebarProps): boolean {
 
 /** drawer 入口：锁 Over、默认遮罩；翻译 visible / show / onUpdateVisible */
 export function applyDrawerDefaults(props: UiSidebarProps): UiSidebarProps {
-  const loose = props as PropData
+  const loose = props as UiProps
   const openRaw =
     props.isOpen !== undefined
       ? props.isOpen
@@ -102,7 +94,10 @@ export function applyDrawerDefaults(props: UiSidebarProps): UiSidebarProps {
     type: 'Over',
     showBackdrop:
       props.showBackdrop === undefined ? true : isTrue(props.showBackdrop),
-    onChange: typeof onChange === 'function' ? onChange : props.onChange,
+    onChange:
+      typeof onChange === 'function'
+        ? (onChange as (isOpen: boolean) => void)
+        : props.onChange,
   }
 }
 
@@ -112,23 +107,11 @@ export function emitSidebarChange(
 ): void {
   const next = isTrue(isOpen)
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
-export function sidebarModifierClasses(
-  props: UiSidebarProps,
-  asDrawer = false,
-): unknown[] {
-  const type = sidebarTypeOf(props, asDrawer)
-  return [
-    'mmda-sidebar',
-    asDrawer ? 'mmda-sidebar--drawer' : undefined,
-    `mmda-sidebar--${type.toLowerCase()}`,
-    sidebarEnableDockOf(props) ? 'mmda-sidebar--dock' : undefined,
-    props.class,
-  ]
-}
+export { sidebarModifierClasses } from '@mmda/core'
 
 export function sidebarSlotsOf(
   slots?: UiSidebarSlots,

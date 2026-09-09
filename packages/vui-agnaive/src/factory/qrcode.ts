@@ -5,13 +5,8 @@ import {
   ref,
   watch,
 } from 'vue'
-import type { UiQrCodeProps } from '@mmda/vui'
-import {
-  codeSizeCss,
-  codeSizePx,
-  qrCodeModifierClasses,
-  resolveBarcodeCaption,
-} from '@mmda/vui'
+import type { UiQrCodeProps } from '@mmda/core'
+import { codeSizeCss, codeSizePx, qrCodeModifierClasses, resolveBarcodeCaption } from '@mmda/vui'
 
 const QrCanvas = defineComponent({
   name: 'MmdaQrCanvas',

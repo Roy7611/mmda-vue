@@ -187,14 +187,14 @@ export function WithReference<TBase extends Constructor>(
       this.root.showDialog = true;
       let picked: T[] = [];
       try {
-        const accepted = await this.app.ui.dialog(
+        const result = await this.app.ui.dialog(
           this.app.ui.buildView(selectCtx, {
             selectionMode,
             showToolbar: true,
             showSearchbar: true,
             showBreadcrumb: false,
             showActions: false,
-            showColumnWithAction: false,
+            showActionColumn: false,
             onSelect: (selection: T[]) => {
               selectCtx.selectedItems = selection ?? [];
               if (selection?.length) picked = selection;
@@ -204,7 +204,7 @@ export function WithReference<TBase extends Constructor>(
                 ? (item: T) => {
                     picked = item != null ? [item] : [];
                     selectCtx.selectedItems = picked;
-                    void this.app?.ui.overlay.settleTopDialog?.(true);
+                    void this.app?.ui.overlay.closeTopDialog?.('ok');
                   }
                 : undefined,
           }),
@@ -215,10 +215,9 @@ export function WithReference<TBase extends Constructor>(
             width: "80vw",
             height: "80vh",
             maxHeight: "90vh",
-            cssClass: "mmda-select-dialog",
           },
         );
-        if (!accepted) return false;
+        if (result !== 'ok') return false;
         if (!picked.length && selectCtx.selectedItems?.length) {
           picked = selectCtx.selectedItems as T[];
         }

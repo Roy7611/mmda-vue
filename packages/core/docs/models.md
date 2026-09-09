@@ -10,6 +10,7 @@ MetaUi -> MetaModel -> Models
 ## 主要内容
 
 - `Entity` / `EntityState`：实体数据和客户端状态。
+- **行身份 `id`**：`defineEntityWithId(metaUi, row)` 用 `defineID` 装 getter（不是服务端字段）。`MetaUi.primaryKey` 为单字段时 `id === row[primaryKey]`；为 `key1,key2` 时 `id === key1 + "," + key2`。`MetaUiField.primaryKey` 标「该字段是否主键」。列表 / 选择视图勾选、表格 `persistSelection` 都认这个 `id`。
 - `MetaModel`：创建、赋值、取值、子表操作和可提交数据转换。
 - **`EntityQuery` / `EntitySearchParam`**：可保存查询与当次请求；字段条件在 `filterModel`。
 - `Pager` / `PagedList`：分页请求与结果；**排序只在 `pager.sorts`**。

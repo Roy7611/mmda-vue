@@ -1,16 +1,8 @@
 import { h } from "vue";
 import ContextMenu from "primevue/contextmenu";
-import type {
-  IconResolver,
-  UiContextMenuProps,
-  UiMenuItem,
-} from "@mmda/vui";
-import {
-  contextMenuItemsOf,
-  contextMenuModifierClasses,
-  htmlAttributesOf,
-  invokeContextMenuItem,
-} from "@mmda/vui";
+import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
+import type { IconResolver } from '@mmda/vui'
+import { contextMenuItemsOf, contextMenuModifierClasses, htmlAttributesOf, invokeContextMenuItem } from "@mmda/vui"
 
 function mapPrimeItem(
   item: UiMenuItem,

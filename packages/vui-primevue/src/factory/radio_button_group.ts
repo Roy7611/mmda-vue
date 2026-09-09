@@ -1,14 +1,8 @@
 import { h } from "vue";
 import RadioButton from "primevue/radiobutton";
-import type { UiRadioButtonGroupProps } from "@mmda/vui";
-import {
-  emitRadioButtonGroupChange,
-  htmlAttributesOf,
-  radioButtonGroupItemsOf,
-  radioButtonGroupModifierClasses,
-  radioButtonGroupNameOf,
-  radioButtonGroupValueOf,
-} from "@mmda/vui";
+import type { UiRadioButtonGroupProps } from "@mmda/core"
+import { emitRadioButtonGroupChange, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, radioButtonGroupValueOf } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const {

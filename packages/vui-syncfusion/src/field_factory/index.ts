@@ -1,20 +1,9 @@
 import { h, type VNode } from "vue";
 import { SqlDataType, type MetaUiField } from "@mmda/core";
-import {
-  colorPickerPropsFromField,
-  maskedTextBoxPropsFromField,
-  oneTimePasswordPropsFromField,
-  sliderPropsFromField,
-  ratingPropsFromField,
-  MOBILE_MASK,
-  ZIP_MASK,
-  renderInplaceFieldEditor,
-  type PropData,
-  type UiFieldFactory,
-} from "@mmda/vui";
+import { colorPickerPropsFromField, maskedTextBoxPropsFromField, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, renderInplaceFieldEditor, type UiProps, type UiFieldFactory } from "@mmda/vui"
 import { createColorPicker } from "../factory/color_picker";
-import { createMaskedTextBox } from "../factory/maskedTextBox";
-import { createOneTimePasswordInput } from "../factory/oneTimePasswordInput";
+import { createMaskedTextBox } from "../factory/masked_text_box";
+import { createOneTimePasswordInput } from "../factory/one_time_password_input";
 import { createSlider } from "../factory/slider";
 import { createRating } from "../factory/rating";
 import { invalidOf, type UiContext } from "./utils";
@@ -80,7 +69,7 @@ import {
 const wrapMasked = (
   field: MetaUiField,
   context: UiContext,
-  extra: PropData = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -97,7 +86,7 @@ const wrapMasked = (
 const wrapOtp = (
   field: MetaUiField,
   context: UiContext,
-  extra: PropData = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -116,7 +105,7 @@ const wrapOtp = (
 const wrapSlider = (
   field: MetaUiField,
   context: UiContext,
-  extra: PropData = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -133,7 +122,7 @@ const wrapSlider = (
 const wrapRating = (
   field: MetaUiField,
   context: UiContext,
-  extra: PropData = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
@@ -150,7 +139,7 @@ const wrapRating = (
 const fallbackInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   if (
     field.reference &&

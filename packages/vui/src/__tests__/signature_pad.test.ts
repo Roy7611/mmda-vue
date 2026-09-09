@@ -8,7 +8,7 @@ import {
   signaturePadModifierClasses,
   signaturePadPropsFromField,
   signaturePadValueOf,
-} from '../ui/factory/signature_pad'
+} from '@mmda/core'
 
 describe('signaturePad helpers', () => {
   it('reads empty and data URL from value over modelValue', () => {

@@ -1,8 +1,7 @@
 import { h } from "vue";
 import ProgressBar from "primevue/progressbar";
-import type { UiProgressBarProps } from "@mmda/vui";
-import { progressBarModifierClasses } from "@mmda/vui";
-
+import type { UiProgressBarProps } from "@mmda/core"
+import { progressBarModifierClasses } from "@mmda/core"
 const percentOf = (props: UiProgressBarProps): number => {
   const n = Number(props.value ?? props.modelValue ?? 0);
   const v = Number.isFinite(n) ? n : 0;

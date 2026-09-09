@@ -19,9 +19,9 @@ import type {
 } from "@mmda/core";
 import { h, ref, unref, type Ref, type VNode } from "vue";
 
-import type { PropData } from "../layout/layout";
+import type {UiProps} from "../layout/layout";
 
-export interface SearchForRelativeProps extends PropData {
+export interface SearchForRelativeProps extends UiProps {
   contentProps?: Record<string, any>;
   onUpdate?: (value: any) => void;
   modelValue: any;
@@ -33,7 +33,7 @@ export interface SearchForRelativeProps extends PropData {
   onHide?: () => Promise<boolean>;
   reject?: () => Promise<boolean>;
 }
-export interface SearchForRelativeContentProps extends PropData {
+export interface SearchForRelativeContentProps extends UiProps {
   selectableFn?: SelectableFn;
   onSearch?: (params: any) => Promise<{ list: any; pager: Pagination }>;
   onSelect?: (selection: any[], row: any) => void;
@@ -44,7 +44,7 @@ export interface SearchForRelativeContentProps extends PropData {
   labelFn?: (item: any) => string;
 }
 // 流程图props
-export interface FlowchartProps extends PropData {
+export interface FlowchartProps extends UiProps {
   isToolBar?: boolean; //是否显示顶部按钮
   onGetData?: (data: string) => void;
   onGetNewBpmn?: (data: any) => void; // 获取bpmn初始化实例

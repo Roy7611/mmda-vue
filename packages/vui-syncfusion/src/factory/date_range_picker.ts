@@ -1,25 +1,9 @@
 import { h } from "vue";
 import { DateRangePickerComponent } from "@syncfusion/ej2-vue-calendars";
-import type { UiDateRangePickerProps } from "@mmda/vui";
-import {
-  DATE_RANGE_PICKER_FORMAT,
-  datePickerAllowInput,
-  datePickerFirstDayOfWeek,
-  datePickerFormatOf,
-  datePickerMaxOf,
-  datePickerMinOf,
-  datePickerShowClear,
-  dateRangePickerModifierClasses,
-  dateRangePickerSeparatorOf,
-  dateRangePickerValueOf,
-  emitDateBlur,
-  emitDateChange,
-  emitDateClear,
-  emitDateFocus,
-  htmlAttributesOf,
-  resolveDateShortcutValue,
-  resolveDateShortcuts,
-} from "@mmda/vui";
+import type { UiDateRangePickerProps } from "@mmda/core"
+import { dateRangePickerModifierClasses, dateRangePickerSeparatorOf, dateRangePickerValueOf } from "@mmda/core"
+import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createDateRangePicker(props: UiDateRangePickerProps) {
   const {

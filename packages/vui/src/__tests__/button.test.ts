@@ -5,7 +5,7 @@ import {
   selectButtonOptionLabel,
   selectButtonOptionValue,
   toggleSelectButtonGroupValue,
-} from '../ui/factory/button'
+} from '@mmda/core'
 
 describe('button chrome helpers', () => {
   it('maps colorRole to mmda-button hook', () => {

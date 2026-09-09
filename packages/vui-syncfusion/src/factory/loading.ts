@@ -1,12 +1,7 @@
 import { h } from "vue";
 import { SfLoadingHost } from "../components/SfLoadingHost";
-import type { UiLoadingProps } from "@mmda/vui";
-import {
-  htmlAttributesOf,
-  loadingLabelOf,
-  loadingModifierClasses,
-  loadingSizeOf,
-} from "@mmda/vui";
+import type { UiLoadingProps } from "@mmda/vui"
+import { htmlAttributesOf, loadingLabelOf, loadingModifierClasses, loadingSizeOf } from "@mmda/vui"
 
 export function createLoading(props: UiLoadingProps = {}) {
   const {

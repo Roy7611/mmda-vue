@@ -62,7 +62,7 @@ export const MaterialRItem = defineComponent({
             metaUi,
             {
                 tableId: 'material-r-item-table',
-                customCellRenderers: {
+                fieldCellRenderers: {
                     arrivedQuantity: (_field: any, data: any) => ui.factory.numberInput({
                         style: { width: '140px' },
                         min: 0,

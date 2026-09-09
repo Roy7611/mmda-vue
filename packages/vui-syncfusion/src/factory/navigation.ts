@@ -1,10 +1,6 @@
 import { h } from "vue";
 import { type MetaUi, type Pagination } from "@mmda/core";
-import {
-  readStoredPageSize,
-  type UiListPropsType,
-  type UiPaginatorPropsType,
-} from "@mmda/vui";
+import { readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType } from "@mmda/vui"
 import { PagerComponent } from "@syncfusion/ej2-vue-grids";
 import {
   AppBarComponent,

@@ -1,12 +1,8 @@
 import { h } from 'vue'
 import { NCheckbox } from 'naive-ui'
-import type { UiCheckBoxProps } from '@mmda/vui'
-import {
-  checkBoxCheckedOf,
-  checkBoxModifierClasses,
-  emitCheckBoxChange,
-  htmlAttributesOf,
-} from '@mmda/vui'
+import type { UiCheckBoxProps } from '@mmda/core'
+import { checkBoxCheckedOf, checkBoxModifierClasses, emitCheckBoxChange } from '@mmda/core'
+import { htmlAttributesOf } from '@mmda/vui'
 
 export function createCheckBox(props: UiCheckBoxProps) {
   const {
@@ -26,7 +22,7 @@ export function createCheckBox(props: UiCheckBoxProps) {
       ...rest,
       ...htmlAttributesOf(props),
       checked: checkBoxCheckedOf(props),
-      disabled,
+      disabled: disabled,
       ...(indeterminate === true ? { indeterminate: true } : {}),
       'onUpdate:checked': (value: boolean) => emitCheckBoxChange(props, value),
       class: [...checkBoxModifierClasses(props)].flat(),

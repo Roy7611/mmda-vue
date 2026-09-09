@@ -1,25 +1,10 @@
 import { h } from "vue";
 import { DateTimePickerComponent } from "@syncfusion/ej2-vue-calendars";
-import type { UiDateTimePickerProps, UiDateShortcut } from "@mmda/vui";
-import {
-  DATE_TIME_PICKER_FORMAT,
-  datePickerAllowInput,
-  datePickerDateOf,
-  datePickerFirstDayOfWeek,
-  datePickerFormatOf,
-  datePickerMaxOf,
-  datePickerMinOf,
-  datePickerShowClear,
-  dateTimePickerModifierClasses,
-  dateTimePickerStepOf,
-  emitDateBlur,
-  emitDateChange,
-  emitDateClear,
-  emitDateFocus,
-  htmlAttributesOf,
-  resolveDateShortcutValue,
-  resolveDateShortcuts,
-} from "@mmda/vui";
+import type { UiDateTimePickerProps } from "@mmda/core"
+import type { UiDateShortcut } from "@mmda/core"
+import { dateTimePickerModifierClasses, dateTimePickerStepOf } from "@mmda/core"
+import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
+import { htmlAttributesOf } from "@mmda/vui"
 
 export function createDateTimePicker(props: UiDateTimePickerProps) {
   const {

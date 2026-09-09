@@ -33,7 +33,7 @@ export default {
   },
   action: {
     more: "More",
-    listSettings: "Table settings",
+    tableSettings: "Table settings",
     autoFitColumns: "Auto-fit columns",
     historyData: "History Data",
     details: "Details",
@@ -133,7 +133,7 @@ export default {
     imageSuccess: "Image uploaded",
     imageFail: "Image upload failed",
   },
-  listSettings: {
+  tableSettings: {
     title: "Table settings",
     persistForever: "Save permanently",
     save: "Save",

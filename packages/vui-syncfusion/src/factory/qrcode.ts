@@ -3,12 +3,8 @@ import {
   DataMatrixGeneratorComponent,
   QRCodeGeneratorComponent,
 } from "@syncfusion/ej2-vue-barcode-generator";
-import type { UiQrCodeProps } from "@mmda/vui";
-import {
-  codeSizeCss,
-  qrCodeModifierClasses,
-  resolveBarcodeCaption,
-} from "@mmda/vui";
+import type { UiQrCodeProps } from '@mmda/core';
+import { codeSizeCss, qrCodeModifierClasses, resolveBarcodeCaption } from "@mmda/vui"
 
 export function createQrCode(props: UiQrCodeProps) {
   const {

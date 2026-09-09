@@ -20,7 +20,7 @@ factory.stepper({
 })
 ```
 
-竖排、按序（`orientation` 是 `UiOrientation`，与 `UiDirection` 同一份）：
+竖排、按序（`orientation` 是 `UiOrientation`）：
 
 ```ts
 factory.stepper({

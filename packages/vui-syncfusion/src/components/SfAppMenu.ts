@@ -12,15 +12,7 @@ import {
 } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
-import {
-  assembleMenuItems,
-  activeAncestorKeys,
-  hasSystemModules,
-  isLocalAppModuleUrl,
-  UI_APP_KEY,
-  type AppMenuItem,
-  type MmdaApplication,
-} from '@mmda/vui'
+import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
 

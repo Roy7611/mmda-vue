@@ -35,6 +35,9 @@ export interface ContextHost {
   searchParam: any;
   listLayoutRev: { value: number };
   selectedItems: any[];
+  currentItem: any | null;
+  currentIndex: number;
+  indexTableHost?: import("../../ui/factory/list").UiIndexTableHost;
   selectionMode: "single" | "multiple" | null;
   $v: UiValidation;
   validationState: UiValidation;

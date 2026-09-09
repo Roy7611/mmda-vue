@@ -3,6 +3,8 @@ import { entityActionFactory } from "@mmda/core";
 import { UiContextAction, type IconResolver } from "../factory/action";
 import type { VueUiBuilder, ImportOrExportParam } from "./builder";
 import { deletableSelectedItems } from "../../contexts/vue_ui_context";
+import { getModuleContext } from "../../contexts/module_context";
+import { UiViewOne } from "../../contexts/view";
 import type { UiContext } from "./helpers";
 
 export class UiActionFactory {
@@ -25,8 +27,9 @@ export class UiActionFactory {
 
   back(context: UiContext) {
     return this.createAction(context, "back", () => {
-      const router = (context as any).globalProps?.$router;
-      router?.back?.();
+      const runtime = context as any;
+      if (typeof runtime.cancel === "function") return runtime.cancel();
+      return runtime.index?.();
     });
   }
 
@@ -59,10 +62,20 @@ export class UiActionFactory {
       // 创建/编辑保存成功后进详情（对话框 confirm 走 confirmAction，不经此路径）
       if (result !== false && result != null && runtime.editing) {
         const key = runtime.metaUi?.primaryKey as string | undefined;
+        const entity =
+          result && typeof result === "object"
+            ? (result as Record<string, unknown>)
+            : (runtime.model as Record<string, unknown>);
+        const sync = getModuleContext(runtime);
+        if (runtime.view === UiViewOne.Create) {
+          sync?.insertAtZeroFromSave(entity);
+        } else if (runtime.view === UiViewOne.Edit) {
+          sync?.applyCurrentRow(entity);
+        }
         const id =
-          result?.id ??
+          entity?.id ??
           runtime.model?.id ??
-          (key ? (result?.[key] ?? runtime.model?.[key]) : undefined);
+          (key ? (entity?.[key] ?? runtime.model?.[key]) : undefined);
         if (id != null && id !== "") runtime.details?.(String(id));
       }
       return result;

@@ -1,65 +1,12 @@
 import { h, mergeProps, type Component, type VNode } from 'vue'
-import {
-  SqlDataType,
-  MetaModel,
-  type MetaUiField,
-  type Module,
-} from '@mmda/core'
-import {
-  autoCompleteBindValue,
-  autoCompletePropsFromField,
-  checkBoxPropsFromField,
-  switchPropsFromField,
-  colorPickerPropsFromField,
-  maskedTextBoxPropsFromField,
-  numberInputPropsFromField,
-  textAreaPropsFromField,
-  textInputPropsFromField,
-  progressBarPropsFromField,
-  signaturePadPropsFromField,
-  stepperPropsFromField,
-  timelinePropsFromField,
-  timelineSqlOf,
-  relativeTime as relativeTimeView,
-  oneTimePasswordPropsFromField,
-  sliderPropsFromField,
-  ratingPropsFromField,
-  MOBILE_MASK,
-  ZIP_MASK,
-  datePickerPropsFromField,
-  dateRangePickerPropsFromField,
-  dateTimePickerPropsFromField,
-  monthPickerPropsFromField,
-  timePickerPropsFromField,
-  comboBoxPropsFromField,
-  dropDownListPropsFromField,
-  radioButtonGroupPropsFromField,
-  treeSelectPropsFromField,
-  multiSelectPropsFromField,
-  multiItemSelectPropsFromField,
-  multiValueSelectPropsFromField,
-  multiTextSelectPropsFromField,
-  multiBitSelectPropsFromField,
-  checkBoxListPropsFromField,
-  bitCheckBoxListPropsFromField,
-  tagAutoCompletePropsFromField,
-  chipsPropsFromField,
-  bitChipSetPropsFromField,
-  enumChipSetPropsFromField,
-  cleanProps,
-  fasIcon,
-  routeAutoCompleteField,
-  TABLE_CELL_PROP_KEYS,
-  type PropData,
-  type UiFieldFactory,
-  type UiViewContext,
-} from '@mmda/vui'
+import { SqlDataType, MetaModel, type MetaUiField, type Module, autoCompleteBindValue, autoCompletePropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from '@mmda/core'
+import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type UiViewContext } from '@mmda/vui'
 import { createAutoComplete } from './factory/autocomplete'
 import { createCheckBox } from './factory/checkbox'
 import { createSwitch } from './factory/switch'
 import { createColorPicker } from './factory/color_picker'
-import { createMaskedTextBox } from './factory/maskedTextBox'
-import { createOneTimePasswordInput } from './factory/oneTimePasswordInput'
+import { createMaskedTextBox } from './factory/masked_text_box'
+import { createOneTimePasswordInput } from './factory/one_time_password_input'
 import { createSlider } from './factory/slider'
 import { createRating } from './factory/rating'
 import { createNumberInput } from './factory/number_input'
@@ -87,14 +34,7 @@ import { createBitCheckBoxList, createCheckBoxList } from './factory/check_box_l
 import { createTagAutoComplete } from './factory/tag_auto_complete'
 import { createTreeSelect } from './factory/tree_select'
 import { createChips } from './factory/chips'
-import {
-  renderFileLinkField,
-  renderFileUploaderField,
-  renderFilesUploaderField,
-  renderImageUploaderField,
-  renderImagesUploaderField,
-  renderInplaceFieldEditor,
-} from '@mmda/vui'
+import { renderFileLinkField, renderFileUploaderField, renderFilesUploaderField, renderImageUploaderField, renderImagesUploaderField, renderInplaceFieldEditor } from '@mmda/vui'
 import Image from 'primevue/image'
 import Message from 'primevue/message'
 import Password from 'primevue/password'
@@ -112,8 +52,8 @@ const control = (
   component: Component,
   field: MetaUiField,
   context: UiContext,
-  props: PropData = {},
-  extra: PropData = {},
+  props: UiProps = {},
+  extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
@@ -141,14 +81,14 @@ const control = (
   ])
 }
 
-const textInput = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const textInput = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
     createTextInput(textInputPropsFromField(field, context, props ?? {})),
   )
 
-const textArea = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const textArea = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
@@ -162,13 +102,13 @@ const textArea = (field: MetaUiField, context: UiContext, props?: PropData) =>
     ),
   )
 
-const password = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const password = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   control(Password, field, context, props, {
     feedback: true,
     toggleMask: true,
   })
 
-const dropDownList = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const dropDownList = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
     createDropDownList(dropDownListPropsFromField(field, context, props ?? {})),
@@ -182,7 +122,7 @@ const dropDownList = (field: MetaUiField, context: UiContext, props?: PropData) 
 const radioButtonGroup = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
@@ -196,7 +136,7 @@ const radioButtonGroup = (
   ])
 }
 
-const treeSelect = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const treeSelect = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
     createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
@@ -207,7 +147,7 @@ const treeSelect = (field: MetaUiField, context: UiContext, props?: PropData) =>
   ])
 }
 
-const comboBox = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const comboBox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
     createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
@@ -221,7 +161,7 @@ const comboBox = (field: MetaUiField, context: UiContext, props?: PropData) => {
 const multiSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -234,7 +174,7 @@ const multiSelect = (
 const multiItemSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -247,7 +187,7 @@ const multiItemSelect = (
 const multiValueSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -260,7 +200,7 @@ const multiValueSelect = (
 const multiTextSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -273,7 +213,7 @@ const multiTextSelect = (
 const multiBitSelect = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -286,7 +226,7 @@ const multiBitSelect = (
 const checkBoxList = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -299,7 +239,7 @@ const checkBoxList = (
 const bitCheckBoxListField = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -312,7 +252,7 @@ const bitCheckBoxListField = (
 const tagAutoComplete = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const mapped = tagAutoCompletePropsFromField(
     field,
@@ -329,7 +269,7 @@ const tagAutoComplete = (
 const numberInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -342,7 +282,7 @@ const numberInput = (
 const percentInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -357,7 +297,7 @@ const percentInput = (
     ),
   )
 
-const checkbox = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
     createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
@@ -368,7 +308,7 @@ const checkbox = (field: MetaUiField, context: UiContext, props?: PropData) => {
   ])
 }
 
-const switchControl = (field: MetaUiField, context: UiContext, props?: PropData) => {
+const switchControl = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
     createSwitch(switchPropsFromField(field, context, props ?? {})),
@@ -394,7 +334,7 @@ function wrapChrome(
   ])
 }
 
-const datePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const datePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
@@ -404,7 +344,7 @@ const datePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
 const dateTimePicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -417,7 +357,7 @@ const dateTimePicker = (
 const monthPicker = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) =>
   wrapChrome(
     field,
@@ -425,7 +365,7 @@ const monthPicker = (
     createDatePicker(monthPickerPropsFromField(field, context, props ?? {})),
   )
 
-const timePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const timePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
@@ -435,7 +375,7 @@ const timePicker = (field: MetaUiField, context: UiContext, props?: PropData) =>
 const fallbackDisplay = (
   field: MetaUiField,
   context: UiContext,
-  props: PropData = {},
+  props: UiProps = {},
 ) =>
   h(
     'output',
@@ -446,7 +386,7 @@ const fallbackDisplay = (
 const fallbackInput = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   if (
     field.reference &&
@@ -469,7 +409,7 @@ const fallbackInput = (
 const searchBox = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   const reference = field.reference
   if (!reference) {
@@ -540,7 +480,7 @@ const searchBox = (
 const autoComplete = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ): VNode => {
   const route = routeAutoCompleteField(field)
   if (route === 'dropDownList') return dropDownList(field, context, props)
@@ -563,31 +503,31 @@ const autoComplete = (
   ])
 }
 
-const tag = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const tag = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   h(Tag, {
     value: context.displayField(field, props?.row),
     severity: props?.severity,
     ...props,
   })
 
-const tags = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const tags = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   createChips(chipsPropsFromField(field, context, props ?? {}))
 
 const chips = tags
 
-const bitChipSet = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const bitChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   createChips(bitChipSetPropsFromField(field, context, props ?? {}))
 
-const enumChipSet = (field: MetaUiField, context: UiContext, props?: PropData) =>
+const enumChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   createChips(enumChipSetPropsFromField(field, context, props ?? {}))
 
-const cellDomProps = (props?: PropData) =>
+const cellDomProps = (props?: UiProps) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
 
 const externalLink = (
   field: MetaUiField,
   context: UiContext,
-  props?: PropData,
+  props?: UiProps,
 ) => {
   const app = context.app
   if (!app) return fallbackDisplay(field, context, props)
@@ -622,13 +562,13 @@ const externalLink = (
   const refMainModule = isCurrentSystem
     ? modules.find((module: Module) =>
         module?.subModules?.some(
-          (subModule) => subModule.objName === reference.refObjName,
+          (subModule: Module) => subModule.objName === reference.refObjName,
         ),
       )
     : systemList.find((system: any) => system.service === reference.refDbName)
 
   const refModule = refMainModule?.subModules?.find(
-    (subModule) => subModule.objName === reference.refObjName,
+    (subModule: Module) => subModule.objName === reference.refObjName,
   )
 
   const readable = isCurrentSystem
@@ -638,7 +578,7 @@ const externalLink = (
     return h('span', { name: field.fieldName, ...domProps }, fldText)
   }
 
-  const iconProps: PropData = {
+  const iconProps: UiProps = {
     role: 'external-link-icon',
     style: {
       marginRight: '5px',

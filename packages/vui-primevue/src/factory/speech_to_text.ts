@@ -1,10 +1,6 @@
 import { h } from "vue";
-import {
-  MmdaSpeechToTextHost,
-  speechToTextInterimOf,
-  speechToTextValueOf,
-  type UiSpeechToTextProps,
-} from "@mmda/vui";
+import { type UiSpeechToTextProps } from '@mmda/core'
+import { MmdaSpeechToTextHost, speechToTextInterimOf, speechToTextValueOf } from '@mmda/vui'
 import { createButton } from "./button";
 
 export function createSpeechToText(props: UiSpeechToTextProps = {}) {

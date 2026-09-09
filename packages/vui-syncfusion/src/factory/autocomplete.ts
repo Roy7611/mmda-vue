@@ -1,16 +1,7 @@
 import { h } from "vue";
 import { AutoCompleteComponent } from "@syncfusion/ej2-vue-dropdowns";
-import type { UiAutoCompleteProps } from "@mmda/vui";
-import {
-  AUTOCOMPLETE_DEBOUNCE_MS,
-  AUTOCOMPLETE_MIN_LENGTH,
-  AUTOCOMPLETE_SUGGESTION_COUNT,
-  autoCompleteBindValue,
-  autoCompleteModifierClasses,
-  autoCompleteSuggestionLabels,
-  autoCompleteUpdateOf,
-} from "@mmda/vui";
-
+import type { UiAutoCompleteProps } from "@mmda/core";
+import { AUTOCOMPLETE_DEBOUNCE_MS, AUTOCOMPLETE_MIN_LENGTH, AUTOCOMPLETE_SUGGESTION_COUNT, autoCompleteBindValue, autoCompleteModifierClasses, autoCompleteSuggestionLabels, autoCompleteUpdateOf } from "@mmda/core"
 export function createAutoComplete(
   value: string,
   props: UiAutoCompleteProps = {},

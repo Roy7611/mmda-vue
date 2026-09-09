@@ -2,11 +2,7 @@ import { defineComponent, h, onBeforeMount, reactive, ref, withModifiers } from 
 import { useI18n } from 'vue-i18n'
 import { NButton, NCheckbox, NInput } from 'naive-ui'
 import { required } from '@mmda/core'
-import {
-  signinFormEmits,
-  signinFormProps,
-  type SigninUser,
-} from '@mmda/vui'
+import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
 import { createLoading } from '../factory/loading'
 
 export const SigninForm = defineComponent({

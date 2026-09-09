@@ -9,12 +9,7 @@ import {
   PivotViewComponent,
 } from '@syncfusion/ej2-vue-pivotview'
 import type { UiPivotPlugin, UiPivotTableProps } from '@mmda/vui'
-import {
-  ej2PivotTypeOf,
-  htmlAttributesOf,
-  pivotDataOf,
-  pivotHookClass,
-} from '@mmda/vui'
+import { ej2PivotTypeOf, htmlAttributesOf, pivotDataOf, pivotHookClass } from '@mmda/vui'
 import '@syncfusion/ej2-pivotview/styles/material3.css'
 
 export function toEj2DataSourceSettings(props: UiPivotTableProps) {

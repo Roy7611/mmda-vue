@@ -1,18 +1,7 @@
 import { h } from "vue";
 import { ChipListComponent } from "@syncfusion/ej2-vue-buttons";
-import type { IconResolver, UiChipItem, UiChipsProps } from "@mmda/vui";
-import {
-  chipValueOf,
-  chipsItemsOf,
-  chipsKindOf,
-  chipsModifierClasses,
-  chipsSelectedOf,
-  emitChipsChange,
-  htmlAttributesOf,
-  isChipsRemovable,
-  syncfusionChipCssClass,
-  toggleChipSelection,
-} from "@mmda/vui";
+import type { IconResolver, UiChipItem, UiChipsProps } from "@mmda/vui"
+import { chipValueOf, chipsItemsOf, chipsKindOf, chipsModifierClasses, chipsSelectedOf, emitChipsChange, htmlAttributesOf, isChipsRemovable, syncfusionChipCssClass, toggleChipSelection } from "@mmda/vui"
 
 export function createChips(
   props: UiChipsProps,

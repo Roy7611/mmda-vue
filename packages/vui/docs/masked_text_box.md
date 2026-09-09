@@ -9,7 +9,7 @@ chrome 按掩码录入，走 `factory.maskedTextBox`。[EJ2 Vue MaskedTextBox](h
 | 层 | 做什么 |
 |---|---|
 | vui `ui/factory/masked_text_box.ts` | `UiMaskedTextBoxProps`：`mask` / `value` / `promptChar`；`primeMaskOf` |
-| 皮肤 `factory/maskedTextBox.ts` | SF `MaskedTextBoxComponent`；Prime `InputMask`；Naive `NInput` 降级 |
+| 皮肤 `factory/masked_text_box.ts` | SF `MaskedTextBoxComponent`；Prime `InputMask`；Naive `NInput` 降级 |
 | 字段 `fldFactory.maskedTextBox` | 译字段后调 chrome。`mobileInput` / `zipCodeInput` 预置 mask |
 
 vui **mask 用 EJ2 元素**（`0` 数字、`L` 字母、`A` 字母数字）。不要把 Prime 的 `9` 写进 vui。Prime 皮肤用 `primeMaskOf` 转换。
@@ -40,4 +40,4 @@ vui **mask 用 EJ2 元素**（`0` 数字、`L` 字母、`A` 字母数字）。�
 ## 源码
 
 - vui：[`masked_text_box.ts`](../src/ui/factory/masked_text_box.ts)
-- 皮肤：各包 `factory/maskedTextBox.ts`
+- 皮肤：各包 `factory/masked_text_box.ts`

@@ -7,7 +7,7 @@ import {
   multiSelectOptionKeyOf,
   multiSelectPropsFromField,
   multiSelectSelectedKeysOf,
-} from '../ui/factory/multi_select'
+} from '@mmda/core'
 
 const options = [
   { value: 1, label: '读' },

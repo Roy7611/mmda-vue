@@ -11,6 +11,7 @@ import {
   MetaUiFieldFilterType,
   SqlDataType,
   columnFilterKindOf,
+  fieldCellEditorAllowsColumn,
   hasFilterType,
   normalizePivotDates,
   simpleFilterTypeOf,
@@ -159,7 +160,8 @@ export function buildColumnDefs<T>(
   props: UiListPropsType<T> = {} as UiListPropsType<T>,
 ): ColDef<T>[] {
   const fields = listedFieldsOf(metaUi)
-  const enableSort = props.enableSort !== false
+  const enableSort = props.sortable !== false
+  const filterable = props.filterable !== false
   const filterDisplay = props.filterDisplay ?? 'menu'
   const cols: ColDef<T>[] = fields.map(field => {
     const freeze = gridFreezeOf(field)
@@ -169,7 +171,7 @@ export function buildColumnDefs<T>(
       field: field.fieldName as ColDef<T>['field'],
       headerName: headerName(field),
       sortable: enableSort && Boolean((field as any).sortable ?? true),
-      resizable: props.resizableColumns !== false,
+      resizable: true,
       hide: field.listed === false,
       width,
       minWidth: 72,
@@ -188,13 +190,15 @@ export function buildColumnDefs<T>(
         return match ? String(reference.labelOf(match)) : String(params.value ?? '')
       },
       editable:
-        props.inplaceEdit === true &&
-        (!props.editableFields?.length ||
-          props.editableFields.includes(field.fieldName)),
+        props.editable === true &&
+        field.readOnly !== true &&
+        fieldCellEditorAllowsColumn(
+          props.fieldCellEditors?.[field.fieldName],
+        ),
       cellEditor: 'AgGridEditor',
       cellEditorPopup: true,
     }
-    if (filterDisplay !== 'none') {
+    if (filterable) {
       const kind = columnFilterKindOf(field)
       if (kind === 'boolean') {
         col.filter = 'agSetColumnFilter'

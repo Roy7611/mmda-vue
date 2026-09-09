@@ -7,16 +7,8 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import type {
-  UiImageEditorPlugin,
-  UiImageEditorProps,
-  UiImageEditorTool,
-} from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  imageEditorHookClass,
-  resolveImageEditorTools,
-} from '@mmda/vui'
+import type { UiImageEditorPlugin, UiImageEditorProps, UiImageEditorTool } from '@mmda/vui'
+import { htmlAttributesOf, imageEditorHookClass, resolveImageEditorTools } from '@mmda/vui'
 
 function cssSize(value: string | number | undefined, fallback: string) {
   if (value == null) return fallback

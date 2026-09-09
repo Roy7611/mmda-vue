@@ -198,7 +198,7 @@ export const AgGrid = defineComponent({
       { deep: true },
     )
     watch(
-      () => listProps.layoutRev && (listProps.layoutRev as any).value,
+      () => listProps.tableSettings?.rev?.value,
       () => {
         api.value?.refreshCells({ force: true })
       },
@@ -282,9 +282,9 @@ export const AgGrid = defineComponent({
               rowData: props.data,
               columnDefs: columnDefs.value as ColDef[],
               defaultColDef: {
-                filter: listProps.filterDisplay !== 'none',
+                filter: listProps.filterable !== false,
                 resizable: true,
-                sortable: listProps.enableSort !== false,
+                sortable: listProps.sortable !== false,
               },
               components: {
                 AgGridCell,
@@ -318,6 +318,8 @@ export const AgGrid = defineComponent({
                       selectionMode === 'single' ? 'singleRow' : 'multiRow',
                     checkboxes: true,
                     headerCheckbox: selectionMode === 'multiple',
+                    // 点行可选；multiRow 下 Shift 连选、Ctrl/Cmd 点选加减
+                    enableClickSelection: true,
                   }
                 : undefined,
               loading: Boolean(
@@ -333,17 +335,17 @@ export const AgGrid = defineComponent({
                 listProps.onItemClick?.(event.data),
               onRowDoubleClicked: (event: any) =>
                 listProps.onItemDoubleClick?.(event.data),
-              onColumnMoved: () => listProps.onListLayoutChange?.(),
-              onColumnResized: () => listProps.onListLayoutChange?.(),
-              onColumnVisible: () => listProps.onListLayoutChange?.(),
-              onColumnPinned: () => listProps.onListLayoutChange?.(),
-              getContextMenuItems: listProps.rowMenu
+              onColumnMoved: () => listProps.tableSettings?.persist(),
+              onColumnResized: () => listProps.tableSettings?.persist(),
+              onColumnVisible: () => listProps.tableSettings?.persist(),
+              onColumnPinned: () => listProps.tableSettings?.persist(),
+              getContextMenuItems: listProps.rowActions
                 ? (params: { node?: { data?: any } }) => {
-                    const actions = listProps.rowMenu?.(params.node?.data) ?? []
+                    const actions = listProps.rowActions?.(params.node?.data) ?? []
                     return actions.map(action => ({
                       name: String(action.label ?? action.name ?? ''),
                       action: () =>
-                        (action.onAction ?? action.command)?.(params.node?.data),
+                        action.onAction?.(params.node?.data),
                       disabled: action.disabled === true,
                     }))
                   }

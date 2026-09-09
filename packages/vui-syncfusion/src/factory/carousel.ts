@@ -1,14 +1,7 @@
 import { h } from "vue";
 import { CarouselComponent } from "@syncfusion/ej2-vue-navigations";
-import type { UiCarouselProps } from "@mmda/vui";
-import {
-  carouselBoundIndex,
-  carouselEj2Effect,
-  carouselModifierClasses,
-  carouselSlideContent,
-  emitCarouselChange,
-  htmlAttributesOf,
-} from "@mmda/vui";
+import type { UiCarouselProps } from '@mmda/core';
+import { carouselBoundIndex, carouselEj2Effect, carouselModifierClasses, carouselSlideContent, emitCarouselChange, htmlAttributesOf } from "@mmda/vui"
 
 export function createCarousel(props: UiCarouselProps) {
   const {

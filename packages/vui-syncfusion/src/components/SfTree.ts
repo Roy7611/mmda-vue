@@ -9,17 +9,7 @@ import {
   type PropType,
 } from 'vue'
 import { ContextMenuComponent, TreeViewComponent } from '@syncfusion/ej2-vue-navigations'
-import {
-  isTreeIconUrl,
-  mapTreeNodes,
-  resolveMappedTreeDrop,
-  selectedIdSet,
-  type UiAction,
-  type UiTreeEmits,
-  type UiTreeFields,
-  type UiTreeMappedNode,
-  type UiTreeProps,
-} from '@mmda/vui'
+import { isTreeIconUrl, mapTreeNodes, resolveMappedTreeDrop, selectedIdSet, type UiAction, type UiTreeEmits, type UiTreeFields, type UiTreeMappedNode, type UiTreeProps } from '@mmda/vui'
 
 type TreeProps = UiTreeProps & UiTreeEmits
 
@@ -388,7 +378,7 @@ function flattenMapped<T>(nodes: UiTreeMappedNode<T>[]): UiTreeMappedNode<T>[] {
     for (const node of items) {
       list.push({
         ...node,
-        parentId: parentId || undefined,
+        parentId: parentId ?? '',
         children: [],
       })
       if (node.children.length) walk(node.children, node.id)

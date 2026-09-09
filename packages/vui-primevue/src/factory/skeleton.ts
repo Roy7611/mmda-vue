@@ -1,7 +1,7 @@
 import { h } from "vue";
 import Skeleton from "primevue/skeleton";
-import type { UiSkeletonProps } from "@mmda/vui";
-import { skeletonModifierClasses } from "@mmda/vui";
+import type { UiSkeletonProps } from "@mmda/vui"
+import { skeletonModifierClasses } from "@mmda/vui"
 
 export function createSkeleton(props: UiSkeletonProps = {}) {
   const {
@@ -22,7 +22,7 @@ export function createSkeleton(props: UiSkeletonProps = {}) {
     });
   }
 
-  return h(Skeleton, {
+  return h(Skeleton as any, {
     ...rest,
     ...htmlAttributes,
     shape: shape === "circle" ? "circle" : "rectangle",

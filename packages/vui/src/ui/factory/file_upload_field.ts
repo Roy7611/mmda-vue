@@ -1,12 +1,12 @@
 import type { MetaUiField } from '@mmda/core'
 import { h, type VNode } from 'vue'
-import type { PropData } from '../layout/layout'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 import {
   createFileUploader,
   createFilesUploader,
   createImageUploader,
   createImagesUploader,
-} from '../../components/MmdaFileUploaderHost'
+} from '../../components/FileUploaderHost'
 import {
   fileLinkLabelOf,
   fileLinkPropsFromField,
@@ -69,7 +69,7 @@ function previewFileFromContext(context: Ctx, url: string): void {
 const imageReadonly = (
   field: MetaUiField,
   context: Ctx,
-  extra: PropData,
+  extra: UiBagExtra,
 ): VNode => {
   const src = String(context.getFieldValue(field, extra.row) ?? '')
   return h('img', {
@@ -82,7 +82,7 @@ const imageReadonly = (
 export function renderFileUploaderField(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): VNode {
   const props = fileUploaderPropsFromField(field, context, extra)
   if (props.readOnly) {
@@ -94,7 +94,7 @@ export function renderFileUploaderField(
 export function renderFilesUploaderField(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): VNode {
   return createFilesUploader(
     filesUploaderPropsFromField(field, context, extra),
@@ -104,7 +104,7 @@ export function renderFilesUploaderField(
 export function renderImageUploaderField(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): VNode {
   const showImageEditor =
     extra.showImageEditor === true ||
@@ -123,7 +123,7 @@ export function renderImageUploaderField(
 export function renderImagesUploaderField(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): VNode {
   const showImageEditor =
     extra.showImageEditor === true ||
@@ -142,7 +142,7 @@ export function renderImagesUploaderField(
 export function renderFileLinkField(
   field: MetaUiField,
   context: Ctx,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): VNode {
   const preview =
     extra.preview === true

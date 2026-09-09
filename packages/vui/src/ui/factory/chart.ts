@@ -3,7 +3,7 @@
  * App：ui.setChartFactory(...)；皮肤 `./charts` 或独立引擎包。
  */
 import type { VNode } from 'vue'
-import type { PropData, UiOrientation } from '../layout/layout'
+import type {UiProps, UiOrientation} from '../layout/layout'
 
 export type UiChartType =
   | 'bar'
@@ -32,7 +32,7 @@ export interface UiChartData {
   datasets: UiChartDataset[]
 }
 
-export interface UiChartProps extends PropData {
+export interface UiChartProps extends UiProps {
   data?: UiChartData
   type?: UiChartType
   stacked?: boolean
@@ -47,7 +47,7 @@ export interface UiChartRange {
   label?: string
 }
 
-export interface UiCircularGaugeProps extends PropData {
+export interface UiCircularGaugeProps extends UiProps {
   value: number
   min?: number
   max?: number
@@ -56,7 +56,7 @@ export interface UiCircularGaugeProps extends PropData {
   ranges?: UiChartRange[]
 }
 
-export interface UiLinearGaugeProps extends PropData {
+export interface UiLinearGaugeProps extends UiProps {
   value: number
   min?: number
   max?: number
@@ -66,7 +66,7 @@ export interface UiLinearGaugeProps extends PropData {
   orientation?: UiOrientation
 }
 
-export interface UiHeatMapProps extends PropData {
+export interface UiHeatMapProps extends UiProps {
   xLabels: string[]
   yLabels: string[]
   values: number[][]
@@ -75,7 +75,7 @@ export interface UiHeatMapProps extends PropData {
   options?: Record<string, unknown>
 }
 
-export interface UiGeoHeatMapProps extends PropData {
+export interface UiGeoHeatMapProps extends UiProps {
   points?: { lng: number; lat: number; value: number }[]
   regions?: { regionId: string; value: number }[]
   map?: string | object
@@ -84,7 +84,7 @@ export interface UiGeoHeatMapProps extends PropData {
   options?: Record<string, unknown>
 }
 
-export interface UiCalendarHeatMapProps extends PropData {
+export interface UiCalendarHeatMapProps extends UiProps {
   dates: { date: string; value: number }[]
   min?: number
   max?: number
@@ -104,7 +104,7 @@ export interface UiSankeyLink {
 
 export type UiSankeyLabelOf = (node: UiSankeyNode) => string
 
-export interface UiSankeyProps extends PropData {
+export interface UiSankeyProps extends UiProps {
   nodes?: UiSankeyNode[]
   links: UiSankeyLink[]
   orientation?: UiOrientation
@@ -162,7 +162,7 @@ export interface UiSmithChartSeries {
 
 export type UiSmithChartType = 'impedance' | 'admittance'
 
-export interface UiSmithChartProps extends PropData {
+export interface UiSmithChartProps extends UiProps {
   series: UiSmithChartSeries[]
   type?: UiSmithChartType
   title?: string
@@ -178,7 +178,7 @@ export interface UiSparklinePoint {
   y: number
 }
 
-export interface UiSparklineProps extends PropData {
+export interface UiSparklineProps extends UiProps {
   data: number[] | UiSparklinePoint[]
   type?: UiSparklineType
   width?: string | number
@@ -207,7 +207,7 @@ export function sparklinePointsOf(
 
 export type UiStockChartType = 'candle' | 'ohlc'
 
-export interface UiStockChartProps extends PropData {
+export interface UiStockChartProps extends UiProps {
   data: Record<string, unknown>[]
   xName?: string
   open?: string
@@ -264,7 +264,7 @@ export interface UiTreeMapNode {
 
 export type UiTreeMapLabelOf = (node: UiTreeMapNode) => string
 
-export interface UiTreeMapProps extends PropData {
+export interface UiTreeMapProps extends UiProps {
   data: UiTreeMapNode[]
   width?: string | number
   height?: string | number
@@ -307,7 +307,7 @@ export interface UiFunnelItem {
   value: number
 }
 
-export interface UiFunnelProps extends PropData {
+export interface UiFunnelProps extends UiProps {
   data: UiFunnelItem[]
   width?: string | number
   height?: string | number
@@ -322,7 +322,7 @@ export interface UiWaterfallItem {
   total?: boolean
 }
 
-export interface UiWaterfallProps extends PropData {
+export interface UiWaterfallProps extends UiProps {
   data: UiWaterfallItem[]
   width?: string | number
   height?: string | number
@@ -338,14 +338,14 @@ export interface UiBoxPlotItem {
   max: number
 }
 
-export interface UiBoxPlotProps extends PropData {
+export interface UiBoxPlotProps extends UiProps {
   data: UiBoxPlotItem[]
   width?: string | number
   height?: string | number
   options?: Record<string, unknown>
 }
 
-export interface UiHistogramProps extends PropData {
+export interface UiHistogramProps extends UiProps {
   values: number[]
   bins?: number
   width?: string | number
@@ -359,14 +359,14 @@ export interface UiBubblePoint {
   size: number
 }
 
-export interface UiBubbleProps extends PropData {
+export interface UiBubbleProps extends UiProps {
   data: UiBubblePoint[]
   width?: string | number
   height?: string | number
   options?: Record<string, unknown>
 }
 
-export interface UiBulletProps extends PropData {
+export interface UiBulletProps extends UiProps {
   value: number
   target: number
   min?: number
@@ -378,7 +378,7 @@ export interface UiBulletProps extends PropData {
   options?: Record<string, unknown>
 }
 
-export interface UiSunburstProps extends PropData {
+export interface UiSunburstProps extends UiProps {
   data: UiTreeMapNode[]
   width?: string | number
   height?: string | number

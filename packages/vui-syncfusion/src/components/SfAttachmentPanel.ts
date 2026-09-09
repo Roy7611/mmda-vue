@@ -8,7 +8,7 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import { encodeUriAndFix } from "@mmda/core";
-import { getFileInfo, type VueUiContext } from "@mmda/vui";
+import { getFileInfo, type VueUiContext } from "@mmda/vui"
 
 type AttachmentItem = {
   fileName: string;
@@ -26,6 +26,12 @@ function formatSize(value?: string | number) {
   if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
   return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+}
+
+function requireLogic(context: VueUiContext) {
+  const logic = context.logic;
+  if (!logic) throw new Error("attachment panel requires context.logic");
+  return logic;
 }
 
 function decodeUploadResult(response: Response): Promise<string[]> {
@@ -79,7 +85,7 @@ export const SfAttachmentPanel = defineComponent({
     const toast = (severity: "success" | "error" | "info", detail: string) =>
       props.context.uiBuilder?.toast(props.context, {
         severity,
-        detail,
+        message: detail,
         life: 3000,
       });
 
@@ -100,9 +106,10 @@ export const SfAttachmentPanel = defineComponent({
         fileName,
         fileSize: files[index]?.size ?? 0,
       }));
+      const logic = requireLogic(props.context);
       await props.context.uploadAttachments(params as any, {
-        repository: props.context.logic.repository,
-        service: props.context.logic.apiClient.config.service,
+        repository: logic.repository,
+        service: logic.apiClient.config.service,
         queryParams: { checkExists: true },
       });
 
@@ -138,7 +145,7 @@ export const SfAttachmentPanel = defineComponent({
         const accepted = await props.context.uiBuilder?.confirm(props.context, {
           message: `文件 ${Array.from(replacing).join("、")} 已存在，是否覆盖？`,
         });
-        if (!accepted) return;
+        if (result !== 'ok') return;
       }
 
       const fetchApi = (props.context.app?.api as any)?.fetchApi;
@@ -147,10 +154,11 @@ export const SfAttachmentPanel = defineComponent({
         return;
       }
 
-      const api = props.context.logic.apiClient;
+      const logic = requireLogic(props.context);
+      const api = logic.apiClient;
       const url = api.buildEntityURL({
         service: "files",
-        repository: props.context.logic.repository,
+        repository: logic.repository,
         path: String(props.context.model.id),
         action: "multi",
       });
@@ -229,7 +237,8 @@ export const SfAttachmentPanel = defineComponent({
       const accepted = await props.context.uiBuilder?.confirm(props.context, {
         message: `确定删除文件 ${fileName} 吗？`,
       });
-      if (!accepted) return;
+      if (result !== 'ok') return;
+      const logic = requireLogic(props.context);
       try {
         await (props.context.uploadAttachments as any)(
           {
@@ -238,8 +247,8 @@ export const SfAttachmentPanel = defineComponent({
             fileSize: item.fileSize,
           },
           {
-            repository: props.context.logic.repository,
-            service: props.context.logic.apiClient.config.service,
+            repository: logic.repository,
+            service: logic.apiClient.config.service,
           },
         );
         setAttachments(

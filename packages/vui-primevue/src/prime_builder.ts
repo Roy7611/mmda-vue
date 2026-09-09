@@ -1,13 +1,10 @@
 import {
   h,
   reactive,
-  unref,
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
 import {
-  ModuleActionMode,
-  ModuleActionPromptType,
   SqlDataType,
   pluralize,
   type MetaUiField,
@@ -16,31 +13,7 @@ import {
   type ModuleAction,
   type ModuleAuth,
 } from "@mmda/core";
-import {
-  VueUiBuilder,
-  AppSideMenu,
-  UiViewMany,
-  assembleMenuItems,
-  type AppSideBarProps,
-  type AppTopBarProps,
-  type ImportAndExportActionProps,
-  type ModuleBreadcrumbProps,
-  type ModuleSearchbarProps,
-  type ModuleToolbarProps,
-  type PrimeVueUiFactory,
-  type PropData,
-  type SearchForRelativeProps,
-  type SigninFormProps,
-  type SigninFormSlots,
-  type SignupFormProps,
-  type UiAction,
-  type UiFieldFactory,
-  type UiSearchField,
-  type UiSlots,
-  type UiViewContext,
-  paintModuleToolbar,
-  defaultToolbarMoreActions,
-} from "@mmda/vui";
+import { VueUiBuilder, AppSideMenu, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -51,6 +24,7 @@ import MultiSelect from "primevue/multiselect";
 import Password from "primevue/password";
 import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
+import Toolbar from "primevue/toolbar";
 import { PrimeGroupCard } from "./components/PrimeGroupCard";
 import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
 import { createPrimeOverlay } from "./prime_overlay";
@@ -88,7 +62,15 @@ const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
   moduleOf(context)?.authority;
 
 const visibleActions = (actions: UiAction[]) =>
-  actions.filter((action) => action.visible == null || unref(action.visible));
+  actions.filter((action) => {
+    const visible = action.visible
+    if (visible == null) return true
+    if (typeof visible === 'function') return true
+    if (typeof visible === 'object' && visible !== null && 'value' in visible) {
+      return Boolean((visible as { value: unknown }).value)
+    }
+    return Boolean(visible)
+  })
 
 export class PrimeVueUiBuilder extends VueUiBuilder {
   declare readonly factory: PrimeVueUiFactory;
@@ -118,7 +100,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   override buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props: PropData = {},
+    props: UiProps = {},
   ) {
     const {
       container: _container,
@@ -145,23 +127,23 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("div", { class: "mmda-prime-container", ...props }, content);
   }
 
-  buildHeader(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("header", { class: "mmda-prime-header", ...props }, content);
   }
 
-  buildAside(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("aside", { class: "mmda-prime-aside", ...props }, content);
   }
 
-  buildMain(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("main", { class: "mmda-prime-main", ...props }, content);
   }
 
-  buildFooter(content: VNode | VNodeArrayChildren, props?: PropData) {
+  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
     return h("footer", { class: "mmda-prime-footer", ...props }, content);
   }
 
@@ -192,7 +174,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     ]);
   }
 
-  buildAppMenu(modules: Module[], props?: PropData) {
+  buildAppMenu(modules: Module[], props?: UiProps) {
     const { item, expand, ...rest } = props ?? {};
     if (expand === false) {
       const menuItems = assembleMenuItems(modules);
@@ -212,11 +194,11 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     });
   }
 
-  buildLoading(_context: UiContext, props?: PropData) {
+  buildLoading(_context: UiContext, props?: UiProps) {
     return this.factory.loading(props);
   }
 
-  buildError(context: UiContext, props?: PropData) {
+  buildError(context: UiContext, props?: UiProps) {
     return h(
       Message,
       { severity: "error", class: "mmda-prime-error", ...props },
@@ -248,6 +230,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       items.push({
         key: `${module.moduleCode}-title`,
         label,
+        icon: undefined,
+        to: undefined,
       });
     }
 
@@ -429,7 +413,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   private toolbarActionButton(
     context: UiContext,
     action: UiAction,
-    props?: PropData,
+    props?: UiProps,
   ) {
     return this.factory.actionButton(
       action,
@@ -490,8 +474,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         ...auth.authorizedActions
           .filter(
             (action: ModuleAction) =>
-              action.actionModes === ModuleActionMode.LIST &&
-              action.promptType === ModuleActionPromptType.MULTIPLE_SELECT,
+              action.actionModes === 4 &&
+              action.promptType === 'MULTIPLE_SELECT',
           )
           .map(
             (action: ModuleAction) =>
@@ -508,8 +492,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         ...auth.authorizedActions
           .filter(
             (action: ModuleAction) =>
-              action.actionModes === ModuleActionMode.LIST &&
-              action.promptType !== ModuleActionPromptType.MULTIPLE_SELECT,
+              action.actionModes === 4 &&
+              action.promptType !== 'MULTIPLE_SELECT',
           )
           .map((action: ModuleAction) =>
             this.actionFactory.action(context, {
@@ -552,7 +536,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
             ),
           )
           .map((action: UiAction) =>
-            this.actionFactory.action(context, action),
+            this.actionFactory.action(context, action as any),
           ),
       );
     }
@@ -620,7 +604,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           .map((action: UiAction) =>
             this.toolbarActionButton(
               context,
-              this.actionFactory.action(context, action),
+              this.actionFactory.action(context, action as any),
               {
                 id: `${action.name}-button`,
               },
@@ -675,7 +659,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           .map((action: UiAction) =>
             this.toolbarActionButton(
               context,
-              this.actionFactory.action(context, action),
+              this.actionFactory.action(context, action as any),
               {
                 id: `${action.name}-button`,
               },
@@ -732,7 +716,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     });
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: PropData) {
+  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
     const meta = field.field;
     const common = {
       modelValue: field.searchVal.value,
@@ -779,7 +763,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     ]);
   }
 
-  buildSearchForm(context: UiContext, props?: PropData) {
+  buildSearchForm(context: UiContext, props?: UiProps) {
     return h(
       "form",
       {
@@ -941,7 +925,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   buildBpmnDiagram(
     flowTrails: any[],
     _context: UiContext,
-    props: PropData = {},
+    props: UiProps = {},
   ) {
     return h("section", { class: "mmda-prime-flow", ...props }, [
       props.xml

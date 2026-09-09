@@ -35,11 +35,11 @@ UiFactory 契约  →  皮肤 factory（生产控件）
 
 | 层 | 干什么 | 放哪 |
 |---|---|---|
-| **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳（ListSettingView、GroupCard） |
+| **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳（TableSettingView、GroupCard） |
 | **Factory** | 用 `MetaUi` + 列表/字段 props **生产**组件 | 皮肤 `factory/`、`field_factory/`。vui 契约在 [`ui/factory/factory.ts`](../src/ui/factory/factory.ts) / [`field_factory.ts`](../src/ui/factory/field_factory.ts) |
 | **Builder** | 用 Factory 原子件拼工具栏、搜索、分组、分页、确认框 | vui `VueUiBuilder`；皮肤 Builder 只补壳/覆盖 |
 
-`buildList` / `buildTable` / `buildGrid` / `buildTreeGrid` 只补齐会话（`filterModel`、`loadFilterOptions`、`searchRelative`）再调 `factory.list`，并写入对应 `display`。列怎么画、虚拟滚动、列筛控件都在皮肤组件里（如 `SfGrid`、`AgGrid`）。本轮 `table` 与 `grid` 可共用同一 renderer。
+`buildList`（`UiListProps`）/ `buildTable`（`UiTableProps`）/ `buildGrid`（`UiGridProps`）/ `buildTreeGrid` 只补齐会话（`filterModel`、列筛加载器、`tableSettings`）再调 `factory.*`。内部 `display` 只是工厂捷径标签，公开契约已分家。列怎么画、虚拟滚动、列筛控件都在皮肤组件里（如 `SfGrid`、`AgGrid`）。本轮 `table` 与 `grid` 可共用同一 renderer。
 
 vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`。`UiActionFactory` 是 Builder 的标准按钮接线，在 `ui/builder/actions.ts`。
 
@@ -105,7 +105,7 @@ export abstract class VueUiBuilder extends WithTree(
 - `pivotPlugin`：透视表插件，不进 chrome factory。见 [透视表](./pivot_table.md)。SF 不能打 `filterRows` / `pivotRows`。
 - `aiAssistantPlugin`：AI 助手插件，不进 chrome factory。见 [AI 助手](./ai_assistant.md)。
 - `UiOverlay`：命令式 toast / confirm / dialog；皮肤提供 `overlayHost`，**`MmdaVueApp.install`** 自动挂载。
-- `UiLayout`：行列栅格，与控件库无关。
+- `UiLayout`：行列栅格与页区域，与控件库无关。见 [布局设计](./layout.md)、[怎么写](./layout_usage.md)。
 - `UiAction` / `UiActionFactory`：刷新、创建、保存、导入导出等。
 
 ```ts
@@ -158,7 +158,7 @@ vui **不** import `primevue/*` 或 `@syncfusion/*`。皮肤包实现 `UiFactory
 | `buildPivotTable` | 转调 `pivotPlugin.pivotTable`（未安装则 throw） |
 | `buildAiAssistant` | 转调 `aiAssistantPlugin.aiAssistant`（未安装则 throw） |
 | `buildView` | 单对象：工具栏 + 分组表单 |
-| `buildList` / `buildTable` / `buildGrid` / `buildTreeGrid` | 只有数据区（`display` 分别为 list / table / grid / treeGrid） |
+| `buildList` / `buildTable` / `buildGrid` / `buildTreeGrid` | 只有数据区（Props 分家；内部可带 `display` 捷径标签） |
 | `buildBpmnDiagram` | BPMN XML（Prime/Naive：bpmn-js）。通用图走 `diagramPlugin` |
 | `buildDiagramView` | 转调 `diagramPlugin.diagramView`（未安装则 throw） |
 

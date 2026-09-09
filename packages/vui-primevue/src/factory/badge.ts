@@ -1,7 +1,7 @@
 import { h } from "vue";
 import Badge from "primevue/badge";
-import type { UiBadgeProps } from "@mmda/vui";
-import { badgeModifierClasses } from "@mmda/vui";
+import type { UiBadgeProps } from "@mmda/vui"
+import { badgeModifierClasses } from "@mmda/vui"
 
 const primeSeverity = (role?: string) => {
   const roles: Record<string, string | undefined> = {

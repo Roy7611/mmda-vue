@@ -4,7 +4,7 @@ import {
   inplaceEditorDisabledOf,
   inplaceEditorModifierClasses,
   isInplaceFieldEditorKey,
-} from '../ui/factory/inplace_editor'
+} from '@mmda/core'
 import {
   inplaceFieldContentRenderer,
   inplaceFieldDisplayRenderer,

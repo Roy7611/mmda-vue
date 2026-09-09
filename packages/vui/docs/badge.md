@@ -8,7 +8,7 @@ chrome 计数/状态标记，走 `factory.badge`。EJ2 类型见 [Syncfusion Bad
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/badge.ts` | `UiBadgeProps`：`value` / `shape` / `colorRole` / `overlay` / `position` |
+| core `UiBadgeProps` | `value` / `shape` / `colorRole` / `overlay` / `position` |
 | 皮肤 `factory/badge.ts`（或 factory 内联调用） | 映射厂商：SF CSS `e-badge-*`；Prime `Badge`；Naive `NBadge` |
 | 字段 `tag` / `chips` | 表元数据展示，**不是** `factory.badge` |
 
@@ -42,7 +42,7 @@ EJ2 Badge 是纯 CSS，Syncfusion 皮肤不要造 `SfBadge.vue`。
 
 ## 源码
 
-- vui：[`badge.ts`](../src/ui/factory/badge.ts)
+- core：[`chrome.ts`](../../core/src/ui/chrome.ts)
 - SF：[`vui-syncfusion/src/factory/badge.ts`](../../vui-syncfusion/src/factory/badge.ts)
 - Prime：[`vui-primevue/src/factory/badge.ts`](../../vui-primevue/src/factory/badge.ts)
 - Naive：[`vui-agnaive/src/factory/badge.ts`](../../vui-agnaive/src/factory/badge.ts)

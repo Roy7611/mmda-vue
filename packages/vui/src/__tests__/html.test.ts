@@ -3,8 +3,14 @@ import { defineComponent, h, nextTick, ref, render } from "vue";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
-import { renderTreeView } from "../components/MmdaTreeView";
+import { renderTreeView } from "../components/TreeView";
 import { TestUiBuilder } from "./test_builder";
+
+const treeCtx = new VueUiContext({
+  model: {},
+  metaUi: new MetaUi({ objName: "Tree", groups: [] }),
+  view: "index",
+});
 
 const metaUi = new MetaUi({
   objName: "Product",
@@ -84,6 +90,53 @@ describe("VueUiBuilder tree chrome", () => {
       overlay.confirm({ title: "删除", message: "确定？" }),
     ).resolves.toBe(false);
     window.confirm = original;
+  });
+
+  it("html overlay dialog 返回标准按钮名，onReject 可拦关", async () => {
+    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { h } = await import("vue");
+    const overlay = createHtmlOverlay();
+    const p = overlay.dialog(h("div", "body"), {
+      title: "x",
+      onReject: async () => false,
+    });
+    const ok = document.querySelector(
+      ".mmda-dialog footer button.is-primary",
+    ) as HTMLButtonElement | null;
+    expect(ok).toBeTruthy();
+    ok!.click();
+    await expect(p).resolves.toBe("ok");
+  });
+
+  it("html overlay dialog header 插槽换掉 title", async () => {
+    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { h } = await import("vue");
+    const overlay = createHtmlOverlay();
+    void overlay.dialog(h("div", "body"), {
+      title: "TITLE",
+      header: () => h("span", { class: "mmda-test-header" }, "SLOT_H"),
+    });
+    const header = document.querySelector(".mmda-dialog header");
+    expect(header?.textContent).toBe("SLOT_H");
+    expect(header?.textContent).not.toContain("TITLE");
+    expect(header?.querySelector(".mmda-test-header")).toBeTruthy();
+    await overlay.closeTopDialog?.("cancel");
+  });
+
+  it("html overlay dialog footer 插槽不画标准键", async () => {
+    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { h } = await import("vue");
+    const overlay = createHtmlOverlay();
+    void overlay.dialog(h("div", "body"), {
+      title: "x",
+      footer: () => h("span", { class: "mmda-test-footer" }, "SLOT_F"),
+    });
+    const footer = document.querySelector(".mmda-dialog footer");
+    expect(footer?.querySelector(".mmda-test-footer")?.textContent).toBe(
+      "SLOT_F",
+    );
+    expect(footer?.querySelector("button")).toBeNull();
+    await overlay.closeTopDialog?.("cancel");
   });
 
   it("buildTreeListView 用 splitter 分出树和表", () => {
@@ -266,7 +319,7 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [
           { id: "1", label: "苹果" },
           { id: "2", label: "香蕉" },
@@ -296,7 +349,7 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [
           { id: "1", label: "苹果" },
           { id: "2", label: "香蕉" },
@@ -326,7 +379,7 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [{ id: "1", label: "苹果" }],
         showSearchBar: true,
         header: () => h("span", { class: "mmda-test-tree-header" }, "顶"),
@@ -337,7 +390,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-tree-view-header")).toBeTruthy();
     expect(host.querySelector(".mmda-tree-view-search")).toBeFalsy();
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [{ id: "1", label: "苹果" }],
         showSearchBar: true,
       }),
@@ -352,7 +405,7 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [{ id: "1", label: "苹果" }],
         selectedNode: { id: "1", label: "苹果", code: "A1" } as any,
         showTreeFooter: true,
@@ -363,7 +416,7 @@ describe("VueUiBuilder tree chrome", () => {
     );
     expect(host.querySelector(".mmda-test-node-desc")?.textContent).toBe("A1 苹果");
     render(
-      new TestUiBuilder().buildTreeView({
+      new TestUiBuilder().buildTreeView(treeCtx, {
         data: [{ id: "1", label: "苹果" }],
         selectedNode: { id: "1", label: "苹果" },
         showTreeFooter: true,
@@ -462,16 +515,13 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView(
-        {
+      new TestUiBuilder().buildTreeView(context, {
           data: [{ id: "c1", categoryName: "分类" }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
           showSearchBar: false,
           showTreeFooter: false,
-        },
-        context,
-      ),
+        }),
       host,
     );
     expect(host.querySelector("[data-mmda-tree-actions]")?.getAttribute("data-mmda-tree-actions")).toBe(
@@ -510,17 +560,14 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView(
-        {
+      new TestUiBuilder().buildTreeView(context, {
           data: [{ id: "c1", categoryName: "分类", editable: true }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
           editMode: "contextMenu",
           showSearchBar: false,
           showTreeFooter: true,
-        },
-        context,
-      ),
+        }),
       host,
     );
     expect(host.querySelector("[data-has-context-menu]")?.getAttribute("data-has-context-menu")).toBe(
@@ -594,17 +641,14 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView(
-        {
+      new TestUiBuilder().buildTreeView(context, {
           data: [{ id: "c1", categoryName: "分类", editable: true }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
           editMode: "contextMenu",
           showSearchBar: false,
           showTreeFooter: false,
-        },
-        context,
-      ),
+        }),
       host,
     );
     host.querySelector(".mmda-tree-row")!.dispatchEvent(
@@ -652,17 +696,14 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView(
-        {
+      new TestUiBuilder().buildTreeView(context, {
           data: [{ id: "c1", categoryName: "分类", editable: true }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
           editMode: "contextMenu",
           showSearchBar: false,
           showTreeFooter: false,
-        },
-        context,
-      ),
+        }),
       host,
     );
     expect(host.querySelector(".mmda-tree")?.getAttribute("data-allow-drag-drop")).toBe(
@@ -695,17 +736,14 @@ describe("VueUiBuilder tree chrome", () => {
     hosts.push(host);
     document.body.append(host);
     render(
-      new TestUiBuilder().buildTreeView(
-        {
+      new TestUiBuilder().buildTreeView(context, {
           data: [{ id: "c1", categoryName: "分类" }],
           fields: { id: "id", label: "categoryName" },
           repository: "MaterialCats",
           editMode: "contextMenu",
           showSearchBar: false,
           showTreeFooter: false,
-        },
-        context,
-      ),
+        }),
       host,
     );
     expect(host.querySelector(".mmda-tree")?.getAttribute("data-allow-drag-drop")).toBeNull();

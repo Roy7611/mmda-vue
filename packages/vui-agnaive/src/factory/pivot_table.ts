@@ -5,12 +5,7 @@ import { h } from 'vue'
 import { AgGridVue } from 'ag-grid-vue3'
 import type { ColDef, IAggFuncParams } from 'ag-grid-community'
 import type { UiPivotPlugin, UiPivotTableProps } from '@mmda/vui'
-import {
-  htmlAttributesOf,
-  pivotAggregateOf,
-  pivotDataOf,
-  pivotHookClass,
-} from '@mmda/vui'
+import { htmlAttributesOf, pivotAggregateOf, pivotDataOf, pivotHookClass } from '@mmda/vui'
 
 function distinctCount(params: IAggFuncParams): number {
   const seen = new Set<unknown>()

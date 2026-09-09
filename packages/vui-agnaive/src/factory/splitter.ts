@@ -1,12 +1,7 @@
 import { h } from 'vue'
 import { NSplit } from 'naive-ui'
 import type { UiSplitterPane, UiSplitterProps } from '@mmda/vui'
-import {
-  emitSplitterResize,
-  htmlAttributesOf,
-  splitterModifierClasses,
-  splitterOrientationOf,
-} from '@mmda/vui'
+import { emitSplitterResize, htmlAttributesOf, splitterModifierClasses, splitterOrientationOf } from '@mmda/vui'
 
 function parseCssSize(value?: string): number | undefined {
   if (!value) return undefined

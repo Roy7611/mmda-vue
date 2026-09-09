@@ -30,9 +30,11 @@ factory.treeGrid(rows, metaUi, {
   treeShape: 'TREE',
   shapeKey: 'parentId',
   loadMode: 'full',
-  inplaceEdit: true,
-  editableFields: ['enabled', 'roleId'],
+  editable: true,
+  fieldCellEditors: {
+    status: { canEdit: false },
+  },
 })
 ```
 
-不要写 EJ2 `editSettings` / `editType`。布尔与引用怎么画在皮肤里，见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。
+不要写 EJ2 `editSettings` / `editType`。默认全列可编；关列写 `fieldCellEditors`。布尔与引用怎么画在皮肤里，见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。

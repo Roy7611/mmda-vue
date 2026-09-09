@@ -1,17 +1,7 @@
 import { h } from 'vue'
 import { NDrawer } from 'naive-ui'
 import type { UiSidebarProps, UiSidebarSlots } from '@mmda/vui'
-import {
-  applyDrawerDefaults,
-  emitSidebarChange,
-  htmlAttributesOf,
-  sidebarIsOpenOf,
-  sidebarModifierClasses,
-  sidebarPositionOf,
-  sidebarShowBackdropOf,
-  sidebarSlotsOf,
-  sidebarWidthOf,
-} from '@mmda/vui'
+import { applyDrawerDefaults, emitSidebarChange, htmlAttributesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarWidthOf } from '@mmda/vui'
 
 function renderSidebar(
   props: UiSidebarProps,
@@ -43,12 +33,16 @@ function renderSidebar(
   const width = sidebarWidthOf(applied)
 
   return h(
-    NDrawer,
+    NDrawer as any,
     {
       ...rest,
       ...htmlAttributesOf(applied),
       show: sidebarIsOpenOf(applied),
-      placement: sidebarPositionOf(applied).toLowerCase(),
+      placement: sidebarPositionOf(applied).toLowerCase() as
+        | 'left'
+        | 'right'
+        | 'top'
+        | 'bottom',
       width,
       mask: sidebarShowBackdropOf(applied, asDrawer),
       class: sidebarModifierClasses(applied, asDrawer).flat(),

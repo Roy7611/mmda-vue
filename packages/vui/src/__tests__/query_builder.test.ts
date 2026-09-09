@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { MetaUiField, SqlDataType } from '@mmda/core'
 import {
+  MetaUiField,
+  SqlDataType,
   advancedToQueryBuilderRule,
   agAdvancedToEntity,
   entityToAgAdvanced,
   queryBuilderColumnOf,
   queryBuilderRuleToAdvanced,
-} from '../ui/factory/query_builder'
+} from '@mmda/core'
 
 const age = new MetaUiField({
   fieldIdx: 0,

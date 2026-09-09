@@ -5,29 +5,23 @@
  * 换形状用 emptyTemplate / fullTemplate，不要 vui 主名 stars / onIcon / shape。
  * 字段 fldFactory.rating 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField } from '@mmda/core'
 import type { VNodeChild } from 'vue'
-import type { PropData } from '../layout/layout'
+import { callUiBagFn } from '@mmda/core'
+import type { MetaUiField } from '@mmda/core'
+import type {UiProps, UiBagExtra} from '../layout/layout'
 
 export const DEFAULT_RATING_ITEMS_COUNT = 5
 
-export type UiRatingTemplateContext = { value: number; index: number }
-
-export type UiRatingTemplate =
-  | VNodeChild
-  | ((ctx: UiRatingTemplateContext) => VNodeChild)
-
-export interface UiRatingProps extends PropData {
-  value?: number | null
-  /** EJ2：格子数。默认 5。不要 vui 主名 stars */
-  itemsCount?: number
-  /** EJ2 拼写。不要 vui 主名 readonly */
-  readOnly?: boolean
-  disabled?: boolean
-  emptyTemplate?: UiRatingTemplate
-  fullTemplate?: UiRatingTemplate
-  onChange?: (value: number | null) => void
-}
+export type {
+  UiRatingProps,
+  UiRatingTemplate,
+  UiRatingTemplateContext,
+} from '@mmda/core'
+import type {
+  UiRatingProps,
+  UiRatingTemplate,
+  UiRatingTemplateContext,
+} from '@mmda/core'
 
 export type RatingFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -71,8 +65,8 @@ export function emitRatingChange(
       : value
   const next = finiteNumber(unpacked) ?? null
   props.onChange?.(next)
-  props['onUpdate:modelValue']?.(next)
-  props.onUpdate?.(next)
+  callUiBagFn(props, 'onUpdate:modelValue', next)
+  callUiBagFn(props, 'onUpdate', next)
 }
 
 export function resolveRatingTemplate(
@@ -84,13 +78,11 @@ export function resolveRatingTemplate(
   return template
 }
 
-export function ratingModifierClasses(props: UiRatingProps): unknown[] {
-  return ['mmda-rating', props.class]
-}
+export { ratingModifierClasses } from '@mmda/core'
 
 function itemsCountFromField(
   field: MetaUiField,
-  extra: PropData,
+  extra: UiBagExtra,
 ): number | undefined {
   if (extra.itemsCount != null && extra.itemsCount !== '') {
     const n = finiteNumber(extra.itemsCount)
@@ -104,7 +96,7 @@ function itemsCountFromField(
 export function ratingPropsFromField(
   field: MetaUiField,
   context: RatingFieldContext,
-  extra: PropData = {},
+  extra: UiBagExtra = {},
 ): UiRatingProps {
   const raw = context.getFieldValue(field)
   const n = finiteNumber(raw)

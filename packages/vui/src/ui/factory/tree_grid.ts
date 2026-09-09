@@ -1,6 +1,11 @@
-import type { MetaUi, MetaUiGroup } from '@mmda/core'
+import type {
+  MetaUi,
+  MetaUiGroup,
+  UiTreeGridProps as CoreUiTreeGridProps,
+} from '@mmda/core'
+import type { VNode } from 'vue'
 import type { UiListViewPropsType } from "../builder/list_view";
-import type { UiListPropsType } from "./list";
+import type { UiGridPropsType, UiTableSkinExtras } from "./list";
 import type { TreeBindShape, TreeSourceShape } from '../builder/tree_data'
 import {
   detectChildrenKey,
@@ -10,21 +15,16 @@ import {
   treeIdField,
 } from '../builder/tree_data'
 
-export interface UiTreeGridProps<T = any> {
-  treeShape?: 'TREE' | 'HIERARCHY' | string
-  shapeKey?: string
-  idField?: string
-  parentIdField?: string
-  /** 子表全量用 `full`；index 默认 `lazy`。 */
-  loadMode?: 'full' | 'lazy'
+/** 树形表：core 可编一族 + 树装配字段。 */
+export interface UiTreeGridProps<T = any>
+  extends CoreUiTreeGridProps<T, VNode> {
   sourceShape?: TreeSourceShape
   bindShape?: TreeBindShape
-  childrenKey?: string
-  childrenCountKey?: string
-  onExpand?: (node: T) => void | Promise<void>
 }
 
-export type UiTreeGridPropsType<T = any> = UiListPropsType<T> & UiTreeGridProps<T>
+export type UiTreeGridPropsType<T = any> = UiGridPropsType<T> &
+  UiTreeGridProps<T> &
+  UiTableSkinExtras<T>
 
 export type UiTreeGridViewPropsType<T = any> = UiListViewPropsType<T> &
   UiTreeGridProps<T>

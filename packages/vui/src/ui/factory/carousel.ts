@@ -1,39 +1,12 @@
 /*
- * Syncfusion: https://ej2.syncfusion.com/vue/documentation/api/carousel/index-default
- *
  * chrome 轮播走 factory.carousel。图库 SfImageGallery 仍自管，不要在这里改。
+ * 契约在 @mmda/core ui/chrome.ts。
  */
 import { h, type VNodeChild } from 'vue'
-import type { PropData } from '../layout/layout'
+import type { UiCarouselItem, UiCarouselProps } from '@mmda/core'
 
-export type UiCarouselAnimation = 'slide' | 'fade'
-
-export interface UiCarouselItem {
-  key?: string
-  src?: string
-  alt?: string
-  title?: string
-  description?: string
-  content?: VNodeChild
-}
-
-export interface UiCarouselProps extends PropData {
-  items: UiCarouselItem[]
-  selectedIndex?: number
-  autoPlay?: boolean
-  interval?: number
-  loop?: boolean
-  animation?: UiCarouselAnimation
-  itemRenderer?: (item: UiCarouselItem, index: number) => VNodeChild
-  onChange?: (index: number) => void
-}
-
-export function carouselModifierClasses(props: UiCarouselProps): unknown[] {
-  const animation = props.animation
-    ? `mmda-carousel--${props.animation}`
-    : undefined
-  return ['mmda-carousel', animation, props.class]
-}
+export type { UiCarouselAnimation, UiCarouselItem, UiCarouselProps } from '@mmda/core'
+export { carouselModifierClasses } from '@mmda/core'
 
 export function carouselBoundIndex(props: UiCarouselProps): number {
   const raw =
@@ -44,11 +17,13 @@ export function carouselBoundIndex(props: UiCarouselProps): number {
 
 export function emitCarouselChange(props: UiCarouselProps, index: number): void {
   props.onChange?.(index)
-  props['onUpdate:modelValue']?.(index)
+  ;(props as { 'onUpdate:modelValue'?: (value: number) => void })[
+    'onUpdate:modelValue'
+  ]?.(index)
 }
 
 export function carouselEj2Effect(
-  animation?: UiCarouselAnimation,
+  animation?: UiCarouselProps['animation'],
 ): 'Slide' | 'Fade' | undefined {
   if (!animation) return undefined
   return animation === 'fade' ? 'Fade' : 'Slide'
@@ -59,8 +34,8 @@ export function carouselSlideContent(
   index: number,
   renderer?: UiCarouselProps['itemRenderer'],
 ): VNodeChild {
-  if (renderer) return renderer(item, index)
-  if (item.content != null) return item.content
+  if (renderer) return renderer(item, index) as VNodeChild
+  if (item.content != null) return item.content as VNodeChild
   if (!item.src) return item.title ?? item.description ?? null
   return h('figure', { class: 'mmda-carousel-slide' }, [
     h('img', {
