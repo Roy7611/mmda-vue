@@ -11,5 +11,5 @@ factory.timePicker({
 ```
 
 ```ts
-fldFactory.timePicker(field, context)
+fieldFactory.timePicker(field, context)
 ```

@@ -26,14 +26,14 @@ export function progressBarModifierClasses(
   return [
     uiCssClass('progressbar'),
     props.kind === 'circular'
-      ? uiCssClass('progressbar', 'circular')
+      ? uiCssClass('progressbar', undefined, 'circular')
       : undefined,
-    props.size ? uiCssClass('progressbar', props.size) : undefined,
+    props.size ? uiCssClass('progressbar', undefined, props.size) : undefined,
     props.colorRole
-      ? uiCssClass('progressbar', props.colorRole)
+      ? uiCssClass('progressbar', undefined, props.colorRole)
       : undefined,
     props.indeterminate
-      ? uiCssClass('progressbar', 'indeterminate')
+      ? uiCssClass('progressbar', undefined, 'indeterminate')
       : undefined,
     props.class,
   ]

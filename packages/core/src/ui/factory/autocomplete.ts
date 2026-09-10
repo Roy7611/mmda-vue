@@ -39,9 +39,9 @@ export const AUTOCOMPLETE_DEBOUNCE_MS = 300
 export const AUTOCOMPLETE_SUGGESTION_COUNT = 20
 
 export function autoCompleteModifierClasses(props: UiAutoCompleteProps): unknown[] {
-  const size = props.size ? uiCssClass('autocomplete', props.size) : undefined
+  const size = props.size ? uiCssClass('autocomplete', undefined, props.size) : undefined
   const highlight = props.highlight
-    ? uiCssClass('autocomplete', 'highlight')
+    ? uiCssClass('autocomplete', undefined, 'highlight')
     : undefined
   return [uiCssClass('autocomplete'), size, highlight, props.class]
 }

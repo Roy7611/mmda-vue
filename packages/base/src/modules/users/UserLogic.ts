@@ -369,7 +369,7 @@ export class UserLogic extends EntityLogic<User> {
             const r = $router.resolve(namedRoute);
             if (!url || !refModule?.authority?.allowRead)
               return ui.factory.textSpan(ctx.model.customProperties.$deptID);
-            return ctx.uiBuilder.fldFactory.hasOneText(fld, ctx);
+            return ctx.uiBuilder.fieldFactory.hasOneText(fld, ctx);
           },
         ),
       );

@@ -1,10 +1,17 @@
-import { required } from '@mmda/core'
-import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
-import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-vue-buttons'
+import { required, uiCssClass } from '@mmda/core'
+import {
+  UI_BUILDER_KEY,
+  signinFormEmits,
+  signinFormProps,
+  type SigninUser,
+  type VueUiBuilder,
+} from '@mmda/vui'
+import { CheckBoxComponent } from '@syncfusion/ej2-vue-buttons'
 import { TextBoxComponent } from '@syncfusion/ej2-vue-inputs'
 import {
   defineComponent,
   h,
+  inject,
   onBeforeMount,
   reactive,
   withModifiers,
@@ -12,13 +19,13 @@ import {
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createLoading } from '../factory/loading'
 
 export const SfSigninForm = defineComponent({
   name: 'SfSigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',
@@ -84,108 +91,107 @@ export const SfSigninForm = defineComponent({
     })
 
     return () => {
-      return h('div', { class: 'mmda-signin-form-wrap' }, [
-        loading.value
+      const { layout, factory } = builder
+      const children = [
+        slots?.header?.(),
+        slots.title
+          ? slots.title()
+          : h('h2', { class: uiCssClass('signin-form', 'title') }, t('auth.signin')),
+        layout.layoutFieldVert({
+          label: h(
+            'label',
+            { class: uiCssClass('field-label'), for: 'username' },
+            t('auth.username'),
+          ),
+          control: h(TextBoxComponent as any, {
+            id: 'username',
+            cssClass: 'e-outline',
+            floatLabelType: 'Never',
+            value: user.username,
+            placeholder: t('auth.username'),
+            input: (args: any) => {
+              user.username = args.value
+              if (v.username.touched) requiredUsername()
+            },
+            blur: requiredUsername,
+          } as VNodeProps),
+          message: v.username.message || undefined,
+        }),
+        layout.layoutFieldVert({
+          label: h(
+            'label',
+            { class: uiCssClass('field-label'), for: 'password' },
+            t('auth.password'),
+          ),
+          control: h(TextBoxComponent as any, {
+            id: 'password',
+            type: 'password',
+            cssClass: 'e-outline',
+            floatLabelType: 'Never',
+            value: user.password,
+            placeholder: t('auth.password'),
+            input: (args: any) => {
+              user.password = args.value
+              if (v.password.touched) requiredPassword()
+            },
+            blur: requiredPassword,
+            keydown: (args: any) => {
+              if (args?.event?.key === 'Enter' || args?.key === 'Enter') {
+                args?.event?.preventDefault?.()
+                void handleLogin()
+              }
+            },
+          } as VNodeProps),
+          message: v.password.message || undefined,
+        }),
+        h('label', { class: uiCssClass('signin-form', 'agreed') }, [
+          h(CheckBoxComponent as any, {
+            checked: user.agreed,
+            change: (args: any) => {
+              user.agreed = args.checked
+              if (v.agreed.touched) requiredAgreed()
+            },
+          } as VNodeProps),
+          h('span', null, t('auth.agreeTermsRequired')),
+        ]),
+        v.agreed.message
           ? h(
-              'div',
-              { class: 'mmda-signin-form__loading' },
-              createLoading(),
+              'small',
+              {
+                class: `${uiCssClass('field-message')} error`,
+              },
+              v.agreed.message,
             )
           : null,
-        h(
-          'form',
-          {
-            class: 'mmda-sf-auth-form mmda-signin-form',
-            onSubmit: withModifiers(() => {}, ['prevent']),
-          },
-          [
-            slots?.header?.(),
-            slots.title
-              ? slots.title()
-              : h('h2', { class: 'mmda-signin-form__title' }, t('auth.signin')),
-            h('div', { class: 'mmda-signin-form__field' }, [
-              h(
-                'label',
-                { class: 'mmda-signin-form__label', for: 'username' },
-                t('auth.username'),
-              ),
-              h(TextBoxComponent as any, {
-                id: 'username',
-                cssClass: 'e-outline mmda-signin-form__control',
-                floatLabelType: 'Never',
-                value: user.username,
-                placeholder: t('auth.username'),
-                input: (args: any) => {
-                  user.username = args.value
-                  if (v.username.touched) requiredUsername()
-                },
-                blur: requiredUsername,
-              } as VNodeProps),
-              v.username.message
-                ? h(
-                    'small',
-                    { class: 'mmda-signin-form__error' },
-                    v.username.message,
-                  )
-                : null,
-            ]),
-            h('div', { class: 'mmda-signin-form__field' }, [
-              h(
-                'label',
-                { class: 'mmda-signin-form__label', for: 'password' },
-                t('auth.password'),
-              ),
-              h(TextBoxComponent as any, {
-                id: 'password',
-                type: 'password',
-                cssClass: 'e-outline mmda-signin-form__control',
-                floatLabelType: 'Never',
-                value: user.password,
-                placeholder: t('auth.password'),
-                input: (args: any) => {
-                  user.password = args.value
-                  if (v.password.touched) requiredPassword()
-                },
-                blur: requiredPassword,
-                keydown: (args: any) => {
-                  if (args?.event?.key === 'Enter' || args?.key === 'Enter') {
-                    args?.event?.preventDefault?.()
-                    void handleLogin()
-                  }
-                },
-              } as VNodeProps),
-              v.password.message
-                ? h(
-                    'small',
-                    { class: 'mmda-signin-form__error' },
-                    v.password.message,
-                  )
-                : null,
-            ]),
-            h('label', { class: 'mmda-signin-form__agreed' }, [
-              h(CheckBoxComponent as any, {
-                checked: user.agreed,
-                change: (args: any) => {
-                  user.agreed = args.checked
-                  if (v.agreed.touched) requiredAgreed()
-                },
-              } as VNodeProps),
-              h('span', { class: 'mmda-signin-form__agreed-text' }, t('auth.agreeTermsRequired')),
-            ]),
-            v.agreed.message
-              ? h('small', { class: 'mmda-signin-form__error' }, v.agreed.message)
-              : null,
-            h(ButtonComponent as any, {
-              cssClass: 'e-primary e-block mmda-signin-form__submit',
-              content: loading ? t('auth.signingIn') : t('auth.signin'),
-              iconCss: 'e-icons e-lock',
-              onClick: withModifiers(() => void handleLogin(), ['prevent']),
-            } as VNodeProps),
-            slots?.bottomNav?.(),
-            slots?.thirdParty?.(),
-          ],
-        ),
-      ])
+        factory.button({
+          label: loading.value ? t('auth.signingIn') : t('auth.signin'),
+          colorRole: 'primary',
+          icon: 'e-icons e-lock',
+          class: `${uiCssClass('signin-form', 'login')} e-block`,
+          disabled: loading.value,
+          onClick: withModifiers(() => void handleLogin(), ['prevent']),
+        }),
+        slots?.bottomNav?.(),
+        slots?.thirdParty?.(),
+      ]
+
+      return h(
+        'form',
+        {
+          class: uiCssClass('signin-form'),
+          onSubmit: withModifiers(() => {}, ['prevent']),
+        },
+        [
+          loading.value
+            ? h(
+                'div',
+                { class: uiCssClass('signin-form', 'loading') },
+                factory.loading(),
+              )
+            : null,
+          ...children,
+        ],
+      )
     }
   },
 })

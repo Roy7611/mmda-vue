@@ -15,7 +15,7 @@ export interface UiComboBoxProps extends UiDropDownListProps {
 export function comboBoxModifierClasses(props: UiComboBoxProps): unknown[] {
   const custom =
     props.allowCustom !== false
-      ? uiCssClass('combobox', 'custom')
+      ? uiCssClass('combobox', undefined, 'custom')
       : undefined
   return [uiCssClass('combobox'), custom, props.class]
 }

@@ -4,7 +4,7 @@ chrome 勾选，走 `factory.checkBox`。EJ2 见 [CheckBox getting started](http
 
 程序员用法：[checkbox_usage.md](./checkbox_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-表单布尔格走 `fldFactory.checkbox(field, context)`：翻译 `MetaUiField` 后调本控件。SigninForm、表格勾选列不是这条路。横排多勾见 [CheckBoxList](./check_box_list.md)。
+表单布尔格走 `fieldFactory.checkbox(field, context)`：翻译 `MetaUiField` 后调本控件。SigninForm、表格勾选列不是这条路。横排多勾见 [CheckBoxList](./check_box_list.md)。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 勾选，走 `factory.checkBox`。EJ2 见 [CheckBox getting started](http
 |---|---|
 | vui `ui/factory/checkbox.ts` | `UiCheckBoxProps`：`checked` / `label` / `indeterminate`；`checkBoxPropsFromField` |
 | 皮肤 `factory/checkbox.ts` | SF `CheckBoxComponent`；Prime `Checkbox`；Naive `NCheckbox` |
-| 字段 `fldFactory.checkbox` | 译字段，调 `createCheckBox` |
+| 字段 `fieldFactory.checkbox` | 译字段，调 `createCheckBox` |
 
 ## 属性
 

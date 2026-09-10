@@ -1,9 +1,9 @@
 import { h, type VNode } from 'vue'
 import {
   SqlDataType,
+  uiCssClass,
   type MetaUiField,
   type UiLayout,
-  type UiOrientation,
 } from '@mmda/core'
 import type { UiProps } from '../layout/layout'
 import type { VueUiContext } from '../../contexts/vue_ui_context'
@@ -18,15 +18,20 @@ type UiContext = VueUiContext<any>
  * vui 在 Builder 构造时调用一次；皮肤不必各自实现。
  */
 export function attachFieldRowApi(
-  fldFactory: UiFieldFactory,
+  fieldFactory: UiFieldFactory,
   layout: UiLayout<VNode>,
 ): UiFieldFactory {
-  fldFactory.layout = layout
+  fieldFactory.layout = layout
 
   const labelFor = (field: MetaUiField, props?: UiProps): VNode =>
     h(
       'label',
-      { for: field.fieldName, key: field.fieldName, ...props },
+      {
+        for: field.fieldName,
+        key: field.fieldName,
+        class: uiCssClass('field-label'),
+        ...props,
+      },
       field.displayLabel,
     )
 
@@ -47,8 +52,8 @@ export function attachFieldRowApi(
       | undefined
     const renderer =
       logic?.customEditor ??
-      (field.editor ? fldFactory[field.editor] : undefined) ??
-      fldFactory.fallbackInput
+      (field.editor ? fieldFactory[field.editor] : undefined) ??
+      fieldFactory.fallbackInput
     return renderer(field, context, props)
   }
 
@@ -69,8 +74,8 @@ export function attachFieldRowApi(
       | undefined
     const renderer =
       logic?.customRenderer ??
-      fldFactory[fieldDisplayName(field)] ??
-      fldFactory.fallbackDisplay
+      fieldFactory[fieldDisplayName(field)] ??
+      fieldFactory.fallbackDisplay
     return renderer(field, context, props)
   }
 
@@ -83,37 +88,38 @@ export function attachFieldRowApi(
   ): VNode => {
     const {
       editing: _editing,
-      direction,
-      orientation,
+      direction: _direction,
+      orientation: _orientation,
       isReadonly: _isReadonly,
+      gridColumn,
+      gridRow,
       ..._controlProps
-    } = props
+    } = props as UiProps & {
+      gridColumn?: string
+      gridRow?: string
+    }
     const runtime = context as UiContext & {
       isInvalid?: (field: MetaUiField) => boolean
       getInvalidMessage?: (field: MetaUiField) => string
     }
     const invalid = useEditor && runtime.isInvalid?.(field)
-    const message =
-      invalid && layout.fieldMessage
-        ? h(
-            'small',
-            { class: 'mmda-field-error' },
-            runtime.getInvalidMessage?.(field),
-          )
-        : undefined
+    const messageText = invalid
+      ? runtime.getInvalidMessage?.(field)
+      : undefined
     return layout.layoutField({
       label: labelFor(field),
       control,
-      message,
-      orientation:
-        (orientation as UiOrientation | undefined) ??
-        (direction as UiOrientation | undefined) ??
-        layout.fieldLayout,
-      props: { key: field.fieldName },
+      message:
+        messageText == null || messageText === ''
+          ? undefined
+          : (messageText as unknown as VNode),
+      messageKind: 'error',
+      gridColumn,
+      gridRow,
     })
   }
 
-  fldFactory.editFor = (
+  fieldFactory.editFor = (
     field: MetaUiField,
     context: any,
     props: Record<string, unknown> = {},
@@ -123,8 +129,10 @@ export function attachFieldRowApi(
       direction: _d,
       orientation: _o,
       isReadonly: _r,
+      gridColumn: _gc,
+      gridRow: _gr,
       ...controlProps
-    } = props as UiProps
+    } = props as UiProps & { gridColumn?: string; gridRow?: string }
     return wrapRow(
       field,
       context,
@@ -134,7 +142,7 @@ export function attachFieldRowApi(
     )
   }
 
-  fldFactory.displayFor = (
+  fieldFactory.displayFor = (
     field: MetaUiField,
     context: any,
     props: Record<string, unknown> = {},
@@ -144,8 +152,10 @@ export function attachFieldRowApi(
       direction: _d,
       orientation: _o,
       isReadonly: _r,
+      gridColumn: _gc,
+      gridRow: _gr,
       ...controlProps
-    } = props as UiProps
+    } = props as UiProps & { gridColumn?: string; gridRow?: string }
     return wrapRow(
       field,
       context,
@@ -155,7 +165,7 @@ export function attachFieldRowApi(
     )
   }
 
-  fldFactory.render = (
+  fieldFactory.render = (
     field: MetaUiField,
     context: any,
     props: Record<string, unknown> = {},
@@ -171,9 +181,9 @@ export function attachFieldRowApi(
       !context.isFieldReadonly?.(field) &&
       !isReadonly
     return useEditor
-      ? fldFactory.editFor!(field, context, props)
-      : fldFactory.displayFor!(field, context, props)
+      ? fieldFactory.editFor!(field, context, props)
+      : fieldFactory.displayFor!(field, context, props)
   }
 
-  return fldFactory
+  return fieldFactory
 }

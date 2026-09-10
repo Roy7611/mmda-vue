@@ -3,7 +3,7 @@
  *
  * chrome 滑块走 factory.slider。type 用 EJ2：Default / MinRange / Range。
  * 不要把 Prime range: boolean 写进 vui。Range Slider 文档就是本控件。
- * 字段 fldFactory.slider 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.slider 译 MetaUiField 后再调本控件。
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'

@@ -8,4 +8,4 @@ factory.tagAutoComplete({
 })
 ```
 
-不要 `factory.tagAutoComplete(tagsText, props)`。字段：`fldFactory.tagAutoComplete(field, context)`，服务端 `editor: 'tagAutoComplete'`。
+不要 `factory.tagAutoComplete(tagsText, props)`。字段：`fieldFactory.tagAutoComplete(field, context)`，服务端 `editor: 'tagAutoComplete'`。

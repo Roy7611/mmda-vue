@@ -45,8 +45,8 @@ export function textInputModifierClasses(props: UiTextInputProps): unknown[] {
   const showClear = props.showClearButton === true
   return [
     uiCssClass('textinput'),
-    type !== 'Text' ? uiCssClass('textinput', type.toLowerCase()) : undefined,
-    showClear ? uiCssClass('textinput', 'clear') : undefined,
+    type !== 'Text' ? uiCssClass('textinput', undefined, type.toLowerCase()) : undefined,
+    showClear ? uiCssClass('textinput', undefined, 'clear') : undefined,
     props.class,
   ]
 }

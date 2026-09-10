@@ -29,7 +29,7 @@ factory.comboBox({
 ## 表单字段
 
 ```ts
-fldFactory.comboBox(field, context)
+fieldFactory.comboBox(field, context)
 ```
 
 内部 `comboBoxPropsFromField`：同一套取值/选项规则，另透传 `allowCustom`。

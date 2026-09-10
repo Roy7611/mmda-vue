@@ -6,7 +6,7 @@
 
 程序员用法：[tag_auto_complete_usage.md](./tag_auto_complete_usage.md)。
 
-封闭选项勾选再 join（不能打字）走 [`multiTextSelect`](./multi_select.md)。展示芯片走 `factory.chips` / `fldFactory.tags`。
+封闭选项勾选再 join（不能打字）走 [`multiTextSelect`](./multi_select.md)。展示芯片走 `factory.chips` / `fieldFactory.tags`。
 
 ## 皮肤映射
 

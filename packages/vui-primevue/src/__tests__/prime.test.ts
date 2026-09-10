@@ -696,7 +696,7 @@ describe('PrimeVue skin', () => {
 
   it('constructs the builder against the new VueUiBuilder contract', () => {
     const builder = new PrimeVueUiBuilder()
-    expect(builder.factory.layout.fieldMessage).toBe(false)
+    expect(builder.factory.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 

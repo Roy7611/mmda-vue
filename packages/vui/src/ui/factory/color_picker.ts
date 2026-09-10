@@ -2,7 +2,7 @@
  * Syncfusion: https://ej2.syncfusion.com/vue/documentation/color-picker/mode-and-value
  *
  * chrome 取色走 factory.colorPicker。值一律 hex。
- * 字段 fldFactory.colorPicker 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.colorPicker 译 MetaUiField 后再调本控件。
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'

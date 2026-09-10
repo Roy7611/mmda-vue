@@ -4,7 +4,7 @@ chrome 取色，走 `factory.colorPicker`。[EJ2 Mode and Value](https://ej2.syn
 
 程序员用法：[color_picker_usage.md](./color_picker_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-表单字段走 `fldFactory.colorPicker(field, context)`：翻译 `MetaUiField` 后调本控件。
+表单字段走 `fieldFactory.colorPicker(field, context)`：翻译 `MetaUiField` 后调本控件。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 取色，走 `factory.colorPicker`。[EJ2 Mode and Value](https://ej2.syn
 |---|---|
 | vui `ui/factory/color_picker.ts` | `UiColorPickerProps`：`value` / `mode` / `showModeSwitcher`；`colorPickerPropsFromField` |
 | 皮肤 `factory/color_picker.ts` | SF `ColorPickerComponent`；Prime `ColorPicker`；Naive `NColorPicker` |
-| 字段 `fldFactory.colorPicker` | 译字段，调 `createColorPicker` |
+| 字段 `fieldFactory.colorPicker` | 译字段，调 `createColorPicker` |
 
 **不是** `colorRole`（那是 button/badge 语义填色）。值一律 **hex**；rgba / hsb 调用方自己转。
 

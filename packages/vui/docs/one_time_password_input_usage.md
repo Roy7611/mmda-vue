@@ -25,8 +25,8 @@ factory.oneTimePasswordInput({
 ## 表单字段
 
 ```ts
-fldFactory.oneTimePasswordInput(field, context)
-fldFactory.oneTimePasswordInput(field, context, { length: 6, type: 'number' })
+fieldFactory.oneTimePasswordInput(field, context)
+fieldFactory.oneTimePasswordInput(field, context, { length: 6, type: 'number' })
 ```
 
 内部 `oneTimePasswordPropsFromField`。未传 `length` 时，字段 `maxLength` 在 1–12 则用它，否则 4。

@@ -15,11 +15,11 @@ export function loadingModifierClasses(props: UiLoadingProps = {}): unknown[] {
     props.size === 'small' || props.size === 'large' ? props.size : undefined
   const labeled =
     props.label != null && props.label !== ''
-      ? uiCssClass('loading', 'labeled')
+      ? uiCssClass('loading', undefined, 'labeled')
       : undefined
   return [
     uiCssClass('loading'),
-    size ? uiCssClass('loading', size) : undefined,
+    size ? uiCssClass('loading', undefined, size) : undefined,
     labeled,
     props.class,
   ]

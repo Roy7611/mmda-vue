@@ -2,7 +2,7 @@ import { reactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
-  UiDialogButton,
+  UiDialogAction,
   UiDialogProps,
   UiToastProps,
 } from '@mmda/core'
@@ -14,7 +14,7 @@ export interface DialogRequest {
   content: VNode
   props: UiDialogProps
   context?: UiContext
-  resolve: (button: UiDialogButton) => void
+  resolve: (button: UiDialogAction) => void
 }
 
 export interface AgNaiveOverlayServices {
@@ -47,7 +47,7 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
       return Promise.resolve(accepted)
     },
     dialog(content, props, context) {
-      return new Promise<UiDialogButton>(resolve => {
+      return new Promise<UiDialogAction>(resolve => {
         dialogs.push({
           id: nextDialogId++,
           content,
@@ -68,7 +68,7 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
 export async function closeOverlayDialog(
   overlay: AgNaiveOverlay,
   request: DialogRequest,
-  button: UiDialogButton,
+  button: UiDialogAction,
 ) {
   if (!(await shouldCloseDialog(request.props, button))) {
     return

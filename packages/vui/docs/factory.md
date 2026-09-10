@@ -73,9 +73,9 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`signature_pad.ts`](../src/ui/factory/signature_pad.ts) | 签名面板 `factory.signaturePad`；值 PNG data URL。**不是** `imageEditor`。见 [SignaturePad](./signature_pad.md)、[怎么写](./signature_pad_usage.md) |
 | [`stepper.ts`](../src/ui/factory/stepper.ts) | 步骤条 `factory.stepper`；值当前步索引。见 [Stepper](./stepper.md)、[怎么写](./stepper_usage.md) |
 | [`timeline.ts`](../src/ui/factory/timeline.ts) | 时间轴 `factory.timeline`；默认事件列表。`setTimelinePlugin` 可换成 Tempis。见 [Timeline](./timeline.md)、[怎么写](./timeline_usage.md) |
-| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiSkeletonProps` | 内容占位 `factory.skeleton`。**不是** `factory.loading`，没有 fldFactory。见 [Skeleton](./skeleton.md)、[怎么写](./skeleton_usage.md) |
+| core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiSkeletonProps` | 内容占位 `factory.skeleton`。**不是** `factory.loading`，没有 fieldFactory。见 [Skeleton](./skeleton.md)、[怎么写](./skeleton_usage.md) |
 | [`loading.ts`](../src/ui/factory/loading.ts) | 忙碌指示 `factory.loading`。EJ2 是 Spinner API，不是 Vue 控件。见 [Loading](./loading.md)、[怎么写](./loading_usage.md) |
-| [`speech_to_text.ts`](../src/ui/factory/speech_to_text.ts) | 麦克风转写 `factory.speechToText`。没有 fldFactory。见 [SpeechToText](./speech_to_text.md)、[怎么写](./speech_to_text_usage.md) |
+| [`speech_to_text.ts`](../src/ui/factory/speech_to_text.ts) | 麦克风转写 `factory.speechToText`。没有 fieldFactory。见 [SpeechToText](./speech_to_text.md)、[怎么写](./speech_to_text_usage.md) |
 | [`drop_down_list.ts`](../src/ui/factory/drop_down_list.ts) | 封闭下拉 `factory.dropDownList`；不要叫 `dropdown`。见 [DropDownList 设计](./drop_down_list.md)、[怎么写](./drop_down_list_usage.md) |
 | [`radio_button_group.ts`](../src/ui/factory/radio_button_group.ts) | 少选项单选组 `factory.radioButtonGroup`；绑定对齐 DropDownList。见 [RadioButtonGroup](./radio_button_group.md)、[怎么写](./radio_button_group_usage.md) |
 | [`multi_select.ts`](../src/ui/factory/multi_select.ts) | 封闭多选 `factory.multiSelect`；四档 `bindMode`。见 [MultiSelect](./multi_select.md)、[怎么写](./multi_select_usage.md) |

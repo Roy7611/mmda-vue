@@ -46,8 +46,8 @@ export function speechToTextModifierClasses(
 ): unknown[] {
   return [
     uiCssClass('speech-to-text'),
-    props.listening ? uiCssClass('speech-to-text', 'listening') : undefined,
-    props.disabled ? uiCssClass('speech-to-text', 'disabled') : undefined,
+    props.listening ? uiCssClass('speech-to-text', undefined, 'listening') : undefined,
+    props.disabled ? uiCssClass('speech-to-text', undefined, 'disabled') : undefined,
     props.class,
   ]
 }

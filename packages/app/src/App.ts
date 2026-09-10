@@ -1,7 +1,6 @@
 import { defineComponent, h, inject, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import {
-  AppLayout,
   UI_APP_KEY,
   UI_BUILDER_KEY,
   type MmdaApplication,
@@ -12,7 +11,7 @@ import { AppUserFooter } from './components/AppUserFooter'
 
 /**
  * 全应用唯一外壳。
- * 壳布局走 {@link AppLayout.scaffold}（core UiAppLayout），不再经 Builder.buildAppScaffold。
+ * 壳布局走 `builder.layout.scaffold`，不再经 Builder.buildAppScaffold。
  * 导航槽仍由 Builder.buildAppSideBar 产出。
  */
 export const AppShell = defineComponent({
@@ -42,7 +41,7 @@ export const AppShell = defineComponent({
         return h('div', { class: 'mmda-app mmda-app--signing-out' })
       }
       return h('div', { class: 'mmda-app' }, [
-        new AppLayout('sidebarLeft').scaffold({
+        builder.layout.scaffold({
           variant: 'sidebarLeft',
           nav: builder.buildAppSideBar({
             modules: app.modules,

@@ -34,15 +34,15 @@ factory.chips({
 ## 表单字段
 
 ```ts
-fldFactory.tags(field, context)
-fldFactory.chips(field, context)
+fieldFactory.tags(field, context)
+fieldFactory.chips(field, context)
 ```
 
 内部 `chipsPropsFromField`：`items` ← 逗号/数组/`labelOf`。`tags` 调用 chips chrome。不要把数字位掩码交给 `tags`。
 
 ```ts
-fldFactory.enumChipSet(field, context) // 枚举多值；Pascal EnumChipSet
-fldFactory.bitChipSet(field, context)  // 按位勾选；Pascal BitChipSet
+fieldFactory.enumChipSet(field, context) // 枚举多值；Pascal EnumChipSet
+fieldFactory.bitChipSet(field, context)  // 按位勾选；Pascal BitChipSet
 ```
 
 可写时 `kind: 'filter'`，选项来自 `refOptions`（`valueOf` / `labelOf`）。`bitChipSet` 写 int（跳过 `value === 0`）。`enumChipSet`：值是数组则 `value_array`，否则 `join_text`。只读只画已选项。

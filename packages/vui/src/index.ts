@@ -47,7 +47,7 @@ export {
   type UiToastProps,
   type UiConfirmProps,
   type UiDialogProps,
-  type UiDialogButton,
+  type UiDialogAction,
   type UiDialogButtonsPreset,
   type UiDialogHeaderKind,
   type UiDialogFooterKind,

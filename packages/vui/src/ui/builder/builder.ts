@@ -2,7 +2,7 @@ import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild
 import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiAppSideMenuProps, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
 import { VueAppSideMenu } from "../../components/AppSideMenu";
 import { openTableSettingDialog } from "../../components/TableSettingView";
-import {AppLayout, VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
+import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
 import type {
   UiFactory,
   UiFieldFactory,
@@ -212,11 +212,11 @@ export abstract class VueUiBuilderBase {
 
   constructor(
     public readonly factory: UiFactory,
-    public readonly fldFactory: UiFieldFactory,
+    public readonly fieldFactory: UiFieldFactory,
     public readonly layout: UiLayout,
     public overlay: UiOverlay = createHtmlOverlay(),
   ) {
-    attachFieldRowApi(fldFactory, layout);
+    attachFieldRowApi(fieldFactory, layout);
     this.actionFactory = new UiActionFactory(
       this as unknown as VueUiBuilder,
       factory.resolveIcon,
@@ -381,8 +381,8 @@ export abstract class VueUiBuilderBase {
         : (value as VNodeChild);
     const variant =
       props.layout ?? (props.model === "Mobile" ? "topBarFull" : "sidebarLeft");
-    // 壳走 UiAppLayout.scaffold；本方法仅兼容旧 AppShell 调用。
-    return new AppLayout(variant).scaffold({
+    // 壳走 layout.scaffold；本方法仅兼容旧 AppShell 调用。
+    return this.layout.scaffold({
       variant,
       topBar: invoke(props.topBar) as VNode | undefined,
       nav: invoke(props.sideBar) as VNode | undefined,
@@ -454,27 +454,15 @@ export abstract class VueUiBuilderBase {
   ): VNode {
     return unimplemented("buildSearchForRelative") as VNode;
   }
-  /**
-   * @deprecated 用 `factory.signinForm`。路由页不要再经 Builder 包一层。
-   */
   buildSigninForm(
-    props: SigninFormProps,
+    props?: SigninFormProps,
     slots?: SigninFormSlots,
   ): VNode {
-    return (
-      this.factory.signinForm?.(props, slots) ??
-      (unimplemented("signinForm") as VNode)
-    );
+    return unimplemented("buildSigninForm") as VNode;
   }
 
-  /**
-   * @deprecated 用 `factory.signupForm`。
-   */
-  buildSignupForm(props: SignupFormProps): VNode {
-    return (
-      this.factory.signupForm?.(props) ??
-      (unimplemented("signupForm") as VNode)
-    );
+  buildSignupForm(props?: SignupFormProps): VNode {
+    return unimplemented("buildSignupForm") as VNode;
   }
 
   toast(_context: CoreUiContext, props: Record<string, unknown>) {
@@ -645,7 +633,7 @@ export function createStubUiBuilder(): VueUiBuilder {
   } as unknown as UiFactory;
   const stub: any = {
     factory,
-    fldFactory: {} as UiFieldFactory,
+    fieldFactory: {} as UiFieldFactory,
     labelFor: (field: { displayLabel?: string }) => h("label", field.displayLabel),
     editFor: emptyNode,
     displayFor: emptyNode,
@@ -787,7 +775,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildXlsxFilePreview: emptyNode,
     buildFilePreview: emptyNode,
   };
-    attachFieldRowApi(stub.fldFactory as any, factory.layout as any);
+    attachFieldRowApi(stub.fieldFactory as any, factory.layout as any);
   return stub as VueUiBuilder;
 }
 

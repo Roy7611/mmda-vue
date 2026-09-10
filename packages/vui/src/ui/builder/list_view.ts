@@ -293,7 +293,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           enumerable: false,
         });
       }
-      if (!field.renderer || this.fldFactory["textSpan"]) {
+      if (!field.renderer || this.fieldFactory["textSpan"]) {
         cellProps.class =
           `${cellProps.class ? cellProps.class : ""} two-line-ellipsis`.trim();
       }
@@ -306,8 +306,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         const editor =
           fieldLogic?.customCellEditor ??
           fieldLogic?.customEditor ??
-          this.fldFactory[field.editor ?? "textInput"] ??
-          this.fldFactory.fallbackInput;
+          this.fieldFactory[field.editor ?? "textInput"] ??
+          this.fieldFactory.fallbackInput;
         return editor(field, ctx, {
           showWordLimit: false,
           width: `${this.tableColumnWidth(field)}px`,
@@ -318,8 +318,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
     
       const renderer =
         fieldLogic?.customCellRenderer ??
-        this.fldFactory[this.fieldDisplayName(field)] ??
-        this.fldFactory.fallbackDisplay;
+        this.fieldFactory[this.fieldDisplayName(field)] ??
+        this.fieldFactory.fallbackDisplay;
       return renderer(field, ctx, cellProps);
     }
     

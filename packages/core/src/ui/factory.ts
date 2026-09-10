@@ -80,12 +80,6 @@ import type { UiRadioButtonGroupProps } from './factory/radio_button_group'
 import type { UiNumberInputProps } from './factory/number_input'
 import type { UiTextAreaProps } from './factory/text_area'
 import type { UiTextInputProps } from './factory/text_input'
-import type {
-  UiSigninFormProps,
-  UiSigninFormSlots,
-  UiSignupFormProps,
-  UiSignupFormSlots,
-} from './factory/signin'
 
 /**
  * 原子 chrome 控件工厂。皮肤在 vui-* 实现。
@@ -252,20 +246,4 @@ export interface UiFactory<TNode = any> {
   skeleton?(props?: UiSkeletonProps): TNode
 
   searchForRelative?(props?: UiProps): TNode
-
-  /**
-   * 登录表单控件。路由页直接调本方法，不要 `buildSigninForm` / SigninView 外壳。
-   */
-  signinForm?(
-    props?: UiSigninFormProps,
-    slots?: UiSigninFormSlots<TNode>,
-  ): TNode
-
-  /**
-   * 注册表单控件。与 {@link signinForm} 同级。
-   */
-  signupForm?(
-    props?: UiSignupFormProps,
-    slots?: UiSignupFormSlots<TNode>,
-  ): TNode
 }

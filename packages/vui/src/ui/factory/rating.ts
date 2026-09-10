@@ -3,7 +3,7 @@
  *
  * chrome 评分走 factory.rating。星数 / 只读用 EJ2：itemsCount / readOnly。
  * 换形状用 emptyTemplate / fullTemplate，不要 vui 主名 stars / onIcon / shape。
- * 字段 fldFactory.rating 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.rating 译 MetaUiField 后再调本控件。
  */
 import type { VNodeChild } from 'vue'
 import { callUiBagFn } from '@mmda/core'

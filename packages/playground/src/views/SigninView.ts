@@ -1,3 +1,4 @@
+import { uiCssClass } from "@mmda/core";
 import {
   UI_APP_KEY,
   UI_BUILDER_KEY,
@@ -31,19 +32,30 @@ export const SigninView = defineComponent({
     );
 
     return () =>
-      h("div", { class: "mmda-signin-page" }, [
-        h("div", { class: "mmda-signin-card" }, [
-          h("header", { class: "mmda-signin-card__header" }, [
-            h("p", { class: "mmda-signin-card__eyebrow" }, "MMDA"),
-            h("h1", { class: "mmda-signin-card__title" }, "vui-agnaive 把玩"),
-            h(
-              "p",
-              { class: "mmda-signin-card__subtitle" },
-              "本地假会话，任意账号即可进入。",
-            ),
-          ]),
-          h("div", { class: "mmda-signin-card__body" }, [signinForm]),
-        ]),
-      ]);
+      builder.layout.layoutPage({
+        primary: [
+          builder.factory.card(
+            {
+              surface: "elevated",
+            },
+            {
+              header: () => [
+                h("p", { class: uiCssClass("signin-form", "brand") }, "MMDA"),
+                h(
+                  "h1",
+                  { class: uiCssClass("signin-form", "heading") },
+                  "vui-agnaive 把玩",
+                ),
+                h(
+                  "p",
+                  { class: uiCssClass("signin-form", "lead") },
+                  "本地假会话，任意账号即可进入。",
+                ),
+              ],
+              default: () => [signinForm],
+            },
+          ),
+        ],
+      });
   },
 });

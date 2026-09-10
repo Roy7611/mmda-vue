@@ -4,7 +4,7 @@ chrome 芯片列表，走 `factory.chips`。EJ2 见 [Chip 类型](https://ej2.sy
 
 程序员用法：[chips_usage.md](./chips_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-字段多枚标签走 `fldFactory.tags` / `fldFactory.chips`（自由文本）。枚举多值走 `enumChipSet`，按位勾选走 `bitChipSet`。单枚 `tag` 不是这条路。不要 `enumSetTags` / `BitTags`。横排位勾选仍是 `bitCheckBoxList`，下拉位掩码仍是 `multiBitSelect`。
+字段多枚标签走 `fieldFactory.tags` / `fieldFactory.chips`（自由文本）。枚举多值走 `enumChipSet`，按位勾选走 `bitChipSet`。单枚 `tag` 不是这条路。不要 `enumSetTags` / `BitTags`。横排位勾选仍是 `bitCheckBoxList`，下拉位掩码仍是 `multiBitSelect`。
 
 ## 分层
 

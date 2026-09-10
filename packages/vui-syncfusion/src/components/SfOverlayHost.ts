@@ -2,7 +2,7 @@ import { defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToastComponent } from '@syncfusion/ej2-vue-notifications'
 import { DialogComponent } from '@syncfusion/ej2-vue-popups'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogButton } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -10,7 +10,7 @@ import {
 } from '../syncfusion_overlay'
 import { dialogHeaderHtml } from '../factory/utils'
 
-const DEFAULT_LABELS: Record<UiDialogButton, string> = {
+const DEFAULT_LABELS: Record<UiDialogAction, string> = {
   ok: 'OK',
   cancel: 'Cancel',
   yes: 'Yes',
@@ -43,7 +43,7 @@ export const SfOverlayHost = defineComponent({
       translate = undefined
     }
 
-    const labelOf = (button: UiDialogButton) => {
+    const labelOf = (button: UiDialogAction) => {
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated

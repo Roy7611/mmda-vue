@@ -35,7 +35,10 @@ export interface UiFieldBindContext {
  * 没有 `timeline`：时间轴不是单字段，走 `factory.timeline` / `buildTimelineView`。
  */
 export interface UiFieldFactory<TNode = any>
-  extends Record<string, UiFieldRenderer<TNode> | undefined> {
+  extends Record<
+    string,
+    UiFieldRenderer<TNode> | UiLayout<TNode> | undefined
+  > {
   /**
    * 排字段行用的布局。vui 构造时注入；`render` / `editFor` / `displayFor` 调 `layout.layoutField`。
    */

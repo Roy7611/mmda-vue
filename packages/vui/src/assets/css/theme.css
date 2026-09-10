@@ -767,9 +767,9 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
- * 详情字段网格（目标效果）：
- * 一行 N 个 field → 固定 2N 列：label(定宽右对齐) | field(1fr) | …
- * 字段外壳 display:contents，label/control 直接进组网格，跨 Card 对齐。
+ * 详情字段网格：
+ * 组内 N 列 → 一格一 field（不是 label|control 拆列）。
+ * 字段根 .mmda-field；横竖靠 mmda-field--horizontal / --vertical。
  */
 .mmda-page-main {
   --mmda-field-label-col: 8rem;
@@ -795,59 +795,43 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   --mmda-field-label-col: 7rem;
 }
 
-.mmda-field-group-layout--row,
-.mmda-field-group-layout--column {
+.mmda-field-group--row,
+.mmda-field-group--column,
+.mmda-field-group--grid {
   display: grid;
   gap: 0.65rem 0.75rem;
+  align-items: start;
   min-width: 0;
   width: 100%;
 }
 
-/* 2×逻辑列：label 定宽，field 吃满剩余（横排 label|field） */
-.mmda-field-group-layout--row[data-cols="1"] {
-  grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
-}
-.mmda-field-group-layout--row[data-cols="2"] {
-  grid-template-columns:
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
-}
-.mmda-field-group-layout--row[data-cols="3"] {
-  grid-template-columns:
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
-}
-
-/* 竖排字段：仍按逻辑列分格（无 label/control 拆列） */
-.mmda-field-group-layout--row[data-cols="1"]:not(
-    :has(> .mmda-field-layout--horizontal)
-  ) {
+/* 一格一 field；N = 逻辑列数（不是 label|control 拆列） */
+.mmda-field-group--row[data-grid-cols="1"],
+.mmda-field-group--grid[data-grid-cols="1"],
+.mmda-field-group--column,
+.mmda-page-summary .mmda-field-group--row,
+.mmda-page-summary .mmda-field-group--grid {
   grid-template-columns: minmax(0, 1fr);
 }
-.mmda-field-group-layout--row[data-cols="2"]:not(
-    :has(> .mmda-field-layout--horizontal)
-  ) {
+.mmda-field-group--row[data-grid-cols="2"],
+.mmda-field-group--grid[data-grid-cols="2"] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.mmda-field-group-layout--row[data-cols="3"]:not(
-    :has(> .mmda-field-layout--horizontal)
-  ) {
+.mmda-field-group--row[data-grid-cols="3"],
+.mmda-field-group--grid[data-grid-cols="3"] {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* summary：永远 1 逻辑列 */
-.mmda-field-group-layout--column,
-.mmda-page-summary .mmda-field-group-layout--row {
-  grid-template-columns: var(--mmda-field-label-col, 7rem) minmax(0, 1fr);
+/* 横排：格内两列；标签列宽由 --mmda-field-label-col（页主区/摘要区） */
+.mmda-field--horizontal {
+  display: grid;
+  grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.35rem;
+  min-width: 0;
 }
-
-/* 仅横排字段拆开外壳；竖排保持整块 */
-.mmda-field-group-layout > .mmda-field-layout--horizontal {
-  display: contents !important;
-}
-
-.mmda-field-group-layout .mmda-field-label {
+.mmda-field--horizontal > .mmda-field-label {
   box-sizing: border-box;
   min-width: 0;
   margin: 0;
@@ -860,28 +844,39 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
-  align-self: center;
 }
-
-.mmda-field-group-layout .mmda-field-control {
-  min-width: 0;
-  align-self: center;
-}
-
-/* 不在组内的横排字段兜底 */
-.mmda-field-layout--horizontal {
-  display: grid;
-  grid-template-columns: var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
-  align-items: center;
-  gap: 0.5rem 0.75rem;
+.mmda-field--horizontal > .mmda-field-control {
   min-width: 0;
 }
-.mmda-field-layout--horizontal .mmda-field-label {
-  width: 100%;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.mmda-field--horizontal > .mmda-field-message {
+  grid-column: 2;
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.mmda-field--vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.mmda-field--vertical > .mmda-field-label {
+  margin: 0;
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.mmda-field--vertical > .mmda-field-message {
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.mmda-field-message.error {
+  color: var(--mmda-danger-color, #b3261e);
+}
+.mmda-field-message.warning {
+  color: var(--mmda-warning-color, #f9a825);
 }
 
 /* —— 详情页：左右分区合一，整页滚动；折叠钮 sticky 钉在视口中线 —— */
@@ -1313,8 +1308,8 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   min-width: 0;
 }
 
-/* —— 登录页 —— */
-.mmda-signin-page {
+/* —— 登录页：mmda-page 居中 + 厂商 card + mmda-signin-form —— */
+.mmda-page:has(.mmda-signin-form) {
   box-sizing: border-box;
   display: grid;
   place-items: center;
@@ -1336,38 +1331,26 @@ article.mmda-group.is-collapsed > .mmda-group-header {
     var(--mmda-surface-ground, #f7f2fa);
 }
 
-.mmda-signin-card {
+.mmda-page:has(.mmda-signin-form) .mmda-page-body {
   width: min(26rem, 100%);
-  overflow: hidden;
-  border: 1px solid
-    color-mix(
-      in srgb,
-      var(--mmda-content-border-color, #cac4d0) 70%,
-      transparent
-    );
-  border-radius: 1.25rem;
-  background: var(--mmda-surface-card, #fffbfe);
-  box-shadow:
-    0 1px 2px rgba(28, 27, 31, 0.04),
-    0 16px 40px rgba(28, 27, 31, 0.08);
+  justify-items: stretch;
 }
 
-.mmda-signin-card__header {
-  padding: 1.75rem 1.75rem 1.15rem;
-  border-bottom: 1px solid
-    color-mix(
-      in srgb,
-      var(--mmda-content-border-color, #cac4d0) 55%,
-      transparent
-    );
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--mmda-primary-soft, #eaddff) 42%, transparent),
-    transparent 100%
-  );
+.mmda-page:has(.mmda-signin-form) .mmda-card,
+.mmda-page:has(.mmda-signin-form) .e-card,
+.mmda-page:has(.mmda-signin-form) .p-card,
+.mmda-page:has(.mmda-signin-form) .n-card {
+  width: 100%;
 }
 
-.mmda-signin-card__eyebrow {
+.mmda-signin-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mmda-signin-form__brand {
   margin: 0 0 0.45rem;
   color: var(--mmda-primary-color, #6750a4);
   font-size: 0.75rem;
@@ -1376,7 +1359,7 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   text-transform: uppercase;
 }
 
-.mmda-signin-card__title {
+.mmda-signin-form__heading {
   margin: 0;
   color: var(--mmda-text-color, #1c1b1f);
   font-size: 1.65rem;
@@ -1385,15 +1368,15 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   letter-spacing: -0.02em;
 }
 
-.mmda-signin-card__subtitle {
+.mmda-signin-form__lead {
   margin: 0.55rem 0 0;
   color: var(--mmda-text-muted-color, #49454f);
   font-size: 0.9rem;
   line-height: 1.5;
 }
 
-.mmda-signin-card__error {
-  margin: 0 1.75rem;
+.mmda-signin-form__error {
+  margin: 0;
   padding: 0.65rem 0.85rem;
   border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--mmda-danger-color, #b3261e) 35%, transparent);
@@ -1401,14 +1384,6 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   color: var(--mmda-danger-color, #b3261e);
   font-size: 0.875rem;
   line-height: 1.45;
-}
-
-.mmda-signin-card__body {
-  padding: 1.35rem 1.75rem 1.75rem;
-}
-
-.mmda-signin-form-wrap {
-  position: relative;
 }
 
 .mmda-signin-form__loading {
@@ -1426,56 +1401,25 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   backdrop-filter: blur(2px);
 }
 
-.mmda-signin-form__spinner {
-  font-size: 1.5rem;
-  color: var(--mmda-primary-color, #6750a4);
-}
-
 .mmda-signin-form__title {
-  margin: 0 0 1.15rem;
+  margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-}
-
-.mmda-signin-form__field {
-  display: grid;
-  gap: 0.4rem;
-  margin-bottom: 1.05rem;
-}
-
-.mmda-signin-form__label {
-  color: var(--mmda-text-muted-color, #49454f);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.3;
 }
 
 .mmda-signin-form__agreed {
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
-  margin: 0.15rem 0 1.25rem;
   color: var(--mmda-text-muted-color, #49454f);
   font-size: 0.8125rem;
   line-height: 1.45;
   cursor: pointer;
 }
 
-.mmda-signin-form__agreed-text {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.mmda-signin-form__error {
-  color: var(--mmda-danger-color, #b3261e);
-  font-size: 0.75rem;
-  line-height: 1.35;
-}
-
-.mmda-signin-form__submit,
-.mmda-signin-form .e-btn.e-primary.e-block {
+.mmda-signin-form__login {
+  width: 100%;
   min-height: 2.75rem;
-  margin-top: 0.15rem;
   border-radius: 0.75rem !important;
   font-weight: 650;
 }

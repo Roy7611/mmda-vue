@@ -8,27 +8,27 @@ core **不是没有 UI**，是 **没有 UI 实现**。程序员对着这些接�
 
 ```text
 Logic 只认 @mmda/core
-  UiLayout / UiAppLayout     怎么排（页内 + 应用壳）
+  UiLayout                   怎么排（页内 + 应用壳 scaffold）
   UiFieldFactory             一个 MetaUiField → 控件行 / 裸 renderer
-  UiFactory                  一个 chrome 控件（table / button / signinForm …）
-  UiBuilder                  组装多块 + Overlay（模块页、Explorer、SideMenu）
+  UiFactory                  一个 chrome 控件（table / button / sidebar …）
+  UiBuilder                  组装多块 + Overlay（模块页、Explorer、SideMenu、登录）
 ```
 
 | 职 | 文件 | 要点 |
 |---|---|---|
-| layout | `layout.ts` | `layoutField` / `layoutPage` / `container*`；壳用 `UiAppLayout.scaffold` |
-| fldFactory | `field_factory.ts` | `render` / `editFor` / `displayFor` + 具名 renderer；无 `timeline` |
-| factory | `factory.ts` | chrome；含 `signinForm` / `signupForm`；无 `dialog` |
-| builder | `builder.ts` | Overlay + 模块 *View + Explorer / FieldGroup / SubGroup |
+| layout | `layout.ts` | `layoutField` / `layoutPage` / `scaffold`；字段默认 `fieldVertical`；组间距 `gap` |
+| fieldFactory | `field_factory.ts` | `render` / `editFor` / `displayFor` + 具名 renderer；无 `timeline` |
+| factory | `factory.ts` | chrome；无 `dialog` / `signinForm` |
+| builder | `builder.ts` | Overlay + 模块 *View + Explorer / FieldGroup / SubGroup + `buildSigninForm` |
 
 ```text
 框架包（vui / 以后 rui）：把 TNode 钉成框架节点
-  VueUiLayout / AppLayout
+  VueUiLayout
   type VueUiFactory = UiFactory<VNode>
   abstract class VueUiBuilder implements UiBuilder<VNode>
 
 厂商皮肤
-  Syncfusion* / Prime* / AgNaive* 实现 factory / fldFactory / Builder 覆盖
+  Syncfusion* / Prime* / AgNaive* 实现 factory / fieldFactory / Builder 覆盖
 ```
 
 | 层 | 包 | 命名 |
@@ -44,9 +44,9 @@ Logic 只认 @mmda/core
 | 文件 | 接口 |
 |---|---|
 | `builder.ts` | `UiBuilder`：Overlay + `buildIndexView` / `buildEntityView` / `buildFieldGroup` / `buildExplorerView` … |
-| `factory.ts` | `UiFactory`：chrome（`button` / `table` / `sidebar` / `signinForm` …） |
+| `factory.ts` | `UiFactory`：chrome（`button` / `table` / `sidebar` …） |
 | `field_factory.ts` | `UiFieldFactory`：`render` / `editFor` / `displayFor` + 具名字段 renderer |
-| `layout.ts` | `UiLayout` / `UiAppLayout` / `AbstractUiLayout`。设计 [layout.md](./ui/layout.md) |
+| `layout.ts` | `UiLayout` / `AbstractUiLayout`（含 `scaffold`）。设计 [layout.md](./ui/layout.md) |
 | `context.ts` | `UiContext`（`searchRelative` / `select` …） |
 | `view.ts` | `UiViewProps`（单对象屏 extras） |
 | `builder/list_view.ts` | `UiListViewProps`（Index / Select extras） |
@@ -79,7 +79,7 @@ Logic 只认 @mmda/core
 字段行：
 
 ```text
-fldFactory.render(field, context)
+fieldFactory.render(field, context)
   → 选 editor/renderer
   → layout.layoutField({ label, control, message })
 ```
@@ -89,7 +89,7 @@ fldFactory.render(field, context)
 ```ts
 const ui = context.uiBuilder
 const factory = ui.factory
-const fld = ui.fldFactory
+const fld = ui.fieldFactory
 
 factory.button({ label: '保存' })
 fld.render(field, context)

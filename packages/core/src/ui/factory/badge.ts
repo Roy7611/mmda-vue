@@ -24,6 +24,7 @@ export function badgePositionClass(
   if (!position || position === 'topRight') return undefined
   return uiCssClass(
     'badge',
+    undefined,
     position.replace(/[A-Z]/g, (ch) => `-${ch.toLowerCase()}`),
   )
 }
@@ -32,9 +33,9 @@ export function badgePositionClass(
 export function badgeModifierClasses(props: UiBadgeProps): unknown[] {
   const shape =
     props.shape && props.shape !== 'default'
-      ? uiCssClass('badge', props.shape)
+      ? uiCssClass('badge', undefined, props.shape)
       : undefined
-  const overlay = props.overlay ? uiCssClass('badge', 'overlay') : undefined
+  const overlay = props.overlay ? uiCssClass('badge', undefined, 'overlay') : undefined
   const position = props.overlay
     ? badgePositionClass(props.position)
     : undefined

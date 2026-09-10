@@ -1,6 +1,6 @@
 /*
  * chrome 三栏壳走 factory.toolbar。对标 PrimeVue Toolbar 的 start / center / end。
- * 不是 EJ2 items 命令条。没有 fldFactory。实现函数 createToolbar。
+ * 不是 EJ2 items 命令条。没有 fieldFactory。实现函数 createToolbar。
  */
 import { h, type VNode } from 'vue'
 import type {

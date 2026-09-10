@@ -4,7 +4,7 @@
  * chrome 提示气泡走 factory.tooltip。vui 名是 tooltip。
  * 不要 ejs-tooltip / TooltipComponent / Prime v-tooltip / Naive n-tooltip 当 vui 名。
  * 按钮 props.tooltip 仍是原生 title；要厂商气泡、opensOn、控制器时用本控件包一层。
- * 没有 target 选择器、没有 fldFactory；目标是 slots.default。
+ * 没有 target 选择器、没有 fieldFactory；目标是 slots.default。
  */
 import type { VNode } from 'vue'
 import type {

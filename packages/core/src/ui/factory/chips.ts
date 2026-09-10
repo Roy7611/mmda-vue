@@ -53,20 +53,20 @@ export interface UiChipsProps extends UiProps {
 export function chipsModifierClasses(props: UiChipsProps): unknown[] {
   const kind = props.kind ?? 'action'
   const kindClass =
-    kind !== 'action' ? uiCssClass('chips', kind) : undefined
+    kind !== 'action' ? uiCssClass('chips', undefined, kind) : undefined
   const removable =
     kind === 'input' || props.removable === true
-      ? uiCssClass('chips', 'removable')
+      ? uiCssClass('chips', undefined, 'removable')
       : undefined
   return [uiCssClass('chips'), kindClass, removable, props.class]
 }
 
 export function chipItemModifierClasses(item: UiChipItem): unknown[] {
   const color = item.colorRole
-    ? uiCssClass('chips__item', item.colorRole)
+    ? uiCssClass('chips', 'item', item.colorRole)
     : undefined
   const outlined = item.outlined
-    ? uiCssClass('chips__item', 'outlined')
+    ? uiCssClass('chips', 'item', 'outlined')
     : undefined
   return [color, outlined]
 }

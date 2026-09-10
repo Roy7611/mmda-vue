@@ -30,8 +30,8 @@ export function sliderModifierClasses(props: UiSliderProps): unknown[] {
   }
   return [
     uiCssClass('slider'),
-    type === 'Range' ? uiCssClass('slider', 'range') : undefined,
-    type === 'MinRange' ? uiCssClass('slider', 'minrange') : undefined,
+    type === 'Range' ? uiCssClass('slider', undefined, 'range') : undefined,
+    type === 'MinRange' ? uiCssClass('slider', undefined, 'minrange') : undefined,
     props.class,
   ]
 }

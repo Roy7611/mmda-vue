@@ -1,12 +1,18 @@
-import { required } from '@mmda/core'
-import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
-import Button from 'primevue/button'
+import { required, uiCssClass } from '@mmda/core'
+import {
+  UI_BUILDER_KEY,
+  signinFormEmits,
+  signinFormProps,
+  type SigninUser,
+  type VueUiBuilder,
+} from '@mmda/vui'
 import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import {
   defineComponent,
   h,
+  inject,
   onBeforeMount,
   reactive,
   withModifiers,
@@ -14,13 +20,13 @@ import {
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createLoading } from '../factory/loading'
 
 export const SigninForm = defineComponent({
   name: 'SigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',
@@ -78,9 +84,9 @@ export const SigninForm = defineComponent({
 
     onBeforeMount(async () => {
       try {
-        const saved = await (props.context?.localDb as any)?.get?.(
+        const saved = (await (props.context?.localDb as any)?.get?.(
           'user/username',
-        ) as { username?: string } | undefined
+        )) as { username?: string } | undefined
         if (saved?.username) user.username = saved.username
       } catch {
         // ignore
@@ -88,24 +94,38 @@ export const SigninForm = defineComponent({
     })
 
     return () => {
-      return h('div', { class: 'mmda-signin-form-wrap' }, [
-        loading.value
-          ? h(
-              'div',
-              { class: 'mmda-signin-form__loading' },
-              createLoading(),
-            )
-          : null,
-        h('form', { class: 'mmda-prime-auth-form mmda-signin-form', onSubmit: withModifiers(() => {}, ['prevent']) }, [
+      const { layout, factory } = builder
+      return h(
+        'form',
+        {
+          class: uiCssClass('signin-form'),
+          onSubmit: withModifiers(() => {}, ['prevent']),
+        },
+        [
+          loading.value
+            ? h(
+                'div',
+                { class: uiCssClass('signin-form', 'loading') },
+                factory.loading(),
+              )
+            : null,
           slots?.header?.(),
           slots.title
             ? slots.title()
-            : h('h2', { class: 'mmda-signin-form__title' }, t('auth.signin')),
-          h('div', { class: 'mmda-signin-form__field' }, [
-            h('label', { class: 'mmda-signin-form__label', for: 'username' }, t('auth.username')),
-            h(InputText, {
+            : h(
+                'h2',
+                { class: uiCssClass('signin-form', 'title') },
+                t('auth.signin'),
+              ),
+          layout.layoutFieldVert({
+            label: h(
+              'label',
+              { class: uiCssClass('field-label'), for: 'username' },
+              t('auth.username'),
+            ),
+            control: h(InputText, {
               id: 'username',
-              class: 'w-full mmda-signin-form__control',
+              class: 'w-full',
               autocomplete: 'username',
               modelValue: user.username,
               placeholder: t('auth.username'),
@@ -115,15 +135,17 @@ export const SigninForm = defineComponent({
               },
               onBlur: requiredUsername,
             } as VNodeProps),
-            v.username.message
-              ? h('small', { class: 'mmda-signin-form__error' }, v.username.message)
-              : null,
-          ]),
-          h('div', { class: 'mmda-signin-form__field' }, [
-            h('label', { class: 'mmda-signin-form__label', for: 'password' }, t('auth.password')),
-            h(Password, {
+            message: v.username.message || undefined,
+          }),
+          layout.layoutFieldVert({
+            label: h(
+              'label',
+              { class: uiCssClass('field-label'), for: 'password' },
+              t('auth.password'),
+            ),
+            control: h(Password, {
               inputId: 'password',
-              class: 'w-full mmda-signin-form__control',
+              class: 'w-full',
               feedback: false,
               toggleMask: true,
               modelValue: user.password,
@@ -143,11 +165,9 @@ export const SigninForm = defineComponent({
                 },
               },
             } as VNodeProps),
-            v.password.message
-              ? h('small', { class: 'mmda-signin-form__error' }, v.password.message)
-              : null,
-          ]),
-          h('label', { class: 'mmda-signin-form__agreed' }, [
+            message: v.password.message || undefined,
+          }),
+          h('label', { class: uiCssClass('signin-form', 'agreed') }, [
             h(Checkbox, {
               inputId: 'agreed',
               binary: true,
@@ -158,23 +178,27 @@ export const SigninForm = defineComponent({
               },
               onBlur: requiredAgreed,
             } as VNodeProps),
-            h('span', { class: 'mmda-signin-form__agreed-text' }, t('auth.agreeTermsRequired')),
+            h('span', null, t('auth.agreeTermsRequired')),
           ]),
           v.agreed.message
-            ? h('small', { class: 'mmda-signin-form__error' }, v.agreed.message)
+            ? h(
+                'small',
+                { class: `${uiCssClass('field-message')} error` },
+                v.agreed.message,
+              )
             : null,
-          h(Button, {
-            type: 'button',
-            class: 'w-full mmda-signin-form__submit',
-            label: loading ? t('auth.signingIn') : t('auth.signin'),
-            loading,
+          factory.button({
+            label: loading.value ? t('auth.signingIn') : t('auth.signin'),
+            colorRole: 'primary',
             icon: 'pi pi-sign-in',
+            class: uiCssClass('signin-form', 'login'),
+            disabled: loading.value,
             onClick: withModifiers(() => void handleLogin(), ['prevent']),
-          } as VNodeProps),
+          }),
           slots?.bottomNav?.(),
           slots?.thirdParty?.(),
-        ]),
-      ])
+        ],
+      )
     }
   },
 })

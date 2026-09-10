@@ -41,11 +41,11 @@ export function multiSelectModifierClasses(
   const mode = props.bindMode ?? 'item_array'
   const display =
     props.display === 'text'
-      ? uiCssClass('multi-select', 'text')
+      ? uiCssClass('multi-select', undefined, 'text')
       : undefined
   return [
     uiCssClass('multi-select'),
-    uiCssClass('multi-select', mode),
+    uiCssClass('multi-select', undefined, mode),
     display,
     props.class,
   ]

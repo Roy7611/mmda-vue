@@ -11,5 +11,5 @@ factory.dateTimePicker({
 ```
 
 ```ts
-fldFactory.dateTimePicker(field, context)
+fieldFactory.dateTimePicker(field, context)
 ```

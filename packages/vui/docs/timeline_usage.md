@@ -28,13 +28,13 @@ ui.setTimelinePlugin(createTempisTimelinePlugin())
 字段：
 
 ```ts
-fldFactory.timeline(field, context, {
+fieldFactory.timeline(field, context, {
   timeField: 'occurredAt',
   labelField: 'title',
 })
 ```
 
-单元格相对时间走 `fldFactory.relativeTime`（MetaUi 别名 `RelativeTime`），不要 `pastTime` / `futureTime`。
+单元格相对时间走 `fieldFactory.relativeTime`（MetaUi 别名 `RelativeTime`），不要 `pastTime` / `futureTime`。
 
 ## 不要
 

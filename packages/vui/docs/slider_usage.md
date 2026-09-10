@@ -24,6 +24,6 @@ factory.slider({
 字段：
 
 ```ts
-fldFactory.slider(field, context)
-fldFactory.slider(field, context, { type: 'Range', min: 0, max: 50 })
+fieldFactory.slider(field, context)
+fieldFactory.slider(field, context, { type: 'Range', min: 0, max: 50 })
 ```

@@ -56,9 +56,9 @@ export function splitterModifierClasses(props: UiSplitterProps = {}): unknown[] 
   return [
     uiCssClass('splitter'),
     orientation === 'Vertical'
-      ? uiCssClass('splitter', 'vertical')
-      : uiCssClass('splitter', 'horizontal'),
-    reverse ? uiCssClass('splitter', 'reverse') : undefined,
+      ? uiCssClass('splitter', undefined, 'vertical')
+      : uiCssClass('splitter', undefined, 'horizontal'),
+    reverse ? uiCssClass('splitter', undefined, 'reverse') : undefined,
     props.class,
   ]
 }

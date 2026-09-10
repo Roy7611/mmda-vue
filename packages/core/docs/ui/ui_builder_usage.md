@@ -15,9 +15,8 @@
 
 | 旧 | 新 |
 |---|---|
-| `buildField` | `fldFactory.render` |
+| `buildField` | `fieldFactory.render` |
 | `buildTable` 等 | `factory.table` 等 |
 | `buildAppScaffold` | `AppLayout.scaffold` |
-| `buildSigninForm` | `factory.signinForm` |
 | `buildView` | `buildEntityView` |
 | `buildTreeListView` | `buildExplorerView` |

@@ -4,7 +4,7 @@ chrome 内容占位，走 `factory.skeleton`。[EJ2 Vue Skeleton](https://ej2.sy
 
 程序员用法：[skeleton_usage.md](./skeleton_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-**边界：** Skeleton = 内容占位 shimmer；`factory.loading` = 整页/区域忙碌指示。不要互相替代。**没有** `fldFactory.skeleton`（不是字段展示）。
+**边界：** Skeleton = 内容占位 shimmer；`factory.loading` = 整页/区域忙碌指示。不要互相替代。**没有** `fieldFactory.skeleton`（不是字段展示）。
 
 ## 分层
 

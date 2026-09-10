@@ -55,5 +55,5 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 - 不自行拼装查询请求；DataTable 仅通过 `filterModel` /
   `onFilterModelChange` 回写 `VueUiContext.searchParam.filterModel`
 - `onSort` / `onFilterModelChange` 必须 **return** 查询 Promise（与 Syncfusion / Naive 同一契约，见 vui [列表](../vui/docs/list.md#远程排序--过滤皮肤契约)）
-- `fieldMessage` 为 `false`，校验状态由 PrimeVue 控件和 `Message` 展示
+- `fieldVertical` 默认 `false`（横排）；校验 message 有才进 DOM，皮肤可用自身 Message 组件覆盖 Horz/Vert
 - 不包含旧 Font Awesome 资源、Office Online、vuelidate 或 echarts

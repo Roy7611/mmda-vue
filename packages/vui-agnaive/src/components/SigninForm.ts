@@ -1,15 +1,29 @@
-import { defineComponent, h, onBeforeMount, reactive, ref, withModifiers } from 'vue'
+import { required, uiCssClass } from '@mmda/core'
+import {
+  UI_BUILDER_KEY,
+  signinFormEmits,
+  signinFormProps,
+  type SigninUser,
+  type VueUiBuilder,
+} from '@mmda/vui'
+import { NCheckbox, NInput } from 'naive-ui'
+import {
+  defineComponent,
+  h,
+  inject,
+  onBeforeMount,
+  reactive,
+  ref,
+  withModifiers,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NButton, NCheckbox, NInput } from 'naive-ui'
-import { required } from '@mmda/core'
-import { signinFormEmits, signinFormProps, type SigninUser } from '@mmda/vui'
-import { createLoading } from '../factory/loading'
 
 export const SigninForm = defineComponent({
   name: 'AgNaiveSigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
+    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',
@@ -51,35 +65,53 @@ export const SigninForm = defineComponent({
       if (stored?.username) user.username = stored.username
     })
 
-    return () =>
-      h(
+    return () => {
+      const { layout, factory } = builder
+      return h(
         'form',
         {
-          class: 'mmda-agnaive-auth-form',
+          class: uiCssClass('signin-form'),
           onSubmit: withModifiers(handleLogin, ['prevent']),
         },
         [
+          loading.value
+            ? h(
+                'div',
+                { class: uiCssClass('signin-form', 'loading') },
+                factory.loading({ size: 'small' }),
+              )
+            : null,
           slots.header?.(),
-          h(NInput, {
-            value: user.username,
-            placeholder: t('auth.username') || 'Username',
-            status: v.username.message ? 'error' : undefined,
-            'onUpdate:value': (value: string) => (user.username = value),
+          layout.layoutFieldVert({
+            label: h(
+              'label',
+              { class: uiCssClass('field-label') },
+              t('auth.username') || 'Username',
+            ),
+            control: h(NInput, {
+              value: user.username,
+              placeholder: t('auth.username') || 'Username',
+              status: v.username.message ? 'error' : undefined,
+              'onUpdate:value': (value: string) => (user.username = value),
+            }),
+            message: v.username.message || undefined,
           }),
-          v.username.message
-            ? h('p', { class: 'mmda-agnaive-error' }, v.username.message)
-            : null,
-          h(NInput, {
-            type: 'password',
-            showPasswordOn: 'click',
-            value: user.password,
-            placeholder: t('auth.password') || 'Password',
-            status: v.password.message ? 'error' : undefined,
-            'onUpdate:value': (value: string) => (user.password = value),
+          layout.layoutFieldVert({
+            label: h(
+              'label',
+              { class: uiCssClass('field-label') },
+              t('auth.password') || 'Password',
+            ),
+            control: h(NInput, {
+              type: 'password',
+              showPasswordOn: 'click',
+              value: user.password,
+              placeholder: t('auth.password') || 'Password',
+              status: v.password.message ? 'error' : undefined,
+              'onUpdate:value': (value: string) => (user.password = value),
+            }),
+            message: v.password.message || undefined,
           }),
-          v.password.message
-            ? h('p', { class: 'mmda-agnaive-error' }, v.password.message)
-            : null,
           h(
             NCheckbox,
             {
@@ -88,18 +120,25 @@ export const SigninForm = defineComponent({
             },
             { default: () => t('auth.agreeTerms') || 'Agree' },
           ),
-          h(
-            NButton,
-            { type: 'primary', attrType: 'submit', block: true },
-            {
-              default: () =>
-                loading.value
-                  ? createLoading({ size: 'small' })
-                  : t('auth.signin') || 'Sign in',
-            },
-          ),
+          v.agreed.message
+            ? h(
+                'small',
+                { class: `${uiCssClass('field-message')} error` },
+                v.agreed.message,
+              )
+            : null,
+          factory.button({
+            label: loading.value
+              ? t('auth.signingIn') || 'Signing in'
+              : t('auth.signin') || 'Sign in',
+            colorRole: 'primary',
+            class: uiCssClass('signin-form', 'login'),
+            disabled: loading.value,
+            type: 'submit',
+          }),
           slots.footer?.(),
         ],
       )
+    }
   },
 })

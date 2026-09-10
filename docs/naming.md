@@ -104,7 +104,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | 词 | 英文 | 典型写法 | 是什么 |
 | --- | --- | --- | --- |
 | 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳 |
-| 工厂 | Factory / `UiFactory` | `factory.table`、`fldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `type VueUiFactory = UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
+| 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `type VueUiFactory = UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
 | 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildView` / `buildListView` | **core** `src/ui/builder.ts`，无 Vue |
 | 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SyncfusionOverlay` 等。不要 `factory.dialog` |
@@ -629,10 +629,10 @@ export const UserStatusEnum = {
 | 只读桌面 index / 默认 selector | `buildTable` / `factory.table` / `UiTableProps` | 默认 selector 硬改成 grid；子表画成 table |
 | 多场景桌面表 | `buildGrid` / `factory.grid` / `UiGridProps`（带 `scene`） | 把编辑字段塞进 `UiListProps`；`scene` 挂 table |
 | 树形表 | `buildTreeGrid` / `factory.treeGrid`；`UiTreeGridProps` | 把 `treeGrid` 写成 `view` |
-| chrome 导航树 | `buildTree` / `factory.tree`；`UiTreeProps` | 写成 `TreeView` / `fldFactory.tree` |
+| chrome 导航树 | `buildTree` / `factory.tree`；`UiTreeProps` | 写成 `TreeView` / `fieldFactory.tree` |
 | 分类树组合 | `buildTreeView`；`UiTreeViewProps` | 把厂商控件名当 Builder 方法 |
 | 左树右表 | `buildTreeListView`；`UiTreeListViewProps` | 和 treeGrid / treeSelect 混用 |
-| 树下拉 | `fldFactory.treeSelect` | `factory.tree` |
+| 树下拉 | `fieldFactory.treeSelect` | `factory.tree` |
 | 高能力表实现  | 皮肤 `SfGrid` / `AgGrid`（本轮可同时承接 table 与 grid） | 写进 vui、vui 再建 `ui/factories/`     |
 | 选一条 / 多条 | `selectOne` / `selectMany`             | `select`、`selector`（后者是表格 scene） |
 | 打开选记录弹层  | `context.select(field)` 或 `select({ repository })` | `pickRelative`、`buildSearchForRelativeContent`、新写 `UiSelector` |

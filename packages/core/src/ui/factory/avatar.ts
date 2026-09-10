@@ -19,15 +19,15 @@ export interface UiAvatarProps extends UiProps {
 export function avatarModifierClasses(props: UiAvatarProps): unknown[] {
   const shape =
     (props.shape ?? 'circle') === 'circle'
-      ? uiCssClass('avatar', 'circle')
-      : uiCssClass('avatar', 'square')
+      ? uiCssClass('avatar', undefined, 'circle')
+      : uiCssClass('avatar', undefined, 'square')
   const size =
     props.size && props.size !== 'medium'
-      ? uiCssClass('avatar', props.size)
+      ? uiCssClass('avatar', undefined, props.size)
       : undefined
   const color =
     !props.src && props.colorRole
-      ? uiCssClass('avatar', props.colorRole)
+      ? uiCssClass('avatar', undefined, props.colorRole)
       : undefined
   return [shape, size, color, props.class]
 }

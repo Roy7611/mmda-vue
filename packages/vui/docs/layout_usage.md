@@ -16,25 +16,26 @@ Logic 不要 `h()`。下面示例是 vui Builder / 测试里的写法。
 layout.layoutField({
   label: this.labelFor(field),
   control,
-  message, // 可选校验文案节点
-  orientation: this.layout.fieldLayout, // 'horizontal' | 'vertical'
-  props: { key: field.fieldName },
+  message, // 可选校验文案（文本或节点）；layout 包成 mmda-field-message
+  messageKind: 'error', // 或缺省；仅 'error' | 'warning'
 })
 ```
 
-横排 class 是 `mmda-field-layout mmda-field-layout--horizontal`（`uiCssClass`），根上 `data-orientation`。
+横竖只改 `layout.fieldVertical`（默认 `false` = 横排）。根 class 是 `mmda-field mmda-field--horizontal`（或 `--vertical`）。控件在 `.mmda-field-control`，文案在 `.mmda-field-message.error` / `.warning`。
+
+组间距可改 `layout.gap`（默认 `0.75rem`），作用于 `row` / `column` / `grid`。
 
 ## 分组
 
 ```ts
-layout.layoutFieldGroup({
-  fields,
-  orientation: group.isSecondary() ? 'column' : 'row',
-  cols: group.isSecondary() ? 1 : 2,
-})
+layout.fieldGroupLayout = {
+  type: group.isSecondary() ? 'column' : 'grid',
+  gridCols: group.isSecondary() ? 1 : 2,
+}
+layout.layoutFieldGroup({ fields })
 ```
 
-子表 / 图库整块占满时用 `orientation: 'table'`、`cols: 1`。`cols` 只表示组内字段密度（1/2/3），不是页级 12 栅格。分组 class：`mmda-field-group-layout--row` / `--column` / `--table`。
+子表 / 图库整块占满时用 `type: 'grid'`、`gridCols: 1`。`gridCols` 只表示组内字段密度（1/2/3），不是页级 12 栅格。分组 class：`mmda-field-group mmda-field-group--grid` / `--row` / `--column`。
 
 ## 详情 / 编辑页
 
@@ -45,11 +46,18 @@ layout.layoutPage({
   summary,
   tails,
   footer,
-  props: { class: 'mmda-view', role: context.view },
 })
 ```
 
-`primary` / `summary` / `tails` 是 **`TNode[]`**。vui 经 `pageBody` 收成 `PageBody`（可折叠概要）。有 `toolbar` 就永远 sticky（`mmda-page-toolbar--sticky`）。不要自己拼 `mmda-page-body`。
+`primary` / `summary` / `tails` 是 **`TNode[]`**。vui 经 `pageBody` 收成 `PageBody`（可折叠概要）。有 `toolbar` 就永远 sticky（`mmda-page-toolbar--sticky`）。
+
+结构：
+
+```
+mmda-page
+  mmda-page-toolbar
+  mmda-page-body
+```
 
 ## 列表项
 
@@ -81,10 +89,10 @@ layout.grid(children, [6, 6])
 import { VueUiLayout } from '@mmda/vui'
 
 const layout = new VueUiLayout()
+layout.fieldVertical = false
 layout.layoutField({
-  label: h('label', '名称'),
+  label: h('label', { class: 'mmda-field-label' }, '名称'),
   control: h('input'),
-  orientation: 'horizontal',
 })
 ```
 
@@ -92,22 +100,20 @@ layout.layoutField({
 
 ```ts
 export class SyncfusionLayout extends VueUiLayout {
-  cell(child: VNode, nCol = 1): VNode {
-    return h('div', { class: 'mmda-sf-cell', style: { gridColumn: `span ${nCol}` } }, child)
-  }
-  // row / column / grid / 可选 listTile
+  // 可选 listTile；栅格用基类 mmda-row 等，不要为换厂商前缀覆写 cell/row/column/grid
 }
 export const syncfusionLayout = new SyncfusionLayout()
 ```
 
-只覆盖造盒子的 class；不要复制 `layoutField` 算法。
+改组间距设 `layout.gap`。不要复制 `layoutField` 算法。
 
 ## 应用壳
 
-页区域用 `layoutPage`。整站脚手架用 `AppLayout` / `builder.buildAppScaffold`：
+页区域用 `layoutPage`。整站脚手架用 `layout.scaffold`：
 
 ```ts
-new AppLayout('sidebarLeft').render({
+layout.scaffold({
+  variant: 'sidebarLeft',
   topBar,
   nav,
   page,

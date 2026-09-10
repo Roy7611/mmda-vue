@@ -43,10 +43,10 @@ export function inplaceEditorModifierClasses(
   return [
     uiCssClass('inplace-editor'),
     extra?.open || props.active === true
-      ? uiCssClass('inplace-editor', 'open')
+      ? uiCssClass('inplace-editor', undefined, 'open')
       : undefined,
     inplaceEditorDisabledOf(props)
-      ? uiCssClass('inplace-editor', 'disabled')
+      ? uiCssClass('inplace-editor', undefined, 'disabled')
       : undefined,
     props.class,
   ]

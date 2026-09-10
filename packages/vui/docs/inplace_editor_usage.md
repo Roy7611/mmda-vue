@@ -1,6 +1,6 @@
 # InplaceEditor：程序员怎么写
 
-从 `@mmda/vui` 导入类型；节点用 `builder.factory.inplaceEditor`。字段用 `fldFactory.inplaceFieldEditor`。设计见 [inplace_editor.md](./inplace_editor.md)。
+从 `@mmda/vui` 导入类型；节点用 `builder.factory.inplaceEditor`。字段用 `fieldFactory.inplaceFieldEditor`。设计见 [inplace_editor.md](./inplace_editor.md)。
 
 vui chrome 名是 **`inplaceEditor`**。fld 名是 **`inplaceFieldEditor`** / **`InplaceFieldEditor`**。不要写 `inplace` / `ejs-inplaceeditor` / `InPlaceEditor` / `Inplace` 进 vui。不要当表格 `editable`。
 
@@ -35,7 +35,7 @@ factory.inplaceEditor(
 元数据字段（表单还没自动接线，可先手写）：
 
 ```ts
-fldFactory.inplaceFieldEditor(field, context)
+fieldFactory.inplaceFieldEditor(field, context)
 // 或 editor / renderer: 'InplaceFieldEditor'
 ```
 

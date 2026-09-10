@@ -26,7 +26,7 @@ factory.skeleton({ shape: 'circle', width: 40, height: 40 })
 factory.skeleton({ shape: 'rectangle', width: '100%', height: 120, shimmer: 'none' })
 ```
 
-没有 `onChange`。没有 `fldFactory.skeleton`。
+没有 `onChange`。没有 `fieldFactory.skeleton`。
 
 ## edit / details 首次加载
 
@@ -51,5 +51,5 @@ factory.skeleton({ shape: 'rectangle', width: '100%', height: 120, shimmer: 'non
 - 在 Builder 上再开 `buildSkeleton`
 - 把整页换成一块大矩形（那是 `factory.loading`）
 - 用 `context.loading` 决定是否拆字段画 Skeleton
-- 加 `fldFactory.skeleton`
+- 加 `fieldFactory.skeleton`
 - 把 EJ2 `shimmerEffect` 写进 vui 公开名（只用 `shimmer`）

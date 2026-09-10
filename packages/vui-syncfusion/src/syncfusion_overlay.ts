@@ -2,7 +2,7 @@ import { reactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
-  UiDialogButton,
+  UiDialogAction,
   UiDialogProps,
   UiToastProps,
 } from '@mmda/core'
@@ -14,7 +14,7 @@ export interface DialogRequest {
   content: VNode
   props: UiDialogProps
   context?: UiContext
-  resolve: (button: UiDialogButton) => void
+  resolve: (button: UiDialogAction) => void
 }
 
 export interface SyncfusionOverlayServices {
@@ -95,7 +95,7 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
       }
     },
     dialog(content: VNode, props: UiDialogProps, context?: UiContext) {
-      return new Promise<UiDialogButton>(resolve => {
+      return new Promise<UiDialogAction>(resolve => {
         dialogs.push({
           id: nextDialogId++,
           content,
@@ -105,7 +105,7 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
         })
       })
     },
-    async closeTopDialog(button: UiDialogButton) {
+    async closeTopDialog(button: UiDialogAction) {
       const top = dialogs[dialogs.length - 1]
       if (top) await closeOverlayDialog(overlay, top, button)
     },
@@ -116,7 +116,7 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
 export async function closeOverlayDialog(
   overlay: SyncfusionOverlay,
   request: DialogRequest,
-  button: UiDialogButton,
+  button: UiDialogAction,
 ) {
   if (!(await shouldCloseDialog(request.props, button))) {
     return

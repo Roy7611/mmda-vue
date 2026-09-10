@@ -25,5 +25,5 @@ export function fabModifierClasses(
   props: UiFloatingActionButtonProps,
 ): unknown[] {
   const pos = props.position ?? 'bottomRight'
-  return [uiCssClass('fab'), uiCssClass('fab', pos), props.class]
+  return [uiCssClass('fab'), uiCssClass('fab', undefined, pos), props.class]
 }

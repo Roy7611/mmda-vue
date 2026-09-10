@@ -2,7 +2,6 @@ import { h, reactive, type VNode } from "vue";
 import { SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type EntityFieldFilter, type EntityFilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
 import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
 import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail } from "@mmda/vui"
-import { SigninForm } from "./components/SigninForm";
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -856,21 +855,6 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                 props["onUpdate:modelValue"],
             }),
         ],
-      ),
-    /** 登录表单控件；路由页直接调，不要经 Builder。 */
-    signinForm: (props = {}, slots) => h(SigninForm, props, slots),
-    /** 注册表单控件（占位；皮肤可换成完整组件）。 */
-    signupForm: (props = {}) =>
-      h(
-        "form",
-        {
-          class: "mmda-prime-auth-form",
-          onSubmit: (event: Event) => {
-            event.preventDefault();
-            (props as any).onSignup?.({});
-          },
-        },
-        [h("p", "Signup form"), h("button", { type: "submit" }, "Sign up")],
       ),
   };
 

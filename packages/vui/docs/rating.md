@@ -8,7 +8,7 @@ chrome 评分走 `factory.rating`。[EJ2 Vue Rating](https://ej2.syncfusion.com/
 
 - vui `ui/factory/rating.ts`：`UiRatingProps`；`itemsCount` / `readOnly` 用 EJ2 词
 - 皮肤 `factory/rating.ts`：SF `RatingComponent`；Prime `Rating`；Naive `NRate`
-- 字段 `fldFactory.rating`：译字段后调 chrome
+- 字段 `fieldFactory.rating`：译字段后调 chrome
 
 vui **不要** Prime `stars` / `readonly` / `onIcon` / `pt`。换形状用 `emptyTemplate` / `fullTemplate`，没有 `heart` / `thumb` 枚举。
 

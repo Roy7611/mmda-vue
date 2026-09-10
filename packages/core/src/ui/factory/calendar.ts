@@ -37,11 +37,11 @@ export function calendarModifierClasses(props: {
 }): unknown[] {
   const multiple =
     props.selectionMode === 'multiple'
-      ? uiCssClass('calendar', 'multiple')
+      ? uiCssClass('calendar', undefined, 'multiple')
       : undefined
   const noOther =
     props.showOtherMonth === false
-      ? uiCssClass('calendar', 'no-other-month')
+      ? uiCssClass('calendar', undefined, 'no-other-month')
       : undefined
   return [uiCssClass('calendar'), multiple, noOther, props.class]
 }

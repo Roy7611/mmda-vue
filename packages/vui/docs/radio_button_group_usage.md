@@ -37,7 +37,7 @@ factory.radioButtonGroup({
 元数据显式指定（不改 enum 缺省下拉）：
 
 ```ts
-fldFactory.radioButtonGroup(field, context)
+fieldFactory.radioButtonGroup(field, context)
 ```
 
 内部 `radioButtonGroupPropsFromField`（复用 DropDownList 同源）：

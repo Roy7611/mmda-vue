@@ -381,8 +381,8 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 	const maxH = COMMUNICATE_PIC_MAX_HEIGHT;
 
 	// 编辑态：复用框架 imageUploader（选择/清除/上传逻辑不变），外层 CSS 约束为缩略图
-	if (ctx.editing && ctx.uiBuilder.fldFactory?.imageUploader) {
-		return ctx.uiBuilder.fldFactory.imageUploader(fld, ctx, props);
+	if (ctx.editing && ctx.uiBuilder.fieldFactory?.imageUploader) {
+		return ctx.uiBuilder.fieldFactory.imageUploader(fld, ctx, props);
 	}
 
 	const urls = getBomItemCommunicatePicUrls(fld, ctx);

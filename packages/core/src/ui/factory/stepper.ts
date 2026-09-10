@@ -215,12 +215,12 @@ export const noopStepperController: UiStepperController = {
 export function stepperModifierClasses(props: UiStepperProps): unknown[] {
   return [
     uiCssClass('stepper'),
-    uiCssClass('stepper', stepperOrientationOf(props)),
+    uiCssClass('stepper', undefined, stepperOrientationOf(props)),
     props.display && props.display !== 'default'
-      ? uiCssClass('stepper', props.display)
+      ? uiCssClass('stepper', undefined, props.display)
       : undefined,
-    props.linear ? uiCssClass('stepper', 'linear') : undefined,
-    props.readOnly ? uiCssClass('stepper', 'readonly') : undefined,
+    props.linear ? uiCssClass('stepper', undefined, 'linear') : undefined,
+    props.readOnly ? uiCssClass('stepper', undefined, 'readonly') : undefined,
     props.class,
   ]
 }

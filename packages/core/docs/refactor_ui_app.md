@@ -74,7 +74,7 @@ packages/core/src
 
 ## Logic 边界
 
-允许：`context.uiBuilder.factory` / `fldFactory` / `buildView` / `confirm` / `dialog` / `select`。
+允许：`context.uiBuilder.factory` / `fieldFactory` / `buildView` / `confirm` / `dialog` / `select`。
 
 不允许：业务 `*Logic.ts` 里 `h`、`VNode`、`defineComponent`、`ref`、`reactive`。Vue 组件仍可放在 `packages/mes/src/components/`。
 

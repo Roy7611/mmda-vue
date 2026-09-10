@@ -948,8 +948,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    // 兼容旧调用；新代码请直接 factory.signinForm
-    return this.factory.signinForm?.(props, slots) ?? h(SigninForm, props, slots);
+    return h(SigninForm, props, slots);
   }
 
   buildSignupForm(props: SignupFormProps) {

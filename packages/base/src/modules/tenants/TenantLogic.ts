@@ -98,7 +98,7 @@ export class TenantLogic extends EntityLogic<Tenant> {
               return ctx.uiBuilder.factory.textSpan(
                 ctx.model.customProperties.$countryCode,
               );
-            return ctx.uiBuilder.fldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(options?.briefName ?? "");
+            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(options?.briefName ?? "");
           },
         ),
       );
@@ -172,7 +172,7 @@ export class TenantLogic extends EntityLogic<Tenant> {
               );
             if (!url || !refModule?.authority?.allowRead)
               return ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
-            return ctx.uiBuilder.fldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
+            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
           },
         ),
       );

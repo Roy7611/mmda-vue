@@ -4,7 +4,7 @@ chrome 进度条，走 `factory.progressBar`。[EJ2 Vue ProgressBar](https://ej2
 
 程序员用法：[progress_bar_usage.md](./progress_bar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。整页忙碌指示仍是 `factory.loading`，不要当成进度条。
 
-字段走 `fldFactory.progressBar`：翻译 `MetaUiField` 后调本控件。展示控件，**没有** `onChange`。
+字段走 `fieldFactory.progressBar`：翻译 `MetaUiField` 后调本控件。展示控件，**没有** `onChange`。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 进度条，走 `factory.progressBar`。[EJ2 Vue ProgressBar](https://ej2
 |---|---|
 | vui `ui/factory/progress_bar.ts` | `UiProgressBarProps`；core `progressBarModifierClasses` / vui `progressBarPropsFromField` |
 | 皮肤 `factory/progress_bar.ts` | SF `ProgressBarComponent`；Prime `ProgressBar`；Naive `NProgress` |
-| 字段 `fldFactory.progressBar` | 译字段，调 `createProgressBar` |
+| 字段 `fieldFactory.progressBar` | 译字段，调 `createProgressBar` |
 
 vui 名是 **`progressBar`**。不要 `ProgressBarComponent` / `ejs-progressbar` / `NProgress` 当 vui 名。
 

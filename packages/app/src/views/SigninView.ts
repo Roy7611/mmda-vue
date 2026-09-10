@@ -1,3 +1,4 @@
+import { uiCssClass } from '@mmda/core'
 import {
   UI_APP_KEY,
   UI_BUILDER_KEY,
@@ -35,7 +36,7 @@ function authErrorMessage(error: unknown): string {
 }
 
 /**
- * 登录路由页：直接 `factory.signinForm`，不要 `buildSigninForm`。
+ * 登录路由页：`layoutPage` + `factory.card` + `buildSigninForm`。
  */
 export const SigninView = defineComponent({
   name: 'SigninView',
@@ -45,7 +46,7 @@ export const SigninView = defineComponent({
     const router = useRouter()
     const route = useRoute()
     const formError = ref('')
-    const signinForm = builder.factory.signinForm!(
+    const signinForm = builder.buildSigninForm!(
       {
         context: app,
         onSignin: async (user: SigninUser) => {
@@ -69,22 +70,39 @@ export const SigninView = defineComponent({
     )
 
     return () =>
-      h('div', { class: 'mmda-signin-page' }, [
-        h('div', { class: 'mmda-signin-card' }, [
-          h('header', { class: 'mmda-signin-card__header' }, [
-            h('p', { class: 'mmda-signin-card__eyebrow' }, 'MMDA'),
-            h('h1', { class: 'mmda-signin-card__title' }, '统一应用登录'),
-            h(
-              'p',
-              { class: 'mmda-signin-card__subtitle' },
-              '一次登录，访问基础数据与制造执行功能。',
-            ),
-          ]),
-          formError.value
-            ? h('p', { class: 'mmda-signin-card__error' }, formError.value)
-            : null,
-          signinForm,
-        ]),
-      ])
+      builder.layout.layoutPage({
+        primary: [
+          builder.factory.card(
+            {
+              surface: 'elevated',
+            },
+            {
+              header: () => [
+                h('p', { class: uiCssClass('signin-form', 'brand') }, 'MMDA'),
+                h(
+                  'h1',
+                  { class: uiCssClass('signin-form', 'heading') },
+                  '统一应用登录',
+                ),
+                h(
+                  'p',
+                  { class: uiCssClass('signin-form', 'lead') },
+                  '一次登录，访问基础数据与制造执行功能。',
+                ),
+              ],
+              default: () => [
+                formError.value
+                  ? h(
+                      'p',
+                      { class: uiCssClass('signin-form', 'error') },
+                      formError.value,
+                    )
+                  : null,
+                signinForm,
+              ],
+            },
+          ),
+        ],
+      })
   },
 })

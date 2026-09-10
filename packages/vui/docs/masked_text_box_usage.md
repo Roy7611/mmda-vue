@@ -28,9 +28,9 @@ factory.maskedTextBox({
 ## 表单字段
 
 ```ts
-fldFactory.mobileInput(field, context)
-fldFactory.zipCodeInput(field, context)
-fldFactory.maskedTextBox(field, context, { mask: 'LLL-000' })
+fieldFactory.mobileInput(field, context)
+fieldFactory.zipCodeInput(field, context)
+fieldFactory.maskedTextBox(field, context, { mask: 'LLL-000' })
 ```
 
 内部 `maskedTextBoxPropsFromField`。手机 / 邮编预置 `MOBILE_MASK` / `ZIP_MASK`。

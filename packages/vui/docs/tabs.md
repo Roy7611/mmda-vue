@@ -8,7 +8,7 @@ chrome 页签走 `factory.tabs`。契约 `UiTabsProps` 在 `@mmda/core`。[EJ2 V
 
 - vui `ui/factory/tabs.ts`：`UiTabsProps`
 - 皮肤 `factory/tabs.ts`：`createTabs`
-- 不是字段控件：没有 `fldFactory.tabs`
+- 不是字段控件：没有 `fieldFactory.tabs`
 
 帮助面板仍直接拼厂商 Tab，不经过 chrome。
 

@@ -14,5 +14,5 @@ export interface UiQrCodeProps extends UiProps {
 }
 
 export function qrCodeModifierClasses(format?: UiQrCodeFormat): unknown[] {
-  return format === 'dataMatrix' ? [uiCssClass('qrcode', 'data-matrix')] : undefined
+  return format === 'dataMatrix' ? [uiCssClass('qrcode', undefined, 'data-matrix')] : undefined
 }

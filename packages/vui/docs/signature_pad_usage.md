@@ -33,8 +33,8 @@ factory.signaturePad({
 ## 表单字段
 
 ```ts
-fldFactory.signaturePad(field, context)
-fldFactory.signaturePad(field, context, { height: 180, strokeColor: '#111' })
+fieldFactory.signaturePad(field, context)
+fieldFactory.signaturePad(field, context, { height: 180, strokeColor: '#111' })
 ```
 
 内部 `signaturePadPropsFromField`：

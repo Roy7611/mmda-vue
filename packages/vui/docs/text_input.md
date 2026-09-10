@@ -1,10 +1,10 @@
 # TextInput
 
-chrome 单行文本走 `factory.textInput`。[EJ2 Vue TextBox](https://ej2.syncfusion.com/vue/documentation/textbox/vue3-getting-started) / [API](https://ej2.syncfusion.com/vue/documentation/api/textbox/overview) 就是这个控件。vui 名是 **`textInput`**，跟 `fldFactory.textInput` 同名。不要 `input` / `textBox` / `InputText` / `NInput` 当 vui 名。
+chrome 单行文本走 `factory.textInput`。[EJ2 Vue TextBox](https://ej2.syncfusion.com/vue/documentation/textbox/vue3-getting-started) / [API](https://ej2.syncfusion.com/vue/documentation/api/textbox/overview) 就是这个控件。vui 名是 **`textInput`**，跟 `fieldFactory.textInput` 同名。不要 `input` / `textBox` / `InputText` / `NInput` 当 vui 名。
 
 程序员用法：[text_input_usage.md](./text_input_usage.md)。chrome 参数约定：[factory.md](./factory.md)。多行仍是 `factory.textArea`。
 
-表单字段走 `fldFactory.textInput`：翻译 `MetaUiField` 后调本控件。`fldFactory.password` 仍单独实现。
+表单字段走 `fieldFactory.textInput`：翻译 `MetaUiField` 后调本控件。`fieldFactory.password` 仍单独实现。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 单行文本走 `factory.textInput`。[EJ2 Vue TextBox](https://ej2.syncf
 |---|---|
 | vui `ui/factory/text_input.ts` | `UiTextInputProps`；`textInputValueOf` / `textInputTypeOf` / `textInputPropsFromField` |
 | 皮肤 `factory/text_input.ts` | SF `TextBoxComponent`；Prime `InputText`；Naive `NInput` |
-| 字段 `fldFactory.textInput` | 译字段，调 `createTextInput` |
+| 字段 `fieldFactory.textInput` | 译字段，调 `createTextInput` |
 
 表单标签走 `labelFor` / `formField`。框内提示走 `placeholder`。不要 vui `label`。
 

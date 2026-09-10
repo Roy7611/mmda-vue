@@ -17,7 +17,7 @@ factory.checkBox({
 ## 表单字段
 
 ```ts
-fldFactory.checkBox(field, context)
+fieldFactory.checkBox(field, context)
 ```
 ```
 

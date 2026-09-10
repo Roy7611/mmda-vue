@@ -36,8 +36,8 @@ factory.progressBar({
 ## 表单字段
 
 ```ts
-fldFactory.progressBar(field, context)
-fldFactory.progressBar(field, context, { kind: 'circular', showValue: true })
+fieldFactory.progressBar(field, context)
+fieldFactory.progressBar(field, context, { kind: 'circular', showValue: true })
 ```
 
 内部 `progressBarPropsFromField`：

@@ -50,7 +50,7 @@ factory.speechToText({
 })
 ```
 
-没有 `fldFactory.speechToText`。字段仍用文本 editor。
+没有 `fieldFactory.speechToText`。字段仍用文本 editor。
 
 ## 不要
 

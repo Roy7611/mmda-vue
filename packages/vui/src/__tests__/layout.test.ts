@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
 import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
-import { AppLayout, VueUiLayout } from "../ui/layout/layout";
+import { VueUiLayout } from "../ui/layout/layout";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
@@ -26,55 +26,81 @@ afterEach(() => {
 describe("default VUI layouts", () => {
   const layout = new VueUiLayout();
 
-  it("支持字段横纵方向和可选校验消息", () => {
+  it("支持字段横纵方向；有 message 才显示", () => {
+    const horizontal = new VueUiLayout();
+    const vertical = new VueUiLayout();
+    vertical.fieldVertical = true;
     const host = mount(
       h("div", [
-        layout.layoutField({
-          label: h("label", "名称"),
+        horizontal.layoutField({
+          label: h("label", { class: "mmda-field-label" }, "名称"),
           control: h("input"),
-          orientation: "horizontal",
-          message: h("small", "必填"),
+          message: "必填" as any,
+          messageKind: "error",
         }),
-        layout.layoutField({
-          label: h("label", "编码"),
+        vertical.layoutField({
+          label: h("label", { class: "mmda-field-label" }, "编码"),
           control: h("output", "A01"),
-          orientation: "vertical",
+          message: "也显示" as any,
+          messageKind: "warning",
         }),
       ]),
     );
 
-    const fields = host.querySelectorAll<HTMLElement>(".mmda-field-layout");
-    expect(fields[0].dataset.orientation).toBe("horizontal");
-    expect(fields[0].className).toContain("mmda-field-layout--horizontal");
-    expect(fields[0].querySelector(".mmda-field-message")?.textContent).toBe(
+    const fields = host.querySelectorAll<HTMLElement>(".mmda-field");
+    expect(fields[0].className).toContain("mmda-field--horizontal");
+    expect(fields[0].className).toContain("mmda-field");
+    expect(fields[0].querySelector(".mmda-field-control")).not.toBeNull();
+    expect(fields[0].querySelector(".mmda-field-message.error")?.textContent).toBe(
       "必填",
     );
-    expect(fields[1].style.flexDirection).toBe("column");
-    expect(fields[1].querySelector(".mmda-field-message")).toBeNull();
+    expect(fields[0].querySelector(".mmda-field-label")).not.toBeNull();
+    expect(fields[1].className).toContain("mmda-field--vertical");
+    expect(
+      fields[1].querySelector(".mmda-field-message.warning")?.textContent,
+    ).toBe("也显示");
+  });
+
+  it("占格跨列跨行不重叠", () => {
+    const horizontal = new VueUiLayout();
+    const remark = horizontal.layoutField({
+      label: h("label", { class: "mmda-field-label" }, "备注"),
+      control: h("textarea"),
+      gridColumn: "1 / span 2",
+      gridRow: "2 / span 1",
+    });
+    const photo = horizontal.layoutField({
+      label: h("label", { class: "mmda-field-label" }, "照片"),
+      control: h("img"),
+      gridColumn: "1 / span 1",
+      gridRow: "3 / span 3",
+    });
+    const host = mount(h("div", [remark, photo]));
+    const fields = host.querySelectorAll<HTMLElement>(".mmda-field");
+    expect(fields[0].style.gridColumn).toBe("1 / span 2");
+    expect(fields[0].style.gridRow).toBe("2 / span 1");
+    expect(fields[1].style.gridColumn).toBe("1 / span 1");
+    expect(fields[1].style.gridRow).toBe("3 / span 3");
   });
 
   it("控制分组内部列数，概要分组可固定为一列", () => {
-    const host = mount(
-      h("div", [
-        layout.layoutFieldGroup({
-          fields: [h("span", "A"), h("span", "B"), h("span", "C")],
-          cols: 3,
-        }),
-        layout.layoutFieldGroup({
-          fields: [h("span", "S1"), h("span", "S2")],
-          orientation: "column",
-          cols: 1,
-        }),
-      ]),
-    );
+    layout.fieldGroupLayout = { type: "grid", gridCols: 3 };
+    const threeCol = layout.layoutFieldGroup({
+      fields: [h("span", "A"), h("span", "B"), h("span", "C")],
+    });
+    layout.fieldGroupLayout = { type: "column", gridCols: 1 };
+    const oneCol = layout.layoutFieldGroup({
+      fields: [h("span", "S1"), h("span", "S2")],
+    });
+    const host = mount(h("div", [threeCol, oneCol]));
 
     const groups = host.querySelectorAll<HTMLElement>(
-      ".mmda-field-group-layout",
+      ".mmda-field-group",
     );
-    expect(groups[0].dataset.cols).toBe("3");
-    expect(groups[0].className).toContain("mmda-field-group-layout--row");
-    expect(groups[1].dataset.cols).toBe("1");
-    expect(groups[1].className).toContain("mmda-field-group-layout--column");
+    expect(groups[0].dataset.gridCols).toBe("3");
+    expect(groups[0].className).toContain("mmda-field-group--grid");
+    expect(groups[1].dataset.gridCols).toBe("1");
+    expect(groups[1].className).toContain("mmda-field-group--column");
   });
 
   it("页面工具栏置顶，左右分栏且右侧可折叠", async () => {
@@ -88,7 +114,7 @@ describe("default VUI layouts", () => {
       }),
     );
 
-    const page = host.querySelector<HTMLElement>(".mmda-page-layout")!;
+    const page = host.querySelector<HTMLElement>("section.mmda-page")!;
     const toolbar = host.querySelector<HTMLElement>(".mmda-page-toolbar")!;
     const body = host.querySelector<HTMLElement>(".mmda-page-body")!;
     const main = host.querySelector<HTMLElement>(".mmda-page-main")!;
@@ -119,16 +145,17 @@ describe("default VUI layouts", () => {
     expect(body.classList.contains("is-summary-collapsed")).toBe(true);
   });
 
-  it("AppLayout 提供侧栏通高和顶栏通栏两种 grid", () => {
+  it("VueUiLayout.scaffold 提供侧栏通高和顶栏通栏两种 grid", () => {
     const left = mount(
-      new AppLayout().render({
+      new VueUiLayout().scaffold({
         topBar: h("span", "Top"),
         nav: h("span", "Nav"),
         page: h("span", "Page"),
       }),
     );
     const full = mount(
-      new AppLayout("topBarFull").render({
+      new VueUiLayout().scaffold({
+        variant: "topBarFull",
         topBar: h("span", "Top"),
         nav: h("span", "Nav"),
         page: h("span", "Page"),
@@ -314,13 +341,13 @@ describe("VueUiBuilder layout wiring", () => {
     );
     expect(
       host.querySelector<HTMLElement>(
-        ".mmda-page-main .mmda-field-group-layout",
-      )?.dataset.cols,
+        ".mmda-page-main .mmda-field-group",
+      )?.dataset.gridCols,
     ).toBe("3");
     expect(
       host.querySelector<HTMLElement>(
-        ".mmda-page-summary .mmda-field-group-layout",
-      )?.dataset.cols,
+        ".mmda-page-summary .mmda-field-group",
+      )?.dataset.gridCols,
     ).toBe("1");
     expect(host.querySelector(".mmda-page-main .mmda-group.primary")).not.toBeNull();
     expect(host.querySelector(".mmda-page-main .mmda-group.master")).not.toBeNull();
@@ -437,7 +464,7 @@ describe("VueUiBuilder layout wiring", () => {
     );
 
     const nameField = host.querySelector(
-      ".mmda-page-main .mmda-field-layout",
+      ".mmda-page-main .mmda-field",
     )!;
     expect(host.querySelector("form.mmda-form")).not.toBeNull();
     expect(nameField.querySelectorAll("label")).toHaveLength(1);
@@ -600,9 +627,9 @@ describe("VueUiBuilder layout wiring", () => {
     const host = mount(
       new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
-    const control = host.querySelector(".mmda-field-control")!;
-    expect(control.querySelector("input")).toBeNull();
-    expect(control.querySelector(".mmda-field-display, output")).not.toBeNull();
-    expect(control.textContent).toContain("2026");
+    const field = host.querySelector(".mmda-field")!;
+    expect(field.querySelector("input")).toBeNull();
+    expect(field.querySelector(".mmda-field-display, output")).not.toBeNull();
+    expect(field.textContent).toContain("2026");
   });
 });

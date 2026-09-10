@@ -105,8 +105,8 @@ export function signaturePadBlobOf(dataUrl: string): Blob | null {
 export function signaturePadModifierClasses(props: UiSignaturePadProps): unknown[] {
   return [
     uiCssClass('signature-pad'),
-    props.readOnly ? uiCssClass('signature-pad', 'readonly') : undefined,
-    props.disabled ? uiCssClass('signature-pad', 'disabled') : undefined,
+    props.readOnly ? uiCssClass('signature-pad', undefined, 'readonly') : undefined,
+    props.disabled ? uiCssClass('signature-pad', undefined, 'disabled') : undefined,
     props.class,
   ]
 }

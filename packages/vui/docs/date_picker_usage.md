@@ -34,8 +34,8 @@ factory.datePicker({
 字段：
 
 ```ts
-fldFactory.datePicker(field, context)
-fldFactory.monthPicker(field, context)
+fieldFactory.datePicker(field, context)
+fieldFactory.monthPicker(field, context)
 ```
 
 内部 `datePickerPropsFromField`：`value` ← `getFieldValue`（Date），只读 → `disabled`，`nullable` → `showClear`。

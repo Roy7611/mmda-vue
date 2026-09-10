@@ -2,7 +2,7 @@
  * Syncfusion: https://ej2.syncfusion.com/vue/documentation/otp-input/vue-3-getting-started
  *
  * chrome 一次性口令走 factory.oneTimePasswordInput。长度 / 类型用 EJ2 词，不要写 Prime mask / integerOnly。
- * 字段 fldFactory.oneTimePasswordInput 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.oneTimePasswordInput 译 MetaUiField 后再调本控件。
  */
 import { callUiBagFn } from '@mmda/core'
 import type {

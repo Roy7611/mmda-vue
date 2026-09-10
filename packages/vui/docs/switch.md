@@ -4,7 +4,7 @@ chrome 滑动开关，走 `factory.switch`。[EJ2 Vue Switch](https://ej2.syncfu
 
 程序员用法：[switch_usage.md](./switch_usage.md)。chrome 参数约定：[factory.md](./factory.md)。勾选格仍是 `factory.checkBox`，不要互相替代。
 
-表单走 `fldFactory.switch`。vui 名是对象属性 **`switch`**。不要 `function switch` / `import { switch }`。实现函数 `createSwitch`。不要 `SwitchComponent` / `ejs-switch` / `NSwitch` 当 vui 名。
+表单走 `fieldFactory.switch`。vui 名是对象属性 **`switch`**。不要 `function switch` / `import { switch }`。实现函数 `createSwitch`。不要 `SwitchComponent` / `ejs-switch` / `NSwitch` 当 vui 名。
 
 字段层 `switcher` / `Switcher` 仍是别名。chrome 不要写 `toggleSwitch`。
 
@@ -14,7 +14,7 @@ chrome 滑动开关，走 `factory.switch`。[EJ2 Vue Switch](https://ej2.syncfu
 |---|---|
 | vui `ui/factory/switch.ts` | `UiSwitchProps`；`switchCheckedOf` / `switchPropsFromField` |
 | 皮肤 `factory/switch.ts` | SF `SwitchComponent`；Prime `ToggleSwitch`；Naive `NSwitch` |
-| 字段 `fldFactory.switch` | 译字段，调 `createSwitch` |
+| 字段 `fieldFactory.switch` | 译字段，调 `createSwitch` |
 
 ## 属性
 

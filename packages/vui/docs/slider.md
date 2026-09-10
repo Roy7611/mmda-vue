@@ -8,7 +8,7 @@ chrome 滑块走 `factory.slider`。[EJ2 Vue Range Slider](https://ej2.syncfusio
 
 - vui `ui/factory/slider.ts`：`UiSliderProps`；`type` 用 EJ2 词
 - 皮肤 `factory/slider.ts`：SF `SliderComponent`；Prime `Slider`；Naive `NSlider`
-- 字段 `fldFactory.slider`：译字段后调 chrome
+- 字段 `fieldFactory.slider`：译字段后调 chrome
 
 vui **type 用 EJ2**：`Default` / `MinRange` / `Range`。不要把 Prime `range` 写进 vui。
 

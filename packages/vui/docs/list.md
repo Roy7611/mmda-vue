@@ -106,7 +106,7 @@ Builder 已用 `writeListSorts` / `writeListFilterModel`。Prime / Naive 的表�
 
 编辑/详情子表已经在本地：`UiTableProps.rowDetail`。`detail(row)` 画**这一行底下**另一套 MetaUi 的 many 组（BOM `items` → `operations`），不是本行列。返回 `VNodeChild`。函数名是单数 `detail`，不要 `details`（那是详情页 scene）。
 
-Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: true`，皮肤全展开。不要 `childGrid` / `detailTemplate` / `expandedRows` 进 vui。不要 `fldFactory.associationTable`。只嵌一层。
+Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: true`，皮肤全展开。不要 `childGrid` / `detailTemplate` / `expandedRows` 进 vui。不要 `fieldFactory.associationTable`。只嵌一层。
 
 ## 边界
 

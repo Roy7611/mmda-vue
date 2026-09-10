@@ -35,9 +35,9 @@ export function sidebarModifierClasses(
   const dock = props.enableDock === true
   return [
     uiCssClass('sidebar'),
-    asDrawer ? uiCssClass('sidebar', 'drawer') : undefined,
-    uiCssClass('sidebar', type.toLowerCase()),
-    dock ? uiCssClass('sidebar', 'dock') : undefined,
+    asDrawer ? uiCssClass('sidebar', undefined, 'drawer') : undefined,
+    uiCssClass('sidebar', undefined, type.toLowerCase()),
+    dock ? uiCssClass('sidebar', undefined, 'dock') : undefined,
     props.class,
   ]
 }

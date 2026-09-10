@@ -3,9 +3,9 @@
 设计真源：[ui_four_roles_design.md](./ui_four_roles_design.md)。契约在 `@mmda/core` 的 `src/ui/`。vui 实现是 **`VueUiBuilder`**；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
 
 ```text
-UiLayout / UiAppLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 契约
+UiLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 契约
     ↑
-VueUiLayout / AppLayout / VueUiBuilder / …                       ← vui
+VueUiLayout / VueUiBuilder / …                       ← vui
     ↑
 Syncfusion* / Prime* / AgNaive*                                  ← 皮肤
 ```
@@ -17,7 +17,7 @@ import type { UiListViewProps, UiViewProps } from '@mmda/core'
 
 const ui = context.uiBuilder
 const factory = ui.factory
-const fld = ui.fldFactory
+const fld = ui.fieldFactory
 // 页内排法：优先 factory.layout（与 Builder 同源），或注入的 layout 实例
 const layout = factory.layout!
 ```
@@ -32,8 +32,8 @@ const layout = factory.layout!
 | 强制编辑行 / 强制只读行 | `fld.editFor` / `fld.displayFor` |
 | 表格单元格裸控件 | `fld.textInput` / `fld.checkedIcon` / …（**不要** `render`） |
 | 一张表 / 一页分页 | `factory.table` / `factory.paginator` |
-| 登录表单 | `factory.signinForm(props, slots?)` |
-| 应用壳 | `new AppLayout('sidebarLeft').scaffold({ nav, page })` |
+| 登录表单 | `ui.buildSigninForm(props, slots?)` |
+| 应用壳 | `layout.scaffold({ variant: 'sidebarLeft', nav, page })` |
 | 模块列表整页 | `ui.buildIndexView(context, props?)` |
 | 详情/编辑整页 | `ui.buildDetailsView` / `buildEditView` → `buildEntityView` |
 | 左树右表 | `ui.buildExplorerView(context, props?)` |
@@ -65,9 +65,7 @@ if (button !== 'ok') return
 ## 应用壳
 
 ```ts
-import { AppLayout } from '@mmda/vui'
-
-new AppLayout('sidebarLeft').scaffold({
+layout.scaffold({
   variant: 'sidebarLeft',
   nav: ui.buildAppSideMenu!({
     modules: app.modules,
@@ -78,7 +76,7 @@ new AppLayout('sidebarLeft').scaffold({
 })
 ```
 
-- **不要** `ui.buildAppScaffold`
+- **不要** `ui.buildAppScaffold` / `new AppLayout(...)`
 - `buildAppSideMenu` 内部应走 `factory.sidebar` / `factory.drawer`
 - 变体：`sidebarLeft` | `topBarFull`
 
@@ -185,13 +183,13 @@ ui.buildKanbanView?.(context, props)
 ui.buildDiagramView?.(context, props)
 ```
 
-未安装对应 plugin 时会 **throw**。嵌在普通屏里的时间轴仍用 `factory.timeline`，不要 `fldFactory.timeline`。
+未安装对应 plugin 时会 **throw**。嵌在普通屏里的时间轴仍用 `factory.timeline`，不要 `fieldFactory.timeline`。
 
 ## 登录页
 
 ```ts
 // 路由组件里
-factory.signinForm!(
+ui.buildSigninForm!(
   {
     context: app,
     onSignin: async (user) => {
@@ -203,19 +201,8 @@ factory.signinForm!(
 )
 ```
 
-- **不要** `ui.buildSigninForm`（若皮肤仍保留，仅兼容委托）
-- 注册同理：`factory.signupForm`
-
-## 页内语义块
-
-```ts
-layout.container([
-  layout.header(toolbar),
-  layout.main(table, { class: 'mmda-list-scroll' }),
-], { class: 'mmda-list-view' })
-```
-
-替代旧 `buildContainer` / `buildHeader` / `buildMain`。
+- **不要** `factory.signinForm`
+- 注册同理：`ui.buildSignupForm`
 
 ## 不要做
 
@@ -223,9 +210,10 @@ layout.container([
 |---|---|
 | Logic 里 `import` 皮肤 / `h()` | Logic 只认 core 契约 |
 | `factory.dialog` | 弹层走 Builder Overlay |
+| `factory.signinForm` | 登录走 `ui.buildSigninForm` |
 | 单元格调 `fld.render` | 会带标签 |
 | Index 再套 `buildListView` | 已删除这条路径 |
-| `buildAppScaffold` | 改 `AppLayout.scaffold` |
+| `buildAppScaffold` | 改 `layout.scaffold` |
 | 把 hasOne 选项灌进 `refOptions` | 见字段引用规则；大表按需 `searchRelative` |
 
 ## 旧文档

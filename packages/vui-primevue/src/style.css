@@ -264,29 +264,10 @@ html[data-mmda-palette="cyan"] {
   border-bottom: 1px solid var(--p-content-border-color);
 }
 
-.mmda-signin-form-wrap {
-  position: relative;
-}
-
-.mmda-signin-form__loading {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--p-content-background) 80%, transparent);
-}
-
 .mmda-signin-form .p-inputtext,
 .mmda-signin-form .p-password,
 .mmda-signin-form .p-password-input {
   width: 100%;
-}
-
-.mmda-signin-form .p-button {
-  width: 100%;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
 }
 
 .mmda-prime-header .p-toolbar {
@@ -472,7 +453,7 @@ html[data-mmda-palette="cyan"] {
   );
 }
 
-.mmda-field-layout--horizontal .mmda-field-label {
+.mmda-field--horizontal > .mmda-field-label {
   width: 100%;
   max-width: 8rem;
   text-align: right;
@@ -483,7 +464,7 @@ html[data-mmda-palette="cyan"] {
   white-space: nowrap;
 }
 
-.mmda-group.sub .mmda-field-group-layout {
+.mmda-group.sub .mmda-field-group {
   width: 100%;
   min-width: 0;
 }

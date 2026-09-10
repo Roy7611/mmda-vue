@@ -68,10 +68,10 @@
 | [DateRangePicker：怎么写](./date_range_picker_usage.md) | separator / shortcuts |
 | [轮播设计](./carousel.md) | `factory.carousel` |
 | [轮播：怎么写](./carousel_usage.md) | items / autoPlay / loop / fade |
-| [勾选设计](./checkbox.md) | `factory.checkBox`；字段走 `fldFactory.checkbox` |
+| [勾选设计](./checkbox.md) | `factory.checkBox`；字段走 `fieldFactory.checkbox` |
 | [勾选：怎么写](./checkbox_usage.md) | label / indeterminate / 字段翻译 |
 | [Switch 设计](./switch.md) | `factory.switch`；滑动开关；**不是** `checkBox` |
-| [Switch：怎么写](./switch_usage.md) | checked / onLabel；字段 `fldFactory.switch` |
+| [Switch：怎么写](./switch_usage.md) | checked / onLabel；字段 `fieldFactory.switch` |
 | [Toolbar 设计](./toolbar.md) | `factory.toolbar`；Prime 三槽；**不是** EJ2 items |
 | [Toolbar：怎么写](./toolbar_usage.md) | start / center / end；layout full/medium/compact |
 | [布局设计](./layout.md) | `UiLayout` / `AbstractUiLayout` / `VueUiLayout`；**不是** AppLayout 脚手架 |

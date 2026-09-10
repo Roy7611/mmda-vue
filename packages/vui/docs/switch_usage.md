@@ -30,8 +30,8 @@ factory.switch({
 ## 表单字段
 
 ```ts
-fldFactory.switch(field, context)
-fldFactory.switch(field, context, { onLabel: '是', offLabel: '否' })
+fieldFactory.switch(field, context)
+fieldFactory.switch(field, context, { onLabel: '是', offLabel: '否' })
 ```
 
 内部 `switchPropsFromField`：`checked` ← `getFieldValue`，只读 → `disabled`。

@@ -4,7 +4,7 @@ chrome 忙碌指示走 `factory.loading`。[EJ2 Vue Spinner](https://ej2.syncfus
 
 程序员用法：[loading_usage.md](./loading_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-**没有** `fldFactory.loading`。
+**没有** `fieldFactory.loading`。
 
 ## 边界
 

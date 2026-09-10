@@ -2,7 +2,7 @@
  * Syncfusion: https://ej2.syncfusion.com/vue/documentation/maskedtextbox/vue3-getting-started
  *
  * chrome 掩码输入走 factory.maskedTextBox。vui mask 用 EJ2 元素，不要写 Prime 的 9。
- * 字段 fldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'

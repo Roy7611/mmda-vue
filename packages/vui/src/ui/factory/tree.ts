@@ -3,7 +3,7 @@
  * API: https://ej2.syncfusion.com/vue/documentation/api/treeview/index-default
  *
  * chrome 导航树走 factory.tree。vui 名是 tree，不要 TreeView / ejs-treeview / NTree。
- * 不是 treeSelect（树下拉）、不是 treeGrid（多列表格）。没有 fldFactory.tree。
+ * 不是 treeSelect（树下拉）、不是 treeGrid（多列表格）。没有 fieldFactory.tree。
  * buildTreeView 是 Builder 组合，不是厂商控件名。
  */
 import type { VNodeChild } from 'vue'
@@ -67,10 +67,10 @@ export function treeModifierClasses(props: UiTreeProps = {}): unknown[] {
   const mode = treeSelectionModeOf(props)
   return [
     uiCssClass('tree'),
-    mode === 'checkbox' ? uiCssClass('tree', 'checkbox') : undefined,
-    mode === 'none' ? uiCssClass('tree', 'none') : undefined,
-    props.showIcon ? uiCssClass('tree', 'icons') : undefined,
-    props.allowDragDrop ? uiCssClass('tree', 'drag') : undefined,
+    mode === 'checkbox' ? uiCssClass('tree', undefined, 'checkbox') : undefined,
+    mode === 'none' ? uiCssClass('tree', undefined, 'none') : undefined,
+    props.showIcon ? uiCssClass('tree', undefined, 'icons') : undefined,
+    props.allowDragDrop ? uiCssClass('tree', undefined, 'drag') : undefined,
     props.class,
   ]
 }

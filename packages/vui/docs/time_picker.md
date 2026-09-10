@@ -10,6 +10,6 @@ chrome 时刻，走 `factory.timePicker`。[EJ2 TimePicker](https://ej2.syncfusi
 |---|---|
 | vui `ui/factory/time_picker.ts` | `UiTimePickerProps`：`step` 分钟缺省 30；format 缺省 `HH:mm:ss` |
 | 皮肤 | SF `TimePickerComponent`；Prime `DatePicker` `timeOnly`；Naive `type: time` |
-| 字段 `fldFactory.timePicker` | 译字段，调 `createTimePicker` |
+| 字段 `fieldFactory.timePicker` | 译字段，调 `createTimePicker` |
 
 钩子 class：`mmda-timepicker`。快捷日期忽略。

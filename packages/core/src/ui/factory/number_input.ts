@@ -24,7 +24,7 @@ export function numberInputModifierClasses(props: UiNumberInputProps): unknown[]
   return [
     uiCssClass('numberinput'),
     props.kind === 'percent'
-      ? uiCssClass('numberinput', 'percent')
+      ? uiCssClass('numberinput', undefined, 'percent')
       : undefined,
     props.suffix ? uiCssClass('numeric-with-unit') : undefined,
     props.class,

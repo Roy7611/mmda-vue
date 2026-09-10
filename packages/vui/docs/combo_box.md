@@ -4,7 +4,7 @@ chrome 可编下拉，走 `factory.comboBox`（对齐 EJ2 ComboBox）。默认�
 
 程序员用法：[combo_box_usage.md](./combo_box_usage.md)。封闭列表见 [drop_down_list.md](./drop_down_list.md)。
 
-表单字段走 `fldFactory.comboBox(field, context)`。Pascal 别名 `Combobox`。
+表单字段走 `fieldFactory.comboBox(field, context)`。Pascal 别名 `Combobox`。
 
 ## 常用几种
 
@@ -13,7 +13,7 @@ chrome 可编下拉，走 `factory.comboBox`（对齐 EJ2 ComboBox）。默认�
 | 封闭列表 | 不可键入 | 选项 value | DropDownList | Select | NSelect | `factory.dropDownList` |
 | 可编下拉 | 可键入；默认可自填 | 选项 value（自填则字符串） | ComboBox | AutoComplete + `dropdown: true` | NAutoComplete / NSelect | `factory.comboBox` |
 | 联想文本 | 可键入 | **输入字符串** | AutoComplete | AutoComplete | NAutoComplete | `factory.autoComplete` |
-| 多选 | — | value[] | MultiSelect | MultiSelect | NSelect multiple | `fldFactory.multiSelect` |
+| 多选 | — | value[] | MultiSelect | MultiSelect | NSelect multiple | `fieldFactory.multiSelect` |
 
 表里 Prime 的 `dropdown: true` 是厂商属性，不是 vui 方法名。hasOne 挑整份实体走 `searchBox`。
 
@@ -23,7 +23,7 @@ chrome 可编下拉，走 `factory.comboBox`（对齐 EJ2 ComboBox）。默认�
 |---|---|
 | vui `ui/factory/combo_box.ts` | `UiComboBoxProps` 继承下拉契约，加 `allowCustom` |
 | 皮肤 `factory/combo_box.ts` | SF `ComboBoxComponent`；Prime AutoComplete + dropdown；Naive 可自填 `NAutoComplete`，否则 `NSelect` |
-| 字段 `fldFactory.comboBox` | 译字段，调 `createComboBox` |
+| 字段 `fieldFactory.comboBox` | 译字段，调 `createComboBox` |
 
 选项、分组、`icon`、`suggest` 与 dropDownList 相同。
 

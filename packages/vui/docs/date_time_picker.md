@@ -10,7 +10,7 @@ chrome 日期+时间，走 `factory.dateTimePicker`。[EJ2 DateTimePicker](https
 |---|---|
 | vui `ui/factory/date_time_picker.ts` | `UiDateTimePickerProps`：`step` 分钟缺省 30；format 缺省 `yyyy-MM-dd HH:mm:ss` |
 | 皮肤 | SF `DateTimePickerComponent`；Prime `DatePicker` `showTime`；Naive `type: datetime` |
-| 字段 `fldFactory.dateTimePicker` | 译字段，调 `createDateTimePicker` |
+| 字段 `fieldFactory.dateTimePicker` | 译字段，调 `createDateTimePicker` |
 
 钩子 class：`mmda-datetimepicker`。
 

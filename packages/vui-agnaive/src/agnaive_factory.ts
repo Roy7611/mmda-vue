@@ -69,8 +69,6 @@ import {
 } from './factory/drop_down_button'
 import { createSplitButton } from './factory/split_button'
 import { createFloatingActionButton } from './factory/floating_action_button'
-import { SigninForm } from './components/SigninForm'
-
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
 
@@ -370,11 +368,6 @@ export function createAgNaiveUiFactory(): UiFactory {
             }),
         ],
       ),
-    /** 登录表单控件；路由页直接调。 */
-    signinForm: (props: any = {}, slots?: any) => h(SigninForm, props, slots),
-    /** 注册表单控件（占位）。 */
-    signupForm: (props: any = {}) =>
-      h('div', { class: 'mmda-agnaive-signup' }, 'Signup'),
   }
   wrapListFamilyPaginator(factory, ['list'], 'mmda-agnaive-pagable')
   bindListDisplayRenderers(factory)

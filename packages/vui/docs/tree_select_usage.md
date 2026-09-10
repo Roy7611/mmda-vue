@@ -53,7 +53,7 @@ factory.treeSelect({
 ## 表单字段
 
 ```ts
-fldFactory.treeSelect(field, context)
+fieldFactory.treeSelect(field, context)
 ```
 
 `treeSelectPropsFromField`：`refOptionsShape === TREE` 时 `fields.parentId` ← `groupBy` / `refFlds[2]`。ref 用 `refOptions`；hasOne 接 `context.logic.getRoots` / `getChildren`（没有这两方法就不发明默认查询）。

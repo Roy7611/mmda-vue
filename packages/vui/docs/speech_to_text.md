@@ -2,7 +2,7 @@
 
 chrome 麦克风转写，走 `factory.speechToText`。[EJ2 Vue SpeechToText](https://ej2.syncfusion.com/vue/documentation/speech-to-text/vue-3-getting-started)。API：[index-default](https://ej2.syncfusion.com/vue/documentation/api/speech-to-text/index-default)。
 
-程序员用法：[speech_to_text_usage.md](./speech_to_text_usage.md)。chrome 参数约定：[factory.md](./factory.md)。普通文本仍是 `factory.textInput`。**没有** `fldFactory.speechToText`。不要和 `aiAssistant` 插件混。
+程序员用法：[speech_to_text_usage.md](./speech_to_text_usage.md)。chrome 参数约定：[factory.md](./factory.md)。普通文本仍是 `factory.textInput`。**没有** `fieldFactory.speechToText`。不要和 `aiAssistant` 插件混。
 
 依赖浏览器 [Web Speech API](https://ej2.syncfusion.com/vue/documentation/speech-to-text/speech-recognition)。不支持时 `onError('unsupported-browser')`，不要静默空节点。
 

@@ -37,7 +37,7 @@ export type SigninFormEmits = typeof signinFormEmits
 /**
  * 登录表单对外类型：`signinFormProps` 声明字段 + emit 对应的 onXxx listener。
  * 组件 `defineComponent({ props: signinFormProps })` 只吃声明字段；
- * `factory.signinForm` / `h()` 可同时带 `onSignin` 等 listener。
+ * `buildSigninForm` / `h()` 可同时带 `onSignin` 等 listener。
  * 对齐 core {@link import('@mmda/core').UiSigninFormProps}。
  */
 export type SigninFormProps = ExtractPropTypes<typeof signinFormProps> & {

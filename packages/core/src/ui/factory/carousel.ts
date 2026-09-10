@@ -28,7 +28,7 @@ export function carouselModifierClasses(props: {
   class?: unknown
 }): unknown[] {
   const animation = props.animation
-    ? uiCssClass('carousel', props.animation)
+    ? uiCssClass('carousel', undefined, props.animation)
     : undefined
   return [uiCssClass('carousel'), animation, props.class]
 }

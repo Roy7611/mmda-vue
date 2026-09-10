@@ -4,7 +4,7 @@ chrome 数值输入，走 `factory.numberInput`。[EJ2 Vue NumericTextBox](https
 
 程序员用法：[number_input_usage.md](./number_input_usage.md)。chrome 参数约定：[factory.md](./factory.md)。普通文本仍是 `factory.textInput`。
 
-表单字段走 `fldFactory.numberInput` / `percentInput` / `positiveNumberInput` / `negativenumberInput`：翻译 `MetaUiField` 后调本控件。
+表单字段走 `fieldFactory.numberInput` / `percentInput` / `positiveNumberInput` / `negativenumberInput`：翻译 `MetaUiField` 后调本控件。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 数值输入，走 `factory.numberInput`。[EJ2 Vue NumericTextBox](https
 |---|---|
 | vui `ui/factory/number_input.ts` | `UiNumberInputProps`；`numberInputStepOf` / `numberInputFormatOf` / `numberInputPropsFromField` |
 | 皮肤 `factory/number_input.ts` | SF `NumericTextBoxComponent`；Prime `InputNumber`；Naive `NInputNumber` |
-| 字段 `fldFactory.numberInput` | 译字段，调 `createNumberInput`。percent / ± 预置 |
+| 字段 `fieldFactory.numberInput` | 译字段，调 `createNumberInput`。percent / ± 预置 |
 
 vui 名是 **`numberInput`**。不要 `NumericTextBox` / `InputNumber` / `NInputNumber` 当 vui 名。
 

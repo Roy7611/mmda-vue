@@ -297,9 +297,9 @@ export const noopTimelineController: UiTimelineController = {
 export function timelineModifierClasses(props: UiTimelineProps): unknown[] {
   return [
     uiCssClass('timeline'),
-    uiCssClass('timeline', timelineOrientationOf(props)),
-    uiCssClass('timeline', timelineAlignOf(props)),
-    props.reverse ? uiCssClass('timeline', 'reverse') : undefined,
+    uiCssClass('timeline', undefined, timelineOrientationOf(props)),
+    uiCssClass('timeline', undefined, timelineAlignOf(props)),
+    props.reverse ? uiCssClass('timeline', undefined, 'reverse') : undefined,
     props.class,
   ]
 }

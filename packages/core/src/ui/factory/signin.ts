@@ -12,8 +12,7 @@ export interface UiSigninUser {
 }
 
 /**
- * 登录表单控件 props（`factory.signinForm`）。
- * 不是拼屏 View；路由页直接 `factory.signinForm(...)`。
+ * 登录表单 props（`builder.buildSigninForm`）。
  */
 export interface UiSigninFormProps extends UiProps {
   mode?: UiSigninMode
@@ -43,7 +42,7 @@ export interface UiSignupUser {
 }
 
 /**
- * 注册表单控件 props（`factory.signupForm`）。
+ * 注册表单 props（`builder.buildSignupForm`）。
  */
 export interface UiSignupFormProps extends UiProps {
   /** 回登录页路径。缺省 `/signin`。 */

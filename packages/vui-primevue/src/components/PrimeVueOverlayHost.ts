@@ -6,14 +6,14 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogButton } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type PrimeOverlay,
 } from '../prime_overlay'
 
-const DEFAULT_LABELS: Record<UiDialogButton, string> = {
+const DEFAULT_LABELS: Record<UiDialogAction, string> = {
   ok: 'OK',
   cancel: 'Cancel',
   yes: 'Yes',
@@ -66,7 +66,7 @@ export const PrimeVueOverlayHost = defineComponent({
       primeLocale = undefined
     }
 
-    const labelOf = (button: UiDialogButton) => {
+    const labelOf = (button: UiDialogAction) => {
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated

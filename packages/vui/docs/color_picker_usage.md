@@ -27,7 +27,7 @@ factory.colorPicker({
 ## 表单字段
 
 ```ts
-fldFactory.colorPicker(field, context)
+fieldFactory.colorPicker(field, context)
 ```
 
 内部 `colorPickerPropsFromField`：`value` ← `getFieldValue`（hex），只读 → `disabled`。字段只存 hex。

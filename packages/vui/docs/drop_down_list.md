@@ -4,7 +4,7 @@ chrome 封闭下拉，走 `factory.dropDownList`（对齐 EJ2 DropDownList）。
 
 程序员用法：[drop_down_list_usage.md](./drop_down_list_usage.md)。chrome 参数：[factory.md](./factory.md)。
 
-表单字段走 `fldFactory.dropDownList(field, context)`：翻译 `MetaUiField` 后调本控件。Pascal 别名 `DropDownList`。`select` 也指向本控件。
+表单字段走 `fieldFactory.dropDownList(field, context)`：翻译 `MetaUiField` 后调本控件。Pascal 别名 `DropDownList`。`select` 也指向本控件。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 封闭下拉，走 `factory.dropDownList`（对齐 EJ2 DropDownList）。
 |---|---|
 | vui `ui/factory/drop_down_list.ts` | `UiDropDownListProps`、`UiSelectOption`（`value` / `label` / `group` / `icon`）、`suggest`、`dropDownListPropsFromField` |
 | 皮肤 `factory/drop_down_list.ts` | SF `DropDownListComponent`；Prime `Select`；Naive `NSelect` |
-| 字段 `fldFactory.dropDownList` | 译字段，调 `createDropDownList` |
+| 字段 `fieldFactory.dropDownList` | 译字段，调 `createDropDownList` |
 
 ## 不要拿它当
 

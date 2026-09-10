@@ -4,7 +4,7 @@ chrome 导航树走 `factory.tree`。[EJ2 Vue TreeView](https://ej2.syncfusion.c
 
 程序员用法：[tree_usage.md](./tree_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-**没有** `fldFactory.tree`。树下拉是 [TreeSelect](./tree_select.md)；多列表格是 [树形表格](./treegrid.md)。`buildTreeView` 是 Builder 组合（搜索 + `factory.tree` + 底栏），不是厂商控件。
+**没有** `fieldFactory.tree`。树下拉是 [TreeSelect](./tree_select.md)；多列表格是 [树形表格](./treegrid.md)。`buildTreeView` 是 Builder 组合（搜索 + `factory.tree` + 底栏），不是厂商控件。
 
 单纯树（节点标签 + 展开）。
 

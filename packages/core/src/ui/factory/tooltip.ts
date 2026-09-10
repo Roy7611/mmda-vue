@@ -38,9 +38,9 @@ export function tooltipModifierClasses(props: UiTooltipProps): unknown[] {
     pos === 'bottom' || pos === 'left' || pos === 'right' ? pos : 'top'
   return [
     uiCssClass('tooltip'),
-    uiCssClass('tooltip', position),
+    uiCssClass('tooltip', undefined, position),
     props.disabled === true
-      ? uiCssClass('tooltip', 'disabled')
+      ? uiCssClass('tooltip', undefined, 'disabled')
       : undefined,
     props.class,
   ]

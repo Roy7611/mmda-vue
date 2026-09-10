@@ -3,7 +3,7 @@ import type { MetaUiGroup } from '../metaui/metaui_group'
 import type { UiContext } from './context'
 import type {
   UiConfirmProps,
-  UiDialogButton,
+  UiDialogAction,
   UiDialogProps,
   UiToastProps,
 } from './builder/dialog'
@@ -13,6 +13,12 @@ import type { UiFieldFactory } from './field_factory'
 import type { UiProps } from './props'
 import type { UiAppSideMenuProps } from './app_side_menu'
 import type { UiViewProps } from './view'
+import type {
+  UiSigninFormProps,
+  UiSigninFormSlots,
+  UiSignupFormProps,
+  UiSignupFormSlots,
+} from './factory/signin'
 import type { UiListViewProps } from './builder/list_view'
 import type { UiExplorerViewProps } from './builder/explorer'
 import type { UiGanttViewProps } from './factory/gantt'
@@ -22,13 +28,14 @@ import type { UiKanbanViewProps } from './factory/kanban'
 import type { UiDiagramViewProps } from './factory/diagram'
 
 /**
- * 拼屏与会话级弹层的契约（无实现、无 Vue）。
+ * 界面构建器，负责拼屏与会话级弹层的契约（无实现、无 Vue）。
  *
- * 四职分工：
- * - {@link UiLayout} / {@link UiAppLayout}：怎么排（壳、字段行、container）
- * - {@link UiFieldFactory}：一个 MetaUiField 画成控件（`render` / `editFor` / `displayFor`）
- * - {@link UiFactory}：一个 chrome 控件（table、button、sidebar…）
- * - **本接口**：组装多块组合（模块页、侧栏菜单、字段组、Explorer）+ Overlay
+ * 职责分工：
+ * - {@link UiLayout}：布局怎么排（壳 scaffold、字段行、container）
+ * - {@link UiFieldFactory}：界面域工厂负责将一个 MetaUiField 画成控件（`render` / `editFor` / `displayFor`）
+ * - {@link UiFactory}：界面工厂负责创建一个独立控件（table、button、sidebar…）
+ * - {@link Overlay}：会话入口，提供toast、message、dialog等弹层支持
+ * - **本接口**：组装多块组合（模块页、侧栏菜单、登录/注册、字段组、Explorer）+ Overlay
  *
  * 不要把单控件薄包装进 Builder（无 `buildTable` / `buildPaginator` / `buildContainer`）。
  * 弹层不要走 `factory.dialog`。业务用 `context.uiBuilder` 或 `app.ui`。
@@ -38,8 +45,8 @@ import type { UiDiagramViewProps } from './factory/diagram'
 export interface UiBuilder<TNode = any> {
   /** 原子控件工厂。拼屏时 `this.factory.table(...)` 等。 */
   readonly factory: UiFactory<TNode>
-  /** 字段控件工厂。表单行用 `fldFactory.render`；单元格用具名 renderer。 */
-  readonly fldFactory: UiFieldFactory<TNode>
+  /** 字段控件工厂。表单行用 `fieldFactory.render`；单元格用具名 renderer。 */
+  readonly fieldFactory: UiFieldFactory<TNode>
 
   // —— Overlay（会话入口，不是控件）——
 
@@ -62,8 +69,8 @@ export interface UiBuilder<TNode = any> {
   confirm(context: UiContext, props: UiConfirmProps): Promise<boolean>
 
   /**
-   * 弹层塞内容。resolve 用户点的右侧标准键（`ok` / `cancel` / `yes` …）。
-   * X/Esc → `cancel`。左侧 `customActions`（如 Apply）不关窗、不结束 Promise。
+   * 对话框弹层可塞内容。resolve 用户点的右侧标准键（`ok` / `cancel` / `yes` …）。
+   * X/Esc → `cancel`。左侧 `customActions`（如 Apply）自行决定关窗、或结束 Promise。
    *
    * @param content 已构造的节点（或数组），不是路由组件名。
    * @param context 会话；选择器传 selectCtx，留给脚左侧 customActions。
@@ -72,16 +79,32 @@ export interface UiBuilder<TNode = any> {
     content: TNode | TNode[],
     context: UiContext,
     props?: UiDialogProps<TNode>,
-  ): Promise<UiDialogButton>
+  ): Promise<UiDialogAction>
 
-  // —— App（壳走 UiAppLayout；这里只产 nav 槽内容）——
+  // —— App（壳走 UiLayout.scaffold；这里只产 nav 槽内容）——
 
   /**
    * 应用左侧菜单（一级轨 / 树 / compact 抽屉）。
-   * 壳本身用 {@link UiAppLayout.scaffold}，不要 `buildAppScaffold`。
+   * 壳本身用 {@link UiLayout.scaffold}，不要 `buildAppScaffold`。
    * 内部用 `factory.sidebar` / `factory.drawer`，不要再包一层 Builder sidebar。
    */
   buildAppSideMenu?(props: UiAppSideMenuProps<TNode>): TNode
+
+  /**
+   * 登录表单。路由页调本方法，不要 `factory.signinForm`。
+   */
+  buildSigninForm?(
+    props?: UiSigninFormProps,
+    slots?: UiSigninFormSlots<TNode>,
+  ): TNode
+
+  /**
+   * 注册表单。与 {@link buildSigninForm} 同级。
+   */
+  buildSignupForm?(
+    props?: UiSignupFormProps,
+    slots?: UiSignupFormSlots<TNode>,
+  ): TNode
 
   // —— Module（具名入口 → buildEntityView）——
 
@@ -182,7 +205,7 @@ export interface UiBuilder<TNode = any> {
 
   /**
    * 主表字段分组（`group.many === false`）。
-   * 对每个可见字段调 `fldFactory.render`（内含默认 layoutField）。
+   * 对每个可见字段调 `fieldFactory.render`（内含默认 layoutField）。
    * 不要一个方法兼管子表。
    */
   buildFieldGroup?(

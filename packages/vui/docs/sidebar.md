@@ -10,7 +10,7 @@ chrome 侧栏走 `factory.sidebar`。[EJ2 Vue Sidebar](https://ej2.syncfusion.co
 
 - vui `ui/factory/sidebar.ts`：`UiSidebarProps`；EJ2 词
 - 皮肤 `factory/sidebar.ts`：`createSidebar` / `createDrawer`（drawer 补默认再调同一渲染）
-- 不是字段控件：没有 `fldFactory.sidebar`
+- 不是字段控件：没有 `fieldFactory.sidebar`
 
 应用壳 `SfAppMenu` 仍直接用 `SidebarComponent`，不经过 chrome。
 

@@ -25,11 +25,11 @@ export interface UiCardSlots<TNode = any> {
 
 export function cardModifierClasses(props: UiCardProps): unknown[] {
   const role = props.colorRole
-    ? uiCssClass('card', props.colorRole)
+    ? uiCssClass('card', undefined, props.colorRole)
     : undefined
   const surface =
     props.surface && props.surface !== 'filled'
-      ? uiCssClass('card', props.surface)
+      ? uiCssClass('card', undefined, props.surface)
       : undefined
   return [uiCssClass('card'), role, surface, props.class]
 }

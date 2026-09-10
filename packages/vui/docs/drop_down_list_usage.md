@@ -40,7 +40,7 @@ factory.dropDownList({
 ## 表单字段
 
 ```ts
-fldFactory.dropDownList(field, context)
+fieldFactory.dropDownList(field, context)
 ```
 
 内部 `dropDownListPropsFromField`：`value` ← `valueOf`；`options` ← enum/ref `refOptions`；`GROUP BY` → `group`；选项上的 `icon` 原样拷。hasOne 默认 `suggest` 接 `searchRelative`，不写回 `refOptions`。

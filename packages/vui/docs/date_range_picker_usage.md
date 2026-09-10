@@ -22,5 +22,5 @@ factory.dateRangePicker({
 ```
 
 ```ts
-fldFactory.dateRangePicker(field, context)
+fieldFactory.dateRangePicker(field, context)
 ```

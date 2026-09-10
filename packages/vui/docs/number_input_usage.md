@@ -45,10 +45,10 @@ factory.numberInput({
 ## 表单字段
 
 ```ts
-fldFactory.numberInput(field, context)
-fldFactory.positiveNumberInput(field, context) // min: 0
-fldFactory.negativenumberInput(field, context) // max: 0
-fldFactory.percentInput(field, context)        // kind: 'percent'
+fieldFactory.numberInput(field, context)
+fieldFactory.positiveNumberInput(field, context) // min: 0
+fieldFactory.negativenumberInput(field, context) // max: 0
+fieldFactory.percentInput(field, context)        // kind: 'percent'
 ```
 
 内部 `numberInputPropsFromField`：

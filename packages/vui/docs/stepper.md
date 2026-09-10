@@ -4,7 +4,7 @@ chrome 步骤条，走 `factory.stepper`。[EJ2 Vue Stepper](https://ej2.syncfus
 
 程序员用法：[stepper_usage.md](./stepper_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-字段走 `fldFactory.stepper`：字段整数是当前步；`items` 从 extra 传入。
+字段走 `fieldFactory.stepper`：字段整数是当前步；`items` 从 extra 传入。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 步骤条，走 `factory.stepper`。[EJ2 Vue Stepper](https://ej2.syncfus
 |---|---|
 | vui `ui/factory/stepper.ts` | `UiStepperProps`；`*Field` 绑定；`stepperItemsOf` 规范化；取值、emit、字段翻译 |
 | 皮肤 `factory/stepper.ts` | 只吃规范化后的 `UiStepperItem`；SF `StepperComponent`；Prime `Steps`；Naive `NSteps` |
-| 字段 `fldFactory.stepper` | 译字段，调 `createStepper` |
+| 字段 `fieldFactory.stepper` | 译字段，调 `createStepper` |
 
 vui 名是 **`stepper`**。不要 `ejs-stepper` / `StepperComponent` / Prime `Stepper` / `NSteps` 当 vui 名。
 

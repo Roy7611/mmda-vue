@@ -55,7 +55,11 @@ export function resolveBarcodeCaption(
 
 export function barcodeFormatClass(format?: UiBarcodeFormat): string {
   const fmt = format ?? 'code128'
-  return uiCssClass('barcode', fmt.replace(/[A-Z]/g, (ch) => `-${ch.toLowerCase()}`))
+  return uiCssClass(
+    'barcode',
+    undefined,
+    fmt.replace(/[A-Z]/g, (ch) => `-${ch.toLowerCase()}`),
+  )
 }
 
 export function codeSizeCss(

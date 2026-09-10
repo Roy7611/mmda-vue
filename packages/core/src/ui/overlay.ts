@@ -1,7 +1,7 @@
 import type { UiContext } from './context'
 import type {
   UiConfirmProps,
-  UiDialogButton,
+  UiDialogAction,
   UiDialogProps,
   UiToastProps,
 } from './builder/dialog'
@@ -23,10 +23,10 @@ export interface UiOverlay<TNode = any> {
     content: TNode,
     props: UiDialogProps<TNode>,
     context?: UiContext,
-  ): Promise<UiDialogButton>
+  ): Promise<UiDialogAction>
   /**
    * 关闭最上层对话框，等价点右侧标准键（如选择列表双击 → 'ok'）。
    * 左侧 customAction 不要走这个，除非该动作自己要关。
    */
-  closeTopDialog?(button: UiDialogButton): Promise<void>
+  closeTopDialog?(button: UiDialogAction): Promise<void>
 }

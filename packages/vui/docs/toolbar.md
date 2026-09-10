@@ -4,7 +4,7 @@ chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.o
 
 程序员用法：[toolbar_usage.md](./toolbar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-**不是** EJ2 `items` 命令条。**不是** `factory.buttonGroup`。模块页顶栏 `buildModuleToolbar` 只填槽，壳走本控件。没有 `fldFactory.toolbar`。
+**不是** EJ2 `items` 命令条。**不是** `factory.buttonGroup`。模块页顶栏 `buildModuleToolbar` 只填槽，壳走本控件。没有 `fieldFactory.toolbar`。
 
 ## 分层
 

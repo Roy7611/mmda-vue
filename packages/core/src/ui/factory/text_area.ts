@@ -27,8 +27,8 @@ export function textAreaModifierClasses(props: UiTextAreaProps): unknown[] {
     props.autoResize === true || props.autoResize === 'true'
   return [
     uiCssClass('textarea'),
-    uiCssClass('textarea', mode.toLowerCase()),
-    autoResize ? uiCssClass('textarea', 'autoresize') : undefined,
+    uiCssClass('textarea', undefined, mode.toLowerCase()),
+    autoResize ? uiCssClass('textarea', undefined, 'autoresize') : undefined,
     props.class,
   ]
 }

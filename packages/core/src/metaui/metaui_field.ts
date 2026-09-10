@@ -215,6 +215,10 @@ export interface MetaUiFieldInit {
   hidden?: boolean // 隐藏
   frozen?: MetaUiFieldFrozen // 冻结：'' | left | right
   readOnly?: boolean // 只读，只显示不能编辑
+  /** 详情组网格占几列，缺省 1。不存起始格；2/3 列切换时运行时装箱。 */
+  colSpan?: number
+  /** 详情组网格占几行，缺省 1。 */
+  rowSpan?: number
   renderer?: string // 渲染器
   formatter?: string // 显示格式，例如D为长日期，翻译为各种编
   prefix?: string // 前缀文本，如%
@@ -364,6 +368,10 @@ export class MetaUiField {
   readonly readOnly?: boolean
   frozen: MetaUiFieldFrozen
   linkable?: boolean //是否超链接
+  /** 详情组占几列，缺省 1 */
+  colSpan?: number
+  /** 详情组占几行，缺省 1 */
+  rowSpan?: number
   readonly renderer?: string
   readonly formatter?: string
   readonly prefix?: string

@@ -8,7 +8,7 @@ import {
 } from "@mmda/core";
 import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "../contexts/view";
-import type { AppLayoutVariant } from "../ui/layout/layout";
+import type { UiAppLayoutVariant } from "../ui/layout/layout";
 import type { UiToolbarLayout } from "../ui/factory/toolbar";
 import type { VueUiBuilder } from "../ui/builder/builder";
 import type { UiAction } from "../ui/factory/action";
@@ -39,7 +39,7 @@ export interface AppSideBarProps {
 
 export interface AppScaffoldProps {
   model?: "PC" | "Mobile" | "Pad";
-  layout?: AppLayoutVariant;
+  layout?: UiAppLayoutVariant;
   topBar?: ChildSlot | VNode;
   body?: ChildSlot | VNode;
   sideBar?: ChildSlot | VNode;

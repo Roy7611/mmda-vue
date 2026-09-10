@@ -896,13 +896,10 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    return (
-      this.factory.signinForm?.(props, slots) ??
-      renderSigninForm(props, slots)
-    );
+    return renderSigninForm(props, slots);
   }
 
   buildSignupForm(props: SignupFormProps) {
-    return this.factory.signupForm?.(props) ?? renderSignupForm(props);
+    return renderSignupForm(props);
   }
 }

@@ -272,7 +272,7 @@ export class ToolLogic extends SubEntityLogic<Tool, Toolkit> {
 				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
 
-					return ctx.uiBuilder.fldFactory.hasOneText(fld, ctx)
+					return ctx.uiBuilder.fieldFactory.hasOneText(fld, ctx)
 				})
 			)
 		}

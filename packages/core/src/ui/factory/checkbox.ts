@@ -14,7 +14,7 @@ export interface UiCheckBoxProps extends UiProps {
 export function checkBoxModifierClasses(props: UiCheckBoxProps): unknown[] {
   const indeterminate =
     props.indeterminate === true
-      ? uiCssClass('checkbox', 'indeterminate')
+      ? uiCssClass('checkbox', undefined, 'indeterminate')
       : undefined
   return [uiCssClass('checkbox'), indeterminate, props.class]
 }

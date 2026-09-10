@@ -16,7 +16,7 @@ export interface UiColorPickerProps extends UiProps {
 export function colorPickerModifierClasses(props: UiColorPickerProps): unknown[] {
   const mode =
     props.mode && props.mode !== 'picker'
-      ? uiCssClass('colorpicker', props.mode)
+      ? uiCssClass('colorpicker', undefined, props.mode)
       : undefined
   return [uiCssClass('colorpicker'), mode, props.class]
 }

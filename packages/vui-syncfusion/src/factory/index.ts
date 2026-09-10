@@ -65,8 +65,6 @@ export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid_inject";
-import { SfSigninForm } from "../components/SfSigninForm";
-
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   patchChoiceFilter();
   const button = createButton;
@@ -230,10 +228,6 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     ...navigationRenderers,
     ...treeGridRenderers,
     ...mediaRenderers,
-    /** 登录表单控件；路由页直接调。 */
-    signinForm: (props: any = {}, slots?: any) => h(SfSigninForm, props, slots),
-    /** 注册表单控件（占位）。 */
-    signupForm: (props: any = {}) => h("div", { class: "mmda-sf-signup" }, "Signup"),
     ...miscellaneousRenderers,
   };
 

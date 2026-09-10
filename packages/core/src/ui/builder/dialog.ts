@@ -5,7 +5,7 @@ import type { UiColorRole } from '../props'
 export type UiDialogSeverity = 'success' | 'info' | 'warning' | 'error'
 
 /** 右侧标准脚按钮名（也是 dialog Promise 的 resolve 值）。 */
-export type UiDialogButton =
+export type UiDialogAction =
   | 'ok'
   | 'cancel'
   | 'yes'
@@ -84,14 +84,14 @@ export interface UiDialogProps<TNode = any> {
   /**
    * 主按钮（ok / yes / retry）即将关闭前。return false 不关、不 resolve。
    */
-  onAccept?: (button: UiDialogButton) => boolean | Promise<boolean>
+  onAccept?: (button: UiDialogAction) => boolean | Promise<boolean>
   /**
    * 其余键（cancel / no / abort / ignore / X）即将关闭前。return false 不关、不 resolve。
    */
-  onReject?: (button: UiDialogButton) => boolean | Promise<boolean>
+  onReject?: (button: UiDialogAction) => boolean | Promise<boolean>
   onOpen?: () => void
   /** 窗已经关掉之后。Apply 不触发。不能拦关闭。 */
-  onClose?: (button: UiDialogButton) => void
+  onClose?: (button: UiDialogAction) => void
 }
 
 /** 缺省模态。 */
@@ -168,7 +168,7 @@ export function dialogFooterKind(
 /** 预设 → 右侧按钮名（顺序从左到右）。 */
 export function resolveDialogButtons(
   preset?: UiDialogButtonsPreset,
-): UiDialogButton[] {
+): UiDialogAction[] {
   switch (preset ?? 'okCancel') {
     case 'ok':
       return ['ok']
@@ -187,14 +187,14 @@ export function resolveDialogButtons(
 }
 
 /** 标准键是否画成主按钮。 */
-export function isDialogPrimaryButton(button: UiDialogButton): boolean {
+export function isDialogPrimaryButton(button: UiDialogAction): boolean {
   return button === 'ok' || button === 'yes' || button === 'retry'
 }
 
 /** 关窗前调 onAccept / onReject；false 表示拦住。 */
 export async function shouldCloseDialog(
   props: Pick<UiDialogProps, 'onAccept' | 'onReject'>,
-  button: UiDialogButton,
+  button: UiDialogAction,
 ): Promise<boolean> {
   if (isDialogPrimaryButton(button)) {
     if (props.onAccept && (await props.onAccept(button)) === false) return false
@@ -206,7 +206,7 @@ export async function shouldCloseDialog(
 
 /** 标准键默认 colorRole。 */
 export function dialogButtonColorRole(
-  button: UiDialogButton,
+  button: UiDialogAction,
 ): UiColorRole | undefined {
   if (button === 'ok' || button === 'yes') return 'primary'
   if (button === 'abort') return 'danger'

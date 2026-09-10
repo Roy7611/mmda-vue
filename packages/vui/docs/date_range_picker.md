@@ -10,7 +10,7 @@ chrome 日期区间，走 `factory.dateRangePicker`。[EJ2 DateRangePicker](http
 |---|---|
 | vui `ui/factory/date_range_picker.ts` | `UiDateRangePickerProps`：`separator` 缺省 ` ~ `；`minDays` / `maxDays` |
 | 皮肤 | SF `DateRangePickerComponent`；Prime `selectionMode: range`；Naive `type: daterange` |
-| 字段 `fldFactory.dateRangePicker` | 译字段，调 `createDateRangePicker` |
+| 字段 `fieldFactory.dateRangePicker` | 译字段，调 `createDateRangePicker` |
 
 format 缺省 `yyyy-MM-dd`。`showShortcuts: true` 时今天/昨天是起止同一天的区间。自定义 `shortcuts` 的 `value` 用 `[Date, Date]`。
 

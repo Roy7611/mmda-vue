@@ -6,7 +6,7 @@ chrome 单选按钮组，走 `factory.radioButtonGroup`。[EJ2 Vue RadioButton](
 
 程序员用法：[radio_button_group_usage.md](./radio_button_group_usage.md)。chrome 参数：[factory.md](./factory.md)。
 
-表单字段走 `fldFactory.radioButtonGroup`。Pascal 别名 `RadioButtonGroup`。enum 缺省仍是下拉，须显式 `editor: RadioButtonGroup`。
+表单字段走 `fieldFactory.radioButtonGroup`。Pascal 别名 `RadioButtonGroup`。enum 缺省仍是下拉，须显式 `editor: RadioButtonGroup`。
 
 vui 名是 **`radioButtonGroup`**。不要 `ejs-radiobutton` / `radioGroup` / `factory.radioButton`。
 
@@ -16,7 +16,7 @@ vui 名是 **`radioButtonGroup`**。不要 `ejs-radiobutton` / `radioGroup` / `f
 |---|---|
 | vui `ui/factory/radio_button_group.ts` | `UiRadioButtonGroupProps`；选项解析；`radioButtonGroupPropsFromField` |
 | 皮肤 `factory/radio_button_group.ts` | SF 多项 `RadioButtonComponent`；Prime 多项 `RadioButton`；Naive `NRadioGroup` + `NRadio` |
-| 字段 `fldFactory.radioButtonGroup` | 译字段，调 `createRadioButtonGroup` |
+| 字段 `fieldFactory.radioButtonGroup` | 译字段，调 `createRadioButtonGroup` |
 
 ## 不要拿它当
 

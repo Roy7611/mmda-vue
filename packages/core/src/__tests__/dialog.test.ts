@@ -13,7 +13,7 @@ import {
   isDialogPrimaryButton,
   resolveDialogButtons,
   shouldCloseDialog,
-  type UiDialogButton,
+  type UiDialogAction,
 } from '../ui/builder/dialog'
 
 describe('dialog buttons', () => {
@@ -47,11 +47,11 @@ describe('dialog buttons', () => {
   it('shouldCloseDialog 主按钮走 onAccept，其余走 onReject', async () => {
     const seen: string[] = []
     const props = {
-      onAccept: async (button: UiDialogButton) => {
+      onAccept: async (button: UiDialogAction) => {
         seen.push(`a:${button}`)
         return button !== 'retry'
       },
-      onReject: async (button: UiDialogButton) => {
+      onReject: async (button: UiDialogAction) => {
         seen.push(`r:${button}`)
         return button !== 'no'
       },

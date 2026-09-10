@@ -25,14 +25,14 @@ export function carouselSlideContent(
   if (!item.src) return item.title ?? item.description ?? null
   return h('figure', { class: uiCssClass('carousel-slide') }, [
     h('img', {
-      class: uiCssClass('carousel-slide__img'),
+      class: uiCssClass('carousel-slide', 'img'),
       src: item.src,
       alt: item.alt ?? item.title ?? '',
     }),
     item.title || item.description
       ? h(
           'figcaption',
-          { class: uiCssClass('carousel-slide__caption') },
+          { class: uiCssClass('carousel-slide', 'caption') },
           item.description ?? item.title,
         )
       : null,

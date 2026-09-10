@@ -256,7 +256,7 @@ export function listModifierClasses(
   const display = props.display ?? "list";
   return [
     uiCssClass('list'),
-    display !== "list" ? uiCssClass('list', display) : undefined,
+    display !== "list" ? uiCssClass('list', undefined, display) : undefined,
     props.class,
   ];
 }

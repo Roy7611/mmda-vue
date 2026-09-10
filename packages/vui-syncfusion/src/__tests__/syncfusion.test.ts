@@ -1234,7 +1234,7 @@ describe("Syncfusion skin", () => {
 
   it("constructs the builder against the new VueUiBuilder contract", () => {
     const builder = new SyncfusionUiBuilder();
-    expect(builder.factory.layout.fieldMessage).toBe(false);
+    expect(builder.factory.layout.fieldVertical).toBe(false);
     expect(builder.buildAppScaffold()).toBeTruthy();
     expect(builder.overlayHost).toBeTruthy();
   });

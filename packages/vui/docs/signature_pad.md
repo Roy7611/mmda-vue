@@ -4,7 +4,7 @@ chrome 签名面板，走 `factory.signaturePad`。[EJ2 Vue Signature](https://e
 
 程序员用法：[signature_pad_usage.md](./signature_pad_usage.md)。chrome 参数约定：[factory.md](./factory.md)。图片编辑仍是 `imageEditor` 插件，不要当成签名。
 
-字段走 `fldFactory.signaturePad`：翻译 `MetaUiField` 后调本控件。
+字段走 `fieldFactory.signaturePad`：翻译 `MetaUiField` 后调本控件。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 签名面板，走 `factory.signaturePad`。[EJ2 Vue Signature](https://e
 |---|---|
 | vui `ui/factory/signature_pad.ts` | `UiSignaturePadProps` / `UiSignaturePadController`；取值、emit、字段翻译 |
 | 皮肤 `factory/signature_pad.ts` | SF `SignatureComponent` 全量映射；Prime / Naive 用 `signature_pad` |
-| 字段 `fldFactory.signaturePad` | 译字段，调 `createSignaturePad` |
+| 字段 `fieldFactory.signaturePad` | 译字段，调 `createSignaturePad` |
 
 vui 名是 **`signaturePad`**。不要 `ejs-signature` / `SignatureComponent` / npm `signature_pad` 当 vui 名。
 

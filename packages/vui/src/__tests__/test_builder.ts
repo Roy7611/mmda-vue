@@ -32,9 +32,7 @@ const stub = (name: string, extra?: UiProps): VNode =>
   h("span", { class: "mmda-html-stub", "data-unimplemented": name, ...extra }, "not implemented");
 
 class TestLayout extends VueUiLayout {
-  fieldLayout = "vertical" as const
-  fieldMessage = true
-  wrapManyGroup = true
+  fieldVertical = true
   maxCols = 12
   listTile(slots) {
     return h("div", { class: "mmda-list-tile" }, [

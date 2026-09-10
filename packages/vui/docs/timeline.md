@@ -17,7 +17,7 @@ vui 名是 **`timeline`**。不要 `ejs-timeline` / `TempisTimeline` / Prime `Ti
 | vui `ui/factory/timeline.ts` | `UiTimelineProps`；`*Field`；`timelineItemsOf` / `tempisItemsOf`；`setTimelinePlugin` 覆盖 `factory.timeline` |
 | 皮肤 `factory/timeline.ts` | 无插件时：SF `TimelineComponent`；Prime `Timeline`；Naive `NTimeline` |
 | `@mmda/vuix-tempis-timeline` | 插件：canvas 起止轴 |
-| `fldFactory.timeline` | 字段值若是数组当 `items`；走当前 `factory.timeline`（含插件） |
+| `fieldFactory.timeline` | 字段值若是数组当 `items`；走当前 `factory.timeline`（含插件） |
 
 对侧时间缺省 **`relativeTime`**（core / Intl，「3天前」）。绝对时间：`timeDisplay: 'absolute'`。
 

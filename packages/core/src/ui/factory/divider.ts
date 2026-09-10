@@ -15,8 +15,8 @@ export function dividerModifierClasses(
 ): unknown[] {
   const orientation =
     props.orientation && props.orientation !== 'horizontal'
-      ? uiCssClass('divider', 'vertical')
+      ? uiCssClass('divider', undefined, 'vertical')
       : undefined
-  const labeled = props.label ? uiCssClass('divider', 'labeled') : undefined
+  const labeled = props.label ? uiCssClass('divider', undefined, 'labeled') : undefined
   return [uiCssClass('divider'), orientation, labeled, props.class]
 }

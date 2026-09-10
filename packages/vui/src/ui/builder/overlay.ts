@@ -8,7 +8,7 @@ import {
   resolveDialogButtons,
   shouldCloseDialog,
   type UiConfirmProps,
-  type UiDialogButton,
+  type UiDialogAction,
   type UiDialogProps,
   type UiDialogSeverity,
   type UiToastProps,
@@ -23,8 +23,8 @@ export type UiDialogContent = VNode | VNode[]
 /** @deprecated 用 UiDialogSeverity */
 export type UiToastSeverity = UiDialogSeverity
 
-function buttonLabel(button: UiDialogButton): string {
-  const defaults: Record<UiDialogButton, string> = {
+function buttonLabel(button: UiDialogAction): string {
+  const defaults: Record<UiDialogAction, string> = {
     ok: 'OK',
     cancel: 'Cancel',
     yes: 'Yes',
@@ -37,7 +37,7 @@ function buttonLabel(button: UiDialogButton): string {
 }
 
 export function createHtmlOverlay(): VueUiOverlay {
-  const stack: Array<(button: UiDialogButton) => Promise<void>> = []
+  const stack: Array<(button: UiDialogAction) => Promise<void>> = []
   return {
     toast(props: UiToastProps) {
       if (typeof document === 'undefined') return
@@ -61,7 +61,7 @@ export function createHtmlOverlay(): VueUiOverlay {
       return new Promise(resolve => {
         const host = document.createElement('div')
         document.body.append(host)
-        const close = async (button: UiDialogButton) => {
+        const close = async (button: UiDialogAction) => {
           if (!(await shouldCloseDialog(props, button))) return
           const idx = stack.lastIndexOf(close)
           if (idx >= 0) stack.splice(idx, 1)

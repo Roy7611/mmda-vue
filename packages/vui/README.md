@@ -54,7 +54,7 @@ src/
   contexts/         一屏会话：VueUiContext（Handbook mixin：data / validate / subgroup / navigate / reference）、view
   components/       皮肤无关 Vue 组件（EntityView、TableSettingView、GroupCard、侧栏、预览…）
   ui/
-    layout/         栅格与槽：VueUiLayout、AppLayout、UiProps、UiSlots
+    layout/         栅格与槽：VueUiLayout、UiProps、UiSlots
     factory/        控件契约（一控件一文件）：UiFactory、UiFieldFactory、list/tree/dialog…
     builder/        VueUiBuilder 拼屏：form/list/tree mixin、overlay、list_query / tree_data 等辅助函数
   i18n/             语言包与 setupI18n

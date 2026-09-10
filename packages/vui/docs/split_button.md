@@ -4,7 +4,7 @@ chrome **主段点击 + 箭头开菜单**，走 `factory.splitButton`。对照 [
 
 程序员用法：[split_button_usage.md](./split_button_usage.md)。chrome 参数约定：[factory.md](./factory.md)。钮表面： [button.md](./button.md)。
 
-没有 `fldFactory.splitButton`。不要 `builder.buildSplitButton`。不要 `import SplitButtonComponent`。
+没有 `fieldFactory.splitButton`。不要 `builder.buildSplitButton`。不要 `import SplitButtonComponent`。
 
 ## 分层
 

@@ -881,7 +881,7 @@ describe('vui-agnaive skin', () => {
 
   it('constructs the builder against VueUiBuilder', () => {
     const builder = new AgNaiveUiBuilder()
-    expect(builder.factory.layout.fieldMessage).toBe(false)
+    expect(builder.factory.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 

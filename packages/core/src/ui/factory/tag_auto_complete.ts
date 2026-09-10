@@ -74,7 +74,7 @@ export function tagAutoCompleteModifierClasses(
   props: UiTagAutoCompleteProps,
 ): unknown[] {
   const size = props.size
-    ? uiCssClass('tag-autocomplete', props.size)
+    ? uiCssClass('tag-autocomplete', undefined, props.size)
     : undefined
   return [uiCssClass('tag-autocomplete'), size, props.class]
 }

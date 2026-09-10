@@ -4,11 +4,12 @@ import {
   MetaModel,
   SqlDataType,
   auth,
+  placeFields,
   type MetaUiField,
   type MetaUiGroup,
   type UiMessageProps,
 } from "@mmda/core";
-import { type UiFieldGroupOrientation, type UiProps } from "../layout/layout";
+import { type UiFieldGroupType, type UiProps } from "../layout/layout";
 import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { wrapRowDetail } from "../factory/list";
@@ -38,11 +39,11 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     }
 
     /**
-     * @deprecated 用 `fldFactory.editFor`（已含默认 layoutField）。
+     * @deprecated 用 `fieldFactory.editFor`（已含默认 layoutField）。
      * 保留薄委托，避免皮肤/测试瞬时全断。
      */
     editFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      return this.fldFactory.editFor(field, context, props);
+      return this.fieldFactory.editFor(field, context, props);
     }
 
     fieldDisplayName(field: MetaUiField) {
@@ -52,21 +53,21 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     }
 
     /**
-     * @deprecated 用 `fldFactory.displayFor`（已含默认 layoutField）。
+     * @deprecated 用 `fieldFactory.displayFor`（已含默认 layoutField）。
      */
     displayFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      return this.fldFactory.displayFor(field, context, props);
+      return this.fieldFactory.displayFor(field, context, props);
     }
 
     /**
-     * @deprecated 用 `fldFactory.render`。按会话自动选编辑/显示并套字段布局。
+     * @deprecated 用 `fieldFactory.render`。按会话自动选编辑/显示并套字段布局。
      */
     buildField(field, context, props = {}) {
-      return this.fldFactory.render(field, context, props);
+      return this.fieldFactory.render(field, context, props);
     }
 
     buildResponsiveField(field, context, props = {}) {
-      return this.fldFactory.render(field, context, props);
+      return this.fieldFactory.render(field, context, props);
     }
     
     groupWrapClass(group: MetaUiGroup, props: UiProps = {}) {
@@ -363,12 +364,11 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
               context,
             );
           }
+          this.layout.fieldGroupLayout = { type: 'grid', gridCols: 1 }
           return this.wrapGroup(
             group,
             this.layout.layoutFieldGroup({
               fields: [uploader, gallery].filter(Boolean) as VNode[],
-              orientation: "table",
-              cols: 1,
             }),
             wrapProps,
           );
@@ -521,28 +521,49 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         if (showGroupActions !== false) {
           wrapProps.headerActions = this.buildGroupHeaderActions(group, context);
         }
+        this.layout.fieldGroupLayout = { type: 'grid', gridCols: 1 }
         return this.wrapGroup(
           group,
           this.layout.layoutFieldGroup({
             fields: [table],
-            orientation: "table",
-            cols: 1,
           }),
           wrapProps,
         );
       }
-      // 主表字段行：走 fldFactory.render（内含默认 layoutField）
+      // 主表字段行：走 fieldFactory.render（内含默认 layoutField）；先装箱再写坐标
+      const gridCols = (cols as 1 | 2 | 3) ?? 2
       const fields =
         children ??
-        group.fields
-          .filter((field) => !context.isFieldHidden(field))
-          .map((field) => this.fldFactory.render(field, context, fieldProps));
+        (() => {
+          const visible = group.fields.filter(
+            (field) => !context.isFieldHidden(field),
+          )
+          const packed = placeFields(
+            gridCols,
+            visible.map((field) => ({
+              colSpan: field.colSpan,
+              rowSpan: field.rowSpan,
+            })),
+          )
+          return visible.map((field, index) => {
+            const cell = packed[index]!
+            return this.fieldFactory.render(field, context, {
+              ...fieldProps,
+              gridColumn: `${cell.column + 1} / span ${cell.colSpan}`,
+              gridRow: `${cell.row + 1} / span ${cell.rowSpan}`,
+            })
+          })
+        })()
+      const groupType: UiFieldGroupType =
+        orientation === 'column' ? 'column' : 'grid'
+      this.layout.fieldGroupLayout = {
+        type: groupType,
+        gridCols,
+      }
       return this.wrapGroup(
         group,
         this.layout.layoutFieldGroup({
           fields,
-          orientation: orientation as UiFieldGroupOrientation,
-          cols: cols as 1 | 2 | 3,
         }),
         wrapProps,
       );
@@ -696,8 +717,12 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         summary: props.content ? [] : summary,
         tails: props.content ? [] : tails,
         footer: props.footer?.(),
-        props: { class: "mmda-view", role: runtime.view },
       });
+      const pageRoot = h(
+        "div",
+        { class: "mmda-view", role: runtime.view },
+        page,
+      );
       return context.editing
         ? h(
             "form",
@@ -705,9 +730,9 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
               class: "mmda-form",
               style: { height: "100%", minHeight: 0, overflow: "hidden" },
             },
-            page,
+            pageRoot,
           )
-        : page;
+        : pageRoot;
     }
   }
   return FormBuilder;

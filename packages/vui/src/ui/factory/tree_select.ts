@@ -1,6 +1,6 @@
 /*
  * chrome 树下拉走 factory.treeSelect（EJ2 DropDownTree 别名 factory.dropDownTree）。
- * 字段 fldFactory.treeSelect 译 MetaUiField 后再调本控件。
+ * 字段 fieldFactory.treeSelect 译 MetaUiField 后再调本控件。
  */
 import { MetaOptionsShape, type MetaUiField, type MetaUiFieldRef } from '@mmda/core'
 import type {UiProps} from '../layout/layout'

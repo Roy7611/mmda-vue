@@ -26,40 +26,40 @@ type Ctx = {
 
 export function inplaceFieldDisplayRenderer(
   field: MetaUiField,
-  fldFactory: UiFieldFactory,
+  fieldFactory: UiFieldFactory,
 ): UiFieldRenderer<VNode> {
   if (
     field.renderer &&
     !isInplaceFieldEditorKey(field.renderer) &&
-    typeof fldFactory[field.renderer] === 'function'
+    typeof fieldFactory[field.renderer] === 'function'
   ) {
-    return fldFactory[field.renderer]
+    return fieldFactory[field.renderer]
   }
-  return fldFactory.fallbackDisplay
+  return fieldFactory.fallbackDisplay
 }
 
 export function inplaceFieldContentRenderer(
   field: MetaUiField,
-  fldFactory: UiFieldFactory,
+  fieldFactory: UiFieldFactory,
 ): UiFieldRenderer<VNode> {
   if (
     field.editor &&
     !isInplaceFieldEditorKey(field.editor) &&
-    typeof fldFactory[field.editor] === 'function'
+    typeof fieldFactory[field.editor] === 'function'
   ) {
-    return fldFactory[field.editor]
+    return fieldFactory[field.editor]
   }
-  return fldFactory.fallbackInput
+  return fieldFactory.fallbackInput
 }
 
 export function renderInplaceFieldEditor(
   field: MetaUiField,
   context: Ctx,
   extra: UiProps = {},
-  fldFactory: UiFieldFactory,
+  fieldFactory: UiFieldFactory,
 ): VNode {
-  const display = inplaceFieldDisplayRenderer(field, fldFactory)
-  const content = inplaceFieldContentRenderer(field, fldFactory)
+  const display = inplaceFieldDisplayRenderer(field, fieldFactory)
+  const content = inplaceFieldContentRenderer(field, fieldFactory)
   const disabled =
     extra.disabled === true || context.isFieldReadonly(field)
   const chrome = context.uiBuilder?.factory?.inplaceEditor

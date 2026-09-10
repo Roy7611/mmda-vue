@@ -31,6 +31,6 @@ factory.rating({
 字段：
 
 ```ts
-fldFactory.rating(field, context)
-fldFactory.rating(field, context, { itemsCount: 2, readOnly: true })
+fieldFactory.rating(field, context)
+fieldFactory.rating(field, context, { itemsCount: 2, readOnly: true })
 ```

@@ -4,7 +4,7 @@ chrome 月视选日，走 `factory.calendar`。契约 `UiCalendarProps` 在 `@mm
 
 程序员用法：[calendar_usage.md](./calendar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-带输入框的选日是 [`datePicker`](./date_picker.md) / 字段 `fldFactory.datePicker`，不是本控件。区间用 [`dateRangePicker`](./date_range_picker.md)。
+带输入框的选日是 [`datePicker`](./date_picker.md) / 字段 `fieldFactory.datePicker`，不是本控件。区间用 [`dateRangePicker`](./date_range_picker.md)。
 
 ## 分层
 

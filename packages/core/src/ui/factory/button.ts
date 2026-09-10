@@ -25,15 +25,15 @@ export interface UiButtonProps extends UiProps, UiAction {
 
 export function buttonModifierClasses(props: UiButtonProps): unknown[] {
   const role = props.colorRole
-    ? uiCssClass('button', props.colorRole)
+    ? uiCssClass('button', undefined, props.colorRole)
     : undefined
   const surface =
     props.buttonType && props.buttonType !== 'filled'
-      ? uiCssClass('button', props.buttonType)
+      ? uiCssClass('button', undefined, props.buttonType)
       : undefined
   const shape =
     props.shape && props.shape !== 'square'
-      ? uiCssClass('button', props.shape)
+      ? uiCssClass('button', undefined, props.shape)
       : undefined
   return [uiCssClass('button'), role, surface, shape, props.class]
 }

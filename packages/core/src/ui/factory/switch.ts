@@ -20,8 +20,8 @@ export function switchModifierClasses(props: UiSwitchProps): unknown[] {
         : false
   return [
     uiCssClass('switch'),
-    checked ? uiCssClass('switch', 'checked') : undefined,
-    props.disabled ? uiCssClass('switch', 'disabled') : undefined,
+    checked ? uiCssClass('switch', undefined, 'checked') : undefined,
+    props.disabled ? uiCssClass('switch', undefined, 'disabled') : undefined,
     props.class,
   ]
 }

@@ -51,7 +51,7 @@ factory.stepper({
 ## 表单字段
 
 ```ts
-fldFactory.stepper(field, context, {
+fieldFactory.stepper(field, context, {
   items: model.phases,
   labelField: 'phaseName',
 })

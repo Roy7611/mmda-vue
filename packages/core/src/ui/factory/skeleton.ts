@@ -21,8 +21,8 @@ export function skeletonModifierClasses(
   const shimmer = props.shimmer ?? 'wave'
   return [
     uiCssClass('skeleton'),
-    uiCssClass('skeleton', shape),
-    uiCssClass('skeleton', shimmer),
+    uiCssClass('skeleton', undefined, shape),
+    uiCssClass('skeleton', undefined, shimmer),
     props.class,
   ]
 }

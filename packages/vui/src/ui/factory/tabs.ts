@@ -3,7 +3,7 @@
  *
  * chrome 页签走 factory.tabs（复数）。选中下标用 value，不要 selectedItem / activeTab。
  * 位置用 headerPlacement；过多页签用 scrollable。不要 vui 主名 placement / overflowMode。
- * 不是字段控件：没有 fldFactory.tabs。
+ * 不是字段控件：没有 fieldFactory.tabs。
  */
 import type { VNode, VNodeChild } from 'vue'
 import { callUiBagFn } from '@mmda/core'

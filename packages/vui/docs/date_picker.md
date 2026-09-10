@@ -6,7 +6,7 @@ chrome 带输入框选日，走 `factory.datePicker`。[EJ2 DatePicker](https://
 
 程序员用法：[date_picker_usage.md](./date_picker_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-表单字段走 `fldFactory.datePicker` / `fldFactory.monthPicker`：翻译 `MetaUiField` 后调本控件。
+表单字段走 `fieldFactory.datePicker` / `fieldFactory.monthPicker`：翻译 `MetaUiField` 后调本控件。
 
 ## 分层
 
@@ -14,7 +14,7 @@ chrome 带输入框选日，走 `factory.datePicker`。[EJ2 DatePicker](https://
 |---|---|
 | vui `ui/factory/date_picker.ts` | `UiDatePickerProps`：`value` / `precision` / `allowInput` / `showShortcuts`；`datePickerPropsFromField` |
 | 皮肤 `factory/date_picker.ts` | SF `DatePickerComponent`；Prime `DatePicker`；Naive `NDatePicker` `type: date` |
-| 字段 `fldFactory.datePicker` | 译字段，调 `createDatePicker`。`monthPicker` 带 `precision: 'month'` |
+| 字段 `fieldFactory.datePicker` | 译字段，调 `createDatePicker`。`monthPicker` 带 `precision: 'month'` |
 
 **不是** `factory.calendar`。**不要**把 EJ2 `start` / `depth` 写成 vui 属性。
 

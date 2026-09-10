@@ -37,8 +37,8 @@ export function toolbarModifierClasses(
   const hasCenter = typeof slots?.center === 'function'
   return [
     uiCssClass('toolbar'),
-    uiCssClass('toolbar', layout),
-    hasCenter ? uiCssClass('toolbar', 'with-center') : undefined,
+    uiCssClass('toolbar', undefined, layout),
+    hasCenter ? uiCssClass('toolbar', undefined, 'with-center') : undefined,
     props.class,
   ]
 }
@@ -53,7 +53,7 @@ export function toolbarSlotModifierClasses(
       ? raw
       : TOOLBAR_SLOT_ALIGN[slot]
   return [
-    uiCssClass(`toolbar__${slot}`),
-    uiCssClass(`toolbar__${slot}`, align),
+    uiCssClass('toolbar', slot),
+    uiCssClass('toolbar', slot, align),
   ]
 }

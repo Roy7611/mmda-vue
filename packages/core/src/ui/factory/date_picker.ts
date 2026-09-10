@@ -22,7 +22,7 @@ export interface UiDatePickerProps extends UiDateInputProps {
 export function datePickerModifierClasses(props: UiDatePickerProps): unknown[] {
   const month =
     props.precision === 'month'
-      ? uiCssClass('datepicker', 'month')
+      ? uiCssClass('datepicker', undefined, 'month')
       : undefined
   return [uiCssClass('datepicker'), month, props.class]
 }

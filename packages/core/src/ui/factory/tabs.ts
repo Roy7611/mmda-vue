@@ -36,11 +36,11 @@ export function tabsModifierClasses(props: UiTabsProps): unknown[] {
   const scrollable = props.scrollable !== false
   return [
     uiCssClass('tabs'),
-    uiCssClass('tabs', placement.toLowerCase()),
+    uiCssClass('tabs', undefined, placement.toLowerCase()),
     scrollable
-      ? uiCssClass('tabs', 'scrollable')
-      : uiCssClass('tabs', 'popup'),
-    uiCssClass('tabs', height.toLowerCase()),
+      ? uiCssClass('tabs', undefined, 'scrollable')
+      : uiCssClass('tabs', undefined, 'popup'),
+    uiCssClass('tabs', undefined, height.toLowerCase()),
     props.class,
   ]
 }

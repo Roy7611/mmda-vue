@@ -4,7 +4,7 @@ chrome 多行文本走 `factory.textArea`。[EJ2 Vue TextArea](https://ej2.syncf
 
 程序员用法：[text_area_usage.md](./text_area_usage.md)。chrome 参数约定：[factory.md](./factory.md)。普通单行仍是 `factory.textInput`。不要 `factory.textarea`。
 
-表单字段走 `fldFactory.textArea`：翻译 `MetaUiField` 后调本控件。
+表单字段走 `fieldFactory.textArea`：翻译 `MetaUiField` 后调本控件。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 多行文本走 `factory.textArea`。[EJ2 Vue TextArea](https://ej2.syncf
 |---|---|
 | vui `ui/factory/text_area.ts` | `UiTextAreaProps`；`textAreaValueOf` / `textAreaResizeModeOf` / `textAreaPropsFromField` |
 | 皮肤 `factory/text_area.ts` | SF `TextAreaComponent`；Prime `Textarea`；Naive `NInput` `type: 'textarea'` |
-| 字段 `fldFactory.textArea` | 译字段，调 `createTextArea` |
+| 字段 `fieldFactory.textArea` | 译字段，调 `createTextArea` |
 
 vui 名是 **`textArea`**。不要 `textarea` / `Textarea` / `NInput` 当 vui 名。
 

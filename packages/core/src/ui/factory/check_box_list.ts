@@ -23,14 +23,14 @@ export function checkBoxListModifierClasses(
 ): unknown[] {
   const mode = props.bindMode ?? 'item_array'
   const bits =
-    mode === 'or_bits' ? uiCssClass('checkbox-list', 'bits') : undefined
+    mode === 'or_bits' ? uiCssClass('checkbox-list', undefined, 'bits') : undefined
   return [
     uiCssClass('checkbox-list'),
     bits,
     ...multiSelectModifierClasses(props).filter(
       (cls) =>
         cls !== uiCssClass('multi-select') &&
-        cls !== uiCssClass('multi-select', mode),
+        cls !== uiCssClass('multi-select', undefined, mode),
     ),
   ]
 }

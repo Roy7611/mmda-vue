@@ -1097,31 +1097,27 @@ html.e-dark-mode .mmda-sf-dropup {
   color: var(--mmda-text-color, #e6e1e5);
 }
 
-/* 登录表单：Outlined 输入 + 提交按钮 */
-.mmda-sf-auth-form.mmda-signin-form .e-outline,
-.mmda-sf-auth-form.mmda-signin-form .e-control-wrapper.e-outline,
-.mmda-sf-auth-form.mmda-signin-form .e-input-group.e-outline {
+/* 登录表单：Outlined 输入 */
+.mmda-signin-form .e-outline,
+.mmda-signin-form .e-control-wrapper.e-outline,
+.mmda-signin-form .e-input-group.e-outline {
   width: 100%;
   border-radius: 0.75rem !important;
 }
 
-.mmda-sf-auth-form.mmda-signin-form .e-outline .e-input,
-.mmda-sf-auth-form.mmda-signin-form .e-input-group.e-outline .e-input,
-.mmda-sf-auth-form.mmda-signin-form input.e-input {
+.mmda-signin-form .e-outline .e-input,
+.mmda-signin-form .e-input-group.e-outline .e-input,
+.mmda-signin-form input.e-input {
   min-height: 2.5rem;
   padding-block: 0.55rem;
 }
 
-.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill,
-.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill:hover,
-.mmda-sf-auth-form.mmda-signin-form .e-outline input:-webkit-autofill:focus {
+.mmda-signin-form .e-outline input:-webkit-autofill,
+.mmda-signin-form .e-outline input:-webkit-autofill:hover,
+.mmda-signin-form .e-outline input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--mmda-text-color, #1c1b1f);
   box-shadow: 0 0 0 1000px var(--mmda-surface-card, #fffbfe) inset;
   transition: background-color 99999s ease-out;
-}
-
-.mmda-sf-auth-form.mmda-signin-form .mmda-signin-form__submit.e-btn {
-  width: 100%;
 }
 
 /*
@@ -1235,11 +1231,11 @@ html.e-dark-mode .mmda-sf-dropup {
   margin-inline: 1rem;
 }
 
-.mmda-sf-maincontent .mmda-page-layout {
+.mmda-sf-maincontent .mmda-page {
   padding: 0;
 }
 
-.mmda-sf-maincontent .mmda-page-layout > .mmda-page-body {
+.mmda-sf-maincontent .mmda-page > .mmda-page-body {
   margin-inline: 1rem;
   margin-block-start: 0.75rem;
 }
@@ -2390,22 +2386,16 @@ html.e-dark-mode .mmda-sf-toolbar-actions .e-dropdown-btn.mmda-btn-tonal:focus {
   opacity: 0.72;
 }
 
-/* 详情 Card 字段：强制 label 定宽右对齐，field 占满（与 theme 双列网格一致） */
-.e-card.mmda-group .mmda-field-group-layout--row[data-cols="2"] {
-  grid-template-columns:
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+/* 详情 Card 字段：一格一 field，N 逻辑列 */
+.e-card.mmda-group .mmda-field-group--row[data-grid-cols="2"],
+.e-card.mmda-group .mmda-field-group--grid[data-grid-cols="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.e-card.mmda-group .mmda-field-group-layout--row[data-cols="3"] {
-  grid-template-columns:
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr)
-    var(--mmda-field-label-col, 8rem) minmax(0, 1fr);
+.e-card.mmda-group .mmda-field-group--row[data-grid-cols="3"],
+.e-card.mmda-group .mmda-field-group--grid[data-grid-cols="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.e-card.mmda-group .mmda-field-group-layout > .mmda-field-layout--horizontal {
-  display: contents !important;
-}
-.e-card.mmda-group .mmda-field-group-layout .mmda-field-label {
+.e-card.mmda-group .mmda-field--horizontal > .mmda-field-label {
   text-align: right;
 }
 

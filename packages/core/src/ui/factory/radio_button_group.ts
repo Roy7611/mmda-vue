@@ -35,10 +35,10 @@ export function radioButtonGroupModifierClasses(
   return [
     uiCssClass('radiobuttongroup'),
     props.orientation === 'vertical'
-      ? uiCssClass('radiobuttongroup', 'vertical')
+      ? uiCssClass('radiobuttongroup', undefined, 'vertical')
       : undefined,
     props.disabled
-      ? uiCssClass('radiobuttongroup', 'disabled')
+      ? uiCssClass('radiobuttongroup', undefined, 'disabled')
       : undefined,
     props.class,
   ]

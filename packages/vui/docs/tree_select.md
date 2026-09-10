@@ -4,7 +4,7 @@ chrome 树下拉，走 `factory.treeSelect`。契约 `UiTreeSelectProps` 在 `@m
 
 不是 `factory.tree`（导航树），也不是扁平 `factory.dropDownList`。程序员用法：[tree_select_usage.md](./tree_select_usage.md)。
 
-表单字段走 `fldFactory.treeSelect(field, context)`。
+表单字段走 `fieldFactory.treeSelect(field, context)`。
 
 ## 分层
 
@@ -12,7 +12,7 @@ chrome 树下拉，走 `factory.treeSelect`。契约 `UiTreeSelectProps` 在 `@m
 |---|---|
 | vui `ui/factory/tree_select.ts` | `UiTreeSelectProps`、`treeSelectPropsFromField` |
 | 皮肤 `factory/tree_select.ts` | SF `DropDownTreeComponent`；Prime `TreeSelect`；Naive `NTreeSelect` |
-| 字段 `fldFactory.treeSelect` | 译字段，调 `createTreeSelect` |
+| 字段 `fieldFactory.treeSelect` | 译字段，调 `createTreeSelect` |
 
 ## 字段怎么认出树
 
