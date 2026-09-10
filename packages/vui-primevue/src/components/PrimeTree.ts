@@ -158,7 +158,7 @@ export const PrimeTree = defineComponent({
       h(
         'div',
         {
-          class: ['mmda-prime-tree-host', props.class],
+          class: ['mmda-tree-host', props.class],
           onKeydown: (event: KeyboardEvent) => {
             if (event.key !== 'F2' || editingId.value) return
             const id = [...selectedIdSet(props.selected)][0]
@@ -172,7 +172,7 @@ export const PrimeTree = defineComponent({
               value: nodes.value,
               selectionMode: props.selectionMode === 'none' ? undefined : mode.value,
               selectionKeys: props.selectionMode === 'none' ? undefined : selection.value,
-              class: ['mmda-prime-tree', props.class],
+              class: ['mmda-tree', props.class],
               dragdrop: props.allowDragDrop === true,
               'onUpdate:selectionKeys': emitSelection,
               onNodeDrop: (event: {
@@ -244,7 +244,7 @@ export const PrimeTree = defineComponent({
                 return h(
                   'span',
                   {
-                    class: 'mmda-prime-tree-label',
+                    class: 'mmda-tree-label',
                     onDblclick: (event: MouseEvent) => {
                       event.preventDefault()
                       event.stopPropagation()

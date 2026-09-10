@@ -79,8 +79,8 @@ export const SfLoadingHost = defineComponent({
           ref: hostRef,
           class: [
             ...loadingModifierClasses(chrome).flat(),
-            overlay ? 'mmda-loading--overlay' : 'mmda-sf-page-loading-host',
-            overlay ? 'mmda-sf-grid-loading-host' : undefined,
+            overlay ? 'mmda-loading--overlay' : 'mmda-page-loading-host',
+            overlay ? 'mmda-grid-loading-host' : undefined,
             overlay && busy() ? 'is-loading' : undefined,
           ],
           role: 'status',

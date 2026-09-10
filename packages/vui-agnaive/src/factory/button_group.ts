@@ -19,7 +19,7 @@ export function createButtonGroup(
       vertical: orientation === 'vertical',
       class: [
         'mmda-button-group',
-        'mmda-agnaive-button-group',
+        'mmda-button-group',
         className,
       ].filter(Boolean),
     },

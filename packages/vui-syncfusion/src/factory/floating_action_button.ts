@@ -1,8 +1,11 @@
 import { h } from "vue";
 import { FabComponent } from "@syncfusion/ej2-vue-buttons";
-import type { UiButtonSlots } from "@mmda/core"
-import type { UiFabPosition, UiFloatingActionButtonProps } from "@mmda/vui"
-import { fabModifierClasses } from "@mmda/vui"
+import { buttonModifierClasses, type UiButtonSlots } from "@mmda/core"
+import {
+  fabModifierClasses,
+  type UiFabPosition,
+  type UiFloatingActionButtonProps,
+} from "@mmda/vui"
 import { buttonRoleClass, buttonSurfaceClass } from "./utils";
 
 const EJ2_POSITION: Record<UiFabPosition, string> = {
@@ -55,6 +58,7 @@ export function createFloatingActionButton(
         buttonRoleClass({ ...props, colorRole: role }),
         buttonSurfaceClass(buttonType),
         size === "small" ? "e-small" : "",
+        buttonModifierClasses({ ...props, colorRole: role }),
         fabModifierClasses({ ...props, position: pos, colorRole: role }),
       ]
         .flat()

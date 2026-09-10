@@ -72,7 +72,7 @@ const wrapMasked = (
   extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createMaskedTextBox(maskedTextBoxPropsFromField(field, context, extra)),
     invalid &&
       h(
@@ -89,7 +89,7 @@ const wrapOtp = (
   extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createOneTimePasswordInput(
       oneTimePasswordPropsFromField(field, context, extra),
     ),
@@ -108,7 +108,7 @@ const wrapSlider = (
   extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createSlider(sliderPropsFromField(field, context, extra)),
     invalid &&
       h(
@@ -125,7 +125,7 @@ const wrapRating = (
   extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createRating(ratingPropsFromField(field, context, extra)),
     invalid &&
       h(
@@ -204,7 +204,7 @@ const factory: UiFieldFactory = {
     wrapRating(field, context, props ?? {}),
   colorPicker: (field, context, props) => {
     const invalid = invalidOf(field, context);
-    return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+    return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
       createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
       invalid &&
         h(

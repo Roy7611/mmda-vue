@@ -11,7 +11,20 @@ import type {
  * 不要 factory.dialog。无 Vue。
  */
 export interface UiOverlay<TNode = any> {
+  /**
+   * 轻提示（右侧 Overlay Toast）。
+   * 详情/编辑页顶栏用 {@link message}，不要用本方法顶替。
+   */
   toast(props: UiToastProps): void
+  /**
+   * 页内消息条（详情/编辑 PageBody 全宽顶栏）。
+   * 列表等无 PageBody 的会话可回落 `toast`。
+   */
+  message(props: UiMessageProps): void
+  /**
+   * 是/否确认。`true` = 确定，`false` = 取消。
+   * 业务写在 `if (await confirm(...))` 里，不要 `accept` 回调。
+   */
   confirm(props: UiConfirmProps): Promise<boolean>
   /**
    * @param content 弹层内容

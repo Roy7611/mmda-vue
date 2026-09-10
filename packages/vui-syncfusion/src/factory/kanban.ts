@@ -116,7 +116,7 @@ const KanbanImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-kanban-missing' },
+            { class: 'mmda-kanban-missing' },
             'Kanban requires @syncfusion/ej2-vue-kanban',
           ),
       }),
@@ -166,7 +166,7 @@ export const SfKanbanView = defineComponent({
         'div',
         {
           class: kanbanHookClass(
-            ['mmda-sf-kanban', props.class],
+            ['mmda-kanban', props.class],
             props.readonly,
           ),
           style: {

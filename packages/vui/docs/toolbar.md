@@ -25,7 +25,7 @@ chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.o
 
 整条 grid `1fr auto 1fr`，不要根上 `around`。槽对齐只用 `UiHorzAlign` 的 `left` / `center` / `right`，不要 `between` / `around` / `evenly`。
 
-钩子 class：`mmda-toolbar`；`--full` / `--medium` / `--compact`；有 center 时 `--with-center`；槽 `--left` / `--center` / `--right`。
+钩子 class：`mmda-toolbar`；缺省 full **不挂** layout 修饰；非缺省才有 `--medium` / `--compact`；视口 densify 另有 `--dense`；有 center 时 `--with-center`；槽 `--left` / `--center` / `--right`。
 
 ## 模块栏 layout
 
@@ -36,6 +36,8 @@ chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.o
 | `compact` | 横条下拉 | 标题 | 放大镜；点击进搜索页 |
 
 `ModuleToolbarProps.showSearchBar` 控制 full/medium 的中间搜索、compact 的放大镜。
+
+视口 ≤1024（`useCompactViewport`）时 full/medium 动作会 **dense**：按钮只留图标，文案进 `tooltip` / `aria-label`；`moreMenuButton` 始终带 `more` 图标。这与 `layout: 'compact'`（汉堡 + 标题 + 放大镜）不是同一套。
 
 ## 皮肤映射
 

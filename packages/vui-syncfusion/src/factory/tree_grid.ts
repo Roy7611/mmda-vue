@@ -90,7 +90,7 @@ export const treeGridRenderers = {
               mode: "Cell",
             }
           : undefined,
-        cssClass: ["mmda-sf-treegrid-table", props.class]
+        cssClass: ["mmda-treegrid-table", props.class]
           .filter(Boolean)
           .join(" "),
         expanding: (args: any) => {
@@ -148,12 +148,12 @@ export const treeGridRenderers = {
         },
         ...(props.rowDetail
           ? {
-              detailTemplate: "<div class=\"mmda-sf-row-detail-host\"></div>",
+              detailTemplate: "<div class=\"mmda-row-detail-host\"></div>",
               detailDataBound(this: any, args: any) {
                 const root = args?.detailElement as HTMLElement | undefined;
                 const host =
                   (root?.querySelector?.(
-                    ".mmda-sf-row-detail-host",
+                    ".mmda-row-detail-host",
                   ) as HTMLElement | null) ?? root;
                 if (!host) return;
                 const row = rowOf(args) as T | undefined;
@@ -202,7 +202,7 @@ export const treeGridRenderers = {
             const target = treeCell ?? args.cell;
             const isTreeCol = Boolean(treeCell);
             const host = document.createElement(isTreeCol ? "span" : "div");
-            host.className = isTreeCol ? "mmda-sf-treecell" : "mmda-sf-cell";
+            host.className = isTreeCol ? "mmda-treecell" : "mmda-cell";
             target.replaceChildren(host);
             renderWithAppContext(
               h(

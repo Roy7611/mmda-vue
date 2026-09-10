@@ -54,7 +54,7 @@ export const SfTreeGrid = defineComponent({
     return () =>
       h('div', {
         ref: host,
-        class: 'mmda-sf-treegrid',
+        class: 'mmda-treegrid',
         style: { width: '100%', minHeight: '240px' },
       })
   },

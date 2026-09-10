@@ -33,7 +33,7 @@ export const dropDownList = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createDropDownList(
       dropDownListPropsFromField(field, context, props ?? {}),
     ),
@@ -52,7 +52,7 @@ export const treeSelect = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createTreeSelect(
       treeSelectPropsFromField(field, context, props ?? {}),
     ),
@@ -71,7 +71,7 @@ export const comboBox = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(
@@ -84,7 +84,7 @@ export const comboBox = (
 
 function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     child,
     invalid &&
       h(
@@ -221,7 +221,7 @@ export const checkbox = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(
@@ -238,7 +238,7 @@ export const switchControl = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createSwitch(switchPropsFromField(field, context, props ?? {})),
     invalid &&
       h(
@@ -342,7 +342,7 @@ export const autoComplete = (
   if (route === "searchBox") return searchBox(field, context, props);
   const invalid = invalidOf(field, context);
   const reference = field.reference?.isRef ? field.reference : undefined;
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createAutoComplete({
       value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
       ...autoCompletePropsFromField(field, props ?? {}),

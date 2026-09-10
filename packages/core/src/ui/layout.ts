@@ -431,7 +431,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
         : this.wrap(
             'header',
             {
-              className: uiCssClasses('page-toolbar', 'sticky'),
+              className: uiCssClasses('page-header', 'sticky'),
               style: { position: 'sticky', top: 0, zIndex: 2 },
             },
             [slots.toolbar],

@@ -72,7 +72,7 @@ export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
   if (typeof document === "undefined") return;
   const metaUi = context.metaUi;
   if (!metaUi) return;
-  const element = document.querySelector(".e-grid.mmda-sf-table");
+  const element = document.querySelector(".e-grid.mmda-table");
   const ej2Grid = (element as any)?.ej2_instances?.[0];
   if (!ej2Grid) return;
 

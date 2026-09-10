@@ -36,10 +36,10 @@ app
 系统级模块菜单按官方 Sidebar 用法接入：
 
 - [Dock](https://ej2.syncfusion.com/documentation/sidebar/docking-sidebar)：`enableDock` + `dockSize: 72px` + `width: 320px`，`toggle()` 伸缩；收起用 `.e-dock.e-close .e-text` 隐藏文案
-- [Target](https://ej2.syncfusion.com/documentation/sidebar/custom-context)：`target: '.mmda-sf-shell'`
-- [Types](https://ej2.syncfusion.com/documentation/sidebar/variations)：`type: 'Push'`，Sidebar 与 `.mmda-sf-maincontent` 为兄弟节点（不再塞进 CSS Grid nav 列）
+- [Target](https://ej2.syncfusion.com/documentation/sidebar/custom-context)：`target: '.mmda-app-layout'`
+- [Types](https://ej2.syncfusion.com/documentation/sidebar/variations)：`type: 'Push'`，Sidebar 与 `.mmda-app-page.e-main-content` 为兄弟节点（`e-main-content` 供 EJ2 Push 写 margin；不再塞进 CSS Grid nav 列）
 
-壳层由 `SyncfusionUiBuilder.buildAppScaffold` 渲染为 `.mmda-sf-shell > Sidebar + .mmda-sf-maincontent`。
+壳层由 `SyncfusionLayout.scaffold`（AppShell 直接调）渲染为 `.mmda-app-layout > Sidebar|compact + .mmda-app-page.e-main-content`（扁平兄弟，无 `.mmda-app-nav`）。
 
 动作图标用 Syncfusion `e-icons`；业务图标（`Module.moduleIcon`、`far fa-*`）走 `@mmda/vui/fontawesome.css`（插件已引入）。
 

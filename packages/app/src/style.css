@@ -34,7 +34,9 @@ textarea {
   background: transparent;
 }
 
-.mmda-list-scroll {
+.mmda-list-view .mmda-page-body,
+.mmda-tree-list-view .mmda-page-body,
+.mmda-tree-grid-view .mmda-page-body {
   min-width: 0;
   min-height: 0;
 }

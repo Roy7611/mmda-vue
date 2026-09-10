@@ -24,7 +24,7 @@ import { gridFiltersToModel, isChoiceFilterField } from "../factory/utils";
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
 const gridOf = (vnode: any) => {
   let node = vnode;
-  if (node?.props?.class === "mmda-sf-pagable-table") {
+  if (node?.props?.class === "mmda-pagable-table") {
     const kids = node.children;
     node = Array.isArray(kids) ? kids[0] : kids;
   }
@@ -40,7 +40,7 @@ const gridOf = (vnode: any) => {
 };
 
 const pagerOf = (vnode: any) => {
-  if (vnode?.props?.class !== "mmda-sf-pagable-table") return null;
+  if (vnode?.props?.class !== "mmda-pagable-table") return null;
   const kids = vnode.children;
   return Array.isArray(kids) ? kids[1] : null;
 };
@@ -99,6 +99,18 @@ describe("Syncfusion skin", () => {
     expect(factory.resolveIcon("save")).toBe("e-icons e-save");
     expect(factory.resolveIcon("clear")).toBe("e-icons e-erase");
     expect(factory.resolveIcon("add")).toBe("e-icons e-plus");
+    expect(factory.resolveIcon("")).toBe("e-icons e-play");
+    expect(factory.resolveIcon("execute")).toBe("e-icons e-play");
+    expect(factory.resolveIcon("do")).toBe("e-icons e-play");
+    const deprecateBtn = factory.actionButton(
+      { name: "deprecate", label: "弃用", colorRole: "danger" },
+      (m: string) => m,
+      false,
+      {},
+    );
+    expect(String(deprecateBtn.props?.iconCss ?? deprecateBtn.props?.icon ?? "")).toContain(
+      "e-play",
+    );
     expect(factory.formField).toBeTypeOf("function");
     expect(factory.datePicker).toBeTypeOf("function");
     expect(factory.numberInput).toBeTypeOf("function");
@@ -152,9 +164,9 @@ describe("Syncfusion skin", () => {
       pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
       onPage: () => undefined,
     });
-    expect(paged.props?.class).toBe("mmda-sf-pagable");
+    expect(paged.props?.class).toBe("mmda-pagable");
     const bare = factory.list([{ id: "1" }], metaUi, {});
-    expect(bare.props?.class).toBe("mmda-sf-list");
+    expect(bare.props?.class).toBe("mmda-list");
   });
 
   it("maps factory.badge colorRole and circle shape to e-badge classes", () => {
@@ -710,6 +722,7 @@ describe("Syncfusion skin", () => {
     const vnode = factory.drawer({ visible: true } as any);
     expect(vnode.props?.type).toBe("Over");
     expect(vnode.props?.showBackdrop).toBe(true);
+    expect(vnode.props?.closeOnDocumentClick).toBe(true);
     expect(vnode.props?.isOpen).toBe(true);
     expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-sidebar--drawer");
   });
@@ -1158,7 +1171,7 @@ describe("Syncfusion skin", () => {
       labelOf: (option: any) => option?.categoryName,
     };
     const buildSearchForRelative = vi.fn(() =>
-      h("div", { class: "mmda-sf-relative-search" }),
+      h("div", { class: "mmda-relative-search" }),
     );
     const context = {
       model: { categoryID: "C1", category },
@@ -1252,14 +1265,14 @@ describe("Syncfusion skin", () => {
           (key) => key,
         ),
       ],
-      { class: "mmda-sf-toolbar-actions" },
+      { class: "mmda-toolbar-actions" },
     );
     const className = Array.isArray(group.props?.class)
       ? group.props.class.join(" ")
       : String(group.props?.class ?? "");
     expect(className).toContain("e-btn-group");
-    expect(className).toContain("mmda-sf-button-group");
-    expect(className).toContain("mmda-sf-toolbar-actions");
+    expect(className).toContain("mmda-button-group");
+    expect(className).toContain("mmda-toolbar-actions");
   });
 
   it("maps button colorRole onto EJ2 style classes", () => {
@@ -1374,7 +1387,7 @@ describe("Syncfusion skin", () => {
     expect(vnode.props?.items?.[0]?.text).toBe("导入");
     expect(vnode.props?.content).toBe("action.more");
     expect(vnode.props?.iconCss).toBeFalsy();
-    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-btn-tonal");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-button--tonal");
     expect(String(vnode.props?.cssClass ?? "")).not.toContain("e-outline");
     expect(String(vnode.props?.cssClass ?? "")).not.toContain("e-flat");
   });
@@ -1476,7 +1489,7 @@ describe("Syncfusion skin", () => {
       ],
     });
     expect(vnode.props?.content).toBe("恢复默认");
-    expect(vnode.props?.cssClass).toContain("mmda-sf-split--outline");
+    expect(vnode.props?.cssClass).toContain("mmda-split--outline");
     expect(vnode.props?.cssClass).not.toContain("e-outline");
     vnode.props?.select({ item: { id: "reloadFromDatabase" } });
     expect(reload).toHaveBeenCalledOnce();
@@ -1491,8 +1504,8 @@ describe("Syncfusion skin", () => {
       actions: [],
     });
     const cssClass = String(vnode.props?.cssClass ?? "");
-    expect(cssClass).toContain("mmda-sf-split--flat");
-    expect(cssClass).toContain("mmda-sf-split--secondary");
+    expect(cssClass).toContain("mmda-split--flat");
+    expect(cssClass).toContain("mmda-split--secondary");
     expect(cssClass).not.toContain("e-flat");
     expect(cssClass).not.toContain("e-secondary");
   });
@@ -1581,8 +1594,35 @@ describe("Syncfusion skin", () => {
       sideBar: () => null,
       body: () => null,
     });
-    expect(scaffold.props?.class).toBe("mmda-sf-shell");
-    expect(scaffold.props?.id).toBe("mmda-sf-shell");
+    expect(scaffold.props?.class).toBe("mmda-app-layout");
+    expect(scaffold.props?.id).toBe("mmda-app-layout");
+    const main = (scaffold.children as any[])?.find(
+      (c) => c?.props?.role === "main",
+    );
+    expect(String(main?.props?.class ?? "")).toContain("mmda-app-page");
+    expect(String(main?.props?.class ?? "")).toContain("e-main-content");
+
+    const fromLayout = syncfusionLayout.scaffold({
+      variant: "sidebarLeft",
+      nav: h("aside", { class: "mmda-app-side-menu--compact" }),
+      page: h("span", "page"),
+    });
+    expect(fromLayout.props?.id).toBe("mmda-app-layout");
+    expect(
+      (fromLayout.children as any[])?.some(
+        (c) => c?.props?.class === "mmda-app-side-menu--compact",
+      ),
+    ).toBe(true);
+    expect(
+      (fromLayout.children as any[])?.some((c) =>
+        String(c?.props?.class ?? "").includes("e-main-content"),
+      ),
+    ).toBe(true);
+    expect(
+      (fromLayout.children as any[])?.some(
+        (c) => c?.props?.class === "mmda-app-nav",
+      ),
+    ).toBe(false);
 
     expect(
       builder.buildAppSideBar({
@@ -1614,7 +1654,7 @@ describe("Syncfusion skin", () => {
     );
     expect(vnode.props?.dataSource).toEqual(rows);
     expect(vnode.props?.dataSource).not.toBe(rows);
-    expect(vnode.key).toContain("mmda-sf-grid-");
+    expect(vnode.key).toContain("mmda-grid-");
   });
 
   it("wires Grid detailTemplate when rowDetail is set", () => {
@@ -1691,7 +1731,7 @@ describe("Syncfusion skin", () => {
         h("a", { href: `#${row.id}` }, row.name),
     });
 
-    expect(host.props?.class).toBe("mmda-sf-pagable-table");
+    expect(host.props?.class).toBe("mmda-pagable-table");
     const vnode = gridOf(host);
     expect(vnode.props?.allowPaging).toBe(false);
     expect(vnode.props?.enableVirtualization).toBe(true);
@@ -1743,7 +1783,7 @@ describe("Syncfusion skin", () => {
       textAlign: "Left",
       headerTextAlign: "Left",
       field: "rowNum",
-      customAttributes: { class: "mmda-sf-rownum-col" },
+      customAttributes: { class: "mmda-rownum-col" },
       freeze: "Left",
     });
     expect(columns[1].template).toBeUndefined();
@@ -2023,11 +2063,11 @@ describe("Syncfusion skin", () => {
     });
     const slots = vnode.children as any;
     const cell = slots.mmdaCell_actions({ data: row });
-    expect(cell.props.class).toBe("mmda-sf-row-actions");
+    expect(cell.props.class).toBe("mmda-row-actions");
     const [editButton, deletePlaceholder, detailsButton] = cell.children;
     expect(editButton.props.title).toBe("编辑");
     expect(deletePlaceholder.props.class).toBe(
-      "mmda-sf-row-action-placeholder",
+      "mmda-row-action-placeholder",
     );
     expect(detailsButton.props.title).toBe("详情");
     expect(detailsButton.props.items).toBeUndefined();
@@ -2703,7 +2743,7 @@ describe("Syncfusion skin", () => {
     });
 
     const secondWrap = target.querySelector(
-      ".mmda-sf-filter-range__value--to",
+      ".mmda-filter-range__value--to",
     ) as HTMLElement;
     expect(secondWrap.hidden).toBe(true);
     operatorDropDown.value = "between";
@@ -2790,7 +2830,7 @@ describe("Syncfusion skin", () => {
         },
       },
     });
-    expect(target.querySelector(".mmda-sf-filter-multi")).toBeTruthy();
+    expect(target.querySelector(".mmda-filter-multi")).toBeTruthy();
     expect(target.querySelector(".e-flmenu-input")).toBeTruthy();
     dateColumn.filter.ui.destroy();
     target.remove();
@@ -2845,7 +2885,7 @@ describe("Syncfusion skin", () => {
     });
     expect((vnode.props as any)?.enableNavigation).toBe(false);
     expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
-      "mmda-sf-breadcrumb",
+      "mmda-breadcrumb",
     );
     const items = (vnode.props as any)?.items as any[];
     expect(items).toHaveLength(2);
@@ -3035,7 +3075,7 @@ describe("Syncfusion skin", () => {
       isFieldReadonly: () => false,
       isInvalid: () => false,
     } as any);
-    expect(vnode.props.class).toContain("mmda-sf-control");
+    expect(vnode.props.class).toContain("mmda-control");
     const chrome = vnode.children[0];
     expect(chrome.props.label).toBe("启用");
     expect(chrome.props.checked).toBe(true);
@@ -3171,7 +3211,7 @@ describe("Syncfusion skin", () => {
         autoFitColumns,
       },
     ];
-    gridEl.className = "e-grid mmda-sf-table";
+    gridEl.className = "e-grid mmda-table";
     document.body.appendChild(gridEl);
 
     const metaUi = new MetaUi({
@@ -3329,8 +3369,42 @@ describe("Syncfusion skin", () => {
       "action.import",
     ]);
     expect(String(buttons[5].props.cssClass ?? "")).toContain("e-secondary");
-    expect(buttons[5].props.iconCss).toBeFalsy();
+    expect(buttons[5].props.iconCss).toBe("e-icons e-more-vertical-1");
     expect(String(buttons[0].props.cssClass ?? "")).toContain("e-secondary");
+  });
+
+  it("densifies toolbar actions to icon + tooltip", () => {
+    const builder = new SyncfusionUiBuilder();
+    const module = {
+      authority: auth(
+        ModuleOp.READ | ModuleOp.EDIT | ModuleOp.CREATE | ModuleOp.PRINT,
+      ),
+    };
+    const context = {
+      many: false,
+      editing: false,
+      metaUi: { objName: "Material", displayLabel: "物料" },
+      model: {},
+      logic: { module, repository: "Materials" },
+      module,
+      templates: [],
+      customActions: [],
+      actionLoadings: {},
+      executing: false,
+      globalProps: { $router: { back: vi.fn() } },
+      t: (message: string) => message,
+      translate: (message: string) => message,
+    };
+
+    const buttons = (builder as any).toolbarActionButtons(context, true);
+    expect(buttons[0].props?.content).toBeFalsy();
+    expect(buttons[0].props?.title || buttons[0].props?.["aria-label"]).toBe(
+      "action.back",
+    );
+    const more = buttons[buttons.length - 1];
+    expect(more.props?.content).toBeFalsy();
+    expect(more.props?.iconCss).toBe("e-icons e-more-vertical-1");
+    expect(more.props?.title).toBe("action.more");
   });
 
   it("maps vui locales onto EJ2 cultures and loads L10n", () => {

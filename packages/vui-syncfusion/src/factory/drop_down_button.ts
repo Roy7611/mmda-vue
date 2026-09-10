@@ -1,5 +1,6 @@
 import { h } from "vue";
 import { DropDownButtonComponent } from "@syncfusion/ej2-vue-splitbuttons";
+import { buttonModifierClasses } from "@mmda/core"
 import type { UiAction, UiDropDownButtonProps, UiSlots } from "@mmda/vui"
 import { SfDropupMenuButton } from "../components/SfDropupMenuButton";
 import {
@@ -25,7 +26,7 @@ export function createDropDownButton(
     buttonSurfaceClass(props.buttonType),
     props.shape === "round" || props.shape === "circle" ? "e-round" : "",
     hideCaret ? "e-caret-hide" : "",
-    props.class,
+    buttonModifierClasses(props),
   ]
     .flat()
     .filter(Boolean)

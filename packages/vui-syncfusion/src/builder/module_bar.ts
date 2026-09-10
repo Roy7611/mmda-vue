@@ -1,5 +1,5 @@
 import { h, type VNode } from "vue";
-import { SqlDataType } from "@mmda/core";
+import { SqlDataType, uiCssClass } from "@mmda/core";
 import type { VueUiBuilder } from "@mmda/vui"
 import type { ModuleBreadcrumbProps, ModuleSearchbarProps, ModuleToolbarProps, UiProps, UiSearchField, UiSlots } from "@mmda/vui"
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
@@ -13,7 +13,6 @@ import {
 } from "@syncfusion/ej2-vue-inputs";
 import {
   SfSearchTextInput,
-  UI_NAME,
   moduleChain,
   moduleOf,
   type UiContext,
@@ -33,7 +32,7 @@ export function buildModuleBreadcrumb(
   if (!module) {
     return this.factory.breadcrumb({
       items: [{ label: label || context.title }],
-      class: "mmda-sf-breadcrumb",
+      class: "mmda-breadcrumb",
       separator: "/",
     });
   }
@@ -60,7 +59,7 @@ export function buildModuleBreadcrumb(
 
   return this.factory.breadcrumb({
     items,
-    class: "mmda-sf-breadcrumb",
+    class: "mmda-breadcrumb",
     separator: "/",
   });
 }
@@ -74,7 +73,6 @@ export function buildModuleToolbar(
   const runtime = context as any;
   const module = moduleOf(context);
   return paintModuleToolbar(this.factory, context, props, slots, {
-    className: "mmda-sf-toolbar",
     breadcrumb: () => {
       if (module) {
         return buildModuleBreadcrumb.call(this, context, {
@@ -84,11 +82,14 @@ export function buildModuleToolbar(
       }
       return h("strong", context.title);
     },
-    actionGroup: () =>
-      this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
-        class: "mmda-sf-toolbar-actions",
-        role: `${UI_NAME}-toolbar-action-group`,
-      }),
+    actionGroup: (dense) =>
+      this.factory.buttonGroup(
+        () => this.toolbarActionButtons(context, dense),
+        {
+          class: uiCssClass("toolbar-actions"),
+          role: "group",
+        },
+      ),
     moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
     navActions: () =>
       module
@@ -154,7 +155,7 @@ export function buildSearchField(
       ...props,
     });
   }
-  return h("label", { class: "mmda-sf-search-field" }, [
+  return h("label", { class: "mmda-search-field" }, [
     h("span", meta.displayLabel),
     editor,
   ]);
@@ -167,7 +168,7 @@ export function buildSearchForm(
   return h(
     "form",
     {
-      class: "mmda-sf-search-form",
+      class: "mmda-search-form",
       ...props,
       onSubmit: (event: Event) => event.preventDefault(),
     },
@@ -212,7 +213,7 @@ export function buildModuleSearchbar(
       "button",
       {
         type: "button",
-        class: "e-input-group-icon mmda-sf-searchbar__addon",
+        class: "e-input-group-icon mmda-searchbar__addon",
         title,
         "aria-label": title,
         onClick: (event: Event) => {
@@ -224,7 +225,7 @@ export function buildModuleSearchbar(
       [h("span", { class: icon, "aria-hidden": "true" })],
     );
   const searchAddons = () =>
-    h("span", { class: "mmda-sf-searchbar__addons" }, [
+    h("span", { class: "mmda-searchbar__addons" }, [
       addonButton(
         this.factory.resolveIcon("search"),
         searchLabel,
@@ -237,8 +238,8 @@ export function buildModuleSearchbar(
       ),
     ]);
   const quickFilters = filters.map((filter: any) =>
-    h("div", { class: "mmda-sf-quick-filter" }, [
-      h("span", { class: "mmda-sf-quick-filter__label" }, filter.label),
+    h("div", { class: "mmda-quick-filter" }, [
+      h("span", { class: "mmda-quick-filter__label" }, filter.label),
       filter.metaUiFilter.fixed
         ? this.factory.selectButtonGroup(filter.selectedConditions.value[0], {
             options: filter.selectOptions,
@@ -267,7 +268,7 @@ export function buildModuleSearchbar(
   return h(
     "form",
     {
-      class: "mmda-sf-searchbar",
+      class: "mmda-searchbar",
       onSubmit: (event: Event) => {
         event.preventDefault();
         submitFuzzySearch();
@@ -286,7 +287,7 @@ export function buildModuleSearchbar(
         {
           runtime,
           placeholder: searchLabel,
-          cssClass: "e-small mmda-sf-searchbar__input",
+          cssClass: "e-small mmda-searchbar__input",
           onEnter: submitFuzzySearch,
           appendTemplate: "appendTemplate",
         },

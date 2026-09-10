@@ -12,6 +12,7 @@ import {
   MetaModel,
   SqlDataType,
   auth,
+  uiCssClass,
   type EntityAction,
   type MetaUi,
   type MetaUiField,
@@ -229,7 +230,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           toolbar ? this.buildHeader(toolbar) : null,
           !toolbar && searchbar ? this.buildHeader(searchbar) : null,
           this.buildMain(treeGrid, {
-            class: "mmda-list-scroll",
+            class: uiCssClass("page-body"),
             style: { flex: "1 1 auto", minHeight: 0, overflow: "auto" },
           }),
         ].filter(Boolean) as VNode[],
@@ -577,7 +578,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           toolbar ? this.buildHeader(toolbar) : null,
           !toolbar && searchbar ? this.buildHeader(searchbar) : null,
           this.buildMain(list, {
-            class: "mmda-list-scroll",
+            class: uiCssClass("page-body"),
             style: {
               flex: "1 1 auto",
               minWidth: 0,
@@ -1148,7 +1149,7 @@ const TreeListView = defineComponent({
           },
           {
             content: self.buildMain(list, {
-              class: "mmda-list-scroll",
+              class: uiCssClass("page-body"),
               style: { height: "100%", minWidth: 0, overflow: "hidden" },
             }),
             min: "16rem",

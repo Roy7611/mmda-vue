@@ -49,13 +49,13 @@ layout.layoutPage({
 })
 ```
 
-`primary` / `summary` / `tails` 是 **`TNode[]`**。vui 经 `pageBody` 收成 `PageBody`（可折叠概要）。有 `toolbar` 就永远 sticky（`mmda-page-toolbar--sticky`）。
+`primary` / `summary` / `tails` 是 **`TNode[]`**。vui 经 `pageBody` 收成 `PageBody`（可折叠概要）。有 `toolbar` 就永远 sticky（`mmda-page-header--sticky`）。
 
 结构：
 
 ```
 mmda-page
-  mmda-page-toolbar
+  mmda-page-header
   mmda-page-body
 ```
 

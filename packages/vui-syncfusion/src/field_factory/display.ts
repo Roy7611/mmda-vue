@@ -20,7 +20,7 @@ export const fallbackDisplay = (
 ) =>
   h(
     "output",
-    { class: "mmda-sf-display", ...props },
+    { class: "mmda-display", ...props },
     String(context.displayField(field, props.row) ?? ""),
   );
 

@@ -6,7 +6,7 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogAction } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -77,7 +77,7 @@ export const PrimeVueOverlayHost = defineComponent({
 
     return () => {
       const dialogs = overlay?.dialogs ?? []
-      return h('div', { class: 'mmda-prime-overlays' }, [
+      return h('div', { class: uiCssClass('overlays') }, [
         h(Toast),
         h(ConfirmDialog),
         ...dialogs.map(request => {
@@ -111,9 +111,9 @@ export const PrimeVueOverlayHost = defineComponent({
             },
             pt: {
               root: {
-                class: 'mmda-prime-dialog',
+                class: uiCssClass('dialog'),
               },
-              content: { class: 'mmda-prime-dialog__body' },
+              content: { class: uiCssClass('dialog', 'body') },
             },
             closable: dialogShowCloseIconOf(props),
             closeOnEscape: dialogCloseOnEscapeOf(props),
@@ -142,7 +142,7 @@ export const PrimeVueOverlayHost = defineComponent({
               h(
                 'div',
                 {
-                  class: 'mmda-prime-dialog__footer',
+                  class: uiCssClass('dialog', 'footer'),
                   style: {
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -153,7 +153,7 @@ export const PrimeVueOverlayHost = defineComponent({
                 [
                   h(
                     'div',
-                    { class: 'mmda-prime-dialog__footer-start' },
+                    { class: uiCssClass('dialog', 'footer-start') },
                     custom.map(action =>
                       h(
                         'button',
@@ -169,7 +169,7 @@ export const PrimeVueOverlayHost = defineComponent({
                   ),
                   h(
                     'div',
-                    { class: 'mmda-prime-dialog__footer-end' },
+                    { class: uiCssClass('dialog', 'footer-end') },
                     standard.map(button => {
                       const role = dialogButtonColorRole(button)
                       return h(

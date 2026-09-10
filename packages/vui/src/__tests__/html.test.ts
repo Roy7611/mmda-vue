@@ -168,7 +168,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
     expect(host.querySelector(".mmda-tree-view-footer")).toBeTruthy();
     expect(host.querySelector(".mmda-test-tree")?.textContent).toContain("分类");
-    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
   });
 
   it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
@@ -198,7 +198,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-breadcrumb")?.textContent).toContain(
       "添加剂包装物",
     );
-    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
     expect(
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsible"),
     ).toBe("true");
@@ -209,7 +209,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
     ).toBe("true");
-    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
     expect(host.querySelector(".mmda-splitter-collapse")).toBeTruthy();
     host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!.click();
     await nextTick();
@@ -217,7 +217,7 @@ describe("VueUiBuilder tree chrome", () => {
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
     ).toBeNull();
     expect(host.querySelector(".mmda-tree-view")).toBeTruthy();
-    expect(host.querySelector(".mmda-list-scroll")).toBeTruthy();
+    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
   });
 
   it("折叠左树只改布局，不改查询条件", async () => {

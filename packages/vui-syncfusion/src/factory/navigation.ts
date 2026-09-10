@@ -50,7 +50,7 @@ export const navigationRenderers = {
   tree: (props: any) => createTree(props),
 
   list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
-    h("div", { class: "mmda-sf-list" }, [
+    h("div", { class: "mmda-list" }, [
       model.length
         ? model.map((item, index) =>
             h(
@@ -63,7 +63,7 @@ export const navigationRenderers = {
                       ? (item as any)[metaUi.primaryKey]
                       : index,
                   ),
-                class: ["mmda-sf-list__item", props.itemClass?.(item)],
+                class: ["mmda-list__item", props.itemClass?.(item)],
                 style: props.itemStyle?.(item),
                 onClick: () => props.onItemClick?.(item),
                 onDblclick: () => props.onItemDoubleClick?.(item),
@@ -77,7 +77,7 @@ export const navigationRenderers = {
   menubar: (items: any[], props: any, slots: any) =>
     h(
       AppBarComponent as any,
-      { class: "mmda-sf-menubar", ...props },
+      { class: "mmda-menubar", ...props },
       {
         default: () =>
           h(MenuComponent as any, {

@@ -49,7 +49,7 @@ const InlineAiAssistImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-ai-assistant-missing' },
+            { class: 'mmda-ai-assistant-missing' },
             'AI assistant requires @syncfusion/ej2-vue-interactive-chat',
           ),
       }),

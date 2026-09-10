@@ -32,7 +32,7 @@ export const control = (
     // RoleLogic 等通过 props.onChange 做父子级联
     if (typeof onChangeProp === "function") onChangeProp(value);
   };
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     h(
       component,
       {

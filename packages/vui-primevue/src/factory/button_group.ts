@@ -18,7 +18,7 @@ export function createButtonGroup(
       ...htmlAttributes,
       class: [
         "mmda-button-group",
-        "mmda-prime-button-group",
+        "mmda-button-group",
         orientation === "vertical" ? "mmda-button-group--vertical" : "",
         className,
       ].filter(Boolean),

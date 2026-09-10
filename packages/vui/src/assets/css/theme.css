@@ -651,7 +651,8 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   width: 72px;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
+  /* 勿 hidden：EJ2 Over 抽屉若相对本节点定位会被裁成一条缝 */
+  overflow: visible;
 }
 
 .mmda-app-side-menu__brand {
@@ -668,7 +669,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   gap: 0.25rem;
   min-height: 0;
   overflow: auto;
-  padding: 0.25rem;
+  padding: 0.35rem 0.3rem;
 }
 
 .mmda-app-side-menu__rail-item {
@@ -676,8 +677,9 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
+  box-sizing: border-box;
   width: 100%;
-  padding: 0.45rem 0.15rem;
+  padding: 0.45rem 0.2rem;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -701,27 +703,91 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 .mmda-app-side-menu__rail-label {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
+  margin-inline: 0;
+  padding-inline: 0.2rem;
   overflow: hidden;
   text-align: center;
-  font-size: 0.65rem;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .mmda-app-side-menu__drawer-title {
-  padding: 0.75rem 1rem 0.25rem;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 3.25rem;
+  padding: 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--mmda-text-color, #1c1b1f);
+}
+
+.mmda-app-side-menu__drawer-body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  color: var(--mmda-text-color, #1c1b1f);
+  background: var(--mmda-surface-card, #fffbfe);
+}
+
+.mmda-app-side-menu__drawer-body > .mmda-side-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 0.35rem 0.5rem;
+}
+
+.mmda-app-side-menu__drawer-body > .mmda-user-footer,
+.mmda-app-side-menu__drawer-body > .mmda-sidebar__footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+/* factory.drawer / EJ2 Over：勿继承 compact 轨的白色字；全高钉底；外层不滚 */
+.mmda-sidebar--drawer.e-sidebar,
+.mmda-app-side-menu__drawer.e-sidebar {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  color: var(--mmda-text-color, #1c1b1f);
+  background: var(--mmda-surface-card, #fffbfe) !important;
+  border-inline-end: 1px solid var(--mmda-content-border-color, #cac4d0);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  overflow: hidden !important;
+}
+
+.mmda-app-side-menu--compact .mmda-sidebar--drawer.e-sidebar.e-open,
+.mmda-app-side-menu--compact .mmda-app-side-menu__drawer.e-sidebar.e-open {
+  /* 让出一级轨，避免盖住 L1 */
+  left: 72px !important;
 }
 
 .mmda-app-side-menu__drawer-fallback {
   position: fixed;
   inset: 0 auto 0 72px;
   z-index: 20;
+  display: flex;
+  flex-direction: column;
   width: 16rem;
-  overflow: auto;
-  background: var(--mmda-surface-color, #fff);
+  height: 100%;
+  overflow: hidden;
+  color: var(--mmda-text-color, #1c1b1f);
+  background: var(--mmda-surface-card, #fffbfe);
   box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
 }
 
@@ -734,10 +800,10 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
- * 模块工具栏：固定高度、上下居中；贴顶直角。
- * sticky 时内容滚过不透底。皮肤内 .mmda-*-toolbar 可透明，由本层提供表面色。
+ * 模块页顶栏（包住 factory.toolbar）：固定高度、上下居中；贴顶直角。
+ * sticky 时内容滚过不透底。内层 .mmda-toolbar 可透明，由本层提供表面色。
  */
-.mmda-page-toolbar {
+.mmda-page-header {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -753,13 +819,11 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
 }
 
-.mmda-page-toolbar--sticky {
+.mmda-page-header--sticky {
   background: var(--mmda-surface-card);
 }
 
-.mmda-page-toolbar .mmda-sf-toolbar,
-.mmda-page-toolbar .mmda-prime-toolbar,
-.mmda-page-toolbar .mmda-agnaive-toolbar {
+.mmda-page-header .mmda-toolbar {
   margin: 0;
   padding: 0;
   border: 0;
@@ -880,7 +944,7 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /* —— 详情页：左右分区合一，整页滚动；折叠钮 sticky 钉在视口中线 —— */
-.mmda-page-body {
+.mmda-page > .mmda-page-body {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -897,6 +961,11 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   gap: 1rem;
   align-items: start;
   transition: gap 0.28s ease;
+}
+
+/* compact：摘要栏收窄为默认宽的 80%，手动展开也不至于把 primary 压扁 */
+.mmda-page-body--with-summary.mmda-page-body--compact {
+  --mmda-page-summary-width: 16rem;
 }
 
 .mmda-page-body--with-summary:has(> .mmda-page-footer) {
@@ -971,18 +1040,22 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 }
 
 /*
- * 贴内容区最右侧。sticky 钉在视口中线（与 Splitter 折叠钮大致同高），整页滚时位置不变。
- * 不再靠主区内滚来“钉住”。
+ * 永远贴浏览器窗口右缘（与侧栏折叠耳对称）。
+ * fixed：不跟 grid 主/摘要分栏走，避免落在两栏夹缝。
+ * 垂直仍钉在视口中线。
  */
 .mmda-page-summary-toggle {
-  position: sticky;
+  position: fixed;
   top: 50vh;
-  z-index: 4;
+  right: 0;
+  left: auto;
+  z-index: 20;
   display: inline-flex;
-  grid-column: 1 / -1;
+  /* 仍占一格以免打乱 banner 行；fixed 不参与尺寸 */
+  grid-column: 1;
   grid-row: 1;
   align-self: start;
-  justify-self: end;
+  justify-self: start;
   align-items: center;
   justify-content: center;
   width: 1.15rem;
@@ -1724,7 +1797,8 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   overflow: hidden;
 }
 
-.mmda-tree-list-view .mmda-list-scroll {
+.mmda-tree-list-view .mmda-page-body,
+.mmda-tree-grid-view .mmda-page-body {
   min-width: 0;
   height: 100%;
   overflow: hidden;
@@ -1797,7 +1871,7 @@ article.mmda-group.is-collapsed > .mmda-group-header {
   overflow: auto;
 }
 
-.mmda-sf-tree-host,
+.mmda-tree-host,
 .mmda-tree-view-body .e-treeview {
   height: 100%;
   min-height: 0;

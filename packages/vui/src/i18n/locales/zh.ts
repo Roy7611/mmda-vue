@@ -60,7 +60,7 @@ export default {
     edit: "编辑",
     save: "保存",
     delete: "删除",
-    deleteAll: "批量删除",
+    deleteAll: "删除",
     refresh: "刷新",
     import: "导入",
     export: "导出",

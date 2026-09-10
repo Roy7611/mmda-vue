@@ -68,7 +68,6 @@ export function createDropDownButton(
             class: [
               props.class,
               hideCaret ? "mmda-menu-button--icon-only" : "",
-              props.buttonType === "tonal" ? "mmda-btn-tonal" : "",
             ]
               .flat()
               .filter(Boolean)

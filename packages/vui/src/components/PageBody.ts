@@ -44,6 +44,7 @@ export const PageBody = defineComponent({
             uiCssClass("page-body"),
             props.hasSummary && uiCssClass("page-body", undefined, "with-summary"),
             hasBanner && uiCssClass("page-body", undefined, "with-banner"),
+            compact.value && uiCssClass("page-body", undefined, "compact"),
             props.hasSummary &&
               (summaryOpen.value ? "is-summary-open" : "is-summary-collapsed"),
           ],

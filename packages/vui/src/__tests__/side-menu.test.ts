@@ -8,6 +8,7 @@ import {
   assembleMenuItems,
   isLocalAppModuleUrl,
 } from '@mmda/core'
+import { wrapRailLabel } from '../components/AppSideMenu'
 
 const sampleModules = new ModuleFactory([
   {
@@ -112,5 +113,19 @@ describe('AppSideMenu helpers', () => {
     expect(isLocalAppModuleUrl('base', '/MES/Stations')).toBe(false)
     expect(isLocalAppModuleUrl('mes', '/MES/Stations')).toBe(true)
     expect(isLocalAppModuleUrl('', '/MES/Stations')).toBe(true)
+  })
+})
+
+describe('wrapRailLabel', () => {
+  it('wraps dense Chinese every 4 characters', () => {
+    expect(wrapRailLabel('客户关系管理')).toBe('客户关系\n管理')
+    expect(wrapRailLabel('基础数据')).toBe('基础数据')
+    expect(wrapRailLabel('供应商关系管理')).toBe('供应商关\n系管理')
+  })
+
+  it('leaves English and spaced labels for CSS wrap', () => {
+    expect(wrapRailLabel('Manufacturing')).toBe('Manufacturing')
+    expect(wrapRailLabel('Customer Relations')).toBe('Customer Relations')
+    expect(wrapRailLabel('MES')).toBe('MES')
   })
 })

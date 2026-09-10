@@ -24,7 +24,7 @@ export function createSplitter(
       gutterSize: props.separatorSize,
       disabled: !splitterEnabledOf(props),
       class: [
-        "mmda-prime-splitter",
+        "mmda-splitter",
         ...splitterModifierClasses(props).flat(),
       ],
       onResizeend: () => emitSplitterResize(props, "stop", { index: 0 }),

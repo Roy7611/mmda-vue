@@ -3,6 +3,7 @@ import {
   applyDrawerDefaults,
   DEFAULT_SIDEBAR_WIDTH,
   emitSidebarChange,
+  sidebarCloseOnDocumentClickOf,
   sidebarEnableDockOf,
   sidebarEnableGesturesOf,
   sidebarIsOpenOf,
@@ -38,6 +39,9 @@ describe('sidebar chrome helpers', () => {
     expect(drawer.type).toBe('Over')
     expect(drawer.isOpen).toBe(true)
     expect(drawer.showBackdrop).toBe(true)
+    expect(drawer.closeOnDocumentClick).toBe(true)
+    expect(sidebarCloseOnDocumentClickOf({}, true)).toBe(true)
+    expect(sidebarCloseOnDocumentClickOf({}, false)).toBe(false)
   })
 
   it('adds dock and drawer classes', () => {

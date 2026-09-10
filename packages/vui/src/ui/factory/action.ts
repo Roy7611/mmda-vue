@@ -12,6 +12,36 @@ import {
 export type { UiColorRole, UiAction } from "@mmda/core";
 export type IconResolver = (icon: string) => string;
 
+/**
+ * 动作按钮图标：优先 name / 已映射的 icon；未映射语义名（会发明假 e-/pi-/fa- class）回落 execute（播放/执行）。
+ * dense 工具栏去文字后若无真图标，高度会塌成色块。
+ */
+export function resolveActionButtonIcon(
+  resolveIcon: IconResolver,
+  actionIcons: Record<string, string> | undefined,
+  action: { name?: string; icon?: string },
+): string {
+  const icons = actionIcons ?? {}
+  const execute = icons.execute ?? resolveIcon("execute")
+  if (action.name && icons[action.name]) return icons[action.name]
+  const raw = action.icon?.trim()
+  const inventedFrom = (name: string, css: string) =>
+    css === `e-icons e-${name}` ||
+    css === `e-${name}` ||
+    css === `pi pi-${name}` ||
+    css === `fas fa-${name}`
+  if (raw) {
+    if (Object.values(icons).includes(raw)) return raw
+    if (action.name && inventedFrom(action.name, raw)) return execute
+    return raw
+  }
+  if (action.name) {
+    const resolved = resolveIcon(action.name)
+    if (resolved && !inventedFrom(action.name, resolved)) return resolved
+  }
+  return execute
+}
+
 export interface UiActionContext extends UiContext {
   readonly model: Record<string, any>
   actionLoadings: Record<string, boolean>

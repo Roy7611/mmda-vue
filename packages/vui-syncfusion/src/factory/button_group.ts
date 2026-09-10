@@ -19,7 +19,6 @@ export function createButtonGroup(
         "e-btn-group",
         orientation === "vertical" ? "e-vertical" : "",
         "mmda-button-group",
-        "mmda-sf-button-group",
         className,
       ].filter(Boolean),
     },

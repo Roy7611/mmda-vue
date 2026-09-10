@@ -33,14 +33,14 @@ export const PrimeAppSideMenu = defineComponent({
           compact: true,
           logo: props.logo,
           footer: props.footer,
-          class: ['mmda-prime-app-menu', attrs.class],
+          class: ['mmda-app-menu', attrs.class],
         })
       }
-      return h('aside', { class: ['mmda-prime-sidebar', attrs.class] }, [
+      return h('aside', { class: ['mmda-sidebar', attrs.class] }, [
         props.logo
-          ? h('div', { class: 'mmda-prime-sidebar__header' }, [props.logo() as any])
+          ? h('div', { class: 'mmda-sidebar__header' }, [props.logo() as any])
           : null,
-        h('div', { class: 'mmda-prime-sidebar__body' }, [
+        h('div', { class: 'mmda-sidebar__body' }, [
           h(VueAppSideMenu, {
             modules: props.modules,
             items: props.items,
@@ -48,7 +48,7 @@ export const PrimeAppSideMenu = defineComponent({
           }),
         ]),
         props.footer
-          ? h('div', { class: 'mmda-prime-sidebar__footer' }, [
+          ? h('div', { class: 'mmda-sidebar__footer' }, [
               props.footer() as any,
             ])
           : null,

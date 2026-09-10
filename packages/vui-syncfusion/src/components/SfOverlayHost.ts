@@ -2,7 +2,7 @@ import { defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToastComponent } from '@syncfusion/ej2-vue-notifications'
 import { DialogComponent } from '@syncfusion/ej2-vue-popups'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogAction } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -52,7 +52,7 @@ export const SfOverlayHost = defineComponent({
 
     return () => {
       const dialogs = overlay?.dialogs ?? []
-      return h('div', { class: 'mmda-sf-overlays' }, [
+      return h('div', { class: uiCssClass('overlays') }, [
         h(ToastComponent as any, {
           ref: (el: any) => {
             toastRef.value = el
@@ -86,7 +86,7 @@ export const SfOverlayHost = defineComponent({
             enableResize: dialogEnableResizeOf(props),
             showCloseIcon: dialogShowCloseIconOf(props),
             closeOnEscape: dialogCloseOnEscapeOf(props),
-            cssClass: 'mmda-sf-dialog',
+            cssClass: uiCssClass('dialog'),
             close: () => void closeOverlayDialog(overlay!, request, 'cancel'),
             overlayClick: () => {
               if (dialogCloseOnOverlayOf(props)) {
@@ -130,7 +130,7 @@ export const SfOverlayHost = defineComponent({
                     h(
                       'div',
                       {
-                        class: 'mmda-sf-dialog__footer',
+                        class: uiCssClass('dialog', 'footer'),
                         style: {
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -141,7 +141,7 @@ export const SfOverlayHost = defineComponent({
                       [
                         h(
                           'div',
-                          { class: 'mmda-sf-dialog__footer-start' },
+                          { class: uiCssClass('dialog', 'footer-start') },
                           custom.map(action =>
                             h(
                               'button',
@@ -165,7 +165,7 @@ export const SfOverlayHost = defineComponent({
                         ),
                         h(
                           'div',
-                          { class: 'mmda-sf-dialog__footer-end' },
+                          { class: uiCssClass('dialog', 'footer-end') },
                           standard.map(button => {
                             const role = dialogButtonColorRole(button)
                             return h(
@@ -201,7 +201,7 @@ export const SfOverlayHost = defineComponent({
             { key: request.id, ...dialogProps },
             {
               default: () =>
-                h('div', { class: 'mmda-sf-dialog__body' }, [request.content]),
+                h('div', { class: uiCssClass('dialog', 'body') }, [request.content]),
               ...(headerKind === 'slot'
                 ? { headerTemplate: () => request.props.header!() }
                 : {}),

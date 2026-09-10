@@ -33,16 +33,16 @@ export const AgNaiveAppSideMenu = defineComponent({
           compact: true,
           logo: props.logo,
           footer: props.footer,
-          class: ['mmda-agnaive-app-menu', attrs.class],
+          class: ['mmda-app-menu', attrs.class],
         })
       }
-      return h('aside', { class: ['mmda-agnaive-sidebar', attrs.class] }, [
+      return h('aside', { class: ['mmda-sidebar', attrs.class] }, [
         props.logo
-          ? h('div', { class: 'mmda-agnaive-sidebar__header' }, [
+          ? h('div', { class: 'mmda-sidebar__header' }, [
               props.logo() as any,
             ])
           : null,
-        h('div', { class: 'mmda-agnaive-sidebar__body' }, [
+        h('div', { class: 'mmda-sidebar__body' }, [
           h(VueAppSideMenu, {
             modules: props.modules,
             items: props.items,
@@ -50,7 +50,7 @@ export const AgNaiveAppSideMenu = defineComponent({
           }),
         ]),
         props.footer
-          ? h('div', { class: 'mmda-agnaive-sidebar__footer' }, [
+          ? h('div', { class: 'mmda-sidebar__footer' }, [
               props.footer() as any,
             ])
           : null,

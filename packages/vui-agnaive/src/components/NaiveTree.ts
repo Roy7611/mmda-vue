@@ -143,7 +143,7 @@ export const NaiveTree = defineComponent({
     }
 
     return () =>
-      h('div', { class: ['mmda-agnaive-tree-host', props.class] }, [
+      h('div', { class: ['mmda-tree-host', props.class] }, [
         h(NDropdown, {
           trigger: 'manual',
           show: menuShow.value,
@@ -159,7 +159,7 @@ export const NaiveTree = defineComponent({
           },
         }),
         h(NTree as any, {
-          class: ['mmda-agnaive-tree', props.class],
+          class: ['mmda-tree', props.class],
           data: options.value,
           checkable: checkable.value,
           draggable: props.allowDragDrop === true,

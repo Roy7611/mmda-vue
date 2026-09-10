@@ -1,5 +1,6 @@
 import { h } from "vue";
 import SplitButton from "primevue/splitbutton";
+import { buttonModifierClasses } from "@mmda/core"
 import type { UiAction, UiDropDownButtonProps, UiSlots } from "@mmda/vui"
 
 const severity = (role?: string) => {
@@ -55,9 +56,8 @@ export function createDropDownButton(
           (props.buttonType === "tonal" ? "secondary" : undefined),
       ),
       class: [
-        props.class,
+        buttonModifierClasses(props),
         hideCaret ? "mmda-menu-button--icon-only" : "",
-        props.buttonType === "tonal" ? "mmda-btn-tonal" : "",
       ]
         .flat()
         .filter(Boolean)

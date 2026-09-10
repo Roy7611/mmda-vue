@@ -56,7 +56,7 @@ const control = (
   extra: UiProps = {},
 ) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     h(component, {
       inputId: field.fieldName,
       id: field.fieldName,
@@ -110,7 +110,7 @@ const password = (field: MetaUiField, context: UiContext, props?: UiProps) =>
 
 const dropDownList = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createDropDownList(dropDownListPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -125,7 +125,7 @@ const radioButtonGroup = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createRadioButtonGroup(
       radioButtonGroupPropsFromField(field, context, props ?? {}),
     ),
@@ -138,7 +138,7 @@ const radioButtonGroup = (
 
 const treeSelect = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -149,7 +149,7 @@ const treeSelect = (field: MetaUiField, context: UiContext, props?: UiProps) => 
 
 const comboBox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -298,7 +298,7 @@ const percentInput = (
 
 const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -309,7 +309,7 @@ const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
 
 const switchControl = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createSwitch(switchPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -324,7 +324,7 @@ function wrapChrome(
   child: VNode,
 ) {
   const invalid = invalidOf(field, context)
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     child,
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
@@ -378,7 +378,7 @@ const fallbackDisplay = (
 ) =>
   h(
     'output',
-    { class: 'mmda-prime-display', ...props },
+    { class: 'mmda-display', ...props },
     String(context.displayField(field, props.row) ?? ''),
   )
 
@@ -486,7 +486,7 @@ const autoComplete = (
   if (route === 'searchBox') return searchBox(field, context, props)
   const invalid = invalidOf(field, context)
   const reference = field.reference?.isRef ? field.reference : undefined
-  return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+  return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
     createAutoComplete({
       value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
       ...autoCompletePropsFromField(field, props ?? {}),
@@ -700,7 +700,7 @@ const factory: UiFieldFactory = {
     ),
   colorPicker: (field, context, props) => {
     const invalid = invalidOf(field, context)
-    return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
+    return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
       createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
       invalid &&
         h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>

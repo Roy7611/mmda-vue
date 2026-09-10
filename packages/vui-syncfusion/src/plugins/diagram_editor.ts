@@ -191,7 +191,7 @@ const DiagramImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-diagram-missing' },
+            { class: 'mmda-diagram-missing' },
             'Diagram requires @syncfusion/ej2-vue-diagrams',
           ),
       }),

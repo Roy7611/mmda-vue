@@ -7,7 +7,7 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { debounce, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { debounce, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
 import { VueUiBuilder, MmdaGroupCard, UiViewMany, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfOverlayHost } from "../components/SfOverlayHost";
@@ -174,36 +174,29 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       label: module.moduleName ?? module.moduleLabel,
       url: module.moduleUrl ?? (module as any).url,
     }));
-    return h("div", { class: "mmda-sf-topbar" }, [
-      h("div", { class: "mmda-sf-topbar__start" }, [
+    return h("div", { class: "mmda-topbar" }, [
+      h("div", { class: "mmda-topbar__start" }, [
         invoke(props.logo),
         this.factory.menubar(items),
       ]),
-      h("div", { class: "mmda-sf-topbar__end" }, invoke(props.actions)),
+      h("div", { class: "mmda-topbar__end" }, invoke(props.actions)),
     ]);
   }
 
   /**
-   * Official Sidebar layout: sidebar and main content are siblings under a
-   * target shell (not a CSS-grid nav column). See Target + Dock docs.
-   *   .mmda-sf-shell
-   *     #mmda-sf-dock-sidebar
-   *     .mmda-sf-maincontent
+   * 兼容旧调用；真源是 SyncfusionLayout.scaffold（AppShell 直接调 layout）。
+   * sidebarLeft：nav 与 .mmda-app-page.e-main-content 为兄弟（EJ2 Push / Pad compact）。
    */
   override buildAppScaffold(props: AppScaffoldProps = {}) {
     const variant =
       props.layout ?? (props.model === "Mobile" ? "topBarFull" : "sidebarLeft");
-    if (variant !== "sidebarLeft") {
-      return super.buildAppScaffold(props);
-    }
-    return h("div", { id: "mmda-sf-shell", class: "mmda-sf-shell" }, [
-      invoke(props.sideBar),
-      h(
-        "div",
-        { class: "mmda-sf-maincontent", role: "main" },
-        [invoke(props.body)],
-      ),
-    ]);
+    return this.layout.scaffold({
+      variant,
+      topBar: invoke(props.topBar) as VNode | undefined,
+      nav: invoke(props.sideBar) as VNode | undefined,
+      page: invoke(props.body) as VNode | undefined,
+      bottomBar: invoke(props.bottomBar) as VNode | undefined,
+    });
   }
 
   buildAppSideBar(
@@ -295,14 +288,21 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     };
   }
 
+  /** paintModuleToolbar dense 时临时打开；供 action / more / batch 共用。 */
+  private toolbarDense = false;
+
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
     if (!items.length) return [];
+    const dense = this.toolbarDense;
+    const moreLabel = context.t("action.more");
     return [
       this.factory.moreMenuButton(
         {
-          label: context.t("action.more"),
-          tooltip: context.t("action.more"),
-          "aria-label": context.t("action.more"),
+          icon: this.factory.resolveIcon("more"),
+          label: dense ? "" : moreLabel,
+          tooltip: moreLabel,
+          "aria-label": moreLabel,
+          hideCaret: dense,
           buttonType: "tonal",
           colorRole: "secondary",
         },
@@ -326,6 +326,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     actions: UiAction[],
   ): VNode[] {
     if (!actions.length) return [];
+    const dense = this.toolbarDense;
     const render = (action: UiAction) =>
       this.toolbarActionButton(
         context,
@@ -341,10 +342,17 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
 
     if (actions.length === 1) return [render(actions[0]!)];
 
+    const batchLabel = context.t("action.batchOperation");
     return [
       this.factory.dropDownButton(
         {
-          label: context.t("action.batchOperation"),
+          label: dense ? "" : batchLabel,
+          icon: dense
+            ? this.factory.resolveIcon(actions[0]?.icon ?? "more")
+            : undefined,
+          tooltip: batchLabel,
+          "aria-label": batchLabel,
+          hideCaret: dense,
           class: "mmda-batch-menu-button",
           buttonType: "tonal",
           colorRole: "secondary",
@@ -370,6 +378,10 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     // secondary（返回等）与「更多」一致用 tonal，避免默认实心/透明底和工具栏糊在一起
     const secondary =
       (action.colorRole ?? action.role)?.toLowerCase() === "secondary";
+    const dense = this.toolbarDense;
+    const label =
+      action.label ??
+      (action.name ? context.t(`action.${action.name}`) : action.name);
     return this.factory.actionButton(
       action,
       (message) => context.t(message),
@@ -378,6 +390,13 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         size: "small",
         ...(secondary ? { buttonType: "tonal", colorRole: "secondary" } : {}),
         ...props,
+        ...(dense
+          ? {
+              label: "",
+              tooltip: action.tooltip ?? label,
+              "aria-label": label,
+            }
+          : {}),
       },
     );
   }
@@ -653,11 +672,17 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     return children;
   }
 
-  private toolbarActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any;
-    if (runtime.many) return this.indexViewActionButtons(context);
-    if (runtime.editing) return this.editViewActionButtons(context);
-    return this.detailsViewActionButtons(context);
+  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
+    const prev = this.toolbarDense;
+    this.toolbarDense = dense;
+    try {
+      const runtime = context as any;
+      if (runtime.many) return this.indexViewActionButtons(context);
+      if (runtime.editing) return this.editViewActionButtons(context);
+      return this.detailsViewActionButtons(context);
+    } finally {
+      this.toolbarDense = prev;
+    }
   }
 
   buildModuleToolbar(
@@ -804,7 +829,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       ) as HTMLElement | null
       if (!icon || icon.dataset.mmdaSearchBound === '1') return
       icon.dataset.mmdaSearchBound = '1'
-      icon.className = 'e-input-group-icon e-icons e-search mmda-sf-search-pick'
+      icon.className = 'e-input-group-icon e-icons e-search mmda-search-pick'
       icon.setAttribute(
         'title',
         context.translate?.('action.search') ?? '搜索',
@@ -842,7 +867,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
           context.translate?.('action.select') ??
           '请选择',
         cssClass: [
-          'mmda-sf-search-combo',
+          'mmda-search-combo',
           props.invalid ? 'e-error' : '',
         ]
           .filter(Boolean)

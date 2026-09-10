@@ -111,7 +111,7 @@ const GanttImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-gantt-missing' },
+            { class: 'mmda-gantt-missing' },
             'Gantt requires @syncfusion/ej2-vue-gantt',
           ),
       }),
@@ -214,7 +214,7 @@ export const SfGanttChart = defineComponent({
       h(
         'div',
         {
-          class: ganttHookClass('mmda-sf-gantt', props.readonly),
+          class: ganttHookClass('mmda-gantt', props.readonly),
           'data-loading': props.loading || undefined,
           ...htmlAttributesOf(props as any),
         },

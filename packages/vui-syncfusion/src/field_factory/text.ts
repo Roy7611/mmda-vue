@@ -13,7 +13,7 @@ export const textInput = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createTextInput(textInputPropsFromField(field, context, props ?? {})),
     invalid &&
       h(
@@ -30,7 +30,7 @@ export const textArea = (
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createTextArea(
       textAreaPropsFromField(field, context, {
         rows: 3,

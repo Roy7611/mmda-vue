@@ -232,8 +232,15 @@ packages/base/src/modules/materials/MaterialLogic.ts
 
 **产品 CSS 钩子：**
 
-- 前缀常量 [`UI_CSS_PREFIX`](../packages/core/src/ui/css.ts)（默认 `mmda`）+ `uiCssClass('avatar', 'circle')`
+- 前缀常量 [`UI_CSS_PREFIX`](../packages/core/src/ui/css.ts)（默认 `mmda`）+ BEM：
+  - `uiCssClass('signin-form')` → `mmda-signin-form`（块）
+  - `uiCssClass('signin-form', 'login')` → `mmda-signin-form__login`（元素）
+  - `uiCssClass('button', undefined, 'danger')` → `mmda-button--danger`（块修饰）
+  - `uiCssClasses('page-header', 'sticky')` → 块 + 若干 `--` 修饰
 - 修饰 class 函数仍叫 `avatarModifierClasses(props)` 等，放在 core 对应控件文件；vui 再 export
+- **跨皮肤同一套名字**（`mmda-app-layout`、`mmda-app-page`、`mmda-app-side-menu`、`mmda-sidebar`…）。皮肤 `style.css` / theme 各自写样式，但选择器对准这些钩子。
+- **禁止**把 `mmda-sf-*` / `mmda-prime-*` / `mmda-agnaive-*` 当产品钩子写进 TS。
+- **允许**在同一节点叠厂商原生类（EJ2 `e-*`、Prime `p-*`、Naive `n-*`），例如主区 `mmda-app-page e-main-content`（后者只为 EJ2 Sidebar Push）。
 - 改品牌前缀只改 `UI_CSS_PREFIX`；样式表里的 `.mmda-` 需另跟
 
 字段名 **camelCase**，与元数据 `MetaUiField.name` 一致（`materialType`、`categoryID`）。不要在 Logic 里改成 snake_case。

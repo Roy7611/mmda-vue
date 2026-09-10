@@ -788,7 +788,7 @@ describe('vui-agnaive skin', () => {
     const cls = Array.isArray(wrap.props?.class)
       ? wrap.props.class.flat(8).filter(Boolean).join(' ')
       : String(wrap.props?.class ?? '')
-    expect(cls).toContain('mmda-agnaive-control')
+    expect(cls).toContain('mmda-control')
     const chrome = (wrap.children as any[])[0]
     const chromeCls = Array.isArray(chrome.props?.class)
       ? chrome.props.class.flat(8).filter(Boolean).join(' ')

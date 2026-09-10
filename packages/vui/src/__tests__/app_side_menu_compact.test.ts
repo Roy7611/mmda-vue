@@ -106,8 +106,8 @@ afterEach(() => {
 })
 
 describe('VueAppSideMenu compact drawer', () => {
-  it('exports 800px media query', () => {
-    expect(COMPACT_VIEWPORT_MEDIA).toBe('(max-width: 800px)')
+  it('exports 1024px media query', () => {
+    expect(COMPACT_VIEWPORT_MEDIA).toBe('(max-width: 1024px)')
   })
 
   it('opens drawer on L1 click and closes on leaf click', async () => {
@@ -138,6 +138,8 @@ describe('VueAppSideMenu compact drawer', () => {
     expect(drawer).toHaveBeenCalled()
     const opened = drawer.mock.calls.some((call) => call[0]?.isOpen === true)
     expect(opened).toBe(true)
+    const drawerClass = String(drawer.mock.calls.at(-1)?.[0]?.class ?? '')
+    expect(drawerClass).toContain('mmda-app-side-menu__drawer')
 
     const group = host.querySelector(
       '.mmda-side-menu__group',
@@ -173,6 +175,7 @@ describe('PageBody compact summary', () => {
     await nextTick()
     const body = host.querySelector('.mmda-page-body')
     expect(body?.classList.contains('is-summary-collapsed')).toBe(true)
+    expect(body?.classList.contains('mmda-page-body--compact')).toBe(true)
     app.unmount()
   })
 })

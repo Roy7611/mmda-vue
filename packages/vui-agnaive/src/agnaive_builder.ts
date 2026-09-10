@@ -4,7 +4,7 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from 'vue'
-import { SqlDataType, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
+import { SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
 import { VueUiBuilder, MmdaGroupCard, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
 import {
   NAlert,
@@ -126,23 +126,23 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   }
 
   buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('div', { class: 'mmda-agnaive-container', ...props }, content)
+    return h('div', { class: 'mmda-container', ...props }, content)
   }
 
   buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('header', { class: 'mmda-agnaive-header', ...props }, content)
+    return h('header', { class: uiCssClass('page-header'), ...props }, content)
   }
 
   buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('aside', { class: 'mmda-agnaive-aside', ...props }, content)
+    return h('aside', { class: 'mmda-aside', ...props }, content)
   }
 
   buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('main', { class: 'mmda-agnaive-main', ...props }, content)
+    return h('main', { class: 'mmda-main', ...props }, content)
   }
 
   buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('footer', { class: 'mmda-agnaive-footer', ...props }, content)
+    return h('footer', { class: 'mmda-footer', ...props }, content)
   }
 
   override buildAppScaffold(props?: any) {
@@ -162,10 +162,10 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       label: module.moduleName ?? module.moduleLabel,
       url: module.moduleUrl ?? (module as any).url,
     }))
-    return h('div', { class: 'mmda-agnaive-topbar' }, [
+    return h('div', { class: 'mmda-topbar' }, [
       invoke(props.logo),
       this.factory.menubar(items),
-      h('div', { class: 'mmda-agnaive-topbar__actions' }, invoke(props.actions)),
+      h('div', { class: 'mmda-topbar__actions' }, invoke(props.actions)),
     ])
   }
 
@@ -187,13 +187,13 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     const { item, expand, ...rest } = props ?? {}
     if (expand === false) {
       return this.factory.menubar(assembleMenuItems(modules), {
-        class: 'mmda-agnaive-app-menu',
+        class: 'mmda-app-menu',
         ...rest,
       }, item ? { item } : undefined)
     }
     return this.buildAppSideMenu({
       modules,
-      class: 'mmda-agnaive-app-menu',
+      class: 'mmda-app-menu',
       ...rest,
     })
   }
@@ -205,7 +205,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   buildError(context: UiContext, props?: UiProps) {
     return h(
       NAlert,
-      { type: 'error', class: 'mmda-agnaive-error', ...props },
+      { type: 'error', class: 'mmda-error', ...props },
       { default: () => context.title },
     )
   }
@@ -215,7 +215,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     if (!module) {
       return this.factory.breadcrumb({
         items: [{ label: label || context.title }],
-        class: 'mmda-agnaive-breadcrumb',
+        class: 'mmda-breadcrumb',
       })
     }
     const chain = moduleChain(module)
@@ -238,7 +238,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     }
     return this.factory.breadcrumb({
       items,
-      class: 'mmda-agnaive-breadcrumb',
+      class: 'mmda-breadcrumb',
     })
   }
 
@@ -324,14 +324,21 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     }
   }
 
+  /** paintModuleToolbar dense 时临时打开；供 action / more / batch 共用。 */
+  private toolbarDense = false
+
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
     if (!items.length) return []
+    const dense = this.toolbarDense
+    const moreLabel = context.t('action.more')
     return [
       this.factory.moreMenuButton(
         {
-          label: context.t('action.more'),
-          tooltip: context.t('action.more'),
-          'aria-label': context.t('action.more'),
+          icon: this.factory.resolveIcon('more'),
+          label: dense ? '' : moreLabel,
+          tooltip: moreLabel,
+          'aria-label': moreLabel,
+          hideCaret: dense,
           buttonType: 'tonal',
           colorRole: 'secondary',
         },
@@ -355,6 +362,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     actions: UiAction[],
   ): VNode[] {
     if (!actions.length) return []
+    const dense = this.toolbarDense
     const render = (action: UiAction) =>
       this.toolbarActionButton(
         context,
@@ -368,10 +376,17 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
         { id: `${action.name}-button` },
       )
     if (actions.length === 1) return [render(actions[0]!)]
+    const batchLabel = context.t('action.batchOperation')
     return [
       this.factory.dropDownButton(
         {
-          label: context.t('action.batchOperation'),
+          label: dense ? '' : batchLabel,
+          icon: dense
+            ? this.factory.resolveIcon(actions[0]?.icon ?? 'more')
+            : undefined,
+          tooltip: batchLabel,
+          'aria-label': batchLabel,
+          hideCaret: dense,
           class: 'mmda-batch-menu-button',
           buttonType: 'tonal',
           colorRole: 'secondary',
@@ -394,9 +409,20 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     action: UiAction,
     props?: UiProps,
   ) {
+    const dense = this.toolbarDense
+    const label =
+      action.label ??
+      (action.name ? context.t(`action.${action.name}`) : action.name)
     return this.factory.actionButton(action, message => context.t(message), false, {
       size: 'small',
       ...props,
+      ...(dense
+        ? {
+            label: '',
+            tooltip: action.tooltip ?? label,
+            'aria-label': label,
+          }
+        : {}),
     })
   }
 
@@ -621,11 +647,17 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     return children
   }
 
-  private toolbarActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any
-    if (runtime.many) return this.indexViewActionButtons(context)
-    if (runtime.editing) return this.editViewActionButtons(context)
-    return this.detailsViewActionButtons(context)
+  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
+    const prev = this.toolbarDense
+    this.toolbarDense = dense
+    try {
+      const runtime = context as any
+      if (runtime.many) return this.indexViewActionButtons(context)
+      if (runtime.editing) return this.editViewActionButtons(context)
+      return this.detailsViewActionButtons(context)
+    } finally {
+      this.toolbarDense = prev
+    }
   }
 
   buildModuleToolbar(
@@ -636,7 +668,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     const runtime = context as any
     const module = moduleOf(context)
     return paintModuleToolbar(this.factory, context, props, slots, {
-      className: 'mmda-agnaive-toolbar',
       breadcrumb: () => {
         if (module) {
           return this.buildModuleBreadcrumb(context, {
@@ -646,11 +677,14 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
         }
         return h('strong', context.title)
       },
-      actionGroup: () =>
-        this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
-          class: 'mmda-agnaive-toolbar-actions',
-          role: `${UI_NAME}-toolbar-action-group`,
-        }),
+      actionGroup: (dense) =>
+        this.factory.buttonGroup(
+          () => this.toolbarActionButtons(context, dense),
+          {
+            class: uiCssClass('toolbar-actions'),
+            role: 'group',
+          },
+        ),
       moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
       navActions: () =>
         module
@@ -704,7 +738,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     } else {
       editor = h(NInput, common)
     }
-    return h('label', { class: 'mmda-agnaive-search-field' }, [
+    return h('label', { class: 'mmda-search-field' }, [
       h('span', meta.displayLabel),
       editor,
     ])
@@ -714,7 +748,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     return h(
       'form',
       {
-        class: 'mmda-agnaive-search-form',
+        class: 'mmda-search-form',
         ...props,
         onSubmit: (event: Event) => event.preventDefault(),
       },
@@ -728,8 +762,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     const runtime = context as any
     const filters = runtime.filters ?? []
     const quickFilters = filters.map((filter: any) =>
-      h('div', { class: 'mmda-agnaive-quick-filter' }, [
-        h('span', { class: 'mmda-agnaive-quick-filter__label' }, filter.label),
+      h('div', { class: 'mmda-quick-filter' }, [
+        h('span', { class: 'mmda-quick-filter__label' }, filter.label),
         h(NSelect, {
           value: filter.metaUiFilter.fixed
             ? filter.selectedConditions.value[0]
@@ -756,7 +790,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     return h(
       'form',
       {
-        class: 'mmda-agnaive-searchbar',
+        class: 'mmda-searchbar',
         onSubmit: (event: Event) => {
           event.preventDefault()
           props.onSearch?.(runtime.searchParam?.searchWord ?? '')
@@ -833,7 +867,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       clearable: props.showClear !== false && field.nullable,
       placeholder: props.placeholder ?? context.translate?.('action.select') ?? '请选择',
       status: props.invalid ? 'error' : undefined,
-      class: 'mmda-agnaive-search-combo',
+      class: 'mmda-search-combo',
       'onUpdate:value': (value: any) => props.onChange?.(value),
       onSearch: (text: string) => {
         props.onInput?.(text)
@@ -843,7 +877,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   }
 
   buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
-    return h('section', { class: 'mmda-agnaive-flow', ...props }, [
+    return h('section', { class: 'mmda-flow', ...props }, [
       props.xml
         ? h(BpmnModeler, {
             xml: props.xml,
@@ -855,7 +889,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       flowTrails?.length
         ? h(
             'ol',
-            { class: 'mmda-agnaive-flow__trails' },
+            { class: 'mmda-flow__trails' },
             flowTrails.map(item =>
               h('li', { key: item.id ?? item.name }, item.label ?? item.name ?? String(item)),
             ),
@@ -878,7 +912,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     return h(
       'form',
       {
-        class: 'mmda-agnaive-auth-form',
+        class: 'mmda-auth-form',
         onSubmit: (event: Event) => {
           event.preventDefault()
           props.onSignup?.(user)

@@ -271,7 +271,7 @@ export const SfAttachmentPanel = defineComponent({
     ) =>
       h(ButtonComponent as any, {
         iconCss: icon,
-        cssClass: `${cssClass} mmda-sf-attachment__action`,
+        cssClass: `${cssClass} mmda-attachment__action`,
         title,
         type: "button",
         "aria-label": title,
@@ -283,10 +283,10 @@ export const SfAttachmentPanel = defineComponent({
       });
 
     return () =>
-      h("div", { class: "mmda-sf-attachments" }, [
+      h("div", { class: "mmda-attachments" }, [
         h("input", {
           ref: input,
-          class: "mmda-sf-attachments__input",
+          class: "mmda-attachments__input",
           type: "file",
           multiple: true,
           onChange: (event: Event) => {
@@ -297,11 +297,11 @@ export const SfAttachmentPanel = defineComponent({
           },
         }),
         uploading.value
-          ? h("div", { class: "mmda-sf-upload" }, [
-              h("div", { class: "mmda-sf-upload__summary" }, [
+          ? h("div", { class: "mmda-upload" }, [
+              h("div", { class: "mmda-upload__summary" }, [
                 h(
                   "span",
-                  { class: "mmda-sf-upload__name", title: currentNames.value },
+                  { class: "mmda-upload__name", title: currentNames.value },
                   currentNames.value,
                 ),
                 h("span", `${progress.value}%`),
@@ -322,7 +322,7 @@ export const SfAttachmentPanel = defineComponent({
         attachments.value.length
           ? h(
               "ul",
-              { class: "mmda-sf-attachment-list" },
+              { class: "mmda-attachment-list" },
               attachments.value.map((item) => {
                 const info = getFileInfo(item.fileName);
                 const extension = info.fileExt.toLowerCase();
@@ -331,26 +331,26 @@ export const SfAttachmentPanel = defineComponent({
                 return h(
                   "li",
                   {
-                    class: "mmda-sf-attachment",
+                    class: "mmda-attachment",
                     key: item.fileName,
                   },
                   [
                     h("i", {
-                      class: [info.fileIcon, "mmda-sf-attachment__file-icon"],
+                      class: [info.fileIcon, "mmda-attachment__file-icon"],
                       "aria-hidden": "true",
                     }),
-                    h("div", { class: "mmda-sf-attachment__content" }, [
+                    h("div", { class: "mmda-attachment__content" }, [
                       h(
                         "div",
                         {
-                          class: "mmda-sf-attachment__name",
+                          class: "mmda-attachment__name",
                           title: info.fileName,
                         },
                         info.fileName,
                       ),
                       h(
                         "div",
-                        { class: "mmda-sf-attachment__meta" },
+                        { class: "mmda-attachment__meta" },
                         [
                           formatSize(item.fileSize),
                           item.uploader,
@@ -359,7 +359,7 @@ export const SfAttachmentPanel = defineComponent({
                           .join(" · "),
                       ),
                     ]),
-                    h("div", { class: "mmda-sf-attachment__actions" }, [
+                    h("div", { class: "mmda-attachment__actions" }, [
                       iconButton("fas fa-download", "下载", () => download(item)),
                       previewable
                         ? iconButton("fas fa-eye", "预览", () => preview(item))
@@ -377,7 +377,7 @@ export const SfAttachmentPanel = defineComponent({
             )
           : h(
               "p",
-              { class: "mmda-sf-attachments__empty" },
+              { class: "mmda-attachments__empty" },
               props.context.translate("empty.attachments") || "暂无附件",
             ),
       ]);

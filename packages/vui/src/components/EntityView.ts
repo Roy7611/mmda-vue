@@ -316,7 +316,7 @@ export function createEntityView(options: EntityViewOptions) {
 
       return () => {
         if (error.value) {
-          return h("p", { class: "mmda-prime-error" }, error.value);
+          return h("p", { class: "mmda-error" }, error.value);
         }
         if (pageLoading.value || !current.value) {
           return loadingNode(app);
@@ -382,7 +382,7 @@ export function createEntityView(options: EntityViewOptions) {
               severity: "error",
               content: error.value,
               showCloseIcon: false,
-            }) ?? h("p", { class: "mmda-prime-error" }, error.value)
+            }) ?? h("p", { class: "mmda-error" }, error.value)
           );
         }
         if (pageLoading.value || !current.value) {

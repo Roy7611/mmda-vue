@@ -24,7 +24,7 @@ export function uiCssClass(
 
 /**
  * 块 + 若干块修饰符（`--`）。
- * `uiCssClasses('page-toolbar', 'sticky')` → `mmda-page-toolbar mmda-page-toolbar--sticky`
+ * `uiCssClasses('page-header', 'sticky')` → `mmda-page-header mmda-page-header--sticky`
  */
 export function uiCssClasses(
   block: string,

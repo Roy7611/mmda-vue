@@ -95,8 +95,8 @@ export const SfGridLayout = defineComponent({
           },
         ],
         default: () =>
-          h('div', { class: 'mmda-sf-grid-layout' }, [
-            h('p', { class: 'mmda-sf-grid-layout__hint' }, '拖动调整列顺序；勾选控制显隐。'),
+          h('div', { class: 'mmda-grid-layout' }, [
+            h('p', { class: 'mmda-grid-layout__hint' }, '拖动调整列顺序；勾选控制显隐。'),
             h(ListBoxComponent as any, {
               dataSource: items.value,
               fields: { text: 'displayLabel', value: 'fieldName' },

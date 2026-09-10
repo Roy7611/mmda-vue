@@ -8,7 +8,7 @@ const DiagramImpl = defineAsyncComponent(async () => {
     return {
       default: defineComponent({
         setup: () => () =>
-          h('p', { class: 'mmda-sf-bpmn-missing' }, 'BPMN requires @syncfusion/ej2-vue-diagrams'),
+          h('p', { class: 'mmda-bpmn-missing' }, 'BPMN requires @syncfusion/ej2-vue-diagrams'),
       }),
     }
   }

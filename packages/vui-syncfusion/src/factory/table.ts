@@ -4,7 +4,7 @@
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
 import { h, nextTick, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { gridFreezeOf, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
@@ -107,7 +107,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     const bindRowDetail = (args: any) => {
       const root = args?.detailElement as HTMLElement | undefined
       const host =
-        (root?.querySelector?.('.mmda-sf-row-detail-host') as Element | null) ??
+        (root?.querySelector?.('.mmda-row-detail-host') as Element | null) ??
         root
       if (!host || !rowDetail) return
       const row = (args?.data ?? args?.rowData) as T
@@ -397,18 +397,18 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         ui: {
           create: (args: any) => {
             const host = document.createElement('div')
-            host.className = 'mmda-sf-filter-range'
+            host.className = 'mmda-filter-range'
             const firstWrap = document.createElement('div')
-            firstWrap.className = 'mmda-sf-filter-range__value'
+            firstWrap.className = 'mmda-filter-range__value'
             const firstInput = document.createElement('input')
             firstInput.className = 'e-flmenu-input'
             firstWrap.appendChild(firstInput)
 
             secondWrap = document.createElement('div')
             secondWrap.className =
-              'mmda-sf-filter-range__value mmda-sf-filter-range__value--to'
+              'mmda-filter-range__value mmda-filter-range__value--to'
             const separator = document.createElement('span')
-            separator.className = 'mmda-sf-filter-range__separator'
+            separator.className = 'mmda-filter-range__separator'
             separator.textContent = '至'
             const secondInput = document.createElement('input')
             secondWrap.append(separator, secondInput)
@@ -592,7 +592,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           create: (args: any) => {
             operatorDropDown = args.getOptrInstance?.dropOptr
             const host = document.createElement('div')
-            host.className = 'mmda-sf-filter-multi'
+            host.className = 'mmda-filter-multi'
             if (showCompare) {
               firstInput = document.createElement('input')
               firstInput.className = 'e-input e-flmenu-input'
@@ -601,7 +601,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
               if (allowJoin) {
                 secondRow = document.createElement('div')
-                secondRow.className = 'mmda-sf-filter-multi__join'
+                secondRow.className = 'mmda-filter-multi__join'
                 joinSelect = document.createElement('select')
                 joinSelect.innerHTML =
                   '<option value="and">AND</option><option value="or">OR</option>'
@@ -615,7 +615,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
             if (showSet && !hasOne) {
               const box = document.createElement('div')
-              box.className = 'mmda-sf-filter-multi__choices'
+              box.className = 'mmda-filter-multi__choices'
               for (const item of choiceFilterDataSource(field)) {
                 const label = document.createElement('label')
                 const input = document.createElement('input')
@@ -813,7 +813,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         allowEditing: false,
         freeze: 'Left',
         // EJ2 仍会插入排序/分组图标；用 class 藏掉（行号不可排、不可分组）
-        customAttributes: { class: 'mmda-sf-rownum-col' },
+        customAttributes: { class: 'mmda-rownum-col' },
         // 直接绑服务器下发的 rowNum，无 template / valueAccessor
       },
       needHiddenIdPk
@@ -887,7 +887,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             allowGrouping: false,
             allowResizing: false,
             freeze: 'Right',
-            customAttributes: { class: 'mmda-sf-actions-col' },
+            customAttributes: { class: 'mmda-actions-col' },
             template: 'mmdaCell_actions',
           }
         : null,
@@ -905,8 +905,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             'div',
             {
               class: [
-                'mmda-sf-cell',
-                `mmda-sf-cell--${gridTextAlignCss(align)}`,
+                'mmda-cell',
+                `mmda-cell--${gridTextAlignCss(align)}`,
               ],
               style: {
                 textAlign: gridTextAlignCss(align),
@@ -964,8 +964,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             return h('span', {
               class:
                 name === 'details'
-                  ? 'mmda-sf-row-details-placeholder'
-                  : 'mmda-sf-row-action-placeholder',
+                  ? 'mmda-row-details-placeholder'
+                  : 'mmda-row-action-placeholder',
               'aria-hidden': 'true',
             })
           }
@@ -974,7 +974,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             'button',
             {
               type: 'button',
-              class: 'e-btn e-flat e-round mmda-sf-row-action',
+              class: 'e-btn e-flat e-round mmda-row-action',
               title: action.label,
               disabled: !enabled(action),
               onClick: () => {
@@ -991,7 +991,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             ? h(SplitButtonComponent as any, {
                 iconCss: details.icon || factory.resolveIcon('details'),
                 cssClass:
-                  'mmda-sf-split--flat e-caret-hide-primary mmda-sf-row-details',
+                  'mmda-split--flat e-caret-hide-primary mmda-row-details',
                 title: details.label,
                 items: popupActions.map(action => normalizeAction(action)),
                 click: () => run(details),
@@ -1009,7 +1009,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           return h(
             'div',
             {
-              class: 'mmda-sf-row-actions',
+              class: 'mmda-row-actions',
               onClick: (event: Event) => event.stopPropagation(),
               onMousedown: (event: Event) => event.stopPropagation(),
             },
@@ -1020,7 +1020,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return h(
           'div',
           {
-            class: 'mmda-sf-row-actions',
+            class: 'mmda-row-actions',
             onClick: (event: Event) => event.stopPropagation(),
             onMousedown: (event: Event) => event.stopPropagation(),
           },
@@ -1144,7 +1144,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     const layoutRev = props.tableSettings?.rev?.value ?? 0
     const listGroupKey = String(metaUi.objName ?? primaryKey ?? 'list')
-    const gridKey = `mmda-sf-grid-${listGroupKey}-${layoutRev}`
+    const gridKey = `mmda-grid-${listGroupKey}-${layoutRev}`
 
     const resolveEj2Grid = () => {
       const grid = ej2Grid
@@ -1487,7 +1487,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           : inplaceEdit && inplaceEditStart === 'excel'
             ? { mode: 'Cell', type: 'Single' }
             : { type: 'None' },
-        cssClass: ['mmda-sf-table', props.class].filter(Boolean).join(' '),
+        cssClass: ['mmda-table', props.class].filter(Boolean).join(' '),
         dataBound: () => {
           if (rowDetail) expandAllDetails()
           if (useVirtualSelection && selectionSyncSuppressed) {
@@ -1497,7 +1497,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         },
         ...(rowDetail
           ? {
-              detailTemplate: '<div class="mmda-sf-row-detail-host"></div>',
+              detailTemplate: '<div class="mmda-row-detail-host"></div>',
               detailDataBound: bindRowDetail,
             }
           : {}),
@@ -1831,7 +1831,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     // 服务端分页：Pager 与 Grid 分离（Grid 开虚拟滚动不能再用 allowPaging）
     return h(
       'div',
-      { class: 'mmda-sf-pagable-table' },
+      { class: uiCssClass('pagable-table') },
       [
         withLoading(gridVNode),
         factory.paginator(pagination, {

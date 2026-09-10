@@ -17,7 +17,7 @@ export function createFloatingActionButton(
       colorRole: buttonProps.colorRole ?? "primary",
       shape: "circle",
       class: [
-        "mmda-prime-fab",
+        "mmda-fab",
         fabModifierClasses({ ...props, position: pos }),
       ],
       htmlAttributes: {

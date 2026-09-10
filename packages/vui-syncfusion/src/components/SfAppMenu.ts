@@ -1,4 +1,4 @@
-import { type Module } from '@mmda/core'
+import { type Module, uiCssClass, uiCssClasses } from '@mmda/core'
 import {
   computed,
   defineComponent,
@@ -12,7 +12,7 @@ import {
 } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
-import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, VueAppSideMenu, useCompactViewport, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
+import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, useCompactViewport, wrapRailLabel, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
 
@@ -26,7 +26,11 @@ type SlotFn = () => VNodeChild
  */
 const DOCK_WIDTH = '300px'
 const DOCK_SIZE = '72px'
-const SHELL_TARGET = '.mmda-sf-shell'
+/** compact 二级抽屉宽 ≈ Dock 展开区（300 − 72） */
+const COMPACT_DRAWER_WIDTH = '228px'
+/** 与 VueUiLayout.scaffold / buildAppScaffold 根节点一致。 */
+const SHELL_TARGET = `.${uiCssClass('app-layout')}`
+const DOCK_SIDEBAR_ID = 'mmda-app-sidebar'
 
 function moduleHref(
   url: string,
@@ -132,9 +136,11 @@ function getSidebarInstance(refValue: unknown): {
  * Syncfusion module menu (systems layout = official Sidebar enableDock).
  *
  * Shell contract (see SyncfusionUiBuilder.buildAppScaffold):
- *   .mmda-sf-shell
- *     #mmda-sf-dock-sidebar  (this component)
- *     .mmda-sf-maincontent   (page — Push sibling)
+ *   .mmda-app-layout
+ *     #mmda-app-sidebar | .mmda-app-side-menu--compact
+ *     .mmda-app-page.e-main-content   (EJ2 Push 认 e-main-content)
+ *
+ * AppShell → SyncfusionLayout.scaffold：扁平兄弟，无 .mmda-app-nav 包裹。
  */
 export const SfAppSideMenu = defineComponent({
   name: 'SfAppSideMenu',
@@ -163,6 +169,8 @@ export const SfAppSideMenu = defineComponent({
     const expanded = ref<Record<string, boolean>>({})
     /** Mirrors Sidebar open/docked for chevron only; width owned by EJ2. */
     const dockOpen = ref(true)
+    /** compact：二级 Over 抽屉是否打开（内容与 Dock 展开区同一套）。 */
+    const drawerOpen = ref(false)
     const sidebarRef = ref<unknown>(null)
     const mediaCompact = useCompactViewport()
     const compact = computed(() =>
@@ -191,7 +199,7 @@ export const SfAppSideMenu = defineComponent({
         'button',
         {
           type: 'button',
-          class: 'mmda-sf-system-collapse',
+          class: uiCssClass('app-side-menu', 'collapse'),
           title: dockOpen.value ? '收起菜单' : '展开菜单',
           'aria-label': dockOpen.value ? '收起菜单' : '展开菜单',
           'aria-expanded': dockOpen.value,
@@ -229,9 +237,15 @@ export const SfAppSideMenu = defineComponent({
           if (code.includes('.')) next[code] = true
         }
         expanded.value = next
+        // 路由变化时收起 compact 抽屉（与点叶关闭一致）
+        if (compact.value) drawerOpen.value = false
       },
       { immediate: true, deep: true },
     )
+
+    watch(compact, (isCompact) => {
+      if (!isCompact) drawerOpen.value = false
+    })
 
     const isGroupOpen = (code: string) =>
       expanded.value[code] ??
@@ -246,7 +260,7 @@ export const SfAppSideMenu = defineComponent({
 
     const renderFeatureList = (items: AppMenuItem[] = []): VNode => {
       if (!items.length) {
-        return h('div', { class: 'mmda-sf-acc-empty' }, '暂无功能')
+        return h('div', { class: uiCssClass('app-side-menu', 'acc-empty') }, '暂无功能')
       }
       return h(
         'div',
@@ -265,12 +279,12 @@ export const SfAppSideMenu = defineComponent({
       const groups = items.filter(item => item.items?.length)
       const leaves = items.filter(item => !item.items?.length)
       if (!groups.length && !leaves.length) {
-        return h('div', { class: 'mmda-sf-app-menu__empty' }, '暂无模块')
+        return h('div', { class: uiCssClass('app-side-menu', 'empty') }, '暂无模块')
       }
 
       return h('div', { class: className }, [
         leaves.length
-          ? h('div', { class: 'mmda-sf-app-menu__leaves' }, [
+          ? h('div', { class: uiCssClass('app-side-menu', 'leaves') }, [
               renderFeatureList(leaves),
             ])
           : null,
@@ -280,8 +294,8 @@ export const SfAppSideMenu = defineComponent({
             'div',
             {
               class: {
-                'mmda-sf-acc-item': true,
-                'mmda-sf-acc-item--open': open,
+                [uiCssClass('app-side-menu', 'acc')]: true,
+                [uiCssClass('app-side-menu', 'acc', 'open')]: open,
               },
               key: group.moduleCode,
             },
@@ -290,30 +304,34 @@ export const SfAppSideMenu = defineComponent({
                 'button',
                 {
                   type: 'button',
-                  class: 'mmda-sf-acc-item__header',
+                  class: uiCssClass('app-side-menu', 'acc-header'),
                   'aria-expanded': open,
                   onClick: () => toggleGroup(group.moduleCode),
                 },
                 [
                   group.icon
                     ? h('i', {
-                        class: [group.icon, 'mmda-sf-acc-item__icon'],
+                        class: [group.icon, uiCssClass('app-side-menu', 'acc-icon')],
                         'aria-hidden': true,
                       })
                     : null,
-                  h('span', { class: 'mmda-sf-acc-item__title' }, group.label),
+                  h(
+                    'span',
+                    { class: uiCssClass('app-side-menu', 'acc-title') },
+                    group.label,
+                  ),
                   h('i', {
                     class: [
                       'e-icons',
                       'e-chevron-down',
-                      'mmda-sf-acc-item__chevron',
+                      uiCssClass('app-side-menu', 'acc-chevron'),
                     ],
                     'aria-hidden': true,
                   }),
                 ],
               ),
-              h('div', { class: 'mmda-sf-acc-item__panel' }, [
-                h('div', { class: 'mmda-sf-acc-item__panel-inner' }, [
+              h('div', { class: uiCssClass('app-side-menu', 'acc-panel') }, [
+                h('div', { class: uiCssClass('app-side-menu', 'acc-panel-inner') }, [
                   renderFeatureList(group.items),
                 ]),
               ]),
@@ -327,7 +345,7 @@ export const SfAppSideMenu = defineComponent({
       h(
         'nav',
         {
-          class: 'mmda-sf-system-rail',
+          class: uiCssClass('app-side-menu', 'rail'),
           role: 'tablist',
           'aria-label': '系统',
         },
@@ -338,8 +356,8 @@ export const SfAppSideMenu = defineComponent({
               type: 'button',
               role: 'tab',
               class: {
-                'mmda-sf-system-rail__item': true,
-                'mmda-sf-system-rail__item--active':
+                [uiCssClass('app-side-menu', 'rail-item')]: true,
+                [uiCssClass('app-side-menu', 'rail-item', 'active')]:
                   item.moduleCode === selected?.moduleCode,
               },
               id: item.moduleCode,
@@ -347,59 +365,179 @@ export const SfAppSideMenu = defineComponent({
               'aria-selected': item.moduleCode === selected?.moduleCode,
               onClick: () => {
                 selectedL1.value = item.moduleCode
-                if (!dockOpen.value) openDock()
+                if (compact.value) {
+                  drawerOpen.value = true
+                } else if (!dockOpen.value) {
+                  openDock()
+                }
               },
             },
             [
               item.icon
-                ? h('i', { class: [item.icon, 'mmda-sf-system-rail__icon'] })
+                ? h('i', {
+                    class: [item.icon, uiCssClass('app-side-menu', 'rail-icon')],
+                  })
                 : h(
                     'span',
-                    { class: 'mmda-sf-system-rail__code' },
+                    { class: uiCssClass('app-side-menu', 'rail-code') },
                     item.moduleCode,
                   ),
               // 收起后仍显示一级系统名（不用 e-text，避免被 .e-dock.e-close 隐藏）
               h(
                 'span',
-                { class: 'mmda-sf-system-rail__label' },
-                item.label,
+                { class: uiCssClass('app-side-menu', 'rail-label') },
+                wrapRailLabel(item.label),
               ),
             ],
           ),
         ),
       )
 
+    const renderSelectedTitle = (selected?: AppMenuItem, extraClass?: string) =>
+      h(
+        'div',
+        {
+          class: [uiCssClass('app-side-menu', 'title'), extraClass].filter(
+            Boolean,
+          ),
+        },
+        [
+          selected?.icon
+            ? h('i', {
+                class: [
+                  selected.icon,
+                  uiCssClass('app-side-menu', 'title-icon'),
+                ],
+                'aria-hidden': true,
+              })
+            : null,
+          h(
+            'span',
+            {
+              class: [
+                'e-text',
+                uiCssClass('app-side-menu', 'title-label'),
+              ],
+              title: selected?.label,
+            },
+            selected?.label ?? '',
+          ),
+        ],
+      )
+
+    const renderExpandedPanel = (
+      selected: AppMenuItem | undefined,
+      panelClass?: string,
+    ) =>
+      h('div', { class: uiCssClass('app-side-menu', 'compact-panel') }, [
+        renderSelectedTitle(selected, panelClass),
+        renderModuleTree(
+          selected?.items ?? [],
+          `${uiCssClass('app-side-menu', 'modules')} ${panelClass ?? ''}`.trim(),
+        ),
+        props.footer
+          ? h(
+              'div',
+              {
+                class: [uiCssClass('sidebar', 'footer'), panelClass].filter(
+                  Boolean,
+                ),
+              },
+              [props.footer()],
+            )
+          : null,
+      ])
+
     return () => {
       const items = menuItems.value
-      if (compact.value) {
-        return h(VueAppSideMenu, {
-          modules: props.modules,
-          compact: true,
-          logo: props.logo,
-          footer: props.footer,
-          class: 'mmda-sf-app-menu mmda-sf-app-menu--compact',
-        })
-      }
       if (!items.length) {
-        return h('div', { class: 'mmda-sf-app-menu mmda-sf-app-menu__empty' }, [
-          props.modules.length
-            ? '模块树无可访问功能（检查 ModuleAuths 权限与 asTree）'
-            : '未加载到模块（检查 ModuleAuths 接口）',
-        ])
+        return h(
+          'div',
+          {
+            class: [
+              uiCssClass('app-side-menu'),
+              uiCssClass('app-side-menu', 'empty'),
+              compact.value ? uiCssClass('app-side-menu', undefined, 'compact') : undefined,
+            ],
+          },
+          [
+            props.modules.length
+              ? '模块树无可访问功能（检查 ModuleAuths 权限与 asTree）'
+              : '未加载到模块（检查 ModuleAuths 接口）',
+          ],
+        )
+      }
+
+      const systems = items.filter(item => !item.moduleCode.includes('.'))
+      const selected =
+        systems.find(item => item.moduleCode === selectedL1.value) ??
+        systems[0] ??
+        items[0]
+      const dockPanel = uiCssClass('app-side-menu', 'panel')
+
+      // compact：一级轨常驻 + Over 抽屉，抽屉里仍是同一套 title / accordion / footer
+      if (compact.value) {
+        return h(
+          'div',
+          {
+            class: [
+              uiCssClass('app-side-menu'),
+              uiCssClass('app-side-menu', undefined, 'compact'),
+            ],
+          },
+          [
+            props.logo
+              ? h('div', { class: uiCssClass('app-side-menu', 'brand') }, [
+                  props.logo(),
+                ])
+              : null,
+            withSystems.value
+              ? renderSystemRail(systems, selected)
+              : renderSystemRail(items, selected),
+            h(
+              SidebarComponent as any,
+              {
+                type: 'Over',
+                isOpen: drawerOpen.value,
+                position: 'Left',
+                width: COMPACT_DRAWER_WIDTH,
+                showBackdrop: true,
+                closeOnDocumentClick: true,
+                enableDock: false,
+                enableGestures: false,
+                cssClass: [
+                  uiCssClass('sidebar'),
+                  uiCssClass('sidebar', undefined, 'drawer'),
+                  uiCssClass('sidebar', undefined, 'over'),
+                  uiCssClass('app-side-menu', 'drawer'),
+                ].join(' '),
+                open: () => {
+                  drawerOpen.value = true
+                },
+                close: () => {
+                  drawerOpen.value = false
+                },
+                change: (args: { isOpen?: boolean }) => {
+                  if (typeof args?.isOpen === 'boolean') {
+                    drawerOpen.value = args.isOpen
+                  }
+                },
+              },
+              {
+                default: () => renderExpandedPanel(selected),
+              },
+            ),
+          ],
+        )
       }
 
       if (withSystems.value) {
-        const systems = items.filter(item => !item.moduleCode.includes('.'))
-        const selected =
-          systems.find(item => item.moduleCode === selectedL1.value) ??
-          systems[0]
-
         return h(
           SidebarComponent as any,
           {
             ref: sidebarRef,
-            id: 'mmda-sf-dock-sidebar',
-            class: 'mmda-sf-sidebar-dock',
+            id: DOCK_SIDEBAR_ID,
+            class: uiCssClasses('sidebar', 'dock'),
             // Docking Sidebar docs
             enableDock: true,
             dockSize: DOCK_SIZE,
@@ -426,44 +564,25 @@ export const SfAppSideMenu = defineComponent({
           },
           {
             default: () =>
-              h('div', { class: 'mmda-sf-system-chrome' }, [
-                h('div', { class: 'mmda-sf-system-header__brand' }, [
+              h('div', { class: uiCssClass('app-side-menu', 'chrome') }, [
+                h('div', { class: uiCssClass('app-side-menu', 'brand') }, [
                   props.logo?.() ?? null,
                 ]),
-                h(
-                  'div',
-                  { class: 'mmda-sf-system-header__title mmda-sf-dock-panel' },
-                  [
-                    selected?.icon
-                      ? h('i', {
-                          class: [
-                            selected.icon,
-                            'mmda-sf-system-header__icon',
-                          ],
-                          'aria-hidden': true,
-                        })
-                      : null,
-                    h(
-                      'span',
-                      {
-                        class: 'e-text mmda-sf-system-header__label',
-                        title: selected?.label,
-                      },
-                      selected?.label ?? '',
-                    ),
-                  ],
-                ),
+                renderSelectedTitle(selected, dockPanel),
                 renderCollapseToggle(),
                 renderSystemRail(systems, selected),
                 renderModuleTree(
                   selected?.items ?? [],
-                  'mmda-sf-system-modules mmda-sf-dock-panel',
+                  `${uiCssClass('app-side-menu', 'modules')} ${dockPanel}`,
                 ),
                 props.footer
                   ? h(
                       'div',
                       {
-                        class: 'mmda-sf-sidebar__footer mmda-sf-dock-panel',
+                        class: [
+                          uiCssClass('sidebar', 'footer'),
+                          dockPanel,
+                        ],
                       },
                       [props.footer()],
                     )
@@ -473,22 +592,18 @@ export const SfAppSideMenu = defineComponent({
         )
       }
 
-      return h('aside', { class: 'mmda-sf-sidebar' }, [
+      return h('aside', { class: uiCssClass('sidebar') }, [
         props.logo
-          ? h('div', { class: 'mmda-sf-sidebar__header' }, [props.logo()])
+          ? h('div', { class: uiCssClass('sidebar', 'header') }, [props.logo()])
           : null,
-        h(
-          'div',
-          { class: 'mmda-sf-sidebar__body' },
-          [
-            renderModuleTree(
-              items,
-              'mmda-sf-app-menu mmda-sf-app-menu--accordion',
-            ),
-          ],
-        ),
+        h('div', { class: uiCssClass('sidebar', 'body') }, [
+          renderModuleTree(
+            items,
+            uiCssClasses('app-side-menu', 'accordion'),
+          ),
+        ]),
         props.footer
-          ? h('div', { class: 'mmda-sf-sidebar__footer' }, [props.footer()])
+          ? h('div', { class: uiCssClass('sidebar', 'footer') }, [props.footer()])
           : null,
       ])
     }

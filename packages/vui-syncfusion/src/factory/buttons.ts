@@ -8,11 +8,15 @@ import {
 } from "./drop_down_button";
 import { createSplitButton } from "./split_button";
 import { createFloatingActionButton } from "./floating_action_button";
+import { resolveActionButtonIcon } from "@mmda/vui";
 
 export { createButton } from "./button";
 
 export function buttonRenderers(
-  factory: { resolveIcon: (icon: string) => string },
+  factory: {
+    resolveIcon: (icon: string) => string
+    actionIcons?: Record<string, string>
+  },
   button = createButton,
 ) {
   return {
@@ -29,7 +33,11 @@ export function buttonRenderers(
         ...normalizeAction(action, t),
         label: normalizeAction(action, t).text,
         ...props,
-        icon: factory.resolveIcon(action.icon ?? action.name ?? ""),
+        icon: resolveActionButtonIcon(
+          factory.resolveIcon,
+          factory.actionIcons,
+          action,
+        ),
         onClick: action.onAction,
       }),
   };

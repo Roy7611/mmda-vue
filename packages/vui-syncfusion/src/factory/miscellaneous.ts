@@ -7,7 +7,7 @@ import { normalizeMenuItem } from "./utils";
 
 export const miscellaneousRenderers = {
   scrollbar: (content: any, props: any) =>
-    h("div", { class: "mmda-sf-scrollbar", ...props }, content as any),
+    h("div", { class: "mmda-scrollbar", ...props }, content as any),
   menu: (items: any[], props: any) =>
     h(MenuComponent as any, {
       items: items.map((item) => normalizeMenuItem(item)),

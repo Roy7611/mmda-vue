@@ -10,6 +10,8 @@ export interface UiSidebarProps extends UiProps {
   type?: UiSidebarType
   width?: string | number
   showBackdrop?: boolean
+  /** 点遮罩 / 文档空白处关闭（drawer 默认应开启） */
+  closeOnDocumentClick?: boolean
   enableDock?: boolean
   dockSize?: string | number
   target?: string | unknown

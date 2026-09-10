@@ -876,15 +876,14 @@ export class TestUiBuilder extends VueUiBuilder {
     slots?: UiSlots,
   ) {
     return paintModuleToolbar(this.factory, context, props, slots, {
-      className: "mmda-toolbar",
       breadcrumb: () =>
         this.buildModuleBreadcrumb(context, {
           module: (context as any).module,
           label: props.breadcrumbLeaf || "",
         }),
-      actionGroup: () =>
+      actionGroup: (_dense) =>
         this.factory.buttonGroup(() => [], {
-          class: "mmda-test-toolbar-actions",
+          class: "mmda-toolbar-actions",
         }),
       moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
       navActions: () => [],

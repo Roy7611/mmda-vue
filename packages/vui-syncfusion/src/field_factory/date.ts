@@ -10,7 +10,7 @@ import { invalidOf, type UiContext } from "./utils";
 
 const wrap = (field: MetaUiField, context: UiContext, child: ReturnType<typeof h>) => {
   const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     child,
     invalid &&
       h(

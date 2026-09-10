@@ -87,6 +87,10 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       back: "e-icons e-chevron-left",
       import: "e-icons e-upload-1",
       export: "e-icons e-download",
+      print: "e-icons e-print",
+      /** 无专用图标时的「执行 / 做」默认（play） */
+      execute: "e-icons e-play",
+      do: "e-icons e-play",
       "auto-fit-columns": "e-icons e-auto-fit-all-column",
       settings: "e-icons e-settings",
       more: "e-icons e-more-vertical-1",
@@ -111,7 +115,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       error: "e-icons e-circle-close",
     },
     resolveIcon(icon: string) {
-      if (!icon) return "";
+      if (!icon) return factory.actionIcons.execute;
       if (icon.startsWith("e-icons") || icon.startsWith("e-")) return icon;
       if (/\bfa[srbld]?\b|fa-/.test(icon)) return icon;
       if (icon.startsWith("pi ")) {
@@ -208,7 +212,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(
         "div",
-        { class: ["mmda-form-field", "mmda-sf-form-field", props.class], style: props.style },
+        { class: ["mmda-form-field", "mmda-form-field", props.class], style: props.style },
         [
           props.label
             ? h(
@@ -242,7 +246,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     paginator: factory.paginator,
     resolveIcon: (icon: string) => factory.resolveIcon(icon),
   });
-  wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-sf-pagable");
+  wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-pagable");
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
     factory.table(loader.model.list as any[], metadata.metaUi, {
       ...props,

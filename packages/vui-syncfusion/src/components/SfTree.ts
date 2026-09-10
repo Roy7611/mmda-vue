@@ -204,7 +204,7 @@ export const SfTree = defineComponent({
       h(
         'div',
         {
-          class: ['mmda-sf-tree-host', props.class],
+          class: ['mmda-tree-host', props.class],
           onContextmenuCapture: openContextMenu,
           onMousemove: (event: MouseEvent) => {
             const node = nodeFromEvent(event)
@@ -227,7 +227,7 @@ export const SfTree = defineComponent({
         [
           h(TreeViewComponent as any, {
             ref: treeRef,
-            cssClass: ['mmda-sf-tree', props.class]
+            cssClass: ['mmda-tree', props.class]
               .flat(8)
               .filter(Boolean)
               .join(' '),

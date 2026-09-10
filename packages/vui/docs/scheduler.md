@@ -66,4 +66,4 @@ GSTC 一类「行=资源、横轴可缩放、一行多条」不是 `scheduler`�
 | `print` | SF 官方 print；Fc 对日历根 `window.print` |
 | `exportExcel` | SF `excelExport`；Fc UTF-8 BOM CSV |
 
-钩子 class：`mmda-scheduler`、`mmda-scheduler--readonly`。皮肤可再挂 `mmda-sf-scheduler` / `mmda-fc-scheduler`。
+钩子 class：`mmda-scheduler`、`mmda-scheduler--readonly`。

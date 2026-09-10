@@ -2,7 +2,7 @@ import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
 import type { UiProps, UiAction, UiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
-import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink } from '@mmda/vui'
+import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
@@ -109,6 +109,9 @@ export function createAgNaiveUiFactory(): UiFactory {
       unlock: 'fas fa-unlock',
       details: 'fas fa-eye',
       print: 'fas fa-print',
+      execute: 'fas fa-play',
+      do: 'fas fa-play',
+      more: 'fas fa-ellipsis-v',
     },
     viewIcons: {
       index: 'fas fa-list',
@@ -123,7 +126,7 @@ export function createAgNaiveUiFactory(): UiFactory {
       error: 'fas fa-times-circle',
     },
     resolveIcon(icon: string) {
-      if (!icon) return ''
+      if (!icon) return factory.actionIcons.execute
       if (/\bfa[srbld]?\b|fa-/.test(icon)) return icon
       if (icon.startsWith(MATERIAL_SYMBOL_PREFIX)) return icon
       return factory.actionIcons[icon] ?? `fas fa-${icon}`
@@ -210,11 +213,11 @@ export function createAgNaiveUiFactory(): UiFactory {
     link: (props, slots) =>
       h(
         'a',
-        { ...props, class: ['mmda-agnaive-link', props.class] },
+        { ...props, class: ['mmda-link', props.class] },
         slots?.default?.() ?? props.text,
       ),
     iconField: (value, props = {}) =>
-      h('span', { class: 'mmda-agnaive-icon-field' }, [
+      h('span', { class: 'mmda-icon-field' }, [
         props.icon && createIconVNode(factory.resolveIcon(props.icon)),
         createTextInput({
           ...props,
@@ -240,7 +243,11 @@ export function createAgNaiveUiFactory(): UiFactory {
         ...action,
         ...normalizeAction(action, t),
         ...props,
-        icon: factory.resolveIcon(action.icon ?? action.name ?? ''),
+        icon: resolveActionButtonIcon(
+          factory.resolveIcon,
+          factory.actionIcons,
+          action,
+        ),
         onClick: action.onAction,
       }),
     paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
@@ -278,7 +285,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(
         'div',
-        { class: 'mmda-agnaive-list' },
+        { class: 'mmda-list' },
         model.length
           ? model.map((item, index) =>
               h(
@@ -289,7 +296,7 @@ export function createAgNaiveUiFactory(): UiFactory {
                     String(
                       metaUi.primaryKey ? (item as any)[metaUi.primaryKey] : index,
                     ),
-                  class: ['mmda-agnaive-list__item', props.itemClass?.(item)],
+                  class: ['mmda-list__item', props.itemClass?.(item)],
                   style: props.itemStyle?.(item),
                   onClick: () => props.onItemClick?.(item),
                   onDblclick: () => props.onItemDoubleClick?.(item),
@@ -308,7 +315,7 @@ export function createAgNaiveUiFactory(): UiFactory {
         onPage: props.onPage,
       }),
     scrollbar: (content, props) =>
-      h('div', { class: 'mmda-agnaive-scrollbar', ...props }, content as any),
+      h('div', { class: 'mmda-scrollbar', ...props }, content as any),
     menu: (items, props) =>
       h(NMenu, {
         options: (items as any[]).map(item => ({
@@ -352,7 +359,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(
         'div',
-        { class: ['mmda-form-field', 'mmda-agnaive-form-field', props.class], style: props.style },
+        { class: ['mmda-form-field', 'mmda-form-field', props.class], style: props.style },
         [
           props.label
             ? h('label', { class: 'mmda-form-field__label' }, String(props.label))
@@ -369,7 +376,7 @@ export function createAgNaiveUiFactory(): UiFactory {
         ],
       ),
   }
-  wrapListFamilyPaginator(factory, ['list'], 'mmda-agnaive-pagable')
+  wrapListFamilyPaginator(factory, ['list'], 'mmda-pagable')
   bindListDisplayRenderers(factory)
   return factory
 }

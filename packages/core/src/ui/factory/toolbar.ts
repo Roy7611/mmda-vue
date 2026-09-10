@@ -33,11 +33,11 @@ export function toolbarModifierClasses(
   const layout =
     props.layout === 'medium' || props.layout === 'compact'
       ? props.layout
-      : 'full'
+      : undefined
   const hasCenter = typeof slots?.center === 'function'
   return [
     uiCssClass('toolbar'),
-    uiCssClass('toolbar', undefined, layout),
+    layout ? uiCssClass('toolbar', undefined, layout) : undefined,
     hasCenter ? uiCssClass('toolbar', undefined, 'with-center') : undefined,
     props.class,
   ]

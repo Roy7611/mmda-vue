@@ -19,7 +19,7 @@ const AgNaiveConfig = defineComponent({
           themeOverrides: naiveOverridesRef.value,
           locale: loc.locale,
           dateLocale: loc.dateLocale,
-          class: 'mmda-agnaive-config',
+          class: 'mmda-config',
         },
         { default: () => slots.default?.() },
       )

@@ -93,7 +93,7 @@ export const SfSplitter = defineComponent({
     return () => {
       const applied = chromeProps();
       const cssClass = [
-        "mmda-sf-splitter",
+        "mmda-splitter",
         ...splitterModifierClasses(applied).flat().filter(Boolean),
       ].join(" ");
       return h(
@@ -124,7 +124,7 @@ export const SfSplitter = defineComponent({
             props.panes.map((pane) =>
               h(
                 "div",
-                { class: "mmda-sf-splitter-pane", style: { height: "100%" } },
+                { class: "mmda-splitter-pane", style: { height: "100%" } },
                 [pane.content],
               ),
             ),

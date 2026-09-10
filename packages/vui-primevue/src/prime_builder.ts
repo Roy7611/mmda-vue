@@ -4,7 +4,7 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { SqlDataType, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
 import { VueUiBuilder, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
@@ -121,23 +121,23 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   }
 
   buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("div", { class: "mmda-prime-container", ...props }, content);
+    return h("div", { class: "mmda-container", ...props }, content);
   }
 
   buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("header", { class: "mmda-prime-header", ...props }, content);
+    return h("header", { class: uiCssClass("page-header"), ...props }, content);
   }
 
   buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("aside", { class: "mmda-prime-aside", ...props }, content);
+    return h("aside", { class: "mmda-aside", ...props }, content);
   }
 
   buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("main", { class: "mmda-prime-main", ...props }, content);
+    return h("main", { class: "mmda-main", ...props }, content);
   }
 
   buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("footer", { class: "mmda-prime-footer", ...props }, content);
+    return h("footer", { class: "mmda-footer", ...props }, content);
   }
 
   buildAppTopBar(props: AppTopBarProps = { modules: [], logo: () => null }) {
@@ -147,7 +147,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     }));
     return h(
       Toolbar,
-      { class: "mmda-prime-topbar" },
+      { class: "mmda-topbar" },
       {
         start: () => [invoke(props.logo), this.factory.menubar(items)],
         end: () => invoke(props.actions),
@@ -176,7 +176,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       return this.factory.menubar(
         menuItems,
         {
-          class: "mmda-prime-app-menu",
+          class: "mmda-app-menu",
           ...rest,
         },
         item ? { item } : undefined,
@@ -184,7 +184,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     }
     return this.buildAppSideMenu({
       modules,
-      class: "mmda-prime-app-menu",
+      class: "mmda-app-menu",
       ...rest,
     });
   }
@@ -196,7 +196,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   buildError(context: UiContext, props?: UiProps) {
     return h(
       Message,
-      { severity: "error", class: "mmda-prime-error", ...props },
+      { severity: "error", class: "mmda-error", ...props },
       () => context.title,
     );
   }
@@ -206,7 +206,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     if (!module) {
       return this.factory.breadcrumb({
         items: [{ label: label || context.title }],
-        class: "mmda-prime-breadcrumb",
+        class: "mmda-breadcrumb",
       });
     }
 
@@ -232,7 +232,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
 
     return this.factory.breadcrumb({
       items,
-      class: "mmda-prime-breadcrumb",
+      class: "mmda-breadcrumb",
     });
   }
 
@@ -338,14 +338,21 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     };
   }
 
+  /** paintModuleToolbar dense 时临时打开；供 action / more / batch 共用。 */
+  private toolbarDense = false;
+
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
     if (!items.length) return [];
+    const dense = this.toolbarDense;
+    const moreLabel = context.t("action.more");
     return [
       this.factory.moreMenuButton(
         {
-          label: context.t("action.more"),
-          tooltip: context.t("action.more"),
-          "aria-label": context.t("action.more"),
+          icon: this.factory.resolveIcon("more"),
+          label: dense ? "" : moreLabel,
+          tooltip: moreLabel,
+          "aria-label": moreLabel,
+          hideCaret: dense,
           buttonType: "tonal",
           colorRole: "secondary",
         },
@@ -369,6 +376,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     actions: UiAction[],
   ): VNode[] {
     if (!actions.length) return [];
+    const dense = this.toolbarDense;
     const render = (action: UiAction) =>
       this.toolbarActionButton(
         context,
@@ -384,10 +392,17 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
 
     if (actions.length === 1) return [render(actions[0]!)];
 
+    const batchLabel = context.t("action.batchOperation");
     return [
       this.factory.dropDownButton(
         {
-          label: context.t("action.batchOperation"),
+          label: dense ? "" : batchLabel,
+          icon: dense
+            ? this.factory.resolveIcon(actions[0]?.icon ?? "more")
+            : undefined,
+          tooltip: batchLabel,
+          "aria-label": batchLabel,
+          hideCaret: dense,
           class: "mmda-batch-menu-button",
           buttonType: "tonal",
           colorRole: "secondary",
@@ -410,11 +425,25 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     action: UiAction,
     props?: UiProps,
   ) {
+    const dense = this.toolbarDense;
+    const label =
+      action.label ??
+      (action.name ? context.t(`action.${action.name}`) : action.name);
     return this.factory.actionButton(
       action,
       (message) => context.t(message),
       false,
-      { size: "small", ...props },
+      {
+        size: "small",
+        ...props,
+        ...(dense
+          ? {
+              label: "",
+              tooltip: action.tooltip ?? label,
+              "aria-label": label,
+            }
+          : {}),
+      },
     );
   }
 
@@ -665,11 +694,17 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     return children;
   }
 
-  private toolbarActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any;
-    if (runtime.many) return this.indexViewActionButtons(context);
-    if (runtime.editing) return this.editViewActionButtons(context);
-    return this.detailsViewActionButtons(context);
+  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
+    const prev = this.toolbarDense;
+    this.toolbarDense = dense;
+    try {
+      const runtime = context as any;
+      if (runtime.many) return this.indexViewActionButtons(context);
+      if (runtime.editing) return this.editViewActionButtons(context);
+      return this.detailsViewActionButtons(context);
+    } finally {
+      this.toolbarDense = prev;
+    }
   }
 
   buildModuleToolbar(
@@ -680,7 +715,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     const runtime = context as any;
     const module = moduleOf(context);
     return paintModuleToolbar(this.factory, context, props, slots, {
-      className: "mmda-prime-toolbar",
       breadcrumb: () => {
         if (module) {
           return this.buildModuleBreadcrumb(context, {
@@ -690,11 +724,14 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         }
         return h("strong", context.title);
       },
-      actionGroup: () =>
-        this.factory.buttonGroup(() => this.toolbarActionButtons(context), {
-          class: "mmda-prime-toolbar-actions",
-          role: `${UI_NAME}-toolbar-action-group`,
-        }),
+      actionGroup: (dense) =>
+        this.factory.buttonGroup(
+          () => this.toolbarActionButtons(context, dense),
+          {
+            class: uiCssClass("toolbar-actions"),
+            role: "group",
+          },
+        ),
       moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
       navActions: () =>
         module
@@ -752,7 +789,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     } else {
       editor = h(InputText, common);
     }
-    return h("label", { class: "mmda-prime-search-field" }, [
+    return h("label", { class: "mmda-search-field" }, [
       h("span", meta.displayLabel),
       editor,
     ]);
@@ -762,7 +799,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     return h(
       "form",
       {
-        class: "mmda-prime-search-form",
+        class: "mmda-search-form",
         ...props,
         onSubmit: (event: Event) => event.preventDefault(),
       },
@@ -776,8 +813,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     const runtime = context as any;
     const filters = runtime.filters ?? [];
     const quickFilters = filters.map((filter: any) =>
-      h("div", { class: "mmda-prime-quick-filter" }, [
-        h("span", { class: "mmda-prime-quick-filter__label" }, filter.label),
+      h("div", { class: "mmda-quick-filter" }, [
+        h("span", { class: "mmda-quick-filter__label" }, filter.label),
         filter.metaUiFilter.fixed
           ? h(SelectButton, {
               modelValue: filter.selectedConditions.value[0],
@@ -811,7 +848,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     return h(
       "form",
       {
-        class: "mmda-prime-searchbar",
+        class: "mmda-searchbar",
         onSubmit: (event: Event) => {
           event.preventDefault();
           props.onSearch?.(runtime.searchParam?.searchWord ?? "");
@@ -899,7 +936,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         context.translate?.("action.select") ??
         "请选择",
       invalid: props.invalid,
-      class: "mmda-prime-search-combo",
+      class: "mmda-search-combo",
       "onUpdate:modelValue": (value: any) => props.onChange?.(value),
       onFilter: (event: any) => {
         const text = String(event?.value ?? "")
@@ -922,7 +959,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     _context: UiContext,
     props: UiProps = {},
   ) {
-    return h("section", { class: "mmda-prime-flow", ...props }, [
+    return h("section", { class: "mmda-flow", ...props }, [
       props.xml
         ? h(BpmnModeler, {
             xml: props.xml,
@@ -934,7 +971,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       flowTrails?.length
         ? h(
             "ol",
-            { class: "mmda-prime-flow__trails" },
+            { class: "mmda-flow__trails" },
             flowTrails.map((item) =>
               h(
                 "li",
@@ -961,7 +998,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     return h(
       "form",
       {
-        class: "mmda-prime-auth-form",
+        class: "mmda-auth-form",
         onSubmit: (event: Event) => {
           event.preventDefault();
           props.onSignup?.(user);

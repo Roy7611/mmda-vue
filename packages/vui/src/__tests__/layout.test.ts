@@ -115,7 +115,7 @@ describe("default VUI layouts", () => {
     );
 
     const page = host.querySelector<HTMLElement>("section.mmda-page")!;
-    const toolbar = host.querySelector<HTMLElement>(".mmda-page-toolbar")!;
+    const toolbar = host.querySelector<HTMLElement>(".mmda-page-header")!;
     const body = host.querySelector<HTMLElement>(".mmda-page-body")!;
     const main = host.querySelector<HTMLElement>(".mmda-page-main")!;
     expect(page.style.overflow).toBe("auto");

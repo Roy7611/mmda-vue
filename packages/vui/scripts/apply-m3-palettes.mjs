@@ -234,7 +234,7 @@ ${sfVars(P[id].dark)
   sfBlocks.push("");
 }
 sfCss = sfCss.replace(
-  /\/\*\n \* (?:Theme Studio 10|Material 3 brand|MD3)[\s\S]*?(?=\.mmda-sf-app\b)/,
+  /\/\*\n \* (?:Theme Studio 10|Material 3 brand|MD3)[\s\S]*?(?=\.mmda-app\b)/,
   sfBlocks.join("\n") + "\n",
 );
 if (!sfCss.includes(`--color-sf-surface: ${rgb(P.indigo.light.surface)}`)) {
@@ -265,10 +265,10 @@ for (const id of ids) {
 }
 
 primeCss = primeCss.replace(
-  /html\[data-mmda-palette="(?:indigo|purple)"\] \{[\s\S]*?(?=\.mmda-prime-app\b)/,
+  /html\[data-mmda-palette="(?:indigo|purple)"\] \{[\s\S]*?(?=\.mmda-app\b)/,
   primeBlocks.join("\n"),
 );
-// palette blocks sit BEFORE .mmda-prime-app in file historically — also try after shared block
+// palette blocks sit BEFORE .mmda-app in file historically — also try after shared block
 if (!primeCss.includes(`--p-primary-600: ${P.indigo.scale["600"]}`)) {
   primeCss = readFileSync(primePath, "utf8");
   primeCss = primeCss.replace(

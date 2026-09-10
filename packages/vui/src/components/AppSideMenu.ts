@@ -31,6 +31,23 @@ export {
   isLocalAppModuleUrl,
 };
 
+/**
+ * 一级轨标签：仅对无空格的中文按约 4 字换行（如「客户关系管理」→「客户关系\n管理」）。
+ * 英文 / 含空格文案原样返回，由 CSS padding + 自然换行处理。
+ */
+export function wrapRailLabel(label: string, chunk = 4): string {
+  const text = String(label ?? "");
+  const chars = [...text];
+  if (chars.length <= chunk) return text;
+  // 拉丁文、带空格的短语：不硬切字符
+  if (/\s/.test(text) || !/[\u3400-\u9FFF\uF900-\uFAFF]/.test(text)) return text;
+  const lines: string[] = [];
+  for (let i = 0; i < chars.length; i += chunk) {
+    lines.push(chars.slice(i, i + chunk).join(""));
+  }
+  return lines.join("\n");
+}
+
 function isActiveRoute(path: string, route?: string): boolean {
   return !!route && (path === route || path.startsWith(`${route}/`));
 }
@@ -327,7 +344,11 @@ export const VueAppSideMenu = defineComponent({
                     { class: "mmda-app-side-menu__rail-code" },
                     item.moduleCode,
                   ),
-              h("span", { class: "mmda-app-side-menu__rail-label" }, item.label),
+              h(
+                "span",
+                { class: "mmda-app-side-menu__rail-label" },
+                wrapRailLabel(item.label),
+              ),
             ],
           ),
         ),
@@ -354,7 +375,8 @@ export const VueAppSideMenu = defineComponent({
             isOpen: drawerOpen.value,
             position: "Left",
             showBackdrop: true,
-            width: 280,
+            closeOnDocumentClick: true,
+            width: 228,
             class: "mmda-app-side-menu__drawer",
             onChange: (open: boolean) => setDrawerOpen(open),
           },

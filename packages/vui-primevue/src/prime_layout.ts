@@ -4,9 +4,9 @@ import { VueUiLayout } from '@mmda/vui'
 
 export class PrimeLayout extends VueUiLayout {
   listTile(slots: UiListTileSlots<VNode>): VNode {
-    return h('article', { class: 'mmda-prime-list-tile' }, [
+    return h('article', { class: 'mmda-list-tile' }, [
       slots.leading?.(),
-      h('div', { class: 'mmda-prime-list-tile__content' }, [
+      h('div', { class: 'mmda-list-tile__content' }, [
         slots.title(),
         slots.subtitle?.(),
       ]),

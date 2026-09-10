@@ -62,7 +62,7 @@ const ImageEditorImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-image-editor-missing' },
+            { class: 'mmda-image-editor-missing' },
             'Image editor requires @syncfusion/ej2-vue-image-editor',
           ),
       }),

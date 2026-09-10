@@ -67,6 +67,16 @@ export function sidebarShowBackdropOf(
   return asDrawer
 }
 
+export function sidebarCloseOnDocumentClickOf(
+  props: UiSidebarProps,
+  asDrawer = false,
+): boolean {
+  if (props.closeOnDocumentClick !== undefined) {
+    return isTrue(props.closeOnDocumentClick)
+  }
+  return asDrawer
+}
+
 export function sidebarEnableDockOf(props: UiSidebarProps): boolean {
   return isTrue(props.enableDock)
 }
@@ -94,6 +104,10 @@ export function applyDrawerDefaults(props: UiSidebarProps): UiSidebarProps {
     type: 'Over',
     showBackdrop:
       props.showBackdrop === undefined ? true : isTrue(props.showBackdrop),
+    closeOnDocumentClick:
+      props.closeOnDocumentClick === undefined
+        ? true
+        : isTrue(props.closeOnDocumentClick),
     onChange:
       typeof onChange === 'function'
         ? (onChange as (isOpen: boolean) => void)

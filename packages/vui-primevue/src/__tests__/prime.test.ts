@@ -713,7 +713,7 @@ describe('PrimeVue skin', () => {
       ),
     ])
     expect(group.type?.name ?? group.type).toBe('ButtonGroup')
-    expect(group.props?.class).toContain('mmda-prime-button-group')
+    expect(group.props?.class).toContain('mmda-button-group')
   })
 
   it('renders selectButtonGroup as Prime SelectButton', () => {
@@ -929,7 +929,7 @@ describe('PrimeVue skin', () => {
     const cls = Array.isArray(wrap.props?.class)
       ? wrap.props.class.flat(8).filter(Boolean).join(' ')
       : String(wrap.props?.class ?? '')
-    expect(cls).toContain('mmda-prime-control')
+    expect(cls).toContain('mmda-control')
     const chrome = (wrap.children as any[])[0]
     const chromeCls = Array.isArray(chrome.props?.class)
       ? chrome.props.class.flat(8).filter(Boolean).join(' ')

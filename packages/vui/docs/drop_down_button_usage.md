@@ -30,6 +30,7 @@ factory.dropDownButton(
 ```ts
 factory.moreMenuButton(
   {
+    icon: factory.resolveIcon('more'),
     label: context.t('action.more'),
     tooltip: context.t('action.more'),
     buttonType: 'tonal',

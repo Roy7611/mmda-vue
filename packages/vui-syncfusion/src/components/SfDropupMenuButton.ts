@@ -66,16 +66,16 @@ export const SfDropupMenuButton = defineComponent({
     }
 
     const getAnchor = (btn: HTMLElement): HTMLElement =>
-      (btn.closest('.mmda-sf-sidebar__footer') as HTMLElement | null) ||
+      (btn.closest('.mmda-sidebar__footer') as HTMLElement | null) ||
       (btn.closest('.mmda-user-footer') as HTMLElement | null) ||
       btn
 
     const getPanel = (btn: HTMLElement, anchor: HTMLElement): HTMLElement => {
-      const chrome = btn.closest('.mmda-sf-system-chrome') as HTMLElement | null
+      const chrome = btn.closest('.mmda-app-side-menu__chrome') as HTMLElement | null
       return (
-        (chrome?.querySelector('.mmda-sf-system-modules') as HTMLElement | null) ||
-        (anchor.closest('#mmda-sf-dock-sidebar') as HTMLElement | null) ||
-        (btn.closest('.mmda-sf-aside') as HTMLElement | null) ||
+        (chrome?.querySelector('.mmda-app-side-menu__modules') as HTMLElement | null) ||
+        (anchor.closest('#mmda-app-sidebar') as HTMLElement | null) ||
+        (btn.closest('.mmda-aside') as HTMLElement | null) ||
         anchor
       )
     }
@@ -178,7 +178,7 @@ export const SfDropupMenuButton = defineComponent({
       const nodes: VNode[] = []
       for (const item of props.items) {
         if (item.divider) {
-          nodes.push(h('li', { class: 'mmda-sf-dropup__separator', role: 'separator' }))
+          nodes.push(h('li', { class: 'mmda-dropup__separator', role: 'separator' }))
           continue
         }
         nodes.push(
@@ -186,7 +186,7 @@ export const SfDropupMenuButton = defineComponent({
             'li',
             {
               class: [
-                'mmda-sf-dropup__item',
+                'mmda-dropup__item',
                 item.disabled ? 'is-disabled' : '',
               ]
                 .filter(Boolean)
@@ -208,13 +208,13 @@ export const SfDropupMenuButton = defineComponent({
             [
               item.icon
                 ? h('span', {
-                    class: ['mmda-sf-dropup__icon', item.icon]
+                    class: ['mmda-dropup__icon', item.icon]
                       .filter(Boolean)
                       .join(' '),
                     'aria-hidden': 'true',
                   })
                 : null,
-              h('span', { class: 'mmda-sf-dropup__label' }, item.label ?? ''),
+              h('span', { class: 'mmda-dropup__label' }, item.label ?? ''),
             ],
           ),
         )
@@ -226,7 +226,7 @@ export const SfDropupMenuButton = defineComponent({
       h(
         'span',
         {
-          class: 'mmda-sf-dropup-host',
+          class: 'mmda-dropup-host',
           ref: (el: any) => {
             rootEl.value = (el as HTMLElement) ?? null
           },
@@ -257,7 +257,7 @@ export const SfDropupMenuButton = defineComponent({
                   h(
                     'div',
                     {
-                      class: 'mmda-sf-dropup',
+                      class: 'mmda-dropup',
                       role: 'menu',
                       ref: (el: any) => {
                         menuEl.value = (el as HTMLElement) ?? null
@@ -265,7 +265,7 @@ export const SfDropupMenuButton = defineComponent({
                       style: style.value,
                       onMousedown: (e: Event) => e.stopPropagation(),
                     },
-                    [h('ul', { class: 'mmda-sf-dropup__list' }, renderItems())],
+                    [h('ul', { class: 'mmda-dropup__list' }, renderItems())],
                   ),
                 ],
               )

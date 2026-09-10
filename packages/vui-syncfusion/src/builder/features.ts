@@ -12,7 +12,7 @@ export function buildBpmnDiagram(
   _context: UiContext,
   props: UiProps = {},
 ) {
-  return h("section", { class: "mmda-sf-flow", ...props }, [
+  return h("section", { class: "mmda-flow", ...props }, [
     h(SfBpmnDiagram, {
       nodes: props.nodes,
       connectors: props.connectors,
@@ -22,7 +22,7 @@ export function buildBpmnDiagram(
     flowTrails?.length
       ? h(
           "ol",
-          { class: "mmda-sf-flow__trails" },
+          { class: "mmda-flow__trails" },
           flowTrails.map((item) =>
             h(
               "li",
@@ -49,7 +49,7 @@ export function buildSignupForm(props: SignupFormProps) {
   return h(
     "form",
     {
-      class: "mmda-sf-auth-form",
+      class: "mmda-auth-form",
       onSubmit: (event: Event) => {
         event.preventDefault();
         props.onSignup?.(user);

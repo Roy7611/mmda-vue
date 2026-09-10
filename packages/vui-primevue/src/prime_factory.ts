@@ -1,7 +1,7 @@
 import { h, reactive, type VNode } from "vue";
 import { SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type EntityFieldFilter, type EntityFilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
 import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
-import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail } from "@mmda/vui"
+import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -260,7 +260,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
             "onUpdate:modelValue": (value: boolean | null) =>
               (state.value = value),
           })
-        : h("div", { class: "mmda-prime-column-filter__values" }, [
+        : h("div", { class: "mmda-column-filter__values" }, [
             h(Select, {
               modelValue: state.operator,
               options: getFieldFilterOps(field).map((op) => ({
@@ -343,10 +343,10 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                 (state.setValues = value ?? []),
             });
 
-      return h("div", { class: "mmda-prime-column-filter" }, [
+      return h("div", { class: "mmda-column-filter" }, [
         compareBlock,
         setBlock,
-        h("div", { class: "mmda-prime-column-filter__actions" }, [
+        h("div", { class: "mmda-column-filter__actions" }, [
           h(Button, {
             icon: "pi pi-check",
             size: "small",
@@ -398,7 +398,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           ...(showColumnFilters
             ? {
                 header: () =>
-                  h("div", { class: "mmda-prime-column-header" }, [
+                  h("div", { class: "mmda-column-header" }, [
                     h("span", field.displayLabel),
                     columnFilter(field),
                   ]),
@@ -477,7 +477,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
           })),
         );
       },
-      class: ["mmda-prime-table", props.class].filter(Boolean).join(" "),
+      class: ["mmda-table", props.class].filter(Boolean).join(" "),
     };
 
     if (inplaceEdit) {
@@ -564,6 +564,10 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       back: "pi pi-arrow-left",
       import: "pi pi-upload",
       export: "pi pi-download",
+      print: "pi pi-print",
+      execute: "pi pi-play",
+      do: "pi pi-play",
+      more: "pi pi-ellipsis-v",
       "eye-slash": "pi pi-eye-slash",
       "dnd-vert": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
       "drag-indicator": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
@@ -584,7 +588,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       error: "pi pi-times-circle",
     },
     resolveIcon(icon: string) {
-      if (!icon) return "";
+      if (!icon) return factory.actionIcons.execute;
       if (icon.startsWith("pi ")) return icon;
       if (/\bfa[srbld]?\b|fa-/.test(icon)) return icon;
       return factory.actionIcons[icon] ?? `pi pi-${icon}`;
@@ -700,7 +704,11 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         ...action,
         ...normalizeAction(action, t),
         ...props,
-        icon: factory.resolveIcon(action.icon ?? action.name ?? ""),
+        icon: resolveActionButtonIcon(
+          factory.resolveIcon,
+          factory.actionIcons,
+          action,
+        ),
         onClick: action.onAction,
       }),
     paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
@@ -753,7 +761,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       return h(DataTable as any, {
         value: assembled.roots,
         dataKey: idField,
-        class: ["mmda-prime-treegrid", props.class].filter(Boolean).join(" "),
+        class: ["mmda-treegrid", props.class].filter(Boolean).join(" "),
         rowHover: true,
         onRowDblclick: (event: any) =>
           props.onItemDoubleClick?.(event.data?.data ?? event.data),
@@ -779,13 +787,13 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(
         DataView,
-        { value: model, layout: "list", class: "mmda-prime-list" },
+        { value: model, layout: "list", class: "mmda-list" },
         {
           empty: () => props.empty?.() ?? "",
           list: ({ items }: { items: T[] }) =>
             h(
               "div",
-              { class: "mmda-prime-list__items" },
+              { class: "mmda-list__items" },
               items.map((item, index) =>
                 h(
                   "article",
@@ -797,7 +805,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                           ? (item as any)[metaUi.primaryKey]
                           : index,
                       ),
-                    class: ["mmda-prime-list__item", props.itemClass?.(item)],
+                    class: ["mmda-list__item", props.itemClass?.(item)],
                     style: props.itemStyle?.(item),
                     onClick: () => props.onItemClick?.(item),
                     onDblclick: () => props.onItemDoubleClick?.(item),
@@ -816,7 +824,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         onPage: props.onPage,
       }),
     scrollbar: (content, props) =>
-      h("div", { class: "mmda-prime-scrollbar", ...props }, content as any),
+      h("div", { class: "mmda-scrollbar", ...props }, content as any),
     menu: (items, props) =>
       h(Menu, {
         model: items.map((item) => normalizeMenuItem(item)),
@@ -840,7 +848,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     formField: (props = {}, slots) =>
       h(
         "div",
-        { class: ["mmda-form-field", "mmda-prime-form-field", props.class], style: props.style },
+        { class: ["mmda-form-field", "mmda-form-field", props.class], style: props.style },
         [
           props.label
             ? h("label", { class: "mmda-form-field__label" }, String(props.label))
@@ -861,7 +869,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
   wrapListFamilyPaginator(
     factory,
     ["list", "table", "treeGrid"],
-    "mmda-prime-pagable",
+    "mmda-pagable",
   );
   bindListDisplayRenderers(factory);
   return factory;

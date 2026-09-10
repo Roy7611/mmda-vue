@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { h } from 'vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createApp, h, nextTick } from 'vue'
 import {
   paintModuleToolbar,
 } from '../ui/builder/module_toolbar'
@@ -10,6 +10,41 @@ import {
   toolbarSlotAlignOf,
   toolbarSlotJustifyContent,
 } from '../ui/factory/toolbar'
+import { COMPACT_VIEWPORT_MEDIA } from '../composables/useCompactViewport'
+
+const hosts: HTMLElement[] = []
+
+function mockMatchMedia(matches: boolean) {
+  window.matchMedia = ((query: string) =>
+    ({
+      matches: query === COMPACT_VIEWPORT_MEDIA ? matches : false,
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => true,
+    }) as MediaQueryList) as typeof window.matchMedia
+}
+
+async function mount(vnode: ReturnType<typeof h>) {
+  const host = document.createElement('div')
+  hosts.push(host)
+  document.body.append(host)
+  const app = createApp({
+    setup() {
+      return () => vnode
+    },
+  })
+  app.mount(host)
+  await nextTick()
+  return { host, app }
+}
+
+afterEach(() => {
+  while (hosts.length) hosts.pop()?.remove()
+})
 
 describe('toolbar chrome helpers', () => {
   it('defaults layout full and slot align left / center / right', () => {
@@ -36,6 +71,17 @@ describe('toolbar chrome helpers', () => {
     expect(classes).toContain('extra')
   })
 
+  it('omits --full for default layout', () => {
+    const classes = toolbarModifierClasses({ layout: 'full' }, {})
+      .flat()
+      .filter(Boolean)
+    expect(classes).toContain('mmda-toolbar')
+    expect(classes).not.toContain('mmda-toolbar--full')
+    expect(toolbarModifierClasses({}, {}).flat().filter(Boolean)).not.toContain(
+      'mmda-toolbar--full',
+    )
+  })
+
   it('renders three slots', () => {
     const vnode = renderToolbarChrome(
       { layout: 'full' },
@@ -58,78 +104,156 @@ describe('paintModuleToolbar', () => {
   function fakeFactory() {
     return {
       toolbar: (props: any, slots?: any) =>
-        h('div', { class: 'tb', 'data-layout': props.layout }, [
-          slots?.start?.(),
-          slots?.center?.(),
-          slots?.end?.(),
-        ]),
-      moreMenuButton: () => h('button', { class: 'more' }, 'more'),
+        h(
+          'div',
+          {
+            class: ['tb', props.class].flat().filter(Boolean),
+            'data-layout': props.layout,
+          },
+          [slots?.start?.(), slots?.center?.(), slots?.end?.()],
+        ),
+      moreMenuButton: (props: any) =>
+        h(
+          'button',
+          {
+            class: 'more',
+            'data-icon': props.icon,
+            'data-label': props.label ?? '',
+            title: props.tooltip,
+          },
+          props.label || props.icon,
+        ),
       dropDownButton: () => h('button', { class: 'menu' }, 'menu'),
       button: (props: any) =>
         h('button', { class: 'search', onClick: props.onClick }, 'search'),
       buttonGroup: () => h('div', { class: 'actions' }),
-      resolveIcon: (name: string) => name,
+      resolveIcon: (name: string) => `icon:${name}`,
     } as any
   }
 
   const ctx = { title: 'Orders', t: (k: string) => k }
 
-  it('full uses breadcrumb, search, action group', () => {
-    const vnode = paintModuleToolbar(
-      fakeFactory(),
-      ctx,
-      { layout: 'full' },
-      { center: () => h('input') },
-      {
-        breadcrumb: () => h('nav', 'bc'),
-        actionGroup: () => h('div', { class: 'actions' }),
-        moreActions: () => [],
-        navActions: () => [],
-        openSearchPage: () => {},
-      },
+  it('full uses breadcrumb, search, action group', async () => {
+    mockMatchMedia(false)
+    const { host, app } = await mount(
+      paintModuleToolbar(
+        fakeFactory(),
+        ctx,
+        { layout: 'full' },
+        { center: () => h('input') },
+        {
+          breadcrumb: () => h('nav', 'bc'),
+          actionGroup: () => h('div', { class: 'actions' }),
+          moreActions: () => [],
+          navActions: () => [],
+          openSearchPage: () => {},
+        },
+      ),
     )
-    expect(vnode.props['data-layout']).toBe('full')
-    const kids = vnode.children as any[]
-    expect(kids[0].type).toBe('nav')
-    expect(kids[1].type).toBe('input')
-    expect(kids[2].props.class).toBe('actions')
+    const tb = host.querySelector('.tb') as HTMLElement
+    expect(tb.getAttribute('data-layout')).toBe('full')
+    expect(tb.querySelector('nav')).toBeTruthy()
+    expect(tb.querySelector('input')).toBeTruthy()
+    expect(tb.querySelector('.actions')).toBeTruthy()
+    expect(tb.className).not.toContain('mmda-toolbar--dense')
+    app.unmount()
   })
 
-  it('medium uses moreMenuButton; compact magnifier opens search page', () => {
-    const medium = paintModuleToolbar(
-      fakeFactory(),
-      ctx,
-      { layout: 'medium' },
-      { center: () => 'q' },
-      {
-        breadcrumb: () => h('nav'),
-        actionGroup: () => h('div', { class: 'actions' }),
-        moreActions: () => [],
-        navActions: () => [],
-        openSearchPage: () => {},
-      },
+  it('medium moreMenuButton always has more icon', async () => {
+    mockMatchMedia(false)
+    const { host, app } = await mount(
+      paintModuleToolbar(
+        fakeFactory(),
+        ctx,
+        { layout: 'medium' },
+        { center: () => 'q' },
+        {
+          breadcrumb: () => h('nav'),
+          actionGroup: () => h('div', { class: 'actions' }),
+          moreActions: () => [],
+          navActions: () => [],
+          openSearchPage: () => {},
+        },
+      ),
     )
-    expect((medium.children as any[])[2].props.class).toBe('more')
+    const more = host.querySelector('.more') as HTMLElement
+    expect(more.getAttribute('data-icon')).toBe('icon:more')
+    expect(more.getAttribute('data-label')).toBe('action.more')
+    app.unmount()
+  })
 
-    const openSearchPage = vi.fn()
-    const compact = paintModuleToolbar(
-      fakeFactory(),
-      ctx,
-      { layout: 'compact' },
-      undefined,
-      {
-        breadcrumb: () => h('nav'),
-        actionGroup: () => h('div'),
-        moreActions: () => [],
-        navActions: () => [],
-        openSearchPage,
-      },
+  it('dense viewport densifies full actionGroup and medium more label', async () => {
+    mockMatchMedia(true)
+    const actionGroup = vi.fn((dense?: boolean) =>
+      h('div', { class: 'actions', 'data-dense': String(!!dense) }),
     )
-    expect(compact.props['data-layout']).toBe('compact')
-    const kids = compact.children as any[]
-    expect(kids[0].props.class).toBe('menu')
-    expect(kids[1].children).toBe('Orders')
-    kids[2].props.onClick()
+    const { host, app } = await mount(
+      paintModuleToolbar(
+        fakeFactory(),
+        ctx,
+        { layout: 'full' },
+        { center: () => h('input') },
+        {
+          breadcrumb: () => h('nav', 'bc'),
+          actionGroup,
+          moreActions: () => [],
+          navActions: () => [],
+          openSearchPage: () => {},
+        },
+      ),
+    )
+    expect(actionGroup).toHaveBeenCalledWith(true)
+    expect(host.querySelector('.tb')?.className).toContain('mmda-toolbar--dense')
+    expect(
+      host.querySelector('.actions')?.getAttribute('data-dense'),
+    ).toBe('true')
+    app.unmount()
+
+    const medium = await mount(
+      paintModuleToolbar(
+        fakeFactory(),
+        ctx,
+        { layout: 'medium' },
+        undefined,
+        {
+          breadcrumb: () => h('nav'),
+          actionGroup: () => h('div'),
+          moreActions: () => [],
+          navActions: () => [],
+          openSearchPage: () => {},
+        },
+      ),
+    )
+    const more = medium.host.querySelector('.more') as HTMLElement
+    expect(more.getAttribute('data-icon')).toBe('icon:more')
+    expect(more.getAttribute('data-label')).toBe('')
+    medium.app.unmount()
+  })
+
+  it('compact magnifier opens search page', async () => {
+    mockMatchMedia(false)
+    const openSearchPage = vi.fn()
+    const { host, app } = await mount(
+      paintModuleToolbar(
+        fakeFactory(),
+        ctx,
+        { layout: 'compact' },
+        undefined,
+        {
+          breadcrumb: () => h('nav'),
+          actionGroup: () => h('div'),
+          moreActions: () => [],
+          navActions: () => [],
+          openSearchPage,
+        },
+      ),
+    )
+    const tb = host.querySelector('.tb') as HTMLElement
+    expect(tb.getAttribute('data-layout')).toBe('compact')
+    expect(tb.querySelector('.menu')).toBeTruthy()
+    expect(tb.textContent).toContain('Orders')
+    ;(tb.querySelector('.search') as HTMLButtonElement).click()
     expect(openSearchPage).toHaveBeenCalled()
+    app.unmount()
   })
 })

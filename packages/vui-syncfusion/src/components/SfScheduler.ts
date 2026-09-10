@@ -68,7 +68,7 @@ const ScheduleImpl = defineAsyncComponent(async () => {
         setup: () => () =>
           h(
             'p',
-            { class: 'mmda-sf-scheduler-missing' },
+            { class: 'mmda-scheduler-missing' },
             'Scheduler requires @syncfusion/ej2-vue-schedule',
           ),
       }),
@@ -226,7 +226,7 @@ export const SfScheduler = defineComponent({
       return h(
         'div',
         {
-          class: schedulerHookClass('mmda-sf-scheduler', props.readonly),
+          class: schedulerHookClass('mmda-scheduler', props.readonly),
           ...htmlAttributesOf(props as any),
         },
         [

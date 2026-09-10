@@ -16,7 +16,7 @@ const wrapNumber = (
     extra.suffix != null && extra.suffix !== ""
       ? String(extra.suffix)
       : resolveFieldUnit(field);
-  return h("div", { class: ["mmda-sf-control", invalid && "is-invalid"] }, [
+  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createNumberInput(
       numberInputPropsFromField(field, context, {
         ...extra,

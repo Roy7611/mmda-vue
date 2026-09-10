@@ -105,7 +105,7 @@ SVAR：`duplicate-card`、`filter-cards`、`sort-cards`、`request-data` / `prov
 
 ## 钩子 class
 
-`mmda-kanban`、`mmda-kanban--readonly`。插件可再挂 `mmda-sf-kanban` / `mmda-vue-kanban`。
+`mmda-kanban`、`mmda-kanban--readonly`。
 
 ## 不做
 

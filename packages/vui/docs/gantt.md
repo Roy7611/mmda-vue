@@ -70,4 +70,4 @@
 | `criticalTaskIds` / `setupBaseline` | 关键路径、基线 |
 | `undo` | Hyper 用快照栈；EJ2 走厂商 undo |
 
-`onTaskChange` 返回 `false` 可回滚（EJ2）。钩子 class：`mmda-gantt`、`mmda-gantt--readonly`。皮肤可再挂 `mmda-sf-gantt` / `mmda-hyper-gantt`。
+`onTaskChange` 返回 `false` 可回滚（EJ2）。钩子 class：`mmda-gantt`、`mmda-gantt--readonly`。

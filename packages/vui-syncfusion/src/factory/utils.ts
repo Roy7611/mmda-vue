@@ -379,21 +379,20 @@ export const cssClassFor = (role?: string) => {
 export const dialogHeaderHtml = (value?: string) => {
   if (!value) return value;
   if (/<[^>]+>/.test(value)) return value;
-  return `<span class="mmda-sf-dialog__title">${value}</span>`;
+  return `<span class="mmda-dialog__title">${value}</span>`;
 };
 
 export const buttonSurfaceClass = (buttonType?: string) => {
   if (buttonType === "text" || buttonType === "link") return "e-flat";
   if (buttonType === "outlined") return "e-outline";
-  if (buttonType === "tonal") return "mmda-btn-tonal";
   return "";
 };
 
 export const splitButtonSurfaceClass = (buttonType?: string) => {
   if (buttonType === "text" || buttonType === "link")
-    return "mmda-sf-split--flat";
-  if (buttonType === "outlined") return "mmda-sf-split--outline";
-  if (buttonType === "tonal") return "mmda-sf-split--tonal";
+    return "mmda-split--flat";
+  if (buttonType === "outlined") return "mmda-split--outline";
+  if (buttonType === "tonal") return "mmda-split--tonal";
   return "";
 };
 
@@ -406,7 +405,7 @@ export const splitButtonRoleClass = (props: {
   const flat = props.buttonType === "text" || props.buttonType === "link";
   const role = props.colorRole ?? props.severity;
   if (flat && props.shape !== "round" && props.shape !== "circle") {
-    if (role === "secondary") return "mmda-sf-split--secondary";
+    if (role === "secondary") return "mmda-split--secondary";
     return "";
   }
   if (props.buttonType === "outlined") return "";
@@ -473,7 +472,7 @@ export const normalizeMenuItem = (item: any): any => {
 /** 按钮点击（添加/清除）前先提交所有原位编辑单元格，避免 Batch 未落盘就被 dataSource 刷新冲掉。 */
 export const flushAllInplaceEdits = () => {
   if (typeof document === "undefined") return;
-  document.querySelectorAll(".e-grid.mmda-sf-table").forEach((element) => {
+  document.querySelectorAll(".e-grid.mmda-table").forEach((element) => {
     const grid = (element as any).ej2_instances?.[0];
     if (!grid) return;
     try {

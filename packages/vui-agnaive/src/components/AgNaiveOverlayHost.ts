@@ -10,7 +10,7 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogAction } from '@mmda/core'
+import { dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -93,7 +93,7 @@ const OverlayInner = defineComponent({
       const dialogs = overlay?.dialogs ?? []
       return h(
         'div',
-        { class: 'mmda-agnaive-overlays' },
+        { class: uiCssClass('overlays') },
         dialogs.map(request => {
           const width =
             typeof request.props.width === 'number'
@@ -116,7 +116,7 @@ const OverlayInner = defineComponent({
               h(
                 'div',
                 {
-                  class: 'mmda-agnaive-dialog__footer',
+                  class: uiCssClass('dialog', 'footer'),
                   style: {
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -127,7 +127,7 @@ const OverlayInner = defineComponent({
                 [
                   h(
                     'div',
-                    { class: 'mmda-agnaive-dialog__footer-start' },
+                    { class: uiCssClass('dialog', 'footer-start') },
                     custom.map(action =>
                       h(
                         NButton,
@@ -144,7 +144,7 @@ const OverlayInner = defineComponent({
                   ),
                   h(
                     'div',
-                    { class: 'mmda-agnaive-dialog__footer-end' },
+                    { class: uiCssClass('dialog', 'footer-end') },
                     standard.map(button => {
                       const role = dialogButtonColorRole(button)
                       return h(
@@ -184,7 +184,7 @@ const OverlayInner = defineComponent({
                 width,
                 ...(minHeight ? { minHeight } : {}),
               },
-              class: 'mmda-agnaive-dialog',
+              class: uiCssClass('dialog'),
               closable: dialogShowCloseIconOf(props),
               closeOnEsc: dialogCloseOnEscapeOf(props),
               maskClosable: dialogCloseOnOverlayOf(props),

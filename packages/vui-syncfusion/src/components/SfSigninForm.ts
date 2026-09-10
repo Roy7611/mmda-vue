@@ -1,31 +1,55 @@
-import { required, uiCssClass } from '@mmda/core'
+import { required, uiCssClass, uiCssClasses } from '@mmda/core'
 import {
-  UI_BUILDER_KEY,
   signinFormEmits,
   signinFormProps,
   type SigninUser,
-  type VueUiBuilder,
 } from '@mmda/vui'
 import { CheckBoxComponent } from '@syncfusion/ej2-vue-buttons'
 import { TextBoxComponent } from '@syncfusion/ej2-vue-inputs'
+import { ProgressButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import {
   defineComponent,
   h,
-  inject,
   onBeforeMount,
   reactive,
-  withModifiers,
   ref,
+  watch,
+  withModifiers,
+  type VNode,
   type VNodeProps,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+function fieldVert(label: VNode, control: VNode, message?: string) {
+  return h(
+    'div',
+    {
+      class: uiCssClasses('field', 'vertical'),
+      style: { minWidth: 0 },
+    },
+    [
+      label,
+      h(
+        'div',
+        { class: uiCssClass('field-control'), style: { minWidth: 0 } },
+        [control],
+      ),
+      message
+        ? h(
+            'small',
+            { class: `${uiCssClass('field-message')} error` },
+            message,
+          )
+        : null,
+    ],
+  )
+}
 
 export const SfSigninForm = defineComponent({
   name: 'SfSigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',
@@ -40,6 +64,9 @@ export const SfSigninForm = defineComponent({
     })
 
     const loading = ref(false)
+    const progressRef = ref<{
+      ej2Instances?: { start?: () => void; end?: () => void }
+    } | null>(null)
     const tx = (message: string) => (message ? t(message) : message)
 
     const requiredUsername = () => {
@@ -63,6 +90,7 @@ export const SfSigninForm = defineComponent({
     }
 
     const handleLogin = async () => {
+      if (loading.value) return
       if (!validate()) return
       loading.value = true
       const payload: SigninUser = {
@@ -81,6 +109,13 @@ export const SfSigninForm = defineComponent({
       }
     }
 
+    watch(loading, (busy) => {
+      const api = progressRef.value?.ej2Instances
+      if (!api) return
+      if (busy) api.start?.()
+      else api.end?.()
+    })
+
     onBeforeMount(async () => {
       try {
         const saved = await props.context?.localDb?.get?.('user/username')
@@ -91,64 +126,65 @@ export const SfSigninForm = defineComponent({
     })
 
     return () => {
-      const { layout, factory } = builder
       const children = [
         slots?.header?.(),
         slots.title
           ? slots.title()
-          : h('h2', { class: uiCssClass('signin-form', 'title') }, t('auth.signin')),
-        layout.layoutFieldVert({
-          label: h(
+          : h(
+              'h2',
+              { class: uiCssClass('signin-form', 'title') },
+              t('auth.signin'),
+            ),
+        fieldVert(
+          h(
             'label',
             { class: uiCssClass('field-label'), for: 'username' },
             t('auth.username'),
           ),
-          control: h(TextBoxComponent as any, {
-            id: 'username',
-            cssClass: 'e-outline',
+          h(TextBoxComponent as any, {
+            htmlAttributes: {
+              id: 'username',
+              autocomplete: 'username',
+            },
             floatLabelType: 'Never',
             value: user.username,
             placeholder: t('auth.username'),
-            input: (args: any) => {
-              user.username = args.value
+            input: (args: { value?: string }) => {
+              user.username = args.value ?? ''
               if (v.username.touched) requiredUsername()
             },
             blur: requiredUsername,
           } as VNodeProps),
-          message: v.username.message || undefined,
-        }),
-        layout.layoutFieldVert({
-          label: h(
+          v.username.message || undefined,
+        ),
+        fieldVert(
+          h(
             'label',
             { class: uiCssClass('field-label'), for: 'password' },
             t('auth.password'),
           ),
-          control: h(TextBoxComponent as any, {
-            id: 'password',
+          h(TextBoxComponent as any, {
             type: 'password',
-            cssClass: 'e-outline',
+            htmlAttributes: {
+              id: 'password',
+              autocomplete: 'current-password',
+            },
             floatLabelType: 'Never',
             value: user.password,
             placeholder: t('auth.password'),
-            input: (args: any) => {
-              user.password = args.value
+            input: (args: { value?: string }) => {
+              user.password = args.value ?? ''
               if (v.password.touched) requiredPassword()
             },
             blur: requiredPassword,
-            keydown: (args: any) => {
-              if (args?.event?.key === 'Enter' || args?.key === 'Enter') {
-                args?.event?.preventDefault?.()
-                void handleLogin()
-              }
-            },
           } as VNodeProps),
-          message: v.password.message || undefined,
-        }),
+          v.password.message || undefined,
+        ),
         h('label', { class: uiCssClass('signin-form', 'agreed') }, [
           h(CheckBoxComponent as any, {
             checked: user.agreed,
-            change: (args: any) => {
-              user.agreed = args.checked
+            change: (args: { checked?: boolean }) => {
+              user.agreed = Boolean(args.checked)
               if (v.agreed.touched) requiredAgreed()
             },
           } as VNodeProps),
@@ -157,20 +193,24 @@ export const SfSigninForm = defineComponent({
         v.agreed.message
           ? h(
               'small',
-              {
-                class: `${uiCssClass('field-message')} error`,
-              },
+              { class: `${uiCssClass('field-message')} error` },
               v.agreed.message,
             )
           : null,
-        factory.button({
-          label: loading.value ? t('auth.signingIn') : t('auth.signin'),
-          colorRole: 'primary',
-          icon: 'e-icons e-lock',
-          class: `${uiCssClass('signin-form', 'login')} e-block`,
+        h(ProgressButtonComponent as any, {
+          ref: progressRef,
+          content: loading.value ? t('auth.signingIn') : t('auth.signin'),
+          iconCss: 'e-icons e-lock',
+          isPrimary: true,
           disabled: loading.value,
-          onClick: withModifiers(() => void handleLogin(), ['prevent']),
-        }),
+          // 长 duration，由 start/end 跟 loading 控制，避免默认 2s 自动结束
+          duration: 1e8,
+          spinSettings: { position: 'Left' },
+          cssClass: `${uiCssClass('signin-form', 'login')} e-block`,
+          click: () => {
+            void handleLogin()
+          },
+        } as VNodeProps),
         slots?.bottomNav?.(),
         slots?.thirdParty?.(),
       ]
@@ -179,18 +219,11 @@ export const SfSigninForm = defineComponent({
         'form',
         {
           class: uiCssClass('signin-form'),
-          onSubmit: withModifiers(() => {}, ['prevent']),
+          onSubmit: withModifiers(() => {
+            void handleLogin()
+          }, ['prevent']),
         },
-        [
-          loading.value
-            ? h(
-                'div',
-                { class: uiCssClass('signin-form', 'loading') },
-                factory.loading(),
-              )
-            : null,
-          ...children,
-        ],
+        children,
       )
     }
   },

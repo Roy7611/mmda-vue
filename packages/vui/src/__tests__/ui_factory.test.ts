@@ -9,7 +9,7 @@ describe("cleanTableCellProps", () => {
       showGridlines: true,
       sortable: false,
       tableMetaui: { objName: "MaterialPartner" },
-      class: "mmda-prime-table",
+      class: "mmda-table",
       title: "cell title",
     });
 

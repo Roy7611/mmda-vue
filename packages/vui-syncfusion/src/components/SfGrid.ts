@@ -179,7 +179,7 @@ export const SfGrid = defineComponent({
         SfGridHost as any,
         {
           ref: hostRef,
-          class: 'mmda-sf-grid',
+          class: 'mmda-grid',
           dataSource: props.dataSource,
           columns: columns.value,
           height: props.height,

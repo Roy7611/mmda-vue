@@ -21,7 +21,7 @@ export function createSplitter(
     {
       ...htmlAttributesOf(props),
       class: [
-        'mmda-agnaive-splitter',
+        'mmda-splitter',
         ...splitterModifierClasses(props).flat(),
       ].filter(Boolean).join(' '),
       direction: orientation === 'Vertical' ? 'vertical' : 'horizontal',

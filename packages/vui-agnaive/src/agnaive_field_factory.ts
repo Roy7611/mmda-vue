@@ -58,7 +58,7 @@ const control = (
   const onUpdate = extra[`onUpdate:${valueKey}`] ?? update(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       h(component, {
         id: field.fieldName,
@@ -75,7 +75,7 @@ const control = (
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -117,7 +117,7 @@ const dropDownList = (
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createDropDownList(
         dropDownListPropsFromField(field, context, props ?? {}),
@@ -125,7 +125,7 @@ const dropDownList = (
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -140,7 +140,7 @@ const radioButtonGroup = (
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createRadioButtonGroup(
         radioButtonGroupPropsFromField(field, context, props ?? {}),
@@ -148,7 +148,7 @@ const radioButtonGroup = (
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -163,13 +163,13 @@ const treeSelect = (
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -184,13 +184,13 @@ const comboBox = (
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -339,13 +339,13 @@ const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -360,13 +360,13 @@ const switchControl = (
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createSwitch(switchPropsFromField(field, context, props ?? {})),
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -381,13 +381,13 @@ function wrapChrome(
   const invalid = invalidOf(field, context);
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       child,
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -439,7 +439,7 @@ const fallbackDisplay = (
 ) =>
   h(
     "output",
-    { class: "mmda-agnaive-display", ...props },
+    { class: "mmda-display", ...props },
     String(context.displayField(field, props.row) ?? ""),
   );
 
@@ -549,7 +549,7 @@ const autoComplete = (
   const reference = field.reference?.isRef ? field.reference : undefined;
   return h(
     "div",
-    { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+    { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createAutoComplete({
         value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
@@ -560,7 +560,7 @@ const autoComplete = (
       invalid &&
         h(
           "p",
-          { class: "mmda-agnaive-error" },
+          { class: "mmda-error" },
           (context as any).getInvalidMessage?.(field),
         ),
     ],
@@ -751,7 +751,7 @@ const factory: UiFieldFactory = {
     const invalid = invalidOf(field, context);
     return h(
       "div",
-      { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
+      { class: ["mmda-control", invalid && "is-invalid"] },
       [
         createColorPicker(
           colorPickerPropsFromField(field, context, props ?? {}),
@@ -759,7 +759,7 @@ const factory: UiFieldFactory = {
         invalid &&
           h(
             "p",
-            { class: "mmda-agnaive-error" },
+            { class: "mmda-error" },
             (context as any).getInvalidMessage?.(field),
           ),
       ],

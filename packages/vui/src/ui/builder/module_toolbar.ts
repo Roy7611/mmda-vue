@@ -1,5 +1,7 @@
-import { h, type VNode, type VNodeChild } from 'vue'
+import { uiCssClass } from '@mmda/core'
+import { defineComponent, h, type VNode, type VNodeChild } from 'vue'
 import type { ModuleToolbarProps } from '../../app/app'
+import { useCompactViewport } from '../../composables/useCompactViewport'
 import type { UiAction } from '../factory/action'
 import type { UiFactory } from '../factory/factory'
 import type { UiToolbarLayout } from '../factory/toolbar'
@@ -27,19 +29,30 @@ export function moduleToolbarLayoutOf(
   return 'full'
 }
 
-export function paintModuleToolbar(
+export type ModuleToolbarPaintParts = {
+  className?: unknown
+  breadcrumb: () => VNodeChild
+  actionGroup: (dense?: boolean) => VNodeChild
+  moreActions: () => UiAction[]
+  navActions: () => UiAction[]
+  openSearchPage: () => void
+}
+
+type ModuleToolbarHostProps = {
+  factory: UiFactory
+  context: { title?: string; t: (message: string) => string }
+  toolbarProps: ModuleToolbarProps
+  slots?: UiSlots
+  parts: ModuleToolbarPaintParts
+}
+
+function paintModuleToolbarTree(
   factory: UiFactory,
   context: { title?: string; t: (message: string) => string },
   props: ModuleToolbarProps,
   slots: UiSlots | undefined,
-  parts: {
-    className?: unknown
-    breadcrumb: () => VNodeChild
-    actionGroup: () => VNodeChild
-    moreActions: () => UiAction[]
-    navActions: () => UiAction[]
-    openSearchPage: () => void
-  },
+  parts: ModuleToolbarPaintParts,
+  dense: boolean,
 ): VNode {
   const layout = moduleToolbarLayoutOf(props)
   const showBreadcrumb = props.showBreadcrumb !== false
@@ -58,8 +71,11 @@ export function paintModuleToolbar(
   const moreMenu = () =>
     factory.moreMenuButton(
       {
-        label: t('action.more'),
+        icon: factory.resolveIcon('more'),
+        label: dense ? '' : t('action.more'),
         tooltip: t('action.more'),
+        'aria-label': t('action.more'),
+        hideCaret: dense,
         buttonType: 'tonal',
         colorRole: 'secondary',
       },
@@ -100,11 +116,58 @@ export function paintModuleToolbar(
   } else {
     start = startFull
     center = searchCenter
-    end = showActions ? () => parts.actionGroup() : undefined
+    end = showActions ? () => parts.actionGroup(dense) : undefined
   }
 
   return factory.toolbar(
-    { layout, class: parts.className },
+    {
+      layout,
+      class: [
+        parts.className,
+        dense ? uiCssClass('toolbar', undefined, 'dense') : undefined,
+      ],
+    },
     { start, center, end },
   )
+}
+
+const MmdaModuleToolbarHost = defineComponent({
+  name: 'MmdaModuleToolbar',
+  props: {
+    factory: { type: Object, required: true },
+    context: { type: Object, required: true },
+    toolbarProps: { type: Object, required: true },
+    slots: { type: Object, default: undefined },
+    parts: { type: Object, required: true },
+  },
+  setup(rawProps) {
+    const compact = useCompactViewport()
+    return () => {
+      const props = rawProps as unknown as ModuleToolbarHostProps
+      return paintModuleToolbarTree(
+        props.factory,
+        props.context,
+        props.toolbarProps,
+        props.slots,
+        props.parts,
+        compact.value,
+      )
+    }
+  },
+})
+
+export function paintModuleToolbar(
+  factory: UiFactory,
+  context: { title?: string; t: (message: string) => string },
+  props: ModuleToolbarProps,
+  slots: UiSlots | undefined,
+  parts: ModuleToolbarPaintParts,
+): VNode {
+  return h(MmdaModuleToolbarHost, {
+    factory,
+    context,
+    toolbarProps: props,
+    slots,
+    parts,
+  } as any)
 }

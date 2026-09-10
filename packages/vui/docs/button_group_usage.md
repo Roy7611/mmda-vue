@@ -15,7 +15,7 @@ builder.factory.buttonGroup(
       onAction: () => fit(),
     }),
   ],
-  { class: 'mmda-sf-toolbar-actions' },
+  { class: 'mmda-toolbar-actions' },
 )
 ```
 

@@ -29,7 +29,7 @@ export function createSelectButtonGroup(
       vertical: orientation === 'vertical',
       class: [
         'mmda-select-button-group',
-        'mmda-agnaive-select-button-group',
+        'mmda-select-button-group',
         className,
       ].filter(Boolean),
     },
