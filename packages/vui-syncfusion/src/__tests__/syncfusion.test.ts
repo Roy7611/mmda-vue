@@ -4,20 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { h, nextTick } from "vue";
 import { L10n } from "@syncfusion/ej2-base";
-import {
-  MetaModel,
-  MetaUi,
-  MetaUiField,
-  MetaUiFieldFilterType,
-  MetaUiGroup,
-  ModuleFactory,
-  ModuleOp,
-  ModuleStatus,
-  ModuleVersion,
-  SqlDataType,
-  auth,
-  columnFilterKindOf,
-} from "@mmda/core";
+import { MetaModel, MetaUi, MetaUiField, MetaUiFieldFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, columnFilterKindOf } from "@mmda/core";
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
 import {
   applySyncfusionLocale,
@@ -185,6 +172,21 @@ describe("Syncfusion skin", () => {
     expect(joined).toContain("e-badge-primary");
     expect(joined).toContain("e-badge-circle");
     expect(vnode.children).toBe("10");
+  });
+
+  it("maps factory.message defaults to Filled EJ2 Message", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.message({
+      content: "保存失败",
+      severity: "error",
+    });
+    expect(vnode.props?.content).toBe("保存失败");
+    expect(vnode.props?.severity).toBe("Error");
+    expect(vnode.props?.variant).toBe("Filled");
+    expect(vnode.props?.showCloseIcon).toBe(true);
+    expect(vnode.props?.showIcon).toBe(true);
+    const css = String(vnode.props?.cssClass ?? "");
+    expect(css).toContain("mmda-message");
   });
 
   it("maps factory.avatar circle large label to e-avatar classes", () => {
@@ -1085,7 +1087,8 @@ describe("Syncfusion skin", () => {
   it("maps factory.tagAutoComplete Box custom values", () => {
     const factory = createSyncfusionUiFactory();
     const onUpdate = vi.fn();
-    const vnode = factory.tagAutoComplete("a,b", {
+    const vnode = factory.tagAutoComplete({
+      value: "a,b",
       options: ["a", "b"],
       onUpdate,
     });
@@ -1559,14 +1562,17 @@ describe("Syncfusion skin", () => {
 
     const automatic = builder.buildAppMenu(modules);
     expect(automatic.type).toMatchObject({
-      name: "SfAppMenu",
+      name: "SfAppSideMenu",
+    });
+    expect(builder.buildAppSideMenu({ modules }).type).toMatchObject({
+      name: "SfAppSideMenu",
     });
     const systemsBar = builder.buildAppSideBar({
       modules,
       header: () => null,
     });
     expect(systemsBar.type).toMatchObject({
-      name: "SfAppMenu",
+      name: "SfAppSideMenu",
     });
     expect(systemsBar.props?.logo).toBeTypeOf("function");
 
@@ -1582,8 +1588,8 @@ describe("Syncfusion skin", () => {
       builder.buildAppSideBar({
         modules: modules[0]?.subModules ?? [],
         header: () => null,
-      }).props?.class,
-    ).toBe("mmda-sf-sidebar");
+      }).type,
+    ).toMatchObject({ name: "SfAppSideMenu" });
   });
 
   it("uses a real href for MES feature links while running as BASE", () => {

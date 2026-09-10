@@ -24,7 +24,11 @@ export type UiGroupRenderer = (
 /** core 字段工厂钉成 VNode；无额外方法。 */
 export type VueUiFieldFactory = CoreUiFieldFactory<VNode>;
 
-/** 过渡名：皮肤仍写 UiFieldFactory。 */
+/**
+ * 过渡名：皮肤仍写 UiFieldFactory。
+ * 带标签行的入口见 core：`render` / `editFor` / `displayFor`（由 attachFieldRowApi 挂上）。
+ * 没有 `timeline`：时间轴走 factory.timeline / buildTimelineView。
+ */
 export interface UiFieldFactory extends VueUiFieldFactory {
   fallbackDisplay: VueFieldRenderer;
   fallbackInput: VueFieldRenderer;
@@ -41,7 +45,6 @@ export interface UiFieldFactory extends VueUiFieldFactory {
   progressBar?: VueFieldRenderer;
   signaturePad?: VueFieldRenderer;
   stepper?: VueFieldRenderer;
-  timeline?: VueFieldRenderer;
   radioButtonGroup?: VueFieldRenderer;
   imageUploader?: VueFieldRenderer;
   inplaceFieldEditor?: VueFieldRenderer;

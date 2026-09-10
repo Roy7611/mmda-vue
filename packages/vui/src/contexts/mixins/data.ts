@@ -285,19 +285,39 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         if (ok === false) return false;
       }
       const valid = await this.validate();
-      if (!valid) return false;
+      if (!valid) {
+        const messages = this.collectInvalidMessages?.() ?? [];
+        await this.app?.ui?.message?.(this, {
+          severity: "error",
+          content:
+            messages.length > 0
+              ? messages.join("；")
+              : this.translate("invalid.model"),
+        });
+        return false;
+      }
       const remoteErrors = await this.logic.afterValidate?.(
         this,
         this.model,
         this.$v,
       );
-      if (remoteErrors && remoteErrors > 0) return false;
+      if (remoteErrors && remoteErrors > 0) {
+        const messages = this.collectInvalidMessages?.() ?? [];
+        await this.app?.ui?.message?.(this, {
+          severity: "error",
+          content:
+            messages.length > 0
+              ? messages.join("；")
+              : this.translate("failure.beforeSave"),
+        });
+        return false;
+      }
       const result = await this.logic.save(this.model);
       if (result && typeof result === "object") this.setModel(result);
       await this.logic.afterSave?.(this, this.model, undefined, result);
-      await this.app?.ui?.toast(this, {
+      await this.app?.ui?.message?.(this, {
         severity: "success",
-        message: this.translate("success.saved"),
+        content: this.translate("success.saved"),
       });
       return result;
     }

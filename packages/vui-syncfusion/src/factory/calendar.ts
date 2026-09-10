@@ -1,7 +1,16 @@
 import { h, render } from "vue";
 import { CalendarComponent } from "@syncfusion/ej2-vue-calendars";
-import type { UiCalendarProps } from '@mmda/core';
-import { calendarBoundValue, calendarDaySelected, calendarEj2View, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
+import type { UiCalendarProps, UiCalendarView } from '@mmda/core';
+import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
+
+export function calendarEj2View(
+  view?: UiCalendarView,
+): 'Month' | 'Year' | 'Decade' | undefined {
+  if (!view) return undefined
+  if (view === 'year') return 'Year'
+  if (view === 'decade') return 'Decade'
+  return 'Month'
+}
 
 export function createCalendar(props: UiCalendarProps) {
   const {

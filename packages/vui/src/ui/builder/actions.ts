@@ -72,6 +72,8 @@ export class UiActionFactory {
         } else if (runtime.view === UiViewOne.Edit) {
           sync?.applyCurrentRow(entity);
         }
+        const notice = runtime.pageNotice?.value ?? null;
+        if (notice) sync?.setPendingPageNotice(notice);
         const id =
           entity?.id ??
           runtime.model?.id ??

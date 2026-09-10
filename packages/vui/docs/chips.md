@@ -10,7 +10,8 @@ chrome 芯片列表，走 `factory.chips`。EJ2 见 [Chip 类型](https://ej2.sy
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/chips.ts` | `UiChipsProps`；`chipsPropsFromField` / `enumChipSetPropsFromField` / `bitChipSetPropsFromField` |
+| core `ui/factory/chips.ts` | `UiChipsProps`；`chipsPropsFromField` / `enumChipSetPropsFromField` / `bitChipSetPropsFromField` |
+| vui `ui/factory/chips.ts` | Vue v-model：`emitChipsChange` |
 | 皮肤 `factory/chips.ts` | SF `ChipListComponent`；Prime `Chip` 列表；Naive `NTag` 列表 |
 | 字段 `tags` / `chips` | 自由文本标签 |
 | 字段 `enumChipSet` | 枚举多值（`value_array` / `join_text`） |
@@ -44,7 +45,8 @@ chrome 芯片列表，走 `factory.chips`。EJ2 见 [Chip 类型](https://ej2.sy
 
 ## 源码
 
-- vui：[`chips.ts`](../src/ui/factory/chips.ts)
+- core：[`packages/core/src/ui/factory/chips.ts`](../../core/src/ui/factory/chips.ts)
+- vui emit：[`chips.ts`](../src/ui/factory/chips.ts)
 - SF：[`vui-syncfusion/src/factory/chips.ts`](../../vui-syncfusion/src/factory/chips.ts)
 - Prime：[`vui-primevue/src/factory/chips.ts`](../../vui-primevue/src/factory/chips.ts)
 - Naive：[`vui-agnaive/src/factory/chips.ts`](../../vui-agnaive/src/factory/chips.ts)

@@ -1,6 +1,7 @@
 import { h } from "vue";
 import type { UiSelectButtonGroupProps } from "@mmda/core"
-import { selectButtonGroupSelected, selectButtonGroupUpdateOf, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from "@mmda/core"
+import { selectButtonGroupSelected, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from "@mmda/core"
+import { selectButtonGroupUpdateOf } from "@mmda/vui"
 import { createButtonGroup } from "./button_group";
 
 let selectGroupSeq = 0;

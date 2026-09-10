@@ -2,6 +2,9 @@ import { h, type VNode } from 'vue'
 import type { UiProps } from '@mmda/core'
 import {
   AbstractUiLayout,
+  type UiAppLayout,
+  type UiAppLayoutVariant,
+  type UiAppScaffoldProps,
   type UiFieldLayout,
   type UiPageLayoutOptions,
 } from '@mmda/core'
@@ -25,6 +28,9 @@ export type {
   HtmlAttributes,
   UiFixedColWidth,
   UiColWidth,
+  UiAppLayout,
+  UiAppLayoutVariant,
+  UiAppScaffoldProps,
 } from '@mmda/core'
 
 export { htmlAttributesOf } from '@mmda/core'
@@ -36,8 +42,10 @@ export type UiSlots = {
   footer?: ChildSlot
 }
 
-export type AppLayoutVariant = 'sidebarLeft' | 'topBarFull'
+/** @deprecated 用 core {@link UiAppLayoutVariant} */
+export type AppLayoutVariant = UiAppLayoutVariant
 
+/** @deprecated 用 {@link UiAppScaffoldProps}；保留旧字段名给 buildAppScaffold。 */
 export interface AppLayoutOptions {
   topBar?: VNode
   nav?: VNode
@@ -88,6 +96,8 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
           summaryExpanded: options.summaryExpanded !== false,
         },
         {
+          banner:
+            options.banner == null ? undefined : () => options.banner,
           primary: () => options.primary,
           tails: hasTails ? () => tails : undefined,
           summary: hasSummary ? () => summary : undefined,
@@ -100,11 +110,31 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
 }
 
 /**
- * 应用脚手架。外壳不滚动，导航和页面容器分别管理滚动。
+ * 应用脚手架（实现 core {@link UiAppLayout}）。
+ * 外壳不滚动；nav / page 各自管滚动。
+ * AppShell 应调 {@link scaffold}，不要经 Builder 薄包。
  */
-export class AppLayout {
+export class AppLayout implements UiAppLayout<VNode> {
   constructor(public readonly variant: AppLayoutVariant = 'sidebarLeft') {}
 
+  /**
+   * core 契约入口。`options.variant` 缺省用构造时的变体。
+   */
+  scaffold(options: UiAppScaffoldProps<VNode>): VNode {
+    const variant = options.variant ?? this.variant
+    return this.render(
+      {
+        topBar: options.topBar,
+        nav: options.nav,
+        page: options.page,
+        bottomBar: options.bottomBar,
+        props: options.props,
+      },
+      variant,
+    )
+  }
+
+  /** @deprecated 用 {@link scaffold}。 */
   render(
     options: AppLayoutOptions,
     variant: AppLayoutVariant = this.variant,
@@ -116,7 +146,7 @@ export class AppLayout {
 
   sidebarLeft(options: AppLayoutOptions): VNode {
     const hasTopBar = options.topBar != null
-    return this.scaffold(
+    return this.renderGrid(
       options,
       'sidebarLeft',
       hasTopBar
@@ -134,14 +164,14 @@ export class AppLayout {
   }
 
   topBarFull(options: AppLayoutOptions): VNode {
-    return this.scaffold(options, 'topBarFull', {
+    return this.renderGrid(options, 'topBarFull', {
       gridTemplateAreas: '"top top" "nav page" "bottom bottom"',
       gridTemplateColumns: 'auto minmax(0, 1fr)',
       gridTemplateRows: 'auto minmax(0, 1fr) auto',
     })
   }
 
-  private scaffold(
+  private renderGrid(
     options: AppLayoutOptions,
     variant: AppLayoutVariant,
     grid: Record<string, string>,

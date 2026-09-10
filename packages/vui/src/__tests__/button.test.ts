@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buttonModifierClasses,
-  selectButtonGroupSelected,
-  selectButtonOptionLabel,
-  selectButtonOptionValue,
-  toggleSelectButtonGroupValue,
-} from '@mmda/core'
+import { buttonModifierClasses, selectButtonGroupSelected, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from '@mmda/core'
 
 describe('button chrome helpers', () => {
   it('maps colorRole to mmda-button hook', () => {

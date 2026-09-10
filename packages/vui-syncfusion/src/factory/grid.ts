@@ -1,10 +1,5 @@
 import { defineComponent, h, nextTick, ref } from "vue";
-import {
-  ensureListFieldVisibleWhenFrozen,
-  isListFrozen,
-  MetaUiFieldFrozen,
-  type MetaUi,
-} from "@mmda/core";
+import { ensureListFieldVisibleWhenFrozen, isListFrozen, MetaUiFieldFrozen, type MetaUi } from "@mmda/core";
 import { isPersistableListColumn, persistListPack, type UiViewContext } from "@mmda/vui"
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid_inject";

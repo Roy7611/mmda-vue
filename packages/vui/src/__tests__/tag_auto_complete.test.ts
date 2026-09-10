@@ -1,11 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  tagAutoCompleteAddItem,
-  tagAutoCompleteItemsOf,
-  tagAutoCompleteModifierClasses,
-  tagAutoCompletePropsFromField,
-  tagAutoCompleteTextOf,
-} from '@mmda/core'
+import { tagAutoCompleteAddItem, tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompletePropsFromField, tagAutoCompleteTextOf } from '@mmda/core'
 
 describe('tagAutoComplete', () => {
   it('join / split 逗号 tag', () => {
@@ -21,7 +15,7 @@ describe('tagAutoComplete', () => {
   it('propsFromField 写回 join 文本', () => {
     const field = { fieldName: 'tags', placeholder: '标签' } as any
     const setFieldValue = vi.fn()
-    const { value, props } = tagAutoCompletePropsFromField(
+    const props = tagAutoCompletePropsFromField(
       field,
       {
         getFieldValue: () => 'x,y',
@@ -29,7 +23,7 @@ describe('tagAutoComplete', () => {
         isFieldReadonly: () => false,
       },
     )
-    expect(value).toBe('x,y')
+    expect(props.value).toBe('x,y')
     props.onUpdate?.('x,y,z')
     expect(setFieldValue).toHaveBeenCalledWith(field, 'x,y,z')
     expect(tagAutoCompleteModifierClasses(props).join(' ')).toContain(

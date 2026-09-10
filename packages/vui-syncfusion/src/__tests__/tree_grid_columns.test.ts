@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  MetaUi,
-  MetaUiField,
-  SqlDataType,
-} from '@mmda/core'
+import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
 import {
   buildSfTreeGridColumns,
   sfGridColumnOf,

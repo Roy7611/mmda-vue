@@ -12,7 +12,7 @@ chrome 滑动开关，走 `factory.switch`。[EJ2 Vue Switch](https://ej2.syncfu
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/switch.ts` | `UiSwitchProps`；`switchArgs` / `switchCheckedOf` / `switchPropsFromField` |
+| vui `ui/factory/switch.ts` | `UiSwitchProps`；`switchCheckedOf` / `switchPropsFromField` |
 | 皮肤 `factory/switch.ts` | SF `SwitchComponent`；Prime `ToggleSwitch`；Naive `NSwitch` |
 | 字段 `fldFactory.switch` | 译字段，调 `createSwitch` |
 
@@ -37,8 +37,6 @@ chrome 滑动开关，走 `factory.switch`。[EJ2 Vue Switch](https://ej2.syncfu
 | `checked` | `checked` | `modelValue` | `value` |
 | `onChange` | `change` → `args.checked` | `onUpdate:modelValue` | `onUpdate:value` |
 | `onLabel` / `offLabel` | 原样 | 忽略 | 忽略 |
-
-旧调用 `factory.switch(true, { onUpdate })` 由 `switchArgs` 把第一参当成 `checked`。
 
 ## 源码
 

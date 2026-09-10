@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass } from '../css'
 
 export type UiSignaturePadFileType = 'png' | 'jpeg' | 'svg'
@@ -118,15 +118,6 @@ export function signaturePadSizeCss(
   return typeof value === 'number' ? `${value}px` : String(value)
 }
 
-export function emitSignaturePadChange(
-  props: UiSignaturePadProps,
-  value: string,
-  action?: UiSignaturePadAction,
-): void {
-  props.onChange?.(value, action)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-}
 
 export function signaturePadPropsFromField(
   field: MetaUiField,

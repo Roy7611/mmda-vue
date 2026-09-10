@@ -1,11 +1,5 @@
 import { getCurrentInstance, h, render, type VNode } from "vue";
-import {
-  SqlDataType,
-  fieldCellEditorAllowsColumn,
-  resolveFieldCellCanEdit,
-  type MetaUi,
-  type MetaUiField,
-} from "@mmda/core";
+import { SqlDataType, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, type MetaUi, type MetaUiField } from "@mmda/core";
 import { TREE_PARENT_KEY, assembleTreeGridRows, listedTableFields, type UiTreeGridPropsType } from "@mmda/vui"
 import { SfTreeGrid } from "../components/SfTreeGrid";
 import { buildSfTreeGridColumns } from "../sf_grid_column";

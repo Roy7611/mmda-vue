@@ -644,6 +644,87 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
   padding: 0.15rem 0 0.35rem 0.85rem;
 }
 
+.mmda-app-side-menu--compact {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 72px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-app-side-menu__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.mmda-app-side-menu__rail {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.25rem;
+}
+
+.mmda-app-side-menu__rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.45rem 0.15rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-app-side-menu__rail-item--active,
+.mmda-app-side-menu__rail-item:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.mmda-app-side-menu__rail-icon {
+  font-size: 1.1rem;
+}
+
+.mmda-app-side-menu__rail-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mmda-app-side-menu__rail-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmda-app-side-menu__drawer-title {
+  padding: 0.75rem 1rem 0.25rem;
+  font-weight: 600;
+}
+
+.mmda-app-side-menu__drawer-fallback {
+  position: fixed;
+  inset: 0 auto 0 72px;
+  z-index: 20;
+  width: 16rem;
+  overflow: auto;
+  background: var(--mmda-surface-color, #fff);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+
 /* 表单标签：On Surface Variant，略小于正文 */
 .mmda-field-label {
   color: var(--mmda-text-muted-color, #49454f);
@@ -829,6 +910,33 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 
 .mmda-page-body--with-summary.is-summary-collapsed {
   gap: 0;
+}
+
+.mmda-page-banner {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+  margin-bottom: 0.25rem;
+}
+
+.mmda-page-banner .mmda-message,
+.mmda-page-banner .e-message {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mmda-page-body--with-banner > .mmda-page-main,
+.mmda-page-body--with-banner > .mmda-page-summary,
+.mmda-page-body--with-banner > .mmda-page-summary-toggle {
+  grid-row: 2;
+}
+
+.mmda-page-body--with-banner > .mmda-page-footer {
+  grid-row: 3;
+}
+
+.mmda-page-body--with-banner:has(> .mmda-page-footer) {
+  grid-template-rows: auto auto auto;
 }
 
 .mmda-page-footer {

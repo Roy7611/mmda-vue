@@ -1,6 +1,9 @@
 /**
  * 框架无关的界面布局契约。vui 用 VNode 实现；不要在此引入 Vue。
- * 与 AppLayout（应用脚手架）不是一回事。
+ *
+ * 两层：
+ * - {@link UiLayout}：页内排法（字段行、组、page、container）
+ * - {@link UiAppLayout}：应用壳（scaffold）；不进 UiBuilder
  */
 import { uiCssClass } from './css'
 import type { UiProps } from './props'
@@ -62,6 +65,8 @@ export interface UiFieldGroupLayoutOptions<TNode = any> {
 
 export interface UiPageLayoutOptions<TNode = any> {
   toolbar?: TNode
+  /** 全宽顶栏（横跨 main + aside），把两栏一起往下挤。 */
+  banner?: TNode
   primary: TNode[]
   summary?: TNode[]
   tails?: TNode[]
@@ -70,6 +75,40 @@ export interface UiPageLayoutOptions<TNode = any> {
   props?: UiProps
 }
 
+/**
+ * 应用壳变体。
+ * - `sidebarLeft`：左侧 nav + 右侧 page（可选顶栏）
+ * - `topBarFull`：顶栏通栏，其下 nav | page
+ */
+export type UiAppLayoutVariant = 'sidebarLeft' | 'topBarFull'
+
+/** {@link UiAppLayout.scaffold} 的槽位。已是节点，不是路由组件名。 */
+export interface UiAppScaffoldProps<TNode = any> {
+  /** 壳变体。缺省 sidebarLeft。 */
+  variant?: UiAppLayoutVariant
+  /** 顶栏。 */
+  topBar?: TNode
+  /** 导航槽（通常是 `buildAppSideMenu` 产物）。 */
+  nav?: TNode
+  /** 主内容（RouterView 等）。 */
+  page?: TNode
+  /** 底栏。 */
+  bottomBar?: TNode
+  props?: UiProps
+}
+
+/**
+ * 应用脚手架。外壳不滚动；nav / page 各自管滚动。
+ * AppShell 调本接口，不要 `builder.buildAppScaffold`。
+ */
+export interface UiAppLayout<TNode = any> {
+  scaffold(options: UiAppScaffoldProps<TNode>): TNode
+}
+
+/**
+ * 页内布局。字段行默认经 {@link layoutField}；
+ * 列表/表单外壳用 {@link container} / {@link header} / {@link main} 等语义块。
+ */
 export interface UiLayout<TNode = any> {
   fieldLayout: UiFieldLayout
   fieldMessage?: boolean
@@ -83,6 +122,17 @@ export interface UiLayout<TNode = any> {
   layoutFieldGroup(options: UiFieldGroupLayoutOptions<TNode>): TNode
   layoutPage(options: UiPageLayoutOptions<TNode>): TNode
   listTile(slots: UiListTileSlots<TNode>): TNode
+
+  /** 语义容器（替代旧 `builder.buildContainer`）。 */
+  container(children: TNode | TNode[], props?: UiProps): TNode
+  /** 顶栏语义块（替代旧 `buildHeader`）。 */
+  header(children: TNode | TNode[], props?: UiProps): TNode
+  /** 侧栏语义块（替代旧 `buildAside`）。 */
+  aside(children: TNode | TNode[], props?: UiProps): TNode
+  /** 主区语义块（替代旧 `buildMain`）。 */
+  main(children: TNode | TNode[], props?: UiProps): TNode
+  /** 底栏语义块（替代旧 `buildFooter`）。 */
+  footer(children: TNode | TNode[], props?: UiProps): TNode
 }
 
 /**
@@ -161,9 +211,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     )
   }
 
-  /** 页体节点。缺省铺平 primary / tails / summary / footer。vui 覆写成可折叠区域壳。 */
+  /** 页体节点。缺省铺平 banner / primary / tails / summary / footer。vui 覆写成可折叠区域壳。 */
   protected pageBody(options: UiPageLayoutOptions<TNode>): TNode[] {
     return [
+      ...(options.banner == null ? [] : [options.banner]),
       ...options.primary,
       ...(options.tails ?? []),
       ...(options.summary ?? []),
@@ -286,5 +337,59 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
       nCols.push(leftCols)
     }
     return this.row(children, nCols)
+  }
+
+  /** 把单节点或数组收成数组。 */
+  protected asChildren(children: TNode | TNode[]): TNode[] {
+    return Array.isArray(children) ? children : [children]
+  }
+
+  container(children: TNode | TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('container'),
+      {},
+      props,
+      this.asChildren(children),
+    )
+  }
+
+  header(children: TNode | TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('header'),
+      {},
+      props,
+      this.asChildren(children),
+      'header',
+    )
+  }
+
+  aside(children: TNode | TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('aside'),
+      {},
+      props,
+      this.asChildren(children),
+      'aside',
+    )
+  }
+
+  main(children: TNode | TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('main'),
+      {},
+      props,
+      this.asChildren(children),
+      'main',
+    )
+  }
+
+  footer(children: TNode | TNode[], props?: UiProps): TNode {
+    return this.wrap(
+      uiCssClass('footer'),
+      {},
+      props,
+      this.asChildren(children),
+      'footer',
+    )
   }
 }

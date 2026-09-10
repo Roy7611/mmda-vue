@@ -1,11 +1,10 @@
 import { h } from "vue";
 import { AutoCompleteComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiAutoCompleteProps } from "@mmda/core";
-import { AUTOCOMPLETE_DEBOUNCE_MS, AUTOCOMPLETE_MIN_LENGTH, AUTOCOMPLETE_SUGGESTION_COUNT, autoCompleteBindValue, autoCompleteModifierClasses, autoCompleteSuggestionLabels, autoCompleteUpdateOf } from "@mmda/core"
-export function createAutoComplete(
-  value: string,
-  props: UiAutoCompleteProps = {},
-) {
+import { AUTOCOMPLETE_DEBOUNCE_MS, AUTOCOMPLETE_MIN_LENGTH, AUTOCOMPLETE_SUGGESTION_COUNT, autoCompleteBindValue, autoCompleteModifierClasses, autoCompleteSuggestionLabels } from "@mmda/core"
+import { autoCompleteUpdateOf } from "@mmda/vui"
+export function createAutoComplete(props: UiAutoCompleteProps = {}) {
+  const value = props.value
   const minLength = props.minLength ?? AUTOCOMPLETE_MIN_LENGTH;
   const suggestionCount =
     props.suggestionCount ?? AUTOCOMPLETE_SUGGESTION_COUNT;
@@ -25,6 +24,7 @@ export function createAutoComplete(
     size: _size,
     placeholder,
     disabled,
+    value: _value,
     ...rest
   } = props;
 

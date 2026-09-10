@@ -1,10 +1,5 @@
 import { h, type Component, type VNode } from "vue";
-import {
-  MetaModel,
-  SqlDataType,
-  type MetaUiField,
-  type Module,
-} from "@mmda/core";
+import { MetaModel, SqlDataType, type MetaUiField, type Module } from "@mmda/core";
 import { autoCompleteBindValue, autoCompletePropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
 import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type UiViewContext } from "@mmda/vui"
 import { createAutoComplete } from "./factory/autocomplete";
@@ -298,15 +293,14 @@ const tagAutoComplete = (
   context: UiContext,
   props?: UiProps,
 ) => {
-  const mapped = tagAutoCompletePropsFromField(
-    field,
-    context as any,
-    props ?? {},
-  );
   return wrapChrome(
     field,
     context,
-    createTagAutoComplete(mapped.value, mapped.props),
+    createTagAutoComplete(tagAutoCompletePropsFromField(
+      field,
+      context as any,
+      props ?? {},
+    )),
   );
 };
 
@@ -557,14 +551,12 @@ const autoComplete = (
     "div",
     { class: ["mmda-agnaive-control", invalid && "is-invalid"] },
     [
-      createAutoComplete(
-        autoCompleteBindValue(context.getFieldValue(field), { reference }),
-        {
-          ...autoCompletePropsFromField(field, props ?? {}),
-          disabled: context.isFieldReadonly(field),
-          onUpdate: update(field, context),
-        },
-      ),
+      createAutoComplete({
+        value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
+        ...autoCompletePropsFromField(field, props ?? {}),
+        disabled: context.isFieldReadonly(field),
+        onUpdate: update(field, context),
+      }),
       invalid &&
         h(
           "p",

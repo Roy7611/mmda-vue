@@ -129,5 +129,37 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
       const state = this.validationState[this.resolveGroup(group).groupName];
       return this.countValidationErrors(state) > 0;
     }
+
+    collectInvalidMessages(value: unknown = this.validationState): string[] {
+      if (!value || typeof value !== "object") return [];
+      if ("touched" in value && "message" in value) {
+        const message = (value as UiFieldValidation).message;
+        return message ? [this.translate(String(message))] : [];
+      }
+      const out: string[] = [];
+      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+        if (key === "summary" || key === "rowNum") continue;
+        if (
+          child &&
+          typeof child === "object" &&
+          "touched" in child &&
+          "message" in child
+        ) {
+          const message = (child as UiFieldValidation).message;
+          if (!message) continue;
+          let label = key;
+          try {
+            const field = this.resolveField(key);
+            label = this.t(field.displayLabel) || key;
+          } catch {
+            /* nested / unknown key */
+          }
+          out.push(`${label}：${this.translate(String(message))}`);
+          continue;
+        }
+        out.push(...this.collectInvalidMessages(child));
+      }
+      return out;
+    }
   };
 }

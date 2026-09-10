@@ -91,9 +91,11 @@ export function oneTimePasswordPropsFromField(
     })(),
     length: otpLengthFromField(field, extra),
     type,
-    separator: extra.separator,
-    placeholder: extra.placeholder ?? field.placeholder,
-    disabled: extra.disabled ?? context.isFieldReadonly(field),
+    separator: extra.separator as string | undefined,
+    placeholder:
+      (extra.placeholder as string | undefined) ?? field.placeholder,
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
       if (typeof extra.onChange === 'function') extra.onChange(value)
@@ -103,7 +105,7 @@ export function oneTimePasswordPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

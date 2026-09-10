@@ -103,8 +103,9 @@ export function ratingPropsFromField(
   return {
     value: n ?? null,
     itemsCount: itemsCountFromField(field, extra),
-    readOnly: extra.readOnly ?? context.isFieldReadonly(field),
-    disabled: extra.disabled,
+    readOnly:
+      (extra.readOnly as boolean | undefined) ?? context.isFieldReadonly(field),
+    disabled: extra.disabled as boolean | undefined,
     emptyTemplate: extra.emptyTemplate,
     fullTemplate: extra.fullTemplate,
     onChange: (value) => {
@@ -116,7 +117,7 @@ export function ratingPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

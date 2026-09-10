@@ -3,13 +3,42 @@ import {
   emptyPagedList,
   assignSearchParam,
   defineEntity,
-  MetaModel,
   type MetaUiField,
   type EntitySelectParam,
+  type Module,
+  type ModuleAuth,
 } from "@mmda/core";
+import { defineComponent, h, type Ref } from "vue";
 import { UiViewMany } from "../view";
 import { createSession } from "./session";
 import type { Constructor } from "./types";
+
+const SELECT_READONLY_AUTH: ModuleAuth = {
+  allowRead: false,
+  allowCreate: false,
+  allowEdit: false,
+  allowDelete: false,
+  allowPrint: false,
+  allowExport: false,
+  allowImport: false,
+  allowUpload: false,
+  allowDownload: false,
+};
+
+function resolveSelectAuthority(
+  param: EntitySelectParam<unknown>,
+  module: Module | undefined,
+): ModuleAuth {
+  if (param.authority) {
+    return {
+      ...SELECT_READONLY_AUTH,
+      ...(module?.authority ?? {}),
+      ...param.authority,
+    };
+  }
+  if (module?.authority) return { ...module.authority };
+  return { ...SELECT_READONLY_AUTH };
+}
 
 export function WithReference<TBase extends Constructor>(
   Base: TBase,
@@ -147,21 +176,49 @@ export function WithReference<TBase extends Constructor>(
       }
       const param = fieldOrParam as EntitySelectParam<T>;
       if (!this.app) return false;
+      const service = param.service ?? this.app.name ?? "base";
       const pack = await this.app.meta.getPack({
         repository: param.repository,
         service: param.service,
       });
-      const ctor =
-        param.ctor ??
-        ((source: object) =>
-          MetaModel.createEntity(pack.metaUi, defineEntity, source) as T);
+      const objName = pack.metaUi.objName;
+      const foundModule =
+        this.app.findModule?.(objName) ??
+        this.app.meta.findModule?.(objName) ??
+        undefined;
+      const authority = resolveSelectAuthority(param, foundModule);
+      const module: Module = foundModule
+        ? { ...foundModule, authority: { ...foundModule.authority, ...authority } }
+        : ({
+            moduleCode: objName,
+            moduleLabel: pack.metaUi.displayLabel ?? param.repository,
+            moduleType: "FEATURE",
+            moduleVersion: 0,
+            objName,
+            authority,
+          } as Module);
+
       const { VueEntityLogic } = await import("../../logic/logic");
-      const logic = new VueEntityLogic(ctor as any, {
-        metaUiService: this.app.meta,
-        repository: param.repository,
-        meta: pack,
-        apiService: param.service,
-      });
+      const logicToken = `${service}:${param.repository}Logic`;
+      let logic: InstanceType<typeof VueEntityLogic> | undefined;
+      try {
+        logic = await this.app.di?.injectAsync?.(logicToken);
+      } catch {
+        // 未注册业务 Logic 时走通用实体 Logic
+      }
+      if (!logic) {
+        logic = new VueEntityLogic(param.ctor ?? defineEntity, {
+          metaUiService: this.app.meta,
+          repository: param.repository,
+          meta: pack,
+          module,
+          apiService: param.service,
+        });
+      } else {
+        logic.meta = pack;
+        logic.module = module;
+      }
+
       const selectionMode = param.selectionMode ?? "multiple";
       const selectCtx = createSession({
         model: emptyPagedList<T>() as any,
@@ -184,30 +241,57 @@ export function WithReference<TBase extends Constructor>(
       }
       selectCtx.selectedItems = [];
       await selectCtx.init();
-      this.root.showDialog = true;
+
+      const showActions =
+        authority.allowCreate || authority.allowEdit || authority.allowDelete;
+      const showActionColumn =
+        authority.allowRead ||
+        authority.allowEdit ||
+        authority.allowDelete;
+      const ui = this.app.ui;
       let picked: T[] = [];
+      const listProps = {
+        selectionMode,
+        showToolbar: true,
+        showSearchbar: true,
+        showBreadcrumb: false,
+        showActions,
+        showActionColumn,
+        loading: selectCtx.loading as Ref<boolean>,
+        onSelect: (selection: T[]) => {
+          selectCtx.selectedItems = selection ?? [];
+          if (selection?.length) picked = selection;
+        },
+        onItemDoubleClick:
+          selectionMode === "single"
+            ? (item: T) => {
+                picked = item != null ? [item] : [];
+                selectCtx.selectedItems = picked;
+                void this.app?.ui.overlay.closeTopDialog?.("ok");
+              }
+            : undefined,
+      };
+
+      const SelectListHost = defineComponent({
+        name: "SelectListHost",
+        setup() {
+          return () => {
+            void selectCtx.loading?.value;
+            const model = selectCtx.model as {
+              list?: unknown[];
+              pagination?: { pageNo?: number };
+            };
+            void model?.list?.length;
+            void model?.pagination?.pageNo;
+            return ui.build(selectCtx, listProps);
+          };
+        },
+      });
+
+      this.root.showDialog = true;
       try {
         const result = await this.app.ui.dialog(
-          this.app.ui.buildView(selectCtx, {
-            selectionMode,
-            showToolbar: true,
-            showSearchbar: true,
-            showBreadcrumb: false,
-            showActions: false,
-            showActionColumn: false,
-            onSelect: (selection: T[]) => {
-              selectCtx.selectedItems = selection ?? [];
-              if (selection?.length) picked = selection;
-            },
-            onItemDoubleClick:
-              selectionMode === "single"
-                ? (item: T) => {
-                    picked = item != null ? [item] : [];
-                    selectCtx.selectedItems = picked;
-                    void this.app?.ui.overlay.closeTopDialog?.('ok');
-                  }
-                : undefined,
-          }),
+          h(SelectListHost),
           selectCtx,
           {
             name: "select",
@@ -217,7 +301,7 @@ export function WithReference<TBase extends Constructor>(
             maxHeight: "90vh",
           },
         );
-        if (result !== 'ok') return false;
+        if (result !== "ok") return false;
         if (!picked.length && selectCtx.selectedItems?.length) {
           picked = selectCtx.selectedItems as T[];
         }

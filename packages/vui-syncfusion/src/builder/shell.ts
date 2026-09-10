@@ -1,7 +1,7 @@
 import { h, ref, type VNode, type VNodeArrayChildren } from "vue";
 import type { MetaUiGroup, Module } from "@mmda/core";
-import { MmdaGroupCard, hasSystemModules, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type UiProps, type UiViewContext } from "@mmda/vui"
-import { SfAppMenu } from "../components/SfAppMenu";
+import { MmdaGroupCard, type AppScaffoldProps, type AppTopBarProps, type UiProps, type UiViewContext } from "@mmda/vui"
+import { SfAppSideMenu } from "../components/SfAppMenu";
 import { createLoading } from "../factory/loading";
 import { invoke, type UiContext } from "./utils";
 
@@ -47,7 +47,7 @@ export function renderFooter(
 }
 
 export function renderAppMenu(modules: Module[], props?: UiProps) {
-  return h(SfAppMenu, { modules, ...props });
+  return h(SfAppSideMenu, { modules, ...props });
 }
 
 export function renderLoading(props?: UiProps) {

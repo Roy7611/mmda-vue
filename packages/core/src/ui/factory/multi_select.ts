@@ -3,7 +3,7 @@ import type { MetaUiField, MetaUiFieldRef } from '../../metaui/metaui_field'
 import { EntityState } from '../../models/entity'
 import { MetaModel } from '../../models/metamodel'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
   MULTI_SELECT_SEPARATOR,
@@ -253,22 +253,7 @@ export function applyMultiSelectSelection(
   return selectedItems
 }
 
-export function emitMultiSelectChange(
-  props: UiMultiSelectProps,
-  bound: unknown,
-): void {
-  props.onChange?.(bound)
-  callUiPropFn(props, 'onUpdate:modelValue', bound)
-  callUiPropFn(props, 'onUpdate', bound)
-}
 
-export function applyAndEmitMultiSelectKeys(
-  props: UiMultiSelectProps,
-  keys: Array<string | number>,
-): void {
-  const items = resolveMultiSelectItems(keys, props)
-  emitMultiSelectChange(props, applyMultiSelectSelection(props, items))
-}
 
 export function withMultiSelectBindMode(
   props: UiMultiSelectProps,

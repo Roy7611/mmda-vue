@@ -1,4 +1,4 @@
-import { callUiPropFn, type UiProps } from '../props'
+import { callUiBagFn, type UiProps } from '../props'
 
 export type UiDatePrecision = 'day' | 'month'
 
@@ -112,23 +112,17 @@ export function datePickerFormatOf(
   return fallback
 }
 
-export function emitDateChange(props: UiProps, value: unknown): void {
-  callUiPropFn(props, 'onChange', value)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-  callUiPropFn(props, 'onUpdatePicker', value)
-}
 
 export function emitDateClear(props: UiProps): void {
-  callUiPropFn(props, 'onClear')
+  callUiBagFn(props, 'onClear')
 }
 
 export function emitDateFocus(props: UiProps): void {
-  callUiPropFn(props, 'onFocus')
+  callUiBagFn(props, 'onFocus')
 }
 
 export function emitDateBlur(props: UiProps): void {
-  callUiPropFn(props, 'onBlur')
+  callUiBagFn(props, 'onBlur')
 }
 
 export function resolveDateShortcutValue(

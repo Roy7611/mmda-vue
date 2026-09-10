@@ -3,11 +3,12 @@
 - **产品分层**：[仓库 ARCHITECTURE.md](../../../ARCHITECTURE.md)（UI → Logic → Data）
 - **本包目录**：[core_architecture.md](./core_architecture.md)
 - [本轮分层清理（历史）](./refactor.md)
-- [UI 契约 / 应用壳 / 选记录（本轮）](./refactor_ui_app.md)
+- [UI 契约 / 应用壳 / 选记录（历史）](./refactor_ui_app.md)
+- [**UI 四职重构设计**](./ui/ui_four_roles_design.md) / [**怎么写**](./ui/ui_four_roles_usage.md)
 - [core / vui / syncfusion 评估（工作稿）](../../../docs/reviews/core-vui-syncfusion.md)
-- [Ui 契约（三层）](./ui.md)
+- [Ui 契约（四职）](./ui.md)
 - [布局设计](./ui/layout.md) / [怎么写](../../vui/docs/layout_usage.md)
-- [UiBuilder：程序员怎么写](./ui/ui_builder_usage.md)
+- [UiBuilder：旧入口（跳转四职用法）](./ui/ui_builder_usage.md)
 - [UiContext：程序员怎么写](./logic/ui_context_usage.md)
 - [EntityLogic 重构设计](./logic/entity_logic_design.md)
 - [EntityLogic：程序员怎么写](./logic/entity_logic_usage.md)
@@ -24,7 +25,7 @@
 按目录汇总（细节以单文件为准）：
 
 - [logic.md](./logic.md) — **Logic 层**
-- [ui.md](./ui.md) — **UI 契约**（无实现）；用法 [ui_builder_usage.md](./ui/ui_builder_usage.md)
+- [ui.md](./ui.md) — **UI 契约**（无实现）；四职设计 [ui_four_roles_design.md](./ui/ui_four_roles_design.md)，用法 [ui_four_roles_usage.md](./ui/ui_four_roles_usage.md)
 - [metaui.md](./metaui.md) / [models.md](./models.md) / [net.md](./net.md) — **Data**
 - [dependency-injection.md](./dependency-injection.md)
 - [utils.md](./utils.md)
@@ -102,7 +103,8 @@
 
 - [ui.md](./ui.md) — 契约总览
 - [layout.ts](./ui/layout.md)
-- [ui_builder_usage.md](./ui/ui_builder_usage.md)
+- [ui_four_roles_design.md](./ui/ui_four_roles_design.md) / [ui_four_roles_usage.md](./ui/ui_four_roles_usage.md)
+- [ui_builder_usage.md](./ui/ui_builder_usage.md)（旧入口）
 
 ## extensions
 

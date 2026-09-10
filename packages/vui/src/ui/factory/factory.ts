@@ -42,6 +42,8 @@ export type {
   UiBadgePosition,
   UiBadgeProps,
   UiBadgeShape,
+  UiMessageProps,
+  UiMessageVariant,
   UiDividerOrientation,
   UiDividerProps,
   UiSkeletonProps,
@@ -138,7 +140,7 @@ export type {
   UiTimelineRange,
   UiTimelineTimeDisplay,
 } from './timeline'
-export type { UiLoadingProps, UiLoadingSize } from './loading'
+export type { UiLoadingProps, UiLoadingSize } from '@mmda/core'
 export type {
   UiSpeechToTextController,
   UiSpeechToTextProps,
@@ -263,10 +265,6 @@ export interface UiFactory extends CoreUiFactory<VNode> {
 
 /** core UiFactory 钉成 VNode；仅补图标表、pagableTable、menu 等 Vue 会话件。 */
 export type VueUiFactory = UiFactory
-
-/** @deprecated 使用 UiFactory / VueUiFactory；chrome 方法已并入基接口。 */
-export type PrimeVueUiFactory = UiFactory
-export type SyncfusionUiFactory = UiFactory
 
 export const durationOfSeconds: UiRenderer<number> = (seconds, props) =>
   h('span', props, () => friendlySeconds(seconds, props?.locale as string | undefined))

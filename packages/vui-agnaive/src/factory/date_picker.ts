@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
 import type { UiDatePickerProps, UiDateShortcut, UiDateShortcutKind } from '@mmda/core'
-import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from '@mmda/core'
+import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from '@mmda/core'
+import { emitDateChange } from '@mmda/vui'
 import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat, htmlAttributesOf } from '@mmda/vui'
 
 function toTs(value: Date | null | undefined): number | null {

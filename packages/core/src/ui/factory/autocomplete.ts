@@ -18,6 +18,8 @@ export type UiAutoCompleteSuggest = (
  * enum → dropDownList；hasOne → searchBox。REF 仅作建议源。
  */
 export interface UiAutoCompleteProps extends UiProps {
+  /** 框内文本。与 textInput 同名。 */
+  value?: string
   placeholder?: string
   disabled?: boolean
   size?: UiAutoCompleteSize
@@ -80,13 +82,6 @@ export function autoCompleteBindValue(
   return String(value)
 }
 
-export function autoCompleteUpdateOf(
-  props?: UiAutoCompleteProps,
-): ((value: string) => void) | undefined {
-  if (props?.onUpdate) return props.onUpdate
-  const bag = props?.['onUpdate:modelValue']
-  return typeof bag === 'function' ? (bag as (value: string) => void) : undefined
-}
 
 export function routeAutoCompleteField(
   field: Pick<MetaUiField, 'reference'>,

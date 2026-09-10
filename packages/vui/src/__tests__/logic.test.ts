@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  EntityLogic,
-  MetaUi,
-  MetaUiField,
-  MetaUiFieldLogic,
-  MetaUiGroupLogic,
-  SqlDataType,
-} from '@mmda/core'
+import { EntityLogic, MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType } from '@mmda/core'
 import { VueUiContext } from '../contexts/vue_ui_context'
 
 const field = (fieldName: string, fieldIdx = 0) =>

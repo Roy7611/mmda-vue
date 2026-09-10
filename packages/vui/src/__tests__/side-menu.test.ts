@@ -4,12 +4,10 @@ import {
   ModuleOp,
   ModuleStatus,
   ModuleVersion,
-} from '@mmda/core'
-import {
   activeAncestorKeys,
   assembleMenuItems,
   isLocalAppModuleUrl,
-} from '../components/AppSideMenu'
+} from '@mmda/core'
 
 const sampleModules = new ModuleFactory([
   {

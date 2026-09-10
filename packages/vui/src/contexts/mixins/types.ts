@@ -80,6 +80,7 @@ export interface ContextHost {
     validation: UiValidation,
   ): number;
   countValidationErrors(value: unknown): number;
+  collectInvalidMessages(value?: unknown): string[];
   listRepository(): string;
   setSelectableFn(key: string, selectableFn: any): void;
   setSelectableKey(key: string): void;

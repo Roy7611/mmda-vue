@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  MetaUiFieldRef,
-  autoCompleteBindValue,
-  autoCompleteSuggestionLabels,
-  normalizeAutoCompleteOption,
-  routeAutoCompleteField,
-} from '@mmda/core'
+import { MetaUiFieldRef, autoCompleteBindValue, autoCompleteSuggestionLabels, normalizeAutoCompleteOption, routeAutoCompleteField } from '@mmda/core'
 
 describe('autoComplete helpers', () => {
   it('normalizes string and object options', () => {

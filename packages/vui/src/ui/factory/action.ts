@@ -1,5 +1,5 @@
-import { computed, unref, type ComputedRef } from "vue";
-import type { UiColorRole, UiAction as CoreUiAction, Predicate } from "@mmda/core";
+import { computed, unref } from "vue";
+import type { UiColorRole, UiAction, Predicate } from "@mmda/core";
 import {
   parseEntityBoolExpression,
   isPromise,
@@ -9,49 +9,13 @@ import {
   type UiContext,
 } from "@mmda/core";
 
-export type { UiColorRole } from "@mmda/core";
+export type { UiColorRole, UiAction } from "@mmda/core";
 export type IconResolver = (icon: string) => string;
 
 export interface UiActionContext extends UiContext {
   readonly model: Record<string, any>
   actionLoadings: Record<string, boolean>
   readonly executing: boolean
-}
-
-/**
- * action操作动作，包括详情、编辑、查询
- */
-export enum ActionCommand {
-  Details = "details",
-  Edit = "edit",
-  Search = "search",
-  Delete = "delete",
-  ForgotPassword = "forgotPassword",
-  LoginOut = "loginOut",
-  Upload = "upload",
-  ImportTemple = "importTemple",
-  Xml = 'Xml',
-  Svg = 'Svg'
-}
-
-export interface ActionItem {
-  name?: ActionCommand | string,
-  role?: ActionCommand | string,
-  command?: () => void,
-  icon?: ActionCommand | string,
-  label?: string,
-  divider?: boolean
-}
-
-/**
- * 界面动作。core UiAction + 工具栏可绑 ComputedRef。
- */
-export interface UiAction extends Omit<CoreUiAction, 'visible'> {
-  /**
-   * 是否出现。工具栏可绑 ComputedRef；表格行用 Predicate(row)。
-   * 缺省出现。兼容 core UiBoxed（duck-type ref）。
-   */
-  visible?: CoreUiAction['visible'] | ComputedRef<boolean>
 }
 
 /** Normalize backend action roles before passing them to a UI skin. */

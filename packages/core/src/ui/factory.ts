@@ -43,6 +43,7 @@ import type { UiCheckBoxProps } from './factory/checkbox'
 import type { UiSwitchProps } from './factory/switch'
 import type { UiAvatarProps } from './factory/avatar'
 import type { UiBadgeProps } from './factory/badge'
+import type { UiMessageProps } from './factory/message'
 import type { UiBreadcrumbProps } from './factory/breadcrumb'
 import type { UiCardProps, UiCardSlots } from './factory/card'
 import type { UiCarouselProps, UiImageGalleryItem } from './factory/carousel'
@@ -79,10 +80,19 @@ import type { UiRadioButtonGroupProps } from './factory/radio_button_group'
 import type { UiNumberInputProps } from './factory/number_input'
 import type { UiTextAreaProps } from './factory/text_area'
 import type { UiTextInputProps } from './factory/text_input'
+import type {
+  UiSigninFormProps,
+  UiSigninFormSlots,
+  UiSignupFormProps,
+  UiSignupFormSlots,
+} from './factory/signin'
 
 /**
- * Logic 拼控件用的工厂。皮肤在 vui-* 实现。
- * 复杂 view 走 UiBuilder.buildView；不要 factory.dialog / selector。
+ * 原子 chrome 控件工厂。皮肤在 vui-* 实现。
+ *
+ * 一个方法 ≈ 一个控件。复杂拼屏走 {@link import('./builder').UiBuilder}；
+ * 字段行走 {@link import('./field_factory').UiFieldFactory}。
+ * 不要 `factory.dialog` / selector（弹层走 Builder Overlay）。
  * 参数用具名 Ui*Props（本包），不要 Record 糊弄。
  */
 export interface UiFactory<TNode = any> {
@@ -171,15 +181,15 @@ export interface UiFactory<TNode = any> {
   timePicker?(props?: UiTimePickerProps): TNode
   dateRangePicker?(props?: UiDateRangePickerProps): TNode
   checkBox?(props?: UiCheckBoxProps): TNode
-  switch?(value?: boolean | UiSwitchProps, props?: UiSwitchProps): TNode
+  switch?(props?: UiSwitchProps): TNode
   dropDownList?(props?: UiDropDownListProps): TNode
   comboBox?(props?: UiComboBoxProps): TNode
   multiSelect?(props?: UiMultiSelectProps): TNode
   radioButtonGroup?(props?: UiRadioButtonGroupProps): TNode
   treeSelect?(props?: UiTreeSelectProps<any, TNode>): TNode
   dropDownTree?(props?: UiTreeSelectProps<any, TNode>): TNode
-  autoComplete?(value: string, props?: UiAutoCompleteProps): TNode
-  tagAutoComplete?(value: string, props?: UiTagAutoCompleteProps): TNode
+  autoComplete?(props?: UiAutoCompleteProps): TNode
+  tagAutoComplete?(props?: UiTagAutoCompleteProps): TNode
   checkBoxList?(props?: UiCheckBoxListProps): TNode
   bitCheckBoxList?(props?: UiCheckBoxListProps): TNode
   calendar?(props?: UiCalendarProps<TNode>): TNode
@@ -211,6 +221,8 @@ export interface UiFactory<TNode = any> {
   progressBar?(props?: UiProgressBarProps): TNode
 
   badge?(props?: UiBadgeProps): TNode
+  /** 页内消息条（详情/编辑顶栏）；不要用 toast 画这条。 */
+  message?(props?: UiMessageProps): TNode
   avatar?(props?: UiAvatarProps): TNode
   breadcrumb?(props?: UiBreadcrumbProps): TNode
   card?(props?: UiCardProps, slots?: UiCardSlots<TNode>): TNode
@@ -240,4 +252,20 @@ export interface UiFactory<TNode = any> {
   skeleton?(props?: UiSkeletonProps): TNode
 
   searchForRelative?(props?: UiProps): TNode
+
+  /**
+   * 登录表单控件。路由页直接调本方法，不要 `buildSigninForm` / SigninView 外壳。
+   */
+  signinForm?(
+    props?: UiSigninFormProps,
+    slots?: UiSigninFormSlots<TNode>,
+  ): TNode
+
+  /**
+   * 注册表单控件。与 {@link signinForm} 同级。
+   */
+  signupForm?(
+    props?: UiSignupFormProps,
+    slots?: UiSignupFormSlots<TNode>,
+  ): TNode
 }

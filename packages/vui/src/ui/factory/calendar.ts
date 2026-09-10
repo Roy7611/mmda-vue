@@ -14,9 +14,7 @@ export type {
 export {
   calendarBoundValue,
   calendarDaySelected,
-  calendarEj2View,
   calendarModifierClasses,
-  calendarPrimeView,
   isCalendarDateDisabled,
   sameCalendarDay,
   startOfDay,

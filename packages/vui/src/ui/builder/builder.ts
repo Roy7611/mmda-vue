@@ -1,5 +1,6 @@
 import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
-import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
+import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiAppSideMenuProps, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
+import { VueAppSideMenu } from "../../components/AppSideMenu";
 import { openTableSettingDialog } from "../../components/TableSettingView";
 import {AppLayout, VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
 import type {
@@ -94,12 +95,14 @@ import { XlsxFilePreview } from "../../components/XlsxFilePreview";
 import type {
   UiConfirmProps,
   UiDialogProps,
+  UiMessageProps,
   UiToastProps,
 } from "@mmda/core";
 import { UiActionFactory } from "./actions";
 import { WithForm } from "./form";
 import { WithList } from "./list_view";
 import { WithTree } from "./tree";
+import { attachFieldRowApi } from "../factory/field_row";
 
 export { UiActionFactory };
 
@@ -213,6 +216,7 @@ export abstract class VueUiBuilderBase {
     public readonly layout: UiLayout,
     public overlay: UiOverlay = createHtmlOverlay(),
   ) {
+    attachFieldRowApi(fldFactory, layout);
     this.actionFactory = new UiActionFactory(
       this as unknown as VueUiBuilder,
       factory.resolveIcon,
@@ -377,7 +381,9 @@ export abstract class VueUiBuilderBase {
         : (value as VNodeChild);
     const variant =
       props.layout ?? (props.model === "Mobile" ? "topBarFull" : "sidebarLeft");
-    return new AppLayout(variant).render({
+    // 壳走 UiAppLayout.scaffold；本方法仅兼容旧 AppShell 调用。
+    return new AppLayout(variant).scaffold({
+      variant,
       topBar: invoke(props.topBar) as VNode | undefined,
       nav: invoke(props.sideBar) as VNode | undefined,
       page: invoke(props.body) as VNode | undefined,
@@ -387,8 +393,15 @@ export abstract class VueUiBuilderBase {
   buildAppTopBar(props?: AppTopBarProps): VNode {
     return unimplemented("buildAppTopBar") as VNode;
   }
-  buildAppSideBar(props?: AppSideBarProps): VNode {
-    return unimplemented("buildAppSideBar") as VNode;
+  buildAppSideBar(props: AppSideBarProps = { modules: [], header: () => null }): VNode {
+    return this.buildAppSideMenu({
+      modules: props.modules,
+      logo: props.header,
+      footer: props.footer,
+    });
+  }
+  buildAppSideMenu(props: UiAppSideMenuProps<VNode> = {}): VNode {
+    return h(VueAppSideMenu, props as any);
   }
   buildAppMenu(modules: Module[], props?: UiProps): VNode {
     return unimplemented("buildAppMenu") as VNode;
@@ -441,19 +454,56 @@ export abstract class VueUiBuilderBase {
   ): VNode {
     return unimplemented("buildSearchForRelative") as VNode;
   }
+  /**
+   * @deprecated 用 `factory.signinForm`。路由页不要再经 Builder 包一层。
+   */
   buildSigninForm(
     props: SigninFormProps,
     slots?: SigninFormSlots,
   ): VNode {
-    return unimplemented("buildSigninForm") as VNode;
+    return (
+      this.factory.signinForm?.(props, slots) ??
+      (unimplemented("signinForm") as VNode)
+    );
   }
+
+  /**
+   * @deprecated 用 `factory.signupForm`。
+   */
   buildSignupForm(props: SignupFormProps): VNode {
-    return unimplemented("buildSignupForm") as VNode;
+    return (
+      this.factory.signupForm?.(props) ??
+      (unimplemented("signupForm") as VNode)
+    );
   }
 
   toast(_context: CoreUiContext, props: Record<string, unknown>) {
     this.overlay.toast(props as UiToastProps);
     return Promise.resolve();
+  }
+
+  message(context: CoreUiContext, props: UiMessageProps) {
+    const runtime = context as VueUiContext & {
+      many?: boolean;
+      pageNotice?: { value: UiMessageProps | null };
+    };
+    if (runtime.many || !runtime.pageNotice) {
+      this.overlay.toast({
+        severity: props.severity,
+        title: undefined,
+        message: props.content,
+      });
+      return;
+    }
+    runtime.pageNotice.value = {
+      ...props,
+      content: props.content ?? "",
+      severity: props.severity ?? "info",
+      showCloseIcon: props.showCloseIcon !== false,
+      showIcon: props.showIcon !== false,
+      variant: props.variant ?? "filled",
+      visible: props.visible !== false,
+    };
   }
 
   async confirm(_context: CoreUiContext, props: UiConfirmProps) {
@@ -554,12 +604,12 @@ export abstract class VueUiBuilder
   extends WithTree(WithList(WithForm(VueUiBuilderBase)))
   implements CoreUiBuilder
 {
-  build(context: CoreUiContext, extra: Record<string, unknown> = {}): VNode {
+  build(context: CoreUiContext, props: Record<string, unknown> = {}): VNode {
     const runtime = context as any;
     const view = String(runtime.view ?? "") as UiViewType;
     const factories = runtime.logic?.viewOptions;
     const option = factories?.[view]?.(runtime) ?? {};
-    const merged = { ...option, ...extra } as Record<string, any>;
+    const merged = { ...option, ...props } as Record<string, any>;
     if (isViewMany(view)) {
       const kind = merged.viewKind;
       if (
@@ -626,6 +676,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildAppScaffold: emptyNode,
     buildAppTopBar: emptyNode,
     buildAppSideBar: emptyNode,
+    buildAppSideMenu: emptyNode,
     buildAppMenu: emptyNode,
     setColorScheme: (): void => undefined,
     setColorPalette: (): void => undefined,
@@ -729,12 +780,14 @@ export function createStubUiBuilder(): VueUiBuilder {
       return this.aiAssistantPlugin.aiAssistant(props);
     },
     toast: async (): Promise<void> => undefined,
+    message: (): void => undefined,
     confirm: async () => false,
     dialog: async () => 'cancel' as const,
     buildDocxFilePreview: emptyNode,
     buildXlsxFilePreview: emptyNode,
     buildFilePreview: emptyNode,
   };
+    attachFieldRowApi(stub.fldFactory as any, factory.layout as any);
   return stub as VueUiBuilder;
 }
 

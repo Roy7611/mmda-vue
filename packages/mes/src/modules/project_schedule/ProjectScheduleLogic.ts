@@ -518,7 +518,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				renderer: (ctx: UiContext & any, csf) => {
 					const { $ui: ui } = ctx.globalProps;
 					console.log('csf', csf);
-					return ui.factory.switch(csf.searchVal.value, {
+					return ui.factory.switch({
+						checked: Boolean(csf.searchVal.value),
 						onValueChange: async (val: boolean) => {
 							csf.searchVal.value = val;
 							ctx.app.localDb.put(`search/${ctx.logic.repository}/my`, JSON.parse(JSON.stringify(val)));

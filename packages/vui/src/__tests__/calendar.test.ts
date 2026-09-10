@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   calendarBoundValue,
-  calendarEj2View,
-  calendarPrimeView,
   isCalendarDateDisabled,
 } from '../ui/factory/calendar'
 
@@ -12,15 +10,6 @@ describe('calendar contract helpers', () => {
     expect(
       calendarBoundValue({ selectionMode: 'multiple', value: day }),
     ).toEqual([day])
-  })
-
-  it('maps views to EJ2 and Prime names', () => {
-    expect(calendarEj2View('month')).toBe('Month')
-    expect(calendarEj2View('year')).toBe('Year')
-    expect(calendarEj2View('decade')).toBe('Decade')
-    expect(calendarPrimeView('month')).toBe('date')
-    expect(calendarPrimeView('year')).toBe('month')
-    expect(calendarPrimeView('decade')).toBe('year')
   })
 
   it('disables dates outside min/max', () => {

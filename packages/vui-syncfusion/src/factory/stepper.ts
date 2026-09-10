@@ -6,7 +6,8 @@ import { h } from "vue";
 import { StepperComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiStepperChanging, UiStepperController, UiStepperItem, UiStepperProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { emitStepperChange, stepperDisplayOf, stepperDisplayToEj2, stepperItemsOf, stepperLabelPositionOf, stepperLabelPositionToEj2, stepperModifierClasses, stepperOrientationOf, stepperOrientationToEj2, stepperStatusToEj2, stepperValueOf } from "@mmda/core"
+import { stepperDisplayOf, stepperDisplayToEj2, stepperItemsOf, stepperLabelPositionOf, stepperLabelPositionToEj2, stepperModifierClasses, stepperOrientationOf, stepperOrientationToEj2, stepperStatusToEj2, stepperValueOf } from "@mmda/core"
+import { emitStepperChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
 function ej2Of(el: any) {

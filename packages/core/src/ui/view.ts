@@ -148,8 +148,16 @@ export interface UniListViewProps {
   showSearch?: boolean
 }
 
-export interface UiViewProps {
+import type { UiProps } from './props'
+
+/**
+ * 单对象实体屏（details / edit / create）拼屏 extras。
+ * 不要塞 selectionMode / showSearchbar（那是 {@link import('./builder/list_view').UiListViewProps}）。
+ */
+export interface UiViewProps extends UiProps {
+  /** 是否显示模块工具栏。缺省 true。 */
   showToolbar?: boolean
+  /** 主表字段组列数。 */
   primaryCols?: 2 | 3
   showBreadcrumb?: boolean
   showActions?: boolean

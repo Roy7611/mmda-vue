@@ -1145,7 +1145,8 @@ html.e-dark-mode .mmda-sf-dropup {
  * stacks below it — then overflow:hidden clips it to a blank viewport.
  * Dock mode uses EJ2 Sidebar (fixed/push) and must not use this flex path.
  */
-.mmda-sf-shell:has(> .mmda-sf-sidebar) {
+.mmda-sf-shell:has(> .mmda-sf-sidebar),
+.mmda-sf-shell:has(> .mmda-app-side-menu--compact) {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -1157,7 +1158,13 @@ html.e-dark-mode .mmda-sf-dropup {
   max-width: min(17.5rem, 40vw);
 }
 
-.mmda-sf-shell:has(> .mmda-sf-sidebar) > .mmda-sf-maincontent {
+.mmda-sf-shell > .mmda-app-side-menu--compact {
+  flex: 0 0 72px;
+  width: 72px;
+}
+
+.mmda-sf-shell:has(> .mmda-sf-sidebar) > .mmda-sf-maincontent,
+.mmda-sf-shell:has(> .mmda-app-side-menu--compact) > .mmda-sf-maincontent {
   flex: 1 1 auto;
   width: auto;
 }

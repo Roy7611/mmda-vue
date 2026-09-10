@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NInputNumber } from 'naive-ui'
 import type { UiNumberInputProps } from '@mmda/core'
-import { emitNumberInputChange, numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from '@mmda/core'
+import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from '@mmda/core'
+import { emitNumberInputChange } from '@mmda/vui'
 import { htmlAttributesOf } from '@mmda/vui'
 
 export function createNumberInput(props: UiNumberInputProps) {

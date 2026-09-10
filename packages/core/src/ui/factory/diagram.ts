@@ -4,7 +4,7 @@
  * 无 Vue。
  */
 import type { MetaUi } from '../../metaui/metaui_group'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { UiViewOne } from '../view'
 
 export type UiDiagramType = 'org' | 'workflow' | 'dataflow' | 'er' | 'uml'
@@ -267,16 +267,6 @@ export function diagramNodeDataOf(
   return extra
 }
 
-export function emitDiagramUpdate(
-  props: UiDiagramViewProps,
-  nodes: UiDiagramNode[],
-  connectors: UiDiagramConnector[],
-): void {
-  if (props.readonly) return
-  callUiPropFn(props, 'onUpdate', nodes, connectors)
-  props['onUpdate:nodes']?.(nodes)
-  props['onUpdate:connectors']?.(connectors)
-}
 
 export function findDiagramElement(
   props: Pick<UiDiagramViewProps, 'nodes' | 'connectors'>,

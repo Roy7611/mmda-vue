@@ -1,20 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MetaOptionsShape, MetaUiFieldRef } from '@mmda/core'
-import {
-  dropDownListModifierClasses,
-  dropDownListPropsFromField,
-  dropDownListValueOf,
-  emitDropDownListChange,
-  nestSelectOptionsByGroup,
-  normalizeSelectOption,
-  selectOptionFromSource,
-  selectOptionsOf,
-} from '@mmda/core'
-import {
-  comboBoxAllowCustom,
-  comboBoxModifierClasses,
-  comboBoxPropsFromField,
-} from '@mmda/core'
+import { dropDownListModifierClasses, dropDownListPropsFromField, dropDownListValueOf, nestSelectOptionsByGroup, normalizeSelectOption, selectOptionFromSource, selectOptionsOf } from '@mmda/core'
+import { emitDropDownListChange } from '@mmda/vui'
+import { comboBoxAllowCustom, comboBoxModifierClasses, comboBoxPropsFromField } from '@mmda/core'
 
 describe('dropDownList helpers', () => {
   it('normalizes string and object options with group and icon', () => {

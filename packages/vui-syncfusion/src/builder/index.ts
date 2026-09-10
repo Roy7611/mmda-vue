@@ -7,16 +7,8 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import {
-  debounce,
-  pluralize,
-  type MetaUiField,
-  type MetaUiGroup,
-  type Module,
-  type ModuleAction,
-  type ModuleAuth,
-} from "@mmda/core";
-import { VueUiBuilder, MmdaGroupCard, UiViewMany, hasSystemModules, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
+import { debounce, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { VueUiBuilder, MmdaGroupCard, UiViewMany, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfOverlayHost } from "../components/SfOverlayHost";
 import { createSyncfusionOverlay } from "../syncfusion_overlay";
@@ -217,25 +209,19 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   buildAppSideBar(
     props: AppSideBarProps = { modules: [], header: () => null },
   ) {
-    const systems = hasSystemModules(props.modules);
-    // Systems: SfAppMenu owns EJ2 Sidebar enableDock (+ logo/footer).
-    if (systems) {
-      return this.buildAppMenu(props.modules, {
-        logo: props.header,
-        footer: props.footer,
-      });
-    }
-    return h("aside", { class: "mmda-sf-sidebar" }, [
-      h("div", { class: "mmda-sf-sidebar__header" }, invoke(props.header)),
-      h("div", { class: "mmda-sf-sidebar__body" }, [
-        this.buildAppMenu(props.modules),
-      ]),
-      h("div", { class: "mmda-sf-sidebar__footer" }, invoke(props.footer)),
-    ]);
+    return this.buildAppSideMenu({
+      modules: props.modules,
+      logo: props.header,
+      footer: props.footer,
+    });
+  }
+
+  buildAppSideMenu(props: import("@mmda/core").UiAppSideMenuProps<VNode> = {}) {
+    return renderAppMenu(props.modules ?? [], props);
   }
 
   buildAppMenu(modules: Module[], props?: UiProps) {
-    return renderAppMenu(modules, props);
+    return this.buildAppSideMenu({ modules, ...props });
   }
 
   buildLoading(_context: UiContext, props?: UiProps) {
@@ -910,10 +896,13 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    return renderSigninForm(props, slots);
+    return (
+      this.factory.signinForm?.(props, slots) ??
+      renderSigninForm(props, slots)
+    );
   }
 
   buildSignupForm(props: SignupFormProps) {
-    return renderSignupForm(props);
+    return this.factory.signupForm?.(props) ?? renderSignupForm(props);
   }
 }

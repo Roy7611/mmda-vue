@@ -7,7 +7,6 @@ import {
   AUTOCOMPLETE_MIN_LENGTH,
   AUTOCOMPLETE_SUGGESTION_COUNT,
   autoCompleteSuggestionLabels,
-  autoCompleteUpdateOf,
   normalizeAutoCompleteOption,
   type UiAutoCompleteOption,
   type UiAutoCompleteProps,
@@ -69,19 +68,7 @@ export function tagAutoCompleteNormalizeOption(
   return normalizeAutoCompleteOption(item)
 }
 
-export function tagAutoCompleteUpdateOf(
-  props?: UiTagAutoCompleteProps,
-): ((value: string) => void) | undefined {
-  return autoCompleteUpdateOf(props)
-}
 
-export function emitTagAutoCompleteChange(
-  props: UiTagAutoCompleteProps,
-  items: string[],
-): void {
-  const text = tagAutoCompleteTextOf(items, props)
-  tagAutoCompleteUpdateOf(props)?.(text)
-}
 
 export function tagAutoCompleteModifierClasses(
   props: UiTagAutoCompleteProps,
@@ -100,37 +87,34 @@ export function tagAutoCompletePropsFromField(
   field: MetaUiField,
   context: UiFieldBindContext,
   extra: UiProps = {},
-): { value: string; props: UiTagAutoCompleteProps } {
+): UiTagAutoCompleteProps {
   const sep = extra as Pick<UiTagAutoCompleteProps, 'separator'>
-  const value = tagAutoCompleteTextOf(
-    tagAutoCompleteItemsOf(context.getFieldValue(field), sep),
-    sep,
-  )
   return {
-    value,
-    props: {
-      placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
-      disabled:
-        (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-      options: extra.options as UiTagAutoCompleteProps['options'],
-      suggest: extra.suggest as UiTagAutoCompleteProps['suggest'],
-      reference: field.reference?.isRef ? field.reference : undefined,
-      minLength: extra.minLength as number | undefined,
-      debounceDelay: extra.debounceDelay as number | undefined,
-      highlight: extra.highlight as boolean | undefined,
-      suggestionCount: extra.suggestionCount as number | undefined,
-      separator: extra.separator as string | undefined,
-      onUpdate: (text) => {
-        context.setFieldValue(field, text)
-        if (typeof extra.onUpdate === 'function') extra.onUpdate(text)
-        if (typeof extra.onChange === 'function') extra.onChange(text)
-      },
-      class: extra.class,
-      htmlAttributes: {
-        name: field.fieldName,
-        id: field.fieldName,
-        ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
-      },
+    value: tagAutoCompleteTextOf(
+      tagAutoCompleteItemsOf(context.getFieldValue(field), sep),
+      sep,
+    ),
+    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+    options: extra.options as UiTagAutoCompleteProps['options'],
+    suggest: extra.suggest as UiTagAutoCompleteProps['suggest'],
+    reference: field.reference?.isRef ? field.reference : undefined,
+    minLength: extra.minLength as number | undefined,
+    debounceDelay: extra.debounceDelay as number | undefined,
+    highlight: extra.highlight as boolean | undefined,
+    suggestionCount: extra.suggestionCount as number | undefined,
+    separator: extra.separator as string | undefined,
+    onUpdate: (text) => {
+      context.setFieldValue(field, text)
+      if (typeof extra.onUpdate === 'function') extra.onUpdate(text)
+      if (typeof extra.onChange === 'function') extra.onChange(text)
+    },
+    class: extra.class,
+    htmlAttributes: {
+      name: field.fieldName,
+      id: field.fieldName,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

@@ -134,7 +134,8 @@ export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 				{
 					searchLabel: 'projectMaterial.activeProjects',
 					searchParam: 'projectinprogress',
-					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch(csf.searchVal.value, {
+					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch({
+						checked: Boolean(csf.searchVal.value),
 						trueValue: true,
 						falseValue: false,
 						'onUpdate:modelValue': (val: boolean) => {
@@ -145,7 +146,8 @@ export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 				{
 					searchLabel: 'projectMaterial.shortagesOnly',
 					searchParam: 'shortageQuantity',
-					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch(csf.searchVal.value, {
+					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch({
+						checked: Boolean(csf.searchVal.value),
 						trueValue: '>0',
 						falseValue: '',
 						'onUpdate:modelValue': (val: boolean) => {

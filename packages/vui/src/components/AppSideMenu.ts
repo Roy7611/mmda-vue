@@ -1,4 +1,11 @@
-import { type Module } from "@mmda/core";
+import {
+  assembleMenuItems,
+  activeAncestorKeys,
+  hasSystemModules,
+  isLocalAppModuleUrl,
+  type Module,
+  type UiAppMenuItem,
+} from "@mmda/core";
 import {
   computed,
   defineComponent,
@@ -11,117 +18,79 @@ import {
 } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
-import { UI_APP_KEY } from "../app/keys";
+import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
 import type { MmdaApplication } from "../app/app";
+import { useCompactViewport } from "../composables/useCompactViewport";
 
-/** A top-level system uses a code such as `B` or `M`, without a dot. */
-export function hasSystemModules(modules: Module[] = []): boolean {
-  return modules.some((module) => !module.moduleCode.includes("."));
-}
+export type AppMenuItem = UiAppMenuItem;
 
-export interface AppMenuItem {
-  key: string;
-  label: string;
-  icon?: string;
-  moduleCode: string;
-  moduleType?: Module["moduleType"];
-  route: string;
-  url?: string;
-  /** Feature leaf with create permission — show quick-create affordance. */
-  allowCreate?: boolean;
-  items?: AppMenuItem[];
+export {
+  assembleMenuItems,
+  activeAncestorKeys,
+  hasSystemModules,
+  isLocalAppModuleUrl,
+};
+
+function isActiveRoute(path: string, route?: string): boolean {
+  return !!route && (path === route || path.startsWith(`${route}/`));
 }
 
 /**
- * A host may own one prefix (legacy split SPA) or multiple prefixes (the
- * unified @mmda/app router). Foreign absolute paths still use full navigation.
+ * vui 默认侧栏菜单：宽屏递归树；compact 一级轨 + factory.drawer。
  */
-export function isLocalAppModuleUrl(
-  appName: string | string[],
-  url = "",
-): boolean {
-  if (!url || !url.startsWith("/")) return true;
-  const names = (Array.isArray(appName) ? appName : [appName])
-    .map((name) => String(name).replace(/^\/+|\/+$/g, ""))
-    .filter(Boolean);
-  if (!names.length) return true;
-  return names.some((name) => {
-    const prefix = `/${name.toUpperCase()}`;
-    return url === prefix || url.startsWith(`${prefix}/`);
-  });
-}
-
-/**
- * Turns the authorized Module tree (`ModuleAuths?asTree=1`, nested via
- * `subModules`) into a menu model: drop unauthorized leaves, keep group nodes
- * that still have visible descendants, attach `route`/`url` for FEATURE links.
- * Skins (Html / Prime / Syncfusion) only render this model.
- */
-export function assembleMenuItems(modules: Module[] = []): AppMenuItem[] {
-  return modules.flatMap((module) => {
-    const kids = module.subModules ?? [];
-    const items = assembleMenuItems(kids);
-    const isGroup = !!kids.length;
-    const isSystem = !module.moduleCode.includes(".");
-
-    if (isGroup) {
-      // Keep SYSTEM nodes even when children are still empty/unauthorized,
-      // so the system rail can render while ModuleAuths tree catches up.
-      if (!items.length && !isSystem) return [];
-    } else if (!module.authority?.allowRead) {
-      return [];
-    }
-
-    const route = module.moduleUrl ?? "";
-    const isLeaf = !items.length;
-    return [
-      {
-        key: module.moduleCode,
-        label:
-          module.moduleLabel ??
-          (module as { moduleName?: string }).moduleName ??
-          "",
-        icon: module.moduleIcon,
-        moduleCode: module.moduleCode,
-        moduleType: module.moduleType,
-        route,
-        url: route && isLeaf ? route : undefined,
-        allowCreate: isLeaf && !!route && !!module.authority?.allowCreate,
-        items: items.length ? items : undefined,
-      },
-    ];
-  });
-}
-
-/** Module codes that should be expanded for the active route. */
-export function activeAncestorKeys(modules: Module[], path: string): string[] {
-  for (const module of modules) {
-    const children = module.subModules ?? [];
-    const route = module.moduleUrl;
-    const matches = !!route && (path === route || path.startsWith(`${route}/`));
-    const nested = activeAncestorKeys(children, path);
-    if (nested.length) return [module.moduleCode, ...nested];
-    if (matches) return [module.moduleCode];
-  }
-  return [];
-}
-
-/** Skin-neutral, recursively expandable navigation for Module trees. */
-export const AppSideMenu = defineComponent({
-  name: "AppSideMenu",
+export const VueAppSideMenu = defineComponent({
+  name: "VueAppSideMenu",
+  inheritAttrs: false,
   props: {
     modules: {
       type: Array as PropType<Module[]>,
       default: (): Module[] => [],
     },
+    items: {
+      type: Array as PropType<UiAppMenuItem[]>,
+      default: undefined,
+    },
+    compact: { type: Boolean, default: undefined },
+    logo: {
+      type: Function as PropType<() => unknown>,
+      default: undefined,
+    },
+    footer: {
+      type: Function as PropType<() => unknown>,
+      default: undefined,
+    },
+    onSelectL1: {
+      type: Function as PropType<(item: UiAppMenuItem) => void>,
+      default: undefined,
+    },
+    onDrawerChange: {
+      type: Function as PropType<(open: boolean) => void>,
+      default: undefined,
+    },
+    onSelectLeaf: {
+      type: Function as PropType<(item: UiAppMenuItem) => void>,
+      default: undefined,
+    },
   },
-  setup(props) {
+  emits: ["select-l1", "open-drawer", "close-drawer", "select-leaf"],
+  setup(props, { emit, attrs }) {
     const app = inject(UI_APP_KEY, null as MmdaApplication | null);
+    const builder = inject(UI_BUILDER_KEY, null);
     const route = useRoute();
     const expandedKeys = ref<Record<string, boolean>>({});
+    const selectedL1 = ref("");
+    const drawerOpen = ref(false);
+    const mediaCompact = useCompactViewport();
+
+    const compact = computed(() =>
+      typeof props.compact === "boolean" ? props.compact : mediaCompact.value,
+    );
 
     const menuModules = computed(() =>
       props.modules.length ? props.modules : (app?.modules ?? []),
+    );
+    const menuItems = computed(
+      () => props.items ?? assembleMenuItems(menuModules.value),
     );
     const currentModuleCode = computed(
       () => (route.meta?.module as Module | undefined)?.moduleCode,
@@ -137,9 +106,27 @@ export const AppSideMenu = defineComponent({
             ...Object.fromEntries(keys.map((key) => [key, true])),
           };
         }
+        const fromRoute = keys.find((code) => !code.includes("."));
+        selectedL1.value =
+          fromRoute ??
+          menuItems.value.find((item) => !item.moduleCode.includes("."))
+            ?.moduleCode ??
+          menuItems.value[0]?.moduleCode ??
+          "";
       },
       { immediate: true, deep: true },
     );
+
+    watch(compact, (isCompact) => {
+      if (!isCompact) setDrawerOpen(false);
+    });
+
+    const setDrawerOpen = (open: boolean) => {
+      if (drawerOpen.value === open) return;
+      drawerOpen.value = open;
+      props.onDrawerChange?.(open);
+      emit(open ? "open-drawer" : "close-drawer");
+    };
 
     const renderModuleLink = (
       url: string,
@@ -156,9 +143,17 @@ export const AppSideMenu = defineComponent({
       return h("a", { ...linkProps, href: url }, children());
     };
 
-    const renderItem = (item: AppMenuItem): VNode => {
+    const onLeaf = (item: UiAppMenuItem) => {
+      props.onSelectLeaf?.(item);
+      emit("select-leaf", item);
+      setDrawerOpen(false);
+    };
+
+    const renderItem = (item: UiAppMenuItem): VNode => {
       const children = item.items ?? [];
-      const active = item.moduleCode === currentModuleCode.value;
+      const active =
+        item.moduleCode === currentModuleCode.value ||
+        isActiveRoute(route.path, item.route);
       if (item.route && !children.length) {
         const createLink = item.allowCreate
           ? renderModuleLink(
@@ -169,7 +164,10 @@ export const AppSideMenu = defineComponent({
                 "aria-label": translateMessage("action.createNamed", {
                   label: item.label,
                 }),
-                onClick: (e: MouseEvent) => e.stopPropagation(),
+                onClick: (e: MouseEvent) => {
+                  e.stopPropagation();
+                  onLeaf(item);
+                },
               },
               () => [
                 h("i", {
@@ -198,6 +196,7 @@ export const AppSideMenu = defineComponent({
                   "mmda-side-menu__link--active": active,
                 },
                 id: item.moduleCode,
+                onClick: () => onLeaf(item),
               },
               () => [
                 item.icon
@@ -251,7 +250,7 @@ export const AppSideMenu = defineComponent({
                   open ? "fa-chevron-up" : "fa-chevron-down",
                   "mmda-side-menu__chevron",
                 ],
-                "aria-hidden": "true",
+                "aria-hidden": true,
               }),
             ],
           ),
@@ -266,11 +265,136 @@ export const AppSideMenu = defineComponent({
       );
     };
 
+    const renderTree = (items: UiAppMenuItem[], className?: string) =>
+      items.length
+        ? h(
+            "nav",
+            { class: ["mmda-side-menu", className] },
+            items.map(renderItem),
+          )
+        : null;
+
+    const selectedL1Item = computed(
+      () =>
+        menuItems.value.find((item) => item.moduleCode === selectedL1.value) ??
+        menuItems.value[0],
+    );
+
+    const openL1 = (item: UiAppMenuItem) => {
+      selectedL1.value = item.moduleCode;
+      props.onSelectL1?.(item);
+      emit("select-l1", item);
+      if (item.items?.length) {
+        setDrawerOpen(true);
+      } else if (item.route) {
+        onLeaf(item);
+      }
+    };
+
+    const renderRail = (items: UiAppMenuItem[]) =>
+      h(
+        "nav",
+        {
+          class: "mmda-app-side-menu__rail",
+          role: "tablist",
+          "aria-label": "系统",
+        },
+        items.map((item) =>
+          h(
+            "button",
+            {
+              type: "button",
+              role: "tab",
+              class: {
+                "mmda-app-side-menu__rail-item": true,
+                "mmda-app-side-menu__rail-item--active":
+                  item.moduleCode === selectedL1Item.value?.moduleCode,
+              },
+              id: item.moduleCode,
+              title: item.label,
+              "aria-selected":
+                item.moduleCode === selectedL1Item.value?.moduleCode,
+              onClick: () => openL1(item),
+            },
+            [
+              item.icon
+                ? h("i", {
+                    class: [item.icon, "mmda-app-side-menu__rail-icon"],
+                    "aria-hidden": true,
+                  })
+                : h(
+                    "span",
+                    { class: "mmda-app-side-menu__rail-code" },
+                    item.moduleCode,
+                  ),
+              h("span", { class: "mmda-app-side-menu__rail-label" }, item.label),
+            ],
+          ),
+        ),
+      );
+
+    const renderDrawer = () => {
+      const selected = selectedL1Item.value;
+      const body = () =>
+        h("div", { class: "mmda-app-side-menu__drawer-body" }, [
+          selected
+            ? h(
+                "div",
+                { class: "mmda-app-side-menu__drawer-title" },
+                selected.label,
+              )
+            : null,
+          renderTree(selected?.items ?? []),
+          props.footer ? (props.footer() as VNode) : null,
+        ]);
+      const drawerFn = builder?.factory?.drawer;
+      if (typeof drawerFn === "function") {
+        return drawerFn(
+          {
+            isOpen: drawerOpen.value,
+            position: "Left",
+            showBackdrop: true,
+            width: 280,
+            class: "mmda-app-side-menu__drawer",
+            onChange: (open: boolean) => setDrawerOpen(open),
+          },
+          { default: body },
+        );
+      }
+      return drawerOpen.value
+        ? h("div", { class: "mmda-app-side-menu__drawer-fallback" }, body())
+        : null;
+    };
+
     return () => {
-      const items = assembleMenuItems(menuModules.value);
+      const items = menuItems.value;
+      if (compact.value) {
+        return h(
+          "div",
+          {
+            class: [
+              "mmda-app-side-menu",
+              "mmda-app-side-menu--compact",
+              attrs.class,
+            ],
+          },
+          [
+            props.logo
+              ? h("div", { class: "mmda-app-side-menu__brand" }, [
+                  props.logo() as VNode,
+                ])
+              : null,
+            renderRail(items),
+            renderDrawer(),
+          ],
+        );
+      }
       return items.length
-        ? h("nav", { class: "mmda-side-menu" }, items.map(renderItem))
+        ? renderTree(items, attrs.class as string | undefined)
         : null;
     };
   },
 });
+
+/** @deprecated 使用 VueAppSideMenu */
+export const AppSideMenu = VueAppSideMenu;

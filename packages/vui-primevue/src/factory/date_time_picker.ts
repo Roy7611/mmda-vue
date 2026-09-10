@@ -2,7 +2,8 @@ import { h } from "vue";
 import DatePicker from "primevue/datepicker";
 import type { UiDateTimePickerProps } from "@mmda/core"
 import { dateTimePickerModifierClasses, dateTimePickerStepOf } from "@mmda/core"
-import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateChange, emitDateClear, emitDateFocus, resolveDateShortcuts } from "@mmda/core"
+import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcuts } from "@mmda/core"
+import { emitDateChange } from "@mmda/vui"
 import { datePickerPrimeFormat, htmlAttributesOf } from "@mmda/vui"
 import { primeDateShortcutFooter } from "./date_picker";
 

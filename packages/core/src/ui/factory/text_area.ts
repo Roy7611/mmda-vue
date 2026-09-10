@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 
 export type UiTextAreaResizeMode = 'None' | 'Both' | 'Horizontal' | 'Vertical'
 
@@ -89,21 +89,6 @@ export function textAreaReadOnlyOf(props: UiTextAreaProps): boolean {
 
 export function textAreaDisabledOf(props: UiTextAreaProps): boolean {
   return isTrue(props.disabled)
-}
-
-export function emitTextAreaChange(
-  props: UiTextAreaProps,
-  raw: unknown,
-): void {
-  let unpacked = raw
-  if (raw != null && typeof raw === 'object' && !Array.isArray(raw)) {
-    const args = raw as { value?: unknown }
-    if (args.value !== undefined) unpacked = args.value
-  }
-  const next = unpacked == null ? '' : String(unpacked)
-  props.onChange?.(next)
-  callUiPropFn(props, 'onUpdate:modelValue', next)
-  callUiPropFn(props, 'onUpdate', next)
 }
 
 export function textAreaPropsFromField(

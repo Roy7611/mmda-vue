@@ -1,6 +1,7 @@
 import { h } from "vue";
 import type { UiCheckBoxListProps } from '@mmda/core';
-import { checkBoxListAllChecked, checkBoxListIndeterminate, checkBoxListItemChecked, checkBoxListModifierClasses, checkBoxListSelectableOptions, checkBoxListShowSelectAll, emitCheckBoxListSelectAll, emitCheckBoxListToggle, multiSelectOptionLabelOf, withMultiSelectBindMode } from "@mmda/core"
+import { checkBoxListAllChecked, checkBoxListIndeterminate, checkBoxListItemChecked, checkBoxListModifierClasses, checkBoxListSelectableOptions, checkBoxListShowSelectAll, multiSelectOptionLabelOf, withMultiSelectBindMode } from "@mmda/core"
+import { emitCheckBoxListSelectAll, emitCheckBoxListToggle } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 import { createCheckBox } from "./checkbox";
 

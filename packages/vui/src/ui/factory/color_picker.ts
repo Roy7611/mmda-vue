@@ -113,9 +113,10 @@ export function colorPickerPropsFromField(
 ): UiColorPickerProps {
   return {
     value: colorPickerHexOf(context.getFieldValue(field)),
-    mode: extra.mode,
-    showModeSwitcher: extra.showModeSwitcher,
-    disabled: extra.disabled ?? context.isFieldReadonly(field),
+    mode: extra.mode as UiColorPickerMode | undefined,
+    showModeSwitcher: extra.showModeSwitcher as boolean | undefined,
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
       if (typeof extra.onChange === 'function') extra.onChange(value)
@@ -125,7 +126,7 @@ export function colorPickerPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

@@ -111,6 +111,7 @@ function renderEntityPage(
   route: ReturnType<typeof useRoute>,
 ) {
   if (!isCategoryListView(context)) void context.loading.value;
+  if (!context.many) void context.pageNotice.value;
   const treeData = (context.logic as { treeData?: { value?: unknown } })
     ?.treeData;
   if (treeData && "value" in treeData) void treeData.value;
@@ -346,6 +347,8 @@ export function createEntityView(options: EntityViewOptions) {
           const context = await openEntityContext(options, app, route, router);
           if (generation !== openGeneration) return;
           bindModuleContext(context, sync);
+          const pending = sync?.consumePendingPageNotice?.() ?? null;
+          if (pending) context.pageNotice.value = pending;
           current.value = context;
         } finally {
           if (generation === openGeneration) pageLoading.value = false;
@@ -353,8 +356,17 @@ export function createEntityView(options: EntityViewOptions) {
       }
 
       const showError = (value: unknown) => {
-        error.value = value instanceof Error ? value.message : String(value);
+        const text = value instanceof Error ? value.message : String(value);
         pageLoading.value = false;
+        if (current.value) {
+          error.value = "";
+          void app.ui.message(current.value, {
+            severity: "error",
+            content: text,
+          });
+          return;
+        }
+        error.value = text;
       };
 
       onMounted((): void => void open().catch(showError));
@@ -365,11 +377,18 @@ export function createEntityView(options: EntityViewOptions) {
 
       return () => {
         if (error.value) {
-          return h("p", { class: "mmda-prime-error" }, error.value);
+          return (
+            app.ui.factory.message?.({
+              severity: "error",
+              content: error.value,
+              showCloseIcon: false,
+            }) ?? h("p", { class: "mmda-prime-error" }, error.value)
+          );
         }
         if (pageLoading.value || !current.value) {
           return loadingNode(app);
         }
+        void current.value.pageNotice.value;
         return renderEntityPage(app, current.value, options, route);
       };
     },

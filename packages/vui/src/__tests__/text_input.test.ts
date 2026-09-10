@@ -1,14 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  emitTextInputBlur,
-  emitTextInputChange,
-  emitTextInputFocus,
-  textInputHtmlTypeOf,
-  textInputPlaceholderOf,
-  textInputPropsFromField,
-  textInputTypeOf,
-  textInputValueOf,
-} from '@mmda/core'
+import { emitTextInputBlur, emitTextInputFocus, textInputHtmlTypeOf, textInputPlaceholderOf, textInputPropsFromField, textInputTypeOf, textInputValueOf } from '@mmda/core'
+import { emitTextInputChange } from '@mmda/vui'
 
 describe('textInput chrome helpers', () => {
   it('defaults value empty and type Text', () => {

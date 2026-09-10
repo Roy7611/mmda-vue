@@ -26,7 +26,7 @@ REF 小表（如 `CurrencyUnit(unit, symbol)`）可以当建议源：`refOptions
 
 | 属性 | 说明 |
 |---|---|
-| 第一个参数 `value` | 输入字符串 |
+| `value` | 输入字符串。与 `textInput` 同名 |
 | `options` | 自定义 `string[]` 或 `{ value, label }[]` |
 | `suggest` | `(query) => Promise<...>` 远程建议 |
 | `reference` | 仅 **ref**。`isEnum` / `hasOne` 不要传 |

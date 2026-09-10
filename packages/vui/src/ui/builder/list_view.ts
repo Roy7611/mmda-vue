@@ -843,12 +843,14 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           },
         });
       }
-      items.push({
-        name: "details",
-        label: context.t("action.details"),
-        icon: resolved.details,
-        onAction: () => runtime.details?.(row),
-      });
+      if (!entityAuth || entityAuth.allowRead) {
+        items.push({
+          name: "details",
+          label: context.t("action.details"),
+          icon: resolved.details,
+          onAction: () => runtime.details?.(row),
+        });
+      }
     
       const extra =
         includeExtras && Array.isArray(row?.actions) ? row.actions : [];

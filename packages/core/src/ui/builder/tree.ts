@@ -1,9 +1,8 @@
-import type { UiListProps } from './list'
 import type { UiTreeProps } from '../factory/tree'
 
 /**
- * Builder 组合树（搜索 + factory.tree + 底栏）。`buildTreeView`。
- * 不是厂商 TreeView 控件名。
+ * Builder 组合树（搜索 + factory.tree + 底栏）。
+ * 不是厂商 TreeView 控件名；整页左树右表见 {@link import('./explorer').UiExplorerViewProps}。
  */
 export interface UiTreeViewProps<T = any, TNode = any>
   extends UiTreeProps<T, TNode> {
@@ -34,16 +33,7 @@ export interface UiTreeViewProps<T = any, TNode = any>
   onTreeRefresh?: () => void | Promise<void>
 }
 
-/** 左树右表。`buildTreeListView`。`listOption` 整页 extras 由 vui 交叉。 */
-export interface UiTreeListViewProps<T = any, TNode = any> {
-  viewKind?: string
-  treeOption?:
-    | UiTreeViewProps<T, TNode>
-    | (() => UiTreeViewProps<T, TNode>)
-  listOption?: UiListProps<T>
-  /** 列表外键，对应 `treeOption.fields.id`。 */
-  foreignKey?: string
-  treeWidth?: string | number
-  /** 左树顶过滤框。与列表 `showSearchbar` 区分，内部传给树的 `showSearchBar`。 */
-  showTreeSearchBar?: boolean
-}
+export type {
+  UiExplorerViewProps,
+  UiTreeListViewProps,
+} from './explorer'

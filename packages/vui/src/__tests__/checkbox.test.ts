@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  checkBoxCheckedOf,
-  checkBoxModifierClasses,
-  checkBoxPropsFromField,
-  emitCheckBoxChange,
-} from '@mmda/core'
+import { checkBoxCheckedOf, checkBoxModifierClasses, checkBoxPropsFromField } from '@mmda/core'
+import { emitCheckBoxChange } from '@mmda/vui'
 
 describe('checkBox helpers', () => {
   it('prefers checked over modelValue', () => {

@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
   dropDownListPropsFromField,
@@ -24,14 +24,6 @@ export function comboBoxValueOf(props: UiComboBoxProps) {
   return props.value !== undefined ? props.value ?? null : props.modelValue ?? null
 }
 
-export function emitComboBoxChange(
-  props: UiComboBoxProps,
-  value: string | number | null,
-): void {
-  props.onChange?.(value)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-}
 
 export function comboBoxAllowCustom(props: UiComboBoxProps): boolean {
   return props.allowCustom !== false

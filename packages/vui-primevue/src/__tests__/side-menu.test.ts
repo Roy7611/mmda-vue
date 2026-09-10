@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  ModuleFactory,
-  ModuleOp,
-  ModuleStatus,
-  ModuleVersion,
-} from '@mmda/core'
+import { ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion } from '@mmda/core'
 import { assembleMenuItems } from '../components/AppSideMenu'
 import { PrimeVueUiBuilder } from '../prime_builder'
 
@@ -67,6 +62,17 @@ describe('AppSideMenu', () => {
     expect(items.some(i => i.label === '商业贸易')).toBe(true)
     const org = items.find(i => i.label === '组织架构')
     expect(org?.items?.[0]?.label).toBe('部门')
+  })
+
+  it('buildAppSideMenu returns PrimeAppSideMenu', () => {
+    const builder = new PrimeVueUiBuilder()
+    const vnode = builder.buildAppSideMenu({ modules: sampleModules })
+    expect(vnode.type).toMatchObject({ name: 'PrimeAppSideMenu' })
+    const bar = builder.buildAppSideBar({
+      modules: sampleModules,
+      header: () => null,
+    })
+    expect(bar.type).toMatchObject({ name: 'PrimeAppSideMenu' })
   })
 
   it('buildAppMenu passes item template as slot, not PanelMenu prop', () => {

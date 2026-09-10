@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  inplaceEditorActiveOf,
-  inplaceEditorDisabledOf,
-  inplaceEditorModifierClasses,
-  isInplaceFieldEditorKey,
-} from '@mmda/core'
+import { inplaceEditorActiveOf, inplaceEditorDisabledOf, inplaceEditorModifierClasses, isInplaceFieldEditorKey } from '@mmda/core'
 import {
   inplaceFieldContentRenderer,
   inplaceFieldDisplayRenderer,

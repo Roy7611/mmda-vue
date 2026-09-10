@@ -33,6 +33,13 @@ export function carouselModifierClasses(props: {
   return [uiCssClass('carousel'), animation, props.class]
 }
 
+export function carouselBoundIndex(props: UiCarouselProps): number {
+  const raw =
+    props.selectedIndex !== undefined ? props.selectedIndex : props.modelValue
+  const index = typeof raw === 'number' ? raw : 0
+  return index < 0 ? 0 : index
+}
+
 export interface UiImageGalleryItem {
   src: string
   thumbnail?: string

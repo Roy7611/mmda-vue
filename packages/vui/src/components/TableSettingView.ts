@@ -252,7 +252,7 @@ export const TableSettingView = defineComponent({
               "label",
               { class: "mmda-list-setting__persist" },
               [
-                factory.switch(props.persistForever.value, {
+                factory.switch({
                   checked: props.persistForever.value,
                   onChange: (checked: boolean) => {
                     props.persistForever.value = checked;

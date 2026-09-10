@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
-import {
-  MetaUi,
-  MetaUiField,
-  MetaUiGroupLogic,
-  SqlDataType,
-} from "@mmda/core";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { treeGridSpecFromGroup } from "../ui/factory/tree_grid";

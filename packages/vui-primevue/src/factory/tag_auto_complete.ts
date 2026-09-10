@@ -1,13 +1,12 @@
 import { h, reactive } from "vue";
 import AutoComplete from "primevue/autocomplete";
 import type { UiTagAutoCompleteProps } from '@mmda/core';
-import { TAG_AUTOCOMPLETE_DEBOUNCE_MS, TAG_AUTOCOMPLETE_MIN_LENGTH, TAG_AUTOCOMPLETE_SUGGESTION_COUNT, tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, tagAutoCompleteUpdateOf } from "@mmda/core"
+import { TAG_AUTOCOMPLETE_DEBOUNCE_MS, TAG_AUTOCOMPLETE_MIN_LENGTH, TAG_AUTOCOMPLETE_SUGGESTION_COUNT, tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf } from "@mmda/core"
+import { tagAutoCompleteUpdateOf } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
-export function createTagAutoComplete(
-  value: string,
-  props: UiTagAutoCompleteProps = {},
-) {
+export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
+  const value = props.value
   const minLength = props.minLength ?? TAG_AUTOCOMPLETE_MIN_LENGTH;
   const suggestionCount =
     props.suggestionCount ?? TAG_AUTOCOMPLETE_SUGGESTION_COUNT;
@@ -29,6 +28,7 @@ export function createTagAutoComplete(
     placeholder,
     disabled,
     separator: _separator,
+    value: _value,
     ...rest
   } = props;
 

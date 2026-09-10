@@ -95,13 +95,6 @@ export function selectButtonOptionValue(
   return option
 }
 
-export function selectButtonGroupUpdateOf(
-  props: UiSelectButtonGroupProps,
-): ((value: unknown) => void) | undefined {
-  if (props.onUpdate) return props.onUpdate
-  const bag = props['onUpdate:modelValue']
-  return typeof bag === 'function' ? (bag as (value: unknown) => void) : undefined
-}
 
 export function selectButtonGroupSelected(
   current: unknown,

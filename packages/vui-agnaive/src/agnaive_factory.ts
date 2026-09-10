@@ -2,12 +2,12 @@ import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
 import type { UiProps, UiAction, UiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
-import { switchArgs } from '@mmda/core'
 import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
 import { createBadge } from './factory/badge'
+import { createMessage } from './factory/message'
 import { createAvatar } from './factory/avatar'
 import { createBarcode } from './factory/barcode'
 import { createQrCode } from './factory/qrcode'
@@ -69,6 +69,7 @@ import {
 } from './factory/drop_down_button'
 import { createSplitButton } from './factory/split_button'
 import { createFloatingActionButton } from './factory/floating_action_button'
+import { SigninForm } from './components/SigninForm'
 
 const invoke = (value: unknown) =>
   typeof value === 'function' ? (value as () => unknown)() : value
@@ -134,6 +135,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     image: (src, props) => h(NImage, { src, previewDisabled: !props?.preview, ...props }),
     icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
     badge: props => createBadge(props),
+    message: props => createMessage(props),
     avatar: props => createAvatar(props, name => factory.resolveIcon(name)),
     barcode: props => createBarcode(props),
     qrCode: props => createQrCode(props),
@@ -141,7 +143,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     calendar: props => createCalendar(props),
     carousel: props => createCarousel(props),
     checkBox: props => createCheckBox(props),
-    switch: (value, props) => createSwitch(switchArgs(value, props)),
+    switch: (props) => createSwitch(props ?? {}),
     checkBoxList: props => createCheckBoxList(props),
     bitCheckBoxList: props => createBitCheckBoxList(props),
     chips: props => createChips(props, name => factory.resolveIcon(name)),
@@ -221,8 +223,8 @@ export function createAgNaiveUiFactory(): UiFactory {
           value: props.modelValue ?? props.value ?? value,
         }),
       ]),
-    autoComplete: (value, props = {}) => createAutoComplete(value, props),
-    tagAutoComplete: (value, props = {}) => createTagAutoComplete(value, props),
+    autoComplete: (props = {}) => createAutoComplete(props),
+    tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
     buttonGroup: createButtonGroup,
     selectButtonGroup: createSelectButtonGroup,
@@ -368,8 +370,12 @@ export function createAgNaiveUiFactory(): UiFactory {
             }),
         ],
       ),
+    /** 登录表单控件；路由页直接调。 */
+    signinForm: (props: any = {}, slots?: any) => h(SigninForm, props, slots),
+    /** 注册表单控件（占位）。 */
+    signupForm: (props: any = {}) =>
+      h('div', { class: 'mmda-agnaive-signup' }, 'Signup'),
   }
-
   wrapListFamilyPaginator(factory, ['list'], 'mmda-agnaive-pagable')
   bindListDisplayRenderers(factory)
   return factory

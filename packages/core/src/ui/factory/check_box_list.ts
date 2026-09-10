@@ -3,7 +3,6 @@ import type { UiFieldBindContext } from '../field_factory'
 import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
-  applyAndEmitMultiSelectKeys,
   multiSelectBoundOf,
   multiSelectChromeOptionsOf,
   multiSelectItemsOf,
@@ -99,20 +98,7 @@ export function checkBoxListKeysAfterSelectAll(
     .filter((key) => key !== '')
 }
 
-export function emitCheckBoxListToggle(
-  props: UiCheckBoxListProps,
-  item: unknown,
-  checked: boolean,
-): void {
-  applyAndEmitMultiSelectKeys(
-    props,
-    checkBoxListKeysAfterToggle(props, item, checked),
-  )
-}
 
-export function emitCheckBoxListSelectAll(props: UiCheckBoxListProps): void {
-  applyAndEmitMultiSelectKeys(props, checkBoxListKeysAfterSelectAll(props))
-}
 
 export function checkBoxListPropsFromField(
   field: MetaUiField,

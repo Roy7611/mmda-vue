@@ -179,11 +179,13 @@ export function treeSelectPropsFromField(
     data,
     fields,
     value: fieldTreeValue(field, context.getFieldValue(field), checkbox),
-    placeholder: extra.placeholder ?? field.placeholder,
-    disabled: extra.disabled ?? context.isFieldReadonly(field),
-    allowFiltering: extra.allowFiltering,
+    placeholder:
+      (extra.placeholder as string | undefined) ?? field.placeholder,
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+    allowFiltering: extra.allowFiltering as boolean | undefined,
     selectionMode: checkbox ? 'checkbox' : 'single',
-    showClear: extra.showClear,
+    showClear: extra.showClear as boolean | undefined,
     selectedDisplay: extra.selectedDisplay as UiTreeSelectDisplay | undefined,
     delimiter: extra.delimiter as string | undefined,
     popupHeight: extra.popupHeight as string | number | undefined,
@@ -222,7 +224,7 @@ export function treeSelectPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

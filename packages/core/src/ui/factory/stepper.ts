@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiOrientation } from '../layout'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass } from '../css'
 
 export type UiStepperDisplay = 'default' | 'indicator' | 'label'
@@ -225,11 +225,6 @@ export function stepperModifierClasses(props: UiStepperProps): unknown[] {
   ]
 }
 
-export function emitStepperChange(props: UiStepperProps, value: number): void {
-  props.onChange?.(value)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-}
 
 export function stepperPropsFromField(
   field: MetaUiField,

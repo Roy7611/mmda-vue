@@ -6,14 +6,7 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import {
-  dialogButtonColorRole,
-  dialogFooterKind,
-  dialogHeaderKind,
-  isDialogPrimaryButton,
-  resolveDialogButtons,
-  type UiDialogButton,
-} from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogButton } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -98,17 +91,23 @@ export const PrimeVueOverlayHost = defineComponent({
               : request.props.maxHeight ?? '90vh'
           const headerKind = dialogHeaderKind(request.props)
           const footerKind = dialogFooterKind(request.props)
+          const props = request.props
+          const minHeight =
+            typeof props.minHeight === 'number'
+              ? `${props.minHeight}px`
+              : props.minHeight
           const dialogProps = {
             visible: true,
-            modal: request.props.modal ?? true,
-            header: headerKind === 'title' ? request.props.title : undefined,
+            modal: dialogModalOf(props),
+            header: headerKind === 'title' ? props.title : undefined,
             style: {
               width:
-                typeof request.props.width === 'number'
-                  ? `${request.props.width}px`
-                  : request.props.width ?? 'min(90vw, 60rem)',
+                typeof props.width === 'number'
+                  ? `${props.width}px`
+                  : props.width ?? 'min(90vw, 60rem)',
               ...(height ? { height } : {}),
               maxHeight,
+              ...(minHeight ? { minHeight } : {}),
             },
             pt: {
               root: {
@@ -116,8 +115,13 @@ export const PrimeVueOverlayHost = defineComponent({
               },
               content: { class: 'mmda-prime-dialog__body' },
             },
-            maximizable: true,
-            onShow: () => request.props.onOpen?.(),
+            closable: dialogShowCloseIconOf(props),
+            closeOnEscape: dialogCloseOnEscapeOf(props),
+            dismissableMask: dialogCloseOnOverlayOf(props),
+            draggable: dialogAllowDraggingOf(props),
+            resizable: dialogEnableResizeOf(props),
+            maximizable: dialogMaximizableOf(props),
+            onShow: () => props.onOpen?.(),
             onHide: () => closeOverlayDialog(overlay!, request, 'cancel'),
             'onUpdate:visible': (visible: boolean) => {
               if (!visible) void closeOverlayDialog(overlay!, request, 'cancel')

@@ -1,7 +1,7 @@
 import { h } from "vue";
 import SelectButton from "primevue/selectbutton";
 import type { UiSelectButtonGroupProps } from "@mmda/core"
-import { selectButtonGroupUpdateOf } from "@mmda/core"
+import { selectButtonGroupUpdateOf } from "@mmda/vui"
 export function createSelectButtonGroup(
   value: unknown,
   props: UiSelectButtonGroupProps = {},

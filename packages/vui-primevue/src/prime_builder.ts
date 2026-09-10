@@ -4,16 +4,8 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import {
-  SqlDataType,
-  pluralize,
-  type MetaUiField,
-  type MetaUiGroup,
-  type Module,
-  type ModuleAction,
-  type ModuleAuth,
-} from "@mmda/core";
-import { VueUiBuilder, AppSideMenu, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
+import { SqlDataType, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { VueUiBuilder, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -26,6 +18,7 @@ import Select from "primevue/select";
 import SelectButton from "primevue/selectbutton";
 import Toolbar from "primevue/toolbar";
 import { PrimeGroupCard } from "./components/PrimeGroupCard";
+import { PrimeAppSideMenu } from "./components/PrimeAppSideMenu";
 import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
 import { createPrimeOverlay } from "./prime_overlay";
 import { BpmnModeler } from "./components/BpmnModeler";
@@ -165,13 +158,15 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   buildAppSideBar(
     props: AppSideBarProps = { modules: [], header: () => null },
   ) {
-    return h("aside", { class: "mmda-prime-sidebar" }, [
-      h("div", { class: "mmda-prime-sidebar__header" }, invoke(props.header)),
-      h("div", { class: "mmda-prime-sidebar__body" }, [
-        h(AppSideMenu, { modules: props.modules }),
-      ]),
-      h("div", { class: "mmda-prime-sidebar__footer" }, invoke(props.footer)),
-    ]);
+    return this.buildAppSideMenu({
+      modules: props.modules,
+      logo: props.header,
+      footer: props.footer,
+    });
+  }
+
+  buildAppSideMenu(props: import("@mmda/core").UiAppSideMenuProps<VNode> = {}) {
+    return h(PrimeAppSideMenu, props as any);
   }
 
   buildAppMenu(modules: Module[], props?: UiProps) {
@@ -187,7 +182,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         item ? { item } : undefined,
       );
     }
-    return h(AppSideMenu, {
+    return this.buildAppSideMenu({
       modules,
       class: "mmda-prime-app-menu",
       ...rest,
@@ -953,7 +948,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    return h(SigninForm, props, slots);
+    // 兼容旧调用；新代码请直接 factory.signinForm
+    return this.factory.signinForm?.(props, slots) ?? h(SigninForm, props, slots);
   }
 
   buildSignupForm(props: SignupFormProps) {

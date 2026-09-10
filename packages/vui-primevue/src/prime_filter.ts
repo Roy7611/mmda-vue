@@ -1,16 +1,4 @@
-import {
-  columnFilterKindOf,
-  combineCompareAndSet,
-  compactFieldFilter,
-  getFieldFilterOps,
-  simpleFilterTypeOf,
-  type EntityFieldFilter,
-  type EntityFilterModel,
-  type EntityFilterOperator,
-  type EntitySetFieldFilter,
-  type EntitySimpleFieldFilter,
-  type MetaUiField,
-} from "@mmda/core";
+import { columnFilterKindOf, combineCompareAndSet, compactFieldFilter, getFieldFilterOps, simpleFilterTypeOf, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiField } from "@mmda/core";
 
 export type PrimeColumnFilterState = {
   operator: string;

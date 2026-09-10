@@ -4,7 +4,6 @@ import {
   defaultAdvancedColumn,
   defaultAdvancedJoin,
   defaultQueryBuilderOperators,
-  emitQueryBuilderChange,
   isAdvancedJoinFilter,
   queryBuilderColumnsOf,
   queryBuilderModifierClasses,
@@ -17,6 +16,7 @@ import {
   type UiQueryBuilderColumn,
   type UiQueryBuilderProps,
 } from '@mmda/core'
+import { emitQueryBuilderChange } from '../ui/factory/query_builder'
 
 function asJoin(model?: EntityAdvancedFilterModel | null): EntityAdvancedJoinFilter {
   if (model && isAdvancedJoinFilter(model)) return model

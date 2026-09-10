@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import type { UiProps } from '../props'
 
 export interface UiSwitchProps extends UiProps {
   checked?: boolean
@@ -26,32 +26,10 @@ export function switchModifierClasses(props: UiSwitchProps): unknown[] {
   ]
 }
 
-export function switchArgs(
-  valueOrProps?: boolean | UiSwitchProps | null,
-  props: UiSwitchProps = {},
-): UiSwitchProps {
-  if (
-    valueOrProps != null &&
-    (typeof valueOrProps !== 'object' || Array.isArray(valueOrProps))
-  ) {
-    return { ...props, checked: Boolean(valueOrProps) }
-  }
-  return { ...(valueOrProps as UiSwitchProps | undefined), ...props }
-}
-
 export function switchCheckedOf(props: UiSwitchProps): boolean {
   if (props.checked !== undefined) return Boolean(props.checked)
   if (props.modelValue !== undefined) return Boolean(props.modelValue)
   return false
-}
-
-export function emitSwitchChange(
-  props: UiSwitchProps,
-  checked: boolean,
-): void {
-  props.onChange?.(checked)
-  callUiPropFn(props, 'onUpdate:modelValue', checked)
-  callUiPropFn(props, 'onUpdate', checked)
 }
 
 export function switchPropsFromField(

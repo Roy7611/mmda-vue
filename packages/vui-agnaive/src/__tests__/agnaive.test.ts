@@ -2,14 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { h } from 'vue'
-import {
-  MetaUi,
-  MetaUiField,
-  MetaUiGroup,
-  ModuleFactory,
-  SqlDataType,
-  auth,
-} from '@mmda/core'
+import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth } from '@mmda/core'
 import { UiViewMany } from '@mmda/vui'
 import { AgNaiveUiBuilder } from '../agnaive_builder'
 import { createAgNaiveFieldFactory } from '../agnaive_field_factory'
@@ -604,7 +597,7 @@ describe('vui-agnaive skin', () => {
   it('maps factory.tagAutoComplete tag select', () => {
     const factory = createAgNaiveUiFactory()
     const onUpdate = vi.fn()
-    const vnode = factory.tagAutoComplete('a', { options: ['a'], onUpdate })
+    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a'], onUpdate })
     expect(vnode.props?.tag).toBe(true)
     expect(vnode.props?.multiple).toBe(true)
     vnode.props?.['onUpdate:value']?.(['a', 'b'])

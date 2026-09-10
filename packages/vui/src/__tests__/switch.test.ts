@@ -1,17 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  emitSwitchChange,
-  switchArgs,
-  switchCheckedOf,
-  switchModifierClasses,
-  switchPropsFromField,
-} from '@mmda/core'
+import { switchCheckedOf, switchModifierClasses, switchPropsFromField } from '@mmda/core'
+import { emitSwitchChange } from '@mmda/vui'
 
 describe('switch chrome helpers', () => {
-  it('merges (value, props) and prefers checked over modelValue', () => {
-    expect(switchArgs(true, { disabled: true }).checked).toBe(true)
-    expect(switchArgs(true, { disabled: true }).disabled).toBe(true)
-    expect(switchArgs({ checked: true, onLabel: '开' }).onLabel).toBe('开')
+  it('prefers checked over modelValue', () => {
     expect(switchCheckedOf({ checked: true, modelValue: false })).toBe(true)
     expect(switchCheckedOf({ modelValue: true })).toBe(true)
     expect(switchCheckedOf({})).toBe(false)

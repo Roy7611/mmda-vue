@@ -92,9 +92,9 @@ export function timelinePropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
-  }
+  } as UiTimelineProps
 }
 
 export function bindTimelineFactory(

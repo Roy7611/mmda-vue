@@ -117,7 +117,8 @@ export function sliderPropsFromField(
     max: extra.max as number | undefined,
     step: extra.step as number | undefined,
     type,
-    disabled: extra.disabled ?? context.isFieldReadonly(field),
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
       if (typeof extra.onChange === 'function') extra.onChange(value)
@@ -127,7 +128,7 @@ export function sliderPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

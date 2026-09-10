@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 
 export type UiTextInputType =
   | 'Text'
@@ -102,21 +102,6 @@ export function textInputAutocompleteOf(
 ): string | undefined {
   if (props.autocomplete == null || props.autocomplete === '') return undefined
   return String(props.autocomplete)
-}
-
-export function emitTextInputChange(
-  props: UiTextInputProps,
-  raw: unknown,
-): void {
-  let unpacked = raw
-  if (raw != null && typeof raw === 'object' && !Array.isArray(raw)) {
-    const args = raw as { value?: unknown }
-    if (args.value !== undefined) unpacked = args.value
-  }
-  const next = unpacked == null ? '' : String(unpacked)
-  props.onChange?.(next)
-  callUiPropFn(props, 'onUpdate:modelValue', next)
-  callUiPropFn(props, 'onUpdate', next)
 }
 
 export function emitTextInputFocus(props: UiTextInputProps): void {

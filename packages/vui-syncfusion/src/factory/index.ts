@@ -1,12 +1,12 @@
 import { h } from "vue";
 import type { UiProps, SyncfusionUiFactory, UiSlots } from "@mmda/vui"
-import { switchArgs } from "@mmda/core"
 import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator } from "@mmda/vui"
 import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid_inject";
 import { createTableRenderer } from "./table";
 import { buttonRenderers, createButton } from "./buttons";
 import { createBadge } from "./badge";
+import { createMessage } from "./message";
 import { createAvatar } from "./avatar";
 import { createBarcode } from "./barcode";
 import { createQrCode } from "./qrcode";
@@ -65,6 +65,7 @@ export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid_inject";
+import { SfSigninForm } from "../components/SfSigninForm";
 
 export function createSyncfusionUiFactory(): SyncfusionUiFactory {
   patchChoiceFilter();
@@ -126,6 +127,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     icon: (name: string, props: any) =>
       createIconVNode(factory.resolveIcon(name), props),
     badge: (props: any) => createBadge(props),
+    message: (props: any) => createMessage(props),
     avatar: (props: any) =>
       createAvatar(props, (name: string) => factory.resolveIcon(name)),
     barcode: (props: any) => createBarcode(props),
@@ -135,8 +137,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     calendar: (props: any) => createCalendar(props),
     carousel: (props: any) => createCarousel(props),
     checkBox: (props: any) => createCheckBox(props),
-    switch: (value?: any, props?: any) =>
-      createSwitch(switchArgs(value, props)),
+    switch: (props?: any) => createSwitch(props ?? {}),
     checkBoxList: (props: any) => createCheckBoxList(props),
     bitCheckBoxList: (props: any) => createBitCheckBoxList(props),
     chips: (props: any) =>
@@ -204,10 +205,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
           value: props.modelValue ?? value,
         }),
       ]),
-    autoComplete: (value: string, props: UiProps = {}) =>
-      createAutoComplete(value, props),
-    tagAutoComplete: (value: string, props: UiProps = {}) =>
-      createTagAutoComplete(value, props),
+    autoComplete: (props: UiProps = {}) => createAutoComplete(props),
+    tagAutoComplete: (props: UiProps = {}) => createTagAutoComplete(props),
     formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(
         "div",
@@ -231,6 +230,10 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     ...navigationRenderers,
     ...treeGridRenderers,
     ...mediaRenderers,
+    /** 登录表单控件；路由页直接调。 */
+    signinForm: (props: any = {}, slots?: any) => h(SfSigninForm, props, slots),
+    /** 注册表单控件（占位）。 */
+    signupForm: (props: any = {}) => h("div", { class: "mmda-sf-signup" }, "Signup"),
     ...miscellaneousRenderers,
   };
 

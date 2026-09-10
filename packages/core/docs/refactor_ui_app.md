@@ -1,6 +1,6 @@
 # UI 契约 / 应用壳 / 选记录（本轮重构）
 
-> **产品分层真源：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。** 本文只记本轮搬/删/改名与旧 API 对照，不当现行架构说明。更早的分层清理见 [refactor.md](./refactor.md)。程序员怎么写见 [ui_builder_usage.md](./ui/ui_builder_usage.md)、[ui_context_usage.md](./logic/ui_context_usage.md)。
+> **产品分层真源：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。** 本文只记本轮搬/删/改名与旧 API 对照，不当现行架构说明。更早的分层清理见 [refactor.md](./refactor.md)。程序员怎么写见 [ui_four_roles_usage.md](./ui/ui_four_roles_usage.md)、[ui_context_usage.md](./logic/ui_context_usage.md)。四职设计：[ui_four_roles_design.md](./ui/ui_four_roles_design.md)。
 
 ## 目标
 

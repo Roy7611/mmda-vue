@@ -12,7 +12,7 @@ import {
 } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
-import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
+import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, VueAppSideMenu, useCompactViewport, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
 
@@ -136,13 +136,14 @@ function getSidebarInstance(refValue: unknown): {
  *     #mmda-sf-dock-sidebar  (this component)
  *     .mmda-sf-maincontent   (page — Push sibling)
  */
-export const SfAppMenu = defineComponent({
-  name: 'SfAppMenu',
+export const SfAppSideMenu = defineComponent({
+  name: 'SfAppSideMenu',
   props: {
     modules: {
       type: Array as PropType<Module[]>,
       default: (): Module[] => [],
     },
+    compact: { type: Boolean, default: undefined },
     logo: {
       type: Function as PropType<SlotFn>,
       default: undefined,
@@ -163,6 +164,10 @@ export const SfAppMenu = defineComponent({
     /** Mirrors Sidebar open/docked for chevron only; width owned by EJ2. */
     const dockOpen = ref(true)
     const sidebarRef = ref<unknown>(null)
+    const mediaCompact = useCompactViewport()
+    const compact = computed(() =>
+      typeof props.compact === 'boolean' ? props.compact : mediaCompact.value,
+    )
 
     const menuItems = computed(() => assembleMenuItems(props.modules))
     const withSystems = computed(
@@ -366,6 +371,15 @@ export const SfAppMenu = defineComponent({
 
     return () => {
       const items = menuItems.value
+      if (compact.value) {
+        return h(VueAppSideMenu, {
+          modules: props.modules,
+          compact: true,
+          logo: props.logo,
+          footer: props.footer,
+          class: 'mmda-sf-app-menu mmda-sf-app-menu--compact',
+        })
+      }
       if (!items.length) {
         return h('div', { class: 'mmda-sf-app-menu mmda-sf-app-menu__empty' }, [
           props.modules.length
@@ -459,10 +473,27 @@ export const SfAppMenu = defineComponent({
         )
       }
 
-      return renderModuleTree(
-        items,
-        'mmda-sf-app-menu mmda-sf-app-menu--accordion',
-      )
+      return h('aside', { class: 'mmda-sf-sidebar' }, [
+        props.logo
+          ? h('div', { class: 'mmda-sf-sidebar__header' }, [props.logo()])
+          : null,
+        h(
+          'div',
+          { class: 'mmda-sf-sidebar__body' },
+          [
+            renderModuleTree(
+              items,
+              'mmda-sf-app-menu mmda-sf-app-menu--accordion',
+            ),
+          ],
+        ),
+        props.footer
+          ? h('div', { class: 'mmda-sf-sidebar__footer' }, [props.footer()])
+          : null,
+      ])
     }
   },
 })
+
+/** @deprecated 使用 SfAppSideMenu */
+export const SfAppMenu = SfAppSideMenu

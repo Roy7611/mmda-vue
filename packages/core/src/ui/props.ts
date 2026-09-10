@@ -4,7 +4,7 @@
  * - `class` / `style`：壳样式（接口字段名合法；读 `props.class`，不要解构绑定名）
  * - 索引签名：袋里可有 `htmlAttributes`（原生 id / data-* / aria-* / name），
  *   由皮肤各自透传（`htmlAttributesOf`）；不要整份 props spread 到厂商。
- *   同袋暂供皮肤双读 `modelValue` / `onUpdate:modelValue`；收掉双轨后再收紧。
+ *   `modelValue` / `onUpdate:modelValue` 由 vui 的 emit* 读写，不要在 core factory 里调。
  * - `placeholder` / `disabled` 是控件具名，不进 `htmlAttributes`。
  */
 export type UiColorRole =
@@ -43,7 +43,7 @@ export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
 }
 
 /** 袋键回调（如 `onUpdate:modelValue`）。索引签名下不是函数类型。 */
-export function callUiPropFn(
+export function callUiBagFn(
   props: UiProps | undefined,
   key: string,
   ...args: unknown[]

@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NButton, NButtonGroup } from 'naive-ui'
 import type { UiSelectButtonGroupProps } from '@mmda/core'
-import { selectButtonGroupSelected, selectButtonGroupUpdateOf, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from '@mmda/core'
+import { selectButtonGroupSelected, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from '@mmda/core'
+import { selectButtonGroupUpdateOf } from '@mmda/vui'
 export function createSelectButtonGroup(
   value: unknown,
   props: UiSelectButtonGroupProps = {},

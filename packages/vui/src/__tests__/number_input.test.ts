@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  emitNumberInputChange,
-  numberInputFormatOf,
-  numberInputStepOf,
-} from '@mmda/core'
+import { numberInputFormatOf, numberInputStepOf } from '@mmda/core'
+import { emitNumberInputChange } from '@mmda/vui'
 
 describe('number input chrome helpers', () => {
   it('defaults step to 1 for number and 0.01 for percent', () => {

@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  checkBoxListAllChecked,
-  checkBoxListIndeterminate,
-  checkBoxListKeysAfterSelectAll,
-  checkBoxListKeysAfterToggle,
-  checkBoxListModifierClasses,
-} from '@mmda/core'
+import { checkBoxListAllChecked, checkBoxListIndeterminate, checkBoxListKeysAfterSelectAll, checkBoxListKeysAfterToggle, checkBoxListModifierClasses } from '@mmda/core'
 
 const options = [
   { value: 1, label: '读' },

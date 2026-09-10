@@ -1,4 +1,4 @@
-import type { Entity, PagedList } from "@mmda/core";
+import type { Entity, PagedList, UiMessageProps } from "@mmda/core";
 import type { InjectionKey } from "vue";
 import type { VueUiContext } from "./vue_ui_context";
 import type { UiIndexTableHost } from "../ui/factory/list";
@@ -24,6 +24,9 @@ export interface VueModuleContext {
   applyCurrentRow(entity: Record<string, unknown>): void;
   /** deleteById 成功：从缓存列表 remove。 */
   removeById(id: string): void;
+  /** Edit/Create → Details：顶栏 Message 一次消费。 */
+  setPendingPageNotice(notice: UiMessageProps | null): void;
+  consumePendingPageNotice(): UiMessageProps | null;
   consumeNeedsSearch(): boolean;
   flushVisual(): void;
   /** 离开 index（KeepAlive deactivate）。 */
@@ -70,6 +73,7 @@ export function createModuleContext(): VueModuleContext {
   let needsSearch = false;
   let activated = true;
   let scrollToTop = false;
+  let pendingPageNotice: UiMessageProps | null = null;
   const pending: IndexModelOp[] = [];
 
   return {
@@ -78,6 +82,7 @@ export function createModuleContext(): VueModuleContext {
       needsSearch = false;
       activated = true;
       scrollToTop = false;
+      pendingPageNotice = null;
       pending.length = 0;
     },
     registerIndex(context) {
@@ -214,6 +219,14 @@ export function createModuleContext(): VueModuleContext {
       if (!needsSearch) return false;
       needsSearch = false;
       return true;
+    },
+    setPendingPageNotice(notice) {
+      pendingPageNotice = notice;
+    },
+    consumePendingPageNotice() {
+      const notice = pendingPageNotice;
+      pendingPageNotice = null;
+      return notice;
     },
     flushVisual() {
       activated = true;

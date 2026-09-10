@@ -44,8 +44,31 @@ export interface UiDialogProps<TNode = any> {
   title?: string
   width?: string | number
   height?: string | number
+  minHeight?: string | number
   maxHeight?: string | number
+  /** 缺省 true。false = 非模态。 */
   modal?: boolean
+  /** 缺省 true。 */
+  showCloseIcon?: boolean
+  /**
+   * Esc 关窗。未传时：模态 false、非模态 true。
+   * @see dialogCloseOnEscapeOf
+   */
+  closeOnEscape?: boolean
+  /**
+   * 点遮罩关窗。未传时：模态 false、非模态 true。
+   * @see dialogCloseOnOverlayOf
+   */
+  closeOnOverlay?: boolean
+  /** 缺省 true。Naive 忽略。 */
+  allowDragging?: boolean
+  /** 缺省 true。Naive 忽略。 */
+  enableResize?: boolean
+  /**
+   * 标题栏最大化。缺省 true。
+   * 仅 Prime 落实；SF / Naive 忽略。
+   */
+  maximizable?: boolean
   showFooter?: boolean
   /** 头插槽。有则换掉 title 文本。厂商关窗 X 不进槽。 */
   header?: () => TNode | TNode[]
@@ -69,6 +92,61 @@ export interface UiDialogProps<TNode = any> {
   onOpen?: () => void
   /** 窗已经关掉之后。Apply 不触发。不能拦关闭。 */
   onClose?: (button: UiDialogButton) => void
+}
+
+/** 缺省模态。 */
+export function dialogModalOf(
+  props: Pick<UiDialogProps, 'modal'>,
+): boolean {
+  return props.modal !== false
+}
+
+/** 缺省 true。 */
+export function dialogShowCloseIconOf(
+  props: Pick<UiDialogProps, 'showCloseIcon'>,
+): boolean {
+  return props.showCloseIcon !== false
+}
+
+/**
+ * 未传 closeOnEscape 时：模态关 Esc，非模态开 Esc。
+ */
+export function dialogCloseOnEscapeOf(
+  props: Pick<UiDialogProps, 'modal' | 'closeOnEscape'>,
+): boolean {
+  if (props.closeOnEscape !== undefined) return props.closeOnEscape === true
+  return !dialogModalOf(props)
+}
+
+/**
+ * 未传 closeOnOverlay 时：模态关遮罩，非模态开遮罩。
+ */
+export function dialogCloseOnOverlayOf(
+  props: Pick<UiDialogProps, 'modal' | 'closeOnOverlay'>,
+): boolean {
+  if (props.closeOnOverlay !== undefined) return props.closeOnOverlay === true
+  return !dialogModalOf(props)
+}
+
+/** 缺省 true。 */
+export function dialogAllowDraggingOf(
+  props: Pick<UiDialogProps, 'allowDragging'>,
+): boolean {
+  return props.allowDragging !== false
+}
+
+/** 缺省 true。 */
+export function dialogEnableResizeOf(
+  props: Pick<UiDialogProps, 'enableResize'>,
+): boolean {
+  return props.enableResize !== false
+}
+
+/** 缺省 true。仅 Prime 落实。 */
+export function dialogMaximizableOf(
+  props: Pick<UiDialogProps, 'maximizable'>,
+): boolean {
+  return props.maximizable !== false
 }
 
 /** 有 header 函数 → slot，否则画 title。 */

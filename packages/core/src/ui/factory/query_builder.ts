@@ -200,18 +200,6 @@ export function queryBuilderValueOf(
   return undefined
 }
 
-export function emitQueryBuilderChange(
-  props: UiQueryBuilderProps,
-  model: EntityAdvancedFilterModel | undefined,
-): void {
-  const next = compactAdvancedFilter(model)
-  props.onChange?.(next)
-  const vueUpdate = props['onUpdate:modelValue']
-  if (typeof vueUpdate === 'function') {
-    vueUpdate(next)
-  }
-  props.onUpdate?.(next)
-}
 
 export function queryBuilderModifierClasses(
   props: UiQueryBuilderProps,

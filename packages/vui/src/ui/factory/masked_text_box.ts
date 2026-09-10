@@ -86,9 +86,11 @@ export function maskedTextBoxPropsFromField(
       return raw == null ? '' : String(raw)
     })(),
     mask,
-    placeholder: extra.placeholder ?? field.placeholder,
-    disabled: extra.disabled ?? context.isFieldReadonly(field),
-    promptChar: extra.promptChar,
+    placeholder:
+      (extra.placeholder as string | undefined) ?? field.placeholder,
+    disabled:
+      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+    promptChar: extra.promptChar as string | undefined,
     onChange: (value) => {
       context.setFieldValue(field, value)
       if (typeof extra.onChange === 'function') extra.onChange(value)
@@ -98,7 +100,7 @@ export function maskedTextBoxPropsFromField(
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...extra.htmlAttributes,
+      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

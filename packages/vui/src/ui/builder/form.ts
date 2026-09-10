@@ -6,8 +6,9 @@ import {
   auth,
   type MetaUiField,
   type MetaUiGroup,
+  type UiMessageProps,
 } from "@mmda/core";
-import { type UiFieldGroupOrientation, type UiProps, type UiOrientation } from "../layout/layout";
+import { type UiFieldGroupOrientation, type UiProps } from "../layout/layout";
 import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { wrapRowDetail } from "../factory/list";
@@ -35,69 +36,37 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         field.displayLabel,
       );
     }
-    
+
+    /**
+     * @deprecated 用 `fldFactory.editFor`（已含默认 layoutField）。
+     * 保留薄委托，避免皮肤/测试瞬时全断。
+     */
     editFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      const logic = context.getFieldLogic(field) as any;
-      const renderer =
-        logic?.customEditor ??
-        (field.editor ? this.fldFactory[field.editor] : undefined) ??
-        this.fldFactory.fallbackInput;
-      return renderer(field, context, props);
+      return this.fldFactory.editFor(field, context, props);
     }
-    
+
     fieldDisplayName(field: MetaUiField) {
       if (field.renderer) return field.renderer;
       if (SqlDataType.isBool(field.dataType)) return "checkedIcon";
       return "textSpan";
     }
-    
+
+    /**
+     * @deprecated 用 `fldFactory.displayFor`（已含默认 layoutField）。
+     */
     displayFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      const logic = context.getFieldLogic(field) as any;
-      const renderer =
-        logic?.customRenderer ??
-        this.fldFactory[this.fieldDisplayName(field)] ??
-        this.fldFactory.fallbackDisplay;
-      return renderer(field, context, props);
+      return this.fldFactory.displayFor(field, context, props);
     }
-    
+
+    /**
+     * @deprecated 用 `fldFactory.render`。按会话自动选编辑/显示并套字段布局。
+     */
     buildField(field, context, props = {}) {
-      if (context.isFieldHidden(field)) return h("span", { hidden: true });
-      const {
-        editing: editingProp,
-        direction,
-        isReadonly,
-        ...controlProps
-      } = props;
-      const editing = editingProp ?? context.editing;
-      // 对齐老代码：编辑页中只读字段走 renderer（文本），不用 editor
-      const useEditor = editing && !context.isFieldReadonly(field) && !isReadonly;
-      const control = useEditor
-        ? this.editFor(field, context, controlProps)
-        : this.displayFor(field, context, controlProps);
-      const runtime = context as any;
-      const invalid = useEditor && runtime.isInvalid?.(field);
-      const message =
-        invalid && this.layout.fieldMessage
-          ? h(
-              "small",
-              { class: "mmda-field-error" },
-              runtime.getInvalidMessage?.(field),
-            )
-          : undefined;
-      return this.layout.layoutField({
-        label: this.labelFor(field),
-        control,
-        message,
-        orientation:
-          (props.orientation as UiOrientation | undefined) ??
-          (direction as UiOrientation | undefined) ??
-          this.layout.fieldLayout,
-        props: { key: field.fieldName },
-      });
+      return this.fldFactory.render(field, context, props);
     }
-    
+
     buildResponsiveField(field, context, props = {}) {
-      return this.buildField(field, context, props);
+      return this.fldFactory.render(field, context, props);
     }
     
     groupWrapClass(group: MetaUiGroup, props: UiProps = {}) {
@@ -562,11 +531,12 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           wrapProps,
         );
       }
+      // 主表字段行：走 fldFactory.render（内含默认 layoutField）
       const fields =
         children ??
         group.fields
           .filter((field) => !context.isFieldHidden(field))
-          .map((field) => this.buildField(field, context, fieldProps));
+          .map((field) => this.fldFactory.render(field, context, fieldProps));
       return this.wrapGroup(
         group,
         this.layout.layoutFieldGroup({
@@ -679,8 +649,49 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             ...(props.header ? [h("div", props.header() as any)] : []),
             ...primary,
           ];
+      const notice = runtime.pageNotice?.value as UiMessageProps | null | undefined;
+      const banner =
+        notice && notice.visible !== false
+          ? (this.factory.message?.({
+              ...notice,
+              onClose: () => {
+                notice.onClose?.();
+                if (runtime.pageNotice) runtime.pageNotice.value = null;
+              },
+            }) ??
+            h(
+              "div",
+              {
+                class: [
+                  "mmda-message",
+                  `is-${notice.severity ?? "info"}`,
+                  notice.cssClass,
+                ],
+                role: "status",
+              },
+              [
+                h("span", { class: "mmda-message-content" }, notice.content ?? ""),
+                notice.showCloseIcon !== false
+                  ? h(
+                      "button",
+                      {
+                        type: "button",
+                        class: "mmda-message-close",
+                        "aria-label": "Close",
+                        onClick: () => {
+                          notice.onClose?.();
+                          if (runtime.pageNotice) runtime.pageNotice.value = null;
+                        },
+                      },
+                      "×",
+                    )
+                  : null,
+              ],
+            ))
+          : undefined;
       const page = this.layout.layoutPage({
         toolbar: toolbar as VNode,
+        banner,
         primary: pagePrimary,
         summary: props.content ? [] : summary,
         tails: props.content ? [] : tails,

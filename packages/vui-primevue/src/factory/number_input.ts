@@ -1,7 +1,8 @@
 import { h } from "vue";
 import InputNumber from "primevue/inputnumber";
 import type { UiNumberInputProps } from "@mmda/core"
-import { emitNumberInputChange, numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from "@mmda/core"
+import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from "@mmda/core"
+import { emitNumberInputChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
 const standardFormatKind = (format: string): string | undefined => {

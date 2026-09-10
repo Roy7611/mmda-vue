@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
   isSelectOptionsGroupedField,
@@ -42,14 +42,6 @@ export function dropDownListValueOf(
   return undefined
 }
 
-export function emitDropDownListChange(
-  props: UiDropDownListProps,
-  value: string | number | null,
-): void {
-  props.onChange?.(value)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-}
 
 function searchRelativeRows(result: unknown): unknown[] {
   if (Array.isArray(result)) return result

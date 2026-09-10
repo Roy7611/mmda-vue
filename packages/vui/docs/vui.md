@@ -8,7 +8,7 @@
 | [实体交互逻辑](./logic.md) | vui 壳：`VueEntityLogic` / 路由；业务见 core EntityLogic 设计与用法 |
 | [会话上下文](./context.md) | 程序员：`VueUiContext` / core `UiContext` |
 | [会话设计](./vue_ui_context.md) | 一个类 + mixin 叠放；不是本地/远程两层 |
-| [Builder 与皮肤](./builder.md) | `VueUiBuilder` = Form/List/Tree mixin；皮肤 factory 对象组合 |
+| [Builder 与皮肤](./builder.md) | `VueUiBuilder` 落地四职；皮肤 factory 对象组合。程序员用法见 [core 四职用法](../../core/docs/ui/ui_four_roles_usage.md) |
 | [Factory 控件契约](./factory.md) | chrome 参数：`shape` / `size` / `colorRole` / `position` / `htmlAttributes` |
 | [图表插件](./chart.md) | `chartFactory`；不进 chrome `factory` |
 | [图表：怎么写](./chart_usage.md) | `setChartFactory`；皮肤 `./charts` 或独立引擎包 |

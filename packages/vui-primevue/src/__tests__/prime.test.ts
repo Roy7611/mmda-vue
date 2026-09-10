@@ -2,15 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import {
-  MetaUi,
-  MetaUiGroup,
-  ModuleFactory,
-  ModuleOp,
-  ModuleStatus,
-  ModuleVersion,
-  auth,
-} from '@mmda/core'
+import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth } from '@mmda/core'
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany } from '@mmda/vui'
 import { PrimeVueUiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
@@ -614,7 +606,7 @@ describe('PrimeVue skin', () => {
   it('maps factory.tagAutoComplete multiple AutoComplete', () => {
     const factory = createPrimeVueUiFactory()
     const onUpdate = vi.fn()
-    const vnode = factory.tagAutoComplete('a', { options: ['a', 'b'], onUpdate })
+    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a', 'b'], onUpdate })
     expect(vnode.props?.multiple).toBe(true)
     vnode.props?.['onUpdate:modelValue']?.(['a', 'b'])
     expect(onUpdate).toHaveBeenCalledWith('a,b')

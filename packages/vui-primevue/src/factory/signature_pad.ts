@@ -13,7 +13,8 @@ import {
 } from 'vue'
 import SignaturePad from 'signature_pad'
 import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core'
-import { emitSignaturePadChange, signaturePadBlobOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from '@mmda/core'
+import { signaturePadBlobOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from '@mmda/core'
+import { emitSignaturePadChange } from '@mmda/vui'
 import { htmlAttributesOf } from '@mmda/vui'
 
 type Stroke = ReturnType<SignaturePad['toData']>[number]

@@ -1,13 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { EntityState, MetaModel, MetaUiFieldRef } from '@mmda/core'
-import {
-  applyMultiSelectSelection,
-  multiSelectBoundOf,
-  multiSelectItemsOf,
-  multiSelectOptionKeyOf,
-  multiSelectPropsFromField,
-  multiSelectSelectedKeysOf,
-} from '@mmda/core'
+import { applyMultiSelectSelection, multiSelectBoundOf, multiSelectItemsOf, multiSelectOptionKeyOf, multiSelectPropsFromField, multiSelectSelectedKeysOf } from '@mmda/core'
 
 const options = [
   { value: 1, label: '读' },

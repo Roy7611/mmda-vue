@@ -1,14 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  emitSignaturePadChange,
-  signaturePadActionOf,
-  signaturePadBlobOf,
-  signaturePadFileTypeFromEj2,
-  signaturePadFileTypeOf,
-  signaturePadModifierClasses,
-  signaturePadPropsFromField,
-  signaturePadValueOf,
-} from '@mmda/core'
+import { signaturePadActionOf, signaturePadBlobOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadPropsFromField, signaturePadValueOf } from '@mmda/core'
+import { emitSignaturePadChange } from '@mmda/vui'
 
 describe('signaturePad helpers', () => {
   it('reads empty and data URL from value over modelValue', () => {

@@ -16,6 +16,7 @@ export * from './ag_filter'
 export * from './ag_columns'
 export * from './components/AgGrid'
 export * from './components/AgNaiveOverlayHost'
+export * from './components/AgNaiveAppSideMenu'
 export * from './components/SigninForm'
 export * from './components/BpmnModeler'
 

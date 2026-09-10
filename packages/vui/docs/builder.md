@@ -1,14 +1,17 @@
 # Builder 与皮肤
 
-`UiBuilder` 是 core 契约，负责 **怎么把会话画成节点**。vui 里一定是 **`VueUiBuilder`**：抽象类，用模板方法填好共用拼屏；皮肤包再具体扩展和落地。不要再叫 `AbstractUiBuilder`，不要另造 `VueUiBuilderHost`。
+> **程序员怎么写四职**（layout / fldFactory / factory / builder）：  
+> [ui_four_roles_design.md](../../core/docs/ui/ui_four_roles_design.md) · [ui_four_roles_usage.md](../../core/docs/ui/ui_four_roles_usage.md)  
+> 本文只讲 **vui / 皮肤怎么落地**。
+
+`UiBuilder` 是 core 契约，负责 **组装多块组合 + Overlay**（不是单控件薄包）。vui 里一定是 **`VueUiBuilder`**：抽象类，用模板方法填好共用拼屏；皮肤包再具体扩展和落地。不要再叫 `AbstractUiBuilder`，不要另造 `VueUiBuilderHost`，也不要把实现 alias 成 `UiBuilder`。
 
 ```text
-UiBuilder              core 契约（框架无关）
-    ↑ implements
-VueUiBuilder           vui 抽象类：模板方法填共用拼屏（取代 AbstractUiBuilder）
-    ↑ extends
-SyncfusionUiBuilder / PrimeVueUiBuilder / …
-                       皮肤：控件与壳的具体落地
+UiLayout / UiAppLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 四职
+    ↑
+VueUiLayout / AppLayout / （attachFieldRowApi）/ VueUiFactory / VueUiBuilder
+    ↑
+Syncfusion* / Prime* / AgNaive*
 ```
 
 | 名字 | 包 | 干什么 |
@@ -19,6 +22,15 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 产品分层真源：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。
 
+四职在 vui 的落点：
+
+| 职 | vui 落点 |
+|---|---|
+| **layout** | `VueUiLayout`、`AppLayout.scaffold`；AppShell **直接**调 layout，不经 `buildAppScaffold` |
+| **fldFactory** | 皮肤 field factory；Builder 构造时 `attachFieldRowApi` 挂 `render` / `editFor` / `displayFor` |
+| **factory** | 皮肤 `createXxxUiFactory`（含 `signinForm`）；**无** `factory.dialog` |
+| **builder** | `VueUiBuilder`：模块 *View、Explorer、FieldGroup、Overlay；插件页可选方法 |
+
 元数据驱动的 UI 构造是三层，不要把皮肤控件写进 vui：
 
 ```text
@@ -26,24 +38,27 @@ MetaUi + Logic
       ↓
 VueUiContext（会话）
       ↓
-VueUiBuilder（拼复杂视图）
+VueUiBuilder（拼复杂视图；调 factory / fldFactory）
       ↓
-UiFactory 契约  →  皮肤 factory（生产控件）
+UiFactory / UiFieldFactory 契约  →  皮肤实现
       ↓
 皮肤 components（SfGrid / AgGrid / NaiveTree）
 ```
 
 | 层 | 干什么 | 放哪 |
 |---|---|---|
-| **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳（TableSettingView、GroupCard） |
-| **Factory** | 用 `MetaUi` + 列表/字段 props **生产**组件 | 皮肤 `factory/`、`field_factory/`。vui 契约在 [`ui/factory/factory.ts`](../src/ui/factory/factory.ts) / [`field_factory.ts`](../src/ui/factory/field_factory.ts) |
-| **Builder** | 用 Factory 原子件拼工具栏、搜索、分组、分页、确认框 | vui `VueUiBuilder`；皮肤 Builder 只补壳/覆盖 |
+| **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳 |
+| **Factory** | 用 `MetaUi` + props **生产**组件；登录 `signinForm` | 皮肤 `factory/`、`field_factory/` |
+| **Builder** | 用 Factory 原子件拼工具栏、分组、分页、确认框 | vui `VueUiBuilder`；皮肤只补壳/覆盖 |
+| **Layout** | 壳 `AppLayout.scaffold`；页内 `VueUiLayout` | vui `ui/layout/` |
 
-`buildList`（`UiListProps`）/ `buildTable`（`UiTableProps`）/ `buildGrid`（`UiGridProps`）/ `buildTreeGrid` 只补齐会话（`filterModel`、列筛加载器、`tableSettings`）再调 `factory.*`。内部 `display` 只是工厂捷径标签，公开契约已分家。列怎么画、虚拟滚动、列筛控件都在皮肤组件里（如 `SfGrid`、`AgGrid`）。本轮 `table` 与 `grid` 可共用同一 renderer。
+Index / Select 数据区：**直接** `factory.table|grid|list|treeGrid` + `factory.paginator`，不要再薄包 `buildTable`。字段行走 `fldFactory.render`，不要 `buildField`。
+
+`buildIndexView` 等只补齐会话再调 `factory.*`。列怎么画、虚拟滚动、列筛控件都在皮肤组件里。本轮 `table` 与 `grid` 可共用同一 renderer。
 
 vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`。`UiActionFactory` 是 Builder 的标准按钮接线，在 `ui/builder/actions.ts`。
 
-以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用元数据生产（`factory.list` / `table` / `grid` / `tree` / 字段 editor）→ vui Builder 只决定何时分页、分组、弹选择器，**不** import EJ2 / ag-grid / primevue。单控件（badge、barcode、qrCode、dropDownButton、splitButton、floatingActionButton）只走 `builder.factory` / `fldFactory`，不要在 Builder 上再开 `buildXxx`。Builder 不再有 `dropdownMenuButton` / `moreMenuButton`。
+以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用元数据生产 → vui Builder 只决定何时分页、分组、弹选择器，**不** import EJ2 / ag-grid / primevue。单控件只走 `factory` / `fldFactory`，不要在 Builder 上再开 `buildXxx`。插件（Gantt / Kanban / …）挂 Builder 可选方法，未装则 throw。
 
 ## 源码位置（`packages/vui/src/`）
 
@@ -92,9 +107,10 @@ export abstract class VueUiBuilder extends WithTree(
 
 ## 主要内容
 
-- `UiBuilder`：core 拼屏接口（无 Vue）。从 `@mmda/core` 导入，不要从 vui 再 export 同名。
+- `UiBuilder`：core 拼屏接口（无 Vue）。从 `@mmda/core` 导入；四职见 [ui_four_roles_design.md](../../core/docs/ui/ui_four_roles_design.md)。
 - `VueUiBuilder`：vui 抽象实现；列表页/详情页默认结构、动作工厂、单元格解析。皮肤 `extends` 它。
-- `UiFactory` / `UiFieldFactory`：原子控件（button、table、textInput…），含 `menu` / `sidebar` / `drawer`。弹窗只走 Builder `dialog`，**没有 `factory.dialog`**。
+- `UiFactory` / `UiFieldFactory`：原子 chrome / 字段控件。登录 `factory.signinForm`。弹窗只走 Builder `dialog`，**没有 `factory.dialog`**。字段行用 `fldFactory.render`（构造时 `attachFieldRowApi`）。
+- `AppLayout`：应用壳 `scaffold`；AppShell 直接调，不经 Builder。
 - `chartFactory`：图表插件，不进 chrome factory。见 [图表](./chart.md)。
 - `diagramPlugin`：图插件，不进 chrome factory。见 [图](./diagram.md)。
 - `markdownEditorPlugin`：Markdown 编辑器插件，不进 chrome factory。见 [Markdown 编辑器](./markdown_editor.md)。

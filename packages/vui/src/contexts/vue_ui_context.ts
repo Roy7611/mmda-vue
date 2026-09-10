@@ -24,6 +24,7 @@ import {
   type UiBuilder,
   type UiContext,
   type UiFieldValidation,
+  type UiMessageProps,
   type UiValidation,
 } from "@mmda/core";
 import { reactive, ref, shallowReactive, toRaw, type Ref } from "vue";
@@ -112,6 +113,8 @@ class VueUiContextBase<E extends object = Record<string, any>>
   readonly fieldOptions = reactive<Record<string, FieldSearchOptions>>({});
   readonly referenceOptionLoads = new Map<string, Promise<any[]>>();
   readonly validationState: UiValidation;
+  /** 详情/编辑页顶栏 Message；由 uiBuilder.message 写入。 */
+  readonly pageNotice: Ref<UiMessageProps | null>;
   readonly unsavedRows = new WeakMap<object, string>();
   unsavedRowSequence = 0;
   #selection: any[] = [];
@@ -170,6 +173,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.validationState = reactive(
       child?.validation ?? defineValidation(this.metaUi, this.model as Entity),
     );
+    this.pageNotice = ref<UiMessageProps | null>(null);
     this.loading = ref(false);
     this.initializedState = ref(!this.loader);
     this.cache.set(this.cachePath, this);

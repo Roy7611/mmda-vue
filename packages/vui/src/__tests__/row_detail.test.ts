@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { h, render } from "vue";
-import {
-  MetaUi,
-  MetaUiField,
-  MetaUiGroupLogic,
-  SqlDataType,
-} from "@mmda/core";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 

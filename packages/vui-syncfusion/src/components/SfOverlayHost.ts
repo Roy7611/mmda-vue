@@ -2,14 +2,7 @@ import { defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToastComponent } from '@syncfusion/ej2-vue-notifications'
 import { DialogComponent } from '@syncfusion/ej2-vue-popups'
-import {
-  dialogButtonColorRole,
-  dialogFooterKind,
-  dialogHeaderKind,
-  isDialogPrimaryButton,
-  resolveDialogButtons,
-  type UiDialogButton,
-} from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogButton } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -81,22 +74,34 @@ export const SfOverlayHost = defineComponent({
             typeof request.props.maxHeight === 'number'
               ? `${request.props.maxHeight}px`
               : request.props.maxHeight
+          const props = request.props
           const dialogProps: Record<string, unknown> = {
             visible: true,
-            isModal: request.props.modal ?? true,
+            isModal: dialogModalOf(props),
             width:
-              typeof request.props.width === 'number'
-                ? `${request.props.width}px`
-                : request.props.width ?? 'min(90vw, 60rem)',
-            allowDragging: true,
-            enableResize: true,
-            showCloseIcon: true,
-            closeOnEscape: true,
+              typeof props.width === 'number'
+                ? `${props.width}px`
+                : props.width ?? 'min(90vw, 60rem)',
+            allowDragging: dialogAllowDraggingOf(props),
+            enableResize: dialogEnableResizeOf(props),
+            showCloseIcon: dialogShowCloseIconOf(props),
+            closeOnEscape: dialogCloseOnEscapeOf(props),
             cssClass: 'mmda-sf-dialog',
             close: () => void closeOverlayDialog(overlay!, request, 'cancel'),
+            overlayClick: () => {
+              if (dialogCloseOnOverlayOf(props)) {
+                void closeOverlayDialog(overlay!, request, 'cancel')
+              }
+            },
             open: (args: { element?: HTMLElement }) => {
               const el = args?.element
               if (el && maxHeight) el.style.maxHeight = maxHeight
+              if (el && props.minHeight != null) {
+                el.style.minHeight =
+                  typeof props.minHeight === 'number'
+                    ? `${props.minHeight}px`
+                    : String(props.minHeight)
+              }
               const headerEl = el?.querySelector?.('.e-dlg-header')
               if (
                 headerKind === 'title' &&
@@ -106,7 +111,7 @@ export const SfOverlayHost = defineComponent({
               ) {
                 headerEl.textContent = title
               }
-              request.props.onOpen?.()
+              props.onOpen?.()
             },
           }
           if (headerKind === 'title') {

@@ -1,7 +1,9 @@
 /*
- * chrome 带输入框选日走 factory.datePicker。算法在 @mmda/core ui/date_picker.ts。
- * 厂商格式映射留在本文件。
+ * chrome 带输入框选日走 factory.datePicker。算法在 @mmda/core。
+ * Vue v-model emit 与厂商格式映射留在本文件。
  */
+import { callUiBagFn, type UiProps } from '@mmda/core'
+
 export type {
   UiDateInputProps,
   UiDatePickerProps,
@@ -32,7 +34,6 @@ export {
   datePickerPropsFromField,
   datePickerShowClear,
   emitDateBlur,
-  emitDateChange,
   emitDateClear,
   emitDateFocus,
   monthPickerPropsFromField,
@@ -41,6 +42,14 @@ export {
   startOfLocalDay,
   startOfLocalMonth,
 } from '@mmda/core'
+
+/** Vue v-model + 产品 onChange / onUpdatePicker。 */
+export function emitDateChange(props: UiProps, value: unknown): void {
+  callUiBagFn(props, 'onChange', value)
+  callUiBagFn(props, 'onUpdate:modelValue', value)
+  callUiBagFn(props, 'onUpdate', value)
+  callUiBagFn(props, 'onUpdatePicker', value)
+}
 
 /** Prime `dateFormat`：`yy` 是四位年 */
 export function datePickerPrimeFormat(format: string): string {

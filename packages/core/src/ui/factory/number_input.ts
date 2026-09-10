@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 
 export type UiNumberInputKind = 'number' | 'percent'
 
@@ -54,24 +54,6 @@ export function numberInputDecimalsOf(
   if (raw == null || raw === '') return undefined
   const n = Number(raw)
   return Number.isNaN(n) ? undefined : n
-}
-
-export function emitNumberInputChange(
-  props: UiNumberInputProps,
-  value: unknown,
-): void {
-  let next: number | null = null
-  if (value != null && value !== '') {
-    if (typeof value === 'object' && 'value' in (value as object)) {
-      emitNumberInputChange(props, (value as { value?: unknown }).value)
-      return
-    }
-    const n = Number(value)
-    next = Number.isFinite(n) ? n : null
-  }
-  props.onChange?.(next)
-  callUiPropFn(props, 'onUpdate:modelValue', next)
-  callUiPropFn(props, 'onUpdate', next)
 }
 
 function fieldNumberOf(raw: unknown): number | null {

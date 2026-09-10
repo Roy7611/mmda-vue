@@ -1,13 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  DEFAULT_TEXT_AREA_ROWS,
-  emitTextAreaChange,
-  textAreaAutoResizeOf,
-  textAreaPropsFromField,
-  textAreaResizeModeOf,
-  textAreaRowsOf,
-  textAreaValueOf,
-} from '@mmda/core'
+import { DEFAULT_TEXT_AREA_ROWS, textAreaAutoResizeOf, textAreaPropsFromField, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf } from '@mmda/core'
+import { emitTextAreaChange } from '@mmda/vui'
 
 describe('textArea chrome helpers', () => {
   it('defaults value empty, rows 3, resizeMode Vertical', () => {

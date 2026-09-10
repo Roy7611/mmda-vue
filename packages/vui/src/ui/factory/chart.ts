@@ -4,7 +4,7 @@
  * 契约在 @mmda/core。
  */
 import type { VNode } from 'vue'
-import type { UiChartFactory as CoreFactory } from '@mmda/core'
+import type { UiChartFactory } from '@mmda/core'
 
 export type {
   UiChartType,
@@ -74,4 +74,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueChartFactory = CoreFactory<VNode>
+export type VueChartFactory = UiChartFactory<VNode>

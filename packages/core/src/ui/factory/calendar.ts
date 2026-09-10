@@ -76,24 +76,6 @@ export function calendarDaySelected(
   return sameCalendarDay(value, date)
 }
 
-export function calendarEj2View(
-  view?: UiCalendarView,
-): 'Month' | 'Year' | 'Decade' | undefined {
-  if (!view) return undefined
-  if (view === 'year') return 'Year'
-  if (view === 'decade') return 'Decade'
-  return 'Month'
-}
-
-export function calendarPrimeView(
-  view?: UiCalendarView,
-): 'date' | 'month' | 'year' | undefined {
-  if (!view) return undefined
-  if (view === 'year') return 'month'
-  if (view === 'decade') return 'year'
-  return 'date'
-}
-
 export function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }

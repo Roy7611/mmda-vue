@@ -5,7 +5,7 @@ import {
   type VNodeArrayChildren,
 } from 'vue'
 import { SqlDataType, pluralize, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
-import { VueUiBuilder, AppSideMenu, MmdaGroupCard, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
+import { VueUiBuilder, MmdaGroupCard, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
 import {
   NAlert,
   NButton,
@@ -15,6 +15,7 @@ import {
   NSelect,
 } from 'naive-ui'
 import { AgNaiveOverlayHost } from './components/AgNaiveOverlayHost'
+import { AgNaiveAppSideMenu } from './components/AgNaiveAppSideMenu'
 import { BpmnModeler } from './components/BpmnModeler'
 import { SigninForm } from './components/SigninForm'
 import { createAgNaiveOverlay } from './agnaive_overlay'
@@ -171,13 +172,15 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   buildAppSideBar(
     props: AppSideBarProps = { modules: [], header: () => null },
   ) {
-    return h('aside', { class: 'mmda-agnaive-sidebar' }, [
-      h('div', { class: 'mmda-agnaive-sidebar__header' }, invoke(props.header)),
-      h('div', { class: 'mmda-agnaive-sidebar__body' }, [
-        h(AppSideMenu, { modules: props.modules }),
-      ]),
-      h('div', { class: 'mmda-agnaive-sidebar__footer' }, invoke(props.footer)),
-    ])
+    return this.buildAppSideMenu({
+      modules: props.modules,
+      logo: props.header,
+      footer: props.footer,
+    })
+  }
+
+  buildAppSideMenu(props: import('@mmda/core').UiAppSideMenuProps<VNode> = {}) {
+    return h(AgNaiveAppSideMenu, props as any)
   }
 
   buildAppMenu(modules: Module[], props?: UiProps) {
@@ -188,7 +191,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
         ...rest,
       }, item ? { item } : undefined)
     }
-    return h(AppSideMenu, {
+    return this.buildAppSideMenu({
       modules,
       class: 'mmda-agnaive-app-menu',
       ...rest,
@@ -862,7 +865,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    return h(SigninForm, props, slots)
+    // 兼容旧调用；新代码请直接 factory.signinForm
+    return this.factory.signinForm?.(props, slots) ?? h(SigninForm, props, slots)
   }
 
   buildSignupForm(props: SignupFormProps) {

@@ -6,13 +6,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import {
-  SortOrder,
-  type EntityFilterModel,
-  type MetaUi,
-  type MetaUiField,
-  type Sort,
-} from '@mmda/core'
+import { SortOrder, type EntityFilterModel, type MetaUi, type MetaUiField, type Sort } from '@mmda/core'
 import { gridFiltersToModel } from '../factory/utils'
 import { SfGridHost } from '../factory/grid'
 import {

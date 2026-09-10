@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import type { UiProps } from '../props'
 
 export interface UiCheckBoxProps extends UiProps {
   checked?: boolean
@@ -23,15 +23,6 @@ export function checkBoxCheckedOf(props: UiCheckBoxProps): boolean {
   if (props.checked !== undefined) return Boolean(props.checked)
   if (props.modelValue !== undefined) return Boolean(props.modelValue)
   return false
-}
-
-export function emitCheckBoxChange(
-  props: UiCheckBoxProps,
-  checked: boolean,
-): void {
-  props.onChange?.(checked)
-  callUiPropFn(props, 'onUpdate:modelValue', checked)
-  callUiPropFn(props, 'onUpdate', checked)
 }
 
 export function checkBoxPropsFromField(

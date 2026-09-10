@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-  emitStepperChange,
-  stepperDisplayToEj2,
-  stepperIndexOf,
-  stepperItemsOf,
-  stepperModifierClasses,
-  stepperOrientationToEj2,
-  stepperPropsFromField,
-  stepperStatusToEj2,
-  stepperValueOf,
-} from '@mmda/core'
+import { stepperDisplayToEj2, stepperIndexOf, stepperItemsOf, stepperModifierClasses, stepperOrientationToEj2, stepperPropsFromField, stepperStatusToEj2, stepperValueOf } from '@mmda/core'
+import { emitStepperChange } from '@mmda/vui'
 
 describe('stepper helpers', () => {
   it('reads index from value over modelValue', () => {

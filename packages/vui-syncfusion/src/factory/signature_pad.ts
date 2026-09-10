@@ -11,7 +11,8 @@ import {
 } from "vue";
 import { SignatureComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core';
-import { emitSignaturePadChange, signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from "@mmda/core"
+import { signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from "@mmda/core"
+import { emitSignaturePadChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
 function ej2Of(el: any) {

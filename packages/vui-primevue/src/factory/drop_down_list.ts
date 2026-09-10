@@ -1,7 +1,8 @@
 import { h, reactive } from "vue";
 import Select from "primevue/select";
 import type { UiDropDownListProps, UiSelectOption } from "@mmda/core"
-import { SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, emitDropDownListChange, nestSelectOptionsByGroup, normalizeSelectOption, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf } from "@mmda/core"
+import { SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, nestSelectOptionsByGroup, normalizeSelectOption, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf } from "@mmda/core"
+import { emitDropDownListChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
 export function primeSelectModel(options: UiSelectOption[]) {

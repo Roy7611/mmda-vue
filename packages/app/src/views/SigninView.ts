@@ -34,6 +34,9 @@ function authErrorMessage(error: unknown): string {
   return String(error ?? '登录失败')
 }
 
+/**
+ * 登录路由页：直接 `factory.signinForm`，不要 `buildSigninForm`。
+ */
 export const SigninView = defineComponent({
   name: 'SigninView',
   setup() {
@@ -42,7 +45,7 @@ export const SigninView = defineComponent({
     const router = useRouter()
     const route = useRoute()
     const formError = ref('')
-    const signinForm = builder.buildSigninForm(
+    const signinForm = builder.factory.signinForm!(
       {
         context: app,
         onSignin: async (user: SigninUser) => {
@@ -78,16 +81,9 @@ export const SigninView = defineComponent({
             ),
           ]),
           formError.value
-            ? h(
-                'div',
-                {
-                  class: 'mmda-signin-card__error',
-                  role: 'alert',
-                },
-                formError.value,
-              )
+            ? h('p', { class: 'mmda-signin-card__error' }, formError.value)
             : null,
-          h('div', { class: 'mmda-signin-card__body' }, [signinForm]),
+          signinForm,
         ]),
       ])
   },

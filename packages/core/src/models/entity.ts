@@ -1,4 +1,5 @@
 import type { EntityAction } from "../metaui/metaui_action";
+import type { ModuleAuth } from "../metaui/module";
 import type { EntitySearchParam } from "./entity_search";
 
 export * from "./entity_search";
@@ -209,7 +210,9 @@ export interface EntitySelectParam<E> {
   service?: string;
   searchParam?: EntitySearchParam;
   selectionMode?: "single" | "multiple";
-  /** 缺省时由对方服务元数据 `MetaModel.createEntity` 构造，跨服务不必引用对方模型包 */
+  /**
+   * 未命中 DI Logic 时的行构造；默认 `defineEntity`（列表水合），不要用 `MetaModel.createEntity`。
+   */
   ctor?: EntityCtor<E>;
   searchFieldList?: string[];
   searchFieldProps?: Record<string, any>;
@@ -219,5 +222,11 @@ export interface EntitySelectParam<E> {
   selectableFn?: SelectableFn; // 用于标记可选择项的函数
   /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
   labelFn?: (item: any) => string;
+  /**
+   * 覆盖弹层 CRUD 权限四项；未传时有模块跟模块 authority，无模块只读。
+   */
+  authority?: Partial<
+    Pick<ModuleAuth, "allowRead" | "allowCreate" | "allowEdit" | "allowDelete">
+  >;
 }
 

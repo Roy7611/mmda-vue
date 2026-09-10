@@ -10,14 +10,7 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import {
-  dialogButtonColorRole,
-  dialogFooterKind,
-  dialogHeaderKind,
-  isDialogPrimaryButton,
-  resolveDialogButtons,
-  type UiDialogButton,
-} from '@mmda/core'
+import { dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, type UiDialogButton } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -175,16 +168,27 @@ const OverlayInner = defineComponent({
                 ],
               )
           }
+          const props = request.props
+          const minHeight =
+            typeof props.minHeight === 'number'
+              ? `${props.minHeight}px`
+              : props.minHeight
           return h(
             NModal,
             {
               key: request.id,
               show: true,
               preset: 'dialog',
-              title: headerKind === 'title' ? request.props.title : undefined,
-              style: { width },
+              title: headerKind === 'title' ? props.title : undefined,
+              style: {
+                width,
+                ...(minHeight ? { minHeight } : {}),
+              },
               class: 'mmda-agnaive-dialog',
-              onAfterEnter: () => request.props.onOpen?.(),
+              closable: dialogShowCloseIconOf(props),
+              closeOnEsc: dialogCloseOnEscapeOf(props),
+              maskClosable: dialogCloseOnOverlayOf(props),
+              onAfterEnter: () => props.onOpen?.(),
               'onUpdate:show': (show: boolean) => {
                 if (!show) void closeOverlayDialog(overlay!, request, 'cancel')
               },

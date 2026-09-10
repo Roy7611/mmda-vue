@@ -15,15 +15,7 @@ factory.switch({
 })
 ```
 
-旧写法仍可用（第一参当 `checked`）：
-
-```ts
-factory.switch(model.on, {
-  onUpdate: (checked) => {
-    model.on = checked
-  },
-})
-```
+不要 `factory.switch(value, props)`。不要 `trueValue` / `falseValue`。不要 chrome `toggleSwitch`。
 
 SF 可带轨道文案：
 
@@ -34,8 +26,6 @@ factory.switch({
   offLabel: '关',
 })
 ```
-
-不要 `trueValue` / `falseValue`。不要 chrome `toggleSwitch`。
 
 ## 表单字段
 

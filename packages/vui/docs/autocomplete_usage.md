@@ -2,12 +2,13 @@
 
 从当前皮肤的 `builder.factory.autoComplete` 取节点。设计见 [autocomplete.md](./autocomplete.md)。参数名约定见 [factory.md](./factory.md)。
 
-这是带联想的文本框。选中建议只是把**显示文本**填进框；可以继续打列表里没有的字。
+这是带联想的文本框。选中建议只是把**显示文本**填进框；可以继续打列表里没有的字。不要 `factory.autoComplete(value, props)`，值放 `props.value`。
 
 ## 自定义列表
 
 ```ts
-builder.factory.autoComplete(keyword, {
+builder.factory.autoComplete({
+  value: keyword,
   placeholder: '搜币种',
   options: ['人民币', '美元', '欧元'],
   onUpdate: (text) => (keyword = text),
@@ -17,7 +18,8 @@ builder.factory.autoComplete(keyword, {
 对象选项用 `label` 填进框：
 
 ```ts
-builder.factory.autoComplete(keyword, {
+builder.factory.autoComplete({
+  value: keyword,
   options: [
     { value: 'CNY', label: '人民币' },
     { value: 'USD', label: '美元' },
@@ -29,7 +31,8 @@ builder.factory.autoComplete(keyword, {
 ## 服务器联想
 
 ```ts
-builder.factory.autoComplete(keyword, {
+builder.factory.autoComplete({
+  value: keyword,
   minLength: 2,
   debounceDelay: 300,
   suggestionCount: 20,
@@ -45,7 +48,8 @@ builder.factory.autoComplete(keyword, {
 不要传 enum。`reference` 必须是 ref；列表和选中填入都是 `labelOf`。
 
 ```ts
-builder.factory.autoComplete(keyword, {
+builder.factory.autoComplete({
+  value: keyword,
   reference: field.reference,
   onUpdate: (text) => (keyword = text),
 })
@@ -56,7 +60,8 @@ builder.factory.autoComplete(keyword, {
 ## htmlAttributes
 
 ```ts
-builder.factory.autoComplete(keyword, {
+builder.factory.autoComplete({
+  value: keyword,
   placeholder: '搜',
   htmlAttributes: { title: '币种', autocomplete: 'off' },
   onUpdate: (text) => (keyword = text),

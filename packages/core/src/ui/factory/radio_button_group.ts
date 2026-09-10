@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiOrientation } from '../layout'
 import type { UiFieldBindContext } from '../field_factory'
-import { callUiPropFn, type UiProps } from '../props'
+import { type UiProps } from '../props'
 import { uiCssClass, UI_CSS_PREFIX } from '../css'
 import {
   selectButtonGroupSelected,
@@ -59,14 +59,6 @@ export function radioButtonGroupValueOf(
   return undefined
 }
 
-export function emitRadioButtonGroupChange(
-  props: UiRadioButtonGroupProps,
-  value: unknown,
-): void {
-  props.onChange?.(value)
-  callUiPropFn(props, 'onUpdate:modelValue', value)
-  callUiPropFn(props, 'onUpdate', value)
-}
 
 export function radioButtonGroupNameOf(
   props: UiRadioButtonGroupProps,

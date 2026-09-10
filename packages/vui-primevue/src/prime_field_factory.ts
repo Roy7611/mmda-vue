@@ -254,15 +254,14 @@ const tagAutoComplete = (
   context: UiContext,
   props?: UiProps,
 ) => {
-  const mapped = tagAutoCompletePropsFromField(
-    field,
-    context as any,
-    props ?? {},
-  )
   return wrapChrome(
     field,
     context,
-    createTagAutoComplete(mapped.value, mapped.props),
+    createTagAutoComplete(tagAutoCompletePropsFromField(
+      field,
+      context as any,
+      props ?? {},
+    )),
   )
 }
 
@@ -488,14 +487,12 @@ const autoComplete = (
   const invalid = invalidOf(field, context)
   const reference = field.reference?.isRef ? field.reference : undefined
   return h('div', { class: ['mmda-prime-control', invalid && 'is-invalid'] }, [
-    createAutoComplete(
-      autoCompleteBindValue(context.getFieldValue(field), { reference }),
-      {
-        ...autoCompletePropsFromField(field, props ?? {}),
-        disabled: context.isFieldReadonly(field),
-        onUpdate: update(field, context),
-      },
-    ),
+    createAutoComplete({
+      value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
+      ...autoCompletePropsFromField(field, props ?? {}),
+      disabled: context.isFieldReadonly(field),
+      onUpdate: update(field, context),
+    }),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
         (context as any).getInvalidMessage?.(field),

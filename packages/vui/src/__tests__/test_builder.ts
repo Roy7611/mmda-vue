@@ -828,6 +828,10 @@ export class TestUiBuilder extends VueUiBuilder {
     return stub("buildAppSideBar");
   }
 
+  buildAppSideMenu() {
+    return stub("buildAppSideMenu");
+  }
+
   buildAppMenu() {
     return stub("buildAppMenu");
   }

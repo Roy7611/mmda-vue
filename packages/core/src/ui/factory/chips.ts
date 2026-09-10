@@ -15,7 +15,7 @@ import {
   type UiMultiSelectBindMode,
   type UiMultiSelectProps,
 } from './multi_select'
-import { callUiPropFn, type UiColorRole, type UiProps } from '../props'
+import { type UiColorRole, type UiProps } from '../props'
 import { uiCssClass } from '../css'
 
 export type UiChipsKind = 'action' | 'choice' | 'filter' | 'input'
@@ -154,14 +154,6 @@ export function toggleChipSelection(
   return list
 }
 
-export function emitChipsChange(
-  props: UiChipsProps,
-  selected: string | number | Array<string | number> | undefined,
-): void {
-  props.onChange?.(selected)
-  callUiPropFn(props, 'onUpdate:modelValue', selected)
-  callUiPropFn(props, 'onUpdate', selected)
-}
 
 export function chipLabelsFromField(
   field: MetaUiField,

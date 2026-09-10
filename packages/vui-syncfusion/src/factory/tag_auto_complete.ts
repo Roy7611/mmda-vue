@@ -1,13 +1,12 @@
 import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiTagAutoCompleteProps } from '@mmda/core';
-import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, tagAutoCompleteUpdateOf } from "@mmda/core"
+import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf } from "@mmda/core"
+import { tagAutoCompleteUpdateOf } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
-export function createTagAutoComplete(
-  value: string,
-  props: UiTagAutoCompleteProps = {},
-) {
+export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
+  const value = props.value
   const {
     options: _options,
     suggest: _suggest,
@@ -23,6 +22,7 @@ export function createTagAutoComplete(
     placeholder,
     disabled,
     separator: _separator,
+    value: _value,
     ...rest
   } = props;
 
