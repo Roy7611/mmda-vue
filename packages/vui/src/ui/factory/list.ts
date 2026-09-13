@@ -103,7 +103,10 @@ export type UiTableSkinExtras<T = any> = {
   /** Builder 推算：哪些列需要 Vue 模板。不要手写。 */
   templateCellFields?: string[];
   filterLabels?: Partial<
-    Record<"all" | "yes" | "no" | "apply" | "clear", string>
+    Record<
+      "all" | "yes" | "no" | "apply" | "clear" | "values" | "date" | "datetime",
+      string
+    >
   >;
   dateRangeLabels?: Partial<Record<string, string>>;
   /** 列筛下拉。Builder 接到 loadReferenceOptions。 */
@@ -117,7 +120,7 @@ export type UiTableSkinExtras<T = any> = {
   ) => Promise<unknown[]>;
   /** index 列布局能力。有则允许拖列并持久化。 */
   tableSettings?: UiTableSettings;
-  /** index KeepAlive 宿主。Builder 注入；销毁传 null。 */
+  /** index 工作区保活宿主。Builder 注入；销毁传 null。 */
   onIndexTableHostReady?: (host: UiIndexTableHost | null) => void;
   /**
    * Builder 默认单元格写回。程序员请用 fieldCellEditors[name].onSave。

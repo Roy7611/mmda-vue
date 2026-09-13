@@ -721,17 +721,20 @@ export class ProcessLogic extends EntityLogic<Process> {
 
 												if (item) {
 													if (shape.type === 'bpmn:Task' && !this.isdeleted) {
-														if (await ctx.uiBuilder.confirm(ctx, {
-															title: ctx.t('action.confirm'),
-															message: ctx.t('confirmation.delete'),
-														})) {
-															this.isdeleted = true
-															try {
-																modeling.removeElements([...shape.incoming, ...shape.outgoing, shape]);
-															} finally {
-																this.isdeleted = false
+														// BPMN preExecute 是同步钩子：先取消当前删除，确认后再主动 remove
+														void (async () => {
+															if (await ctx.uiBuilder.confirm(ctx, {
+																title: ctx.t('action.confirm'),
+																message: ctx.t('confirmation.delete'),
+															})) {
+																this.isdeleted = true
+																try {
+																	modeling.removeElements([...shape.incoming, ...shape.outgoing, shape]);
+																} finally {
+																	this.isdeleted = false
+																}
 															}
-														}
+														})();
 														return false;
 													} else {
 														return true;

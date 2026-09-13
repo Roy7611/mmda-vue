@@ -159,6 +159,11 @@ export interface UiViewProps extends UiProps {
   showToolbar?: boolean
   /** 主表字段组列数。 */
   primaryCols?: 2 | 3
+  /**
+   * 详情页壳。缺省 `cards`（左右卡）。
+   * `tabs`：emphasized 只读顶栏 + 每 ui group 一页签。
+   */
+  pageLayout?: 'cards' | 'tabs'
   showBreadcrumb?: boolean
   showActions?: boolean
   showGroupActions?: boolean

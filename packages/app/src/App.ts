@@ -11,8 +11,8 @@ import { AppUserFooter } from './components/AppUserFooter'
 
 /**
  * 全应用唯一外壳。
- * 壳布局走 `builder.layout.scaffold`，不再经 Builder.buildAppScaffold。
- * 导航槽仍由 Builder.buildAppSideBar 产出。
+ * 壳布局走 `builder.layout.scaffold`（根节点 `.mmda-app-layout`）。
+ * 不要再包一层 `.mmda-app`。导航槽由 Builder.buildAppSideBar 产出。
  */
 export const AppShell = defineComponent({
   name: 'AppShell',
@@ -38,19 +38,19 @@ export const AppShell = defineComponent({
     return () => {
       if (route.meta.allowAnonymous) return h(RouterView)
       if (!app.canAccess) {
-        return h('div', { class: 'mmda-app mmda-app--signing-out' })
+        return h('div', {
+          class: 'mmda-app-layout mmda-app-layout--signing-out',
+        })
       }
-      return h('div', { class: 'mmda-app' }, [
-        builder.layout.scaffold({
-          variant: 'sidebarLeft',
-          nav: builder.buildAppSideBar({
-            modules: app.modules,
-            header: () => h(AppLogo),
-            footer: () => h(AppUserFooter),
-          }),
-          page: h(RouterView),
+      return builder.layout.scaffold({
+        variant: 'sidebarLeft',
+        nav: builder.buildAppSideBar({
+          modules: app.modules,
+          header: () => h(AppLogo),
+          footer: () => h(AppUserFooter),
         }),
-      ])
+        page: h(RouterView),
+      })
     }
   },
 })

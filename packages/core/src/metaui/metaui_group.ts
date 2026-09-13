@@ -2,6 +2,7 @@ import {
   compareListColumns,
   MetaUiField,
 } from './metaui_field'
+import { pluralize } from '../utils/pluralize'
 
 /**
  * 详情和编辑界面的三个区域
@@ -34,6 +35,7 @@ export interface MetaUiSubGroup {
   joinOn: string // 连接条件，形如whID=@whID
   groupUi: MetaUi // 子表组的元界面
   requiredAny?: boolean // 要求子表必须有至少一个元素
+  allowJoinList?: boolean // 允许作为联查列表的默认子表
   readOnly?: boolean // 只读否
   canHave?: string // 是否有此子表的控制属性
   sequenceKey?: string // 序列键，如itemID
@@ -52,6 +54,7 @@ export interface MetaUiGroupInit {
   relObjName?: string // 对象名称，参见`MetaObject.objName`
   joinOn?: string // 连接条件，形如whID=@whID
   requiredAny?: boolean // 要求子表必须有至少一个元素
+  allowJoinList?: boolean // 允许作为联查列表的默认子表
   readOnly?: boolean // 只读否
   groupUi?: MetaUi // 子表组的元界面
   canHave?: string // 是否有此子表的控制属性
@@ -77,6 +80,7 @@ export class MetaUiGroup {
     relObjName,
     joinOn,
     requiredAny,
+    allowJoinList,
     readOnly,
     groupUi,
     canHave,
@@ -92,6 +96,7 @@ export class MetaUiGroup {
     this.relObjName = relObjName
     this.joinOn = joinOn
     this.requiredAny = requiredAny
+    this.allowJoinList = allowJoinList
     this.readOnly = readOnly
     this.canHave = canHave
     this.sequenceKey = sequenceKey
@@ -139,6 +144,7 @@ export class MetaUiGroup {
   readonly joinOn?: string // 连接条件，形如whID=@whID
   readonly joinFields?: Record<string, string>
   readonly requiredAny?: boolean // 要求子表必须有至少一个元素
+  readonly allowJoinList?: boolean // 允许作为联查列表的默认子表
   readonly readOnly?: boolean // 只读否
   readonly canHave?: string // 是否有此子表的控制属性
   readonly sequenceKey?: string // 序列键，如itemID
@@ -225,6 +231,10 @@ export interface MetaUiInit {
   lastModified?: Date
   groups: any[]
   assembled?: boolean
+  /** 联查视图：数据打这个主表仓储的 getJoinList */
+  sourceRepository?: string
+  /** 联查视图：对着哪张子表拼的 */
+  sourceRelation?: string
 }
 /**
  * 元界面是一个用户界面的元数据，用于自动化构建一个前端用户界面。
@@ -264,6 +274,8 @@ export class MetaUi {
     lastModified,
     groups,
     assembled,
+    sourceRepository,
+    sourceRelation,
   }: MetaUiInit) {
     this.objName = objName
     this.displayLabel = displayLabel
@@ -273,6 +285,8 @@ export class MetaUi {
     this.nameCol = nameCol
     this.locale = locale
     this.lastModified = lastModified
+    this.sourceRepository = sourceRepository
+    this.sourceRelation = sourceRelation
     this.groups = groups.map(g => new MetaUiGroup(g))
     this.assembleStatus = assembled
       ? MetaUiAssemblyStatus.ASSEMBLED_ALL
@@ -315,6 +329,11 @@ export class MetaUi {
 
   // 最后修改时间
   lastModified?: Date
+
+  /** 联查视图：数据打这个主表仓储的 getJoinList */
+  sourceRepository?: string
+  /** 联查视图：对着哪张子表拼的 */
+  sourceRelation?: string
 
   // 分组
   groups: MetaUiGroup[]
@@ -374,4 +393,119 @@ export class MetaUi {
   hasSubGroupUis() {
     return this.groups.every((group) => !group.many || !!group.groupUi)
   }
+
+  /** 有可联查子表才出「联查模式」菜单。必须 requiredAny，否则 inner join 会滤掉无子行的主表。 */
+  hasJoinList() {
+    return this.groups.some(g => g.many && g.requiredAny && g.allowJoinList)
+  }
+}
+
+function splitKeys(primaryKey?: string) {
+  return (primaryKey ?? '')
+    .split(',')
+    .map(key => key.trim())
+    .filter(Boolean)
+}
+
+function copyViewField(
+  src: MetaUiField,
+  patch: Partial<MetaUiField> = {},
+): MetaUiField {
+  return Object.assign(
+    new MetaUiField({
+      fieldName: patch.fieldName ?? src.fieldName,
+      displayLabel: patch.displayLabel ?? src.displayLabel,
+      fieldIdx: src.fieldIdx,
+      dataType: src.dataType,
+      nullable: src.nullable,
+    }),
+    src,
+    patch,
+  )
+}
+
+/** 第一个可联查子表组名（many && requiredAny && allowJoinList）。 */
+export function joinListRelationName(metaUi: MetaUi): string | undefined {
+  return metaUi.groups.find(
+    group => group.many && group.requiredAny && group.allowJoinList,
+  )?.groupName
+}
+
+/** 联查视图 objName：`MaterialTransItemView`。 */
+export function joinViewObjName(group: {
+  relObjName?: string
+  groupUi?: { objName?: string }
+}): string | undefined {
+  const rel = group.relObjName ?? group.groupUi?.objName
+  return rel ? `${rel}View` : undefined
+}
+
+/**
+ * 用主表 metaUi + 子表 groupUi 本地拼联查列界面。
+ * 字段新实例，`reference` 与源字段同一对象。
+ */
+export function assembleViewUi(metaUi: MetaUi, relationName: string): MetaUi {
+  const relation = metaUi.getGroup(relationName)
+  if (!relation?.many || !relation.groupUi) {
+    throw new Error(
+      `assembleViewUi: "${relationName}" is not a many group with groupUi`,
+    )
+  }
+  const groupUi = relation.groupUi
+  const hideNames = new Set([
+    ...splitKeys(metaUi.primaryKey),
+    ...Object.keys(relation.joinFields ?? {}),
+  ])
+  const masterGroups = metaUi.groups
+    .filter(group => !group.many)
+    .map(group =>
+      MetaUiGroup.master({
+        groupName: group.groupName,
+        groupLabel: group.groupLabel,
+        groupIdx: group.groupIdx,
+        secondary: group.secondary,
+        fields: (group.fields ?? []).map(field => copyViewField(field)),
+      }),
+    )
+  const childFields: MetaUiField[] = []
+  for (const inner of groupUi.groups.filter(group => !group.many)) {
+    for (const field of inner.fields ?? []) {
+      const hide = hideNames.has(field.fieldName)
+      childFields.push(
+        copyViewField(field, {
+          fieldName: `${relationName}.${field.fieldName}`,
+          hidden: hide ? true : field.hidden,
+          readOnly: hide ? true : field.readOnly,
+          subGroupLabel: inner.groupLabel,
+        }),
+      )
+    }
+  }
+  const childPk = splitKeys(groupUi.primaryKey)
+    .filter(key => !hideNames.has(key))
+    .map(key => `${relationName}.${key}`)
+  const primaryKey = [...splitKeys(metaUi.primaryKey), ...childPk].join(',')
+  const viewObjName =
+    joinViewObjName(relation) ?? `${relationName}View`
+  return new MetaUi({
+    objName: viewObjName,
+    displayLabel: relation.groupLabel,
+    uniqueKey: metaUi.uniqueKey,
+    primaryKey: primaryKey || undefined,
+    labelKey: metaUi.labelKey,
+    nameCol: metaUi.nameCol,
+    locale: metaUi.locale,
+    sourceRepository: pluralize(metaUi.objName),
+    sourceRelation: relationName,
+    groups: [
+      ...masterGroups,
+      MetaUiGroup.master({
+        groupName: relationName,
+        groupLabel: relation.groupLabel,
+        groupIdx: relation.groupIdx,
+        fields: childFields,
+      }),
+    ],
+    assembled: true,
+  })
 }

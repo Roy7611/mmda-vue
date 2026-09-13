@@ -81,7 +81,7 @@ Logic 只认 @mmda/core
 ```text
 fieldFactory.render(field, context)
   → 选 editor/renderer
-  → layout.layoutField({ label, control, message })
+  → layout.layoutField({ label, control })  # validation copy drawn by skin control
 ```
 
 ## 程序员怎么拿

@@ -22,7 +22,7 @@ const planNoData = {
 	planNosList: <any>[],
 	tablecolumns: <any>[],
 	tableDataKEY: 'id',
-});
+};
 
 /**
  * 获取所有的 生产计划 plan

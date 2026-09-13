@@ -6,6 +6,7 @@ import { dateTimePickerModifierClasses, dateTimePickerStepOf } from "@mmda/core"
 import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
+import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 export function createDateTimePicker(props: UiDateTimePickerProps) {
   const {
@@ -64,6 +65,7 @@ export function createDateTimePicker(props: UiDateTimePickerProps) {
       firstDayOfWeek: datePickerFirstDayOfWeek(props),
       ...(inputFormats ? { inputFormats } : {}),
       showTodayButton: false,
+      locale: getSyncfusionCulture(),
       cssClass,
       change: (args: { value?: Date | null }) =>
         emitDateChange(props, args?.value ?? null),

@@ -6,6 +6,7 @@ import { AgGridVue } from 'ag-grid-vue3'
 import type { ColDef, IAggFuncParams } from 'ag-grid-community'
 import type { UiPivotPlugin, UiPivotTableProps } from '@mmda/vui'
 import { htmlAttributesOf, pivotAggregateOf, pivotDataOf, pivotHookClass } from '@mmda/vui'
+import { agGridLocaleText } from '../ag_grid_i18n'
 
 function distinctCount(params: IAggFuncParams): number {
   const seen = new Set<unknown>()
@@ -108,6 +109,7 @@ export function createAgPivotTable(props: UiPivotTableProps) {
       width: '100%',
       height: typeof height === 'number' ? `${height}px` : (height ?? '350px'),
     },
+    localeText: agGridLocaleText(),
     rowData: pivotDataOf(props),
     columnDefs: toAgPivotColumnDefs(props),
     pivotMode: true,

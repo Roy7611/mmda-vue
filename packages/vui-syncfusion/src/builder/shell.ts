@@ -23,7 +23,7 @@ export function renderHeader(
   content: VNode | VNodeArrayChildren,
   props?: UiProps,
 ) {
-  return h("header", { class: uiCssClass("page-header"), ...props }, content);
+  return h("header", { class: uiCssClass("page", "header"), ...props }, content);
 }
 
 export function renderAside(

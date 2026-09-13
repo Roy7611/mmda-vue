@@ -12,6 +12,7 @@ import {
   type EntityAdvancedJoinFilter,
   type EntityFilterOperator,
 } from '../../models/entity_search'
+import { isDateRangeKind } from '../../utils/date_range'
 import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 
@@ -88,11 +89,12 @@ const EJ2_TO_OP: Record<string, EntityFilterOperator> = {
   notcontains: 'NOT_CONTAINS',
   isnull: 'IS_NULL',
   isnotnull: 'IS_NOT_NULL',
-  isempty: 'IS_NULL',
-  isnotempty: 'IS_NOT_NULL',
+  isempty: 'IS_BLANK',
+  isnotempty: 'IS_NOT_BLANK',
   in: 'IN',
   notin: 'NOT_IN',
   between: 'BETWEEN',
+  within: 'WITHIN',
 }
 
 const OP_TO_EJ2: Partial<Record<EntityFilterOperator, string>> = {
@@ -108,9 +110,12 @@ const OP_TO_EJ2: Partial<Record<EntityFilterOperator, string>> = {
   NOT_CONTAINS: 'notcontains',
   IS_NULL: 'isnull',
   IS_NOT_NULL: 'isnotnull',
+  IS_BLANK: 'isempty',
+  IS_NOT_BLANK: 'isnotempty',
   IN: 'in',
   NOT_IN: 'notin',
   BETWEEN: 'between',
+  WITHIN: 'within',
   IS_TRUE: 'equal',
   IS_FALSE: 'equal',
 }
@@ -127,8 +132,9 @@ const AG_TO_OP: Record<string, EntityFilterOperator> = {
   lessThan: 'LT',
   lessThanOrEqual: 'LE',
   inRange: 'BETWEEN',
-  blank: 'IS_NULL',
-  notBlank: 'IS_NOT_NULL',
+  within: 'WITHIN',
+  blank: 'IS_BLANK',
+  notBlank: 'IS_NOT_BLANK',
   true: 'IS_TRUE',
   false: 'IS_FALSE',
 }
@@ -145,8 +151,11 @@ const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
   LT: 'lessThan',
   LE: 'lessThanOrEqual',
   BETWEEN: 'inRange',
+  WITHIN: 'within',
   IS_NULL: 'blank',
   IS_NOT_NULL: 'notBlank',
+  IS_BLANK: 'blank',
+  IS_NOT_BLANK: 'notBlank',
   IS_TRUE: 'true',
   IS_FALSE: 'false',
 }
@@ -158,8 +167,8 @@ const TEXT_OPS: EntityFilterOperator[] = [
   'NOT_CONTAINS',
   'STARTS_WITH',
   'ENDS_WITH',
-  'IS_NULL',
-  'IS_NOT_NULL',
+  'IS_BLANK',
+  'IS_NOT_BLANK',
   'IN',
   'NOT_IN',
 ]
@@ -184,6 +193,7 @@ const DATE_OPS: EntityFilterOperator[] = [
   'LT',
   'LE',
   'BETWEEN',
+  'WITHIN',
   'IS_NULL',
   'IS_NOT_NULL',
 ]
@@ -353,6 +363,14 @@ function leafFromEj2(
       valueTo: pair[1],
     }
   }
+  if (operator === 'WITHIN' || isDateRangeKind(rule.value)) {
+    return {
+      fieldName,
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: isDateRangeKind(rule.value) ? rule.value : undefined,
+    }
+  }
   return {
     fieldName,
     filterType: leafFilterTypeOf(valueType, operator),
@@ -428,6 +446,15 @@ function leafToEj2(
       type: ej2TypeOf(valueType),
     }
   }
+  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.dateKind)) {
+    return {
+      field: leaf.fieldName,
+      label: column?.label,
+      operator: 'within',
+      value: leaf.dateKind,
+      type: ej2TypeOf(valueType),
+    }
+  }
   return {
     field: leaf.fieldName,
     label: column?.label,
@@ -465,13 +492,30 @@ function agColumnTypeOf(filterType: string): UiQueryBuilderValueType {
   return 'text'
 }
 
+function agTypeToOperator(
+  type: string,
+  valueType: UiQueryBuilderValueType,
+): EntityFilterOperator {
+  if (type === 'blank') return valueType === 'text' ? 'IS_BLANK' : 'IS_NULL'
+  if (type === 'notBlank') return valueType === 'text' ? 'IS_NOT_BLANK' : 'IS_NOT_NULL'
+  return AG_TO_OP[type] ?? 'EQ'
+}
+
 function leafFromAg(
   model: AgColumnAdvancedFilter,
 ): EntityAdvancedColumnFilter | undefined {
   const fieldName = String(model.colId ?? '')
   if (!fieldName) return undefined
-  const operator = AG_TO_OP[model.type] ?? 'EQ'
   const valueType = agColumnTypeOf(model.filterType)
+  if (isDateRangeKind(model.type)) {
+    return {
+      fieldName,
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: model.type,
+    }
+  }
+  const operator = agTypeToOperator(model.type, valueType)
   if (valueType === 'boolean' || operator === 'IS_TRUE' || operator === 'IS_FALSE') {
     return {
       fieldName,
@@ -521,6 +565,13 @@ function leafToAg(leaf: EntityAdvancedColumnFilter): AgColumnAdvancedFilter {
       filterType: 'boolean',
       colId: leaf.fieldName,
       type: leaf.value === false ? 'false' : 'true',
+    }
+  }
+  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.dateKind)) {
+    return {
+      filterType: 'date',
+      colId: leaf.fieldName,
+      type: leaf.dateKind ?? 'within',
     }
   }
   return {

@@ -21,7 +21,6 @@ import { choosePersonNode } from '@/components/ChoosePerson/ChoosePerson';
 //生产工作包
 import { ProjectWorkPackageEditor } from '@/modules/project_work_packages/ProjectWorkPackageEditor';
 
-import { uiBuilder } from '@/mes';
 import type { UiBuildContext } from '@mmda/vui';
 
 //负责人
@@ -33,7 +32,7 @@ const chargePerson = {
 		deptName: null,
 		detpID: null,
 	},
-});
+};
 const notice = {
 	data: {
 		ownerID: '',
@@ -47,7 +46,7 @@ const notice = {
 		copyTo: [], //通知给
 		copyToInvalid: false, //是否选择了 通知给谁。
 	},
-});
+};
 //公用action
 // const beforeNotice = async (context: UiContext, model: ProductionSchedule, action: EntityAction, actionName: string, repositoryName: string) =>
 // 	NoticeFn(context, {
@@ -85,15 +84,15 @@ const linkTypes = [
 
 const updateRes = {
 	data: [],
-});
+};
 const linkRes = {
 	data: false,
-});
+};
 
 //id map
 const threeMep = {
 	data: [],
-});
+};
 
 //日计划提交对象
 const dailyPlanning = {
@@ -103,7 +102,7 @@ const dailyPlanning = {
 		remark: null,
 		date: null, //@datetime("yyyy-MM-dd")
 	},
-});
+};
 
 const getSubstringBeforeNthDot = (str: any, n: number) => {
 	n = n + 1;
@@ -133,7 +132,7 @@ const selectionRows = { value: [] };
 
 const selfParam = {
 	my: false,
-});
+};
 
 const searchParam = {
 	pager: {
@@ -142,7 +141,7 @@ const searchParam = {
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 //权限
 // const Qx = {
 // 	jurisdiction: <any>{},
@@ -339,7 +338,7 @@ const refLashDatas = {
 		tasks: [],
 		links: [],
 	},
-});
+};
 export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	taskDatas: any;
 	//甘特图模版
@@ -548,7 +547,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				data: <any>[],
 				link: <any>[],
 			},
-		});
+		};
 		this.taskDatas = task.taskData;
 
 		this.taskDatas.tasks = [];
@@ -646,7 +645,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				data: <any>[],
 				link: <any>[],
 			},
-		});
+		};
 
 		refLashDatas.data.tasks = [];
 		refLashDatas.data.links = [];
@@ -852,6 +851,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				life: 3000,
 			});
 		}
+	}
 
 	//导入交付物
 	async imporitDeliverables(taskItem: any, appContext: any) {
@@ -919,6 +919,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				life: 3000,
 			});
 		}
+	}
 	// //导入交付物
 	// async imporitDeliverables(taskItem: any, appContext: any) {
 	// 	if (taskItem.action) {
@@ -1090,17 +1091,18 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				ctx: appContext,
 				onChangePlanningData(val: any) {
 					dailyPlanning.data = val.data;
-				}})
+				},
+			}),
 		})) {
-//选中人必填
-				if (!dailyPlanning.data.planNo) {
-					dailyPlanning.data.planNoInvalid = true;
-					return false;
-				} else {
-					dailyPlanning.data.planNoInvalid = false;
-					return this.submitPlan(dailyPlanning.data, appContext);
-				}
-};
+			//选中人必填
+			if (!dailyPlanning.data.planNo) {
+				dailyPlanning.data.planNoInvalid = true;
+				return false;
+			} else {
+				dailyPlanning.data.planNoInvalid = false;
+				return this.submitPlan(dailyPlanning.data, appContext);
+			}
+		}
 	}
 	//甘特图日计划调用接口返回
 	async submitPlan(planItem: any, content: any) {

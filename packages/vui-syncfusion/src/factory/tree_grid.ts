@@ -4,6 +4,17 @@ import { TREE_PARENT_KEY, assembleTreeGridRows, listedTableFields, type UiTreeGr
 import { SfTreeGrid } from "../components/SfTreeGrid";
 import { buildSfTreeGridColumns } from "../sf_grid_column";
 import {
+  applyCompareColumnFilters,
+  createCompareColumnFilterStore,
+} from "./column_filter";
+import {
+  AG_MENU_DATE_OPERATORS,
+  AG_MENU_NUMBER_OPERATORS,
+  AG_MENU_STRING_OPERATORS,
+  applyMenuOperators,
+  gridFiltersToModel,
+  keepAgMenuOperators,
+  menuFilterOperators,
   refreshRefEditParams,
 } from "./utils";
 
@@ -57,10 +68,22 @@ export const treeGridRenderers = {
       return onSave?.(field, row, value, previousValue);
     };
 
+    const allowFiltering = props.filterable !== false;
+    const compareFilterStore = createCompareColumnFilterStore();
+    const filterExtras = {
+      filterModel: props.filterModel,
+      dateRangeLabels: props.dateRangeLabels,
+      filterLabels: props.filterLabels,
+      loadPivotDates: props.loadPivotDates,
+      store: compareFilterStore,
+      appContext,
+    };
     const columns = buildSfTreeGridColumns(metaUi, {
       allowSorting: props.sortable !== false,
+      allowFiltering,
       editable: inplaceEdit,
       fieldCellEditors: fieldEditors,
+      filterExtras,
     });
 
     return h(SfTreeGrid, {
@@ -78,7 +101,10 @@ export const treeGridRenderers = {
         enableCollapseAll: loadMode === "full",
         allowPaging: false,
         allowSorting: props.sortable !== false,
-        allowFiltering: false,
+        allowFiltering,
+        filterSettings: allowFiltering
+          ? { type: "Menu", operators: menuFilterOperators() }
+          : undefined,
         allowResizing: true,
         // 官方单元格编辑：editSettings.mode = Cell
         // https://ej2.syncfusion.com/vue/documentation/treegrid/editing/cell-editing
@@ -96,6 +122,24 @@ export const treeGridRenderers = {
         expanding: (args: any) => {
           if (loadMode !== "lazy") return;
           void Promise.resolve(props.onExpand?.(args?.data as T));
+        },
+        actionBegin: (args: any) => {
+          if (args?.requestType !== "filterBeforeOpen") return;
+          const customOps = args.filterModel?.customFilterOperators;
+          keepAgMenuOperators(customOps?.stringOperator, AG_MENU_STRING_OPERATORS);
+          applyMenuOperators(customOps?.numberOperator, AG_MENU_NUMBER_OPERATORS);
+          applyMenuOperators(customOps?.dateOperator, AG_MENU_DATE_OPERATORS);
+          applyMenuOperators(customOps?.datetimeOperator, AG_MENU_DATE_OPERATORS);
+        },
+        actionComplete: (args: any) => {
+          if (args?.requestType !== "filtering" || !props.onFilterModelChange) {
+            return;
+          }
+          const model = applyCompareColumnFilters(
+            gridFiltersToModel(args.columns ?? args.rows, fields),
+            compareFilterStore,
+          );
+          void props.onFilterModelChange(model);
         },
         cellEdit(this: any, args: any) {
           if (!inplaceEdit) return;

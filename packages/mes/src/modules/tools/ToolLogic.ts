@@ -38,21 +38,21 @@ const lendData = {
 	data: {
 		ownerID: '',
 	},
-});
+};
 // 移动参数
 const moveData = {
 	data: {} as any,
-});
+};
 // 维修参数
 const repairData = {
 	data: {
 		ownerID: '',
 	},
-});
+};
 // 归还参数
 const returnData = {
 	data: {} as any,
-});
+};
 
 // 批量检修接口参数
 const Overhaulparams = {
@@ -61,7 +61,7 @@ const Overhaulparams = {
 		refName: "Tool|batchOverhaul",
 		refItemKeys: []
 	},
-})
+};
 
 // 批量改制接口参数
 const Retrofitparams = {
@@ -70,7 +70,7 @@ const Retrofitparams = {
 		refName: "Tool|batchRetrofit",
 		refItemKeys: []
 	},
-})
+};
 
 // 批量维修接口参数
 const Repairparams = {
@@ -79,7 +79,7 @@ const Repairparams = {
 		refName: "Tool|batchRepair",
 		refItemKeys: []
 	},
-})
+};
 
 const propsData = {
 	// 检修参数
@@ -91,7 +91,7 @@ const propsData = {
 		},
 		service: 'mes',
 	},
-})
+};
 /**
  * 获取create标识
  */
@@ -1724,14 +1724,34 @@ try {
 	 * @param {number} childrenCount - 需具类别的子节点数量
 	 * @param {any} params - 删除参数
 	 */
-	deleteFn(ctx: UiContext, childrenCount: number, params: any) {
+	async deleteFn(ctx: UiContext, childrenCount: number, params: any) {
 		try {
 			if (await ctx.uiBuilder.confirm(ctx, {
 				message: ctx.t('tool.deleteCategoryConfirm'),
 				title: ctx.t('tool.category')
 			})) {
-if (childrenCount) {
-						return await this.apiClient.deleteAll(params, this.treeProps.deleteAllUrlParams).then((res: any) => {
+				if (childrenCount) {
+					return await this.apiClient.deleteAll(params, this.treeProps.deleteAllUrlParams).then((res: any) => {
+						this.searchFn(ctx);
+						ctx.uiBuilder.toast(ctx, {
+							severity: 'success',
+							title: ctx.t('dialog.success'),
+							message: ctx.t('success.operationSuccessful'),
+							life: 3000
+						})
+					})
+						.catch((err: any) => {
+							ctx.uiBuilder.toast(ctx, {
+								severity: 'error',
+								title: ctx.t('dialog.title.error'),
+								message: err.message ?? ctx.t('auth.operationFailed'),
+								life: 3000
+							})
+						});
+				} else {
+					const res: any = this.apiClient.http.deleteJson(`${this.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
+					res
+						.then((res: any) => {
 							this.searchFn(ctx);
 							ctx.uiBuilder.toast(ctx, {
 								severity: 'success',
@@ -1740,36 +1760,16 @@ if (childrenCount) {
 								life: 3000
 							})
 						})
-							.catch((err: any) => {
-								ctx.uiBuilder.toast(ctx, {
-									severity: 'error',
-									title: ctx.t('dialog.title.error'),
-									message: err.message ?? ctx.t('auth.operationFailed'),
-									life: 3000
-								})
-							});
-					} else {
-						const res: any = this.apiClient.http.deleteJson(`${this.treeProps.deleteJsonUrl}/${params.categoryID}`, params.categoryID);
-						res
-							.then((res: any) => {
-								this.searchFn(ctx);
-								ctx.uiBuilder.toast(ctx, {
-									severity: 'success',
-									title: ctx.t('dialog.success'),
-									message: ctx.t('success.operationSuccessful'),
-									life: 3000
-								})
+						.catch((err: any) => {
+							ctx.uiBuilder.toast(ctx, {
+								severity: 'error',
+								title: ctx.t('dialog.title.error'),
+								message: err.message ?? ctx.t('auth.operationFailed'),
+								life: 3000
 							})
-							.catch((err: any) => {
-								ctx.uiBuilder.toast(ctx, {
-									severity: 'error',
-									title: ctx.t('dialog.title.error'),
-									message: err.message ?? ctx.t('auth.operationFailed'),
-									life: 3000
-								})
-							});
-					}
-};
+						});
+				}
+			}
 		} catch (error: any) {
 			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',

@@ -5,7 +5,6 @@ import { label, UI_CREATE } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
-import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 import ProjectTaskEditor from '@/modules/project_tasks/ProjectTaskEditor';
 

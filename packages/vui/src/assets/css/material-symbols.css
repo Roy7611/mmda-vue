@@ -7,7 +7,7 @@
  *
  *   import '@mmda/vui/material-symbols.css'
  */
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&icon_names=drag_indicator&display=block");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&icon_names=cloud_off,drag_indicator,error,wifi_off&display=block");
 
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined";

@@ -33,7 +33,7 @@ chrome 路径导航，走 `factory.breadcrumb`。EJ2 见 [Breadcrumb Vue 3 getti
 | `label` | `text` | `label` | 文本 |
 | `icon` | `iconCss`（经 `resolveIcon`） | `icon` | `<i>` |
 | `to` | `enableNavigation: false` + `itemClick` → `router.push` | RouterLink / `to` | RouterLink |
-| `separator` | `separatorTemplate` | 厂商默认（可忽略） | 文案节点 |
+| `separator` | 默认吃 EJ2 `/`；非 `/` 才传 `separatorTemplate` | 厂商默认（可忽略） | 文案节点 |
 
 ## 源码
 

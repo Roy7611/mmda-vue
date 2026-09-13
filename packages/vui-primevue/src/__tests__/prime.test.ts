@@ -297,7 +297,7 @@ describe('PrimeVue skin', () => {
       headerPlacement: 'Left',
       scrollable: false,
     })
-    expect(vnode.props?.value).toBe(1)
+    expect(vnode.props?.value).toBe('content1')
     expect(vnode.props?.scrollable).toBe(false)
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -306,6 +306,7 @@ describe('PrimeVue skin', () => {
     expect(cls).toContain('mmda-tabs--left')
     expect(cls).toContain('mmda-tabs--popup')
     expect(cls).toContain('mmda-tabs--fill')
+    expect(cls).toContain('mmda-tabs--demand')
   })
 
   it('maps factory.toolbar start center end slots', () => {
@@ -1092,14 +1093,19 @@ describe('PrimeVue skin', () => {
       'action.more',
     ])
     expect(buttons[4].props.severity).toBe('danger')
-    expect(buttons[5].props.model.map((item: any) => item.label)).toEqual([
+    expect(buttons[5].props.model.map((item: any) =>
+      item.separator ? { separator: true } : item.label,
+    )).toEqual([
       'action.print',
       'action.export',
       'action.import',
+      { separator: true },
+      'action.pageLayoutCards',
+      'action.pageLayoutTabs',
     ])
     expect(buttons[5].props.text).toBeFalsy()
     expect(buttons[5].props.severity).toBe('secondary')
-    expect(buttons[5].props.icon).toBeFalsy()
+    expect(buttons[5].props.icon).toBe('pi pi-ellipsis-v')
   })
 })
 
@@ -1135,6 +1141,32 @@ describe('prime column filter join/multi', () => {
     const applied = applyPrimeColumnFilter(field, state)
     expect(applied?.filterType).toBe('multi')
     expect((applied as any).filterModels[1].values).toEqual(['LABOR', 'PART'])
+  })
+
+  it('hydrates BETWEEN+dateKind as WITHIN and applies dateKindFilter', () => {
+    const field = {
+      fieldName: 'createdAt',
+      dataType: 191,
+      nullable: true,
+    } as any
+    const state = hydratePrimeColumnFilter(field, {
+      filterType: 'date',
+      operator: 'BETWEEN',
+      dateKind: 'TODAY',
+    })
+    expect(state.operator).toBe('WITHIN')
+    expect(state.dateKind).toBe('TODAY')
+    expect(applyPrimeColumnFilter(field, state)).toEqual({
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: 'TODAY',
+    })
+    state.dateKind = 'YESTERDAY'
+    expect(applyPrimeColumnFilter(field, state)).toEqual({
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: 'YESTERDAY',
+    })
   })
 
   it('does not searchAll on hydrate for hasOne', () => {

@@ -3,20 +3,26 @@ import type {
   EntitySearchParam,
   Sort,
 } from "@mmda/core";
+import { readStoredPageSize } from "../../app/theme";
 
 /**
  * 列表远程查询：排序/过滤只写 `searchParam`，皮肤必须等返回的 Promise
  * 再回写 dataSource（Syncfusion custom binding 转圈就是没等）。
  */
+function ensurePager(searchParam: EntitySearchParam) {
+  if (!searchParam.pager) {
+    searchParam.pager = { pageNo: 1, pageSize: readStoredPageSize() };
+  }
+  return searchParam.pager;
+}
+
 export function writeListSorts(
   searchParam: EntitySearchParam,
   sorts: Sort[],
 ): EntitySearchParam {
-  if (!searchParam.pager) {
-    searchParam.pager = { pageNo: 1, pageSize: 20 };
-  }
-  searchParam.pager.sorts = sorts;
-  searchParam.pager.pageNo = 1;
+  const pager = ensurePager(searchParam);
+  pager.sorts = sorts;
+  pager.pageNo = 1;
   return searchParam;
 }
 
@@ -24,12 +30,10 @@ export function writeListFilterModel(
   searchParam: EntitySearchParam,
   filterModel: EntityFilterModel,
 ): EntitySearchParam {
-  if (!searchParam.pager) {
-    searchParam.pager = { pageNo: 1, pageSize: 20 };
-  }
+  const pager = ensurePager(searchParam);
   const keys = Object.keys(filterModel ?? {});
   searchParam.filterModel = keys.length > 0 ? filterModel : undefined;
-  searchParam.pager.pageNo = 1;
+  pager.pageNo = 1;
   return searchParam;
 }
 

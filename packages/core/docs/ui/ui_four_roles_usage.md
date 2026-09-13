@@ -84,18 +84,18 @@ layout.scaffold({
 
 ```ts
 // 索引
-ui.buildIndexView?.(context, {
+ui.buildIndexView(context, {
   showToolbar: true,
   showSearchbar: true,
   display: 'table', // 可省：只读 table / 可编 grid / 树 treeGrid / 移动 list
 } satisfies UiListViewProps)
 
 // 选择器（与 Index 同形；勾选由 context.view 决定）
-ui.buildSelectView?.(context, { selectionMode: 'multiple' })
+ui.buildSelectView(context, { selectionMode: 'multiple' })
 
 // 详情 / 编辑（create 与 edit 同一入口，靠 context.view）
-ui.buildDetailsView?.(context, { primaryCols: 2 } satisfies UiViewProps)
-ui.buildEditView?.(context, { showAttachments: true })
+ui.buildDetailsView(context, { primaryCols: 2 } satisfies UiViewProps)
+ui.buildEditView(context, { showAttachments: true })
 
 // 共享实现（自定义屏也可直接调）
 ui.buildEntityView(context, props)
@@ -150,10 +150,10 @@ fld.checkedIcon?.(field, context, cellProps)
 
 ```ts
 // 主表组（group.many === false）
-ui.buildFieldGroup?.(group, context)
+ui.buildFieldGroup(group, context)
 
 // 子表（group.many === true）→ 内部 factory.grid | treeGrid
-ui.buildSubGroup?.(group, context)
+ui.buildSubGroup(group, context)
 ```
 
 不要一个 `buildGroup` 兼管主表与子表。
@@ -161,7 +161,7 @@ ui.buildSubGroup?.(group, context)
 ## 左树右表
 
 ```ts
-ui.buildExplorerView?.(context, {
+ui.buildExplorerView(context, {
   viewKind: 'categoryList',
   foreignKey: 'categoryId',
   treeWidth: '16rem',

@@ -1,18 +1,6 @@
-import { h, type VNode } from 'vue'
-import type { UiListTileSlots } from '@mmda/core'
 import { VueUiLayout } from '@mmda/vui'
 
-export class AgNaiveLayout extends VueUiLayout {
-  listTile(slots: UiListTileSlots<VNode>): VNode {
-    return h('article', { class: 'mmda-list-tile' }, [
-      slots.leading?.(),
-      h('div', { class: 'mmda-list-tile__content' }, [
-        slots.title(),
-        slots.subtitle?.(),
-      ]),
-      slots.trailing?.(),
-    ])
-  }
-}
+/** listTile 走 AbstractUiLayout 三槽 nowrap flex，不覆写。 */
+export class AgNaiveLayout extends VueUiLayout {}
 
 export const agNaiveLayout = new AgNaiveLayout()

@@ -1,3 +1,4 @@
+import { uiCssClass } from "@mmda/core";
 import {
   defineComponent,
   h,
@@ -43,7 +44,7 @@ function mergeTreeNodes<T>(
   return [...byId.values()];
 }
 
-const TreeView = defineComponent({
+export const TreeView = defineComponent({
   name: "TreeView",
   props: {
     spec: { type: Object as PropType<UiTreeViewPropsType>, required: true },
@@ -169,16 +170,16 @@ const TreeView = defineComponent({
       return h(
         "div",
         {
-          class: "mmda-tree-view",
+          class: uiCssClass("tree-view"),
           "data-mmda-tree-actions": mode,
         },
         [
           hasHeader
-            ? h("div", { class: "mmda-tree-view-header" }, header as any)
+            ? h("div", { class: uiCssClass("tree-view", "header") }, header as any)
             : showSearch
               ? h(
                   "div",
-                  { class: "mmda-tree-view-search" },
+                  { class: uiCssClass("tree-view", "search") },
                   factory.textInput({
                     value: query.value,
                     placeholder: translateMessage("action.filter"),
@@ -233,7 +234,7 @@ const TreeViewBody = defineComponent({
       const spec = props.spec;
       return h(
         "div",
-        { class: "mmda-tree-view-body" },
+        { class: uiCssClass("tree-view", "body") },
         props.factory.tree({
           data: props.treeData,
           fields: spec.fields,
@@ -287,16 +288,27 @@ const TreeViewFooter = defineComponent({
         (node
           ? h(
               "span",
-              { class: "mmda-tree-view-footer-label" },
+              { class: uiCssClass("tree-view", "footer-label") },
               treeLabelOf(node, spec.fields),
             )
           : null);
-      return h("footer", { class: "mmda-tree-view-footer mmda-user-footer" }, [
+      return h(
+        "footer",
+        {
+          class: [
+            uiCssClass("tree-view", "footer"),
+            uiCssClass("user-footer"),
+          ],
+        },
+        [
         footerMain
           ? h(
               "div",
               {
-                class: "mmda-tree-view-footer-main mmda-user-footer__name",
+                class: [
+                  uiCssClass("tree-view", "footer-main"),
+                  uiCssClass("user-footer", "name"),
+                ],
               },
               [footerMain],
             )

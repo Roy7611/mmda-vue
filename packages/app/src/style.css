@@ -22,7 +22,6 @@ textarea {
   font: inherit;
 }
 
-.mmda-app,
 .mmda-list-view {
   height: 100%;
   min-width: 0;
@@ -34,9 +33,9 @@ textarea {
   background: transparent;
 }
 
-.mmda-list-view .mmda-page-body,
-.mmda-tree-list-view .mmda-page-body,
-.mmda-tree-grid-view .mmda-page-body {
+.mmda-list-view .mmda-page__body,
+.mmda-tree-list-view .mmda-page__body,
+.mmda-tree-grid-view .mmda-page__body {
   min-width: 0;
   min-height: 0;
 }
@@ -54,21 +53,23 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 100%;
-  padding: 0;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
   user-select: none;
 }
 
-.mmda-app-logo__img,
-.mmda-app-logo__img img,
-.mmda-app-logo img {
-  width: 100%;
-  max-width: 100%;
-  max-height: 2.75rem;
+.mmda-app-logo__img {
+  display: block;
+  width: auto;
   height: auto;
-  flex: 0 0 auto;
+  max-width: 100%;
+  max-height: 3rem;
   object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
 }
 
 .mmda-user-footer__button.e-btn,

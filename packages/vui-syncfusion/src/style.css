@@ -515,48 +515,43 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   --color-sf-scrim: 0, 0, 0;
 }
 
-.mmda-app {
-  min-height: 100%;
-  height: 100%;
-}
-
 /*
  * 默认 flat（MD3 Filled / Outlined，非 Elevated）：
  * Syncfusion Material3 给 .e-card / .e-btn 加了 elevation 阴影；整体关掉。
  * 层级靠描边与 surface 色差表达，不靠投影。
  */
-.mmda-app .e-card,
+#app .e-card,
 .e-card.mmda-group {
   box-shadow: none;
 }
 
-.mmda-app .e-card:hover,
-.mmda-app .e-card:focus,
+#app .e-card:hover,
+#app .e-card:focus,
 .e-card.mmda-group:hover,
 .e-card.mmda-group:focus {
   box-shadow: none;
 }
 
-.mmda-app .e-btn,
-.mmda-app .e-css.e-btn,
-.mmda-app .e-dropdown-btn,
-.mmda-app .e-split-btn,
-.mmda-app .e-btn-group {
+#app .e-btn,
+#app .e-css.e-btn,
+#app .e-dropdown-btn,
+#app .e-split-btn,
+#app .e-btn-group {
   box-shadow: none;
 }
 
-.mmda-app .e-btn:hover,
-.mmda-app .e-btn:focus,
-.mmda-app .e-btn:active,
-.mmda-app .e-css.e-btn:hover,
-.mmda-app .e-css.e-btn:focus,
-.mmda-app .e-css.e-btn:active,
-.mmda-app .e-dropdown-btn:hover,
-.mmda-app .e-dropdown-btn:focus,
-.mmda-app .e-dropdown-btn:active,
-.mmda-app .e-split-btn:hover,
-.mmda-app .e-split-btn:focus,
-.mmda-app .e-split-btn:active {
+#app .e-btn:hover,
+#app .e-btn:focus,
+#app .e-btn:active,
+#app .e-css.e-btn:hover,
+#app .e-css.e-btn:focus,
+#app .e-css.e-btn:active,
+#app .e-dropdown-btn:hover,
+#app .e-dropdown-btn:focus,
+#app .e-dropdown-btn:active,
+#app .e-split-btn:hover,
+#app .e-split-btn:focus,
+#app .e-split-btn:active {
   box-shadow: none;
 }
 
@@ -1310,7 +1305,8 @@ html.e-dark-mode .mmda-dropup {
   min-height: 0;
 }
 
-.mmda-app-page > .mmda-entity-page-loading {
+.mmda-app-page > .mmda-entity-page-loading,
+.mmda-app-page > .mmda-error-retry {
   display: grid;
   place-items: center;
   width: 100%;
@@ -1342,15 +1338,15 @@ html.e-dark-mode .mmda-dropup {
 }
 
 /* 工具栏贴顶满宽；表格区左右留白，避免贴边 */
-.mmda-app-page .mmda-list-view > .mmda-page-header,
+.mmda-app-page .mmda-list-view > .mmda-page__header,
 .mmda-app-page .mmda-list-view > header {
   flex: 0 0 auto;
   margin: 0;
   padding: 0;
 }
 
-.mmda-app-page .mmda-list-view > .mmda-page-body,
-.mmda-app-page .mmda-tree-grid-view > .mmda-page-body,
+.mmda-app-page .mmda-list-view > .mmda-page__body,
+.mmda-app-page .mmda-tree-grid-view > .mmda-page__body,
 .mmda-app-page .mmda-list-view > .mmda-footer,
 .mmda-app-page .mmda-list-view > footer {
   margin-inline: 1rem;
@@ -1360,13 +1356,13 @@ html.e-dark-mode .mmda-dropup {
   padding: 0;
 }
 
-.mmda-app-page .mmda-page > .mmda-page-body {
+.mmda-app-page .mmda-page > .mmda-page__body {
   margin-inline: 1rem;
   margin-block-start: 0.75rem;
 }
 
-.mmda-app-page .mmda-list-view .mmda-page-body,
-.mmda-app-page .mmda-tree-grid-view .mmda-page-body {
+.mmda-app-page .mmda-list-view .mmda-page__body,
+.mmda-app-page .mmda-tree-grid-view .mmda-page__body {
   flex: 1 1 auto;
   /* flex 默认 min-width:auto = 列宽之和，父级会被撑出视口，EJ2 就不再出横向条 */
   min-width: 0;
@@ -1396,7 +1392,7 @@ html.e-dark-mode .mmda-dropup {
   min-width: 0;
 }
 
-.mmda-app-page .mmda-tree-list-view .e-pane .mmda-page-body {
+.mmda-app-page .mmda-tree-list-view .e-pane .mmda-page__body {
   height: 100%;
   min-width: 0;
   overflow: hidden !important;
@@ -1406,12 +1402,12 @@ html.e-dark-mode .mmda-dropup {
   height: 100% !important;
 }
 
-.mmda-app-page .mmda-tree-view-search .e-input-group,
-.mmda-app-page .mmda-tree-view-search .e-control-wrapper {
+.mmda-app-page .mmda-tree-view__search .e-input-group,
+.mmda-app-page .mmda-tree-view__search .e-control-wrapper {
   width: 100%;
 }
 
-.mmda-app-page .mmda-tree-view-footer {
+.mmda-app-page .mmda-tree-view__footer {
   background: var(--mmda-surface-card, #fff);
   border-top-color: var(--mmda-content-border-color, #e5e7eb);
   color: var(--mmda-text-color);
@@ -1426,7 +1422,7 @@ html.e-dark-mode .mmda-dropup {
   margin-bottom: var(--mmda-page-end-space, 3rem);
 }
 
-.mmda-app-page .mmda-view {
+.mmda-app-page .mmda-view__one .mmda-page {
   height: 100%;
   min-height: 0;
   overflow: auto;
@@ -1466,7 +1462,7 @@ html.e-dark-mode .mmda-dropup {
 
 /* 工具栏默认左右两栏；有搜索中区时再三列均分。
  * 独立使用（列表页）：固定高度、贴顶直角。
- * 嵌在 .mmda-page-header 内时由主题层盖底（padding/border 清零）。 */
+ * 嵌在 .mmda-page__header 内时由主题层盖底（padding/border 清零）。 */
 .mmda-toolbar {
   display: flex;
   align-items: center;
@@ -1870,13 +1866,13 @@ html.e-dark-mode .mmda-dropup {
 }
 
 /*
- * 折叠钮：贴在侧栏右缘、相对标题行的半胶囊浮层（不占文档流）。
+ * 折叠钮：贴在侧栏右缘的半胶囊浮层（不占文档流）。
  * left 与 Sidebar width / dockSize 对齐：展开 300px，收起 72px。
- * 相对原标题中线再下移 2/3 耳朵高度（高 2.75rem）。
+ * 垂直对齐右侧摘要折叠钮：侧栏中线（top:50% + translateY(-50%)）。
  */
 .mmda-app-side-menu__collapse {
   position: absolute;
-  top: calc(1.625rem + 8px + 2.75rem * 2 / 3);
+  top: 50%;
   left: 300px;
   z-index: 6;
   display: inline-flex;
@@ -2321,9 +2317,9 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   background: var(--mmda-surface-group, #fff);
 }
 
-.e-card.mmda-group > .mmda-group-header,
+.e-card.mmda-group > .mmda-group__header,
 .e-card.mmda-group > .e-collapse,
-.e-card.mmda-group > .mmda-group-footer {
+.e-card.mmda-group > .mmda-group__footer {
   align-self: stretch;
   width: 100%;
   max-width: 100%;
@@ -2331,19 +2327,19 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   box-sizing: border-box;
 }
 
-.e-card.mmda-group > .mmda-group-header {
+.e-card.mmda-group > .mmda-group__header {
   flex-shrink: 0;
 }
 
 .e-card.mmda-group .e-collapse-inner,
-.e-card.mmda-group .mmda-group-body {
+.e-card.mmda-group .mmda-group__body {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
 }
 
-.e-card.mmda-group .mmda-group-header {
+.e-card.mmda-group .mmda-group__header {
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -2356,8 +2352,8 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
     );
 }
 
-.e-card.mmda-group .e-card-header .e-card-header-caption .mmda-group-title.e-card-header-title,
-.e-card.mmda-group .mmda-group-title {
+.e-card.mmda-group .e-card-header .e-card-header-caption .mmda-group__title.e-card-header-title,
+.e-card.mmda-group .mmda-group__title {
   flex: 1 1 auto;
   /* 压过 Material3 .e-card-header-title { font-weight: normal } */
   font-weight: 700;
@@ -2368,7 +2364,7 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   min-width: 0;
 }
 
-.e-card.mmda-group .mmda-group-actions {
+.e-card.mmda-group .mmda-group__actions {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -2376,13 +2372,13 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   margin-inline-start: auto;
 }
 
-.e-card.mmda-group .mmda-group-action-group {
+.e-card.mmda-group .mmda-group__action-group {
   display: inline-flex;
   align-items: center;
   gap: 0;
 }
 
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action {
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2398,8 +2394,8 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   overflow: hidden;
 }
 
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action:hover,
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action:focus-visible {
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action:hover,
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action:focus-visible {
   background: color-mix(
     in srgb,
     var(--mmda-on-surface-variant, #49454f) 12%,
@@ -2407,8 +2403,8 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   );
 }
 
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action.e-danger:hover,
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action.e-danger:focus-visible {
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action.e-danger:hover,
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action.e-danger:focus-visible {
   background: color-mix(
     in srgb,
     var(--mmda-danger-color, #b3261e) 14%,
@@ -2416,7 +2412,7 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   );
 }
 
-.e-card.mmda-group .mmda-group-actions .e-btn.mmda-group-action .e-btn-icon {
+.e-card.mmda-group .mmda-group__actions .e-btn.mmda-group__action .e-btn-icon {
   margin: 0;
   font-size: 1rem;
 }
@@ -2528,7 +2524,7 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
   text-align: center;
 }
 
-.e-card.mmda-group .mmda-group-toggle.e-icons {
+.e-card.mmda-group .mmda-group__toggle.e-icons {
   flex: 0 0 auto;
   margin-inline-start: 0;
   font-size: 12px;
@@ -2556,7 +2552,7 @@ html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus 
  */
 html.mmda-dark .mmda-pagable-table,
 html.mmda-dark .mmda-list-view,
-html.mmda-dark .mmda-page-body,
+html.mmda-dark .mmda-page__body,
 html.mmda-dark .mmda-main,
 html.mmda-dark .mmda-app-page {
   background-color: var(--mmda-surface-ground, #1c1b1f);
@@ -2565,7 +2561,7 @@ html.mmda-dark .mmda-app-page {
 
 html.mmda-dark #mmda-app-sidebar.e-sidebar,
 html.mmda-dark .mmda-sidebar__footer,
-html.mmda-dark .mmda-app-page .mmda-tree-view-footer {
+html.mmda-dark .mmda-app-page .mmda-tree-view__footer {
   background: var(--mmda-surface-card, #211f26);
   border-color: var(--mmda-content-border-color, #49454f);
   color: var(--mmda-text-color, #e6e1e5);
@@ -2578,6 +2574,24 @@ html.mmda-dark .e-grid .e-gridcontent,
 html.mmda-dark .e-grid .e-content,
 html.mmda-dark .e-grid .e-table {
   border-color: var(--mmda-content-border-color, #49454f);
+}
+
+.mmda-compare-column-filter {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 13rem;
+}
+
+.mmda-compare-column-filter__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mmda-compare-column-filter__sep {
+  color: var(--mmda-text-muted-color, #49454f);
+  white-space: nowrap;
 }
 
 .mmda-filter-range {
@@ -2597,13 +2611,105 @@ html.mmda-dark .e-grid .e-table {
   gap: 0.5rem;
 }
 
-.mmda-filter-range__value--to[hidden] {
+.mmda-filter-range__value--to[hidden],
+.mmda-filter-range__span[hidden],
+.mmda-filter-range__kind[hidden],
+.mmda-filter-range__value[hidden] {
   display: none;
 }
 
 .mmda-filter-range__separator {
   color: var(--mmda-text-muted-color, #49454f);
   white-space: nowrap;
+}
+
+.mmda-filter-date-extra {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  min-width: 13rem;
+}
+
+.mmda-filter-date-extra__row {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.mmda-filter-date-extra__label {
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.mmda-filter-multi {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 13rem;
+}
+
+.mmda-filter-multi__set-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-filter-multi__set-toggle::after {
+  content: "▸";
+  font-size: 0.75rem;
+}
+
+.mmda-filter-multi__set.is-open > .mmda-filter-multi__set-toggle::after {
+  content: "▾";
+}
+
+.mmda-filter-multi__set-body[hidden] {
+  display: none;
+}
+
+.e-flmenu .flm-input,
+.e-flmenu .mmda-date-set-dropdown,
+.e-flmenu .e-ddt {
+  width: 100%;
+}
+
+.mmda-date-set-node__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.12rem 0;
+  cursor: pointer;
+}
+
+.mmda-date-set-node__kids {
+  padding-left: 1.15rem;
+}
+
+.mmda-filter-multi__set-empty {
+  color: var(--mmda-text-muted-color, #49454f);
+  font-size: 0.8125rem;
+  padding: 0.5rem 0;
+}
+
+.e-dialog.e-flmenu,
+.e-flmenu.e-dialog {
+  height: auto !important;
+  max-height: none;
+  overflow: visible;
+}
+
+.e-flmenu .e-dlg-content,
+.e-flmenu .e-flmenu-valuediv {
+  overflow: visible;
+  height: auto !important;
+  max-height: none;
 }
 
 .mmda-breadcrumb.e-breadcrumb,
@@ -2633,19 +2739,7 @@ html.mmda-dark .e-grid .e-table {
   opacity: 0.85;
 }
 
-/*
- * EJ2 Vue 下 separator li 经常是空节点（无 wrapper、无文本）。
- * 用 ::before 画分隔符。注意：--mmda-breadcrumb-sep 必须是带引号的 CSS 字符串，
- * 否则 content: var(...) 非法，伪元素高度为 0。
- */
-.mmda-breadcrumb .e-breadcrumb-separator::before,
-.mmda-breadcrumb__sep::before {
-  content: var(--mmda-breadcrumb-sep, "/");
-  display: inline-block;
-  font-size: inherit;
-  line-height: inherit;
-}
-
+/* 分隔符吃 EJ2 默认文本（"/"）；勿再 ::before 叠画，否则会出现两条。 */
 .mmda-breadcrumb .e-breadcrumb-separator,
 .mmda-breadcrumb__sep {
   display: inline-flex;
@@ -2839,7 +2933,7 @@ html.mmda-dark .e-grid .e-table {
   min-height: 0;
 }
 
-.e-dialog.mmda-dialog .mmda-list-view .mmda-page-body,
+.e-dialog.mmda-dialog .mmda-list-view .mmda-page__body,
 .e-dialog.mmda-dialog .mmda-list-view .mmda-pagable-table {
   flex: 1 1 auto;
   min-height: 0;

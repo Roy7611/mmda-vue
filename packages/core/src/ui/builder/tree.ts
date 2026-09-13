@@ -10,6 +10,7 @@ export interface UiTreeViewProps<T = any, TNode = any>
   showSearchBar?: boolean
   /** 树底插槽。为 true 时渲染 `footer`。 */
   showTreeFooter?: boolean
+  /** 是否可编辑树节点、添加、删除子节点等操作。 */
   editable?: boolean
   /** 分类仓库。CategoryList 用来做节点 CRUD 与模块权限。 */
   repository?: string
@@ -26,14 +27,14 @@ export interface UiTreeViewProps<T = any, TNode = any>
   preloader?: () => T[] | Promise<T[]>
   /** CRUD 后递增，TreeView 重新取数。 */
   reloadTick?: { value: number }
+  /** 添加节点后回调。 */
   onNodeAdd?: (parent?: T) => void
+  /** 添加同级节点后回调。 */
   onNodeAddSibling?: (node: T) => void
+  /** 删除节点后回调。 */
   onNodeDelete?: (node: T) => void
   /** 分类树落库后刷新节点。 */
   onTreeRefresh?: () => void | Promise<void>
 }
 
-export type {
-  UiExplorerViewProps,
-  UiTreeListViewProps,
-} from './explorer'
+export type { UiExplorerViewProps } from './explorer'

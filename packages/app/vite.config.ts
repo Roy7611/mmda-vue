@@ -2,7 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-import { syncfusionThemeAliases } from '@mmda/vui-syncfusion/vite'
+import { syncfusionThemeAliases } from '../vui-syncfusion/vite_aliases'
 
 const root = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 const pkg = (name: string) => root(`../${name}/src/index.ts`)
@@ -33,26 +33,9 @@ export default defineConfig({
   base: '/',
   plugins: [packageLocalAlias(), vue(), vueJsx()],
   resolve: {
-    dedupe: [
-      '@syncfusion/ej2-base',
-      '@syncfusion/ej2-grids',
-      '@syncfusion/ej2-gantt',
-      '@syncfusion/ej2-schedule',
-      '@syncfusion/ej2-pivotview',
-      '@syncfusion/ej2-data',
-      '@syncfusion/ej2-vue-base',
-      '@syncfusion/ej2-vue-grids',
-      '@syncfusion/ej2-vue-layouts',
-      '@syncfusion/ej2-vue-gantt',
-      '@syncfusion/ej2-vue-schedule',
-      '@syncfusion/ej2-vue-pivotview',
-      '@syncfusion/ej2-querybuilder',
-      '@syncfusion/ej2-vue-querybuilder',
-      '@syncfusion/ej2-kanban',
-      '@syncfusion/ej2-vue-kanban',
-      'vue',
-    ],
+    dedupe: ['vue'],
     alias: [
+      ...syncfusionThemeAliases,
       {
         find: /^@mmda\/base\/(.*)$/,
         replacement: `${root('../base')}/$1`,
@@ -73,15 +56,12 @@ export default defineConfig({
         find: '@mmda/vui/material-symbols.css',
         replacement: root('../vui/src/assets/css/material-symbols.css'),
       },
-      {
-        find: '@mmda/vui-syncfusion/fontawesome.css',
-        replacement: root('../vui/src/assets/css/fontawesome.css'),
-      },
-      ...syncfusionThemeAliases,
       { find: '@mmda/core', replacement: pkg('core') },
       { find: '@mmda/vuix-vditor-markdown', replacement: pkg('vuix-vditor-markdown') },
-      // Exact match only — prefix alias breaks package exports like
-      // `@mmda/vui-syncfusion/image-editor` → `index.ts/image-editor`.
+      { find: '@mmda/vui-syncfusion/gantt', replacement: root('../vui-syncfusion/src/gantt_plugin.ts') },
+      { find: '@mmda/vui-syncfusion/kanban', replacement: root('../vui-syncfusion/src/kanban_plugin.ts') },
+      { find: '@mmda/vui-syncfusion/schedule', replacement: root('../vui-syncfusion/src/schedule_plugin.ts') },
+      { find: '@mmda/vui-syncfusion/pivot', replacement: root('../vui-syncfusion/src/pivot_plugin.ts') },
       { find: /^@mmda\/vui-syncfusion$/, replacement: pkg('vui-syncfusion') },
       { find: '@mmda/vui', replacement: pkg('vui') },
     ],

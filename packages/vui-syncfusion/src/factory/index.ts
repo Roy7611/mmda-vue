@@ -1,6 +1,6 @@
 import { h } from "vue";
 import type { UiProps, SyncfusionUiFactory, UiSlots } from "@mmda/vui"
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator } from "@mmda/vui"
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry } from "@mmda/vui"
 import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid_inject";
 import { createTableRenderer } from "./table";
@@ -95,6 +95,8 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       settings: "e-icons e-settings",
       more: "e-icons e-more-vertical-1",
       file: "e-icons e-file",
+      /** 详情页壳 cards ↔ tabs */
+      "page-layout": "e-icons e-table",
       "eye-slash": "fas fa-eye-slash",
       "dnd-vert": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
       "drag-indicator": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
@@ -170,6 +172,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       createTimeline(props, (name: string) => factory.resolveIcon(name)),
     skeleton: (props: any = {}) => createSkeleton(props),
     loading: (props: any = {}) => createLoading(props),
+    errorRetry: (props: any = {}) => createErrorRetry(props),
     speechToText: (props: any = {}) => createSpeechToText(props),
     datePicker: (props: any) => createDatePicker(props),
     monthPicker: (props: any) =>
@@ -241,11 +244,12 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     overlayRenderers(),
   );
   factory.splitter = createSplitterRenderer();
-  factory.table = createTableRenderer({
-    button,
-    paginator: factory.paginator,
-    resolveIcon: (icon: string) => factory.resolveIcon(icon),
-  });
+  factory.table = ((model: any, metaUi: any, props: any = {}) =>
+    createTableRenderer({
+      button,
+      paginator: factory.paginator,
+      resolveIcon: (icon: string) => factory.resolveIcon(icon),
+    })(model, metaUi, props)) as typeof factory.table;
   wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-pagable");
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
     factory.table(loader.model.list as any[], metadata.metaUi, {

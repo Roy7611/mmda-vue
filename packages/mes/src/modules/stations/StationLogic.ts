@@ -85,20 +85,7 @@ export class StationLogic extends EntityLogic<Station> {
 				// this.field('opCode')
 				// 	.hideIf(model => isLineIDEmpty(model))
 				// 	.refWhere((model, ctx) => {
-					const __p = ((ctx, model) => {
-				// 		return { lineID: model.lineID };
-				// 	})(ctx as any, model as any, undefined as any);
-					if (!__p) return "";
-					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
-						.map(([k, v]) => {
-							const s = String(v);
-							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
-							if (/^[><=]/.test(s)) return `${k}${s}`;
-							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
-						})
-						.join(" AND ");
-				})
+				// }) — orphaned __p body removed
 			);
 		}
 		if (groups.length == 0) {

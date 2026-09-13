@@ -1,13 +1,16 @@
 import { computed, defineComponent, h, type PropType, type VNode } from 'vue'
 import {
   compactAdvancedFilter,
+  DATE_RANGE_FILTER_KINDS,
   defaultAdvancedColumn,
   defaultAdvancedJoin,
   defaultQueryBuilderOperators,
   isAdvancedJoinFilter,
+  isDateRangeKind,
   queryBuilderColumnsOf,
   queryBuilderModifierClasses,
   queryBuilderValueOf,
+  type DateTimeRangeKind,
   type EntityAdvancedColumnFilter,
   type EntityAdvancedFilterModel,
   type EntityAdvancedJoinFilter,
@@ -36,11 +39,22 @@ function patchAt(
 }
 
 function operatorNeedsValue(op?: EntityFilterOperator): boolean {
-  return op !== 'IS_NULL' && op !== 'IS_NOT_NULL' && op !== 'IS_TRUE' && op !== 'IS_FALSE'
+  return (
+    op !== 'IS_NULL' &&
+    op !== 'IS_NOT_NULL' &&
+    op !== 'IS_BLANK' &&
+    op !== 'IS_NOT_BLANK' &&
+    op !== 'IS_TRUE' &&
+    op !== 'IS_FALSE'
+  )
 }
 
 function operatorNeedsRange(op?: EntityFilterOperator): boolean {
   return op === 'BETWEEN'
+}
+
+function operatorNeedsDateKind(op?: EntityFilterOperator): boolean {
+  return op === 'WITHIN'
 }
 
 function operatorNeedsList(op?: EntityFilterOperator): boolean {
@@ -123,6 +137,15 @@ export const QueryBuilderHost = defineComponent({
             : column?.valueType === 'date' || column?.valueType === 'datetime'
               ? 'date'
               : 'text'
+        if (operator === 'WITHIN') {
+          onPatch({
+            fieldName: leaf.fieldName,
+            filterType: 'date',
+            operator,
+            dateKind: isDateRangeKind(leaf.dateKind) ? leaf.dateKind : undefined,
+          })
+          return
+        }
         onPatch({
           fieldName: leaf.fieldName,
           filterType,
@@ -161,7 +184,34 @@ export const QueryBuilderHost = defineComponent({
         ),
       ]
       if (leaf.filterType !== 'boolean' && operatorNeedsValue(leaf.operator)) {
-        if (operatorNeedsList(leaf.operator)) {
+        if (operatorNeedsDateKind(leaf.operator)) {
+          children.push(
+            h(
+              'select',
+              {
+                class: 'mmda-querybuilder__value',
+                disabled: disabled.value,
+                value: leaf.dateKind ?? '',
+                onChange: (event: Event) => {
+                  const raw = (event.target as HTMLSelectElement).value
+                  onPatch({
+                    ...leaf,
+                    filterType: 'date',
+                    operator: 'WITHIN',
+                    dateKind: isDateRangeKind(raw)
+                      ? (raw as DateTimeRangeKind)
+                      : undefined,
+                    value: undefined,
+                    valueTo: undefined,
+                  })
+                },
+              },
+              DATE_RANGE_FILTER_KINDS.map((kind) =>
+                h('option', { value: kind }, kind),
+              ),
+            ),
+          )
+        } else if (operatorNeedsList(leaf.operator)) {
           children.push(
             h('input', {
               class: 'mmda-querybuilder__value',

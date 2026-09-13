@@ -30,7 +30,7 @@ export function WithNavigate<TBase extends Constructor>(
         this.selectionMode === "multiple"
       ) {
         if (!this.selectedItems.length) {
-          await this.app?.ui?.toast(this, {
+          await this.uiBuilder?.toast?.(this, {
             severity: "error",
             message: this.t("invalid.requiredSelectAny"),
           });
@@ -54,13 +54,16 @@ export function WithNavigate<TBase extends Constructor>(
       ) {
         this.selectedItems = [];
         this.selectionMode = null;
-        this.index();
-        return;
+        return this.index();
       }
       // details → index：写回 currentItem（含 doAction），不 search
       if (this.view === UiViewOne.Details) {
-        const model = this.model as Record<string, unknown> | undefined;
-        if (model) getModuleContext(this)?.applyCurrentRow(model);
+        try {
+          const model = this.model as Record<string, unknown> | undefined;
+          if (model) getModuleContext(this)?.applyCurrentRow(model);
+        } catch {
+          // 写回失败仍回列表，避免「返回」无响应
+        }
         return this.index();
       }
       // create/edit 放弃：回列表，不写 index
@@ -73,26 +76,44 @@ export function WithNavigate<TBase extends Constructor>(
       const service = (this.logic.serviceName ?? "base").toUpperCase();
       const repo = this.logic.repository;
       const root = `/${service}/${repo}`;
+      const push = (target: string | { path: string; query?: Record<string, string> }) =>
+        Promise.resolve(router.push(target)).catch(() => {
+          if (typeof router.back === "function") return router.back();
+        });
       if (view === UiViewMany.Index || view === UiViewMany.SelectMany) {
-        router.push({
+        return push({
           path: root,
           query: view === UiViewMany.SelectMany ? { view: "selectMany" } : {},
         });
-        return;
       }
       if (view === UiViewOne.Create) {
-        router.push(`${root}/Create`);
-        return;
+        return push(`${root}/Create`);
       }
       if (view === UiViewOne.Edit) {
-        router.push(`${root}/Edit/${id}`);
-        return;
+        return push(`${root}/Edit/${id}`);
       }
-      router.push(`${root}/${id}`);
+      return push(`${root}/${id}`);
     }
 
+    /** 回列表：优先按当前 URL 剥掉末段（详情/编辑），避免 logic 拼径与路由不一致时 push 空转。 */
     index() {
-      this.routeTo(UiViewMany.Index);
+      const router = this.router as
+        | { currentRoute?: { value?: { path?: string } }; push: (t: unknown) => unknown; back?: () => unknown }
+        | undefined;
+      const path = router?.currentRoute?.value?.path;
+      if (path && router) {
+        const parts = path.split("/").filter(Boolean);
+        // /MES/Materials/xxx 或 /MES/Materials/Edit/xxx → /MES/Materials
+        if (parts.length >= 3) {
+          const listPath = `/${parts[0]}/${parts[1]}`;
+          if (listPath !== path) {
+            return Promise.resolve(router.push({ path: listPath })).catch(() =>
+              typeof router.back === "function" ? router.back() : undefined,
+            );
+          }
+        }
+      }
+      return this.routeTo(UiViewMany.Index);
     }
 
     toSelectManyIndex(selectableKey: string, handleFn: (...args: any[]) => unknown) {
@@ -102,6 +123,14 @@ export function WithNavigate<TBase extends Constructor>(
     }
 
     edit(idOrItem?: string | Entity) {
+      if (this.isInDialog) {
+        const item =
+          idOrItem != null && typeof idOrItem === "object"
+            ? (idOrItem as Entity)
+            : undefined;
+        void this.uiBuilder?.openNestEntityDialog(this, "edit", item);
+        return;
+      }
       if (idOrItem != null && typeof idOrItem === "object") {
         const entity = idOrItem as Entity;
         const key = this.metaUi.primaryKey ?? "id";
@@ -122,6 +151,10 @@ export function WithNavigate<TBase extends Constructor>(
     }
 
     create() {
+      if (this.isInDialog) {
+        void this.uiBuilder?.openNestEntityDialog(this, "create");
+        return;
+      }
       if (this.many) {
         this.currentItem = null;
         this.currentIndex = -1;
@@ -131,6 +164,14 @@ export function WithNavigate<TBase extends Constructor>(
     }
 
     details(idOrItem?: string | Entity) {
+      if (this.isInDialog) {
+        const item =
+          idOrItem != null && typeof idOrItem === "object"
+            ? (idOrItem as Entity)
+            : undefined;
+        void this.uiBuilder?.openNestEntityDialog(this, "details", item);
+        return;
+      }
       if (idOrItem != null && typeof idOrItem === "object") {
         const entity = idOrItem as Entity;
         const key = this.metaUi.primaryKey ?? "id";

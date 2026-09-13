@@ -1,7 +1,6 @@
-import { defineComponent, h, ref, type PropType } from 'vue'
-import { NSelect } from 'naive-ui'
+import { computed, defineComponent, h, onMounted, ref, type PropType } from 'vue'
 import type { IFilterParams } from 'ag-grid-community'
-import type { MetaUiField } from '@mmda/core'
+import { isRefOptionsComplete, type MetaUiField } from '@mmda/core'
 
 export interface AgHasOneFilterParams extends IFilterParams {
   field?: MetaUiField
@@ -9,7 +8,10 @@ export interface AgHasOneFilterParams extends IFilterParams {
     field: MetaUiField,
     searchWord: string,
   ) => Promise<unknown[]>
+  loadFilterOptions?: (field: MetaUiField) => Promise<unknown[]>
 }
+
+type Choice = { label: string; value: unknown }
 
 export const AgHasOneFilter = defineComponent({
   name: 'AgHasOneFilter',
@@ -18,25 +20,44 @@ export const AgHasOneFilter = defineComponent({
   },
   setup(props) {
     const selected = ref<unknown[]>([])
-    const options = ref<{ label: string; value: unknown }[]>([])
+    const options = ref<Choice[]>([])
+    const query = ref('')
+    const labels = new Map<string, string>()
     let debounce: ReturnType<typeof setTimeout> | undefined
 
     const field = () =>
       props.params.field ??
       (props.params.colDef?.context as { field?: MetaUiField } | undefined)?.field
 
-    const toOptions = (rows: unknown[]) => {
+    const toOptions = (rows: unknown[]): Choice[] => {
       const reference = field()?.reference
       if (!reference) {
         return rows.map(row => ({ label: String(row), value: row }))
       }
-      return rows.map(row => ({
-        label: String(reference.labelOf(row as any)),
-        value: reference.valueOf(row as any),
-      }))
+      return rows.map(row => {
+        const value = reference.valueOf(row as any)
+        const label = String(reference.labelOf(row as any) ?? '')
+        labels.set(String(value), label)
+        return { label, value }
+      })
     }
 
-    const search = (word: string) => {
+    const listed = computed(() => {
+      const seen = new Set(options.value.map(item => String(item.value)))
+      const extras = selected.value
+        .filter(value => !seen.has(String(value)))
+        .map(value => ({
+          value,
+          label: labels.get(String(value)) ?? String(value ?? ''),
+        }))
+      return [...options.value, ...extras]
+    })
+
+    const showHome = () => {
+      options.value = toOptions(field()?.reference?.refOptions ?? [])
+    }
+
+    const searchRemote = (word: string) => {
       const meta = field()
       if (!meta) return
       void Promise.resolve(props.params.searchRelative?.(meta, word)).then(
@@ -44,6 +65,31 @@ export const AgHasOneFilter = defineComponent({
           options.value = toOptions(rows ?? [])
         },
       )
+    }
+
+    const filterLocal = (word: string) => {
+      const mapped = toOptions(field()?.reference?.refOptions ?? [])
+      const q = word.trim()
+      options.value = q
+        ? mapped.filter(
+            item =>
+              item.label.includes(q) || String(item.value).includes(q),
+          )
+        : mapped
+    }
+
+    const search = (word: string) => {
+      const meta = field()
+      if (!meta) return
+      if (isRefOptionsComplete(meta)) {
+        filterLocal(word)
+        return
+      }
+      if (!word.trim()) {
+        showHome()
+        return
+      }
+      searchRemote(word)
     }
 
     const isFilterActive = () => selected.value.length > 0
@@ -58,49 +104,79 @@ export const AgHasOneFilter = defineComponent({
     const setModel = (model: { values?: unknown[] } | null) => {
       selected.value = model?.values ? [...model.values] : []
     }
-    const onSearch = (word: string) => {
+    const onSearchInput = (word: string) => {
+      query.value = word
       if (debounce) clearTimeout(debounce)
       debounce = setTimeout(() => search(word), 300)
     }
-    const onUpdateValue = (value: unknown[]) => {
-      selected.value = value ?? []
+    const toggle = (value: unknown, checked: boolean) => {
+      const key = String(value)
+      selected.value = checked
+        ? [...selected.value.filter(item => String(item) !== key), value]
+        : selected.value.filter(item => String(item) !== key)
       props.params.filterChangedCallback()
     }
-    const onFocus = () => {
-      if (!options.value.length) search('')
-    }
+    const isChecked = (value: unknown) =>
+      selected.value.some(item => String(item) === String(value))
+
+    onMounted(() => {
+      const meta = field()
+      if (!meta) return
+      void Promise.resolve(props.params.loadFilterOptions?.(meta) ?? []).then(
+        () => {
+          if (isRefOptionsComplete(meta)) {
+            filterLocal('')
+            return
+          }
+          showHome()
+        },
+      )
+    })
 
     return {
       isFilterActive,
       doesFilterPass,
       getModel,
       setModel,
-      selected,
-      options,
-      onSearch,
-      onUpdateValue,
-      onFocus,
+      query,
+      listed,
+      onSearchInput,
+      toggle,
+      isChecked,
       placeholder: () => field()?.displayLabel ?? '',
     }
   },
   render() {
     return h(
       'div',
-      { class: 'mmda-ag-hasone-filter', style: 'padding: 8px; min-width: 12rem' },
+      { class: 'mmda-ag-hasone-filter ag-custom-component-popup' },
       [
-        h(NSelect as any, {
-          value: this.selected,
-          multiple: true,
-          filterable: true,
-          remote: true,
-          clearable: true,
-          options: this.options,
+        h('input', {
+          class: 'mmda-ag-hasone-filter__search',
+          type: 'search',
+          value: this.query,
           placeholder: this.placeholder(),
-          class: 'ag-custom-component-popup',
-          onSearch: this.onSearch,
-          onUpdateValue: this.onUpdateValue,
-          onFocus: this.onFocus,
+          onInput: (event: Event) =>
+            this.onSearchInput((event.target as HTMLInputElement).value),
         }),
+        h(
+          'div',
+          { class: 'mmda-ag-hasone-filter__list' },
+          this.listed.map(item =>
+            h('label', { class: 'mmda-ag-hasone-filter__item', key: String(item.value) }, [
+              h('input', {
+                type: 'checkbox',
+                checked: this.isChecked(item.value),
+                onChange: (event: Event) =>
+                  this.toggle(
+                    item.value,
+                    (event.target as HTMLInputElement).checked,
+                  ),
+              }),
+              h('span', item.label),
+            ]),
+          ),
+        ),
       ],
     )
   },

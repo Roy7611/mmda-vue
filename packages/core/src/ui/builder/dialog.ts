@@ -60,9 +60,9 @@ export interface UiDialogProps<TNode = any> {
    * @see dialogCloseOnOverlayOf
    */
   closeOnOverlay?: boolean
-  /** 缺省 true。Naive 忽略。 */
+  /** 缺省 true。SF / Naive 均落实（Naive：NModal.draggable）。 */
   allowDragging?: boolean
-  /** 缺省 true。Naive 忽略。 */
+  /** 缺省 true。SF 原生；Naive 用东南角拖柄补齐。 */
   enableResize?: boolean
   /**
    * 标题栏最大化。缺省 true。
@@ -92,6 +92,14 @@ export interface UiDialogProps<TNode = any> {
   onOpen?: () => void
   /** 窗已经关掉之后。Apply 不触发。不能拦关闭。 */
   onClose?: (button: UiDialogAction) => void
+}
+
+/**
+ * 实体对话框选项：弹层属性与实体屏属性显式分开，不交叉合并。
+ */
+export interface UiEntityDialogOptions<TNode = any, TView = unknown> {
+  dlgProps?: UiDialogProps<TNode>
+  viewProps?: TView
 }
 
 /** 缺省模态。 */

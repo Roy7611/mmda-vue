@@ -1,6 +1,10 @@
 import type { ActionCallback, EntityAction } from "@mmda/core";
 import { entityActionFactory } from "@mmda/core";
-import { UiContextAction, type IconResolver } from "../factory/action";
+import {
+  normalizeActionColorRole,
+  UiContextAction,
+  type IconResolver,
+} from "../factory/action";
 import type { VueUiBuilder, ImportOrExportParam } from "./builder";
 import { deletableSelectedItems } from "../../contexts/vue_ui_context";
 import { getModuleContext } from "../../contexts/vue_module_context";
@@ -28,8 +32,19 @@ export class UiActionFactory {
   back(context: UiContext) {
     return this.createAction(context, "back", () => {
       const runtime = context as any;
-      if (typeof runtime.cancel === "function") return runtime.cancel();
-      return runtime.index?.();
+      try {
+        if (typeof runtime.cancel === "function") {
+          return runtime.cancel();
+        }
+        if (typeof runtime.index === "function") {
+          return runtime.index();
+        }
+      } catch {
+        // fall through to history back
+      }
+      const router = runtime.router ?? runtime.globalProps?.$router;
+      if (typeof router?.back === "function") return router.back();
+      if (typeof history !== "undefined") history.back();
     });
   }
 
@@ -68,7 +83,7 @@ export class UiActionFactory {
             : (runtime.model as Record<string, unknown>);
         const sync = getModuleContext(runtime);
         if (runtime.view === UiViewOne.Create) {
-          sync?.insertAtZeroFromSave(entity);
+          sync?.appendNewRow(entity);
         } else if (runtime.view === UiViewOne.Edit) {
           sync?.applyCurrentRow(entity);
         }
@@ -181,11 +196,15 @@ export class UiActionFactory {
 
   action(context: UiContext, action: EntityAction) {
     action.onAction = () => (context as any).doAction?.(action);
-    const configured =
-      (typeof action.role === "string" && action.role.trim()) ||
-      action.param?.hint ||
-      (action as { displayHint?: string }).displayHint;
-    action.role = configured ? String(configured) : "warning";
+    const raw =
+      (action as { colorRole?: string | number }).colorRole ??
+      action.role ??
+      action.param?.hint ??
+      (action as { displayHint?: string | number }).displayHint;
+    // 元数据 colorRole / displayHint；未配置时默认 warning（工具栏业务动作）
+    action.role = normalizeActionColorRole(
+      raw == null || raw === "" ? undefined : String(raw),
+    ) ?? "warning";
     return this.fromEntity(context, action);
   }
 }

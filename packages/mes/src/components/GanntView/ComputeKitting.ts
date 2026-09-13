@@ -438,7 +438,7 @@ export default defineComponent({
 		const confirmKitting = async () => {
 			const { $ui: ui, $t: t } = ctx.globalProps;
 
-			console.log(filterData.value, "数据。。。�?)
+			console.log(filterData.value, "数据。。。");
 			const params = filterData.value.map((item: any) => ({
 				orderID: item.orderID ?? null,
 				materialID: item.materialID,
@@ -453,7 +453,7 @@ export default defineComponent({
 				});
 
 			const firstItem = filterData.value[0];
-			console.log(firstItem, "第一个数�?)
+			console.log(firstItem, "第一个数据");
 
 			let materialTransCtx: UiContext<MaterialTrans>;
 			// 拦截报错
@@ -483,7 +483,7 @@ export default defineComponent({
 										params
 									)
 									.then((res: any) => {
-										console.log(res, "领料�?)
+										console.log(res, "领料");
 										res.orderID = filterData.value[0].orderID;
 										return logic.createEntity(res);
 									}).catch((error: any) => {
@@ -515,7 +515,7 @@ export default defineComponent({
 							},
 							onInit: (ctx: UiContext<MaterialTrans>) => {
 								materialTransCtx = ctx;
-								materialTransCtx.isEditDialog = true;
+								materialTransCtx.isInDialog = true;
 							},
 
 

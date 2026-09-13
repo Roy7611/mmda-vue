@@ -5,6 +5,7 @@ import {
   defaultFieldSearchOptions,
   defineValidation,
   getFieldFilterOps,
+  getSqlOperator,
   isDefaultFieldSearchOptions,
   MetaUiFieldLogic,
   parseValidatorDescriptors,
@@ -74,8 +75,40 @@ describe('SqlOperator', () => {
       nullable: true,
     })
     const ops = getFieldFilterOps(field)
-    expect(ops).toContain('CONTAINS')
-    expect(ops).toContain('IS_NULL')
+    expect(ops[0]).toBe('CONTAINS')
+    expect(ops).toEqual([
+      'CONTAINS',
+      'NOT_CONTAINS',
+      'EQ',
+      'NEQ',
+      'STARTS_WITH',
+      'ENDS_WITH',
+      'IS_BLANK',
+      'IS_NOT_BLANK',
+    ])
+    expect(ops).not.toContain('IS_NULL')
+    expect(ops).not.toContain('IN')
+    expect(ops).not.toContain('NOT_IN')
+    expect(getSqlOperator('IN')?.name).toBe('IN')
+    expect(getSqlOperator('NOT_IN')?.name).toBe('NOT_IN')
+    expect(getSqlOperator('IS_BLANK')?.parameters).toBe(0)
+    const qty = getFieldFilterOps(numberField(''))
+    expect(qty).toContain('IS_NULL')
+    expect(qty).toContain('IS_NOT_NULL')
+    expect(qty).not.toContain('IS_BLANK')
+    const created = new MetaUiField({
+      fieldIdx: 1,
+      fieldName: 'createdAt',
+      displayLabel: '创建',
+      dataType: SqlDataType.TIMESTAMP,
+      nullable: true,
+    })
+    const dateOps = getFieldFilterOps(created)
+    expect(dateOps).toContain('IS_NULL')
+    expect(dateOps).toContain('WITHIN')
+    expect(dateOps).not.toContain('IS_BLANK')
+    expect(getSqlOperator('WITHIN')?.toSQL('TODAY')).toBe('WITHIN TODAY')
+    expect(getSqlOperator('WITHIN')?.parameters).toBe(1)
   })
 })
 

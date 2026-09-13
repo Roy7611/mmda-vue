@@ -4,8 +4,8 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
-import { VueUiBuilder, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { VueUiBuilder, UiViewMany, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -363,6 +363,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
                 name: item.name ?? `more-${index}`,
                 label: item.label,
                 icon: item.icon,
+                disabled: item.disabled === true,
                 onAction: item.command ?? item.onAction,
                 items: item.items,
               },
@@ -587,7 +588,20 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       this.toolbarActionButton(context, this.actionFactory.back(context)),
     ];
     const moreItems: any[] = [];
-    if (!entityAuth) return children;
+    if (!entityAuth) {
+      moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+            },
+      ),
+    );
+      children.push(...this.assembleMoreButton(context, moreItems));
+      return children;
+    }
 
     if (entityAuth.allowEdit && model?.editable !== false) {
       children.push(
@@ -650,6 +664,16 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     if (entityAuth.allowImport) {
       moreItems.push(this.importOrExportMenuItem(context, "import"));
     }
+    moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+            },
+      ),
+    );
     children.push(...this.assembleMoreButton(context, moreItems));
     return children;
   }
@@ -774,6 +798,17 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           { label: "Yes", value: true },
           { label: "No", value: false },
         ],
+        optionLabel: "label",
+        optionValue: "value",
+        showClear: true,
+      });
+    } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === "WITHIN") {
+      editor = h(Select, {
+        ...common,
+        options: DATE_RANGE_FILTER_KINDS.map((kind) => ({
+          label: _context.translate(`dateRange.${kind}`),
+          value: kind,
+        })),
         optionLabel: "label",
         optionValue: "value",
         showClear: true,

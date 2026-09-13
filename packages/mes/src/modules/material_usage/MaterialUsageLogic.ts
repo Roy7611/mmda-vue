@@ -21,7 +21,7 @@ const searchParamProject = {
     },
     searchWord: '',
     searchParams: {}
-});
+};
 const tableDataTask = { value: [] }
 const tableDataKeyTask = { value: 'id' }
 const searchParamTask = {
@@ -31,7 +31,7 @@ const searchParamTask = {
     },
     searchWord: '',
     searchParams: {}
-});
+};
 export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
     constructor(init: EntityLogicInit) {
         super(defineMaterialUsage, init);

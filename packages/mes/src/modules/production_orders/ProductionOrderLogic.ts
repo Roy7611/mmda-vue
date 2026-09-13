@@ -21,7 +21,7 @@ const summary = { value: '' };
 const userPageInfo = {
 	pageSize: 10,
 	pageNo: 1,
-});
+};
 //生成订单概要
 const getOrderSummary = (model: any, context: UiContext) => {
 	const { $t: t } = context.globalProps;
@@ -151,8 +151,8 @@ const bomSearchParam = {
 		pageSize: 10,
 		pageNo: 1,
 	},
-});
-const bomList = { value:  }
+};
+const bomList = { value: [] as any[] }
 
 /**
  * 获取BOM

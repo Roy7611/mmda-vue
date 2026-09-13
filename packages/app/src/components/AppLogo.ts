@@ -1,6 +1,5 @@
-import { defineComponent, h, inject } from 'vue'
+import { defineComponent, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { UI_BUILDER_KEY, type VueUiBuilder } from '@mmda/vui'
 
 export const AppLogo = defineComponent({
   name: 'AppLogo',
@@ -10,7 +9,6 @@ export const AppLogo = defineComponent({
     home: { type: String, default: '/BASE/' },
   },
   setup(props) {
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
     const router = useRouter()
     return () =>
       h(
@@ -21,10 +19,12 @@ export const AppLogo = defineComponent({
           onClick: () => void router.push(props.home),
         },
         [
-          builder.factory.image(props.src, {
+          // 原生 img 保宽高比；NImage 会强制盒尺寸导致压扁
+          h('img', {
             class: 'mmda-app-logo__img',
+            src: props.src,
             alt: props.alt,
-            preview: false,
+            draggable: false,
           }),
         ],
       )

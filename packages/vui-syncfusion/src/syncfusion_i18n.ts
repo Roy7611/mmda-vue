@@ -1,18 +1,21 @@
-import { L10n, setCulture } from '@syncfusion/ej2-base'
+import { L10n, loadCldr, setCulture } from '@syncfusion/ej2-base'
 import { isRef, watch, type App } from 'vue'
 import enUS from '@syncfusion/ej2-locale/src/en-US.json'
 import zhLocale from '@syncfusion/ej2-locale/src/zh.json'
+import zhHansCldr from '@syncfusion/ej2-cldr-data/main/zh-Hans/all.json'
+import zhHantCldr from '@syncfusion/ej2-cldr-data/main/zh-Hant/all.json'
+import numberingSystems from '@syncfusion/ej2-cldr-data/supplemental/numberingSystems.json'
+import weekData from '@syncfusion/ej2-cldr-data/supplemental/weekData.json'
 
-/** Official `@syncfusion/ej2-locale` `zh` pack is Traditional Chinese. */
+/** Official `@syncfusion/ej2-locale` packs. `zh` is the only Chinese file (mixed 繁/简). */
 const PACKS: Record<string, Record<string, unknown>> = {
   'en-US': (enUS as { 'en-US': Record<string, unknown> })['en-US'],
   zh: (zhLocale as { zh: Record<string, unknown> }).zh,
 }
 
 /**
- * MMDA 维护的 EJ2 简体中文包。过滤器 Menu 的运算符位于 grid 段。
- *
- * 它以独立的 `zh-Hans` culture 加载，不覆盖官方繁体 `zh` 包。
+ * 简体叠在官方 `zh` 整包上，不要用 en-US 当底（会把 DateRangePicker 等漏键留成英文）。
+ * grid 段是列筛算子；日历控件段补官方包里的繁体。
  */
 const zhHansLocale: Record<string, Record<string, string>> = {
   grid: {
@@ -140,6 +143,16 @@ const zhHansLocale: Record<string, Record<string, string>> = {
     today: '今天',
     placeholder: '选择日期',
   },
+  daterangepicker: {
+    placeholder: '选择日期范围',
+    startLabel: '开始日期',
+    endLabel: '结束日期',
+    applyText: '应用',
+    cancelText: '取消',
+    selectedDays: '已选天数',
+    days: '天',
+    customRange: '自定义范围',
+  },
   datetimepicker: {
     today: '今天',
     placeholder: '选择日期时间',
@@ -161,6 +174,18 @@ const zhHansLocale: Record<string, Record<string, string>> = {
   toast: {
     close: '关闭',
   },
+}
+
+const loadedCldr = new Set<string>()
+
+function loadOfficialCldr(culture: 'zh-Hans' | 'zh-Hant'): void {
+  if (loadedCldr.has(culture)) return
+  loadCldr(
+    culture === 'zh-Hans' ? zhHansCldr : zhHantCldr,
+    numberingSystems,
+    weekData,
+  )
+  loadedCldr.add(culture)
 }
 
 let currentCulture = 'en-US'
@@ -215,12 +240,16 @@ export function applySyncfusionLocale(
   }
 
   const culture = resolveSyncfusionCulture(locale)
+  const officialZh = PACKS.zh ?? {}
   if (culture === 'zh-Hans') {
+    loadOfficialCldr('zh-Hans')
     L10n.load({
-      'zh-Hans': deepMerge(PACKS['en-US'] ?? {}, zhHansLocale),
+      zh: officialZh,
+      'zh-Hans': deepMerge(officialZh, zhHansLocale),
     })
   } else if (culture === 'zh-Hant') {
-    L10n.load({ 'zh-Hant': PACKS.zh ?? {} })
+    loadOfficialCldr('zh-Hant')
+    L10n.load({ zh: officialZh, 'zh-Hant': officialZh })
   } else if (culture === 'en-US') {
     L10n.load({ 'en-US': PACKS['en-US'] ?? {} })
   } else if (PACKS[culture]) {

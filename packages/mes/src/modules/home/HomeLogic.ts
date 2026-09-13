@@ -17,7 +17,7 @@ const searchParamSite = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
-})
+};
 
 export class HomeLogic extends EntityLogic<CustomPage> {
   constructor(init: EntityLogicInit) {
@@ -353,7 +353,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
                 { name: ctx.t('dateRange.THIS_YEAR'), value: 'THIS_YEAR' },
                 { name: ctx.t('dateRange.LAST_YEAR'), value: 'LAST_YEAR' },
               ],
-            })
+            };
             return ctx.uiBuilder.factory.dropDownList({
               value: csf.searchVal.value ?? 'THIS_WEEK',
               options: searchData.timeSelect.map((item: any) => ({

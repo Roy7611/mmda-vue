@@ -9,8 +9,10 @@ import {
   DEFAULT_COLOR_PALETTE,
   MMDA_COLOR_PALETTES,
   readStoredColorPalette,
+  readStoredPageLayout,
   readStoredPageSize,
   resolveColorPalette,
+  writeStoredPageLayout,
   writeStoredPageSize,
 } from "../app/theme";
 
@@ -53,6 +55,17 @@ describe("MMDA color palettes", () => {
     expect(readStoredPageSize()).toBe(50);
     writeStoredPageSize(999);
     expect(readStoredPageSize()).toBe(50);
+  });
+
+  it("persists pageLayout preference under mmda/pageLayout", () => {
+    expect(readStoredPageLayout()).toBe("cards");
+    writeStoredPageLayout("tabs");
+    expect(localStorage.getItem("mmda/pageLayout")).toBe("tabs");
+    expect(readStoredPageLayout()).toBe("tabs");
+    writeStoredPageLayout("cards");
+    expect(readStoredPageLayout()).toBe("cards");
+    localStorage.setItem("mmda/pageLayout", "nope");
+    expect(readStoredPageLayout()).toBe("cards");
   });
 
   it("switches the document palette attribute", () => {

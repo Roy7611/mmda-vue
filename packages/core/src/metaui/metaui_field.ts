@@ -1,4 +1,5 @@
 import { SqlDataType } from './datatype'
+import { MetaUiFilterType } from './metaui_filter'
 import { pluralize } from '../utils/pluralize'
 import { isNullObject, isNullOrUndefined } from '../utils/is'
 import {
@@ -52,128 +53,6 @@ export const enum MetaAggregation {
   FIRST = 32, //首值
 }
 
-/**
- * 列过滤器类型（TINYINT 位掩码，与 metauifield.filterTypes 一致）。
- *
- * `0;NONE;-|1;TEXT;文本|2;NUMBER;数字|4;DATE;日期|8;BOOLEAN;布尔|16;SET;集合|32;MULTI;多个|64;JOIN;联合`
- */
-export enum MetaUiFieldFilterType {
-  NONE = 0,
-  TEXT = 1,
-  NUMBER = 2,
-  DATE = 4,
-  BOOLEAN = 8,
-  SET = 16,
-  MULTI = 32,
-  JOIN = 64,
-}
-
-/** 列头过滤控件形态（由 filterTypes 解析而来）。 */
-export type ColumnFilterKind = 'boolean' | 'range' | 'set' | 'multi' | 'text'
-
-/** NONE / 未配：按 dataType + reference 推断（与现网皮肤默认一致）。 */
-export function inferColumnFilterTypes(field: {
-  dataType: SqlDataType
-  reference?: MetaUiFieldRef
-}): number {
-  if (SqlDataType.isBool(field.dataType)) return MetaUiFieldFilterType.BOOLEAN
-  if (SqlDataType.isDate(field.dataType)) {
-    return (
-      MetaUiFieldFilterType.DATE |
-      MetaUiFieldFilterType.SET |
-      MetaUiFieldFilterType.MULTI
-    )
-  }
-  const reference = field.reference
-  if (reference?.isEnum || reference?.isRef || reference?.hasOne) {
-    return MetaUiFieldFilterType.SET
-  }
-  if (SqlDataType.isNum(field.dataType) && !reference) {
-    return MetaUiFieldFilterType.NUMBER
-  }
-  return (
-    MetaUiFieldFilterType.TEXT |
-    MetaUiFieldFilterType.SET |
-    MetaUiFieldFilterType.MULTI
-  )
-}
-
-/** 显式 filterTypes 优先；0 则推断。 */
-export function resolveColumnFilterTypes(field: {
-  dataType: SqlDataType
-  reference?: MetaUiFieldRef
-  filterTypes?: number
-}): number {
-  const configured = field.filterTypes ?? MetaUiFieldFilterType.NONE
-  if (configured === MetaUiFieldFilterType.NONE) {
-    return inferColumnFilterTypes(field)
-  }
-  return configured
-}
-
-/** 位是否置位。可传已解析的 number，或传 field（内部先 resolve）。 */
-export function hasFilterType(
-  fieldOrTypes:
-    | number
-    | undefined
-    | {
-        dataType: SqlDataType
-        reference?: MetaUiFieldRef
-        filterTypes?: number
-      },
-  bit: MetaUiFieldFilterType,
-): boolean {
-  if (typeof fieldOrTypes === 'number') {
-    return (fieldOrTypes & bit) === bit
-  }
-  if (fieldOrTypes == null) {
-    return false
-  }
-  return (resolveColumnFilterTypes(fieldOrTypes) & bit) === bit
-}
-
-export function columnFilterKindOf(field: {
-  dataType: SqlDataType
-  reference?: MetaUiFieldRef
-  filterTypes?: number
-}): ColumnFilterKind {
-  const types = resolveColumnFilterTypes(field)
-  if (hasFilterType(types, MetaUiFieldFilterType.BOOLEAN)) return 'boolean'
-
-  const hasCompare =
-    hasFilterType(types, MetaUiFieldFilterType.TEXT) ||
-    hasFilterType(types, MetaUiFieldFilterType.NUMBER) ||
-    hasFilterType(types, MetaUiFieldFilterType.DATE)
-  const hasSet = hasFilterType(types, MetaUiFieldFilterType.SET)
-  const multi =
-    hasFilterType(types, MetaUiFieldFilterType.MULTI) || (hasCompare && hasSet)
-
-  if (multi) return 'multi'
-  if (hasSet) return 'set'
-  if (
-    hasFilterType(types, MetaUiFieldFilterType.NUMBER) ||
-    hasFilterType(types, MetaUiFieldFilterType.DATE)
-  ) {
-    return 'range'
-  }
-  return 'text'
-}
-
-/** EntityFilterModel 比较谓词用的 filterType。 */
-export function simpleFilterTypeOf(field: {
-  dataType: SqlDataType
-  reference?: MetaUiFieldRef
-  filterTypes?: number
-}): 'text' | 'number' | 'date' {
-  const types = resolveColumnFilterTypes(field)
-  if (hasFilterType(types, MetaUiFieldFilterType.DATE)) return 'date'
-  if (hasFilterType(types, MetaUiFieldFilterType.NUMBER)) return 'number'
-  if (hasFilterType(types, MetaUiFieldFilterType.TEXT)) return 'text'
-  if (SqlDataType.isDate(field.dataType)) return 'date'
-  if (SqlDataType.isNum(field.dataType)) return 'number'
-  return 'text'
-}
-
 export type Nullable<T> = T | null
 export type Nullishable<T> = T | null | undefined
 
@@ -198,6 +77,8 @@ export interface MetaUiFieldInit {
   // 列表
   emphasized?: boolean // 重要，在最简列表显示
   listed?: boolean // 列出，桌面端列表显示
+  /** 联查子表字段：原 groupUi 内分组的 groupLabel，给多级表头用 */
+  subGroupLabel?: string
   mergeLabel?: string
   mergePrefix?: string
   listSize?: number // 列显示宽度，像素；缺省按字段类型估算
@@ -205,8 +86,8 @@ export interface MetaUiFieldInit {
   align?: MetaUiFieldAlignment // 对齐方式
   sortable?: boolean // 可排序，通常是有索引的字段支持排序
   /**
-   * 列过滤器类型位掩码，见 {@link MetaUiFieldFilterType}。
-   * 0（NONE）表示按 dataType / reference 推断。
+   * 列过滤器类型位掩码，见 {@link MetaUiFilterType}。
+   * 服务端下发不会空；本地未写时可用 {@link MetaUiField.inferColumnFilterType}。
    */
   filterTypes?: number
   aggregationSet?: MetaAggregation // 聚合函数
@@ -346,6 +227,19 @@ export class MetaUiField {
     this.validatorDescriptors = parseValidatorDescriptors(this.validationRules)
   }
 
+  /**
+   * 按 dataType + reference 推断简单类型：boolean | date | number | text | set。
+   * enum / ref / hasOne → set。JOIN / MULTI 不在这里。
+   */
+  inferColumnFilterType(): MetaUiFilterType {
+    const ref = this.reference
+    if (ref?.isEnum || ref?.isRef || ref?.hasOne) return MetaUiFilterType.SET
+    if (SqlDataType.isBool(this.dataType)) return MetaUiFilterType.BOOLEAN
+    if (SqlDataType.isDate(this.dataType)) return MetaUiFilterType.DATE
+    if (SqlDataType.isNum(this.dataType) && !ref) return MetaUiFilterType.NUMBER
+    return MetaUiFilterType.TEXT
+  }
+
   fieldIdx: number
   readonly fieldName: string
   readonly displayLabel: string
@@ -354,13 +248,14 @@ export class MetaUiField {
 
   readonly emphasized?: boolean
   listed?: boolean
+  subGroupLabel?: string
   readonly mergeLabel?: string
   readonly mergePrefix?: string
   listSize?: number
   listPos?: number
   readonly align?: MetaUiFieldAlignment
   readonly sortable?: boolean
-  /** 列过滤器类型位掩码；0 = 推断。见 {@link MetaUiFieldFilterType}。 */
+  /** 列过滤器类型位掩码。见 {@link MetaUiFilterType}。 */
   readonly filterTypes?: number
   readonly aggregationSet?: MetaAggregation
 
@@ -564,6 +459,14 @@ export class MetaUiFieldRef {
 
   readonly refOptions: any[]
   readonly refOptionsShape: MetaOptionsShape
+  /** 运行时：首页 50 已穷尽，列筛可本地过滤。 */
+  refOptionsComplete?: boolean
+
+  /** enum 恒穷尽；ref / hasOne 看 {@link refOptionsComplete}。 */
+  get isRefOptionsFull() {
+    if (this.isEnum) return true
+    return this.refOptionsComplete === true
+  }
 
   private _enumFn?: propFn
   private _valueFn?: propFn

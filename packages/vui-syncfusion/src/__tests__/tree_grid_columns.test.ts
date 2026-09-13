@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
 import {
+  compareColumnVariantOf,
+  createCompareColumnFilterStore,
+  sfCompareColumnFilter,
+} from '../factory/column_filter'
+import {
   buildSfTreeGridColumns,
+  sfGridColumnFilterOf,
   sfGridColumnOf,
   sfTreeGridColumnOf,
 } from '../sf_grid_column'
@@ -93,5 +99,51 @@ describe('buildSfTreeGridColumns / sfTreeGridColumnOf', () => {
     expect(cols[0]!.allowEditing).toBe(false)
     expect(cols[1]!.allowEditing).toBe(true)
     expect(cols[1]!.editType).toBeTruthy()
+  })
+
+  it('reuses sfCompareColumnFilter for date/time/number when filtering is on', () => {
+    const extras = {
+      store: createCompareColumnFilterStore(),
+    }
+    const day = field({
+      fieldIdx: 0,
+      fieldName: 'day',
+      displayLabel: '日期',
+      dataType: SqlDataType.DATE,
+      nullable: true,
+      listed: true,
+    })
+    const at = field({
+      fieldIdx: 1,
+      fieldName: 'at',
+      displayLabel: '时间',
+      dataType: SqlDataType.TIME,
+      nullable: true,
+      listed: true,
+    })
+    const qty = field({
+      fieldIdx: 2,
+      fieldName: 'qty',
+      displayLabel: '数量',
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+    })
+    expect(compareColumnVariantOf(day)).toBe('date')
+    expect(compareColumnVariantOf(at)).toBe('time')
+    expect(compareColumnVariantOf(qty)).toBe('number')
+
+    const cols = buildSfTreeGridColumns(metauiOf(day, at, qty), {
+      allowFiltering: true,
+      filterExtras: extras,
+    })
+    const tableFilter = sfCompareColumnFilter(day, extras)
+    expect(cols[0]!.allowFiltering).toBe(true)
+    expect(cols[0]!.filter.ui.create).toBeTypeOf('function')
+    expect(cols[0]!.filter.ui.read).toBeTypeOf('function')
+    expect(sfGridColumnFilterOf(day, extras).ui.create).toBeTypeOf('function')
+    expect(tableFilter.ui.create).toBeTypeOf('function')
+    expect(cols[1]!.filter.ui.create).toBeTypeOf('function')
+    expect(cols[2]!.filter.ui.create).toBeTypeOf('function')
   })
 })

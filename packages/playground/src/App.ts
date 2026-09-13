@@ -17,18 +17,15 @@ export const AppShell = defineComponent({
     const route = useRoute();
     return () => {
       if (route.meta.allowAnonymous) return h(RouterView);
-      return h("div", { class: "mmda-app" }, [
-        builder.buildAppScaffold({
-          layout: "sidebarLeft",
-          sideBar: () =>
-            builder.buildAppSideBar({
-              modules: app.modules,
-              header: () => h(AppLogo),
-              footer: () => h(AppUserFooter),
-            }),
-          body: () => h(RouterView),
+      return builder.layout.scaffold({
+        variant: "sidebarLeft",
+        nav: builder.buildAppSideBar({
+          modules: app.modules,
+          header: () => h(AppLogo),
+          footer: () => h(AppUserFooter),
         }),
-      ]);
+        page: h(RouterView),
+      });
     };
   },
 });

@@ -370,6 +370,12 @@ export {
   loadingWidthOf,
   type UiLoadingProps,
   type UiLoadingSize,
+  errorDisplayOf,
+  errorModifierClasses,
+  errorPropsOf,
+  isNetworkFailure,
+  type UiErrorProps,
+  type UiErrorStatus,
 } from '@mmda/core'
 export * from './ui/factory/speech_to_text'
 export * from './ui/factory/speech_to_text_host'
@@ -399,6 +405,7 @@ export * from './ui/factory/watermark'
 export * from './components/AppSideMenu'
 export * from './composables/useCompactViewport'
 export * from './components/GroupCard'
+export * from './components/GroupTab'
 export * from './components/PageBody'
 export * from './components/TreeView'
 export * from './components/ColorPalettePicker'
@@ -407,5 +414,8 @@ export * from './components/FileUploaderHost'
 export * from './components/DocxFilePreview'
 export * from './components/XlsxFilePreview'
 export * from './ui/builder/list_layout'
+export * from './ui/builder/page_layout'
+export * from './ui/builder/join_list_mode'
 export * from './components/TableSettingView'
 export * from './components/QueryBuilderHost'
+export * from './components/ErrorRetry'

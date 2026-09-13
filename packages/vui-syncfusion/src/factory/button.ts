@@ -53,10 +53,14 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
       "aria-label":
         htmlAttributes?.["aria-label"] ?? tooltip,
       onClick: (event: Event) => {
-        event.preventDefault();
-        event.stopPropagation();
         flushAllInplaceEdits();
-        handleClick?.(event as never);
+        if (handleClick) {
+          event.preventDefault();
+          event.stopPropagation();
+          handleClick(event as never);
+          return;
+        }
+        // No handler: allow native submit for type="submit"
       },
     },
     slots,

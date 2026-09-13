@@ -18,7 +18,7 @@
 
 ## 与 EntityFilterOperator 的关系
 
-`SqlOperator.name` 与 `EntityFilterOperator` 同名（`EQ` / `GE` / `IN` / `BETWEEN` …）。
+`SqlOperator.name` 与 `EntityFilterOperator` 同名（`EQ` / `GE` / `IN` / `BETWEEN` / `WITHIN` …）。
 
 | API | 返回 |
 |---|---|
@@ -26,7 +26,7 @@
 | `getFieldSqlOps(field)` | 该字段可用的 `SqlOperator[]`（含 `toSQL`） |
 | `getFieldFilterOps(field)` | 同集合的名字：`EntityFilterOperator[]`（给表头/搜索栏） |
 
-`parameters`：值个数（`IS_NULL` 为 0，`BETWEEN` 为 2，`IN` 视为多值）。UI 用它决定要不要编辑值，不要依赖已删除的 SearchOp 对象。
+`parameters`：值个数（`IS_NULL` / `IS_BLANK` 为 0，`BETWEEN` 为 2，`WITHIN` 为 1，`IN` 视为多值）。UI 用它决定要不要编辑值，不要依赖已删除的 SearchOp 对象。字符串比较槽用 `IS_BLANK`；数字 / 日期 / 可空 ref 用 `IS_NULL`。日期 `WITHIN` 的值是 `DateRangeKind`（`TODAY` 等），`toSQL('TODAY')` → `WITHIN TODAY`。
 
 标签：i18n `matcher.${op}`，不要改 `SqlOperator` 上的可变 `label`。
 

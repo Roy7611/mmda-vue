@@ -24,7 +24,7 @@ export interface ContextHost {
   editing: boolean;
   loading: { value: boolean };
   showDialog: boolean;
-  isEditDialog: boolean;
+  isInDialog: boolean;
   root: ContextHost;
   prev: ContextHost;
   executing: boolean;
@@ -35,6 +35,8 @@ export interface ContextHost {
   customSearchFields: any[];
   searchParam: any;
   listLayoutRev: { value: number };
+  pageLayoutRev: { value: number };
+  joinListMode: boolean;
   selectedItems: any[];
   currentItem: any | null;
   currentIndex: number;

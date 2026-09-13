@@ -26,35 +26,29 @@ describe('MmdaVueApp', () => {
     await expect(app.ui.dialog({} as any, {} as any, { title: 'x' })).resolves.toBe('cancel')
   })
 
-  it('应用壳直接调用 UiBuilder.buildAppScaffold', () => {
+  it('应用壳直接调用 layout.scaffold，不包 mmda-app', () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()
     const sideBar = vi
       .spyOn(ui, 'buildAppSideBar')
       .mockReturnValue(h('aside', 'navigation'))
     const scaffold = vi
-      .spyOn(ui, 'buildAppScaffold')
-      .mockImplementation(props => h('main', [
-        typeof props.sideBar === 'function' ? props.sideBar() : props.sideBar,
-        typeof props.body === 'function' ? props.body() : props.body,
-      ]))
+      .spyOn(ui.layout, 'scaffold')
+      .mockImplementation(slots => h('main', [slots.nav, slots.page]))
     const mmda = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
     const Root = defineComponent({
       setup() {
         const app = inject(UI_APP_KEY)!
         const builder = inject(UI_BUILDER_KEY)!
         return () =>
-          h('div', { class: 'mmda-app' }, [
-            builder.buildAppScaffold({
-              layout: 'sidebarLeft',
-              sideBar: () =>
-                builder.buildAppSideBar({
-                  modules: app.modules,
-                  header: () => null,
-                }),
-              body: () => h('section', 'content'),
+          builder.layout.scaffold({
+            variant: 'sidebarLeft',
+            nav: builder.buildAppSideBar({
+              modules: app.modules,
+              header: () => null,
             }),
-          ])
+            page: h('section', 'content'),
+          })
       },
     })
     const host = document.createElement('div')

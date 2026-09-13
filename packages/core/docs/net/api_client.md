@@ -19,8 +19,8 @@ toSearchRequest(param)
 | API | 说明 |
 |---|---|
 | `searchAll` | 列表：无 filterModel 则 GET，否则 POST body |
-| `getPivotValues` | `GET .../pivotValues/{field}`，当前表 DISTINCT |
-| `getPivotDates` | `GET .../pivotDates/{field}`，日期列出现过的日历日 |
+| `getPivotValues` | `GET .../pivotValues?field=`，当前表 DISTINCT |
+| `getPivotDates` | `GET .../pivotDates?field=`，日期列出现过的日历日 |
 | `hasFilterModel` | filterModel 是否有键 |
 | `toSearchRequest` | 拆成 URL / body；日期 set token 会 `expandDateFilters`，`dateKind` 原样 |
 

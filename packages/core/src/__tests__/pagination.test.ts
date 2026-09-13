@@ -7,6 +7,7 @@ import {
   emptyPagedList,
   isNotPager,
   noPager,
+  pagedListIsComplete,
   parseSorts,
 } from '../models/pagination'
 
@@ -61,5 +62,44 @@ describe('pagination', () => {
     expect(target.list).toEqual([1, 2])
     expect(target.pagination.recordCount).toBe(12)
     expect(target.pagination.pageNo).toBe(2)
+  })
+
+  it('pagedListIsComplete 用 recordCount / pageCount / 是否满页', () => {
+    expect(
+      pagedListIsComplete({
+        list: new Array(40),
+        pagination: { pageSize: 100, pageNo: 1, recordCount: 40 },
+      }),
+    ).toBe(true)
+    expect(
+      pagedListIsComplete({
+        list: new Array(100),
+        pagination: { pageSize: 100, pageNo: 1, recordCount: 250 },
+      }),
+    ).toBe(false)
+    expect(
+      pagedListIsComplete({
+        list: new Array(80),
+        pagination: { pageSize: 100, pageNo: 1, pageCount: 1 },
+      }),
+    ).toBe(true)
+    expect(
+      pagedListIsComplete({
+        list: new Array(100),
+        pagination: { pageSize: 100, pageNo: 1, pageCount: 3 },
+      }),
+    ).toBe(false)
+    expect(
+      pagedListIsComplete({
+        list: new Array(40),
+        pagination: { pageSize: 100, pageNo: 1 },
+      }),
+    ).toBe(true)
+    expect(
+      pagedListIsComplete({
+        list: new Array(100),
+        pagination: { pageSize: 100, pageNo: 1 },
+      }),
+    ).toBe(false)
   })
 })

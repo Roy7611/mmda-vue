@@ -25,7 +25,7 @@ context.app          // MmdaApplication；业务读 app.state
 | `select(field)` | 有对话框 | hasOne：选完写回当前字段（原 `pickRelative`） |
 | `select({ repository, … })` | 有对话框 | 任意仓库勾选，返回 `false` 或 `T[]` |
 
-`ref` 小表走缓存 `refOptions`，不要 `select` 灌全表。`hasOne` 不要当小表 `loadReferenceOptions`。
+`ref` / `hasOne` 首页 50 进 `refOptions`；未穷尽搜索远程且不覆盖首页。不要 `select` 灌全表，不要 `pivotValues`。
 
 ```ts
 await context.searchRelative(field, searchWord)
@@ -41,6 +41,8 @@ if (rows === false) return
 ```
 
 `EntitySelectParam`：`repository` 必填；跨服务加 `service`；`selectionMode` 为 `'single'` / `'multiple'`。不必 import 对方模型包（缺省用对方元数据构造实体）。
+
+选择窗权限：有对应 FEATURE 模块则跟该模块登录权限；找不到模块则默认只能选择。程序员可传 `authority` 覆盖 CRUD 四项。
 
 本地已有数组、只要表格勾选：[`MetaUiBuilder` + `factory.table` + `dialog`](../ui/ui_builder_usage.md)。
 

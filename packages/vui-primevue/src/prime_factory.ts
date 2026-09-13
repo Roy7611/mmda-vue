@@ -1,7 +1,7 @@
 import { h, reactive, type VNode } from "vue";
-import { SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type EntityFieldFilter, type EntityFilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type EntityFieldFilter, type EntityFilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
 import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
-import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon } from "@mmda/vui"
+import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -222,9 +222,14 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         label: ref!.labelOf(option),
         value: ref!.valueOf(option),
       }));
-      const noValue = ["IS_NULL", "IS_NOT_NULL", "IS_ALL"].includes(
-        state.operator ?? "",
-      );
+      const noValue = [
+        "IS_NULL",
+        "IS_NOT_NULL",
+        "IS_BLANK",
+        "IS_NOT_BLANK",
+        "IS_ALL",
+      ].includes(state.operator ?? "");
+      const isWithin = state.operator === "WITHIN";
       const valueEditor = (which: "first" | "second") => {
         const isSecond = which === "second";
         const modelKey = isSecond ? "secondValue" : "value";
@@ -272,7 +277,20 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
               "onUpdate:modelValue": (value: string) =>
                 (state.operator = value),
             }),
-            !noValue && valueEditor("first"),
+            !noValue &&
+              (isWithin
+                ? h(Select, {
+                    modelValue: state.dateKind,
+                    options: DATE_RANGE_FILTER_KINDS.map((kind) => ({
+                      name: kind,
+                      label: props.dateRangeLabels?.[kind] ?? kind,
+                    })),
+                    optionLabel: "label",
+                    optionValue: "name",
+                    "onUpdate:modelValue": (value: string) =>
+                      (state.dateKind = value as typeof state.dateKind),
+                  })
+                : valueEditor("first")),
             state.operator === "BETWEEN" &&
               (SqlDataType.isDate(field.dataType)
                 ? h(DatePicker as any, {
@@ -287,6 +305,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                       (state.valueTo = value),
                   })),
             !noValue &&
+              !isWithin &&
               state.operator !== "BETWEEN" &&
               h(Select, {
                 modelValue: state.joinOperator,
@@ -300,6 +319,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
                   (state.joinOperator = value),
               }),
             !noValue &&
+              !isWithin &&
               state.operator !== "BETWEEN" &&
               valueEditor("second"),
           ]);
@@ -568,6 +588,8 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       execute: "pi pi-play",
       do: "pi pi-play",
       more: "pi pi-ellipsis-v",
+      /** 详情页壳 cards ↔ tabs */
+      "page-layout": "pi pi-th-large",
       "eye-slash": "pi pi-eye-slash",
       "dnd-vert": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
       "drag-indicator": `${MATERIAL_SYMBOL_PREFIX}drag_indicator`,
@@ -653,6 +675,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       createTimeline(props, (name) => factory.resolveIcon(name)),
     skeleton: (props = {}) => createSkeleton(props),
     loading: (props = {}) => createLoading(props),
+    errorRetry: (props = {}) => createErrorRetry(props),
     speechToText: (props = {}) => createSpeechToText(props),
     datePicker: (props) => createDatePicker(props),
     monthPicker: (props) =>

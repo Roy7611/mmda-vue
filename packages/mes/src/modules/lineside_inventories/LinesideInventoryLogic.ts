@@ -51,7 +51,7 @@ const searchParamProject = {
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 const tableDataOrder = { value: [] };
 const tableDataKeyOrder = { value: 'id' };
 const searchParamOrder= {
@@ -61,7 +61,7 @@ const searchParamOrder= {
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 	worksites = { value: [] };
 	selectedWorksite = { value: null };
@@ -152,7 +152,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 						},
 						onInit: (ctx: UiContext) => {
 							materialTransCtx = ctx;
-							materialTransCtx.isEditDialog = true;
+							materialTransCtx.isInDialog = true;
 						},
 					}),
 					context,
@@ -242,7 +242,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 						},
 						onInit: (ctx: UiContext) => {
 							materialTransCtx = ctx;
-							materialTransCtx.isEditDialog = true;
+							materialTransCtx.isInDialog = true;
 						},
 					}),
 					context,

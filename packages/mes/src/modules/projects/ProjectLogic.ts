@@ -46,7 +46,7 @@ const wbsData = {
 	payload: {
 		refID: '',
 	},
-});
+};
 
 const searchParam = {
 	//pager: {
@@ -55,12 +55,12 @@ const searchParam = {
 	//},
 	searchWord: '',
 	searchParams: {},
-});
+};
 
 //选中的项目物料
 const selectMetarlList = {
 	data: [],
-});
+};
 
 const metarlData = { value: [] };
 const metarlcolumns = { value: [] };
@@ -281,6 +281,7 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 	} catch (error: any) {
 		return false;
 	}
+};
 
 /**
  * 项目交互逻辑

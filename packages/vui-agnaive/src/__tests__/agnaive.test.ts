@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { h } from 'vue'
+import { createApp, h, nextTick } from 'vue'
 import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth } from '@mmda/core'
 import { UiViewMany } from '@mmda/vui'
 import { AgNaiveUiBuilder } from '../agnaive_builder'
@@ -10,7 +10,9 @@ import { createAgNaiveUiFactory } from '../agnaive_factory'
 import { agNaiveLayout } from '../agnaive_layout'
 import { agFilterModelToEntity, entityFilterToAgModel } from '../ag_filter'
 import { buildColumnDefs } from '../ag_columns'
+import { resolveAgGridLocaleText } from '../ag_grid_i18n'
 import { AgGrid } from '../components/AgGrid'
+import { AgHasOneFilter } from '../components/AgHasOneFilter'
 import {
   buildAgGridTheme,
   cssColorToHex,
@@ -89,6 +91,22 @@ describe('vui-agnaive skin', () => {
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-badge--circle')
+  })
+
+  it('maps actionButton colorRole onto NButton type (warning default path)', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.actionButton(
+      {
+        name: 'deprecate',
+        label: '弃用',
+        colorRole: 'warning',
+        onAction: () => undefined,
+      },
+      (k: string) => k,
+      false,
+      { size: 'small' },
+    )
+    expect(vnode.props?.type).toBe('warning')
   })
 
   it('maps factory.avatar circle large label', () => {
@@ -286,6 +304,34 @@ describe('vui-agnaive skin', () => {
     expect(drawerClass).toContain('mmda-sidebar--over')
   })
 
+  it('uses NDropupMenuButton when popupPlacement opens upward', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.dropDownButton(
+      {
+        icon: 'fas fa-palette',
+        popupPlacement: 'top-end',
+        hideCaret: true,
+        shape: 'circle',
+        buttonType: 'text',
+      },
+      [
+        {
+          name: 'blue',
+          label: '蓝色',
+          icon: 'mmda-palette-swatch',
+          onAction: () => undefined,
+        },
+      ],
+    )
+    const typeName =
+      typeof vnode.type === 'object' && vnode.type && 'name' in vnode.type
+        ? String((vnode.type as { name?: string }).name ?? '')
+        : String(vnode.type ?? '')
+    expect(typeName).toMatch(/NDropupMenuButton|DropupMenuButton/i)
+    expect(vnode.props?.placement).toBe('top-end')
+    expect(vnode.props?.actions).toHaveLength(1)
+  })
+
   it('maps factory.tabs value and Naive placement', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.tabs({
@@ -297,7 +343,7 @@ describe('vui-agnaive skin', () => {
       headerPlacement: 'Left',
       scrollable: false,
     })
-    expect(vnode.props?.value).toBe(1)
+    expect(vnode.props?.value).toBe('content1')
     expect(vnode.props?.placement).toBe('left')
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -306,6 +352,7 @@ describe('vui-agnaive skin', () => {
     expect(cls).toContain('mmda-tabs--left')
     expect(cls).toContain('mmda-tabs--popup')
     expect(cls).toContain('mmda-tabs--fill')
+    expect(cls).toContain('mmda-tabs--demand')
   })
 
   it('maps factory.toolbar slots and align', () => {
@@ -334,12 +381,15 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.splitter(
       [
-        { content: h('span', 'L'), size: '16rem' },
+        { content: h('span', 'L'), size: '16rem', min: '12rem' },
         { content: h('span', 'R') },
       ],
       { orientation: 'Vertical', enableReversePanes: true },
     )
     expect(vnode.props?.direction).toBe('vertical')
+    // NSplit depx 不认 rem：size/min 必须落成 px，否则拖动 NaN
+    expect(vnode.props?.defaultSize).toBe('256px')
+    expect(vnode.props?.min).toBe('192px')
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
@@ -475,6 +525,15 @@ describe('vui-agnaive skin', () => {
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-loading')
+  })
+
+  it('maps factory.errorRetry to ErrorRetry', () => {
+    const factory = createAgNaiveUiFactory()
+    expect(factory.errorRetry).toBeTypeOf('function')
+    const vnode = factory.errorRetry!({ description: 'down' })
+    expect(String(vnode.type?.name ?? vnode.type?.__name ?? vnode.type)).toMatch(
+      /ErrorRetry/,
+    )
   })
 
   it('maps factory.tree to NaiveTree with mmda-tree', () => {
@@ -802,6 +861,77 @@ describe('vui-agnaive skin', () => {
     expect(label).toBe('启用')
   })
 
+  it('SearchBox 走相对搜索控件，值用 id、变更回整对象', () => {
+    const fields = createAgNaiveFieldFactory()
+    expect(fields.SearchBox).toBe(fields.searchBox)
+    expect(fields.searchBox).not.toBe(fields.textInput)
+
+    const category = { categoryID: 'C1', categoryName: '原料' }
+    const reference = {
+      hasOne: true,
+      isRef: false,
+      alias: 'category',
+      refFlds: ['categoryID', 'categoryName'],
+      refOptions: [] as any[],
+      refRepository: 'MaterialCats',
+      valueOf: (option: any) => option?.categoryID,
+      labelOf: (option: any) => option?.categoryName,
+    }
+    const onChange = vi.fn()
+    const buildSearchForRelative = vi.fn(
+      (_ctx: any, _field: any, props: any) => {
+        expect(props.modelValue).toEqual(category)
+        expect(props.options).toEqual([category])
+        // 模拟皮肤：NSelect 用 id，回写时要还原对象
+        props.onChange?.(category)
+        return h('div', { class: 'mmda-search-combo' })
+      },
+    )
+    const context = {
+      model: { categoryID: 'C1', category },
+      app: { ui: { buildSearchForRelative } },
+      getFieldValue: () => category,
+      getFieldOptions: () => ({
+        selectOptions: [category],
+        searchParam: { searchWord: '' },
+        currentSelectOption: category,
+        isComposing: false,
+      }),
+      setFieldValue: vi.fn(),
+      searchRelative: vi.fn(),
+      select: vi.fn(),
+      isFieldReadonly: () => false,
+      isInvalid: () => false,
+    } as any
+    const field = {
+      fieldName: 'categoryID',
+      displayLabel: '类别',
+      nullable: true,
+      reference,
+    } as any
+
+    const vnode = fields.searchBox(field, context)
+    expect(buildSearchForRelative).toHaveBeenCalled()
+    expect(vnode.props?.class ?? vnode.props).toBeTruthy()
+    expect(context.setFieldValue).toHaveBeenCalledWith(field, category)
+
+    const builder = new AgNaiveUiBuilder()
+    const skin = builder.buildSearchForRelative(context, field, {
+      modelValue: category,
+      options: [category],
+      optionLabel: 'categoryName',
+      showClear: true,
+      onChange,
+    } as any)
+    expect(skin.props?.value).toBe('C1')
+    expect(skin.props?.remote).toBe(true)
+    expect(skin.props?.class).toContain('mmda-search-combo')
+    skin.props?.['onUpdate:value']?.('C1')
+    expect(onChange).toHaveBeenCalledWith(category)
+    const arrow = skin.children?.arrow?.()
+    expect(String(arrow?.props?.class ?? '')).toContain('mmda-search-combo__pick')
+  })
+
   it('maps factory.chips to NTag list', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.chips({
@@ -926,9 +1056,25 @@ describe('vui-agnaive skin', () => {
 
   it('builds column defs from listed metadata', () => {
     const cols = buildColumnDefs(productMeta(), { filterDisplay: 'menu' })
-    expect(cols.map(col => col.field)).toEqual(['code', 'name', 'price', 'enabled'])
+    expect(cols.map(col => col.field)).toEqual(['rowNum', 'code', 'name', 'price', 'enabled'])
+    expect(cols[0]).toMatchObject({
+      field: 'rowNum',
+      headerName: '序号',
+      sortable: false,
+      filter: false,
+      pinned: 'left',
+      editable: false,
+    })
     expect(cols.find(col => col.field === 'price')?.filter).toBe('agNumberColumnFilter')
     expect(cols.find(col => col.field === 'enabled')?.filter).toBe('agSetColumnFilter')
+    expect(cols.find(col => col.field === 'code')?.suppressHeaderMenuButton).toBe(false)
+  })
+
+  it('hides column header menu when filterable is false', () => {
+    const cols = buildColumnDefs(productMeta(), { filterable: false })
+    const dataCols = cols.filter(col => col.field !== 'rowNum')
+    expect(dataCols.every(col => col.suppressHeaderMenuButton === true)).toBe(true)
+    expect(dataCols.every(col => !col.filter)).toBe(true)
   })
 
   it('maps AG Grid FilterModel to EntityFilterModel and back', () => {
@@ -957,6 +1103,52 @@ describe('vui-agnaive skin', () => {
     const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.name.type).toBe('contains')
     expect(ag.price.type).toBe('inRange')
+  })
+
+  it('maps text blank to IS_BLANK and date/number blank to IS_NULL', () => {
+    const metaUi = new MetaUi({
+      objName: 'Product',
+      displayLabel: '商品',
+      primaryKey: 'id',
+      uniqueKey: 'name',
+      groups: [
+        {
+          groupName: 'base',
+          groupLabel: '基本信息',
+          many: false,
+          fields: [
+            field('name', '名称'),
+            field('price', '价格', SqlDataType.DECIMAL),
+            field('createdAt', '创建', SqlDataType.TIMESTAMP),
+          ],
+        },
+      ],
+    })
+    const entity = agFilterModelToEntity(
+      {
+        name: { filterType: 'text', type: 'blank' },
+        price: { filterType: 'number', type: 'blank' },
+        createdAt: { filterType: 'date', type: 'blank' },
+      },
+      metaUi,
+    )
+    expect(entity.name).toEqual({
+      filterType: 'text',
+      operator: 'IS_BLANK',
+      value: undefined,
+      valueTo: undefined,
+    })
+    expect(entity.price).toMatchObject({
+      filterType: 'number',
+      operator: 'IS_NULL',
+    })
+    expect(entity.createdAt).toMatchObject({
+      filterType: 'date',
+      operator: 'IS_NULL',
+    })
+    const ag = entityFilterToAgModel(entity, metaUi)
+    expect(ag.name.type).toBe('blank')
+    expect(ag.price.type).toBe('blank')
   })
 
   it('maps AG AND/OR conditions to join and back', () => {
@@ -1043,15 +1235,17 @@ describe('vui-agnaive skin', () => {
     )
     expect(entity.createdAt).toEqual({
       filterType: 'date',
-      operator: 'BETWEEN',
+      operator: 'WITHIN',
       dateKind: 'THIS_MONTH',
     })
     const ag = entityFilterToAgModel(entity, metaUi)
-    expect(ag.createdAt.filterType).toBe('multi')
-    expect(ag.createdAt.filterModels[0].type).toBe('THIS_MONTH')
+    expect(ag.createdAt).toEqual({
+      filterType: 'date',
+      type: 'THIS_MONTH',
+    })
   })
 
-  it('uses treeList Set Filter for date columns', () => {
+  it('uses Date Filter for date columns without MULTI', () => {
     const created = field('createdAt', '创建', SqlDataType.TIMESTAMP)
     const metaUi = new MetaUi({
       objName: 'Order',
@@ -1067,14 +1261,9 @@ describe('vui-agnaive skin', () => {
       ],
     })
     const cols = buildColumnDefs(metaUi, { filterDisplay: 'menu' })
-    expect(cols[0]?.filter).toBe('agMultiColumnFilter')
-    const setFilter = cols[0]?.filterParams?.filters?.find(
-      (item: { filter?: string }) => item.filter === 'agSetColumnFilter',
-    )
-    expect(setFilter?.filterParams?.treeList).toBe(true)
-    const dateFilter = cols[0]?.filterParams?.filters?.[0]
-    expect(dateFilter?.filter).toBe('agDateColumnFilter')
-    expect(dateFilter?.filterParams?.filterOptions).toEqual(
+    const dateCol = cols.find(col => col.field === 'createdAt')
+    expect(dateCol?.filter).toBe('agDateColumnFilter')
+    expect(dateCol?.filterParams?.filterOptions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ displayKey: 'THIS_MONTH' }),
         expect.objectContaining({ displayKey: 'TOMORROW' }),
@@ -1106,8 +1295,9 @@ describe('vui-agnaive skin', () => {
       ],
     })
     const cols = buildColumnDefs(metaUi, {})
-    expect(cols[0]?.filter).toBe('agSetColumnFilter')
-    const valuesFn = cols[0]?.filterParams?.values as Function
+    const statusCol = cols.find(col => col.field === 'status')
+    expect(statusCol?.filter).toBe('agSetColumnFilter')
+    const valuesFn = statusCol?.filterParams?.values as Function
     let received: unknown[] = []
     valuesFn({
       success: (values: unknown[]) => {
@@ -1115,7 +1305,9 @@ describe('vui-agnaive skin', () => {
       },
     })
     expect(received).toEqual(['OPEN', 'CLOSED'])
-    expect(cols[0]?.filterParams?.valueFormatter({ value: 'OPEN' })).toBe('打开')
+    expect(statusCol?.filterParams?.valueFormatter({ value: 'OPEN' })).toBe('打开')
+    expect(statusCol?.filter).not.toBe('agTextColumnFilter')
+    expect(statusCol?.filter).not.toBe('agMultiColumnFilter')
   })
 
   it('explicit filterTypes SET on string overrides text/multi infer', () => {
@@ -1142,54 +1334,10 @@ describe('vui-agnaive skin', () => {
       ],
     })
     const cols = buildColumnDefs(metaUi, { filterDisplay: 'menu' })
-    expect(cols[0]?.filter).toBe('agSetColumnFilter')
+    expect(cols.find(col => col.field === 'name')?.filter).toBe('agSetColumnFilter')
   })
 
-  it('uses Set Filter for ref/hasOne from refOptions, not page distinct', () => {
-    const warehouse = new MetaUiField({
-      fieldName: 'whID',
-      displayLabel: '仓库',
-      dataType: SqlDataType.NVARCHAR,
-      nullable: true,
-      fieldIdx: 0,
-      listed: true,
-      selectOptions: 'REF Warehouse(whID,whName)',
-    })
-    const metaUi = new MetaUi({
-      objName: 'Stock',
-      displayLabel: '库存',
-      primaryKey: 'id',
-      groups: [
-        {
-          groupName: 'base',
-          groupLabel: 'base',
-          many: false,
-          fields: [warehouse],
-        },
-      ],
-    })
-    const listed = metaUi.getListedFields()[0]!
-    listed.reference!.refOptions.splice(
-      0,
-      listed.reference!.refOptions.length,
-      { whID: 'W1', whName: '主仓' },
-      { whID: 'W2', whName: '辅仓' },
-    )
-    const loadFilterOptions = vi.fn()
-    const cols = buildColumnDefs(metaUi, { loadFilterOptions })
-    expect(cols[0]?.filter).toBe('agSetColumnFilter')
-    let received: unknown[] = []
-    ;(cols[0]?.filterParams?.values as Function)({
-      success: (values: unknown[]) => {
-        received = values
-      },
-    })
-    expect(received).toEqual(['W1', 'W2'])
-    expect(loadFilterOptions).not.toHaveBeenCalled()
-    expect(cols[0]?.filterParams?.valueFormatter({ value: 'W1' })).toBe('主仓')
-  })
-
-  it('uses searchable hasOne filter instead of dumping Set on mount', async () => {
+  it('loads first page via loadFilterOptions; incomplete search is remote', async () => {
     const material = new MetaUiField({
       fieldName: 'matID',
       displayLabel: '物料',
@@ -1199,28 +1347,123 @@ describe('vui-agnaive skin', () => {
       listed: true,
       selectOptions: 'HAS_ONE Material(matID,matName) AS material',
     })
-    const metaUi = new MetaUi({
-      objName: 'Order',
-      displayLabel: '订单',
-      primaryKey: 'id',
-      groups: [
-        {
-          groupName: 'base',
-          groupLabel: 'base',
-          many: false,
-          fields: [material],
-        },
-      ],
-    })
+    const home = Array.from({ length: 50 }, (_, index) => ({
+      matID: `M${index}`,
+      matName: `物料${index}`,
+    }))
     const loadFilterOptions = vi.fn(async (field: MetaUiField) => {
-      field.reference!.refOptions.push({ matID: 'M1', matName: '螺丝' })
+      field.reference!.refOptions.splice(
+        0,
+        field.reference!.refOptions.length,
+        ...home,
+      )
+      field.reference!.refOptionsComplete = false
       return field.reference!.refOptions
     })
-    const searchRelative = vi.fn(async () => [{ matID: 'M1', matName: '螺丝' }])
-    const cols = buildColumnDefs(metaUi, { loadFilterOptions, searchRelative })
-    expect(cols[0]?.filter).toBe('AgHasOneFilter')
-    expect(cols[0]?.filterParams?.searchRelative).toBe(searchRelative)
-    expect(loadFilterOptions).not.toHaveBeenCalled()
+    const searchRelative = vi.fn(async () => [{ matID: 'M9', matName: '物料9' }])
+    const cols = buildColumnDefs(
+      new MetaUi({
+        objName: 'Order',
+        displayLabel: '订单',
+        primaryKey: 'id',
+        groups: [
+          {
+            groupName: 'base',
+            groupLabel: 'base',
+            many: false,
+            fields: [material],
+          },
+        ],
+      }),
+      { loadFilterOptions, searchRelative },
+    )
+    expect(cols.find(col => col.field === 'matID')?.filter).toBe('AgHasOneFilter')
+
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const app = createApp(AgHasOneFilter, {
+      params: {
+        field: material,
+        loadFilterOptions,
+        searchRelative,
+        filterChangedCallback: vi.fn(),
+        colDef: {},
+      },
+    })
+    app.mount(host)
+    await nextTick()
+    await Promise.resolve()
+    expect(loadFilterOptions).toHaveBeenCalledWith(material)
+    expect(searchRelative).not.toHaveBeenCalled()
+    expect(host.querySelectorAll('input[type="checkbox"]').length).toBe(50)
+    expect(host.textContent).toContain('物料0')
+    expect(host.querySelector('.n-select')).toBeNull()
+
+    vi.useFakeTimers()
+    const box = host.querySelector(
+      '.mmda-ag-hasone-filter__search',
+    ) as HTMLInputElement
+    box.value = '钉'
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+    await vi.advanceTimersByTimeAsync(300)
+    expect(searchRelative).toHaveBeenCalledWith(material, '钉')
+    expect(material.reference!.refOptions).toHaveLength(50)
+    vi.useRealTimers()
+    app.unmount()
+    host.remove()
+  })
+
+  it('filters locally when the first page is complete', async () => {
+    const warehouse = new MetaUiField({
+      fieldName: 'whID',
+      displayLabel: '仓库',
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+      fieldIdx: 0,
+      listed: true,
+      selectOptions: 'REF Warehouse(whID,whName)',
+    })
+    const loadFilterOptions = vi.fn(async (field: MetaUiField) => {
+      field.reference!.refOptions.splice(
+        0,
+        field.reference!.refOptions.length,
+        { whID: 'W1', whName: '主仓' },
+        { whID: 'W2', whName: '辅仓' },
+      )
+      field.reference!.refOptionsComplete = true
+      return field.reference!.refOptions
+    })
+    const searchRelative = vi.fn()
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const app = createApp(AgHasOneFilter, {
+      params: {
+        field: warehouse,
+        loadFilterOptions,
+        searchRelative,
+        filterChangedCallback: vi.fn(),
+        colDef: {},
+      },
+    })
+    app.mount(host)
+    await nextTick()
+    await Promise.resolve()
+    expect(loadFilterOptions).toHaveBeenCalledWith(warehouse)
+    expect(host.textContent).toContain('主仓')
+
+    vi.useFakeTimers()
+    const box = host.querySelector(
+      '.mmda-ag-hasone-filter__search',
+    ) as HTMLInputElement
+    box.value = '主'
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+    await vi.advanceTimersByTimeAsync(300)
+    expect(searchRelative).not.toHaveBeenCalled()
+    expect(host.querySelectorAll('input[type="checkbox"]').length).toBe(1)
+    expect(host.textContent).toContain('主仓')
+    vi.useRealTimers()
+    app.unmount()
+    host.remove()
   })
 
   it('passes selection and filter callbacks through factory.table to AgGrid', () => {
@@ -1272,6 +1515,67 @@ describe('vui-agnaive skin', () => {
     expect(darkOverrides.Input?.border).toMatch(/1px solid/)
     expect(lightOverrides.Input?.border).toMatch(/1px solid/)
     naiveSkinState.dark = false
+  })
+
+  it('SelectMany in dialog still shows Create when allowed', () => {
+    const builder = new AgNaiveUiBuilder()
+    const module = {
+      authority: auth(1 | 4),
+    }
+    const context = {
+      view: UiViewMany.SelectMany,
+      many: true,
+      editing: false,
+      isInDialog: true,
+      title: '部门',
+      metaUi: { objName: 'Department', displayLabel: '部门' },
+      model: { list: [] },
+      logic: { module, repository: 'Departments' },
+      module,
+      refresh: () => undefined,
+      actionLoadings: {},
+      executing: false,
+      globalProps: { $t: (message: string) => message },
+      t: (message: string) => message,
+      translate: (message: string) => message,
+      customActions: [],
+      selectionMode: 'multiple',
+    }
+    const buttons = (builder as any).indexViewActionButtons(context)
+    const json = JSON.stringify(buttons)
+    expect(json).toContain('create')
+    expect(json).toContain('tableSettings')
+    expect(json).not.toContain('cancel')
+  })
+
+  it('SelectMany in dialog without create still shows More with tableSettings', () => {
+    const builder = new AgNaiveUiBuilder()
+    const module = {
+      authority: auth(1),
+    }
+    const context = {
+      view: UiViewMany.SelectMany,
+      many: true,
+      editing: false,
+      isInDialog: true,
+      title: '部门',
+      metaUi: { objName: 'Department', displayLabel: '部门' },
+      model: { list: [] },
+      logic: { module, repository: 'Departments' },
+      module,
+      refresh: () => undefined,
+      actionLoadings: {},
+      executing: false,
+      globalProps: { $t: (message: string) => message },
+      t: (message: string) => message,
+      translate: (message: string) => message,
+      customActions: [],
+      selectionMode: 'multiple',
+    }
+    const buttons = (builder as any).indexViewActionButtons(context)
+    const json = JSON.stringify(buttons)
+    expect(json).not.toContain('create')
+    expect(json).toContain('tableSettings')
   })
 
   it('renders list toolbar actions from module authority', () => {
@@ -1356,7 +1660,7 @@ describe('vui-agnaive skin', () => {
     ])
   })
 
-  it('defaults group cards to MmdaGroupCard', () => {
+  it('defaults group cards to GroupCard', () => {
     const builder = new AgNaiveUiBuilder()
     const group = new MetaUiGroup({
       groupName: 's1',
@@ -1366,7 +1670,18 @@ describe('vui-agnaive skin', () => {
     })
     const card = builder.wrapGroup(group, h('div', 'body'))
     expect((card.type as any)?.name ?? (card.type as any)?.__name).toBe(
-      'MmdaGroupCard',
+      'GroupCard',
     )
+  })
+
+  it('uses official AG Grid locale packs for zh, zh-Hant and en', () => {
+    const cn = resolveAgGridLocaleText('zh')
+    const tw = resolveAgGridLocaleText('zh-Hant')
+    expect(cn).toBeTruthy()
+    expect(tw).toBeTruthy()
+    expect(cn).not.toEqual(tw)
+    expect(String(cn?.filterOoo ?? cn?.equals ?? '')).toMatch(/[\u4e00-\u9fff]/)
+    expect(resolveAgGridLocaleText('en')).toBeUndefined()
+    expect(resolveAgGridLocaleText('en-US')).toBeUndefined()
   })
 })

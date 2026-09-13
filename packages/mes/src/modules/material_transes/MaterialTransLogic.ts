@@ -36,7 +36,7 @@ import type { UiBuildContext } from '@mmda/vui';
 //提交的值
 const subData = {
 	data: [],
-});
+};
 const isMaterialReason = { value: false }
 // const notice = {
 // 	data: {
@@ -436,21 +436,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 				this.field('status'),
 				// todo 宇轩不需要
 				// this.field('projectID').refWhere((model, ctx) => {
-					const __p = ((ctx, model: any) => {
-				// 	// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
-				// 	return model.order?.projectID ? { projectID: model.order.projectID } : {};
-				// })(ctx as any, model as any, undefined as any);
-					if (!__p) return "";
-					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
-						.map(([k, v]) => {
-							const s = String(v);
-							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
-							if (/^[><=]/.test(s)) return `${k}${s}`;
-							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
-						})
-						.join(" AND ");
-				}),
+				// }) — orphaned __p body removed
 				this.field('orderID').refWhere((model, ctx) => {
 					const __p = ((ctx, model: any) => {
 					// 搜索订单时：如果已经选择了项目，则传入项目ID来限制订单列表

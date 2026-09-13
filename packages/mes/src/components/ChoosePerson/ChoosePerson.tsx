@@ -24,7 +24,6 @@ import { label, type UiBuildContext } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
-import { uiBuilder } from '@/mes';
 import { emit } from 'process';
 import { MES_KEY } from '@/keys';
 interface InvalidProps {

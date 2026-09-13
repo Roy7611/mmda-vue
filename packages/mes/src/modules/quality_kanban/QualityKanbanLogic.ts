@@ -22,7 +22,7 @@ const searchParamSite = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
-})
+};
 // 制品类别下拉数据缓存（searchForRelative 弹窗内表格数据，模块级共享）
 const tableDataCategory = { value: [] }
 const tableDataKeyCategory = { value: 'id' }
@@ -30,7 +30,7 @@ const searchParamCategory = {
   pager: { pageSize: 10, pageNo: 1 },
   searchWord: '',
   searchParams: {},
-})
+};
 
 /**
  * 质量看板交互逻辑
@@ -409,7 +409,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                                 { name: ctx.t('dateRange.THIS_YEAR'), value: 'THIS_YEAR' },
                                 { name: ctx.t('dateRange.LAST_YEAR'), value: 'LAST_YEAR' },
                             ],
-                        })
+                        };
                         return ctx.uiBuilder.factory.dropDownList({
                             value: csf.searchVal.value ?? 'THIS_WEEK',
                             options: searchData.timeSelect.map((item: any) => ({

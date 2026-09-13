@@ -18,7 +18,7 @@ const naiveType = (role?: string) => {
     danger: 'error',
     error: 'error',
   }
-  return role ? roles[role] : undefined
+  return role ? roles[String(role).toLowerCase()] : undefined
 }
 
 export function createButton(
@@ -28,7 +28,7 @@ export function createButton(
 ) {
   const {
     htmlAttributes,
-    class: className,
+    class: _className,
     label,
     icon,
     tooltip,
@@ -43,10 +43,19 @@ export function createButton(
     onClick,
     onAction,
     command,
+    // UiAction 袋字段：勿落到 NButton attrs，以免干扰点击
+    name: _name,
+    canDo: _canDo,
+    visible: _visible,
+    group: _group,
+    view: _view,
+    description: _description,
+    role: _role,
     ...rest
-  } = props
+  } = props as UiButtonProps & Record<string, unknown>
   const iconName = icon as string | undefined
   const hideLabel = shape === 'circle' && !label
+  const handleClick = onClick ?? onAction ?? command
   return h(
     NButton,
     {
@@ -69,8 +78,13 @@ export function createButton(
       size: size === 'small' ? 'small' : size === 'large' ? 'large' : 'medium',
       class: buttonModifierClasses(props),
       id,
-      label,
-      onClick: onClick ?? onAction ?? command,
+      onClick: handleClick
+        ? (event: MouseEvent) => {
+            event.preventDefault()
+            event.stopPropagation()
+            return handleClick(event as never)
+          }
+        : undefined,
     },
     {
       default: () =>

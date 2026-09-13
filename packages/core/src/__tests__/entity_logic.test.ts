@@ -59,6 +59,18 @@ describe("EntityLogic", () => {
     expect(() => logic.field("missing")).toThrow(/missing field/);
   });
 
+  it("getJoinList 走 searchJoinList 并包成实体", async () => {
+    const searchJoinList = vi.fn(async () => ({
+      list: [{ id: "1", name: "a" }],
+      pagination: { pageIndex: 1, pageSize: 20, total: 1 },
+    }));
+    const { logic } = createLogic({ searchJoinList });
+    const page = await logic.getJoinList();
+    expect(searchJoinList).toHaveBeenCalled();
+    expect(page?.list[0]).toBeInstanceOf(Item);
+    expect(page?.list[0].name).toBe("a");
+  });
+
   it("getAll 走 searchAll 并包成实体", async () => {
     const searchAll = vi.fn(async () => ({
       list: [{ id: "1", name: "a" }],

@@ -712,12 +712,34 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
         slots?.default?.(),
       ),
     tabs: (props: any = {}) =>
-      h("div", {
-        class: ["mmda-tabs", props.class],
-        "data-value": props.value ?? props.modelValue ?? 0,
-        "data-header-placement": props.headerPlacement ?? "Top",
-        "data-scrollable": props.scrollable !== false,
-      }),
+      h(
+        "div",
+        {
+          class: ["mmda-tabs", props.class],
+          "data-value": props.value ?? props.modelValue ?? 0,
+          "data-header-placement": props.headerPlacement ?? "Top",
+          "data-scrollable": props.scrollable !== false,
+          "data-load-on": props.loadOn ?? "Demand",
+          "data-header-style": props.headerStyle ?? "fill",
+        },
+        (props.items ?? []).map((item: any, index: number) => {
+          const name = item.name || `content${index}`;
+          const content =
+            typeof item.content === "function" ? item.content() : item.content;
+          return h(
+            "div",
+            {
+              key: name,
+              class: "mmda-tab-pane",
+              "data-tab-name": name,
+            },
+            [
+              h("div", { class: "mmda-tab-pane__header" }, item.header?.text ?? item.header),
+              content,
+            ],
+          );
+        }),
+      ),
     toolbar: (props: any = {}, slots?: any) =>
       h(
         "div",
@@ -782,7 +804,19 @@ function createTestFieldFactory(): UiFieldFactory {
         );
       },
     });
-    return h("div", { class: "mmda-field-input", ...props }, input);
+    const invalidMessage = (context as any).getInvalidMessage?.(field) as
+      | string
+      | undefined;
+    return h(
+      "div",
+      { class: ["mmda-field-input", invalidMessage && "is-invalid"], ...props },
+      [
+        input,
+        invalidMessage
+          ? h("span", { class: "mmda-control-error" }, invalidMessage)
+          : null,
+      ],
+    );
   };
 
   return { fallbackDisplay, fallbackInput };

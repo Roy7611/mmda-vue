@@ -567,16 +567,22 @@ describe("VueUiContext", () => {
         },
       ],
     });
-    const pivot = ["1", "2"];
-    const getPivotValues = vi.fn(async () => pivot);
-    const searchAll = vi.fn();
+    const rows = [
+      { packID: "1", packFullName: "纸箱" },
+      { packID: "2", packFullName: "托盘" },
+    ];
+    const searchRelative = vi.fn(async () => ({
+      list: rows,
+      pagination: { pageSize: 50, pageNo: 1, recordCount: 2 },
+    }));
+    const getPivotValues = vi.fn();
     const ctx = new VueUiContext({
       model: { id: "m1" },
       metaUi,
       view: "index",
+      logic: { searchRelative } as any,
       app: {
         api: {
-          searchAll,
           getPivotValues,
           config: { repository: "Materials", service: "base" },
         },
@@ -586,19 +592,62 @@ describe("VueUiContext", () => {
     const loaded = await ctx.loadReferenceOptions(packField);
     await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual(loaded);
 
-    expect(packField.reference?.refOptions).toEqual([
-      { packID: "1" },
-      { packID: "2" },
-    ]);
+    expect(packField.reference?.refOptions).toEqual(rows);
+    expect(packField.reference?.labelOf(rows[0])).toBe("纸箱");
+    expect(packField.reference?.refOptionsComplete).toBe(true);
     expect(ctx.getFieldOptions(packField).selectOptions).toEqual(
       packField.reference?.refOptions,
     );
-    expect(getPivotValues).toHaveBeenCalledOnce();
-    expect(getPivotValues).toHaveBeenCalledWith("packID", {
-      repository: "Materials",
-      service: "base",
+    expect(searchRelative).toHaveBeenCalledOnce();
+    expect(searchRelative.mock.calls[0][0].pager.pageSize).toBe(50);
+    expect(searchRelative.mock.calls[0][1]).toEqual({
+      repository: packField.reference?.refRepository,
+      service: packField.reference?.service,
     });
-    expect(searchAll).not.toHaveBeenCalled();
+    expect(getPivotValues).not.toHaveBeenCalled();
+  });
+
+  it("首页未穷尽时标记 incomplete，第二次 load 不请求", async () => {
+    const packField = new MetaUiField({
+      fieldName: "packID",
+      displayLabel: "包装规格",
+      fieldIdx: 0,
+      dataType: SqlDataType.NVARCHAR,
+      nullable: true,
+      selectOptions: "REF MaterialPackage(packID,packFullName)",
+    });
+    const metaUi = new MetaUi({
+      objName: "Material",
+      displayLabel: "物料",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "a1",
+          groupLabel: "物料",
+          many: false,
+          fields: [packField],
+        },
+      ],
+    });
+    const list = Array.from({ length: 50 }, (_, index) => ({
+      packID: String(index),
+      packFullName: `规格${index}`,
+    }));
+    const searchRelative = vi.fn(async () => ({
+      list,
+      pagination: { pageSize: 50, pageNo: 1, recordCount: 80 },
+    }));
+    const ctx = new VueUiContext({
+      model: { id: "m1" },
+      metaUi,
+      view: "index",
+      logic: { searchRelative } as any,
+    });
+    await ctx.loadReferenceOptions(packField);
+    await ctx.loadReferenceOptions(packField);
+    expect(searchRelative).toHaveBeenCalledOnce();
+    expect(packField.reference?.refOptions).toHaveLength(50);
+    expect(packField.reference?.refOptionsComplete).toBe(false);
   });
 
   it("有 refOptions 缓存时不请求接口", async () => {
@@ -624,20 +673,23 @@ describe("VueUiContext", () => {
         },
       ],
     });
+    const searchRelative = vi.fn();
     const getPivotValues = vi.fn();
     const ctx = new VueUiContext({
       model: { id: "m1" },
       metaUi,
       view: "index",
+      logic: { searchRelative } as any,
       app: { api: { getPivotValues, searchAll: vi.fn() } } as any,
     });
     await expect(ctx.loadReferenceOptions(packField)).resolves.toEqual([
       { packID: "1", packFullName: "纸箱" },
     ]);
+    expect(searchRelative).not.toHaveBeenCalled();
     expect(getPivotValues).not.toHaveBeenCalled();
   });
 
-  it("hasOne 不在 loadReferenceOptions 里 searchAll 1000", async () => {
+  it("hasOne 也走首页 50，不调 pivotValues", async () => {
     const material = new MetaUiField({
       fieldName: "matID",
       displayLabel: "物料",
@@ -659,16 +711,25 @@ describe("VueUiContext", () => {
         },
       ],
     });
-    const searchAll = vi.fn();
+    const rows = [{ matID: "M1", matName: "螺丝" }];
+    const searchRelative = vi.fn(async () => ({
+      list: rows,
+      pagination: { pageSize: 50, pageNo: 1, recordCount: 1 },
+    }));
     const getPivotValues = vi.fn();
     const ctx = new VueUiContext({
       model: { id: "o1" },
       metaUi,
       view: "index",
-      app: { api: { searchAll, getPivotValues } } as any,
+      logic: { searchRelative } as any,
+      app: { api: { getPivotValues } } as any,
     });
-    await expect(ctx.loadReferenceOptions(material)).resolves.toEqual([]);
-    expect(searchAll).not.toHaveBeenCalled();
+    await expect(ctx.loadReferenceOptions(material)).resolves.toEqual(rows);
+    expect(material.reference?.refOptionsComplete).toBe(true);
+    expect(searchRelative.mock.calls[0][0].pager.pageSize).toBe(50);
+    expect(searchRelative.mock.calls[0][1].repository).toBe(
+      material.reference?.refRepository,
+    );
     expect(getPivotValues).not.toHaveBeenCalled();
   });
 
@@ -716,5 +777,27 @@ describe("VueUiContext", () => {
       ["B"],
     );
     expect(ctx.searchParam.pager.sorts ?? []).toEqual([]);
+  });
+
+  it("列表 pageSize 用全局 mmda/pageSize，不被模块 lastQuery 覆盖", () => {
+    localStorage.setItem("mmda/pageSize", "200");
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
+      model: { list: [] },
+      metaUi,
+      view: "index",
+      logic: {
+        meta: {
+          lastQuery: {
+            pager: { pageNo: 3, pageSize: 1000 },
+            searchWord: "螺丝",
+          },
+        },
+      },
+    } as any);
+    ctx.configureSearch([]);
+    expect(ctx.searchParam.pager.pageSize).toBe(200);
+    expect(ctx.searchParam.pager.pageNo).toBe(3);
+    expect(ctx.searchParam.searchWord).toBe("螺丝");
   });
 });

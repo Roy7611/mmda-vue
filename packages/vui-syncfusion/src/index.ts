@@ -23,10 +23,24 @@ export * from './components/SfAttachmentPanel'
 export * from './components/SfImageGallery'
 export * from './components/SfFilesUploader'
 export * from './components/SfFileUploader'
+export {
+  SfCompareColumnFilter,
+  SfDateColumnFilter,
+  SfDateTimeColumnFilter,
+  SfNumberColumnFilter,
+  SfTimeColumnFilter,
+} from './components/SfCompareColumnFilter'
 export { SfGrid } from './components/SfGrid'
 export { SfGridLayout } from './components/SfGridLayout'
 export { SfGridHost, SfGridLoadingHost } from './factory/grid'
 export { SfLoadingHost, SfPageLoading } from './components/SfLoadingHost'
+export {
+  applyCompareColumnFilters,
+  compareColumnVariantOf,
+  createCompareColumnFilterStore,
+  sfCompareColumnFilter,
+  usesCompareColumnFilter,
+} from './factory/column_filter'
 export {
   buildSfGridColumns,
   buildSfTreeGridColumns,

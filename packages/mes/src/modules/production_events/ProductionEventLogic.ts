@@ -42,7 +42,7 @@ export class ProductionEventLogic extends EntityLogic<ProductionEvent> {
 				.push
 				(
 					this.field('taskID')
-						.lockIf((model: ProductionEvent, ctx: UiContext<ProductionEvent>) => model.taskID && ctx.isEditDialog)
+						.lockIf((model: ProductionEvent, ctx: UiContext<ProductionEvent>) => model.taskID && ctx.isInDialog)
 						.refWhere((model, ctx) => {
 					const __p = ((ctx, model, field) => ({
 							status: getSqlOperator('NOT_IN').toSQL([ProductionTaskStatus.CANCELED, ProductionTaskStatus.FINISHED])

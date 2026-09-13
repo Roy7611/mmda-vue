@@ -38,6 +38,14 @@ export function createMessage(props: UiMessageProps = {}) {
       closable: messageShowCloseIconOf(showCloseIcon),
       showIcon: messageShowIconOf(showIcon),
       class: ['mmda-message', cssClass, className],
+      // 详情页 banner 要整行；避免 NAlert 按文案缩成一条窄条
+      style: {
+        ...((rest as { style?: Record<string, unknown> }).style ?? {}),
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        margin: 0,
+      },
       onClose: () => onClose?.(),
     },
     { default: () => content ?? '' },

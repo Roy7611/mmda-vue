@@ -33,6 +33,7 @@ import {
   createDefaultSearchParam,
   type UiViewType,
 } from "../view";
+import { readStoredPageSize } from "../../app/theme";
 import type { Constructor } from "./types";
 
 export interface UiFileTransferOptions extends ImportOrExportParam {
@@ -72,22 +73,16 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     customSearchFields: UiCustomSearchField[] = [];
     searchParam = rx(createDefaultSearchParam());
     listLayoutRev = ref(0);
+    pageLayoutRev = ref(0);
+    joinListMode = false;
     currentTemplate: ReportTemplate | null = null;
     templates: ReportTemplate[] = [];
     uploading = ref(false);
     #selectionModeOverride: "single" | "multiple" | null | undefined;
     #baseFilter = "";
 
-    constructor(...args: any[]) {
-      super(...args);
-      const options = args[0] ?? {};
-      if (options.logic && options.metaUi) {
-        options.logic.meta = {
-          ...(options.logic.meta ?? {}),
-          metaUi: options.metaUi,
-        };
-      }
-    }
+    // 注意：不要在子 context 构造时用 options.metaUi 覆盖共享 logic.meta。
+    // subGroupContext 会传入子表 groupUi，若写回父 Logic，随后 createRelativeLogic→getGroup 会炸。
 
     get many() {
       return (
@@ -146,6 +141,8 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
           this.searchParam.pager.sorts = parseDefaultSort(defaultSort);
         }
       }
+      // 每页条数全局共用 `mmda/pageSize`，不被模块 lastQuery 覆盖
+      this.searchParam.pager.pageSize = readStoredPageSize();
       if (form?.queryParams) {
         Object.assign(this.getQueryParam(), form.queryParams);
         if (form.queryParams.filter) {
@@ -153,7 +150,21 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         }
       }
       this.searchFields = form?.searchFields ?? [];
-      this.customSearchFields = form?.customSearchFields ?? [];
+      // Logic 里 push 的是 plain CustomSearchField；运行时需要带 searchVal 的 UiCustomSearchField
+      this.customSearchFields = (form?.customSearchFields ?? []).map(
+        (field: any, index: number, arr: any[]) => {
+          if (field instanceof UiCustomSearchField) return field;
+          const wrapped = new UiCustomSearchField({
+            searchLabel: field.searchLabel ?? field.label ?? "",
+            searchParam: field.searchParam,
+            renderer: field.renderer,
+            valueFn: field.valueFn,
+            defaultValue: field.defaultValue,
+          });
+          arr[index] = wrapped;
+          return wrapped;
+        },
+      );
       if (!this.#baseFilter && this.searchParam.queryParams?.filter) {
         this.#baseFilter = String(this.searchParam.queryParams.filter);
       }
@@ -287,7 +298,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       const valid = await this.validate();
       if (!valid) {
         const messages = this.collectInvalidMessages?.() ?? [];
-        await this.app?.ui?.message?.(this, {
+        await this.uiBuilder?.message?.(this, {
           severity: "error",
           content:
             messages.length > 0
@@ -303,7 +314,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       );
       if (remoteErrors && remoteErrors > 0) {
         const messages = this.collectInvalidMessages?.() ?? [];
-        await this.app?.ui?.message?.(this, {
+        await this.uiBuilder?.message?.(this, {
           severity: "error",
           content:
             messages.length > 0
@@ -315,7 +326,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       const result = await this.logic.save(this.model);
       if (result && typeof result === "object") this.setModel(result);
       await this.logic.afterSave?.(this, this.model, undefined, result);
-      await this.app?.ui?.message?.(this, {
+      await this.uiBuilder?.message?.(this, {
         severity: "success",
         content: this.translate("success.saved"),
       });
@@ -379,7 +390,10 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       this.syncSearchState();
       this.loading.value = true;
       try {
-        const page = await this.logic.getAll(this.searchParam);
+        const useJoinList = this.joinListMode && !!this.logic.meta?.metaVui;
+        const page = useJoinList
+          ? await this.logic.getJoinList(this.searchParam)
+          : await this.logic.getAll(this.searchParam);
         if (page) this.setModel(page);
         return page;
       } finally {
@@ -421,7 +435,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         if (action.redirectTo) {
           await this.doRedirectAction(action);
         } else if (result !== false && !this.many) {
-          // 成功后停在 details/edit 看新数据；不改 KeepAlive 列表，等 back 再 assign
+          // 成功后停在 details/edit 看新数据；不改保活 Index 列表，等 back 再 assign
           await this.reload();
         }
         return result;
@@ -507,7 +521,12 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
 
     async exportFiles(options: UiFileTransferOptions = {}) {
       if (!this.logic) return;
-      const result = await this.logic.exportFiles(options, options.body);
+      const result = this.joinListMode
+        ? await this.logic.exportJoinList(
+            options,
+            options.body ?? this.searchParam,
+          )
+        : await this.logic.exportFiles(options, options.body);
       options.exportFn?.(this as any, result);
       options.handlerFn?.(this as any, result);
       return result;

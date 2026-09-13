@@ -11,7 +11,7 @@ chrome 内容面板，走 `factory.card`。[EJ2 Card Image](https://ej2.syncfusi
 | vui `ui/factory/card.ts` | `UiCardProps`：`title` / `surface` / `image` / `headerImage` / `divider` |
 | 皮肤 `factory/card.ts` | SF CSS `e-card`；Prime `Card`；Naive `NCard` |
 
-**不是**表单分组：`MmdaGroupCard` / `buildGroupCard` 仍管 MetaUi 组外壳（可折叠 master/sub）。本控件给 dashboard、自定义视图用。
+**不是**表单分组：`GroupCard` / `buildGroupCard` 仍管 MetaUi 组外壳（可折叠 master/sub）。本控件给 dashboard、自定义视图用。
 
 EJ2 Card 是纯 CSS，Syncfusion 皮肤不要造 `SfCard.vue`。
 

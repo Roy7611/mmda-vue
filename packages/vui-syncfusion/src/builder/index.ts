@@ -8,7 +8,7 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { debounce, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
-import { VueUiBuilder, MmdaGroupCard, UiViewMany, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
+import { VueUiBuilder, GroupCard, UiViewMany, pageLayoutMenuItems, joinListModeMenuItems, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfOverlayHost } from "../components/SfOverlayHost";
 import { createSyncfusionOverlay } from "../syncfusion_overlay";
@@ -88,7 +88,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       ...rest
     } = props;
     return h(
-      MmdaGroupCard,
+      GroupCard,
       {
         tag: "div",
         title: group.groupLabel,
@@ -101,7 +101,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       {
         header: ({ title }: { title: string }) =>
           h("div", { class: "e-card-header-caption" }, [
-            h("div", { class: "e-card-header-title mmda-group-title" }, title),
+            h("div", { class: ["e-card-header-title", uiCssClass("group", "title")] }, title),
           ]),
         // Card 只做壳；字段/表格布局由 .mmda-group__content 管
         default: () => this.wrapGroupContent(body),
@@ -142,7 +142,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
             context.translate("action.uploadAttachment") || "上传附件",
           buttonType: "text",
           shape: "round",
-          class: "mmda-group-action",
+          class: uiCssClass("group", "action"),
           onClick: () => panel.value?.choose(),
         }),
       },
@@ -313,6 +313,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
                 name: item.name ?? `more-${index}`,
                 label: item.label,
                 icon: item.icon,
+                disabled: item.disabled === true,
                 onAction: item.command ?? item.onAction,
                 items: item.items,
               },
@@ -375,9 +376,9 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     action: UiAction,
     props?: UiProps,
   ) {
-    // secondary（返回等）与「更多」一致用 tonal，避免默认实心/透明底和工具栏糊在一起
-    const secondary =
-      (action.colorRole ?? action.role)?.toLowerCase() === "secondary";
+    // secondary（返回等）与「更多」一致用 tonal；其余用元数据 colorRole（业务动作默认 warning）
+    const colorRole = (action.colorRole ?? action.role)?.toLowerCase();
+    const secondary = colorRole === "secondary";
     const dense = this.toolbarDense;
     const label =
       action.label ??
@@ -388,7 +389,8 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       false,
       {
         size: "small",
-        ...(secondary ? { buttonType: "tonal", colorRole: "secondary" } : {}),
+        ...(colorRole ? { colorRole: colorRole as UiAction["colorRole"] } : {}),
+        ...(secondary ? { buttonType: "tonal" } : {}),
         ...props,
         ...(dense
           ? {
@@ -549,6 +551,16 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         command: action.onAction,
       })),
     );
+    const joinItems = joinListModeMenuItems(context as any).map((item) => ({
+      name: item.name,
+      label: item.label,
+      icon: item.icon ? this.factory.resolveIcon(item.icon) : undefined,
+      command: item.command ?? item.onAction,
+    }));
+    if (joinItems.length) {
+      if (moreItems.length) moreItems.push({ divider: true });
+      moreItems.push(...joinItems);
+    }
     if (moreItems.length) moreItems.push({ divider: true });
     moreItems.push(...this.listLayoutMenuItems(context));
     children.push(...this.assembleMoreButton(context, moreItems));
@@ -565,7 +577,20 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       this.toolbarActionButton(context, this.actionFactory.back(context)),
     ];
     const moreItems: any[] = [];
-    if (!entityAuth) return children;
+    if (!entityAuth) {
+      moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+            },
+      ),
+    );
+      children.push(...this.assembleMoreButton(context, moreItems));
+      return children;
+    }
 
     if (entityAuth.allowEdit && model?.editable !== false) {
       children.push(
@@ -628,6 +653,16 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     if (entityAuth.allowImport) {
       moreItems.push(this.importOrExportMenuItem(context, "import"));
     }
+    moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+            },
+      ),
+    );
     children.push(...this.assembleMoreButton(context, moreItems));
     return children;
   }

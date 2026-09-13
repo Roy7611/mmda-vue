@@ -225,8 +225,19 @@ export function expandDateFilters(
   return Object.keys(next).length ? next : undefined;
 }
 
-export function normalizePivotDates(raw: unknown): string[] {
-  const days = new Set<string>();
+export interface DatePeriodTreeNode {
+  id: string;
+  text: string;
+  children?: DatePeriodTreeNode[];
+}
+
+/**
+ * GET pivotDates 的 List<String>：年 / 月 / 日 token，服务端已 ORDER BY。
+ * 保持出现顺序，不要再 sort。
+ */
+export function normalizePivotTokens(raw: unknown): string[] {
+  const tokens: string[] = [];
+  const seen = new Set<string>();
   const walk = (item: unknown) => {
     if (item == null) return;
     if (Array.isArray(item)) {
@@ -235,13 +246,93 @@ export function normalizePivotDates(raw: unknown): string[] {
     }
     if (typeof item === "object") {
       const record = item as Record<string, unknown>;
-      walk(record.date ?? record.day ?? record.value ?? record.start);
+      walk(
+        record.date ??
+          record.day ??
+          record.value ??
+          record.start ??
+          record.d,
+      );
       Object.values(record).forEach(walk);
       return;
     }
     const token = toDatePeriodToken(item);
-    if (token && DAY.test(token)) days.add(token);
+    if (token && isDatePeriodToken(token) && !seen.has(token)) {
+      seen.add(token);
+      tokens.push(token);
+    }
   };
   walk(raw);
-  return [...days].sort();
+  return tokens;
+}
+
+/** pivot 日 → 年 / 月 / 日树。id 是周期 token。 */
+export function pivotDaysToTree(
+  days: unknown[],
+  labels?: { month?: string },
+): DatePeriodTreeNode[] {
+  return pivotTokensToTree(uniqueDays(days), labels);
+}
+
+/**
+ * 服务端已排序的年 / 月 / 日 List<String> → 勾选树。
+ * 缺成年月节点时按日补上；不重排。
+ */
+export function pivotTokensToTree(
+  tokens: unknown[],
+  labels?: { month?: string },
+): DatePeriodTreeNode[] {
+  const list = normalizePivotTokens(tokens);
+  const years: DatePeriodTreeNode[] = [];
+  const yearMap = new Map<string, DatePeriodTreeNode>();
+  const monthMap = new Map<string, DatePeriodTreeNode>();
+  const monthSuffix = labels?.month ?? "";
+
+  const ensureYear = (id: string) => {
+    let node = yearMap.get(id);
+    if (!node) {
+      node = { id, text: id, children: [] };
+      yearMap.set(id, node);
+      years.push(node);
+    }
+    return node;
+  };
+  const ensureMonth = (id: string) => {
+    let node = monthMap.get(id);
+    if (!node) {
+      const year = ensureYear(id.slice(0, 4));
+      const monthNum = Number(id.slice(5, 7));
+      node = {
+        id,
+        text: Number.isFinite(monthNum) ? `${monthNum}${monthSuffix}` : id,
+        children: [],
+      };
+      monthMap.set(id, node);
+      year.children!.push(node);
+    }
+    return node;
+  };
+
+  for (const token of list) {
+    if (YEAR.test(token)) {
+      ensureYear(token);
+      continue;
+    }
+    if (MONTH.test(token)) {
+      ensureMonth(token);
+      continue;
+    }
+    if (DAY.test(token)) {
+      const month = ensureMonth(token.slice(0, 7));
+      if (!month.children!.some((child) => child.id === token)) {
+        month.children!.push({ id: token, text: token.slice(8, 10) });
+      }
+    }
+  }
+  return years;
+}
+
+/** 只要日历日，顺序跟服务端 List<String> 一致。 */
+export function normalizePivotDates(raw: unknown): string[] {
+  return normalizePivotTokens(raw).filter((token) => DAY.test(token));
 }

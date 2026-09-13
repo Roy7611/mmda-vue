@@ -1,3 +1,4 @@
+import { uiCssClass } from "@mmda/core";
 import { defineComponent, h, ref } from "vue";
 import Card from "primevue/card";
 
@@ -6,10 +7,10 @@ import Card from "primevue/card";
  *
  * Classes mirror Syncfusion shell (without e-*):
  *   .p-card.mmda-group.master|sub.primary|secondary
- *     .mmda-group-header
+ *     .mmda-group__header
  *       [title] [actions] [toggle]
- *     .e-collapse > .e-collapse-inner > .mmda-group-body
- *     .mmda-group-footer (optional)
+ *     .e-collapse > .e-collapse-inner > .mmda-group__body
+ *     .mmda-group__footer (optional)
  */
 export const PrimeGroupCard = defineComponent({
   name: "PrimeGroupCard",
@@ -53,7 +54,7 @@ export const PrimeGroupCard = defineComponent({
             h(
               "div",
               {
-                class: "mmda-group-header",
+                class: uiCssClass("group", "header"),
                 role: props.toggleable ? "button" : undefined,
                 tabindex: props.toggleable ? 0 : undefined,
                 "aria-expanded": open.value,
@@ -61,12 +62,12 @@ export const PrimeGroupCard = defineComponent({
                 onKeydown: props.toggleable ? onKeydown : undefined,
               },
               [
-                h("h2", { class: "mmda-group-title" }, props.title),
+                h("h2", { class: uiCssClass("group", "title") }, props.title),
                 actions
                   ? h(
                       "div",
                       {
-                        class: "mmda-group-actions",
+                        class: uiCssClass("group", "actions"),
                         onClick: (e: MouseEvent) => e.stopPropagation(),
                         onKeydown: (e: KeyboardEvent) => e.stopPropagation(),
                       },
@@ -75,7 +76,7 @@ export const PrimeGroupCard = defineComponent({
                   : null,
                 props.toggleable
                   ? h("span", {
-                      class: ["mmda-group-toggle", "pi", "pi-chevron-down"],
+                      class: [uiCssClass("group", "toggle"), "pi", "pi-chevron-down"],
                       "aria-hidden": "true",
                     })
                   : null,
@@ -90,7 +91,7 @@ export const PrimeGroupCard = defineComponent({
               ),
             ]),
           footer: footer
-            ? () => h("div", { class: "mmda-group-footer" }, footer)
+            ? () => h("div", { class: uiCssClass("group", "footer") }, footer)
             : undefined,
         },
       );

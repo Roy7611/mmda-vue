@@ -285,30 +285,29 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
       });
       await ctx.init({ path: id, queryParams });
       const editing = view !== UiViewOne.Details;
-      const result = await app.ui.dialog(
-        this.buildView(ctx, { showBreadcrumb: false }),
-        ctx,
-        {
-          title: pack.metaUi.displayLabel,
-          width: "70vw",
-          height: "80vh",
-          maxHeight: "90vh",
-          showFooter: editing,
-          onAccept: editing
-            ? async (button) => {
-                const saved = await ctx.save();
-                return saved !== false;
-              }
-            : undefined,
-        },
-      );
-      if (result !== 'ok' && view === UiViewOne.Create) {
+      const dlgProps = {
+        title: pack.metaUi.displayLabel,
+        width: "70vw",
+        height: "80vh",
+        maxHeight: "90vh",
+      };
+      const viewProps = { showBreadcrumb: false };
+      const result = editing
+        ? await app.ui.editDialog(ctx, {
+            dlgProps: {
+              ...dlgProps,
+              onAccept: async () => (await ctx.save()) !== false,
+            },
+            viewProps,
+          })
+        : await app.ui.detailsDialog(ctx, { dlgProps, viewProps });
+      if (result !== "ok" && view === UiViewOne.Create) {
         const createdId = (ctx.model as { id?: string }).id;
         if (createdId) await catLogic.delete(createdId);
         return;
       }
-      if (result === 'ok' || view === UiViewOne.Details) {
-        if (result === 'ok') await refreshCategoryTreeData(props, catLogic);
+      if (result === "ok" || view === UiViewOne.Details) {
+        if (result === "ok") await refreshCategoryTreeData(props, catLogic);
       }
     }
     

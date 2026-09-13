@@ -5,6 +5,7 @@ import type {
   UiConfirmProps,
   UiDialogAction,
   UiDialogProps,
+  UiEntityDialogOptions,
   UiToastProps,
 } from './builder/dialog'
 import type { UiMessageProps } from './factory/message'
@@ -81,6 +82,44 @@ export interface UiBuilder<TNode = any> {
     props?: UiDialogProps<TNode>,
   ): Promise<UiDialogAction>
 
+  /**
+   * 实体编辑/新建弹窗。内容 = {@link buildEditView}。
+   * 默认藏模块工具栏、底栏 okCancel；`onAccept` 由调用方在 `dlgProps` 传入（如 save）。
+   */
+  editDialog(
+    context: UiContext,
+    props?: UiEntityDialogOptions<TNode, UiViewProps>,
+  ): Promise<UiDialogAction>
+
+  /**
+   * 实体详情弹窗（只读）。内容 = {@link buildDetailsView}。
+   * 默认藏工具栏、无底栏；Esc / 点蒙层可关。
+   */
+  detailsDialog(
+    context: UiContext,
+    props?: UiEntityDialogOptions<TNode, UiViewProps>,
+  ): Promise<UiDialogAction>
+
+  /**
+   * 实体选择弹窗。内容 = {@link buildSelectView}。
+   * 归口原 `context.select` 的弹层实现。
+   */
+  selectDialog(
+    context: UiContext,
+    props?: UiEntityDialogOptions<TNode, UiListViewProps>,
+  ): Promise<UiDialogAction>
+
+  /**
+   * 在已打开的实体对话框（如选择窗）上再叠一层创建/编辑/详情。
+   * 保存成功后刷新 parent 列表并勾选该行；parent 窗不关。
+   * `parent` 是列表会话（选择窗等），不必是 `UiContext<E>`。
+   */
+  openNestEntityDialog<E extends object = object>(
+    parent: UiContext,
+    view: 'create' | 'edit' | 'details',
+    item?: E,
+  ): Promise<{ action: UiDialogAction; entity?: E }>
+
   // —— App（壳走 UiLayout.scaffold；这里只产 nav 槽内容）——
 
   /**
@@ -88,18 +127,18 @@ export interface UiBuilder<TNode = any> {
    * 壳本身用 {@link UiLayout.scaffold}，不要 `buildAppScaffold`。
    * 内部用 `factory.sidebar` / `factory.drawer`，不要再包一层 Builder sidebar。
    */
-  buildAppSideMenu?(props: UiAppSideMenuProps<TNode>): TNode
+  buildAppSideMenu(props: UiAppSideMenuProps<TNode>): TNode
 
   /**
    * 登录表单。路由页调本方法，不要 `factory.signinForm`。
    */
-  buildSigninForm?(
+  buildSigninForm(
     props?: UiSigninFormProps,
     slots?: UiSigninFormSlots<TNode>,
   ): TNode
 
   /**
-   * 注册表单。与 {@link buildSigninForm} 同级。
+   * 注册表单。可选；未实现的皮肤可不提供。
    */
   buildSignupForm?(
     props?: UiSignupFormProps,
@@ -112,7 +151,7 @@ export interface UiBuilder<TNode = any> {
    * 索引列表页。内部：`buildModuleToolbar` + `factory.table|grid|list|treeGrid` + `factory.paginator`。
    * 不要再经 `buildListView`。
    */
-  buildIndexView?(
+  buildIndexView(
     context: UiContext,
     props?: UiListViewProps,
   ): TNode
@@ -120,7 +159,7 @@ export interface UiBuilder<TNode = any> {
   /**
    * 选择器（selectOne / selectMany）。与 Index 同形，selectionMode 由 view 决定。
    */
-  buildSelectView?(
+  buildSelectView(
     context: UiContext,
     props?: UiListViewProps,
   ): TNode
@@ -128,7 +167,7 @@ export interface UiBuilder<TNode = any> {
   /**
    * 详情页（只读表单）。转到 {@link buildEntityView}。
    */
-  buildDetailsView?(
+  buildDetailsView(
     context: UiContext,
     props?: UiViewProps,
   ): TNode
@@ -136,7 +175,7 @@ export interface UiBuilder<TNode = any> {
   /**
    * 编辑页。create 走同一方法，由 `context.view === create` 区分。
    */
-  buildEditView?(
+  buildEditView(
     context: UiContext,
     props?: UiViewProps,
   ): TNode
@@ -156,7 +195,7 @@ export interface UiBuilder<TNode = any> {
   /**
    * 模块页工具栏（面包屑 + 动作 + 可选搜索）。
    */
-  buildModuleToolbar?(
+  buildModuleToolbar(
     context: UiContext,
     props?: UiProps,
   ): TNode
@@ -198,7 +237,7 @@ export interface UiBuilder<TNode = any> {
   /**
    * 左树右表（分类浏览）。不是单控件，故留在 Builder。
    */
-  buildExplorerView?<T>(
+  buildExplorerView<T>(
     context: UiContext,
     props?: UiExplorerViewProps<T, TNode>,
   ): TNode
@@ -208,7 +247,7 @@ export interface UiBuilder<TNode = any> {
    * 对每个可见字段调 `fieldFactory.render`（内含默认 layoutField）。
    * 不要一个方法兼管子表。
    */
-  buildFieldGroup?(
+  buildFieldGroup(
     group: MetaUiGroup,
     context: UiContext,
     props?: UiProps,
@@ -219,7 +258,7 @@ export interface UiBuilder<TNode = any> {
    * 管 subGroupContext、组标题、增删行壳；内容直接 `factory.grid` / `factory.treeGrid`
    *（相册仍 `factory.imageGallery`）。不要再套 `buildGridView`。
    */
-  buildSubGroup?(
+  buildSubGroup(
     group: MetaUiGroup,
     context: UiContext,
     props?: UiProps,

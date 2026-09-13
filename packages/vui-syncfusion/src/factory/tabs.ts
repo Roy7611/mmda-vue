@@ -1,9 +1,39 @@
-import { h } from "vue";
-import { TabComponent } from "@syncfusion/ej2-vue-navigations";
-import type { UiTabsProps } from "@mmda/vui"
-import { emitTabsChange, htmlAttributesOf, tabsHeaderPlacementOf, tabsHeightAdjustModeOf, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsOverflowModeOf, tabsValueOf } from "@mmda/vui"
+import { h, type VNode } from "vue";
+import {
+  TabComponent,
+  TabItemDirective,
+  TabItemsDirective,
+} from "@syncfusion/ej2-vue-navigations";
+import type { UiTabsProps } from "@mmda/vui";
+import {
+  emitTabsChange,
+  htmlAttributesOf,
+  tabsHeaderPlacementOf,
+  tabsHeaderStyleOf,
+  tabsHeightAdjustModeOf,
+  tabsHostStyle,
+  tabsItemContentOf,
+  tabsItemsOf,
+  tabsLoadOnOf,
+  tabsModifierClasses,
+  tabsOverflowModeOf,
+  tabsValueOf,
+} from "@mmda/vui";
 
-export function createTabs(props: UiTabsProps) {
+const EJ2_HEADER_STYLE: Record<string, string | undefined> = {
+  fill: "e-fill",
+  background: "e-background",
+  accent: "e-accent",
+  default: undefined,
+};
+
+/**
+ * EJ2 Tab 的 `items[].content` 只吃 HTML 字符串或 `{ template }`；
+ * 塞 `() => VNode` 会在 ej2-vue-base 里读 `_context.components` 炸。
+ * Vue 节点走 TabItemDirective 的 content 具名插槽；槽名必须用 item.name，
+ * 不能共用 "content"（否则每页都渲染第一页）。
+ */
+export function createTabs(props: UiTabsProps): VNode {
   const {
     items: _items,
     value: _value,
@@ -11,36 +41,81 @@ export function createTabs(props: UiTabsProps) {
     headerPlacement: _headerPlacement,
     scrollable: _scrollable,
     heightAdjustMode: _heightAdjustMode,
+    loadOn: _loadOn,
+    headerStyle: _headerStyle,
     onChange: _onChange,
     htmlAttributes,
     class: _className,
+    style: _style,
     ...rest
   } = props;
 
-  const cssClass = tabsModifierClasses(props)
-    .flat()
+  const cssClass = [
+    ...tabsModifierClasses(props).flat().filter(Boolean),
+    EJ2_HEADER_STYLE[tabsHeaderStyleOf(props)],
+  ]
     .filter(Boolean)
     .join(" ");
 
-  const items = tabsItemsOf(props).map((item) => ({
-    header: {
-      text: item.header.text,
-      iconCss: item.header.iconCss,
-    },
-    content: () => tabsItemContentOf(item),
-    disabled: item.disabled,
-  }));
+  const hostStyle = {
+    ...(tabsHostStyle(props) ?? {}),
+    ...((typeof _style === "object" && _style) || {}),
+  };
 
-  return h(TabComponent as any, {
-    ...rest,
-    ...htmlAttributesOf(props),
-    items,
-    selectedItem: tabsValueOf(props),
-    headerPlacement: tabsHeaderPlacementOf(props),
-    overflowMode: tabsOverflowModeOf(props),
-    heightAdjustMode: tabsHeightAdjustModeOf(props),
-    cssClass,
-    selected: (args: { selectedIndex?: unknown }) =>
-      emitTabsChange(props, args),
-  });
+  const items = tabsItemsOf(props);
+
+  return h(
+    TabComponent as any,
+    {
+      ...rest,
+      ...htmlAttributesOf(props),
+      selectedItem: tabsValueOf(props),
+      headerPlacement: tabsHeaderPlacementOf(props),
+      overflowMode: tabsOverflowModeOf(props),
+      heightAdjustMode: tabsHeightAdjustModeOf(props),
+      loadOn: tabsLoadOnOf(props),
+      cssClass,
+      style: Object.keys(hostStyle).length > 0 ? hostStyle : undefined,
+      selected: (args: { selectedIndex?: unknown }) =>
+        emitTabsChange(props, args),
+    },
+    {
+      default: () =>
+        h(TabItemsDirective as any, null, {
+          default: () =>
+            items.map((item, index) => {
+              const slotName = item.name || `content${index}`;
+              const content = tabsItemContentOf(item);
+              if (typeof content === "string") {
+                return h(TabItemDirective as any, {
+                  key: slotName,
+                  header: {
+                    text: item.header.text,
+                    iconCss: item.header.iconCss,
+                  },
+                  content,
+                  disabled: item.disabled,
+                  tabIndex: 0,
+                });
+              }
+              return h(
+                TabItemDirective as any,
+                {
+                  key: slotName,
+                  header: {
+                    text: item.header.text,
+                    iconCss: item.header.iconCss,
+                  },
+                  content: slotName,
+                  disabled: item.disabled,
+                  tabIndex: 0,
+                },
+                {
+                  [slotName]: () => content,
+                },
+              );
+            }),
+        }),
+    },
+  );
 }

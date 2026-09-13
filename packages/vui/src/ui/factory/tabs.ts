@@ -19,11 +19,14 @@ export type {
   UiTabHeader,
   UiTabItem,
   UiTabsHeaderPlacement,
+  UiTabsHeaderStyle,
   UiTabsHeightAdjustMode,
+  UiTabsLoadOn,
   UiTabsProps,
 } from '@mmda/core'
 
 export interface UiNormalizedTabItem {
+  name?: string
   header: UiTabHeader
   content?: UiTabItem['content']
   disabled?: boolean
@@ -48,7 +51,8 @@ export function tabsValueOf(props: UiTabsProps): number {
 export function tabsItemsOf(props: UiTabsProps): UiNormalizedTabItem[] {
   const items = props.items
   if (!Array.isArray(items)) return []
-  return items.map((item) => ({
+  return items.map((item, index) => ({
+    name: item.name || `content${index}`,
     header:
       typeof item.header === 'string'
         ? { text: item.header }
@@ -122,6 +126,10 @@ export function emitTabsChange(props: UiTabsProps, raw: unknown): void {
   callUiBagFn(props, 'onUpdate', next)
 }
 
-export { tabsModifierClasses } from '@mmda/core'
+export {
+  tabsHeaderStyleOf,
+  tabsLoadOnOf,
+  tabsModifierClasses,
+} from '@mmda/core'
 
 export type TabsFactoryFn = (props: UiTabsProps) => VNode

@@ -1,942 +1,2258 @@
 import {
+
   h,
+
   reactive,
+
   type VNode,
+
   type VNodeArrayChildren,
+
 } from 'vue'
-import { SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
-import { VueUiBuilder, MmdaGroupCard, UiViewMany, assembleMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
+
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
+
+import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
+
 import {
+
   NAlert,
+
   NButton,
+
   NDatePicker,
+
   NInput,
+
   NInputNumber,
+
   NSelect,
+
 } from 'naive-ui'
+
 import { AgNaiveOverlayHost } from './components/AgNaiveOverlayHost'
-import { AgNaiveAppSideMenu } from './components/AgNaiveAppSideMenu'
+
+import { NAppSideMenu } from './components/NAppSideMenu'
+
 import { BpmnModeler } from './components/BpmnModeler'
+
 import { SigninForm } from './components/SigninForm'
+
 import { createAgNaiveOverlay } from './agnaive_overlay'
+
 import { createAgNaiveFieldFactory } from './agnaive_field_factory'
+
 import { createAgNaiveUiFactory } from './agnaive_factory'
+
 import { agNaiveLayout } from './agnaive_layout'
+
 import { wrapNaiveConfig } from './agnaive_provider'
+
 import { naiveSkinState, refreshNaiveThemeFromCss } from './agnaive_theme'
+
+
 
 const UI_NAME = 'mmda'
 
+
+
 const invoke = (value: unknown): any =>
+
   typeof value === 'function' ? (value as () => unknown)() : value
 
+
+
 const moduleChain = (module: Module): Module[] => {
+
   const chain: Module[] = [module]
+
   let parent = (module as Module & { parent?: Module }).parent
+
   while (parent) {
+
     chain.unshift(parent)
+
     parent = (parent as Module & { parent?: Module }).parent
+
   }
+
   const withoutSystem = chain.filter(item => item.moduleType !== 'SYSTEM')
+
   return withoutSystem.length ? withoutSystem : chain
+
 }
+
+
 
 type UiContext = UiViewContext<any>
 
+
+
 const moduleOf = (context: UiContext): Module | undefined => {
+
   const runtime = context as any
+
   return (runtime.module ?? runtime.logic?.module) as Module | undefined
+
 }
+
+
 
 const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
+
   moduleOf(context)?.authority
 
+
+
 const visibleActions = (actions: UiAction[]) =>
+
   actions.filter((action) => {
+
     const visible = action.visible
+
     if (visible == null) return true
+
     if (typeof visible === 'function') return true
+
     if (typeof visible === 'object' && visible !== null && 'value' in visible) {
+
       return Boolean((visible as { value: unknown }).value)
+
     }
+
     return Boolean(visible)
+
   })
 
+
+
 export class AgNaiveUiBuilder extends VueUiBuilder {
+
   declare readonly factory: UiFactory
 
+
+
   constructor(
+
     factory = createAgNaiveUiFactory(),
+
     fieldFactory: UiFieldFactory = createAgNaiveFieldFactory(),
+
   ) {
+
     super(
+
       factory,
+
       fieldFactory,
+
       factory.layout ?? agNaiveLayout,
+
       createAgNaiveOverlay(),
+
     )
+
   }
+
+
 
   get overlayHost() {
+
     return AgNaiveOverlayHost
+
   }
+
+
 
   override setColorScheme(dark: boolean) {
+
     super.setColorScheme(dark)
+
     naiveSkinState.dark = dark
+
     if (typeof document !== 'undefined') {
+
       document.documentElement.classList.toggle('n-dark', dark)
+
       refreshNaiveThemeFromCss()
+
     }
+
   }
+
+
 
   override setColorPalette(palette: any) {
+
     super.setColorPalette(palette)
+
     refreshNaiveThemeFromCss()
+
   }
+
+
 
   override buildGroupCard(
+
     group: MetaUiGroup,
+
     body: VNode | VNode[],
+
     props: UiProps = {},
+
   ) {
+
     const {
+
       container: _container,
+
       region: _region,
+
       many: _many,
+
       direction: _direction,
+
       cols: _cols,
+
       class: _className,
+
       headerActions,
+
       ...rest
+
     } = props
+
     return h(
-      MmdaGroupCard,
+
+      GroupCard,
+
       {
+
         title: group.groupLabel,
+
         expanded: group.expanded !== false,
+
         class: this.groupWrapClass(group, props),
+
         ...rest,
+
       },
+
       {
+
         default: () => this.wrapGroupContent(body),
+
         actions: headerActions ? () => headerActions : undefined,
+
       },
+
     )
+
   }
+
+
 
   buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
+
     return h('div', { class: 'mmda-container', ...props }, content)
+
   }
+
+
 
   buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h('header', { class: uiCssClass('page-header'), ...props }, content)
+
+    return h('header', { class: uiCssClass('page', 'header'), ...props }, content)
+
   }
+
+
 
   buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
+
     return h('aside', { class: 'mmda-aside', ...props }, content)
+
   }
+
+
 
   buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
+
     return h('main', { class: 'mmda-main', ...props }, content)
+
   }
+
+
 
   buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
+
     return h('footer', { class: 'mmda-footer', ...props }, content)
+
   }
+
+
 
   override buildAppScaffold(props?: any) {
+
     return wrapNaiveConfig(super.buildAppScaffold(props))
+
   }
+
+
 
   override buildListView(context: UiContext, props?: any) {
+
     return wrapNaiveConfig(super.buildListView(context, props))
+
   }
+
+
 
   override buildView(context: UiContext, props?: any) {
+
     return wrapNaiveConfig(super.buildView(context, props))
+
   }
+
+
 
   buildAppTopBar(props: AppTopBarProps = { modules: [], logo: () => null }) {
+
     const items = props.modules.map(module => ({
+
       label: module.moduleName ?? module.moduleLabel,
+
       url: module.moduleUrl ?? (module as any).url,
+
     }))
+
     return h('div', { class: 'mmda-topbar' }, [
+
       invoke(props.logo),
+
       this.factory.menubar(items),
+
       h('div', { class: 'mmda-topbar__actions' }, invoke(props.actions)),
+
     ])
+
   }
+
+
 
   buildAppSideBar(
+
     props: AppSideBarProps = { modules: [], header: () => null },
+
   ) {
+
     return this.buildAppSideMenu({
+
       modules: props.modules,
+
       logo: props.header,
+
       footer: props.footer,
+
     })
+
   }
+
+
 
   buildAppSideMenu(props: import('@mmda/core').UiAppSideMenuProps<VNode> = {}) {
-    return h(AgNaiveAppSideMenu, props as any)
+
+    return h(NAppSideMenu, props as any)
+
   }
+
+
 
   buildAppMenu(modules: Module[], props?: UiProps) {
+
     const { item, expand, ...rest } = props ?? {}
+
     if (expand === false) {
+
       return this.factory.menubar(assembleMenuItems(modules), {
+
         class: 'mmda-app-menu',
+
         ...rest,
+
       }, item ? { item } : undefined)
+
     }
+
     return this.buildAppSideMenu({
+
       modules,
+
       class: 'mmda-app-menu',
+
       ...rest,
+
     })
+
   }
+
+
 
   buildLoading(_context: UiContext, props?: UiProps) {
+
     return this.factory.loading(props)
+
   }
+
+
 
   buildError(context: UiContext, props?: UiProps) {
+
     return h(
+
       NAlert,
+
       { type: 'error', class: 'mmda-error', ...props },
+
       { default: () => context.title },
+
     )
+
   }
+
+
 
   buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
+
     const { module, label } = props
+
     if (!module) {
+
       return this.factory.breadcrumb({
+
         items: [{ label: label || context.title }],
+
         class: 'mmda-breadcrumb',
+
       })
+
     }
+
     const chain = moduleChain(module)
+
     const items = chain.map((item, index) => {
+
       const leaf = index === chain.length - 1 && !label
+
       return {
+
         key: item.moduleCode,
+
         label: item.moduleLabel ?? (item as any).moduleName,
+
         icon: item.moduleIcon || undefined,
+
         to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+
       }
+
     })
+
     if (label) {
+
       items.push({
+
         key: `${module.moduleCode}-title`,
+
         label,
+
         icon: undefined,
+
         to: undefined,
+
       })
+
     }
+
     return this.factory.breadcrumb({
+
       items,
+
       class: 'mmda-breadcrumb',
+
     })
+
   }
+
+
 
   buildImportOrExportAction(
+
     context: UiContext,
+
     props: ImportAndExportActionProps,
+
   ): VNode {
+
     const runtime = context as any
+
     const repository = runtime.isRoot
+
       ? runtime.logic.repository
+
       : pluralize(context.metaUi.objName)
+
     const { role, handlerFn, importFn, exportFn } = props
+
     const action =
+
       role === 'import'
+
         ? this.actionFactory.import(context, { repository, handlerFn, importFn })
+
         : this.actionFactory.export(context, { repository, handlerFn, exportFn })
+
     const templates = runtime.templates ?? []
+
     if (templates.length > 0) {
+
       return this.factory.splitButton({
+
         label: action.label,
+
         icon: this.factory.resolveIcon(action.icon ?? role ?? ''),
+
         severity: action.colorRole === 'danger' ? 'danger' : undefined,
+
         size: 'small',
+
         onClick: action.onAction,
+
         actions: templates.map((template: any) => ({
+
           label: template.templateName,
+
           icon: 'fas fa-file',
+
           command: () => {
+
             runtime.currentTemplate = template
+
             if (role === 'import') {
+
               void (runtime.many
+
                 ? runtime.importFiles?.({ repository, importFn })
+
                 : runtime.importFile?.({ repository, importFn }))
+
             } else {
+
               void (runtime.many
+
                 ? runtime.exportFiles?.({ repository, exportFn })
+
                 : runtime.exportFile?.({ repository, exportFn }))
+
             }
+
           },
+
         })),
+
       })
+
     }
+
     return this.toolbarActionButton(context, action)
+
   }
+
+
+
+  private listLayoutMenuItems(context: UiContext) {
+
+    return [
+
+      {
+
+        name: 'tableSettings',
+
+        label: context.t('action.tableSettings'),
+
+        icon: this.factory.resolveIcon('cog'),
+
+        command: () => void this.openTableSettings(context),
+
+      },
+
+    ]
+
+  }
+
+
 
   private importOrExportMenuItem(context: UiContext, role: 'import' | 'export') {
+
     const runtime = context as any
+
     const repository = runtime.isRoot
+
       ? runtime.logic.repository
+
       : pluralize(context.metaUi.objName)
+
     const action =
+
       role === 'import'
+
         ? this.actionFactory.import(context, { repository })
+
         : this.actionFactory.export(context, { repository })
+
     const icon = this.factory.resolveIcon(action.icon ?? role)
+
     const templates = runtime.templates ?? []
+
     if (!templates.length) {
+
       return { label: action.label, icon, name: action.name, command: action.onAction }
+
     }
+
     return {
+
       label: action.label,
+
       icon,
+
       name: action.name,
+
       items: [
+
         { label: action.label, icon, command: action.onAction },
+
         ...templates.map((template: any) => ({
+
           label: template.templateName,
+
           icon: 'fas fa-file',
+
           command: () => {
+
             runtime.currentTemplate = template
+
             if (role === 'import') {
+
               void (runtime.many
+
                 ? runtime.importFiles?.({ repository })
+
                 : runtime.importFile?.({ repository }))
+
             } else {
+
               void (runtime.many
+
                 ? runtime.exportFiles?.({ repository })
+
                 : runtime.exportFile?.({ repository }))
+
             }
+
           },
+
         })),
+
       ],
+
     }
+
   }
+
+
 
   /** paintModuleToolbar dense 时临时打开；供 action / more / batch 共用。 */
+
   private toolbarDense = false
 
+
+
   private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
+
     if (!items.length) return []
+
     const dense = this.toolbarDense
+
     const moreLabel = context.t('action.more')
+
     return [
+
       this.factory.moreMenuButton(
+
         {
+
           icon: this.factory.resolveIcon('more'),
+
           label: dense ? '' : moreLabel,
+
           tooltip: moreLabel,
+
           'aria-label': moreLabel,
+
           hideCaret: dense,
+
           buttonType: 'tonal',
+
           colorRole: 'secondary',
+
         },
+
         items.map((item, index) =>
+
           item.divider
+
             ? { divider: true }
+
             : {
+
                 name: item.name ?? `more-${index}`,
+
                 label: item.label,
+
                 icon: item.icon,
+
+                disabled: item.disabled === true,
+
                 onAction: item.command ?? item.onAction,
+
                 items: item.items,
+
               },
+
         ),
+
       ),
+
     ]
+
   }
+
+
 
   private assembleMultipleSelectionButtons(
+
     context: UiContext,
+
     actions: UiAction[],
+
   ): VNode[] {
+
     if (!actions.length) return []
+
     const dense = this.toolbarDense
+
     const render = (action: UiAction) =>
+
       this.toolbarActionButton(
+
         context,
+
         {
+
           ...action,
+
           onAction: () => {
+
             if (action.onAction) action.onAction()
+
             else (context as any).doAction?.(action, context.model)
+
           },
+
         },
+
         { id: `${action.name}-button` },
+
       )
+
     if (actions.length === 1) return [render(actions[0]!)]
+
     const batchLabel = context.t('action.batchOperation')
+
     return [
+
       this.factory.dropDownButton(
+
         {
+
           label: dense ? '' : batchLabel,
+
           icon: dense
+
             ? this.factory.resolveIcon(actions[0]?.icon ?? 'more')
+
             : undefined,
+
           tooltip: batchLabel,
+
           'aria-label': batchLabel,
+
           hideCaret: dense,
+
           class: 'mmda-batch-menu-button',
+
           buttonType: 'tonal',
+
           colorRole: 'secondary',
+
         },
+
         actions.map(action => ({
+
           name: action.name,
+
           label: action.label,
+
           icon: action.icon,
+
           onAction: () => {
+
             if (action.onAction) action.onAction()
+
             else (context as any).doAction?.(action, context.model)
+
           },
+
         })),
+
       ),
+
     ]
+
   }
+
+
 
   private toolbarActionButton(
+
     context: UiContext,
+
     action: UiAction,
+
     props?: UiProps,
+
   ) {
+
+    // secondary（返回等）与「更多」一致用 tonal；其余用元数据 colorRole（业务动作默认 warning）
+
+    const colorRole = (
+
+      action.colorRole ?? (action as { role?: string }).role
+
+    )?.toLowerCase()
+
+    const secondary = colorRole === 'secondary'
+
     const dense = this.toolbarDense
+
     const label =
+
       action.label ??
+
       (action.name ? context.t(`action.${action.name}`) : action.name)
+
     return this.factory.actionButton(action, message => context.t(message), false, {
+
       size: 'small',
+
+      ...(colorRole ? { colorRole: colorRole as UiAction['colorRole'] } : {}),
+
+      ...(secondary ? { buttonType: 'tonal' } : {}),
+
       ...props,
+
       ...(dense
+
         ? {
+
             label: '',
+
             tooltip: action.tooltip ?? label,
+
             'aria-label': label,
+
           }
+
         : {}),
+
     })
+
   }
+
+
 
   private indexViewActionButtons(context: UiContext): VNode[] {
+
     const runtime = context as any
+
     const { globalProps, selectionMode, customActions, view } = runtime
+
     const { $t } = globalProps ?? { $t: (m: string) => context.t(m) }
+
     const auth = moduleAuth(context)
+
     const children: VNode[] = []
+
     const moreItems: any[] = []
+
     const inBatchMode =
+
       view === UiViewMany.SelectMany ||
+
       view === UiViewMany.EditMany ||
+
       selectionMode === 'multiple'
 
+
+
     if (inBatchMode) {
+
+      if (runtime.isInDialog) {
+
+        if (auth?.allowCreate) {
+
+          children.push(this.toolbarActionButton(context, this.actionFactory.create(context)))
+
+        }
+
+        children.push(
+
+          ...this.assembleMoreButton(context, this.listLayoutMenuItems(context)),
+
+        )
+
+        return children
+
+      }
+
       children.push(
+
         this.toolbarActionButton(context, this.actionFactory.cancel(context)),
+
         this.toolbarActionButton(context, this.actionFactory.confirm(context)),
+
       )
+
       return children
+
     }
+
     if (!auth) return children
+
     if (auth.allowImport) moreItems.push(this.importOrExportMenuItem(context, 'import'))
+
     if (auth.allowExport) moreItems.push(this.importOrExportMenuItem(context, 'export'))
+
     if (auth.allowCreate) {
+
       children.push(this.toolbarActionButton(context, this.actionFactory.create(context)))
+
     }
+
     if (auth.allowPrint) {
+
       const action = this.actionFactory.print(context)
+
       moreItems.push({
+
         label: action.label,
+
         icon: this.factory.resolveIcon(action.icon ?? 'print'),
+
         command: action.onAction,
+
       })
+
     }
+
     const listActions: UiAction[] = []
+
     const multipleSelectActions: UiAction[] = []
+
     if (auth.authorizedActions?.length) {
+
       multipleSelectActions.push(
+
         ...auth.authorizedActions
+
           .filter(
+
             (action: ModuleAction) =>
+
               action.actionModes === 4 &&
+
               action.promptType === 'MULTIPLE_SELECT',
+
           )
+
           .map(
+
             (action: ModuleAction) =>
+
               ({
+
                 id: `${action.actionName}-button`,
+
                 name: action.actionName,
+
                 role: `${UI_NAME}-${action.actionName}-action`,
+
                 icon: action.displayIcon,
+
                 label: action.displayLabel,
+
               }) as UiAction,
+
           ),
+
       )
+
       listActions.push(
+
         ...auth.authorizedActions
+
           .filter(
+
             (action: ModuleAction) =>
+
               action.actionModes === 4 &&
+
               action.promptType !== 'MULTIPLE_SELECT',
+
           )
+
           .map((action: ModuleAction) =>
+
             this.actionFactory.action(context, {
+
               id: `${action.actionName}-button`,
+
               name: action.actionName,
+
               icon: action.displayIcon,
+
               label: action.displayLabel,
+
               role: action.displayHint,
+
               executableExpression: action.executableExpression,
+
             }),
+
           ),
+
       )
+
     }
+
     if (auth.allowDelete) {
+
       multipleSelectActions.unshift({
+
         id: 'delete-all-button',
+
         name: 'deleteAll',
+
         role: `${UI_NAME}-delete-all-action`,
+
         label: $t('action.deleteAll'),
+
         icon: 'fas fa-trash-alt',
+
         colorRole: 'danger',
+
         onAction: () => this.actionFactory.deleteAll(context).onAction?.(),
+
       })
+
     }
+
     children.push(...this.assembleMultipleSelectionButtons(context, multipleSelectActions))
+
     if (
+
       customActions?.length &&
+
       (view === UiViewMany.SelectMany || selectionMode !== 'multiple')
+
     ) {
+
       listActions.push(
+
         ...customActions
+
           .filter((action: UiAction) =>
+
             auth.authorizedActions?.some(
+
               (item: ModuleAction) => item.actionName === action.name,
+
             ),
+
           )
+
           .map((action: UiAction) =>
+
             this.actionFactory.action(context, {
+
               ...action,
+
               name: action.name ?? '',
+
             } as any),
+
           ),
+
       )
+
     }
+
     moreItems.push(
+
       ...visibleActions(listActions).map(action => ({
+
         label: action.label,
+
         icon: this.factory.resolveIcon(action.icon ?? action.name ?? ''),
+
         disabled: action.disabled,
+
         command: action.onAction,
+
       })),
+
+      ...this.listLayoutMenuItems(context),
+
     )
+
     children.push(...this.assembleMoreButton(context, moreItems))
+
     return children
+
   }
+
+
 
   private detailsViewActionButtons(context: UiContext): VNode[] {
+
     const runtime = context as any
+
     const { model, customActions } = runtime
+
     const auth = moduleAuth(context)
+
     const entityAuth = runtime.getModuleAuth?.(model) ?? auth
+
     const children: VNode[] = [
+
       this.toolbarActionButton(context, this.actionFactory.back(context)),
+
     ]
+
     const moreItems: any[] = []
-    if (!entityAuth) return children
-    if (entityAuth.allowEdit && model?.editable !== false) {
-      children.push(this.toolbarActionButton(context, this.actionFactory.edit(context)))
-    }
-    if (entityAuth.allowCreate) {
-      children.push(this.toolbarActionButton(context, this.actionFactory.create(context)))
-    }
-    if (entityAuth.allowDelete && model?.deletable !== false) {
-      children.push(this.toolbarActionButton(context, this.actionFactory.delete(context)))
-    }
-    if (model?.actions?.length) {
-      children.push(
-        ...model.actions.map((action: any) =>
-          this.toolbarActionButton(context, this.actionFactory.action(context, action as any), {
-            id: `${action.name ?? action.actionName}-button`,
-          }),
-        ),
-      )
-    }
-    if (customActions?.length) {
-      children.push(
-        ...customActions
-          .filter((action: UiAction) =>
-            entityAuth.authorizedActions?.some(
-              (item: ModuleAction) => item.actionName === action.name,
-            ),
-          )
-          .map((action: UiAction) =>
-            this.toolbarActionButton(
-              context,
-              this.actionFactory.action(context, {
-                ...action,
-                name: action.name ?? '',
-              } as any),
-              {
-              id: `${action.name}-button`,
+
+    if (!entityAuth) {
+
+      moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
             },
-            ),
-          ),
-      )
-    }
-    if (entityAuth.allowPrint) {
-      const action = this.actionFactory.print(context)
-      moreItems.push({
-        label: action.label,
-        icon: this.factory.resolveIcon(action.icon ?? 'print'),
-        command: action.onAction,
-      })
-    }
-    if (entityAuth.allowExport) moreItems.push(this.importOrExportMenuItem(context, 'export'))
-    if (entityAuth.allowImport) moreItems.push(this.importOrExportMenuItem(context, 'import'))
-    children.push(...this.assembleMoreButton(context, moreItems))
-    return children
-  }
-
-  private editViewActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any
-    const { customActions } = runtime
-    const auth = moduleAuth(context)
-    const children: VNode[] = [
-      this.toolbarActionButton(context, this.actionFactory.back(context)),
-    ]
-    if (auth?.allowImport) {
-      children.push(this.buildImportOrExportAction(context, { role: 'import' }))
-    }
-    children.push(
-      this.toolbarActionButton(context, {
-        ...this.actionFactory.save(context),
-        disabled: runtime.uploading?.value,
-      }),
-    )
-    if (customActions?.length && auth?.authorizedActions?.length) {
-      children.push(
-        ...customActions
-          .filter((action: UiAction) =>
-            auth.authorizedActions!.some(
-              (item: ModuleAction) => item.actionName === action.name,
-            ),
-          )
-          .map((action: UiAction) =>
-            this.toolbarActionButton(
-              context,
-              this.actionFactory.action(context, {
-                ...action,
-                name: action.name ?? '',
-              } as any),
-              {
-              id: `${action.name}-button`,
-            },
-            ),
-          ),
-      )
-    }
-    return children
-  }
-
-  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
-    const prev = this.toolbarDense
-    this.toolbarDense = dense
-    try {
-      const runtime = context as any
-      if (runtime.many) return this.indexViewActionButtons(context)
-      if (runtime.editing) return this.editViewActionButtons(context)
-      return this.detailsViewActionButtons(context)
-    } finally {
-      this.toolbarDense = prev
-    }
-  }
-
-  buildModuleToolbar(
-    context: UiContext,
-    props: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    const runtime = context as any
-    const module = moduleOf(context)
-    return paintModuleToolbar(this.factory, context, props, slots, {
-      breadcrumb: () => {
-        if (module) {
-          return this.buildModuleBreadcrumb(context, {
-            module,
-            label: props.breadcrumbLeaf || (runtime.many ? '' : context.title),
-          })
-        }
-        return h('strong', context.title)
-      },
-      actionGroup: (dense) =>
-        this.factory.buttonGroup(
-          () => this.toolbarActionButtons(context, dense),
-          {
-            class: uiCssClass('toolbar-actions'),
-            role: 'group',
-          },
-        ),
-      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
-      navActions: () =>
-        module
-          ? moduleChain(module).map(item => ({
-              name: item.moduleCode,
-              label: item.moduleLabel ?? (item as any).moduleName,
-              icon: item.moduleIcon,
-            }))
-          : [],
-      openSearchPage: () => {
-        if (props.onSearchPage) props.onSearchPage()
-        else void this.buildSearchPage(context)
-      },
-    })
-  }
-
-  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
-    const meta = field.field
-    const common = {
-      value: field.searchVal.value,
-      placeholder: meta.displayLabel,
-      size: 'small' as const,
-      'onUpdate:value': (value: any) => {
-        field.searchVal.value = value
-      },
-      ...props,
-    }
-    let editor: VNode
-    if (meta.reference?.refOptions?.length) {
-      editor = h(NSelect, {
-        ...common,
-        options: meta.reference.refOptions.map((option: any) => ({
-          label: meta.reference!.labelOf(option),
-          value: meta.reference!.valueOf(option),
-        })),
-        clearable: true,
-      })
-    } else if (SqlDataType.isBool(meta.dataType)) {
-      editor = h(NSelect, {
-        ...common,
-        options: [
-          { label: 'Yes', value: true },
-          { label: 'No', value: false },
-        ] as any,
-        clearable: true,
-      })
-    } else if (SqlDataType.isDate(meta.dataType)) {
-      editor = h(NDatePicker, { ...common, type: 'date' })
-    } else if (SqlDataType.isNum(meta.dataType)) {
-      editor = h(NInputNumber, common)
-    } else {
-      editor = h(NInput, common)
-    }
-    return h('label', { class: 'mmda-search-field' }, [
-      h('span', meta.displayLabel),
-      editor,
-    ])
-  }
-
-  buildSearchForm(context: UiContext, props?: UiProps) {
-    return h(
-      'form',
-      {
-        class: 'mmda-search-form',
-        ...props,
-        onSubmit: (event: Event) => event.preventDefault(),
-      },
-      ((context as any).searchFields ?? []).map((field: UiSearchField) =>
-        this.buildSearchField(field, context, {}),
       ),
     )
+
+      children.push(...this.assembleMoreButton(context, moreItems))
+
+      return children
+
+    }
+
+    if (entityAuth.allowEdit && model?.editable !== false) {
+
+      children.push(this.toolbarActionButton(context, this.actionFactory.edit(context)))
+
+    }
+
+    if (entityAuth.allowCreate) {
+
+      children.push(this.toolbarActionButton(context, this.actionFactory.create(context)))
+
+    }
+
+    if (entityAuth.allowDelete && model?.deletable !== false) {
+
+      children.push(this.toolbarActionButton(context, this.actionFactory.delete(context)))
+
+    }
+
+    if (model?.actions?.length) {
+
+      children.push(
+
+        ...model.actions.map((action: any) =>
+
+          this.toolbarActionButton(context, this.actionFactory.action(context, action as any), {
+
+            id: `${action.name ?? action.actionName}-button`,
+
+          }),
+
+        ),
+
+      )
+
+    }
+
+    if (customActions?.length) {
+
+      children.push(
+
+        ...customActions
+
+          .filter((action: UiAction) =>
+
+            entityAuth.authorizedActions?.some(
+
+              (item: ModuleAction) => item.actionName === action.name,
+
+            ),
+
+          )
+
+          .map((action: UiAction) =>
+
+            this.toolbarActionButton(
+
+              context,
+
+              this.actionFactory.action(context, {
+
+                ...action,
+
+                name: action.name ?? '',
+
+              } as any),
+
+              {
+
+              id: `${action.name}-button`,
+
+            },
+
+            ),
+
+          ),
+
+      )
+
+    }
+
+    if (entityAuth.allowPrint) {
+
+      const action = this.actionFactory.print(context)
+
+      moreItems.push({
+
+        label: action.label,
+
+        icon: this.factory.resolveIcon(action.icon ?? 'print'),
+
+        command: action.onAction,
+
+      })
+
+    }
+
+    if (entityAuth.allowExport) moreItems.push(this.importOrExportMenuItem(context, 'export'))
+
+    if (entityAuth.allowImport) moreItems.push(this.importOrExportMenuItem(context, 'import'))
+
+    moreItems.push(
+      ...pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+            },
+      ),
+    )
+
+    children.push(...this.assembleMoreButton(context, moreItems))
+
+    return children
+
   }
+
+
+
+  private editViewActionButtons(context: UiContext): VNode[] {
+
+    const runtime = context as any
+
+    const { customActions } = runtime
+
+    const auth = moduleAuth(context)
+
+    const children: VNode[] = [
+
+      this.toolbarActionButton(context, this.actionFactory.back(context)),
+
+    ]
+
+    if (auth?.allowImport) {
+
+      children.push(this.buildImportOrExportAction(context, { role: 'import' }))
+
+    }
+
+    children.push(
+
+      this.toolbarActionButton(context, {
+
+        ...this.actionFactory.save(context),
+
+        disabled: runtime.uploading?.value,
+
+      }),
+
+    )
+
+    if (customActions?.length && auth?.authorizedActions?.length) {
+
+      children.push(
+
+        ...customActions
+
+          .filter((action: UiAction) =>
+
+            auth.authorizedActions!.some(
+
+              (item: ModuleAction) => item.actionName === action.name,
+
+            ),
+
+          )
+
+          .map((action: UiAction) =>
+
+            this.toolbarActionButton(
+
+              context,
+
+              this.actionFactory.action(context, {
+
+                ...action,
+
+                name: action.name ?? '',
+
+              } as any),
+
+              {
+
+              id: `${action.name}-button`,
+
+            },
+
+            ),
+
+          ),
+
+      )
+
+    }
+
+    return children
+
+  }
+
+
+
+  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
+
+    const prev = this.toolbarDense
+
+    this.toolbarDense = dense
+
+    try {
+
+      const runtime = context as any
+
+      if (runtime.many) return this.indexViewActionButtons(context)
+
+      if (runtime.editing) return this.editViewActionButtons(context)
+
+      return this.detailsViewActionButtons(context)
+
+    } finally {
+
+      this.toolbarDense = prev
+
+    }
+
+  }
+
+
+
+  buildModuleToolbar(
+
+    context: UiContext,
+
+    props: ModuleToolbarProps,
+
+    slots?: UiSlots,
+
+  ) {
+
+    const runtime = context as any
+
+    const module = moduleOf(context)
+
+    return paintModuleToolbar(this.factory, context, props, slots, {
+
+      breadcrumb: () => {
+
+        if (module) {
+
+          return this.buildModuleBreadcrumb(context, {
+
+            module,
+
+            label: props.breadcrumbLeaf || (runtime.many ? '' : context.title),
+
+          })
+
+        }
+
+        return h('strong', context.title)
+
+      },
+
+      actionGroup: (dense) =>
+
+        this.factory.buttonGroup(
+
+          () => this.toolbarActionButtons(context, dense),
+
+          {
+
+            class: uiCssClass('toolbar-actions'),
+
+            role: 'group',
+
+          },
+
+        ),
+
+      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
+
+      navActions: () =>
+
+        module
+
+          ? moduleChain(module).map(item => ({
+
+              name: item.moduleCode,
+
+              label: item.moduleLabel ?? (item as any).moduleName,
+
+              icon: item.moduleIcon,
+
+            }))
+
+          : [],
+
+      openSearchPage: () => {
+
+        if (props.onSearchPage) props.onSearchPage()
+
+        else void this.buildSearchPage(context)
+
+      },
+
+    })
+
+  }
+
+
+
+  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
+
+    const meta = field.field
+
+    const common = {
+
+      value: field.searchVal.value,
+
+      placeholder: meta.displayLabel,
+
+      size: 'small' as const,
+
+      'onUpdate:value': (value: any) => {
+
+        field.searchVal.value = value
+
+      },
+
+      ...props,
+
+    }
+
+    let editor: VNode
+
+    if (meta.reference?.refOptions?.length) {
+
+      editor = h(NSelect, {
+
+        ...common,
+
+        options: meta.reference.refOptions.map((option: any) => ({
+
+          label: meta.reference!.labelOf(option),
+
+          value: meta.reference!.valueOf(option),
+
+        })),
+
+        clearable: true,
+
+      })
+
+    } else if (SqlDataType.isBool(meta.dataType)) {
+
+      editor = h(NSelect, {
+
+        ...common,
+
+        options: [
+
+          { label: 'Yes', value: true },
+
+          { label: 'No', value: false },
+
+        ] as any,
+
+        clearable: true,
+
+      })
+
+    } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === 'WITHIN') {
+
+      editor = h(NSelect, {
+
+        ...common,
+
+        options: DATE_RANGE_FILTER_KINDS.map((kind) => ({
+
+          label: _context.translate(`dateRange.${kind}`),
+
+          value: kind,
+
+        })),
+
+        clearable: true,
+
+      })
+
+    } else if (SqlDataType.isDate(meta.dataType)) {
+
+      editor = h(NDatePicker, { ...common, type: 'date' })
+
+    } else if (SqlDataType.isNum(meta.dataType)) {
+
+      editor = h(NInputNumber, common)
+
+    } else {
+
+      editor = h(NInput, common)
+
+    }
+
+    return h('label', { class: 'mmda-search-field' }, [
+
+      h('span', meta.displayLabel),
+
+      editor,
+
+    ])
+
+  }
+
+
+
+  buildSearchForm(context: UiContext, props?: UiProps) {
+
+    return h(
+
+      'form',
+
+      {
+
+        class: 'mmda-search-form',
+
+        ...props,
+
+        onSubmit: (event: Event) => event.preventDefault(),
+
+      },
+
+      ((context as any).searchFields ?? []).map((field: UiSearchField) =>
+
+        this.buildSearchField(field, context, {}),
+
+      ),
+
+    )
+
+  }
+
+
 
   buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {
+
     const runtime = context as any
+
+    const searchLabel = context.translate('action.search')
+
+    const refreshLabel = context.translate('action.refresh')
+
     const filters = runtime.filters ?? []
-    const quickFilters = filters.map((filter: any) =>
-      h('div', { class: 'mmda-quick-filter' }, [
-        h('span', { class: 'mmda-quick-filter__label' }, filter.label),
-        h(NSelect, {
-          value: filter.metaUiFilter.fixed
-            ? filter.selectedConditions.value[0]
-            : filter.selectedConditions.value,
-          options: filter.selectOptions,
-          labelField: 'displayLabel',
-          valueField: 'value',
-          multiple: !filter.metaUiFilter.fixed,
-          clearable: true,
-          'onUpdate:value': (condition: any) => {
-            if (filter.metaUiFilter.fixed) {
-              if (condition) runtime.toggleQuickFilter(filter, condition, true)
-              else filter.selectedConditions.value = []
-            } else {
-              filter.selectedConditions.value = condition
-              runtime.syncQuickFilters?.()
-            }
-            runtime.searchParam.pager.pageNo = 1
-            void runtime.search?.()
+
+    const submitFuzzySearch = () => {
+
+      const word = String(runtime.searchParam?.searchWord ?? '').trim()
+
+      runtime.searchParam.searchWord = word
+
+      runtime.searchParam.pager.pageNo = 1
+
+      if (!word) {
+
+        void runtime.resetFilters?.()
+
+        return
+
+      }
+
+      props.onSearch?.(word)
+
+    }
+
+    const refreshSearch = () => {
+
+      if (props.onRefresh) {
+
+        props.onRefresh()
+
+        return
+
+      }
+
+      void runtime.search?.()
+
+    }
+
+    const addonButton = (icon: string, title: string, onClick: () => void) =>
+
+      h(
+
+        'button',
+
+        {
+
+          type: 'button',
+
+          class: 'mmda-searchbar__addon',
+
+          title,
+
+          'aria-label': title,
+
+          onClick: (event: Event) => {
+
+            event.preventDefault()
+
+            event.stopPropagation()
+
+            onClick()
+
           },
-        }),
-      ]),
-    )
-    return h(
-      'form',
-      {
-        class: 'mmda-searchbar',
-        onSubmit: (event: Event) => {
-          event.preventDefault()
-          props.onSearch?.(runtime.searchParam?.searchWord ?? '')
+
         },
-      },
-      [
-        ...quickFilters,
-        ...(runtime.searchFields ?? []).map((field: UiSearchField) =>
-          this.buildSearchField(field, context, {}),
-        ),
-        ...(runtime.customSearchFields ?? []).map((field: any) =>
-          field.renderer(context, field),
-        ),
-        h(NInput, {
-          value: runtime.searchParam?.searchWord ?? '',
-          placeholder: context.translate('action.search'),
-          size: 'small',
-          'onUpdate:value': (value: string) => {
-            runtime.searchParam.searchWord = value
+
+        [createIconVNode(icon)],
+
+      )
+
+    const quickFilters = filters.map((filter: any) =>
+
+      h('div', { class: 'mmda-quick-filter' }, [
+
+        h('span', { class: 'mmda-quick-filter__label' }, filter.label),
+
+        h(NSelect, {
+
+          value: filter.metaUiFilter.fixed
+
+            ? filter.selectedConditions.value[0]
+
+            : filter.selectedConditions.value,
+
+          options: filter.selectOptions,
+
+          labelField: 'displayLabel',
+
+          valueField: 'value',
+
+          multiple: !filter.metaUiFilter.fixed,
+
+          clearable: true,
+
+          'onUpdate:value': (condition: any) => {
+
+            if (filter.metaUiFilter.fixed) {
+
+              if (condition) runtime.toggleQuickFilter(filter, condition, true)
+
+              else filter.selectedConditions.value = []
+
+            } else {
+
+              filter.selectedConditions.value = condition
+
+              runtime.syncQuickFilters?.()
+
+            }
+
+            runtime.searchParam.pager.pageNo = 1
+
+            void runtime.search?.()
+
           },
+
         }),
-        h(
-          NButton,
-          { attrType: 'submit', size: 'small', type: 'primary' },
-          { default: () => context.translate('action.search') },
-        ),
-        (filters.length > 0 || runtime.searchFields?.length > 0) &&
-          h(
-            NButton,
-            {
-              attrType: 'button',
-              size: 'small',
-              text: true,
-              onClick: () => void runtime.resetFilters?.(),
-            },
-            { default: () => context.translate('action.reset') },
-          ),
-      ],
+
+      ]),
+
     )
+
+    return h(
+
+      'form',
+
+      {
+
+        class: 'mmda-searchbar',
+
+        onSubmit: (event: Event) => {
+
+          event.preventDefault()
+
+          submitFuzzySearch()
+
+        },
+
+      },
+
+      [
+
+        ...quickFilters,
+
+        ...(runtime.searchFields ?? []).map((field: UiSearchField) =>
+
+          this.buildSearchField(field, context, {}),
+
+        ),
+
+        ...(runtime.customSearchFields ?? []).map((field: any) =>
+
+          field.renderer(context, field),
+
+        ),
+
+        h(
+
+          NInput,
+
+          {
+
+            class: 'mmda-searchbar__input',
+
+            value: runtime.searchParam?.searchWord ?? '',
+
+            placeholder: searchLabel,
+
+            size: 'small',
+
+            clearable: true,
+
+            'onUpdate:value': (value: string) => {
+
+              runtime.searchParam.searchWord = value
+
+            },
+
+            onKeydown: (event: KeyboardEvent) => {
+
+              if (event.key === 'Enter') {
+
+                event.preventDefault()
+
+                submitFuzzySearch()
+
+              }
+
+            },
+
+          },
+
+          {
+
+            suffix: () =>
+
+              h('span', { class: 'mmda-searchbar__addons' }, [
+
+                addonButton(
+
+                  this.factory.resolveIcon('search'),
+
+                  searchLabel,
+
+                  submitFuzzySearch,
+
+                ),
+
+                addonButton(
+
+                  this.factory.resolveIcon('refresh'),
+
+                  refreshLabel,
+
+                  refreshSearch,
+
+                ),
+
+              ]),
+
+          },
+
+        ),
+
+        (filters.length > 0 || runtime.searchFields?.length > 0) &&
+
+          h(
+
+            NButton,
+
+            {
+
+              attrType: 'button',
+
+              size: 'small',
+
+              text: true,
+
+              onClick: () => void runtime.resetFilters?.(),
+
+            },
+
+            { default: () => context.translate('action.reset') },
+
+          ),
+
+      ],
+
+    )
+
   }
+
+
 
   buildSearchForRelative(
+
     context: UiContext,
+
     field: MetaUiField,
+
     props: SearchForRelativeProps,
+
   ) {
+
     const reference = field.reference
-    const options = ((props.options as any[]) ?? []).map(option => ({
-      label:
-        typeof props.optionLabel === 'function'
-          ? props.optionLabel(option)
-          : reference
-            ? reference.labelOf(option)
-            : String(option),
-      value: reference ? reference.valueOf(option) : option,
-    }))
-    const openPick = async (event?: Event) => {
-      event?.preventDefault()
-      event?.stopPropagation()
-      try {
-        if (typeof props.toSearch === 'function') {
-          await props.toSearch(event as Event)
-          return
-        }
-        await (context as any).select(field)
-      } catch (error) {
-        console.error(error)
+
+    const rawOptions = ((props as { options?: any[] }).options as any[]) ?? []
+
+    const optionLabel = (props as { optionLabel?: string | ((row: any) => string) })
+
+      .optionLabel
+
+    const labelOf = (option: any): string => {
+
+      if (typeof optionLabel === 'function') return String(optionLabel(option) ?? '')
+
+      if (reference) return String(reference.labelOf(option) ?? '')
+
+      if (typeof optionLabel === 'string' && option && typeof option === 'object') {
+
+        return String(option[optionLabel] ?? '')
+
       }
+
+      return option == null ? '' : String(option)
+
     }
-    return h(NSelect, {
-      options,
-      value: props.modelValue,
-      filterable: true,
-      clearable: props.showClear !== false && field.nullable,
-      placeholder: props.placeholder ?? context.translate?.('action.select') ?? '请选择',
-      status: props.invalid ? 'error' : undefined,
-      class: 'mmda-search-combo',
-      'onUpdate:value': (value: any) => props.onChange?.(value),
-      onSearch: (text: string) => {
-        props.onInput?.(text)
-        void (context as any).searchRelative?.(field, text)
+
+    const valueOf = (option: any) =>
+
+      reference ? reference.valueOf(option) : option
+
+
+
+    const selectOptions = rawOptions.map(option => ({
+
+      label: labelOf(option),
+
+      value: valueOf(option),
+
+    }))
+
+
+
+    const current = (props as { modelValue?: any }).modelValue
+
+    const selectedValue =
+
+      current != null && typeof current === 'object'
+
+        ? valueOf(current)
+
+        : current === 0 || current === '0'
+
+          ? null
+
+          : current
+
+
+
+    // 当前值若不在 options 里，补一条以免 NSelect 只显示裸 id
+
+    if (
+
+      current != null &&
+
+      typeof current === 'object' &&
+
+      selectedValue != null &&
+
+      !selectOptions.some(item => item.value === selectedValue)
+
+    ) {
+
+      selectOptions.unshift({ label: labelOf(current), value: selectedValue })
+
+    }
+
+
+
+    const openPick = async (event?: Event) => {
+
+      event?.preventDefault?.()
+
+      event?.stopPropagation?.()
+
+      try {
+
+        const toSearch = (props as { toSearch?: (event: Event) => Promise<any> })
+
+          .toSearch
+
+        if (typeof toSearch === 'function') {
+
+          await toSearch(event as Event)
+
+          return
+
+        }
+
+        await (context as any).select(field)
+
+      } catch (error) {
+
+        console.error(error)
+
+      }
+
+    }
+
+
+
+    const emitChange = (value: any) => {
+
+      const onChange = (props as { onChange?: (value: any) => void }).onChange
+
+      if (value == null || value === '') {
+
+        onChange?.(null)
+
+        return
+
+      }
+
+      const matched =
+
+        rawOptions.find(option => valueOf(option) === value) ??
+
+        (current != null &&
+
+        typeof current === 'object' &&
+
+        valueOf(current) === value
+
+          ? current
+
+          : null)
+
+      onChange?.(matched ?? null)
+
+    }
+
+
+
+    const searchTitle =
+
+      context.translate?.('action.search') ??
+
+      context.translate?.('action.select') ??
+
+      '搜索'
+
+
+
+    return h(
+
+      NSelect,
+
+      {
+
+        options: selectOptions,
+
+        value: selectedValue === 0 || selectedValue === '0' ? null : selectedValue,
+
+        filterable: true,
+
+        remote: true,
+
+        clearable:
+
+          (props as { showClear?: boolean }).showClear !== false &&
+
+          field.nullable,
+
+        placeholder:
+
+          props.placeholder ??
+
+          context.translate?.('action.select') ??
+
+          '请选择',
+
+        status: (props as { invalid?: boolean }).invalid ? 'error' : undefined,
+
+        class: 'mmda-search-combo',
+
+        'onUpdate:value': emitChange,
+
+        onSearch: (text: string) => {
+
+          ;(props as { onInput?: (value: string) => void }).onInput?.(text)
+
+          void (context as any).searchRelative?.(field, text)
+
+        },
+
       },
-    })
+
+      {
+
+        // 对齐老 SearchBox / SF / Prime：箭头换成放大镜，点击打开选择对话框
+
+        arrow: () =>
+
+          h('i', {
+
+            class: 'fas fa-search mmda-search-combo__pick',
+
+            title: searchTitle,
+
+            'aria-label': searchTitle,
+
+            onMousedown: (event: MouseEvent) => {
+
+              event.preventDefault()
+
+              event.stopPropagation()
+
+            },
+
+            onClick: (event: MouseEvent) => {
+
+              event.preventDefault()
+
+              event.stopPropagation()
+
+              void openPick(event)
+
+            },
+
+          }),
+
+      },
+
+    )
+
   }
+
+
 
   buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
+
     return h('section', { class: 'mmda-flow', ...props }, [
+
       props.xml
+
         ? h(BpmnModeler, {
+
             xml: props.xml,
+
             readonly: props.readonly ?? true,
+
             height: props.height,
+
             'onUpdate:xml': props.onUpdateXml,
+
           })
+
         : undefined,
+
       flowTrails?.length
+
         ? h(
+
             'ol',
+
             { class: 'mmda-flow__trails' },
+
             flowTrails.map(item =>
+
               h('li', { key: item.id ?? item.name }, item.label ?? item.name ?? String(item)),
+
             ),
+
           )
+
         : undefined,
+
     ])
+
   }
+
+
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
+
     return h(SigninForm, props, slots)
+
   }
 
+
+
   buildSignupForm(props: SignupFormProps) {
+
     const user = reactive({
+
       mobile: '',
+
       password: '',
+
       vcode: '',
+
       agreed: true,
+
     })
+
     return h(
+
       'form',
+
       {
+
         class: 'mmda-auth-form',
+
         onSubmit: (event: Event) => {
+
           event.preventDefault()
+
           props.onSignup?.(user)
+
         },
+
       },
+
       [
+
         h(NInput, {
+
           placeholder: 'Mobile',
+
           value: user.mobile,
+
           'onUpdate:value': (value: string) => (user.mobile = value),
+
         }),
+
         h(NInput, {
+
           type: 'password',
+
           placeholder: 'Password',
+
           value: user.password,
+
           'onUpdate:value': (value: string) => (user.password = value),
+
         }),
+
         h(NInput, {
+
           placeholder: 'Verification code',
+
           value: user.vcode,
+
           'onUpdate:value': (value: string) => (user.vcode = value),
+
         }),
+
         h(NButton, { attrType: 'submit', type: 'primary' }, { default: () => 'Sign up' }),
+
       ],
+
     )
+
   }
+
 }
+

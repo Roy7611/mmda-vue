@@ -3,21 +3,35 @@
  * 现网列表表格渲染器（factory.table）。
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
-import { h, nextTick, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
-import { gridFreezeOf, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
-import { NumericTextBox } from '@syncfusion/ej2-inputs'
+import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, dateKindFilter, hasFilterType, isDateRangeKind, isLazyChoiceFilterField, isRefOptionsComplete, resolveColumnFilterTypes, simpleFilterTypeOf, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { gridFreezeOf, joinListColumnLabel, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
+import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
-import { ComboBox } from '@syncfusion/ej2-dropdowns'
+import { MultiSelect, CheckBoxSelection } from '@syncfusion/ej2-dropdowns'
+import {
+  applyCompareColumnFilters,
+  createCompareColumnFilterStore,
+  sfCompareColumnFilter,
+  usesCompareColumnFilter,
+  writeCompareColumnFilter,
+} from './column_filter'
 import { SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { getSyncfusionCulture } from '../syncfusion_i18n'
 import { SfGrid, SfGridLoadingHost, syncMetaUiFromGridColumns } from './grid'
+import { createDateSetTree } from './date_set_tree'
+
+MultiSelect.Inject(CheckBoxSelection)
 import {
+  AG_MENU_DATE_OPERATORS,
+  AG_MENU_NUMBER_OPERATORS,
+  AG_MENU_STRING_OPERATORS,
   EMPTY_SELECTION,
   VIRTUAL_ROW_PAGE_SIZE,
   DEFAULT_LIST_COLUMN_WIDTH,
   cellSlotName,
   choiceFilterDataSource,
+  choiceFilterRowsOf,
   columnEditType,
   gridColumnFormat,
   gridColumnType,
@@ -26,7 +40,11 @@ import {
   gridTextAlign,
   gridTextAlignCss,
   isChoiceFilterField,
+  isHasOneSetField,
+  applyMenuOperators,
+  keepAgMenuOperators,
   listedFields,
+  menuFilterOperators,
   normalizeAction,
   findAction,
   isEnumReference,
@@ -266,16 +284,110 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       focusedEditCell = null
     }
 
-    type RangeValue = { min?: unknown; max?: unknown }
-    const pendingRanges = new Map<string, RangeValue>()
-    const pendingColumnFilters = new Map<string, EntityFieldFilter>()
+    const compareFilterStore = createCompareColumnFilterStore()
+    const compareFilterExtras = () => ({
+      filterModel: props.filterModel,
+      dateRangeLabels: props.dateRangeLabels,
+      filterLabels: props.filterLabels,
+      loadPivotDates: props.loadPivotDates,
+      store: compareFilterStore,
+      appContext,
+    })
+
+    /** 懒加载列筛页：不覆盖 refOptions。value → 实体，便于 labelOf / 已选项并回。 */
+    const lazyPageByField = new Map<string, unknown[]>()
+    const lazySeenByField = new Map<string, Map<string, unknown>>()
+
+    const storeLazyRows = (field: MetaUiField, rows: unknown[]) => {
+      const ref = field.reference
+      lazyPageByField.set(field.fieldName, rows ?? [])
+      if (!ref) return
+      let seen = lazySeenByField.get(field.fieldName)
+      if (!seen) {
+        seen = new Map()
+        lazySeenByField.set(field.fieldName, seen)
+      }
+      for (const row of rows ?? []) {
+        seen.set(String(ref.valueOf(row)), row)
+      }
+    }
+
+    const selectedSetValuesOf = (field: MetaUiField) => {
+      const current = props.filterModel?.[field.fieldName] as
+        | EntityFieldFilter
+        | undefined
+      if (!current) return [] as unknown[]
+      if (current.filterType === 'set') return current.values ?? []
+      if (current.filterType === 'multi') {
+        const set = current.filterModels.find(item => item.filterType === 'set')
+        return set && 'values' in set ? set.values ?? [] : []
+      }
+      return []
+    }
+
+    const findChoiceOption = (field: MetaUiField, raw: unknown) => {
+      const ref = field.reference
+      if (!ref) return undefined
+      const key = String(raw)
+      const seen = lazySeenByField.get(field.fieldName)?.get(key)
+      if (seen) return seen
+      return (ref.refOptions ?? []).find(item => String(ref.valueOf(item)) === key)
+    }
+
+    const choiceDataSourceOf = (field: MetaUiField) => {
+      if (isLazyChoiceFilterField(field)) {
+        const ref = field.reference
+        const page =
+          lazyPageByField.get(field.fieldName) ?? ref?.refOptions ?? []
+        const seen = new Set(
+          page.map(row => String(ref?.valueOf(row))),
+        )
+        const merged = [...page]
+        for (const value of selectedSetValuesOf(field)) {
+          if (seen.has(String(value))) continue
+          const row = lazySeenByField.get(field.fieldName)?.get(String(value))
+          if (row) merged.push(row)
+        }
+        return choiceFilterRowsOf(field, merged)
+      }
+      return choiceFilterDataSource(field)
+    }
+
+    const loadLazyChoices = (field: MetaUiField, searchWord: string) =>
+      Promise.resolve(props.searchRelative?.(field, searchWord) ?? []).then(
+        rows => {
+          storeLazyRows(field, rows ?? [])
+          return choiceDataSourceOf(field)
+        },
+      )
+
+    const openChoicePage = (field: MetaUiField, searchWord: string) => {
+      const showHome = () => {
+        storeLazyRows(field, field.reference?.refOptions ?? [])
+        return choiceDataSourceOf(field)
+      }
+      if (searchWord && isLazyChoiceFilterField(field)) {
+        return loadLazyChoices(field, searchWord)
+      }
+      const existing = field.reference?.refOptions ?? []
+      if (existing.length === 0 && props.loadFilterOptions) {
+        return Promise.resolve(props.loadFilterOptions(field)).then(() => {
+          if (isRefOptionsComplete(field)) return choiceDataSourceOf(field)
+          return showHome()
+        })
+      }
+      if (isRefOptionsComplete(field) || !isLazyChoiceFilterField(field)) {
+        return Promise.resolve(choiceDataSourceOf(field))
+      }
+      return Promise.resolve(showHome())
+    }
 
     /** 引用列 CheckBox：数据与表单下拉相同（valueOf/labelOf）。
      * EJ2 默认用列值当勾选文字，Vue 下 itemTemplate 会把 label 清空。
      * 用 filter-cbox-value 把显示改成 labelOf 文本，勾选值仍是主键。 */
     const choiceCheckBoxFilter = (field: MetaUiField) => ({
       type: 'CheckBox',
-      dataSource: choiceFilterDataSource(field),
+      dataSource: choiceDataSourceOf(field),
     })
 
     const onFilterCheckboxLabel = (args: any) => {
@@ -286,17 +398,21 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         args?.data?.[fieldName] ??
         args?.data?.dataObj?.[fieldName] ??
         args?.value
-      const option = ref?.refOptions?.find(item => ref.valueOf(item) === raw)
-      const text = option != null ? ref.labelOf(option) : args?.data?.text
+      const option = field ? findChoiceOption(field, raw) : undefined
+      const text = option != null && ref ? ref.labelOf(option) : args?.data?.text
       if (text != null && String(text).length) args.value = String(text)
     }
 
-    /** 引用选项按主键已唯一，跳过 EJ2 getDistinct。 */
+    /** 引用选项按主键已唯一，跳过 EJ2 getDistinct。hasOne 搜索走远程。 */
     const onBeforeCheckboxRenderer = (args: any) => {
       const field = fields.find(value => value.fieldName === args?.field)
       if (!field || !isChoiceFilterField(field)) return
       args.executeQuery = false
-      const items = choiceFilterDataSource(field)
+      if (isLazyChoiceFilterField(field)) {
+        args.dataSource = choiceDataSourceOf(field)
+        return
+      }
+      const items = choiceDataSourceOf(field)
       const search = String(
         ej2Grid?.element?.querySelector?.('.e-searchinput')?.value ?? '',
       ).trim()
@@ -309,76 +425,58 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         : items
     }
 
-    /**
-     * 数值/日期范围过滤：仍使用 EJ2 Menu 与原生输入控件；只有选择 BETWEEN
-     * 时才显示第二个输入框。Grid 本身不认识 BETWEEN，因此 read 先发下界，
-     * actionBegin 再补上界谓词。
-     */
-    const rangeMenuFilter = (field: MetaUiField) => {
-      const isDate = simpleFilterTypeOf(field) === 'date'
-      const isDateTime = SqlDataType.isDateTime(field.dataType)
-      let firstControl: NumericTextBox | DatePicker | DateTimePicker | undefined
-      let secondControl: NumericTextBox | DatePicker | DateTimePicker | undefined
-      let secondWrap: HTMLElement | undefined
-      let operatorDropDown: any
-      const menuOperatorListeners: Array<{
-        el: HTMLElement
-        type: string
-        fn: EventListener
-      }> = []
 
-      const setControlValue = (
-        control: NumericTextBox | DatePicker | DateTimePicker | undefined,
-        value: unknown,
-      ) => {
-        if (!control) return
-        if (isDate) {
-          const date =
-            value == null || value === ''
-              ? null
-              : value instanceof Date
-                ? value
-                : new Date(String(value))
-          control.value =
-            date && !Number.isNaN(date.getTime()) ? date : null
-        } else {
-          control.value =
-            value == null || value === '' ? null : Number(value)
-        }
-        control.dataBind()
+    /** MULTI=32 且有 SET 选项源才追加勾选。 */
+    const usesSetSlot = (field: MetaUiField) =>
+      hasFilterType(field, MetaUiFieldFilterType.MULTI) &&
+      hasFilterType(field, MetaUiFieldFilterType.SET) &&
+      (isLazyChoiceFilterField(field) ||
+        Boolean(field.reference?.isEnum || field.reference?.isRef) ||
+        Boolean(props.loadFilterOptions) ||
+        Boolean(
+          simpleFilterTypeOf(field) === 'date' && props.loadPivotDates,
+        ))
+
+    const usesJoinSlot = (field: MetaUiField) =>
+      hasFilterType(field, MetaUiFieldFilterType.JOIN)
+
+    type CompareControl = TextBox | NumericTextBox | DatePicker | DateTimePicker
+
+    const numericFilterFormatOf = (field: MetaUiField) => {
+      const raw =
+        typeof field.formatter === 'object' && field.formatter
+          ? (field.formatter as { format?: unknown }).format
+          : field.formatter
+      if (typeof raw !== 'string' || !raw.trim()) return undefined
+      if (/^[nNcCpP](\d+)?$/.test(raw) || /[#0]/.test(raw)) return raw
+      return undefined
+    }
+
+    const createCompareControl = (
+      input: HTMLInputElement,
+      field: MetaUiField,
+    ): CompareControl => {
+      const compareType = simpleFilterTypeOf(field)
+      if (compareType === 'date') {
+        const format = gridColumnFormat(field)
+        const DateControl = SqlDataType.isDateTime(field.dataType)
+          ? DateTimePicker
+          : DatePicker
+        const control = new DateControl({
+          locale: getSyncfusionCulture(),
+          format: typeof format === 'object' ? format.format : format,
+          placeholder: SqlDataType.isDateTime(field.dataType)
+            ? props.filterLabels?.datetime
+            : props.filterLabels?.date,
+          width: '100%',
+        })
+        control.appendTo(input)
+        return control
       }
-
-      /** 元数据 formatter 可能是展示串，不能直接喂给 NumericTextBox。 */
-      const numericFilterFormat = () => {
-        const raw =
-          typeof field.formatter === 'object' && field.formatter
-            ? (field.formatter as { format?: unknown }).format
-            : field.formatter
-        if (typeof raw !== 'string' || !raw.trim()) return undefined
-        // EJ2 数字格式：n/c/p/#0.00 等；其它字符串常会抛 Format options invalid
-        if (/^[nNcCpP](\d+)?$/.test(raw) || /[#0]/.test(raw)) return raw
-        return undefined
-      }
-
-      const createControl = (input: HTMLInputElement) => {
-        if (isDate) {
-          const format = gridColumnFormat(field)
-          const DateControl = isDateTime ? DateTimePicker : DatePicker
-          const control = new DateControl({
-            locale: getSyncfusionCulture(),
-            format:
-              typeof format === 'object'
-                ? format.format
-                : format,
-            placeholder: isDateTime ? '选择日期时间' : '选择日期',
-            width: '100%',
-          })
-          control.appendTo(input)
-          return control
-        }
+      if (compareType === 'number') {
         const control = new NumericTextBox({
           locale: getSyncfusionCulture(),
-          format: numericFilterFormat(),
+          format: numericFilterFormatOf(field),
           placeholder: '输入数值',
           showSpinButton: false,
           width: '100%',
@@ -386,155 +484,79 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         control.appendTo(input)
         return control
       }
+      const control = new TextBox({
+        locale: getSyncfusionCulture(),
+        width: '100%',
+      })
+      control.appendTo(input)
+      return control
+    }
 
-      const syncBetweenVisibility = () => {
-        if (!secondWrap) return
-        secondWrap.hidden = operatorDropDown?.value !== 'between'
+    const readControlValue = (
+      control?: CompareControl,
+      input?: HTMLInputElement,
+    ) => {
+      if (control && control.value != null && control.value !== '') {
+        return control.value
       }
+      const inst = (input as any)?.ej2_instances?.[0] as CompareControl | undefined
+      if (inst && inst.value != null && inst.value !== '') return inst.value
+      const raw = input?.value?.trim()
+      return raw ? raw : undefined
+    }
 
-      return {
-        type: 'Menu',
-        ui: {
-          create: (args: any) => {
-            const host = document.createElement('div')
-            host.className = 'mmda-filter-range'
-            const firstWrap = document.createElement('div')
-            firstWrap.className = 'mmda-filter-range__value'
-            const firstInput = document.createElement('input')
-            firstInput.className = 'e-flmenu-input'
-            firstWrap.appendChild(firstInput)
-
-            secondWrap = document.createElement('div')
-            secondWrap.className =
-              'mmda-filter-range__value mmda-filter-range__value--to'
-            const separator = document.createElement('span')
-            separator.className = 'mmda-filter-range__separator'
-            separator.textContent = '至'
-            const secondInput = document.createElement('input')
-            secondWrap.append(separator, secondInput)
-            host.append(firstWrap, secondWrap)
-            args.target.appendChild(host)
-
-            firstControl = createControl(firstInput)
-            secondControl = createControl(secondInput)
-            operatorDropDown = args.getOptrInstance?.dropOptr
-            // 不要改 dropOptr.change：Vue 代理 set 会走进 EJ2 Observer.off(null)。
-            const menu = args.target?.closest?.('.e-flmenu') ?? args.target
-            if (menu instanceof HTMLElement) {
-              const onOperatorUi = () => syncBetweenVisibility()
-              menu.addEventListener('click', onOperatorUi)
-              menu.addEventListener('change', onOperatorUi)
-              menuOperatorListeners.push(
-                { el: menu, type: 'click', fn: onOperatorUi },
-                { el: menu, type: 'change', fn: onOperatorUi },
-              )
-            }
-
-            const current = props.filterModel?.[field.fieldName]
-            if (current?.operator === 'BETWEEN' && operatorDropDown) {
-              operatorDropDown.value = 'between'
-              operatorDropDown.dataBind?.()
-            }
-            syncBetweenVisibility()
-          },
-          write: (args: any) => {
-            const current = props.filterModel?.[field.fieldName]
-            if (current?.operator === 'BETWEEN') {
-              setControlValue(firstControl, current.value)
-              setControlValue(secondControl, current.valueTo)
-              return
-            }
-            setControlValue(firstControl, args.filteredValue)
-            setControlValue(secondControl, null)
-          },
-          read: (args: any) => {
-            const operator = String(args.operator ?? 'equal').toLowerCase()
-            const first = firstControl?.value ?? undefined
-            const second = secondControl?.value ?? undefined
-            pendingRanges.delete(field.fieldName)
-
-            if (operator === 'between') {
-              if (first == null && second == null) {
-                args.fltrObj.removeFilteredColsByField?.(field.fieldName)
-                return
-              }
-              if (first != null && second != null) {
-                // Grid filterByColumn 同字段会替换；先缓存范围，dataStateChange
-                // 再合成 BETWEEN body（不依赖 actionBegin 补上界是否成功）。
-                pendingRanges.set(field.fieldName, {
-                  min: first,
-                  max: second,
-                })
-              }
-              args.fltrObj.filterByColumn(
-                field.fieldName,
-                first != null ? 'greaterthanorequal' : 'lessthanorequal',
-                first ?? second,
-                'and',
-                true,
-              )
-              return
-            }
-
-            args.fltrObj.filterByColumn(
-              field.fieldName,
-              operator,
-              first ?? null,
-              'and',
-              true,
-            )
-          },
-          destroy: () => {
-            for (const { el, type, fn } of menuOperatorListeners) {
-              el.removeEventListener(type, fn)
-            }
-            menuOperatorListeners.length = 0
-            operatorDropDown = undefined
-            const safeDestroy = (
-              control?: NumericTextBox | DatePicker | DateTimePicker,
-            ) => {
-              if (!control || control.isDestroyed) return
-              try {
-                control.destroy()
-              } catch {
-                /* EJ2 已随筛选框拆掉 */
-              }
-            }
-            safeDestroy(firstControl)
-            safeDestroy(secondControl)
-            firstControl = undefined
-            secondControl = undefined
-            secondWrap = undefined
-          },
-        },
+    const writeControlValue = (
+      control: CompareControl | undefined,
+      input: HTMLInputElement | undefined,
+      value: unknown,
+      field: MetaUiField,
+    ) => {
+      const isDate = simpleFilterTypeOf(field) === 'date'
+      const next = isDate
+        ? value == null || value === ''
+          ? null
+          : value instanceof Date
+            ? value
+            : new Date(String(value))
+        : value == null || value === ''
+          ? ''
+          : value
+      if (control) {
+        control.value = next as any
+        control.dataBind()
+        return
       }
+      const inst = (input as any)?.ej2_instances?.[0] as CompareControl | undefined
+      if (inst) {
+        inst.value = next as any
+        inst.dataBind?.()
+        return
+      }
+      if (input) input.value = next == null ? '' : String(next)
     }
 
     /**
-     * 列筛两块：上块比较（可两段 AND/OR），下块 enum/ref 勾选或 hasOne ComboBox。
+     * 只追加 EJ2 没有的：JOIN 第二段、MULTI 的 SET 勾选。第一段用 Menu 自带值框。
      */
     const multiMenuFilter = (field: MetaUiField) => {
       const kind = columnFilterKindOf(field)
-      const types = resolveColumnFilterTypes(field)
       const compareType = simpleFilterTypeOf(field)
       const isNum = compareType === 'number'
-      const choice = isChoiceFilterField(field)
+      const lazySet = isLazyChoiceFilterField(field)
       const showCompare = kind !== 'set'
-      const showSet = kind !== 'text' && choice
-      const allowJoin = hasFilterType(types, MetaUiFieldFilterType.JOIN)
-      const hasOne = Boolean(
-        showSet &&
-          field.reference?.hasOne &&
-          !field.reference?.isEnum &&
-          !field.reference?.isRef,
-      )
+      const showSet = usesSetSlot(field) || (kind === 'set' && lazySet)
+      const allowJoin = usesJoinSlot(field)
       let firstInput: HTMLInputElement | undefined
-      let secondInput: HTMLInputElement | undefined
+      let secondControl: CompareControl | undefined
       let joinSelect: HTMLSelectElement | undefined
-      let secondRow: HTMLElement | undefined
-      const checks = new Map<string, HTMLInputElement>()
-      let combo: ComboBox | undefined
-      let selectedHasOne: unknown[] = []
+      let setSelect: MultiSelect | undefined
+      let selectedSetValues: unknown[] = []
+      let dateTree: { destroy: () => void } | undefined
+      let dateTreeHost: HTMLInputElement | undefined
+      let dateTreeLoaded = false
+      const isDateSet =
+        compareType === 'date' && Boolean(props.loadPivotDates)
+      const valuesLabel = props.filterLabels?.values
 
       const currentFilter = () =>
         props.filterModel?.[field.fieldName] as EntityFieldFilter | undefined
@@ -560,19 +582,35 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
       const readCompare = (): EntityFieldFilter | undefined => {
         if (!showCompare) return undefined
-        const first = firstInput?.value?.trim()
-        const second = allowJoin ? secondInput?.value?.trim() : undefined
-        const op = String(argsOperator() ?? 'contains')
+        const first = readControlValue(undefined, firstInput)
+        const second = allowJoin
+          ? readControlValue(secondControl)
+          : undefined
+        const op = String(argsOperator() ?? (compareType === 'text' ? 'contains' : 'equal'))
         const join = String(joinSelect?.value ?? 'and').toUpperCase() === 'OR' ? 'OR' : 'AND'
         const filterType = compareType
-        const toSimple = (value?: string) =>
-          value
-            ? {
-                filterType,
-                operator: gridFilterOperator(op),
-                value: isNum && value !== '' ? Number(value) : value,
-              }
+        const operator = gridFilterOperator(op, compareType)
+        if (
+          operator === 'IS_NULL' ||
+          operator === 'IS_NOT_NULL' ||
+          operator === 'IS_BLANK' ||
+          operator === 'IS_NOT_BLANK'
+        ) {
+          return { filterType, operator }
+        }
+        if (operator === 'WITHIN') {
+          return typeof first === 'string' && isDateRangeKind(first)
+            ? dateKindFilter(first)
             : undefined
+        }
+        const toSimple = (value?: unknown) => {
+          if (value == null || value === '') return undefined
+          return {
+            filterType,
+            operator,
+            value: isNum && value !== '' ? Number(value) : value,
+          }
+        }
         const a = toSimple(first)
         const b = toSimple(second)
         if (a && b) {
@@ -581,81 +619,167 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return a
       }
 
+      const setOptions = () =>
+        choiceFilterDataSource(field).map(item => ({
+          value: item[field.fieldName],
+          label: item.text,
+        }))
+
       let operatorDropDown: any
       const argsOperator = () => operatorDropDown?.value
 
       return {
         type: 'Menu',
+        operator: compareType === 'text' ? 'contains' : 'equal',
         dataSource:
-          showSet && !hasOne ? choiceFilterDataSource(field) : undefined,
+          showSet && !lazySet ? choiceFilterDataSource(field) : undefined,
         ui: {
           create: (args: any) => {
             operatorDropDown = args.getOptrInstance?.dropOptr
+            if (
+              operatorDropDown &&
+              compareType === 'text' &&
+              !compareFromCurrent(currentFilter())
+            ) {
+              operatorDropDown.value = 'contains'
+              operatorDropDown.dataBind?.()
+            }
             const host = document.createElement('div')
             host.className = 'mmda-filter-multi'
-            if (showCompare) {
-              firstInput = document.createElement('input')
-              firstInput.className = 'e-input e-flmenu-input'
-              firstInput.placeholder = '值'
-              host.appendChild(firstInput)
-
-              if (allowJoin) {
-                secondRow = document.createElement('div')
-                secondRow.className = 'mmda-filter-multi__join'
-                joinSelect = document.createElement('select')
-                joinSelect.innerHTML =
-                  '<option value="and">AND</option><option value="or">OR</option>'
-                secondInput = document.createElement('input')
-                secondInput.className = 'e-input e-flmenu-input'
-                secondInput.placeholder = '第二段'
-                secondRow.append(joinSelect, secondInput)
-                host.appendChild(secondRow)
-              }
+            const menu =
+              args.target?.closest?.('.e-flmenu') instanceof HTMLElement
+                ? args.target.closest('.e-flmenu')
+                : args.target
+            firstInput = [...(menu?.querySelectorAll?.('input') ?? [])].find(
+              el => el instanceof HTMLInputElement,
+            ) as HTMLInputElement | undefined
+            if (showCompare && allowJoin) {
+              const secondRow = document.createElement('div')
+              secondRow.className = 'mmda-filter-multi__join'
+              joinSelect = document.createElement('select')
+              joinSelect.innerHTML =
+                '<option value="and">AND</option><option value="or">OR</option>'
+              const secondInput = document.createElement('input')
+              secondRow.append(joinSelect, secondInput)
+              host.appendChild(secondRow)
+              secondControl = createCompareControl(secondInput, field)
             }
 
-            if (showSet && !hasOne) {
-              const box = document.createElement('div')
-              box.className = 'mmda-filter-multi__choices'
-              for (const item of choiceFilterDataSource(field)) {
-                const label = document.createElement('label')
-                const input = document.createElement('input')
-                input.type = 'checkbox'
-                input.value = String(item[field.fieldName] ?? '')
-                checks.set(input.value, input)
-                label.append(input, document.createTextNode(String(item.text ?? '')))
-                box.appendChild(label)
+            if (showSet) {
+              selectedSetValues = setFromCurrent(currentFilter())
+              const setWrap = document.createElement('div')
+              setWrap.className = 'mmda-filter-multi__set'
+              const body = document.createElement('div')
+              body.className = 'mmda-filter-multi__set-body'
+              const collapse = showCompare
+              const open = !collapse || selectedSetValues.length > 0
+              if (collapse) {
+                const toggle = document.createElement('button')
+                toggle.type = 'button'
+                toggle.className = 'mmda-filter-multi__set-toggle'
+                toggle.textContent = valuesLabel
+                toggle.setAttribute('aria-expanded', String(open))
+                setWrap.classList.toggle('is-open', open)
+                body.hidden = !open
+                toggle.addEventListener('click', () => {
+                  const next = body.hidden
+                  body.hidden = !next
+                  toggle.setAttribute('aria-expanded', String(next))
+                  setWrap.classList.toggle('is-open', next)
+                  if (next) mountDateTree()
+                })
+                setWrap.append(toggle, body)
+              } else {
+                setWrap.appendChild(body)
               }
-              host.appendChild(box)
-            }
-            if (showSet && hasOne) {
-              const comboInput = document.createElement('input')
-              host.appendChild(comboInput)
-              let debounce: ReturnType<typeof setTimeout> | undefined
-              combo = new ComboBox({
-                allowFiltering: true,
-                fields: { text: 'text', value: 'value' },
-                dataSource: [],
-                filtering: (e: any) => {
-                  e.updateData([])
-                  if (debounce) clearTimeout(debounce)
-                  debounce = setTimeout(() => {
-                    void Promise.resolve(
-                      props.searchRelative?.(field, String(e.text ?? '')),
-                    ).then(rows => {
-                      const reference = field.reference!
-                      const data = (rows ?? []).map(row => ({
-                        value: reference.valueOf(row),
-                        text: String(reference.labelOf(row) ?? ''),
-                      }))
-                      e.updateData(data)
+              host.appendChild(setWrap)
+
+              const mountDateTree = () => {
+                if (!isDateSet || dateTreeLoaded || !dateTreeHost) return
+                dateTreeLoaded = true
+                void Promise.resolve(props.loadPivotDates?.(field)).then(
+                  raw => {
+                    if (!dateTreeHost) {
+                      dateTreeLoaded = false
+                      return
+                    }
+                    dateTree = createDateSetTree({
+                      input: dateTreeHost,
+                      days: raw,
+                      checkedTokens: selectedSetValues,
+                      monthLabel: props.dateRangeLabels?.month,
+                      placeholder: valuesLabel,
+                      locale: getSyncfusionCulture(),
+                      onChange: tokens => {
+                        selectedSetValues = tokens
+                      },
                     })
-                  }, 300)
-                },
-                change: (e: any) => {
-                  selectedHasOne = e.value == null ? [] : [e.value]
-                },
-              })
-              combo.appendTo(comboInput)
+                  },
+                  () => {
+                    dateTreeLoaded = false
+                  },
+                )
+              }
+
+              if (isDateSet) {
+                dateTreeHost = document.createElement('input')
+                dateTreeHost.className = 'flm-input'
+                body.appendChild(dateTreeHost)
+                setWrap.classList.add('is-open')
+                body.hidden = false
+                mountDateTree()
+              } else {
+                const setInput = document.createElement('input')
+                setInput.className = 'mmda-filter-multi__set-input'
+                body.appendChild(setInput)
+                let debounce: ReturnType<typeof setTimeout> | undefined
+                setSelect = new MultiSelect({
+                  allowFiltering: true,
+                  mode: 'CheckBox',
+                  showSelectAll: true,
+                  fields: { text: 'label', value: 'value' },
+                  dataSource: lazySet ? [] : setOptions(),
+                  value: selectedSetValues.map(value =>
+                    value as string | number,
+                  ),
+                  placeholder: field.displayLabel,
+                  locale: getSyncfusionCulture(),
+                  filtering: lazySet
+                    ? (e: any) => {
+                        if (debounce) clearTimeout(debounce)
+                        debounce = setTimeout(() => {
+                          void openChoicePage(
+                            field,
+                            String(e.text ?? ''),
+                          ).then(items => {
+                            e.updateData(
+                              items.map(item => ({
+                                value: item[field.fieldName],
+                                label: item.text,
+                              })),
+                            )
+                          })
+                        }, 300)
+                      }
+                    : undefined,
+                  created: lazySet
+                    ? () => {
+                        void openChoicePage(field, '').then(items => {
+                          if (!setSelect || setSelect.isDestroyed) return
+                          setSelect.dataSource = items.map(item => ({
+                            value: item[field.fieldName],
+                            label: item.text,
+                          }))
+                          setSelect.dataBind?.()
+                        })
+                      }
+                    : undefined,
+                  change: (e: { value?: Array<string | number> }) => {
+                    selectedSetValues = Array.isArray(e.value) ? e.value : []
+                  },
+                })
+                setSelect.appendTo(setInput)
+              }
             }
             args.target.appendChild(host)
           },
@@ -664,37 +788,45 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             const compare = compareFromCurrent(current)
             const values = setFromCurrent(current)
             if (compare?.filterType === 'join') {
-              firstInput && (firstInput.value = String(compare.conditions[0] && 'value' in compare.conditions[0] ? compare.conditions[0].value ?? '' : ''))
-              secondInput && (secondInput.value = String(compare.conditions[1] && 'value' in compare.conditions[1] ? compare.conditions[1].value ?? '' : ''))
+              const first = compare.conditions[0]
+              const second = compare.conditions[1]
+              writeControlValue(
+                undefined,
+                firstInput,
+                first && 'value' in first ? first.value : '',
+                field,
+              )
+              writeControlValue(
+                secondControl,
+                undefined,
+                second && 'value' in second ? second.value : '',
+                field,
+              )
               if (joinSelect) joinSelect.value = compare.operator.toLowerCase()
+            } else if (compare && isDateRangeKind(compare.dateKind)) {
+              writeControlValue(undefined, firstInput, compare.dateKind, field)
             } else if (compare && 'value' in compare) {
-              firstInput && (firstInput.value = String(compare.value ?? ''))
+              writeControlValue(undefined, firstInput, compare.value, field)
             }
-            for (const [value, input] of checks) {
-              input.checked = values.map(String).includes(value)
-            }
-            if (values.length && combo) {
-              selectedHasOne = [...values]
-              combo.value = values[0] as any
+            if (setSelect) {
+              selectedSetValues = [...values]
+              setSelect.value = values.map(value => value as string | number)
+              setSelect.dataBind?.()
             }
           },
           read: (args: any) => {
-            const checked = [...checks.entries()]
-              .filter(([, input]) => input.checked)
-              .map(([value]) => value)
-            const setValues = hasOne ? selectedHasOne : checked
+            const setValues = selectedSetValues
             const set =
               setValues.length
                 ? { filterType: 'set' as const, operator: 'IN' as const, values: setValues }
                 : undefined
             const compare = readCompare()
             const next = combineCompareAndSet(compare, set)
-            pendingColumnFilters.delete(field.fieldName)
+            writeCompareColumnFilter(compareFilterStore, field.fieldName, next)
             if (!next) {
               args.fltrObj.removeFilteredColsByField?.(field.fieldName)
               return
             }
-            pendingColumnFilters.set(field.fieldName, next)
             const first =
               next.filterType === 'join'
                 ? next.conditions[0]
@@ -720,29 +852,58 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             )
           },
           destroy: () => {
-            combo?.destroy()
-            combo = undefined
+            if (setSelect && !setSelect.isDestroyed) {
+              try {
+                setSelect.destroy()
+              } catch {
+                /* EJ2 已随筛选框拆掉 */
+              }
+            }
+            setSelect = undefined
+            selectedSetValues = []
+            dateTree?.destroy()
+            dateTree = undefined
+            dateTreeHost = undefined
+            dateTreeLoaded = false
             firstInput = undefined
-            secondInput = undefined
-            checks.clear()
+            if (secondControl && !secondControl.isDestroyed) {
+              try {
+                secondControl.destroy()
+              } catch {
+                /* EJ2 已随筛选框拆掉 */
+              }
+            }
+            secondControl = undefined
+            joinSelect = undefined
           },
         },
       }
     }
 
-    /** 列头过滤：优先 MetaUiField.filterTypes 位掩码，0 则按 dataType/reference 推断。 */
+    /** 列头过滤：0 走原生 Menu；enum/ref/hasOne 默认 CheckBox；JOIN / MULTI+SET 只追加增量。 */
     const columnFilter = (field: MetaUiField) => {
-      switch (columnFilterKindOf(field)) {
-        case 'boolean':
-          return { type: 'Menu' }
-        case 'range':
-          return rangeMenuFilter(field)
-        case 'set':
-        case 'multi':
-        case 'text':
-        default:
-          return multiMenuFilter(field)
+      const kind = columnFilterKindOf(field)
+      if (kind === 'boolean') return { type: 'Menu' }
+      if (usesJoinSlot(field)) return multiMenuFilter(field)
+      if (usesCompareColumnFilter(field, compareFilterExtras())) {
+        return sfCompareColumnFilter(field, compareFilterExtras())
       }
+      if (usesSetSlot(field)) return multiMenuFilter(field)
+      if (kind === 'set') {
+        if (
+          simpleFilterTypeOf(field) === 'date' &&
+          Boolean(props.loadPivotDates)
+        ) {
+          return multiMenuFilter(field)
+        }
+        return choiceCheckBoxFilter(field)
+      }
+      if (field.reference?.isEnum || field.reference?.isRef || field.reference?.hasOne) {
+        return choiceCheckBoxFilter(field)
+      }
+      return simpleFilterTypeOf(field) === 'text'
+        ? { type: 'Menu', operator: 'contains' }
+        : { type: 'Menu' }
     }
 
     const formattedDisplayText = (field: MetaUiField, row: T) => {
@@ -837,7 +998,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         const templated = useTemplateCell(field)
         return {
           field: field.fieldName,
-          headerText: field.displayLabel,
+          headerText: joinListColumnLabel(field, Boolean(props.joinListMode)),
           // 列出列照抄 MetaUiField.primaryKey；复合 / 无主键列时 EJ2 只认 id
           isPrimaryKey: useIdAsEj2Pk
             ? field.fieldName === 'id'
@@ -1117,29 +1278,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       return []
     }
 
-    let selectionSyncSuppressed = false
-
-    /** 只扫当前虚拟窗（几十行），禁止扫整页 1000。 */
-    const reapplySelectionInView = () => {
-      if (!selectionMode || !useVirtualSelection) return
-      const grid = resolveEj2Grid()
-      if (!grid) return
-      const selected = props.selectedItems as T[] | undefined
-      if (!selected?.length) return
-      const ids = new Set(selected.map(rowIdOf).filter(Boolean))
-      if (!ids.size) return
-      const view = (grid.getCurrentViewRecords?.() ?? []) as T[]
-      const indexes: number[] = []
-      for (let i = 0; i < view.length; i++) {
-        if (ids.has(rowIdOf(view[i]))) indexes.push(i)
-      }
-      if (!indexes.length) return
-      // 调用方已置 selectionSyncSuppressed；此处勿提前清
-      try {
-        grid.selectRows?.(indexes)
-      } catch {
-        // ignore
-      }
+    /** 表头全选：EJ2 只勾可视窗；业务层补齐/去掉当前服务端页。 */
+    const syncHeaderPageSelection = (checked: boolean) => {
+      if (!useVirtualSelection || selectionMode !== 'multiple') return
+      if (checked) mergeSelectById(rows.slice() as T[])
+      else mergeDeselectById(rows.slice() as T[])
     }
 
     const layoutRev = props.tableSettings?.rev?.value ?? 0
@@ -1171,102 +1314,28 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         count: rows.length,
       }
     }
-    const resolveCustomBinding = async (state?: any) => {
+    const resolveCustomBinding = (state?: any) => {
       if (!pagination) return
-      await nextTick()
       const grid = resolveEj2Grid()
       if (!grid) return
       if (state && typeof state.skip === 'number') virtualSkip = state.skip
       const take =
         typeof state?.take === 'number' ? state.take : VIRTUAL_ROW_PAGE_SIZE
-      // 换窗期间整段抑制：EJ2 卸行 deselect 可能晚于 nextTick
-      selectionSyncSuppressed = true
-      try {
-        grid.dataSource = virtualWindow(virtualSkip, take)
-        grid.hideSpinner?.()
-        grid.removeMaskRow?.()
-        await nextTick()
-        reapplySelectionInView()
-      } finally {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            selectionSyncSuppressed = false
-          })
-        })
-      }
+      // 换窗只换切片；勾选靠 persistSelection，不 selectRows / spinner / mask
+      grid.dataSource = virtualWindow(virtualSkip, take)
     }
 
-    const contentScroller = (): HTMLElement | null => {
-      const grid = resolveEj2Grid()
-      const root = (grid?.element ?? null) as HTMLElement | null
-      if (!root) return null
-      // 有冻结列时竖滚在 movable；querySelector('.e-content') 会先命中 frozen（scrollTop 常为 0）
-      return (
-        (root.querySelector(
-          '.e-movablecontent > .e-content',
-        ) as HTMLElement | null) ??
-        (root.querySelector('.e-gridcontent .e-content') as HTMLElement | null) ??
-        (typeof grid.getContent === 'function'
-          ? (grid.getContent() as HTMLElement | null)
-          : null)
-      )
-    }
-    const captureScroll = () => {
-      const el = contentScroller()
-      if (!el) return null
-      return { top: el.scrollTop, left: el.scrollLeft }
-    }
-    const restoreScroll = (pos: { top: number; left: number } | null) => {
-      if (!pos) return
-      const apply = () => {
-        const el = contentScroller()
-        if (!el) return
-        el.scrollTop = pos.top
-        el.scrollLeft = pos.left
-        // 虚拟滚动：通知 EJ2 按新位置取窗口
-        const grid = resolveEj2Grid()
-        grid?.scrollModule?.setPageSize?.()
-        if (typeof grid?.scrollTo === 'function') {
-          try {
-            grid.scrollTo({ top: pos.top, left: pos.left })
-          } catch {
-            // ignore
-          }
-        }
-      }
-      apply()
-      // KeepAlive 重新插入 / setRowData 后 EJ2 可能再清一次，下一帧再写
-      requestAnimationFrame(() => {
-        apply()
-        requestAnimationFrame(apply)
-      })
-    }
     const syncRowsFromSource = () => {
       rows.splice(0, rows.length, ...sourceRows)
     }
-    const rebindDataSource = (scroll?: { top: number; left: number } | null) => {
+    const rebindDataSource = () => {
       const grid = resolveEj2Grid()
       if (!grid) return
       if (pagination) {
-        selectionSyncSuppressed = true
-        try {
-          grid.dataSource = virtualWindow(virtualSkip)
-          grid.hideSpinner?.()
-          grid.removeMaskRow?.()
-        } finally {
-          queueMicrotask(() => {
-            reapplySelectionInView()
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                selectionSyncSuppressed = false
-              })
-            })
-          })
-        }
+        grid.dataSource = virtualWindow(virtualSkip)
       } else {
         grid.dataSource = rows.slice()
       }
-      if (scroll) queueMicrotask(() => restoreScroll(scroll))
     }
     const listHost = {
       applyRow(entity: Record<string, unknown>) {
@@ -1276,13 +1345,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         const id = entity[pk] ?? entity.id
         if (id == null || String(id) === '') return
         syncRowsFromSource()
-        // 虚拟滚动下禁止用 captureScroll+重绑：KeepAlive 回来 scrollTop 与 skip 易错位白屏
         if (pagination) {
           try {
             grid.setRowData?.(id, entity)
           } catch {
             grid.dataSource = virtualWindow(virtualSkip)
-            grid.hideSpinner?.()
           }
           return
         }
@@ -1294,123 +1361,36 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             // fall through
           }
         }
-        const scroll = captureScroll()
-        rebindDataSource(scroll)
+        rebindDataSource()
       },
       insertAtZero(_entity: Record<string, unknown>) {
         virtualSkip = 0
         syncRowsFromSource()
-        rebindDataSource({ top: 0, left: 0 })
-        queueMicrotask(() => listHost.revealIndex(0))
+        rebindDataSource()
       },
       applyRemove(_id: string) {
         syncRowsFromSource()
         if (pagination) {
-          const grid = resolveEj2Grid()
-          if (!grid) return
-          // 删行后窗口长度可能变，按当前 skip 重绑，scrollTop 归到 skip 对齐位置
-          const rh = Number(grid.getRowHeight?.() ?? 36) || 36
           virtualSkip = Math.min(virtualSkip, Math.max(0, rows.length - 1))
-          selectionSyncSuppressed = true
-          try {
-            grid.dataSource = virtualWindow(virtualSkip)
-            grid.hideSpinner?.()
-            grid.removeMaskRow?.()
-          } finally {
-            queueMicrotask(() => {
-              reapplySelectionInView()
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  selectionSyncSuppressed = false
-                })
-              })
-            })
-          }
-          const el = contentScroller()
-          if (el) el.scrollTop = virtualSkip * rh
-          return
         }
-        const scroll = captureScroll()
-        rebindDataSource(scroll)
+        rebindDataSource()
       },
+      // 只选中：不改 scrollTop（虚拟滚动归零再滚会连跳）
       revealIndex(index: number) {
-        if (index < 0 || index >= sourceRows.length) return
+        if (index < 0) return
+        syncRowsFromSource()
+        if (index >= rows.length) return
         const grid = resolveEj2Grid()
         if (!grid) return
-        syncRowsFromSource()
-
-        if (!pagination) {
-          try {
-            grid.clearSelection?.()
-            grid.selectRow?.(index)
-          } catch {
-            // ignore
-          }
-          const rowEl = grid.getRowByIndex?.(index) as HTMLElement | undefined
-          rowEl?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
-          const record = sourceRows[index]
-          if (record) syncSelection([record])
-          return
+        const record = rows[index]
+        if (!record) return
+        try {
+          grid.clearSelection?.()
+          grid.selectRow?.(index)
+        } catch {
+          // ignore
         }
-
-        const take = VIRTUAL_ROW_PAGE_SIZE
-        const rh = Number(grid.getRowHeight?.() ?? 36) || 36
-        const el = contentScroller()
-
-        // 1) 先归零并绑上有效窗口，消掉 KeepAlive 残留的错位白屏
-        virtualSkip = 0
-        if (el) {
-          el.scrollTop = 0
-          el.scrollLeft = 0
-        }
-        grid.dataSource = virtualWindow(0, take)
-        grid.hideSpinner?.()
-
-        const selectOnly = (rowIndex: number) => {
-          try {
-            grid.clearSelection?.()
-            grid.selectRow?.(rowIndex)
-          } catch {
-            // ignore
-          }
-          const record = sourceRows[rowIndex]
-          if (record) syncSelection([record])
-        }
-
-        if (index <= 0) {
-          queueMicrotask(() => selectOnly(0))
-          return
-        }
-
-        // 2) 再滚到目标行：只改 scrollTop，让 dataStateChange→resolveCustomBinding 填窗口
-        //    不要手动 dataSource + 乱设 scrollTop（必白屏）
-        const scrollToIndex = () => {
-          const scroller = contentScroller()
-          if (!scroller) return
-          scroller.scrollTop = index * rh
-        }
-        queueMicrotask(scrollToIndex)
-        requestAnimationFrame(() => {
-          scrollToIndex()
-          // 等 virtualscroll 取数后再选中；勿 scrollIntoView（会再次打乱虚拟偏移）
-          requestAnimationFrame(() => {
-            selectOnly(index)
-            const g = resolveEj2Grid()
-            const rowsNow = g?.getRows?.() ?? []
-            if (!rowsNow.length) {
-              // 兜底：强制窗口盖住 index，并令 scrollTop 与 skip 一致
-              virtualSkip = Math.max(
-                0,
-                Math.min(index, Math.max(0, rows.length - take)),
-              )
-              g.dataSource = virtualWindow(virtualSkip, take)
-              g.hideSpinner?.()
-              const scroller = contentScroller()
-              if (scroller) scroller.scrollTop = virtualSkip * rh
-              selectOnly(index)
-            }
-          })
-        })
+        syncSelection([record as T])
       },
     }
     props.onIndexTableHostReady?.(listHost)
@@ -1467,7 +1447,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           : undefined,
         groupSettings: undefined,
         // 普通字段 Filter Menu；枚举/引用列在 columns[].filter 覆盖为 CheckBox。
-        filterSettings: showColumnFilters ? { type: 'Menu' } : undefined,
+        filterSettings: showColumnFilters
+          ? { type: 'Menu', operators: menuFilterOperators() }
+          : undefined,
         // 用 columns 数组而非 ColumnDirective，避免 Vue 指令序列化丢掉 filter.ui 函数。
         columns: gridColumns,
         showColumnChooser: false,
@@ -1480,9 +1462,12 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           ? {
               type: selectionMode === 'multiple' ? 'Multiple' : 'Single',
               persistSelection: true,
-              // false：点行可选；Multiple 下 Shift 连选、Ctrl 点选加减（勿 checkboxOnly）
+              // false：点行可选；勿 checkboxOnly
               checkboxOnly: false,
-              enableToggle: false,
+              // ResetOnRowClick：无修饰点行替换选区；Ctrl/Shift 由 Grid 原生处理
+              ...(selectionMode === 'multiple'
+                ? { checkboxMode: 'ResetOnRowClick' }
+                : {}),
             }
           : inplaceEdit && inplaceEditStart === 'excel'
             ? { mode: 'Cell', type: 'Single' }
@@ -1490,10 +1475,6 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         cssClass: ['mmda-table', props.class].filter(Boolean).join(' '),
         dataBound: () => {
           if (rowDetail) expandAllDetails()
-          if (useVirtualSelection && selectionSyncSuppressed) {
-            reapplySelectionInView()
-          }
-          resolveEj2Grid()?.removeMaskRow?.()
         },
         ...(rowDetail
           ? {
@@ -1533,15 +1514,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         },
         rowSelected: (args: any) => {
           if (useVirtualSelection) {
-            // 程序化 selectRows：isInteracted 非 true，且换窗期间 suppress
-            if (args?.isInteracted !== true && selectionSyncSuppressed) return
-            // 用户点选即使仍在 suppress 窗口也要并入
-            if (args?.isInteracted === true || !selectionSyncSuppressed) {
-              mergeSelectById(eventRows(args))
-            }
+            // 换窗卸行/程序化：isInteracted 非 true，忽略
+            if (args?.isInteracted !== true) return
+            mergeSelectById(eventRows(args))
             return
           }
-          if (selectionSyncSuppressed) return
           const grid = args.grid ?? args.sender
           const records = (grid?.getSelectedRecords?.() ??
             (args.data ? [args.data] : [])) as T[]
@@ -1549,15 +1526,22 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         },
         rowDeselected: (args: any) => {
           if (useVirtualSelection) {
-            // 换窗卸行 isInteracted 常为 false/undefined；仅用户取消才删
             if (args?.isInteracted !== true) return
             mergeDeselectById(eventRows(args))
             return
           }
-          if (selectionSyncSuppressed) return
           const grid = args.grid ?? args.sender
           const records = (grid?.getSelectedRecords?.() ?? []) as T[]
           syncSelection(records)
+        },
+        checkBoxChange: (args: any) => {
+          if (!useVirtualSelection || selectionMode !== 'multiple') return
+          const target = args?.target as HTMLElement | undefined
+          const isHeader =
+            Boolean(target?.classList?.contains('e-checkselectall')) ||
+            Boolean(target?.closest?.('.e-checkselectall'))
+          if (!isHeader) return
+          syncHeaderPageSelection(args?.checked === true)
         },
         cellSelected: (args: any) => {
           if (!inplaceEdit || inplaceEditStart !== 'excel') return
@@ -1618,67 +1602,15 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             const fieldName = args?.filterModel?.options?.field
             const field = fields.find(value => value.fieldName === fieldName)
             if (!field || !args?.filterModel?.options) return
-            const columnType = gridColumnType(field)
-            if (
-              columnType === 'number' ||
-              columnType === 'date' ||
-              columnType === 'datetime'
-            ) {
-              const operatorKey = `${columnType}Operator`
-              const operators =
-                args.filterModel.customFilterOperators?.[operatorKey]
-              if (
-                Array.isArray(operators) &&
-                !operators.some((operator: any) => operator.value === 'between')
-              ) {
-                operators.push({ value: 'between', text: '在…之间' })
-              }
-            }
+            const customOps = args.filterModel.customFilterOperators
+            keepAgMenuOperators(customOps?.stringOperator, AG_MENU_STRING_OPERATORS)
+            applyMenuOperators(customOps?.numberOperator, AG_MENU_NUMBER_OPERATORS)
+            applyMenuOperators(customOps?.dateOperator, AG_MENU_DATE_OPERATORS)
+            applyMenuOperators(customOps?.datetimeOperator, AG_MENU_DATE_OPERATORS)
             if (isChoiceFilterField(field)) {
-              const apply = (options?: unknown[]) => {
-                if (
-                  field.reference &&
-                  field.reference.refOptions.length === 0 &&
-                  Array.isArray(options)
-                ) {
-                  field.reference.refOptions.splice(0, 0, ...options)
-                }
-                args.filterModel.options.dataSource =
-                  choiceFilterDataSource(field)
-              }
-              if (
-                field.reference &&
-                !isEnumReference(field.reference) &&
-                field.reference.refOptions.length === 0 &&
-                props.loadFilterOptions
-              ) {
-                void props.loadFilterOptions(field).then(apply)
-              } else {
-                apply()
-              }
-            }
-          }
-          if (requestType === 'filtering') {
-            const fieldName = String(
-              args.currentFilteringColumn ?? args.columns?.[0]?.field ?? '',
-            )
-            const range = pendingRanges.get(fieldName)
-            const columns = Array.isArray(args.columns) ? args.columns : []
-            const first = columns.find(
-              (column: any) => column.field === fieldName,
-            )
-            if (range && first) {
-              first.operator = 'greaterthanorequal'
-              first.value = range.min
-              first.predicate = 'and'
-              columns.push({
-                ...first,
-                operator: 'lessthanorequal',
-                predicate: 'and',
-                value: range.max,
+              void openChoicePage(field, '').then(items => {
+                args.filterModel.options.dataSource = items
               })
-              args.columns = columns
-              pendingRanges.delete(fieldName)
             }
           }
         },
@@ -1713,63 +1645,28 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               state?.where?.[0]?.field
             if (typeof state.dataSource === 'function' && fieldName) {
               const field = fields.find(value => value.fieldName === fieldName)
-              const respond = (options?: unknown[]) => {
-                if (
-                  field?.reference &&
-                  field.reference.refOptions.length === 0 &&
-                  Array.isArray(options)
-                ) {
-                  field.reference.refOptions.splice(0, 0, ...options)
-                }
-                state.dataSource(
-                  field && isChoiceFilterField(field)
-                    ? choiceFilterDataSource(field)
-                    : [],
-                )
+              const search = String(
+                state?.action?.filterModel?.searchValue ??
+                  state?.action?.currentFilterObject?.value ??
+                  ej2Grid?.element?.querySelector?.('.e-searchinput')?.value ??
+                  '',
+              ).trim()
+              const respond = (items: unknown[]) => {
+                state.dataSource(items)
               }
-              if (
-                field?.reference &&
-                !isEnumReference(field.reference) &&
-                field.reference.refOptions.length === 0 &&
-                props.loadFilterOptions
-              ) {
-                void props.loadFilterOptions(field).then(respond)
+              if (field && isChoiceFilterField(field)) {
+                void openChoicePage(field, search).then(respond)
               } else {
-                respond()
+                respond([])
               }
             }
             return
           }
           if (requestType === 'filtering' && props.onFilterModelChange) {
-            const model = gridFiltersToModel(state.where, fields)
-            // Menu BETWEEN：若 Grid where 只带了下界，用 read 时缓存的范围补全。
-            for (const [fieldName, range] of [...pendingRanges.entries()]) {
-              const field = fields.find(value => value.fieldName === fieldName)
-              if (
-                !field ||
-                range.min == null ||
-                range.max == null ||
-                !(
-                  SqlDataType.isDate(field.dataType) ||
-                  SqlDataType.isNum(field.dataType)
-                )
-              ) {
-                continue
-              }
-              model[fieldName] = {
-                filterType: SqlDataType.isDate(field.dataType)
-                  ? 'date'
-                  : 'number',
-                operator: 'BETWEEN',
-                value: range.min,
-                valueTo: range.max,
-              }
-              pendingRanges.delete(fieldName)
-            }
-            for (const [fieldName, filter] of [...pendingColumnFilters.entries()]) {
-              model[fieldName] = filter
-              pendingColumnFilters.delete(fieldName)
-            }
+            const model = applyCompareColumnFilters(
+              gridFiltersToModel(state.where, fields),
+              compareFilterStore,
+            )
             runRemoteQuery(props.onFilterModelChange(model))
           }
         },

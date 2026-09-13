@@ -7,6 +7,7 @@ import {
   placeFields,
   type MetaUiField,
   type MetaUiGroup,
+  uiCssClass,
   type UiMessageProps,
 } from "@mmda/core";
 import { type UiFieldGroupType, type UiProps } from "../layout/layout";
@@ -14,7 +15,8 @@ import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { wrapRowDetail } from "../factory/list";
 import { isActionEnabled } from "../factory/action";
-import { MmdaGroupCard } from "../../components/GroupCard";
+import { GroupCard } from "../../components/GroupCard";
+import { GroupTab } from "../../components/GroupTab";
 import { translateMessage } from "../../i18n/i18n";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import type { UiViewPropsType } from "../../contexts/view";
@@ -76,7 +78,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       const zone =
         raw === "secondary" || raw === "summary" ? "secondary" : "primary";
       const many = props.many === true || group.many;
-      return ["mmda-group", many ? "sub" : "master", zone, props.class]
+      return [uiCssClass("group"), many ? "sub" : "master", zone, props.class]
         .filter(Boolean)
         .join(" ");
     }
@@ -85,7 +87,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     wrapGroupContent(body: VNode | VNode[], props: UiProps = {}) {
       return h(
         "div",
-        { class: ["mmda-group-body", props.class].filter(Boolean) },
+        { class: [uiCssClass("group", "body"), props.class].filter(Boolean) },
         body,
       );
     }
@@ -109,7 +111,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         "fieldset",
         { class: this.groupWrapClass(group, props), ...rest },
         [
-          h("legend", { class: "mmda-group-title" }, group.groupLabel),
+          h("legend", { class: uiCssClass("group", "title") }, group.groupLabel),
           this.wrapGroupContent(body),
         ],
       );
@@ -129,10 +131,11 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         cols: _cols,
         class: _className,
         headerActions,
+        footer,
         ...rest
       } = props;
       return h(
-        MmdaGroupCard,
+        GroupCard,
         {
           title: group.groupLabel,
           expanded: group.expanded !== false,
@@ -142,6 +145,43 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         {
           default: () => this.wrapGroupContent(body),
           actions: headerActions ? () => headerActions : undefined,
+          footer: footer ? () => footer : undefined,
+        },
+      );
+    }
+
+    /**
+     * Tab 页内组壳：无标题镜像、无折叠；可选 caption / actions / footer。
+     * 与 GroupCard 分立，不要往 Card 上加 showTitle。
+     */
+    buildGroupTab(
+      group: MetaUiGroup,
+      body: VNode | VNode[],
+      props: UiProps = {},
+    ) {
+      const {
+        container: _container,
+        region: _region,
+        many: _many,
+        orientation: _orientation,
+        cols: _cols,
+        class: _className,
+        headerActions,
+        caption,
+        footer,
+        ...rest
+      } = props;
+      return h(
+        GroupTab,
+        {
+          caption: typeof caption === "string" ? caption : undefined,
+          class: this.groupWrapClass(group, props),
+          ...rest,
+        },
+        {
+          default: () => body,
+          actions: headerActions ? () => headerActions : undefined,
+          footer: footer ? () => footer : undefined,
         },
       );
     }
@@ -154,7 +194,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       const t = (message: any) => context.t(message);
       return h(
         "div",
-        { class: "mmda-group-action-group" },
+        { class: uiCssClass("group", "action-group") },
         actions.map((action) => {
           const label = action.label
             ? t(action.label)
@@ -167,7 +207,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             tooltip: action.tooltip ?? label,
             buttonType: "text",
             shape: "round",
-            class: "mmda-group-action",
+            class: uiCssClass("group", "action"),
             "aria-label": label,
             disabled: !isActionEnabled(action, context.model, context),
           });
@@ -183,6 +223,9 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       if (shell === "fieldset") {
         return this.buildGroupFieldSet(group, body, props);
       }
+      if (shell === "tab") {
+        return this.buildGroupTab(group, body, props);
+      }
       return this.buildGroupCard(group, body, props);
     }
     
@@ -196,6 +239,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         class: className,
         showGroupActions = true,
         skipRowDetail = false,
+        fieldVertical,
         ...fieldProps
       } = props;
       const orientation =
@@ -473,7 +517,8 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             groupUi: group.groupUi,
             isTree: Boolean(treeSpec),
             class: skipRowDetail ? "mmda-row-detail" : className,
-            height: skipRowDetail ? "auto" : undefined,
+            // 子表无索引页高度链；agnaive 据此走 autoHeight（与 Syncfusion 无分页行为一致）
+            height: "auto",
             rowActions: readOnlyRows
               ? undefined
               : (item: any) =>
@@ -549,6 +594,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             const cell = packed[index]!
             return this.fieldFactory.render(field, context, {
               ...fieldProps,
+              ...(fieldVertical ? { fieldVertical: true } : {}),
               gridColumn: `${cell.column + 1} / span ${cell.colSpan}`,
               gridRow: `${cell.row + 1} / span ${cell.rowSpan}`,
             })
@@ -617,59 +663,24 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         (group) => !nestedRowDetail.has(group.groupName),
       );
       const primaryCols = props.primaryCols ?? 2;
-      // 主区：主表组（按 groupName）→ 子表组（按 groupIdx）
-      const primary = sortViewGroups(
-        viewGroups.filter((group) => group.isPrimary()),
-      ).map((group) =>
-        this.buildGroup(group, context, undefined, {
-          orientation: "row",
-          cols: primaryCols,
-        }),
-      );
-      const summary: VNode[] = [];
-      const attachments = (context.model as Record<string, any>).attachments;
-      // 右边栏：附件等先渲染，概要分组始终放最后
-      if (
-        !context.editing &&
-        props.showAttachments !== false &&
-        Array.isArray(attachments) &&
-        this.buildAttachmentGroup
-      ) {
-        summary.push(this.buildAttachmentGroup(context));
-      }
-      if (props.showSecondaryGroup !== false) {
-        summary.push(
-          ...sortViewGroups(viewGroups.filter((group) => group.isSecondary())).map(
-            (group) =>
-              this.buildGroup(group, context, undefined, {
-                orientation: "column",
-                cols: 1,
-              }),
-          ),
-        );
-      }
-      const tails = sortViewGroups(viewGroups.filter((group) => group.isTails())).map(
-        (group) =>
-          this.buildGroup(group, context, undefined, {
-            orientation: "row",
-            cols: primaryCols,
-          }),
-      );
+      const pageLayout =
+        props.pageLayout === "tabs" || props.pageLayout === "cards"
+          ? props.pageLayout
+          : this.layout.pageLayout === "tabs"
+            ? "tabs"
+            : "cards";
       const runtime = context as any;
+      // 对话框内（isInDialog）默认不画模块工具栏，避免与底栏取消/确定重复；
+      // 显式 showToolbar:true 可恢复。
+      const toolbarVisible = props.showToolbar ?? !runtime.isInDialog;
       const toolbar =
-        props.showToolbar === false
+        toolbarVisible === false
           ? null
           : (props.toolbar?.() ??
             this.buildModuleToolbar(context, {
               showBreadcrumb: props.showBreadcrumb ?? true,
               showActions: props.showActions ?? true,
             }));
-      const pagePrimary = props.content
-        ? [h("div", props.content() as any)]
-        : [
-            ...(props.header ? [h("div", props.header() as any)] : []),
-            ...primary,
-          ];
       const notice = runtime.pageNotice?.value as UiMessageProps | null | undefined;
       const banner =
         notice && notice.visible !== false
@@ -710,19 +721,139 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
               ],
             ))
           : undefined;
+
+      let pagePrimary: VNode[];
+      let summary: VNode[] = [];
+      let tails: VNode[] = [];
+      let emphasis: VNode | undefined;
+
+      if (props.content) {
+        pagePrimary = [
+          ...(props.header ? [h("div", props.header() as any)] : []),
+          h("div", props.content() as any),
+        ];
+      } else if (pageLayout === "tabs") {
+        // emphasis：emphasized 字段只读展示（displayFor）；tabs 内同一字段仍可编辑
+        const seen = new Set<string>();
+        const emphasizedFields: MetaUiField[] = [];
+        for (const group of viewGroups) {
+          for (const field of group.fields ?? []) {
+            if (
+              field.emphasized &&
+              !context.isFieldHidden(field) &&
+              !seen.has(field.fieldName)
+            ) {
+              seen.add(field.fieldName);
+              emphasizedFields.push(field);
+            }
+          }
+        }
+        if (emphasizedFields.length > 0) {
+          emphasis = this.layout.row(
+            emphasizedFields.map((field) =>
+              this.fieldFactory.displayFor(field, context),
+            ),
+            emphasizedFields.map((field) => Math.max(1, field.colSpan ?? 1)),
+          );
+        }
+        const tabGroups = sortViewGroups([
+          ...viewGroups.filter((group) => group.isPrimary()),
+          ...(props.showSecondaryGroup !== false
+            ? viewGroups.filter((group) => group.isSecondary())
+            : []),
+          ...viewGroups.filter((group) => group.isTails()),
+        ]);
+        const tabItems = tabGroups.map((group) => ({
+          name: group.groupName,
+          header: group.groupLabel || group.groupName,
+          content: this.buildGroup(group, context, undefined, {
+            container: "tab",
+            orientation: "row",
+            cols: primaryCols,
+          }),
+        }));
+        const attachments = (context.model as Record<string, any>).attachments;
+        if (
+          !context.editing &&
+          props.showAttachments !== false &&
+          Array.isArray(attachments) &&
+          this.buildAttachmentGroup
+        ) {
+          tabItems.push({
+            name: "attachments",
+            header: context.translate?.("attachments") || "Attachments",
+            content: this.buildAttachmentGroup(context),
+          });
+        }
+        const tabsNode =
+          this.factory.tabs?.({
+            items: tabItems,
+            headerPlacement: "Top",
+            scrollable: true,
+            heightAdjustMode: "Fill",
+            loadOn: "Demand",
+            headerStyle: "fill",
+          }) ?? h("div", tabItems.map((item) => item.content));
+        pagePrimary = [
+          ...(props.header ? [h("div", props.header() as any)] : []),
+          tabsNode,
+        ];
+      } else {
+        // cards：主区主表组 → 子表组；右边栏附件 + 概要；尾栏
+        const primary = sortViewGroups(
+          viewGroups.filter((group) => group.isPrimary()),
+        ).map((group) =>
+          this.buildGroup(group, context, undefined, {
+            orientation: "row",
+            cols: primaryCols,
+          }),
+        );
+        const attachments = (context.model as Record<string, any>).attachments;
+        if (
+          !context.editing &&
+          props.showAttachments !== false &&
+          Array.isArray(attachments) &&
+          this.buildAttachmentGroup
+        ) {
+          summary.push(this.buildAttachmentGroup(context));
+        }
+        if (props.showSecondaryGroup !== false) {
+          summary.push(
+            ...sortViewGroups(
+              viewGroups.filter((group) => group.isSecondary()),
+            ).map((group) =>
+              this.buildGroup(group, context, undefined, {
+                orientation: "column",
+                cols: 1,
+              }),
+            ),
+          );
+        }
+        tails = sortViewGroups(
+          viewGroups.filter((group) => group.isTails()),
+        ).map((group) =>
+          this.buildGroup(group, context, undefined, {
+            orientation: "row",
+            cols: primaryCols,
+          }),
+        );
+        pagePrimary = [
+          ...(props.header ? [h("div", props.header() as any)] : []),
+          ...primary,
+        ];
+      }
+
       const page = this.layout.layoutPage({
+        pageLayout,
         toolbar: toolbar as VNode,
         banner,
+        emphasis,
         primary: pagePrimary,
-        summary: props.content ? [] : summary,
-        tails: props.content ? [] : tails,
+        summary,
+        tails,
         footer: props.footer?.(),
       });
-      const pageRoot = h(
-        "div",
-        { class: "mmda-view", role: runtime.view },
-        page,
-      );
+      // 页根即 .mmda-page；内滚由 .mmda-view__one .mmda-page 承担（工作区占用 mmda-view）
       return context.editing
         ? h(
             "form",
@@ -730,9 +861,9 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
               class: "mmda-form",
               style: { height: "100%", minHeight: 0, overflow: "hidden" },
             },
-            pageRoot,
+            page,
           )
-        : pageRoot;
+        : page;
     }
   }
   return FormBuilder;

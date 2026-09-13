@@ -34,7 +34,11 @@ export interface UiContext<M extends object = any> {
   readonly title?: string
   readonly name?: string
   readonly $v?: UiValidation
-  isEditDialog?: boolean
+  /**
+   * 当前会话是否嵌在对话框里（详情/编辑/选择列表都可能）。
+   * 是否可编看 {@link editing}，不要再用 isEditDialog。
+   */
+  isInDialog?: boolean
   searchParam?: EntitySearchParam
   selectedItems?: any[]
   /** 列表进详情/编辑记住的当前行（与勾选 selectedItems 分开）。 */

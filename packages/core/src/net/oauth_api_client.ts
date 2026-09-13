@@ -101,6 +101,8 @@ export class OAuthApiClient extends ApiClient {
       );
     }
 
+    this.config.accessToken = "";
+    this.config.refreshToken = "";
     const url = this.buildEntityURL({
       service: "auth",
       repository: "authorize",
@@ -263,6 +265,8 @@ export class OAuth2ApiClient extends ApiClient {
     redirectUris?: string,
   ) {
     return requireOAuthClient(clientId, clientSecret).then(() => {
+      this.config.accessToken = "";
+      this.config.refreshToken = "";
       const url = this.buildEntityURL({
         service: "auth",
         repository: "authorize",

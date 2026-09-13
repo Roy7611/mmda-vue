@@ -3,6 +3,8 @@ import {
   activeAncestorKeys,
   hasSystemModules,
   isLocalAppModuleUrl,
+  uiCssClass,
+  uiCssClasses,
   type Module,
   type UiAppMenuItem,
 } from "@mmda/core";
@@ -176,7 +178,7 @@ export const VueAppSideMenu = defineComponent({
           ? renderModuleLink(
               `${item.route}/Create`,
               {
-                class: "mmda-side-menu__create",
+                class: uiCssClass("side-menu", "create"),
                 title: translateMessage("action.create"),
                 "aria-label": translateMessage("action.createNamed", {
                   label: item.label,
@@ -198,8 +200,8 @@ export const VueAppSideMenu = defineComponent({
           "div",
           {
             class: {
-              "mmda-side-menu__row": true,
-              "mmda-side-menu__row--active": active,
+              [uiCssClass("side-menu", "row")]: true,
+              [uiCssClass("side-menu", "row", "active")]: active,
             },
             key: item.moduleCode,
           },
@@ -209,17 +211,17 @@ export const VueAppSideMenu = defineComponent({
               {
                 role: "app-module-feature",
                 class: {
-                  "mmda-side-menu__link": true,
-                  "mmda-side-menu__link--active": active,
+                  [uiCssClass("side-menu", "link")]: true,
+                  [uiCssClass("side-menu", "link", "active")]: active,
                 },
                 id: item.moduleCode,
                 onClick: () => onLeaf(item),
               },
               () => [
                 item.icon
-                  ? h("i", { class: [item.icon, "mmda-side-menu__icon"] })
+                  ? h("i", { class: [item.icon, uiCssClass("side-menu", "icon")] })
                   : null,
-                h("span", { class: "mmda-side-menu__label" }, item.label),
+                h("span", { class: uiCssClass("side-menu", "label") }, item.label),
               ],
             ),
             createLink,
@@ -232,8 +234,8 @@ export const VueAppSideMenu = defineComponent({
         "div",
         {
           class: {
-            "mmda-side-menu__panel": true,
-            "mmda-side-menu__panel--open": open,
+            [uiCssClass("side-menu", "panel")]: true,
+            [uiCssClass("side-menu", "panel", "open")]: open,
           },
           key: item.key,
         },
@@ -244,8 +246,8 @@ export const VueAppSideMenu = defineComponent({
               type: "button",
               role: "app-module",
               class: {
-                "mmda-side-menu__group": true,
-                "mmda-side-menu__link--active": active,
+                [uiCssClass("side-menu", "group")]: true,
+                [uiCssClass("side-menu", "link", "active")]: active,
               },
               id: item.moduleCode,
               "aria-expanded": open,
@@ -258,14 +260,14 @@ export const VueAppSideMenu = defineComponent({
             },
             [
               item.icon
-                ? h("i", { class: [item.icon, "mmda-side-menu__icon"] })
+                ? h("i", { class: [item.icon, uiCssClass("side-menu", "icon")] })
                 : null,
-              h("span", { class: "mmda-side-menu__label" }, item.label),
+              h("span", { class: uiCssClass("side-menu", "label") }, item.label),
               h("span", {
                 class: [
                   "fas",
                   open ? "fa-chevron-up" : "fa-chevron-down",
-                  "mmda-side-menu__chevron",
+                  uiCssClass("side-menu", "chevron"),
                 ],
                 "aria-hidden": true,
               }),
@@ -274,7 +276,7 @@ export const VueAppSideMenu = defineComponent({
           open
             ? h(
                 "div",
-                { class: "mmda-side-menu__children" },
+                { class: uiCssClass("side-menu", "children") },
                 children.map(renderItem),
               )
             : null,
@@ -286,7 +288,7 @@ export const VueAppSideMenu = defineComponent({
       items.length
         ? h(
             "nav",
-            { class: ["mmda-side-menu", className] },
+            { class: [uiCssClass("side-menu"), className] },
             items.map(renderItem),
           )
         : null;
@@ -312,7 +314,7 @@ export const VueAppSideMenu = defineComponent({
       h(
         "nav",
         {
-          class: "mmda-app-side-menu__rail",
+          class: uiCssClass("app-side-menu", "rail"),
           role: "tablist",
           "aria-label": "系统",
         },
@@ -323,8 +325,8 @@ export const VueAppSideMenu = defineComponent({
               type: "button",
               role: "tab",
               class: {
-                "mmda-app-side-menu__rail-item": true,
-                "mmda-app-side-menu__rail-item--active":
+                [uiCssClass("app-side-menu", "rail-item")]: true,
+                [uiCssClass("app-side-menu", "rail-item", "active")]:
                   item.moduleCode === selectedL1Item.value?.moduleCode,
               },
               id: item.moduleCode,
@@ -336,17 +338,17 @@ export const VueAppSideMenu = defineComponent({
             [
               item.icon
                 ? h("i", {
-                    class: [item.icon, "mmda-app-side-menu__rail-icon"],
+                    class: [item.icon, uiCssClass("app-side-menu", "rail-icon")],
                     "aria-hidden": true,
                   })
                 : h(
                     "span",
-                    { class: "mmda-app-side-menu__rail-code" },
+                    { class: uiCssClass("app-side-menu", "rail-code") },
                     item.moduleCode,
                   ),
               h(
                 "span",
-                { class: "mmda-app-side-menu__rail-label" },
+                { class: uiCssClass("app-side-menu", "rail-label") },
                 wrapRailLabel(item.label),
               ),
             ],
@@ -357,11 +359,11 @@ export const VueAppSideMenu = defineComponent({
     const renderDrawer = () => {
       const selected = selectedL1Item.value;
       const body = () =>
-        h("div", { class: "mmda-app-side-menu__drawer-body" }, [
+        h("div", { class: uiCssClass("app-side-menu", "drawer-body") }, [
           selected
             ? h(
                 "div",
-                { class: "mmda-app-side-menu__drawer-title" },
+                { class: uiCssClass("app-side-menu", "drawer-title") },
                 selected.label,
               )
             : null,
@@ -377,14 +379,14 @@ export const VueAppSideMenu = defineComponent({
             showBackdrop: true,
             closeOnDocumentClick: true,
             width: 228,
-            class: "mmda-app-side-menu__drawer",
+            class: uiCssClass("app-side-menu", "drawer"),
             onChange: (open: boolean) => setDrawerOpen(open),
           },
           { default: body },
         );
       }
       return drawerOpen.value
-        ? h("div", { class: "mmda-app-side-menu__drawer-fallback" }, body())
+        ? h("div", { class: uiCssClass("app-side-menu", "drawer-fallback") }, body())
         : null;
     };
 
@@ -394,15 +396,11 @@ export const VueAppSideMenu = defineComponent({
         return h(
           "div",
           {
-            class: [
-              "mmda-app-side-menu",
-              "mmda-app-side-menu--compact",
-              attrs.class,
-            ],
+            class: [uiCssClasses("app-side-menu", "compact"), attrs.class],
           },
           [
             props.logo
-              ? h("div", { class: "mmda-app-side-menu__brand" }, [
+              ? h("div", { class: uiCssClass("app-side-menu", "brand") }, [
                   props.logo() as VNode,
                 ])
               : null,
@@ -417,6 +415,3 @@ export const VueAppSideMenu = defineComponent({
     };
   },
 });
-
-/** @deprecated 使用 VueAppSideMenu */
-export const AppSideMenu = VueAppSideMenu;

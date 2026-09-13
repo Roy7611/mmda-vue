@@ -6,7 +6,7 @@ import type {
   SetFilterValuesFuncParams,
   ValueFormatterParams,
 } from 'ag-grid-community'
-import { DATE_RANGE_FILTER_KINDS, MetaUiFieldFilterType, SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, normalizePivotDates, simpleFilterTypeOf, toDatePeriodToken, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, MetaUiFieldFilterType, SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, isLazyChoiceFilterField, normalizePivotDates, simpleFilterTypeOf, toDatePeriodToken, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
 import { gridFreezeOf } from '@mmda/vui'
 import type { UiListPropsType } from '@mmda/vui'
 import {
@@ -147,10 +147,30 @@ export function buildColumnDefs<T>(
   props: UiListPropsType<T> = {} as UiListPropsType<T>,
 ): ColDef<T>[] {
   const fields = listedFieldsOf(metaUi)
+  const rowNumField = fields.find(field => field.fieldName === 'rowNum')
+  const dataFields = fields.filter(field => field.fieldName !== 'rowNum')
   const enableSort = props.sortable !== false
   const filterable = props.filterable !== false
   const filterDisplay = props.filterDisplay ?? 'menu'
-  const cols: ColDef<T>[] = fields.map(field => {
+  // 每个实体都有 rowNum（服务端下发）；固定左冻结，不可排/筛
+  const rowNumCol: ColDef<T> = {
+    colId: 'rowNum',
+    field: 'rowNum' as ColDef<T>['field'],
+    headerName: rowNumField ? headerName(rowNumField) : '序号',
+    width: rowNumField?.listSize && rowNumField.listSize > 0 ? rowNumField.listSize : 60,
+    minWidth: 60,
+    maxWidth: 80,
+    sortable: false,
+    resizable: true,
+    filter: false,
+    floatingFilter: false,
+    editable: false,
+    pinned: 'left',
+    suppressHeaderMenuButton: true,
+    cellClass: 'mmda-rownum-col',
+    headerClass: 'mmda-rownum-col',
+  }
+  const cols: ColDef<T>[] = dataFields.map(field => {
     const freeze = gridFreezeOf(field)
     const width = field.listSize && field.listSize > 0 ? Math.min(field.listSize, 400) : undefined
     const col: ColDef<T> = {
@@ -184,6 +204,7 @@ export function buildColumnDefs<T>(
         ),
       cellEditor: 'AgGridEditor',
       cellEditorPopup: true,
+      suppressHeaderMenuButton: !filterable,
     }
     if (filterable) {
       const kind = columnFilterKindOf(field)
@@ -204,15 +225,24 @@ export function buildColumnDefs<T>(
           },
         }
       } else if (kind === 'range' || kind === 'text') {
-        const simple = simpleFilterOf(field, props)
-        col.filter = simple.filter
-        col.filterParams = simple.filterParams
+        if (
+          (field.reference?.isEnum || field.reference?.isRef) &&
+          !hasFilterType(field, MetaUiFieldFilterType.JOIN)
+        ) {
+          col.filter = 'agSetColumnFilter'
+          col.filterParams = setFilterParamsOf(field, props)
+        } else {
+          const simple = simpleFilterOf(field, props)
+          col.filter = simple.filter
+          col.filterParams = simple.filterParams
+        }
       } else if (kind === 'set') {
-        if (isHasOneFilterField(field)) {
+        if (isLazyChoiceFilterField(field) || isHasOneFilterField(field)) {
           col.filter = 'AgHasOneFilter'
           col.filterParams = {
             field,
             searchRelative: props.searchRelative,
+            loadFilterOptions: props.loadFilterOptions,
           }
         } else if (isReferenceSetField(field) || field.reference) {
           col.filter = 'agSetColumnFilter'
@@ -228,12 +258,13 @@ export function buildColumnDefs<T>(
               filter: 'agSetColumnFilter',
               filterParams: dateTreeFilterParamsOf(field, props),
             }
-          : isHasOneFilterField(field)
+          : isLazyChoiceFilterField(field) || isHasOneFilterField(field)
           ? {
               filter: 'AgHasOneFilter',
               filterParams: {
                 field,
                 searchRelative: props.searchRelative,
+                loadFilterOptions: props.loadFilterOptions,
               },
             }
           : isReferenceSetField(field)
@@ -251,7 +282,7 @@ export function buildColumnDefs<T>(
     }
     return col
   })
-  return cols
+  return [rowNumCol, ...cols]
 }
 
 export function cellNodeFromParams(params: ICellRendererParams) {
@@ -259,7 +290,11 @@ export function cellNodeFromParams(params: ICellRendererParams) {
   const renderCell = params.context?.renderCell as
     | ((field: MetaUiField, row: any) => unknown)
     | undefined
-  if (field && params.data && renderCell) return renderCell(field, params.data)
+  // list_view 对 textSpan 等纯文本列故意返回 undefined，交给皮肤用 value；勿把 undefined 当成空单元格
+  if (field && params.data && renderCell) {
+    const node = renderCell(field, params.data)
+    if (node !== undefined && node !== null) return node
+  }
   return params.valueFormatted ?? params.value ?? ''
 }
 

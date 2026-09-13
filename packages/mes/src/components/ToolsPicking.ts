@@ -32,7 +32,7 @@ interface ToolItem {
 
 interface ToolRow extends ToolItem {
 	id: string;
-	/** 行选中态，随勾选变化以驱动表格行刷�?/
+	/** 行选中态，随勾选变化以驱动表格行刷新 */
 	__checked?: boolean;
 }
 
@@ -243,7 +243,7 @@ export const ToolsPicking = defineComponent({
 			if (!currentTransID.value && selectedTransIDs.value.length) {
 				currentTransID.value = selectedTransIDs.value[0];
 			}
-			if (failed.length) showToast('error', t('toolPicking.loadTransFailed', { it: failed.join('�?) }), t('dialog.title.error'));
+			if (failed.length) showToast('error', t('toolPicking.loadTransFailed', { it: failed.join(', ') }), t('dialog.title.error'));
 		};
 
 		const removeTrans = (transID: string) => {
@@ -266,7 +266,8 @@ export const ToolsPicking = defineComponent({
 			if (currentState.value) currentState.value.selectedItemID = itemID;
 		};
 
-		// 按物料行查询可选器具（含该行已指定器具�?		const loadToolsForItem = async (materialID: string, itemID: string, transID: string) => {
+		// 按物料行查询可选器具（含该行已指定器具
+		const loadToolsForItem = async (materialID: string, itemID: string, transID: string) => {
 			const requestID = ++toolsRequestID;
 			toolsLoading.value = true;
 			apiTools.value = [];
@@ -344,7 +345,8 @@ export const ToolsPicking = defineComponent({
 			}
 
 			submitLoading.value = true;
-			// 批量提交：一次请求更新多个物流单的器具指�?			const transes = changedStates.map(state => ({
+			// 批量提交：一次请求更新多个物流单的器具指
+			const transes = changedStates.map(state => ({
 				transID: state.trans.transID,
 				items: Object.entries(state.selectedToolsMap).flatMap(([itemID, tools]) =>
 					tools.map(tool => ({ itemID, toolID: tool.toolID })),

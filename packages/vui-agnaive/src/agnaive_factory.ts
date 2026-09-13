@@ -2,7 +2,7 @@ import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
 import type { UiProps, UiAction, UiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
-import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon } from '@mmda/vui'
+import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
@@ -112,6 +112,8 @@ export function createAgNaiveUiFactory(): UiFactory {
       execute: 'fas fa-play',
       do: 'fas fa-play',
       more: 'fas fa-ellipsis-v',
+      /** 详情页壳 cards ↔ tabs */
+      'page-layout': 'fas fa-th-large',
     },
     viewIcons: {
       index: 'fas fa-list',
@@ -186,6 +188,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     timeline: props => createTimeline(props, name => factory.resolveIcon(name)),
     skeleton: (props = {}) => createSkeleton(props),
     loading: (props = {}) => createLoading(props),
+    errorRetry: (props = {}) => createErrorRetry(props),
     speechToText: (props = {}) =>
       createSpeechToText(props, name => factory.resolveIcon(name)),
     datePicker: props => createDatePicker(props),
@@ -243,6 +246,8 @@ export function createAgNaiveUiFactory(): UiFactory {
         ...action,
         ...normalizeAction(action, t),
         ...props,
+        // 显式保留元数据 colorRole（normalizeAction 不含此字段；props 可覆盖）
+        colorRole: props?.colorRole ?? action.colorRole,
         icon: resolveActionButtonIcon(
           factory.resolveIcon,
           factory.actionIcons,

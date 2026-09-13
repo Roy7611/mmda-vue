@@ -66,6 +66,7 @@ describe('OAuth2ApiClient', () => {
     const api = new OAuth2ApiClient(fetchApi, {
       service: 'api',
       accessToken: 'stale',
+      refreshToken: 'old-ref',
     })
     const before = Date.now()
     const user = await api.authenticate('alice', 'p', 'cid', 'csec')
@@ -74,7 +75,9 @@ describe('OAuth2ApiClient', () => {
     expect(loginAuth).toBeNull()
     expect(body?.client_id).toBe('cid')
     expect(body?.grant_type).toBe('password')
+    expect(body?.refresh_token).toBeUndefined()
     expect(api.config.accessToken).toBe('acc')
+    expect(api.config.refreshToken).toBe('ref')
     expect(user.expiryOn).toBeGreaterThanOrEqual(before + 3600_000)
     expect(user.expiryOn).toBeLessThanOrEqual(after + 3600_000)
   })

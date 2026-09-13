@@ -103,7 +103,7 @@ const getChildOrders = async (context: UiContext, orders: ProductionOrder[]): Pr
 	);
 	return results.flat();
 };
-const hrefData = { value:  };
+const hrefData = { value: {} as any };
 
 /**
  * 生产计划交互逻辑
@@ -131,7 +131,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 			return Promise.resolve(true);
 		};
 
-		this.afterAction = (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction, apiResultOrError?: any) => {
+		this.afterAction = async (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction, apiResultOrError?: any) => {
 			const err = apiResultOrError;
 			if (err?.status == 400 && err?.code == 'task.relasedQuantity.exceed') {
 				const {$router, $t: t} = context.globalProps;
@@ -146,46 +146,46 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 					title: t('dialog.title.prompt'),
 					message: t('ganttLabel.jumpMaterialInspection'),
 				})) {
-//调用接口，查询 projectID 跳转
-						try {
-							const res = await apiClient.getAll({
-								repository: 'Projects',
-								service: 'mes',
-								queryParams: {
-									planID: model.planID ?? '',
-								},
-							});
-							if (res.list) {
-								let projectID;
-								if (res.list.length > 0) {
-									const projectList: any = res.list;
-									projectID = projectList[0].projectID;
-								}
-								// 构建路由对象
-								const route = {
-									path: '/MES/ComputeKitting',
-									query: {
-										projectID: projectID,
-										type: 'CompleteMaterial',
-										moduleCode: 'M.03.002',
-										planID: model.planID
-									},
-								};
-								// 在新标签页打开
-								const routeUrl = $router.resolve(route);
-								window.open(routeUrl.href, '_blank');
+					//调用接口，查询 projectID 跳转
+					try {
+						const res = await apiClient.getAll({
+							repository: 'Projects',
+							service: 'mes',
+							queryParams: {
+								planID: model.planID ?? '',
+							},
+						});
+						if (res.list) {
+							let projectID;
+							if (res.list.length > 0) {
+								const projectList: any = res.list;
+								projectID = projectList[0].projectID;
 							}
-							return true;
-						} catch (error: any) {
-							context.uiBuilder.toast(context, {
-								severity: 'error',
-								message: error.message,
-								title: context.t('dialog.title.error'),
-								life: 3000,
-							});
-							return false;
+							// 构建路由对象
+							const route = {
+								path: '/MES/ComputeKitting',
+								query: {
+									projectID: projectID,
+									type: 'CompleteMaterial',
+									moduleCode: 'M.03.002',
+									planID: model.planID
+								},
+							};
+							// 在新标签页打开
+							const routeUrl = $router.resolve(route);
+							window.open(routeUrl.href, '_blank');
 						}
-}
+						return true;
+					} catch (error: any) {
+						context.uiBuilder.toast(context, {
+							severity: 'error',
+							message: error.message,
+							title: context.t('dialog.title.error'),
+							life: 3000,
+						});
+						return false;
+					}
+				}
 				// context.uiBuilder.dialog(
 				// 	h(
 				// 		'div',

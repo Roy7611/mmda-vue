@@ -93,7 +93,11 @@ export const gridTextAlignCss = (
   align: "Left" | "Right" | "Center" | "Justify",
 ) => align.toLowerCase();
 
-export const gridFilterOperator = (operator?: string) => {
+export const gridFilterOperator = (
+  operator?: string,
+  filterType?: "text" | "number" | "date",
+) => {
+  const key = String(operator ?? "").toLowerCase();
   const operators: Record<string, EntityFilterOperator> = {
     equal: "EQ",
     notequal: "NEQ",
@@ -105,9 +109,134 @@ export const gridFilterOperator = (operator?: string) => {
     endswith: "ENDS_WITH",
     contains: "CONTAINS",
     doesnotcontain: "NOT_CONTAINS",
+    like: "CONTAINS",
+    isempty: "IS_BLANK",
+    isnotempty: "IS_NOT_BLANK",
+    isnull: filterType === "text" ? "IS_BLANK" : "IS_NULL",
+    notnull: filterType === "text" ? "IS_NOT_BLANK" : "IS_NOT_NULL",
+    isnotnull: filterType === "text" ? "IS_NOT_BLANK" : "IS_NOT_NULL",
+    between: "BETWEEN",
+    within: "WITHIN",
   };
-  return operators[String(operator ?? "").toLowerCase()] ?? "EQ";
+  return operators[key] ?? "EQ";
 };
+
+/** AG 文本比较算子。不含 like / in / notin / doesnotstartwith / doesnotendwith。 */
+export const AG_MENU_STRING_OPERATORS = [
+  "contains",
+  "doesnotcontain",
+  "equal",
+  "notequal",
+  "startswith",
+  "endswith",
+  "isnull",
+  "notnull",
+] as const;
+
+/** AG 数字比较算子。介于只在 SfNumberColumnFilter 里。 */
+export const AG_MENU_NUMBER_OPERATORS = [
+  "equal",
+  "notequal",
+  "greaterthan",
+  "greaterthanorequal",
+  "lessthan",
+  "lessthanorequal",
+  "isnull",
+  "notnull",
+] as const;
+
+/** 日期官方 Menu：比较 + 空值。介于 / 属于期间挂在 Menu 下方，不进算子列表。 */
+export const AG_MENU_DATE_OPERATORS = [
+  "equal",
+  "notequal",
+  "greaterthan",
+  "greaterthanorequal",
+  "lessthan",
+  "lessthanorequal",
+  "isnull",
+  "notnull",
+] as const;
+
+export const MENU_OPERATOR_TEXT: Record<string, string> = {
+  contains: "包含",
+  doesnotcontain: "不包含",
+  equal: "等于",
+  notequal: "不等于",
+  startswith: "开头是",
+  endswith: "结尾是",
+  greaterthan: "大于",
+  greaterthanorequal: "大于或等于",
+  lessthan: "小于",
+  lessthanorequal: "小于或等于",
+  between: "介于",
+  within: "属于期间",
+  isnull: "为空",
+  notnull: "不为空",
+};
+
+const menuOperatorItems = (
+  values: readonly string[],
+  textOf: (value: string) => string,
+) => values.map((value) => ({ value, text: textOf(value) }));
+
+/** EJ2 Menu 算子列表，对齐 AG 默认。 */
+export const menuFilterOperators = (
+  textOf?: (value: string) => string,
+) => {
+  const label = (value: string) => {
+    if (textOf) return textOf(value);
+    return MENU_OPERATOR_TEXT[value] ?? value;
+  };
+  const stringOperator = menuOperatorItems(AG_MENU_STRING_OPERATORS, label);
+  const numberOperator = menuOperatorItems(AG_MENU_NUMBER_OPERATORS, label);
+  const dateOperator = menuOperatorItems(AG_MENU_DATE_OPERATORS, label);
+  return {
+    stringOperator,
+    numberOperator,
+    dateOperator,
+    datetimeOperator: dateOperator,
+  };
+};
+
+export const keepAgMenuOperators = (
+  operators: Array<{ value?: string }> | undefined,
+  allowed: readonly string[],
+) => {
+  if (!Array.isArray(operators)) return;
+  const allow = new Set(allowed);
+  for (let index = operators.length - 1; index >= 0; index -= 1) {
+    if (!allow.has(String(operators[index]?.value ?? "").toLowerCase())) {
+      operators.splice(index, 1);
+    }
+  }
+};
+
+/** 过滤并按 allowed 重排；缺的算子用 MENU 文案补上。 */
+export const applyMenuOperators = (
+  operators: Array<{ value?: string; text?: string }> | undefined,
+  allowed: readonly string[],
+) => {
+  if (!Array.isArray(operators)) return;
+  const byValue = new Map<string, { value?: string; text?: string }>();
+  for (const operator of operators) {
+    byValue.set(String(operator.value ?? "").toLowerCase(), operator);
+  }
+  const next = allowed.map(value => {
+    const existing = byValue.get(value);
+    return {
+      value,
+      text: existing?.text || MENU_OPERATOR_TEXT[value] || value,
+    };
+  });
+  operators.splice(0, operators.length, ...next);
+};
+
+export const isHasOneSetField = (field: MetaUiField) =>
+  Boolean(
+    field.reference?.hasOne &&
+      !field.reference?.isEnum &&
+      !field.reference?.isRef,
+  );
 
 export const isChoiceFilterField = (field: MetaUiField) =>
   hasFilterType(
@@ -195,15 +324,21 @@ export const refreshRefEditParams = (column: any, field: MetaUiField) => {
   };
 };
 
-export const choiceFilterDataSource = (field: MetaUiField) => {
+export const choiceFilterRowsOf = (
+  field: MetaUiField,
+  rows: unknown[] | undefined,
+) => {
   const ref = field.reference;
   if (!ref) return [];
-  return (ref.refOptions ?? []).map((option) => ({
+  return (rows ?? []).map(option => ({
     [field.fieldName]: ref.valueOf(option),
     text: String(ref.labelOf(option) ?? ""),
     __mmdaChoice: true,
   }));
 };
+
+export const choiceFilterDataSource = (field: MetaUiField) =>
+  choiceFilterRowsOf(field, field.reference?.refOptions);
 
 const flattenFilterPredicates = (
   predicates: any[] | undefined,
@@ -232,7 +367,7 @@ const flattenValues = (items: any[]) =>
 
 const toSimpleFilter = (item: any, field: MetaUiField) => ({
   filterType: simpleTypeOf(field),
-  operator: gridFilterOperator(item.operator),
+  operator: gridFilterOperator(item.operator, simpleTypeOf(field)),
   value: item.value,
 });
 

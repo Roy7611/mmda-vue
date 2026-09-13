@@ -15,6 +15,8 @@ export function createTabs(props: UiTabsProps) {
     headerPlacement: _headerPlacement,
     scrollable: _scrollable,
     heightAdjustMode: _heightAdjustMode,
+    loadOn: _loadOn,
+    headerStyle: _headerStyle,
     onChange: _onChange,
     htmlAttributes,
     class: _className,
@@ -22,26 +24,33 @@ export function createTabs(props: UiTabsProps) {
   } = props
 
   const items = tabsItemsOf(props)
+  const selected = tabsValueOf(props)
+  const selectedName =
+    items[selected]?.name ?? items[0]?.name ?? String(selected)
 
   return h(
     NTabs,
     {
       ...rest,
       ...htmlAttributesOf(props),
-      value: tabsValueOf(props),
+      value: selectedName,
       placement: tabsNaivePlacementOf(props),
       class: tabsModifierClasses(props).flat(),
       style: tabsHostStyle(props),
-      'onUpdate:value': (next: unknown) => emitTabsChange(props, next),
+      'onUpdate:value': (next: unknown) => {
+        const idx = items.findIndex((item) => item.name === next)
+        emitTabsChange(props, idx >= 0 ? idx : next)
+      },
     },
     {
       default: () =>
-        items.map((item, index) =>
-          h(
+        items.map((item, index) => {
+          const name = item.name || `content${index}`
+          return h(
             NTabPane,
             {
-              key: index,
-              name: index,
+              key: name,
+              name,
               tab: tabLabel(item),
               disabled: item.disabled,
             },
@@ -56,8 +65,8 @@ export function createTabs(props: UiTabsProps) {
                 : {}),
               default: () => tabsItemContentOf(item),
             },
-          ),
-        ),
+          )
+        }),
     },
   )
 }

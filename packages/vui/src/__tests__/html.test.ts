@@ -165,10 +165,10 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-list-view.mmda-tree-list-view")).toBeTruthy();
     expect(host.querySelector(".mmda-splitter")).toBeTruthy();
     expect(host.querySelector(".mmda-tree-view")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-footer")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view__search .mmda-textinput")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view__footer")).toBeTruthy();
     expect(host.querySelector(".mmda-test-tree")?.textContent).toContain("分类");
-    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
+    expect(host.querySelector(".mmda-page__body")).toBeTruthy();
   });
 
   it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
@@ -198,7 +198,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-breadcrumb")?.textContent).toContain(
       "添加剂包装物",
     );
-    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
+    expect(host.querySelector(".mmda-page__body")).toBeTruthy();
     expect(
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsible"),
     ).toBe("true");
@@ -209,7 +209,7 @@ describe("VueUiBuilder tree chrome", () => {
     expect(
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
     ).toBe("true");
-    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
+    expect(host.querySelector(".mmda-page__body")).toBeTruthy();
     expect(host.querySelector(".mmda-splitter-collapse")).toBeTruthy();
     host.querySelector<HTMLButtonElement>(".mmda-splitter-collapse")!.click();
     await nextTick();
@@ -217,7 +217,7 @@ describe("VueUiBuilder tree chrome", () => {
       host.querySelector(".mmda-splitter-pane")?.getAttribute("data-collapsed"),
     ).toBeNull();
     expect(host.querySelector(".mmda-tree-view")).toBeTruthy();
-    expect(host.querySelector(".mmda-page-body")).toBeTruthy();
+    expect(host.querySelector(".mmda-page__body")).toBeTruthy();
   });
 
   it("折叠左树只改布局，不改查询条件", async () => {
@@ -330,12 +330,12 @@ describe("VueUiBuilder tree chrome", () => {
       }),
       host,
     );
-    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view__search .mmda-textinput")).toBeTruthy();
     expect(host.querySelector(".mmda-test-tree-footer")?.textContent).toBe("脚");
     expect(host.textContent).toContain("苹果");
     expect(host.textContent).toContain("香蕉");
     const input = host.querySelector<HTMLInputElement>(
-      ".mmda-tree-view-search input, input.mmda-tree-view-search",
+      ".mmda-tree-view__search input, input.mmda-tree-view__search",
     )!;
     input.value = "苹";
     input.dispatchEvent(new Event("input"));
@@ -361,15 +361,15 @@ describe("VueUiBuilder tree chrome", () => {
       }),
       host,
     );
-    expect(host.querySelector(".mmda-tree-view-footer-label")?.textContent).toBe(
+    expect(host.querySelector(".mmda-tree-view__footer-label")?.textContent).toBe(
       "苹果",
     );
-    expect(host.querySelector(".mmda-tree-view-collapse")).toBeFalsy();
+    expect(host.querySelector(".mmda-tree-view__collapse")).toBeFalsy();
     const rows = host.querySelectorAll<HTMLElement>(".mmda-tree-row");
     expect(rows[1]).toBeTruthy();
     rows[1]!.click();
     await nextTick();
-    expect(host.querySelector(".mmda-tree-view-footer-label")?.textContent).toBe(
+    expect(host.querySelector(".mmda-tree-view__footer-label")?.textContent).toBe(
       "香蕉",
     );
   });
@@ -387,8 +387,8 @@ describe("VueUiBuilder tree chrome", () => {
       host,
     );
     expect(host.querySelector(".mmda-test-tree-header")?.textContent).toBe("顶");
-    expect(host.querySelector(".mmda-tree-view-header")).toBeTruthy();
-    expect(host.querySelector(".mmda-tree-view-search")).toBeFalsy();
+    expect(host.querySelector(".mmda-tree-view__header")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view__search")).toBeFalsy();
     render(
       new TestUiBuilder().buildTreeView(treeCtx, {
         data: [{ id: "1", label: "苹果" }],
@@ -396,8 +396,8 @@ describe("VueUiBuilder tree chrome", () => {
       }),
       host,
     );
-    expect(host.querySelector(".mmda-tree-view-header")).toBeFalsy();
-    expect(host.querySelector(".mmda-tree-view-search .mmda-textinput")).toBeTruthy();
+    expect(host.querySelector(".mmda-tree-view__header")).toBeFalsy();
+    expect(host.querySelector(".mmda-tree-view__search .mmda-textinput")).toBeTruthy();
   });
 
   it("buildTreeView footerContent 渲染选中节点描述，footer 仍优先", () => {

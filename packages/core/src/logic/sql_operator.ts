@@ -82,6 +82,19 @@ const IS_NOT_NULL: SqlOperator = {
   parameters: 0,
   label: "Not nil",
 };
+/** 语义算子；toSQL 仍写 IS NULL，列表主路径走 expandBlankFilters。 */
+const IS_BLANK: SqlOperator = {
+  name: "IS_BLANK",
+  toSQL: () => "IS NULL",
+  parameters: 0,
+  label: "Blank",
+};
+const IS_NOT_BLANK: SqlOperator = {
+  name: "IS_NOT_BLANK",
+  toSQL: () => "IS NOT NULL",
+  parameters: 0,
+  label: "Not blank",
+};
 const IS_ALL: SqlOperator = {
   name: "IS_ALL",
   toSQL: () => "",
@@ -118,24 +131,33 @@ const BETWEEN: SqlOperator = {
   parameters: 2,
   label: "Between",
 };
+const WITHIN: SqlOperator = {
+  name: "WITHIN",
+  toSQL: (v) => `WITHIN ${v}`,
+  parameters: 1,
+  label: "Within",
+};
 
 export const defaultSqlOps = {
   NullableOps: [IS_NULL, IS_NOT_NULL],
   BoolFieldOps: [IS_ALL, IS_TRUE, IS_FALSE],
+  /** 比较槽；顺序对齐 AG Text Filter，默认 CONTAINS。IN / NOT_IN 只走 set。 */
   StringFieldOps: [
-    STARTS_WITH,
-    ENDS_WITH,
     CONTAINS,
     NOT_CONTAINS,
     EQ,
     NEQ,
-    IN,
-    NOT_IN,
+    STARTS_WITH,
+    ENDS_WITH,
+    IS_BLANK,
+    IS_NOT_BLANK,
   ],
-  NumberFieldOps: [EQ, NEQ, GT, GE, LT, LE, BETWEEN],
-  DateFieldOps: [BETWEEN, EQ, NEQ, GT, GE, LT, LE],
-  EnumFieldOps: [IN, NOT_IN, EQ, NEQ],
+  NumberFieldOps: [EQ, NEQ, GT, GE, LT, LE, BETWEEN, IS_NULL, IS_NOT_NULL],
+  DateFieldOps: [EQ, NEQ, GT, GE, LT, LE, BETWEEN, WITHIN, IS_NULL, IS_NOT_NULL],
+  EnumFieldOps: [EQ, NEQ],
   RefFieldOps: [EQ, NEQ],
+  /** 给 getSqlOperator 查找；表头比较槽不列出。 */
+  SetFieldOps: [IN, NOT_IN],
 };
 
 export const SqlOperatorNameList = [
@@ -151,12 +173,15 @@ export const SqlOperatorNameList = [
   "NOT_CONTAINS",
   "IS_NULL",
   "IS_NOT_NULL",
+  "IS_BLANK",
+  "IS_NOT_BLANK",
   "IS_ALL",
   "IS_TRUE",
   "IS_FALSE",
   "IN",
   "NOT_IN",
   "BETWEEN",
+  "WITHIN",
 ] as const;
 
 export type SqlOperatorName = (typeof SqlOperatorNameList)[number];
@@ -171,18 +196,16 @@ export const getSqlOperator = (
 };
 
 export const getFieldSqlOps = (field: MetaUiField): SqlOperator[] => {
-  let ops: SqlOperator[] = [];
-  if (SqlDataType.isBool(field.dataType)) ops = ops.concat(defaultSqlOps.BoolFieldOps);
-  else if (field.reference) {
-    if (field.reference.isEnum) ops = ops.concat(defaultSqlOps.EnumFieldOps);
-    else ops = ops.concat(defaultSqlOps.RefFieldOps);
-  } else if (SqlDataType.isDate(field.dataType))
-    ops = ops.concat(defaultSqlOps.DateFieldOps);
-  else if (SqlDataType.isNum(field.dataType))
-    ops = ops.concat(defaultSqlOps.NumberFieldOps);
-  else ops = ops.concat(defaultSqlOps.StringFieldOps);
-  if (field.nullable) ops = ops.concat(defaultSqlOps.NullableOps);
-  return ops;
+  if (SqlDataType.isBool(field.dataType)) return defaultSqlOps.BoolFieldOps;
+  if (field.reference) {
+    const ops = field.reference.isEnum
+      ? defaultSqlOps.EnumFieldOps
+      : defaultSqlOps.RefFieldOps;
+    return field.nullable ? ops.concat(defaultSqlOps.NullableOps) : ops;
+  }
+  if (SqlDataType.isDate(field.dataType)) return defaultSqlOps.DateFieldOps;
+  if (SqlDataType.isNum(field.dataType)) return defaultSqlOps.NumberFieldOps;
+  return defaultSqlOps.StringFieldOps;
 };
 
 export const getFieldFilterOps = (field: MetaUiField): EntityFilterOperator[] =>

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { h, nextTick } from "vue";
-import { L10n } from "@syncfusion/ej2-base";
+import { Internationalization, L10n } from "@syncfusion/ej2-base";
 import { MetaModel, MetaUi, MetaUiField, MetaUiFieldFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, columnFilterKindOf } from "@mmda/core";
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
 import {
@@ -19,7 +19,7 @@ import {
 } from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
 import { SfImageGallery } from "../components/SfImageGallery";
-import { gridFiltersToModel, isChoiceFilterField } from "../factory/utils";
+import { gridFilterOperator, gridFiltersToModel, isChoiceFilterField, menuFilterOperators } from "../factory/utils";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
 const gridOf = (vnode: any) => {
@@ -683,15 +683,63 @@ describe("Syncfusion skin", () => {
     expect(vnode.props?.headerPlacement).toBe("Left");
     expect(vnode.props?.overflowMode).toBe("Popup");
     expect(vnode.props?.heightAdjustMode).toBe("Fill");
-    expect(vnode.props?.items?.[0]?.header).toEqual({
-      text: "One",
-      iconCss: undefined,
-    });
+    expect(vnode.props?.loadOn).toBe("Demand");
+    // Vue 内容走 TabItemsDirective 子树，不再塞 items[].content 函数
+    expect(vnode.props?.items).toBeUndefined();
+    const itemsDir = (vnode.children as any)?.default?.()?.[0] ??
+      (vnode.children as any)?.default?.();
+    expect(itemsDir).toBeTruthy();
     expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs");
     expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--left");
     expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--popup");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("e-fill");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--fill");
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-tabs--demand");
     vnode.props?.selected?.({ selectedIndex: 0 });
     expect(onChange).toHaveBeenCalledWith(0);
+  });
+
+  it("factory.tabs 用 TabItemDirective 插槽挂 VNode 内容", () => {
+    const factory = createSyncfusionUiFactory();
+    const body = h("div", { class: "mmda-tab-body" }, "fields");
+    const vnode = factory.tabs({
+      items: [{ name: "main", header: "Main", content: body }],
+    });
+    const itemsDir = (vnode.children as any).default();
+    const itemsRoot = Array.isArray(itemsDir) ? itemsDir[0] : itemsDir;
+    const tabItems = (itemsRoot.children as any).default();
+    const first = Array.isArray(tabItems) ? tabItems[0] : tabItems;
+    expect(first.props?.content).toBe("main");
+    expect(first.props?.tabIndex).toBe(0);
+    expect(first.props?.header).toEqual({
+      text: "Main",
+      iconCss: undefined,
+    });
+    expect((first.children as any).main()).toBe(body);
+  });
+
+  it("factory.tabs 多页签用 name 作唯一槽名，内容不串页", () => {
+    const factory = createSyncfusionUiFactory();
+    const a = h("div", { class: "pane-a" }, "A");
+    const b = h("div", { class: "pane-b" }, "B");
+    const vnode = factory.tabs({
+      items: [
+        { name: "base", header: "基本", content: a },
+        { name: "s1", header: "概要", content: b },
+      ],
+    });
+    const itemsDir = (vnode.children as any).default();
+    const itemsRoot = Array.isArray(itemsDir) ? itemsDir[0] : itemsDir;
+    const tabItems = (itemsRoot.children as any).default();
+    const list = Array.isArray(tabItems) ? tabItems : [tabItems];
+    expect(list).toHaveLength(2);
+    expect(list[0].props?.content).toBe("base");
+    expect(list[1].props?.content).toBe("s1");
+    expect(list[0].key).toBe("base");
+    expect(list[1].key).toBe("s1");
+    expect((list[0].children as any).base()).toBe(a);
+    expect((list[1].children as any).s1()).toBe(b);
+    expect((list[0].children as any).content).toBeUndefined();
   });
 
   it("maps factory.toolbar slots and align", () => {
@@ -1519,7 +1567,7 @@ describe("Syncfusion skin", () => {
       fields: [],
     });
     const card = builder.wrapGroup(group, h("div", "body"));
-    expect(card.type?.name ?? card.type?.__name).toBe("MmdaGroupCard");
+    expect(card.type?.name ?? card.type?.__name).toBe("GroupCard");
     expect(String(card.props?.class)).toContain("e-card");
     expect(String(card.props?.class)).toContain("primary");
     expect(String(card.props?.class)).toContain("master");
@@ -1727,20 +1775,23 @@ describe("Syncfusion skin", () => {
       onPage,
       selectionMode: "multiple",
       filterDisplay: "menu",
-      renderCell: (_field: any, row: any) =>
-        h("a", { href: `#${row.id}` }, row.name),
     });
 
     expect(host.props?.class).toBe("mmda-pagable-table");
     const vnode = gridOf(host);
     expect(vnode.props?.allowPaging).toBe(false);
+    expect(vnode.props?.allowGrouping).toBe(false);
     expect(vnode.props?.enableVirtualization).toBe(true);
     expect(vnode.props?.enableVirtualMaskRow).toBe(false);
     expect(vnode.props?.height).toBe("100%");
     expect(vnode.props?.allowResizing).toBe(true);
     expect(vnode.props?.allowFiltering).toBe(true);
-    expect(vnode.props?.filterSettings).toEqual({ type: "Menu" });
-    expect(vnode.props?.dataSource).toEqual({ result: rows, count: 1 });
+    expect(vnode.props?.filterSettings).toMatchObject({ type: "Menu" });
+    // 索引页 custom binding：当前页切片 + 行虚拟滚动（与服务端过滤无关）
+    expect(vnode.props?.dataSource).toEqual({
+      result: rows,
+      count: rows.length,
+    });
     expect(vnode.props?.pageSettings).toMatchObject({
       pageSize: 50,
     });
@@ -1773,110 +1824,33 @@ describe("Syncfusion skin", () => {
       "id",
       "name",
     ]);
+    expect(vnode.props.selectionSettings).toMatchObject({
+      type: "Multiple",
+      persistSelection: true,
+      checkboxMode: "ResetOnRowClick",
+    });
+    expect(columns[1]).toMatchObject({
+      field: "rowNum",
+      headerText: "序号",
+      freeze: "Left",
+      allowSorting: false,
+      allowFiltering: false,
+    });
     expect(columns[2]).toMatchObject({
       field: "id",
       isPrimaryKey: true,
       visible: false,
     });
-    expect(columns[1]).toMatchObject({
-      allowSorting: false,
-      textAlign: "Left",
-      headerTextAlign: "Left",
-      field: "rowNum",
-      customAttributes: { class: "mmda-rownum-col" },
-      freeze: "Left",
-    });
-    expect(columns[1].template).toBeUndefined();
-    expect(columns[1].valueAccessor).toBeUndefined();
     expect(columns[3]).toMatchObject({
+      field: "name",
       width: 180,
       textAlign: "Center",
       headerTextAlign: "Center",
       allowSorting: true,
       allowFiltering: true,
-      template: "mmdaCell_name",
     });
-    const slots = vnode.children as any;
-    const cell = slots.mmdaCell_name({ data: rows[0] });
-    expect(cell.props.style.textAlign).toBe("center");
-    const link = Array.isArray(cell.children)
-      ? cell.children[0]
-      : cell.children;
-    expect(link.type).toBe("a");
-    expect(link.props.href).toBe("#1");
-    expect(link.children).toBe("alpha");
-    expect(slots.mmdaCell_rowNum).toBeUndefined();
   });
 
-  it("merges virtualized selection into selectedItems and keeps it across window change", async () => {
-    const factory = createSyncfusionUiFactory();
-    const metaUi = {
-      objName: "Product",
-      getListedFields: () => [
-        { fieldName: "name", displayLabel: "名称", dataType: 48 },
-      ],
-      groups: [],
-      primaryKey: "id",
-    } as any;
-    const rows = Array.from({ length: 100 }, (_, index) => ({
-      id: String(index + 1),
-      rowNum: String(index + 1),
-      name: `row-${index + 1}`,
-    }));
-    const selectedItems: any[] = [];
-    const onSelect = vi.fn();
-    const vnode = gridOf(
-      factory.table(rows, metaUi, {
-        pagination: { pageNo: 1, pageSize: 1000, recordCount: 100 },
-        selectionMode: "multiple",
-        selectedItems,
-        onSelect,
-      }),
-    );
-    expect(vnode.props.columns.some((c: any) => c.field === "id" && c.isPrimaryKey)).toBe(
-      true,
-    );
-
-    const selectedRow = rows[0];
-    vnode.props.rowSelected({ data: selectedRow, isInteracted: true });
-    expect(selectedItems).toEqual([selectedRow]);
-    expect(onSelect).toHaveBeenCalledWith([selectedRow]);
-
-    const grid = {
-      dataSource: null as any,
-      hideSpinner: vi.fn(),
-      getCurrentViewRecords: vi.fn(() => rows.slice(50, 100)),
-      selectRows: vi.fn(),
-    };
-    vnode.props.ref({ ej2Instances: grid });
-    vnode.props.dataStateChange({
-      action: { requestType: "virtualscroll" },
-      skip: 50,
-      take: 50,
-    });
-    await nextTick();
-    await nextTick();
-    // 换窗不得清空 selectedItems
-    expect(selectedItems).toEqual([selectedRow]);
-    // 卸行 deselect（非用户）忽略
-    vnode.props.rowDeselected({
-      data: selectedRow,
-      isInteracted: false,
-    });
-    expect(selectedItems).toEqual([selectedRow]);
-    vnode.props.rowDeselected({
-      data: selectedRow,
-    });
-    expect(selectedItems).toEqual([selectedRow]);
-
-    expect(vnode.props.enableVirtualMaskRow).toBe(false);
-
-    const other = rows[60];
-    vnode.props.rowSelected({ data: other, isInteracted: true });
-    expect(selectedItems.map((r) => r.id)).toEqual(["1", "61"]);
-    vnode.props.rowDeselected({ data: other, isInteracted: true });
-    expect(selectedItems.map((r) => r.id)).toEqual(["1"]);
-  });
 
   it("marks listed MetaUiField.primaryKey as isPrimaryKey without hidden id", () => {
     const factory = createSyncfusionUiFactory();
@@ -1902,49 +1876,6 @@ describe("Syncfusion skin", () => {
     });
   });
 
-  it("custom-binds only a virtual window, not the full server page", async () => {
-    const factory = createSyncfusionUiFactory();
-    const metaUi = {
-      objName: "Product",
-      getListedFields: () => [
-        { fieldName: "name", displayLabel: "名称", dataType: 48 },
-      ],
-      groups: [],
-      primaryKey: "id",
-    } as any;
-    const rows = Array.from({ length: 200 }, (_, index) => ({
-      id: String(index + 1),
-      rowNum: String(index + 1),
-      name: `row-${index + 1}`,
-    }));
-    const vnode = gridOf(
-      factory.table(rows, metaUi, {
-        pagination: { pageNo: 1, pageSize: 1000, recordCount: 3392 },
-      }),
-    );
-    expect(vnode.props?.enableVirtualization).toBe(true);
-    expect(vnode.props?.dataSource.count).toBe(200);
-    expect(vnode.props?.dataSource.result).toHaveLength(50);
-    expect(vnode.props?.dataSource.result[0].name).toBe("row-1");
-    expect(vnode.props?.dataSource.result.at(-1).name).toBe("row-50");
-
-    const grid = {
-      dataSource: null as any,
-      hideSpinner: vi.fn(),
-    };
-    vnode.props.ref({ ej2Instances: grid });
-    vnode.props.dataStateChange({
-      action: { requestType: "virtualscroll" },
-      skip: 50,
-      take: 50,
-    });
-    await nextTick();
-    await nextTick();
-    expect(grid.dataSource.count).toBe(200);
-    expect(grid.dataSource.result).toHaveLength(50);
-    expect(grid.dataSource.result[0].name).toBe("row-51");
-    expect(grid.hideSpinner).toHaveBeenCalled();
-  });
 
   it("uses valueAccessor for non-template columns including reference fields", () => {
     const factory = createSyncfusionUiFactory();
@@ -2168,7 +2099,10 @@ describe("Syncfusion skin", () => {
       factory.table([{ id: "1", qty: 12, status: 1, name: "a" }], metaUi, {}),
     );
     const columns = vnode.props.columns.filter(
-      (column: any) => column?.field && column.field !== "rowNum",
+      (column: any) =>
+        column?.field &&
+        column.field !== "rowNum" &&
+        column.visible !== false,
     );
     expect(columns[0].textAlign).toBe("Right");
     expect(columns[1].textAlign).toBe("Left");
@@ -2369,16 +2303,51 @@ describe("Syncfusion skin", () => {
         onFilterModelChange,
       }),
     );
-    expect(vnode.props?.filterSettings).toEqual({ type: "Menu" });
-    const columns = vnode.props.columns.filter(
-      (column: any) => column?.field && column.field !== "rowNum",
+    expect(vnode.props?.filterSettings).toMatchObject({ type: "Menu" });
+    const stringOps = vnode.props?.filterSettings?.operators?.stringOperator?.map(
+      (item: { value: string }) => item.value,
     );
-    expect(columns[0].filter.type).toBe("Menu");
-    expect(columns[0].filter.ui).toBeTruthy();
+    expect(stringOps).toEqual([
+      "contains",
+      "doesnotcontain",
+      "equal",
+      "notequal",
+      "startswith",
+      "endswith",
+      "isnull",
+      "notnull",
+    ]);
+    expect(stringOps).not.toContain("like");
+    expect(stringOps).not.toContain("in");
+    expect(stringOps).not.toContain("notin");
+    const columns = vnode.props.columns.filter(
+      (column: any) =>
+        column?.field &&
+        column.field !== "rowNum" &&
+        column.visible !== false,
+    );
+    expect(columns[0].filter.type).toBe("CheckBox");
+    expect(columns[0].filter.ui).toBeUndefined();
     expect(columns[0].foreignKeyField).toBeUndefined();
     expect(columns[0].dataSource).toBeUndefined();
     expect(columns[1].filter.type).toBe("Menu");
-    expect(columns[1].filter.ui).toBeTruthy();
+    expect(columns[1].filter.ui).toBeUndefined();
+    expect(columns[1].filter.operator).toBe("contains");
+    const leftoverOps = [
+      { value: "contains", text: "包含" },
+      { value: "like", text: "Like" },
+      { value: "in", text: "在列" },
+      { value: "notin", text: "不在列" },
+      { value: "doesnotstartwith", text: "开头不是" },
+    ];
+    vnode.props.actionBegin({
+      requestType: "filterBeforeOpen",
+      filterModel: {
+        options: { field: "name" },
+        customFilterOperators: { stringOperator: leftoverOps },
+      },
+    });
+    expect(leftoverOps.map((item) => item.value)).toEqual(["contains"]);
 
     const listeners: Record<string, (args: any) => void> = {};
     vnode.props.ref?.({
@@ -2462,6 +2431,227 @@ describe("Syncfusion skin", () => {
     });
   });
 
+  it("defaults real enum/ref MetaUiField to CheckBox, not Menu", () => {
+    const factory = createSyncfusionUiFactory();
+    const status = new MetaUiField({
+      fieldName: "status",
+      displayLabel: "状态",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "OPEN;OPEN;打开|CLOSED;CLOSED;关闭",
+      filterTypes: MetaUiFieldFilterType.TEXT,
+    });
+    const partner = new MetaUiField({
+      fieldName: "partnerID",
+      displayLabel: "客户",
+      fieldIdx: 1,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "REF Partner(id,partnerName)",
+    });
+    partner.reference!.refOptions.push(
+      { id: "p1", partnerName: "甲公司" },
+      { id: "p2", partnerName: "乙公司" },
+    );
+    const metaUi = new MetaUi({
+      objName: "Ticket",
+      displayLabel: "工单",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [status, partner],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    );
+    const statusCol = vnode.props.columns.find(
+      (item: any) => item?.field === "status",
+    );
+    const partnerCol = vnode.props.columns.find(
+      (item: any) => item?.field === "partnerID",
+    );
+    expect(statusCol.filter.type).toBe("CheckBox");
+    expect(statusCol.filter.ui).toBeUndefined();
+    expect(partnerCol.filter.type).toBe("CheckBox");
+    expect(partnerCol.filter.ui).toBeUndefined();
+  });
+
+  it("loads first 50 into refOptions; incomplete search does not overwrite", async () => {
+    const factory = createSyncfusionUiFactory();
+    const home = Array.from({ length: 50 }, (_, index) => ({
+      matID: `M${index}`,
+      matName: `物料${index}`,
+    }));
+    const material = new MetaUiField({
+      fieldName: "matID",
+      displayLabel: "物料",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "HAS_ONE Material(matID,matName)",
+    });
+    const loadFilterOptions = vi.fn(async (field: MetaUiField) => {
+      field.reference!.refOptions.splice(
+        0,
+        field.reference!.refOptions.length,
+        ...home,
+      );
+      field.reference!.refOptionsComplete = false;
+      return field.reference!.refOptions;
+    });
+    const searchRelative = vi.fn(async () => [
+      { matID: "M9", matName: "物料9" },
+    ]);
+    const metaUi = new MetaUi({
+      objName: "Order",
+      displayLabel: "订单",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [material],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        loadFilterOptions,
+        searchRelative,
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "matID",
+    );
+    expect(column.filter.type).toBe("CheckBox");
+
+    const dataSource = vi.fn();
+    vnode.props.dataStateChange({
+      action: {
+        requestType: "filterchoicerequest",
+        filterModel: { options: { field: "matID" } },
+      },
+      dataSource,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadFilterOptions).toHaveBeenCalledWith(material);
+    expect(searchRelative).not.toHaveBeenCalled();
+    expect(material.reference!.refOptions).toHaveLength(50);
+    expect(dataSource.mock.calls[0][0][0]).toEqual({
+      matID: "M0",
+      text: "物料0",
+      __mmdaChoice: true,
+    });
+
+    const searchSource = vi.fn();
+    vnode.props.dataStateChange({
+      action: {
+        requestType: "filtersearchbegin",
+        filterModel: { searchValue: "物料9", options: { field: "matID" } },
+      },
+      dataSource: searchSource,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(searchRelative).toHaveBeenCalledWith(material, "物料9");
+    expect(material.reference!.refOptions).toHaveLength(50);
+    expect(searchSource).toHaveBeenCalledWith([
+      { matID: "M9", text: "物料9", __mmdaChoice: true },
+    ]);
+  });
+
+  it("complete small table filters locally after first page", async () => {
+    const factory = createSyncfusionUiFactory();
+    const pack = new MetaUiField({
+      fieldName: "packID",
+      displayLabel: "包装规格",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "REF MaterialPackage(packID,packFullName)",
+    });
+    const loadFilterOptions = vi.fn(async (field: MetaUiField) => {
+      field.reference!.refOptions.splice(
+        0,
+        field.reference!.refOptions.length,
+        { packID: "P1", packFullName: "纸箱" },
+        { packID: "P2", packFullName: "托盘" },
+      );
+      field.reference!.refOptionsComplete = true;
+      return field.reference!.refOptions;
+    });
+    const searchRelative = vi.fn();
+    const metaUi = new MetaUi({
+      objName: "Material",
+      displayLabel: "物料",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [pack],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        loadFilterOptions,
+        searchRelative,
+      }),
+    );
+    const dataSource = vi.fn();
+    vnode.props.dataStateChange({
+      action: {
+        requestType: "filterchoicerequest",
+        filterModel: { options: { field: "packID" } },
+      },
+      dataSource,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadFilterOptions).toHaveBeenCalledWith(pack);
+    expect(dataSource).toHaveBeenCalledWith([
+      { packID: "P1", text: "纸箱", __mmdaChoice: true },
+      { packID: "P2", text: "托盘", __mmdaChoice: true },
+    ]);
+
+    const searchSource = vi.fn();
+    vnode.props.dataStateChange({
+      action: {
+        requestType: "filtersearchbegin",
+        filterModel: { searchValue: "纸", options: { field: "packID" } },
+      },
+      dataSource: searchSource,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(searchRelative).not.toHaveBeenCalled();
+    expect(searchSource).toHaveBeenCalledWith([
+      { packID: "P1", text: "纸箱", __mmdaChoice: true },
+      { packID: "P2", text: "托盘", __mmdaChoice: true },
+    ]);
+  });
+
   it("uses pipe enum value;code;label via valueOf/labelOf", async () => {
     const factory = createSyncfusionUiFactory();
     const reference = {
@@ -2497,12 +2687,172 @@ describe("Syncfusion skin", () => {
     const column = vnode.props.columns.find(
       (item: any) => item?.field === "materialType",
     );
-    expect(column.filter.type).toBe("Menu");
+    expect(column.filter.type).toBe("CheckBox");
     expect(column.filter.dataSource).toEqual([
       { materialType: "LABOR", text: "劳动力", __mmdaChoice: true },
       { materialType: "CONSUMABLE", text: "办公用品", __mmdaChoice: true },
       { materialType: "OTHER", text: "其他", __mmdaChoice: true },
     ]);
+  });
+
+  it("uses multiSelect dropdown for set values on multi Menu columns", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      objName: "Material",
+      getListedFields: () => [
+        {
+          fieldName: "status",
+          displayLabel: "状态",
+          dataType: 48,
+          filterTypes:
+            MetaUiFieldFilterType.TEXT |
+            MetaUiFieldFilterType.SET |
+            MetaUiFieldFilterType.MULTI,
+          reference: {
+            isEnum: true,
+            isRef: false,
+            hasOne: false,
+            refOptions: [
+              { value: "OPEN", label: "打开" },
+              { value: "CLOSED", label: "关闭" },
+            ],
+            valueOf: (option: any) => option.value,
+            labelOf: (option: any) => option.label,
+          },
+        },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "status",
+    );
+    expect(column.filter.type).toBe("Menu");
+    expect(column.filter.operator).toBe("contains");
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    column.filter.ui.create({
+      target,
+      column,
+      getOptrInstance: { dropOptr: { value: "contains", dataBind: vi.fn() } },
+    });
+    expect(target.querySelector(".mmda-filter-multi__set")).toBeTruthy();
+    expect(target.querySelector(".mmda-filter-multi__set-toggle")).toBeTruthy();
+    expect(target.querySelector(".mmda-filter-multi__set-body")?.hidden).toBe(
+      true,
+    );
+    expect(target.querySelector(".mmda-filter-multi__choices")).toBeNull();
+    column.filter.ui.destroy();
+    target.remove();
+  });
+
+  it("shows the pivot date tree as soon as the DATE|SET|MULTI menu opens", async () => {
+    const factory = createSyncfusionUiFactory();
+    const loadPivotDates = vi.fn(async () => [
+      "2026",
+      "2026-05",
+      "2026-05-01",
+      "2026-05-15",
+      "2026-06",
+      "2026-06-01",
+    ]);
+    const metaUi = {
+      objName: "Move",
+      getListedFields: () => [
+        {
+          fieldName: "moveDate",
+          displayLabel: "移料日期",
+          dataType: 184,
+          filterTypes:
+            MetaUiFieldFilterType.DATE |
+            MetaUiFieldFilterType.SET |
+            MetaUiFieldFilterType.MULTI,
+        },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        loadPivotDates,
+        filterLabels: { values: "选项过滤" },
+        dateRangeLabels: { month: "月" },
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "moveDate",
+    );
+    expect(column.filter.type).toBe("Menu");
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    column.filter.ui.create({
+      target,
+      column,
+      getOptrInstance: { dropOptr: { value: "equal", dataBind: vi.fn() } },
+    });
+    await nextTick();
+    expect(target.querySelector(".mmda-compare-column-filter")).toBeNull();
+    expect(loadPivotDates).toHaveBeenCalledTimes(1);
+    await Promise.resolve();
+    await nextTick();
+    await Promise.resolve();
+    expect(target.querySelector(".flm-input, .e-ddt, .e-dropdowntree")).toBeTruthy();
+    column.filter.ui.destroy();
+    target.remove();
+  });
+
+  it("opens the date set tree when filterModel already has tokens", async () => {
+    const factory = createSyncfusionUiFactory();
+    const loadPivotDates = vi.fn(async () => ["2026-05-01"]);
+    const metaUi = {
+      objName: "Move",
+      getListedFields: () => [
+        {
+          fieldName: "moveDate",
+          displayLabel: "移料日期",
+          dataType: 184,
+          filterTypes:
+            MetaUiFieldFilterType.DATE |
+            MetaUiFieldFilterType.SET |
+            MetaUiFieldFilterType.MULTI,
+        },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        loadPivotDates,
+        filterModel: {
+          moveDate: { filterType: "set", values: ["2026-05"] },
+        },
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "moveDate",
+    );
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    column.filter.ui.create({
+      target,
+      column,
+      getOptrInstance: { dropOptr: { value: "equal", dataBind: vi.fn() } },
+    });
+    await nextTick();
+    expect(loadPivotDates).toHaveBeenCalledTimes(1);
+    expect(target.querySelector(".flm-input, .e-datepicker")).toBeTruthy();
+    column.filter.ui.destroy();
+    target.remove();
   });
 
   it("binds ref/hasOne filter dataSource from refOptions with refFlds", async () => {
@@ -2518,6 +2868,7 @@ describe("Syncfusion skin", () => {
           fieldName: "partnerID",
           displayLabel: "客户",
           dataType: 48,
+          editor: "DropDownList",
           reference: {
             isEnum: false,
             isRef: true,
@@ -2558,6 +2909,7 @@ describe("Syncfusion skin", () => {
           fieldName: "categoryID",
           displayLabel: "类别",
           dataType: 48,
+          editor: "DropDownList",
           reference: {
             isEnum: false,
             isRef: true,
@@ -2613,7 +2965,10 @@ describe("Syncfusion skin", () => {
       }),
     );
     const columns = vnode.props.columns.filter(
-      (column: any) => column?.field && column.field !== "rowNum",
+      (column: any) =>
+        column?.field &&
+        column.field !== "rowNum" &&
+        column.visible !== false,
     );
 
     expect(columns[0].filter).toMatchObject({
@@ -2641,7 +2996,8 @@ describe("Syncfusion skin", () => {
     });
     expect(columns[2].filter).toEqual({ type: "Menu" });
     expect(columns[3].filter.type).toBe("Menu");
-    expect(columns[3].filter.ui).toBeTruthy();
+    expect(columns[3].filter.ui).toBeUndefined();
+    expect(columns[3].filter.operator).toBe("contains");
 
     const start = new Date("2026-08-01");
     vnode.props.dataStateChange({
@@ -2686,14 +3042,13 @@ describe("Syncfusion skin", () => {
     });
   });
 
-  it("shows a second native input for BETWEEN and emits range predicates", () => {
+  it("owns number operators and writes BETWEEN from two NumericTextBoxes", async () => {
     const factory = createSyncfusionUiFactory();
     const onFilterModelChange = vi.fn();
     const metaUi = {
       objName: "Order",
       getListedFields: () => [
         { fieldName: "amount", displayLabel: "金额", dataType: 68 },
-        { fieldName: "orderedAt", displayLabel: "日期", dataType: 184 },
       ],
       groups: [],
       primaryKey: "id",
@@ -2708,9 +3063,7 @@ describe("Syncfusion skin", () => {
     const amountColumn = vnode.props.columns.find(
       (column: any) => column?.field === "amount",
     );
-    amountColumn.uid = "amount-column";
-
-    const numberOperators = [{ value: "equal", text: "等于" }];
+    const numberOperators = [{ value: "equal", text: "等于" }, { value: "between", text: "介于" }];
     vnode.props.actionBegin({
       requestType: "filterBeforeOpen",
       filterModel: {
@@ -2718,72 +3071,62 @@ describe("Syncfusion skin", () => {
         customFilterOperators: { numberOperator: numberOperators },
       },
     });
-    expect(numberOperators).toEqual([
-      { value: "equal", text: "等于" },
-      { value: "between", text: "在…之间" },
+    expect(numberOperators.map((item) => item.value)).toEqual([
+      "equal",
+      "notequal",
+      "greaterthan",
+      "greaterthanorequal",
+      "lessthan",
+      "lessthanorequal",
+      "isnull",
+      "notnull",
     ]);
+    expect(numberOperators.some((item) => item.value === "between")).toBe(false);
 
-    const operatorDropDown: any = {
-      value: "equal",
-    };
-    Object.defineProperty(operatorDropDown, "change", {
-      configurable: true,
-      get: () => undefined,
-      set() {
-        throw new TypeError("Cannot convert undefined or null to object");
-      },
-    });
     const target = document.createElement("div");
     target.className = "e-flmenu";
     document.body.appendChild(target);
     amountColumn.filter.ui.create({
       target,
       column: amountColumn,
-      getOptrInstance: { dropOptr: operatorDropDown },
+      getOptrInstance: { dropOptr: { value: "equal" } },
     });
-
-    const secondWrap = target.querySelector(
-      ".mmda-filter-range__value--to",
-    ) as HTMLElement;
-    expect(secondWrap.hidden).toBe(true);
-    operatorDropDown.value = "between";
-    target.dispatchEvent(new Event("click"));
-    expect(secondWrap.hidden).toBe(false);
-
-    const controls = Array.from(target.querySelectorAll("input"))
-      .map((input: any) => input.ej2_instances?.[0])
-      .filter(Boolean);
-    expect(controls).toHaveLength(2);
-    controls[0].value = 10;
-    controls[1].value = 99;
+    await nextTick();
+    expect(target.querySelector(".mmda-compare-column-filter")).toBeTruthy();
+    amountColumn.filter.ui.handle.setOperator("between");
+    await nextTick();
+    const boxes = target.querySelectorAll(".e-numerictextbox");
+    expect(boxes.length).toBe(2);
+    const first = (boxes[0] as any).ej2_instances?.[0];
+    const second = (boxes[1] as any).ej2_instances?.[0];
+    first.change({ value: 10 });
+    second.change({ value: 99 });
 
     const filterByColumn = vi.fn();
     amountColumn.filter.ui.read({
       column: amountColumn,
-      operator: "between",
       fltrObj: {
         filterByColumn,
         removeFilteredColsByField: vi.fn(),
       },
     });
+    expect(amountColumn.filter.ui.handle.getModel()).toEqual({
+      filterType: "number",
+      operator: "BETWEEN",
+      value: 10,
+      valueTo: 99,
+    });
     expect(filterByColumn).toHaveBeenCalledWith(
       "amount",
-      "greaterthanorequal",
+      "equal",
       10,
       "and",
       true,
     );
 
-    // where 若只带下界，dataStateChange 仍应用 pendingRanges 补成 BETWEEN
     vnode.props.dataStateChange({
       action: { requestType: "filtering" },
-      where: [
-        {
-          field: "amount",
-          operator: "greaterthanorequal",
-          value: 10,
-        },
-      ],
+      where: [{ field: "amount", operator: "equal", value: 10 }],
     });
     expect(onFilterModelChange).toHaveBeenLastCalledWith({
       amount: {
@@ -2798,12 +3141,166 @@ describe("Syncfusion skin", () => {
     target.remove();
   });
 
-  it("uses multi Menu filter UI for datetime columns (DATE|SET|MULTI)", () => {
+  it("swaps date/datetime/time value controls and writes WITHIN or BETWEEN", async () => {
+    const factory = createSyncfusionUiFactory();
+    const onFilterModelChange = vi.fn();
+    const metaUi = {
+      objName: "Order",
+      getListedFields: () => [
+        { fieldName: "day", displayLabel: "日期", dataType: 163 },
+        { fieldName: "orderedAt", displayLabel: "日期时间", dataType: 184 },
+        { fieldName: "shiftAt", displayLabel: "时间", dataType: 147 },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        onFilterModelChange,
+        dateRangeLabels: { TODAY: "今天", THIS_MONTH: "本月", WITHIN: "属于期间" },
+      }),
+    );
+    const dateColumn = vnode.props.columns.find(
+      (column: any) => column?.field === "day",
+    );
+    const dateTimeColumn = vnode.props.columns.find(
+      (column: any) => column?.field === "orderedAt",
+    );
+    const timeColumn = vnode.props.columns.find(
+      (column: any) => column?.field === "shiftAt",
+    );
+    expect(dateColumn.filter.ui).toBeTruthy();
+    expect(dateTimeColumn.filter.ui).toBeTruthy();
+    expect(timeColumn.filter.ui).toBeTruthy();
+
+    const dateOperators = [
+      { value: "equal", text: "等于" },
+      { value: "between", text: "介于" },
+      { value: "within", text: "属于期间" },
+    ];
+    vnode.props.actionBegin({
+      requestType: "filterBeforeOpen",
+      filterModel: {
+        options: { field: "orderedAt" },
+        customFilterOperators: { datetimeOperator: dateOperators },
+      },
+    });
+    expect(dateOperators.some((item) => item.value === "between")).toBe(false);
+    expect(dateOperators.some((item) => item.value === "within")).toBe(false);
+
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      configurable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+
+    const open = async (column: any) => {
+      const target = document.createElement("div");
+      target.className = "e-flmenu";
+      document.body.appendChild(target);
+      column.filter.ui.create({
+        target,
+        column,
+        getOptrInstance: { dropOptr: { value: "equal" } },
+      });
+      await nextTick();
+      return target;
+    };
+
+    const dateTarget = await open(dateColumn);
+    expect(dateTarget.querySelector(".e-datepicker, .flm-input")).toBeTruthy();
+    expect(dateColumn.filter.ui.handle).toBeUndefined();
+    dateColumn.filter.ui.destroy();
+    dateTarget.remove();
+
+    const dateTimeTarget = await open(dateTimeColumn);
+    expect(dateTimeTarget.querySelector(".e-datetimepicker, .flm-input")).toBeTruthy();
+    dateTimeColumn.filter.ui.destroy();
+    dateTimeTarget.remove();
+
+    const timeTarget = await open(timeColumn);
+    timeColumn.filter.ui.handle.setOperator("between");
+    await nextTick();
+    expect(timeTarget.querySelectorAll(".e-timepicker").length).toBe(2);
+    expect(timeTarget.textContent).not.toContain("属于期间");
+    timeColumn.filter.ui.destroy();
+    timeTarget.remove();
+  });
+
+  it("uses default Menu for plain text and join UI only when JOIN is set", () => {
     const factory = createSyncfusionUiFactory();
     const metaUi = {
       objName: "Order",
       getListedFields: () => [
-        { fieldName: "orderedAt", displayLabel: "日期", dataType: 184 },
+        { fieldName: "code", displayLabel: "单号", dataType: 48 },
+        {
+          fieldName: "remark",
+          displayLabel: "备注",
+          dataType: 48,
+          filterTypes:
+            MetaUiFieldFilterType.TEXT | MetaUiFieldFilterType.JOIN,
+        },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    );
+    const codeColumn = vnode.props.columns.find(
+      (column: any) => column?.field === "code",
+    );
+    const remarkColumn = vnode.props.columns.find(
+      (column: any) => column?.field === "remark",
+    );
+    expect(codeColumn.filter).toEqual({
+      type: "Menu",
+      operator: "contains",
+    });
+    expect(remarkColumn.filter.type).toBe("Menu");
+    expect(remarkColumn.filter.ui).toBeTruthy();
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    remarkColumn.filter.ui.create({
+      target,
+      column: remarkColumn,
+      getOptrInstance: {
+        dropOptr: { value: "contains", dataBind: vi.fn() },
+      },
+    });
+    expect(target.querySelector(".mmda-filter-multi__join")).toBeTruthy();
+    expect(target.querySelector(".mmda-filter-multi__join .e-input-group")).toBeTruthy();
+    expect(target.querySelector(".mmda-filter-multi > input.e-input")).toBeNull();
+    remarkColumn.filter.ui.destroy();
+    target.remove();
+  });
+
+  it("uses DatePicker for JOIN second condition on date columns", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      objName: "Order",
+      getListedFields: () => [
+        {
+          fieldName: "orderedAt",
+          displayLabel: "日期",
+          dataType: 184,
+          filterTypes:
+            MetaUiFieldFilterType.DATE | MetaUiFieldFilterType.JOIN,
+        },
       ],
       groups: [],
       primaryKey: "id",
@@ -2817,21 +3314,18 @@ describe("Syncfusion skin", () => {
     const dateColumn = vnode.props.columns.find(
       (column: any) => column?.field === "orderedAt",
     );
-    dateColumn.uid = "ordered-at-column";
     const target = document.createElement("div");
     document.body.appendChild(target);
     dateColumn.filter.ui.create({
       target,
       column: dateColumn,
-      getOptrInstance: {
-        dropOptr: {
-          value: "equal",
-          change: undefined,
-        },
-      },
+      getOptrInstance: { dropOptr: { value: "equal", dataBind: vi.fn() } },
     });
-    expect(target.querySelector(".mmda-filter-multi")).toBeTruthy();
-    expect(target.querySelector(".e-flmenu-input")).toBeTruthy();
+    expect(
+      target.querySelector(
+        ".mmda-filter-multi__join .e-datepicker, .mmda-filter-multi__join .e-datetimepicker",
+      ),
+    ).toBeTruthy();
     dateColumn.filter.ui.destroy();
     target.remove();
   });
@@ -2953,21 +3447,27 @@ describe("Syncfusion skin", () => {
 
   it("maps factory.breadcrumb items onto EJ2 BreadcrumbComponent", () => {
     const uiFactory = createSyncfusionUiFactory();
-    const vnode = uiFactory.breadcrumb({
+    const defaultSep = uiFactory.breadcrumb({
       items: [
         { label: "组织", to: "/org", icon: "home" },
         { label: "部门" },
       ],
-      separator: ">",
     });
-    expect((vnode.props as any)?.enableNavigation).toBe(false);
-    expect((vnode.props as any)?.items?.[0]?.text).toBe("组织");
-    expect((vnode.props as any)?.items?.[0]?.url).toBe("/org");
-    expect((vnode.props as any)?.items?.[1]?.text).toBe("部门");
-    expect((vnode.props as any)?.style?.["--mmda-breadcrumb-sep"]).toBe('">"');
-    expect(String((vnode.props as any)?.cssClass ?? "")).toContain(
+    expect((defaultSep.props as any)?.enableNavigation).toBe(false);
+    expect((defaultSep.props as any)?.items?.[0]?.text).toBe("组织");
+    expect((defaultSep.props as any)?.items?.[0]?.url).toBe("/org");
+    expect((defaultSep.props as any)?.items?.[1]?.text).toBe("部门");
+    expect((defaultSep.props as any)?.separatorTemplate).toBeUndefined();
+    expect(String((defaultSep.props as any)?.cssClass ?? "")).toContain(
       "mmda-breadcrumb",
     );
+
+    const customSep = uiFactory.breadcrumb({
+      items: [{ label: "组织" }, { label: "部门" }],
+      separator: ">",
+    });
+    expect((customSep.props as any)?.separatorTemplate).toBeTypeOf("function");
+    expect((customSep.props as any)?.separatorTemplate()).toBe(">");
   });
 
   it("maps factory.calendar onto EJ2 CalendarComponent", () => {
@@ -3197,6 +3697,63 @@ describe("Syncfusion skin", () => {
     );
   });
 
+  it("Index more 在 hasJoinList 时含联查模式", () => {
+    const builder = new SyncfusionUiBuilder();
+    const module = {
+      authority: auth(ModuleOp.READ | ModuleOp.CREATE | ModuleOp.EXPORT),
+    };
+    const metaUi = {
+      objName: "MaterialTrans",
+      displayLabel: "物料事务",
+      hasJoinList: () => true,
+    };
+    const context = {
+      view: UiViewMany.Index,
+      many: true,
+      editing: false,
+      title: "物料事务",
+      metaUi,
+      model: { list: [] },
+      logic: { module, repository: "MaterialTranses", meta: { metaUi } },
+      module,
+      joinListMode: false,
+      refresh: () => undefined,
+      actionLoadings: {},
+      executing: false,
+      globalProps: { $t: (message: string) => message },
+      t: (message: string) => message,
+      translate: (message: string) => message,
+      customActions: [],
+      selectionMode: null,
+    };
+    const buttons = (builder as any).indexViewActionButtons(context);
+    expect(JSON.stringify(buttons)).toContain("joinListMode");
+    expect(JSON.stringify(buttons)).toContain("tableSettings");
+  });
+
+  it("联查表头把 移料清单.规格 收成 .规格", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      getListedFields: () => [
+        { fieldName: "spec", displayLabel: "移料清单.规格" },
+        { fieldName: "status", displayLabel: "状态" },
+      ],
+      groups: [],
+      primaryKey: "id,itemID",
+    } as any;
+    const joinColumns = gridOf(
+      factory.table([], metaUi, { joinListMode: true }),
+    ).props.columns;
+    const spec = joinColumns.find((column: any) => column.field === "spec");
+    const status = joinColumns.find((column: any) => column.field === "status");
+    expect(spec.headerText).toBe(".规格");
+    expect(status.headerText).toBe("状态");
+    const masterColumns = gridOf(factory.table([], metaUi, {})).props.columns;
+    expect(
+      masterColumns.find((column: any) => column.field === "spec").headerText,
+    ).toBe("移料清单.规格");
+  });
+
   it("auto-fits visible list columns and persists px widths to listSize", async () => {
     const columns = [
       { field: "rowNum", width: 60, visible: true, type: undefined },
@@ -3363,10 +3920,15 @@ describe("Syncfusion skin", () => {
       "action.more",
     ]);
     expect(buttons[4].props.cssClass).toContain("e-danger");
-    expect(buttons[5].props.items.map((item: any) => item.text)).toEqual([
+    expect(buttons[5].props.items.map((item: any) =>
+      item.separator ? { separator: true } : item.text,
+    )).toEqual([
       "action.print",
       "action.export",
       "action.import",
+      { separator: true },
+      "action.pageLayoutCards",
+      "action.pageLayoutTabs",
     ]);
     expect(String(buttons[5].props.cssClass ?? "")).toContain("e-secondary");
     expect(buttons[5].props.iconCss).toBe("e-icons e-more-vertical-1");
@@ -3420,6 +3982,13 @@ describe("Syncfusion skin", () => {
     expect(l10n.getConstant("EndsWith")).toBe("结尾是");
     expect(l10n.getConstant("NotStartsWith")).toBe("开头不是");
     expect(l10n.getConstant("ClearFilter")).toBe("清除筛选");
+    const intl = new Internationalization("zh-Hans");
+    expect(intl.formatDate(new Date(2026, 8, 13), { format: "MMMM" })).toBe(
+      "九月",
+    );
+    expect(
+      intl.formatDate(new Date(2026, 8, 13), { skeleton: "yMMMM" }),
+    ).toBe("2026年9月");
     expect(applySyncfusionLocale("en")).toBe("en-US");
   });
 });
@@ -3545,5 +4114,20 @@ describe("gridFiltersToModel join/multi", () => {
       operator: "IN",
       values: ["A", "B"],
     });
+  });
+
+  it("maps within to WITHIN and keeps it off the official date Menu", () => {
+    expect(gridFilterOperator("within", "date")).toBe("WITHIN");
+    const ops = menuFilterOperators();
+    expect(ops.dateOperator.some((item) => item.value === "within")).toBe(false);
+    expect(ops.dateOperator.some((item) => item.value === "between")).toBe(
+      false,
+    );
+    expect(ops.numberOperator.some((item) => item.value === "within")).toBe(
+      false,
+    );
+    expect(ops.numberOperator.some((item) => item.value === "between")).toBe(
+      false,
+    );
   });
 });

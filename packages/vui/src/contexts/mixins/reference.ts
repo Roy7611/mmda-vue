@@ -2,13 +2,15 @@ import {
   MetaUiFieldLogic,
   emptyPagedList,
   assignSearchParam,
+  defaultChoicePager,
   defineEntity,
+  pagedListIsComplete,
   type MetaUiField,
   type EntitySelectParam,
   type Module,
   type ModuleAuth,
 } from "@mmda/core";
-import { defineComponent, h, type Ref } from "vue";
+import type { Ref } from "vue";
 import { UiViewMany } from "../view";
 import { createSession } from "./session";
 import type { Constructor } from "./types";
@@ -80,39 +82,49 @@ export function WithReference<TBase extends Constructor>(
     }
 
     /**
-     * 为下拉类控件按需加载 REF / 枚举选项，并写回共享 refOptions。
-     * enum 或已有缓存直接返回；ref 无缓存走当前列表实体 pivotValues；hasOne 不一次灌全量。
+     * 首页 50 写入 refOptions。enum / 已有缓存直接返回；
+     * ref 与 hasOne 同一套；搜索页不要走这里。
      */
     async loadReferenceOptions(field: MetaUiField): Promise<any[]> {
       const ref = field.reference;
       if (!ref) return [];
-      if (ref.isEnum || ref.refOptions.length > 0) return ref.refOptions;
-      if (ref.hasOne && !ref.isRef) return ref.refOptions;
-      if (!ref.isRef || !this.app) {
+      if (ref.isEnum) return ref.refOptions;
+      if (ref.refOptions.length > 0) {
+        const cached = this.getFieldOptions(field);
+        cached.selectOptions = ref.refOptions;
+        cached.refOptionsComplete = ref.refOptionsComplete;
+        return ref.refOptions;
+      }
+      if (
+        !(ref.isRef || ref.hasOne) ||
+        !this.logic ||
+        !ref.refRepository
+      ) {
         return ref.refOptions;
       }
 
-      const cacheKey = `${ref.service ?? ""}:${this.listRepository()}:${field.fieldName}`;
+      const cacheKey = `${ref.service ?? ""}:${ref.refRepository}:${field.fieldName}`;
       const pending = this.referenceOptionLoads.get(cacheKey);
       if (pending) return pending;
 
       const request = (async () => {
-        const api = this.app!.api as {
-          getPivotValues?: (
-            field: string,
-            options?: Record<string, unknown>,
-          ) => Promise<string[]>;
-          config?: { repository?: string; service?: string };
-        };
-        const values =
-          (await api.getPivotValues?.(field.fieldName, {
-            repository: this.listRepository(),
-            service: ref.service ?? api.config?.service,
-          })) ?? [];
-        const valueKey = ref.refFlds?.[0] ?? field.fieldName;
-        const options = values.map((value) => ({ [valueKey]: value }));
-        ref.refOptions.splice(0, ref.refOptions.length, ...options);
-        this.getFieldOptions(field).selectOptions = ref.refOptions;
+        const options = this.getFieldOptions(field);
+        options.searchParam.pager = defaultChoicePager();
+        options.searchParam.searchWord = "";
+        const page = await this.logic!.searchRelative(options.searchParam, {
+          repository: ref.refRepository!,
+          service: ref.service,
+        });
+        const list = page?.list ?? [];
+        ref.refOptions.splice(0, ref.refOptions.length, ...list);
+        const complete = pagedListIsComplete({
+          list,
+          pagination: page?.pagination ?? defaultChoicePager(),
+        });
+        ref.refOptionsComplete = complete;
+        options.refOptionsComplete = complete;
+        options.selectOptions = ref.refOptions;
+        if (page?.pagination) options.pagination = page.pagination;
         return ref.refOptions;
       })();
 
@@ -136,7 +148,7 @@ export function WithReference<TBase extends Constructor>(
         const fld = this.resolveField(fieldOrParam as MetaUiField | string);
         const ref = fld.reference;
         if (!ref?.refRepository || !this.app) {
-          this.app?.ui.toast(this, {
+          void this.uiBuilder?.toast?.(this, {
             severity: "error",
             title: this.t("dialog.title.error"),
             message: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
@@ -165,7 +177,7 @@ export function WithReference<TBase extends Constructor>(
           return picked[0];
         } catch (error) {
           console.error(error);
-          this.app.ui.toast(this, {
+          void this.uiBuilder?.toast?.(this, {
             severity: "error",
             title: this.t("dialog.title.error"),
             message: error instanceof Error ? error.message : String(error),
@@ -175,7 +187,7 @@ export function WithReference<TBase extends Constructor>(
         }
       }
       const param = fieldOrParam as EntitySelectParam<T>;
-      if (!this.app) return false;
+      if (!this.app || !this.uiBuilder) return false;
       const service = param.service ?? this.app.name ?? "base";
       const pack = await this.app.meta.getPack({
         repository: param.repository,
@@ -248,7 +260,6 @@ export function WithReference<TBase extends Constructor>(
         authority.allowRead ||
         authority.allowEdit ||
         authority.allowDelete;
-      const ui = this.app.ui;
       let picked: T[] = [];
       const listProps = {
         selectionMode,
@@ -267,40 +278,31 @@ export function WithReference<TBase extends Constructor>(
             ? (item: T) => {
                 picked = item != null ? [item] : [];
                 selectCtx.selectedItems = picked;
-                void this.app?.ui.overlay.closeTopDialog?.("ok");
+                void this.uiBuilder?.overlay?.closeTopDialog?.("ok");
               }
             : undefined,
       };
 
-      const SelectListHost = defineComponent({
-        name: "SelectListHost",
-        setup() {
-          return () => {
-            void selectCtx.loading?.value;
-            const model = selectCtx.model as {
-              list?: unknown[];
-              pagination?: { pageNo?: number };
-            };
-            void model?.list?.length;
-            void model?.pagination?.pageNo;
-            return ui.build(selectCtx, listProps);
-          };
-        },
-      });
-
       this.root.showDialog = true;
       try {
-        const result = await this.app.ui.dialog(
-          h(SelectListHost),
-          selectCtx,
-          {
+        const entityLabel =
+          pack.metaUi.displayLabel ?? param.repository;
+        const title = selectCtx.t(
+          selectionMode === "single"
+            ? "view.selectOneEntity"
+            : "view.selectManyEntity",
+          { entity: entityLabel },
+        );
+        const result = await this.uiBuilder.selectDialog(selectCtx, {
+          dlgProps: {
             name: "select",
-            title: pack.metaUi.displayLabel ?? param.repository,
+            title,
             width: "80vw",
             height: "80vh",
             maxHeight: "90vh",
           },
-        );
+          viewProps: listProps,
+        });
         if (result !== "ok") return false;
         if (!picked.length && selectCtx.selectedItems?.length) {
           picked = selectCtx.selectedItems as T[];

@@ -117,7 +117,7 @@ Entity 路由 / context.select
 | **`editFor`** | 程序员强制编辑 | `customEditor` ?? `field.editor` ?? **`fallbackInput`** |
 | **`displayFor`** | 程序员强制只读 | `customRenderer` ?? `field.renderer`（bool 默认 `checkedIcon`）?? **`fallbackDisplay`** |
 
-三者都套默认 `layout.layoutField`（标签 + 控件 + 可选校验文案）。
+三者都套默认 `layout.layoutField`（标签 + 控件）。校验文案由皮肤控件自绘。
 
 - `buildFieldGroup` 与自定义屏默认 **`render`**
 - **具名 renderer 仍是裸控件**；表格单元格用具名方法，**不要**走这三条（会带标签）

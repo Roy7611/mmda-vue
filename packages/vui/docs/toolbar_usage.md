@@ -7,7 +7,7 @@ factory.toolbar(
   {
     layout: 'full',
     align: { end: 'right' },
-    class: 'mmda-page-header',
+    class: 'mmda-page__header',
   },
   {
     start: () => factory.breadcrumb({ items }),

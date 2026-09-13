@@ -5,6 +5,7 @@ import { dateTimePickerStepOf, timePickerModifierClasses } from "@mmda/core"
 import { TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
+import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 export function createTimePicker(props: UiTimePickerProps) {
   const {
@@ -58,6 +59,7 @@ export function createTimePicker(props: UiTimePickerProps) {
     strictMode: true,
     step: dateTimePickerStepOf(props),
     ...(inputFormats ? { inputFormats } : {}),
+    locale: getSyncfusionCulture(),
     cssClass,
     change: (args: { value?: Date | null }) =>
       emitDateChange(props, args?.value ?? null),

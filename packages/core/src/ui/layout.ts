@@ -50,18 +50,12 @@ export interface UiFieldGroupLayout {
   gridCols?: 1 | 2 | 3
 }
 
-/** 字段文案严重程度：叠在 `mmda-field-message` 上的 class，仅此两种。 */
-export type UiFieldMessageKind = 'error' | 'warning'
-
-/** {@link UiLayout.layoutField} 入参：这一行的节点。方向由 {@link UiLayout.fieldVertical} 切换。 */
+/** {@link UiLayout.layoutField} 入参：这一行的节点。方向由 {@link UiLayout.fieldVertical} 切换。校验文案由控件自己画，不经 layout。 */
 export interface UiFieldSlots<TNode = any> {
   /** 标签 */
   label: TNode
   /** 控件 */
   control: TNode
-  message?: TNode
-  /** 文案严重程度；缺省 error。有 message 时根 class 为 `mmda-field-message error|warning`。 */
-  messageKind?: UiFieldMessageKind
   /** 组网格列：占格结果，如 `2 / span 2` */
   gridColumn?: string
   /** 组网格行：占格结果，如 `1 / span 3` */
@@ -142,12 +136,25 @@ export interface UiFieldGroupProps<TNode = any> {
   fields: TNode[]
 }
 
+/** 详情页壳：左右卡（默认）或顶栏重要字段 + 每组一页签。 */
+export type UiPageLayout = 'cards' | 'tabs'
+
 /** 实体详情/编辑页布局配置 {@link UiLayout.layoutPage} 入参。 */
 export interface UiPageSlots<TNode = any> {
   /** 工具栏 */
   toolbar?: TNode
   /** 页面消息提示（横跨 primary + summary），消息提示会把两栏一起往下挤。 */
   banner?: TNode
+  /**
+   * 页壳。缺省 `cards`（banner + primary | summary）。
+   * `tabs`：banner + {@link emphasis} + primary（通常是 factory.tabs）。
+   */
+  pageLayout?: UiPageLayout
+  /**
+   * 重要字段条（`MetaUiField.emphasized`）。仅 `pageLayout: 'tabs'` 使用；
+   * 由 FormBuilder 用 `displayFor` 拼成只读节点，可与 tabs 内字段重复。
+   */
+  emphasis?: TNode
   /** 主体区域 */
   primary: TNode[]
   /** 摘要区域 */
@@ -193,6 +200,11 @@ export interface UiLayout<TNode = any> {
    * 赋值时把 {@link layoutFieldHorz} / {@link layoutFieldVert} 挂到 {@link layoutField}。
    */
   fieldVertical: boolean
+  /**
+   * 实体详情页壳：`cards` | `tabs`。默认 `cards`。
+   * Vue 皮肤可从本地偏好 `mmda/pageLayout` 初始化并写回。
+   */
+  pageLayout: UiPageLayout
   /** 字段组布局默认。缺省 grid 排法，2 列 */
   fieldGroupLayout: UiFieldGroupLayout
   /** row / column / grid 的间距。默认 0.75rem */
@@ -206,22 +218,25 @@ export interface UiLayout<TNode = any> {
    */
   scaffold(slots: UiAppScaffoldSlots<TNode>): TNode
 
-  /** 单元格布局。默认 1 列 */
+  /** 单元格：flex 权重 `nCol`（默认 1），`minWidth: 0`。 */
   cell(child: TNode, nCol?: number): TNode
-  /** 行布局。默认按列数分配宽度 */
+  /**
+   * 横排 flex（可 wrap）；`nCols[i]` 为第 i 项权重。
+   * 列表项请用 {@link listTile}，不要拿本方法硬套图标行。
+   */
   row(children: TNode[], nCols: number[], props?: UiProps): TNode
   /** 列布局。默认垂直排列 */
   column(children: TNode[], props?: UiProps): TNode
-  /** 网格布局。默认按列数分配宽度，不足时按 16rem 最小宽度自适应 */
+  /** CSS grid 装箱（字段组等）；`nCols` 为各列 fr。与 {@link row} 的 flex 权重不同。 */
   grid(children: TNode[], nCols: number[], props?: UiProps): TNode
 
   /**
    * 字段行入口（函数槽）。外部始终调这个；切换方向时挂上 Horz 或 Vert。
    */
   layoutField: (slots: UiFieldSlots<TNode>) => TNode
-  /** 横排字段：label | control（+ 可选 message） */
+  /** 横排字段：label | control。校验文案由控件自绘。 */
   layoutFieldHorz(slots: UiFieldSlots<TNode>): TNode
-  /** 竖排字段：label 在上、control 在下（+ 可选 message） */
+  /** 竖排字段：label 在上、control 在下。校验文案由控件自绘。 */
   layoutFieldVert(slots: UiFieldSlots<TNode>): TNode
   /** 字段组布局。排法用 fieldGroupLayout */
   layoutFieldGroup(options: UiFieldGroupProps<TNode>): TNode
@@ -235,11 +250,13 @@ export interface UiLayout<TNode = any> {
 }
 
 /**
- * 能上移的骨架：cell / row / column / grid / field / group / page / listTile。
+ * 界面布局抽象类，实现能上移的骨架：cell / row / column / grid / field / group / page / listTile。
  * 造节点走 wrap；scaffold 由实现类提供。
  */
 export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   #fieldVertical = false
+  /** 详情页壳偏好。默认 cards；皮肤可覆写 getter/setter 做本地持久化。 */
+  pageLayout: UiPageLayout = 'cards'
   /** row / column / grid 间距 */
   gap = '0.75rem'
   /** 字段行入口；默认挂横排。改 {@link fieldVertical} 时重绑。 */
@@ -269,29 +286,47 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   ): TNode
 
   cell(child: TNode, nCol = 1): TNode {
+    const n = Math.max(1, nCol)
     return this.wrap(
       'div',
       {
         className: uiCssClass('cell'),
-        style: { gridColumn: `span ${Math.max(1, nCol)}` },
+        style: { flexGrow: n, flexShrink: 1, flexBasis: 0, minWidth: 0 },
       },
       [child],
     )
   }
 
+  /**
+   * 横排 flex：可 wrap；`nCols[i]` 为第 i 项权重（`flexGrow`，缺省 1）。
+   * 用 longhand（非 `flex` 简写），避免 jsdom 丢样式。
+   * 列表项请用 {@link listTile}（nowrap 三槽），不要拿本方法硬套图标行。
+   */
   row(children: TNode[], nCols: number[], props?: UiProps): TNode {
+    const cells = children.map((child, i) => {
+      const n = Math.max(1, nCols[i] ?? 1)
+      return this.wrap(
+        'div',
+        {
+          className: uiCssClass('cell'),
+          style: { flexGrow: n, flexShrink: 1, flexBasis: 0, minWidth: 0 },
+        },
+        [child],
+      )
+    })
     return this.wrap(
       'div',
       {
         className: uiCssClass('row'),
         style: {
-          display: 'grid',
-          gridTemplateColumns: nCols.map((n) => `${n}fr`).join(' '),
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'start',
           gap: this.gap,
         },
         attributes: props,
       },
-      children,
+      cells,
     )
   }
 
@@ -330,17 +365,6 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     )
   }
 
-  /** 页体节点。缺省铺平 banner / primary / tails / summary / footer。vui 覆写成可折叠区域壳。 */
-  protected pageBody(slots: UiPageSlots<TNode>): TNode[] {
-    return [
-      ...(slots.banner == null ? [] : [slots.banner]),
-      ...slots.primary,
-      ...(slots.tails ?? []),
-      ...(slots.summary ?? []),
-      ...(slots.footer == null ? [] : [slots.footer]),
-    ]
-  }
-
   /** 组网格占格坐标 → 根 style。 */
   protected fieldCellStyle(
     slots: UiFieldSlots<TNode>,
@@ -351,12 +375,9 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     return style
   }
 
-  /** 包一层控件 / 文案节点，便于测控选中。 */
-  protected fieldParts(slots: UiFieldSlots<TNode>): {
-    control: TNode
-    message?: TNode
-  } {
-    const control = this.wrap(
+  /** 包一层控件节点，便于测控选中。 */
+  protected fieldControl(slots: UiFieldSlots<TNode>): TNode {
+    return this.wrap(
       'div',
       {
         className: uiCssClass('field-control'),
@@ -364,20 +385,9 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
       },
       [slots.control],
     )
-    if (slots.message == null) return { control }
-    const kind = slots.messageKind ?? 'error'
-    const message = this.wrap(
-      'small',
-      { className: `${uiCssClass('field-message')} ${kind}` },
-      [slots.message],
-    )
-    return { control, message }
   }
 
   layoutFieldHorz(slots: UiFieldSlots<TNode>): TNode {
-    const { control, message } = this.fieldParts(slots)
-    const children =
-      message == null ? [slots.label, control] : [slots.label, control, message]
     return this.wrap(
       'div',
       {
@@ -387,14 +397,11 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
           ...this.fieldCellStyle(slots),
         },
       },
-      children,
+      [slots.label, this.fieldControl(slots)],
     )
   }
 
   layoutFieldVert(slots: UiFieldSlots<TNode>): TNode {
-    const { control, message } = this.fieldParts(slots)
-    const children =
-      message == null ? [slots.label, control] : [slots.label, control, message]
     return this.wrap(
       'div',
       {
@@ -404,7 +411,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
           ...this.fieldCellStyle(slots),
         },
       },
-      children,
+      [slots.label, this.fieldControl(slots)],
     )
   }
 
@@ -424,6 +431,9 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     )
   }
 
+  /**
+   * 缺省铺平槽位（测试 / 无壳后端）。折叠摘要、左右栏、tabs 壳由 vui 等覆写本方法。
+   */
   layoutPage(slots: UiPageSlots<TNode>): TNode {
     const toolbarNode =
       slots.toolbar == null
@@ -431,23 +441,38 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
         : this.wrap(
             'header',
             {
-              className: uiCssClasses('page-header', 'sticky'),
+              className: [
+                uiCssClass('page', 'header'),
+                uiCssClass('page', 'header', 'sticky'),
+              ].join(' '),
               style: { position: 'sticky', top: 0, zIndex: 2 },
             },
             [slots.toolbar],
           )
-    const body = this.pageBody(slots)
+    const body = [
+      ...(slots.banner == null ? [] : [slots.banner]),
+      ...(slots.emphasis == null ? [] : [slots.emphasis]),
+      ...slots.primary,
+      ...(slots.tails ?? []),
+      ...(slots.summary ?? []),
+      ...(slots.footer == null ? [] : [slots.footer]),
+    ]
     const children = toolbarNode == null ? body : [toolbarNode, ...body]
+    const rows = [
+      slots.toolbar == null ? null : 'auto',
+      'minmax(0, 1fr)',
+      slots.footer == null ? null : 'auto',
+    ].filter(Boolean)
+    const pageLayout = slots.pageLayout === 'tabs' ? 'tabs' : undefined
     return this.wrap(
       'section',
       {
-        className: uiCssClass('page'),
+        className: pageLayout
+          ? uiCssClasses('page', pageLayout)
+          : uiCssClass('page'),
         style: {
           display: 'grid',
-          gridTemplateRows:
-            slots.toolbar == null
-              ? 'minmax(0, 1fr)'
-              : 'auto minmax(0, 1fr)',
+          gridTemplateRows: rows.join(' '),
           height: '100%',
           minHeight: 0,
           overflow: 'auto',
@@ -457,30 +482,67 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     )
   }
 
+  /**
+   * 移动端列表项：三槽 nowrap（leading | body | trailing）。
+   * 左右按内容宽，中间吃剩并靠 minWidth:0 省略；不走可 wrap 的 {@link row}。
+   */
   listTile(slots: UiListTileSlots<TNode>): TNode {
+    const bodyInner = slots.subtitle
+      ? this.column([slots.title(), slots.subtitle()])
+      : slots.title()
     const children: TNode[] = []
-    let leftCols = this.maxCols
-    const nCols: number[] = []
     if (slots.leading) {
-      const leadingCols = 2
-      leftCols -= leadingCols
-      children.push(slots.leading())
-      nCols.push(leadingCols)
+      children.push(
+        this.wrap(
+          'div',
+          {
+            className: uiCssClass('list-tile', 'leading'),
+            style: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
+          },
+          [slots.leading()],
+        ),
+      )
     }
-    if (slots.subtitle) {
-      children.push(this.column([slots.title(), slots.subtitle()]))
-    } else {
-      children.push(slots.title())
-    }
+    children.push(
+      this.wrap(
+        'div',
+        {
+          className: uiCssClass('list-tile', 'body'),
+          style: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 0,
+            minWidth: 0,
+          },
+        },
+        [bodyInner],
+      ),
+    )
     if (slots.trailing) {
-      const trailingCols = 2
-      leftCols -= trailingCols
-      nCols.push(leftCols)
-      children.push(slots.trailing())
-      nCols.push(trailingCols)
-    } else {
-      nCols.push(leftCols)
+      children.push(
+        this.wrap(
+          'div',
+          {
+            className: uiCssClass('list-tile', 'trailing'),
+            style: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
+          },
+          [slots.trailing()],
+        ),
+      )
     }
-    return this.row(children, nCols)
+    return this.wrap(
+      'div',
+      {
+        className: uiCssClass('list-tile'),
+        style: {
+          display: 'flex',
+          flexWrap: 'nowrap',
+          alignItems: 'center',
+          gap: this.gap,
+          minWidth: 0,
+        },
+      },
+      children,
+    )
   }
 }

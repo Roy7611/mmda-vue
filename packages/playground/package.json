@@ -17,6 +17,7 @@
     "ag-grid-community": "^34.3.1",
     "ag-grid-enterprise": "^34.3.1",
     "ag-grid-vue3": "^34.3.1",
+    "@ag-grid-community/locale": "^34.3.1",
     "naive-ui": "^2.45.0",
     "vue": "^3.5.25",
     "vue-i18n": "^11.1.11",

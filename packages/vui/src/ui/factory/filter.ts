@@ -1,9 +1,11 @@
 import {
   MetaUiField,
   SqlDataType,
+  dateKindFilter,
   getFieldFilterOps,
   getSqlOperator,
   isArray,
+  isDateRangeKind,
   isNullOrUndefined,
 } from "@mmda/core";
 import type {
@@ -193,7 +195,12 @@ export class UiSearchField {
   changeCurrentOp(op: EntityFilterOperator, t?: TranslateFn) {
     this.currentOp = op;
     this.currentOpLabel.value = t ? t(`matcher.${op}`) : op;
-    if (op === "IS_NULL" || op === "IS_NOT_NULL") {
+    if (
+      op === "IS_NULL" ||
+      op === "IS_NOT_NULL" ||
+      op === "IS_BLANK" ||
+      op === "IS_NOT_BLANK"
+    ) {
       this.searchVal.value = op;
     }
   }
@@ -214,6 +221,11 @@ export class UiSearchField {
               ? false
               : null,
       };
+    }
+    if (operator === "WITHIN") {
+      return isDateRangeKind(filterValue)
+        ? dateKindFilter(filterValue)
+        : undefined;
     }
     if (
       this.field.reference?.isEnum &&

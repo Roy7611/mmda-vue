@@ -29,7 +29,7 @@ const searchParam = {
 	},
 	searchWord: '',
 	searchParams: {}
-})
+};
 const collectmaterialparams = {
 	tableData: []
 } as any

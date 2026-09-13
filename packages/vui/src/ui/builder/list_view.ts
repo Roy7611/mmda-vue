@@ -9,6 +9,8 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import {
+  CHOICE_PAGE_SIZE,
+  DEFAULT_PAGE_SIZE,
   MetaModel,
   SqlDataType,
   auth,
@@ -32,6 +34,7 @@ import type {
 } from "../factory/list";
 import type { CustomFilter } from "../factory/filter";
 import { writeListFilterModel, writeListSorts } from "./list_query";
+import { indexTableMetaUi } from "./join_list_mode";
 import type {
   UiTreeGridPropsType,
   UiTreeGridViewPropsType,
@@ -45,6 +48,7 @@ import {
 } from "../factory/tree";
 import { UiActionDivider, type UiAction } from "../factory/action";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
+import { getModuleContext } from "../../contexts/vue_module_context";
 import type { VueUiBuilder } from "./builder";
 import type { UiToolbarLayout } from "../factory/toolbar";
 import type { UiContext } from "./helpers";
@@ -230,7 +234,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           toolbar ? this.buildHeader(toolbar) : null,
           !toolbar && searchbar ? this.buildHeader(searchbar) : null,
           this.buildMain(treeGrid, {
-            class: uiCssClass("page-body"),
+            class: uiCssClass("page", "body"),
             style: { flex: "1 1 auto", minHeight: 0, overflow: "auto" },
           }),
         ].filter(Boolean) as VNode[],
@@ -557,7 +561,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           : display === "treeGrid"
             ? this.buildTreeGrid(
                 (runtime.model?.list ?? runtime.model ?? []) as any[],
-                context.metaUi,
+                indexTableMetaUi(context as any),
                 () => context,
                 rowProps,
               )
@@ -578,7 +582,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           toolbar ? this.buildHeader(toolbar) : null,
           !toolbar && searchbar ? this.buildHeader(searchbar) : null,
           this.buildMain(list, {
-            class: uiCssClass("page-body"),
+            class: uiCssClass("page", "body"),
             style: {
               flex: "1 1 auto",
               minWidth: 0,
@@ -635,7 +639,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       props: UiListPropsType<T> = {}
     ): VNode {
       const model = context.model as any;
-      return this.factory.list(model.list ?? model ?? [], context.metaUi, {
+      return this.factory.list(model.list ?? model ?? [], indexTableMetaUi(context as any), {
         ...props,
         display: props.display ?? "list",
       });
@@ -669,17 +673,21 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       const runtime = context as any;
       return this.tableWithCells(
         model.list ?? model ?? [],
-        context.metaUi,
+        indexTableMetaUi(context as any),
         () => context,
         {
           filterDisplay: props.filterDisplay ?? "menu",
           ...props,
+          joinListMode: Boolean((context as any).joinListMode),
           filterLabels: {
             all: context.translate("state.all"),
             yes: context.translate("boolean.yes"),
             no: context.translate("boolean.no"),
             apply: context.translate("action.apply"),
             clear: context.translate("action.clear"),
+            values: context.translate("filter.values"),
+            date: context.translate("filter.date"),
+            datetime: context.translate("filter.datetime"),
             ...props.filterLabels,
           },
           filterModel: runtime.searchParam?.filterModel,
@@ -709,7 +717,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           searchRelative: async (field, searchWord) => {
             const options = runtime.getFieldOptions(field);
             options.searchParam.pager.pageNo = 1;
-            options.searchParam.pager.pageSize = 20;
+            options.searchParam.pager.pageSize = CHOICE_PAGE_SIZE;
             await runtime.searchRelative(field, searchWord);
             return options.selectOptions;
           },
@@ -1149,7 +1157,7 @@ const TreeListView = defineComponent({
           },
           {
             content: self.buildMain(list, {
-              class: uiCssClass("page-body"),
+              class: uiCssClass("page", "body"),
               style: { height: "100%", minWidth: 0, overflow: "hidden" },
             }),
             min: "16rem",

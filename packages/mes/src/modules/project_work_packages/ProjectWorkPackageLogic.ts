@@ -34,7 +34,7 @@ const getDaysBetweenDates = (date1: any, date2: any) => {
 
 const taskLevelOption = { value: [] } as any;
 const taskPhaseOption = { value: [] } as any;
-const hrefData = { value:  };
+const hrefData = { value: {} as any };
 //项目
 const projectsData = {
 	project: <any>null,
@@ -46,7 +46,7 @@ const projectsData = {
 	projectsList: <any>[],
 	tablecolumns: <any>[],
 	tableDataKEY: 'id',
-});
+};
 /**
  * 获取所有的 Projects
  */

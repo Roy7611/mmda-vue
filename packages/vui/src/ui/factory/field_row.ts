@@ -14,6 +14,7 @@ type UiContext = VueUiContext<any>
 /**
  * 给字段工厂挂上带标签行的三个入口：`render` / `editFor` / `displayFor`。
  * 具名 editor/renderer 仍是裸控件；表格单元格不要走这里。
+ * Validation copy is drawn by skin controls, not layoutField.
  *
  * vui 在 Builder 构造时调用一次；皮肤不必各自实现。
  */
@@ -81,42 +82,39 @@ export function attachFieldRowApi(
 
   const wrapRow = (
     field: MetaUiField,
-    context: UiContext,
+    _context: UiContext,
     control: VNode,
     props: UiProps,
-    useEditor: boolean,
+    _useEditor: boolean,
   ): VNode => {
     const {
       editing: _editing,
-      direction: _direction,
-      orientation: _orientation,
+      direction,
+      orientation,
       isReadonly: _isReadonly,
+      fieldVertical,
       gridColumn,
       gridRow,
       ..._controlProps
     } = props as UiProps & {
+      fieldVertical?: boolean
       gridColumn?: string
       gridRow?: string
     }
-    const runtime = context as UiContext & {
-      isInvalid?: (field: MetaUiField) => boolean
-      getInvalidMessage?: (field: MetaUiField) => string
-    }
-    const invalid = useEditor && runtime.isInvalid?.(field)
-    const messageText = invalid
-      ? runtime.getInvalidMessage?.(field)
-      : undefined
-    return layout.layoutField({
+    const slots = {
       label: labelFor(field),
       control,
-      message:
-        messageText == null || messageText === ''
-          ? undefined
-          : (messageText as unknown as VNode),
-      messageKind: 'error',
       gridColumn,
       gridRow,
-    })
+    }
+    // 单次调用可覆写全局 layout.fieldVertical（cards 页组默认传 true）
+    const useVert =
+      fieldVertical === true ||
+      orientation === 'vertical' ||
+      direction === 'vertical'
+    return useVert
+      ? layout.layoutFieldVert(slots)
+      : layout.layoutField(slots)
   }
 
   fieldFactory.editFor = (
@@ -129,10 +127,15 @@ export function attachFieldRowApi(
       direction: _d,
       orientation: _o,
       isReadonly: _r,
+      fieldVertical: _fv,
       gridColumn: _gc,
       gridRow: _gr,
       ...controlProps
-    } = props as UiProps & { gridColumn?: string; gridRow?: string }
+    } = props as UiProps & {
+      fieldVertical?: boolean
+      gridColumn?: string
+      gridRow?: string
+    }
     return wrapRow(
       field,
       context,
@@ -152,10 +155,15 @@ export function attachFieldRowApi(
       direction: _d,
       orientation: _o,
       isReadonly: _r,
+      fieldVertical: _fv,
       gridColumn: _gc,
       gridRow: _gr,
       ...controlProps
-    } = props as UiProps & { gridColumn?: string; gridRow?: string }
+    } = props as UiProps & {
+      fieldVertical?: boolean
+      gridColumn?: string
+      gridRow?: string
+    }
     return wrapRow(
       field,
       context,

@@ -69,14 +69,14 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 
 `filterModel` ↔ `searchParam.filterModel`。皮肤用各自的弹出层和编辑器。应用条件后页码回到 1。表头运算符是 `EntityFilterOperator`（i18n `matcher.${op}`，来自 `getFieldFilterOps`）。不要再依赖 SearchOp。
 
-列筛总开关是 `filterable`（缺省 table 开；树表 / edit 关）。形态只认 `filterDisplay`: `'menu' | 'row'`。不要 `'none'` 兼关。快捷过滤走 module + searchbar。每列过滤器形态认 `MetaUiField.filterTypes`（0 则按 dataType/reference 推断）。
+列筛总开关是 `filterable`（缺省 table 开；树表 / edit 关）。形态只认 `filterDisplay`: `'menu' | 'row'`。不要 `'none'` 兼关。快捷过滤走 module + searchbar。每列过滤器形态认 `MetaUiField.filterTypes`（0 = 按 dataType 原生一位，不是关过滤；要叠加勾选显式 `SET|MULTI`，要 AND/OR 显式 `JOIN`）。
 
-日期列（agnaive）是 **multi 两页**，不要第三套下拉：
+日期列默认是条件 Date Filter。显式 `DATE|SET|MULTI` 才是 **multi 两页**，不要第三套下拉：
 
 | 页 | 控件 | 写出 |
 |---|---|---|
 | 条件 | Date Filter：比较 + `dateRange.*` 语义（本月、今天…） | `date` + `dateKind`，或两段 `join` |
-| 列表 | Set Filter `treeList`，选项 `getPivotDates` | `set` 周期 token（`YYYY` / `YYYY-MM` / `YYYY-MM-DD`） |
+| 列表 | Set 勾选树（AG `treeList`；SF 可折叠「选项过滤」+ TreeView），选项 `getPivotDates` | `set` 周期 token（`YYYY` / `YYYY-MM` / `YYYY-MM-DD`） |
 
 选「本月」走条件页 kind，POST 原样带 `dateKind`。勾树上的「2026年9月」是绝对九月。日期透视由 Builder 注入皮肤 extras（`loadPivotDates` → `logic.getPivotDates`）。设计与写法：[date_filter.md](../../core/docs/models/date_filter.md) · [date_filter_usage.md](../../core/docs/logic/date_filter_usage.md)。
 
@@ -97,6 +97,20 @@ Builder 已用 `writeListSorts` / `writeListFilterModel`。Prime / Naive 的表�
 ## 实体选择（特殊 Index）
 
 表单弹层：`context.select({ repository, selectionMode, searchParam })` → `VueUiContext` + Logic + `buildListView`。
+
+**模块与权限（选择窗工具栏 / 嵌套创建·编辑）：**
+
+- 默认按被选实体 `objName` `findModule`；命中 FEATURE 模块则跟该模块登录权限控制创建 / 编辑 / 删除。
+- 找不到对应模块 → 默认只能勾选（工具栏无 CRUD）。
+- 程序员可传 `authority`（叠在模块权限或只读默认之上覆盖 CRUD 四项）。
+
+```ts
+await context.select({
+  repository: "MaterialCats",
+  selectionMode: "single",
+  authority: { allowCreate: true }, // 可选，无模块也能开创建
+});
+```
 
 路由选择：`EntityView` 认 `?view=selectOne|selectMany`，复用 `beforeIndex`，弹层里允许创建。
 

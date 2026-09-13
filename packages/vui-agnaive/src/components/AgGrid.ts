@@ -34,6 +34,7 @@ import {
   agFilterModelToEntity,
   entityFilterToAgModel,
 } from '../ag_filter'
+import { agGridLocaleText } from '../ag_grid_i18n'
 import { buildAgGridTheme } from '../agnaive_theme'
 import { buildColumnDefs, cellNodeFromParams, editorFieldOf } from '../ag_columns'
 import { AgHasOneFilter } from './AgHasOneFilter'
@@ -96,11 +97,13 @@ const AgGridEditor = defineComponent({
           })
         }
         if (field && SqlDataType.isBool(field.dataType)) {
+          const labels = (props.params.context as { filterLabels?: { yes?: string; no?: string } } | undefined)
+            ?.filterLabels
           return h(NSelect, {
             ...common,
             options: [
-              { label: 'Yes', value: true },
-              { label: 'No', value: false },
+              { label: labels?.yes ?? 'Yes', value: true },
+              { label: labels?.no ?? 'No', value: false },
             ] as any,
             onUpdateValue: (next: unknown) => {
               value.value = next
@@ -249,32 +252,59 @@ export const AgGrid = defineComponent({
     return () => {
       const selectionMode = listProps.selectionMode
       const rawHeight = listProps.height ?? listProps.maxHeight
-      const height =
-        typeof rawHeight === 'number'
+      const hasPager = Boolean(listProps.pagination)
+      // 与 Syncfusion 一致：有分页（索引/树列表）才撑满父级；子表无高度链，用 autoHeight
+      const autoHeight =
+        rawHeight === 'auto' ||
+        rawHeight === 'Auto' ||
+        (!rawHeight && !hasPager)
+      const height = autoHeight
+        ? 'auto'
+        : typeof rawHeight === 'number'
           ? `${rawHeight}px`
-          : rawHeight && rawHeight !== '100%'
-            ? rawHeight
-            : '28rem'
+          : rawHeight
+            ? String(rawHeight)
+            : '100%'
+      const fillParent = !autoHeight && height === '100%'
       const pageSize = pagination.value.pageSize ?? DEFAULT_PAGE_SIZE
       const pageNo = pagination.value.pageNo ?? 1
       const recordCount = pagination.value.recordCount ?? props.data.length
 
-      return h('div', { class: 'mmda-ag-grid' }, [
+      return h(
+        'div',
+        {
+          class: [
+            'mmda-ag-grid',
+            fillParent ? null : 'mmda-ag-grid--sized',
+            autoHeight ? 'mmda-ag-grid--auto' : null,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        },
+        [
         h(
           'div',
           {
             class: 'mmda-ag-grid__body',
-            style: { height },
+            style: fillParent
+              ? { flex: '1 1 auto', minHeight: 0 }
+              : autoHeight
+                ? { height: 'auto' }
+                : { height },
           },
           [
             h(AgGridVue, {
               class: 'mmda-ag-grid__table',
-              style: { width: '100%', height: '100%' },
+              style: autoHeight
+                ? { width: '100%' }
+                : { width: '100%', height: '100%' },
               theme: theme.value,
+              localeText: agGridLocaleText(),
               rowData: props.data,
               columnDefs: columnDefs.value as ColDef[],
               defaultColDef: {
                 filter: listProps.filterable !== false,
+                suppressHeaderMenuButton: listProps.filterable === false,
                 resizable: true,
                 sortable: listProps.sortable !== false,
               },
@@ -287,7 +317,9 @@ export const AgGrid = defineComponent({
               context: {
                 renderCell: listProps.renderCell,
                 rowDetail: listProps.rowDetail,
+                filterLabels: listProps.filterLabels,
               },
+              domLayout: autoHeight ? 'autoHeight' : undefined,
               treeData: Boolean((listProps as any).treeData) && !listProps.rowDetail,
               getDataPath: listProps.rowDetail
                 ? undefined
@@ -312,6 +344,17 @@ export const AgGrid = defineComponent({
                     headerCheckbox: selectionMode === 'multiple',
                     // 点行可选；multiRow 下 Shift 连选、Ctrl/Cmd 点选加减
                     enableClickSelection: true,
+                  }
+                : undefined,
+              // checkbox leftmost; rowNum follows (also pinned left)
+              selectionColumnDef: selectionMode
+                ? {
+                    pinned: 'left',
+                    width: 48,
+                    maxWidth: 48,
+                    suppressHeaderMenuButton: true,
+                    sortable: false,
+                    resizable: false,
                   }
                 : undefined,
               loading: Boolean(
@@ -365,7 +408,8 @@ export const AgGrid = defineComponent({
               }),
             )
           : null,
-      ])
+      ],
+      )
     }
   },
 })

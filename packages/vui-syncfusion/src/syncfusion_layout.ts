@@ -3,7 +3,6 @@ import {
   uiCssClass,
   type UiAppLayoutVariant,
   type UiAppScaffoldSlots,
-  type UiListTileSlots,
 } from '@mmda/core'
 import { VueUiLayout } from '@mmda/vui'
 
@@ -13,17 +12,6 @@ import { VueUiLayout } from '@mmda/vui'
  * 否则 Dock 挪 DOM / Pad compact 会掉出 grid，侧栏被顶到主区下面。
  */
 export class SyncfusionLayout extends VueUiLayout {
-  listTile(slots: UiListTileSlots<VNode>): VNode {
-    return h('article', { class: 'mmda-list-tile' }, [
-      slots.leading?.(),
-      h('div', { class: 'mmda-list-tile__content' }, [
-        slots.title(),
-        slots.subtitle?.(),
-      ]),
-      slots.trailing?.(),
-    ])
-  }
-
   override scaffold(slots: UiAppScaffoldSlots<VNode>): VNode {
     const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
     if (variant !== 'sidebarLeft') {

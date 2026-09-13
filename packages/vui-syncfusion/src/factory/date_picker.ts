@@ -4,6 +4,7 @@ import type { UiDatePickerProps, UiDateShortcut } from "@mmda/core"
 import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
+import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 function shortcutButtons(items: UiDateShortcut[], onPick: (value: unknown) => void) {
   if (!items.length) return undefined;
@@ -90,6 +91,7 @@ export function createDatePicker(props: UiDatePickerProps) {
       ...(inputFormats ? { inputFormats } : {}),
       ...(month ? { start: "Year", depth: "Year" } : {}),
       showTodayButton: false,
+      locale: getSyncfusionCulture(),
       cssClass,
       change: (args: { value?: Date | null }) =>
         emitDateChange(props, args?.value ?? null),

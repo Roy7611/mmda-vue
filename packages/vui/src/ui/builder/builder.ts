@@ -1,5 +1,16 @@
-import { h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
-import type { EntityUrlParam, MetaUiField, MetaUiGroup, Module, UiAppSideMenuProps, UiBuilder as CoreUiBuilder, UiContext as CoreUiContext } from "@mmda/core";
+import { defineComponent, h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
+import {
+  uiCssClass,
+  type Entity,
+  type EntityUrlParam,
+  type MetaUiField,
+  type MetaUiGroup,
+  type Module,
+  type UiAppSideMenuProps,
+  type UiBuilder as CoreUiBuilder,
+  type UiContext as CoreUiContext,
+  type UiDialogAction,
+} from "@mmda/core";
 import { VueAppSideMenu } from "../../components/AppSideMenu";
 import { openTableSettingDialog } from "../../components/TableSettingView";
 import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
@@ -64,7 +75,9 @@ import {
 } from "../factory/timeline";
 import {
   isViewMany,
+  UiViewMany,
   UiViewManyKind,
+  UiViewOne,
   type UiViewPropsType,
   type UiViewType,
 } from "../../contexts/view";
@@ -88,15 +101,18 @@ import type {
   UiSearchField,
 } from "../factory/filter";
 import type { UiAction } from "../factory/action";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
+import { VueUiContext } from "../../contexts/vue_ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./overlay";
 import { DocxFilePreview } from "../../components/DocxFilePreview";
 import { XlsxFilePreview } from "../../components/XlsxFilePreview";
 import type {
   UiConfirmProps,
   UiDialogProps,
+  UiEntityDialogOptions,
+  UiListViewProps,
   UiMessageProps,
   UiToastProps,
+  UiViewProps,
 } from "@mmda/core";
 import { UiActionFactory } from "./actions";
 import { WithForm } from "./form";
@@ -498,16 +514,248 @@ export abstract class VueUiBuilderBase {
     return this.overlay.confirm(props);
   }
 
+  /** 纯弹层：只出窗，不注入实体 save 等策略。 */
   dialog(
     content: VNode | VNode[],
     context: CoreUiContext,
     props?: Record<string, unknown>,
   ) {
-    return this.overlay.dialog(
-      content as VNode,
-      (props as UiDialogProps | undefined) ?? { title: "" },
-      context,
-    );
+    const dialogProps: UiDialogProps = {
+      title: "",
+      ...(props as UiDialogProps | undefined),
+    };
+    return this.overlay.dialog(content as VNode, dialogProps, context);
+  }
+
+  /**
+   * 实体编辑/新建弹窗。藏模块工具栏；底栏默认 okCancel；
+   * `onAccept`（如 save）由调用方经 `dlgProps` 传入。
+   */
+  async editDialog(
+    context: CoreUiContext,
+    props?: UiEntityDialogOptions<VNode, UiViewProps>,
+  ) {
+    return this.runInDialog(context, async () => {
+      const viewProps: UiViewProps = {
+        showToolbar: false,
+        ...props?.viewProps,
+      };
+      const content = this.buildEditView(context, viewProps);
+      return this.dialog(content, context, {
+        buttons: "okCancel",
+        showFooter: true,
+        ...props?.dlgProps,
+      });
+    });
+  }
+
+  /**
+   * 实体详情弹窗（只读）。藏工具栏、默认无底栏；Esc / 点蒙层可关。
+   */
+  async detailsDialog(
+    context: CoreUiContext,
+    props?: UiEntityDialogOptions<VNode, UiViewProps>,
+  ) {
+    return this.runInDialog(context, async () => {
+      const viewProps: UiViewProps = {
+        showToolbar: false,
+        ...props?.viewProps,
+      };
+      const content = this.buildDetailsView(context, viewProps);
+      return this.dialog(content, context, {
+        showFooter: false,
+        closeOnEscape: true,
+        closeOnOverlay: true,
+        ...props?.dlgProps,
+      });
+    });
+  }
+
+  /**
+   * 实体选择弹窗。内容走 {@link buildSelectView}。
+   * 标题按单选/多选统一；SearchBar 在列表工具栏，不进标题栏。
+   */
+  async selectDialog(
+    context: CoreUiContext,
+    props?: UiEntityDialogOptions<VNode, UiListViewProps>,
+  ) {
+    return this.runInDialog(context, async () => {
+      const runtime = context as any;
+      const viewProps: UiListViewProps = {
+        showSearchbar: true,
+        showBreadcrumb: false,
+        ...props?.viewProps,
+      };
+      const entityLabel =
+        runtime.metaUi?.displayLabel ??
+        runtime.metaUi?.objName ??
+        "";
+      const view = String(runtime.view ?? "");
+      const isMany =
+        view === UiViewMany.SelectMany ||
+        String(view).toLowerCase().includes("many");
+      const defaultTitle =
+        runtime.t?.(
+          isMany ? "view.selectManyEntity" : "view.selectOneEntity",
+          { entity: entityLabel },
+        ) ?? entityLabel;
+      const dlgProps: UiDialogProps<VNode> = {
+        buttons: "okCancel",
+        showFooter: true,
+        ...props?.dlgProps,
+      };
+      if (dlgProps.title == null || dlgProps.title === "") {
+        dlgProps.title = defaultTitle;
+      }
+      const self = this;
+      const SelectHost = defineComponent({
+        name: "MmdaSelectDialogHost",
+        setup() {
+          return () =>
+            h(
+              "div",
+              {
+                class: uiCssClass("select-dialog", "body"),
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: "1 1 auto",
+                  height: "100%",
+                  minHeight: 0,
+                  overflow: "hidden",
+                },
+              },
+              [self.buildSelectView(context, viewProps)],
+            );
+        },
+      });
+      return this.dialog(h(SelectHost), context, dlgProps as Record<string, unknown>);
+    });
+  }
+
+  /**
+   * 在选择窗等已打开对话框上再叠创建/编辑/详情。
+   * ok 后刷新 parent 列表并勾选该行。
+   */
+  async openNestEntityDialog<E extends object = object>(
+    parent: CoreUiContext,
+    view: "create" | "edit" | "details",
+    item?: E,
+  ): Promise<{ action: UiDialogAction; entity?: E }> {
+    const parentRuntime = parent as any;
+    const logic = parentRuntime.logic;
+    const metaUi = parentRuntime.metaUi;
+    const app = parentRuntime.app;
+    if (!logic || !metaUi || !app) {
+      return { action: "cancel" };
+    }
+
+    const viewOne =
+      view === "create"
+        ? UiViewOne.Create
+        : view === "edit"
+          ? UiViewOne.Edit
+          : UiViewOne.Details;
+    const key = metaUi.primaryKey ?? "id";
+    const id =
+      item != null
+        ? String(
+            (item as Record<string, unknown>)[key] ??
+              (item as Entity).id ??
+              "",
+          ) || undefined
+        : undefined;
+
+    const ctx = new VueUiContext({
+      model: (id ? { id } : {}) as any,
+      metaUi,
+      view: viewOne,
+      logic,
+      app,
+      locale: parentRuntime.locale,
+      translate: parentRuntime.translateFn,
+    });
+    await ctx.init(id ? { path: id } : undefined);
+
+    const dlgProps = {
+      title: metaUi.displayLabel,
+      width: "70vw",
+      height: "80vh",
+      maxHeight: "90vh",
+    };
+    const viewProps = { showBreadcrumb: false };
+    const editing = viewOne !== UiViewOne.Details;
+    const action = editing
+      ? await this.editDialog(ctx, {
+          dlgProps: {
+            ...dlgProps,
+            onAccept: async () => (await ctx.save()) !== false,
+          },
+          viewProps,
+        })
+      : await this.detailsDialog(ctx, { dlgProps, viewProps });
+
+    if (action !== "ok" && viewOne === UiViewOne.Create) {
+      const createdId = (ctx.model as Entity).id;
+      if (createdId) await logic.delete(createdId);
+      return { action };
+    }
+
+    const entity = ctx.model as E;
+    if (action === "ok" && editing) {
+      await parentRuntime.search?.();
+      const entityId = String(
+        (entity as Record<string, unknown>)[key] ??
+          (entity as Entity).id ??
+          "",
+      );
+      if (entityId) {
+        const list = (parentRuntime.model as { list?: Entity[] } | undefined)
+          ?.list;
+        const found = Array.isArray(list)
+          ? list.find(
+              (row) =>
+                String(
+                  (row as Record<string, unknown>)[key] ?? row.id ?? "",
+                ) === entityId,
+            )
+          : undefined;
+        const selected = (found ?? entity) as Entity;
+        const isMulti =
+          parentRuntime.selectionMode === "multiple" ||
+          String(parentRuntime.view ?? "").toLowerCase().includes("many");
+        if (isMulti) {
+          const prev = (parentRuntime.selectedItems ?? []) as Entity[];
+          const without = prev.filter(
+            (row) =>
+              String(
+                (row as Record<string, unknown>)[key] ?? row.id ?? "",
+              ) !== entityId,
+          );
+          parentRuntime.selectedItems = [...without, selected];
+        } else {
+          parentRuntime.selectedItems = [selected];
+        }
+      }
+      return { action, entity };
+    }
+
+    return { action, entity: editing ? entity : undefined };
+  }
+
+  /** 标记会话在对话框内（try/finally 复位）。 */
+  protected async runInDialog<T>(
+    context: CoreUiContext,
+    run: () => Promise<T>,
+  ): Promise<T> {
+    const runtime = context as any;
+    const previous = runtime.isInDialog;
+    runtime.isInDialog = true;
+    try {
+      return await run();
+    } finally {
+      runtime.isInDialog = previous;
+    }
   }
 
   buildDocxFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
@@ -593,6 +841,14 @@ export abstract class VueUiBuilder
   implements CoreUiBuilder
 {
   build(context: CoreUiContext, props: Record<string, unknown> = {}): VNode {
+    return this.buildEntityView(context, props as any);
+  }
+
+  /** 实体屏共享实现（many → 列表/树…；one → 表单）。 */
+  buildEntityView(
+    context: CoreUiContext,
+    props: Record<string, unknown> = {},
+  ): VNode {
     const runtime = context as any;
     const view = String(runtime.view ?? "") as UiViewType;
     const factories = runtime.logic?.viewOptions;
@@ -606,7 +862,7 @@ export abstract class VueUiBuilder
         kind === UiViewManyKind.categoryList ||
         kind === "categoryList"
       ) {
-        return this.buildTreeListView(runtime, merged);
+        return this.buildExplorerView(runtime, merged);
       }
       if (kind === UiViewManyKind.gantt || kind === "gantt") {
         return this.buildGanttView(runtime, merged);
@@ -621,6 +877,45 @@ export abstract class VueUiBuilder
     }
     return this.buildView(runtime, merged as UiViewPropsType);
   }
+
+  buildIndexView(context: CoreUiContext, props?: UiListViewProps): VNode {
+    return this.buildEntityView(context, props as any);
+  }
+
+  buildSelectView(context: CoreUiContext, props?: UiListViewProps): VNode {
+    return this.buildEntityView(context, props as any);
+  }
+
+  buildDetailsView(context: CoreUiContext, props?: UiViewProps): VNode {
+    return this.buildView(context, props as UiViewPropsType);
+  }
+
+  buildEditView(context: CoreUiContext, props?: UiViewProps): VNode {
+    return this.buildView(context, props as UiViewPropsType);
+  }
+
+  /** 左树右表；旧名 `buildTreeListView`。 */
+  buildExplorerView(context: CoreUiContext, props?: Record<string, unknown>): VNode {
+    return this.buildTreeListView(context as any, props as any);
+  }
+
+  /** 主表字段组（`group.many === false`）。 */
+  buildFieldGroup(
+    group: MetaUiGroup,
+    context: CoreUiContext,
+    props?: UiProps,
+  ): VNode {
+    return this.buildGroup(group, context as any, undefined, props);
+  }
+
+  /** 子表组（`group.many === true`）。 */
+  buildSubGroup(
+    group: MetaUiGroup,
+    context: CoreUiContext,
+    props?: UiProps,
+  ): VNode {
+    return this.buildGroup(group, context as any, undefined, props);
+  }
 }
 
 const emptyNode = () => h("div");
@@ -633,6 +928,7 @@ export function createStubUiBuilder(): VueUiBuilder {
   } as unknown as UiFactory;
   const stub: any = {
     factory,
+    layout: factory.layout,
     fieldFactory: {} as UiFieldFactory,
     labelFor: (field: { displayLabel?: string }) => h("label", field.displayLabel),
     editFor: emptyNode,
@@ -643,13 +939,23 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildGroup: emptyNode,
     buildBpmnDiagram: emptyNode,
     buildView: emptyNode,
+    buildEntityView: emptyNode,
+    buildIndexView: emptyNode,
+    buildSelectView: emptyNode,
+    buildDetailsView: emptyNode,
+    buildEditView: emptyNode,
     build: emptyNode,
+    editDialog: async () => "cancel" as const,
+    detailsDialog: async () => "cancel" as const,
+    selectDialog: async () => "cancel" as const,
+    openNestEntityDialog: async () => ({ action: "cancel" as const }),
     buildTree: emptyNode,
     buildTreeView: emptyNode,
     buildTreeGrid: emptyNode,
     buildTreeGridView: emptyNode,
     buildListView: emptyNode,
     buildTreeListView: emptyNode,
+    buildExplorerView: emptyNode,
     buildCustomView: emptyNode,
     buildGrid: emptyNode,
     buildList: emptyNode,
@@ -679,6 +985,8 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildSearchForRelative: emptyNode,
     buildSigninForm: emptyNode,
     buildSignupForm: emptyNode,
+    buildFieldGroup: emptyNode,
+    buildSubGroup: emptyNode,
     overlay: createHtmlOverlay(),
     overlayHost: undefined,
     chartFactory: unimplementedChartFactory(),

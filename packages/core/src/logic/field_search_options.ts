@@ -21,6 +21,8 @@ export interface FieldSearchOptions {
   pagination: Pagination
   /** 联想框输入法组词中，跳过即时远程搜索 */
   isComposing?: boolean
+  /** 首页 50 是否已穷尽 */
+  refOptionsComplete?: boolean
 }
 
 const DEFAULT_SEARCH_WORD = '__'

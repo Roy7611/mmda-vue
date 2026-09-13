@@ -1,4 +1,13 @@
-import { defineComponent, h, inject } from 'vue'
+import {
+  defineComponent,
+  h,
+  inject,
+  nextTick,
+  onMounted,
+  ref,
+  type PropType,
+  type VNode,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NButton,
@@ -10,11 +19,25 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
+import {
+  dialogAllowDraggingOf,
+  dialogButtonColorRole,
+  dialogCloseOnEscapeOf,
+  dialogCloseOnOverlayOf,
+  dialogEnableResizeOf,
+  dialogFooterKind,
+  dialogHeaderKind,
+  dialogShowCloseIconOf,
+  isDialogPrimaryButton,
+  resolveDialogButtons,
+  uiCssClass,
+  type UiDialogAction,
+} from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type AgNaiveOverlay,
+  type DialogRequest,
 } from '../agnaive_overlay'
 import {
   naiveLocaleOf,
@@ -22,6 +45,11 @@ import {
   naiveSkinState,
   naiveThemeRef,
 } from '../agnaive_theme'
+import {
+  attachDialogResize,
+  detachDialogResize,
+  findTopNaiveDialog,
+} from '../dialog_resize'
 
 const DEFAULT_LABELS: Record<UiDialogAction, string> = {
   ok: 'OK',
@@ -31,6 +59,28 @@ const DEFAULT_LABELS: Record<UiDialogAction, string> = {
   abort: 'Abort',
   retry: 'Retry',
   ignore: 'Ignore',
+}
+
+/** Dialog shell size: number → px string. */
+export function cssSizeOf(
+  value: string | number | undefined | null,
+): string | undefined {
+  if (value == null || value === '') return undefined
+  return typeof value === 'number' ? `${value}px` : String(value)
+}
+
+/** NModal style for width / height / minHeight / maxHeight. */
+export function dialogShellStyleOf(opts: {
+  width: string
+  height?: string
+  minHeight?: string
+  maxHeight?: string
+}): Record<string, string> {
+  const style: Record<string, string> = { width: opts.width }
+  if (opts.height) style.height = opts.height
+  if (opts.minHeight) style.minHeight = opts.minHeight
+  if (opts.maxHeight) style.maxHeight = opts.maxHeight
+  return style
 }
 
 function naiveTypeForRole(
@@ -45,6 +95,91 @@ function naiveTypeForRole(
   return 'default'
 }
 
+/**
+ * Naive 把 startDrag 挂在 Transition onAfterEnter。
+ * 父级一上来 show=true 时 enter 常不跑，标题拖不动。
+ * 这里 false→true 打开，走官方 NModal/DialogOptions.draggable。
+ * @see https://www.naiveui.com/zh-CN/os-theme/components/dialog#DialogOptions-Properties
+ */
+const AgNaiveDialogModal = defineComponent({
+  name: 'AgNaiveDialogModal',
+  props: {
+    request: { type: Object as PropType<DialogRequest>, required: true },
+    width: { type: String, required: true },
+    height: { type: String, default: undefined },
+    minHeight: { type: String, default: undefined },
+    maxHeight: { type: String, default: undefined },
+    headerKind: {
+      type: String as PropType<'title' | 'slot'>,
+      required: true,
+    },
+    canDrag: { type: Boolean, required: true },
+    canResize: { type: Boolean, required: true },
+    overlay: { type: Object as PropType<AgNaiveOverlay>, required: true },
+  },
+  setup(props, { slots }) {
+    const show = ref(false)
+    const resizeEl = ref<HTMLElement | null>(null)
+
+    onMounted(() => {
+      void nextTick(() => {
+        show.value = true
+      })
+    })
+
+    return () => {
+      const request = props.request
+      const dlgProps = request.props
+      return h(
+        NModal,
+        {
+          show: show.value,
+          preset: 'dialog',
+          title: props.headerKind === 'title' ? dlgProps.title : undefined,
+          showIcon: false,
+          style: dialogShellStyleOf({
+            width: props.width,
+            height: props.height,
+            minHeight: props.minHeight,
+            maxHeight: props.maxHeight,
+          }),
+          class: [
+            uiCssClass('dialog'),
+            props.canResize
+              ? uiCssClass('dialog', undefined, 'resizable')
+              : null,
+          ],
+          draggable: props.canDrag ? { bounds: 'none' } : false,
+          closable: dialogShowCloseIconOf(dlgProps),
+          closeOnEsc: dialogCloseOnEscapeOf(dlgProps),
+          maskClosable: dialogCloseOnOverlayOf(dlgProps),
+          onAfterEnter: () => {
+            dlgProps.onOpen?.()
+            if (!props.canResize) return
+            requestAnimationFrame(() => {
+              const el = findTopNaiveDialog()
+              if (!el) return
+              attachDialogResize(el)
+              resizeEl.value = el
+            })
+          },
+          onAfterLeave: () => {
+            detachDialogResize(resizeEl.value)
+            resizeEl.value = null
+          },
+          'onUpdate:show': (next: boolean) => {
+            show.value = next
+            if (!next) {
+              void closeOverlayDialog(props.overlay, request, 'cancel')
+            }
+          },
+        },
+        slots,
+      )
+    }
+  },
+})
+
 const OverlayInner = defineComponent({
   name: 'AgNaiveOverlayInner',
   setup() {
@@ -54,21 +189,22 @@ const OverlayInner = defineComponent({
     const dialog = useDialog()
 
     if (overlay) {
-      overlay.services.toast = props => {
-        const text = String(props.message ?? props.title ?? '')
-        const type = props.severity ?? 'info'
+      overlay.services.toast = toastProps => {
+        const text = String(toastProps.message ?? toastProps.title ?? '')
+        const type = toastProps.severity ?? 'info'
         if (type === 'error') message.error(text)
         else if (type === 'warning') message.warning(text)
         else if (type === 'success') message.success(text)
         else message.info(text)
       }
-      overlay.services.confirm = props =>
+      overlay.services.confirm = confirmProps =>
         new Promise(resolve => {
           dialog.warning({
-            title: String(props.title ?? ''),
-            content: String(props.message ?? ''),
+            title: String(confirmProps.title ?? ''),
+            content: String(confirmProps.message ?? ''),
             positiveText: 'OK',
             negativeText: 'Cancel',
+            draggable: true,
             onPositiveClick: () => resolve(true),
             onNegativeClick: () => resolve(false),
           })
@@ -103,14 +239,14 @@ const OverlayInner = defineComponent({
           const footerKind = dialogFooterKind(request.props)
           const standard = resolveDialogButtons(request.props.buttons)
           const custom = request.props.customActions ?? []
-          const slots: Record<string, unknown> = {
+          const slots: Record<string, () => VNode | VNode[] | string | null> = {
             default: () => request.content,
           }
           if (headerKind === 'slot') {
-            slots.header = () => request.props.header!()
+            slots.header = () => request.props.header!() as VNode
           }
           if (footerKind === 'slot') {
-            slots.action = () => request.props.footer!()
+            slots.action = () => request.props.footer!() as VNode
           } else if (footerKind === 'buttons') {
             slots.action = () =>
               h(
@@ -155,11 +291,7 @@ const OverlayInner = defineComponent({
                             isDialogPrimaryButton(button),
                           ),
                           onClick: () =>
-                            void closeOverlayDialog(
-                              overlay!,
-                              request,
-                              button,
-                            ),
+                            void closeOverlayDialog(overlay!, request, button),
                         },
                         { default: () => labelOf(button) },
                       )
@@ -168,30 +300,23 @@ const OverlayInner = defineComponent({
                 ],
               )
           }
-          const props = request.props
-          const minHeight =
-            typeof props.minHeight === 'number'
-              ? `${props.minHeight}px`
-              : props.minHeight
+          const dlgProps = request.props
+          const minHeight = cssSizeOf(dlgProps.minHeight)
+          const height = cssSizeOf(dlgProps.height)
+          const maxHeight = cssSizeOf(dlgProps.maxHeight)
           return h(
-            NModal,
+            AgNaiveDialogModal,
             {
               key: request.id,
-              show: true,
-              preset: 'dialog',
-              title: headerKind === 'title' ? props.title : undefined,
-              style: {
-                width,
-                ...(minHeight ? { minHeight } : {}),
-              },
-              class: uiCssClass('dialog'),
-              closable: dialogShowCloseIconOf(props),
-              closeOnEsc: dialogCloseOnEscapeOf(props),
-              maskClosable: dialogCloseOnOverlayOf(props),
-              onAfterEnter: () => props.onOpen?.(),
-              'onUpdate:show': (show: boolean) => {
-                if (!show) void closeOverlayDialog(overlay!, request, 'cancel')
-              },
+              request,
+              width,
+              height,
+              minHeight,
+              maxHeight,
+              headerKind,
+              canDrag: dialogAllowDraggingOf(dlgProps),
+              canResize: dialogEnableResizeOf(dlgProps),
+              overlay: overlay!,
             },
             slots,
           )

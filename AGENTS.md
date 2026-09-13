@@ -32,4 +32,17 @@
 
 从 `@mmda/core` 顶层导入，不要 `@mmda/core/src/...`。
 
+实现具体的皮肤控件库要尽可能使用厂商已有能力，不要重复造轮子。
+
+## 设计：class / interface
+
+按 C# / Java 看架构：先定主人、命名和约定，再用 `interface` / `class` 落地。运行时是 JS；设计和分层按 OO。不要把 TS 写成无主函数拼盘。
+
+- **先找主人，再写形态。** 行为跟主题走（过滤在 `metaui_filter`，字段声明在 `MetaUiField`）。跟类相关的（含静态方法，像 `Math`）归到抽象类 / 实现类，不要旁路 `export`。
+- **文件内局部函数可以。** 与类无关、不 `export`、只在本文件用的辅助可以。一 `export` 就要有主人，除了utils工具类通用函数。
+- **`interface` 是契约，`class` 是实现。** 有身份、生命周期、继承或一组相关问句，用 class。不要「没状态就独立函数」。习惯上使用接口编程，隐藏实现细节。可以用模板方法的时候用抽象类增加代码复用，原则是不要出现大段重复代码。
+- **对外只留问句。** 推导步骤留在内部，不要为每一步导出 `*Of` / `is*`。
+- **禁止函数爆发。** 同一件事出现第二次，回到主人上改，不要再写姐妹函数。
+- **枚举 / 类型：共用才定义并 export。** 业务代码用成员，不要写字符串字面量。三元组（序号 / code / 文案）走已有 `Xxx` + `XxxEnum`（`valueOf` / `textOf`），见 [docs/naming.md](docs/naming.md) 业务枚举成员。
+
 字段引用见 `.cursor/rules/mmda-field-reference.mdc`。core 模块说明见 `packages/core/docs/index.md`。

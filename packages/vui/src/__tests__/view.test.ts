@@ -87,6 +87,25 @@ describe("UiSearchField", () => {
     expect(search.hasVal).toBe(false);
   });
 
+  it("日期 WITHIN 发 dateKindFilter", () => {
+    const field = new MetaUiField({
+      fieldIdx: 0,
+      fieldName: "createdAt",
+      displayLabel: "创建",
+      dataType: SqlDataType.TIMESTAMP,
+      nullable: true,
+    });
+    const search = new UiSearchField(field, t);
+    expect(search.availableOps).toContain("WITHIN");
+    search.changeCurrentOp("WITHIN", t);
+    search.searchVal.value = "TODAY";
+    expect(search.toFilterModel()).toEqual({
+      filterType: "date",
+      operator: "WITHIN",
+      dateKind: "TODAY",
+    });
+  });
+
   it("UiFilter 把选中条件拼成 OR", () => {
     const filter = new UiFilter({
       filterName: "status",

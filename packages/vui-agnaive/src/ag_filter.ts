@@ -1,4 +1,4 @@
-import { SqlDataType, MetaUiFieldFilterType, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, compactDateSet, compactFieldFilter, dateKindFilter, expandDateSetLeaves, isDatePeriodSet, isDateRangeKind, toDatePeriodToken, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntityJoinFieldFilter, type EntityMultiFieldFilter, type MetaUi, type MetaUiField } from '@mmda/core'
+import { SqlDataType, MetaUiFieldFilterType, columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, compactDateSet, compactFieldFilter, dateKindFilter, expandDateSetLeaves, isDatePeriodSet, isDateRangeKind, toDatePeriodToken, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntityJoinFieldFilter, type EntityMultiFieldFilter, type MetaUi, type MetaUiField } from '@mmda/core'
 
 const listedFields = (metaUi: MetaUi) => {
   const fields = metaUi.getListedFields?.() ?? []
@@ -12,6 +12,34 @@ const listedFields = (metaUi: MetaUi) => {
 const fieldOf = (metaUi: MetaUi, fieldName: string) =>
   listedFields(metaUi).find(field => field.fieldName === fieldName)
 
+const usesStringBlank = (field?: MetaUiField) =>
+  !!field &&
+  !field.reference &&
+  !SqlDataType.isBool(field.dataType) &&
+  !SqlDataType.isDate(field.dataType) &&
+  !SqlDataType.isNum(field.dataType)
+
+function agTypeToOperator(
+  type?: string,
+  field?: MetaUiField,
+  fallback?: EntityFilterOperator,
+  filterType?: string,
+): EntityFilterOperator {
+  if (type === 'blank' || type === 'notBlank') {
+    const stringBlank = field
+      ? usesStringBlank(field)
+      : filterType !== 'number' && filterType !== 'date'
+    return type === 'blank'
+      ? stringBlank
+        ? 'IS_BLANK'
+        : 'IS_NULL'
+      : stringBlank
+        ? 'IS_NOT_BLANK'
+        : 'IS_NOT_NULL'
+  }
+  return AG_TO_OP[type ?? ''] ?? fallback ?? 'EQ'
+}
+
 const AG_TO_OP: Record<string, EntityFilterOperator> = {
   equals: 'EQ',
   notEqual: 'NEQ',
@@ -24,8 +52,8 @@ const AG_TO_OP: Record<string, EntityFilterOperator> = {
   lessThan: 'LT',
   lessThanOrEqual: 'LE',
   inRange: 'BETWEEN',
-  blank: 'IS_NULL',
-  notBlank: 'IS_NOT_NULL',
+  blank: 'IS_BLANK',
+  notBlank: 'IS_NOT_BLANK',
 }
 
 const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
@@ -42,6 +70,8 @@ const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
   BETWEEN: 'inRange',
   IS_NULL: 'blank',
   IS_NOT_NULL: 'notBlank',
+  IS_BLANK: 'blank',
+  IS_NOT_BLANK: 'notBlank',
 }
 
 const isSetField = (field?: MetaUiField) =>
@@ -120,10 +150,12 @@ export function agCellToFieldFilter(
   if (isDateRangeKind(cell.type)) {
     return dateKindFilter(cell.type)
   }
-  const operator =
-    AG_TO_OP[cell.type] ??
-    (cell.operator as EntityFilterOperator) ??
-    'EQ'
+  const operator = agTypeToOperator(
+    cell.type,
+    field,
+    cell.operator as EntityFilterOperator,
+    cell.filterType,
+  )
   return {
     filterType: simpleFilterType(field),
     operator,
@@ -267,6 +299,7 @@ export function entityFilterToAgModel(
 
 function asDateColumnAgModel(mapped: any, field?: MetaUiField) {
   if (!mapped || !field || !SqlDataType.isDate(field.dataType)) return mapped
+  if (columnFilterKindOf(field) !== 'multi') return mapped
   if (mapped.filterType === 'multi') {
     const models = (mapped.filterModels ?? []).filter(Boolean)
     const setModel = models.find((item: any) => item.filterType === 'set')

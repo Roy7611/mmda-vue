@@ -5,7 +5,27 @@
 
 ## 职责
 
-见源码导出与调用方。
+两类：
+
+- **快捷过滤**：`MetaUiFilter` / `MetaUiFilterCondition`（预设条件条，可编译进 `queryParams.filter`）。
+- **列头过滤**：`MetaUiFieldFilterType` 与 `resolveColumnFilterTypes` / `columnFilterKindOf` 等。`MetaUiField.filterTypes` 字段仍在 [metaui_field.md](./metaui_field.md)。
+
+## 列过滤器类型（filterTypes）
+
+服务端 `metauifield.filterTypes` 为 **TINYINT 位掩码**（默认 0）：
+
+| 值 | 名 | 含义 |
+|---|---|---|
+| 0 | NONE | 未指定形态：按 `dataType` + `reference` 只给原生一位（TEXT/NUMBER/DATE/SET/BOOLEAN）。enum / ref 默认 **SET（CheckBox）**，不要默认 TEXT Menu。**不是**禁止过滤；关列筛用 `filterable`。不含 MULTI/JOIN |
+| 1 | TEXT | 文本比较 |
+| 2 | NUMBER | 数字比较 |
+| 4 | DATE | 日期比较 |
+| 8 | BOOLEAN | 布尔 |
+| 16 | SET | 集合 / 枚举 / 引用 |
+| 32 | MULTI | 比较槽 + 集合槽 |
+| 64 | JOIN | 比较槽允许多条件 AND/OR |
+
+core：`MetaUiFieldFilterType`、`resolveColumnFilterTypes`、`columnFilterKindOf`。Syncfusion `factory.table` / `SfGrid` 与 AgGrid 列定义均读该掩码。
 
 ## 不要
 

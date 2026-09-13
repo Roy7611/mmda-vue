@@ -24,11 +24,13 @@ DATETIME 列上 `EQ '2026-09-05'` 会漏带时分秒的行。保存成具体 `BE
 
 不新增 `dateSet`。`join` ≠ `multi`：两段 `dateKind` 用 join；`date` 比较 + `set` 树用 multi。
 
-有 `dateKind` 时不要写死 `value` / `valueTo`：
+有 `dateKind` 时不要写死 `value` / `valueTo`。规范操作符是 **`WITHIN`**：
 
 ```json
-{ "createdAt": { "filterType": "date", "operator": "BETWEEN", "dateKind": "THIS_MONTH" } }
+{ "createdAt": { "filterType": "date", "operator": "WITHIN", "dateKind": "THIS_MONTH" } }
 ```
+
+已保存的 `{ operator:'BETWEEN', dateKind }` 读回时按 `WITHIN` 水合。`compactFieldFilter` 会收成上面的形状。
 
 ## 谁展开
 
@@ -65,10 +67,10 @@ DATETIME 单日不是 `EQ` 零点。`['2026-05','2026-06']` → 一段 `BETWEEN`
 
 ## 表头（vui-agnaive）
 
-日期列 `agMultiColumnFilter`：
+日期列默认 `agDateColumnFilter`。显式 `DATE|SET|MULTI` 才是 `agMultiColumnFilter`：
 
-1. **条件**：`agDateColumnFilter`。`filterOptions` = 比较运算符 + `DateRangeKind`。`type === 'THIS_MONTH'` → `dateKindFilter`。两段 AND/OR → `join`。
-2. **列表**：`agSetColumnFilter` + `treeList`，`values` 来自 `getPivotDates`（`GET .../pivotDates/{field}`），叶子收成 token。
+1. **条件**：`agDateColumnFilter`。`filterOptions` = 比较运算符 + `DateRangeKind`（AG 把 kind 摊成 0 输入 option）。`type === 'THIS_MONTH'` → `dateKindFilter`（`operator: 'WITHIN'`）。Prime / QueryBuilder / SF Menu 是选 `WITHIN` 后再选 kind。两段 AND/OR → `join`。
+2. **列表**：Set 勾选树。AG 是 `agSetColumnFilter` + `treeList`；SF Menu 是可折叠「选项过滤」+ EJ2 TreeView。选项都来自 `getPivotDates`（`GET .../pivotDates?field=`），叶子收成 token。
 
 两页都填 = multi AND。不要第三套 Naive 下拉。
 

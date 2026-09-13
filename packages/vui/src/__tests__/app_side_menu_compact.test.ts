@@ -173,9 +173,9 @@ describe('PageBody compact summary', () => {
       ),
     )
     await nextTick()
-    const body = host.querySelector('.mmda-page-body')
-    expect(body?.classList.contains('is-summary-collapsed')).toBe(true)
-    expect(body?.classList.contains('mmda-page-body--compact')).toBe(true)
+    const body = host.querySelector('.mmda-page__body')
+    expect(body?.classList.contains('mmda-page__body--collapsed')).toBe(true)
+    expect(body?.classList.contains('mmda-page__body--compact')).toBe(true)
     app.unmount()
   })
 })

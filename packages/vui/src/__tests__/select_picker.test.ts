@@ -78,6 +78,31 @@ function mountDialogContent(content: any) {
   }
 }
 
+
+function mockSelectUi(
+  build: ReturnType<typeof vi.fn>,
+  dialog: ReturnType<typeof vi.fn> = vi.fn(async () => "cancel" as const),
+) {
+  const buildView = vi.fn();
+  const selectDialog = vi.fn(async (ctx: any, props: any) => {
+    const SelectHost = defineComponent({
+      name: "MmdaSelectDialogHost",
+      setup() {
+        return () => build(ctx, props?.viewProps);
+      },
+    });
+    return dialog(h(SelectHost), ctx, props?.dlgProps);
+  });
+  return {
+    build,
+    buildView,
+    buildSelectView: (ctx: any, props: any) => build(ctx, props),
+    dialog,
+    selectDialog,
+    overlay: { closeTopDialog: async () => undefined },
+  };
+}
+
 describe("select picker build", () => {
   it("selectOne 弹层走 ui.build，不走 buildView；无模块只读", async () => {
     const build = vi.fn((ctx: any) =>
@@ -86,11 +111,11 @@ describe("select picker build", () => {
         "data-view": String(ctx.view ?? ""),
       }),
     );
-    const buildView = vi.fn(() => h("div", { class: "mmda-select-form" }));
     const dialog = vi.fn(async (content: any) => {
       mountDialogContent(content);
       return "cancel" as const;
     });
+    const selectUi = mockSelectUi(build, dialog);
 
     const ctx = new VueUiContext({
       model: { id: "1" },
@@ -117,12 +142,7 @@ describe("select picker build", () => {
             throw new Error("not registered");
           },
         },
-        ui: {
-          build,
-          buildView,
-          dialog,
-          overlay: { closeTopDialog: async () => undefined },
-        },
+        ui: selectUi,
         i18n: { global: { t: (k: string) => k } },
       } as any,
     });
@@ -133,7 +153,8 @@ describe("select picker build", () => {
     });
 
     expect(build).toHaveBeenCalledTimes(1);
-    expect(buildView).not.toHaveBeenCalled();
+    expect(selectUi.buildView).not.toHaveBeenCalled();
+    expect(selectUi.selectDialog).toHaveBeenCalled();
     const selectCtx = build.mock.calls[0]![0];
     expect(selectCtx.view).toBe(UiViewMany.SelectOne);
     expect(selectCtx.logic.createEntity).toBe(defineEntity);
@@ -154,6 +175,17 @@ describe("select picker build", () => {
         showActions: false,
         showActionColumn: false,
         loading: selectCtx.loading,
+      }),
+    );
+    expect(selectUi.selectDialog).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        dlgProps: expect.objectContaining({
+          title: expect.stringMatching(/选择一个|Select one|view\.selectOneEntity/),
+        }),
+        viewProps: expect.objectContaining({
+          showSearchbar: true,
+        }),
       }),
     );
     expect(dialog).toHaveBeenCalled();
@@ -232,12 +264,7 @@ describe("select picker build", () => {
             return injectedLogic;
           },
         },
-        ui: {
-          build,
-          buildView: vi.fn(),
-          dialog,
-          overlay: { closeTopDialog: async () => undefined },
-        },
+        ui: mockSelectUi(build, dialog),
         i18n: { global: { t: (k: string) => k } },
       } as any,
     });
@@ -255,6 +282,63 @@ describe("select picker build", () => {
       expect.objectContaining({
         showActions: true,
         showActionColumn: true,
+      }),
+    );
+  });
+
+  it("无模块时 authority.allowCreate 仍可露出创建", async () => {
+    const build = vi.fn(() => h("div", { class: "mmda-select-list" }));
+    const dialog = vi.fn(async (content: any) => {
+      mountDialogContent(content);
+      return "cancel" as const;
+    });
+
+    const ctx = new VueUiContext({
+      model: { id: "1" },
+      metaUi: hostMeta,
+      view: "edit",
+      app: {
+        name: "base",
+        meta: {
+          getPack: async () => ({ metaUi: catMeta, filters: [] }),
+          getApiClient: () => ({
+            searchAll: async () => ({
+              list: [],
+              pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+            }),
+          }),
+          findModule: () => undefined,
+        },
+        findModule: () => undefined,
+        di: {
+          injectAsync: async () => {
+            throw new Error("not registered");
+          },
+        },
+        ui: mockSelectUi(build, dialog),
+        i18n: { global: { t: (k: string) => k } },
+      } as any,
+    });
+
+    await ctx.select({
+      repository: "MaterialCats",
+      selectionMode: "single",
+      authority: { allowCreate: true },
+    });
+
+    const selectCtx = build.mock.calls[0]![0];
+    expect(selectCtx.module?.authority).toEqual(
+      expect.objectContaining({
+        allowRead: false,
+        allowCreate: true,
+        allowEdit: false,
+        allowDelete: false,
+      }),
+    );
+    expect(build.mock.calls[0]![1]).toEqual(
+      expect.objectContaining({
+        showActions: true,
+        showActionColumn: false,
       }),
     );
   });
@@ -306,12 +390,7 @@ describe("select picker build", () => {
             throw new Error("not registered");
           },
         },
-        ui: {
-          build,
-          buildView: vi.fn(),
-          dialog,
-          overlay: { closeTopDialog: async () => undefined },
-        },
+        ui: mockSelectUi(build, dialog),
         i18n: { global: { t: (k: string) => k } },
       } as any,
     });

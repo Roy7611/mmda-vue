@@ -2,6 +2,11 @@
 .n-config-provider.mmda-config {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   min-height: 0;
 }
 
@@ -12,6 +17,101 @@
 .mmda-ag-grid {
   color: var(--mmda-text-color);
   font-size: 14px;
+}
+
+/* 主区高度链：app-page → list/tree 视图 → page-body → ag-grid */
+.mmda-app-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--mmda-surface-ground);
+  color: var(--mmda-text-color);
+}
+
+.mmda-app-page > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mmda-app-page .mmda-list-view,
+.mmda-app-page .mmda-tree-grid-view,
+.mmda-app-page .mmda-tree-list-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-app-page .mmda-list-view > .mmda-page__header,
+.mmda-app-page .mmda-tree-grid-view > .mmda-page__header,
+.mmda-app-page .mmda-list-view > header,
+.mmda-app-page .mmda-tree-grid-view > header {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+}
+
+/* 工具栏贴顶满宽；表格/页脚左右留白，避免贴边 */
+.mmda-app-page .mmda-list-view > .mmda-page__body,
+.mmda-app-page .mmda-tree-grid-view > .mmda-page__body,
+.mmda-app-page .mmda-list-view > .mmda-footer,
+.mmda-app-page .mmda-list-view > footer {
+  margin-inline: 1rem;
+}
+
+/* 盖过 list_view inline overflow:auto，强制只在 AG 内滚 */
+.mmda-app-page .mmda-list-view .mmda-page__body,
+.mmda-app-page .mmda-tree-grid-view .mmda-page__body,
+.mmda-app-page .mmda-tree-list-view .mmda-page__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  max-width: 100%;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.mmda-app-page .mmda-list-view > .mmda-page__body > .mmda-ag-grid,
+.mmda-app-page .mmda-tree-grid-view > .mmda-page__body > .mmda-ag-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+/* 详情/编辑：工具栏贴顶；内容区左右留白 */
+.mmda-app-page .mmda-page {
+  padding: 0;
+}
+
+.mmda-app-page .mmda-page > .mmda-page__body {
+  margin-inline: 1rem;
+  margin-block-start: 0.75rem;
+}
+
+/* 详情/编辑内滚：app-page 不滚，.mmda-view 滚 */
+.mmda-app-page .mmda-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-app-page .mmda-view__one .mmda-page {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.mmda-app-page .mmda-form > .mmda-page {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .mmda-toolbar {
@@ -39,9 +139,66 @@
 .mmda-searchbar,
 .mmda-search-form {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mmda-searchbar__input {
+  flex: 1 1 14rem;
+  min-width: 10rem;
+  max-width: 22rem;
+}
+
+.mmda-searchbar__addons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.mmda-searchbar__addon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--mmda-text-muted-color, #49454f);
+  cursor: pointer;
+}
+
+.mmda-searchbar__addon:hover {
+  color: var(--mmda-primary-color, #6750a4);
+  background: color-mix(in srgb, var(--mmda-primary-color, #6750a4) 12%, transparent);
+}
+
+/* NSplit 拖动手柄：加宽热区，避免 3px 难抓 */
+.mmda-splitter.n-split .n-split__resize-trigger-wrapper {
+  position: relative;
+  z-index: 2;
+}
+
+.mmda-splitter.n-split.n-split--horizontal > .n-split__resize-trigger-wrapper {
+  cursor: col-resize;
+}
+
+.mmda-splitter.n-split.n-split--vertical > .n-split__resize-trigger-wrapper {
+  cursor: row-resize;
+}
+
+.mmda-splitter.n-split .n-split__resize-trigger {
+  background: var(--mmda-content-border-color, #cac4cf);
+}
+
+.mmda-splitter.n-split .n-split__resize-trigger:hover,
+.mmda-splitter.n-split .n-split__resize-trigger--hover {
+  background: var(--mmda-primary-color, #6750a4);
 }
 
 .mmda-search-field {
@@ -66,14 +223,31 @@
 .mmda-ag-grid {
   display: flex;
   flex-direction: column;
-  min-height: 28rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   gap: 0.5rem;
+}
+
+/* 表单子表 / 显式高度：勿强制 height:100%，否则父级无高度链时塌成 0 */
+.mmda-ag-grid.mmda-ag-grid--sized {
+  height: auto;
+  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .mmda-ag-grid__body {
   flex: 1 1 auto;
-  min-height: 24rem;
+  min-width: 0;
+  min-height: 0;
   width: 100%;
+}
+
+.mmda-ag-grid--sized > .mmda-ag-grid__body {
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .mmda-ag-grid__table,
@@ -81,12 +255,20 @@
 .mmda-ag-grid__body .ag-root-wrapper {
   width: 100%;
   height: 100%;
-  min-height: 24rem;
+  min-height: 0;
+}
+
+.mmda-ag-grid--auto .mmda-ag-grid__table,
+.mmda-ag-grid--auto .mmda-ag-grid__table.ag-root-wrapper,
+.mmda-ag-grid--auto .mmda-ag-grid__body .ag-root-wrapper {
+  height: auto;
 }
 
 .mmda-ag-grid__pager {
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
+  padding: 0 0.5rem 0.25rem;
 }
 
 .mmda-row-detail {
@@ -126,6 +308,11 @@
 
 .mmda-sidebar__header {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.75rem;
+  padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--mmda-content-border-color);
 }
 
@@ -138,6 +325,285 @@
 .mmda-sidebar__footer {
   flex: 0 0 auto;
   border-top: 1px solid var(--mmda-content-border-color);
+}
+
+/* Syncfusion-aligned dock: L1 rail 72px + L2 NMenu pane */
+.mmda-app-nav:has(.mmda-sidebar--dock),
+.mmda-app-nav:has(.mmda-app-side-menu--compact) {
+  overflow: visible;
+  width: auto;
+}
+
+.mmda-sidebar--dock,
+.mmda-app-side-menu {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  background: var(--mmda-surface-card, #fff);
+  color: var(--mmda-text-color, #1c1b1f);
+}
+
+/* L1 rail (72) + NLayoutSider L2; trigger from Naive show-trigger */
+.mmda-app-side-menu__chrome {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.mmda-app-side-menu__rail-col {
+  display: flex;
+  flex: 0 0 72px;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 72px;
+  height: 100%;
+  min-height: 0;
+  color: #fff;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-app-side-menu__brand {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.35rem 0.15rem 0.25rem;
+  color: #fff;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+/* Keep AppLogo compact inside L1 rail (overrides app .mmda-app-logo min-height). */
+.mmda-app-side-menu__brand .mmda-app-logo {
+  min-height: 0;
+  width: 100%;
+  padding: 0.15rem;
+}
+
+.mmda-app-side-menu__brand .mmda-app-logo__img {
+  max-width: 2.25rem;
+  max-height: 2.25rem;
+}
+
+.mmda-app-side-menu__sider {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  height: 100% !important;
+  z-index: 2;
+  overflow: visible !important;
+}
+
+/* NLayoutSider 必须挂在 NLayout 下；host 只负责吃满 L2 宽度链 */
+.mmda-app-side-menu__sider-host {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  background: transparent !important;
+}
+
+.mmda-app-side-menu__sider-host > .n-layout-scroll-container {
+  overflow: hidden !important;
+}
+
+.mmda-app-side-menu__sider.n-layout-sider {
+  background: var(--mmda-surface-card, #fff);
+}
+
+/* Official Naive arrow-circle: 24px circle, vertically centered. */
+.mmda-app-side-menu__sider .n-layout-toggle-button {
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+/* Fill Naive sider shell; only modules scrolls. */
+.mmda-app-side-menu__sider.n-layout-sider {
+  display: flex;
+  flex-direction: column;
+}
+
+.mmda-app-side-menu__sider > .n-layout-sider-scroll-container {
+  display: flex !important;
+  flex: 1 1 auto;
+  flex-direction: column !important;
+  box-sizing: border-box;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.mmda-app-side-menu__sider-inner,
+.mmda-app-side-menu__compact-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mmda-app-side-menu__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mmda-app-side-menu__title-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mmda-app-side-menu__rail {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 0;
+  padding: 0.2rem 0.2rem 0.35rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  color: #fff;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-app-side-menu__rail::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.mmda-app-side-menu__rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.35rem 0.1rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mmda-app-side-menu__rail-item:hover,
+.mmda-app-side-menu__rail-item--active {
+  background: rgb(255 255 255 / 18%);
+}
+
+.mmda-app-side-menu__rail-icon {
+  font-size: 1.15rem;
+}
+
+.mmda-app-side-menu__rail-code,
+.mmda-app-side-menu__rail-label {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.mmda-app-side-menu__rail-label {
+  padding-inline: 0.1rem;
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+
+.mmda-app-side-menu__modules {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.35rem 0.4rem 0.75rem;
+}
+
+/* Title top + user footer bottom; only modules scrolls. */
+.mmda-app-side-menu__sider-inner > .mmda-app-side-menu__title,
+.mmda-app-side-menu__compact-panel > .mmda-app-side-menu__title {
+  flex: 0 0 auto;
+}
+
+.mmda-app-side-menu__sider-inner > .mmda-sidebar__footer,
+.mmda-app-side-menu__compact-panel > .mmda-sidebar__footer {
+  flex: 0 0 auto;
+  overflow: visible;
+  position: relative;
+  z-index: 6;
+}
+
+.mmda-app-side-menu--compact {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 72px;
+  height: 100%;
+  min-height: 0;
+  overflow: visible;
+  color: #fff;
+  background: var(--mmda-primary-color, #6750a4);
+}
+
+.mmda-app-side-menu--compact .mmda-app-side-menu__brand {
+  width: 100%;
+}
+
+.mmda-app-side-menu--compact .mmda-app-side-menu__rail {
+  flex: 1 1 auto;
+}
+
+.mmda-app-side-menu__n-menu {
+  height: auto;
+  min-height: 0;
+}
+
+.mmda-app-side-menu__n-menu .mmda-side-menu__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mmda-app-side-menu__empty {
+  padding: 1rem 0.75rem;
+  color: var(--mmda-text-muted-color, #6b7280);
+  font-size: 0.8125rem;
 }
 
 .mmda-list__item {
@@ -155,6 +621,139 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.mmda-dialog__footer-start,
+.mmda-dialog__footer-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* 选择弹窗：标题左、SearchBar 右 */
+.mmda-dialog__header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-dialog__header-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmda-dialog__header-bar.mmda-dialog--with-search .mmda-searchbar,
+.mmda-dialog__header-bar .mmda-searchbar {
+  flex: 0 1 280px;
+  min-width: 140px;
+  max-width: 40%;
+}
+
+/* Naive 对话框：标题栏拖动手势（配合 NModal.draggable） */
+.mmda-dialog.n-dialog .n-dialog__title.n-draggable {
+  cursor: move;
+  user-select: none;
+}
+
+/*
+ * 选择/实体弹窗：NModal 设了 height（如 80vh）后，内容区要吃满剩余高度，
+ * 否则 .mmda-list-view / AG Grid 的 height:100% 塌成 0（只剩内嵌分页器）。
+ * 对标 Syncfusion `.e-dialog.mmda-dialog .mmda-list-view`。
+ */
+.mmda-dialog.n-dialog {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mmda-dialog.n-dialog .n-dialog__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mmda-dialog.n-dialog .mmda-list-view,
+.mmda-dialog.n-dialog .mmda-tree-list-view {
+  flex: 1 1 auto;
+  height: 100% !important;
+  min-height: 0;
+}
+
+/* 表格设置等：maxHeight 限高后列表区滚，底栏留在壳内 */
+.mmda-dialog.n-dialog .mmda-list-setting {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-dialog.n-dialog .mmda-list-setting > .mmda-list-setting__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mmda-dialog.n-dialog .mmda-list-view > .mmda-page__body,
+.mmda-dialog.n-dialog .mmda-tree-list-view .mmda-page__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.mmda-dialog.n-dialog .mmda-list-view > .mmda-page__body > .mmda-ag-grid,
+.mmda-dialog.n-dialog .mmda-tree-list-view .mmda-page__body > .mmda-ag-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.mmda-dialog.n-dialog .n-dialog__action {
+  flex: 0 0 auto;
+}
+
+.mmda-select-dialog__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Naive 对话框：东南角缩放（NModal 无原生 resize） */
+.mmda-dialog.mmda-dialog--resizable {
+  overflow: hidden;
+}
+
+.mmda-dialog__resize-handle {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.mmda-dialog__resize-handle--se {
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0 55%,
+      var(--mmda-content-border-color, #c2c2c2) 55% 65%,
+      transparent 65% 75%,
+      var(--mmda-content-border-color, #c2c2c2) 75% 85%,
+      transparent 85% 100%
+    );
 }
 
 html[data-mmda-palette] .ag-root-wrapper,
@@ -176,20 +775,20 @@ html.mmda-dark .ag-root-wrapper {
   color: var(--mmda-text-color);
 }
 
-.mmda-tree-view-search,
-.mmda-tree-view-search .n-input,
-.mmda-tree-view-search input,
-.mmda-tree-view-search-input {
+.mmda-tree-view__search,
+.mmda-tree-view__search .n-input,
+.mmda-tree-view__search input,
+.mmda-tree-view__search-input {
   color: var(--mmda-text-color);
 }
 
-.mmda-tree-view-search {
+.mmda-tree-view__search {
   background: transparent;
 }
 
-.mmda-tree-view-search .n-input,
-.mmda-tree-view-search input,
-.mmda-tree-view-search-input {
+.mmda-tree-view__search .n-input,
+.mmda-tree-view__search input,
+.mmda-tree-view__search-input {
   background: var(--mmda-surface-group, var(--mmda-surface-card));
   border-color: var(--mmda-content-border-color);
 }
@@ -267,4 +866,53 @@ html.mmda-dark .ag-root-wrapper {
   gap: 0.5rem;
 }
 
+/* HAS_ONE SearchBox：NSelect 箭头换成放大镜，点击打开选择对话框 */
+.mmda-search-combo {
+  width: 100%;
+}
 
+.mmda-search-combo .mmda-search-combo__pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.8125rem;
+  color: var(--mmda-text-muted-color, #6b7280);
+  cursor: pointer;
+}
+
+.mmda-search-combo .mmda-search-combo__pick:hover {
+  color: var(--mmda-primary-color, #6366f1);
+}
+
+.mmda-ag-hasone-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 12rem;
+  padding: 8px;
+}
+
+.mmda-ag-hasone-filter__search {
+  box-sizing: border-box;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--mmda-border-color, #d1d5db);
+  border-radius: 4px;
+}
+
+.mmda-ag-hasone-filter__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.mmda-ag-hasone-filter__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}

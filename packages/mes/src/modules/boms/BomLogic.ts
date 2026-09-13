@@ -42,7 +42,7 @@ const searchParamTask = {
 		taskPhase: 'MAKE',
 		taskLevel: TaskLevel.TASK,
 	},
-});
+};
 //匹配标准件
 const bomitemquery = {
 	materialID: '',
@@ -58,7 +58,7 @@ const bomitemquery = {
 		searchWord: '',
 		searchParams: {},
 	},
-});
+};
 export const resources: any = { value: [] }
 export const getmaterial = async (context: UiContext, value?: any) => {
 	await context.logic!.getAllOf<Record<string, unknown>>('Materials', {
@@ -591,7 +591,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 		// recordCount 不传 分页器会无法正常显示
 		pager: { pageSize: 10, pageNo: 1, recordCount: originTableData.length },
 		searchWord: '',
-	});
+	};
 
 	// columns 字段名
 	const searchFields = ['materialCode', 'materialName', 'brand', 'specs', 'modelType', 'gbNo'];

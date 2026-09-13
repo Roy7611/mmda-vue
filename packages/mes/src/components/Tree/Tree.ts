@@ -486,7 +486,7 @@ export const Tree = defineComponent({
 									{
 										label: t('tool.deleteDirectory'),
 										key: 'delete',
-										command: () => {
+										command: async () => {
 											if (await props.context.uiBuilder.confirm(props.context, {
 												title: t('action.confirm'),
 												message: t('dialog.areYourSure'),

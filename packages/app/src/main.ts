@@ -1,12 +1,11 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
-import { mmdaSyncfusion, SyncfusionUiBuilder } from "@mmda/vui-syncfusion";
-import { createSfImageEditorPlugin } from "@mmda/vui-syncfusion/image-editor";
-import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
+import { SyncfusionUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
 import { createSfGanttPlugin } from "@mmda/vui-syncfusion/gantt";
+import { createSfKanbanPlugin } from "@mmda/vui-syncfusion/kanban";
 import { createSfSchedulerPlugin } from "@mmda/vui-syncfusion/schedule";
 import { createSfPivotPlugin } from "@mmda/vui-syncfusion/pivot";
-import { createSfKanbanPlugin } from "@mmda/vui-syncfusion/kanban";
+import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
 import baseZh from "@mmda/base/src/locales/zh";
 import baseEn from "@mmda/base/src/locales/en";
 import baseZhHant from "@mmda/base/src/locales/zh-Hant";
@@ -29,12 +28,11 @@ const i18n = setupI18n(
   "zh",
 );
 const builder = new SyncfusionUiBuilder();
-builder.setImageEditorPlugin(createSfImageEditorPlugin());
 builder.setMarkdownEditorPlugin(createMarkdownEditorPlugin());
-builder.setGanttPlugin(createSfGanttPlugin());
-builder.setSchedulerPlugin(createSfSchedulerPlugin());
-builder.setPivotPlugin(createSfPivotPlugin());
 builder.setKanbanPlugin(createSfKanbanPlugin());
+builder.setSchedulerPlugin(createSfSchedulerPlugin());
+builder.setGanttPlugin(createSfGanttPlugin());
+builder.setPivotPlugin(createSfPivotPlugin());
 const mmda = new MmdaVueApp(
   import.meta.env.VITE_BASE_API || "/api",
   "base",
@@ -56,8 +54,8 @@ void registerPluginLogic(mmda, appPluginRegistry, router);
 const vueApp = createApp(AppShell);
 vueApp.use(i18n);
 vueApp.use(mmdaSyncfusion, {
-  licenseKey: import.meta.env.VITE_SYNCFUSION_LICENSE,
   locale: "zh",
+  licenseKey: import.meta.env.VITE_SYNCFUSION_LICENSE,
 });
 vueApp.use(mmda);
 vueApp.provide(APP_PLUGIN_REGISTRY_KEY, appPluginRegistry);

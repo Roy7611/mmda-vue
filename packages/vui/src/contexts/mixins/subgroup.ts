@@ -140,16 +140,15 @@ export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
         props.groupMode,
       );
       if (!this.app) return item;
-      this.root.showDialog = (ctx as any).isEditDialog = true;
+      this.root.showDialog = true;
       try {
-        const result = await this.app.ui.dialog(
-          this.app.ui.buildView(ctx),
-          ctx,
-          { name: this.resolveGroup(group).groupName },
-        );
-        return result === 'ok' ? (ctx.model as G) : false;
+        // 子表行：只认内存，不传 onAccept（不 save）
+        const result = await this.uiBuilder.editDialog(ctx, {
+          dlgProps: { name: this.resolveGroup(group).groupName },
+        });
+        return result === "ok" ? (ctx.model as G) : false;
       } finally {
-        this.root.showDialog = (ctx as any).isEditDialog = false;
+        this.root.showDialog = false;
       }
     }
 

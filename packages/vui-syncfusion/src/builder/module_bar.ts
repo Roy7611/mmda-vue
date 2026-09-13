@@ -1,5 +1,5 @@
 import { h, type VNode } from "vue";
-import { SqlDataType, uiCssClass } from "@mmda/core";
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, uiCssClass } from "@mmda/core";
 import type { VueUiBuilder } from "@mmda/vui"
 import type { ModuleBreadcrumbProps, ModuleSearchbarProps, ModuleToolbarProps, UiProps, UiSearchField, UiSlots } from "@mmda/vui"
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
@@ -33,7 +33,6 @@ export function buildModuleBreadcrumb(
     return this.factory.breadcrumb({
       items: [{ label: label || context.title }],
       class: "mmda-breadcrumb",
-      separator: "/",
     });
   }
 
@@ -60,7 +59,6 @@ export function buildModuleBreadcrumb(
   return this.factory.breadcrumb({
     items,
     class: "mmda-breadcrumb",
-    separator: "/",
   });
 }
 
@@ -130,6 +128,17 @@ export function buildSearchField(
         { text: "Yes", value: true },
         { text: "No", value: false },
       ],
+      fields: { text: "text", value: "value" },
+      change: (args: any) => bind(args.value),
+      ...props,
+    });
+  } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === "WITHIN") {
+    editor = h(DropDownListComponent as any, {
+      value: field.searchVal.value,
+      dataSource: DATE_RANGE_FILTER_KINDS.map((kind) => ({
+        text: _context.translate(`dateRange.${kind}`),
+        value: kind,
+      })),
       fields: { text: "text", value: "value" },
       change: (args: any) => bind(args.value),
       ...props,

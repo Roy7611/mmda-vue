@@ -64,8 +64,9 @@ filterModel: {
 | `notInFilter(v)` | set + `NOT_IN` |
 | `eqFilter(v, filterType?)` | 简单相等，默认 `text` |
 | `betweenFilter(from, to)` | `date` + `BETWEEN` |
-| `dateKindFilter('THIS_MONTH')` | 相对语义，POST 原样带 `dateKind` |
-| `nullFilter('IS_NULL' \| 'IS_NOT_NULL')` | 空值判断 |
+| `dateKindFilter('THIS_MONTH')` | `WITHIN` + `dateKind`，POST 原样带 kind |
+| `nullFilter('IS_NULL' \| 'IS_NOT_NULL')` | 真 NULL（数字 / 日期 / 外键） |
+| `blankFilter('IS_BLANK' \| 'IS_NOT_BLANK')` | 字符串没内容；POST 展开成 `IS_NULL OR = ''` |
 
 可复用「本月」：
 

@@ -1,9 +1,10 @@
-import { columnFilterKindOf, combineCompareAndSet, compactFieldFilter, getFieldFilterOps, simpleFilterTypeOf, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiField } from "@mmda/core";
+import { columnFilterKindOf, combineCompareAndSet, compactFieldFilter, dateKindFilter, getFieldFilterOps, isDateRangeKind, simpleFilterTypeOf, type DateTimeRangeKind, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiField } from "@mmda/core";
 
 export type PrimeColumnFilterState = {
   operator: string;
   value?: unknown;
   valueTo?: unknown;
+  dateKind?: DateTimeRangeKind;
   joinOperator: "AND" | "OR";
   secondOperator: string;
   secondValue?: unknown;
@@ -23,8 +24,11 @@ const COMPARE_OPS = new Set<string>([
   "NOT_CONTAINS",
   "IS_NULL",
   "IS_NOT_NULL",
+  "IS_BLANK",
+  "IS_NOT_BLANK",
   "IS_ALL",
   "BETWEEN",
+  "WITHIN",
   "IS_TRUE",
   "IS_FALSE",
 ]);
@@ -62,14 +66,23 @@ export function hydratePrimeColumnFilter(
       ? compare
       : undefined;
   const second = join?.conditions[1];
+  const dateKind =
+    first && "dateKind" in first && isDateRangeKind(first.dateKind)
+      ? first.dateKind
+      : undefined;
   const opOf = (item?: EntityFieldFilter) =>
     item && "operator" in item && COMPARE_OPS.has(String(item.operator))
       ? String(item.operator)
       : defaultOp;
   return {
-    operator: opOf(first),
-    value: first && "value" in first ? first.value : undefined,
-    valueTo: first && "valueTo" in first ? first.valueTo : undefined,
+    operator: dateKind ? "WITHIN" : opOf(first),
+    value: dateKind ? undefined : first && "value" in first ? first.value : undefined,
+    valueTo: dateKind
+      ? undefined
+      : first && "valueTo" in first
+        ? first.valueTo
+        : undefined,
+    dateKind,
     joinOperator: join?.operator ?? "AND",
     secondOperator: opOf(second),
     secondValue: second && "value" in second ? second.value : undefined,
@@ -87,14 +100,21 @@ export function applyPrimeColumnFilter(
       : { filterType: "boolean", value: Boolean(state.value) };
   }
   const filterType = simpleFilterTypeOf(field);
-  const first: EntitySimpleFieldFilter = {
-    filterType,
-    operator: state.operator as EntityFilterOperator,
-    value: state.value,
-    valueTo: state.valueTo,
-  };
+  const first: EntitySimpleFieldFilter | undefined =
+    state.operator === "WITHIN"
+      ? isDateRangeKind(state.dateKind)
+        ? dateKindFilter(state.dateKind)
+        : undefined
+      : {
+          filterType,
+          operator: state.operator as EntityFilterOperator,
+          value: state.value,
+          valueTo: state.valueTo,
+        };
   const second: EntitySimpleFieldFilter | undefined =
-    state.operator === "BETWEEN" || !state.secondValue
+    state.operator === "BETWEEN" ||
+    state.operator === "WITHIN" ||
+    !state.secondValue
       ? undefined
       : {
           filterType,

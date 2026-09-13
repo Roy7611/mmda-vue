@@ -424,6 +424,24 @@ export abstract class EntityLogic<E extends Entity> {
     }
   }
 
+  async getJoinList(
+    param: EntitySearchParam = { pager: { pageSize: DEFAULT_PAGE_SIZE } },
+  ): Promise<PagedList<E> | undefined> {
+    try {
+      const data = await this.apiClient.searchJoinList(param, {
+        queryParams: { moduleCode: this.module?.moduleCode ?? "" },
+        service: this.apiService,
+      });
+      data.list = defineEntityArray<E>(
+        this.createEntity,
+        data.list as object[],
+      );
+      return data as PagedList<E>;
+    } catch (e) {
+      this.error(e);
+    }
+  }
+
   /** Query another repository (does not use this.createEntity). */
   async getAllOf<T>(
     repository: string,
@@ -606,6 +624,17 @@ export abstract class EntityLogic<E extends Entity> {
     );
   }
 
+  exportJoinList(options: EntityUrlParam = {}, body?: any) {
+    return this.apiClient.exportJoinList(
+      {
+        repository: options.repository ?? this.repository,
+        service: options.service ?? this.apiService,
+        ...options,
+      },
+      body,
+    );
+  }
+
   async doAction(model: E, a: EntityAction) {
     try {
       const params =
@@ -721,10 +750,19 @@ export class SubEntityLogic<
     public readonly groupName: string,
   ) {
     const { meta, metaUiService, module } = parent;
-    const metaUiGroup = meta.metaUi.getGroup(groupName)!;
+    const metaUiGroup = meta.metaUi?.getGroup(groupName);
+    if (!metaUiGroup?.groupUi) {
+      throw new Error(
+        `SubEntityLogic "${groupName}": parent MetaUi has no groupUi` +
+          ` (parent.objName=${meta.metaUi?.objName ?? "?"},` +
+          ` groups=[${(meta.metaUi?.groups ?? [])
+            .map((g: { groupName: string }) => g.groupName)
+            .join(",")}])`,
+      );
+    }
     super(defineGroupItem, {
       module,
-      meta: { metaUi: metaUiGroup.groupUi! },
+      meta: { metaUi: metaUiGroup.groupUi },
       metaUiService: metaUiService,
       repository: groupName,
       isChild: true,

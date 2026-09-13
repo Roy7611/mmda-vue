@@ -8,7 +8,7 @@
 - `MetaUiBuilder`：本地列表列声明，见 [metaui_builder.md](./metaui/metaui_builder.md)。
 - `MetaUiGroup`：主表或子表分组。
 - `MetaUiField`：字段声明、数据类型、展示与引用配置。
-- `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFieldFilterType`；`0` = 按 dataType/reference 推断）。见 [metaui_field.md](./metaui/metaui_field.md)。
+- `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFieldFilterType`；`0` = 按 dataType 原生一位，不是关过滤）。见 [metaui_filter.md](./metaui/metaui_filter.md)。
 - `SqlDataType`：后端字段类型及默认值映射。
 - `MetaUiFilter`：快捷过滤声明（仍可编译进 `queryParams.filter`）。
 - 列表字段条件：`EntityFilterOperator` + `filterModel`（见 [entity_search.md](./models/entity_search.md)）。

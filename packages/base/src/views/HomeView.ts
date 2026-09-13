@@ -57,7 +57,7 @@ export const HomeView = defineComponent({
     const { modules, user } = app;
     const router = useRouter();
     const { t } = useI18n();
-    void app.getTodoCount();
+    // 待办数由壳层 AppUserFooter 拉取；此处只读 app.state.todoCount
     injectResponsiveCSS();
 
     return () => {

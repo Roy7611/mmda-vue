@@ -87,6 +87,29 @@ export function writeStoredPageSize(
   writeMmdaPref("pageSize", String(normalized), storage);
 }
 
+export type StoredPageLayout = "cards" | "tabs";
+
+/** 读本地保存的详情页壳（`mmda/pageLayout`），无效时回落默认值 */
+export function readStoredPageLayout(
+  fallback: StoredPageLayout = "cards",
+  storage: Pick<Storage, "getItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): StoredPageLayout {
+  const raw = readMmdaPref("pageLayout", storage);
+  if (raw === "tabs" || raw === "cards") return raw;
+  return fallback;
+}
+
+/** 用户切换详情页壳后写入本地（`mmda/pageLayout`） */
+export function writeStoredPageLayout(
+  layout: StoredPageLayout,
+  storage: Pick<Storage, "setItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): void {
+  if (layout !== "tabs" && layout !== "cards") return;
+  writeMmdaPref("pageLayout", layout, storage);
+}
+
 export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   {
     id: "indigo",

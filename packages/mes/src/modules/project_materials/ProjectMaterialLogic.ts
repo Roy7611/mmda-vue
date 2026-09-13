@@ -5,8 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { MetaUiService, Module } from '@mmda/core';
+import { type EntityLogicInit, EntityLogic } from '@mmda/vui';
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 /**
@@ -19,17 +19,6 @@ import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 /**
  * 项目材料交互逻辑
  */
-const tableDataProject = { value: [] }
-const tablecolumnsProject = { value: [] }
-const tableDataKeyProject = { value: 'id' }
-const searchParamProject = {
-	pager: {
-		pageSize: 10,
-		pageNo: 1
-	},
-	searchWord: '',
-	searchParams: {}
-});
 export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 	constructor(init: EntityLogicInit) {
 		super(defineProjectMaterial, init);
@@ -56,108 +45,10 @@ export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 		});
 		return res;
 	}
-	/**
-		 * 项目
-		 * @param context 
-		 * @param value 
-		 */
-	async getAllProject(context: UiContext, value?: any) {
-		await this.getAllOf<Record<string, unknown>>('Projects', {
-			queryParams: {
-				pageSize: searchParamProject.pager.pageSize,
-				pageNo: searchParamProject.pager.pageNo,
-				sort: '',
-				searchWord: value
-			},
-		}, { service: 'mes' }).then((res: any) => {
-			searchParamProject.pager = res.pagination
-			tableDataProject.value = res.list.map((it: any) => {
-				return {
-					...it,
-					status: it.customProperties.$status,
-					ownerID: it.customProperties.$ownerID,
-					ownerDeptID: it.customProperties.$ownerDeptID,
-					lastModifierID: it.customProperties.$lastModifierID,
-					importance: it.customProperties.$importance,
-					constraintType: it.customProperties.$constraintType
-				}
-			})
-		})
-	}
-	searchParam: Record<string, any> = {};
+	/** Custom searchbar temporarily disabled (searchVal not ready). */
 	beforeSearch() {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
-		if (customSearchFields.length == 0) {
-			customSearchFields.push(
-				{
-					searchLabel: 'ganttLabel.sProject',
-					searchParam: 'projectID',
-					valueFn: (v: any) => !isRefNone(v) ? v.projectID : '',
-					renderer: (ctx: UiContext & any, csf) => {
-						if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
-							tableDataProject.value.push(csf.searchVal.value)
-						}
-						return ctx.uiBuilder.factory.searchForRelative({
-							modelValue: csf.searchVal.value,
-							dataKey: 'projectID',
-							optionLabel: (v: any) => v.projectName,
-							class: 'w-full',
-							// options: tableDataProject.value,
-							options: tableDataProject.value,
-							toSearch: async () => {
-								const picked = await ctx.select({
-									repository: 'Projects',
-									service: 'mes',
-									selectionMode: 'single',
-								})
-								if (!Array.isArray(picked) || !picked.length) return false
-								const data = picked[0]
-								csf.searchVal.value = csf.searchWord = data
-								ctx.model.projectID = data.projectID ?? ctx.model.projectID
-								ctx.model.projectNo = data.projectNo ?? ctx.model.projectNo
-								this.searchParam.projectID = ctx.model.projectID
-								ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, JSON.parse(JSON.stringify(data)))
-								return true
-							},
-							onUpdate: (value: any) => {
-								csf.searchVal.value = value || null;
-								ctx.app.localDb.put(`search/${ctx.logic.repository}/projectID`, value);
-							},
-							onInput: (value: string) => {
-								debounce(async () => {
-									await this.getAllProject(ctx, value);
-								}, 500)();
-							},
-						})
-					}
-				},
-				{
-					searchLabel: 'projectMaterial.activeProjects',
-					searchParam: 'projectinprogress',
-					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch({
-						checked: Boolean(csf.searchVal.value),
-						trueValue: true,
-						falseValue: false,
-						'onUpdate:modelValue': (val: boolean) => {
-							csf.searchVal.value = val
-						}
-					})
-				},
-				{
-					searchLabel: 'projectMaterial.shortagesOnly',
-					searchParam: 'shortageQuantity',
-					renderer: (ctx: UiContext<any>, csf) => ctx.uiBuilder.factory.switch({
-						checked: Boolean(csf.searchVal.value),
-						trueValue: '>0',
-						falseValue: '',
-						'onUpdate:modelValue': (val: boolean) => {
-							csf.searchVal.value = val
-						}
-					})
-				}
-			)
-		}
-		return { searchParam, searchFields, customSearchFields }
+		const { searchParam, searchFields } = super.beforeSearch();
+		return { searchParam, searchFields, customSearchFields: [] }
 	}
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();

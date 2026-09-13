@@ -33,7 +33,7 @@ const notice = {
 		copyTo: [], //通知给
 		copyToInvalid: false, //是否选择了 通知给谁。
 	},
-});
+};
 //公用action
 // const beforeNotice = async (context: UiContext, model: ProductionSchedule, action: EntityAction, actionName: string, repositoryName: string) =>
 // 	NoticeFn(context, {
@@ -62,10 +62,10 @@ interface MetaData {
  */
 const updateRes = {
 	data: [],
-});
+};
 const linkRes = {
 	data: false,
-});
+};
 
 //日计划提交对象
 const dailyPlanning: GanttPlanningShell = {

@@ -128,7 +128,6 @@ export class ModuleBgTaskLogic extends EntityLogic<ModuleBgTask> {
                   }
                 },
               });
-            }
             } else {
               return ctx.uiBuilder.factory.textSpan(ctx.model.taskResult ? `${ctx.model.taskResult}` : "");
             }

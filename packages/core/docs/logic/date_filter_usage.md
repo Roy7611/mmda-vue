@@ -13,7 +13,7 @@ param.filterModel = { createdAt: dateKindFilter('THIS_MONTH') }
 await this.apiClient.searchAll(param, { repository: 'Orders' })
 ```
 
-POST body **仍带** `dateKind: 'THIS_MONTH'`。下个月打开同一 CustomizedQuery 仍是「当时的本月」。不要先算成 `BETWEEN '2026-09-01' AND …` 再保存。
+POST body **仍带** `{ operator:'WITHIN', dateKind:'THIS_MONTH' }`。下个月打开同一 CustomizedQuery 仍是「当时的本月」。不要先算成 `BETWEEN '2026-09-01' AND …` 再保存。`getSqlOperator('WITHIN')!.toSQL('TODAY')` → `WITHIN TODAY`（只给 `refWhere`）。
 
 ```ts
 import { joinFilter, dateKindFilter } from '@mmda/core'
@@ -69,7 +69,7 @@ const days = await this.apiClient.getPivotDates('createdAt', {
 })
 ```
 
-`GET {service}/{repository}/pivotDates/{field}`。不要对日期列当前页 distinct。
+`GET {service}/{repository}/pivotDates?field=`。不要对日期列当前页 distinct。
 
 ## 比较区间（绝对时刻）
 

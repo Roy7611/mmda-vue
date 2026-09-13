@@ -592,7 +592,7 @@ selector / edit / details 不提供这三种 index 模式。Java `searchAll` 需
 
 官方：[Globalization](https://ej2.syncfusion.com/vue/documentation/grid/global-local)（`L10n.load` + Grid `locale` + `setCulture`；日期数字还要 CLDR）。
 
-**不另起一套。** 沿用现有 `[syncfusion_i18n.ts](packages/vui-syncfusion/src/syncfusion_i18n.ts)`：应用启动 `installSyncfusionLocale`，vui locale → EJ2 culture（`zh`/`zh-Hans` → 自维护简体包，官方 `zh` 是繁体；`en` → `en-US`）。
+**不另起一套。** 沿用现有 `[syncfusion_i18n.ts](packages/vui-syncfusion/src/syncfusion_i18n.ts)`：应用启动 `installSyncfusionLocale`，vui locale → EJ2 culture（`zh`/`zh-Hans` → 自维护简体 L10n，官方 `@syncfusion/ej2-locale` 的 `zh` 是繁体；月份/日历走官方 `@syncfusion/ej2-cldr-data`；`en` → `en-US`）。
 
 SfGrid / SfGridLayout：
 

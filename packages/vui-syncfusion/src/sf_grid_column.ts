@@ -1,6 +1,11 @@
 import { SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, MetaUiFieldFilterType, resolveColumnFilterTypes, type MetaUi, type MetaUiField } from '@mmda/core'
 import { gridFreezeOf, listedTableFields, type UiGridScene } from '@mmda/vui'
 import {
+  sfCompareColumnFilter,
+  usesCompareColumnFilter,
+  type SfCompareColumnFilterExtras,
+} from './factory/column_filter'
+import {
   columnEditType,
   gridColumnFormat,
   gridColumnType,
@@ -55,7 +60,13 @@ export function sfGridSceneDefaults(scene: SfGridScene) {
  * EJ2 列头 filter 配置（由 MetaUiField.filterTypes 决定）。
  * 完整 Menu/Excel 自定义 UI 仍在 factory.table；此处给契约 SfGrid 用标准类型。
  */
-export function sfGridColumnFilterOf(field: MetaUiField) {
+export function sfGridColumnFilterOf(
+  field: MetaUiField,
+  extras?: SfCompareColumnFilterExtras,
+) {
+  if (extras && usesCompareColumnFilter(field, extras)) {
+    return sfCompareColumnFilter(field, extras)
+  }
   switch (columnFilterKindOf(field)) {
     case 'boolean':
       return { type: 'Menu' as const }
@@ -120,16 +131,18 @@ export function buildSfGridColumns(
 
 export type SfTreeGridColumnOptions = {
   allowSorting?: boolean
+  allowFiltering?: boolean
   /** 与 factory.treeGrid 的 editable + fieldCellEditors 对齐 */
   editable?: boolean
   fieldCellEditors?: Record<string, { canEdit?: boolean | ((...args: any[]) => boolean) }>
   /** 树缩进列下标，默认 0 */
   treeColumnIndex?: number
+  filterExtras?: SfCompareColumnFilterExtras
 }
 
 /**
  * TreeGrid 列：先走 {@link sfGridColumnOf}，再覆写树表差异
- * （树列宽、布尔复选框、Cell 编辑参数；本轮关闭列头过滤）。
+ * （树列宽、布尔复选框、Cell 编辑参数；列头过滤与 Grid 同一套 filter.ui）。
  */
 export function sfTreeGridColumnOf(
   field: MetaUiField,
@@ -138,6 +151,7 @@ export function sfTreeGridColumnOf(
 ) {
   const treeColumnIndex = options.treeColumnIndex ?? 0
   const inplaceEdit = options.editable === true
+  const allowFiltering = options.allowFiltering === true
   const canEdit =
     inplaceEdit &&
     index !== treeColumnIndex &&
@@ -147,15 +161,17 @@ export function sfTreeGridColumnOf(
   const listed = field.listSize && field.listSize > 0 ? field.listSize : 0
 
   const base = sfGridColumnOf(field, {
-    allowFiltering: false,
+    allowFiltering,
     allowSorting: options.allowSorting,
     allowEditing: canEdit,
   })
 
   return {
     ...base,
-    allowFiltering: false,
-    filter: undefined,
+    allowFiltering,
+    filter: allowFiltering
+      ? sfGridColumnFilterOf(field, options.filterExtras)
+      : undefined,
     width:
       index === treeColumnIndex
         ? Math.max(listed || 240, 200)

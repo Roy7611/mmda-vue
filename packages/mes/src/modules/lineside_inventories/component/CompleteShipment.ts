@@ -41,7 +41,7 @@ const CompleteShipment = defineComponent({
             logic: bomLogic,
             app: props.context.app,
         });
-        bomCtx.isEditDialog = true
+        bomCtx.isInDialog = true
 
 
         const panelLoading = ref(false)
@@ -203,7 +203,10 @@ const CompleteShipment = defineComponent({
                         const isSelected = selectedData.value.includes(item.bomID);
 
                         return h('div', {
-                            class: `bg-white rounded-xl shadow-md mb-4 p-3 transition-all duration-300 ease-in-out transform hover:translate-y-1 ${isSelected ? 'border-2 border-blue-500 bg-[#F0F7FF]' : 'bg-white border border-gray-200'}`
+                            class: [
+                                'bg-white rounded-xl shadow-md mb-4 p-3 transition-all duration-300 ease-in-out transform hover:translate-y-1',
+                                isSelected ? 'border-2 border-blue-500 bg-[#F0F7FF]' : 'bg-white border border-gray-200',
+                            ].join(' '),
                         }, [
                             // 卡片内容：左图右文布局
                             h('div', { class: 'flex items-start' }, [
@@ -289,7 +292,7 @@ const CompleteShipment = defineComponent({
                             ])
                         ]);
                     }
-                })),
+                )),
             ])
         }
         //#endregion

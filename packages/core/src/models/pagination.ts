@@ -34,6 +34,7 @@ export const parseSorts = (sort: string): Sort[] => {
  * 分页器
  */
 export const DEFAULT_PAGE_SIZE = 20;
+export const CHOICE_PAGE_SIZE = 50;
 export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100, 200, 500, 1000] as const;
 
 export interface Pager {
@@ -82,6 +83,7 @@ class PagerImpl implements Pager {
 }
 export const PagerCtor = (pageSize = DEFAULT_PAGE_SIZE, pageNo = 1, sorts?: Sort[]) => new PagerImpl(pageSize, pageNo, sorts);
 export const defaultPager = () => new PagerImpl(DEFAULT_PAGE_SIZE, 1);
+export const defaultChoicePager = () => new PagerImpl(CHOICE_PAGE_SIZE, 1);
 export const defaultMaxPager = () => new PagerImpl(100, 1);
 export const noPager = () => new PagerImpl(Infinity, 1);
 export const isNotPager = (pager: Pager) => pager.pageSize === Infinity || isNaN(pager.pageSize)
@@ -126,6 +128,27 @@ export function emptyPagedList<T>(): PagedList<T> {
       sorts: []
     }
   }
+}
+
+/** 本页是否已穷尽：有 recordCount / pageCount 用它们；否则满页当未完。 */
+export function pagedListIsComplete<T>(page: {
+  list?: T[]
+  pagination?: Pagination
+}): boolean {
+  const list = page.list ?? []
+  const pagination = page.pagination
+  if (!pagination) return true
+  if (typeof pagination.recordCount === 'number') {
+    return list.length >= pagination.recordCount
+  }
+  if (typeof pagination.pageCount === 'number') {
+    return pagination.pageCount <= 1
+  }
+  const pageSize = pagination.pageSize
+  if (typeof pageSize === 'number' && Number.isFinite(pageSize) && pageSize > 0) {
+    return list.length < pageSize
+  }
+  return true
 }
 export const isPagedList = (model: unknown): model is object => {
   return isObject(model) && Object.prototype.hasOwnProperty.call(model, 'list') && Object.prototype.hasOwnProperty.call(model, 'pagination')

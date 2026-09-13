@@ -21,13 +21,16 @@ export function createTabs(props: UiTabsProps) {
     headerPlacement: _headerPlacement,
     scrollable: _scrollable,
     heightAdjustMode: _heightAdjustMode,
+    loadOn: _loadOn,
+    headerStyle: _headerStyle,
     onChange: _onChange,
     htmlAttributes,
     ...rest
   } = props;
 
   const items = tabsItemsOf(props);
-  const value = tabsValueOf(props);
+  const index = tabsValueOf(props);
+  const value = items[index]?.name ?? items[0]?.name ?? index;
 
   return h(
     Tabs,
@@ -38,7 +41,10 @@ export function createTabs(props: UiTabsProps) {
       scrollable: tabsScrollableOf(props),
       class: tabsModifierClasses(props).flat(),
       style: tabsHostStyle(props),
-      "onUpdate:value": (next: unknown) => emitTabsChange(props, next),
+      "onUpdate:value": (next: unknown) => {
+        const idx = items.findIndex((item) => item.name === next);
+        emitTabsChange(props, idx >= 0 ? idx : next);
+      },
     },
     {
       default: () => [
@@ -46,29 +52,31 @@ export function createTabs(props: UiTabsProps) {
           TabList,
           {},
           () =>
-            items.map((item, index) =>
-              h(
+            items.map((item, i) => {
+              const name = item.name || `content${i}`;
+              return h(
                 Tab,
                 {
-                  key: index,
-                  value: index,
+                  key: name,
+                  value: name,
                   disabled: item.disabled,
                 },
                 () => headerNodes(item),
-              ),
-            ),
+              );
+            }),
         ),
         h(
           TabPanels,
           {},
           () =>
-            items.map((item, index) =>
-              h(
+            items.map((item, i) => {
+              const name = item.name || `content${i}`;
+              return h(
                 TabPanel,
-                { key: index, value: index },
+                { key: name, value: name },
                 { default: () => tabsItemContentOf(item) },
-              ),
-            ),
+              );
+            }),
         ),
       ],
     },

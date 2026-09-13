@@ -9,7 +9,22 @@ import {
 import { defineComponent, h, inject, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+function isNetworkError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const message = error.message.toLowerCase()
+  return (
+    error.name === 'TypeError' ||
+    /failed to fetch|networkerror|network error|load failed|econnrefused|err_connection/i.test(
+      message,
+    )
+  )
+}
+
 function authErrorMessage(error: unknown): string {
+  if (isNetworkError(error)) {
+    return '无法连接服务器，请确认网关（8001）与认证服务已启动'
+  }
+
   if (error && typeof error === 'object') {
     const problem = error as {
       detail?: unknown
@@ -18,19 +33,38 @@ function authErrorMessage(error: unknown): string {
       status?: unknown
     }
     const status = Number(problem.status)
-    if (typeof problem.detail === 'string' && problem.detail.trim()) {
-      return problem.detail
+    const detail =
+      typeof problem.detail === 'string' ? problem.detail.trim() : ''
+    const message =
+      typeof problem.message === 'string' ? problem.message.trim() : ''
+    const title =
+      typeof problem.title === 'string' ? problem.title.trim() : ''
+    const combined = `${detail} ${message} ${title}`
+
+    if (/clientid|clientsecret|oauth client/i.test(combined)) {
+      return '登录配置不完整：缺少 OAuth clientId/clientSecret，请检查前端环境变量'
     }
-    if (typeof problem.message === 'string' && problem.message.trim()) {
-      return problem.message
+    if (detail) return detail
+    if (message) {
+      if (
+        /failed to fetch|networkerror|network error|load failed/i.test(message)
+      ) {
+        return '无法连接服务器，请确认网关（8001）与认证服务已启动'
+      }
+      return message
+    }
+    if (status === 401 || status === 400) {
+      return '用户名或密码错误'
     }
     if (status === 503) {
       return '基础服务不可用，请确认 mmda-base 等后端服务已启动'
     }
-    if (typeof problem.title === 'string' && problem.title.trim()) {
-      return problem.title
+    if (status === 500) {
+      return '认证服务返回错误，请检查用户名密码或服务日志'
     }
+    if (title) return title
   }
+
   if (error instanceof Error && error.message.trim()) return error.message
   return String(error ?? '登录失败')
 }
@@ -57,12 +91,16 @@ export const SigninView = defineComponent({
           } catch (error) {
             const detail = authErrorMessage(error)
             formError.value = detail
-            await app.ui.toast({} as any, {
-              severity: 'error',
-              title: '登录失败',
-              message: detail,
-              life: 5000,
-            })
+            try {
+              await app.ui.toast({} as any, {
+                severity: 'error',
+                title: '登录失败',
+                message: detail,
+                life: 5000,
+              })
+            } catch {
+              // toast 失败时仍保留页面红字提示
+            }
           }
         },
       },
@@ -94,7 +132,10 @@ export const SigninView = defineComponent({
                 formError.value
                   ? h(
                       'p',
-                      { class: uiCssClass('signin-form', 'error') },
+                      {
+                        class: uiCssClass('signin-form', 'error'),
+                        role: 'alert',
+                      },
                       formError.value,
                     )
                   : null,

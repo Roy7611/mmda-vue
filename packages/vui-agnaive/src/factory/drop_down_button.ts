@@ -1,13 +1,14 @@
-import { h } from "vue";
-import { NDropdown } from "naive-ui";
-import type { UiAction, UiDropDownButtonProps, UiSlots } from "@mmda/vui"
-import { createIconVNode } from "@mmda/vui"
-import { createButton } from "./button";
+import { h } from 'vue'
+import { NDropdown } from 'naive-ui'
+import type { UiAction, UiDropDownButtonProps, UiSlots } from '@mmda/vui'
+import { createIconVNode } from '@mmda/vui'
+import { NDropupMenuButton } from '../components/NDropupMenuButton'
+import { createButton } from './button'
 
 const dropdownOptions = (actions: UiAction[]): unknown[] =>
   actions.map((action) => {
     if (action.divider)
-      return { type: "divider" as const, key: `div-${action.name}` };
+      return { type: 'divider' as const, key: `div-${action.name}` }
     return {
       label: action.label ?? action.name,
       key: String(action.name ?? action.label),
@@ -18,19 +19,34 @@ const dropdownOptions = (actions: UiAction[]): unknown[] =>
       children: action.items?.length
         ? dropdownOptions(action.items)
         : undefined,
-    };
-  });
+    }
+  })
 
 const findAction = (actions: UiAction[], key: string): UiAction | undefined => {
   for (const action of actions) {
-    if ((action.name ?? action.label) === key) return action;
+    if ((action.name ?? action.label) === key) return action
     if (action.items?.length) {
-      const nested = findAction(action.items, key);
-      if (nested) return nested;
+      const nested = findAction(action.items, key)
+      if (nested) return nested
     }
   }
-  return undefined;
-};
+  return undefined
+}
+
+/** Map MMDA popupPlacement → Naive Dropdown/Popover placement. */
+function naivePlacementOf(
+  placement: UiDropDownButtonProps['popupPlacement'],
+): 'bottom' | 'bottom-end' | 'top' | 'top-end' {
+  if (placement === 'top' || placement === 'top-end') return placement
+  if (placement === 'bottom-end') return 'bottom-end'
+  return 'bottom'
+}
+
+function opensUpward(
+  placement: UiDropDownButtonProps['popupPlacement'],
+): boolean {
+  return placement === 'top' || placement === 'top-end'
+}
 
 export function createDropDownButton(
   props: UiDropDownButtonProps,
@@ -38,20 +54,31 @@ export function createDropDownButton(
   slots?: UiSlots,
   button: typeof createButton = createButton,
 ) {
+  // 侧栏 footer 在 overflow:hidden 内：向上开用自研 Dropup（Teleport + fixed）
+  if (opensUpward(props.popupPlacement)) {
+    return h(NDropupMenuButton as any, {
+      buttonProps: props,
+      actions,
+      slots,
+      placement: props.popupPlacement === 'top' ? 'top' : 'top-end',
+    })
+  }
+
   const hideCaret =
     props.hideCaret === true ||
-    props.shape === "circle" ||
-    (!props.label && Boolean(props.icon));
+    props.shape === 'circle' ||
+    (!props.label && Boolean(props.icon))
+  const placement = naivePlacementOf(props.popupPlacement)
   return h(
     NDropdown as any,
     {
-      trigger: "click",
+      trigger: 'click',
+      placement,
+      to: 'body',
       options: dropdownOptions(actions),
-      label: props.label,
-      class: props.class,
       onSelect: (key: string) => {
-        const action = findAction(actions, key);
-        action?.onAction?.();
+        const action = findAction(actions, key)
+        action?.onAction?.()
       },
     },
     {
@@ -60,23 +87,23 @@ export function createDropDownButton(
           {
             ...props,
             label: hideCaret ? undefined : props.label,
-            shape: hideCaret ? "circle" : props.shape,
-            buttonType: props.buttonType ?? (hideCaret ? "text" : undefined),
+            shape: hideCaret ? 'circle' : props.shape,
+            buttonType: props.buttonType ?? (hideCaret ? 'text' : undefined),
             colorRole:
               props.colorRole ??
-              (props.buttonType === "tonal" ? "secondary" : undefined),
+              (props.buttonType === 'tonal' ? 'secondary' : undefined),
             class: [
               props.class,
-              hideCaret ? "mmda-menu-button--icon-only" : "",
+              hideCaret ? 'mmda-menu-button--icon-only' : '',
             ]
               .flat()
               .filter(Boolean)
-              .join(" "),
+              .join(' '),
           },
           slots as any,
         ),
     },
-  );
+  )
 }
 
 export function createMoreMenuButton(
@@ -88,10 +115,10 @@ export function createMoreMenuButton(
   return createDropDownButton(
     {
       ...props,
-      class: ["mmda-more-menu-button", props.class],
+      class: ['mmda-more-menu-button', props.class],
     },
     actions,
     slots,
     button,
-  );
+  )
 }

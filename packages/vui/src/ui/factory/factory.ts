@@ -42,6 +42,8 @@ export type {
   UiBadgePosition,
   UiBadgeProps,
   UiBadgeShape,
+  UiErrorProps,
+  UiErrorStatus,
   UiMessageProps,
   UiMessageVariant,
   UiDividerOrientation,

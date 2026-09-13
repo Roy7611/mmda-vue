@@ -5,9 +5,11 @@ import {
   columnFilterKindOf,
   hasFilterType,
   inferColumnFilterTypes,
+  isLazyChoiceFilterField,
+  isRefOptionsComplete,
   resolveColumnFilterTypes,
   simpleFilterTypeOf,
-} from '../metaui/metaui_field'
+} from '../metaui/metaui_filter'
 import { createMockField } from './helpers/metaui_mock'
 
 describe('MetaUiFieldFilterType / resolveColumnFilterTypes', () => {
@@ -27,15 +29,11 @@ describe('MetaUiFieldFilterType / resolveColumnFilterTypes', () => {
     expect(hasFilterType(field, MetaUiFieldFilterType.TEXT)).toBe(false)
   })
 
-  it('NONE / 未配时按 dataType 推断', () => {
+  it('NONE / 未配时按 dataType 只给原生一位', () => {
     const text = createMockField({ dataType: SqlDataType.VARCHAR })
-    expect(inferColumnFilterTypes(text)).toBe(
-      MetaUiFieldFilterType.TEXT |
-        MetaUiFieldFilterType.SET |
-        MetaUiFieldFilterType.MULTI,
-    )
+    expect(inferColumnFilterTypes(text)).toBe(MetaUiFieldFilterType.TEXT)
     expect(resolveColumnFilterTypes(text)).toBe(inferColumnFilterTypes(text))
-    expect(columnFilterKindOf(text)).toBe('multi')
+    expect(columnFilterKindOf(text)).toBe('text')
 
     const num = createMockField({ dataType: SqlDataType.INT })
     expect(resolveColumnFilterTypes(num)).toBe(MetaUiFieldFilterType.NUMBER)
@@ -45,7 +43,8 @@ describe('MetaUiFieldFilterType / resolveColumnFilterTypes', () => {
     expect(columnFilterKindOf(bool)).toBe('boolean')
 
     const date = createMockField({ dataType: SqlDataType.DATE })
-    expect(columnFilterKindOf(date)).toBe('multi')
+    expect(inferColumnFilterTypes(date)).toBe(MetaUiFieldFilterType.DATE)
+    expect(columnFilterKindOf(date)).toBe('range')
   })
 
   it('显式 filterTypes 覆盖推断', () => {
@@ -102,5 +101,85 @@ describe('MetaUiFieldFilterType / resolveColumnFilterTypes', () => {
         MetaUiFieldFilterType.JOIN,
       ),
     ).toBe(true)
+  })
+
+  it('enum / ref 默认 SET（CheckBox），不要默认 TEXT Menu', () => {
+    const enumerated = createMockField({
+      selectOptions: 'OPEN;OPEN;打开|CLOSED;CLOSED;关闭',
+    })
+    expect(enumerated.reference?.isEnum).toBe(true)
+    expect(inferColumnFilterTypes(enumerated)).toBe(MetaUiFieldFilterType.SET)
+    expect(resolveColumnFilterTypes(enumerated)).toBe(MetaUiFieldFilterType.SET)
+    expect(columnFilterKindOf(enumerated)).toBe('set')
+
+    const refField = createMockField({
+      selectOptions: 'REF Partner(id,partnerName)',
+    })
+    expect(refField.reference?.isRef).toBe(true)
+    expect(inferColumnFilterTypes(refField)).toBe(MetaUiFieldFilterType.SET)
+    expect(columnFilterKindOf(refField)).toBe('set')
+
+    const leftoverText = createMockField({
+      selectOptions: 'OPEN;OPEN;打开|CLOSED;CLOSED;关闭',
+      filterTypes: MetaUiFieldFilterType.TEXT,
+    })
+    expect(resolveColumnFilterTypes(leftoverText)).toBe(MetaUiFieldFilterType.SET)
+    expect(columnFilterKindOf(leftoverText)).toBe('set')
+  })
+
+  it('enum 显式 MULTI / JOIN 仍认叠加位', () => {
+    const multi = createMockField({
+      selectOptions: 'OPEN;OPEN;打开|CLOSED;CLOSED;关闭',
+      filterTypes:
+        MetaUiFieldFilterType.TEXT |
+        MetaUiFieldFilterType.SET |
+        MetaUiFieldFilterType.MULTI,
+    })
+    expect(columnFilterKindOf(multi)).toBe('multi')
+
+    const join = createMockField({
+      selectOptions: 'OPEN;OPEN;打开|CLOSED;CLOSED;关闭',
+      filterTypes:
+        MetaUiFieldFilterType.TEXT | MetaUiFieldFilterType.JOIN,
+    })
+    expect(columnFilterKindOf(join)).toBe('text')
+    expect(
+      hasFilterType(resolveColumnFilterTypes(join), MetaUiFieldFilterType.JOIN),
+    ).toBe(true)
+  })
+
+  it('hasOne 默认 SET（CheckBox），裸 TEXT 也当 SET', () => {
+    const hasOne = createMockField({
+      selectOptions: 'HAS_ONE Material(matID,matName)',
+    })
+    expect(hasOne.reference?.hasOne).toBe(true)
+    expect(inferColumnFilterTypes(hasOne)).toBe(MetaUiFieldFilterType.SET)
+    expect(resolveColumnFilterTypes(hasOne)).toBe(MetaUiFieldFilterType.SET)
+    expect(columnFilterKindOf(hasOne)).toBe('set')
+
+    const leftoverText = createMockField({
+      selectOptions: 'HAS_ONE Material(matID,matName)',
+      filterTypes: MetaUiFieldFilterType.TEXT,
+    })
+    expect(resolveColumnFilterTypes(leftoverText)).toBe(MetaUiFieldFilterType.SET)
+    expect(columnFilterKindOf(leftoverText)).toBe('set')
+  })
+
+  it('ref / hasOne 未穷尽懒加载，穷尽后本地', () => {
+    const ref = createMockField({
+      selectOptions: 'REF MaterialPackage(packID,packFullName)',
+    })
+    expect(isLazyChoiceFilterField(ref)).toBe(true)
+    expect(isRefOptionsComplete(ref)).toBe(false)
+    ref.reference!.refOptionsComplete = true
+    expect(isRefOptionsComplete(ref)).toBe(true)
+    expect(isLazyChoiceFilterField(ref)).toBe(false)
+
+    const hasOne = createMockField({
+      selectOptions: 'HAS_ONE Material(matID,matName)',
+    })
+    expect(isLazyChoiceFilterField(hasOne)).toBe(true)
+    hasOne.reference!.refOptionsComplete = true
+    expect(isLazyChoiceFilterField(hasOne)).toBe(false)
   })
 })

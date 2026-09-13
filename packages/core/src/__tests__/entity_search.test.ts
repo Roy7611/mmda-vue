@@ -15,6 +15,10 @@ import {
   multiFilter,
   cloneFilterModel,
   combineCompareAndSet,
+  blankFilter,
+  compactFieldFilter,
+  expandBlankFilters,
+  nullFilter,
 } from "../models/entity_search";
 
 describe("ApiClient.searchAll", () => {
@@ -162,7 +166,7 @@ describe("ApiClient.searchAll", () => {
     expect(http.post.mock.calls.length).toBe(1);
   });
 
-  it("getPivotValues GET pivotValues/{field}", async () => {
+  it("getPivotValues GET pivotValues?field=", async () => {
     const http = {
       baseUrl: "",
       buildJsonHeaders: vi.fn(() => vi.fn()),
@@ -176,17 +180,18 @@ describe("ApiClient.searchAll", () => {
       ["A", "B"],
     );
     expect(http.getJson).toHaveBeenCalledWith(
-      expect.stringMatching(/\/Orders\/pivotValues\/status/),
+      expect.stringMatching(/\/Orders\/pivotValues\?/),
       expect.anything(),
     );
     const postedUrl = String(
       (http.getJson as { mock: { calls: unknown[][] } }).mock.calls[0]?.[0] ??
         "",
     );
+    expect(postedUrl).toContain("field=status");
     expect(postedUrl).toContain("reload=");
   });
 
-  it("getPivotDates GET pivotDates/{field}", async () => {
+  it("getPivotDates GET pivotDates?field=", async () => {
     const http = {
       baseUrl: "",
       buildJsonHeaders: vi.fn(() => vi.fn()),
@@ -201,9 +206,14 @@ describe("ApiClient.searchAll", () => {
       "2026-06-01",
     ]);
     expect(http.getJson).toHaveBeenCalledWith(
-      expect.stringMatching(/\/Orders\/pivotDates\/createdAt/),
+      expect.stringMatching(/\/Orders\/pivotDates\?/),
       expect.anything(),
     );
+    const postedUrl = String(
+      (http.getJson as { mock: { calls: unknown[][] } }).mock.calls[0]?.[0] ??
+        "",
+    );
+    expect(postedUrl).toContain("field=createdAt");
   });
 });
 
@@ -239,6 +249,70 @@ describe("EntityQuery", () => {
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");
     }
     expect(parseQueryExpression("status='OPEN'")?.kind).toBe("sql");
+  });
+});
+
+describe("IS_BLANK expand", () => {
+  it("toSearchRequest 只展开 IS_BLANK / IS_NOT_BLANK", () => {
+    const param = defaultSearchParam();
+    param.filterModel = {
+      remark: blankFilter(),
+      note: blankFilter("IS_NOT_BLANK"),
+      toolkitID: nullFilter(),
+      qty: { filterType: "number", operator: "IS_NULL" },
+    };
+    const request = toSearchRequest(param);
+    expect(request.filterModel?.remark).toEqual(
+      joinFilter("OR", [
+        { filterType: "text", operator: "IS_NULL" },
+        { filterType: "text", operator: "EQ", value: "" },
+      ]),
+    );
+    expect(request.filterModel?.note).toEqual(
+      joinFilter("AND", [
+        { filterType: "text", operator: "IS_NOT_NULL" },
+        { filterType: "text", operator: "NEQ", value: "" },
+      ]),
+    );
+    expect(request.filterModel?.toolkitID).toEqual(nullFilter());
+    expect(request.filterModel?.qty).toEqual({
+      filterType: "number",
+      operator: "IS_NULL",
+    });
+  });
+
+  it("EQ / NEQ 的空串不当空条件；CONTAINS '' 仍丢掉", () => {
+    expect(
+      compactFieldFilter({ filterType: "text", operator: "EQ", value: "" }),
+    ).toEqual({ filterType: "text", operator: "EQ", value: "" });
+    expect(
+      compactFieldFilter({
+        filterType: "text",
+        operator: "CONTAINS",
+        value: "",
+      }),
+    ).toBeUndefined();
+    expect(compactFieldFilter(blankFilter())).toEqual(blankFilter());
+  });
+
+  it("expandBlankFilters 递归 join / multi，不 compact", () => {
+    const expanded = expandBlankFilters({
+      name: joinFilter("AND", [
+        blankFilter(),
+        { filterType: "text", operator: "CONTAINS", value: "仓" },
+      ]),
+    });
+    expect(expanded?.name).toMatchObject({
+      filterType: "join",
+      operator: "AND",
+    });
+    const join = expanded?.name as ReturnType<typeof joinFilter>;
+    expect(join.conditions[0]).toEqual(
+      joinFilter("OR", [
+        { filterType: "text", operator: "IS_NULL" },
+        { filterType: "text", operator: "EQ", value: "" },
+      ]),
+    );
   });
 });
 
@@ -287,6 +361,49 @@ describe("EntityFilter join/multi", () => {
         { filterType: "text", operator: "CONTAINS", value: "a" },
         inFilter("OPEN"),
       ]),
+    );
+  });
+});
+
+describe("ApiClient.searchJoinList", () => {
+  it("没有复杂字段条件时 GET getJoinList", async () => {
+    const http = {
+      baseUrl: "",
+      buildJsonHeaders: vi.fn(() => vi.fn()),
+      get: vi.fn(async () => ({ list: [], pagination: {} })),
+    };
+    const api = new ApiClient(http as any, {
+      service: "base",
+      repository: "Orders",
+    });
+    await api.searchJoinList(defaultSearchParam("仓"), { repository: "Orders" });
+    expect(http.get).toHaveBeenCalledWith(
+      expect.stringMatching(/\/Orders\/getJoinList\?/),
+      expect.anything(),
+    );
+  });
+
+  it("存在 filterModel 时 POST searchJoinList", async () => {
+    const http = {
+      baseUrl: "",
+      buildJsonHeaders: vi.fn(() => vi.fn()),
+      post: vi.fn(async () => ({ list: [], pagination: {} })),
+    };
+    const api = new ApiClient(http as any, {
+      service: "base",
+      repository: "Orders",
+    });
+    const filterModel = {
+      status: { filterType: "set" as const, values: ["OPEN"] },
+    };
+    const param = defaultSearchParam();
+    param.filterModel = filterModel;
+    await api.searchJoinList(param, { repository: "Orders" });
+    expect(http.post).toHaveBeenCalledWith(
+      expect.stringMatching(/\/Orders\/searchJoinList(?:\?|$)/),
+      expect.objectContaining({
+        options: { body: JSON.stringify(filterModel) },
+      }),
     );
   });
 });

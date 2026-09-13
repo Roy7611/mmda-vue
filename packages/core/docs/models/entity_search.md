@@ -56,7 +56,7 @@ interface EntitySearchParam extends EntityQuery {
 
 | filterType | 主要字段 |
 |---|---|
-| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`；`date` 可另带 **`dateKind`**（`THIS_MONTH` 等，POST 不展开） |
+| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`；`date` 相对语义用 **`WITHIN` + `dateKind`**（`THIS_MONTH` 等，POST 不展开） |
 | `set` | `values` + 可选 `operator`：`IN` / `NOT_IN`。日期列的 `values` 可以是周期 token：`YYYY` / `YYYY-MM` / `YYYY-MM-DD` |
 | `boolean` | `value: boolean \| null`（`IS_ALL` 表示不筛选，通常不写入 model） |
 | `join` | 同一比较器多段：`operator: "AND"\|"OR"` + `conditions[]` |
@@ -78,11 +78,13 @@ AG Grid 也是两套：
 
 控件与映射见 vui [query_builder.md](../../vui/docs/query_builder.md)。
 
-工厂：`inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `joinFilter` / `multiFilter` / `combineCompareAndSet`。
+工厂：`inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `blankFilter` / `joinFilter` / `multiFilter` / `combineCompareAndSet`。
+
+字符串「没内容」用 **`IS_BLANK` / `IS_NOT_BLANK`**（对标 `dateKind`：查询文档原样保存）。`toSearchRequest` 经 `expandBlankFilters` 展开成 `IS_NULL OR field = ''` / `IS_NOT_NULL AND field <> ''`。数字、日期、可空 ref 仍用 `IS_NULL`，不展开。`EQ` / `NEQ` 的 `''` 是合法条件。
 
 日期两路：
 
-- **语义** `{ filterType:'date', dateKind:'THIS_MONTH' }`：保存和 POST 都保留 kind，**服务端**按服务器日历展开成半开 `[start, next)`。不要在客户端收成 BETWEEN。
+- **语义** `{ filterType:'date', operator:'WITHIN', dateKind:'THIS_MONTH' }`：保存和 POST 都保留 kind，**服务端**按服务器日历展开成半开 `[start, next)`。不要在客户端收成 BETWEEN。旧文档 `{ operator:'BETWEEN', dateKind }` 读回按 WITHIN 水合。
 - **Excel 绝对勾选** `set` + 周期 token：`toSearchRequest` / `searchAll` 会 `expandDateFilters` 合并相邻区间 → 一段 `BETWEEN` 或多段 `join` OR。`dateKind` 不展开。
 
 周期 token 先变半开区间再合并（`prev.next >= next.start`）。例：`['2026-05','2026-06-01','2025-12']` → 12 月一段 + `[2026-05-01, 2026-06-02)`。`compactDateSet` 对照 pivot 日把全选的年/月收成 token。
@@ -158,7 +160,7 @@ EntitySearchParam
 ## 本地上次查询 / CustomizedQuery
 
 - 元数据包仍整体从服务器拉（metaui + filters）。
-- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在 IndexedDB `meta/{service}/{repository}/query`，挂在 `MetaUiPack.lastQuery`。
+- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在对应微服务的 IndexedDB（库名 = service）键 `meta/{repository}/query`，挂在 `MetaUiPack.lastQuery`。
 - **不要**再单独缓存 sorts。
 - 打开列表顺序：CustomizedQuery / 本地 `lastQuery` → 套到 SearchParam；否则 Module 默认。
 

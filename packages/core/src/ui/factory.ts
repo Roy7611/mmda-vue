@@ -49,6 +49,7 @@ import type { UiCardProps, UiCardSlots } from './factory/card'
 import type { UiCarouselProps, UiImageGalleryItem } from './factory/carousel'
 import type { UiContextMenuProps } from './factory/context_menu'
 import type { UiDividerProps } from './factory/divider'
+import type { UiErrorProps } from './factory/error'
 import type { UiLoadingProps } from './factory/loading'
 import type { UiProgressBarProps } from './factory/progress_bar'
 import type { UiDrawerProps, UiSidebarProps } from './factory/sidebar'
@@ -243,6 +244,8 @@ export interface UiFactory<TNode = any> {
     slots?: { default?: () => TNode },
   ): TNode
   loading?(props?: UiLoadingProps): TNode
+  /** 页级异常重试面板（打开失败 / 列表重载失败）；不要用 message 顶栏顶替。 */
+  errorRetry?(props?: UiErrorProps): TNode
   skeleton?(props?: UiSkeletonProps): TNode
 
   searchForRelative?(props?: UiProps): TNode

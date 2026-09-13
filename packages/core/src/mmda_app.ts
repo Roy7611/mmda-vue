@@ -106,6 +106,9 @@ export abstract class MmdaApplication {
   protected restoringAuth = false
   /** Prevent concurrent 401 / bad-JWT redirects. */
   private redirectingToSignin = false
+  /** 并发 getTodoCount 合并；短时重复调用复用结果。 */
+  private todoCountInFlight?: Promise<void>
+  private todoCountFetchedAt = 0
   /** 公共 SSO 库：仅 user / config，与模块 localDb 分离 */
   protected readonly ssoDb: LocalAsyncDb
 
@@ -203,12 +206,22 @@ export abstract class MmdaApplication {
     return this.meta.findModule(nameOrUrl)
   }
 
+  isOnSigninPath(pathname = typeof window !== 'undefined' ? window.location.pathname : '') {
+    return (
+      pathname === this.signinPath ||
+      pathname.endsWith('/Signin') ||
+      pathname.endsWith('/signin')
+    )
+  }
+
   async signin(
     username: string,
     password: string,
     keepLogin = true,
     clientProps: ClientProps = {},
   ) {
+    this.api.config.accessToken = ''
+    this.api.config.refreshToken = ''
     const clientId = clientProps.clientId ?? this.clientId
     const clientSecret = clientProps.clientSecret ?? this.clientSecret
     const redirectUris = clientProps.redirectUris ?? this.redirectUris
@@ -241,6 +254,9 @@ export abstract class MmdaApplication {
     }
     this.state.modules = []
     this.state.authenticated = false
+    this.state.todoCount = 0
+    this.todoCountFetchedAt = 0
+    this.todoCountInFlight = undefined
     this.api.config.accessToken = ''
     this.api.config.refreshToken = ''
   }
@@ -253,11 +269,7 @@ export abstract class MmdaApplication {
     if (this.restoringAuth || this.redirectingToSignin) return
     if (typeof window === 'undefined') return
     const current = window.location.pathname
-    if (
-      current === this.signinPath ||
-      current.endsWith('/Signin') ||
-      current.endsWith('/signin')
-    ) {
+    if (this.isOnSigninPath(current)) {
       this.clearAuthMemory()
       return
     }
@@ -284,9 +296,16 @@ export abstract class MmdaApplication {
 
   afterSignOut?: () => Promise<boolean>
 
-  /** 从公共 SSO 库恢复登录态（不读写 Cookie） */
+  /**
+   * 从公共 SSO 库恢复登录态（不读写 Cookie）。
+   * 已在登录页时不 restore、不 refresh；用户点登录只走 password /authorize。
+   */
   async signinAuto() {
     if (typeof document === 'undefined') return this.canAccess
+    if (this.isOnSigninPath()) {
+      this.clearAuthMemory()
+      return false
+    }
     this.restoringAuth = true
     try {
       let user: any
@@ -434,19 +453,33 @@ export abstract class MmdaApplication {
     return systemList.find((item: any) => item.moduleCode === moduleCode) ?? {}
   }
 
-  async getTodoCount() {
-    this.state.todoCount = await this.meta.getTodoCount({
-      service: 'base',
-      repository: 'Notifications',
-      action: 'getTodoCount',
-      queryParams: { userID: this.user.userId },
-    })
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(
-        'mmda/todoCount',
-        JSON.stringify(this.state.todoCount),
-      )
+  async getTodoCount(force = false) {
+    const now = Date.now()
+    if (!force && this.todoCountInFlight) return this.todoCountInFlight
+    // 登录跳转会短暂连挂两次；几秒内复用结果
+    if (!force && this.todoCountFetchedAt && now - this.todoCountFetchedAt < 3000) {
+      return
     }
+    this.todoCountInFlight = (async () => {
+      try {
+        this.state.todoCount = await this.meta.getTodoCount({
+          service: 'base',
+          repository: 'Notifications',
+          action: 'getTodoCount',
+          queryParams: { userID: this.user.userId },
+        })
+        this.todoCountFetchedAt = Date.now()
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(
+            'mmda/todoCount',
+            JSON.stringify(this.state.todoCount),
+          )
+        }
+      } finally {
+        this.todoCountInFlight = undefined
+      }
+    })()
+    return this.todoCountInFlight
   }
 
   protected async persistAuthSession(user: OAuthUser) {

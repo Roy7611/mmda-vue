@@ -4,14 +4,13 @@ import {
   emptyPagedList,
   type MmdaApplication,
   type Module,
+  type UiErrorProps,
 } from "@mmda/core";
 import {
+  computed,
   defineComponent,
   h,
   inject,
-  KeepAlive,
-  onActivated,
-  onDeactivated,
   onMounted,
   onUnmounted,
   provide,
@@ -21,7 +20,7 @@ import {
   nextTick,
   type Component,
 } from "vue";
-import { RouterView, useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaVueApp } from "../app/app";
 import type { VueUiBuilder } from "../ui/builder/builder";
@@ -42,6 +41,7 @@ import {
   MODULE_CONTEXT_KEY,
   bindModuleContext,
 } from "../contexts/vue_module_context";
+import { ErrorRetry } from "./ErrorRetry";
 
 export interface EntityViewOptions {
   createLogic: (
@@ -91,6 +91,11 @@ function resolveEntityView(path: string, queryView?: unknown): UiViewType {
   return UiViewMany.Index;
 }
 
+function isIndexView(path: string, queryView?: unknown): boolean {
+  const view = resolveEntityView(path, queryView);
+  return view === UiViewMany.Index || view === UiViewMany.SelectMany;
+}
+
 function isCategoryListView(context: VueUiContext) {
   const view = String(context.view ?? "");
   const option =
@@ -111,7 +116,10 @@ function renderEntityPage(
   route: ReturnType<typeof useRoute>,
 ) {
   if (!isCategoryListView(context)) void context.loading.value;
-  if (!context.many) void context.pageNotice.value;
+  if (!context.many) {
+    void context.pageNotice.value;
+    void context.pageLayoutRev.value;
+  }
   const treeData = (context.logic as { treeData?: { value?: unknown } })
     ?.treeData;
   if (treeData && "value" in treeData) void treeData.value;
@@ -154,6 +162,13 @@ function loadingNode(app: MmdaVueApp) {
       "aria-label": translateMessage("state.loading"),
     },
     [(app.ui as VueUiBuilder).factory.loading()],
+  );
+}
+
+function errorRetryNode(app: MmdaVueApp, props: UiErrorProps) {
+  return (
+    (app.ui as VueUiBuilder).factory.errorRetry?.(props) ??
+    h(ErrorRetry, props as Record<string, unknown>)
   );
 }
 
@@ -234,7 +249,7 @@ async function openEntityContext(
 }
 
 /**
- * 同模块 CRUD：父工作区 KeepAlive 只缓存 Index；Create/Edit/Details 为 One。
+ * 同模块 CRUD：工作区叠层保活 Index；Create/Edit/Details 为 One。
  * 返回值带 `.Index` / `.One`，供嵌套路由 children 使用。
  */
 export function createEntityView(options: EntityViewOptions) {
@@ -246,13 +261,13 @@ export function createEntityView(options: EntityViewOptions) {
       const router = useRouter();
       const sync = inject(MODULE_CONTEXT_KEY, null);
       const current = shallowRef<VueUiContext>();
-      const error = shallowRef("");
+      const error = shallowRef<unknown>(null);
       const pageLoading = ref(false);
       let openGeneration = 0;
 
       async function open() {
         const generation = ++openGeneration;
-        error.value = "";
+        error.value = null;
         pageLoading.value = true;
         current.value = undefined;
         try {
@@ -277,12 +292,12 @@ export function createEntityView(options: EntityViewOptions) {
       }
 
       const showError = (value: unknown) => {
-        error.value = value instanceof Error ? value.message : String(value);
+        error.value = value;
         pageLoading.value = false;
       };
 
       onMounted((): void => void open().catch(showError));
-      // 仅 query.view（如 selectMany）变化时重建；path/id 由 KeepAlive 保活，不重开
+      // 仅 query.view（如 selectMany）变化时重建；path/id 由叠层保活，不重开
       watch(
         () => route.query.view,
         (next, prev) => {
@@ -290,11 +305,11 @@ export function createEntityView(options: EntityViewOptions) {
           void open().catch(showError);
         },
       );
-      onDeactivated(() => {
-        sync?.saveScroll();
-      });
-      onActivated(() => {
-        void (async () => {
+      // 从 One 揭开回列表：按需 search + 轻量选中（Index 叠层常驻，无 activate）
+      watch(
+        () => isIndexView(route.path, route.query.view),
+        async (now, was) => {
+          if (!now || was !== false) return;
           if (sync?.consumeNeedsSearch() && current.value) {
             try {
               await current.value.search?.();
@@ -302,21 +317,23 @@ export function createEntityView(options: EntityViewOptions) {
               showError(error);
             }
           }
-          sync?.flushVisual();
           await nextTick();
-          // 虚拟滚动：先 reveal（内部会归零再滚）；再延迟一次兜底
+          // 轻量选中即可；叠层不卸表，无需 flush / 强制滚屏
           sync?.revealCurrent();
-          requestAnimationFrame(() => sync?.revealCurrent());
-          window.setTimeout(() => sync?.revealCurrent(), 50);
-        })();
-      });
+        },
+      );
       onUnmounted(() => {
         if (current.value) sync?.unregisterIndex(current.value);
       });
 
       return () => {
         if (error.value) {
-          return h("p", { class: "mmda-error" }, error.value);
+          return errorRetryNode(app, {
+            error: error.value,
+            onRetry: (): void => {
+              void open().catch(showError);
+            },
+          });
         }
         if (pageLoading.value || !current.value) {
           return loadingNode(app);
@@ -334,13 +351,13 @@ export function createEntityView(options: EntityViewOptions) {
       const router = useRouter();
       const sync = inject(MODULE_CONTEXT_KEY, null);
       const current = shallowRef<VueUiContext>();
-      const error = shallowRef("");
+      const error = shallowRef<unknown>(null);
       const pageLoading = ref(false);
       let openGeneration = 0;
 
       async function open() {
         const generation = ++openGeneration;
-        error.value = "";
+        error.value = null;
         pageLoading.value = true;
         current.value = undefined;
         try {
@@ -356,17 +373,17 @@ export function createEntityView(options: EntityViewOptions) {
       }
 
       const showError = (value: unknown) => {
-        const text = value instanceof Error ? value.message : String(value);
         pageLoading.value = false;
         if (current.value) {
-          error.value = "";
+          error.value = null;
+          const text = value instanceof Error ? value.message : String(value);
           void app.ui.message(current.value, {
             severity: "error",
             content: text,
           });
           return;
         }
-        error.value = text;
+        error.value = value;
       };
 
       onMounted((): void => void open().catch(showError));
@@ -377,13 +394,12 @@ export function createEntityView(options: EntityViewOptions) {
 
       return () => {
         if (error.value) {
-          return (
-            app.ui.factory.message?.({
-              severity: "error",
-              content: error.value,
-              showCloseIcon: false,
-            }) ?? h("p", { class: "mmda-error" }, error.value)
-          );
+          return errorRetryNode(app, {
+            error: error.value,
+            onRetry: (): void => {
+              void open().catch(showError);
+            },
+          });
         }
         if (pageLoading.value || !current.value) {
           return loadingNode(app);
@@ -405,19 +421,32 @@ export function createEntityView(options: EntityViewOptions) {
         () => sync.reset(),
       );
 
+      const covering = computed(
+        () => !isIndexView(route.path, route.query.view),
+      );
+
       return () => {
         const repository = String(route.params.repository ?? "");
-        return h(RouterView, null, {
-          default: ({ Component }: { Component?: Component }) =>
+        return h(
+          "div",
+          {
+            class: ["mmda-view", covering.value && "mmda-view--covering"],
+            key: repository,
+          },
+          [
             h(
-              KeepAlive,
-              { include: "EntityIndexView", max: 1 },
+              "div",
               {
-                default: () =>
-                  Component ? h(Component, { key: repository }) : null,
+                class: "mmda-view__index",
+                "aria-hidden": covering.value ? "true" : undefined,
               },
+              [h(EntityIndexView)],
             ),
-        });
+            covering.value
+              ? h("div", { class: "mmda-view__one" }, [h(EntityOneView)])
+              : null,
+          ],
+        );
       };
     },
   });

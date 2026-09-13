@@ -10,6 +10,7 @@ import {
   type MetaUiFilter,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
+import { indexTableMetaUi } from "./join_list_mode";
 
 export const SYSTEM_LIST_COLUMNS = new Set([
   "rowNum",
@@ -26,7 +27,7 @@ export function listServiceName(context: VueUiContext<any>) {
 }
 
 export function bumpListLayout(context: VueUiContext<any>) {
-  context.metaUi.getListedFields(true);
+  indexTableMetaUi(context).getListedFields(true);
   context.listLayoutRev.value += 1;
 }
 

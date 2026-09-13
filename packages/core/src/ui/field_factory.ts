@@ -61,7 +61,7 @@ export interface UiFieldFactory<TNode = any>
   ): TNode
 
   /**
-   * 强制编辑行（标签 + 输入 + 校验）。
+   * 强制编辑行（标签 + 输入）。校验文案由皮肤控件自绘。
    * 控件：`customEditor` ?? `field.editor` ?? {@link fallbackInput}。
    */
   editFor(

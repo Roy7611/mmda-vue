@@ -38,6 +38,7 @@
   "dependencies": {
     "@mmda/core": "workspace:^",
     "@mmda/vui": "workspace:^",
+    "@ag-grid-community/locale": "^34.3.1",
     "signature_pad": "^5.1.1"
   },
   "peerDependencies": {
@@ -76,6 +77,7 @@
     "ag-grid-community": "^34.3.1",
     "ag-grid-enterprise": "^34.3.1",
     "ag-grid-vue3": "^34.3.1",
+    "@ag-grid-community/locale": "^34.3.1",
     "ag-charts-vue3": "^12.3.1",
     "bpmn-js": "^18.25.1",
     "jsbarcode": "^3.12.3",

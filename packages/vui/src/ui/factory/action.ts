@@ -50,19 +50,29 @@ export interface UiActionContext extends UiContext {
 
 /** Normalize backend action roles before passing them to a UI skin. */
 export const normalizeActionColorRole = (
-  role?: string,
+  role?: string | number | null,
 ): UiColorRole | undefined => {
-  const normalized = role?.trim().toLowerCase()
-  if (!normalized) return undefined
-  if (normalized === "warn") return "warning"
-  if (normalized === "error") return "danger"
+  if (role == null || role === '') return undefined
+  // ModuleDisplayHint numeric wire form: 0;INFO|1;SUCCESS|2;WARNING|4;DANGER
+  const numeric: Record<string, UiColorRole> = {
+    '0': 'info',
+    '1': 'success',
+    '2': 'warning',
+    '4': 'danger',
+  }
+  const raw = String(role).trim()
+  if (!raw) return undefined
+  if (numeric[raw] != null) return numeric[raw]
+  const normalized = raw.toLowerCase()
+  if (normalized === 'warn') return 'warning'
+  if (normalized === 'error') return 'danger'
   if (
-    normalized === "primary" ||
-    normalized === "secondary" ||
-    normalized === "success" ||
-    normalized === "info" ||
-    normalized === "warning" ||
-    normalized === "danger"
+    normalized === 'primary' ||
+    normalized === 'secondary' ||
+    normalized === 'success' ||
+    normalized === 'info' ||
+    normalized === 'warning' ||
+    normalized === 'danger'
   ) {
     return normalized
   }
@@ -139,7 +149,9 @@ export const UiContextAction = (
     id,
     label: label ?? context.t(`action.${name}`),
     icon: i(icon ?? name),
-    colorRole: normalizeActionColorRole(role),
+    colorRole: normalizeActionColorRole(
+      (action as { colorRole?: string }).colorRole ?? role,
+    ),
     loading: unref(context.actionLoadings[name]),
     onAction: () => {
       if (context.executing) {
@@ -172,6 +184,20 @@ export const UiContextAction = (
           }
         } catch (error) {
           context.actionLoadings[name] = false;
+          // 勿静默吞掉：否则工具栏「返回」等像没点一样
+          try {
+            context.uiBuilder?.toast?.(context, {
+              severity: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : context.translate?.("failure.action") ?? String(error),
+              life: 4000,
+            });
+          } catch {
+            // ignore toast failures
+          }
+          throw error;
         }
       }
     },

@@ -99,7 +99,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
   customActions: EntityAction[] = [];
   actionLoadings: Record<string, boolean> = reactive({});
   executing = false;
-  isEditDialog = false;
+  isInDialog = false;
   showDialog = false;
   readonly initializedState: Ref<boolean>;
   readonly parent?: VueUiContextBase<any>;

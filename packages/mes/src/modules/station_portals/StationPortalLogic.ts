@@ -25,7 +25,7 @@ const searchParamplan = {
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 const tableDatatask = { value: [] };
 const tablecolumnstask = { value: [] };
 const tableDataKEYtask = { value: 'id' };
@@ -36,7 +36,7 @@ const searchParamtask = {
 	},
 	searchWord: '',
 	searchParams: {},
-});
+};
 const eventtypeoption = [
 	{ label: 'stationlabel.eventLevelInfo', value: 'INFO', id: 0 },
 	{ label: 'stationlabel.eventLevelSuccess', value: 'SUCCESS', id: 1 },
@@ -111,7 +111,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 							id: '_',
 							view: UI_CREATE,
 							editing: true,
-							isEditDialog: true,
+							isInDialog: true,
 							params: reporteventparams,
 							showToolbar: false,
 							attachmentsCollapsed: true,
@@ -884,7 +884,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 	// 						id: `groupDisk_${Date.now()}`, // 增加唯一ID，便于追踪
 	// 						view: UI_CREATE,
 	// 						editing: true,
-	// 						isEditDialog: true,
+	// 						isInDialog: true,
 	// 						params: {
 	// 							...groupDiskParams,
 	// 							toolMaterialTypes: ['模具', '砂箱'], // 限定器具类型
@@ -1089,21 +1089,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						.join(" AND ");
 				}),
 				// this.field('opCode').refWhere((model, ctx) => {
-					const __p = ((context, model) => {
-				// 	const lineItem = context.searchFields.filter((item: any) => item.field.fieldName === 'lineID')
-				// 	return { lineID: lineItem[0].searchValue ?? '' }
-				// })(ctx as any, model as any, undefined as any);
-					if (!__p) return "";
-					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
-						.map(([k, v]) => {
-							const s = String(v);
-							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
-							if (/^[><=]/.test(s)) return `${k}${s}`;
-							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
-						})
-						.join(" AND ");
-				})
+				// }) — orphaned __p body removed
 				// this.field('equippingType')
 			);
 		}

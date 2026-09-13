@@ -19,8 +19,24 @@ const vuiMaterialSymbols = fileURLToPath(
 export default defineConfig({
   plugins: [vue(), vueJsx()],
   resolve: {
-    dedupe: ['ag-grid-community', 'ag-grid-enterprise', 'ag-grid-vue3', 'naive-ui', 'vue'],
+    dedupe: [
+      '@ag-grid-community/locale',
+      'ag-grid-community',
+      'ag-grid-enterprise',
+      'ag-grid-vue3',
+      'naive-ui',
+      'vue',
+    ],
     alias: [
+      {
+        find: '@ag-grid-community/locale',
+        replacement: fileURLToPath(
+          new URL(
+            '../vui-agnaive/node_modules/@ag-grid-community/locale/dist/package/main.esm.mjs',
+            import.meta.url,
+          ),
+        ),
+      },
       { find: '@mmda/vui/fontawesome.css', replacement: vuiFa },
       { find: '@mmda/vui/theme.css', replacement: vuiTheme },
       { find: '@mmda/vui/material-symbols.css', replacement: vuiMaterialSymbols },
@@ -31,6 +47,9 @@ export default defineConfig({
       { find: '@mmda/vuix-fc-scheduler', replacement: pkg('vuix-fc-scheduler') },
       { find: '@mmda/vui', replacement: pkg('vui') },
     ],
+  },
+  optimizeDeps: {
+    include: ['@ag-grid-community/locale'],
   },
   server: {
     port: 5173,

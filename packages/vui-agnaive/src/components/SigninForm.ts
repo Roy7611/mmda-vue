@@ -9,6 +9,7 @@ import {
 import { NCheckbox, NInput } from 'naive-ui'
 import {
   defineComponent,
+  getCurrentInstance,
   h,
   inject,
   onBeforeMount,
@@ -17,6 +18,39 @@ import {
   withModifiers,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+type SigninHandler = (user: SigninUser) => void | Promise<void>
+
+function resolveSigninHandlers(
+  emit: (event: 'signin', user: SigninUser) => unknown,
+): SigninHandler[] {
+  // Capture before any await — getCurrentInstance() is null after yield.
+  const raw = getCurrentInstance()?.vnode.props?.onSignin as
+    | SigninHandler
+    | SigninHandler[]
+    | undefined
+  if (raw) return Array.isArray(raw) ? raw : [raw]
+  return [
+    (user) => {
+      const result = emit('signin', user)
+      if (Array.isArray(result)) {
+        return Promise.all(
+          result.map((item) =>
+            item != null && typeof (item as Promise<unknown>).then === 'function'
+              ? (item as Promise<unknown>)
+              : Promise.resolve(item),
+          ),
+        ).then(() => undefined)
+      }
+      if (
+        result != null &&
+        typeof (result as Promise<unknown>).then === 'function'
+      ) {
+        return result as Promise<void>
+      }
+    },
+  ]
+}
 
 export const SigninForm = defineComponent({
   name: 'AgNaiveSigninForm',
@@ -37,6 +71,7 @@ export const SigninForm = defineComponent({
       agreed: { message: '' },
     })
     const loading = ref(false)
+    const formError = ref('')
     const tx = (message: string) => (message ? t(message) : message)
 
     const validate = () => {
@@ -47,14 +82,29 @@ export const SigninForm = defineComponent({
     }
 
     const handleLogin = async () => {
-      if (!validate()) return
+      formError.value = ''
+      if (!validate()) {
+        formError.value =
+          v.agreed.message ||
+          t('auth.fillUsernamePassword') ||
+          '请填写用户名和密码'
+        return
+      }
       loading.value = true
       const payload: SigninUser = { ...user }
+      const handlers = resolveSigninHandlers(
+        emit as (event: 'signin', user: SigninUser) => unknown,
+      )
       try {
         await props.context?.localDb?.put?.('user/username', {
           username: user.username,
         })
-        emit('signin', payload)
+        await Promise.all(handlers.map((fn) => Promise.resolve(fn(payload))))
+      } catch (error) {
+        formError.value =
+          error instanceof Error && error.message.trim()
+            ? error.message
+            : String(error ?? '登录失败')
       } finally {
         loading.value = false
       }
@@ -82,6 +132,13 @@ export const SigninForm = defineComponent({
               )
             : null,
           slots.header?.(),
+          formError.value
+            ? h(
+                'p',
+                { class: uiCssClass('signin-form', 'error') },
+                formError.value,
+              )
+            : null,
           layout.layoutFieldVert({
             label: h(
               'label',
@@ -135,6 +192,9 @@ export const SigninForm = defineComponent({
             class: uiCssClass('signin-form', 'login'),
             disabled: loading.value,
             type: 'submit',
+            onClick: () => {
+              void handleLogin()
+            },
           }),
           slots.footer?.(),
         ],

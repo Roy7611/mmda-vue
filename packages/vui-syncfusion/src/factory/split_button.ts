@@ -31,7 +31,7 @@ export function createSplitButton(
           props.actions ?? [],
           args.item?.id ?? args.item?.text,
         );
-        found?.onAction?.();
+        ;(found?.onAction ?? found?.command)?.();
       },
       onClick: props.onAction,
     },

@@ -120,6 +120,104 @@ describe('query builder advanced filter mapper', () => {
     })
   })
 
+  it('maps WITHIN + dateKind', () => {
+    const created = new MetaUiField({
+      fieldIdx: 3,
+      fieldName: 'createdAt',
+      displayLabel: 'Created',
+      dataType: SqlDataType.TIMESTAMP,
+      nullable: true,
+    })
+    const model = queryBuilderRuleToAdvanced({
+      field: 'createdAt',
+      operator: 'within',
+      value: 'TODAY',
+      type: 'date',
+    })
+    expect(model).toEqual({
+      fieldName: 'createdAt',
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: 'TODAY',
+    })
+    expect(
+      advancedToQueryBuilderRule(model, [queryBuilderColumnOf(created)]),
+    ).toMatchObject({
+      field: 'createdAt',
+      operator: 'within',
+      value: 'TODAY',
+    })
+    expect(queryBuilderColumnOf(created).operators).toContain('WITHIN')
+    expect(
+      agAdvancedToEntity({
+        filterType: 'date',
+        colId: 'createdAt',
+        type: 'TODAY',
+      }),
+    ).toEqual({
+      fieldName: 'createdAt',
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: 'TODAY',
+    })
+    expect(
+      entityToAgAdvanced({
+        fieldName: 'createdAt',
+        filterType: 'date',
+        operator: 'BETWEEN',
+        dateKind: 'THIS_MONTH',
+      }),
+    ).toMatchObject({
+      colId: 'createdAt',
+      type: 'THIS_MONTH',
+    })
+  })
+
+  it('maps text blank to IS_BLANK and number blank to IS_NULL', () => {
+    expect(
+      queryBuilderRuleToAdvanced({
+        field: 'sport',
+        operator: 'isempty',
+        type: 'string',
+      }),
+    ).toMatchObject({
+      fieldName: 'sport',
+      filterType: 'text',
+      operator: 'IS_BLANK',
+    })
+    expect(
+      queryBuilderColumnOf(sport).operators,
+    ).toContain('IS_BLANK')
+    expect(queryBuilderColumnOf(sport).operators).not.toContain('IS_NULL')
+    expect(queryBuilderColumnOf(age).operators).toContain('IS_NULL')
+    expect(queryBuilderColumnOf(age).operators).not.toContain('IS_BLANK')
+    const ag = agAdvancedToEntity({
+      filterType: 'text',
+      colId: 'sport',
+      type: 'blank',
+    })
+    expect(ag).toMatchObject({
+      fieldName: 'sport',
+      filterType: 'text',
+      operator: 'IS_BLANK',
+    })
+    expect(entityToAgAdvanced(ag)).toMatchObject({
+      colId: 'sport',
+      type: 'blank',
+    })
+    expect(
+      agAdvancedToEntity({
+        filterType: 'number',
+        colId: 'age',
+        type: 'blank',
+      }),
+    ).toMatchObject({
+      fieldName: 'age',
+      filterType: 'number',
+      operator: 'IS_NULL',
+    })
+  })
+
   it('maps AG AdvancedFilterModel camel operators', () => {
     const ag = {
       filterType: 'join' as const,

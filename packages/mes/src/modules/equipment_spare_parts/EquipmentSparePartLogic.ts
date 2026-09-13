@@ -29,7 +29,7 @@ const searchParamProject = {
 	},
 	searchWord: '',
 	searchParams: {}
-});
+};
 // 接口参数
 const params = {
 	// 请购单
@@ -47,7 +47,7 @@ const params = {
 		refName: 'EquipmentSparePart',
 		refItemKeys: [],
 	}
-})
+};
 // 定义接口参数
 const propsData = {
 	// 付款单
@@ -68,7 +68,7 @@ const propsData = {
 		},
 		service: 'mes',
 	},
-})
+};
 /**
  *  请购（跳转到请购单）
  */

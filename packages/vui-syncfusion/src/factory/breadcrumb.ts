@@ -3,11 +3,6 @@ import { BreadcrumbComponent } from "@syncfusion/ej2-vue-navigations";
 import type { IconResolver, UiBreadcrumbProps } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
 
-/** CSS `content` 需要带引号的字符串；JS 赋值必须写成 `"/"` 而不是 `/`。 */
-function cssContentString(value: string) {
-  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
-}
-
 function routeOfItem(item: any): string | undefined {
   const raw = item?.url ?? item?.properties?.url;
   if (raw == null) return undefined;
@@ -22,7 +17,7 @@ export function createBreadcrumb(
 ) {
   const {
     items = [],
-    separator = "/",
+    separator,
     class: className,
     htmlAttributes,
     style,
@@ -50,20 +45,23 @@ export function createBreadcrumb(
   const styleObj =
     style && typeof style === "object" && !Array.isArray(style)
       ? { ...style }
-      : {};
+      : undefined;
 
-  // EJ2 Vue 下 separator li 常为空；不用 separatorTemplate。
-  // 可见分隔符由 CSS ::before + --mmda-breadcrumb-sep（须为引号字符串）画出。
+  // 默认 "/" 交给 EJ2（未设 separatorTemplate 时内部就是 "/"）。
+  // 自定义分隔符才传 separatorTemplate；不要再用 CSS ::before，否则会叠成两条。
+  const customSep =
+    separator != null && separator !== "" && separator !== "/"
+      ? separator
+      : undefined;
+
   return h(BreadcrumbComponent as any, {
     ...rest,
     ...htmlAttributesOf(props),
     items: ejItems,
     enableNavigation: false,
+    ...(customSep != null ? { separatorTemplate: () => customSep } : {}),
     cssClass: ["mmda-breadcrumb", className].flat().filter(Boolean).join(" "),
-    style: {
-      ...styleObj,
-      "--mmda-breadcrumb-sep": cssContentString(separator),
-    },
+    ...(styleObj ? { style: styleObj } : {}),
     itemClick: (args: any) => {
       const to = routeOfItem(args?.item);
       if (!to) return;

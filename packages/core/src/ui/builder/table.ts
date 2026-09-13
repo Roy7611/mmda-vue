@@ -4,7 +4,7 @@ import type { Sort } from '../../models/pagination'
 import type { UiListProps } from './list'
 
 /**
- * 模块 **index** KeepAlive：进详情/编辑再回来时，就地改行而不整表重绑。
+ * 模块 **index** 工作区保活：进详情/编辑再回来时，就地改行而不整表重绑。
  *
  * 只有列表页需要。selector / 子表不要接。回到列表用 {@link UiIndexTableHost.revealIndex}，
  * 不要 capture/restore 像素滚动（虚拟滚动会和 skip 错位白屏）。
@@ -19,7 +19,7 @@ export interface UiIndexTableHost {
   insertAtZero(entity: Record<string, unknown>): void
   /** 按 id 从当前窗口去掉一行。 */
   applyRemove(id: string): void
-  /** 滚到 `index` 并选中；虚拟滚动要先对齐窗口再选。 */
+  /** 选中 index 行（皮肤宜只 select，勿强制改虚拟滚动 scrollTop）。 */
   revealIndex(index: number): void
 }
 

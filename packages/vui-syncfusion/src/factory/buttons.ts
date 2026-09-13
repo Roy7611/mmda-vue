@@ -33,6 +33,7 @@ export function buttonRenderers(
         ...normalizeAction(action, t),
         label: normalizeAction(action, t).text,
         ...props,
+        colorRole: props?.colorRole ?? action.colorRole,
         icon: resolveActionButtonIcon(
           factory.resolveIcon,
           factory.actionIcons,

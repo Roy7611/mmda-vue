@@ -1,6 +1,5 @@
 export {
   VueAppSideMenu,
-  AppSideMenu,
   assembleMenuItems,
   activeAncestorKeys,
   hasSystemModules,

@@ -16,14 +16,12 @@ Logic 不要 `h()`。下面示例是 vui Builder / 测试里的写法。
 layout.layoutField({
   label: this.labelFor(field),
   control,
-  message, // 可选校验文案（文本或节点）；layout 包成 mmda-field-message
-  messageKind: 'error', // 或缺省；仅 'error' | 'warning'
 })
 ```
 
-横竖只改 `layout.fieldVertical`（默认 `false` = 横排）。根 class 是 `mmda-field mmda-field--horizontal`（或 `--vertical`）。控件在 `.mmda-field-control`，文案在 `.mmda-field-message.error` / `.warning`。
+全局横竖改 `layout.fieldVertical`（默认 `false` = 横排）。单次字段也可 `fieldFactory.render(field, ctx, { fieldVertical: true })`（或 `orientation: 'vertical'`）走 Vert，不碰全局开关。`cards` / `tabs` 详情页默认横排。根 class 是 `mmda-field mmda-field--horizontal`（或 `--vertical`）。控件在 `.mmda-field-control`。校验文案由皮肤控件自绘，不要再传 message。
 
-组间距可改 `layout.gap`（默认 `0.75rem`），作用于 `row` / `column` / `grid`。
+组间距可改 `layout.gap`（默认 `0.75rem`），作用于 `row` / `column` / `grid` / `listTile`。
 
 ## 分组
 
@@ -40,23 +38,45 @@ layout.layoutFieldGroup({ fields })
 ## 详情 / 编辑页
 
 ```ts
+// cards（缺省）：左右卡，摘要可折叠
 layout.layoutPage({
+  pageLayout: 'cards',
   toolbar,
+  banner,
   primary,
   summary,
   tails,
   footer,
 })
+
+// tabs：emphasized 只读顶栏 + 每 ui group 一页签（FormBuilder 在 pageLayout:'tabs' 时自动拼）
+layout.layoutPage({
+  pageLayout: 'tabs',
+  toolbar,
+  banner,
+  emphasis, // layout.row(displayFor…, colSpan 权重)；与 tabs 内字段可重复；编辑只在 tabs
+  primary: [tabsNode],
+  footer,
+})
 ```
 
-`primary` / `summary` / `tails` 是 **`TNode[]`**。vui 经 `pageBody` 收成 `PageBody`（可折叠概要）。有 `toolbar` 就永远 sticky（`mmda-page-header--sticky`）。
+`primary` / `summary` / `tails` 是 **`TNode[]`**。`UiViewProps.pageLayout` 透传给 `layoutPage`。有 `toolbar` 就永远 sticky（`mmda-page__header--sticky`）。footer 与 body 平级，不塞进 body。
 
-结构：
+- `cards` / `tabs`：组内字段默认横排
+- `tabs` 强调条：`emphasizedFields.map(f => Math.max(1, f.colSpan ?? 1))` 作 flex 权重；`.mmda-page__emphasis` 固定标签列宽
+- `cards`：组壳 `GroupCard`（可折叠标题）；secondary 仍 1 列侧栏
+- `tabs`：组壳 `GroupTab`（无标题镜像、无折叠）；每组 `container:'tab'`，含 secondary 一律 `primaryCols` 横排；`factory.tabs` 默认 `loadOn:'Demand'`、`headerStyle:'fill'`、`scrollable`；页签 `name` = `groupName`（附件页 `'attachments'`）
+
+模块 CRUD 工作区叠层与完整 class 树见 [layout.md 页面 CSS](./layout.md#页面-cssbem)。详情页骨架：
 
 ```
-mmda-page
-  mmda-page-header
-  mmda-page-body
+.mmda-page
+  .mmda-page__header
+  .mmda-page__banner?
+  .mmda-page__body
+    .mmda-section--main
+    .mmda-section--summary?
+  .mmda-page__footer?
 ```
 
 ## 列表项
@@ -70,18 +90,18 @@ layout.listTile({
 })
 ```
 
-不要调用 `defaultListTile`。皮肤若覆盖了 `listTile`，走皮肤外观。
+nowrap 三槽，不是加权 `row`。不要调用 `defaultListTile`。皮肤若覆盖了 `listTile`，走皮肤外观。
 
 ## 栅格原语
 
 ```ts
-layout.cell(child, 4)
-layout.row(children, [4, 8])
+layout.cell(child, 4)           // flex 权重 4
+layout.row(children, [4, 8])    // flex 行，可 wrap；权重 4:8
 layout.column(children)
-layout.grid(children, [6, 6])
+layout.grid(children, [6, 6])   // CSS grid；列 fr，给字段组装箱
 ```
 
-`props` 用 `UiProps`（`class` / `style` / 袋键）。
+`props` 用 `UiProps`（`class` / `style` / 袋键）。列表图标行用 `listTile`，不要 `row([icon, title], [1, 11])`。
 
 ## 测试 / 无皮肤
 

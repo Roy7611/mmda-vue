@@ -51,7 +51,7 @@ export const HomeView = defineComponent({
     const app = (inject(MES_KEY) ?? inject(UI_APP_KEY)) as MmdaApplication
     const { modules, user } = app
     const router = useRouter()
-    void app.getTodoCount()
+    // 待办数由壳层 AppUserFooter 拉取；此处只读 app.state.todoCount
     injectResponsiveCSS()
 
     return () => {

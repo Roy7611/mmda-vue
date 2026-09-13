@@ -2,15 +2,21 @@ import { h, type VNode } from 'vue'
 import {
   AbstractUiLayout,
   uiCssClass,
+  uiCssClasses,
   type UiAppLayoutVariant,
   type UiAppScaffoldSlots,
   type UiFieldGroupLayout,
+  type UiPageLayout,
   type UiPageSlots,
   type UiProps,
   type UiWrapProps,
 } from '@mmda/core'
 import type { ChildSlot } from '../../contexts/view'
 import { PageBody } from '../../components/PageBody'
+import {
+  readStoredPageLayout,
+  writeStoredPageLayout,
+} from '../../app/theme'
 
 export type {
   UiOrientation,
@@ -19,12 +25,12 @@ export type {
   UiHorzAlign,
   UiVertAlign,
   UiFieldSlots,
-  UiFieldMessageKind,
   UiFieldSpan,
   UiFieldCell,
   UiFieldGroupProps,
   UiWrapProps,
   UiPageSlots,
+  UiPageLayout,
   UiLayout,
   AbstractUiLayout,
   UiListTileSlots,
@@ -56,12 +62,28 @@ function layoutDomProps(
   }
 }
 
+function normalizePageLayout(value: unknown): UiPageLayout {
+  return value === 'tabs' ? 'tabs' : 'cards'
+}
+
 export class VueUiLayout extends AbstractUiLayout<VNode> {
+  #pageLayout: UiPageLayout = readStoredPageLayout()
+
   fieldGroupLayout: UiFieldGroupLayout = {
     type: 'grid',
     gridCols: 2,
   }
   maxCols = 12
+
+  get pageLayout(): UiPageLayout {
+    return this.#pageLayout
+  }
+
+  set pageLayout(value: UiPageLayout) {
+    const next = normalizePageLayout(value)
+    this.#pageLayout = next
+    writeStoredPageLayout(next)
+  }
 
   protected wrap(tag: string, props: UiWrapProps, children: VNode[]): VNode {
     return h(
@@ -75,27 +97,125 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
     )
   }
 
-  protected pageBody(slots: UiPageSlots<VNode>): VNode[] {
+  /**
+   * cards：sticky 工具栏 + PageBody（banner / content 包 main+summary）+ footer。
+   * tabs：sticky 工具栏 + body 纵向 banner → emphasis → primary + footer。
+   */
+  layoutPage(slots: UiPageSlots<VNode>): VNode {
+    const toolbarNode =
+      slots.toolbar == null
+        ? null
+        : h(
+            'header',
+            {
+              class: [
+                uiCssClass('page', 'header'),
+                uiCssClass('page', 'header', 'sticky'),
+              ],
+              style: { position: 'sticky', top: 0, zIndex: 2 },
+            },
+            slots.toolbar,
+          )
+
+    const footerNode =
+      slots.footer == null
+        ? null
+        : h('footer', { class: uiCssClass('page', 'footer') }, slots.footer)
+
+    if (slots.pageLayout === 'tabs') {
+      const banner =
+        slots.banner == null ||
+        (Array.isArray(slots.banner) && slots.banner.length === 0)
+          ? null
+          : h('div', { class: uiCssClass('page', 'banner') }, slots.banner)
+      const emphasis =
+        slots.emphasis == null
+          ? null
+          : h('div', { class: uiCssClass('page', 'emphasis') }, slots.emphasis)
+      const primary = h(
+        'div',
+        {
+          class: [
+            uiCssClass('section'),
+            uiCssClass('section', undefined, 'main'),
+            uiCssClass('page', 'tabs'),
+          ],
+          style: { flex: '1 1 0', minHeight: 0, minWidth: 0 },
+        },
+        slots.primary,
+      )
+      return h(
+        'section',
+        {
+          class: uiCssClasses('page', 'tabs'),
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            minHeight: 0,
+            overflow: 'hidden',
+          },
+        },
+        [
+          toolbarNode,
+          h(
+            'div',
+            {
+              class: uiCssClass('page', 'body'),
+              style: {
+                display: 'flex',
+                flexDirection: 'column',
+                flex: '1 1 0',
+                minHeight: 0,
+                minWidth: 0,
+                overflow: 'hidden',
+              },
+            },
+            [banner, emphasis, primary],
+          ),
+          footerNode,
+        ],
+      )
+    }
+
     const summary = slots.summary ?? []
     const tails = slots.tails ?? []
     const hasSummary = summary.length > 0
     const hasTails = tails.length > 0
-    return [
-      h(
-        PageBody,
-        {
-          hasSummary,
-          summaryExpanded: slots.summaryExpanded !== false,
+    return h(
+      'section',
+      {
+        class: uiCssClass('page'),
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          minHeight: 0,
+          overflow: 'auto',
         },
-        {
-          banner: slots.banner == null ? undefined : () => slots.banner,
-          primary: () => slots.primary,
-          tails: hasTails ? () => tails : undefined,
-          summary: hasSummary ? () => summary : undefined,
-          footer: slots.footer == null ? undefined : () => slots.footer,
-        },
-      ),
-    ]
+      },
+      [
+        toolbarNode,
+        h(
+          PageBody,
+          {
+            hasSummary,
+            summaryExpanded: slots.summaryExpanded !== false,
+          },
+          {
+            banner:
+              slots.banner == null ||
+              (Array.isArray(slots.banner) && slots.banner.length === 0)
+                ? undefined
+                : () => slots.banner,
+            primary: () => slots.primary,
+            tails: hasTails ? () => tails : undefined,
+            summary: hasSummary ? () => summary : undefined,
+          },
+        ),
+        footerNode,
+      ],
+    )
   }
 
   scaffold(slots: UiAppScaffoldSlots<VNode>): VNode {

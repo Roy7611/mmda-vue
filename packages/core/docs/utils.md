@@ -23,7 +23,8 @@ if (isNullOrUndefined(id) || isRefNone(id)) return
 const repo = pluralize('Warehouse') // 'Warehouses'
 const { start, end } = dateTimeRange[DateRangeKind.LAST_7_DAYS]()
 
-const db = useLocalAsyncDb('wms', locale)
+// MetaUi：一微服务一库（库名 = service），key 为 meta/{repository}/…
+const db = useLocalAsyncDb('mes', locale)
 await db.put(`meta/${repo}`, pack)
 
 const onSearch = debounce((q: string) => api.searchAll({ pager: { pageNo: 1, pageSize: 20 }, searchWord: q }), 300)

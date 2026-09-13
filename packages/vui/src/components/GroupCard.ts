@@ -1,20 +1,21 @@
+import { uiCssClass } from "@mmda/core";
 import { defineComponent, h, ref, type PropType } from "vue";
 
 /**
  * Collapsible group shell only — field/table layout lives in
- * `.mmda-group-body` (see VueUiBuilder.wrapGroupContent).
+ * `.mmda-group__body` (see VueUiBuilder.wrapGroupContent).
  *
  * Structure:
  *   .mmda-group.master|sub.primary|secondary
- *     .mmda-group-header
+ *     .mmda-group__header
  *       [header/title] [actions] [toggle]
  *     .e-collapse
  *       .e-collapse-inner
- *         .mmda-group-body  (slot default)
- *     .mmda-group-footer     (slot footer, optional)
+ *         .mmda-group__body  (slot default)
+ *     .mmda-group__footer     (slot footer, optional)
  */
-export const MmdaGroupCard = defineComponent({
-  name: "MmdaGroupCard",
+export const GroupCard = defineComponent({
+  name: "GroupCard",
   inheritAttrs: false,
   props: {
     title: { type: String, required: true },
@@ -73,7 +74,7 @@ export const MmdaGroupCard = defineComponent({
           h(
             "header",
             {
-              class: ["mmda-group-header", props.headerClass],
+              class: [uiCssClass("group", "header"), props.headerClass],
               role: props.toggleable ? "button" : undefined,
               tabindex: props.toggleable ? 0 : undefined,
               "aria-expanded": open.value,
@@ -82,12 +83,12 @@ export const MmdaGroupCard = defineComponent({
             },
             [
               slots.header?.(slotArgs) ??
-                h("h2", { class: "mmda-group-title" }, props.title),
+                h("h2", { class: uiCssClass("group", "title") }, props.title),
               actions
                 ? h(
                     "div",
                     {
-                      class: "mmda-group-actions",
+                      class: uiCssClass("group", "actions"),
                       // 避免点工具栏时触发展开/折叠
                       onClick: (e: MouseEvent) => e.stopPropagation(),
                       onKeydown: (e: KeyboardEvent) => e.stopPropagation(),
@@ -98,9 +99,9 @@ export const MmdaGroupCard = defineComponent({
               props.toggleable
                 ? h("span", {
                     class: [
-                      "mmda-group-toggle",
+                      uiCssClass("group", "toggle"),
                       props.toggleIcon,
-                      !props.toggleIcon && "mmda-group-toggle--css",
+                      !props.toggleIcon && uiCssClass("group", "toggle", "css"),
                     ],
                     "aria-hidden": "true",
                   })
@@ -117,7 +118,7 @@ export const MmdaGroupCard = defineComponent({
           footer
             ? h(
                 "footer",
-                { class: ["mmda-group-footer", props.footerClass] },
+                { class: [uiCssClass("group", "footer"), props.footerClass] },
                 footer,
               )
             : null,

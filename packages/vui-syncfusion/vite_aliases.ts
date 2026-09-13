@@ -15,6 +15,7 @@ const themePackages = [
   'ej2-diagrams',
   'ej2-image-editor',
   'ej2-layouts',
+  'ej2-cldr-data',
   'ej2-gantt',
   'ej2-kanban',
   'ej2-schedule',

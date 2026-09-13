@@ -56,23 +56,7 @@ export class SiteLogic extends EntityLogic<Site> {
 				// 	.lockIf(model => model.status == 'USED' || model.status == 'DEPRECATED')
 				// 	.hideIf((model: Site) => model.siteLevel === SiteLevel.PLANT)
 				// 	.refWhere((model, ctx) => {
-					const __p = ((ctx, model) => {
-				// 		return {
-				// 			siteLevel: isRefNone(model.siteLevel) ? '' : `${SiteLevelEnum.valueOf(model.siteLevel) - 1}`,
-				// 			status:'USED',
-				// 		};
-				// 	})(ctx as any, model as any, undefined as any);
-					if (!__p) return "";
-					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
-						.map(([k, v]) => {
-							const s = String(v);
-							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
-							if (/^[><=]/.test(s)) return `${k}${s}`;
-							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
-						})
-						.join(" AND ");
-				}),
+				// }) — orphaned __p body removed
 				//注释：当前支持在已弃用状态下编辑此信息
 				// this.field('siteName').lockIf(model => model.status == 'DEPRECATED'),
 				// this.field('addressID').lockIf(model => model.status == 'DEPRECATED'),

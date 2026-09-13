@@ -5,6 +5,7 @@ import { dateRangePickerModifierClasses, dateRangePickerSeparatorOf, dateRangePi
 import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { htmlAttributesOf } from "@mmda/vui"
+import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 export function createDateRangePicker(props: UiDateRangePickerProps) {
   const {
@@ -76,6 +77,7 @@ export function createDateRangePicker(props: UiDateRangePickerProps) {
     ...(typeof maxDays === "number" ? { maxDays } : {}),
     ...(inputFormats ? { inputFormats } : {}),
     ...(presets.length ? { presets } : {}),
+    locale: getSyncfusionCulture(),
     cssClass,
     change: (args: { startDate?: Date | null; endDate?: Date | null }) => {
       const start = args?.startDate ?? null;

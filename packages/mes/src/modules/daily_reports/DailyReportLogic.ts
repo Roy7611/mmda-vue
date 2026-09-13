@@ -32,7 +32,7 @@ const searchParam = {
 	},
 	searchWord: '',
 	searchParams: {}
-})
+};
 const taskData = { value: [] }
 export class DailyReportLogic extends EntityLogic<DailyReport> {
 	constructor(init: EntityLogicInit) {

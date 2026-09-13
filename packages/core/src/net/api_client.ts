@@ -1,6 +1,7 @@
 import { Entity } from "../models/entity";
 import { expandDateFilters } from "../models/date_filter";
 import {
+  expandBlankFilters,
   hasFilterModel,
   type EntityFilterModel,
   type EntitySearchParam,
@@ -109,7 +110,7 @@ export function toQueryParams(param: EntitySearchParam) {
 /** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 EntityFilterModel。 */
 export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
   const filterModel = hasFilterModel(param)
-    ? expandDateFilters(param.filterModel)
+    ? expandBlankFilters(expandDateFilters(param.filterModel))
     : undefined;
   return {
     queryParams: toQueryParams(param),
@@ -247,9 +248,61 @@ export class ApiClient {
     });
   }
 
+  /** 联查列表：GET .../getJoinList */
+  getJoinList(options: EntityUrlParam = {}): Promise<PagedList<unknown>> {
+    return this.getAll({
+      ...options,
+      action: options.action ?? "getJoinList",
+    });
+  }
+
   /**
-   * 当前实体表内 DISTINCT 字段值（GET .../pivotValues/{field}）。
-   * 给 REF 列筛选项用，不是关联表全量。
+   * 联查列表查询。无字段过滤时 GET getJoinList；有过滤时 POST .../searchJoinList。
+   */
+  searchJoinList(
+    param: EntitySearchParam,
+    options: EntityUrlParam = {},
+  ): Promise<PagedList<unknown>> {
+    const request = toSearchRequest(param);
+    const queryParams = {
+      ...request.queryParams,
+      ...(options.queryParams ?? {}),
+    };
+    if (!request.filterModel) {
+      return this.getJoinList({ ...options, queryParams });
+    }
+    const url = this.buildEntityURL({
+      repository: options.repository,
+      service: options.service,
+      action: "searchJoinList",
+      queryParams,
+    });
+    return this.http.post(url, {
+      options: {
+        body: JSON.stringify(request.filterModel),
+      },
+      beforeSend: this.http.buildJsonHeaders(),
+      resExtractor: this.pagedDataExtractor,
+    });
+  }
+
+  /** 联查导出：当前查询条件下的全部打平行。 */
+  exportJoinList(
+    options: EntityUrlParam = {},
+    body?: any,
+  ) {
+    return this.exportAll(
+      {
+        ...options,
+        action: options.action ?? "exportJoinList",
+      },
+      body,
+    );
+  }
+
+  /**
+   * 当前实体表内 DISTINCT 字段值（GET .../pivotValues?field=）。
+   * 不是字典表，也没有 label；ref 列筛不要用这个。
    */
   getPivotValues(
     field: string,
@@ -259,12 +312,12 @@ export class ApiClient {
       reload,
     }: EntityUrlParam & { reload?: boolean } = {},
   ): Promise<string[]> {
-    const queryParams =
-      reload === true ? { reload: true } : undefined;
+    const queryParams: Record<string, unknown> = { field };
+    if (reload === true) queryParams.reload = true;
     const url = this.buildEntityURL({
       repository,
       service,
-      path: `pivotValues/${encodeURIComponent(field)}`,
+      action: "pivotValues",
       queryParams,
     });
     return this.http.getJson(url, {
@@ -273,7 +326,7 @@ export class ApiClient {
   }
 
   /**
-   * 日期列 Excel 树：当前表出现过的日历日（GET .../pivotDates/{field}）。
+   * 日期列 Excel 树：当前表出现过的日历日（GET .../pivotDates?field=）。
    */
   getPivotDates(
     field: string,
@@ -283,12 +336,12 @@ export class ApiClient {
       reload,
     }: EntityUrlParam & { reload?: boolean } = {},
   ): Promise<unknown> {
-    const queryParams =
-      reload === true ? { reload: true } : undefined;
+    const queryParams: Record<string, unknown> = { field };
+    if (reload === true) queryParams.reload = true;
     const url = this.buildEntityURL({
       repository,
       service,
-      path: `pivotDates/${encodeURIComponent(field)}`,
+      action: "pivotDates",
       queryParams,
     });
     return this.http.getJson(url, {

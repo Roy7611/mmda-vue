@@ -1,4 +1,4 @@
-.mmda-app,
+#app,
 html[data-mmda-palette] {
   --p-primary-color: var(--mmda-primary-color);
   --p-primary-contrast-color: var(--mmda-on-primary);
@@ -169,7 +169,7 @@ html[data-mmda-palette="cyan"] {
   --p-primary-900: #001f27;
   --p-primary-950: #001319;
 }
-.mmda-app {
+.mmda-app-layout {
   min-height: 100%;
   height: 100%;
 }
@@ -270,7 +270,7 @@ html[data-mmda-palette="cyan"] {
   width: 100%;
 }
 
-.mmda-page-header .p-toolbar {
+.mmda-page__header .p-toolbar {
   border: none;
 }
 
@@ -479,13 +479,13 @@ html[data-mmda-palette="cyan"] {
 }
 
 /* 默认 flat：按钮无 elevation（与 Syncfusion 皮肤一致） */
-.mmda-app .p-button,
-.mmda-app .p-button:hover,
-.mmda-app .p-button:focus,
-.mmda-app .p-button:active,
-.mmda-app .p-splitbutton > .p-button,
-.mmda-app .p-splitbutton > .p-button:hover,
-.mmda-app .p-splitbutton > .p-button:focus {
+#app .p-button,
+#app .p-button:hover,
+#app .p-button:focus,
+#app .p-button:active,
+#app .p-splitbutton > .p-button,
+#app .p-splitbutton > .p-button:hover,
+#app .p-splitbutton > .p-button:focus {
   box-shadow: none;
 }
 
@@ -499,7 +499,7 @@ html[data-mmda-palette="cyan"] {
 }
 
 /* 只做标题行布局，不改写 p-card-header / p-card-content 的官方 padding */
-.p-card.mmda-group .mmda-group-header {
+.p-card.mmda-group .mmda-group__header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -510,7 +510,7 @@ html[data-mmda-palette="cyan"] {
   user-select: none;
 }
 
-.p-card.mmda-group .mmda-group-title {
+.p-card.mmda-group .mmda-group__title {
   flex: 1 1 auto;
   margin: 0;
   font-size: 0.9375rem;
@@ -518,7 +518,7 @@ html[data-mmda-palette="cyan"] {
   line-height: 1.35;
 }
 
-.p-card.mmda-group .mmda-group-actions {
+.p-card.mmda-group .mmda-group__actions {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -526,13 +526,13 @@ html[data-mmda-palette="cyan"] {
   margin-inline-start: auto;
 }
 
-.p-card.mmda-group .mmda-group-action-group {
+.p-card.mmda-group .mmda-group__action-group {
   display: inline-flex;
   align-items: center;
   gap: 0;
 }
 
-.p-card.mmda-group .mmda-group-actions .p-button.mmda-group-action {
+.p-card.mmda-group .mmda-group__actions .p-button.mmda-group__action {
   aspect-ratio: 1;
   min-width: var(--mmda-icon-button-size, 1.75rem);
   min-height: var(--mmda-icon-button-size, 1.75rem);
@@ -541,7 +541,7 @@ html[data-mmda-palette="cyan"] {
   box-shadow: none;
 }
 
-.p-card.mmda-group .mmda-group-toggle {
+.p-card.mmda-group .mmda-group__toggle {
   flex: 0 0 auto;
   font-size: 0.75rem;
   line-height: 1;

@@ -26,12 +26,15 @@ export type EntityFilterOperator =
   | "NOT_CONTAINS"
   | "IS_NULL"
   | "IS_NOT_NULL"
+  | "IS_BLANK"
+  | "IS_NOT_BLANK"
   | "IS_ALL"
   | "IS_TRUE"
   | "IS_FALSE"
   | "IN"
   | "NOT_IN"
-  | "BETWEEN";
+  | "BETWEEN"
+  | "WITHIN";
 
 export interface EntitySimpleFieldFilter {
   filterType: "text" | "number" | "date";
@@ -99,6 +102,8 @@ export interface EntityAdvancedColumnFilter {
   value?: unknown;
   valueTo?: unknown;
   values?: unknown[];
+  /** 相对日历语义。有值时不要写死 value/valueTo。 */
+  dateKind?: DateTimeRangeKind;
 }
 
 export function isAdvancedJoinFilter(
@@ -131,17 +136,38 @@ export function cloneAdvancedFilter(
   };
 }
 
+function isNoValueFilterOperator(
+  operator?: EntityFilterOperator,
+): boolean {
+  return (
+    operator === "IS_NULL" ||
+    operator === "IS_NOT_NULL" ||
+    operator === "IS_BLANK" ||
+    operator === "IS_NOT_BLANK"
+  );
+}
+
+function isEmptyCompareValue(
+  operator: EntityFilterOperator | undefined,
+  value: unknown,
+): boolean {
+  if (operator === "EQ" || operator === "NEQ") return value == null;
+  return value == null || value === "";
+}
+
 function isEmptyAdvancedColumn(filter: EntityAdvancedColumnFilter): boolean {
   if (filter.filterType === "set") return !filter.values?.length;
   if (filter.filterType === "boolean") return filter.value == null;
   if (filter.operator === "IS_ALL") return true;
-  if (filter.operator === "IS_NULL" || filter.operator === "IS_NOT_NULL") {
+  if (isNoValueFilterOperator(filter.operator)) {
     return false;
   }
+  if (isDateRangeKind(filter.dateKind)) return false;
+  if (filter.operator === "WITHIN") return true;
   if (filter.operator === "BETWEEN") {
     return filter.value == null && filter.valueTo == null;
   }
-  return filter.value == null || filter.value === "";
+  return isEmptyCompareValue(filter.operator, filter.value);
 }
 
 export function compactAdvancedFilter(
@@ -157,6 +183,14 @@ export function compactAdvancedFilter(
     return { filterType: "join", operator: model.operator, conditions };
   }
   if (isEmptyAdvancedColumn(model)) return undefined;
+  if (isDateRangeKind(model.dateKind)) {
+    return {
+      fieldName: model.fieldName,
+      filterType: "date",
+      operator: "WITHIN",
+      dateKind: model.dateKind,
+    };
+  }
   return cloneAdvancedFilter(model);
 }
 
@@ -346,11 +380,18 @@ export function betweenFilter(
 export function dateKindFilter(
   dateKind: DateTimeRangeKind,
 ): EntitySimpleFieldFilter {
-  return { filterType: "date", operator: "BETWEEN", dateKind };
+  return { filterType: "date", operator: "WITHIN", dateKind };
 }
 
 export function nullFilter(
   operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
+): EntitySimpleFieldFilter {
+  return { filterType: "text", operator };
+}
+
+/** 字符串「没内容」：保存 IS_BLANK，POST 展开成 IS_NULL OR = ''。 */
+export function blankFilter(
+  operator: "IS_BLANK" | "IS_NOT_BLANK" = "IS_BLANK",
 ): EntitySimpleFieldFilter {
   return { filterType: "text", operator };
 }
@@ -388,14 +429,15 @@ export function isEmptyFieldFilter(
     return filter.filterModels.every((item) => isEmptyFieldFilter(item));
   }
   if (filter.operator === "IS_ALL") return true;
-  if (filter.operator === "IS_NULL" || filter.operator === "IS_NOT_NULL") {
+  if (isNoValueFilterOperator(filter.operator)) {
     return false;
   }
   if (isDateRangeKind(filter.dateKind)) return false;
+  if (filter.operator === "WITHIN") return true;
   if (filter.operator === "BETWEEN") {
     return filter.value == null && filter.valueTo == null;
   }
-  return filter.value == null || filter.value === "";
+  return isEmptyCompareValue(filter.operator, filter.value);
 }
 
 export function compactFieldFilter(
@@ -418,7 +460,58 @@ export function compactFieldFilter(
     if (filterModels.length === 1) return filterModels[0];
     return { ...filter, filterModels };
   }
+  if (
+    (filter.filterType === "text" ||
+      filter.filterType === "number" ||
+      filter.filterType === "date") &&
+    isDateRangeKind(filter.dateKind)
+  ) {
+    return dateKindFilter(filter.dateKind);
+  }
   return cloneFieldFilter(filter);
+}
+
+function expandBlankFieldFilter(filter: EntityFieldFilter): EntityFieldFilter {
+  if (filter.filterType === "multi") {
+    return {
+      ...filter,
+      filterModels: filter.filterModels.map(expandBlankFieldFilter),
+    };
+  }
+  if (filter.filterType === "join") {
+    return {
+      ...filter,
+      conditions: filter.conditions.map(expandBlankFieldFilter),
+    };
+  }
+  if (filter.filterType === "set" || filter.filterType === "boolean") {
+    return cloneFieldFilter(filter);
+  }
+  if (filter.operator === "IS_BLANK") {
+    return joinFilter("OR", [
+      { filterType: "text", operator: "IS_NULL" },
+      { filterType: "text", operator: "EQ", value: "" },
+    ]);
+  }
+  if (filter.operator === "IS_NOT_BLANK") {
+    return joinFilter("AND", [
+      { filterType: "text", operator: "IS_NOT_NULL" },
+      { filterType: "text", operator: "NEQ", value: "" },
+    ]);
+  }
+  return cloneFieldFilter(filter);
+}
+
+/** IS_BLANK / IS_NOT_BLANK → join。IS_NULL 原样。不要 compact，以免丢掉 EQ ''。 */
+export function expandBlankFilters(
+  model?: EntityFilterModel,
+): EntityFilterModel | undefined {
+  if (model == null) return undefined;
+  const next: EntityFilterModel = {};
+  for (const [field, filter] of Object.entries(model)) {
+    next[field] = expandBlankFieldFilter(filter);
+  }
+  return Object.keys(next).length ? next : undefined;
 }
 
 /** 上块比较 + 下块 set：两块都有效则 multi，否则摊平。 */

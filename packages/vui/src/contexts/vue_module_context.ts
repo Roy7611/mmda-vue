@@ -3,12 +3,7 @@ import type { InjectionKey } from "vue";
 import type { VueUiContext } from "./vue_ui_context";
 import type { UiIndexTableHost } from "../ui/factory/list";
 
-export type IndexModelOp =
-  | { kind: "applyRow"; entity: Record<string, unknown> }
-  | { kind: "insertAtZero"; entity: Record<string, unknown> }
-  | { kind: "remove"; id: string };
-
-/** 模块工作区：Index KeepAlive 与 One 视图之间的列表同步。 */
+/** 模块工作区：保活 Index 与 One 视图之间的列表同步。 */
 export interface VueModuleContext {
   /** 换 repository 时清空（父组件可能被路由复用）。 */
   reset(): void;
@@ -19,7 +14,7 @@ export interface VueModuleContext {
   /** 进 details/edit：记住当前行。 */
   setCurrent(row: Entity, index: number): void;
   /** Create save：插第 0 行并设为 current。 */
-  insertAtZeroFromSave(entity: Record<string, unknown>): void;
+  appendNewRow(entity: Record<string, unknown>): void;
   /** Edit save / details 返回：写 currentItem（含 doAction 结果）。 */
   applyCurrentRow(entity: Record<string, unknown>): void;
   /** deleteById 成功：从缓存列表 remove。 */
@@ -28,10 +23,7 @@ export interface VueModuleContext {
   setPendingPageNotice(notice: UiMessageProps | null): void;
   consumePendingPageNotice(): UiMessageProps | null;
   consumeNeedsSearch(): boolean;
-  flushVisual(): void;
-  /** 离开 index（KeepAlive deactivate）。 */
-  saveScroll(): void;
-  /** 回到 index：按 currentIndex 滚到可见并选中。 */
+  /** 揭开 Index：按 currentIndex 选中（create 保存则滚到第 0 行）。 */
   revealCurrent(): void;
 }
 
@@ -49,45 +41,33 @@ function listModel(context: VueUiContext): PagedList<Entity> | null {
   return model;
 }
 
-function enqueueOrApply(
-  pending: IndexModelOp[],
-  activated: boolean,
+function applyToHost(
   listHost: UiIndexTableHost | undefined,
-  op: IndexModelOp,
+  kind: "applyRow" | "insertAtZero" | "remove",
+  payload: Record<string, unknown> | string,
 ) {
-  if (activated && listHost) {
-    applyIndexModelOp(listHost, op);
-    return;
-  }
-  pending.push(op);
-}
-
-function applyIndexModelOp(listHost: UiIndexTableHost, op: IndexModelOp) {
-  if (op.kind === "applyRow") listHost.applyRow(op.entity);
-  else if (op.kind === "insertAtZero") listHost.insertAtZero(op.entity);
-  else listHost.applyRemove(op.id);
+  if (!listHost) return;
+  if (kind === "applyRow") listHost.applyRow(payload as Record<string, unknown>);
+  else if (kind === "insertAtZero")
+    listHost.insertAtZero(payload as Record<string, unknown>);
+  else listHost.applyRemove(payload as string);
 }
 
 export function createModuleContext(): VueModuleContext {
   let indexContext: VueUiContext | null = null;
   let needsSearch = false;
-  let activated = true;
   let scrollToTop = false;
   let pendingPageNotice: UiMessageProps | null = null;
-  const pending: IndexModelOp[] = [];
 
   return {
     reset() {
       indexContext = null;
       needsSearch = false;
-      activated = true;
       scrollToTop = false;
       pendingPageNotice = null;
-      pending.length = 0;
     },
     registerIndex(context) {
       indexContext = context;
-      activated = true;
     },
     unregisterIndex(context) {
       if (indexContext === context) indexContext = null;
@@ -104,7 +84,7 @@ export function createModuleContext(): VueModuleContext {
       context.currentItem = row;
       context.currentIndex = index;
     },
-    insertAtZeroFromSave(entity) {
+    appendNewRow(entity) {
       const context = indexContext;
       if (!context?.many) return;
       const paged = listModel(context);
@@ -124,10 +104,11 @@ export function createModuleContext(): VueModuleContext {
         (existing as Entity).rowNum = rowNum;
         context.currentItem = existing;
         context.currentIndex = paged.list.indexOf(existing);
-        enqueueOrApply(pending, activated, context.indexTableHost, {
-          kind: "applyRow",
-          entity: existing as Record<string, unknown>,
-        });
+        applyToHost(
+          context.indexTableHost,
+          "applyRow",
+          existing as Record<string, unknown>,
+        );
         return;
       }
       const from =
@@ -144,10 +125,11 @@ export function createModuleContext(): VueModuleContext {
       context.currentItem = paged.list[0] as Entity;
       context.currentIndex = 0;
       scrollToTop = true;
-      enqueueOrApply(pending, activated, context.indexTableHost, {
-        kind: "insertAtZero",
-        entity: paged.list[0] as Record<string, unknown>,
-      });
+      applyToHost(
+        context.indexTableHost,
+        "insertAtZero",
+        paged.list[0] as Record<string, unknown>,
+      );
     },
     applyCurrentRow(entity) {
       const context = indexContext;
@@ -157,10 +139,7 @@ export function createModuleContext(): VueModuleContext {
       const rowNum = current.rowNum;
       Object.assign(current, entity);
       current.rowNum = rowNum;
-      enqueueOrApply(pending, activated, context.indexTableHost, {
-        kind: "applyRow",
-        entity: current,
-      });
+      applyToHost(context.indexTableHost, "applyRow", current);
     },
     removeById(id) {
       const context = indexContext;
@@ -207,10 +186,7 @@ export function createModuleContext(): VueModuleContext {
         ) {
           needsSearch = true;
         }
-        enqueueOrApply(pending, activated, context.indexTableHost, {
-          kind: "remove",
-          id: idStr,
-        });
+        applyToHost(context.indexTableHost, "remove", idStr);
         return;
       }
       if (total > 0) paged.pagination.recordCount = total - 1;
@@ -227,18 +203,6 @@ export function createModuleContext(): VueModuleContext {
       const notice = pendingPageNotice;
       pendingPageNotice = null;
       return notice;
-    },
-    flushVisual() {
-      activated = true;
-      const host = indexContext?.indexTableHost;
-      if (!host) {
-        pending.length = 0;
-        return;
-      }
-      for (const op of pending.splice(0)) applyIndexModelOp(host, op);
-    },
-    saveScroll() {
-      activated = false;
     },
     revealCurrent() {
       const context = indexContext;

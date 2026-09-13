@@ -10,8 +10,11 @@ import {
   expandDateFilters,
   expandDateSetLeaves,
   mergeHalfOpenRanges,
+  normalizePivotDates,
+  pivotDaysToTree,
+  pivotTokensToTree,
 } from '../models/date_filter'
-import { dateKindFilter, inFilter } from '../models/entity_search'
+import { compactFieldFilter, dateKindFilter, inFilter } from '../models/entity_search'
 
 describe('dateTimeRange extras', () => {
   it('TOMORROW 整段在今天之后', () => {
@@ -77,7 +80,30 @@ describe('date period tokens', () => {
 
   it('dateKind 不展开', () => {
     const kind = dateKindFilter(DateRangeKind.THIS_MONTH)
+    expect(kind).toEqual({
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: DateRangeKind.THIS_MONTH,
+    })
     expect(expandDateFilters({ createdAt: kind })?.createdAt).toEqual(kind)
+  })
+
+  it('旧 BETWEEN+dateKind 水合成 WITHIN 且不展开', () => {
+    const legacy = {
+      filterType: 'date' as const,
+      operator: 'BETWEEN' as const,
+      dateKind: DateRangeKind.TODAY,
+    }
+    expect(compactFieldFilter(legacy)).toEqual({
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: DateRangeKind.TODAY,
+    })
+    expect(expandDateFilters({ createdAt: legacy })?.createdAt).toEqual({
+      filterType: 'date',
+      operator: 'WITHIN',
+      dateKind: DateRangeKind.TODAY,
+    })
   })
 
   it('status set 不当地期 token 展开', () => {
@@ -91,6 +117,66 @@ describe('date period tokens', () => {
     expect(
       compactDateSet(['2026-05-01', '2026-05-15', '2026-06-01'], pivot),
     ).toEqual(['2026'])
+  })
+
+  it('pivotTokensToTree 用服务端已排序的年/月/日 List<String>，不重排', () => {
+    const tokens = [
+      '2025',
+      '2025-06',
+      '2025-06-13',
+      '2025-06-16',
+      '2025-07',
+      '2025-07-01',
+    ]
+    expect(pivotTokensToTree(tokens, { month: '月' })).toEqual([
+      {
+        id: '2025',
+        text: '2025',
+        children: [
+          {
+            id: '2025-06',
+            text: '6月',
+            children: [
+              { id: '2025-06-13', text: '13' },
+              { id: '2025-06-16', text: '16' },
+            ],
+          },
+          {
+            id: '2025-07',
+            text: '7月',
+            children: [{ id: '2025-07-01', text: '01' }],
+          },
+        ],
+      },
+    ])
+    expect(normalizePivotDates(tokens)).toEqual(['2025-06-13', '2025-06-16', '2025-07-01'])
+  })
+
+  it('pivotDaysToTree 收成年月日，全选月仍走 compactDateSet', () => {
+    const days = ['2026-05-01', '2026-05-15', '2026-06-01']
+    const tree = pivotDaysToTree(days, { month: '月' })
+    expect(tree).toEqual([
+      {
+        id: '2026',
+        text: '2026',
+        children: [
+          {
+            id: '2026-05',
+            text: '5月',
+            children: [
+              { id: '2026-05-01', text: '01' },
+              { id: '2026-05-15', text: '15' },
+            ],
+          },
+          {
+            id: '2026-06',
+            text: '6月',
+            children: [{ id: '2026-06-01', text: '01' }],
+          },
+        ],
+      },
+    ])
+    expect(compactDateSet(['2026-05-01', '2026-05-15'], days)).toEqual(['2026-05'])
   })
 
   it('expandDateSetLeaves 把月 token 展开成 pivot 日', () => {
