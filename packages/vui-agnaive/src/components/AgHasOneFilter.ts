@@ -1,6 +1,7 @@
 import { computed, defineComponent, h, onMounted, ref, type PropType } from 'vue'
 import type { IFilterParams } from 'ag-grid-community'
-import { isRefOptionsComplete, type MetaUiField } from '@mmda/core'
+import type { MetaUiField } from '@mmda/core'
+import { isRefOptionsComplete } from '../filter_kind'
 
 export interface AgHasOneFilterParams extends IFilterParams {
   field?: MetaUiField

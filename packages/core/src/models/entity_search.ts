@@ -2,103 +2,72 @@ import {
   isDateRangeKind,
   type DateTimeRangeKind,
 } from "../utils/date_range";
+import type { MetaUiFilterOperatorCode } from "../metaui/metaui_filter";
 import { defaultPager, parseSorts, type Pager } from "./pagination";
 
-export type EntityFilterType =
-  | "text"
-  | "number"
-  | "date"
-  | "set"
-  | "boolean"
-  | "join"
-  | "multi";
-
-export type EntityFilterOperator =
-  | "EQ"
-  | "NEQ"
-  | "GT"
-  | "GE"
-  | "LT"
-  | "LE"
-  | "STARTS_WITH"
-  | "ENDS_WITH"
-  | "CONTAINS"
-  | "NOT_CONTAINS"
-  | "IS_NULL"
-  | "IS_NOT_NULL"
-  | "IS_BLANK"
-  | "IS_NOT_BLANK"
-  | "IS_ALL"
-  | "IS_TRUE"
-  | "IS_FALSE"
-  | "IN"
-  | "NOT_IN"
-  | "BETWEEN"
-  | "WITHIN";
-
-export interface EntitySimpleFieldFilter {
+export interface SimpleFieldFilter {
   filterType: "text" | "number" | "date";
-  operator: EntityFilterOperator;
+  operator: MetaUiFilterOperatorCode;
   value?: unknown;
   valueTo?: unknown;
   /** 相对日历语义。有值时不要写死 value/valueTo；POST 原样交给服务端展开。 */
   dateKind?: DateTimeRangeKind;
 }
 
-export interface EntitySetFieldFilter {
+export interface SetFieldFilter {
   filterType: "set";
   operator?: "IN" | "NOT_IN";
   values: unknown[];
 }
 
-export interface EntityBooleanFieldFilter {
+export interface BooleanFieldFilter {
   filterType: "boolean";
   value: boolean | null;
 }
 
 /** 同一比较器多段 AND/OR。与 multi（不同种类子过滤叠放）不同。 */
-export interface EntityJoinFieldFilter {
+export interface JoinFieldFilter {
   filterType: "join";
   operator: "AND" | "OR";
-  conditions: EntityFieldFilter[];
+  conditions: FieldFilter[];
 }
 
 /** 同一列叠不同种类子过滤（常见：比较条件 + 选项 set）。服务端 AND。 */
-export interface EntityMultiFieldFilter {
+export interface MultiFieldFilter {
   filterType: "multi";
-  filterModels: EntityFieldFilter[];
+  filterModels: FieldFilter[];
 }
 
-export type EntityFieldFilter =
-  | EntitySimpleFieldFilter
-  | EntitySetFieldFilter
-  | EntityBooleanFieldFilter
-  | EntityJoinFieldFilter
-  | EntityMultiFieldFilter;
+export type FieldFilter =
+  | SimpleFieldFilter
+  | SetFieldFilter
+  | BooleanFieldFilter
+  | JoinFieldFilter
+  | MultiFieldFilter;
 
 /** 字段过滤文档，键是实体字段名。 */
-export type EntityFilterModel = Record<string, EntityFieldFilter>;
+export type FilterModel = Record<string, FieldFilter>;
 
 /**
  * AG Advanced Filter 树（Query Builder）。
- * 顶层 join 可跨字段 OR；与列 FilterModel 里同字段的 EntityJoinFieldFilter 不是同一套。
+ * 顶层 join 可跨字段 OR；与列 FilterModel 里同字段的 JoinFieldFilter 不是同一套。
  * 本轮 searchAll 不 POST 这棵树。
  */
-export type EntityAdvancedFilterModel =
-  | EntityAdvancedJoinFilter
-  | EntityAdvancedColumnFilter;
+export type AdvancedFilterModel =
+  | AdvancedJoinFilter
+  | AdvancedColumnFilter;
 
-export interface EntityAdvancedJoinFilter {
+export interface AdvancedJoinFilter {
   filterType: "join";
   operator: "AND" | "OR";
-  conditions: EntityAdvancedFilterModel[];
+  conditions: AdvancedFilterModel[];
 }
 
 /** 叶子：带 fieldName（≈ AG colId）。 */
-export interface EntityAdvancedColumnFilter {
+export interface AdvancedColumnFilter {
   fieldName: string;
   filterType: "text" | "number" | "date" | "set" | "boolean";
-  operator?: EntityFilterOperator;
+  operator?: MetaUiFilterOperatorCode;
   value?: unknown;
   valueTo?: unknown;
   values?: unknown[];
@@ -107,8 +76,8 @@ export interface EntityAdvancedColumnFilter {
 }
 
 export function isAdvancedJoinFilter(
-  model?: EntityAdvancedFilterModel | null,
-): model is EntityAdvancedJoinFilter {
+  model?: AdvancedFilterModel | null,
+): model is AdvancedJoinFilter {
   return (
     !!model &&
     model.filterType === "join" &&
@@ -118,8 +87,8 @@ export function isAdvancedJoinFilter(
 }
 
 export function cloneAdvancedFilter(
-  model?: EntityAdvancedFilterModel | null,
-): EntityAdvancedFilterModel | undefined {
+  model?: AdvancedFilterModel | null,
+): AdvancedFilterModel | undefined {
   if (!model) return undefined;
   if (isAdvancedJoinFilter(model)) {
     return {
@@ -127,7 +96,7 @@ export function cloneAdvancedFilter(
       operator: model.operator,
       conditions: model.conditions
         .map((item) => cloneAdvancedFilter(item))
-        .filter((item): item is EntityAdvancedFilterModel => item != null),
+        .filter((item): item is AdvancedFilterModel => item != null),
     };
   }
   return {
@@ -137,7 +106,7 @@ export function cloneAdvancedFilter(
 }
 
 function isNoValueFilterOperator(
-  operator?: EntityFilterOperator,
+  operator?: MetaUiFilterOperatorCode,
 ): boolean {
   return (
     operator === "IS_NULL" ||
@@ -148,14 +117,14 @@ function isNoValueFilterOperator(
 }
 
 function isEmptyCompareValue(
-  operator: EntityFilterOperator | undefined,
+  operator: MetaUiFilterOperatorCode | undefined,
   value: unknown,
 ): boolean {
   if (operator === "EQ" || operator === "NEQ") return value == null;
   return value == null || value === "";
 }
 
-function isEmptyAdvancedColumn(filter: EntityAdvancedColumnFilter): boolean {
+function isEmptyAdvancedColumn(filter: AdvancedColumnFilter): boolean {
   if (filter.filterType === "set") return !filter.values?.length;
   if (filter.filterType === "boolean") return filter.value == null;
   if (filter.operator === "IS_ALL") return true;
@@ -171,13 +140,13 @@ function isEmptyAdvancedColumn(filter: EntityAdvancedColumnFilter): boolean {
 }
 
 export function compactAdvancedFilter(
-  model?: EntityAdvancedFilterModel | null,
-): EntityAdvancedFilterModel | undefined {
+  model?: AdvancedFilterModel | null,
+): AdvancedFilterModel | undefined {
   if (!model) return undefined;
   if (isAdvancedJoinFilter(model)) {
     const conditions = model.conditions
       .map((item) => compactAdvancedFilter(item))
-      .filter((item): item is EntityAdvancedFilterModel => item != null);
+      .filter((item): item is AdvancedFilterModel => item != null);
     if (!conditions.length) return undefined;
     if (conditions.length === 1) return conditions[0];
     return { filterType: "join", operator: model.operator, conditions };
@@ -210,18 +179,17 @@ export interface EntityQuery {
   queryName?: string;
   objName?: string;
   remark?: string;
-  filterModel?: EntityFilterModel;
+  filterModel?: FilterModel;
   /** Query Builder / AG Advanced Filter 树。searchAll 本轮不传。 */
-  advancedFilterModel?: EntityAdvancedFilterModel;
+  advancedFilterModel?: AdvancedFilterModel;
   pager: Pager;
-  searchWord?: string;
 }
 
 /**
- * 当次列表请求 ≈ EntityQuery。
- * `queryParams` 仅兼容旧 URL / 快捷过滤 SQL；新代码字段条件进 filterModel。
+ * 当次列表请求。在 EntityQuery 上增加模糊搜与 URL 兼容袋。
  */
 export interface EntitySearchParam extends EntityQuery {
+  searchWord?: string;
   queryParams?: Record<string, unknown>;
 }
 
@@ -232,20 +200,40 @@ export function defaultSearchParam(searchWord = ""): EntitySearchParam {
   };
 }
 
-export function defaultEntityQuery(searchWord = ""): EntityQuery {
+export function defaultEntityQuery(): EntityQuery {
   return {
     pager: defaultPager(),
-    searchWord,
   };
 }
+
+/** @deprecated */
+export type EntitySimpleFieldFilter = SimpleFieldFilter
+/** @deprecated */
+export type EntitySetFieldFilter = SetFieldFilter
+/** @deprecated */
+export type EntityBooleanFieldFilter = BooleanFieldFilter
+/** @deprecated */
+export type EntityJoinFieldFilter = JoinFieldFilter
+/** @deprecated */
+export type EntityMultiFieldFilter = MultiFieldFilter
+/** @deprecated */
+export type EntityFieldFilter = FieldFilter
+/** @deprecated */
+export type EntityFilterModel = FilterModel
+/** @deprecated */
+export type EntityAdvancedFilterModel = AdvancedFilterModel
+/** @deprecated */
+export type EntityAdvancedJoinFilter = AdvancedJoinFilter
+/** @deprecated */
+export type EntityAdvancedColumnFilter = AdvancedColumnFilter
 
 const cloneRecord = <T extends Record<string, unknown>>(
   value?: T,
 ): T | undefined => (value == null ? undefined : ({ ...value } as T));
 
 export const cloneFieldFilter = (
-  filter: EntityFieldFilter,
-): EntityFieldFilter => {
+  filter: FieldFilter,
+): FieldFilter => {
   if (filter.filterType === "set") {
     return { ...filter, values: [...filter.values] };
   }
@@ -264,7 +252,7 @@ export const cloneFieldFilter = (
   return { ...filter };
 };
 
-export const cloneFilterModel = (value?: EntityFilterModel) =>
+export const cloneFilterModel = (value?: FilterModel) =>
   value == null
     ? undefined
     : Object.fromEntries(
@@ -289,7 +277,6 @@ export function toEntityQuery(src: EntityQuery): EntityQuery {
     filterModel: cloneFilterModel(src.filterModel),
     advancedFilterModel: cloneAdvancedFilter(src.advancedFilterModel),
     pager: clonePager(src.pager ?? defaultPager()),
-    searchWord: src.searchWord,
   };
 }
 
@@ -298,7 +285,8 @@ export function applyEntityQuery(to: EntitySearchParam, src: EntityQuery) {
   to.queryName = src.queryName;
   to.objName = src.objName;
   to.remark = src.remark;
-  to.searchWord = src.searchWord;
+  const word = (src as EntitySearchParam).searchWord;
+  if (word != null) to.searchWord = word;
   const pager = src.pager ?? defaultPager();
   to.pager.pageSize = pager.pageSize;
   to.pager.pageNo = pager.pageNo;
@@ -350,7 +338,7 @@ export const hasAdvancedFilterModel = (
 export function inFilter(
   values: unknown | unknown[],
   operator: "IN" | "NOT_IN" = "IN",
-): EntitySetFieldFilter {
+): SetFieldFilter {
   return {
     filterType: "set",
     operator,
@@ -358,48 +346,48 @@ export function inFilter(
   };
 }
 
-export function notInFilter(values: unknown | unknown[]): EntitySetFieldFilter {
+export function notInFilter(values: unknown | unknown[]): SetFieldFilter {
   return inFilter(values, "NOT_IN");
 }
 
 export function eqFilter(
   value: unknown,
-  filterType: EntitySimpleFieldFilter["filterType"] = "text",
-): EntitySimpleFieldFilter {
+  filterType: SimpleFieldFilter["filterType"] = "text",
+): SimpleFieldFilter {
   return { filterType, operator: "EQ", value };
 }
 
 export function betweenFilter(
   value: unknown,
   valueTo: unknown,
-  filterType: EntitySimpleFieldFilter["filterType"] = "date",
-): EntitySimpleFieldFilter {
+  filterType: SimpleFieldFilter["filterType"] = "date",
+): SimpleFieldFilter {
   return { filterType, operator: "BETWEEN", value, valueTo };
 }
 
 export function dateKindFilter(
   dateKind: DateTimeRangeKind,
-): EntitySimpleFieldFilter {
+): SimpleFieldFilter {
   return { filterType: "date", operator: "WITHIN", dateKind };
 }
 
 export function nullFilter(
   operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
-): EntitySimpleFieldFilter {
+): SimpleFieldFilter {
   return { filterType: "text", operator };
 }
 
 /** 字符串「没内容」：保存 IS_BLANK，POST 展开成 IS_NULL OR = ''。 */
 export function blankFilter(
   operator: "IS_BLANK" | "IS_NOT_BLANK" = "IS_BLANK",
-): EntitySimpleFieldFilter {
+): SimpleFieldFilter {
   return { filterType: "text", operator };
 }
 
 export function joinFilter(
   operator: "AND" | "OR",
-  conditions: EntityFieldFilter[],
-): EntityJoinFieldFilter {
+  conditions: FieldFilter[],
+): JoinFieldFilter {
   return {
     filterType: "join",
     operator,
@@ -408,8 +396,8 @@ export function joinFilter(
 }
 
 export function multiFilter(
-  filterModels: EntityFieldFilter[],
-): EntityMultiFieldFilter {
+  filterModels: FieldFilter[],
+): MultiFieldFilter {
   return {
     filterType: "multi",
     filterModels: filterModels.map(cloneFieldFilter),
@@ -417,7 +405,7 @@ export function multiFilter(
 }
 
 export function isEmptyFieldFilter(
-  filter?: EntityFieldFilter | null,
+  filter?: FieldFilter | null,
 ): boolean {
   if (!filter) return true;
   if (filter.filterType === "set") return !filter.values?.length;
@@ -441,13 +429,13 @@ export function isEmptyFieldFilter(
 }
 
 export function compactFieldFilter(
-  filter?: EntityFieldFilter | null,
-): EntityFieldFilter | undefined {
+  filter?: FieldFilter | null,
+): FieldFilter | undefined {
   if (!filter || isEmptyFieldFilter(filter)) return undefined;
   if (filter.filterType === "join") {
     const conditions = filter.conditions
       .map((item) => compactFieldFilter(item))
-      .filter((item): item is EntityFieldFilter => item != null);
+      .filter((item): item is FieldFilter => item != null);
     if (!conditions.length) return undefined;
     if (conditions.length === 1) return conditions[0];
     return { ...filter, conditions };
@@ -455,7 +443,7 @@ export function compactFieldFilter(
   if (filter.filterType === "multi") {
     const filterModels = filter.filterModels
       .map((item) => compactFieldFilter(item))
-      .filter((item): item is EntityFieldFilter => item != null);
+      .filter((item): item is FieldFilter => item != null);
     if (!filterModels.length) return undefined;
     if (filterModels.length === 1) return filterModels[0];
     return { ...filter, filterModels };
@@ -471,7 +459,7 @@ export function compactFieldFilter(
   return cloneFieldFilter(filter);
 }
 
-function expandBlankFieldFilter(filter: EntityFieldFilter): EntityFieldFilter {
+function expandBlankFieldFilter(filter: FieldFilter): FieldFilter {
   if (filter.filterType === "multi") {
     return {
       ...filter,
@@ -504,10 +492,10 @@ function expandBlankFieldFilter(filter: EntityFieldFilter): EntityFieldFilter {
 
 /** IS_BLANK / IS_NOT_BLANK → join。IS_NULL 原样。不要 compact，以免丢掉 EQ ''。 */
 export function expandBlankFilters(
-  model?: EntityFilterModel,
-): EntityFilterModel | undefined {
+  model?: FilterModel,
+): FilterModel | undefined {
   if (model == null) return undefined;
-  const next: EntityFilterModel = {};
+  const next: FilterModel = {};
   for (const [field, filter] of Object.entries(model)) {
     next[field] = expandBlankFieldFilter(filter);
   }
@@ -516,9 +504,9 @@ export function expandBlankFilters(
 
 /** 上块比较 + 下块 set：两块都有效则 multi，否则摊平。 */
 export function combineCompareAndSet(
-  compare?: EntityFieldFilter | null,
-  set?: EntitySetFieldFilter | null,
-): EntityFieldFilter | undefined {
+  compare?: FieldFilter | null,
+  set?: SetFieldFilter | null,
+): FieldFilter | undefined {
   const first = compactFieldFilter(compare);
   const second = compactFieldFilter(set);
   if (first && second) return multiFilter([first, second]);

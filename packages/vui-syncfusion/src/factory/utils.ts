@@ -1,4 +1,5 @@
-import { DEFAULT_PAGE_SIZE_OPTIONS, MetaUiFieldAlignmentEnum, SqlDataType, columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, MetaUiFieldFilterType, type EntityFilterModel, type EntityFilterOperator, type MetaUi, type MetaUiField } from "@mmda/core";
+import { DEFAULT_PAGE_SIZE_OPTIONS, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type EntityFilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOperatorCode } from "@mmda/core";
+import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from "./filter_kind";
 
 export const EMPTY_SELECTION: unknown[] = [];
 
@@ -98,7 +99,7 @@ export const gridFilterOperator = (
   filterType?: "text" | "number" | "date",
 ) => {
   const key = String(operator ?? "").toLowerCase();
-  const operators: Record<string, EntityFilterOperator> = {
+  const operators: Record<string, MetaUiFilterOperatorCode> = {
     equal: "EQ",
     notequal: "NEQ",
     greaterthan: "GT",
@@ -241,7 +242,7 @@ export const isHasOneSetField = (field: MetaUiField) =>
 export const isChoiceFilterField = (field: MetaUiField) =>
   hasFilterType(
     resolveColumnFilterTypes(field),
-    MetaUiFieldFilterType.SET,
+    MetaUiFilterType.SET,
   );
 
 /** Column.template 名 ↔ Grid 命名 slot */

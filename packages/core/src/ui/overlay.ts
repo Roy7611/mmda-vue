@@ -5,6 +5,7 @@ import type {
   UiDialogProps,
   UiToastProps,
 } from './builder/dialog'
+import type { UiMessageProps } from './factory/message'
 
 /**
  * 弹层宿主。Builder.toast / confirm / dialog 委托给皮肤 Overlay。

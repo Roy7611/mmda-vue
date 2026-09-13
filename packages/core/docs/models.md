@@ -19,7 +19,7 @@ MetaUi -> MetaModel -> Models
 
 ## 实体搜索（本轮）
 
-列表查询的会话状态是 **`EntitySearchParam`**；可保存形态是 **`EntityQuery`**（不含 `queryParams`）：
+列表查询的会话状态是 **`EntitySearchParam`**；可保存形态是 **`EntityQuery`**（不含 `searchWord`、不含 `queryParams`）。形状见 [entity_search.md](./models/entity_search.md)，框架见 [entity_filter_design.md](./models/entity_filter_design.md)。
 
 ```ts
 import {

@@ -12,7 +12,7 @@ toSearchRequest(param)
   queryParams  ← pager（pageSize/pageNo/sort）+ searchWord + param.queryParams
   filterModel  ← 有键才带
 → 无 filterModel：GET getAll
-→ 有 filterModel：POST .../searchAll，body = JSON(EntityFilterModel)
+→ 有 filterModel：POST .../searchAll，body = JSON(FilterModel)
 → advancedFilterModel 不进入 toSearchRequest（服务端后续）
 ```
 

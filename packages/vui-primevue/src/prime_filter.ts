@@ -1,4 +1,5 @@
-import { columnFilterKindOf, combineCompareAndSet, compactFieldFilter, dateKindFilter, getFieldFilterOps, isDateRangeKind, simpleFilterTypeOf, type DateTimeRangeKind, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiField } from "@mmda/core";
+import { combineCompareAndSet, compactFieldFilter, dateKindFilter, getFieldFilterOps, isDateRangeKind, type DateTimeRangeKind, type EntityFieldFilter, type EntityFilterModel, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiFilterOperatorCode, type MetaUiField } from "@mmda/core";
+import { columnFilterKindOf, simpleFilterTypeOf } from "./filter_kind";
 
 export type PrimeColumnFilterState = {
   operator: string;
@@ -107,7 +108,7 @@ export function applyPrimeColumnFilter(
         : undefined
       : {
           filterType,
-          operator: state.operator as EntityFilterOperator,
+          operator: state.operator as MetaUiFilterOperatorCode,
           value: state.value,
           valueTo: state.valueTo,
         };
@@ -119,7 +120,7 @@ export function applyPrimeColumnFilter(
       : {
           filterType,
           operator: (state.secondOperator ||
-            state.operator) as EntityFilterOperator,
+            state.operator) as MetaUiFilterOperatorCode,
           value: state.secondValue,
         };
   const compare = compactFieldFilter(

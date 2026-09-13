@@ -1,15 +1,14 @@
 import {
-  columnFilterKindOf,
   combineCompareAndSet,
-  hasFilterType,
-  MetaUiFieldFilterType,
   SqlDataType,
   uiCssClass,
+  MetaUiFilterType,
   type EntityFieldFilter,
   type EntityFilterModel,
   type EntitySetFieldFilter,
   type MetaUiField,
 } from '@mmda/core'
+import { columnFilterKindOf, hasFilterType } from './filter_kind'
 import { createElement } from '@syncfusion/ej2-base'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { h, render, type AppContext } from 'vue'
@@ -57,7 +56,7 @@ export function usesCompareColumnFilter(
   field: MetaUiField,
   extras: Pick<SfCompareColumnFilterExtras, 'loadPivotDates'> = {},
 ) {
-  if (hasFilterType(field, MetaUiFieldFilterType.JOIN)) return false
+  if (hasFilterType(field, MetaUiFilterType.JOIN)) return false
   const variant = compareColumnVariantOf(field)
   if (!variant) return false
   if (variant === 'time') return true
@@ -66,7 +65,7 @@ export function usesCompareColumnFilter(
   if (
     (variant === 'date' || variant === 'datetime') &&
     extras.loadPivotDates &&
-    hasFilterType(field, MetaUiFieldFilterType.SET)
+    hasFilterType(field, MetaUiFilterType.SET)
   ) {
     return true
   }
@@ -189,7 +188,7 @@ function sfDateMenuFilter(
   let operatorDrop: { value?: string } | undefined
   const showSet =
     Boolean(extras.loadPivotDates) &&
-    hasFilterType(field, MetaUiFieldFilterType.SET)
+    hasFilterType(field, MetaUiFilterType.SET)
 
   const getModel = () => {
     const op = String(operatorDrop?.value ?? 'equal')

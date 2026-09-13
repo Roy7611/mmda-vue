@@ -243,7 +243,7 @@ describe("EntityQuery", () => {
     const parsed = parseQueryExpression(expr);
     expect(parsed?.kind).toBe("query");
     if (parsed?.kind === "query") {
-      expect(parsed.query.searchWord).toBe("仓");
+      expect(parsed.query).not.toHaveProperty("searchWord");
       expect(parsed.query.filterModel).toEqual(param.filterModel);
       expect(parsed.query.advancedFilterModel).toEqual(param.advancedFilterModel);
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");

@@ -116,6 +116,6 @@ describe("updateForCache", () => {
     expect(cached.metaUi.getField("code")?.listSize).toBe(120);
     expect(cached.filters?.[0]?.filterConditions[0].active).toBe(true);
     expect((cached as { sorts?: unknown }).sorts).toBeUndefined();
-    expect(cached.lastQuery?.searchWord).toBe("x");
+    expect((cached.lastQuery as { searchWord?: string } | undefined)?.searchWord).toBe("x");
   });
 });

@@ -17,7 +17,7 @@ import type {
   Pagination,
   SelectableFn,
   EntityFieldFilter,
-  EntityFilterOperator,
+  MetaUiFilterOperatorCode,
 } from "@mmda/core";
 import { h, ref, unref, type Ref, type VNode } from "vue";
 
@@ -162,8 +162,8 @@ export class UiCustomSearchField {
 }
 
 export class UiSearchField {
-  readonly availableOps: Array<EntityFilterOperator>;
-  currentOp: EntityFilterOperator;
+  readonly availableOps: Array<MetaUiFilterOperatorCode>;
+  currentOp: MetaUiFilterOperatorCode;
   currentOpLabel: Ref<string>;
   searchVal: Ref<any>;
   defaultVal: Ref<any>;
@@ -192,7 +192,7 @@ export class UiSearchField {
     return this.searchVal.value;
   }
 
-  changeCurrentOp(op: EntityFilterOperator, t?: TranslateFn) {
+  changeCurrentOp(op: MetaUiFilterOperatorCode, t?: TranslateFn) {
     this.currentOp = op;
     this.currentOpLabel.value = t ? t(`matcher.${op}`) : op;
     if (

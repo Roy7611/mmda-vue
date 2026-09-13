@@ -1,8 +1,9 @@
-# 列表查询设计：EntityQuery / EntityFilterModel
+# 列表查询设计：EntityQuery / FilterModel
 
 - **层**：Data / models（传输在 net；套用与 SQL 片段在 logic；模块默认与本地缓存在 metaui）
 - **源码**：[`packages/core/src/models/entity_search.ts`](../../src/models/entity_search.ts)
 - **程序员怎么写**：[entity_query_usage.md](../logic/entity_query_usage.md)
+- **过滤框架**：[entity_filter_design.md](./entity_filter_design.md)
 - **日期过滤**：[date_filter.md](./date_filter.md) · [date_filter_usage.md](../logic/date_filter_usage.md)
 - **SQL 片段**：[sql_operator.md](../logic/sql_operator.md)
 
@@ -22,13 +23,15 @@
 
 | 名字 | 角色 |
 |---|---|
-| **EntityQuery** | 可保存的查询定义（客户端名） |
-| **EntitySearchParam** | 当次列表请求 ≈ EntityQuery，另带兼容字段 `queryParams?` |
-| **EntityFilterModel** | `Record<fieldName, EntityFieldFilter>`，列过滤文档（表头 / 列间 AND） |
-| **EntityAdvancedFilterModel** | Query Builder / AG Advanced Filter 树，可跨字段 OR。**searchAll 本轮不传** |
-| **EntityFieldFilter** | 单字段条件（`EntitySimpleFieldFilter` \| set \| boolean；对齐 Java ColumnFilter） |
-| **EntityFilterOperator** | `EQ` / `GE` / `IN` / `BETWEEN` …（JSON 成员名不变） |
+| **EntityQuery** | 可保存的查询定义（客户端名）。**不含** `searchWord`、**不含** `queryParams` |
+| **EntitySearchParam** | 当次列表请求：EntityQuery + `searchWord` + `queryParams?` |
+| **FilterModel** | `Record<fieldName, FieldFilter>`，列过滤文档（表头 / 列间 AND） |
+| **AdvancedFilterModel** | Query Builder / AG Advanced Filter 树，可跨字段 OR。**searchAll 本轮不传** |
+| **FieldFilter** | 单字段条件（`SimpleFieldFilter` \| set \| boolean \| join \| multi） |
+| **MetaUiFilterOperatorCode** | JSON 大写：`EQ` / `GE` / `IN` / `BETWEEN` … |
 | **NamedQueryRef** | `Module.defaultFilter` 解析出的 `{ queryID, queryName }` |
+
+旧类型名 `EntityFilterModel` / `EntityFieldFilter` / `EntityFilterOperator` 仍是别名。
 
 ```ts
 interface EntityQuery {
@@ -36,13 +39,13 @@ interface EntityQuery {
   queryName?: string
   objName?: string
   remark?: string
-  filterModel?: EntityFilterModel
-  advancedFilterModel?: EntityAdvancedFilterModel  // 客户端树；searchAll 本轮不 POST
+  filterModel?: FilterModel
+  advancedFilterModel?: AdvancedFilterModel  // 客户端树；searchAll 本轮不 POST
   pager: Pager          // 含 sorts；唯一排序来源
-  searchWord?: string
 }
 
 interface EntitySearchParam extends EntityQuery {
+  searchWord?: string                    // 这一次的模糊搜，不进可保存查询
   queryParams?: Record<string, unknown>  // 仅兼容；新代码不要写字段条件
 }
 ```
@@ -71,7 +74,7 @@ AG Grid 也是两套：
 | | 列 FilterModel | Advanced Filter |
 |---|---|---|
 | AG API | `getFilterModel` | `getAdvancedFilterModel` |
-| MMDA | `EntityFilterModel` | `EntityAdvancedFilterModel` |
+| MMDA | `FilterModel` | `AdvancedFilterModel` |
 | 形状 | `Record<field, …>`，列间 AND；`join`/`multi` 只在同一列 | 根可以是 join，叶子带 `fieldName`，可跨列 OR |
 | UI | 表头 Excel/Menu | `factory.queryBuilder` |
 | 服务端 | `searchAll` POST body | **尚未接**；不要摊成 `filterModel` |
@@ -123,7 +126,7 @@ EntitySearchParam
       queryParams  ← pager + searchWord + 旧 queryParams（URL）
       filterModel  ← 有键才带（POST body）
   → 无 filterModel：GET getAll
-  → 有 filterModel：POST .../searchAll，body = EntityFilterModel 映射
+  → 有 filterModel：POST .../searchAll，body = FilterModel
   → advancedFilterModel 不进入 toSearchRequest
 ```
 

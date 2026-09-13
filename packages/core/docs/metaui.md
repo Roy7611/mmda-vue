@@ -8,10 +8,10 @@
 - `MetaUiBuilder`：本地列表列声明，见 [metaui_builder.md](./metaui/metaui_builder.md)。
 - `MetaUiGroup`：主表或子表分组。
 - `MetaUiField`：字段声明、数据类型、展示与引用配置。
-- `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFieldFilterType`；`0` = 按 dataType 原生一位，不是关过滤）。见 [metaui_filter.md](./metaui/metaui_filter.md)。
+- `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFilterType`）。字段推断见 `inferColumnFilterType()`。[metaui_filter.md](./metaui/metaui_filter.md) · [过滤框架](./models/entity_filter_design.md)。
 - `SqlDataType`：后端字段类型及默认值映射。
-- `MetaUiFilter`：快捷过滤声明（仍可编译进 `queryParams.filter`）。
-- 列表字段条件：`EntityFilterOperator` + `filterModel`（见 [entity_search.md](./models/entity_search.md)）。
+- `MetaUiFilter`：旧快捷 SQL 芯片，不进 `FilterModel`。
+- 列表字段条件：`FilterModel` / `FieldFilter` + `MetaUiFilterOperatorCode`（见 [entity_search.md](./models/entity_search.md)）。
 - SQL 片段：`SqlOperator`（where / `refWhere`）。
 - 排序只在 `pager.sorts`。本地上次查询是 pack 上的 `lastQuery: EntityQuery`，不单存 sorts。
 - `EntityAction`：渲染为按钮的行为声明。

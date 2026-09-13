@@ -14,7 +14,7 @@ import {
   type EntityAdvancedColumnFilter,
   type EntityAdvancedFilterModel,
   type EntityAdvancedJoinFilter,
-  type EntityFilterOperator,
+  type MetaUiFilterOperatorCode,
   type MetaUiField,
   type UiQueryBuilderColumn,
   type UiQueryBuilderProps,
@@ -38,7 +38,7 @@ function patchAt(
   return { ...join, conditions }
 }
 
-function operatorNeedsValue(op?: EntityFilterOperator): boolean {
+function operatorNeedsValue(op?: MetaUiFilterOperatorCode): boolean {
   return (
     op !== 'IS_NULL' &&
     op !== 'IS_NOT_NULL' &&
@@ -49,15 +49,15 @@ function operatorNeedsValue(op?: EntityFilterOperator): boolean {
   )
 }
 
-function operatorNeedsRange(op?: EntityFilterOperator): boolean {
+function operatorNeedsRange(op?: MetaUiFilterOperatorCode): boolean {
   return op === 'BETWEEN'
 }
 
-function operatorNeedsDateKind(op?: EntityFilterOperator): boolean {
+function operatorNeedsDateKind(op?: MetaUiFilterOperatorCode): boolean {
   return op === 'WITHIN'
 }
 
-function operatorNeedsList(op?: EntityFilterOperator): boolean {
+function operatorNeedsList(op?: MetaUiFilterOperatorCode): boolean {
   return op === 'IN' || op === 'NOT_IN'
 }
 
@@ -113,7 +113,7 @@ export const QueryBuilderHost = defineComponent({
         const nextCol = columns.value.find((item) => item.fieldName === fieldName)
         onPatch(nextCol ? defaultAdvancedColumn(nextCol) : { ...leaf, fieldName })
       }
-      const setOp = (operator: EntityFilterOperator) => {
+      const setOp = (operator: MetaUiFilterOperatorCode) => {
         if (operator === 'IN' || operator === 'NOT_IN') {
           onPatch({
             fieldName: leaf.fieldName,
@@ -178,7 +178,7 @@ export const QueryBuilderHost = defineComponent({
                   : 'IS_TRUE'
                 : leaf.operator ?? ops[0],
             onChange: (event: Event) =>
-              setOp((event.target as HTMLSelectElement).value as EntityFilterOperator),
+              setOp((event.target as HTMLSelectElement).value as MetaUiFilterOperatorCode),
           },
           opOptions,
         ),

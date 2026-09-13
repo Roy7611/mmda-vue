@@ -1,4 +1,5 @@
-import { SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, MetaUiFieldFilterType, resolveColumnFilterTypes, type MetaUi, type MetaUiField } from '@mmda/core'
+import { SqlDataType, fieldCellEditorAllowsColumn, MetaUiFilterType, type MetaUi, type MetaUiField } from '@mmda/core'
+import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes } from './factory/filter_kind'
 import { gridFreezeOf, listedTableFields, type UiGridScene } from '@mmda/vui'
 import {
   sfCompareColumnFilter,
@@ -114,7 +115,7 @@ export function sfGridColumnOf(
         : sfGridColumnFilterOf(field),
     /** 皮肤内部：解析后的位掩码，便于调试 / 映射 */
     mmdaFilterTypes: types,
-    mmdaAllowJoin: hasFilterType(types, MetaUiFieldFilterType.JOIN),
+    mmdaAllowJoin: hasFilterType(types, MetaUiFilterType.JOIN),
   }
 }
 

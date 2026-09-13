@@ -616,8 +616,10 @@ export const UserStatusEnum = {
 
 | 词                      | 放哪                       | 不要当成             |
 | ---------------------- | ------------------------ | ---------------- |
-| `EntitySearchParam`    | 当次列表查询                   | 元数据              |
-| `EntityQuery`          | 可保存的查询（无 `queryParams`）  | FilterModel JSON |
+| `EntitySearchParam`    | 当次列表查询（+`searchWord` +`queryParams`） | 元数据 / 可保存查询 |
+| `EntityQuery`          | 可保存的查询（无 `searchWord`、无 `queryParams`） | FilterModel JSON |
+| `FilterModel` / `FieldFilter` | 表头/搜索栏结构化条件 | `MetaUiFilter`、厂商列模型 |
+| `MetaUiFilterType`     | `filterTypes` 位 + `filterType` JSON 名 | core `columnFilterKind` / `range` |
 | `filterModel`          | 表头/搜索栏结构化条件              | `MetaUiFilter`   |
 | `MetaUiFilter`         | 快捷过滤声明                   | AG Grid 模型       |
 | `Module.defaultFilter` | `queryID;queryName|…` 芯片 | FilterModel      |

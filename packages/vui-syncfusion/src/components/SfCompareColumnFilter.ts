@@ -4,15 +4,15 @@ import {
   DATE_RANGE_FILTER_KINDS,
   dateKindFilter,
   expandDateSetLeaves,
-  hasFilterType,
   isDateRangeKind,
-  MetaUiFieldFilterType,
+  MetaUiFilterType,
   type DatePeriodTreeNode,
   type DateTimeRangeKind,
   type EntityFieldFilter,
   type EntitySetFieldFilter,
   type MetaUiField,
 } from '@mmda/core'
+import { hasFilterType } from '../factory/filter_kind'
 import { DatePickerComponent, DateRangePickerComponent, DateTimePickerComponent, TimePickerComponent } from '@syncfusion/ej2-vue-calendars'
 import { DropDownListComponent } from '@syncfusion/ej2-vue-dropdowns'
 import { NumericTextBoxComponent } from '@syncfusion/ej2-vue-inputs'
@@ -171,7 +171,7 @@ export const SfCompareColumnFilter = defineComponent({
       () =>
         (props.variant === 'date' || props.variant === 'datetime') &&
         Boolean(props.loadPivotDates) &&
-        hasFilterType(props.field, MetaUiFieldFilterType.SET),
+        hasFilterType(props.field, MetaUiFilterType.SET),
     )
     const showValue = computed(
       () => operator.value !== 'isnull' && operator.value !== 'notnull',

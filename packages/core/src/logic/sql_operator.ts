@@ -1,14 +1,14 @@
 import { isString } from "../utils/is";
 import { SqlDataType } from "../metaui/datatype";
 import { MetaUiField } from "../metaui/metaui_field";
-import type { EntityFilterOperator } from "../models/entity_search";
+import type { MetaUiFilterOperatorCode } from "../metaui/metaui_filter";
 
 /**
  * SQL 片段操作符：metadata `where` / Logic `refWhere`。
- * 结构化列表过滤用 EntityFilterOperator，不要用本类型拼进 queryParams。
+ * 结构化列表过滤用 MetaUiFilterOperatorCode，不要用本类型拼进 queryParams。
  */
 export interface SqlOperator {
-  name: EntityFilterOperator;
+  name: MetaUiFilterOperatorCode;
   toSQL: (v: any) => string;
   parameters?: number;
   symbol?: string;
@@ -187,7 +187,7 @@ export const SqlOperatorNameList = [
 export type SqlOperatorName = (typeof SqlOperatorNameList)[number];
 
 export const getSqlOperator = (
-  op: EntityFilterOperator | SqlOperatorName,
+  op: MetaUiFilterOperatorCode | SqlOperatorName,
 ): SqlOperator | undefined => {
   const ops = ([] as SqlOperator[]).concat(
     ...Object.values(defaultSqlOps),
@@ -208,5 +208,5 @@ export const getFieldSqlOps = (field: MetaUiField): SqlOperator[] => {
   return defaultSqlOps.StringFieldOps;
 };
 
-export const getFieldFilterOps = (field: MetaUiField): EntityFilterOperator[] =>
+export const getFieldFilterOps = (field: MetaUiField): MetaUiFilterOperatorCode[] =>
   getFieldSqlOps(field).map((op) => op.name);

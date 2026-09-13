@@ -4,7 +4,8 @@
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFieldFilterType, SortOrder, SqlDataType, columnFilterKindOf, combineCompareAndSet, dateKindFilter, hasFilterType, isDateRangeKind, isLazyChoiceFilterField, isRefOptionsComplete, resolveColumnFilterTypes, simpleFilterTypeOf, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, combineCompareAndSet, dateKindFilter, isDateRangeKind, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
 import { gridFreezeOf, joinListColumnLabel, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
@@ -428,8 +429,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     /** MULTI=32 且有 SET 选项源才追加勾选。 */
     const usesSetSlot = (field: MetaUiField) =>
-      hasFilterType(field, MetaUiFieldFilterType.MULTI) &&
-      hasFilterType(field, MetaUiFieldFilterType.SET) &&
+      hasFilterType(field, MetaUiFilterType.MULTI) &&
+      hasFilterType(field, MetaUiFilterType.SET) &&
       (isLazyChoiceFilterField(field) ||
         Boolean(field.reference?.isEnum || field.reference?.isRef) ||
         Boolean(props.loadFilterOptions) ||
@@ -438,7 +439,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         ))
 
     const usesJoinSlot = (field: MetaUiField) =>
-      hasFilterType(field, MetaUiFieldFilterType.JOIN)
+      hasFilterType(field, MetaUiFilterType.JOIN)
 
     type CompareControl = TextBox | NumericTextBox | DatePicker | DateTimePicker
 

@@ -27,7 +27,7 @@ const page = await this.apiClient.searchAll(param, {
 ```
 
 - 空 `filterModel`（或没有键）：客户端 **GET** `getAll`。
-- 有字段条件：客户端 **POST** `.../searchAll`，body 是 `EntityFilterModel` 映射。
+- 有字段条件：客户端 **POST** `.../searchAll`，body 是 `FilterModel`。
 - Query Builder 的树写在 `advancedFilterModel`，**不要** POST 进 `searchAll`（服务端尚未接）。
 
 ```ts

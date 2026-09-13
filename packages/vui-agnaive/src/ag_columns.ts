@@ -6,7 +6,8 @@ import type {
   SetFilterValuesFuncParams,
   ValueFormatterParams,
 } from 'ag-grid-community'
-import { DATE_RANGE_FILTER_KINDS, MetaUiFieldFilterType, SqlDataType, columnFilterKindOf, fieldCellEditorAllowsColumn, hasFilterType, isLazyChoiceFilterField, normalizePivotDates, simpleFilterTypeOf, toDatePeriodToken, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, fieldCellEditorAllowsColumn, normalizePivotDates, toDatePeriodToken, MetaUiFilterType, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
+import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, simpleFilterTypeOf } from './filter_kind'
 import { gridFreezeOf } from '@mmda/vui'
 import type { UiListPropsType } from '@mmda/vui'
 import {
@@ -37,7 +38,7 @@ const simpleFilterOf = (
   props: UiListPropsType<any> = {} as UiListPropsType<any>,
 ) => {
   const type = simpleFilterTypeOf(field)
-  const maxNumConditions = hasFilterType(field, MetaUiFieldFilterType.JOIN)
+  const maxNumConditions = hasFilterType(field, MetaUiFilterType.JOIN)
     ? 2
     : 1
   if (type === 'date') {
@@ -227,7 +228,7 @@ export function buildColumnDefs<T>(
       } else if (kind === 'range' || kind === 'text') {
         if (
           (field.reference?.isEnum || field.reference?.isRef) &&
-          !hasFilterType(field, MetaUiFieldFilterType.JOIN)
+          !hasFilterType(field, MetaUiFilterType.JOIN)
         ) {
           col.filter = 'agSetColumnFilter'
           col.filterParams = setFilterParamsOf(field, props)

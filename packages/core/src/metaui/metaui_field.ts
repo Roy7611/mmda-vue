@@ -230,14 +230,22 @@ export class MetaUiField {
   /**
    * 按 dataType + reference 推断简单类型：boolean | date | number | text | set。
    * enum / ref / hasOne → set。JOIN / MULTI 不在这里。
+   * 静态版给皮肤处理尚未 `new MetaUiField` 的字段袋。
    */
-  inferColumnFilterType(): MetaUiFilterType {
-    const ref = this.reference
+  static inferColumnFilterType(field: {
+    dataType: SqlDataType
+    reference?: { isEnum?: boolean; isRef?: boolean; hasOne?: boolean }
+  }): MetaUiFilterType {
+    const ref = field.reference
     if (ref?.isEnum || ref?.isRef || ref?.hasOne) return MetaUiFilterType.SET
-    if (SqlDataType.isBool(this.dataType)) return MetaUiFilterType.BOOLEAN
-    if (SqlDataType.isDate(this.dataType)) return MetaUiFilterType.DATE
-    if (SqlDataType.isNum(this.dataType) && !ref) return MetaUiFilterType.NUMBER
+    if (SqlDataType.isBool(field.dataType)) return MetaUiFilterType.BOOLEAN
+    if (SqlDataType.isDate(field.dataType)) return MetaUiFilterType.DATE
+    if (SqlDataType.isNum(field.dataType) && !ref) return MetaUiFilterType.NUMBER
     return MetaUiFilterType.TEXT
+  }
+
+  inferColumnFilterType(): MetaUiFilterType {
+    return MetaUiField.inferColumnFilterType(this)
   }
 
   fieldIdx: number

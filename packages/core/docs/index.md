@@ -18,6 +18,7 @@
 - [校验框架设计](./logic/validation_design.md)
 - [校验：程序员怎么写](./logic/validation_usage.md)
 - [列表查询设计：EntityQuery / FilterModel](./models/entity_search.md)
+- [过滤框架设计](./models/entity_filter_design.md)
 - [列表查询：程序员怎么写](./logic/entity_query_usage.md)
 - [日期过滤与 Filter API 设计](./models/date_filter.md)
 - [日期过滤：程序员怎么写](./logic/date_filter_usage.md)

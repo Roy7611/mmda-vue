@@ -1,4 +1,5 @@
-import { SqlDataType, MetaUiFieldFilterType, columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf, compactDateSet, compactFieldFilter, dateKindFilter, expandDateSetLeaves, isDatePeriodSet, isDateRangeKind, toDatePeriodToken, type EntityFieldFilter, type EntityFilterModel, type EntityFilterOperator, type EntityJoinFieldFilter, type EntityMultiFieldFilter, type MetaUi, type MetaUiField } from '@mmda/core'
+import { SqlDataType, compactDateSet, compactFieldFilter, dateKindFilter, expandDateSetLeaves, isDatePeriodSet, isDateRangeKind, toDatePeriodToken, MetaUiFilterType, type EntityFieldFilter, type EntityFilterModel, type EntityJoinFieldFilter, type EntityMultiFieldFilter, type MetaUiFilterOperatorCode, type MetaUi, type MetaUiField } from '@mmda/core'
+import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from './filter_kind'
 
 const listedFields = (metaUi: MetaUi) => {
   const fields = metaUi.getListedFields?.() ?? []
@@ -22,9 +23,9 @@ const usesStringBlank = (field?: MetaUiField) =>
 function agTypeToOperator(
   type?: string,
   field?: MetaUiField,
-  fallback?: EntityFilterOperator,
+  fallback?: MetaUiFilterOperatorCode,
   filterType?: string,
-): EntityFilterOperator {
+): MetaUiFilterOperatorCode {
   if (type === 'blank' || type === 'notBlank') {
     const stringBlank = field
       ? usesStringBlank(field)
@@ -40,7 +41,7 @@ function agTypeToOperator(
   return AG_TO_OP[type ?? ''] ?? fallback ?? 'EQ'
 }
 
-const AG_TO_OP: Record<string, EntityFilterOperator> = {
+const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   equals: 'EQ',
   notEqual: 'NEQ',
   contains: 'CONTAINS',
@@ -56,7 +57,7 @@ const AG_TO_OP: Record<string, EntityFilterOperator> = {
   notBlank: 'IS_NOT_BLANK',
 }
 
-const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
+const OP_TO_AG: Partial<Record<MetaUiFilterOperatorCode, string>> = {
   EQ: 'equals',
   NEQ: 'notEqual',
   CONTAINS: 'contains',
@@ -79,7 +80,7 @@ const isSetField = (field?: MetaUiField) =>
     field &&
       hasFilterType(
         resolveColumnFilterTypes(field),
-        MetaUiFieldFilterType.SET,
+        MetaUiFilterType.SET,
       ) &&
       !isHasOneFilterField(field),
   )
@@ -89,7 +90,7 @@ export function isHasOneFilterField(field?: MetaUiField) {
   if (
     !hasFilterType(
       resolveColumnFilterTypes(field),
-      MetaUiFieldFilterType.SET,
+      MetaUiFilterType.SET,
     )
   ) {
     return false
@@ -153,7 +154,7 @@ export function agCellToFieldFilter(
   const operator = agTypeToOperator(
     cell.type,
     field,
-    cell.operator as EntityFilterOperator,
+    cell.operator as MetaUiFilterOperatorCode,
     cell.filterType,
   )
   return {

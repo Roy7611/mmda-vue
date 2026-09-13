@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { h, nextTick } from "vue";
 import { Internationalization, L10n } from "@syncfusion/ej2-base";
-import { MetaModel, MetaUi, MetaUiField, MetaUiFieldFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, columnFilterKindOf } from "@mmda/core";
+import { MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth } from "@mmda/core";
+import { columnFilterKindOf } from "../factory/filter_kind";
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
 import {
   applySyncfusionLocale,
@@ -2441,7 +2442,7 @@ describe("Syncfusion skin", () => {
       nullable: true,
       listed: true,
       selectOptions: "OPEN;OPEN;打开|CLOSED;CLOSED;关闭",
-      filterTypes: MetaUiFieldFilterType.TEXT,
+      filterTypes: MetaUiFilterType.TEXT,
     });
     const partner = new MetaUiField({
       fieldName: "partnerID",
@@ -2705,9 +2706,9 @@ describe("Syncfusion skin", () => {
           displayLabel: "状态",
           dataType: 48,
           filterTypes:
-            MetaUiFieldFilterType.TEXT |
-            MetaUiFieldFilterType.SET |
-            MetaUiFieldFilterType.MULTI,
+            MetaUiFilterType.TEXT |
+            MetaUiFilterType.SET |
+            MetaUiFilterType.MULTI,
           reference: {
             isEnum: true,
             isRef: false,
@@ -2770,9 +2771,9 @@ describe("Syncfusion skin", () => {
           displayLabel: "移料日期",
           dataType: 184,
           filterTypes:
-            MetaUiFieldFilterType.DATE |
-            MetaUiFieldFilterType.SET |
-            MetaUiFieldFilterType.MULTI,
+            MetaUiFilterType.DATE |
+            MetaUiFilterType.SET |
+            MetaUiFilterType.MULTI,
         },
       ],
       groups: [],
@@ -2820,9 +2821,9 @@ describe("Syncfusion skin", () => {
           displayLabel: "移料日期",
           dataType: 184,
           filterTypes:
-            MetaUiFieldFilterType.DATE |
-            MetaUiFieldFilterType.SET |
-            MetaUiFieldFilterType.MULTI,
+            MetaUiFilterType.DATE |
+            MetaUiFilterType.SET |
+            MetaUiFilterType.MULTI,
         },
       ],
       groups: [],
@@ -3249,7 +3250,7 @@ describe("Syncfusion skin", () => {
           displayLabel: "备注",
           dataType: 48,
           filterTypes:
-            MetaUiFieldFilterType.TEXT | MetaUiFieldFilterType.JOIN,
+            MetaUiFilterType.TEXT | MetaUiFilterType.JOIN,
         },
       ],
       groups: [],
@@ -3299,7 +3300,7 @@ describe("Syncfusion skin", () => {
           displayLabel: "日期",
           dataType: 184,
           filterTypes:
-            MetaUiFieldFilterType.DATE | MetaUiFieldFilterType.JOIN,
+            MetaUiFilterType.DATE | MetaUiFilterType.JOIN,
         },
       ],
       groups: [],
@@ -4010,7 +4011,7 @@ describe("gridFiltersToModel join/multi", () => {
       dataType: SqlDataType.VARCHAR,
       nullable: true,
       listed: true,
-      filterTypes: MetaUiFieldFilterType.SET,
+      filterTypes: MetaUiFilterType.SET,
     });
     expect(columnFilterKindOf(field)).toBe("set");
     expect(isChoiceFilterField(field)).toBe(true);

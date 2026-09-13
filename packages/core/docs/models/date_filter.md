@@ -5,7 +5,7 @@
 - **程序员怎么写**：[date_filter_usage.md](../logic/date_filter_usage.md)
 - **查询总设计**：[entity_search.md](./entity_search.md)
 
-产品分层仍是 **UI → Logic → Data**。皮肤只把勾选收成 `EntityFieldFilter`；Logic 不写日历算法；Data 定义形状，POST 前只展开**绝对**日期 token。
+产品分层仍是 **UI → Logic → Data**。皮肤只把勾选收成 `FieldFilter`；Logic 不写日历算法；Data 定义形状，POST 前只展开**绝对**日期 token。框架见 [entity_filter_design.md](./entity_filter_design.md)。
 
 ## 问题
 

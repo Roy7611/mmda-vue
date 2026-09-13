@@ -1,17 +1,17 @@
 /*
  * chrome 查询构建器走 factory.queryBuilder。
- * value 是 EntityAdvancedFilterModel（AG Advanced Filter 树），不是列 FilterModel。
+ * value 是 AdvancedFilterModel（AG Advanced Filter 树），不是列 FilterModel。
  */
 import { SqlDataType } from '../../metaui/datatype'
 import { MetaRelationType, type MetaUiField } from '../../metaui/metaui_field'
 import {
   compactAdvancedFilter,
   isAdvancedJoinFilter,
-  type EntityAdvancedColumnFilter,
-  type EntityAdvancedFilterModel,
-  type EntityAdvancedJoinFilter,
-  type EntityFilterOperator,
+  type AdvancedColumnFilter,
+  type AdvancedFilterModel,
+  type AdvancedJoinFilter,
 } from '../../models/entity_search'
+import type { MetaUiFilterOperatorCode } from '../../metaui/metaui_filter'
 import { isDateRangeKind } from '../../utils/date_range'
 import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
@@ -32,17 +32,17 @@ export interface UiQueryBuilderColumn {
   fieldName: string
   label: string
   valueType: UiQueryBuilderValueType
-  operators?: EntityFilterOperator[]
+  operators?: MetaUiFilterOperatorCode[]
   values?: UiQueryBuilderChoice[]
 }
 
 export interface UiQueryBuilderProps extends UiProps {
   fields?: MetaUiField[]
   columns?: UiQueryBuilderColumn[]
-  value?: EntityAdvancedFilterModel
+  value?: AdvancedFilterModel
   disabled?: boolean
-  onChange?: (model: EntityAdvancedFilterModel | undefined) => void
-  onUpdate?: (model: EntityAdvancedFilterModel | undefined) => void
+  onChange?: (model: AdvancedFilterModel | undefined) => void
+  onUpdate?: (model: AdvancedFilterModel | undefined) => void
 }
 
 /** EJ2 RuleModel 形状（vui 不依赖 EJ2 包）。 */
@@ -76,7 +76,7 @@ export interface AgColumnAdvancedFilter {
   values?: unknown[]
 }
 
-const EJ2_TO_OP: Record<string, EntityFilterOperator> = {
+const EJ2_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   equal: 'EQ',
   notequal: 'NEQ',
   greaterthan: 'GT',
@@ -97,7 +97,7 @@ const EJ2_TO_OP: Record<string, EntityFilterOperator> = {
   within: 'WITHIN',
 }
 
-const OP_TO_EJ2: Partial<Record<EntityFilterOperator, string>> = {
+const OP_TO_EJ2: Partial<Record<MetaUiFilterOperatorCode, string>> = {
   EQ: 'equal',
   NEQ: 'notequal',
   GT: 'greaterthan',
@@ -120,7 +120,7 @@ const OP_TO_EJ2: Partial<Record<EntityFilterOperator, string>> = {
   IS_FALSE: 'equal',
 }
 
-const AG_TO_OP: Record<string, EntityFilterOperator> = {
+const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   equals: 'EQ',
   notEqual: 'NEQ',
   contains: 'CONTAINS',
@@ -139,7 +139,7 @@ const AG_TO_OP: Record<string, EntityFilterOperator> = {
   false: 'IS_FALSE',
 }
 
-const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
+const OP_TO_AG: Partial<Record<MetaUiFilterOperatorCode, string>> = {
   EQ: 'equals',
   NEQ: 'notEqual',
   CONTAINS: 'contains',
@@ -160,7 +160,7 @@ const OP_TO_AG: Partial<Record<EntityFilterOperator, string>> = {
   IS_FALSE: 'false',
 }
 
-const TEXT_OPS: EntityFilterOperator[] = [
+const TEXT_OPS: MetaUiFilterOperatorCode[] = [
   'EQ',
   'NEQ',
   'CONTAINS',
@@ -173,7 +173,7 @@ const TEXT_OPS: EntityFilterOperator[] = [
   'NOT_IN',
 ]
 
-const NUMBER_OPS: EntityFilterOperator[] = [
+const NUMBER_OPS: MetaUiFilterOperatorCode[] = [
   'EQ',
   'NEQ',
   'GT',
@@ -185,7 +185,7 @@ const NUMBER_OPS: EntityFilterOperator[] = [
   'IS_NOT_NULL',
 ]
 
-const DATE_OPS: EntityFilterOperator[] = [
+const DATE_OPS: MetaUiFilterOperatorCode[] = [
   'EQ',
   'NEQ',
   'GT',
@@ -198,14 +198,14 @@ const DATE_OPS: EntityFilterOperator[] = [
   'IS_NOT_NULL',
 ]
 
-const BOOLEAN_OPS: EntityFilterOperator[] = ['IS_TRUE', 'IS_FALSE', 'IS_NULL']
+const BOOLEAN_OPS: MetaUiFilterOperatorCode[] = ['IS_TRUE', 'IS_FALSE', 'IS_NULL']
 
 export function queryBuilderValueOf(
   props: UiQueryBuilderProps,
-): EntityAdvancedFilterModel | undefined {
+): AdvancedFilterModel | undefined {
   if (props.value !== undefined) return props.value
   if (props.modelValue !== undefined) {
-    return props.modelValue as EntityAdvancedFilterModel
+    return props.modelValue as AdvancedFilterModel
   }
   return undefined
 }
@@ -235,7 +235,7 @@ export function queryBuilderValueTypeOf(
 
 export function defaultQueryBuilderOperators(
   valueType: UiQueryBuilderValueType,
-): EntityFilterOperator[] {
+): MetaUiFilterOperatorCode[] {
   if (valueType === 'number') return NUMBER_OPS
   if (valueType === 'date' || valueType === 'datetime') return DATE_OPS
   if (valueType === 'boolean') return BOOLEAN_OPS
@@ -275,13 +275,13 @@ export function queryBuilderColumnsOf(
 
 export function defaultAdvancedJoin(
   operator: 'AND' | 'OR' = 'AND',
-): EntityAdvancedJoinFilter {
+): AdvancedJoinFilter {
   return { filterType: 'join', operator, conditions: [] }
 }
 
 export function defaultAdvancedColumn(
   column: UiQueryBuilderColumn,
-): EntityAdvancedColumnFilter {
+): AdvancedColumnFilter {
   const operator = column.operators?.[0] ?? defaultQueryBuilderOperators(column.valueType)[0]
   if (column.valueType === 'boolean') {
     return { fieldName: column.fieldName, filterType: 'boolean', value: true }
@@ -309,8 +309,8 @@ export function defaultAdvancedColumn(
 
 function leafFilterTypeOf(
   valueType: UiQueryBuilderValueType,
-  operator?: EntityFilterOperator,
-): EntityAdvancedColumnFilter['filterType'] {
+  operator?: MetaUiFilterOperatorCode,
+): AdvancedColumnFilter['filterType'] {
   if (operator === 'IN' || operator === 'NOT_IN') return 'set'
   if (valueType === 'boolean') return 'boolean'
   if (valueType === 'number') return 'number'
@@ -340,7 +340,7 @@ function isEj2Group(rule: QueryBuilderRuleModel): boolean {
 
 function leafFromEj2(
   rule: QueryBuilderRuleModel,
-): EntityAdvancedColumnFilter | undefined {
+): AdvancedColumnFilter | undefined {
   const fieldName = String(rule.field ?? '')
   if (!fieldName) return undefined
   const operator = EJ2_TO_OP[String(rule.operator ?? '').toLowerCase()]
@@ -381,13 +381,13 @@ function leafFromEj2(
 
 export function queryBuilderRuleToAdvanced(
   rule?: QueryBuilderRuleModel | null,
-): EntityAdvancedFilterModel | undefined {
+): AdvancedFilterModel | undefined {
   if (!rule) return undefined
   if (isEj2Group(rule)) {
     const operator = rule.condition === 'or' ? 'OR' : 'AND'
     const conditions = (rule.rules ?? [])
       .map((item) => queryBuilderRuleToAdvanced(item))
-      .filter((item): item is EntityAdvancedFilterModel => item != null)
+      .filter((item): item is AdvancedFilterModel => item != null)
     return compactAdvancedFilter({
       filterType: 'join',
       operator,
@@ -405,7 +405,7 @@ function columnOf(
 }
 
 function leafToEj2(
-  leaf: EntityAdvancedColumnFilter,
+  leaf: AdvancedColumnFilter,
   columns: UiQueryBuilderColumn[],
 ): QueryBuilderRuleModel {
   const column = columnOf(leaf.fieldName, columns)
@@ -465,7 +465,7 @@ function leafToEj2(
 }
 
 export function advancedToQueryBuilderRule(
-  model?: EntityAdvancedFilterModel | null,
+  model?: AdvancedFilterModel | null,
   columns: UiQueryBuilderColumn[] = [],
 ): QueryBuilderRuleModel {
   const compact = compactAdvancedFilter(model)
@@ -495,7 +495,7 @@ function agColumnTypeOf(filterType: string): UiQueryBuilderValueType {
 function agTypeToOperator(
   type: string,
   valueType: UiQueryBuilderValueType,
-): EntityFilterOperator {
+): MetaUiFilterOperatorCode {
   if (type === 'blank') return valueType === 'text' ? 'IS_BLANK' : 'IS_NULL'
   if (type === 'notBlank') return valueType === 'text' ? 'IS_NOT_BLANK' : 'IS_NOT_NULL'
   return AG_TO_OP[type] ?? 'EQ'
@@ -503,7 +503,7 @@ function agTypeToOperator(
 
 function leafFromAg(
   model: AgColumnAdvancedFilter,
-): EntityAdvancedColumnFilter | undefined {
+): AdvancedColumnFilter | undefined {
   const fieldName = String(model.colId ?? '')
   if (!fieldName) return undefined
   const valueType = agColumnTypeOf(model.filterType)
@@ -542,7 +542,7 @@ function leafFromAg(
 
 export function agAdvancedToEntity(
   model?: AgAdvancedFilterModel | null,
-): EntityAdvancedFilterModel | undefined {
+): AdvancedFilterModel | undefined {
   if (!model) return undefined
   if (model.filterType === 'join') {
     const join = model as AgJoinAdvancedFilter
@@ -551,13 +551,13 @@ export function agAdvancedToEntity(
       operator: join.type === 'OR' ? 'OR' : 'AND',
       conditions: (join.conditions ?? [])
         .map((item) => agAdvancedToEntity(item))
-        .filter((item): item is EntityAdvancedFilterModel => item != null),
+        .filter((item): item is AdvancedFilterModel => item != null),
     })
   }
   return compactAdvancedFilter(leafFromAg(model as AgColumnAdvancedFilter))
 }
 
-function leafToAg(leaf: EntityAdvancedColumnFilter): AgColumnAdvancedFilter {
+function leafToAg(leaf: AdvancedColumnFilter): AgColumnAdvancedFilter {
   const filterType =
     leaf.filterType === 'set' ? 'text' : leaf.filterType
   if (leaf.filterType === 'boolean') {
@@ -584,7 +584,7 @@ function leafToAg(leaf: EntityAdvancedColumnFilter): AgColumnAdvancedFilter {
 }
 
 export function entityToAgAdvanced(
-  model?: EntityAdvancedFilterModel | null,
+  model?: AdvancedFilterModel | null,
 ): AgAdvancedFilterModel | undefined {
   const compact = compactAdvancedFilter(model)
   if (!compact) return undefined

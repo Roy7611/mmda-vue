@@ -3,7 +3,7 @@ import { expandDateFilters } from "../models/date_filter";
 import {
   expandBlankFilters,
   hasFilterModel,
-  type EntityFilterModel,
+  type FilterModel,
   type EntitySearchParam,
 } from "../models/entity_search";
 import {
@@ -95,7 +95,7 @@ export interface EntityUrlParam extends EntityRepository {
 
 export interface EntitySearchRequest {
   queryParams: Record<string, unknown>;
-  filterModel?: EntityFilterModel;
+  filterModel?: FilterModel;
 }
 
 export function toQueryParams(param: EntitySearchParam) {
@@ -107,7 +107,7 @@ export function toQueryParams(param: EntitySearchParam) {
   return queryParams;
 }
 
-/** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 EntityFilterModel。 */
+/** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 FilterModel。 */
 export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
   const filterModel = hasFilterModel(param)
     ? expandBlankFilters(expandDateFilters(param.filterModel))

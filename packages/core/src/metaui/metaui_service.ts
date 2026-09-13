@@ -326,10 +326,24 @@ class MetaUiServiceImpl implements MetaUiService {
     service?: string,
   ) {
     const metaUi = await this.assemble(metaRepo, metaPack[0], service)
+    let metaVui: MetaUi | undefined
+    if (metaUi) {
+      const relation = joinListRelationName(new MetaUi(metaUi))
+      if (relation) {
+        const repository = metaRepo.startsWith('meta/')
+          ? metaRepo.slice('meta/'.length)
+          : metaRepo
+        const raw = await this.cacheFor(service).get(
+          this.viewUiCacheKey(repository, relation),
+        )
+        if (raw) metaVui = raw instanceof MetaUi ? raw : new MetaUi(raw)
+      }
+    }
     return {
       metaUi,
       filters: metaPack[1],
       lastQuery: metaPack[2] ?? undefined,
+      metaVui,
     }
   }
   private getFromCache(repository: string, service?: string) {

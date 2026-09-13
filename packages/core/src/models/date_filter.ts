@@ -4,9 +4,9 @@ import {
   cloneFieldFilter,
   compactFieldFilter,
   joinFilter,
-  type EntityFieldFilter,
-  type EntityFilterModel,
-  type EntitySetFieldFilter,
+  type FieldFilter,
+  type FilterModel,
+  type SetFieldFilter,
 } from "./entity_search";
 
 const DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -82,7 +82,7 @@ export function mergeHalfOpenRanges(
 
 const sqlBound = (dt: DateTime) => dt.toFormat(SQL_DT);
 
-function rangeToBetween(range: HalfOpenDateRange): EntityFieldFilter {
+function rangeToBetween(range: HalfOpenDateRange): FieldFilter {
   return betweenFilter(sqlBound(range.start), sqlBound(range.next));
 }
 
@@ -167,8 +167,8 @@ function uniqueDays(values?: unknown[]): string[] {
 }
 
 export function expandDateSetFilter(
-  filter: EntitySetFieldFilter,
-): EntityFieldFilter {
+  filter: SetFieldFilter,
+): FieldFilter {
   const tokens = filter.values
     .map((value) => toDatePeriodToken(value) ?? String(value ?? ""))
     .filter(isDatePeriodToken);
@@ -186,7 +186,7 @@ export function expandDateSetFilter(
   );
 }
 
-function expandFieldFilter(filter: EntityFieldFilter): EntityFieldFilter {
+function expandFieldFilter(filter: FieldFilter): FieldFilter {
   if (filter.filterType === "multi") {
     return {
       ...filter,
@@ -214,10 +214,10 @@ function expandFieldFilter(filter: EntityFieldFilter): EntityFieldFilter {
 
 /** 绝对日期 set token → BETWEEN / join OR。不展开 dateKind。 */
 export function expandDateFilters(
-  model?: EntityFilterModel,
-): EntityFilterModel | undefined {
+  model?: FilterModel,
+): FilterModel | undefined {
   if (model == null) return undefined;
-  const next: EntityFilterModel = {};
+  const next: FilterModel = {};
   for (const [field, filter] of Object.entries(model)) {
     const expanded = compactFieldFilter(expandFieldFilter(filter));
     if (expanded) next[field] = expanded;
