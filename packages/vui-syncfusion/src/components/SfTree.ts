@@ -80,6 +80,8 @@ export const SfTree = defineComponent({
         const url = isTreeIconUrl(icon)
         return {
           ...node,
+          // EJ2 扁平树：根的 parentID 必须是 null，空串不当根、整棵不画。
+          parentId: node.parentId ? node.parentId : null,
           icon: url ? undefined : icon,
           imageUrl: url ? icon : undefined,
         }

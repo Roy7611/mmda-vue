@@ -1558,13 +1558,17 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
   padding: 0.65rem 0.85rem 0.85rem;
 }
 
-/* —— 登录页：mmda-page 居中 + 厂商 card + mmda-signin-form —— */
+/* —— 登录页：mmda-page 居中 + 厂商 card + mmda-signin-form ——
+ * layoutPage 内联 display:flex + flex-direction:column + height:100%，
+ * 会盖掉这里的 display:grid；place-items 在 flex 列里只等于 align-items
+ *（左右居中），上下要靠主轴 justify-content。 */
 .mmda-page:has(.mmda-signin-form) {
   box-sizing: border-box;
-  display: grid;
-  place-items: center;
-  min-height: 100vh;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
   padding: 1.5rem;
   color: var(--mmda-text-color, #1c1b1f);
   background:
@@ -1583,7 +1587,7 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
 
 .mmda-page:has(.mmda-signin-form) .mmda-page__body {
   width: min(26rem, 100%);
-  justify-items: stretch;
+  margin-block: auto;
 }
 
 .mmda-page:has(.mmda-signin-form) .mmda-card,
