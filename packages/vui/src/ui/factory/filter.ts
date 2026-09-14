@@ -1,12 +1,12 @@
 import {
   MetaUiField,
   SqlDataType,
-  dateKindFilter,
   getFieldFilterOps,
   getSqlOperator,
   isArray,
   isDateRangeKind,
   isNullOrUndefined,
+  FieldFilter,
 } from "@mmda/core";
 import type {
   MetaUiFilter,
@@ -16,12 +16,11 @@ import type {
   Pager,
   Pagination,
   SelectableFn,
-  EntityFieldFilter,
-  MetaUiFilterOperatorCode,
+  MetaUiFilterOpCode,
 } from "@mmda/core";
 import { h, ref, unref, type Ref, type VNode } from "vue";
 
-import type {UiProps} from "../layout/layout";
+import type { UiProps } from "../layout/layout";
 
 export interface SearchForRelativeProps extends UiProps {
   contentProps?: Record<string, any>;
@@ -162,8 +161,8 @@ export class UiCustomSearchField {
 }
 
 export class UiSearchField {
-  readonly availableOps: Array<MetaUiFilterOperatorCode>;
-  currentOp: MetaUiFilterOperatorCode;
+  readonly availableOps: Array<MetaUiFilterOpCode>;
+  currentOp: MetaUiFilterOpCode;
   currentOpLabel: Ref<string>;
   searchVal: Ref<any>;
   defaultVal: Ref<any>;
@@ -192,7 +191,7 @@ export class UiSearchField {
     return this.searchVal.value;
   }
 
-  changeCurrentOp(op: MetaUiFilterOperatorCode, t?: TranslateFn) {
+  changeCurrentOp(op: MetaUiFilterOpCode, t?: TranslateFn) {
     this.currentOp = op;
     this.currentOpLabel.value = t ? t(`matcher.${op}`) : op;
     if (
@@ -205,7 +204,7 @@ export class UiSearchField {
     }
   }
 
-  toFilterModel(): EntityFieldFilter | undefined {
+  toFilterModel(): FieldFilter | undefined {
     const filterValue = this.hasVal ? this.searchValue : unref(this.defaultVal);
     const parameters = getSqlOperator(this.currentOp)?.parameters ?? 1;
     if (isNullOrUndefined(filterValue) && parameters !== 0) return undefined;
@@ -224,7 +223,7 @@ export class UiSearchField {
     }
     if (operator === "WITHIN") {
       return isDateRangeKind(filterValue)
-        ? dateKindFilter(filterValue)
+        ? FieldFilter.dateKind(filterValue)
         : undefined;
     }
     if (

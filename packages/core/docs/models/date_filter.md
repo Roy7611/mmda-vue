@@ -1,7 +1,7 @@
 # 日期过滤与 Filter API 设计
 
-- **层**：Data / models（传输 net；预览区间 utils；表头 UI 在 vui-agnaive）
-- **源码**：[`entity_search.ts`](../../src/models/entity_search.ts)、[`date_filter.ts`](../../src/models/date_filter.ts)、[`date_range.ts`](../../src/utils/date_range.ts)
+- **层**：Data / models（传输 net；相对日历 `date_range`；表头 UI 在 vui-agnaive）
+- **源码**：[`entity_search.ts`](../../src/models/entity_search.ts)、[`date_filter.ts`](../../src/models/date_filter.ts)、[`date_range.ts`](../../src/models/date_range.ts)
 - **程序员怎么写**：[date_filter_usage.md](../logic/date_filter_usage.md)
 - **查询总设计**：[entity_search.md](./entity_search.md)
 
@@ -17,29 +17,29 @@ DATETIME 列上 `EQ '2026-09-05'` 会漏带时分秒的行。保存成具体 `BE
 
 | filterType | 日期场景 |
 |---|---|
-| `date` | 比较（`EQ` / `GT` / `BETWEEN`…）或相对语义 **`dateKind`** |
+| `date` | 比较（`EQ` / `GT` / `BETWEEN`…）或相对语义 **`WITHIN` + `value`（kind）** |
 | `set` | Excel 绝对勾选；`values` 为周期 token |
 | `join` | 同一比较器多段 AND/OR（本月 **或** 上月；不相邻绝对区间） |
 | `multi` | 同一列叠不同种类（条件页 + 列表页；服务端 AND） |
 
-不新增 `dateSet`。`join` ≠ `multi`：两段 `dateKind` 用 join；`date` 比较 + `set` 树用 multi。
+不新增 `dateSet`。`join` ≠ `multi`：两段 `WITHIN` 用 join；`date` 比较 + `set` 树用 multi。
 
-有 `dateKind` 时不要写死 `value` / `valueTo`。规范操作符是 **`WITHIN`**：
+`operator === 'WITHIN'` 时把 `value` 解释为相对日历 kind。不要另开 `dateKind` 字段：
 
 ```json
-{ "createdAt": { "filterType": "date", "operator": "WITHIN", "dateKind": "THIS_MONTH" } }
+{ "createdAt": { "filterType": "date", "operator": "WITHIN", "value": "THIS_MONTH" } }
 ```
 
-已保存的 `{ operator:'BETWEEN', dateKind }` 读回时按 `WITHIN` 水合。`compactFieldFilter` 会收成上面的形状。
+`FieldFilter.compact` 会收成上面的形状。
 
 ## 谁展开
 
 | 形态 | 保存 EntityQuery | POST `searchAll` | 谁算「现在」 |
 |---|---|---|---|
-| `dateKind` | 原样 | **原样**，不要收成日期 | **服务端**（服务器时区） |
-| 周期 token `set` | token（可经 `compactDateSet`） | `expandDateFilters` → `BETWEEN` 或 `join` OR | 不需要「现在」 |
+| `WITHIN` + kind | 原样 | **原样**，不要收成日期 | **服务端**（服务器时区） |
+| 周期 token `set` | token（可经 `DatePeriodToken.compact`） | `FilterModel.expandDates` → `BETWEEN` 或 `join` OR | 不需要「现在」 |
 
-`toSearchRequest` 调用 `expandDateFilters`。`status: inFilter(['OPEN'])` 不会被当成日期。`dateKind` 不展开。
+`toSearchRequest` 调用 `FilterModel.expandDates`。`status: FieldFilter.in(['OPEN'])` 不会被当成日期。`WITHIN` 的 kind 不展开。
 
 服务端应对齐：半开 `[start, next)`，本周周一。TS `dateTimeRange` 只给芯片预览（闭区间 `startOf`/`endOf`），不是 POST 前强制展开。Java 解释 `dateKind` 不在本包。
 
@@ -53,15 +53,15 @@ token：`YYYY` | `YYYY-MM` | `YYYY-MM-DD`。先变成半开区间，按 `start` 
 | `2026-05` | `[2026-05-01, 2026-06-01)` |
 | `2026-05-18` | `[当天 00:00, 次日 00:00)` |
 
-DATETIME 单日不是 `EQ` 零点。`['2026-05','2026-06']` → 一段 `BETWEEN` 到 `2026-07-01 00:00:00`。`['2026-05','2026-06-01','2025-12']` → 两段 `joinFilter('OR', …)`。
+DATETIME 单日不是 `EQ` 零点。`['2026-05','2026-06']` → 一段 `BETWEEN` 到 `2026-07-01 00:00:00`。`['2026-05','2026-06-01','2025-12']` → 两段 `FieldFilter.join('OR', …)`。
 
-`compactDateSet(selectedDays, pivotDays)`：pivot 里某年/月叶子被全选则收成 `YYYY` / `YYYY-MM`。勾树上的「2026年9月」是绝对九月，不是 `THIS_MONTH`。
+`DatePeriodToken.compact(selectedDays, pivotDays)`：pivot 里某年/月叶子被全选则收成 `YYYY` / `YYYY-MM`。勾树上的「2026年9月」是绝对九月，不是 `THIS_MONTH`。
 
 `NOT_IN` 的日期 set **不**展开（不能收成一个 NOT BETWEEN）。
 
 ## DateRangeKind
 
-可保存进 `dateKind` 的见 `DATE_RANGE_FILTER_KINDS`（不含 `EARLIER`）。清单与预览：[date_range.md](../utils/date_range.md)、[utils.md](../utils.md)。
+可保存进 `dateKind` 的见 `DATE_RANGE_FILTER_KINDS`（不含 `EARLIER`）。清单与预览：[date_range.md](./date_range.md)。
 
 不补「本月至今」：对已发生的行与 `THIS_MONTH` 相同。
 
@@ -69,7 +69,7 @@ DATETIME 单日不是 `EQ` 零点。`['2026-05','2026-06']` → 一段 `BETWEEN`
 
 日期列默认 `agDateColumnFilter`。显式 `DATE|SET|MULTI` 才是 `agMultiColumnFilter`：
 
-1. **条件**：`agDateColumnFilter`。`filterOptions` = 比较运算符 + `DateRangeKind`（AG 把 kind 摊成 0 输入 option）。`type === 'THIS_MONTH'` → `dateKindFilter`（`operator: 'WITHIN'`）。Prime / QueryBuilder / SF Menu 是选 `WITHIN` 后再选 kind。两段 AND/OR → `join`。
+1. **条件**：`agDateColumnFilter`。`filterOptions` = 比较运算符 + `DateRangeKind`（AG 把 kind 摊成 0 输入 option）。`type === 'THIS_MONTH'` → `FieldFilter.dateKind`（`operator: 'WITHIN'`）。Prime / QueryBuilder / SF Menu 是选 `WITHIN` 后再选 kind。两段 AND/OR → `join`。
 2. **列表**：Set 勾选树。AG 是 `agSetColumnFilter` + `treeList`；SF Menu 是可折叠「选项过滤」+ EJ2 TreeView。选项都来自 `getPivotDates`（`GET .../pivotDates?field=`），叶子收成 token。
 
 两页都填 = multi AND。不要第三套 Naive 下拉。

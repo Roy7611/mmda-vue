@@ -6,24 +6,16 @@ import {
 } from "../net/api_client";
 import { SortOrder } from "../models/pagination";
 import {
-  defaultSearchParam,
-  inFilter,
-  parseDefaultFilter,
-  parseQueryExpression,
-  stringifyQueryExpression,
-  joinFilter,
-  multiFilter,
-  cloneFilterModel,
-  combineCompareAndSet,
-  blankFilter,
-  compactFieldFilter,
-  expandBlankFilters,
-  nullFilter,
+  EntitySearchParam,
+  FieldFilter,
+  NamedQueryRef,
+  EntityQuery,
+  FilterModel,
 } from "../models/entity_search";
 
 describe("ApiClient.searchAll", () => {
   it("toQueryParams 合并 pager 与 queryParams", () => {
-    const param = defaultSearchParam("仓");
+    const param = EntitySearchParam.create("仓");
     param.queryParams = { site: "SZ" };
     expect(toQueryParams(param)).toMatchObject({
       pageSize: 20,
@@ -34,7 +26,7 @@ describe("ApiClient.searchAll", () => {
   });
 
   it("filterModel 使用结构化过滤并与 GET 参数分离", () => {
-    const param = defaultSearchParam("仓");
+    const param = EntitySearchParam.create("仓");
     param.queryParams = { status: "OPEN" };
     param.filterModel = {
       quantity: {
@@ -58,8 +50,8 @@ describe("ApiClient.searchAll", () => {
   });
 
   it("advancedFilterModel 不进入 searchAll 请求", () => {
-    const param = defaultSearchParam();
-    param.filterModel = { status: inFilter("OPEN") };
+    const param = EntitySearchParam.create();
+    param.filterModel = { status: FieldFilter.in("OPEN") };
     param.advancedFilterModel = {
       filterType: "join",
       operator: "OR",
@@ -97,7 +89,7 @@ describe("ApiClient.searchAll", () => {
     const filterModel = {
       status: { filterType: "set" as const, values: ["OPEN"] },
     };
-    const param = defaultSearchParam();
+    const param = EntitySearchParam.create();
     param.filterModel = filterModel;
 
     await api.searchAll(param, { repository: "Orders" });
@@ -113,7 +105,7 @@ describe("ApiClient.searchAll", () => {
   it("没有复杂字段条件时使用纯 GET", async () => {
     const api = Object.create(ApiClient.prototype) as ApiClient;
     api.getAll = vi.fn(async () => ({ list: [], pagination: {} }) as any);
-    const param = defaultSearchParam("仓");
+    const param = EntitySearchParam.create("仓");
     param.queryParams = { ownerID: "u1" };
 
     await api.searchAll(param, { repository: "Warehouses" });
@@ -139,7 +131,7 @@ describe("ApiClient.searchAll", () => {
       service: "base",
       repository: "Orders",
     });
-    const param = defaultSearchParam();
+    const param = EntitySearchParam.create();
     param.queryParams = { filter: "status='OPEN'" };
     param.searchWord = "仓";
     param.filterModel = {
@@ -218,20 +210,20 @@ describe("ApiClient.searchAll", () => {
 });
 
 describe("EntityQuery", () => {
-  it("parseDefaultFilter 按 queryID;queryName| 拆芯片", () => {
-    expect(parseDefaultFilter("1;全部|2;启用|3;停用")).toEqual([
+  it("NamedQueryRef.parse 按 queryID;queryName| 拆芯片", () => {
+    expect(NamedQueryRef.parse("1;全部|2;启用|3;停用")).toEqual([
       { queryID: "1", queryName: "全部" },
       { queryID: "2", queryName: "启用" },
       { queryID: "3", queryName: "停用" },
     ]);
-    expect(parseDefaultFilter("|2;启用|;空|缺名")).toEqual([
+    expect(NamedQueryRef.parse("|2;启用|;空|缺名")).toEqual([
       { queryID: "2", queryName: "启用" },
     ]);
   });
 
   it("queryExpression 编解码 EntityQuery，旧 SQL 双读", () => {
-    const param = defaultSearchParam("仓");
-    param.filterModel = { status: inFilter("USED") };
+    const param = EntitySearchParam.create("仓");
+    param.filterModel = { status: FieldFilter.in("USED") };
     param.advancedFilterModel = {
       fieldName: "qty",
       filterType: "number",
@@ -239,8 +231,8 @@ describe("EntityQuery", () => {
       value: 10,
     };
     param.pager.sorts = [{ sortBy: "code", sortOrder: SortOrder.ASC }];
-    const expr = stringifyQueryExpression(param);
-    const parsed = parseQueryExpression(expr);
+    const expr = EntityQuery.stringify(param);
+    const parsed = EntityQuery.parse(expr);
     expect(parsed?.kind).toBe("query");
     if (parsed?.kind === "query") {
       expect(parsed.query).not.toHaveProperty("searchWord");
@@ -248,33 +240,33 @@ describe("EntityQuery", () => {
       expect(parsed.query.advancedFilterModel).toEqual(param.advancedFilterModel);
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");
     }
-    expect(parseQueryExpression("status='OPEN'")?.kind).toBe("sql");
+    expect(EntityQuery.parse("status='OPEN'")?.kind).toBe("sql");
   });
 });
 
 describe("IS_BLANK expand", () => {
   it("toSearchRequest 只展开 IS_BLANK / IS_NOT_BLANK", () => {
-    const param = defaultSearchParam();
+    const param = EntitySearchParam.create();
     param.filterModel = {
-      remark: blankFilter(),
-      note: blankFilter("IS_NOT_BLANK"),
-      toolkitID: nullFilter(),
+      remark: FieldFilter.blank(),
+      note: FieldFilter.blank("IS_NOT_BLANK"),
+      toolkitID: FieldFilter.nil(),
       qty: { filterType: "number", operator: "IS_NULL" },
     };
     const request = toSearchRequest(param);
     expect(request.filterModel?.remark).toEqual(
-      joinFilter("OR", [
+      FieldFilter.join("OR", [
         { filterType: "text", operator: "IS_NULL" },
         { filterType: "text", operator: "EQ", value: "" },
       ]),
     );
     expect(request.filterModel?.note).toEqual(
-      joinFilter("AND", [
+      FieldFilter.join("AND", [
         { filterType: "text", operator: "IS_NOT_NULL" },
         { filterType: "text", operator: "NEQ", value: "" },
       ]),
     );
-    expect(request.filterModel?.toolkitID).toEqual(nullFilter());
+    expect(request.filterModel?.toolkitID).toEqual(FieldFilter.nil());
     expect(request.filterModel?.qty).toEqual({
       filterType: "number",
       operator: "IS_NULL",
@@ -283,22 +275,22 @@ describe("IS_BLANK expand", () => {
 
   it("EQ / NEQ 的空串不当空条件；CONTAINS '' 仍丢掉", () => {
     expect(
-      compactFieldFilter({ filterType: "text", operator: "EQ", value: "" }),
+      FieldFilter.compact({ filterType: "text", operator: "EQ", value: "" }),
     ).toEqual({ filterType: "text", operator: "EQ", value: "" });
     expect(
-      compactFieldFilter({
+      FieldFilter.compact({
         filterType: "text",
         operator: "CONTAINS",
         value: "",
       }),
     ).toBeUndefined();
-    expect(compactFieldFilter(blankFilter())).toEqual(blankFilter());
+    expect(FieldFilter.compact(FieldFilter.blank())).toEqual(FieldFilter.blank());
   });
 
-  it("expandBlankFilters 递归 join / multi，不 compact", () => {
-    const expanded = expandBlankFilters({
-      name: joinFilter("AND", [
-        blankFilter(),
+  it("FilterModel.expandBlank 递归 join / multi，不 compact", () => {
+    const expanded = FilterModel.expandBlank({
+      name: FieldFilter.join("AND", [
+        FieldFilter.blank(),
         { filterType: "text", operator: "CONTAINS", value: "仓" },
       ]),
     });
@@ -306,9 +298,9 @@ describe("IS_BLANK expand", () => {
       filterType: "join",
       operator: "AND",
     });
-    const join = expanded?.name as ReturnType<typeof joinFilter>;
+    const join = expanded?.name as ReturnType<typeof FieldFilter.join>;
     expect(join.conditions[0]).toEqual(
-      joinFilter("OR", [
+      FieldFilter.join("OR", [
         { filterType: "text", operator: "IS_NULL" },
         { filterType: "text", operator: "EQ", value: "" },
       ]),
@@ -317,17 +309,17 @@ describe("IS_BLANK expand", () => {
 });
 
 describe("EntityFilter join/multi", () => {
-  it("joinFilter / multiFilter round-trip through cloneFilterModel", () => {
-    const join = joinFilter("AND", [
+  it("FieldFilter.join / FieldFilter.multi round-trip through FilterModel.clone", () => {
+    const join = FieldFilter.join("AND", [
       { filterType: "text", operator: "CONTAINS", value: "a" },
       { filterType: "text", operator: "CONTAINS", value: "b" },
     ]);
-    const multi = multiFilter([
+    const multi = FieldFilter.multi([
       { filterType: "text", operator: "CONTAINS", value: "仓" },
-      inFilter(["LABOR", "PART"]),
+      FieldFilter.in(["LABOR", "PART"]),
     ]);
     const model = { name: join, category: multi };
-    const cloned = cloneFilterModel(model)!;
+    const cloned = FilterModel.clone(model)!;
     expect(cloned).toEqual(model);
     expect(cloned.name).not.toBe(join);
     expect((cloned.name as typeof join).conditions).not.toBe(join.conditions);
@@ -336,9 +328,9 @@ describe("EntityFilter join/multi", () => {
     );
   });
 
-  it("combineCompareAndSet 摊平单块、两块则 multi", () => {
+  it("FieldFilter.combineCompareAndSet 摊平单块、两块则 multi", () => {
     expect(
-      combineCompareAndSet({
+      FieldFilter.combineCompareAndSet({
         filterType: "text",
         operator: "CONTAINS",
         value: "a",
@@ -348,18 +340,18 @@ describe("EntityFilter join/multi", () => {
       operator: "CONTAINS",
       value: "a",
     });
-    expect(combineCompareAndSet(undefined, inFilter("OPEN"))).toEqual(
-      inFilter("OPEN"),
+    expect(FieldFilter.combineCompareAndSet(undefined, FieldFilter.in("OPEN"))).toEqual(
+      FieldFilter.in("OPEN"),
     );
     expect(
-      combineCompareAndSet(
+      FieldFilter.combineCompareAndSet(
         { filterType: "text", operator: "CONTAINS", value: "a" },
-        inFilter("OPEN"),
+        FieldFilter.in("OPEN"),
       ),
     ).toEqual(
-      multiFilter([
+      FieldFilter.multi([
         { filterType: "text", operator: "CONTAINS", value: "a" },
-        inFilter("OPEN"),
+        FieldFilter.in("OPEN"),
       ]),
     );
   });
@@ -376,7 +368,7 @@ describe("ApiClient.searchJoinList", () => {
       service: "base",
       repository: "Orders",
     });
-    await api.searchJoinList(defaultSearchParam("仓"), { repository: "Orders" });
+    await api.searchJoinList(EntitySearchParam.create("仓"), { repository: "Orders" });
     expect(http.get).toHaveBeenCalledWith(
       expect.stringMatching(/\/Orders\/getJoinList\?/),
       expect.anything(),
@@ -396,7 +388,7 @@ describe("ApiClient.searchJoinList", () => {
     const filterModel = {
       status: { filterType: "set" as const, values: ["OPEN"] },
     };
-    const param = defaultSearchParam();
+    const param = EntitySearchParam.create();
     param.filterModel = filterModel;
     await api.searchJoinList(param, { repository: "Orders" });
     expect(http.post).toHaveBeenCalledWith(

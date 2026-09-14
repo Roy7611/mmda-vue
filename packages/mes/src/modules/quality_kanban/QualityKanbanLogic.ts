@@ -6,7 +6,7 @@
  *
  */
 
-import { inFilter, isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey } from '@mmda/core';
+import { isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey, FieldFilter } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
 import type { EntityLogicInit } from '@mmda/vui';
 import { EntityLogic } from '@mmda/vui';
@@ -239,7 +239,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
             },
             searchWord: value,
             filterModel: {
-                status: inFilter(UsageStatus.USED),
+                status: FieldFilter.in(UsageStatus.USED),
             },
         }, {
             repository: 'Sites',

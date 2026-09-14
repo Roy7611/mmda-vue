@@ -1,15 +1,12 @@
 import {
-  betweenFilter,
-  combineCompareAndSet,
   DATE_RANGE_FILTER_KINDS,
-  dateKindFilter,
-  expandDateSetLeaves,
+  DatePeriodToken,
   isDateRangeKind,
   MetaUiFilterType,
   type DatePeriodTreeNode,
   type DateTimeRangeKind,
-  type EntityFieldFilter,
-  type EntitySetFieldFilter,
+  FieldFilter,
+  type SetFieldFilter,
   type MetaUiField,
 } from '@mmda/core'
 import { hasFilterType } from '../factory/filter_kind'
@@ -89,8 +86,8 @@ const FROM_ENTITY_OPERATOR: Record<string, string> = {
 }
 
 export type SfCompareColumnFilterHandle = {
-  getModel: () => EntityFieldFilter | undefined
-  setModel: (filter?: EntityFieldFilter) => void
+  getModel: () => FieldFilter | undefined
+  setModel: (filter?: FieldFilter) => void
   setOperator: (operator: string) => void
 }
 
@@ -100,7 +97,7 @@ const asDate = (value: unknown) => {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-const compareFrom = (filter?: EntityFieldFilter) => {
+const compareFrom = (filter?: FieldFilter) => {
   if (!filter) return undefined
   if (filter.filterType === 'multi') {
     return filter.filterModels.find(item => item.filterType !== 'set')
@@ -109,7 +106,7 @@ const compareFrom = (filter?: EntityFieldFilter) => {
   return filter
 }
 
-const setFrom = (filter?: EntityFieldFilter) => {
+const setFrom = (filter?: FieldFilter) => {
   if (!filter) return []
   if (filter.filterType === 'set') return filter.values
   if (filter.filterType === 'multi') {
@@ -127,7 +124,7 @@ export const SfCompareColumnFilter = defineComponent({
   props: {
     field: { type: Object as PropType<MetaUiField>, required: true },
     variant: { type: String as PropType<CompareColumnVariant>, required: true },
-    filter: { type: Object as PropType<EntityFieldFilter>, default: undefined },
+    filter: { type: Object as PropType<FieldFilter>, default: undefined },
     handle: { type: Object as PropType<SfCompareColumnFilterHandle>, required: true },
     dateRangeLabels: {
       type: Object as PropType<Partial<Record<string, string>>>,
@@ -182,22 +179,18 @@ export const SfCompareColumnFilter = defineComponent({
     })
     const locale = getSyncfusionCulture()
 
-    const applyFilter = (filter?: EntityFieldFilter) => {
+    const applyFilter = (filter?: FieldFilter) => {
       const compare = compareFrom(filter)
       const tokens = setFrom(filter)
       setTokens.value = [...tokens]
       if (
         compare &&
-        (compare.operator === 'WITHIN' ||
-          isDateRangeKind(compare.dateKind) ||
-          isDateRangeKind(compare.value))
+        (compare.operator === 'WITHIN' || isDateRangeKind(compare.value))
       ) {
         operator.value = 'within'
-        dateKind.value = isDateRangeKind(compare.dateKind)
-          ? compare.dateKind
-          : isDateRangeKind(compare.value)
-            ? String(compare.value)
-            : undefined
+        dateKind.value = isDateRangeKind(compare.value)
+          ? String(compare.value)
+          : undefined
         value.value = null
         valueTo.value = null
         return
@@ -229,7 +222,7 @@ export const SfCompareColumnFilter = defineComponent({
       valueTo.value = null
     }
 
-    const compareModel = (): EntityFieldFilter | undefined => {
+    const compareModel = (): FieldFilter | undefined => {
       const filterType = filterTypeOf(props.variant)
       if (operator.value === 'within') {
         const kind = isDateRangeKind(dateKind.value)
@@ -237,7 +230,7 @@ export const SfCompareColumnFilter = defineComponent({
           : isDateRangeKind(value.value)
             ? (value.value as DateTimeRangeKind)
             : undefined
-        return kind ? dateKindFilter(kind) : undefined
+        return kind ? FieldFilter.dateKind(kind) : undefined
       }
       if (operator.value === 'isnull' || operator.value === 'notnull') {
         return {
@@ -247,7 +240,7 @@ export const SfCompareColumnFilter = defineComponent({
       }
       if (operator.value === 'between') {
         if (value.value == null || valueTo.value == null) return undefined
-        return betweenFilter(value.value, valueTo.value, filterType)
+        return FieldFilter.between(value.value, valueTo.value, filterType)
       }
       if (value.value == null || value.value === '') return undefined
       return {
@@ -258,14 +251,14 @@ export const SfCompareColumnFilter = defineComponent({
     }
 
     const getModel = () => {
-      const set: EntitySetFieldFilter | undefined = setTokens.value.length
+      const set: SetFieldFilter | undefined = setTokens.value.length
         ? { filterType: 'set', operator: 'IN', values: [...setTokens.value] }
         : undefined
-      return combineCompareAndSet(compareModel(), set)
+      return FieldFilter.combineCompareAndSet(compareModel(), set)
     }
 
     const checkedNodes = computed(() =>
-      expandDateSetLeaves(setTokens.value, pivotDays.value),
+      DatePeriodToken.expandLeaves(setTokens.value, pivotDays.value),
     )
 
     const onNodeChecked = () => {
@@ -498,7 +491,7 @@ const wrapVariant = (name: string, variant: CompareColumnVariant) =>
     name,
     props: {
       field: { type: Object as PropType<MetaUiField>, required: true },
-      filter: { type: Object as PropType<EntityFieldFilter>, default: undefined },
+      filter: { type: Object as PropType<FieldFilter>, default: undefined },
       handle: { type: Object as PropType<SfCompareColumnFilterHandle>, required: true },
       dateRangeLabels: {
         type: Object as PropType<Partial<Record<string, string>>>,

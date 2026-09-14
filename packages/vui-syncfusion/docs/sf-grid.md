@@ -28,7 +28,7 @@
 ```ts
 import { h, ref } from 'vue'
 import { SfGrid, SfGridLayout } from '@mmda/vui-syncfusion'
-import type { EntityFilterModel, Sort } from '@mmda/core'
+import type { FilterModel, Sort } from '@mmda/core'
 
 h(SfGrid, {
   scene: 'index',
@@ -36,7 +36,7 @@ h(SfGrid, {
   dataSource: rows,
   height: 480, // 必须静态高度（或父级静态高 + '100%'），否则 virt 无效
   filterModel: searchParam.filterModel,
-  onFilterModelChange: (model: EntityFilterModel) => {
+  onFilterModelChange: (model: FilterModel) => {
     searchParam.filterModel = Object.keys(model).length ? model : undefined
     searchParam.pager.pageNo = 1
     return search()
@@ -285,8 +285,8 @@ selector 只做选择时：`showActionColumn: false`，`allowContextMenu: false`
 | `allowPaging` | `boolean` | **开关**。开 = 外挂业务分页 |
 | `allowSorting` | `boolean` | **开关**。列还跟 `field.sortable` |
 | `allowMultiSorting` | `boolean` | **开关**。默认 `true`：Ctrl+点列头多列 |
-| `allowFiltering` | `boolean` | **开关**。列头过滤，模型为 `EntityFilterModel` |
-| `filterModel` | `EntityFilterModel` | 框架共用模型（各皮肤双向映射） |
+| `allowFiltering` | `boolean` | **开关**。列头过滤，模型为 `FilterModel` |
+| `filterModel` | `FilterModel` | 框架共用模型（各皮肤双向映射） |
 | `persistSort` | `boolean` | 仅 index/selector；排序条件是否写回 MetaUi（默认开） |
 | `persistFilter` | `boolean` | 仅 index/selector；过滤条件是否写回 MetaUi（默认开） |
 
@@ -337,7 +337,7 @@ Layout **不含**过滤/排序。写回只有 `listSize` / `listPos` / `listed` 
 
 | 事件 | 签名 | 调用方做什么 |
 |---|---|---|
-| `onFilterModelChange` | `(model: EntityFilterModel) => void \| Promise` | index：写入 `filterModel`，`pageNo=1`，`search()` |
+| `onFilterModelChange` | `(model: FilterModel) => void \| Promise` | index：写入 `filterModel`，`pageNo=1`，`search()` |
 | `onSort` | `(sorts: Sort[]) => void \| Promise` | index：写入 `pager.sorts`，再查 |
 | `onSelect` | `(selection: T[]) => void` | `context.selectedItems` |
 | `fieldCellEditors[].onSave` | `(field, row, value, previous?) => boolean \| void` | 自定义写回；`false` 则取消离格；默认走 Builder `defaultCellSave` |
@@ -372,7 +372,7 @@ layout.open(metaui) // 确认后写 listed、frozen、listPos；Grid 内部重�
 1. **index 必须静态 `height` + 当前页 `dataSource`。** 虚拟滚动的缓冲行数不是业务 pageSize。
 2. **Context：** index/selector/details 渲染禁止 `with(row)`。edit 只在 `canEdit` / `onSave` / 删行里 `with`。对话框用 `subGroupItemContext`。
 3. **自定义单元格：** 列表显示用 `setCustomCellRenderer`；Vue 显示模板会打 virt。就地编优先 `setCustomCellEditor`，可回退 `setCustomEditor`。
-4. **过滤**是 `EntityFilterModel`，不是各厂商内部 filter 对象。
+4. **过滤**是 `FilterModel`，不是各厂商内部 filter 对象。
 5. **合计：** index 不要用本页 footer 冒充全库 `aggregationSet`。子表用 `EntityArray.sum/count`。
 6. **导出：** index 走 Java `searchAll` 同条件流式导出。不要为了导出把全量行塞进表格。
 7. **插入行**未做；edit 只末尾追加，故默认不排序。

@@ -1,23 +1,23 @@
 import type { ValidatorDescriptor } from '../../metaui/validator_parse'
-import { collectionFactories } from './collection'
-import { datetimeFactories } from './datetime'
-import { numberFactories } from './number'
-import { stringFactories } from './string'
+import { collectionValidators } from './collection'
+import { datetimeValidators } from './datetime'
+import { numberValidators } from './number'
+import { stringValidators } from './string'
 import type { FieldValidator, ValidatorFn, ValidatorSeverity } from './types'
 
-const factories: Record<string, (args: string[]) => FieldValidator> = {
-  ...numberFactories,
-  ...datetimeFactories,
-  ...stringFactories,
-  ...collectionFactories,
+const validators: Record<string, (args: string[]) => FieldValidator> = {
+  ...numberValidators,
+  ...datetimeValidators,
+  ...stringValidators,
+  ...collectionValidators,
 }
 
-const factoriesByLower = new Map(
-  Object.keys(factories).map((name) => [name.toLowerCase(), factories[name]]),
+const validatorsByLower = new Map(
+  Object.keys(validators).map((name) => [name.toLowerCase(), validators[name]]),
 )
 
 export function lookupValidatorFactory(name: string) {
-  return factories[name] ?? factoriesByLower.get(name.toLowerCase())
+  return validators[name] ?? validatorsByLower.get(name.toLowerCase())
 }
 
 export function descriptorsToValidators(

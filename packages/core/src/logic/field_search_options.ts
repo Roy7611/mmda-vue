@@ -1,6 +1,5 @@
 import {
-  defaultSearchParam,
-  type EntitySearchParam,
+  EntitySearchParam,
 } from '../models/entity'
 import {
   NO_PAGINATION,
@@ -30,7 +29,7 @@ const DEFAULT_SEARCH_WORD = '__'
 export const defaultFieldSearchOptions = (
   option?: any,
 ): FieldSearchOptions => ({
-  searchParam: defaultSearchParam(DEFAULT_SEARCH_WORD),
+  searchParam: EntitySearchParam.create(DEFAULT_SEARCH_WORD),
   searching: false,
   selectOptions: option ? [option] : [],
   pagination: NO_PAGINATION,

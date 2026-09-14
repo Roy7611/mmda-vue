@@ -1,10 +1,10 @@
 import {
-  assignSearchParam,
   defineEntity,
   emptyPagedList,
   type MmdaApplication,
   type Module,
   type UiErrorProps,
+  EntitySearchParam,
 } from "@mmda/core";
 import {
   computed,
@@ -230,7 +230,7 @@ async function openEntityContext(
     router,
   });
   if (many) {
-    assignSearchParam(
+    EntitySearchParam.assign(
       context.searchParam,
       resolveSearchParam(
         resolveViewManyProps(

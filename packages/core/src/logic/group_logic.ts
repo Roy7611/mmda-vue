@@ -1,7 +1,7 @@
 import type { EntityAction, ActionCallback } from '../metaui/metaui_action'
 import { MetaUiField } from '../metaui/metaui_field'
 import { MetaUiGroup } from '../metaui/metaui_group'
-import { parseEntityBoolExpression } from '../utils/entity_bool_expr'
+import { parseEntityBoolExpression } from './entity_bool_expr'
 import { MetaUiFieldLogic } from './field_logic'
 import {
   logicAnd,

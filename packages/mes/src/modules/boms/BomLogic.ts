@@ -6,7 +6,7 @@
  *
  */
 import { useRouter } from 'vue-router';
-import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, inFilter, notInFilter, eqFilter } from '@mmda/core';
+import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, FieldFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
@@ -68,8 +68,8 @@ export const getmaterial = async (context: UiContext, value?: any) => {
 		},
 		searchWord: value,
 		filterModel: {
-			status: inFilter('USED'),
-			materialType: notInFilter([MaterialType.LABOR]),
+			status: FieldFilter.in('USED'),
+			materialType: FieldFilter.notIn([MaterialType.LABOR]),
 		},
 	}, { service: 'base' })
 		.then((res: any) => {
@@ -665,8 +665,8 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 								selectionMode: 'single',
 								searchParam: {
 									filterModel: {
-										status: inFilter('USED'),
-										materialType: notInFilter([MaterialType.LABOR]),
+										status: FieldFilter.in('USED'),
+										materialType: FieldFilter.notIn([MaterialType.LABOR]),
 									},
 								},
 							});
@@ -889,7 +889,7 @@ export class BomLogic extends EntityLogic<Bom> {
 				this.apiClient.searchAll({
 					searchWord: typeof searchWord === 'string' ? searchWord : '',
 					filterModel: {
-						materialType: notInFilter([MaterialType.LABOR]),
+						materialType: FieldFilter.notIn([MaterialType.LABOR]),
 					},
 					pager: defaultPager(),
 				}, {
@@ -943,7 +943,7 @@ export class BomLogic extends EntityLogic<Bom> {
 		if (this.currentCategory?.categoryID) {
 			param.filterModel = {
 				...param.filterModel,
-				productCategoryID: eqFilter(this.currentCategory.categoryID),
+				productCategoryID: FieldFilter.eq(this.currentCategory.categoryID),
 			};
 		}
 		return super.getAll(param, context);
@@ -964,8 +964,8 @@ export class BomLogic extends EntityLogic<Bom> {
 				searchParam: {
 					pager: defaultPager(),
 					filterModel: {
-						status: inFilter('USED'),
-						materialType: notInFilter([MaterialType.LABOR]),
+						status: FieldFilter.in('USED'),
+						materialType: FieldFilter.notIn([MaterialType.LABOR]),
 					},
 				},
 				// 不允许绑定与productID相等的物料

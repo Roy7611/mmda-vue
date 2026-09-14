@@ -1,5 +1,5 @@
 import { h, reactive, type VNode } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type EntityFieldFilter, type EntityFilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
 import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
 import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
@@ -201,7 +201,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       (props as { filterDisplay?: string }).filterDisplay === "row";
     const columnFilter = (field: MetaUiField) => {
       if (!showColumnFilters) return undefined;
-      const filterModel = (props.filterModel ?? {}) as EntityFilterModel;
+      const filterModel = (props.filterModel ?? {}) as FilterModel;
       const fieldName = field.fieldName!;
       const current = filterModel[fieldName];
       const hydrated = hydratePrimeColumnFilter(field, current);
@@ -209,7 +209,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
         ...hydrated,
         suggestions: [] as { label: string; value: unknown }[],
       });
-      const apply = (filter?: EntityFieldFilter) => {
+      const apply = (filter?: FieldFilter) => {
         return props.onFilterModelChange?.(
           mergeFieldFilter(filterModel, fieldName, filter),
         );

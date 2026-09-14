@@ -1,4 +1,4 @@
-import { combineCompareAndSet, compactFieldFilter, dateKindFilter, getFieldFilterOps, isDateRangeKind, type DateTimeRangeKind, type EntityFieldFilter, type EntityFilterModel, type EntitySetFieldFilter, type EntitySimpleFieldFilter, type MetaUiFilterOperatorCode, type MetaUiField } from "@mmda/core";
+import { getFieldFilterOps, isDateRangeKind, type DateTimeRangeKind, FieldFilter, type FilterModel, type SetFieldFilter, type SimpleFieldFilter, type MetaUiFilterOpCode, type MetaUiField } from "@mmda/core";
 import { columnFilterKindOf, simpleFilterTypeOf } from "./filter_kind";
 
 export type PrimeColumnFilterState = {
@@ -34,11 +34,11 @@ const COMPARE_OPS = new Set<string>([
   "IS_FALSE",
 ]);
 
-export function splitCurrentFilter(current?: EntityFieldFilter) {
-  if (!current) return { compare: undefined as EntityFieldFilter | undefined, setValues: [] as unknown[] };
+export function splitCurrentFilter(current?: FieldFilter) {
+  if (!current) return { compare: undefined as FieldFilter | undefined, setValues: [] as unknown[] };
   if (current.filterType === "multi") {
     const set = current.filterModels.find((item) => item.filterType === "set") as
-      | EntitySetFieldFilter
+      | SetFieldFilter
       | undefined;
     const compare = current.filterModels.find((item) => item.filterType !== "set");
     return { compare, setValues: set?.values ?? [] };
@@ -51,9 +51,11 @@ export function splitCurrentFilter(current?: EntityFieldFilter) {
 
 export function hydratePrimeColumnFilter(
   field: MetaUiField,
-  current?: EntityFieldFilter,
+  current?: FieldFilter,
 ): PrimeColumnFilterState {
-  const { compare, setValues } = splitCurrentFilter(current);
+  const { compare, setValues } = splitCurrentFilter(
+    FieldFilter.compact(current) ?? current,
+  );
   const defaultOp = getFieldFilterOps(field)[0] ?? "EQ";
   const join =
     compare?.filterType === "join"
@@ -67,17 +69,20 @@ export function hydratePrimeColumnFilter(
       ? compare
       : undefined;
   const second = join?.conditions[1];
+  const firstValue = first && "value" in first ? first.value : undefined;
   const dateKind =
-    first && "dateKind" in first && isDateRangeKind(first.dateKind)
-      ? first.dateKind
+    first &&
+    (first.operator === "WITHIN" || isDateRangeKind(firstValue)) &&
+    isDateRangeKind(firstValue)
+      ? firstValue
       : undefined;
-  const opOf = (item?: EntityFieldFilter) =>
+  const opOf = (item?: FieldFilter) =>
     item && "operator" in item && COMPARE_OPS.has(String(item.operator))
       ? String(item.operator)
       : defaultOp;
   return {
     operator: dateKind ? "WITHIN" : opOf(first),
-    value: dateKind ? undefined : first && "value" in first ? first.value : undefined,
+    value: dateKind ? undefined : firstValue,
     valueTo: dateKind
       ? undefined
       : first && "valueTo" in first
@@ -94,25 +99,25 @@ export function hydratePrimeColumnFilter(
 export function applyPrimeColumnFilter(
   field: MetaUiField,
   state: PrimeColumnFilterState,
-): EntityFieldFilter | undefined {
+): FieldFilter | undefined {
   if (columnFilterKindOf(field) === "boolean") {
     return state.value == null
       ? undefined
       : { filterType: "boolean", value: Boolean(state.value) };
   }
   const filterType = simpleFilterTypeOf(field);
-  const first: EntitySimpleFieldFilter | undefined =
+  const first: SimpleFieldFilter | undefined =
     state.operator === "WITHIN"
       ? isDateRangeKind(state.dateKind)
-        ? dateKindFilter(state.dateKind)
+        ? FieldFilter.dateKind(state.dateKind)
         : undefined
       : {
           filterType,
-          operator: state.operator as MetaUiFilterOperatorCode,
+          operator: state.operator as MetaUiFilterOpCode,
           value: state.value,
           valueTo: state.valueTo,
         };
-  const second: EntitySimpleFieldFilter | undefined =
+  const second: SimpleFieldFilter | undefined =
     state.operator === "BETWEEN" ||
     state.operator === "WITHIN" ||
     !state.secondValue
@@ -120,10 +125,10 @@ export function applyPrimeColumnFilter(
       : {
           filterType,
           operator: (state.secondOperator ||
-            state.operator) as MetaUiFilterOperatorCode,
+            state.operator) as MetaUiFilterOpCode,
           value: state.secondValue,
         };
-  const compare = compactFieldFilter(
+  const compare = FieldFilter.compact(
     second
       ? {
           filterType: "join",
@@ -132,17 +137,17 @@ export function applyPrimeColumnFilter(
         }
       : first,
   );
-  const set: EntitySetFieldFilter | undefined = state.setValues.length
+  const set: SetFieldFilter | undefined = state.setValues.length
     ? { filterType: "set", operator: "IN", values: [...state.setValues] }
     : undefined;
-  return combineCompareAndSet(compare, set);
+  return FieldFilter.combineCompareAndSet(compare, set);
 }
 
 export function mergeFieldFilter(
-  model: EntityFilterModel,
+  model: FilterModel,
   fieldName: string,
-  filter?: EntityFieldFilter,
-): EntityFilterModel {
+  filter?: FieldFilter,
+): FilterModel {
   const next = { ...model };
   if (filter) next[fieldName] = filter;
   else delete next[fieldName];

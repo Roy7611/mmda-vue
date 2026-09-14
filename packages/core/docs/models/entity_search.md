@@ -28,10 +28,8 @@
 | **FilterModel** | `Record<fieldName, FieldFilter>`，列过滤文档（表头 / 列间 AND） |
 | **AdvancedFilterModel** | Query Builder / AG Advanced Filter 树，可跨字段 OR。**searchAll 本轮不传** |
 | **FieldFilter** | 单字段条件（`SimpleFieldFilter` \| set \| boolean \| join \| multi） |
-| **MetaUiFilterOperatorCode** | JSON 大写：`EQ` / `GE` / `IN` / `BETWEEN` … |
+| **MetaUiFilterOpCode** | JSON 大写：`EQ` / `GE` / `IN` / `BETWEEN` … |
 | **NamedQueryRef** | `Module.defaultFilter` 解析出的 `{ queryID, queryName }` |
-
-旧类型名 `EntityFilterModel` / `EntityFieldFilter` / `EntityFilterOperator` 仍是别名。
 
 ```ts
 interface EntityQuery {
@@ -51,7 +49,7 @@ interface EntitySearchParam extends EntityQuery {
 ```
 
 服务端实体仍叫 [`CustomizedQuery`](../../../base/src/models/CustomizedQuery.ts)。  
-**`queryExpression` = `JSON.stringify(EntityQuery)`**。旧纯 SQL 字符串用 `parseQueryExpression` 双读（`kind: 'sql'`）。列宽 `@Size` 变长另开，本轮不改 Java。
+**`queryExpression` = `JSON.stringify(EntityQuery)`**。旧纯 SQL 字符串用 `EntityQuery.parse` 双读（`kind: 'sql'`）。列宽 `@Size` 变长另开，本轮不改 Java。
 
 `queryParams` **不属于 EntityQuery**。`moduleCode` 等鉴权走 `searchAll` **第二个参数** `EntityUrlParam.queryParams`，不是查询文档的一部分。
 
@@ -59,7 +57,7 @@ interface EntitySearchParam extends EntityQuery {
 
 | filterType | 主要字段 |
 |---|---|
-| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`；`date` 相对语义用 **`WITHIN` + `dateKind`**（`THIS_MONTH` 等，POST 不展开） |
+| `text` / `number` / `date` | `operator` + `value` + 可选 `valueTo`；`date` 相对语义用 **`WITHIN` + `value`（kind）**（`THIS_MONTH` 等，POST 不展开） |
 | `set` | `values` + 可选 `operator`：`IN` / `NOT_IN`。日期列的 `values` 可以是周期 token：`YYYY` / `YYYY-MM` / `YYYY-MM-DD` |
 | `boolean` | `value: boolean \| null`（`IS_ALL` 表示不筛选，通常不写入 model） |
 | `join` | 同一比较器多段：`operator: "AND"\|"OR"` + `conditions[]` |
@@ -79,18 +77,20 @@ AG Grid 也是两套：
 | UI | 表头 Excel/Menu | `factory.queryBuilder` |
 | 服务端 | `searchAll` POST body | **尚未接**；不要摊成 `filterModel` |
 
+join 外壳相同（`filterType:'join'` + `AND`/`OR` + `conditions[]`）。靠挂载位置和叶子是否带 `fieldName` 区分：列 join 在 `FilterModel[field]` 里，子节点无 `fieldName`；Advanced 的 join 挂在 `advancedFilterModel`，叶子自带 `fieldName`。不要混用。
+
 控件与映射见 vui [query_builder.md](../../vui/docs/query_builder.md)。
 
-工厂：`inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `blankFilter` / `joinFilter` / `multiFilter` / `combineCompareAndSet`。
+工厂：`FieldFilter.in` / `FieldFilter.notIn` / `FieldFilter.eq` / `FieldFilter.between` / `FieldFilter.dateKind` / `FieldFilter.nil` / `FieldFilter.blank` / `FieldFilter.join` / `FieldFilter.multi` / `FieldFilter.combineCompareAndSet`。`FilterModel` / `EntityQuery` 等是类型同名 namespace；`FieldFilter` 是 interface + const（`in` 是保留字，不能写 `function in`），调用写法一样。
 
-字符串「没内容」用 **`IS_BLANK` / `IS_NOT_BLANK`**（对标 `dateKind`：查询文档原样保存）。`toSearchRequest` 经 `expandBlankFilters` 展开成 `IS_NULL OR field = ''` / `IS_NOT_NULL AND field <> ''`。数字、日期、可空 ref 仍用 `IS_NULL`，不展开。`EQ` / `NEQ` 的 `''` 是合法条件。
+字符串「没内容」用 **`IS_BLANK` / `IS_NOT_BLANK`**（对标 `dateKind`：查询文档原样保存）。`toSearchRequest` 经 `FilterModel.expandBlank` 展开成 `IS_NULL OR field = ''` / `IS_NOT_NULL AND field <> ''`。数字、日期、可空 ref 仍用 `IS_NULL`，不展开。`EQ` / `NEQ` 的 `''` 是合法条件。
 
 日期两路：
 
-- **语义** `{ filterType:'date', operator:'WITHIN', dateKind:'THIS_MONTH' }`：保存和 POST 都保留 kind，**服务端**按服务器日历展开成半开 `[start, next)`。不要在客户端收成 BETWEEN。旧文档 `{ operator:'BETWEEN', dateKind }` 读回按 WITHIN 水合。
-- **Excel 绝对勾选** `set` + 周期 token：`toSearchRequest` / `searchAll` 会 `expandDateFilters` 合并相邻区间 → 一段 `BETWEEN` 或多段 `join` OR。`dateKind` 不展开。
+- **语义** `{ filterType:'date', operator:'WITHIN', value:'THIS_MONTH' }`：保存和 POST 都保留 kind，**服务端**按服务器日历展开成半开 `[start, next)`。不要在客户端收成 BETWEEN。
+- **Excel 绝对勾选** `set` + 周期 token：`toSearchRequest` / `searchAll` 会 `FilterModel.expandDates` 合并相邻区间 → 一段 `BETWEEN` 或多段 `join` OR。`WITHIN` 的 kind 不展开。
 
-周期 token 先变半开区间再合并（`prev.next >= next.start`）。例：`['2026-05','2026-06-01','2025-12']` → 12 月一段 + `[2026-05-01, 2026-06-02)`。`compactDateSet` 对照 pivot 日把全选的年/月收成 token。
+周期 token 先变半开区间再合并（`prev.next >= next.start`）。例：`['2026-05','2026-06-01','2025-12']` → 12 月一段 + `[2026-05-01, 2026-06-02)`。`DatePeriodToken.compact` 对照 pivot 日把全选的年/月收成 token。
 
 日期两路的展开规则、token 合并、表头 multi 见 **[date_filter.md](./date_filter.md)**，写法见 **[date_filter_usage.md](../logic/date_filter_usage.md)**。
 
@@ -100,7 +100,7 @@ AG Grid 也是两套：
 
 | 放哪 | 放什么 |
 |---|---|
-| **models** | EntityQuery / SearchParam / FilterModel / Operator；`stringifyQueryExpression` / `parseQueryExpression`；`parseDefaultFilter`；工厂函数 |
+| **models** | EntityQuery / SearchParam / FilterModel / Operator；同名 namespace：`FieldFilter.in`、`EntityQuery.parse`、`NamedQueryRef.parse` |
 | **metaui** | `Module.defaultFilter` / `defaultSort` / `defaultGroupBy`；pack 的 `lastQuery` |
 | **logic** | 套用默认查询、`refWhere`；**无 SearchOp**；SQL 用 `SqlOperator` |
 | **net** | `searchAll`；`toSearchRequest` / `toQueryParams`；空 filterModel → GET |
@@ -115,7 +115,7 @@ flowchart TB
   eq --> pager["pager 含 sorts"]
   eq --> word["searchWord"]
   eq --> filt["filterModel"]
-  filt --> field["EntityFieldFilter"]
+  filt --> field["FieldFilter"]
 ```
 
 ## 传输：`searchAll`
@@ -140,13 +140,13 @@ EntitySearchParam
 
 ## Module.defaultFilter（命名查询芯片）
 
-**不是**一份 EntityFilterModel JSON，而是多个命名查询：
+**不是**一份 FilterModel JSON，而是多个命名查询：
 
 ```text
 1;全部|2;启用|3;停用
 ```
 
-- 段与段 `|`，段内 `queryID;queryName`（`parseDefaultFilter`：先 `split('|')`，再 `indexOf(';')` 拆两段）。
+- 段与段 `|`，段内 `queryID;queryName`（`NamedQueryRef.parse`：先 `split('|')`，再 `indexOf(';')` 拆两段）。
 - 缺 id、缺名或空段丢掉。
 - UI 芯片显示 `queryName`，点选用 `queryID` 加载对应 EntityQuery / CustomizedQuery。
 - 仍是短字符串，适合现有 `@Size(max=255)`。
@@ -172,14 +172,14 @@ EntitySearchParam
 保存自定义查询：
 
 ```ts
-customized.queryExpression = stringifyQueryExpression(toEntityQuery(searchParam))
+customized.queryExpression = EntityQuery.stringify(EntityQuery.copy(searchParam))
 ```
 
 读回：
 
 ```ts
-const parsed = parseQueryExpression(customized.queryExpression)
-if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
+const parsed = EntityQuery.parse(customized.queryExpression)
+if (parsed?.kind === 'query') EntityQuery.apply(searchParam, parsed.query)
 // kind === 'sql'：旧芯片 / 旧表达式，兼容路径
 ```
 
@@ -188,7 +188,7 @@ if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
 | 场景 | 用什么 |
 |---|---|
 | 列表 / 表头 / 搜索栏字段条件 | `EntityFilterOperator` + `filterModel` |
-| Query Builder / 跨字段 OR | `EntityAdvancedFilterModel`（客户端；searchAll 后续） |
+| Query Builder / 跨字段 OR | `AdvancedFilterModel`（客户端；searchAll 后续） |
 | 元数据 `reference.where`、Logic `refWhere` | `SqlOperator`（`getSqlOperator` / `toSQL`） |
 | 尚未迁完的快捷过滤 SQL、旧 MES URL | `queryParams`（兼容，新代码不要加） |
 
@@ -202,13 +202,14 @@ if (parsed?.kind === 'query') applyEntityQuery(searchParam, parsed.query)
 
 | API | 用途 |
 |---|---|
-| `defaultSearchParam` / `defaultEntityQuery` | 工厂 |
-| `toEntityQuery` / `applyEntityQuery` / `assignSearchParam` | 复制与套用 |
-| `hasFilterModel` / `isDifferentSearchParam` | 判断 |
-| `inFilter` / `notInFilter` / `eqFilter` / `betweenFilter` / `dateKindFilter` / `nullFilter` / `joinFilter` / `multiFilter` | 字段条件工厂 |
-| `expandDateFilters` / `compactDateSet` | 日期 set token 合并展开（不碰 dateKind） |
-| `stringifyQueryExpression` / `parseQueryExpression` | CustomizedQuery 编解码 |
-| `parseDefaultFilter` / `parseDefaultSort` | Module 默认串 |
+| `FieldFilter.clone` / `compact` / `isEmpty` | 字段条件拷贝与收口 |
+| `FieldFilter.in` / `notIn` / `eq` / `between` / `dateKind` / `nil` / `blank` / `join` / `multi` / `combineCompareAndSet` | 字段条件工厂 |
+| `FilterModel.clone` / `expandBlank` / `expandDates` / `has` | 列 map |
+| `AdvancedFilterModel.isJoin` / `clone` / `compact` / `has` | Query Builder 树 |
+| `EntityQuery.create` / `copy` / `apply` / `stringify` / `parse` / `parseDefaultSort` | 可保存查询 |
+| `EntitySearchParam.create` / `assign` / `isDifferent` | 当次请求 |
+| `NamedQueryRef.parse` | Module 默认芯片 |
+| `DatePeriodToken.compact` / `expandLeaves` / `normalize` / `days` | 日期 set token（不碰 WITHIN） |
 
 ## 不要
 

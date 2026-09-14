@@ -38,6 +38,7 @@
 - [field_search_options.ts](./logic/field_search_options.md)
 - [group_logic.ts](./logic/group_logic.md)
 - [logic_functions.ts](./logic/logic_functions.md)
+- [entity_bool_expr.ts](./logic/entity_bool_expr.md)
 - [sql_operator.ts](./logic/sql_operator.md)
 - [entity_query_usage.md](./logic/entity_query_usage.md)
 - [date_filter_usage.md](./logic/date_filter_usage.md)
@@ -70,6 +71,7 @@
 - [entity_collection.ts](./models/entity_collection.md)
 - [entity_search.ts](./models/entity_search.md)
 - [date_filter.ts](./models/date_filter.md)
+- [date_range.ts](./models/date_range.md)
 - [entity_state.ts](./models/entity_state.md)
 - [file.ts](./models/file.md)
 - [metamodel.ts](./models/metamodel.md)
@@ -91,8 +93,6 @@
 
 ## utils
 
-- [date_range.ts](./utils/date_range.md)
-- [entity_bool_expr.ts](./utils/entity_bool_expr.md)
 - [formatter.ts](./utils/formatter.md)
 - [is.ts](./utils/is.md)
 - [localdb.ts](./utils/localdb.md)

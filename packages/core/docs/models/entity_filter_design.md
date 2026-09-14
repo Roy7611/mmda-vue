@@ -81,24 +81,9 @@ flowchart TB
 - **`searchWord`**：这一次的模糊搜，不进可保存查询。
 - **`queryParams`**：融合 URL（兼容老写法）。
 
-**`FilterModel`** / **`AdvancedFilterModel`** 是兄弟，叶子都是 **`FieldFilter`**：
+**`FilterModel`** / **`AdvancedFilterModel`** 是兄弟，叶子都是 **`FieldFilter`**（`Simple` / `Set` / `Boolean` / `Join` / `Multi`）。JSON 键和 POST 形状不变。
 
-| 现在 | 新名 |
-|---|---|
-| `EntityFilterModel` | `FilterModel` |
-| `EntityAdvancedFilterModel` | `AdvancedFilterModel` |
-| `EntityFieldFilter` | `FieldFilter` |
-| `EntitySimpleFieldFilter` | `SimpleFieldFilter` |
-| `EntitySetFieldFilter` | `SetFieldFilter` |
-| `EntityBooleanFieldFilter` | `BooleanFieldFilter` |
-| `EntityJoinFieldFilter` | `JoinFieldFilter` |
-| `EntityMultiFieldFilter` | `MultiFieldFilter` |
-| `EntityAdvancedJoinFilter` | `AdvancedJoinFilter` |
-| `EntityAdvancedColumnFilter` | `AdvancedColumnFilter` |
-
-JSON 键和 POST 形状不变。
-
-**`SemanticDateRange`**（`TODAY` / `THIS_MONTH`）和 Query 同列。`dateKind` 保存和 POST 都原样，服务端展开。周期 token（年/月/日）仍是 `set` 的值。
+**`SemanticDateRange`**（`TODAY` / `THIS_MONTH`）和 Query 同列。`operator === 'WITHIN'` 时 `value` 是 kind，保存和 POST 都原样，服务端展开。周期 token（年/月/日）仍是 `set` 的值。
 
 ## metaui 词汇表
 
@@ -156,7 +141,7 @@ inferColumnFilterType(): MetaUiFilterType
 
 ## 不要
 
-- 不要改 POST JSON（`filterType` 小写、`operator` 大写、`dateKind`、周期 token）。
+- 不要改 POST JSON（`filterType` 小写、`operator` 大写、`WITHIN` 的 kind 在 `value`、周期 token）。
 - 不要在客户端把 `THIS_MONTH` 收成日期再保存。
 - 不要对日期列当前页 `getDistinct`。
 - 不要让 Data 依赖 Logic。

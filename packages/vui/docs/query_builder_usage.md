@@ -12,7 +12,7 @@ factory.queryBuilder({
 })
 ```
 
-值是 `EntityAdvancedFilterModel`，例如：
+值是 `AdvancedFilterModel`，例如：
 
 ```ts
 {

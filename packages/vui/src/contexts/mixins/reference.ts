@@ -1,7 +1,6 @@
 import {
   MetaUiFieldLogic,
   emptyPagedList,
-  assignSearchParam,
   defaultChoicePager,
   defineEntity,
   pagedListIsComplete,
@@ -9,6 +8,7 @@ import {
   type EntitySelectParam,
   type Module,
   type ModuleAuth,
+  EntitySearchParam,
 } from "@mmda/core";
 import type { Ref } from "vue";
 import { UiViewMany } from "../view";
@@ -246,7 +246,7 @@ export function WithReference<TBase extends Constructor>(
         router: this.router,
       });
       if (param.searchParam) {
-        assignSearchParam(selectCtx.searchParam, param.searchParam);
+        EntitySearchParam.assign(selectCtx.searchParam, param.searchParam);
       }
       if (param.selectableFn) {
         selectCtx.setSelectableFn("select", param.selectableFn);

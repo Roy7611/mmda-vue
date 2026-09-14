@@ -68,7 +68,7 @@ const bound =
     }
   }
 
-export const datetimeFactories: Record<string, (args: string[]) => FieldValidator> =
+export const datetimeValidators: Record<string, (args: string[]) => FieldValidator> =
   {
     Past: relative('Past', (dt, now) => dt < now, 'invalid.past'),
     PastOrPresent: relative(

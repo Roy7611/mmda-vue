@@ -21,8 +21,8 @@ toSearchRequest(param)
 | `searchAll` | 列表：无 filterModel 则 GET，否则 POST body |
 | `getPivotValues` | `GET .../pivotValues?field=`，当前表 DISTINCT |
 | `getPivotDates` | `GET .../pivotDates?field=`，日期列出现过的日历日 |
-| `hasFilterModel` | filterModel 是否有键 |
-| `toSearchRequest` | 拆成 URL / body；日期 set token 会 `expandDateFilters`，`dateKind` 原样 |
+| `FilterModel.has` | filterModel 是否有键 |
+| `toSearchRequest` | 拆成 URL / body；日期 set token 会 `FilterModel.expandDates`，`dateKind` 原样 |
 
 `queryParams` **仅兼容**旧 URL 与快捷过滤 SQL。新字段条件进 `filterModel`。鉴权用的 `moduleCode` 放 **第二个参数** `EntityUrlParam.queryParams`，不是查询文档的一部分。
 

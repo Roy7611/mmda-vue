@@ -1,4 +1,4 @@
-import { SqlDataType, compactDateSet, compactFieldFilter, dateKindFilter, expandDateSetLeaves, isDatePeriodSet, isDateRangeKind, toDatePeriodToken, MetaUiFilterType, type EntityFieldFilter, type EntityFilterModel, type EntityJoinFieldFilter, type EntityMultiFieldFilter, type MetaUiFilterOperatorCode, type MetaUi, type MetaUiField } from '@mmda/core'
+import { SqlDataType, DatePeriodToken, isDateRangeKind, MetaUiFilterType, FieldFilter, type FilterModel, type JoinFieldFilter, type MultiFieldFilter, type MetaUiFilterOpCode, type MetaUi, type MetaUiField } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from './filter_kind'
 
 const listedFields = (metaUi: MetaUi) => {
@@ -23,9 +23,9 @@ const usesStringBlank = (field?: MetaUiField) =>
 function agTypeToOperator(
   type?: string,
   field?: MetaUiField,
-  fallback?: MetaUiFilterOperatorCode,
+  fallback?: MetaUiFilterOpCode,
   filterType?: string,
-): MetaUiFilterOperatorCode {
+): MetaUiFilterOpCode {
   if (type === 'blank' || type === 'notBlank') {
     const stringBlank = field
       ? usesStringBlank(field)
@@ -41,7 +41,7 @@ function agTypeToOperator(
   return AG_TO_OP[type ?? ''] ?? fallback ?? 'EQ'
 }
 
-const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
+const AG_TO_OP: Record<string, MetaUiFilterOpCode> = {
   equals: 'EQ',
   notEqual: 'NEQ',
   contains: 'CONTAINS',
@@ -57,7 +57,7 @@ const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   notBlank: 'IS_NOT_BLANK',
 }
 
-const OP_TO_AG: Partial<Record<MetaUiFilterOperatorCode, string>> = {
+const OP_TO_AG: Partial<Record<MetaUiFilterOpCode, string>> = {
   EQ: 'equals',
   NEQ: 'notEqual',
   CONTAINS: 'contains',
@@ -120,7 +120,7 @@ export function pivotDaysOf(field?: MetaUiField) {
 export function agCellToFieldFilter(
   cell: any,
   field?: MetaUiField,
-): EntityFieldFilter | undefined {
+): FieldFilter | undefined {
   if (!cell) return undefined
   if (cell.filterType === 'set' || Array.isArray(cell.values)) {
     const values = [...(cell.values ?? [])]
@@ -128,8 +128,8 @@ export function agCellToFieldFilter(
     return {
       filterType: 'set',
       values:
-        dateField && isDatePeriodSet(values.map(value => toDatePeriodToken(value) ?? value))
-          ? compactDateSet(values, pivotDaysOf(field))
+        dateField && DatePeriodToken.isSet(values.map(value => DatePeriodToken.parse(value) ?? value))
+          ? DatePeriodToken.compact(values, pivotDaysOf(field))
           : values,
       operator: cell.operator === 'NOT_IN' ? 'NOT_IN' : 'IN',
     }
@@ -149,12 +149,12 @@ export function agCellToFieldFilter(
     return { filterType: 'boolean', value }
   }
   if (isDateRangeKind(cell.type)) {
-    return dateKindFilter(cell.type)
+    return FieldFilter.dateKind(cell.type)
   }
   const operator = agTypeToOperator(
     cell.type,
     field,
-    cell.operator as MetaUiFilterOperatorCode,
+    cell.operator as MetaUiFilterOpCode,
     cell.filterType,
   )
   return {
@@ -168,15 +168,15 @@ export function agCellToFieldFilter(
 function agFilterToField(
   raw: any,
   field?: MetaUiField,
-): EntityFieldFilter | undefined {
+): FieldFilter | undefined {
   if (!raw) return undefined
   if (raw.filterType === 'multi' || Array.isArray(raw.filterModels)) {
     const models = (raw.filterModels ?? [])
       .filter(Boolean)
       .map((item: any) => agFilterToField(item, field))
-      .filter((item: EntityFieldFilter | undefined): item is EntityFieldFilter => item != null)
-      .map((item: EntityFieldFilter) => compactFieldFilter(item))
-      .filter((item: EntityFieldFilter | undefined): item is EntityFieldFilter => item != null)
+      .filter((item: FieldFilter | undefined): item is FieldFilter => item != null)
+      .map((item: FieldFilter) => FieldFilter.compact(item))
+      .filter((item: FieldFilter | undefined): item is FieldFilter => item != null)
     if (!models.length) return undefined
     if (models.length === 1) return models[0]
     return { filterType: 'multi', filterModels: models }
@@ -188,7 +188,7 @@ function agFilterToField(
   ) {
     const conditions = raw.conditions
       .map((item: any) => agCellToFieldFilter(item, field))
-      .filter((item: EntityFieldFilter | undefined): item is EntityFieldFilter => item != null)
+      .filter((item: FieldFilter | undefined): item is FieldFilter => item != null)
     if (!conditions.length) return undefined
     if (conditions.length === 1) return conditions[0]
     return {
@@ -207,19 +207,19 @@ function agFilterToField(
 export function agFilterModelToEntity(
   agModel: Record<string, any> | null | undefined,
   metaUi: MetaUi,
-): EntityFilterModel {
-  const next: EntityFilterModel = {}
+): FilterModel {
+  const next: FilterModel = {}
   if (!agModel) return next
   for (const [fieldName, raw] of Object.entries(agModel)) {
     if (!raw) continue
     const mapped = agFilterToField(raw, fieldOf(metaUi, fieldName))
-    const compacted = compactFieldFilter(mapped)
+    const compacted = FieldFilter.compact(mapped)
     if (compacted) next[fieldName] = compacted
   }
   return next
 }
 
-function fieldFilterToAg(filter: EntityFieldFilter, field?: MetaUiField): any {
+function fieldFilterToAg(filter: FieldFilter, field?: MetaUiField): any {
   if (filter.filterType === 'multi') {
     return {
       filterType: 'multi',
@@ -242,8 +242,8 @@ function fieldFilterToAg(filter: EntityFieldFilter, field?: MetaUiField): any {
       return {
         filterType: 'set',
         values:
-          dateField && isDatePeriodSet(values)
-            ? expandDateSetLeaves(values, pivotDaysOf(field) ?? [])
+          dateField && DatePeriodToken.isSet(values)
+            ? DatePeriodToken.expandLeaves(values, pivotDaysOf(field) ?? [])
             : values,
       }
     }
@@ -259,13 +259,17 @@ function fieldFilterToAg(filter: EntityFieldFilter, field?: MetaUiField): any {
   if (filter.filterType !== 'text' && filter.filterType !== 'number' && filter.filterType !== 'date') {
     return undefined
   }
-  const type = filter.dateKind ?? OP_TO_AG[filter.operator] ?? 'equals'
+  const kind =
+    filter.operator === 'WITHIN' && isDateRangeKind(filter.value)
+      ? filter.value
+      : undefined
+  const type = kind ?? OP_TO_AG[filter.operator] ?? 'equals'
   if (filter.filterType === 'date') {
     return {
       filterType: 'date',
       type,
-      dateFrom: filter.dateKind ? undefined : filter.value,
-      dateTo: filter.dateKind ? undefined : filter.valueTo,
+      dateFrom: kind ? undefined : filter.value,
+      dateTo: kind ? undefined : filter.valueTo,
     }
   }
   if (filter.filterType === 'number') {
@@ -285,7 +289,7 @@ function fieldFilterToAg(filter: EntityFieldFilter, field?: MetaUiField): any {
 }
 
 export function entityFilterToAgModel(
-  model: EntityFilterModel | null | undefined,
+  model: FilterModel | null | undefined,
   metaUi: MetaUi,
 ): Record<string, any> {
   const next: Record<string, any> = {}
@@ -324,4 +328,4 @@ export function isReferenceSetField(field: MetaUiField) {
   return isSetField(field)
 }
 
-export type { EntityFieldFilter, EntityJoinFieldFilter, EntityMultiFieldFilter }
+export type { FieldFilter, JoinFieldFilter, MultiFieldFilter }

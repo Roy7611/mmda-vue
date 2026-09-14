@@ -6,7 +6,7 @@ import type {
   SetFilterValuesFuncParams,
   ValueFormatterParams,
 } from 'ag-grid-community'
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, fieldCellEditorAllowsColumn, normalizePivotDates, toDatePeriodToken, MetaUiFilterType, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, fieldCellEditorAllowsColumn, DatePeriodToken, MetaUiFilterType, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, simpleFilterTypeOf } from './filter_kind'
 import { gridFreezeOf } from '@mmda/vui'
 import type { UiListPropsType } from '@mmda/vui'
@@ -82,9 +82,9 @@ const dateTreeFilterParamsOf = (
   defaultToNothingSelected: true,
   excelMode: 'windows' as const,
   keyCreator: (params: { value: unknown }) =>
-    toDatePeriodToken(params.value) ?? String(params.value ?? ''),
+    DatePeriodToken.parse(params.value) ?? String(params.value ?? ''),
   treeListPathGetter: (value: string | null) => {
-    const token = toDatePeriodToken(value) ?? value
+    const token = DatePeriodToken.parse(value) ?? value
     if (!token) return [null]
     const parts = String(token).split('-')
     return parts.length >= 3 ? parts.slice(0, 3) : [token]
@@ -103,7 +103,7 @@ const dateTreeFilterParamsOf = (
   },
   values: (params: SetFilterValuesFuncParams) => {
     const apply = (raw: unknown) => {
-      const days = normalizePivotDates(raw)
+      const days = DatePeriodToken.days(raw)
       rememberPivotDays(field, days)
       params.success(days)
     }

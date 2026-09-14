@@ -1,5 +1,5 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
-import type { EntityFilterModel } from '../../models/entity_search'
+import type { FilterModel } from '../../models/entity_search'
 import type { Sort } from '../../models/pagination'
 import type { UiListProps } from './list'
 
@@ -112,12 +112,12 @@ export interface UiTableProps<T = any, TNode = any> extends UiListProps<T> {
    * 当前表头过滤模型，与 `searchParam.filterModel` 同一份。
    * 皮肤改筛时调 `onFilterModelChange`，不要另存表格 state。
    */
-  filterModel?: EntityFilterModel
+  filterModel?: FilterModel
   /**
    * 列筛变化。必须 **return** `search()` 的 Promise，好让 custom binding 等完成后再写 dataSource。
    */
   onFilterModelChange?: (
-    model: EntityFilterModel,
+    model: FilterModel,
   ) => void | Promise<unknown>
   /**
    * 按字段名挂自定义单元格。有 key 就是自定义格，不要再传字段名名单。

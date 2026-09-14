@@ -3,10 +3,8 @@ import { entityActionFactory, EntityActionType } from "../metaui/metaui_action";
 import { SqlDataType } from "../metaui/datatype";
 import { MetaUiField } from "../metaui/metaui_field";
 import {
-  assignSearchParam,
-  defaultSearchParam,
   EntityState,
-  isDifferentSearchParam,
+  EntitySearchParam,
 } from "../models/entity";
 import { SortOrder } from "../models/pagination";
 import { MetaModel } from "../models/metamodel";
@@ -43,16 +41,16 @@ describe("EntityAction", () => {
 });
 
 describe("EntitySearchParam", () => {
-  it("defaultSearchParam 带默认分页", () => {
-    const param = defaultSearchParam("仓");
+  it("EntitySearchParam.create 带默认分页", () => {
+    const param = EntitySearchParam.create("仓");
     expect(param.searchWord).toBe("仓");
     expect(param.pager.pageSize).toBe(20);
     expect(param.pager.pageNo).toBe(1);
   });
 
-  it("assignSearchParam 覆盖分页和查询条件", () => {
-    const to = defaultSearchParam();
-    assignSearchParam(to, {
+  it("EntitySearchParam.assign 覆盖分页和查询条件", () => {
+    const to = EntitySearchParam.create();
+    EntitySearchParam.assign(to, {
       pager: { pageSize: 50, pageNo: 2 },
       searchWord: "A",
       queryParams: { status: "OPEN" },
@@ -63,34 +61,34 @@ describe("EntitySearchParam", () => {
     expect(to.queryParams).toEqual({ status: "OPEN" });
   });
 
-  it("isDifferentSearchParam 比较分页、关键词和 queryParams", () => {
-    const a = defaultSearchParam("x");
-    const b = defaultSearchParam("x");
-    expect(isDifferentSearchParam(a, b)).toBe(false);
+  it("EntitySearchParam.isDifferent 比较分页、关键词和 queryParams", () => {
+    const a = EntitySearchParam.create("x");
+    const b = EntitySearchParam.create("x");
+    expect(EntitySearchParam.isDifferent(a, b)).toBe(false);
     b.searchWord = "y";
-    expect(isDifferentSearchParam(a, b)).toBe(true);
-    const c = defaultSearchParam();
+    expect(EntitySearchParam.isDifferent(a, b)).toBe(true);
+    const c = EntitySearchParam.create();
     c.queryParams = { a: 1 };
-    const d = defaultSearchParam();
+    const d = EntitySearchParam.create();
     d.queryParams = { a: 2 };
-    expect(isDifferentSearchParam(c, d)).toBe(true);
+    expect(EntitySearchParam.isDifferent(c, d)).toBe(true);
   });
 
   it("复制和比较包含 sorts 与 filterModel", () => {
-    const source = defaultSearchParam();
+    const source = EntitySearchParam.create();
     source.pager.sorts = [{ sortBy: "name", sortOrder: SortOrder.DESC }];
     source.filterModel = {
       name: { filterType: "text", operator: "CONTAINS", value: "A" },
     };
-    const copy = assignSearchParam(defaultSearchParam(), source);
+    const copy = EntitySearchParam.assign(EntitySearchParam.create(), source);
 
-    expect(isDifferentSearchParam(copy, source)).toBe(false);
+    expect(EntitySearchParam.isDifferent(copy, source)).toBe(false);
     copy.filterModel!.name = {
       filterType: "text",
       operator: "CONTAINS",
       value: "B",
     };
-    expect(isDifferentSearchParam(copy, source)).toBe(true);
+    expect(EntitySearchParam.isDifferent(copy, source)).toBe(true);
   });
 });
 

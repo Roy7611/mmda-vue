@@ -5,24 +5,24 @@
 ## 可复用：本月 / 今天
 
 ```ts
-import { dateKindFilter, defaultSearchParam } from '@mmda/core'
+import { FieldFilter, EntitySearchParam } from '@mmda/core'
 
-const param = defaultSearchParam()
-param.filterModel = { createdAt: dateKindFilter('THIS_MONTH') }
+const param = EntitySearchParam.create()
+param.filterModel = { createdAt: FieldFilter.dateKind('THIS_MONTH') }
 
 await this.apiClient.searchAll(param, { repository: 'Orders' })
 ```
 
-POST body **仍带** `{ operator:'WITHIN', dateKind:'THIS_MONTH' }`。下个月打开同一 CustomizedQuery 仍是「当时的本月」。不要先算成 `BETWEEN '2026-09-01' AND …` 再保存。`getSqlOperator('WITHIN')!.toSQL('TODAY')` → `WITHIN TODAY`（只给 `refWhere`）。
+POST body **仍带** `{ operator:'WITHIN', value:'THIS_MONTH' }`。下个月打开同一 CustomizedQuery 仍是「当时的本月」。不要先算成 `BETWEEN '2026-09-01' AND …` 再保存。`getSqlOperator('WITHIN')!.toSQL('TODAY')` → `WITHIN TODAY`（只给 `refWhere`）。
 
 ```ts
-import { joinFilter, dateKindFilter } from '@mmda/core'
+import { FieldFilter } from '@mmda/core'
 
 // 本月或上月
 param.filterModel = {
-  createdAt: joinFilter('OR', [
-    dateKindFilter('THIS_MONTH'),
-    dateKindFilter('LAST_MONTH'),
+  createdAt: FieldFilter.join('OR', [
+    FieldFilter.dateKind('THIS_MONTH'),
+    FieldFilter.dateKind('LAST_MONTH'),
   ]),
 }
 ```
@@ -40,21 +40,21 @@ const { start, end } = dateTimeRange[DateRangeKind.THIS_MONTH]()
 ## 绝对：Excel 年月日
 
 ```ts
-import { inFilter } from '@mmda/core'
+import { FieldFilter } from '@mmda/core'
 
 param.filterModel = {
-  createdAt: inFilter(['2026-05', '2026-06-01']),
+  createdAt: FieldFilter.in(['2026-05', '2026-06-01']),
 }
 ```
 
-`searchAll` → `expandDateFilters`：相邻合成半开 `BETWEEN`（上界不含）。不相邻 → `join` OR。保存路径请留 token，不要先展开。
+`searchAll` → `FilterModel.expandDates`：相邻合成半开 `BETWEEN`（上界不含）。不相邻 → `join` OR。保存路径请留 token，不要先展开。
 
 对照 pivot 收成年/月（表头树已做）：
 
 ```ts
-import { compactDateSet } from '@mmda/core'
+import { DatePeriodToken } from '@mmda/core'
 
-const tokens = compactDateSet(
+const tokens = DatePeriodToken.compact(
   ['2026-05-01', '2026-05-15'],
   ['2026-05-01', '2026-05-15', '2026-06-01'],
 )
@@ -74,26 +74,26 @@ const days = await this.apiClient.getPivotDates('createdAt', {
 ## 比较区间（绝对时刻）
 
 ```ts
-import { betweenFilter, eqFilter } from '@mmda/core'
+import { FieldFilter } from '@mmda/core'
 
 param.filterModel = {
-  createdAt: betweenFilter('2026-05-01 00:00:00', '2026-07-01 00:00:00'),
+  createdAt: FieldFilter.between('2026-05-01 00:00:00', '2026-07-01 00:00:00'),
 }
 ```
 
-这是死日期，不能当「本月」保存。DATETIME 勾一天请用 token `2026-05-18`（会展开成 `[当天, 次日)`），不要 `eqFilter('2026-05-18', 'date')`。
+这是死日期，不能当「本月」保存。DATETIME 勾一天请用 token `2026-05-18`（会展开成 `[当天, 次日)`），不要 `FieldFilter.eq('2026-05-18', 'date')`。
 
 ## 条件 + 列表（multi）
 
 表头两页都填时是 AND：
 
 ```ts
-import { combineCompareAndSet, dateKindFilter, inFilter } from '@mmda/core'
+import { FieldFilter } from '@mmda/core'
 
 param.filterModel = {
-  createdAt: combineCompareAndSet(
-    dateKindFilter('THIS_YEAR'),
-    inFilter(['2026-05', '2026-06']),
+  createdAt: FieldFilter.combineCompareAndSet(
+    FieldFilter.dateKind('THIS_YEAR'),
+    FieldFilter.in(['2026-05', '2026-06']),
   ),
 }
 ```
@@ -103,18 +103,20 @@ param.filterModel = {
 ## 保存查询
 
 ```ts
-customized.queryExpression = stringifyQueryExpression(
-  toEntityQuery(context.searchParam),
+import { EntityQuery } from '@mmda/core'
+
+customized.queryExpression = EntityQuery.stringify(
+  EntityQuery.copy(context.searchParam),
 )
 ```
 
-`toEntityQuery` 不会调用 `expandDateFilters`。`searchAll` 才会展开绝对 token。
+`EntityQuery.copy` 不会调用 `FilterModel.expandDates`。`searchAll` 才会展开绝对 token。
 
 ## 常见坑
 
 | 错误 | 正确 |
 |---|---|
-| 把本月存成 `inFilter(['2026-09'])` | `dateKindFilter('THIS_MONTH')` |
+| 把本月存成 `FieldFilter.in(['2026-09'])` | `FieldFilter.dateKind('THIS_MONTH')` |
 | 客户端把 `dateKind` 收成 BETWEEN 再 POST | 原样 POST，服务端展开 |
 | DATETIME 上 `EQ` 某一天 | 日 token 或半开 `BETWEEN` |
 | 日期列 `getDistinct` 当前页 | `getPivotDates` |
@@ -125,6 +127,6 @@ customized.queryExpression = stringifyQueryExpression(
 
 - 设计：[date_filter.md](../models/date_filter.md)
 - 查询总设计 / 总用法：[entity_search.md](../models/entity_search.md) · [entity_query_usage.md](./entity_query_usage.md)
-- 区间枚举：[date_range.md](../utils/date_range.md)
+- 区间枚举：[date_range.md](../models/date_range.md)
 - 传输：[api_client.md](../net/api_client.md)
 - vui 表头：[list.md](../../../vui/docs/list.md)

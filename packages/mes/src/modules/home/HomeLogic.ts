@@ -4,7 +4,7 @@
  * 从单接口 Dashboards/home 改为 11 个独立 Dashboard 接口并行调用
  */
 
-import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, inFilter, defaultPager } from '@mmda/core'
+import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, defaultPager, FieldFilter } from '@mmda/core'
 import type { EntityLogicInit } from '@mmda/vui'
 import { EntityLogic } from '@mmda/vui'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
@@ -234,7 +234,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
       },
       searchWord: value,
       filterModel: {
-        status: inFilter(UsageStatus.USED),
+        status: FieldFilter.in(UsageStatus.USED),
       },
     }, {
       repository: 'Sites',
@@ -273,7 +273,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
                   selectionMode: 'single',
                   searchParam: {
                     pager: defaultPager(),
-                    filterModel: { status: inFilter(UsageStatus.USED) },
+                    filterModel: { status: FieldFilter.in(UsageStatus.USED) },
                   },
                 })
                 if (!Array.isArray(picked) || !picked.length) return false

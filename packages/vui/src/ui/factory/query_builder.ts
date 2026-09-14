@@ -1,6 +1,5 @@
 import {
-  compactAdvancedFilter,
-  type EntityAdvancedFilterModel,
+  AdvancedFilterModel,
   type UiQueryBuilderProps,
 } from '@mmda/core'
 
@@ -33,9 +32,9 @@ export {
 /** Vue v-model：`onUpdate:modelValue` / `onUpdate`。 */
 export function emitQueryBuilderChange(
   props: UiQueryBuilderProps,
-  model: EntityAdvancedFilterModel | undefined,
+  model: AdvancedFilterModel | undefined,
 ): void {
-  const next = compactAdvancedFilter(model)
+  const next = AdvancedFilterModel.compact(model)
   props.onChange?.(next)
   const vueUpdate = props['onUpdate:modelValue']
   if (typeof vueUpdate === 'function') {

@@ -87,7 +87,7 @@ describe("UiSearchField", () => {
     expect(search.hasVal).toBe(false);
   });
 
-  it("日期 WITHIN 发 dateKindFilter", () => {
+  it("日期 WITHIN 发 FieldFilter.dateKind", () => {
     const field = new MetaUiField({
       fieldIdx: 0,
       fieldName: "createdAt",
@@ -102,7 +102,7 @@ describe("UiSearchField", () => {
     expect(search.toFilterModel()).toEqual({
       filterType: "date",
       operator: "WITHIN",
-      dateKind: "TODAY",
+      value: "TODAY",
     });
   });
 

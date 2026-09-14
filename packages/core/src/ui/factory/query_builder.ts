@@ -5,14 +5,12 @@
 import { SqlDataType } from '../../metaui/datatype'
 import { MetaRelationType, type MetaUiField } from '../../metaui/metaui_field'
 import {
-  compactAdvancedFilter,
-  isAdvancedJoinFilter,
-  type AdvancedColumnFilter,
-  type AdvancedFilterModel,
+  type AdvancedFieldFilter,
+  AdvancedFilterModel,
   type AdvancedJoinFilter,
 } from '../../models/entity_search'
-import type { MetaUiFilterOperatorCode } from '../../metaui/metaui_filter'
-import { isDateRangeKind } from '../../utils/date_range'
+import type { MetaUiFilterOpCode } from '../../metaui/metaui_filter'
+import { isDateRangeKind } from '../../models/date_range'
 import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 
@@ -32,7 +30,7 @@ export interface UiQueryBuilderColumn {
   fieldName: string
   label: string
   valueType: UiQueryBuilderValueType
-  operators?: MetaUiFilterOperatorCode[]
+  operators?: MetaUiFilterOpCode[]
   values?: UiQueryBuilderChoice[]
 }
 
@@ -76,7 +74,7 @@ export interface AgColumnAdvancedFilter {
   values?: unknown[]
 }
 
-const EJ2_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
+const EJ2_TO_OP: Record<string, MetaUiFilterOpCode> = {
   equal: 'EQ',
   notequal: 'NEQ',
   greaterthan: 'GT',
@@ -97,7 +95,7 @@ const EJ2_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   within: 'WITHIN',
 }
 
-const OP_TO_EJ2: Partial<Record<MetaUiFilterOperatorCode, string>> = {
+const OP_TO_EJ2: Partial<Record<MetaUiFilterOpCode, string>> = {
   EQ: 'equal',
   NEQ: 'notequal',
   GT: 'greaterthan',
@@ -120,7 +118,7 @@ const OP_TO_EJ2: Partial<Record<MetaUiFilterOperatorCode, string>> = {
   IS_FALSE: 'equal',
 }
 
-const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
+const AG_TO_OP: Record<string, MetaUiFilterOpCode> = {
   equals: 'EQ',
   notEqual: 'NEQ',
   contains: 'CONTAINS',
@@ -139,7 +137,7 @@ const AG_TO_OP: Record<string, MetaUiFilterOperatorCode> = {
   false: 'IS_FALSE',
 }
 
-const OP_TO_AG: Partial<Record<MetaUiFilterOperatorCode, string>> = {
+const OP_TO_AG: Partial<Record<MetaUiFilterOpCode, string>> = {
   EQ: 'equals',
   NEQ: 'notEqual',
   CONTAINS: 'contains',
@@ -160,7 +158,7 @@ const OP_TO_AG: Partial<Record<MetaUiFilterOperatorCode, string>> = {
   IS_FALSE: 'false',
 }
 
-const TEXT_OPS: MetaUiFilterOperatorCode[] = [
+const TEXT_OPS: MetaUiFilterOpCode[] = [
   'EQ',
   'NEQ',
   'CONTAINS',
@@ -173,7 +171,7 @@ const TEXT_OPS: MetaUiFilterOperatorCode[] = [
   'NOT_IN',
 ]
 
-const NUMBER_OPS: MetaUiFilterOperatorCode[] = [
+const NUMBER_OPS: MetaUiFilterOpCode[] = [
   'EQ',
   'NEQ',
   'GT',
@@ -185,7 +183,7 @@ const NUMBER_OPS: MetaUiFilterOperatorCode[] = [
   'IS_NOT_NULL',
 ]
 
-const DATE_OPS: MetaUiFilterOperatorCode[] = [
+const DATE_OPS: MetaUiFilterOpCode[] = [
   'EQ',
   'NEQ',
   'GT',
@@ -198,7 +196,7 @@ const DATE_OPS: MetaUiFilterOperatorCode[] = [
   'IS_NOT_NULL',
 ]
 
-const BOOLEAN_OPS: MetaUiFilterOperatorCode[] = ['IS_TRUE', 'IS_FALSE', 'IS_NULL']
+const BOOLEAN_OPS: MetaUiFilterOpCode[] = ['IS_TRUE', 'IS_FALSE', 'IS_NULL']
 
 export function queryBuilderValueOf(
   props: UiQueryBuilderProps,
@@ -235,7 +233,7 @@ export function queryBuilderValueTypeOf(
 
 export function defaultQueryBuilderOperators(
   valueType: UiQueryBuilderValueType,
-): MetaUiFilterOperatorCode[] {
+): MetaUiFilterOpCode[] {
   if (valueType === 'number') return NUMBER_OPS
   if (valueType === 'date' || valueType === 'datetime') return DATE_OPS
   if (valueType === 'boolean') return BOOLEAN_OPS
@@ -281,7 +279,7 @@ export function defaultAdvancedJoin(
 
 export function defaultAdvancedColumn(
   column: UiQueryBuilderColumn,
-): AdvancedColumnFilter {
+): AdvancedFieldFilter {
   const operator = column.operators?.[0] ?? defaultQueryBuilderOperators(column.valueType)[0]
   if (column.valueType === 'boolean') {
     return { fieldName: column.fieldName, filterType: 'boolean', value: true }
@@ -309,8 +307,8 @@ export function defaultAdvancedColumn(
 
 function leafFilterTypeOf(
   valueType: UiQueryBuilderValueType,
-  operator?: MetaUiFilterOperatorCode,
-): AdvancedColumnFilter['filterType'] {
+  operator?: MetaUiFilterOpCode,
+): AdvancedFieldFilter['filterType'] {
   if (operator === 'IN' || operator === 'NOT_IN') return 'set'
   if (valueType === 'boolean') return 'boolean'
   if (valueType === 'number') return 'number'
@@ -340,7 +338,7 @@ function isEj2Group(rule: QueryBuilderRuleModel): boolean {
 
 function leafFromEj2(
   rule: QueryBuilderRuleModel,
-): AdvancedColumnFilter | undefined {
+): AdvancedFieldFilter | undefined {
   const fieldName = String(rule.field ?? '')
   if (!fieldName) return undefined
   const operator = EJ2_TO_OP[String(rule.operator ?? '').toLowerCase()]
@@ -368,7 +366,7 @@ function leafFromEj2(
       fieldName,
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: isDateRangeKind(rule.value) ? rule.value : undefined,
+      value: isDateRangeKind(rule.value) ? rule.value : undefined,
     }
   }
   return {
@@ -388,13 +386,13 @@ export function queryBuilderRuleToAdvanced(
     const conditions = (rule.rules ?? [])
       .map((item) => queryBuilderRuleToAdvanced(item))
       .filter((item): item is AdvancedFilterModel => item != null)
-    return compactAdvancedFilter({
+    return AdvancedFilterModel.compact({
       filterType: 'join',
       operator,
       conditions,
     })
   }
-  return compactAdvancedFilter(leafFromEj2(rule))
+  return AdvancedFilterModel.compact(leafFromEj2(rule))
 }
 
 function columnOf(
@@ -405,7 +403,7 @@ function columnOf(
 }
 
 function leafToEj2(
-  leaf: AdvancedColumnFilter,
+  leaf: AdvancedFieldFilter,
   columns: UiQueryBuilderColumn[],
 ): QueryBuilderRuleModel {
   const column = columnOf(leaf.fieldName, columns)
@@ -446,12 +444,12 @@ function leafToEj2(
       type: ej2TypeOf(valueType),
     }
   }
-  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.dateKind)) {
+  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.value)) {
     return {
       field: leaf.fieldName,
       label: column?.label,
       operator: 'within',
-      value: leaf.dateKind,
+      value: leaf.value,
       type: ej2TypeOf(valueType),
     }
   }
@@ -468,11 +466,11 @@ export function advancedToQueryBuilderRule(
   model?: AdvancedFilterModel | null,
   columns: UiQueryBuilderColumn[] = [],
 ): QueryBuilderRuleModel {
-  const compact = compactAdvancedFilter(model)
+  const compact = AdvancedFilterModel.compact(model)
   if (!compact) {
     return { condition: 'and', rules: [] }
   }
-  if (isAdvancedJoinFilter(compact)) {
+  if (AdvancedFilterModel.isJoin(compact)) {
     return {
       condition: compact.operator === 'OR' ? 'or' : 'and',
       rules: compact.conditions.map((item) =>
@@ -495,7 +493,7 @@ function agColumnTypeOf(filterType: string): UiQueryBuilderValueType {
 function agTypeToOperator(
   type: string,
   valueType: UiQueryBuilderValueType,
-): MetaUiFilterOperatorCode {
+): MetaUiFilterOpCode {
   if (type === 'blank') return valueType === 'text' ? 'IS_BLANK' : 'IS_NULL'
   if (type === 'notBlank') return valueType === 'text' ? 'IS_NOT_BLANK' : 'IS_NOT_NULL'
   return AG_TO_OP[type] ?? 'EQ'
@@ -503,7 +501,7 @@ function agTypeToOperator(
 
 function leafFromAg(
   model: AgColumnAdvancedFilter,
-): AdvancedColumnFilter | undefined {
+): AdvancedFieldFilter | undefined {
   const fieldName = String(model.colId ?? '')
   if (!fieldName) return undefined
   const valueType = agColumnTypeOf(model.filterType)
@@ -512,7 +510,7 @@ function leafFromAg(
       fieldName,
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: model.type,
+      value: model.type,
     }
   }
   const operator = agTypeToOperator(model.type, valueType)
@@ -546,7 +544,7 @@ export function agAdvancedToEntity(
   if (!model) return undefined
   if (model.filterType === 'join') {
     const join = model as AgJoinAdvancedFilter
-    return compactAdvancedFilter({
+    return AdvancedFilterModel.compact({
       filterType: 'join',
       operator: join.type === 'OR' ? 'OR' : 'AND',
       conditions: (join.conditions ?? [])
@@ -554,10 +552,10 @@ export function agAdvancedToEntity(
         .filter((item): item is AdvancedFilterModel => item != null),
     })
   }
-  return compactAdvancedFilter(leafFromAg(model as AgColumnAdvancedFilter))
+  return AdvancedFilterModel.compact(leafFromAg(model as AgColumnAdvancedFilter))
 }
 
-function leafToAg(leaf: AdvancedColumnFilter): AgColumnAdvancedFilter {
+function leafToAg(leaf: AdvancedFieldFilter): AgColumnAdvancedFilter {
   const filterType =
     leaf.filterType === 'set' ? 'text' : leaf.filterType
   if (leaf.filterType === 'boolean') {
@@ -567,11 +565,11 @@ function leafToAg(leaf: AdvancedColumnFilter): AgColumnAdvancedFilter {
       type: leaf.value === false ? 'false' : 'true',
     }
   }
-  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.dateKind)) {
+  if (leaf.operator === 'WITHIN' || isDateRangeKind(leaf.value)) {
     return {
       filterType: 'date',
       colId: leaf.fieldName,
-      type: leaf.dateKind ?? 'within',
+      type: isDateRangeKind(leaf.value) ? leaf.value : 'within',
     }
   }
   return {
@@ -586,9 +584,9 @@ function leafToAg(leaf: AdvancedColumnFilter): AgColumnAdvancedFilter {
 export function entityToAgAdvanced(
   model?: AdvancedFilterModel | null,
 ): AgAdvancedFilterModel | undefined {
-  const compact = compactAdvancedFilter(model)
+  const compact = AdvancedFilterModel.compact(model)
   if (!compact) return undefined
-  if (isAdvancedJoinFilter(compact)) {
+  if (AdvancedFilterModel.isJoin(compact)) {
     return {
       filterType: 'join',
       type: compact.operator,

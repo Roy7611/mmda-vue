@@ -42,7 +42,7 @@ function isUri(s: string): boolean {
   }
 }
 
-export const stringFactories: Record<string, (args: string[]) => FieldValidator> = {
+export const stringValidators: Record<string, (args: string[]) => FieldValidator> = {
   MaxLength: (args) => {
     const max = Number(args[0])
     return {

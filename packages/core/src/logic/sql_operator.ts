@@ -1,14 +1,14 @@
 import { isString } from "../utils/is";
 import { SqlDataType } from "../metaui/datatype";
 import { MetaUiField } from "../metaui/metaui_field";
-import type { MetaUiFilterOperatorCode } from "../metaui/metaui_filter";
+import type { MetaUiFilterOpCode } from "../metaui/metaui_filter";
 
 /**
  * SQL 片段操作符：metadata `where` / Logic `refWhere`。
- * 结构化列表过滤用 MetaUiFilterOperatorCode，不要用本类型拼进 queryParams。
+ * 结构化列表过滤用 MetaUiFilterOpCode，不要用本类型拼进 queryParams。
  */
 export interface SqlOperator {
-  name: MetaUiFilterOperatorCode;
+  name: MetaUiFilterOpCode;
   toSQL: (v: any) => string;
   parameters?: number;
   symbol?: string;
@@ -82,7 +82,7 @@ const IS_NOT_NULL: SqlOperator = {
   parameters: 0,
   label: "Not nil",
 };
-/** 语义算子；toSQL 仍写 IS NULL，列表主路径走 expandBlankFilters。 */
+/** 语义算子；toSQL 仍写 IS NULL，列表主路径走 FilterModel.expandBlank。 */
 const IS_BLANK: SqlOperator = {
   name: "IS_BLANK",
   toSQL: () => "IS NULL",
@@ -187,7 +187,7 @@ export const SqlOperatorNameList = [
 export type SqlOperatorName = (typeof SqlOperatorNameList)[number];
 
 export const getSqlOperator = (
-  op: MetaUiFilterOperatorCode | SqlOperatorName,
+  op: MetaUiFilterOpCode | SqlOperatorName,
 ): SqlOperator | undefined => {
   const ops = ([] as SqlOperator[]).concat(
     ...Object.values(defaultSqlOps),
@@ -208,5 +208,5 @@ export const getFieldSqlOps = (field: MetaUiField): SqlOperator[] => {
   return defaultSqlOps.StringFieldOps;
 };
 
-export const getFieldFilterOps = (field: MetaUiField): MetaUiFilterOperatorCode[] =>
+export const getFieldFilterOps = (field: MetaUiField): MetaUiFilterOpCode[] =>
   getFieldSqlOps(field).map((op) => op.name);

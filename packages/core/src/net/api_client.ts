@@ -1,11 +1,4 @@
-import { Entity } from "../models/entity";
-import { expandDateFilters } from "../models/date_filter";
-import {
-  expandBlankFilters,
-  hasFilterModel,
-  type FilterModel,
-  type EntitySearchParam,
-} from "../models/entity_search";
+import { Entity, FilterModel, type EntitySearchParam } from "../models/entity";
 import {
   type Pagination,
   type PagedList,
@@ -109,8 +102,8 @@ export function toQueryParams(param: EntitySearchParam) {
 
 /** 将 EntitySearchParam 拆成 URL query 与 searchAll body。body 是 FilterModel。 */
 export function toSearchRequest(param: EntitySearchParam): EntitySearchRequest {
-  const filterModel = hasFilterModel(param)
-    ? expandBlankFilters(expandDateFilters(param.filterModel))
+  const filterModel = FilterModel.has(param)
+    ? FilterModel.expandBlank(FilterModel.expandDates(param.filterModel))
     : undefined;
   return {
     queryParams: toQueryParams(param),

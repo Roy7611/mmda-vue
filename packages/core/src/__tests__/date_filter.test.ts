@@ -3,18 +3,13 @@ import {
   DateRangeKind,
   dateTimeRange,
   isDateRangeKind,
-} from '../utils/date_range'
+} from '../models/date_range'
 import {
-  compactDateSet,
-  dateTokenToHalfOpen,
-  expandDateFilters,
-  expandDateSetLeaves,
-  mergeHalfOpenRanges,
-  normalizePivotDates,
-  pivotDaysToTree,
-  pivotTokensToTree,
+  DatePeriodToken,
+  DatePeriodTreeNode,
+  HalfOpenDateRange,
 } from '../models/date_filter'
-import { compactFieldFilter, dateKindFilter, inFilter } from '../models/entity_search'
+import { FieldFilter, FilterModel } from '../models/entity'
 
 describe('dateTimeRange extras', () => {
   it('TOMORROW 整段在今天之后', () => {
@@ -42,8 +37,8 @@ describe('dateTimeRange extras', () => {
 
 describe('date period tokens', () => {
   it('相邻 5 月与 6 月合并成一段半开 BETWEEN', () => {
-    const expanded = expandDateFilters({
-      createdAt: inFilter(['2026-05', '2026-06']),
+    const expanded = FilterModel.expandDates({
+      createdAt: FieldFilter.in(['2026-05', '2026-06']),
     })
     expect(expanded?.createdAt).toEqual({
       filterType: 'date',
@@ -54,8 +49,8 @@ describe('date period tokens', () => {
   })
 
   it('2026-05 + 2026-06-01 + 2025-12 合并成两段 OR', () => {
-    const expanded = expandDateFilters({
-      createdAt: inFilter(['2026-05', '2026-06-01', '2025-12']),
+    const expanded = FilterModel.expandDates({
+      createdAt: FieldFilter.in(['2026-05', '2026-06-01', '2025-12']),
     })
     expect(expanded?.createdAt).toMatchObject({
       filterType: 'join',
@@ -79,47 +74,29 @@ describe('date period tokens', () => {
   })
 
   it('dateKind 不展开', () => {
-    const kind = dateKindFilter(DateRangeKind.THIS_MONTH)
+    const kind = FieldFilter.dateKind(DateRangeKind.THIS_MONTH)
     expect(kind).toEqual({
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: DateRangeKind.THIS_MONTH,
+      value: DateRangeKind.THIS_MONTH,
     })
-    expect(expandDateFilters({ createdAt: kind })?.createdAt).toEqual(kind)
-  })
-
-  it('旧 BETWEEN+dateKind 水合成 WITHIN 且不展开', () => {
-    const legacy = {
-      filterType: 'date' as const,
-      operator: 'BETWEEN' as const,
-      dateKind: DateRangeKind.TODAY,
-    }
-    expect(compactFieldFilter(legacy)).toEqual({
-      filterType: 'date',
-      operator: 'WITHIN',
-      dateKind: DateRangeKind.TODAY,
-    })
-    expect(expandDateFilters({ createdAt: legacy })?.createdAt).toEqual({
-      filterType: 'date',
-      operator: 'WITHIN',
-      dateKind: DateRangeKind.TODAY,
-    })
+    expect(FilterModel.expandDates({ createdAt: kind })?.createdAt).toEqual(kind)
   })
 
   it('status set 不当地期 token 展开', () => {
-    const status = inFilter(['OPEN', 'USED'])
-    expect(expandDateFilters({ status })?.status).toEqual(status)
+    const status = FieldFilter.in(['OPEN', 'USED'])
+    expect(FilterModel.expandDates({ status })?.status).toEqual(status)
   })
 
-  it('compactDateSet 对照 pivot 收成年月', () => {
+  it('DatePeriodToken.compact 对照 pivot 收成年月', () => {
     const pivot = ['2026-05-01', '2026-05-15', '2026-06-01']
-    expect(compactDateSet(['2026-05-01', '2026-05-15'], pivot)).toEqual(['2026-05'])
+    expect(DatePeriodToken.compact(['2026-05-01', '2026-05-15'], pivot)).toEqual(['2026-05'])
     expect(
-      compactDateSet(['2026-05-01', '2026-05-15', '2026-06-01'], pivot),
+      DatePeriodToken.compact(['2026-05-01', '2026-05-15', '2026-06-01'], pivot),
     ).toEqual(['2026'])
   })
 
-  it('pivotTokensToTree 用服务端已排序的年/月/日 List<String>，不重排', () => {
+  it('DatePeriodTreeNode.fromTokens 用服务端已排序的年/月/日 List<String>，不重排', () => {
     const tokens = [
       '2025',
       '2025-06',
@@ -128,7 +105,7 @@ describe('date period tokens', () => {
       '2025-07',
       '2025-07-01',
     ]
-    expect(pivotTokensToTree(tokens, { month: '月' })).toEqual([
+    expect(DatePeriodTreeNode.fromTokens(tokens, { month: '月' })).toEqual([
       {
         id: '2025',
         text: '2025',
@@ -149,12 +126,12 @@ describe('date period tokens', () => {
         ],
       },
     ])
-    expect(normalizePivotDates(tokens)).toEqual(['2025-06-13', '2025-06-16', '2025-07-01'])
+    expect(DatePeriodToken.days(tokens)).toEqual(['2025-06-13', '2025-06-16', '2025-07-01'])
   })
 
-  it('pivotDaysToTree 收成年月日，全选月仍走 compactDateSet', () => {
+  it('从日 token 拼树，全选月仍走 compact', () => {
     const days = ['2026-05-01', '2026-05-15', '2026-06-01']
-    const tree = pivotDaysToTree(days, { month: '月' })
+    const tree = DatePeriodTreeNode.fromTokens(days, { month: '月' })
     expect(tree).toEqual([
       {
         id: '2026',
@@ -176,19 +153,19 @@ describe('date period tokens', () => {
         ],
       },
     ])
-    expect(compactDateSet(['2026-05-01', '2026-05-15'], days)).toEqual(['2026-05'])
+    expect(DatePeriodToken.compact(['2026-05-01', '2026-05-15'], days)).toEqual(['2026-05'])
   })
 
-  it('expandDateSetLeaves 把月 token 展开成 pivot 日', () => {
+  it('DatePeriodToken.expandLeaves 把月 token 展开成 pivot 日', () => {
     expect(
-      expandDateSetLeaves(['2026-05'], ['2026-05-01', '2026-05-15', '2026-06-01']),
+      DatePeriodToken.expandLeaves(['2026-05'], ['2026-05-01', '2026-05-15', '2026-06-01']),
     ).toEqual(['2026-05-01', '2026-05-15'])
   })
 
   it('半开相邻：5 月 next 等于 6 月 1 日 start', () => {
-    const may = dateTokenToHalfOpen('2026-05')!
-    const day = dateTokenToHalfOpen('2026-06-01')!
-    const [merged] = mergeHalfOpenRanges([may, day])
+    const may = HalfOpenDateRange.fromToken('2026-05')!
+    const day = HalfOpenDateRange.fromToken('2026-06-01')!
+    const [merged] = HalfOpenDateRange.merge([may, day])
     expect(merged.start.toISODate()).toBe('2026-05-01')
     expect(merged.next.toISODate()).toBe('2026-06-02')
   })

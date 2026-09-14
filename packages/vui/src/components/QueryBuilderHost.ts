@@ -1,44 +1,42 @@
 import { computed, defineComponent, h, type PropType, type VNode } from 'vue'
 import {
-  compactAdvancedFilter,
   DATE_RANGE_FILTER_KINDS,
   defaultAdvancedColumn,
   defaultAdvancedJoin,
   defaultQueryBuilderOperators,
-  isAdvancedJoinFilter,
   isDateRangeKind,
   queryBuilderColumnsOf,
   queryBuilderModifierClasses,
   queryBuilderValueOf,
   type DateTimeRangeKind,
-  type EntityAdvancedColumnFilter,
-  type EntityAdvancedFilterModel,
-  type EntityAdvancedJoinFilter,
-  type MetaUiFilterOperatorCode,
+  type AdvancedFieldFilter,
+  AdvancedFilterModel,
+  type AdvancedJoinFilter,
+  type MetaUiFilterOpCode,
   type MetaUiField,
   type UiQueryBuilderColumn,
   type UiQueryBuilderProps,
 } from '@mmda/core'
 import { emitQueryBuilderChange } from '../ui/factory/query_builder'
 
-function asJoin(model?: EntityAdvancedFilterModel | null): EntityAdvancedJoinFilter {
-  if (model && isAdvancedJoinFilter(model)) return model
+function asJoin(model?: AdvancedFilterModel | null): AdvancedJoinFilter {
+  if (model && AdvancedFilterModel.isJoin(model)) return model
   if (model) return { filterType: 'join', operator: 'AND', conditions: [model] }
   return defaultAdvancedJoin()
 }
 
 function patchAt(
-  join: EntityAdvancedJoinFilter,
+  join: AdvancedJoinFilter,
   index: number,
-  next: EntityAdvancedFilterModel | undefined,
-): EntityAdvancedJoinFilter {
+  next: AdvancedFilterModel | undefined,
+): AdvancedJoinFilter {
   const conditions = join.conditions.slice()
   if (next == null) conditions.splice(index, 1)
   else conditions[index] = next
   return { ...join, conditions }
 }
 
-function operatorNeedsValue(op?: MetaUiFilterOperatorCode): boolean {
+function operatorNeedsValue(op?: MetaUiFilterOpCode): boolean {
   return (
     op !== 'IS_NULL' &&
     op !== 'IS_NOT_NULL' &&
@@ -49,15 +47,15 @@ function operatorNeedsValue(op?: MetaUiFilterOperatorCode): boolean {
   )
 }
 
-function operatorNeedsRange(op?: MetaUiFilterOperatorCode): boolean {
+function operatorNeedsRange(op?: MetaUiFilterOpCode): boolean {
   return op === 'BETWEEN'
 }
 
-function operatorNeedsDateKind(op?: MetaUiFilterOperatorCode): boolean {
+function operatorNeedsDateKind(op?: MetaUiFilterOpCode): boolean {
   return op === 'WITHIN'
 }
 
-function operatorNeedsList(op?: MetaUiFilterOperatorCode): boolean {
+function operatorNeedsList(op?: MetaUiFilterOpCode): boolean {
   return op === 'IN' || op === 'NOT_IN'
 }
 
@@ -70,11 +68,11 @@ export const QueryBuilderHost = defineComponent({
       default: undefined,
     },
     value: {
-      type: Object as PropType<EntityAdvancedFilterModel>,
+      type: Object as PropType<AdvancedFilterModel>,
       default: undefined,
     },
     modelValue: {
-      type: Object as PropType<EntityAdvancedFilterModel>,
+      type: Object as PropType<AdvancedFilterModel>,
       default: undefined,
     },
     disabled: { type: [Boolean, String], default: false },
@@ -91,13 +89,13 @@ export const QueryBuilderHost = defineComponent({
       () => props.disabled === true,
     )
 
-    const emit = (model: EntityAdvancedFilterModel | undefined) => {
+    const emit = (model: AdvancedFilterModel | undefined) => {
       emitQueryBuilderChange(chrome.value, model)
     }
 
     const renderLeaf = (
-      leaf: EntityAdvancedColumnFilter,
-      onPatch: (next: EntityAdvancedFilterModel | undefined) => void,
+      leaf: AdvancedFieldFilter,
+      onPatch: (next: AdvancedFilterModel | undefined) => void,
     ) => {
       const column =
         columns.value.find((item) => item.fieldName === leaf.fieldName) ??
@@ -113,7 +111,7 @@ export const QueryBuilderHost = defineComponent({
         const nextCol = columns.value.find((item) => item.fieldName === fieldName)
         onPatch(nextCol ? defaultAdvancedColumn(nextCol) : { ...leaf, fieldName })
       }
-      const setOp = (operator: MetaUiFilterOperatorCode) => {
+      const setOp = (operator: MetaUiFilterOpCode) => {
         if (operator === 'IN' || operator === 'NOT_IN') {
           onPatch({
             fieldName: leaf.fieldName,
@@ -142,7 +140,7 @@ export const QueryBuilderHost = defineComponent({
             fieldName: leaf.fieldName,
             filterType: 'date',
             operator,
-            dateKind: isDateRangeKind(leaf.dateKind) ? leaf.dateKind : undefined,
+            value: isDateRangeKind(leaf.value) ? leaf.value : undefined,
           })
           return
         }
@@ -178,7 +176,7 @@ export const QueryBuilderHost = defineComponent({
                   : 'IS_TRUE'
                 : leaf.operator ?? ops[0],
             onChange: (event: Event) =>
-              setOp((event.target as HTMLSelectElement).value as MetaUiFilterOperatorCode),
+              setOp((event.target as HTMLSelectElement).value as MetaUiFilterOpCode),
           },
           opOptions,
         ),
@@ -191,17 +189,16 @@ export const QueryBuilderHost = defineComponent({
               {
                 class: 'mmda-querybuilder__value',
                 disabled: disabled.value,
-                value: leaf.dateKind ?? '',
+                value: isDateRangeKind(leaf.value) ? leaf.value : '',
                 onChange: (event: Event) => {
                   const raw = (event.target as HTMLSelectElement).value
                   onPatch({
                     ...leaf,
                     filterType: 'date',
                     operator: 'WITHIN',
-                    dateKind: isDateRangeKind(raw)
+                    value: isDateRangeKind(raw)
                       ? (raw as DateTimeRangeKind)
                       : undefined,
-                    value: undefined,
                     valueTo: undefined,
                   })
                 },
@@ -309,14 +306,14 @@ export const QueryBuilderHost = defineComponent({
     }
 
     const renderGroup = (
-      join: EntityAdvancedJoinFilter,
-      onPatch: (next: EntityAdvancedJoinFilter) => void,
+      join: AdvancedJoinFilter,
+      onPatch: (next: AdvancedJoinFilter) => void,
     ): VNode => {
       const rows: VNode[] = join.conditions.map((item, index) => {
-        const patchChild = (next: EntityAdvancedFilterModel | undefined) => {
+        const patchChild = (next: AdvancedFilterModel | undefined) => {
           onPatch(patchAt(join, index, next))
         }
-        if (isAdvancedJoinFilter(item)) {
+        if (AdvancedFilterModel.isJoin(item)) {
           return h('div', { class: 'mmda-querybuilder__child', key: index }, [
             renderGroup(item, (next) => patchChild(next)),
           ])
@@ -389,7 +386,7 @@ export const QueryBuilderHost = defineComponent({
         { class: queryBuilderModifierClasses(chrome.value).flat() },
         [
           renderGroup(root, (next) => {
-            emit(compactAdvancedFilter(next) ?? defaultAdvancedJoin())
+            emit(AdvancedFilterModel.compact(next) ?? defaultAdvancedJoin())
           }),
         ],
       )

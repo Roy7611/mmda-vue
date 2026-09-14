@@ -66,7 +66,7 @@ describe('FieldSearchOptions', () => {
 })
 
 describe('SqlOperator', () => {
-  it('getFieldFilterOps 按字段给出 MetaUiFilterOperatorCode', () => {
+  it('getFieldFilterOps 按字段给出 MetaUiFilterOpCode', () => {
     const field = new MetaUiField({
       fieldIdx: 0,
       fieldName: 'name',

@@ -49,6 +49,8 @@ describe('MetaUiFilterType / inferColumnFilterType', () => {
     expect(MetaUiFilterOperatorEnum.textOf(MetaUiFilterOperator.BETWEEN)).toBe(
       'between',
     )
+    expect(MetaUiFilterOperatorEnum.textFilterOperators[0]).toBe('EQ')
+    expect(MetaUiFilterOperatorEnum.setFilterOperators).toEqual(['IN', 'NOT_IN'])
   })
 
   it('静态 infer 也能吃普通字段袋', () => {

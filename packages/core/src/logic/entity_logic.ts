@@ -2,7 +2,7 @@ import { ApiClient, type EntityUrlParam } from "../net/api_client";
 import { ApiProblem, toApiProblem } from "../net/api_problem";
 import { ApiError, isApiErrorPayload, toApiError } from "../net/api_error";
 import { isObject, isNullObject } from "../utils/is";
-import { Entity, type EntityCtor, type EntitySearchParam, type SelectableFn } from "../models/entity";
+import { Entity, type EntityCtor, EntitySearchParam, type SelectableFn } from "../models/entity";
 import {
   MetaModel,
   defaultEntitySimplifyOptions,
@@ -23,7 +23,6 @@ import type { Predicate } from "./logic_functions";
 import type { UniListViewProps, UiViewType } from "../ui/view";
 import { UiViewMany, UiViewOne } from "../ui/view";
 import { getSqlOperator } from "./sql_operator";
-import { defaultSearchParam } from "../models/entity_search";
 import "../extensions/string_extensions";
 
 export interface EntityLogicInit {
@@ -306,7 +305,7 @@ export abstract class EntityLogic<E extends Entity> {
   /** vui 可覆盖以注入响应式包装。 */
   protected createSearchForm(): EntitySearchForm {
     return {
-      searchParam: defaultSearchParam(),
+      searchParam: EntitySearchParam.create(),
       queryParams: {},
       searchFields: [],
       customSearchFields: [],

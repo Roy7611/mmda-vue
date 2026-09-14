@@ -1,13 +1,12 @@
 import type { VNode, VNodeChild } from 'vue'
 import {
   DEFAULT_PAGE_SIZE,
-  defaultSearchParam,
   resolveViewManyType,
   resolveViewOneType,
   resolveViewProp,
   resolveViewPropBool,
   resolveViewPropNumber,
-  type EntitySearchParam,
+  EntitySearchParam,
   type UiProps,
   type UiViewManyProps,
   type UiViewOneProps,
@@ -94,7 +93,7 @@ export function resolveViewManyProps(
 
 /** 列表默认搜索参数：pager.pageSize 使用本地偏好 `mmda/pageSize` */
 export function createDefaultSearchParam(searchWord = ''): EntitySearchParam {
-  const param = defaultSearchParam(searchWord)
+  const param = EntitySearchParam.create(searchWord)
   param.pager.pageSize = readStoredPageSize()
   return param
 }

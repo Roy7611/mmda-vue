@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, inFilter, notInFilter, EntitySearchParam, PagedList, type EntityUrlParam } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, EntitySearchParam, PagedList, type EntityUrlParam, FieldFilter } from '@mmda/core';
 import { processBpmnNode } from '@/components/BpmnModeler';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
 import { type Process, defineProcess } from '@/models/Process';
@@ -122,7 +122,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 			resolve(this.apiClient.searchAll({
 				searchWord: typeof searchWord === 'string' ? searchWord : '',
 				filterModel: {
-					materialType: notInFilter([MaterialType.LABOR]),
+					materialType: FieldFilter.notIn([MaterialType.LABOR]),
 				},
 				pager: defaultPager(),
 			}, {
@@ -1318,8 +1318,8 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 			searchParam: {
 				pager: defaultPager(),
 				filterModel: {
-					status: inFilter('USED'),
-					materialType: inFilter([MaterialType.LABOR, MaterialType.TOOLS]),
+					status: FieldFilter.in('USED'),
+					materialType: FieldFilter.in([MaterialType.LABOR, MaterialType.TOOLS]),
 				}
 			},
 			selectableFn: (m: Material) => !(target.resources && target.resources.find((r: ProcessOperationResource) => !MetaModel.deleted(r) && r.resourceID === m.materialID))

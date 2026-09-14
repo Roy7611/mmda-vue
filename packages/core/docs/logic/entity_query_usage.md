@@ -6,17 +6,14 @@
 
 ```ts
 import {
-  defaultSearchParam,
-  inFilter,
-  notInFilter,
-  eqFilter,
-  nullFilter,
+  EntitySearchParam,
+  FieldFilter,
 } from '@mmda/core'
 
-const param = defaultSearchParam('仓')
+const param = EntitySearchParam.create('仓')
 param.filterModel = {
-  status: inFilter('USED'),
-  materialType: notInFilter(['LABOR']),
+  status: FieldFilter.in('USED'),
+  materialType: FieldFilter.notIn(['LABOR']),
 }
 
 const page = await this.apiClient.searchAll(param, {
@@ -46,9 +43,9 @@ search.advancedFilterModel = {
 
 ```ts
 filterModel: {
-  status: inFilter(['OPEN', 'USED']),
-  categoryID: eqFilter(id),
-  toolkitID: nullFilter(), // IS_NULL
+  status: FieldFilter.in(['OPEN', 'USED']),
+  categoryID: FieldFilter.eq(id),
+  toolkitID: FieldFilter.nil(), // IS_NULL
   qty: {
     filterType: 'number',
     operator: 'BETWEEN',
@@ -60,23 +57,23 @@ filterModel: {
 
 | 工厂 | 结果 |
 |---|---|
-| `inFilter(v)` | set + `IN` |
-| `notInFilter(v)` | set + `NOT_IN` |
-| `eqFilter(v, filterType?)` | 简单相等，默认 `text` |
-| `betweenFilter(from, to)` | `date` + `BETWEEN` |
-| `dateKindFilter('THIS_MONTH')` | `WITHIN` + `dateKind`，POST 原样带 kind |
-| `nullFilter('IS_NULL' \| 'IS_NOT_NULL')` | 真 NULL（数字 / 日期 / 外键） |
-| `blankFilter('IS_BLANK' \| 'IS_NOT_BLANK')` | 字符串没内容；POST 展开成 `IS_NULL OR = ''` |
+| `FieldFilter.in(v)` | set + `IN` |
+| `FieldFilter.notIn(v)` | set + `NOT_IN` |
+| `FieldFilter.eq(v, filterType?)` | 简单相等，默认 `text` |
+| `FieldFilter.between(from, to)` | `date` + `BETWEEN` |
+| `FieldFilter.dateKind('THIS_MONTH')` | `WITHIN` + `value`（kind），POST 原样带 kind |
+| `FieldFilter.nil('IS_NULL' \| 'IS_NOT_NULL')` | 真 NULL（数字 / 日期 / 外键） |
+| `FieldFilter.blank('IS_BLANK' \| 'IS_NOT_BLANK')` | 字符串没内容；POST 展开成 `IS_NULL OR = ''` |
 
 可复用「本月」：
 
 ```ts
-import { dateKindFilter } from '@mmda/core'
+import { FieldFilter } from '@mmda/core'
 
-param.filterModel = { createdAt: dateKindFilter('THIS_MONTH') }
+param.filterModel = { createdAt: FieldFilter.dateKind('THIS_MONTH') }
 ```
 
-Excel 勾选绝对年月日用 `inFilter(['2026-05', '2026-06-01'])`。完整日期示例（本月 OR 上月、pivot 树、常见坑）见 [date_filter_usage.md](./date_filter_usage.md)。
+Excel 勾选绝对年月日用 `FieldFilter.in(['2026-05', '2026-06-01'])`。完整日期示例（本月 OR 上月、pivot 树、常见坑）见 [date_filter_usage.md](./date_filter_usage.md)。
 
 不要再写：
 
@@ -98,9 +95,9 @@ queryParams: {
 ```
 
 ```ts
-import { parseDefaultFilter } from '@mmda/core'
+import { NamedQueryRef } from '@mmda/core'
 
-const chips = parseDefaultFilter(module.defaultFilter)
+const chips = NamedQueryRef.parse(module.defaultFilter)
 // [{ queryID: '1', queryName: '全部' }, ...]
 ```
 
@@ -108,34 +105,32 @@ const chips = parseDefaultFilter(module.defaultFilter)
 
 ```ts
 import {
-  parseQueryExpression,
-  applyEntityQuery,
+  EntityQuery,
 } from '@mmda/core'
 
-const parsed = parseQueryExpression(customized.queryExpression)
+const parsed = EntityQuery.parse(customized.queryExpression)
 if (parsed?.kind === 'query') {
-  applyEntityQuery(context.searchParam, parsed.query)
+  EntityQuery.apply(context.searchParam, parsed.query)
 }
 ```
 
-未选中命名查询时用 `module.defaultSort`（`parseDefaultSort`）；有查询以该查询的 `pager.sorts` 为准。
+未选中命名查询时用 `module.defaultSort`（`EntityQuery.parseDefaultSort`）；有查询以该查询的 `pager.sorts` 为准。
 
 ## 保存 / 套用 CustomizedQuery
 
 ```ts
 import {
-  toEntityQuery,
-  stringifyQueryExpression,
+  EntityQuery,
 } from '@mmda/core'
 
 customized.objName = 'Material'
 customized.queryName = '启用物料'
-customized.queryExpression = stringifyQueryExpression(
-  toEntityQuery(context.searchParam),
+customized.queryExpression = EntityQuery.stringify(
+  EntityQuery.copy(context.searchParam),
 )
 ```
 
-`toEntityQuery` 会丢掉 `queryParams`，只保留可保存文档。
+`EntityQuery.copy` 会丢掉 `queryParams`，只保留可保存文档。
 
 ## 打开列表时的默认
 
@@ -146,7 +141,7 @@ vui 侧典型顺序（Logic 也可自己做）：
 3. 否则 `Module.defaultSort`（无 sorts 时）
 4. 字段条件始终来自当前 `searchParam.filterModel`
 
-持久化上次查询时把整个 `toEntityQuery(searchParam)` 写入 pack 的 `lastQuery`，不要单存 sorts。
+持久化上次查询时把整个 `EntityQuery.copy(searchParam)` 写入 pack 的 `lastQuery`，不要单存 sorts。
 
 ## `refWhere` 才用 `SqlOperator`
 
@@ -181,7 +176,7 @@ UI 文案：`t('matcher.' + op)`。
 | 另存一份 sorts 到 IndexedDB | 只存 EntityQuery（含 `pager.sorts`） |
 | `defaultFilter` 当 FilterModel JSON 解析 | 按 `queryID;queryName\|…` 解析芯片 |
 | 用 SearchOp / label 对象 | 已删除；用 `EntityFilterOperator` + i18n |
-| 把本月存成 `inFilter(['2026-09'])` | `dateKindFilter('THIS_MONTH')`，见 [date_filter_usage.md](./date_filter_usage.md) |
+| 把本月存成 `FieldFilter.in(['2026-09'])` | `FieldFilter.dateKind('THIS_MONTH')`，见 [date_filter_usage.md](./date_filter_usage.md) |
 
 ## 相关
 

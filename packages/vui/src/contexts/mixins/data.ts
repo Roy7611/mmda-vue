@@ -1,18 +1,16 @@
 import {
   MetaModel,
-  applyEntityQuery,
-  assignSearchParam,
-  parseDefaultSort,
   type Attachment,
   type Entity,
   type EntityAction,
-  type EntityFieldFilter,
-  type EntitySearchParam,
+  type FieldFilter,
+  EntitySearchParam,
   type EntityUrlParam,
   type MetaUiFilter,
   type MetaUiFilterCondition,
   type PagedList,
   type ReportTemplate,
+  EntityQuery,
 } from "@mmda/core";
 import { ref } from "vue";
 import type { ImportOrExportParam } from "../../ui/builder/builder";
@@ -132,13 +130,13 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         return uiFilter;
       });
       if (form?.searchParam)
-        assignSearchParam(this.searchParam, form.searchParam);
+        EntitySearchParam.assign(this.searchParam, form.searchParam);
       const lastQuery = this.logic?.meta?.lastQuery;
-      if (lastQuery) applyEntityQuery(this.searchParam, lastQuery);
+      if (lastQuery) EntityQuery.apply(this.searchParam, lastQuery);
       else {
         const defaultSort = this.logic?.module?.defaultSort;
         if (defaultSort && !this.searchParam.pager.sorts?.length) {
-          this.searchParam.pager.sorts = parseDefaultSort(defaultSort);
+          this.searchParam.pager.sorts = EntityQuery.parseDefaultSort(defaultSort);
         }
       }
       // 每页条数全局共用 `mmda/pageSize`，不被模块 lastQuery 覆盖
@@ -171,7 +169,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       this.syncSearchState();
     }
 
-    setFieldFilter(field: any, filter?: EntityFieldFilter) {
+    setFieldFilter(field: any, filter?: FieldFilter) {
       const name = this.resolveField(field).fieldName;
       const model = (this.searchParam.filterModel ??= {});
       if (filter) model[name] = filter;
@@ -214,7 +212,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     }
 
     applySearchParam(param: EntitySearchParam) {
-      assignSearchParam(this.searchParam, param);
+      EntitySearchParam.assign(this.searchParam, param);
       this.#baseFilter = String(this.searchParam.queryParams?.filter ?? "");
       for (const filter of this.filters) filter.selectedConditions.value = [];
       this.syncSearchState();

@@ -1,12 +1,7 @@
 import {
-  compactDateSet,
-  expandDateSetLeaves,
-  normalizePivotDates,
-  normalizePivotTokens,
-  pivotTokensToTree,
-  toDatePeriodToken,
+  DatePeriodToken,
+  DatePeriodTreeNode,
   uiCssClass,
-  type DatePeriodTreeNode,
 } from "@mmda/core";
 import { DropDownTree } from "@syncfusion/ej2-dropdowns";
 
@@ -14,19 +9,19 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export function dayTokensOfChecked(ids: unknown[], pivotDays: string[]): string[] {
   const days = ids
-    .map((id) => toDatePeriodToken(id) ?? String(id ?? ""))
+    .map((id) => DatePeriodToken.parse(id) ?? String(id ?? ""))
     .filter((id) => DAY.test(id));
-  return compactDateSet(days, pivotDays);
+  return DatePeriodToken.compact(days, pivotDays);
 }
 
 export function dateSetNodesOf(
   raw: unknown,
   monthLabel?: string,
 ): { nodes: DatePeriodTreeNode[]; pivotDays: string[] } {
-  const tokens = normalizePivotTokens(raw);
+  const tokens = DatePeriodToken.normalize(raw);
   return {
-    nodes: pivotTokensToTree(tokens, { month: monthLabel }),
-    pivotDays: normalizePivotDates(tokens),
+    nodes: DatePeriodTreeNode.fromTokens(tokens, { month: monthLabel }),
+    pivotDays: DatePeriodToken.days(tokens),
   };
 }
 
@@ -86,7 +81,7 @@ export function createDateSetTree(options: {
     showCheckBox: true,
     allowMultiSelection: true,
     treeSettings: { autoCheck: true },
-    value: expandDateSetLeaves(options.checkedTokens ?? [], pivotDays),
+    value: DatePeriodToken.expandLeaves(options.checkedTokens ?? [], pivotDays),
     placeholder: options.placeholder,
     popupHeight: "200px",
     width: "100%",

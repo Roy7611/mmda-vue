@@ -1,49 +1,80 @@
 import {
   isDateRangeKind,
   type DateTimeRangeKind,
-} from "../utils/date_range";
-import type { MetaUiFilterOperatorCode } from "../metaui/metaui_filter";
+} from "./date_range";
+import type {
+  DateFilterOpCode,
+  JoinFilterOpCode,
+  MetaUiFilterOpCode,
+  MetaUiFilterTypeName,
+  NumberFilterOpCode,
+  SetFilterOpCode,
+  TextFilterOpCode,
+  BooleanFilterOpCode,
+} from "../metaui/metaui_filter";
+import type { ModuleAuth } from "../metaui/module";
+import type { EntityCtor } from "./entity";
 import { defaultPager, parseSorts, type Pager } from "./pagination";
 
-export interface SimpleFieldFilter {
-  filterType: "text" | "number" | "date";
-  operator: MetaUiFilterOperatorCode;
+export interface FieldFilter {
+  filterType: MetaUiFilterTypeName;
+  operator?: MetaUiFilterOpCode;
   value?: unknown;
   valueTo?: unknown;
-  /** 相对日历语义。有值时不要写死 value/valueTo；POST 原样交给服务端展开。 */
-  dateKind?: DateTimeRangeKind;
+  values?: unknown[];
+  conditions?: FieldFilter[];
+  filterModels?: FieldFilter[];
 }
 
-export interface SetFieldFilter {
+/** 比较类基接口。Text / Number / Date 继承它。 */
+export interface SimpleFieldFilter extends FieldFilter {
+  filterType: "text" | "number" | "date";
+  value?: unknown;
+  valueTo?: unknown;
+}
+
+export interface SetFieldFilter extends FieldFilter {
   filterType: "set";
-  operator?: "IN" | "NOT_IN";
+  operator?: SetFilterOpCode;
   values: unknown[];
 }
 
-export interface BooleanFieldFilter {
+export interface BooleanFieldFilter extends FieldFilter {
   filterType: "boolean";
-  value: boolean | null;
+  operator?: BooleanFilterOpCode;
+  value?: boolean | null;
 }
 
-/** 同一比较器多段 AND/OR。与 multi（不同种类子过滤叠放）不同。 */
-export interface JoinFieldFilter {
+export interface TextFieldFilter extends SimpleFieldFilter {
+  filterType: "text";
+  operator?: TextFilterOpCode;
+}
+
+export interface NumberFieldFilter extends SimpleFieldFilter {
+  filterType: "number";
+  operator?: NumberFilterOpCode;
+}
+
+export interface DateFieldFilter extends SimpleFieldFilter {
+  filterType: "date";
+  operator?: DateFilterOpCode;
+}
+
+/**
+ * 列 FilterModel 里同一字段的多段 AND/OR。
+ * 外壳与 {@link AdvancedJoinFilter} 相同；conditions 是 FieldFilter（字段名是 map 键）。不要和 Query Builder 树混用。
+ */
+export interface JoinFieldFilter extends FieldFilter {
   filterType: "join";
-  operator: "AND" | "OR";
+  operator: JoinFilterOpCode;
   conditions: FieldFilter[];
 }
 
 /** 同一列叠不同种类子过滤（常见：比较条件 + 选项 set）。服务端 AND。 */
-export interface MultiFieldFilter {
+export interface MultiFieldFilter extends FieldFilter {
   filterType: "multi";
   filterModels: FieldFilter[];
 }
-
-export type FieldFilter =
-  | SimpleFieldFilter
-  | SetFieldFilter
-  | BooleanFieldFilter
-  | JoinFieldFilter
-  | MultiFieldFilter;
 
 /** 字段过滤文档，键是实体字段名。 */
 export type FilterModel = Record<string, FieldFilter>;
@@ -55,112 +86,26 @@ export type FilterModel = Record<string, FieldFilter>;
  */
 export type AdvancedFilterModel =
   | AdvancedJoinFilter
-  | AdvancedColumnFilter;
+  | AdvancedFieldFilter;
 
+/**
+ * Query Builder 树上的 join。外壳与 {@link JoinFieldFilter} 相同；
+ * conditions 是 AdvancedFilterModel（叶子自带 fieldName，可跨字段）。不要塞进 FilterModel。
+ */
 export interface AdvancedJoinFilter {
   filterType: "join";
-  operator: "AND" | "OR";
+  operator: JoinFilterOpCode;
   conditions: AdvancedFilterModel[];
 }
 
-/** 叶子：带 fieldName（≈ AG colId）。 */
-export interface AdvancedColumnFilter {
+/** 叶子：带 fieldName（≈ AG colId）。WITHIN 时 value 是 DateTimeRangeKind。 */
+export interface AdvancedFieldFilter {
   fieldName: string;
   filterType: "text" | "number" | "date" | "set" | "boolean";
-  operator?: MetaUiFilterOperatorCode;
+  operator?: MetaUiFilterOpCode;
   value?: unknown;
   valueTo?: unknown;
   values?: unknown[];
-  /** 相对日历语义。有值时不要写死 value/valueTo。 */
-  dateKind?: DateTimeRangeKind;
-}
-
-export function isAdvancedJoinFilter(
-  model?: AdvancedFilterModel | null,
-): model is AdvancedJoinFilter {
-  return (
-    !!model &&
-    model.filterType === "join" &&
-    "conditions" in model &&
-    Array.isArray(model.conditions)
-  );
-}
-
-export function cloneAdvancedFilter(
-  model?: AdvancedFilterModel | null,
-): AdvancedFilterModel | undefined {
-  if (!model) return undefined;
-  if (isAdvancedJoinFilter(model)) {
-    return {
-      filterType: "join",
-      operator: model.operator,
-      conditions: model.conditions
-        .map((item) => cloneAdvancedFilter(item))
-        .filter((item): item is AdvancedFilterModel => item != null),
-    };
-  }
-  return {
-    ...model,
-    values: model.values ? [...model.values] : undefined,
-  };
-}
-
-function isNoValueFilterOperator(
-  operator?: MetaUiFilterOperatorCode,
-): boolean {
-  return (
-    operator === "IS_NULL" ||
-    operator === "IS_NOT_NULL" ||
-    operator === "IS_BLANK" ||
-    operator === "IS_NOT_BLANK"
-  );
-}
-
-function isEmptyCompareValue(
-  operator: MetaUiFilterOperatorCode | undefined,
-  value: unknown,
-): boolean {
-  if (operator === "EQ" || operator === "NEQ") return value == null;
-  return value == null || value === "";
-}
-
-function isEmptyAdvancedColumn(filter: AdvancedColumnFilter): boolean {
-  if (filter.filterType === "set") return !filter.values?.length;
-  if (filter.filterType === "boolean") return filter.value == null;
-  if (filter.operator === "IS_ALL") return true;
-  if (isNoValueFilterOperator(filter.operator)) {
-    return false;
-  }
-  if (isDateRangeKind(filter.dateKind)) return false;
-  if (filter.operator === "WITHIN") return true;
-  if (filter.operator === "BETWEEN") {
-    return filter.value == null && filter.valueTo == null;
-  }
-  return isEmptyCompareValue(filter.operator, filter.value);
-}
-
-export function compactAdvancedFilter(
-  model?: AdvancedFilterModel | null,
-): AdvancedFilterModel | undefined {
-  if (!model) return undefined;
-  if (isAdvancedJoinFilter(model)) {
-    const conditions = model.conditions
-      .map((item) => compactAdvancedFilter(item))
-      .filter((item): item is AdvancedFilterModel => item != null);
-    if (!conditions.length) return undefined;
-    if (conditions.length === 1) return conditions[0];
-    return { filterType: "join", operator: model.operator, conditions };
-  }
-  if (isEmptyAdvancedColumn(model)) return undefined;
-  if (isDateRangeKind(model.dateKind)) {
-    return {
-      fieldName: model.fieldName,
-      filterType: "date",
-      operator: "WITHIN",
-      dateKind: model.dateKind,
-    };
-  }
-  return cloneAdvancedFilter(model);
 }
 
 /** Module.defaultFilter 段：queryID;queryName */
@@ -193,121 +138,92 @@ export interface EntitySearchParam extends EntityQuery {
   queryParams?: Record<string, unknown>;
 }
 
-export function defaultSearchParam(searchWord = ""): EntitySearchParam {
-  return {
-    pager: defaultPager(),
-    searchWord,
-  };
+/** 标记行是否可选（列表勾选 / 选择弹层）。 */
+export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
+
+/**
+ * 实体选择参数
+ * searchFieldList 实体搜索条件列表
+ * searchFieldProps 搜索条件组件props 例如：{fieldName: {param1: value,param2: value}}
+ * searchFieldSearchParam 搜索条件自定义接口入参 例如：{fieldName: {param1: value,param2: value}}
+ */
+export interface EntitySelectParam<E> {
+  repository: string;
+  service?: string;
+  searchParam?: EntitySearchParam;
+  selectionMode?: "single" | "multiple";
+  /**
+   * 未命中 DI Logic 时的行构造；默认 `defineEntity`（列表水合），不要用 `MetaModel.createEntity`。
+   */
+  ctor?: EntityCtor<E>;
+  searchFieldList?: string[];
+  searchFieldProps?: Record<string, any>;
+  searchFieldSearchParam?: Record<string, any>;
+  pageSizeOptions?: number[];
+  labelKey?: string;
+  selectableFn?: SelectableFn;
+  /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
+  labelFn?: (item: any) => string;
+  /**
+   * 覆盖弹层 CRUD 权限四项；未传时有模块跟模块 authority，无模块只读。
+   */
+  authority?: Partial<
+    Pick<ModuleAuth, "allowRead" | "allowCreate" | "allowEdit" | "allowDelete">
+  >;
 }
 
-export function defaultEntityQuery(): EntityQuery {
-  return {
-    pager: defaultPager(),
-  };
+export type ParsedQueryExpression =
+  | { kind: "query"; query: EntityQuery }
+  | { kind: "sql"; sql: string };
+
+function isNoValueFilterOperator(
+  operator?: MetaUiFilterOpCode,
+): boolean {
+  return (
+    operator === "IS_NULL" ||
+    operator === "IS_NOT_NULL" ||
+    operator === "IS_BLANK" ||
+    operator === "IS_NOT_BLANK"
+  );
 }
 
-/** @deprecated */
-export type EntitySimpleFieldFilter = SimpleFieldFilter
-/** @deprecated */
-export type EntitySetFieldFilter = SetFieldFilter
-/** @deprecated */
-export type EntityBooleanFieldFilter = BooleanFieldFilter
-/** @deprecated */
-export type EntityJoinFieldFilter = JoinFieldFilter
-/** @deprecated */
-export type EntityMultiFieldFilter = MultiFieldFilter
-/** @deprecated */
-export type EntityFieldFilter = FieldFilter
-/** @deprecated */
-export type EntityFilterModel = FilterModel
-/** @deprecated */
-export type EntityAdvancedFilterModel = AdvancedFilterModel
-/** @deprecated */
-export type EntityAdvancedJoinFilter = AdvancedJoinFilter
-/** @deprecated */
-export type EntityAdvancedColumnFilter = AdvancedColumnFilter
+function isEmptyCompareValue(
+  operator: MetaUiFilterOpCode | undefined,
+  value: unknown,
+): boolean {
+  if (operator === "EQ" || operator === "NEQ") return value == null;
+  return value == null || value === "";
+}
+
+function isEmptyAdvancedField(filter: AdvancedFieldFilter): boolean {
+  if (filter.filterType === "set") return !filter.values?.length;
+  if (filter.filterType === "boolean") {
+    if (filter.operator === "IS_ALL") return true;
+    if (filter.operator) return false;
+    return filter.value == null;
+  }
+  if (filter.operator === "IS_ALL") return true;
+  if (isNoValueFilterOperator(filter.operator)) {
+    return false;
+  }
+  if (filter.operator === "WITHIN") {
+    return !isDateRangeKind(filter.value);
+  }
+  if (filter.operator === "BETWEEN") {
+    return filter.value == null && filter.valueTo == null;
+  }
+  return isEmptyCompareValue(filter.operator, filter.value);
+}
 
 const cloneRecord = <T extends Record<string, unknown>>(
   value?: T,
 ): T | undefined => (value == null ? undefined : ({ ...value } as T));
-
-export const cloneFieldFilter = (
-  filter: FieldFilter,
-): FieldFilter => {
-  if (filter.filterType === "set") {
-    return { ...filter, values: [...filter.values] };
-  }
-  if (filter.filterType === "join") {
-    return {
-      ...filter,
-      conditions: filter.conditions.map(cloneFieldFilter),
-    };
-  }
-  if (filter.filterType === "multi") {
-    return {
-      ...filter,
-      filterModels: filter.filterModels.map(cloneFieldFilter),
-    };
-  }
-  return { ...filter };
-};
-
-export const cloneFilterModel = (value?: FilterModel) =>
-  value == null
-    ? undefined
-    : Object.fromEntries(
-        Object.entries(value).map(([field, filter]) => [
-          field,
-          cloneFieldFilter(filter),
-        ]),
-      );
 
 const clonePager = (pager: Pager): Pager => ({
   pageSize: pager.pageSize,
   pageNo: pager.pageNo,
   sorts: pager.sorts?.map((sort) => ({ ...sort })),
 });
-
-export function toEntityQuery(src: EntityQuery): EntityQuery {
-  return {
-    queryID: src.queryID,
-    queryName: src.queryName,
-    objName: src.objName,
-    remark: src.remark,
-    filterModel: cloneFilterModel(src.filterModel),
-    advancedFilterModel: cloneAdvancedFilter(src.advancedFilterModel),
-    pager: clonePager(src.pager ?? defaultPager()),
-  };
-}
-
-export function applyEntityQuery(to: EntitySearchParam, src: EntityQuery) {
-  to.queryID = src.queryID;
-  to.queryName = src.queryName;
-  to.objName = src.objName;
-  to.remark = src.remark;
-  const word = (src as EntitySearchParam).searchWord;
-  if (word != null) to.searchWord = word;
-  const pager = src.pager ?? defaultPager();
-  to.pager.pageSize = pager.pageSize;
-  to.pager.pageNo = pager.pageNo;
-  to.pager.sorts = pager.sorts?.map((sort) => ({ ...sort }));
-  if (src.filterModel) to.filterModel = cloneFilterModel(src.filterModel);
-  else delete to.filterModel;
-  if (src.advancedFilterModel) {
-    to.advancedFilterModel = cloneAdvancedFilter(src.advancedFilterModel);
-  } else delete to.advancedFilterModel;
-  return to;
-}
-
-export function assignSearchParam(
-  to: EntitySearchParam,
-  src: EntitySearchParam,
-) {
-  applyEntityQuery(to, src);
-  if (src.queryParams) to.queryParams = cloneRecord(src.queryParams);
-  else delete to.queryParams;
-  return to;
-}
 
 const stableValue = (value: unknown): string => {
   if (Array.isArray(value)) return `[${value.map(stableValue).join(",")}]`;
@@ -320,206 +236,6 @@ const stableValue = (value: unknown): string => {
   }
   return JSON.stringify(value);
 };
-
-export function isDifferentSearchParam(
-  a: EntitySearchParam,
-  b: EntitySearchParam,
-) {
-  return stableValue(a) !== stableValue(b);
-}
-
-export const hasFilterModel = (param: Pick<EntityQuery, "filterModel">) =>
-  param.filterModel != null && Object.keys(param.filterModel).length > 0;
-
-export const hasAdvancedFilterModel = (
-  param: Pick<EntityQuery, "advancedFilterModel">,
-) => compactAdvancedFilter(param.advancedFilterModel) != null;
-
-export function inFilter(
-  values: unknown | unknown[],
-  operator: "IN" | "NOT_IN" = "IN",
-): SetFieldFilter {
-  return {
-    filterType: "set",
-    operator,
-    values: Array.isArray(values) ? [...values] : [values],
-  };
-}
-
-export function notInFilter(values: unknown | unknown[]): SetFieldFilter {
-  return inFilter(values, "NOT_IN");
-}
-
-export function eqFilter(
-  value: unknown,
-  filterType: SimpleFieldFilter["filterType"] = "text",
-): SimpleFieldFilter {
-  return { filterType, operator: "EQ", value };
-}
-
-export function betweenFilter(
-  value: unknown,
-  valueTo: unknown,
-  filterType: SimpleFieldFilter["filterType"] = "date",
-): SimpleFieldFilter {
-  return { filterType, operator: "BETWEEN", value, valueTo };
-}
-
-export function dateKindFilter(
-  dateKind: DateTimeRangeKind,
-): SimpleFieldFilter {
-  return { filterType: "date", operator: "WITHIN", dateKind };
-}
-
-export function nullFilter(
-  operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
-): SimpleFieldFilter {
-  return { filterType: "text", operator };
-}
-
-/** 字符串「没内容」：保存 IS_BLANK，POST 展开成 IS_NULL OR = ''。 */
-export function blankFilter(
-  operator: "IS_BLANK" | "IS_NOT_BLANK" = "IS_BLANK",
-): SimpleFieldFilter {
-  return { filterType: "text", operator };
-}
-
-export function joinFilter(
-  operator: "AND" | "OR",
-  conditions: FieldFilter[],
-): JoinFieldFilter {
-  return {
-    filterType: "join",
-    operator,
-    conditions: conditions.map(cloneFieldFilter),
-  };
-}
-
-export function multiFilter(
-  filterModels: FieldFilter[],
-): MultiFieldFilter {
-  return {
-    filterType: "multi",
-    filterModels: filterModels.map(cloneFieldFilter),
-  };
-}
-
-export function isEmptyFieldFilter(
-  filter?: FieldFilter | null,
-): boolean {
-  if (!filter) return true;
-  if (filter.filterType === "set") return !filter.values?.length;
-  if (filter.filterType === "boolean") return filter.value == null;
-  if (filter.filterType === "join") {
-    return filter.conditions.every((item) => isEmptyFieldFilter(item));
-  }
-  if (filter.filterType === "multi") {
-    return filter.filterModels.every((item) => isEmptyFieldFilter(item));
-  }
-  if (filter.operator === "IS_ALL") return true;
-  if (isNoValueFilterOperator(filter.operator)) {
-    return false;
-  }
-  if (isDateRangeKind(filter.dateKind)) return false;
-  if (filter.operator === "WITHIN") return true;
-  if (filter.operator === "BETWEEN") {
-    return filter.value == null && filter.valueTo == null;
-  }
-  return isEmptyCompareValue(filter.operator, filter.value);
-}
-
-export function compactFieldFilter(
-  filter?: FieldFilter | null,
-): FieldFilter | undefined {
-  if (!filter || isEmptyFieldFilter(filter)) return undefined;
-  if (filter.filterType === "join") {
-    const conditions = filter.conditions
-      .map((item) => compactFieldFilter(item))
-      .filter((item): item is FieldFilter => item != null);
-    if (!conditions.length) return undefined;
-    if (conditions.length === 1) return conditions[0];
-    return { ...filter, conditions };
-  }
-  if (filter.filterType === "multi") {
-    const filterModels = filter.filterModels
-      .map((item) => compactFieldFilter(item))
-      .filter((item): item is FieldFilter => item != null);
-    if (!filterModels.length) return undefined;
-    if (filterModels.length === 1) return filterModels[0];
-    return { ...filter, filterModels };
-  }
-  if (
-    (filter.filterType === "text" ||
-      filter.filterType === "number" ||
-      filter.filterType === "date") &&
-    isDateRangeKind(filter.dateKind)
-  ) {
-    return dateKindFilter(filter.dateKind);
-  }
-  return cloneFieldFilter(filter);
-}
-
-function expandBlankFieldFilter(filter: FieldFilter): FieldFilter {
-  if (filter.filterType === "multi") {
-    return {
-      ...filter,
-      filterModels: filter.filterModels.map(expandBlankFieldFilter),
-    };
-  }
-  if (filter.filterType === "join") {
-    return {
-      ...filter,
-      conditions: filter.conditions.map(expandBlankFieldFilter),
-    };
-  }
-  if (filter.filterType === "set" || filter.filterType === "boolean") {
-    return cloneFieldFilter(filter);
-  }
-  if (filter.operator === "IS_BLANK") {
-    return joinFilter("OR", [
-      { filterType: "text", operator: "IS_NULL" },
-      { filterType: "text", operator: "EQ", value: "" },
-    ]);
-  }
-  if (filter.operator === "IS_NOT_BLANK") {
-    return joinFilter("AND", [
-      { filterType: "text", operator: "IS_NOT_NULL" },
-      { filterType: "text", operator: "NEQ", value: "" },
-    ]);
-  }
-  return cloneFieldFilter(filter);
-}
-
-/** IS_BLANK / IS_NOT_BLANK → join。IS_NULL 原样。不要 compact，以免丢掉 EQ ''。 */
-export function expandBlankFilters(
-  model?: FilterModel,
-): FilterModel | undefined {
-  if (model == null) return undefined;
-  const next: FilterModel = {};
-  for (const [field, filter] of Object.entries(model)) {
-    next[field] = expandBlankFieldFilter(filter);
-  }
-  return Object.keys(next).length ? next : undefined;
-}
-
-/** 上块比较 + 下块 set：两块都有效则 multi，否则摊平。 */
-export function combineCompareAndSet(
-  compare?: FieldFilter | null,
-  set?: SetFieldFilter | null,
-): FieldFilter | undefined {
-  const first = compactFieldFilter(compare);
-  const second = compactFieldFilter(set);
-  if (first && second) return multiFilter([first, second]);
-  return first ?? second;
-}
-
-export function stringifyQueryExpression(query: EntityQuery): string {
-  return JSON.stringify(toEntityQuery(query));
-}
-
-export type ParsedQueryExpression =
-  | { kind: "query"; query: EntityQuery }
-  | { kind: "sql"; sql: string };
 
 function isEntityQueryLike(value: unknown): value is EntityQuery {
   if (value == null || typeof value !== "object" || Array.isArray(value)) {
@@ -536,48 +252,369 @@ function isEntityQueryLike(value: unknown): value is EntityQuery {
   );
 }
 
-export function parseQueryExpression(
-  expr?: string | null,
-): ParsedQueryExpression | undefined {
-  const raw = String(expr ?? "").trim();
-  if (!raw) return undefined;
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (isEntityQueryLike(parsed)) {
+export const FieldFilter = {
+  clone(filter: FieldFilter): FieldFilter {
+    if (filter.filterType === "set") {
+      return { ...filter, values: [...(filter.values ?? [])] };
+    }
+    if (filter.filterType === "join") {
       return {
-        kind: "query",
-        query: toEntityQuery({
-          ...parsed,
-          pager: parsed.pager ?? defaultPager(),
-        }),
+        ...filter,
+        conditions: (filter.conditions ?? []).map(FieldFilter.clone),
       };
     }
-    return { kind: "sql", sql: raw };
-  } catch {
-    return { kind: "sql", sql: raw };
+    if (filter.filterType === "multi") {
+      return {
+        ...filter,
+        filterModels: (filter.filterModels ?? []).map(FieldFilter.clone),
+      };
+    }
+    return { ...filter };
+  },
+
+  isEmpty(filter?: FieldFilter | null): boolean {
+    if (!filter) return true;
+    if (filter.filterType === "set") return !filter.values?.length;
+    if (filter.filterType === "boolean") {
+      if (filter.operator === "IS_ALL") return true;
+      if (filter.operator) return false;
+      return filter.value == null;
+    }
+    if (filter.filterType === "join") {
+      return (filter.conditions ?? []).every((item) => FieldFilter.isEmpty(item));
+    }
+    if (filter.filterType === "multi") {
+      return (filter.filterModels ?? []).every((item) =>
+        FieldFilter.isEmpty(item),
+      );
+    }
+    if (filter.operator === "IS_ALL") return true;
+    if (isNoValueFilterOperator(filter.operator)) {
+      return false;
+    }
+    if (filter.operator === "WITHIN") {
+      return !isDateRangeKind(filter.value);
+    }
+    if (filter.operator === "BETWEEN") {
+      return filter.value == null && filter.valueTo == null;
+    }
+    return isEmptyCompareValue(filter.operator, filter.value);
+  },
+
+  compact(filter?: FieldFilter | null): FieldFilter | undefined {
+    if (!filter || FieldFilter.isEmpty(filter)) return undefined;
+    if (filter.filterType === "join") {
+      const conditions = (filter.conditions ?? [])
+        .map((item) => FieldFilter.compact(item))
+        .filter((item): item is FieldFilter => item != null);
+      if (!conditions.length) return undefined;
+      if (conditions.length === 1) return conditions[0];
+      return { ...filter, conditions };
+    }
+    if (filter.filterType === "multi") {
+      const filterModels = (filter.filterModels ?? [])
+        .map((item) => FieldFilter.compact(item))
+        .filter((item): item is FieldFilter => item != null);
+      if (!filterModels.length) return undefined;
+      if (filterModels.length === 1) return filterModels[0];
+      return { ...filter, filterModels };
+    }
+    return FieldFilter.clone(filter);
+  },
+
+  in(
+    values: unknown | unknown[],
+    operator: SetFilterOpCode = "IN",
+  ): SetFieldFilter {
+    return {
+      filterType: "set",
+      operator,
+      values: Array.isArray(values) ? [...values] : [values],
+    };
+  },
+
+  notIn(values: unknown | unknown[]): SetFieldFilter {
+    return FieldFilter.in(values, "NOT_IN");
+  },
+
+  eq(
+    value: unknown,
+    filterType: SimpleFieldFilter["filterType"] = "text",
+  ): SimpleFieldFilter {
+    return { filterType, operator: "EQ", value };
+  },
+
+  between(
+    value: unknown,
+    valueTo: unknown,
+    filterType: SimpleFieldFilter["filterType"] = "date",
+  ): SimpleFieldFilter {
+    return { filterType, operator: "BETWEEN", value, valueTo };
+  },
+
+  dateKind(dateKind: DateTimeRangeKind): DateFieldFilter {
+    return { filterType: "date", operator: "WITHIN", value: dateKind };
+  },
+
+  nil(
+    operator: "IS_NULL" | "IS_NOT_NULL" = "IS_NULL",
+  ): SimpleFieldFilter {
+    return { filterType: "text", operator };
+  },
+
+  blank(
+    operator: "IS_BLANK" | "IS_NOT_BLANK" = "IS_BLANK",
+  ): SimpleFieldFilter {
+    return { filterType: "text", operator };
+  },
+
+  join(
+    operator: JoinFilterOpCode,
+    conditions: FieldFilter[],
+  ): JoinFieldFilter {
+    return {
+      filterType: "join",
+      operator,
+      conditions: conditions.map(FieldFilter.clone),
+    };
+  },
+
+  multi(filterModels: FieldFilter[]): MultiFieldFilter {
+    return {
+      filterType: "multi",
+      filterModels: filterModels.map(FieldFilter.clone),
+    };
+  },
+
+  combineCompareAndSet(
+    compare?: FieldFilter | null,
+    set?: SetFieldFilter | null,
+  ): FieldFilter | undefined {
+    const first = FieldFilter.compact(compare);
+    const second = FieldFilter.compact(set);
+    if (first && second) return FieldFilter.multi([first, second]);
+    return first ?? second;
+  },
+};
+
+export namespace FilterModel {
+  export function clone(value?: FilterModel) {
+    return value == null
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(value).map(([field, filter]) => [
+            field,
+            FieldFilter.clone(filter),
+          ]),
+        );
+  }
+
+  export function has(param: Pick<EntityQuery, "filterModel">) {
+    return param.filterModel != null && Object.keys(param.filterModel).length > 0;
+  }
+
+  function expandBlankField(filter: FieldFilter): FieldFilter {
+    if (filter.filterType === "multi") {
+      return {
+        ...filter,
+        filterModels: (filter.filterModels ?? []).map(expandBlankField),
+      };
+    }
+    if (filter.filterType === "join") {
+      return {
+        ...filter,
+        conditions: (filter.conditions ?? []).map(expandBlankField),
+      };
+    }
+    if (filter.filterType === "set" || filter.filterType === "boolean") {
+      return FieldFilter.clone(filter);
+    }
+    if (filter.operator === "IS_BLANK") {
+      return FieldFilter.join("OR", [
+        { filterType: "text", operator: "IS_NULL" },
+        { filterType: "text", operator: "EQ", value: "" },
+      ]);
+    }
+    if (filter.operator === "IS_NOT_BLANK") {
+      return FieldFilter.join("AND", [
+        { filterType: "text", operator: "IS_NOT_NULL" },
+        { filterType: "text", operator: "NEQ", value: "" },
+      ]);
+    }
+    return FieldFilter.clone(filter);
+  }
+
+  /** IS_BLANK / IS_NOT_BLANK → join。IS_NULL 原样。不要 compact，以免丢掉 EQ ''。 */
+  export function expandBlank(
+    model?: FilterModel,
+  ): FilterModel | undefined {
+    if (model == null) return undefined;
+    const next: FilterModel = {};
+    for (const [field, filter] of Object.entries(model)) {
+      next[field] = expandBlankField(filter);
+    }
+    return Object.keys(next).length ? next : undefined;
+  }
+
+  /** 绝对日期 set token → BETWEEN / join OR。实现在 date_filter.ts 挂上。 */
+  export declare function expandDates(
+    model?: FilterModel,
+  ): FilterModel | undefined;
+}
+
+export namespace AdvancedFilterModel {
+  /** 只给 AdvancedFilterModel。联合里 filterType === 'join' 即 AdvancedJoinFilter。 */
+  export function isJoin(
+    model?: AdvancedFilterModel | null,
+  ): model is AdvancedJoinFilter {
+    return !!model && model.filterType === "join";
+  }
+
+  export function clone(
+    model?: AdvancedFilterModel | null,
+  ): AdvancedFilterModel | undefined {
+    if (!model) return undefined;
+    if (isJoin(model)) {
+      return {
+        filterType: "join",
+        operator: model.operator,
+        conditions: model.conditions
+          .map((item) => clone(item))
+          .filter((item): item is AdvancedFilterModel => item != null),
+      };
+    }
+    return {
+      ...model,
+      values: model.values ? [...model.values] : undefined,
+    };
+  }
+
+  export function compact(
+    model?: AdvancedFilterModel | null,
+  ): AdvancedFilterModel | undefined {
+    if (!model) return undefined;
+    if (isJoin(model)) {
+      const conditions = model.conditions
+        .map((item) => compact(item))
+        .filter((item): item is AdvancedFilterModel => item != null);
+      if (!conditions.length) return undefined;
+      if (conditions.length === 1) return conditions[0];
+      return { filterType: "join", operator: model.operator, conditions };
+    }
+    if (isEmptyAdvancedField(model)) return undefined;
+    return clone(model);
+  }
+
+  export function has(param: Pick<EntityQuery, "advancedFilterModel">) {
+    return compact(param.advancedFilterModel) != null;
   }
 }
 
-/**
- * Module.defaultFilter：`queryID;queryName|queryID;queryName`
- */
-export function parseDefaultFilter(s?: string): NamedQueryRef[] {
-  if (!s) return [];
-  return s
-    .split("|")
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .map((segment) => {
-      const sep = segment.indexOf(";");
-      if (sep < 0) return undefined;
-      const queryID = segment.slice(0, sep).trim();
-      const queryName = segment.slice(sep + 1).trim();
-      if (!queryID || !queryName) return undefined;
-      return { queryID, queryName };
-    })
-    .filter((item): item is NamedQueryRef => item != null);
+export namespace NamedQueryRef {
+  /** Module.defaultFilter：`queryID;queryName|queryID;queryName` */
+  export function parse(s?: string): NamedQueryRef[] {
+    if (!s) return [];
+    return s
+      .split("|")
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+      .map((segment) => {
+        const sep = segment.indexOf(";");
+        if (sep < 0) return undefined;
+        const queryID = segment.slice(0, sep).trim();
+        const queryName = segment.slice(sep + 1).trim();
+        if (!queryID || !queryName) return undefined;
+        return { queryID, queryName };
+      })
+      .filter((item): item is NamedQueryRef => item != null);
+  }
 }
 
-export function parseDefaultSort(s?: string) {
-  return parseSorts(s ?? "");
+export namespace EntityQuery {
+  export function create(): EntityQuery {
+    return {
+      pager: defaultPager(),
+    };
+  }
+
+  export function copy(src: EntityQuery): EntityQuery {
+    return {
+      queryID: src.queryID,
+      queryName: src.queryName,
+      objName: src.objName,
+      remark: src.remark,
+      filterModel: FilterModel.clone(src.filterModel),
+      advancedFilterModel: AdvancedFilterModel.clone(src.advancedFilterModel),
+      pager: clonePager(src.pager ?? defaultPager()),
+    };
+  }
+
+  export function apply(to: EntitySearchParam, src: EntityQuery) {
+    to.queryID = src.queryID;
+    to.queryName = src.queryName;
+    to.objName = src.objName;
+    to.remark = src.remark;
+    const word = (src as EntitySearchParam).searchWord;
+    if (word != null) to.searchWord = word;
+    const pager = src.pager ?? defaultPager();
+    to.pager.pageSize = pager.pageSize;
+    to.pager.pageNo = pager.pageNo;
+    to.pager.sorts = pager.sorts?.map((sort) => ({ ...sort }));
+    if (src.filterModel) to.filterModel = FilterModel.clone(src.filterModel);
+    else delete to.filterModel;
+    if (src.advancedFilterModel) {
+      to.advancedFilterModel = AdvancedFilterModel.clone(src.advancedFilterModel);
+    } else delete to.advancedFilterModel;
+    return to;
+  }
+
+  export function stringify(query: EntityQuery): string {
+    return JSON.stringify(copy(query));
+  }
+
+  export function parse(
+    expr?: string | null,
+  ): ParsedQueryExpression | undefined {
+    const raw = String(expr ?? "").trim();
+    if (!raw) return undefined;
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (isEntityQueryLike(parsed)) {
+        return {
+          kind: "query",
+          query: copy({
+            ...parsed,
+            pager: parsed.pager ?? defaultPager(),
+          }),
+        };
+      }
+      return { kind: "sql", sql: raw };
+    } catch {
+      return { kind: "sql", sql: raw };
+    }
+  }
+
+  export function parseDefaultSort(s?: string) {
+    return parseSorts(s ?? "");
+  }
+}
+
+export namespace EntitySearchParam {
+  export function create(searchWord = ""): EntitySearchParam {
+    return {
+      pager: defaultPager(),
+      searchWord,
+    };
+  }
+
+  export function assign(to: EntitySearchParam, src: EntitySearchParam) {
+    EntityQuery.apply(to, src);
+    if (src.queryParams) to.queryParams = cloneRecord(src.queryParams);
+    else delete to.queryParams;
+    return to;
+  }
+
+  export function isDifferent(a: EntitySearchParam, b: EntitySearchParam) {
+    return stableValue(a) !== stableValue(b);
+  }
 }

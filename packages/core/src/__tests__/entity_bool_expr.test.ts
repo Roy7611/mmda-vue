@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseEntityBoolExpression } from '../utils/entity_bool_expr'
+import { parseEntityBoolExpression } from '../logic/entity_bool_expr'
 
 describe('parseEntityBoolExpression', () => {
   it('empty is always true', () => {

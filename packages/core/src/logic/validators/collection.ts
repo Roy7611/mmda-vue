@@ -14,7 +14,7 @@ function sizeOf(value: unknown): number | undefined {
   return undefined
 }
 
-export const collectionFactories: Record<
+export const collectionValidators: Record<
   string,
   (args: string[]) => FieldValidator
 > = {

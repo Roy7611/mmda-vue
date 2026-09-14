@@ -164,7 +164,7 @@ const { start, end } = toDateRange(luxonRange) // JS Date，给日期控件
 | `THIS_YEAR` / `LAST_YEAR` | 年 |
 | `EARLIER` | 筛选项哨兵，**没有**对应函数 |
 
-`dateTimeRange` 给芯片预览，区间是闭的 `startOf`/`endOf`。列表 POST 的 `dateKind` **不要**在客户端展开；服务端用半开 `[start, next)`。`expandDateFilters` 只处理绝对 set token。单文件：[date_range.md](./utils/date_range.md)；列表语义：[date_filter.md](./models/date_filter.md)。
+`dateTimeRange` 给芯片预览，区间是闭的 `startOf`/`endOf`。列表 POST 的 `dateKind` **不要**在客户端展开；服务端用半开 `[start, next)`。`FilterModel.expandDates` 只处理绝对 set token。单文件：[date_range.md](./models/date_range.md)；列表语义：[date_filter.md](./models/date_filter.md)。
 
 ```ts
 dateTimeRange[DateRangeKind.EARLIER] // 类型上就不存在
@@ -309,5 +309,5 @@ const onType = debounce((q: string) => {
 | `getParmas` | `getParams`（旧名仍可用） |
 | `debounce` 箭头函数导致 `this` 丢失 | 调用时 `this` 正确 |
 | `mapTree` 叶子不 mapper、空孩子写成 `.children` | 叶子会 mapper；空孩子用你传入的 key |
-| `DateRangeKind` | 定义在 `utils/date_range`，从 `@mmda/core` 导入 |
+| `DateRangeKind` | 定义在 `models/date_range`，从 `@mmda/core` 导入 |
 | 两套 `DateRange` 类型打架 | 现在的 `DateRange` 是 `{ start, end }` 的 JS Date 区间 |

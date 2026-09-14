@@ -42,7 +42,7 @@ const numericArg =
     }
   }
 
-export const numberFactories: Record<string, (args: string[]) => FieldValidator> = {
+export const numberValidators: Record<string, (args: string[]) => FieldValidator> = {
   Min: numericArg('Min', (n, min) =>
     n < min ? fail('invalid.minValue', min) : '',
   ),

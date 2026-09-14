@@ -15,7 +15,7 @@
 | `defaultSort` | 未选中命名查询时的默认排序 |
 | `defaultGroupBy` | 默认分组 |
 
-解析芯片：`parseDefaultFilter`（在 models/`entity_search.ts`）。设计见 [entity_search.md](../models/entity_search.md)。
+解析芯片：`NamedQueryRef.parse`（在 models/`entity_search.ts`）。设计见 [entity_search.md](../models/entity_search.md)。
 
 ## 不要
 

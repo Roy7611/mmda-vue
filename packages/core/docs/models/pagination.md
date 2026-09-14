@@ -7,7 +7,7 @@
 
 `Pager` / `PagedList` / `Sort` / `SortOrder`。列表排序的唯一来源是 **`pager.sorts`**（也写在 `EntityQuery.pager` 里）。不要在查询文档或本地缓存里另开 sorts 字段。
 
-`defaultPager`、`PagerCtor`、`parseSorts` / 与 URL 的 `sort=` 互转见源码。Module 默认排序串用 `parseDefaultSort`（在 `entity_search.ts`）。
+`defaultPager`、`PagerCtor`、`parseSorts` / 与 URL 的 `sort=` 互转见源码。Module 默认排序串用 `EntityQuery.parseDefaultSort`（在 `entity_search.ts`）。
 
 ## 不要
 

@@ -6,7 +6,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { SortOrder, type EntityFilterModel, type MetaUi, type MetaUiField, type Sort } from '@mmda/core'
+import { SortOrder, type FilterModel, type MetaUi, type MetaUiField, type Sort } from '@mmda/core'
 import { gridFiltersToModel } from '../factory/utils'
 import { SfGridHost } from '../factory/grid'
 import {
@@ -55,7 +55,7 @@ export const SfGrid = defineComponent({
       default: undefined,
     },
     filterModel: {
-      type: Object as PropType<EntityFilterModel>,
+      type: Object as PropType<FilterModel>,
       default: undefined,
     },
     selectedItems: {
@@ -65,7 +65,7 @@ export const SfGrid = defineComponent({
     locale: { type: String, default: undefined },
   },
   emits: {
-    filterModelChange: (_model: EntityFilterModel) => true,
+    filterModelChange: (_model: FilterModel) => true,
     sort: (_sorts: Sort[]) => true,
     select: (_selection: object[]) => true,
     cellSave: (_row: object, _field: MetaUiField, _value: unknown) => true,

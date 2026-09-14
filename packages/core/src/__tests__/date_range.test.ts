@@ -4,7 +4,7 @@ import {
   DateRangeKind,
   dateTimeRange,
   toDateRange,
-} from '../utils/date_range'
+} from '../models/date_range'
 
 describe('dateTimeRange', () => {
   it('TODAY 落在当天起止', () => {

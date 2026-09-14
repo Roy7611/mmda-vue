@@ -1,5 +1,5 @@
 import type {
-  EntityFilterModel,
+  FilterModel,
   EntitySearchParam,
   Sort,
 } from "@mmda/core";
@@ -28,7 +28,7 @@ export function writeListSorts(
 
 export function writeListFilterModel(
   searchParam: EntitySearchParam,
-  filterModel: EntityFilterModel,
+  filterModel: FilterModel,
 ): EntitySearchParam {
   const pager = ensurePager(searchParam);
   const keys = Object.keys(filterModel ?? {});

@@ -1,11 +1,9 @@
 import type { EntityAction } from "../metaui/metaui_action";
-import type { ModuleAuth } from "../metaui/module";
-import type { EntitySearchParam } from "./entity_search";
 
 export * from "./entity_search";
+export * from "./date_range";
 export * from "./date_filter";
 
-export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
 export type LooseRequired<T> = { [P in keyof (T & Required<T>)]: T[P] };
 /**
  * 实体状态
@@ -198,35 +196,5 @@ export interface EntityRefItemKey extends EntityRefKey {
  */
 export interface EntityCreateParam extends Partial<EntityRefKey> {
   refItemKeys?: EntityRefItemKey[];
-}
-/**
- * 实体选择参数
- * searchFieldList 实体搜索条件列表
- * searchFieldProps 搜索条件组件props 例如：{fieldName: {param1: value,param2: value}}
- * searchFieldSearchParam 搜索条件自定义接口入参 例如：{fieldName: {param1: value,param2: value}}
- */
-export interface EntitySelectParam<E> {
-  repository: string;
-  service?: string;
-  searchParam?: EntitySearchParam;
-  selectionMode?: "single" | "multiple";
-  /**
-   * 未命中 DI Logic 时的行构造；默认 `defineEntity`（列表水合），不要用 `MetaModel.createEntity`。
-   */
-  ctor?: EntityCtor<E>;
-  searchFieldList?: string[];
-  searchFieldProps?: Record<string, any>;
-  searchFieldSearchParam?: Record<string, any>;
-  pageSizeOptions?: number[];
-  labelKey?: string;
-  selectableFn?: SelectableFn; // 用于标记可选择项的函数
-  /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
-  labelFn?: (item: any) => string;
-  /**
-   * 覆盖弹层 CRUD 权限四项；未传时有模块跟模块 authority，无模块只读。
-   */
-  authority?: Partial<
-    Pick<ModuleAuth, "allowRead" | "allowCreate" | "allowEdit" | "allowDelete">
-  >;
 }
 

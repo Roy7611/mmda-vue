@@ -26,7 +26,7 @@ export interface MetaUiFilterCondition {
 }
 
 /**
- * 列过滤器类型。位掩码与 metauifield.filterTypes 一致；小写名给 FieldFilter.filterType JSON。
+ * 列过滤器类型。位掩码与 metauifield.filterTypes 一致。
  *
  * `0;NONE;未配|1;TEXT;文本|2;NUMBER;数字|4;DATE;日期|8;BOOLEAN;布尔|16;SET;集合|32;MULTI;多个|64;JOIN;联合`
  */
@@ -41,6 +41,7 @@ export enum MetaUiFilterType {
   JOIN = 64,
 }
 
+/** FieldFilter.filterType JSON：小写 text / date / set … */
 export type MetaUiFilterTypeName =
   | 'text'
   | 'number'
@@ -51,28 +52,31 @@ export type MetaUiFilterTypeName =
   | 'join'
 
 export const MetaUiFilterTypeEnum = {
-  NONE: 'none' as const,
-  TEXT: 'text' as const,
-  NUMBER: 'number' as const,
-  DATE: 'date' as const,
-  BOOLEAN: 'boolean' as const,
-  SET: 'set' as const,
-  MULTI: 'multi' as const,
-  JOIN: 'join' as const,
-
+  /** 过滤器类型值:TEXT => 1, NUMBER => 2, DATE => 4, BOOLEAN => 8, SET => 16, MULTI => 32, JOIN => 64 */
   valueOf(name: string): MetaUiFilterType {
     const value =
-      MetaUiFilterType[String(name ?? '').toUpperCase() as keyof typeof MetaUiFilterType]
+      MetaUiFilterType[String(name ?? 'NONE').toUpperCase() as keyof typeof MetaUiFilterType]
     return typeof value === 'number' ? value : MetaUiFilterType.NONE
   },
 
+  /** 过滤器类型名称: 1 => TEXT, 2 => NUMBER, 4 => DATE, 8 => BOOLEAN, 16 => SET, 32 => MULTI, 64 => JOIN */
   nameOf(type: MetaUiFilterType): string {
     return MetaUiFilterType[type] ?? 'NONE'
   },
 
-  /** FieldFilter.filterType JSON：小写 text / date / set … */
-  textOf(type: MetaUiFilterType): MetaUiFilterTypeName | 'none' {
-    return this.nameOf(type).toLowerCase() as MetaUiFilterTypeName | 'none'
+  /** 过滤器文本描述：基础类型 + 集合 / 多选 / 联合。 */
+  textOf(types: number): string | 'none' {
+    var name = this.nameOf(types & 15).toLowerCase() //text / date / number / boolean
+    if (hasBit(types, MetaUiFilterType.SET)) {
+      name += ' set'
+    }
+    if (hasBit(types, MetaUiFilterType.MULTI)) {
+      name += ' multi'
+    }
+    if (hasBit(types, MetaUiFilterType.JOIN)) {
+      name += ' join'
+    }
+    return name
   },
 
   hasFlag(mask: number, bit: MetaUiFilterType): boolean {
@@ -81,52 +85,137 @@ export const MetaUiFilterTypeEnum = {
 } as const
 
 /**
- * 值 = 标准控件名；JSON / {@link MetaUiFilterOperatorCode} = 成员名（`EQ`）。
+ * 算子映射表：name（`EQ`）= 框架 / 服务器 JSON；value（`equals`）= 皮肤控件名。
  */
-export enum MetaUiFilterOperator {
-  EQ = 'equals',
-  NEQ = 'notEqual',
-  GT = 'greaterThan',
-  GE = 'greaterThanOrEqual',
-  LT = 'lessThan',
-  LE = 'lessThanOrEqual',
-  STARTS_WITH = 'startsWith',
-  ENDS_WITH = 'endsWith',
-  CONTAINS = 'contains',
-  NOT_CONTAINS = 'notContains',
-  IS_NULL = 'isNull',
-  IS_NOT_NULL = 'isNotNull',
-  IS_BLANK = 'isBlank',
-  IS_NOT_BLANK = 'isNotBlank',
-  IS_ALL = 'isAll',
-  IS_TRUE = 'isTrue',
-  IS_FALSE = 'isFalse',
-  IN = 'in',
-  NOT_IN = 'notIn',
-  BETWEEN = 'between',
-  WITHIN = 'within',
-}
+export const MetaUiFilterOperator = {
+  EQ: 'equals',
+  NEQ: 'notEqual',
+  GT: 'greaterThan',
+  GE: 'greaterThanOrEqual',
+  LT: 'lessThan',
+  LE: 'lessThanOrEqual',
+  STARTS_WITH: 'startsWith',
+  ENDS_WITH: 'endsWith',
+  CONTAINS: 'contains',
+  NOT_CONTAINS: 'notContains',
+  IS_NULL: 'isNull',
+  IS_NOT_NULL: 'isNotNull',
+  IS_BLANK: 'isBlank',
+  IS_NOT_BLANK: 'isNotBlank',
+  IS_ALL: 'isAll',
+  IS_TRUE: 'isTrue',
+  IS_FALSE: 'isFalse',
+  IN: 'in',
+  NOT_IN: 'notIn',
+  BETWEEN: 'between',
+  WITHIN: 'within',
+
+  AND: 'and',
+  OR: 'or',
+} as const
 
 /** FieldFilter.operator / 服务器 JSON。 */
-export type MetaUiFilterOperatorCode = keyof typeof MetaUiFilterOperator
+export type MetaUiFilterOpCode = keyof typeof MetaUiFilterOperator
+
+/** 皮肤控件名。 */
+export type MetaUiFilterOpValue = (typeof MetaUiFilterOperator)[MetaUiFilterOpCode]
+
+const textFilterOps = [
+  'EQ',
+  'NEQ',
+  'STARTS_WITH',
+  'ENDS_WITH',
+  'CONTAINS',
+  'NOT_CONTAINS',
+  'IS_BLANK',
+  'IS_NOT_BLANK',
+  'IN',
+  'NOT_IN',
+  'BETWEEN',
+] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type TextFilterOpCode = (typeof textFilterOps)[number]
+
+const dateFilterOps = [
+  'EQ',
+  'NEQ',
+  'GT',
+  'GE',
+  'LT',
+  'LE',
+  'IS_NULL',
+  'IS_NOT_NULL',
+  'IN',
+  'NOT_IN',
+  'BETWEEN',
+  'WITHIN',
+] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type DateFilterOpCode = (typeof dateFilterOps)[number]
+
+const numberFilterOps = [
+  'EQ',
+  'NEQ',
+  'GT',
+  'GE',
+  'LT',
+  'LE',
+  'IS_NULL',
+  'IS_NOT_NULL',
+  'IN',
+  'NOT_IN',
+  'BETWEEN',
+] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type NumberFilterOpCode = (typeof numberFilterOps)[number]
+
+const booleanFilterOps = [
+  'IS_TRUE',
+  'IS_FALSE',
+  'IS_NULL',
+  'IS_NOT_NULL',
+] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type BooleanFilterOpCode = (typeof booleanFilterOps)[number]
+
+const setFilterOps = ['IN', 'NOT_IN'] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type SetFilterOpCode = (typeof setFilterOps)[number]
+
+const joinFilterOps = ['AND', 'OR'] as const satisfies readonly MetaUiFilterOpCode[]
+
+export type JoinFilterOpCode = (typeof joinFilterOps)[number]
 
 export const MetaUiFilterOperatorEnum = {
-  valueOf(name: string): MetaUiFilterOperator | undefined {
-    const value =
-      MetaUiFilterOperator[
-        String(name ?? '').toUpperCase() as MetaUiFilterOperatorCode
-      ]
+  /** 大写 EQ => equals。不支持的返回 undefined。 */
+  valueOf(name: string): MetaUiFilterOpValue | undefined {
+    const key = String(name ?? '').toUpperCase() as MetaUiFilterOpCode
+    const value = MetaUiFilterOperator[key]
     return typeof value === 'string' ? value : undefined
   },
 
-  nameOf(op: MetaUiFilterOperator): MetaUiFilterOperatorCode | undefined {
-    return (Object.keys(MetaUiFilterOperator) as MetaUiFilterOperatorCode[]).find(
+  /** 小写 equals => EQ。不支持的返回 undefined。 */
+  nameOf(op: MetaUiFilterOpValue): MetaUiFilterOpCode | undefined {
+    return (Object.keys(MetaUiFilterOperator) as MetaUiFilterOpCode[]).find(
       key => MetaUiFilterOperator[key] === op,
     )
   },
 
-  textOf(op: MetaUiFilterOperator): string {
+  /** 皮肤控件名（value）。 */
+  textOf(op: MetaUiFilterOpValue): string {
     return op
   },
-}
 
+  /** 文本过滤器支持的运算符（name）。 */
+  textFilterOperators: textFilterOps,
+  /** 日期过滤器支持的运算符。 */
+  dateFilterOperators: dateFilterOps,
+  /** 数字过滤器支持的运算符。 */
+  numberFilterOperators: numberFilterOps,
+  /** 布尔过滤器支持的运算符。 */
+  booleanFilterOperators: booleanFilterOps,
+  /** 集合过滤器支持的运算符。 */
+  setFilterOperators: setFilterOps,
+  /** 联合过滤器支持的运算符。 */
+  joinFilterOperators: joinFilterOps,
+} as const

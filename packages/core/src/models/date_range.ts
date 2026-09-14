@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 
 /**
- * 预定义日期时间范围。区间算法见 utils/date_range 的 dateTimeRange。
+ * 预定义日期时间范围。区间算法见 dateTimeRange。
  */
 export enum DateRangeKind {
   TODAY = 'TODAY',
@@ -144,7 +144,7 @@ export const dateTimeRange: Record<DateTimeRangeKind, DateTimeRangeFn> = {
   [DateRangeKind.LAST_YEAR]: lastYear,
 }
 
-/** 可保存进 filterModel.dateKind 的 kind（不含 EARLIER）。 */
+/** 可保存进 date 过滤 `WITHIN` + `value` 的 kind（不含 EARLIER）。 */
 export const DATE_RANGE_FILTER_KINDS: DateTimeRangeKind[] = (
   Object.keys(dateTimeRange) as DateTimeRangeKind[]
 )

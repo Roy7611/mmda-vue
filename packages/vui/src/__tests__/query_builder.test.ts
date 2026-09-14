@@ -26,7 +26,7 @@ const country = new MetaUiField({
 })
 
 describe('query builder advanced filter mapper', () => {
-  it('maps EJ2 nested OR/AND to EntityAdvancedFilterModel and back', () => {
+  it('maps EJ2 nested OR/AND to AdvancedFilterModel and back', () => {
     const rule = {
       condition: 'and' as const,
       rules: [
@@ -138,7 +138,7 @@ describe('query builder advanced filter mapper', () => {
       fieldName: 'createdAt',
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: 'TODAY',
+      value: 'TODAY',
     })
     expect(
       advancedToQueryBuilderRule(model, [queryBuilderColumnOf(created)]),
@@ -158,14 +158,14 @@ describe('query builder advanced filter mapper', () => {
       fieldName: 'createdAt',
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: 'TODAY',
+      value: 'TODAY',
     })
     expect(
       entityToAgAdvanced({
         fieldName: 'createdAt',
         filterType: 'date',
-        operator: 'BETWEEN',
-        dateKind: 'THIS_MONTH',
+        operator: 'WITHIN',
+        value: 'THIS_MONTH',
       }),
     ).toMatchObject({
       colId: 'createdAt',

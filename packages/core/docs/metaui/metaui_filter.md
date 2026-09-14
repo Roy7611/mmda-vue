@@ -27,11 +27,11 @@
 
 位置位用已有 `hasBit(mask, MetaUiFilterType.SET)`，与 `Module.allowOps` 相同。不要 core `hasFilterType` / `resolve` / `columnFilterKindOf`。列头画哪种壳（含 `range`）是各皮肤的事。
 
-配套 `MetaUiFilterTypeEnum`：`valueOf`（名 → 位）、`nameOf`（成员名 `DATE`）、`textOf`（JSON 小写 `date`）、`hasFlag`。
+配套 `MetaUiFilterTypeEnum`：`valueOf`（名 → 位）、`nameOf`（成员名 `DATE`）、`textOf`（位描述，如 `text set`）、`hasFlag`。
 
 ## `MetaUiFilterOperator`
 
-成员名 = JSON（`EQ` / `STARTS_WITH`）。值 = 控件名（`equals` / `startsWith`）。`FieldFilter.operator` 用 `MetaUiFilterOperatorCode`。配套 `valueOf` / `nameOf` / `textOf`。
+一张 `as const` 映射表：name（`EQ`）= 框架 / 服务器 JSON；value（`equals`）= 皮肤控件名。允许表只放 name，`TextFilterOpCode` 等从允许表推出。`FieldFilter.operator` 用 `MetaUiFilterOpCode`。皮肤用 `valueOf(name)` / `MetaUiFilterOperator[name]`。
 
 ## 不要
 

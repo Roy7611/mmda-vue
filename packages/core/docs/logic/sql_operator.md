@@ -12,11 +12,11 @@
 - 元数据 `reference.where` / 其它 where 片段
 - Logic `refWhere` 拼 SQL
 
-**不要**用于列表主路径。列表字段条件用 `MetaUiFilterOperatorCode` + `FilterModel`，经 `searchAll` 的 `filterModel` 提交。
+**不要**用于列表主路径。列表字段条件用 `MetaUiFilterOpCode` + `FilterModel`，经 `searchAll` 的 `filterModel` 提交。
 
 已删除旧名 **SearchOp** / `getSearchOp` / `getFieldSearchOps`。
 
-## 与 MetaUiFilterOperatorCode 的关系
+## 与 MetaUiFilterOpCode 的关系
 
 `SqlOperator.name` 与 JSON 算子同名（`EQ` / `GE` / `IN` / `BETWEEN` / `WITHIN` …）。旧类型名 `EntityFilterOperator` 仍是别名。
 
@@ -24,7 +24,7 @@
 |---|---|
 | `getSqlOperator(op)` | 带 `toSQL` / `parameters` 的 `SqlOperator` |
 | `getFieldSqlOps(field)` | 该字段可用的 `SqlOperator[]`（含 `toSQL`） |
-| `getFieldFilterOps(field)` | 同集合的名字：`MetaUiFilterOperatorCode[]`（给表头/搜索栏） |
+| `getFieldFilterOps(field)` | 同集合的名字：`MetaUiFilterOpCode[]`（给表头/搜索栏） |
 
 `parameters`：值个数（`IS_NULL` / `IS_BLANK` 为 0，`BETWEEN` 为 2，`WITHIN` 为 1，`IN` 视为多值）。UI 用它决定要不要编辑值，不要依赖已删除的 SearchOp 对象。字符串比较槽用 `IS_BLANK`；数字 / 日期 / 可空 ref 用 `IS_NULL`。日期 `WITHIN` 的值是 `DateRangeKind`（`TODAY` 等），`toSQL('TODAY')` → `WITHIN TODAY`。
 

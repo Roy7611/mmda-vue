@@ -6,7 +6,7 @@
  *
  */
 
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, inFilter, notInFilter, debounce, EntityUrlParam } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, debounce, EntityUrlParam, FieldFilter } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
 import { type MaterialTrans, defineMaterialTrans } from '@/models/MaterialTrans';
 import { type MaterialTransItem, defineMaterialTransItem } from '@/models/MaterialTransItem';
@@ -702,8 +702,8 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 				searchParam: {
 					pager: defaultPager(),
 					filterModel: {
-						status: inFilter('USED'),
-						materialType: notInFilter([MaterialType.LABOR]),
+						status: FieldFilter.in('USED'),
+						materialType: FieldFilter.notIn([MaterialType.LABOR]),
 					},
 				},
 				ctor: defineMaterial,

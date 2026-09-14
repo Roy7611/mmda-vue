@@ -6,7 +6,7 @@
  *
  */
 
-import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, inFilter } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, FieldFilter } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
@@ -263,7 +263,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 				searchParam: {
 					pager: defaultPager(),
 					filterModel: {
-						status: inFilter([UsageStatus.USED]),
+						status: FieldFilter.in([UsageStatus.USED]),
 					}
 				},
 			})

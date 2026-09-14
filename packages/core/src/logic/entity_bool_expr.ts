@@ -1,3 +1,5 @@
+import type { Predicate } from './logic_functions'
+
 /**
  * ModuleAction.executableExpression：针对实体属性的简单布尔表达式。
  * 支持 ! && || == != > < >= <=、括号、true/false/null、数字、单/双引号字符串、属性名（可 a.b）。
@@ -5,7 +7,7 @@
  */
 export function parseEntityBoolExpression(
   source?: string | null,
-): (row: unknown, context?: any) => boolean {
+): Predicate {
   const text = source?.trim() ?? ''
   if (!text) return () => true
   try {

@@ -70,7 +70,7 @@ flowchart TB
 | 分页           | **外挂分页器**（Grid 不开 `allowPaging`）                                                      | 同 index      | 默认关                                      | 默认关                               |
 | 虚拟滚动         | 开；静态 height + 官方 scrolling/virt                                                       | 同 index      | 默认关，行多可开                                 | 同 edit                            |
 | 排序           | **服务端**多列（Ctrl+点列头）；列跟 `field.sortable`                                               | 同 index      | **默认关**                                  | **客户端**多列（真正用 SfGrid 排序）          |
-| 过滤           | 开；**服务端 EntityFilterModel**                                                           | 同 index      | 默认关；若开则**客户端**                           | 默认关                               |
+| 过滤           | 开；**服务端 FilterModel**                                                           | 同 index      | 默认关；若开则**客户端**                           | 默认关                               |
 | 选择           | **单行**                                                                                | **single     | multiple**（传参）                           | **单元格**（配合 Cell 就地编）              |
 | 操作列          | **命令列**（右冻结）承载 rowActions                                                                | 默认同 index，可关 | **命令列**右冻结，默认删行                          | 默认无                               |
 | Layout（列宽/序） | Resize + Reorder，**默认写回 MetaUi**                                                      | 同 index      | Resize + Reorder，**默认不写回**               | Resize + Reorder，**默认写回 MetaUi**  |
@@ -114,7 +114,7 @@ flowchart TB
 
 **禁止叠在 index virt 上**：detail/row template、**lazy 嵌套子表**、batch、text wrap、单元格选择、Grid Page。
 
-**远程数据**：过滤/排序/换页只走 `EntityFilterModel` + `pager` 换 `dataSource`。不要再给 Grid 配 DataManager 滚动加载，避免双重 skip。
+**远程数据**：过滤/排序/换页只走 `FilterModel` + `pager` 换 `dataSource`。不要再给 Grid 配 DataManager 滚动加载，避免双重 skip。
 
 selector 同一套。edit/details 默认关 virt（本地行少；若打开须同样静态 height + 行高一致，且 **edit 的 Cell 选择与 row virt 官方不兼容**，故子表就地编不要开行虚拟化）。
 
@@ -125,7 +125,7 @@ selector 同一套。edit/details 默认关 virt（本地行少；若打开须�
 - index **默认**仍是：外挂分页 + `enableVirtualization` + `enableDomVirtualization`
 - 预留开关（如 `scrollMode: 'virtual' | 'infinite'`，默认 `'virtual'`）。本轮可只接线、不实现 infinite 加载
 - 打开 infinite 时：**关** row virt / DOM virt / 外挂 Pager；注入 `InfiniteScroll`；`enableInfiniteScrolling: true`；`pageSettings.pageSize` 作每块条数；滚到底 → 下一页 `searchAll`，**追加** `dataSource`（不要换成 Grid `allowPaging`）
-- 过滤/排序仍走 `EntityFilterModel`；条件变化须**清空已加载块再从第一块拉**
+- 过滤/排序仍走 `FilterModel`；条件变化须**清空已加载块再从第一块拉**
 - 与 virt 一样：行选、行高一致、不用单元格选
 
 其余性能：
@@ -134,7 +134,7 @@ selector 同一套。edit/details 默认关 virt（本地行少；若打开须�
 - `enableHover: false`（文档：减少每行 hover 开销）
 - 合计默认关；少 `refresh()`。**不要**每次绑定后 `autoFitColumns`（官方性能：autoFit 贵）。自动列宽只作为工具栏动作，见下
 - `allowSorting: true`，详见 **表格排序**（服务端多列，Ctrl+点列头）
-- `allowFiltering: true`，详见 **表格过滤**（模型是 AG 风格 `EntityFilterModel`，index 走服务端）
+- `allowFiltering: true`，详见 **表格过滤**（模型是 AG 风格 `FilterModel`，index 走服务端）
 - **选择：单行**（`selectionSettings.type: 'Single'`，`mode: 'Row'`）；点行高亮，无勾选列
 - 操作列：优先 **命令列右冻结**（见表格编辑），行为仍接框架 action；可关
 - `allowResizing`、`allowReordering` 开
@@ -361,11 +361,11 @@ EJ2 Dialog/Template 文档只作「保存后如何反映到 Grid」参考，不�
 
 ## 表格过滤
 
-UI 壳参考官方 [Filtering](https://ej2.syncfusion.com/vue/documentation/grid/filtering/filtering)（Excel / CheckBox / Menu）。**对外模型不跟 EJ2 Predicate，跟 AG Grid FilterModel**。仓库已有 `[EntityFilterModel](packages/core/src/models/entity_search.ts)`（注释即「AG Grid 风格」）。AgGrid 适配见 `[ag_filter.ts](packages/vui-agnaive/src/ag_filter.ts)`。
+UI 壳参考官方 [Filtering](https://ej2.syncfusion.com/vue/documentation/grid/filtering/filtering)（Excel / CheckBox / Menu）。**对外模型不跟 EJ2 Predicate，跟 AG Grid FilterModel**。仓库已有 `[FilterModel](packages/core/src/models/entity_search.ts)`（注释即「AG Grid 风格」）。AgGrid 适配见 `[ag_filter.ts](packages/vui-agnaive/src/ag_filter.ts)`。
 
 ### 模型（权威）
 
-`EntitySearchParam.filterModel: EntityFilterModel` = `Record<fieldName, EntityFieldFilter>`。有 `filterModel` 时走 `searchAll` body；`queryParams` 仍只放分页、关键词、快捷筛。
+`EntitySearchParam.filterModel: FilterModel` = `Record<fieldName, FieldFilter>`。有 `filterModel` 时走 `searchAll` body；`queryParams` 仍只放分页、关键词、快捷筛。
 
 
 | `filterType`               | 对应 AG                   | 字段                                  | 内容                                                                                             |
@@ -377,7 +377,7 @@ UI 壳参考官方 [Filtering](https://ej2.syncfusion.com/vue/documentation/grid
 
 每字段当前一条简单条件（没有 AG 的 `condition1`/`condition2` AND/OR）。复合条件本轮不做。
 
-SfGrid 契约：`filterModel` + `onFilterModelChange(EntityFilterModel)`。Grid 内部 EJ2 条件必须 **双向映射** 成该模型，与 AgGrid 同一份。
+SfGrid 契约：`filterModel` + `onFilterModelChange(FilterModel)`。Grid 内部 EJ2 条件必须 **双向映射** 成该模型，与 AgGrid 同一份。
 
 ### 客户端 vs 服务端（对齐 AG）
 
@@ -385,7 +385,7 @@ AG：Client-Side Row Model 在浏览器滤当前数据；Server-Side Row Model �
 
 ```mermaid
 flowchart LR
-  ui["SfGrid 列头过滤 UI"] --> model["EntityFilterModel"]
+  ui["SfGrid 列头过滤 UI"] --> model["FilterModel"]
   model -->|"index / selector"| server["onFilterModelChange → filterModel → 服务端 searchAll"]
   server --> page["dataSource = 当前页"]
   model -->|"edit 若打开"| client["Grid 对本地 EntityArray 过滤，不请求列表接口"]
@@ -394,10 +394,10 @@ flowchart LR
 
 
 - **index / selector（服务端，默认开过滤）**：`dataSource` 只有当前页，**禁止**用 EJ2 对这一页再滤一遍当结果。改筛 → 发出模型 → 调用方写入 `searchParam.filterModel` 并查询。虚拟滚动只渲这一页。
-- **edit（客户端，默认关过滤）**：数据已在 `EntityArray`。若打开过滤，按同一 `EntityFilterModel` 在本地滤（或 EJ2 本地 + 同步模型）。不打列表 search。
+- **edit（客户端，默认关过滤）**：数据已在 `EntityArray`。若打开过滤，按同一 `FilterModel` 在本地滤（或 EJ2 本地 + 同步模型）。不打列表 search。
 - **details**：默认不过滤。
 
-`persistFilter` 只序列化 `EntityFilterModel`（及 meta 上对应 filters），与 Layout 分开。index / selector 默认开。
+`persistFilter` 只序列化 `FilterModel`（及 meta 上对应 filters），与 Layout 分开。index / selector 默认开。
 
 ### 列头 UI（EJ2 实现，AG 体验）
 
@@ -481,7 +481,7 @@ Syncfusion 另有 **XlsIO for Java**（独立 Excel 引擎，要许可），那�
 
 ### 建议
 
-1. **index 导出不要走 EJ2。** 外挂「导出」按钮：把当前 `EntityFilterModel` + sorts 交给 **已有 Java `searchAll` 同条件** 的导出接口，服务端流式写 xlsx（自有栈即可）。列集用 MetaUi `listed` / `listPos` / `displayLabel`，与表格布局一致。
+1. **index 导出不要走 EJ2。** 外挂「导出」按钮：把当前 `FilterModel` + sorts 交给 **已有 Java `searchAll` 同条件** 的导出接口，服务端流式写 xlsx（自有栈即可）。列集用 MetaUi `listed` / `listPos` / `displayLabel`，与表格布局一致。
 2. **SfGrid 仍注入 ExcelExport**（模块全集），只给子表等小数据可选调用；**不要**做成 index 默认工具栏。
 3. 不要为了导出去关虚拟化或把全量数据塞进 Grid。
 
@@ -574,7 +574,7 @@ index 可配 `**hierarchyMode: 'default' | 'lazy' | 'eager'**`（只针对 **第
 | ------------- | -------------------------- | ---------------------------------- | ---------------------------------- | -------------------------------------------- |
 | `**default**` | 只主表，当前页                    | 不展开                                | 开                                  | 只主表字段                                        |
 | `**lazy**`    | 主表分页；展开再查该行第一子表            | 官方 Hierarchy / 行展开嵌套 Grid          | **关**（官方 row virt 与 Hierarchy 不兼容） | 主表筛仍服务端；子表筛仅已展开块（不承诺）                        |
-| `**eager**`   | **主表 ⟕ 第一子表** 一次查（行粒度=子表行） | **一张扁表**：主表 listed 列 + 子表 listed 列 | **仍开**（不是 Hierarchy）               | **子表字段可进 `EntityFilterModel`**（这才是 K3 的找数优势） |
+| `**eager**`   | **主表 ⟕ 第一子表** 一次查（行粒度=子表行） | **一张扁表**：主表 listed 列 + 子表 listed 列 | **仍开**（不是 Hierarchy）               | **子表字段可进 `FilterModel`**（这才是 K3 的找数优势） |
 
 
 **eager 行身份与操作**

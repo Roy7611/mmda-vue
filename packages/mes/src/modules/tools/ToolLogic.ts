@@ -6,7 +6,7 @@
  *
  */
 
-import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, inFilter, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined } from '@mmda/core';
+import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, ApiClient, isNullOrUndefined, FieldFilter } from '@mmda/core';
 import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
@@ -1540,7 +1540,7 @@ try {
 			resolve(this.apiClient.searchAll({
 				searchWord,
 				filterModel: {
-					materialType: inFilter(MaterialType.TOOLS),
+					materialType: FieldFilter.in(MaterialType.TOOLS),
 				},
 				pager: { pageSize: 20, pageNo: 1 },
 			}, {

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup, UiProps } from '@mmda/core';
-import { defaultPager, isArray, isRefNone, MetaModel, EntityState, inFilter, nullFilter } from '@mmda/core';
+import { defaultPager, isArray, isRefNone, MetaModel, EntityState, FieldFilter } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
@@ -132,8 +132,8 @@ export class ToolkitLogic extends EntityLogic<Toolkit> {
 			searchParam: {
 				pager: defaultPager(),
 				filterModel: {
-					toolkitID: nullFilter(),
-					status: inFilter([ToolStatus.NORMAL, ToolStatus.ALERTED]),
+					toolkitID: FieldFilter.nil(),
+					status: FieldFilter.in([ToolStatus.NORMAL, ToolStatus.ALERTED]),
 				}
 			},
 			ctor: defineTool,

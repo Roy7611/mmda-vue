@@ -1143,7 +1143,7 @@ describe('prime column filter join/multi', () => {
     expect((applied as any).filterModels[1].values).toEqual(['LABOR', 'PART'])
   })
 
-  it('hydrates BETWEEN+dateKind as WITHIN and applies dateKindFilter', () => {
+  it('hydrates WITHIN + value kind and applies FieldFilter.dateKind', () => {
     const field = {
       fieldName: 'createdAt',
       dataType: 191,
@@ -1151,21 +1151,21 @@ describe('prime column filter join/multi', () => {
     } as any
     const state = hydratePrimeColumnFilter(field, {
       filterType: 'date',
-      operator: 'BETWEEN',
-      dateKind: 'TODAY',
+      operator: 'WITHIN',
+      value: 'TODAY',
     })
     expect(state.operator).toBe('WITHIN')
     expect(state.dateKind).toBe('TODAY')
     expect(applyPrimeColumnFilter(field, state)).toEqual({
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: 'TODAY',
+      value: 'TODAY',
     })
     state.dateKind = 'YESTERDAY'
     expect(applyPrimeColumnFilter(field, state)).toEqual({
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: 'YESTERDAY',
+      value: 'YESTERDAY',
     })
   })
 

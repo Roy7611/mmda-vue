@@ -23,13 +23,12 @@ MetaUi -> MetaModel -> Models
 
 ```ts
 import {
-  defaultSearchParam,
-  inFilter,
-  type EntitySearchParam,
+  EntitySearchParam,
+  FieldFilter,
 } from '@mmda/core'
 
 const search: EntitySearchParam = {
-  ...defaultSearchParam('仓'),
+  ...EntitySearchParam.create('仓'),
   queryParams: { filter: "status='OPEN'" }, // 兼容：快捷 SQL / 旧 URL
   filterModel: {
     qty: {
@@ -38,7 +37,7 @@ const search: EntitySearchParam = {
       value: 10,
       valueTo: 20,
     },
-    status: inFilter(['OPEN', 'USED']),
+    status: FieldFilter.in(['OPEN', 'USED']),
   },
 }
 ```

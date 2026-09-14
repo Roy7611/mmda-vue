@@ -1,11 +1,10 @@
 import {
-  combineCompareAndSet,
   SqlDataType,
   uiCssClass,
   MetaUiFilterType,
-  type EntityFieldFilter,
-  type EntityFilterModel,
-  type EntitySetFieldFilter,
+  FieldFilter,
+  type FilterModel,
+  type SetFieldFilter,
   type MetaUiField,
 } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType } from './filter_kind'
@@ -25,7 +24,7 @@ import { gridFilterOperator } from './utils'
 export type { CompareColumnVariant, SfCompareColumnFilterHandle }
 
 export type SfCompareColumnFilterExtras = {
-  filterModel?: EntityFilterModel
+  filterModel?: FilterModel
   dateRangeLabels?: Partial<Record<string, string>>
   filterLabels?: Partial<Record<string, string>>
   loadPivotDates?: (field: MetaUiField) => Promise<unknown>
@@ -34,7 +33,7 @@ export type SfCompareColumnFilterExtras = {
 }
 
 export type CompareColumnFilterStore = {
-  models: Map<string, EntityFieldFilter>
+  models: Map<string, FieldFilter>
   cleared: Set<string>
 }
 
@@ -75,7 +74,7 @@ export function usesCompareColumnFilter(
 export function writeCompareColumnFilter(
   store: CompareColumnFilterStore,
   fieldName: string,
-  filter?: EntityFieldFilter,
+  filter?: FieldFilter,
 ) {
   if (filter) {
     store.models.set(fieldName, filter)
@@ -87,9 +86,9 @@ export function writeCompareColumnFilter(
 }
 
 export function applyCompareColumnFilters(
-  model: EntityFilterModel,
+  model: FilterModel,
   store: CompareColumnFilterStore,
-): EntityFilterModel {
+): FilterModel {
   const next = { ...model }
   for (const [fieldName, filter] of store.models) {
     next[fieldName] = filter
@@ -100,13 +99,13 @@ export function applyCompareColumnFilters(
   return next
 }
 
-export function highlightValueOf(filter: EntityFieldFilter): unknown {
+export function highlightValueOf(filter: FieldFilter): unknown {
   if (filter.filterType === 'multi') {
     const first = filter.filterModels[0]
     return first ? highlightValueOf(first) : true
   }
   if (filter.filterType === 'set') return filter.values?.[0] ?? true
-  if (filter.operator === 'WITHIN') return filter.dateKind ?? filter.value ?? true
+  if (filter.operator === 'WITHIN') return filter.value ?? true
   if (filter.operator === 'BETWEEN') return filter.value ?? true
   if (
     filter.operator === 'IS_NULL' ||
@@ -151,7 +150,7 @@ export function hideEj2MenuChrome(
   }
 }
 
-const compareFrom = (filter?: EntityFieldFilter) => {
+const compareFrom = (filter?: FieldFilter) => {
   if (!filter) return undefined
   if (filter.filterType === 'multi') {
     return filter.filterModels.find(item => item.filterType !== 'set')
@@ -160,7 +159,7 @@ const compareFrom = (filter?: EntityFieldFilter) => {
   return filter
 }
 
-const setFrom = (filter?: EntityFieldFilter) => {
+const setFrom = (filter?: FieldFilter) => {
   if (!filter) return []
   if (filter.filterType === 'set') return filter.values
   if (filter.filterType === 'multi') {
@@ -193,7 +192,7 @@ function sfDateMenuFilter(
   const getModel = () => {
     const op = String(operatorDrop?.value ?? 'equal')
     const filterType = 'date' as const
-    let compare: EntityFieldFilter | undefined
+    let compare: FieldFilter | undefined
     if (op === 'isnull' || op === 'notnull') {
       compare = { filterType, operator: gridFilterOperator(op, filterType) }
     } else if (picker?.value != null) {
@@ -203,10 +202,10 @@ function sfDateMenuFilter(
         value: picker.value,
       }
     }
-    const set: EntitySetFieldFilter | undefined = setTokens.length
+    const set: SetFieldFilter | undefined = setTokens.length
       ? { filterType: 'set', operator: 'IN', values: [...setTokens] }
       : undefined
-    return combineCompareAndSet(compare, set)
+    return FieldFilter.combineCompareAndSet(compare, set)
   }
 
   return {

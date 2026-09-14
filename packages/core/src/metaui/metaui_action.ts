@@ -25,7 +25,7 @@ export enum EntityActionType {
   EDIT = 'edit',
   SAVE = 'save',
   DELETE = 'delete',
-  DELETEALL = 'deleteAll',
+  DELETE_ALL = 'deleteAll',
   PRINT = 'print',
   IMPORT = 'import',
   EXPORT = 'export',
@@ -38,8 +38,8 @@ export enum EntityActionType {
   CLEAR = 'clear',
   RESET = 'reset',
   SEARCH = 'search',
-  ADDCHILD = 'addChild',
-  REMOVECHILD = 'removeChild',
+  ADD_CHILD = 'addChild',
+  REMOVE_CHILD = 'removeChild',
 }
 
 const action = (
@@ -64,7 +64,7 @@ export const entityActionFactory: Record<
   edit: cb => action(EntityActionType.EDIT, 'primary', cb),
   save: cb => action(EntityActionType.SAVE, 'danger', cb),
   delete: cb => action(EntityActionType.DELETE, 'danger', cb),
-  deleteAll: cb => action(EntityActionType.DELETEALL, 'danger', cb),
+  deleteAll: cb => action(EntityActionType.DELETE_ALL, 'danger', cb),
   print: cb => action(EntityActionType.PRINT, 'info', cb),
   import: cb => action(EntityActionType.IMPORT, 'primary', cb),
   export: cb => action(EntityActionType.EXPORT, 'info', cb),

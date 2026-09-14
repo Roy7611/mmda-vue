@@ -3,11 +3,11 @@ import {
   compareListColumns,
   ensureListFieldVisibleWhenFrozen,
   isListFrozen,
-  toEntityQuery,
   type ListSettingsField,
   type MetaUi,
   type MetaUiField,
   type MetaUiFilter,
+  EntityQuery,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { indexTableMetaUi } from "./join_list_mode";
@@ -101,7 +101,7 @@ export async function persistListPack(context: VueUiContext<any>) {
       {
         ...logic.meta,
         metaUi: context.metaUi,
-        lastQuery: toEntityQuery(context.searchParam),
+        lastQuery: EntityQuery.copy(context.searchParam),
       },
       listServiceName(context),
     );

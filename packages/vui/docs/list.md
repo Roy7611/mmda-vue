@@ -20,7 +20,7 @@ core 设计与用法：[entity_search.md](../../core/docs/models/entity_search.m
 - `buildListView`（`ui/builder/list_view.ts`）：工具栏、搜索栏、数据区、分页。数据区按场景走 `buildList`（`UiListProps`）/ `buildTable`（`UiTableProps`）/ `buildGrid`（`UiGridProps`）/ `buildTreeGrid`。table 与 grid 实现可落到同一皮肤表格。
 - 左树右表是 Builder 组合（`buildTreeListView`），见 [Builder](./builder.md)；树契约见 [树](./tree.md)；Logic 用 `viewOptions` 挂接，见 [实体交互逻辑](./logic.md)。
 - `UiFilter`：快捷过滤，编译进 `queryParams.filter`（兼容路径）。
-- `filterModel`：表头结构化 `EntityFilterModel`（只在 `UiTableProps` / `UiGridProps`）。
+- `filterModel`：表头结构化 `FilterModel`（只在 `UiTableProps` / `UiGridProps`）。
 - 实体选择：`context.select(field)` 或 `select({ repository })`；视图仍是 `selectOne` / `selectMany`。不要独立 `UiSelector`，不要 `buildSearchForRelativeContent`。
 
 ```ts
@@ -127,4 +127,4 @@ Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: 
 - 不要在页面组件里维护第二份 `pageNo` / `searchWord`。
 - 自定义列表页可以 `props.content` 换掉表格，但仍应复用 `searchParam`。
 - 不要新增独立 Selector 组件旁路；选择一律走 Index / `select()`。
-- 持久化列表布局时把 `lastQuery: toEntityQuery(searchParam)` 一并写入 pack，不要单存 sorts。
+- 持久化列表布局时把 `lastQuery: EntityQuery.copy(searchParam)` 一并写入 pack，不要单存 sorts。

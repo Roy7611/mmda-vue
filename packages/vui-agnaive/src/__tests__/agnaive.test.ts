@@ -1077,7 +1077,7 @@ describe('vui-agnaive skin', () => {
     expect(dataCols.every(col => !col.filter)).toBe(true)
   })
 
-  it('maps AG Grid FilterModel to EntityFilterModel and back', () => {
+  it('maps AG Grid FilterModel to FilterModel and back', () => {
     const metaUi = productMeta()
     const entity = agFilterModelToEntity(
       {
@@ -1236,7 +1236,7 @@ describe('vui-agnaive skin', () => {
     expect(entity.createdAt).toEqual({
       filterType: 'date',
       operator: 'WITHIN',
-      dateKind: 'THIS_MONTH',
+      value: 'THIS_MONTH',
     })
     const ag = entityFilterToAgModel(entity, metaUi)
     expect(ag.createdAt).toEqual({

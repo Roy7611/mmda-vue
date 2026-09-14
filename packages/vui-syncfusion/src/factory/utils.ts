@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE_SIZE_OPTIONS, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type EntityFilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOperatorCode } from "@mmda/core";
+import { DEFAULT_PAGE_SIZE_OPTIONS, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type FilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOpCode } from "@mmda/core";
 import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from "./filter_kind";
 
 export const EMPTY_SELECTION: unknown[] = [];
@@ -99,7 +99,7 @@ export const gridFilterOperator = (
   filterType?: "text" | "number" | "date",
 ) => {
   const key = String(operator ?? "").toLowerCase();
-  const operators: Record<string, MetaUiFilterOperatorCode> = {
+  const operators: Record<string, MetaUiFilterOpCode> = {
     equal: "EQ",
     notequal: "NEQ",
     greaterthan: "GT",
@@ -401,7 +401,7 @@ const toSetFilter = (items: any[], field: MetaUiField) => {
 export const gridFiltersToModel = (
   predicates: any[] | undefined,
   fields: MetaUiField[],
-): EntityFilterModel => {
+): FilterModel => {
   const grouped = new Map<string, any[]>();
   for (const item of flattenFilterPredicates(predicates)) {
     const name = String(item.field);
@@ -410,7 +410,7 @@ export const gridFiltersToModel = (
     grouped.set(name, list);
   }
 
-  const model: EntityFilterModel = {};
+  const model: FilterModel = {};
   for (const [fieldName, items] of grouped) {
     const field = fields.find((value) => value.fieldName === fieldName);
     if (!field) continue;

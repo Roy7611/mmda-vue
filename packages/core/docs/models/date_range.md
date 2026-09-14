@@ -1,8 +1,8 @@
-# utils/date_range.ts
+# models/date_range.ts
 
-- **层**：Data / utils
-- **源码**：[`packages/core/src/utils/date_range.ts`](../../src/utils/date_range.ts)
-- **列表语义过滤**：[date_filter.md](../models/date_filter.md) · [date_filter_usage.md](../logic/date_filter_usage.md)
+- **层**：Data / models
+- **源码**：[`packages/core/src/models/date_range.ts`](../../src/models/date_range.ts)
+- **列表语义过滤**：[date_filter.md](./date_filter.md) · [date_filter_usage.md](../logic/date_filter_usage.md)
 
 ## 职责
 

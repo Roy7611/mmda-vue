@@ -4,7 +4,7 @@
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, combineCompareAndSet, dateKindFilter, isDateRangeKind, uiCssClass, type EntityFieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
 import { gridFreezeOf, joinListColumnLabel, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
@@ -315,7 +315,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     const selectedSetValuesOf = (field: MetaUiField) => {
       const current = props.filterModel?.[field.fieldName] as
-        | EntityFieldFilter
+        | FieldFilter
         | undefined
       if (!current) return [] as unknown[]
       if (current.filterType === 'set') return current.values ?? []
@@ -560,9 +560,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       const valuesLabel = props.filterLabels?.values
 
       const currentFilter = () =>
-        props.filterModel?.[field.fieldName] as EntityFieldFilter | undefined
+        props.filterModel?.[field.fieldName] as FieldFilter | undefined
 
-      const compareFromCurrent = (current?: EntityFieldFilter) => {
+      const compareFromCurrent = (current?: FieldFilter) => {
         if (!current || !showCompare) return undefined
         if (current.filterType === 'multi') {
           return current.filterModels.find(item => item.filterType !== 'set')
@@ -571,7 +571,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return current
       }
 
-      const setFromCurrent = (current?: EntityFieldFilter) => {
+      const setFromCurrent = (current?: FieldFilter) => {
         if (!current || !showSet) return []
         if (current.filterType === 'set') return current.values
         if (current.filterType === 'multi') {
@@ -581,7 +581,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return []
       }
 
-      const readCompare = (): EntityFieldFilter | undefined => {
+      const readCompare = (): FieldFilter | undefined => {
         if (!showCompare) return undefined
         const first = readControlValue(undefined, firstInput)
         const second = allowJoin
@@ -601,7 +601,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         }
         if (operator === 'WITHIN') {
           return typeof first === 'string' && isDateRangeKind(first)
-            ? dateKindFilter(first)
+            ? FieldFilter.dateKind(first)
             : undefined
         }
         const toSimple = (value?: unknown) => {
@@ -804,8 +804,12 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                 field,
               )
               if (joinSelect) joinSelect.value = compare.operator.toLowerCase()
-            } else if (compare && isDateRangeKind(compare.dateKind)) {
-              writeControlValue(undefined, firstInput, compare.dateKind, field)
+            } else if (
+              compare &&
+              'value' in compare &&
+              isDateRangeKind(compare.value)
+            ) {
+              writeControlValue(undefined, firstInput, compare.value, field)
             } else if (compare && 'value' in compare) {
               writeControlValue(undefined, firstInput, compare.value, field)
             }
@@ -822,7 +826,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                 ? { filterType: 'set' as const, operator: 'IN' as const, values: setValues }
                 : undefined
             const compare = readCompare()
-            const next = combineCompareAndSet(compare, set)
+            const next = FieldFilter.combineCompareAndSet(compare, set)
             writeCompareColumnFilter(compareFilterStore, field.fieldName, next)
             if (!next) {
               args.fltrObj.removeFilteredColsByField?.(field.fieldName)
