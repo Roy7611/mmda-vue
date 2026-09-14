@@ -78,7 +78,6 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       edit: "e-icons e-edit",
       save: "e-icons e-save",
       cancel: "e-icons e-close",
-      "chips-close": "e-icons e-chips-close",
       delete: "e-icons e-trash",
       clear: "e-icons e-erase",
       add: "e-icons e-plus",

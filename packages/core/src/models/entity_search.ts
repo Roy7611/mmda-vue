@@ -108,10 +108,21 @@ export interface AdvancedFieldFilter {
   values?: unknown[];
 }
 
-/** Module.defaultFilter 段：queryID;queryName */
+/** 已保存查询芯片：queryID;queryName（不绑 Module.defaultFilter） */
 export interface NamedQueryRef {
   queryID: string;
   queryName: string;
+}
+
+/**
+ * Module.defaultFilter 段：`[alias.]field` 或 `[alias.]field=value`。
+ * `t` / 缺省 = 模块自身实体；其它别名（如 `items`）留给子表/关联。
+ */
+export interface DefaultFieldFilter {
+  /** 表别名。`t` 或缺省 = 本实体；`items` 等 = 子组。 */
+  alias?: string;
+  fieldName: string;
+  rawDefault?: string;
 }
 
 /**
@@ -510,8 +521,169 @@ export namespace AdvancedFilterModel {
   }
 }
 
+export namespace DefaultFieldFilter {
+  /** `t` 或缺省 = 模块自身。 */
+  export function isSelf(item: DefaultFieldFilter): boolean {
+    const alias = item.alias?.trim();
+    return !alias || alias.toLowerCase() === "t";
+  }
+
+  /**
+   * `t.status=1|items.xxx=2|status=NEW`。
+   * 点号左边是别名，右边是字段；无点号则本实体。
+   */
+  export function parse(s?: string): DefaultFieldFilter[] {
+    if (!s) return [];
+    return s
+      .split("|")
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+      .map((segment) => {
+        const eq = segment.indexOf("=");
+        const left = (eq < 0 ? segment : segment.slice(0, eq)).trim();
+        const rawDefault =
+          eq < 0 ? undefined : segment.slice(eq + 1).trim() || undefined;
+        if (!left) return undefined;
+        const dot = left.lastIndexOf(".");
+        if (dot < 0) return { fieldName: left, rawDefault };
+        const alias = left.slice(0, dot).trim();
+        const fieldName = left.slice(dot + 1).trim();
+        if (!fieldName) return undefined;
+        return {
+          alias: alias || undefined,
+          fieldName,
+          rawDefault,
+        };
+      })
+      .filter((item): item is DefaultFieldFilter => item != null);
+  }
+
+  /**
+   * 默认值收成 valueOf（code）。
+   * `=NEW` 对选项 value/code；`=1` 对 JSON `id` 或 pipe 三元组的数值 `value`。
+   */
+  export function resolveValue(
+    field: {
+      reference?: {
+        isEnum?: boolean;
+        refOptions?: unknown[];
+        valueOf?: (option: unknown) => unknown;
+        labelOf?: (option: unknown) => unknown;
+      };
+    },
+    raw?: string,
+  ): unknown {
+    const text = String(raw ?? "").trim();
+    if (!text) return undefined;
+    const reference = field.reference;
+    if (!reference?.isEnum || !reference.valueOf) return undefined;
+    const options = Array.isArray(reference.refOptions)
+      ? reference.refOptions
+      : [];
+    const valueOf = (option: unknown) => reference.valueOf!(option);
+    const hitValue = options.find((option) => {
+      const value = valueOf(option);
+      return value === text || String(value) === text;
+    });
+    if (hitValue) return valueOf(hitValue);
+    const asNumber = Number(text);
+    const numeric = text !== "" && !Number.isNaN(asNumber);
+    const sameIdentity = (id: unknown) =>
+      id === text || (numeric && id === asNumber) || String(id) === text;
+    const hitId = options.find((option) => {
+      if (option == null || typeof option !== "object") return false;
+      const rec = option as { id?: unknown; value?: unknown };
+      return sameIdentity(rec.id) || sameIdentity(rec.value);
+    });
+    if (hitId) return valueOf(hitId);
+    const hitLabel = reference.labelOf
+      ? options.find((option) => {
+          const label = reference.labelOf!(option);
+          return label === text || String(label) === text;
+        })
+      : undefined;
+    if (hitLabel) return valueOf(hitLabel);
+    return undefined;
+  }
+
+  /** 枚举实际包含的 code。IN/EQ 原样；NEQ/NOT_IN 用选项补集，不要把排除值当选中。 */
+  export function includedValues(
+    field: {
+      reference?: {
+        isEnum?: boolean;
+        refOptions?: unknown[];
+        valueOf?: (option: unknown) => unknown;
+        labelOf?: (option: unknown) => unknown;
+      };
+    },
+    filter?: FieldFilter | null,
+  ): unknown[] {
+    if (!filter || FieldFilter.isEmpty(filter)) return [];
+    const exclude =
+      filter.operator === "NEQ" || filter.operator === "NOT_IN";
+    const raw =
+      filter.filterType === "set"
+        ? [...(filter.values ?? [])]
+        : filter.value != null && filter.value !== ""
+          ? [filter.value]
+          : [];
+    const resolved = raw
+      .map((entry) => resolveValue(field, String(entry ?? "")) ?? entry)
+      .filter((entry) => entry !== undefined);
+    if (!exclude) return resolved;
+    const reference = field.reference;
+    if (!reference?.isEnum || !reference.valueOf) return [];
+    const excluded = new Set(resolved.map((entry) => String(entry)));
+    return (reference.refOptions ?? [])
+      .map((option) => reference.valueOf!(option))
+      .filter(
+        (code) => code != null && code !== "" && !excluded.has(String(code)),
+      );
+  }
+
+  export function toFieldFilter(
+    field: {
+      reference?: {
+        isEnum?: boolean;
+        refOptions?: unknown[];
+        valueOf?: (option: unknown) => unknown;
+        labelOf?: (option: unknown) => unknown;
+      };
+    },
+    raw?: string,
+  ): SetFieldFilter | undefined {
+    const value = resolveValue(field, raw);
+    if (value === undefined) return undefined;
+    return FieldFilter.in(value);
+  }
+
+  /** 只套本实体（`t` / 无别名）。已有键不覆盖。`items.xxx` 本轮不写 filterModel。 */
+  export function applySelfToModel(
+    model: FilterModel | undefined,
+    items: DefaultFieldFilter[],
+    getField: (fieldName: string) => {
+      reference?: {
+        isEnum?: boolean;
+        refOptions?: unknown[];
+        valueOf?: (option: unknown) => unknown;
+      };
+    } | undefined,
+  ): FilterModel | undefined {
+    const next = { ...(model ?? {}) };
+    for (const item of items) {
+      if (!isSelf(item) || !item.rawDefault) continue;
+      if (next[item.fieldName]) continue;
+      const field = getField(item.fieldName);
+      if (!field) continue;
+      const filter = toFieldFilter(field, item.rawDefault);
+      if (filter) next[item.fieldName] = filter;
+    }
+    return Object.keys(next).length ? next : undefined;
+  }
+}
+
 export namespace NamedQueryRef {
-  /** Module.defaultFilter：`queryID;queryName|queryID;queryName` */
+  /** 已保存查询芯片：`queryID;queryName|queryID;queryName` */
   export function parse(s?: string): NamedQueryRef[] {
     if (!s) return [];
     return s

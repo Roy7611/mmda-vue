@@ -1624,6 +1624,38 @@ html.e-dark-mode .mmda-dropup {
   margin-inline-end: 0.15rem;
 }
 
+.mmda-searchbar__field {
+  display: inline-flex;
+  align-items: stretch;
+  width: 20rem;
+  max-width: min(20rem, 100%);
+  flex: 0 1 20rem;
+  min-width: 0;
+  height: 32px;
+  border-radius: 999px;
+  background: rgb(var(--color-sf-surface-variant));
+}
+
+.mmda-searchbar__field .mmda-searchbar__input {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mmda-searchbar__mode {
+  margin: 0 0 0 0.65rem;
+  padding: 0 0.15rem 0 0;
+  border: 0;
+  background: transparent;
+  color: rgb(var(--color-sf-on-surface-variant));
+  font-size: 0.75rem;
+}
+
 .mmda-searchbar__addons {
   display: inline-flex;
   align-items: center;
@@ -2683,10 +2715,14 @@ html.mmda-dark .e-grid .e-table {
   display: none;
 }
 
-.e-flmenu .flm-input,
-.e-flmenu .mmda-date-set-dropdown,
-.e-flmenu .e-ddt {
+.e-flmenu .flm-input {
   width: 100%;
+}
+
+.e-flmenu .mmda-date-set-tree {
+  width: 100%;
+  max-height: 200px;
+  overflow: auto;
 }
 
 .mmda-date-set-node__row {
@@ -2977,11 +3013,7 @@ html.mmda-dark .e-grid .e-table {
   color: rgb(var(--color-sf-outline, 122, 117, 127));
 }
 
-/* Tags → Chips：换行/间距交给官方 ChipList。
- * enableDelete 默认只挂 e-dlt-btn；可删芯片改挂 e-icons e-chips-close（字形同 e-close / \e7e7）。 */
-.e-icons.e-chips-close:before {
-  content: "\e7e7";
-}
+/* Tags → Chips：换行/间距/删除叉交给官方 ChipList（enableDelete → e-chip-delete e-dlt-btn）。 */
 
 /* 表格设置：存储 / 恢复默认 SplitButton 左右两段圆角衔接 */
 .e-split-btn-wrapper.mmda-list-setting__restore > .e-split-btn,

@@ -38,7 +38,7 @@
 | 当次请求 | `EntitySearchParam`（≈ Query + 兼容 `queryParams?`） |
 | 列表入口 | 一律 `searchAll`；有 `filterModel` 才 POST body |
 | 运算符 | 结构化用 `EntityFilterOperator`；SQL 片段用 `SqlOperator`（已删 SearchOp） |
-| 模块芯片 | `Module.defaultFilter` = `queryID;queryName\|…`（不是 FilterModel JSON） |
+| 模块芯片 | `Module.defaultFilter` = `[alias.]field[=value]`（`t.status=1`；不是 FilterModel / 命名查询） |
 | 本地缓存 | pack.`lastQuery` 一整份 EntityQuery；不单存 sorts |
 | CustomizedQuery | `queryExpression` = `JSON.stringify(EntityQuery)`，旧 SQL 双读 |
 

@@ -6,6 +6,7 @@ import {
 } from "../net/api_client";
 import { SortOrder } from "../models/pagination";
 import {
+  DefaultFieldFilter,
   EntitySearchParam,
   FieldFilter,
   NamedQueryRef,
@@ -210,6 +211,116 @@ describe("ApiClient.searchAll", () => {
 });
 
 describe("EntityQuery", () => {
+  it("DefaultFieldFilter.parse 支持 t.status=1 与 items.xxx=2", () => {
+    expect(DefaultFieldFilter.parse("t.status=1")).toEqual([
+      { alias: "t", fieldName: "status", rawDefault: "1" },
+    ]);
+    expect(DefaultFieldFilter.parse("status=NEW|items.xxx=2")).toEqual([
+      { fieldName: "status", rawDefault: "NEW" },
+      { alias: "items", fieldName: "xxx", rawDefault: "2" },
+    ]);
+    expect(DefaultFieldFilter.parse("t.status")).toEqual([
+      { alias: "t", fieldName: "status" },
+    ]);
+    expect(DefaultFieldFilter.isSelf({ alias: "t", fieldName: "status" })).toBe(
+      true,
+    );
+    expect(DefaultFieldFilter.isSelf({ fieldName: "status" })).toBe(true);
+    expect(
+      DefaultFieldFilter.isSelf({ alias: "items", fieldName: "xxx" }),
+    ).toBe(false);
+  });
+
+  it("DefaultFieldFilter.resolveValue 数字对 id，字面对 value", () => {
+    const field = {
+      reference: {
+        isEnum: true,
+        refOptions: [
+          { id: 0, value: "LABOR", text: "劳动力" },
+          { id: 1, value: "NEW", text: "新建" },
+        ],
+        valueOf: (option: any) => option.value,
+      },
+    };
+    expect(DefaultFieldFilter.resolveValue(field, "NEW")).toBe("NEW");
+    expect(DefaultFieldFilter.resolveValue(field, "1")).toBe("NEW");
+    expect(
+      DefaultFieldFilter.resolveValue(
+        {
+          reference: {
+            ...field.reference,
+            labelOf: (option: any) => option.text,
+          },
+        },
+        "新建",
+      ),
+    ).toBe("NEW");
+    expect(DefaultFieldFilter.toFieldFilter(field, "1")).toEqual(
+      FieldFilter.in("NEW"),
+    );
+    expect(DefaultFieldFilter.resolveValue(field, "missing")).toBeUndefined();
+    const pipeField = {
+      reference: {
+        isEnum: true,
+        refOptions: [
+          { value: 0, code: "NEW", label: "新" },
+          { value: 1, code: "USED", label: "已启用" },
+          { value: -1, code: "DEPRECATED", label: "已弃用" },
+        ],
+        valueOf: (option: any) => option.code,
+        labelOf: (option: any) => option.label,
+      },
+    };
+    expect(DefaultFieldFilter.resolveValue(pipeField, "1")).toBe("USED");
+    expect(DefaultFieldFilter.resolveValue(pipeField, "-1")).toBe("DEPRECATED");
+    expect(DefaultFieldFilter.resolveValue(pipeField, "已启用")).toBe("USED");
+    expect(DefaultFieldFilter.toFieldFilter(pipeField, "1")).toEqual(
+      FieldFilter.in("USED"),
+    );
+    expect(
+      DefaultFieldFilter.includedValues(pipeField, FieldFilter.in(["NEW", "USED"])),
+    ).toEqual(["NEW", "USED"]);
+    expect(
+      DefaultFieldFilter.includedValues(pipeField, {
+        filterType: "text",
+        operator: "NEQ",
+        value: "DEPRECATED",
+      }),
+    ).toEqual(["NEW", "USED"]);
+    expect(
+      DefaultFieldFilter.includedValues(
+        pipeField,
+        FieldFilter.notIn("DEPRECATED"),
+      ),
+    ).toEqual(["NEW", "USED"]);
+  });
+
+  it("applySelfToModel 套 t.status=1，跳过 items.xxx", () => {
+    const field = {
+      reference: {
+        isEnum: true,
+        refOptions: [
+          { id: 0, value: "OLD", text: "停用" },
+          { id: 1, value: "NEW", text: "启用" },
+        ],
+        valueOf: (option: any) => option.value,
+      },
+    };
+    const items = DefaultFieldFilter.parse("t.status=1|items.xxx=2|name=钢");
+    expect(
+      DefaultFieldFilter.applySelfToModel(undefined, items, (name) =>
+        name === "status" ? field : undefined,
+      ),
+    ).toEqual({ status: FieldFilter.in("NEW") });
+    expect(
+      DefaultFieldFilter.applySelfToModel(
+        { status: FieldFilter.in("OLD") },
+        items,
+        (name) => (name === "status" ? field : undefined),
+      ),
+    ).toEqual({ status: FieldFilter.in("OLD") });
+  });
+
   it("NamedQueryRef.parse 按 queryID;queryName| 拆芯片", () => {
     expect(NamedQueryRef.parse("1;全部|2;启用|3;停用")).toEqual([
       { queryID: "1", queryName: "全部" },

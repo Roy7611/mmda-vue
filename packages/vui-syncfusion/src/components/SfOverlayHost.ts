@@ -29,6 +29,17 @@ function sfCssForRole(role?: string): string | undefined {
   return undefined
 }
 
+/**
+ * EJ2 Vue 槽模板：属性必须是槽名字符串，再配同名 slot。
+ * https://ej2.syncfusion.com/vue/documentation/common/template
+ */
+function ej2SlotTemplate(
+  name: string,
+  render: (() => unknown) | undefined,
+): Record<string, unknown> {
+  return render ? { [name]: name } : {}
+}
+
 export const SfOverlayHost = defineComponent({
   name: 'SfOverlayHost',
   setup() {
@@ -122,7 +133,7 @@ export const SfOverlayHost = defineComponent({
           const standard = resolveDialogButtons(request.props.buttons)
           const custom = request.props.customActions ?? []
 
-          const footer =
+          const footerVNode =
             footerKind === 'slot'
               ? () => request.props.footer!()
               : footerKind === 'buttons'
@@ -196,6 +207,14 @@ export const SfOverlayHost = defineComponent({
                     )
                 : undefined
 
+          Object.assign(
+            dialogProps,
+            ej2SlotTemplate('footerTemplate', footerVNode),
+            headerKind === 'slot'
+              ? ej2SlotTemplate('headerTemplate', () => request.props.header!())
+              : {},
+          )
+
           return h(
             DialogComponent as any,
             { key: request.id, ...dialogProps },
@@ -205,7 +224,7 @@ export const SfOverlayHost = defineComponent({
               ...(headerKind === 'slot'
                 ? { headerTemplate: () => request.props.header!() }
                 : {}),
-              ...(footer ? { footerTemplate: footer } : {}),
+              ...(footerVNode ? { footerTemplate: footerVNode } : {}),
             },
           )
         }),

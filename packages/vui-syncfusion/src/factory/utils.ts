@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE_SIZE_OPTIONS, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type FilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOpCode } from "@mmda/core";
+import { DEFAULT_PAGE_SIZE_OPTIONS, DefaultFieldFilter, FieldFilter, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type FilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOpCode } from "@mmda/core";
 import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from "./filter_kind";
 
 export const EMPTY_SELECTION: unknown[] = [];
@@ -413,7 +413,40 @@ const toCompareFilter = (items: any[], field: MetaUiField) => {
   };
 };
 
+const resolveEnumFilterValues = (field: MetaUiField, items: any[]) =>
+  flattenValues(items).map(
+    (raw) =>
+      DefaultFieldFilter.resolveValue(
+        field,
+        raw == null ? "" : String(raw),
+      ) ?? raw,
+  );
+
+const enumCodesOf = (field: MetaUiField) => {
+  const reference = field.reference;
+  if (!reference?.isEnum || !reference.valueOf) return [];
+  return (reference.refOptions ?? [])
+    .map((option) => reference.valueOf!(option))
+    .filter((code) => code != null && code !== "");
+};
+
+/** 闭枚举 CheckBox：勾中的写 IN；EJ2 的 notequal 翻成补集，不要 NEQ/NOT_IN。 */
+const toEnumInFilter = (items: any[], field: MetaUiField) => {
+  const operators = items.map((item) => String(item.operator ?? "").toLowerCase());
+  const allNotEqual = operators.every(
+    (op) => op === "notequal" || op === "notin",
+  );
+  const resolved = resolveEnumFilterValues(field, items);
+  if (!allNotEqual) return FieldFilter.in(resolved);
+  const excluded = new Set(resolved.map((value) => String(value)));
+  const included = enumCodesOf(field).filter(
+    (code) => !excluded.has(String(code)),
+  );
+  return FieldFilter.in(included);
+};
+
 const toSetFilter = (items: any[], field: MetaUiField) => {
+  if (field.reference?.isEnum) return toEnumInFilter(items, field);
   const operators = items.map((item) => String(item.operator ?? "").toLowerCase());
   const allNotEqual = operators.every(
     (op) => op === "notequal" || op === "notin",
@@ -461,6 +494,14 @@ export const gridFiltersToModel = (
     const operators = items.map((item) =>
       String(item.operator ?? "").toLowerCase(),
     );
+    if (
+      field.reference?.isEnum &&
+      operators.length &&
+      operators.every((op) => isSetLikeOperator(op))
+    ) {
+      model[fieldName] = toEnumInFilter(items, field);
+      continue;
+    }
     const values = flattenValues(items);
     const lower = items.find((item) =>
       ["greaterthan", "greaterthanorequal"].includes(
@@ -530,6 +571,27 @@ export const gridFiltersToModel = (
     model[fieldName] = toCompareFilter(compareItems.length ? compareItems : items, field);
   }
   return model;
+};
+
+/** 列头 CheckBox 打开时按 filterModel set values 勾选；空 = 全选（无条件）。 */
+export const applyChoiceFilterExistingPredicate = (
+  filterUi: { existingPredicate?: Record<string, any[]> },
+  fieldName: string,
+  values: unknown[],
+) => {
+  const existing = { ...(filterUi.existingPredicate ?? {}) };
+  if (values.length) {
+    existing[fieldName] = values.map((value) => ({
+      field: fieldName,
+      operator: "equal",
+      value,
+      predicate: "or",
+    }));
+  } else {
+    delete existing[fieldName];
+  }
+  filterUi.existingPredicate = existing;
+  return filterUi;
 };
 
 /** EJ2 Button types-and-styles：`e-primary` / `e-success` / `e-info` / `e-warning` / `e-danger`，可与 `e-outline` / `e-flat` 叠用。无 colorRole 不加色。 */

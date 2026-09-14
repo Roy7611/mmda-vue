@@ -4,6 +4,8 @@ import {
   chipLabelsFromField,
   chipsKindOf,
   chipsPropsFromField,
+  chipsSelectedKeysOf,
+  chipValueEquals,
   enumChipSetBindModeOf,
   enumChipSetPropsFromField,
   isChipsRemovable,
@@ -45,6 +47,22 @@ describe('chips helpers', () => {
       1,
     )
     expect(next).toEqual(['a', 'b'])
+  })
+
+  it('maps selected chips to string keys, not indices', () => {
+    expect(
+      chipsSelectedKeysOf({
+        kind: 'filter',
+        items: [
+          { label: '全部', value: '__all__' },
+          { label: '新', value: 0 },
+          { label: '启用', value: 1 },
+          { label: '弃用', value: 2 },
+        ],
+        selected: [0, 2],
+      }),
+    ).toEqual(['0', '2'])
+    expect(chipValueEquals(0, '0')).toBe(true)
   })
 
   it('parses field labels from comma-separated text', () => {

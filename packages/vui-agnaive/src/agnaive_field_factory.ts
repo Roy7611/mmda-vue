@@ -1,6 +1,6 @@
 import { h, type Component, type VNode } from "vue";
 import { MetaModel, SqlDataType, type MetaUiField, type Module } from "@mmda/core";
-import { autoCompleteBindValue, autoCompletePropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
+import { autoCompleteBindValue, autoCompletePropsFromField, avatarPropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
 import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type UiViewContext } from "@mmda/vui"
 import { createAutoComplete } from "./factory/autocomplete";
 import { createCheckBox } from "./factory/checkbox";
@@ -34,6 +34,7 @@ import {
 import { createBitCheckBoxList, createCheckBoxList } from "./factory/check_box_list";
 import { createTagAutoComplete } from "./factory/tag_auto_complete";
 import { createTreeSelect } from "./factory/tree_select";
+import { createAvatar } from "./factory/avatar";
 import { createChips } from "./factory/chips";
 import { NImage, NInput, NTag } from "naive-ui";
 import { renderFileLinkField, renderFileUploaderField, renderFilesUploaderField, renderImageUploaderField, renderImagesUploaderField, renderInplaceFieldEditor } from "@mmda/vui"
@@ -781,6 +782,16 @@ const factory: UiFieldFactory = {
     renderImagesUploaderField(field, context as any, props ?? {}),
   image: (field, context, props) =>
     h(NImage, { src: context.getFieldValue(field, props?.row), ...props }),
+  avatar: (field, context, props) => {
+    const avatarProps = avatarPropsFromField(field, context, props ?? {});
+    const render = (context as any).uiBuilder?.factory?.avatar;
+    if (render) return render(avatarProps);
+    return createAvatar(
+      avatarProps,
+      (name) =>
+        (context as any).uiBuilder?.factory?.resolveIcon?.(name) ?? name,
+    );
+  },
   progressBar: (field, context, props) =>
     createProgressBar(progressBarPropsFromField(field, context, props ?? {})),
   signaturePad: (field, context, props) =>
@@ -965,6 +976,7 @@ const aliases: Record<string, string> = {
   Timeline: "timeline",
   RelativeTime: "relativeTime",
   Image: "image",
+  Avatar: "avatar",
   StatusLight: "statusLight",
 };
 

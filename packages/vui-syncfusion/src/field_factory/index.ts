@@ -50,6 +50,7 @@ import {
   colorBox,
   externalLink,
   fallbackDisplay,
+  fieldAvatar,
   fieldImage,
   multilineText,
   percentage,
@@ -222,6 +223,7 @@ const factory: UiFieldFactory = {
   imageUploader,
   imagesUploader,
   image: fieldImage,
+  avatar: fieldAvatar,
   progressBar,
   signaturePad,
   stepper,
@@ -327,6 +329,7 @@ const aliases: Record<string, string> = {
   Timeline: "timeline",
   RelativeTime: "relativeTime",
   Image: "image",
+  Avatar: "avatar",
   StatusLight: "statusLight",
 };
 

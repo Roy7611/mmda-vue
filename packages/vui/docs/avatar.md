@@ -1,6 +1,6 @@
 # Avatar 设计
 
-chrome 用户头像，走 `factory.avatar`。EJ2 类型见 [Syncfusion Avatar types](https://ej2.syncfusion.com/vue/documentation/avatar/types)：纯 CSS（`.e-avatar`）。
+chrome 用户头像，走 `factory.avatar`。字段（职员 `avatar` 等 URL）走 `fieldFactory.avatar`，服务器 `renderer` 配 `Avatar`。EJ2 类型见 [Syncfusion Avatar types](https://ej2.syncfusion.com/vue/documentation/avatar/types)：纯 CSS（`.e-avatar`）。
 
 程序员用法：[avatar_usage.md](./avatar_usage.md)。chrome 参数约定：[factory.md](./factory.md)（含 `htmlAttributes` 透传）。
 
@@ -8,8 +8,9 @@ chrome 用户头像，走 `factory.avatar`。EJ2 类型见 [Syncfusion Avatar ty
 
 | 层 | 做什么 |
 |---|---|
-| core `UiAvatarProps` | `src` / `icon` / `label` / `shape` / `size` / `colorRole` |
+| core `UiAvatarProps` | `src` / `icon` / `label` / `shape` / `size` / `colorRole`；`avatarPropsFromField` |
 | 皮肤 `factory/avatar.ts` | SF CSS `e-avatar-*`；Prime `Avatar`；Naive `NAvatar` |
+| 字段 `fieldFactory.avatar` | URL 字段译成 chrome；Pascal 别名 `Avatar` |
 
 EJ2 Avatar 无 Vue 控件，Syncfusion 皮肤不要造 `SfAvatar.vue`。不做 `AvatarGroup`。角标叠头像用 `factory.badge` + `overlay`，Avatar **无** `position`。
 
@@ -39,7 +40,7 @@ EJ2 Avatar 无 Vue 控件，Syncfusion 皮肤不要造 `SfAvatar.vue`。不做 `
 
 ## 源码
 
-- core：[`chrome.ts`](../../core/src/ui/chrome.ts)
+- core：[`avatar.ts`](../../core/src/ui/factory/avatar.ts)
 - SF：[`vui-syncfusion/src/factory/avatar.ts`](../../vui-syncfusion/src/factory/avatar.ts)
 - Prime：[`vui-primevue/src/factory/avatar.ts`](../../vui-primevue/src/factory/avatar.ts)
 - Naive：[`vui-agnaive/src/factory/avatar.ts`](../../vui-agnaive/src/factory/avatar.ts)

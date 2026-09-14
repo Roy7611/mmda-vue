@@ -16,7 +16,7 @@
 - 排序只在 `pager.sorts`。本地上次查询是 pack 上的 `lastQuery: EntityQuery`，不单存 sorts。
 - `EntityAction`：渲染为按钮的行为声明。
 - `MetaUiService`：加载、缓存和组装元数据包（含可选 `lastQuery`）。
-- `Module`：功能目录与权限位；`defaultFilter` 是 `queryID;queryName|…` 命名查询芯片。
+- `Module`：功能目录与权限位；`defaultFilter` 是 `[alias.]field[=value]` 固定字段芯片（`t.status=1`；`items.xxx` 先解析）。
 
 ```ts
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'

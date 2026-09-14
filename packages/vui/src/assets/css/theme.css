@@ -1630,7 +1630,7 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
 }
 
 .mmda-signin-form__error {
-  margin: 0;
+  margin: 0 0 1rem;
   padding: 0.65rem 0.85rem;
   border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--mmda-danger-color, #b3261e) 35%, transparent);
@@ -2066,9 +2066,92 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
   min-width: 0;
 }
 
-.mmda-list-filter-bar__clear {
+.mmda-list-filter-bar__fixed {
+  flex: 0 0 auto;
+}
+
+.mmda-list-filter-bar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
   flex-shrink: 0;
   margin-inline-start: auto;
+}
+
+.mmda-list-filter-bar__clear,
+.mmda-list-filter-bar__save,
+.mmda-list-filter-bar__delete-query {
+  flex-shrink: 0;
+}
+
+.mmda-searchbar__field {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.mmda-searchbar__mode {
+  flex: 0 0 auto;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mmda-searchbar__named-suggest {
+  position: absolute;
+  z-index: 8;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0.15rem 0 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  border-radius: 0.5rem;
+  background: var(--mmda-surface, #fff);
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 12%);
+}
+
+.mmda-searchbar__named-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mmda-searchbar__named-suggest-pick {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mmda-searchbar__named-suggest-delete {
+  flex: 0 0 auto;
+  margin: 0 0.35rem 0 0;
+  padding: 0 0.35rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mmda-save-named-query {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.15rem 0;
+}
+
+.mmda-save-named-query .e-control-wrapper,
+.mmda-save-named-query .e-input-group,
+.mmda-save-named-query .p-inputtext,
+.mmda-save-named-query .n-input {
+  width: 100%;
 }
 
 .mmda-tree-list-view .mmda-page__body,

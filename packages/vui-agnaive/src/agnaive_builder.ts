@@ -12,7 +12,7 @@ import {
 
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
 
-import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from '@mmda/vui'
+import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField, LIST_SEARCH_MODE_NAMED, listSearchModeOf } from '@mmda/vui'
 
 import {
 
@@ -1762,6 +1762,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
           event.preventDefault()
 
+          if (listSearchModeOf(runtime) === LIST_SEARCH_MODE_NAMED) return
+
           submitFuzzySearch()
 
         },
@@ -1784,73 +1786,37 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
         ),
 
-        h(
+        h(ListSearchField, {
 
-          NInput,
+          context: runtime,
 
-          {
+          onFuzzySearch: submitFuzzySearch,
 
-            class: 'mmda-searchbar__input',
+        }),
 
-            value: runtime.searchParam?.searchWord ?? '',
+        h('span', { class: 'mmda-searchbar__addons' }, [
 
-            placeholder: searchLabel,
+          addonButton(
 
-            size: 'small',
+            this.factory.resolveIcon('search'),
 
-            clearable: true,
+            searchLabel,
 
-            'onUpdate:value': (value: string) => {
+            submitFuzzySearch,
 
-              runtime.searchParam.searchWord = value
+          ),
 
-            },
+          addonButton(
 
-            onKeydown: (event: KeyboardEvent) => {
+            this.factory.resolveIcon('refresh'),
 
-              if (event.key === 'Enter') {
+            refreshLabel,
 
-                event.preventDefault()
+            refreshSearch,
 
-                submitFuzzySearch()
+          ),
 
-              }
-
-            },
-
-          },
-
-          {
-
-            suffix: () =>
-
-              h('span', { class: 'mmda-searchbar__addons' }, [
-
-                addonButton(
-
-                  this.factory.resolveIcon('search'),
-
-                  searchLabel,
-
-                  submitFuzzySearch,
-
-                ),
-
-                addonButton(
-
-                  this.factory.resolveIcon('refresh'),
-
-                  refreshLabel,
-
-                  refreshSearch,
-
-                ),
-
-              ]),
-
-          },
-
-        ),
+        ]),
 
         (filters.length > 0 || runtime.searchFields?.length > 0) &&
 

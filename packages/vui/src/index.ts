@@ -3,10 +3,12 @@ export {
   UI_CSS_PREFIX,
   uiCssClass,
   avatarModifierClasses,
+  avatarPropsFromField,
   badgeModifierClasses,
   badgePositionClass,
   skeletonModifierClasses,
   dividerModifierClasses,
+  type AvatarFieldContext,
   type UiAvatarProps,
   type UiAvatarShape,
   type UiAvatarSize,
@@ -388,6 +390,8 @@ export * from './ui/factory/list'
 export * from './ui/builder/list_view'
 export * from './ui/builder/list_query'
 export * from './ui/builder/list_filter_bar'
+export * from './ui/builder/list_named_query'
+export * from './ui/builder/list_search_field'
 export * from './ui/factory/tree'
 export * from './ui/builder/tree_data'
 export * from './ui/factory/tree_grid'

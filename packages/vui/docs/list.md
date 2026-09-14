@@ -40,7 +40,7 @@ searchParam
 
 `VueUiContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
 
-打开列表时套用 pack 的 `lastQuery`（一整份 `EntityQuery`），否则 `Module.defaultSort`。命名查询芯片来自 `Module.defaultFilter`（`queryID;queryName|…`），不是 FilterModel JSON。
+打开列表时套用 pack 的 `lastQuery`（一整份 `EntityQuery`），否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
 
 ## 工具栏
 

@@ -35,6 +35,7 @@ export interface ContextHost {
   customSearchFields: any[];
   searchParam: any;
   listLayoutRev: { value: number };
+  searchMode?: "fuzzy" | "named";
   pageLayoutRev: { value: number };
   joinListMode: boolean;
   selectedItems: any[];

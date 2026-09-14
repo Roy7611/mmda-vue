@@ -10,6 +10,7 @@ import {
   type MetaUiFilterCondition,
   type PagedList,
   type ReportTemplate,
+  DefaultFieldFilter,
   EntityQuery,
 } from "@mmda/core";
 import { ref } from "vue";
@@ -71,6 +72,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     customSearchFields: UiCustomSearchField[] = [];
     searchParam = rx(createDefaultSearchParam());
     listLayoutRev = ref(0);
+    searchMode: "fuzzy" | "named" = "fuzzy";
     pageLayoutRev = ref(0);
     joinListMode = false;
     currentTemplate: ReportTemplate | null = null;
@@ -137,6 +139,16 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         const defaultSort = this.logic?.module?.defaultSort;
         if (defaultSort && !this.searchParam.pager.sorts?.length) {
           this.searchParam.pager.sorts = EntityQuery.parseDefaultSort(defaultSort);
+        }
+        const defaults = DefaultFieldFilter.parse(
+          this.logic?.module?.defaultFilter,
+        );
+        if (defaults.length) {
+          this.searchParam.filterModel = DefaultFieldFilter.applySelfToModel(
+            this.searchParam.filterModel,
+            defaults,
+            (name) => this.metaUi?.getField?.(name),
+          );
         }
       }
       // 每页条数全局共用 `mmda/pageSize`，不被模块 lastQuery 覆盖

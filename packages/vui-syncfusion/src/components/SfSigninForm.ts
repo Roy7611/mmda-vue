@@ -67,8 +67,14 @@ export const SfSigninForm = defineComponent({
 
     const loading = ref(false)
     const progressRef = ref<{
-      ej2Instances?: { start?: () => void; end?: () => void }
+      ej2Instances?: {
+        start?: (percent?: number) => void
+        stop?: () => void
+        progressComplete?: () => void
+      }
     } | null>(null)
+
+    const progressApi = () => progressRef.value?.ej2Instances
     const tx = (message: string) => (message ? t(message) : message)
 
     const requiredUsername = () => {
@@ -93,7 +99,10 @@ export const SfSigninForm = defineComponent({
 
     const stopProgress = () => {
       loading.value = false
-      progressRef.value?.ej2Instances?.end?.()
+      const api = progressApi()
+      // stop 只暂停进度；progressComplete 才会 hideSpin、去掉 e-progress-active
+      api?.stop?.()
+      api?.progressComplete?.()
     }
 
     const handleLogin = async () => {
@@ -123,10 +132,13 @@ export const SfSigninForm = defineComponent({
     }
 
     watch(loading, (busy) => {
-      const api = progressRef.value?.ej2Instances
+      const api = progressApi()
       if (!api) return
       if (busy) api.start?.()
-      else api.end?.()
+      else {
+        api.stop?.()
+        api.progressComplete?.()
+      }
     })
 
     onBeforeMount(async () => {

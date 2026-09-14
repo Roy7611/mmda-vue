@@ -141,12 +141,13 @@ export interface Module {
   requiredCreateParam: boolean;
 
   /**
-   * 命名查询芯片：`queryID;queryName|queryID;queryName`
-   * 例：`1;全部|2;启用|3;停用`
+   * 固定字段芯片 + 进入 index 默认选中：`[alias.]field[=value]`，多个 `|`。
+   * 例：`t.status=1`、`status=NEW`、`items.xxx=2`（子表别名以后用）。
+   * `t` / 缺省 = 本实体；`=1` 对 enum `id`，写入仍是 `value`（code）。
    */
   defaultFilter?: string;
 
-  /** 默认排序（无选中命名查询时；有查询则以该查询 pager.sorts 为准）*/
+  /** 默认排序（无 lastQuery 时）*/
   defaultSort?: string;
 
   /** 默认分组 */

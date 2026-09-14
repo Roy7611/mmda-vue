@@ -131,6 +131,7 @@ export interface UiFieldFactory<TNode = any>
   imageUploader?: UiFieldRenderer<TNode>
   imagesUploader?: UiFieldRenderer<TNode>
   image?: UiFieldRenderer<TNode>
+  avatar?: UiFieldRenderer<TNode>
 
   progressBar?: UiFieldRenderer<TNode>
   signaturePad?: UiFieldRenderer<TNode>

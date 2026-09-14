@@ -2,8 +2,8 @@ import { h } from "vue";
 import { ChipListComponent } from "@syncfusion/ej2-vue-buttons";
 import type { IconResolver, UiChipItem, UiChipsProps } from "@mmda/vui"
 import {
+  chipIsSelected,
   chipItemModifierClasses,
-  chipValueOf,
   chipsItemsOf,
   chipsKindOf,
   chipsModifierClasses,
@@ -13,6 +13,30 @@ import {
   isChipsRemovable,
   toggleChipSelection,
 } from "@mmda/vui"
+
+/** EJ2 click 的 index 会错位（点已启用却写成新）。先对文案，再对 cN，最后才信 index。 */
+function chipIndexFromEvent(
+  items: { label: string }[],
+  args?: {
+    index?: number;
+    text?: string;
+    data?: { text?: string; value?: unknown };
+    value?: unknown;
+  },
+): number {
+  const text = args?.text ?? args?.data?.text;
+  if (text != null && String(text).length) {
+    const byLabel = items.findIndex((item) => item.label === String(text));
+    if (byLabel >= 0) return byLabel;
+  }
+  const raw = args?.data?.value ?? args?.value;
+  if (typeof raw === "string" && /^c\d+$/.test(raw)) {
+    const index = Number(raw.slice(1));
+    if (items[index]) return index;
+  }
+  if (typeof args?.index === "number" && items[args.index]) return args.index;
+  return -1;
+}
 
 /** EJ2 Chip cssClass：secondary 不加 e-。列表级 e-outline 挂在 ChipList 上，不写到单枚。 */
 export function syncfusionChipCssClass(
@@ -58,7 +82,7 @@ export function createChips(
     const cssClass = syncfusionChipCssClass(item, Boolean(props.outlined));
     const model: Record<string, unknown> = {
       text: item.label,
-      value: chipValueOf(item, index),
+      value: `c${index}`,
       enabled: item.disabled ? false : true,
     };
     if (cssClass) model.cssClass = cssClass;
@@ -72,9 +96,6 @@ export function createChips(
     if (item.trailingIcon) model.trailingIconCss = iconCss(item.trailingIcon);
     return model;
   });
-  const deleteIconCss = resolveIcon
-    ? resolveIcon("chips-close")
-    : "e-icons e-chips-close";
 
   const cssClass = (
     props.outlined
@@ -84,22 +105,32 @@ export function createChips(
     .filter(Boolean)
     .join(" ");
   const selected = chipsSelectedOf(props);
+  const selectedChips = items
+    .map((item, index) => (chipIsSelected(props, item, index) ? index : -1))
+    .filter((index) => index >= 0);
   const clickable = kind === "choice" || kind === "filter";
+  const selectable = selected != null || clickable;
 
   return h(ChipListComponent as any, {
     ...rest,
     ...htmlAttributesOf(props),
+    key: selectable ? selectedChips.join(",") : undefined,
     chips,
     enabled: disabled ? false : true,
     cssClass,
     ...(kind === "choice" ? { selection: "Single" } : {}),
-    ...(kind === "filter" ? { selection: "Multiple" } : {}),
-    ...(selected != null ? { selectedChips: selected } : {}),
-    ...(isChipsRemovable(props)
-      ? { enableDelete: true, trailingIconCss: deleteIconCss }
+    ...(kind === "filter" || (selected != null && kind !== "choice")
+      ? { selection: "Multiple" }
       : {}),
-    click: (args: { index?: number; text?: string }) => {
-      const index = args?.index ?? 0;
+    ...(selected != null ? { selectedChips } : {}),
+    ...(isChipsRemovable(props) ? { enableDelete: true } : {}),
+    click: (args: {
+      index?: number;
+      text?: string;
+      data?: { text?: string; value?: unknown };
+      value?: unknown;
+    }) => {
+      const index = chipIndexFromEvent(items, args);
       const item = items[index] as UiChipItem | undefined;
       if (!item) return;
       props.onClick?.(item, index);
@@ -107,8 +138,8 @@ export function createChips(
         emitChipsChange(props, toggleChipSelection(props, item, index));
       }
     },
-    delete: (args: { index?: number }) => {
-      const index = args?.index ?? 0;
+    delete: (args: { index?: number; text?: string }) => {
+      const index = chipIndexFromEvent(items, args);
       const item = items[index];
       if (item) props.onRemove?.(item, index);
     },

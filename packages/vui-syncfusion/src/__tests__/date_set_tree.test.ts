@@ -21,12 +21,11 @@ describe("dayTokensOfChecked", () => {
 });
 
 describe("createDateSetTree", () => {
-  it("appendTo DropDownTree from a server-sorted year/month/day List<String>", () => {
-    const input = document.createElement("input");
-    input.className = "flm-input";
-    document.body.appendChild(input);
+  it("appendTo TreeView from a server-sorted year/month/day List<String>", () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
     const { tree, pivotDays, destroy } = createDateSetTree({
-      input,
+      host,
       days: [
         "2025",
         "2025-06",
@@ -39,9 +38,8 @@ describe("createDateSetTree", () => {
       onChange: () => {},
     });
     expect(pivotDays).toEqual(["2025-06-13", "2025-06-16", "2025-07-01"]);
-    expect(tree.element?.classList.contains("e-dropdowntree") || tree.element?.classList.contains("e-ddt")).toBeTruthy();
+    expect(tree.element?.classList.contains("e-treeview")).toBeTruthy();
     destroy();
-    input.remove();
   });
 });
 

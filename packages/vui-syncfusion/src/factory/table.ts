@@ -4,7 +4,7 @@
  * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, DefaultFieldFilter, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
 import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
@@ -37,6 +37,7 @@ import {
   columnEditType,
   gridColumnFormat,
   gridColumnType,
+  applyChoiceFilterExistingPredicate,
   gridFiltersToModel,
   gridFilterOperator,
   gridTextAlign,
@@ -136,6 +137,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     let gridHost: HTMLElement | null = null
     const appContext = getCurrentInstance()?.appContext ?? null
     const rowDetail = props.rowDetail
+    const virtualized =
+      Boolean(pagination) && !rowDetail && rows.length > 100
     const detailHosts = new Set<Element>()
     const unmountRowDetails = () => {
       for (const host of detailHosts) {
@@ -338,11 +341,15 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         | FieldFilter
         | undefined
       if (!current) return [] as unknown[]
+      if (field.reference?.isEnum) {
+        return DefaultFieldFilter.includedValues(field, current)
+      }
       if (current.filterType === 'set') return current.values ?? []
       if (current.filterType === 'multi') {
         const set = current.filterModels.find(item => item.filterType === 'set')
         return set && 'values' in set ? set.values ?? [] : []
       }
+      if (current.value != null && current.value !== '') return [current.value]
       return []
     }
 
@@ -599,7 +606,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       let setSelect: MultiSelect | undefined
       let selectedSetValues: unknown[] = []
       let dateTree: { destroy: () => void } | undefined
-      let dateTreeHost: HTMLInputElement | undefined
+      let dateTreeHost: HTMLElement | undefined
       let dateTreeLoaded = false
       const isDateSet =
         compareType === 'date' && Boolean(props.loadPivotDates)
@@ -751,12 +758,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                       return
                     }
                     dateTree = createDateSetTree({
-                      input: dateTreeHost,
+                      host: dateTreeHost,
                       days: raw,
                       checkedTokens: selectedSetValues,
                       monthLabel: props.dateRangeLabels?.month,
-                      placeholder: valuesLabel,
-                      locale: getSyncfusionCulture(),
                       onChange: tokens => {
                         selectedSetValues = tokens
                       },
@@ -769,8 +774,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               }
 
               if (isDateSet) {
-                dateTreeHost = document.createElement('input')
-                dateTreeHost.className = 'flm-input'
+                dateTreeHost = document.createElement('div')
                 body.appendChild(dateTreeHost)
                 setWrap.classList.add('is-open')
                 body.hidden = false
@@ -1085,6 +1089,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               }),
         }
       }),
+      props.showActionColumn !== false &&
       typeof (props as any).rowActions === 'function'
         ? {
             field: '__mmdaActions',
@@ -1132,7 +1137,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       ]),
     )
 
-    if (typeof (props as any).rowActions === 'function') {
+    if (
+      props.showActionColumn !== false &&
+      typeof (props as any).rowActions === 'function'
+    ) {
       cellSlots.mmdaCell_actions = (scope: { data?: T } | T) => {
         const row = ((scope as any)?.data ?? scope) as T
         const actions = (props as any).rowActions(row) as any[]
@@ -1367,7 +1375,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       }
     }
     const resolveCustomBinding = (state?: any) => {
-      if (!pagination) return
+      if (!virtualized) return
       const grid = resolveEj2Grid()
       if (!grid) return
       if (state && typeof state.skip === 'number') virtualSkip = state.skip
@@ -1383,7 +1391,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     const rebindDataSource = () => {
       const grid = resolveEj2Grid()
       if (!grid) return
-      if (pagination) {
+      if (virtualized) {
         grid.dataSource = virtualWindow(virtualSkip)
       } else {
         grid.dataSource = rows.slice()
@@ -1391,28 +1399,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
     const listHost = {
       applyRow(entity: Record<string, unknown>) {
-        const grid = resolveEj2Grid()
-        if (!grid) return
         const pk = String(primaryKey ?? 'id')
         const id = entity[pk] ?? entity.id
         if (id == null || String(id) === '') return
+        if (!resolveEj2Grid()) return
         syncRowsFromSource()
-        if (pagination) {
-          try {
-            grid.setRowData?.(id, entity)
-          } catch {
-            grid.dataSource = virtualWindow(virtualSkip)
-          }
-          return
-        }
-        if (typeof grid.setRowData === 'function') {
-          try {
-            grid.setRowData(id, entity)
-            return
-          } catch {
-            // fall through
-          }
-        }
         rebindDataSource()
       },
       insertAtZero(_entity: Record<string, unknown>) {
@@ -1427,23 +1418,6 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         }
         rebindDataSource()
       },
-      // 只选中：不改 scrollTop（虚拟滚动归零再滚会连跳）
-      revealIndex(index: number) {
-        if (index < 0) return
-        syncRowsFromSource()
-        if (index >= rows.length) return
-        const grid = resolveEj2Grid()
-        if (!grid) return
-        const record = rows[index]
-        if (!record) return
-        try {
-          grid.clearSelection?.()
-          grid.selectRow?.(index)
-        } catch {
-          // ignore
-        }
-        syncSelection([record as T])
-      },
     }
     props.onIndexTableHostReady?.(listHost)
 
@@ -1451,7 +1425,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       void settleRemoteListQuery(work).finally(() => {
         // assignPagedList 改的是调用方 list；rows 是快照，不先同步会把本地筛过的表盖回全量。
         syncRowsFromSource()
-        void resolveCustomBinding()
+        if (virtualized) void resolveCustomBinding()
+        else rebindDataSource()
       })
     }
 
@@ -1562,21 +1537,20 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       SfGrid,
       {
         key: gridKey,
-        // 索引页：当前页本地数组 + 行虚拟滚动（与 allowPaging 互斥）。
-        // count=当前页长度，服务端总条数交给下方 Pager。
-        dataSource: pagination
+        // 当前页超过 100 行才开虚拟滚动；否则本地数组。改行靠新 dataSource 引用刷新。
+        dataSource: virtualized
           ? virtualWindow(0, VIRTUAL_ROW_PAGE_SIZE)
           : rows,
         locale: getSyncfusionCulture(),
         allowPaging: false,
-        enableVirtualization: Boolean(pagination) && !rowDetail,
+        enableVirtualization: virtualized,
         // 本地窗口切片已瞬时可得，虚拟滚动勿闪 skeleton
         enableVirtualMaskRow: false,
         // Material 3 Theme Studio 默认无斑马纹，交替行会让分页器/表体色阶显得碎
         enableAltRow: false,
         // 索引页：占满父容器，行区内部滚动，分页条贴底（避免撑出页面滚动）
         height: pagination ? '100%' : props.height,
-        pageSettings: pagination
+        pageSettings: virtualized
           ? {
               pageSize: VIRTUAL_ROW_PAGE_SIZE,
             }
@@ -1771,6 +1745,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
                 props.filterLabels,
               )
             } else if (isChoiceFilterField(field)) {
+              applyChoiceFilterExistingPredicate(
+                args.filterModel,
+                field.fieldName,
+                selectedSetValuesOf(field),
+              )
               void openChoicePage(field, '').then(items => {
                 args.filterModel.options.dataSource = items
               })

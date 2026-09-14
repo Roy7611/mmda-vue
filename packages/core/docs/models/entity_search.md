@@ -29,7 +29,8 @@
 | **AdvancedFilterModel** | Query Builder / AG Advanced Filter 树，可跨字段 OR。**searchAll 本轮不传** |
 | **FieldFilter** | 单字段条件（`SimpleFieldFilter` \| set \| boolean \| join \| multi） |
 | **MetaUiFilterOpCode** | JSON 大写：`EQ` / `GE` / `IN` / `BETWEEN` … |
-| **NamedQueryRef** | `Module.defaultFilter` 解析出的 `{ queryID, queryName }` |
+| **DefaultFieldFilter** | `Module.defaultFilter` 段：`[alias.]field[=value]` |
+| **NamedQueryRef** | 已保存查询芯片 `{ queryID, queryName }`（不绑 `defaultFilter`） |
 
 ```ts
 interface EntityQuery {
@@ -100,7 +101,7 @@ join 外壳相同（`filterType:'join'` + `AND`/`OR` + `conditions[]`）。靠�
 
 | 放哪 | 放什么 |
 |---|---|
-| **models** | EntityQuery / SearchParam / FilterModel / Operator；同名 namespace：`FieldFilter.in`、`EntityQuery.parse`、`NamedQueryRef.parse` |
+| **models** | EntityQuery / SearchParam / FilterModel / Operator；同名 namespace：`FieldFilter.in`、`EntityQuery.parse`、`DefaultFieldFilter.parse` |
 | **metaui** | `Module.defaultFilter` / `defaultSort` / `defaultGroupBy`；pack 的 `lastQuery` |
 | **logic** | 套用默认查询、`refWhere`；**无 SearchOp**；SQL 用 `SqlOperator` |
 | **net** | `searchAll`；`toSearchRequest` / `toQueryParams`；空 filterModel → GET |
@@ -138,24 +139,28 @@ EntitySearchParam
 
 详见 [api_client.md](../net/api_client.md)。
 
-## Module.defaultFilter（命名查询芯片）
+## Module.defaultFilter（固定字段芯片）
 
-**不是**一份 FilterModel JSON，而是多个命名查询：
+**不是** FilterModel JSON，也**不是** `queryID;queryName`。一段字段默认：
 
 ```text
-1;全部|2;启用|3;停用
+t.status=1
+status=NEW
+status=NEW|materialType=LABOR
+items.xxx=2
 ```
 
-- 段与段 `|`，段内 `queryID;queryName`（`NamedQueryRef.parse`：先 `split('|')`，再 `indexOf(';')` 拆两段）。
-- 缺 id、缺名或空段丢掉。
-- UI 芯片显示 `queryName`，点选用 `queryID` 加载对应 EntityQuery / CustomizedQuery。
+- 段与段 `|`，段内 `[alias.]field[=value]`（`DefaultFieldFilter.parse`）。
+- `t` / 缺省 = 本实体；`items` 等其它别名先解析，**本轮不写** `filterModel`。
+- `=NEW` 对选项 `value`/`code`；`=1` 对 JSON `id` 或 pipe 三元组序号，写入 `FieldFilter.in(valueOf)`。
+- FilterBar 对本实体 enum 画固定芯片（全部 + 各选项，不可删）；摘要芯片排除这些字段。
 - 仍是短字符串，适合现有 `@Size(max=255)`。
 
 相关默认：
 
 | 字段 | 含义 |
 |---|---|
-| `defaultSort` | 打开列表且**未**选中命名查询时的默认排序 |
+| `defaultSort` | 打开列表且**无** `lastQuery` 时的默认排序 |
 | `defaultGroupBy` | 默认分组（TS 已补） |
 
 有命名查询时以该查询的 `pager.sorts` 为准。
@@ -208,7 +213,8 @@ if (parsed?.kind === 'query') EntityQuery.apply(searchParam, parsed.query)
 | `AdvancedFilterModel.isJoin` / `clone` / `compact` / `has` | Query Builder 树 |
 | `EntityQuery.create` / `copy` / `apply` / `stringify` / `parse` / `parseDefaultSort` | 可保存查询 |
 | `EntitySearchParam.create` / `assign` / `isDifferent` | 当次请求 |
-| `NamedQueryRef.parse` | Module 默认芯片 |
+| `DefaultFieldFilter.parse` / `isSelf` / `resolveValue` / `applySelfToModel` | Module 默认字段芯片 |
+| `NamedQueryRef.parse` | 已保存查询芯片（不绑 defaultFilter） |
 | `DatePeriodToken.compact` / `expandLeaves` / `normalize` / `days` | 日期 set token（不碰 WITHIN） |
 
 ## 不要

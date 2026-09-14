@@ -370,14 +370,16 @@ export class MetaUiFieldRef {
   static parse(selectOptions: string, bitable: boolean = false) {
     if (selectOptions.startsWith('[')) {
       const refOptions = JSON.parse(selectOptions)
-
-      return new MetaUiFieldRef({
+      const reference = new MetaUiFieldRef({
         refType: MetaRelationType.ENUM,
         refObjName: 'vt',
         refFlds: ['value', 'text'],
         refOptions: refOptions,
         refOptionsShape: MetaOptionsShape.FLAT,
       })
+      reference.labelFn = (valueObject: any) =>
+        valueObject ? (valueObject.text ?? valueObject.label ?? '') : ''
+      return reference
     } else if (selectOptions.indexOf('|') != -1) {
       // `0;LABOR;劳动力`：value=数值, code=英文成员（实体存这个）, label=显示文本
       const refOptions = selectOptions.split('|').map(raw => {

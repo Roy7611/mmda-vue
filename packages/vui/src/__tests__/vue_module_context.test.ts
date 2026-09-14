@@ -1,0 +1,31 @@
+import { describe, expect, it, vi } from "vitest";
+import { createModuleContext } from "../contexts/vue_module_context";
+import type { VueUiContext } from "../contexts/vue_ui_context";
+
+describe("createModuleContext", () => {
+  it("does not expose revealCurrent; applyCurrentRow only patches the host row", () => {
+    const applyRow = vi.fn();
+    const insertAtZero = vi.fn();
+    const applyRemove = vi.fn();
+    const sync = createModuleContext();
+    expect(sync).not.toHaveProperty("revealCurrent");
+    const current = { id: "d1", shortName: "旧", rowNum: "7" };
+    const context = {
+      many: true,
+      metaUi: { primaryKey: "id" },
+      currentItem: current,
+      currentIndex: 6,
+      model: {
+        list: [current],
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+      },
+      indexTableHost: { applyRow, insertAtZero, applyRemove },
+    } as unknown as VueUiContext;
+    sync.registerIndex(context);
+    sync.applyCurrentRow({ id: "d1", shortName: "新简称" });
+    expect(current.shortName).toBe("新简称");
+    expect(current.rowNum).toBe("7");
+    expect(applyRow).toHaveBeenCalledWith(current);
+    expect(insertAtZero).not.toHaveBeenCalled();
+  });
+});

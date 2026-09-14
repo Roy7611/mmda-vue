@@ -1,6 +1,6 @@
 # Avatar：程序员怎么写
 
-从当前皮肤的 `builder.factory.avatar` 取节点。设计见 [avatar.md](./avatar.md)。参数名约定见 [factory.md](./factory.md)。
+chrome 从当前皮肤的 `builder.factory.avatar` 取节点。字段用 `fieldFactory.avatar`，服务器 `renderer` 配 `Avatar`。设计见 [avatar.md](./avatar.md)。参数名约定见 [factory.md](./factory.md)。
 
 ## 图 / 图标 / 缩写
 
@@ -66,13 +66,28 @@ builder.factory.avatar({
 
 不要在业务里写 `e-avatar-*` / `p-avatar` / `n-avatar`。厂商没有的档位（例如 Prime 没有 xsmall）只靠上面的钩子补。
 
+## 字段 / 服务器
+
+职员、人员、用户的 `avatar` 是 URL。库里配：
+
+- `renderer` = `Avatar`（或 `avatar`）→ `fieldFactory.avatar`
+- `editor` = `ImageUploader`（要改图时）。误配 `editor: Avatar` 仍是只读头像，不会变成上传。
+- 列表 `listed` 打开后走模板单元格
+
+```ts
+fieldFactory.avatar(field, context)
+// 或
+fieldFactory.displayFor(field, context)
+```
+
+`avatarPropsFromField`：`src` 来自字段值；无图回落 `fas fa-user`；默认 `circle`；表单 `medium`，有 `props.row` 时 `small`。不要用 `fieldFactory.image` 画人像。
+
 ## 角标
 
 Avatar 没有 `position`。父级相对定位，再叠 `factory.badge({ overlay: true })`。
 
 ## 不要
 
-- 把 `factory.image` 当头像（那是预览大图）
+- 把 `factory.image` / `fieldFactory.image` 当头像（那是预览大图）
 - 把 Prime `shape: 'square'`、Naive `round`、EJ2 class 写进业务 Logic
 - 在皮肤 `style.css` 里给 Avatar 填色或写死宽高（那是应用主题的事）
-- 用 Avatar 做表格单元格字段渲染（那是 field factory）

@@ -93,6 +93,7 @@ INSERT INTO tmp_mmda_field_ui_alias (old_name, new_name, preferred) VALUES
   ('Timeline',             'timeline',             1),
   ('RelativeTime',         'relativeTime',         1),
   ('Image',                'image',                1),
+  ('Avatar',               'avatar',               1),
   ('StatusLight',          'statusLight',          1);
 
 -- ---------------------------------------------------------------------------

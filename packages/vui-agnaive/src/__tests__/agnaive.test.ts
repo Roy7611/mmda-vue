@@ -124,6 +124,26 @@ describe('vui-agnaive skin', () => {
     expect(cls).toContain('mmda-avatar--circle')
   })
 
+  it('maps fieldFactory.avatar URL to NAvatar', () => {
+    const fields = createAgNaiveFieldFactory()
+    const field = { fieldName: 'avatar', renderer: 'Avatar' } as any
+    const vnode = fields.avatar(field, {
+      getFieldValue: () => '/faces/ada.png',
+    } as any)
+    expect(vnode.props?.src).toBe('/faces/ada.png')
+    expect(vnode.props?.round).toBe(true)
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-avatar--circle')
+    const cell = fields.Avatar(
+      field,
+      { getFieldValue: () => '/faces/ada.png' } as any,
+      { row: { avatar: '/faces/ada.png' } },
+    )
+    expect(cell.props?.size).toBe('small')
+  })
+
   it('maps factory.card surface, colorRole, image, headerImage, divider', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.card(
@@ -1007,6 +1027,7 @@ describe('vui-agnaive skin', () => {
     expect(fields.EnumChipSet).toBe(fields.enumChipSet)
     expect(fields.enumSetTags).toBeUndefined()
     expect(fields.BitTags).toBeUndefined()
+    expect(fields.Avatar).toBe(fields.avatar)
   })
 
   it('constructs the builder against VueUiBuilder', () => {

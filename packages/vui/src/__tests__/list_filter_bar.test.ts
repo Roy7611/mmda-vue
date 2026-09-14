@@ -12,6 +12,7 @@ import {
   createListFilterBar,
   ListFilterBarView,
   listFilterBarChips,
+  listFixedFilterChipGroups,
   removeListFilterBarChip,
 } from "../ui/builder/list_filter_bar";
 
@@ -56,6 +57,9 @@ const t = (key: string) => {
     "boolean.yes": "是",
     "tableSettings.activeFilters": "当前过滤",
     "action.clearFilters": "清除过滤",
+    "action.all": "全部",
+    "action.saveQuery": "保存查询",
+    "action.deleteQuery": "删除查询",
   };
   return map[key] ?? key;
 };
@@ -147,7 +151,8 @@ describe("list filter bar actions", () => {
     const factory = {
       chips: (props: any) =>
         h("div", { class: "mmda-chips", "data-count": props.items?.length }),
-      button: (props: any) => h("button", props.label),
+      button: (props: any) => h("button", { title: props.tooltip }, props.label),
+      resolveIcon: (name: string) => name,
     } as any;
     expect(createListFilterBar(factory, contextOf())).toBeNull();
     const vnode = createListFilterBar(
@@ -164,7 +169,8 @@ describe("list filter bar actions", () => {
         chipsProps = props;
         return h("div", { class: "mmda-chips" });
       },
-      button: (props: any) => h("button", props.label),
+      button: (props: any) => h("button", { title: props.tooltip }, props.label),
+      resolveIcon: (name: string) => name,
     } as any;
     createListFilterBar(
       capturing,
@@ -180,11 +186,137 @@ describe("list filter bar actions", () => {
     );
   });
 
+  it("t.status=1 画固定芯片，摘要不再重复状态", () => {
+    const statusField = field("status", {
+      selectOptions: JSON.stringify([
+        { id: 0, value: "OLD", text: "停用" },
+        { id: 1, value: "NEW", text: "启用" },
+      ]),
+    });
+    const ctx = contextOf({
+      status: FieldFilter.in("NEW"),
+      name: { filterType: "text", operator: "CONTAINS", value: "钢" },
+    });
+    ctx.metaUi = metaOf(
+      field("name"),
+      field("qty", { dataType: SqlDataType.INT, align: MetaUiFieldAlignment.RIGHT }),
+      field("createdAt", { dataType: SqlDataType.DATETIME }),
+      statusField,
+    );
+    ctx.logic = { module: { defaultFilter: "t.status=1|items.xxx=2" } };
+    const groups = listFixedFilterChipGroups(ctx);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.items.map((item) => item.label)).toEqual([
+      "全部",
+      "停用",
+      "启用",
+    ]);
+    expect(groups[0]?.selected).toBe("NEW");
+    expect(listFilterBarChips(ctx).map((chip) => chip.fieldName)).toEqual([
+      "name",
+    ]);
+  });
+
+  it("固定芯片 click 写 status IN [USED]，列头 IN 仍能高亮多项", async () => {
+    const statusField = field("status", {
+      selectOptions: "0;NEW;新|1;USED;已启用|-1;DEPRECATED;已弃用",
+    });
+    const ctx = contextOf({
+      status: FieldFilter.in(["NEW", "DEPRECATED"]),
+    });
+    ctx.metaUi = metaOf(statusField);
+    ctx.logic = { module: { defaultFilter: "t.status" } };
+    const groups = listFixedFilterChipGroups(ctx);
+    expect(groups[0]?.items.map((item) => item.label)).toEqual([
+      "全部",
+      "新",
+      "已启用",
+      "已弃用",
+    ]);
+    expect(groups[0]?.items.map((item) => item.value)).toEqual([
+      "__all__",
+      "NEW",
+      "USED",
+      "DEPRECATED",
+    ]);
+    expect(groups[0]?.selected).toEqual(["NEW", "DEPRECATED"]);
+    expect(
+      groups[0]?.items
+        .filter((item) => item.colorRole === "primary")
+        .map((item) => item.label),
+    ).toEqual(["新", "已弃用"]);
+    const byLabel = contextOf({
+      status: FieldFilter.in(["新", "已弃用"]),
+    });
+    byLabel.metaUi = ctx.metaUi;
+    byLabel.logic = ctx.logic;
+    expect(
+      listFixedFilterChipGroups(byLabel)[0]?.items
+        .filter((item) => item.colorRole === "primary")
+        .map((item) => item.label),
+    ).toEqual(["新", "已弃用"]);
+    const oneCtx = contextOf({
+      status: FieldFilter.in("USED"),
+    });
+    oneCtx.metaUi = ctx.metaUi;
+    oneCtx.logic = ctx.logic;
+    expect(listFixedFilterChipGroups(oneCtx)[0]?.selected).toBe("USED");
+    const checkedTwo = contextOf({
+      status: FieldFilter.in(["NEW", "USED"]),
+    });
+    checkedTwo.metaUi = ctx.metaUi;
+    checkedTwo.logic = ctx.logic;
+    expect(
+      listFixedFilterChipGroups(checkedTwo)[0]?.items
+        .filter((item) => item.colorRole === "primary")
+        .map((item) => item.label),
+    ).toEqual(["新", "已启用"]);
+    const leftoverNeq = contextOf({
+      status: { filterType: "text", operator: "NEQ", value: "DEPRECATED" },
+    });
+    leftoverNeq.metaUi = ctx.metaUi;
+    leftoverNeq.logic = ctx.logic;
+    expect(
+      listFixedFilterChipGroups(leftoverNeq)[0]?.items
+        .filter((item) => item.colorRole === "primary")
+        .map((item) => item.label),
+    ).toEqual(["新", "已启用"]);
+    let chipsProps: any;
+    createListFilterBar(
+      {
+        chips: (props: any) => {
+          chipsProps = props;
+          return h("div", { class: "mmda-chips" });
+        },
+        button: (props: any) => h("button", { title: props.tooltip }, props.label),
+        resolveIcon: (name: string) => name,
+      } as any,
+      ctx,
+    );
+    expect(chipsProps.kind).toBe("action");
+    expect(chipsProps.selected).toEqual(["NEW", "DEPRECATED"]);
+    expect(chipsProps.onChange).toBeUndefined();
+    await chipsProps.onClick({ label: "已启用", value: "USED" });
+    expect(ctx.searchParam.filterModel).toEqual({
+      status: FieldFilter.in("USED"),
+    });
+    expect(ctx.search).toHaveBeenCalledOnce();
+    await chipsProps.onClick({ label: "已启用", value: 1 });
+    expect(ctx.searchParam.filterModel).toEqual({
+      status: FieldFilter.in("USED"),
+    });
+    await chipsProps.onClick({ label: "已弃用", value: -1 });
+    expect(ctx.searchParam.filterModel).toEqual({
+      status: FieldFilter.in("DEPRECATED"),
+    });
+  });
+
   it("ListFilterBarView appears after filterModel is written", async () => {
     const factory = {
       chips: (props: any) =>
         h("div", { class: "mmda-chips", "data-count": props.items?.length }),
-      button: (props: any) => h("button", props.label),
+      button: (props: any) => h("button", { title: props.tooltip }, props.label),
+      resolveIcon: (name: string) => name,
     } as any;
     const context = contextOf();
     context.searchParam = reactive(context.searchParam);

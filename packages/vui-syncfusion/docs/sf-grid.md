@@ -292,7 +292,7 @@ selector 只做选择时：`showActionColumn: false`，`allowContextMenu: false`
 
 列筛选项 / 日期透视 / hasOne 联想由 Builder 注入皮肤 extras（`loadFilterOptions` / `loadPivotDates` / `searchRelative`），不进程序员 `UiTableProps`。index 列布局走 `tableSettings`（与 `TableSettingView` 同一套 persist）。
 
-日期列显式 `DATE|SET|MULTI`：Menu 上半是比较（含 WITHIN），下半是可折叠「选项过滤」。展开后 `loadPivotDates` 拉日历日，渲染年→月→日勾选树（不是引用 MultiSelect）。写出 `set` 周期 token。纯 SET 日期列没有比较槽，树直接铺开。不要对日期列 `getDistinct`。
+日期列显式 `DATE|SET|MULTI`：Menu 上半是比较（含 WITHIN），下半是可折叠「选项过滤」。展开后 `loadPivotDates` 拉日历日，Menu 内联 TreeView 渲染年→月→日勾选树（不是 DropDownTree，也不是引用 MultiSelect）。写出 `set` 周期 token。纯 SET 日期列没有比较槽，树直接铺开。不要对日期列 `getDistinct`。
 
 列头挂哪种过滤控件由 **`MetaUiField.filterTypes`**（TINYINT 位掩码）决定；`0` 按 `dataType` / `reference` 只给原生一位（关列筛用 `filterable`）。见 core `MetaUiFilterType`（TEXT=1、NUMBER=2、DATE=4、BOOLEAN=8、SET=16、MULTI=32、JOIN=64）。
 

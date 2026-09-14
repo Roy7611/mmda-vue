@@ -1,6 +1,6 @@
 import { h, mergeProps } from "vue";
 import { MetaModel, type MetaUiField, type Module } from "@mmda/core";
-import { progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField } from "@mmda/core"
+import { avatarPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField } from "@mmda/core"
 import { cleanProps, fasIcon, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime, TABLE_CELL_PROP_KEYS, type UiProps } from "@mmda/vui"
 import { resolveFieldUnit } from "../factory/utils";
 import { createChips } from "../factory/chips";
@@ -8,6 +8,7 @@ import { createProgressBar } from "../factory/progress_bar";
 import { createSignaturePad } from "../factory/signature_pad";
 import { createStepper } from "../factory/stepper";
 import { createTimeline } from "../factory/timeline";
+import { createAvatar } from "../factory/avatar";
 import type { UiContext } from "./utils";
 
 const cellDomProps = (props?: UiProps) =>
@@ -286,3 +287,16 @@ export const fieldImage = (
     src: context.getFieldValue(field, props?.row),
     ...props,
   });
+
+export const fieldAvatar = (
+  field: MetaUiField,
+  context: UiContext,
+  props?: UiProps,
+) => {
+  const avatarProps = avatarPropsFromField(field, context, props ?? {});
+  const render = (context as any).uiBuilder?.factory?.avatar;
+  if (render) return render(avatarProps);
+  return createAvatar(avatarProps, (name: string) =>
+    (context as any).uiBuilder?.factory?.resolveIcon?.(name) ?? name,
+  );
+};

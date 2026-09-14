@@ -6,21 +6,19 @@ import type { UiListProps } from './list'
 /**
  * 模块 **index** 工作区保活：进详情/编辑再回来时，就地改行而不整表重绑。
  *
- * 只有列表页需要。selector / 子表不要接。回到列表用 {@link UiIndexTableHost.revealIndex}，
- * 不要 capture/restore 像素滚动（虚拟滚动会和 skip 错位白屏）。
+ * 只有列表页需要。selector / 子表不要接。叠层揭开不要 select、不要动虚拟滚动
+ * （不要 capture/restore 像素滚动，skip 会错位白屏）。
  *
  * 皮肤在表格挂上后调 Builder 注入的 `onIndexTableHostReady(host)`；销毁时传 `null`。
  * 该回调在皮肤 extras，不进程序员 {@link UiTableProps}。
  */
 export interface UiIndexTableHost {
-  /** 按主键把这一行写回当前窗口（EJ2 `setRowData` 等）。 */
+  /** 按主键把这一行写回当前窗口（换 dataSource 新引用；不要 setRowData）。 */
   applyRow(entity: Record<string, unknown>): void
   /** Create 保存：插到第 0 行并滚到顶。 */
   insertAtZero(entity: Record<string, unknown>): void
   /** 按 id 从当前窗口去掉一行。 */
   applyRemove(id: string): void
-  /** 选中 index 行（皮肤宜只 select，勿强制改虚拟滚动 scrollTop）。 */
-  revealIndex(index: number): void
 }
 
 /**

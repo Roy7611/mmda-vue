@@ -17,7 +17,6 @@ import {
   ref,
   shallowRef,
   watch,
-  nextTick,
   type Component,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -305,7 +304,7 @@ export function createEntityView(options: EntityViewOptions) {
           void open().catch(showError);
         },
       );
-      // 从 One 揭开回列表：按需 search + 轻量选中（Index 叠层常驻，无 activate）
+      // 从 One 揭开回列表：按需 search。叠层常驻，不要 select / 动虚拟滚动
       watch(
         () => isIndexView(route.path, route.query.view),
         async (now, was) => {
@@ -317,9 +316,6 @@ export function createEntityView(options: EntityViewOptions) {
               showError(error);
             }
           }
-          await nextTick();
-          // 轻量选中即可；叠层不卸表，无需 flush / 强制滚屏
-          sync?.revealCurrent();
         },
       );
       onUnmounted(() => {

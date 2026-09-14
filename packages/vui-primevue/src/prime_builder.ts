@@ -5,7 +5,7 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
-import { VueUiBuilder, UiViewMany, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
+import { VueUiBuilder, UiViewMany, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField, LIST_SEARCH_MODE_NAMED, listSearchModeOf } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -886,6 +886,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         class: "mmda-searchbar",
         onSubmit: (event: Event) => {
           event.preventDefault();
+          if (listSearchModeOf(runtime) === LIST_SEARCH_MODE_NAMED) return;
           props.onSearch?.(runtime.searchParam?.searchWord ?? "");
         },
       },
@@ -897,13 +898,10 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
         ...(runtime.customSearchFields ?? []).map((field: any) =>
           field.renderer(context, field),
         ),
-        h(InputText, {
-          modelValue: runtime.searchParam?.searchWord ?? "",
-          placeholder: context.translate("action.search"),
-          size: "small",
-          "onUpdate:modelValue": (value: string) => {
-            runtime.searchParam.searchWord = value;
-          },
+        h(ListSearchField, {
+          context: runtime,
+          onFuzzySearch: () =>
+            props.onSearch?.(runtime.searchParam?.searchWord ?? ""),
         }),
         h(Button, {
           type: "submit",

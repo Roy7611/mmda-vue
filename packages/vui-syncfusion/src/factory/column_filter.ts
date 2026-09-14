@@ -132,7 +132,7 @@ export function hideEj2MenuChrome(
   const keep = [
     uiCssClass('compare-column-filter'),
     uiCssClass('compare-column-filter-host'),
-    uiCssClass('date-set-dropdown'),
+    uiCssClass('date-set-tree'),
     uiCssClass('column-filter-date'),
   ]
     .map(name => `.${name}`)
@@ -232,17 +232,13 @@ function sfDateMenuFilter(
         if (!showSet || !extras.loadPivotDates) return
         void Promise.resolve(extras.loadPivotDates(field)).then(
           raw => {
-            const setInput = createElement('input', {
-              className: 'flm-input',
-            }) as HTMLInputElement
-            args.target.appendChild(setInput)
+            const setHost = createElement('div') as HTMLElement
+            args.target.appendChild(setHost)
             dateSet = createDateSetTree({
-              input: setInput,
+              host: setHost,
               days: raw,
               checkedTokens: setTokens,
               monthLabel: extras.dateRangeLabels?.month,
-              placeholder: extras.filterLabels?.values,
-              locale: getSyncfusionCulture(),
               onChange: tokens => {
                 setTokens = tokens
               },

@@ -3,7 +3,7 @@ import {
   DatePeriodTreeNode,
   uiCssClass,
 } from "@mmda/core";
-import { DropDownTree } from "@syncfusion/ej2-dropdowns";
+import { TreeView } from "@syncfusion/ej2-navigations";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -28,6 +28,15 @@ export function dateSetNodesOf(
 export function collectDateSetDays(node: DatePeriodTreeNode): string[] {
   if (!node.children?.length) return DAY.test(node.id) ? [node.id] : [];
   return node.children.flatMap(collectDateSetDays);
+}
+
+function expandedIdsOf(nodes: DatePeriodTreeNode[]): string[] {
+  const ids: string[] = [];
+  for (const node of nodes) {
+    if (!node.children?.length) continue;
+    ids.push(node.id, ...expandedIdsOf(node.children));
+  }
+  return ids;
 }
 
 /** 树展开后让 EJ2 筛选对话框重新量高。 */
@@ -61,41 +70,39 @@ export function mountFilterMenuInput(from: HTMLElement): HTMLInputElement {
 }
 
 export function createDateSetTree(options: {
-  input: HTMLInputElement;
+  host: HTMLElement;
   days: unknown;
   checkedTokens?: unknown[];
   monthLabel?: string;
-  placeholder?: string;
-  locale?: string;
   onChange: (tokens: string[]) => void;
-}): { tree: DropDownTree; pivotDays: string[]; destroy: () => void } {
+}): { tree: TreeView; pivotDays: string[]; destroy: () => void } {
   const { nodes, pivotDays } = dateSetNodesOf(options.days, options.monthLabel);
-  const tree = new DropDownTree({
-    cssClass: uiCssClass("date-set-dropdown"),
+  const tree = new TreeView({
+    cssClass: uiCssClass("date-set-tree"),
     fields: {
       dataSource: nodes as unknown as { [key: string]: Object }[],
-      value: "id",
+      id: "id",
       text: "text",
       child: "children",
     },
     showCheckBox: true,
-    allowMultiSelection: true,
-    treeSettings: { autoCheck: true },
-    value: DatePeriodToken.expandLeaves(options.checkedTokens ?? [], pivotDays),
-    placeholder: options.placeholder,
-    popupHeight: "200px",
-    width: "100%",
-    zIndex: 1_000_000,
-    locale: options.locale,
-    showClearButton: true,
-    allowFiltering: true,
-    change: (e: { value?: string[] }) => {
+    autoCheck: true,
+    expandedNodes: expandedIdsOf(nodes),
+    checkedNodes: DatePeriodToken.expandLeaves(
+      options.checkedTokens ?? [],
+      pivotDays,
+    ),
+    nodeChecked: () => {
       options.onChange(
-        dayTokensOfChecked(e.value ?? tree.value ?? [], pivotDays),
+        dayTokensOfChecked(
+          tree.getAllCheckedNodes?.() ?? tree.checkedNodes ?? [],
+          pivotDays,
+        ),
       );
     },
   });
-  tree.appendTo(options.input);
+  tree.appendTo(options.host);
+  refreshFilterMenu(options.host);
   return {
     tree,
     pivotDays,
@@ -107,7 +114,7 @@ export function createDateSetTree(options: {
           /* EJ2 已随筛选框拆掉 */
         }
       }
-      options.input.remove();
+      options.host.remove();
     },
   };
 }

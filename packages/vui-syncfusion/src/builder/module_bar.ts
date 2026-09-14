@@ -12,12 +12,11 @@ import {
   TextBoxComponent,
 } from "@syncfusion/ej2-vue-inputs";
 import {
-  SfSearchTextInput,
   moduleChain,
   moduleOf,
   type UiContext,
 } from "./utils";
-import { paintModuleToolbar, defaultToolbarMoreActions } from "@mmda/vui"
+import { paintModuleToolbar, defaultToolbarMoreActions, ListSearchField, LIST_SEARCH_MODE_NAMED, listSearchModeOf } from "@mmda/vui"
 
 type ModuleBarHost = any;
 
@@ -280,6 +279,7 @@ export function buildModuleSearchbar(
       class: "mmda-searchbar",
       onSubmit: (event: Event) => {
         event.preventDefault();
+        if (listSearchModeOf(runtime) === LIST_SEARCH_MODE_NAMED) return;
         submitFuzzySearch();
       },
     },
@@ -291,17 +291,12 @@ export function buildModuleSearchbar(
       ...(runtime.customSearchFields ?? []).map((field: any) =>
         field.renderer(context, field),
       ),
-      h(
-        SfSearchTextInput,
-        {
-          runtime,
-          placeholder: searchLabel,
-          cssClass: "e-small mmda-searchbar__input",
-          onEnter: submitFuzzySearch,
-          appendTemplate: "appendTemplate",
-        },
-        { appendTemplate: searchAddons },
-      ),
+      h(ListSearchField, {
+        context: runtime,
+        onFuzzySearch: submitFuzzySearch,
+        inputClass: "e-small mmda-searchbar__input",
+      }),
+      searchAddons(),
     ],
   );
 }

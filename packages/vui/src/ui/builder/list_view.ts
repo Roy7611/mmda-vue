@@ -724,6 +724,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           },
           onFilterModelChange: (filterModel) => {
             writeListFilterModel(runtime.searchParam, filterModel);
+            delete runtime.searchParam.queryID;
+            delete runtime.searchParam.queryName;
             if (props.onFilterModelChange) {
               return props.onFilterModelChange(filterModel);
             }
@@ -749,12 +751,12 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           },
           selectedItems: runtime.selectedItems ?? [],
           showActions: props.showActions === true,
+          showActionColumn:
+            props.showActionColumn ?? readStoredShowActionsColumn(),
           loading: props.loading ?? runtime.loading,
           rowActions:
-            (props.showActionColumn ?? readStoredShowActionsColumn()) === false
-              ? undefined
-              : (props.rowActions ??
-                this.createListRowActions(context, props.showActions === true)),
+            props.rowActions ??
+            this.createListRowActions(context, props.showActions === true),
         },
       );
     }

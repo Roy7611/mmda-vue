@@ -68,9 +68,19 @@ export const patchChoiceFilter = () => {
     checked: boolean,
     data: any,
   ) {
+    const field = this?.options?.field;
+    const stored =
+      data?.ejValue ??
+      (field != null ? data?.[field] : undefined) ??
+      data?.dataObj?.[field] ??
+      value;
+    const node = originalCreate.call(this, stored, checked, data);
     const text = data?.text ?? data?.dataObj?.text;
-    if (text != null && String(text).length) value = String(text);
-    return originalCreate.call(this, value, checked, data);
+    if (text != null && String(text).length) {
+      const label = node?.querySelector?.(".e-label");
+      if (label) label.textContent = String(text);
+    }
+    return node;
   };
   const originalDistinct = CheckBoxFilterBase.getDistinct;
   CheckBoxFilterBase.getDistinct = function (

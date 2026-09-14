@@ -23,8 +23,6 @@ export interface VueModuleContext {
   setPendingPageNotice(notice: UiMessageProps | null): void;
   consumePendingPageNotice(): UiMessageProps | null;
   consumeNeedsSearch(): boolean;
-  /** 揭开 Index：按 currentIndex 选中（create 保存则滚到第 0 行）。 */
-  revealCurrent(): void;
 }
 
 export const MODULE_CONTEXT_KEY = Symbol(
@@ -56,14 +54,12 @@ function applyToHost(
 export function createModuleContext(): VueModuleContext {
   let indexContext: VueUiContext | null = null;
   let needsSearch = false;
-  let scrollToTop = false;
   let pendingPageNotice: UiMessageProps | null = null;
 
   return {
     reset() {
       indexContext = null;
       needsSearch = false;
-      scrollToTop = false;
       pendingPageNotice = null;
     },
     registerIndex(context) {
@@ -124,7 +120,6 @@ export function createModuleContext(): VueModuleContext {
       paged.pagination.recordCount = total + 1;
       context.currentItem = paged.list[0] as Entity;
       context.currentIndex = 0;
-      scrollToTop = true;
       applyToHost(
         context.indexTableHost,
         "insertAtZero",
@@ -203,18 +198,6 @@ export function createModuleContext(): VueModuleContext {
       const notice = pendingPageNotice;
       pendingPageNotice = null;
       return notice;
-    },
-    revealCurrent() {
-      const context = indexContext;
-      const host = context?.indexTableHost;
-      if (!host) return;
-      if (scrollToTop) {
-        scrollToTop = false;
-        host.revealIndex(0);
-        return;
-      }
-      const idx = Number(context?.currentIndex ?? -1);
-      if (idx >= 0) host.revealIndex(idx);
     },
   };
 }

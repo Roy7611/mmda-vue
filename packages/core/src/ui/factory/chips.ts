@@ -120,6 +120,12 @@ export function chipsSelectedOf(
   return undefined
 }
 
+export function chipValueEquals(left: unknown, right: unknown): boolean {
+  if (left === right) return true
+  if (left == null || right == null) return false
+  return String(left) === String(right)
+}
+
 export function chipIsSelected(
   props: UiChipsProps,
   item: UiChipItem,
@@ -129,8 +135,16 @@ export function chipIsSelected(
   if (selected == null) return false
   const value = chipValueOf(item, index)
   return Array.isArray(selected)
-    ? selected.some((entry) => entry === value)
-    : selected === value
+    ? selected.some((entry) => chipValueEquals(entry, value))
+    : chipValueEquals(selected, value)
+}
+
+/** ChipList `selectedChips` 用字符串 value，数字会被当成下标亮错项。 */
+export function chipsSelectedKeysOf(props: UiChipsProps): string[] {
+  return chipsItemsOf(props)
+    .map((item, index) => ({ item, index }))
+    .filter(({ item, index }) => chipIsSelected(props, item, index))
+    .map(({ item, index }) => String(chipValueOf(item, index)))
 }
 
 export function toggleChipSelection(

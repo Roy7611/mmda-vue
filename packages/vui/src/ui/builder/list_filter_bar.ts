@@ -1,6 +1,8 @@
 import { defineComponent, h, type PropType, type VNode } from "vue";
 import {
+  DefaultFieldFilter,
   FieldFilter,
+  chipValueEquals,
   isDateRangeKind,
   type FilterModel,
   type MetaUiField,
@@ -10,6 +12,16 @@ import type { VueUiContext } from "../../contexts/vue_ui_context";
 import type { UiFactory } from "../factory/factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
+import {
+  ALL_FILTER_CHIP,
+  canDeleteNamedQuery,
+  deleteNamedQuery,
+  filterModelSetValues,
+  listFixedFilterFieldNames,
+  listSelfDefaultFilters,
+  promptSaveNamedQuery,
+  setFieldFilterValues,
+} from "./list_named_query";
 
 export type ListFilterBarChip = {
   fieldName: string;
@@ -113,7 +125,9 @@ export function listFilterBarChips(
   if (!model) return [];
   const metaUi = indexTableMetaUi(context);
   const chips: ListFilterBarChip[] = [];
+  const fixed = listFixedFilterFieldNames(context);
   for (const [fieldName, filter] of Object.entries(model)) {
+    if (fixed.has(fieldName)) continue;
     if (FieldFilter.isEmpty(filter)) continue;
     const field = metaUi.getField(fieldName);
     const title = field?.displayLabel || fieldName;
@@ -164,6 +178,80 @@ export function clearListFilterBar(context: VueUiContext<any>) {
   return context.search?.();
 }
 
+export function listFixedFilterChipGroups(context: VueUiContext<any>) {
+  const metaUi = indexTableMetaUi(context);
+  const allLabel = tOf(context, "action.all");
+  const groups: Array<{
+    fieldName: string;
+    selected: string | number | Array<string | number>;
+    items: Array<{ label: string; value: string | number; colorRole?: string }>;
+  }> = [];
+  for (const item of listSelfDefaultFilters(context)) {
+    const field = metaUi.getField(item.fieldName);
+    const reference = field?.reference;
+    if (!field || !reference?.isEnum) continue;
+    const options = reference.refOptions ?? [];
+    const selectedValues = filterModelSetValues(
+      context.searchParam?.filterModel,
+      item.fieldName,
+      field,
+    )
+      .map(
+        (entry) =>
+          DefaultFieldFilter.resolveValue(field, String(entry ?? "")) ?? entry,
+      )
+      .filter((entry) => entry !== undefined);
+    const items = [
+      {
+        label: allLabel,
+        value: ALL_FILTER_CHIP,
+        colorRole: selectedValues.length ? undefined : "primary",
+      },
+      ...options.map((option) => {
+        const value = reference.valueOf(option);
+        const label = String(reference.labelOf(option) ?? value ?? "");
+        const picked = selectedValues.some((entry) =>
+          chipValueEquals(entry, value),
+        );
+        return {
+          label,
+          value: value as string | number,
+          colorRole: picked ? "primary" : undefined,
+        };
+      }),
+    ];
+    groups.push({
+      fieldName: item.fieldName,
+      selected:
+        selectedValues.length === 0
+          ? ALL_FILTER_CHIP
+          : selectedValues.length === 1
+            ? (selectedValues[0] as string | number)
+            : (selectedValues as Array<string | number>),
+      items,
+    });
+  }
+  return groups;
+}
+
+function iconButton(
+  factory: UiFactory,
+  className: string,
+  icon: string,
+  title: string,
+  onClick: () => void,
+) {
+  return factory.button({
+    class: className,
+    icon: factory.resolveIcon?.(icon) ?? icon,
+    tooltip: title,
+    label: "",
+    buttonType: "text",
+    colorRole: "secondary",
+    onClick,
+  });
+}
+
 /** 跟踪 searchParam.filterModel，列头过滤写完后不必整页重建也能长出芯片。 */
 export const ListFilterBarView = defineComponent({
   name: "ListFilterBarView",
@@ -175,6 +263,8 @@ export const ListFilterBarView = defineComponent({
   setup(props) {
     return () => {
       void props.context.searchParam?.filterModel;
+      void props.context.searchParam?.queryID;
+      void props.context.listLayoutRev?.value;
       return createListFilterBar(props.factory, props.context, props.extra ?? {});
     };
   },
@@ -185,10 +275,11 @@ export function createListFilterBar(
   context: VueUiContext<any>,
   props: UiFilterBarProps = {},
 ): VNode | null {
+  const fixedGroups = listFixedFilterChipGroups(context);
   const chips = listFilterBarChips(context);
   const extra = props.chips?.();
   const extraNodes = extra == null ? [] : Array.isArray(extra) ? extra : [extra];
-  if (!chips.length && !extraNodes.length) return null;
+  if (!fixedGroups.length && !chips.length && !extraNodes.length) return null;
   const items = chips.map((chip) => ({
     label: chip.label,
     value: chip.fieldName,
@@ -205,17 +296,61 @@ export function createListFilterBar(
         },
       })
     : null;
+  const fixedLists = fixedGroups.map((group) =>
+    factory.chips?.({
+      class: "mmda-list-filter-bar__fixed",
+      kind: "action",
+      items: group.items,
+      selected: group.selected,
+      onClick: (item) => {
+        const value = item.value;
+        if (value === ALL_FILTER_CHIP || value == null) {
+          void setFieldFilterValues(context, group.fieldName, []);
+          return;
+        }
+        void setFieldFilterValues(context, group.fieldName, [value]);
+      },
+    }),
+  );
+  const queryID = context.searchParam?.queryID;
+  const actions = h("div", { class: "mmda-list-filter-bar__actions" }, [
+    iconButton(
+      factory,
+      "mmda-list-filter-bar__clear",
+      "clear",
+      tOf(context, "action.clearFilters"),
+      () => void clearListFilterBar(context),
+    ),
+    iconButton(
+      factory,
+      "mmda-list-filter-bar__save",
+      "save",
+      tOf(context, "action.saveQuery"),
+      () => void promptSaveNamedQuery(context, factory),
+    ),
+    queryID &&
+    canDeleteNamedQuery({
+      predifined: context.searchParam?.queryPredifined,
+      queryID,
+    })
+      ? iconButton(
+          factory,
+          "mmda-list-filter-bar__delete-query",
+          "delete",
+          tOf(context, "action.deleteQuery"),
+          () =>
+            void deleteNamedQuery(context, {
+              queryID,
+              queryName: context.searchParam.queryName,
+              predifined: context.searchParam.queryPredifined,
+            }),
+        )
+      : null,
+  ]);
   return h("div", { class: "mmda-list-filter-bar" }, [
+    ...fixedLists,
     chipList,
     ...extraNodes,
-    chips.length
-      ? factory.button({
-          class: "mmda-list-filter-bar__clear",
-          label: tOf(context, "action.clearFilters"),
-          buttonType: "text",
-          colorRole: "secondary",
-          onClick: () => void clearListFilterBar(context),
-        })
-      : null,
+    actions,
   ]);
 }

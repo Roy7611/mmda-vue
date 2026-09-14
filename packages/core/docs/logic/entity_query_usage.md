@@ -86,27 +86,35 @@ queryParams: {
 
 `queryParams` 只给旧调用和快捷过滤 SQL（`filter=`）兼容。新状态、外键、表头条件一律 `filterModel`。
 
-## 命名查询芯片
+## 默认字段芯片
 
 `Module.defaultFilter`：
 
 ```text
-1;全部|2;启用|3;停用
+t.status=1
+status=NEW|materialType=LABOR
+items.xxx=2
 ```
 
 ```ts
-import { NamedQueryRef } from '@mmda/core'
+import { DefaultFieldFilter } from '@mmda/core'
 
-const chips = NamedQueryRef.parse(module.defaultFilter)
-// [{ queryID: '1', queryName: '全部' }, ...]
+const items = DefaultFieldFilter.parse(module.defaultFilter)
+// [{ alias: 't', fieldName: 'status', rawDefault: '1' }, ...]
+
+searchParam.filterModel = DefaultFieldFilter.applySelfToModel(
+  searchParam.filterModel,
+  items,
+  (name) => metaUi.getField(name),
+)
 ```
 
-芯片显示 `queryName`，点选用 `queryID` 加载 `CustomizedQuery`，再：
+`t` / 无别名才写入本实体 `filterModel`；`items.xxx` 本轮跳过。`=1` 对 enum 选项 `id`（或 pipe 序号），写入仍是 `valueOf`（code）。
+
+命名查询（CustomizedQuery）走工具栏「命名」搜索，不绑 `defaultFilter`。套用：
 
 ```ts
-import {
-  EntityQuery,
-} from '@mmda/core'
+import { EntityQuery } from '@mmda/core'
 
 const parsed = EntityQuery.parse(customized.queryExpression)
 if (parsed?.kind === 'query') {
@@ -114,7 +122,7 @@ if (parsed?.kind === 'query') {
 }
 ```
 
-未选中命名查询时用 `module.defaultSort`（`EntityQuery.parseDefaultSort`）；有查询以该查询的 `pager.sorts` 为准。
+无 `lastQuery` 时用 `module.defaultSort`（`EntityQuery.parseDefaultSort`）；有查询以该查询的 `pager.sorts` 为准。
 
 ## 保存 / 套用 CustomizedQuery
 
@@ -174,7 +182,7 @@ UI 文案：`t('matcher.' + op)`。
 | Query Builder 树摊进 `filterModel` | 放 `advancedFilterModel`；跨列 OR 不能压成列 map |
 | 列表调 `getAll` 拼过滤 | 调 `searchAll` |
 | 另存一份 sorts 到 IndexedDB | 只存 EntityQuery（含 `pager.sorts`） |
-| `defaultFilter` 当 FilterModel JSON 解析 | 按 `queryID;queryName\|…` 解析芯片 |
+| `defaultFilter` 当 FilterModel JSON 或 `queryID;queryName` | 按 `[alias.]field[=value]` 解析（`DefaultFieldFilter.parse`） |
 | 用 SearchOp / label 对象 | 已删除；用 `EntityFilterOperator` + i18n |
 | 把本月存成 `FieldFilter.in(['2026-09'])` | `FieldFilter.dateKind('THIS_MONTH')`，见 [date_filter_usage.md](./date_filter_usage.md) |
 
