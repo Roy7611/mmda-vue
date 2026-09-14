@@ -14,13 +14,16 @@ import {
   toggleChipSelection,
 } from "@mmda/vui"
 
-/** EJ2 Chip cssClass：secondary 不加 e-；outlined → e-outline。 */
-export function syncfusionChipCssClass(item: UiChipItem): string {
+/** EJ2 Chip cssClass：secondary 不加 e-。列表级 e-outline 挂在 ChipList 上，不写到单枚。 */
+export function syncfusionChipCssClass(
+  item: UiChipItem,
+  listOutlined = false,
+): string {
   const role =
     item.colorRole && item.colorRole !== "secondary"
       ? `e-${item.colorRole}`
       : undefined
-  const outline = item.outlined ? "e-outline" : undefined
+  const outline = item.outlined && !listOutlined ? "e-outline" : undefined
   return [role, outline, ...chipItemModifierClasses(item)]
     .filter(Boolean)
     .join(" ")
@@ -52,7 +55,7 @@ export function createChips(
     name ? (resolveIcon ? resolveIcon(name) : name) : undefined;
 
   const chips = items.map((item, index) => {
-    const cssClass = syncfusionChipCssClass(item);
+    const cssClass = syncfusionChipCssClass(item, Boolean(props.outlined));
     const model: Record<string, unknown> = {
       text: item.label,
       value: chipValueOf(item, index),
@@ -69,8 +72,17 @@ export function createChips(
     if (item.trailingIcon) model.trailingIconCss = iconCss(item.trailingIcon);
     return model;
   });
+  const deleteIconCss = resolveIcon
+    ? resolveIcon("chips-close")
+    : "e-icons e-chips-close";
 
-  const cssClass = chipsModifierClasses(props).flat().filter(Boolean).join(" ");
+  const cssClass = (
+    props.outlined
+      ? ["mmda-chips", "e-outline", props.class]
+      : chipsModifierClasses(props).flat()
+  )
+    .filter(Boolean)
+    .join(" ");
   const selected = chipsSelectedOf(props);
   const clickable = kind === "choice" || kind === "filter";
 
@@ -83,7 +95,9 @@ export function createChips(
     ...(kind === "choice" ? { selection: "Single" } : {}),
     ...(kind === "filter" ? { selection: "Multiple" } : {}),
     ...(selected != null ? { selectedChips: selected } : {}),
-    ...(isChipsRemovable(props) ? { enableDelete: true } : {}),
+    ...(isChipsRemovable(props)
+      ? { enableDelete: true, trailingIconCss: deleteIconCss }
+      : {}),
     click: (args: { index?: number; text?: string }) => {
       const index = args?.index ?? 0;
       const item = items[index] as UiChipItem | undefined;

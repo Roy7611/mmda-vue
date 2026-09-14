@@ -11,9 +11,11 @@ import {
   readStoredColorPalette,
   readStoredPageLayout,
   readStoredPageSize,
+  readStoredShowActionsColumn,
   resolveColorPalette,
   writeStoredPageLayout,
   writeStoredPageSize,
+  writeStoredShowActionsColumn,
 } from "../app/theme";
 
 afterEach(() => {
@@ -55,6 +57,17 @@ describe("MMDA color palettes", () => {
     expect(readStoredPageSize()).toBe(50);
     writeStoredPageSize(999);
     expect(readStoredPageSize()).toBe(50);
+  });
+
+  it("persists showActionsColumn preference under mmda/showActionsColumn", () => {
+    expect(readStoredShowActionsColumn()).toBe(true);
+    writeStoredShowActionsColumn(false);
+    expect(localStorage.getItem("mmda/showActionsColumn")).toBe("false");
+    expect(readStoredShowActionsColumn()).toBe(false);
+    writeStoredShowActionsColumn(true);
+    expect(readStoredShowActionsColumn()).toBe(true);
+    localStorage.setItem("mmda/showActionsColumn", "nope");
+    expect(readStoredShowActionsColumn()).toBe(true);
   });
 
   it("persists pageLayout preference under mmda/pageLayout", () => {

@@ -22,7 +22,8 @@ export function buttonRenderers(
   return {
     button,
     buttonGroup: createButtonGroup,
-    selectButtonGroup: createSelectButtonGroup,
+    selectButtonGroup: (value, props) =>
+      createSelectButtonGroup(value, props, factory.resolveIcon),
     splitButton: createSplitButton,
     dropDownButton: createDropDownButton,
     moreMenuButton: createMoreMenuButton,

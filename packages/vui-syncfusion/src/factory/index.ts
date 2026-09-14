@@ -78,6 +78,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       edit: "e-icons e-edit",
       save: "e-icons e-save",
       cancel: "e-icons e-close",
+      "chips-close": "e-icons e-chips-close",
       delete: "e-icons e-trash",
       clear: "e-icons e-erase",
       add: "e-icons e-plus",
@@ -103,6 +104,9 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
       "freeze-column-right": "e-icons e-spacing-before",
       "freeze-column-left": "e-icons e-spacing-after",
       unlock: "e-icons e-unlock",
+      "align-left": "e-icons e-align-left",
+      "align-center": "e-icons e-align-center",
+      "align-right": "e-icons e-align-right",
     },
     viewIcons: {
       index: "e-icons e-list-unordered",

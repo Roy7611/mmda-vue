@@ -1,5 +1,6 @@
 import { defineComponent, h, reactive, ref, type PropType } from "vue";
 import {
+  MetaUiFieldAlignment,
   MetaUiFieldFrozen,
   type ListSettingsField,
   type MetaUi,
@@ -19,6 +20,10 @@ import {
   snapshotListLayoutRows,
 } from "../ui/builder/list_layout";
 import { indexTableMetaUi } from "../ui/builder/join_list_mode";
+import {
+  readStoredShowActionsColumn,
+  writeStoredShowActionsColumn,
+} from "../app/theme";
 
 export type TableSettingRow = {
   fieldName: string;
@@ -27,6 +32,7 @@ export type TableSettingRow = {
   frozen: MetaUiFieldFrozen;
   listPos: number;
   listSize?: number;
+  align: MetaUiFieldAlignment;
 };
 
 interface TableSettingHost {
@@ -63,13 +69,13 @@ export const TableSettingView = defineComponent({
     factory: { type: Object as PropType<UiFactory>, required: true },
     t: { type: Function as PropType<(key: string) => string>, required: true },
     rows: { type: Array as PropType<TableSettingRow[]>, required: true },
-    persistForever: { type: Object as PropType<{ value: boolean }>, required: true },
+    showActionsColumn: { type: Object as PropType<{ value: boolean }>, required: true },
     restoring: { type: Object as PropType<{ value: boolean }>, required: true },
     saving: { type: Object as PropType<{ value: boolean }>, required: true },
   },
   emits: {
     restore: (_reloadFromDb?: boolean) => true,
-    save: () => true,
+    save: (_forever?: boolean) => true,
     cancel: () => true,
     confirm: () => true,
   },
@@ -153,45 +159,75 @@ export const TableSettingView = defineComponent({
             h("span", { class: "mmda-list-setting__index" }, String(index + 1)),
             h("span", { class: "mmda-list-setting__title" }, row.displayLabel),
           ]),
-          h("div", { class: "mmda-list-setting__actions" }, [
-            iconButton(
-              factory,
-              row.listed ? "eye" : "eye-slash",
-              row.listed ? t("tableSettings.hide") : t("tableSettings.show"),
-              () => {
-                row.listed = !row.listed;
+          h("div", { class: "mmda-list-setting__tools" }, [
+            factory.selectButtonGroup(row.align, {
+              class: "mmda-list-setting__align",
+              options: [
+                {
+                  value: MetaUiFieldAlignment.LEFT,
+                  icon: "align-left",
+                  label: t("tableSettings.alignLeft"),
+                },
+                {
+                  value: MetaUiFieldAlignment.CENTER,
+                  icon: "align-center",
+                  label: t("tableSettings.alignCenter"),
+                },
+                {
+                  value: MetaUiFieldAlignment.RIGHT,
+                  icon: "align-right",
+                  label: t("tableSettings.alignRight"),
+                },
+              ],
+              optionValue: "value",
+              onUpdate: (value: MetaUiFieldAlignment) => {
+                row.align = value;
               },
-              frozen,
-              "mmda-list-setting__visibility",
-            ),
-            iconButton(
-              factory,
-              row.frozen === MetaUiFieldFrozen.Left ? "unlock" : "freeze-column-left",
-              row.frozen === MetaUiFieldFrozen.Left
-                ? t("tableSettings.unfreeze")
-                : t("tableSettings.freezeLeft"),
-              () =>
-                setFrozen(
-                  row,
-                  row.frozen === MetaUiFieldFrozen.Left
-                    ? MetaUiFieldFrozen.None
-                    : MetaUiFieldFrozen.Left,
-                ),
-            ),
-            iconButton(
-              factory,
-              row.frozen === MetaUiFieldFrozen.Right ? "unlock" : "freeze-column-right",
-              row.frozen === MetaUiFieldFrozen.Right
-                ? t("tableSettings.unfreeze")
-                : t("tableSettings.freezeRight"),
-              () =>
-                setFrozen(
-                  row,
-                  row.frozen === MetaUiFieldFrozen.Right
-                    ? MetaUiFieldFrozen.None
-                    : MetaUiFieldFrozen.Right,
-                ),
-            ),
+            }),
+            h("div", { class: "mmda-list-setting__actions" }, [
+              iconButton(
+                factory,
+                row.listed ? "eye" : "eye-slash",
+                row.listed ? t("tableSettings.hide") : t("tableSettings.show"),
+                () => {
+                  row.listed = !row.listed;
+                },
+                frozen,
+                "mmda-list-setting__visibility",
+              ),
+              iconButton(
+                factory,
+                row.frozen === MetaUiFieldFrozen.Left
+                  ? "unlock"
+                  : "freeze-column-left",
+                row.frozen === MetaUiFieldFrozen.Left
+                  ? t("tableSettings.unfreeze")
+                  : t("tableSettings.freezeLeft"),
+                () =>
+                  setFrozen(
+                    row,
+                    row.frozen === MetaUiFieldFrozen.Left
+                      ? MetaUiFieldFrozen.None
+                      : MetaUiFieldFrozen.Left,
+                  ),
+              ),
+              iconButton(
+                factory,
+                row.frozen === MetaUiFieldFrozen.Right
+                  ? "unlock"
+                  : "freeze-column-right",
+                row.frozen === MetaUiFieldFrozen.Right
+                  ? t("tableSettings.unfreeze")
+                  : t("tableSettings.freezeRight"),
+                () =>
+                  setFrozen(
+                    row,
+                    row.frozen === MetaUiFieldFrozen.Right
+                      ? MetaUiFieldFrozen.None
+                      : MetaUiFieldFrozen.Right,
+                  ),
+              ),
+            ]),
           ]),
         ],
       );
@@ -255,20 +291,28 @@ export const TableSettingView = defineComponent({
               { class: "mmda-list-setting__persist" },
               [
                 factory.switch({
-                  checked: props.persistForever.value,
+                  checked: props.showActionsColumn.value,
                   onChange: (checked: boolean) => {
-                    props.persistForever.value = checked;
+                    props.showActionsColumn.value = checked;
                   },
                 }),
-                h("span", t("tableSettings.persistForever")),
+                h("span", t("tableSettings.showActionsColumn")),
               ],
             ),
-            factory.button({
+            factory.splitButton({
               label: t("tableSettings.save"),
+              class: "mmda-list-setting__save",
+              actions: [
+                {
+                  name: "persistForever",
+                  label: t("tableSettings.persistForever"),
+                  onAction: () => emit("save", true),
+                },
+              ],
               buttonType: "text",
               colorRole: "secondary",
               disabled: props.saving.value || props.restoring.value,
-              onClick: () => emit("save"),
+              onAction: () => emit("save", false),
             }),
             factory.splitButton({
               label: t("tableSettings.restoreDefault"),
@@ -315,7 +359,9 @@ export async function openTableSettingDialog(
   const t = (key: string) => context.t(key);
   const tableMeta = () => indexTableMetaUi(context);
   const rows = reactive(snapshotListLayoutRows(tableMeta()));
-  const persistForever = reactive({ value: false });
+  const showActionsColumn = reactive({
+    value: readStoredShowActionsColumn(),
+  });
   const restoring = reactive({ value: false });
   const saving = reactive({ value: false });
 
@@ -328,6 +374,7 @@ export async function openTableSettingDialog(
         frozen: row.frozen,
         listPos: row.listPos,
         listSize: row.listSize,
+        align: row.align,
       })),
     );
     bumpListLayout(context);
@@ -389,12 +436,13 @@ export async function openTableSettingDialog(
     }
   };
 
-  const saveSettings = async (refresh = false) => {
+  const saveSettings = async (refresh = false, forever = false) => {
     saving.value = true;
     try {
+      writeStoredShowActionsColumn(showActionsColumn.value);
       applyRows();
       await persistListPack(context);
-      if (persistForever.value) {
+      if (forever) {
         const logic = context.logic as {
           repository?: string;
           metaUiService?: {
@@ -432,21 +480,21 @@ export async function openTableSettingDialog(
       factory: host.factory,
       t,
       rows,
-      persistForever,
+      showActionsColumn,
       restoring,
       saving,
       onRestore: (reloadFromDb?: boolean) =>
         void restoreDefault(reloadFromDb === true),
-      onSave: () => void saveSettings(),
+      onSave: (forever?: boolean) => void saveSettings(false, forever === true),
       onCancel: () => void settleDialog('cancel'),
       onConfirm: () => void settleDialog('ok'),
     });
 
   return host.dialog(content() as any, context, {
     title: t("tableSettings.title"),
-    modal: false,
-    width: "min(92vw, 30rem)",
-    maxHeight: "80vh",
+    modal: true,
+    width: "min(92vw, 42rem)",
+    maxHeight: "90vh",
     showFooter: false,
     onAccept: async (button) => {
       await saveSettings(true);

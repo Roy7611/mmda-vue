@@ -1,6 +1,8 @@
 import { required, uiCssClass } from '@mmda/core'
 import {
   UI_BUILDER_KEY,
+  invokeSignin,
+  resolveSigninHandlers,
   signinFormEmits,
   signinFormProps,
   type SigninUser,
@@ -9,7 +11,6 @@ import {
 import { NCheckbox, NInput } from 'naive-ui'
 import {
   defineComponent,
-  getCurrentInstance,
   h,
   inject,
   onBeforeMount,
@@ -18,39 +19,6 @@ import {
   withModifiers,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-type SigninHandler = (user: SigninUser) => void | Promise<void>
-
-function resolveSigninHandlers(
-  emit: (event: 'signin', user: SigninUser) => unknown,
-): SigninHandler[] {
-  // Capture before any await — getCurrentInstance() is null after yield.
-  const raw = getCurrentInstance()?.vnode.props?.onSignin as
-    | SigninHandler
-    | SigninHandler[]
-    | undefined
-  if (raw) return Array.isArray(raw) ? raw : [raw]
-  return [
-    (user) => {
-      const result = emit('signin', user)
-      if (Array.isArray(result)) {
-        return Promise.all(
-          result.map((item) =>
-            item != null && typeof (item as Promise<unknown>).then === 'function'
-              ? (item as Promise<unknown>)
-              : Promise.resolve(item),
-          ),
-        ).then(() => undefined)
-      }
-      if (
-        result != null &&
-        typeof (result as Promise<unknown>).then === 'function'
-      ) {
-        return result as Promise<void>
-      }
-    },
-  ]
-}
 
 export const SigninForm = defineComponent({
   name: 'AgNaiveSigninForm',
@@ -90,16 +58,15 @@ export const SigninForm = defineComponent({
           '请填写用户名和密码'
         return
       }
+      const emitSignin = emit as (event: 'signin', user: SigninUser) => unknown
+      const handlers = resolveSigninHandlers(emitSignin)
       loading.value = true
       const payload: SigninUser = { ...user }
-      const handlers = resolveSigninHandlers(
-        emit as (event: 'signin', user: SigninUser) => unknown,
-      )
       try {
         await props.context?.localDb?.put?.('user/username', {
           username: user.username,
         })
-        await Promise.all(handlers.map((fn) => Promise.resolve(fn(payload))))
+        await invokeSignin(emitSignin, payload, handlers)
       } catch (error) {
         formError.value =
           error instanceof Error && error.message.trim()

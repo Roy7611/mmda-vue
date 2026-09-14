@@ -70,7 +70,7 @@ export function sfGridColumnFilterOf(
   }
   switch (columnFilterKindOf(field)) {
     case 'boolean':
-      return { type: 'Menu' as const }
+      return { type: 'CheckBox' as const }
     case 'range':
       return { type: 'Menu' as const }
     case 'set':

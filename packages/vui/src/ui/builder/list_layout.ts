@@ -1,5 +1,7 @@
 import {
+  MetaUiFieldAlignment,
   MetaUiFieldFrozen,
+  SqlDataType,
   compareListColumns,
   ensureListFieldVisibleWhenFrozen,
   isListFrozen,
@@ -38,6 +40,7 @@ export function collectListSettingsFields(metaUi: MetaUi): ListSettingsField[] {
     listed: field.listed,
     frozen: field.frozen,
     listPos: field.listPos ?? field.fieldIdx,
+    align: field.align,
   }));
 }
 
@@ -54,6 +57,7 @@ export function applyListSettingsFields(
       field.frozen = normalizeFrozen(patch.frozen);
     }
     if (patch.listPos != null) field.listPos = patch.listPos;
+    if (patch.align != null) field.align = normalizeAlign(patch.align);
     ensureListFieldVisibleWhenFrozen(field);
   }
   metaUi.getListedFields(true);
@@ -68,6 +72,33 @@ export function normalizeFrozen(value?: string | MetaUiFieldFrozen) {
     return MetaUiFieldFrozen.Right;
   }
   return MetaUiFieldFrozen.None;
+}
+
+export function normalizeAlign(
+  value?: string | MetaUiFieldAlignment,
+): MetaUiFieldAlignment {
+  const align = String(value ?? "").toUpperCase();
+  if (align === MetaUiFieldAlignment.RIGHT || align === "END") {
+    return MetaUiFieldAlignment.RIGHT;
+  }
+  if (align === MetaUiFieldAlignment.CENTER) {
+    return MetaUiFieldAlignment.CENTER;
+  }
+  return MetaUiFieldAlignment.LEFT;
+}
+
+/** 有配置用配置；START/END 收成左/右。缺省与网格一致：数值右、其它左。 */
+export function listFieldAlign(field: MetaUiField): MetaUiFieldAlignment {
+  if (field.align) return normalizeAlign(field.align);
+  if (
+    field.reference?.isEnum ||
+    field.reference?.isRef ||
+    field.reference?.hasOne
+  ) {
+    return MetaUiFieldAlignment.LEFT;
+  }
+  if (SqlDataType.isNum(field.dataType)) return MetaUiFieldAlignment.RIGHT;
+  return MetaUiFieldAlignment.LEFT;
 }
 
 export function syncQuickFiltersToMeta(context: VueUiContext<any>) {
@@ -136,6 +167,7 @@ export function snapshotListLayoutRows(metaUi: MetaUi) {
     frozen: normalizeFrozen(field.frozen),
     listPos: field.listPos ?? field.fieldIdx ?? index,
     listSize: field.listSize,
+    align: listFieldAlign(field),
   }));
 }
 

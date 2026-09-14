@@ -338,15 +338,42 @@ export const choiceFilterRowsOf = (
   }));
 };
 
+/** CheckBox 是/否。值仍是 boolean，显示走 filterLabels。 */
+export const booleanFilterRowsOf = (
+  field: Pick<MetaUiField, "fieldName">,
+  labels?: { yes?: string; no?: string },
+) => [
+  {
+    [field.fieldName]: true,
+    text: labels?.yes ?? "是",
+    __mmdaChoice: true,
+  },
+  {
+    [field.fieldName]: false,
+    text: labels?.no ?? "否",
+    __mmdaChoice: true,
+  },
+];
+
+const booleanFilterValueOf = (value: unknown): boolean | null | undefined => {
+  if (value == null || value === "") return null;
+  if (typeof value === "boolean") return value;
+  if (value === 1 || value === "1" || value === "true") return true;
+  if (value === 0 || value === "0" || value === "false") return false;
+  return undefined;
+};
+
 export const choiceFilterDataSource = (field: MetaUiField) =>
   choiceFilterRowsOf(field, field.reference?.refOptions);
 
 const flattenFilterPredicates = (
-  predicates: any[] | undefined,
+  predicates: unknown,
   parentJoin?: string,
 ): any[] => {
+  if (predicates == null) return [];
+  const list = Array.isArray(predicates) ? predicates : [predicates];
   const items: any[] = [];
-  for (const predicate of predicates ?? []) {
+  for (const predicate of list) {
     if (Array.isArray(predicate?.predicates) && predicate.predicates.length) {
       const join = String(predicate.condition ?? parentJoin ?? "and").toLowerCase();
       items.push(...flattenFilterPredicates(predicate.predicates, join));
@@ -415,11 +442,20 @@ export const gridFiltersToModel = (
     const field = fields.find((value) => value.fieldName === fieldName);
     if (!field) continue;
     if (columnFilterKindOf(field) === "boolean") {
-      const item = items[items.length - 1];
-      model[fieldName] = {
-        filterType: "boolean",
-        value: item.value == null ? null : Boolean(item.value),
-      };
+      const lastOp = String(items[items.length - 1]?.operator ?? "").toLowerCase();
+      if (lastOp === "isnull") {
+        model[fieldName] = { filterType: "boolean", value: null };
+        continue;
+      }
+      const values = [
+        ...new Set(
+          flattenValues(items)
+            .map(booleanFilterValueOf)
+            .filter((value): value is boolean | null => value !== undefined),
+        ),
+      ];
+      if (values.length !== 1) continue;
+      model[fieldName] = { filterType: "boolean", value: values[0] };
       continue;
     }
     const operators = items.map((item) =>

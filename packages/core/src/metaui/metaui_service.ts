@@ -11,7 +11,7 @@ import { ApiClient, type EntityUrlParam } from '../net/api_client'
 import type { MetaUiFilter } from './metaui_filter'
 import { type Module, ModuleFactory } from './module'
 import type { ReportTemplate } from '../models/file'
-import type { MetaUiFieldFrozen } from './metaui_field'
+import type { MetaUiFieldAlignment, MetaUiFieldFrozen } from './metaui_field'
 import type { EntityQuery } from '../models/entity_search'
 
 export interface MetaUiFilters {
@@ -32,6 +32,7 @@ export interface ListSettingsField {
   listed?: boolean
   frozen?: MetaUiFieldFrozen | string
   listPos?: number
+  align?: MetaUiFieldAlignment | string
 }
 
 export interface ListSettingsPayload {
@@ -552,6 +553,7 @@ class MetaUiServiceImpl implements MetaUiService {
       if (src.listSize != null) field.listSize = src.listSize
       if (src.listPos != null) field.listPos = src.listPos
       if (src.frozen != null) field.frozen = src.frozen
+      if (src.align != null) field.align = src.align
       if (src.hidden != null) field.hidden = src.hidden
     }
   }

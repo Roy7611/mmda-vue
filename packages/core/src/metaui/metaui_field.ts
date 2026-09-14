@@ -261,7 +261,7 @@ export class MetaUiField {
   readonly mergePrefix?: string
   listSize?: number
   listPos?: number
-  readonly align?: MetaUiFieldAlignment
+  align?: MetaUiFieldAlignment
   readonly sortable?: boolean
   /** 列过滤器类型位掩码。见 {@link MetaUiFilterType}。 */
   readonly filterTypes?: number

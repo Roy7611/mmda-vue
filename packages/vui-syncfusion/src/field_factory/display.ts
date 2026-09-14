@@ -170,11 +170,10 @@ export const boolIcon = (
   return h("i", {
     ...props,
     class: [
-      "e-icons",
       "mmda-bool-icon",
       checked
-        ? "e-circle-check mmda-bool-icon--true"
-        : "e-circle mmda-bool-icon--false",
+        ? "fas fa-check-circle mmda-bool-icon--true"
+        : "e-icons e-circle mmda-bool-icon--false",
       props?.class,
     ],
   });

@@ -1,7 +1,7 @@
 import { h } from "vue";
 import type { UiSelectButtonGroupProps } from "@mmda/core"
-import { selectButtonGroupSelected, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from "@mmda/core"
-import { selectButtonGroupUpdateOf } from "@mmda/vui"
+import { selectButtonGroupSelected, selectButtonOptionIcon, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from "@mmda/core"
+import { createIconVNode, selectButtonGroupUpdateOf } from "@mmda/vui"
 import { createButtonGroup } from "./button_group";
 
 let selectGroupSeq = 0;
@@ -9,6 +9,7 @@ let selectGroupSeq = 0;
 export function createSelectButtonGroup(
   value: unknown,
   props: UiSelectButtonGroupProps = {},
+  resolveIcon: (icon: string) => string = (icon) => icon,
 ) {
   const {
     options = [],
@@ -29,6 +30,7 @@ export function createSelectButtonGroup(
   const nodes = options.flatMap((option, index) => {
     const itemValue = selectButtonOptionValue(option, optionValue);
     const itemLabel = selectButtonOptionLabel(option, optionLabel);
+    const itemIcon = selectButtonOptionIcon(option);
     const id = `${name}-${index}`;
     const checked = selectButtonGroupSelected(
       current,
@@ -57,7 +59,18 @@ export function createSelectButtonGroup(
           if (target.checked) emit?.(itemValue);
         },
       }),
-      h("label", { class: "e-btn", for: id }, itemLabel),
+      h(
+        "label",
+        {
+          class: "e-btn",
+          for: id,
+          title: itemLabel,
+          "aria-label": itemLabel,
+        },
+        itemIcon
+          ? createIconVNode(resolveIcon(itemIcon), { "aria-hidden": "true" })
+          : itemLabel,
+      ),
     ];
   });
   return createButtonGroup(() => nodes, {

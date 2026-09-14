@@ -107,6 +107,9 @@ export function createAgNaiveUiFactory(): UiFactory {
       'freeze-column-right': 'fas fa-arrow-right',
       'freeze-column-left': 'fas fa-arrow-left',
       unlock: 'fas fa-unlock',
+      'align-left': 'fas fa-align-left',
+      'align-center': 'fas fa-align-center',
+      'align-right': 'fas fa-align-right',
       details: 'fas fa-eye',
       print: 'fas fa-print',
       execute: 'fas fa-play',
@@ -231,7 +234,8 @@ export function createAgNaiveUiFactory(): UiFactory {
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
     buttonGroup: createButtonGroup,
-    selectButtonGroup: createSelectButtonGroup,
+    selectButtonGroup: (value, props) =>
+      createSelectButtonGroup(value, props, factory.resolveIcon),
     splitButton: (props, slots) => createSplitButton(props, slots, button),
     dropDownButton: (props, actions, slots) =>
       createDropDownButton(props, actions, slots, button),

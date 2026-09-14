@@ -24,6 +24,7 @@ Tree 内嵌右键（SfTree / PrimeTree / NaiveTree）本轮不改；后续可切
 | `disabled` | 不响应打开 |
 | `onSelect` | 选中一项时。条目自身 `onAction` / `command` 优先执行 |
 | `onBeforeOpen` | 打开前。返回 `false` 可取消 |
+| `resolveItems` | 打开前换条目。`false` 或空数组则取消 |
 
 钩子 class：`mmda-context-menu`。
 

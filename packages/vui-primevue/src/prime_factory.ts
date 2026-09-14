@@ -596,6 +596,9 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       "freeze-column-right": "pi pi-arrow-right",
       "freeze-column-left": "pi pi-arrow-left",
       unlock: "pi pi-lock-open",
+      "align-left": "pi pi-align-left",
+      "align-center": "pi pi-align-center",
+      "align-right": "pi pi-align-right",
     },
     viewIcons: {
       index: "pi pi-list",
@@ -717,7 +720,8 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
     buttonGroup: createButtonGroup,
-    selectButtonGroup: createSelectButtonGroup,
+    selectButtonGroup: (value, props) =>
+      createSelectButtonGroup(value, props, factory.resolveIcon),
     splitButton: createSplitButton,
     dropDownButton: createDropDownButton,
     moreMenuButton: createMoreMenuButton,

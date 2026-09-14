@@ -13,6 +13,7 @@ import {
   Sort,
   VirtualScroll,
   DetailRow,
+  ContextMenu,
 } from "@syncfusion/ej2-grids";
 
 /**
@@ -46,6 +47,7 @@ export const SF_GRID_MODULES = [
   Resize,
   VirtualScroll,
   DetailRow,
+  ContextMenu,
 ];
 
 Grid.Inject(...SF_GRID_MODULES);

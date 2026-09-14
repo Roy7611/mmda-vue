@@ -4,6 +4,7 @@ export type { UiSelectButtonGroupProps } from '@mmda/core'
 export {
   buttonModifierClasses,
   selectButtonGroupSelected,
+  selectButtonOptionIcon,
   selectButtonOptionLabel,
   selectButtonOptionValue,
   toggleSelectButtonGroupValue,

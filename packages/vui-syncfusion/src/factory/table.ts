@@ -6,7 +6,7 @@
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
 import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
-import { gridFreezeOf, joinListColumnLabel, readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
+import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { MultiSelect, CheckBoxSelection } from '@syncfusion/ej2-dropdowns'
@@ -30,6 +30,7 @@ import {
   EMPTY_SELECTION,
   VIRTUAL_ROW_PAGE_SIZE,
   DEFAULT_LIST_COLUMN_WIDTH,
+  booleanFilterRowsOf,
   cellSlotName,
   choiceFilterDataSource,
   choiceFilterRowsOf,
@@ -58,6 +59,25 @@ export type TableFactoryDeps = {
   button: (props: any, slots?: any) => any
   paginator: (pagination: any, props: UiPaginatorPropsType) => any
   resolveIcon: (icon: string) => string
+}
+
+/** EJ2 CheckBox 勾选后 where 可能是单条 Predicate；回写 dataSource 会再抛空 filtering。 */
+const gridFilterPredicatesOf = (state: any) =>
+  state?.where ??
+  state?.filteredColumns ??
+  state?.action?.currentFilterObject
+
+const isClearFilterAction = (state: any) =>
+  String(state?.action?.action ?? '').toLowerCase().includes('clear')
+
+const hasGridFilterPredicates = (value: unknown) => {
+  if (value == null) return false
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'object') {
+    const item = value as { field?: unknown; predicates?: unknown[] }
+    return Boolean(item.field) || Boolean(item.predicates?.length)
+  }
+  return false
 }
 
 export function createTableRenderer(deps: TableFactoryDeps) {
@@ -391,9 +411,29 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       dataSource: choiceDataSourceOf(field),
     })
 
+    const booleanCheckBoxFilter = (field: MetaUiField) => ({
+      type: 'CheckBox',
+      dataSource: booleanFilterRowsOf(field, props.filterLabels),
+    })
+
     const onFilterCheckboxLabel = (args: any) => {
       const fieldName = args?.column?.field
       const field = fields.find(value => value.fieldName === fieldName)
+      if (field && columnFilterKindOf(field) === 'boolean') {
+        const raw =
+          args?.data?.[fieldName] ??
+          args?.data?.dataObj?.[fieldName] ??
+          args?.value
+        const text =
+          args?.data?.text ??
+          (raw === true || raw === 'true' || raw === 1
+            ? props.filterLabels?.yes ?? '是'
+            : raw === false || raw === 'false' || raw === 0
+              ? props.filterLabels?.no ?? '否'
+              : undefined)
+        if (text != null && String(text).length) args.value = String(text)
+        return
+      }
       const ref = field?.reference
       const raw =
         args?.data?.[fieldName] ??
@@ -407,7 +447,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     /** 引用选项按主键已唯一，跳过 EJ2 getDistinct。hasOne 搜索走远程。 */
     const onBeforeCheckboxRenderer = (args: any) => {
       const field = fields.find(value => value.fieldName === args?.field)
-      if (!field || !isChoiceFilterField(field)) return
+      if (!field) return
+      if (columnFilterKindOf(field) === 'boolean') {
+        args.executeQuery = false
+        args.dataSource = booleanFilterRowsOf(field, props.filterLabels)
+        return
+      }
+      if (!isChoiceFilterField(field)) return
       args.executeQuery = false
       if (isLazyChoiceFilterField(field)) {
         args.dataSource = choiceDataSourceOf(field)
@@ -888,7 +934,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     /** 列头过滤：0 走原生 Menu；enum/ref/hasOne 默认 CheckBox；JOIN / MULTI+SET 只追加增量。 */
     const columnFilter = (field: MetaUiField) => {
       const kind = columnFilterKindOf(field)
-      if (kind === 'boolean') return { type: 'Menu' }
+      if (kind === 'boolean') return booleanCheckBoxFilter(field)
       if (usesJoinSlot(field)) return multiMenuFilter(field)
       if (usesCompareColumnFilter(field, compareFilterExtras())) {
         return sfCompareColumnFilter(field, compareFilterExtras())
@@ -956,9 +1002,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       selectionMode === 'multiple'
         ? {
             type: 'checkbox',
-            width: 48,
-            minWidth: 48,
-            maxWidth: 48,
+            width: 36,
+            minWidth: 36,
+            maxWidth: 36,
             textAlign: 'Center',
             headerTextAlign: 'Center',
             allowResizing: false,
@@ -969,8 +1015,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       {
         field: 'rowNum',
         headerText: rowNumField?.displayLabel ?? '序号',
-        width: rowNumField?.listSize ?? 60,
-        minWidth: 60,
+        width: 48,
+        minWidth: 44,
+        maxWidth: 48,
         textAlign: 'Left',
         headerTextAlign: 'Left',
         allowSorting: false,
@@ -1402,6 +1449,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     const runRemoteQuery = (work: unknown) => {
       void settleRemoteListQuery(work).finally(() => {
+        // assignPagedList 改的是调用方 list；rows 是快照，不先同步会把本地筛过的表盖回全量。
+        syncRowsFromSource()
         void resolveCustomBinding()
       })
     }
@@ -1412,6 +1461,101 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (!grid) return
       syncMetaUiFromGridColumns(grid, metaUi)
       props.tableSettings.persist()
+    }
+
+    const rowActionsOf = (props as any).rowActions
+    const hasRowActions = typeof rowActionsOf === 'function'
+    const autoFitVisibleColumns = () => {
+      const grid = resolveEj2Grid()
+      if (!grid) return
+      const fields = (grid.getColumns?.() ?? [])
+        .filter(
+          (column: any) =>
+            column.visible !== false &&
+            isPersistableListColumn(column.field) &&
+            column.type !== 'checkbox',
+        )
+        .map((column: any) => column.field)
+      try {
+        if (fields.length) grid.autoFitColumns(fields)
+        else grid.autoFitColumns()
+      } catch {
+        /* ignore */
+      }
+      persistLayoutFromGrid()
+    }
+    const layoutActions = () => {
+      const items: any[] = [
+        {
+          name: 'autoFitColumns',
+          label: translateMessage('action.autoFitColumns'),
+          icon: deps.resolveIcon('auto-fit-columns'),
+          onAction: autoFitVisibleColumns,
+        },
+      ]
+      if (props.tableSettings?.open) {
+        items.push({
+          name: 'tableSettings',
+          label: translateMessage('action.tableSettings'),
+          icon: deps.resolveIcon('settings'),
+          onAction: () => props.tableSettings?.open?.(),
+        })
+      }
+      return items
+    }
+    const menuActionsOf = (row?: T) => {
+      const rowItems =
+        row && hasRowActions ? (rowActionsOf(row) ?? []) : []
+      const layout = layoutActions()
+      if (!rowItems.length) return layout
+      return [...rowItems, { divider: true }, ...layout]
+    }
+    const toGridMenuItems = (actions: any[], row?: T) =>
+      contextMenuItemsOf({ items: actions }, row).map(item => {
+        if (item.divider) return { separator: true, target: '.e-content' }
+        const icon = item.icon
+          ? deps.resolveIcon(item.icon) || item.icon
+          : undefined
+        return {
+          id: String(item.name ?? item.id ?? item.label ?? ''),
+          text: item.label,
+          iconCss: icon,
+          target: '.e-content',
+          disabled: item.disabled === true,
+        }
+      })
+    const hasContextMenu = hasRowActions || Boolean(props.tableSettings)
+    const applyRowContextMenu = (args: any) => {
+      const type = String(args?.type ?? '').toLowerCase()
+      const row = args?.rowInfo?.rowData as T | undefined
+      if (type === 'header' || type === 'pager' || !row) {
+        args.cancel = true
+        return
+      }
+      const items = toGridMenuItems(menuActionsOf(row), row)
+      if (!items.length) {
+        args.cancel = true
+        return
+      }
+      const menu = ej2Grid?.contextMenuModule?.contextMenu
+      if (menu) {
+        menu.items = items
+        menu.dataBind?.()
+      }
+      if (Array.isArray(args.items)) {
+        args.items.splice(0, args.items.length, ...items)
+      }
+    }
+    const invokeRowContextMenu = (args: any) => {
+      const row = args?.rowInfo?.rowData as T | undefined
+      const id = String(args?.item?.id ?? '')
+      const text = String(args?.item?.text ?? '')
+      const item = findContextMenuItem(
+        contextMenuItemsOf({ items: menuActionsOf(row) }, row),
+        entry =>
+          entry.name === id || entry.id === id || entry.label === text,
+      )
+      if (item) invokeContextMenuItem({}, item)
     }
 
     const gridVNode = h(
@@ -1478,6 +1622,15 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             ? { mode: 'Cell', type: 'Single' }
             : { type: 'None' },
         cssClass: ['mmda-table', props.class].filter(Boolean).join(' '),
+        ...(hasContextMenu
+          ? {
+              contextMenuItems: [
+                { text: ' ', id: 'mmda-row-action', target: '.e-content' },
+              ],
+              contextMenuOpen: applyRowContextMenu,
+              contextMenuClick: invokeRowContextMenu,
+            }
+          : {}),
         dataBound: () => {
           if (rowDetail) expandAllDetails()
         },
@@ -1612,7 +1765,12 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             applyMenuOperators(customOps?.numberOperator, AG_MENU_NUMBER_OPERATORS)
             applyMenuOperators(customOps?.dateOperator, AG_MENU_DATE_OPERATORS)
             applyMenuOperators(customOps?.datetimeOperator, AG_MENU_DATE_OPERATORS)
-            if (isChoiceFilterField(field)) {
+            if (columnFilterKindOf(field) === 'boolean') {
+              args.filterModel.options.dataSource = booleanFilterRowsOf(
+                field,
+                props.filterLabels,
+              )
+            } else if (isChoiceFilterField(field)) {
               void openChoicePage(field, '').then(items => {
                 args.filterModel.options.dataSource = items
               })
@@ -1659,7 +1817,14 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               const respond = (items: unknown[]) => {
                 state.dataSource(items)
               }
-              if (field && isChoiceFilterField(field)) {
+              if (field && columnFilterKindOf(field) === 'boolean') {
+                const items = booleanFilterRowsOf(field, props.filterLabels)
+                respond(
+                  search
+                    ? items.filter(item => String(item.text).includes(search))
+                    : items,
+                )
+              } else if (field && isChoiceFilterField(field)) {
                 void openChoicePage(field, search).then(respond)
               } else {
                 respond([])
@@ -1668,8 +1833,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             return
           }
           if (requestType === 'filtering' && props.onFilterModelChange) {
+            const predicates = gridFilterPredicatesOf(state)
+            if (!hasGridFilterPredicates(predicates) && !isClearFilterAction(state)) {
+              return
+            }
+            virtualSkip = 0
             const model = applyCompareColumnFilters(
-              gridFiltersToModel(state.where, fields),
+              gridFiltersToModel(predicates, fields),
               compareFilterStore,
             )
             runRemoteQuery(props.onFilterModelChange(model))

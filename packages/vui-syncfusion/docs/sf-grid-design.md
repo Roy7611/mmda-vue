@@ -491,8 +491,9 @@ Syncfusion 另有 **XlsIO for Java**（独立 Excel 引擎，要许可），那�
 
 - 数据源：现有 `rowActions(row) → UiAction[]`（与命令列同一套框架 action）。右键行 → 弹出该行关联操作（详情、编辑、删除、业务命令…）
 - 仍看 `editable` / `deletable` / 权限：不该出现的项不进菜单或 disabled
-- **表格不内置菜单按钮**；有 `rowActions` 才开 `contextMenuItems`。点菜单走 `contextMenuClick` → `action.onAction`，带上 `args.rowInfo.rowData`
-- 表头右键：默认不提供（自动列宽走外挂，不跟官方 AutoFit 菜单绑死）
+- **表格不内置菜单按钮**；有 `rowActions` 或 `tableSettings` 才开 `contextMenuItems`。点菜单走 `contextMenuClick` → `action.onAction`，带上 `args.rowInfo.rowData`
+- 行操作之后加分隔，再跟工具栏同一套 **自动列宽 / 表格设置**。不要用官方 AutoFit 默认项
+- 表头右键：默认不提供
 
 
 | scene              | 默认                                                       |

@@ -20,6 +20,7 @@ import type {
   UiSignupFormProps,
   UiSignupFormSlots,
 } from './factory/signin'
+import type { UiFilterBarProps } from './builder/filter_bar'
 import type { UiListViewProps } from './builder/list_view'
 import type { UiExplorerViewProps } from './builder/explorer'
 import type { UiGanttViewProps } from './factory/gantt'
@@ -198,6 +199,15 @@ export interface UiBuilder<TNode = any> {
   buildModuleToolbar(
     context: UiContext,
     props?: UiProps,
+  ): TNode
+
+  /**
+   * 列表过滤条（工具栏与表格之间）。
+   * 默认画列 FilterModel 芯片；`props.chips` 给快捷过滤等额外芯片预留。
+   */
+  buildFilterBar(
+    context: UiContext,
+    props?: UiFilterBarProps<TNode>,
   ): TNode
 
   // —— Module / 插件页（可选；未 setXxxPlugin 时 throw）——

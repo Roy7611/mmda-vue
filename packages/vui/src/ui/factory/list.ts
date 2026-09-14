@@ -95,6 +95,7 @@ export type UiGridPropsType<T = any> = UiGridProps<T> &
 export type UiTableSettings = {
   persist: () => void;
   rev: { value: number };
+  open?: () => void;
 };
 
 export type UiTableSkinExtras<T = any> = {

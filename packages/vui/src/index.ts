@@ -97,6 +97,7 @@ export {
   type UiTagAutoCompleteProps,
   buttonModifierClasses,
   selectButtonGroupSelected,
+  selectButtonOptionIcon,
   selectButtonOptionLabel,
   selectButtonOptionValue,
   toggleSelectButtonGroupValue,
@@ -386,6 +387,7 @@ export * from './ui/factory/filter'
 export * from './ui/factory/list'
 export * from './ui/builder/list_view'
 export * from './ui/builder/list_query'
+export * from './ui/builder/list_filter_bar'
 export * from './ui/factory/tree'
 export * from './ui/builder/tree_data'
 export * from './ui/factory/tree_grid'

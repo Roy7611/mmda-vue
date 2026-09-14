@@ -171,6 +171,37 @@ describe("VueUiBuilder tree chrome", () => {
     expect(host.querySelector(".mmda-page__body")).toBeTruthy();
   });
 
+  it("分类列表在表格上方显示当前过滤", () => {
+    const context = new VueUiContext({
+      model: {
+        list: [{ name: "A" }],
+        pagination: { pageNo: 1, pageSize: 10 },
+      },
+      metaUi,
+      view: "index",
+    });
+    context.searchParam.filterModel = {
+      name: { filterType: "text", operator: "CONTAINS", value: "A" },
+    };
+    const host = document.createElement("div");
+    hosts.push(host);
+    document.body.append(host);
+    render(
+      new TestUiBuilder().buildTreeListView(context, {
+        listOption: { showToolbar: false, showSearchbar: false },
+        treeOption: () => ({
+          data: [{ id: "c1", label: "分类" }],
+        }),
+      }),
+      host,
+    );
+    expect(host.querySelector(".mmda-tree-list-table-pane")).toBeTruthy();
+    expect(host.querySelector(".mmda-list-filter-bar")).toBeTruthy();
+    expect(host.querySelector(".mmda-list-filter-bar")?.textContent).toContain(
+      "名称",
+    );
+  });
+
   it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
     const context = new VueUiContext({
       model: {

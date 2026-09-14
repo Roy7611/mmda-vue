@@ -117,6 +117,7 @@ import type {
 import { UiActionFactory } from "./actions";
 import { WithForm } from "./form";
 import { WithList } from "./list_view";
+import { ListFilterBarView } from "./list_filter_bar";
 import { WithTree } from "./tree";
 import { attachFieldRowApi } from "../factory/field_row";
 
@@ -456,6 +457,13 @@ export abstract class VueUiBuilderBase {
     props: ModuleSearchbarProps,
   ): VNode {
     return unimplemented("buildModuleSearchbar") as VNode;
+  }
+  buildFilterBar(context: UiContext, props?: Record<string, unknown>): VNode {
+    return h(ListFilterBarView, {
+      factory: this.factory,
+      context: context as any,
+      extra: props ?? {},
+    });
   }
   buildSearchPage(context: UiContext, props?: ModuleSearchbarProps) {
     const content = this.buildModuleSearchbar(context, props ?? {});
@@ -832,6 +840,7 @@ export interface VueUiBuilder {
   buildDiagramView(context: any, props: UiDiagramViewProps): VNode;
   buildKanbanView(props: UiKanbanViewProps): VNode;
   buildListView(context: any, props?: any): VNode;
+  buildFilterBar(context: any, props?: any): VNode;
   buildView(context: any, props?: UiViewPropsType): VNode;
   groupWrapClass(group: MetaUiGroup, props?: UiProps): string;
 }
@@ -982,6 +991,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildSearchField: emptyNode,
     buildSearchForm: emptyNode,
     buildModuleSearchbar: emptyNode,
+    buildFilterBar: emptyNode,
     buildSearchForRelative: emptyNode,
     buildSigninForm: emptyNode,
     buildSignupForm: emptyNode,

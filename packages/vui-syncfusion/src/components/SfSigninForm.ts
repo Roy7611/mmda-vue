@@ -1,5 +1,7 @@
 import { required, uiCssClass, uiCssClasses } from '@mmda/core'
 import {
+  invokeSignin,
+  resolveSigninHandlers,
   signinFormEmits,
   signinFormProps,
   type SigninUser,
@@ -89,9 +91,20 @@ export const SfSigninForm = defineComponent({
       return !(v.username.message || v.password.message || v.agreed.message)
     }
 
+    const stopProgress = () => {
+      loading.value = false
+      progressRef.value?.ej2Instances?.end?.()
+    }
+
     const handleLogin = async () => {
       if (loading.value) return
-      if (!validate()) return
+      // ProgressButton 一点就自己转；校验失败也要停
+      if (!validate()) {
+        stopProgress()
+        return
+      }
+      const emitSignin = emit as (event: 'signin', user: SigninUser) => unknown
+      const handlers = resolveSigninHandlers(emitSignin)
       loading.value = true
       const payload: SigninUser = {
         signinMode: user.signinMode,
@@ -103,9 +116,9 @@ export const SfSigninForm = defineComponent({
         await props.context?.localDb?.put?.('user/username', {
           username: user.username,
         })
-        emit('signin', payload)
+        await invokeSignin(emitSignin, payload, handlers)
       } finally {
-        loading.value = false
+        stopProgress()
       }
     }
 

@@ -33,12 +33,13 @@ export function createContextMenu(
     disabled,
     onSelect: _onSelect,
     onBeforeOpen: _onBeforeOpen,
+    resolveItems: _resolveItems,
     htmlAttributes,
     class: _className,
     ...rest
   } = props;
 
-  const items = contextMenuItemsOf(props);
+  let liveItems = contextMenuItemsOf(props);
   const cssClass = contextMenuModifierClasses(props)
     .flat()
     .filter(Boolean)
@@ -47,14 +48,14 @@ export function createContextMenu(
   return h(ContextMenuComponent as any, {
     ...rest,
     ...htmlAttributesOf(props),
-    items: items.map((item) => mapSyncfusionItem(item, resolveIcon)),
+    items: liveItems.map((item) => mapSyncfusionItem(item, resolveIcon)),
     target: disabled ? undefined : target,
     cssClass,
     select: (args: { item?: { id?: string; text?: string } }) => {
       const id = String(args?.item?.id ?? "");
       const text = String(args?.item?.text ?? "");
       const item = findContextMenuItem(
-        items,
+        liveItems,
         (entry) =>
           entry.name === id ||
           entry.id === id ||
@@ -62,7 +63,22 @@ export function createContextMenu(
       );
       if (item) invokeContextMenuItem(props, item);
     },
-    beforeOpen: (args: { event?: Event; cancel?: boolean }) => {
+    beforeOpen: (args: {
+      event?: Event;
+      cancel?: boolean;
+      items?: unknown[];
+    }) => {
+      if (props.resolveItems) {
+        const next = props.resolveItems({ event: args?.event });
+        if (next === false || !next.length) {
+          args.cancel = true;
+          return;
+        }
+        liveItems = contextMenuItemsOf({ ...props, items: next });
+        args.items = liveItems.map((item) =>
+          mapSyncfusionItem(item, resolveIcon),
+        );
+      }
       const result = props.onBeforeOpen?.({ event: args?.event });
       if (result === false || disabled) args.cancel = true;
     },

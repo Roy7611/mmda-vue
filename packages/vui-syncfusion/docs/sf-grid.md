@@ -198,7 +198,7 @@ this.field('colorCode').setCustomEditor((field, ctx, props) =>
 
 ## 行操作：内置 CRUD、业务 `rowActions`、右键
 
-右冻结 **操作列**（不是行内保存/取消）。
+右冻结 **操作列**（不是行内保存/取消）。有 `rowActions` 时，行上右键弹出同一套操作。
 
 **标准 CRUD 由表格自己提供**，不要写进 `rowActions`：详情、打开编辑器对话框（`onOpenEditor`）、删除（`onDelete`）、子表新增（`onAdd`）。是否出现看 scene 和该行 `editable` / `deletable`。
 

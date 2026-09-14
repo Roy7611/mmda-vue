@@ -95,6 +95,12 @@ export function selectButtonOptionValue(
   return option
 }
 
+export function selectButtonOptionIcon(option: unknown): string {
+  if (option == null || typeof option !== 'object') return ''
+  const icon = (option as Record<string, unknown>).icon
+  return icon == null ? '' : String(icon)
+}
+
 
 export function selectButtonGroupSelected(
   current: unknown,

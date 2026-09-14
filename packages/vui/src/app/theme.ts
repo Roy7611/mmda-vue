@@ -87,6 +87,28 @@ export function writeStoredPageSize(
   writeMmdaPref("pageSize", String(normalized), storage);
 }
 
+/** 读本地是否显示操作列（`mmda/showActionsColumn`），缺省 / 非法为 true */
+export function readStoredShowActionsColumn(
+  fallback = true,
+  storage: Pick<Storage, "getItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): boolean {
+  const raw = readMmdaPref("showActionsColumn", storage);
+  if (raw == null || raw === "") return fallback;
+  if (raw === "false" || raw === "0") return false;
+  if (raw === "true" || raw === "1") return true;
+  return fallback;
+}
+
+/** 用户切换操作列后写入本地（`mmda/showActionsColumn`） */
+export function writeStoredShowActionsColumn(
+  show: boolean,
+  storage: Pick<Storage, "setItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): void {
+  writeMmdaPref("showActionsColumn", show ? "true" : "false", storage);
+}
+
 export type StoredPageLayout = "cards" | "tabs";
 
 /** 读本地保存的详情页壳（`mmda/pageLayout`），无效时回落默认值 */

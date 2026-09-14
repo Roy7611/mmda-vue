@@ -20,7 +20,7 @@ import {
   type MetaUiField,
   type MetaUiGroup,
 } from "@mmda/core";
-import { readStoredPageSize, writeStoredPageSize } from "../../app/theme";
+import { readStoredPageSize, writeStoredPageSize, readStoredShowActionsColumn } from "../../app/theme";
 import { schedulePersistListPack } from "./list_layout";
 import { cleanTableCellProps } from "../factory/factory";
 import type {UiProps} from "../layout/layout";
@@ -581,6 +581,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         [
           toolbar ? this.buildHeader(toolbar) : null,
           !toolbar && searchbar ? this.buildHeader(searchbar) : null,
+          this.buildFilterBar(runtime),
           this.buildMain(list, {
             class: uiCssClass("page", "body"),
             style: {
@@ -737,6 +738,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           tableSettings: {
             persist: () => schedulePersistListPack(runtime),
             rev: runtime.listLayoutRev,
+            open: () => void this.openTableSettings(context),
           },
           onIndexTableHostReady: (host) => {
             runtime.indexTableHost = host ?? undefined;
@@ -749,7 +751,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           showActions: props.showActions === true,
           loading: props.loading ?? runtime.loading,
           rowActions:
-            props.showActionColumn === false
+            (props.showActionColumn ?? readStoredShowActionsColumn()) === false
               ? undefined
               : (props.rowActions ??
                 this.createListRowActions(context, props.showActions === true)),
@@ -1156,10 +1158,32 @@ const TreeListView = defineComponent({
             cssClass: "mmda-tree-list-tree-pane",
           },
           {
-            content: self.buildMain(list, {
-              class: uiCssClass("page", "body"),
-              style: { height: "100%", minWidth: 0, overflow: "hidden" },
-            }),
+            content: h(
+              "div",
+              {
+                class: "mmda-tree-list-table-pane",
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  minWidth: 0,
+                  minHeight: 0,
+                  overflow: "hidden",
+                },
+              },
+              [
+                self.buildFilterBar(context),
+                self.buildMain(list, {
+                  class: uiCssClass("page", "body"),
+                  style: {
+                    flex: "1 1 auto",
+                    minWidth: 0,
+                    minHeight: 0,
+                    overflow: "hidden",
+                  },
+                }),
+              ],
+            ),
             min: "16rem",
           },
         ],

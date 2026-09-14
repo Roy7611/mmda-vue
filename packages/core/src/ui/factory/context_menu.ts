@@ -9,6 +9,8 @@ export interface UiContextMenuProps extends UiProps {
   disabled?: boolean
   onSelect?: (item: UiMenuItem) => void
   onBeforeOpen?: (args: { event?: Event }) => void | boolean
+  /** 打开前换条目。`false` 或空数组则取消。 */
+  resolveItems?: (args: { event?: Event }) => UiMenuItem[] | false
 }
 
 export function contextMenuModifierClasses(props: UiProps = {}): unknown[] {

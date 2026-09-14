@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buttonModifierClasses, selectButtonGroupSelected, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from '@mmda/core'
+import { buttonModifierClasses, selectButtonGroupSelected, selectButtonOptionIcon, selectButtonOptionLabel, selectButtonOptionValue, toggleSelectButtonGroupValue } from '@mmda/core'
 
 describe('button chrome helpers', () => {
   it('maps colorRole to mmda-button hook', () => {
@@ -12,6 +12,9 @@ describe('button chrome helpers', () => {
     const row = { name: 'Left', value: 'left' }
     expect(selectButtonOptionLabel(row, 'name')).toBe('Left')
     expect(selectButtonOptionValue(row, 'value')).toBe('left')
+    expect(selectButtonOptionIcon({ icon: 'align-left', value: 'left' })).toBe(
+      'align-left',
+    )
   })
 
   it('toggles multiple selection', () => {

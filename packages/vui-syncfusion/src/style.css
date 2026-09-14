@@ -1735,6 +1735,15 @@ html.e-dark-mode .mmda-dropup {
  * 比单纯上下箭头更能看出当前是升还是降。未排序列弱化显示。
  * EJ2 对 allowSorting/allowGrouping:false 的列仍会插入图标节点，序号列需显式隐藏。
  */
+.e-grid.mmda-table .e-headercell.mmda-rownum-col,
+.e-grid.mmda-table .e-rowcell.mmda-rownum-col {
+  padding-inline: 0.25rem !important;
+}
+
+.e-grid.mmda-table .e-rowcell.mmda-rownum-col {
+  font-variant-numeric: tabular-nums;
+}
+
 .e-grid.mmda-table th.e-headercell.mmda-rownum-col .e-sortfilterdiv,
 .e-grid.mmda-table th.e-headercell.mmda-rownum-col .e-filtermenudiv,
 .e-grid.mmda-table th.e-headercell.mmda-rownum-col .e-grptogglebtn,
@@ -2845,27 +2854,33 @@ html.mmda-dark .e-grid .e-table {
   font-size: 0.72rem;
 }
 
-/* 多选复选框列尽量窄，约 48px，居中 */
+/* 多选复选框列尽量窄，左右对称；空 label 会把框挤偏 */
 .mmda-table.e-grid .e-headercell.e-checkselectall,
 .mmda-table.e-grid .e-rowcell.e-checkselect {
-  width: 48px !important;
-  min-width: 48px !important;
-  max-width: 48px !important;
-  padding-inline: 0 !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  padding: 0 !important;
   text-align: center !important;
 }
 
-.mmda-table.e-grid .e-headercell.e-checkselectall .e-checkbox-wrapper,
-.mmda-table.e-grid .e-rowcell.e-checkselect .e-checkbox-wrapper {
-  margin-inline: auto;
+.mmda-table.e-grid .e-headercell.e-checkselectall .e-headerchkcelldiv {
+  padding: 0 !important;
+  margin: 0;
 }
 
-.mmda-table.e-grid .e-headercell.e-checkselectall .e-headerchkcelldiv,
+.mmda-table.e-grid .e-headercell.e-checkselectall .e-checkbox-wrapper,
 .mmda-table.e-grid .e-rowcell.e-checkselect .e-checkbox-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin: 0;
+}
+
+.mmda-table.e-grid .e-headercell.e-checkselectall .e-label,
+.mmda-table.e-grid .e-rowcell.e-checkselect .e-label {
+  display: none;
 }
 
 /* 选择/确认对话框：限制视口高度，脚部确定/取消始终可见 */
@@ -2946,7 +2961,7 @@ html.mmda-dark .e-grid .e-table {
   gap: 0.5rem;
 }
 
-/* 布尔 CheckIcon / CheckedIcon：有权限跟主题色，无权限灰色空心圆 */
+/* 布尔 CheckIcon：真值默认 success 实心圆；假值灰色空心圆 */
 .mmda-bool-icon {
   font-size: 1.15rem;
   line-height: 1;
@@ -2954,35 +2969,29 @@ html.mmda-dark .e-grid .e-table {
 }
 
 .mmda-bool-icon--true,
-.e-grid .e-rowcell .e-icons.mmda-bool-icon.mmda-bool-icon--true {
-  color: rgb(var(--color-sf-primary, 103, 80, 164));
+.e-grid .e-rowcell .mmda-bool-icon.mmda-bool-icon--true {
+  color: var(--mmda-success-color, #2e7d32);
 }
 
 .mmda-bool-icon--false {
   color: rgb(var(--color-sf-outline, 122, 117, 127));
 }
 
-/* Tags → Chips：只读 chip 列表 */
-.mmda-chips.e-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  align-items: center;
+/* Tags → Chips：换行/间距交给官方 ChipList。
+ * enableDelete 默认只挂 e-dlt-btn；可删芯片改挂 e-icons e-chips-close（字形同 e-close / \e7e7）。 */
+.e-icons.e-chips-close:before {
+  content: "\e7e7";
 }
 
-.mmda-chips .e-chip {
-  margin: 0;
-  height: auto;
-  min-height: 1.5rem;
-}
-
-/* 表格设置：恢复默认 SplitButton 左右两段圆角衔接 */
-.e-split-btn-wrapper.mmda-list-setting__restore > .e-split-btn {
+/* 表格设置：存储 / 恢复默认 SplitButton 左右两段圆角衔接 */
+.e-split-btn-wrapper.mmda-list-setting__restore > .e-split-btn,
+.e-split-btn-wrapper.mmda-list-setting__save > .e-split-btn {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.e-split-btn-wrapper.mmda-list-setting__restore > .e-dropdown-btn {
+.e-split-btn-wrapper.mmda-list-setting__restore > .e-dropdown-btn,
+.e-split-btn-wrapper.mmda-list-setting__save > .e-dropdown-btn {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   min-width: 2rem;

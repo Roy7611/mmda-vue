@@ -20,6 +20,7 @@ import {
 } from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
 import { SfImageGallery } from "../components/SfImageGallery";
+import { createTableRenderer } from "../factory/table";
 import { gridFilterOperator, gridFiltersToModel, isChoiceFilterField, menuFilterOperators } from "../factory/utils";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
@@ -103,6 +104,7 @@ describe("Syncfusion skin", () => {
     expect(factory.resolveIcon("")).toBe("e-icons e-play");
     expect(factory.resolveIcon("execute")).toBe("e-icons e-play");
     expect(factory.resolveIcon("do")).toBe("e-icons e-play");
+    expect(factory.resolveIcon("chips-close")).toBe("e-icons e-chips-close");
     const deprecateBtn = factory.actionButton(
       { name: "deprecate", label: "弃用", colorRole: "danger" },
       (m: string) => m,
@@ -1363,6 +1365,22 @@ describe("Syncfusion skin", () => {
       (node: any) => node?.props?.type === "checkbox",
     );
     expect(checks.length).toBe(2);
+
+    const icons = factory.selectButtonGroup("LEFT", {
+      options: [
+        { value: "LEFT", icon: "align-left", label: "左对齐" },
+        { value: "CENTER", icon: "align-center", label: "居中" },
+      ],
+      optionValue: "value",
+    });
+    const labels = (icons.children ?? []).filter(
+      (node: any) => node?.type === "label",
+    );
+    expect(labels[0]?.props?.title).toBe("左对齐");
+    const iconNode = Array.isArray(labels[0]?.children)
+      ? labels[0].children[0]
+      : labels[0]?.children;
+    expect(String(iconNode?.props?.class ?? "")).toContain("e-align-left");
   });
 
   it("renders the metadata name field as a details link", () => {
@@ -1813,9 +1831,9 @@ describe("Syncfusion skin", () => {
     const columns = vnode.props.columns;
     expect(columns[0]).toMatchObject({
       type: "checkbox",
-      width: 48,
-      minWidth: 48,
-      maxWidth: 48,
+      width: 36,
+      minWidth: 36,
+      maxWidth: 36,
       textAlign: "Center",
       freeze: "Left",
     });
@@ -2430,6 +2448,109 @@ describe("Syncfusion skin", () => {
     expect(onFilterModelChange).toHaveBeenCalledWith({
       category: { filterType: "set", operator: "IN", values: ["RAW", "PART"] },
     });
+
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+      filteredColumns: [
+        { field: "category", operator: "equal", value: "RAW" },
+      ],
+    });
+    expect(onFilterModelChange).toHaveBeenLastCalledWith({
+      category: {
+        filterType: "set",
+        operator: "IN",
+        values: ["RAW"],
+      },
+    });
+  });
+
+  it("remote filter rebinds from the updated source list, not the stale snapshot", async () => {
+    const factory = createSyncfusionUiFactory();
+    const rows = [
+      { id: "1", category: "RAW", name: "a" },
+      { id: "2", category: "PART", name: "b" },
+    ];
+    const grid = {
+      dataSource: { result: rows.slice(), count: 2 },
+      on: vi.fn(),
+      off: vi.fn(),
+      hideSpinner: vi.fn(),
+      getColumns: () => [],
+    };
+    const vnode = gridOf(
+      factory.table(rows, {
+        objName: "Material",
+        getListedFields: () => [
+          {
+            fieldName: "category",
+            displayLabel: "物料类别",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+        ],
+        groups: [],
+        primaryKey: "id",
+      } as any, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 2 },
+        onFilterModelChange: async () => {
+          rows.splice(0, rows.length, { id: "1", category: "RAW", name: "a" });
+        },
+      }),
+    );
+    vnode.props.ref?.({ ej2Instances: grid });
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+      where: { field: "category", operator: "equal", value: "RAW" },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(grid.dataSource.result.map((item: { id: string }) => item.id)).toEqual(
+      ["1"],
+    );
+    expect(grid.dataSource.count).toBe(1);
+  });
+
+  it("does not treat a dataSource refresh as clearing the column filter", () => {
+    const factory = createSyncfusionUiFactory();
+    const onFilterModelChange = vi.fn();
+    const vnode = gridOf(
+      factory.table(
+        [{ id: "1", category: "RAW" }],
+        {
+          objName: "Material",
+          getListedFields: () => [
+            {
+              fieldName: "category",
+              displayLabel: "物料类别",
+              dataType: 48,
+              reference: { isEnum: true },
+            },
+          ],
+          groups: [],
+          primaryKey: "id",
+        } as any,
+        {
+          filterDisplay: "menu",
+          pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+          onFilterModelChange,
+        },
+      ),
+    );
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+      where: [{ field: "category", operator: "equal", value: "RAW" }],
+    });
+    expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+    });
+    expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering", action: "clear-filter" },
+    });
+    expect(onFilterModelChange).toHaveBeenCalledTimes(2);
+    expect(onFilterModelChange).toHaveBeenLastCalledWith({});
   });
 
   it("defaults real enum/ref MetaUiField to CheckBox, not Menu", () => {
@@ -2944,7 +3065,7 @@ describe("Syncfusion skin", () => {
     ]);
   });
 
-  it("extends number/date Menu filters and keeps bool/text on default Menu", () => {
+  it("uses CheckBox 是/否 for boolean and Menu for number/date/text", () => {
     const factory = createSyncfusionUiFactory();
     const onFilterModelChange = vi.fn();
     const metaUi = {
@@ -2995,7 +3116,13 @@ describe("Syncfusion skin", () => {
       type: "dateTime",
       format: "yyyy-MM-dd HH:mm:ss",
     });
-    expect(columns[2].filter).toEqual({ type: "Menu" });
+    expect(columns[2].filter).toEqual({
+      type: "CheckBox",
+      dataSource: [
+        { active: true, text: "是", __mmdaChoice: true },
+        { active: false, text: "否", __mmdaChoice: true },
+      ],
+    });
     expect(columns[3].filter.type).toBe("Menu");
     expect(columns[3].filter.ui).toBeUndefined();
     expect(columns[3].filter.operator).toBe("contains");
@@ -3041,6 +3168,77 @@ describe("Syncfusion skin", () => {
         value: true,
       },
     });
+  });
+
+  it("feeds boolean CheckBox 是/否 and skips getDistinct", () => {
+    const factory = createSyncfusionUiFactory();
+    const metaUi = {
+      objName: "Order",
+      getListedFields: () => [
+        { fieldName: "active", displayLabel: "启用", dataType: 113 },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        filterLabels: { yes: "是", no: "否" },
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "active",
+    );
+    expect(column.filter).toEqual({
+      type: "CheckBox",
+      dataSource: [
+        { active: true, text: "是", __mmdaChoice: true },
+        { active: false, text: "否", __mmdaChoice: true },
+      ],
+    });
+
+    const listeners: Record<string, (args: any) => void> = {};
+    vnode.props.ref?.({
+      ej2Instances: {
+        on: (name: string, handler: (args: any) => void) => {
+          listeners[name] = handler;
+        },
+        off: vi.fn(),
+      },
+    });
+    vnode.props.created();
+    const labelArgs = {
+      value: true,
+      column: { field: "active" },
+      data: { active: true },
+    };
+    listeners["filter-cbox-value"](labelArgs);
+    expect(labelArgs.value).toBe("是");
+    const rendererArgs = {
+      field: "active",
+      executeQuery: true,
+      dataSource: [],
+    };
+    listeners["beforeCheckboxRenderer"](rendererArgs);
+    expect(rendererArgs.executeQuery).toBe(false);
+    expect(rendererArgs.dataSource).toEqual([
+      { active: true, text: "是", __mmdaChoice: true },
+      { active: false, text: "否", __mmdaChoice: true },
+    ]);
+
+    const dataSource = vi.fn();
+    vnode.props.dataStateChange({
+      action: {
+        requestType: "filterchoicerequest",
+        filterModel: { options: { field: "active" } },
+      },
+      dataSource,
+    });
+    expect(dataSource).toHaveBeenCalledWith([
+      { active: true, text: "是", __mmdaChoice: true },
+      { active: false, text: "否", __mmdaChoice: true },
+    ]);
   });
 
   it("owns number operators and writes BETWEEN from two NumericTextBoxes", async () => {
@@ -3598,6 +3796,23 @@ describe("Syncfusion skin", () => {
     expect((filter.props as any)?.selection).toBe("Multiple");
     const input = uiFactory.chips({ kind: "input", items: ["A"] });
     expect((input.props as any)?.enableDelete).toBe(true);
+    expect((input.props as any)?.trailingIconCss).toBe("e-icons e-chips-close");
+    const outlined = uiFactory.chips({
+      kind: "input",
+      removable: true,
+      outlined: true,
+      items: ["原材料", "产成品"],
+    });
+    expect((outlined.props as any)?.enableDelete).toBe(true);
+    expect((outlined.props as any)?.trailingIconCss).toBe("e-icons e-chips-close");
+    const outlinedClass = String((outlined.props as any)?.cssClass ?? "");
+    expect(outlinedClass).toContain("e-outline");
+    expect(outlinedClass).toContain("mmda-chips");
+    expect(outlinedClass).not.toContain("mmda-chips--input");
+    expect(outlinedClass).not.toContain("mmda-chips--removable");
+    expect((outlined.props as any)?.chips?.[0]?.cssClass ?? "").not.toContain(
+      "e-outline",
+    );
     const colored = uiFactory.chips({
       items: [{ label: "成功", colorRole: "success", icon: "check" }],
     });
@@ -3634,6 +3849,81 @@ describe("Syncfusion skin", () => {
       items: [{ name: "a", label: "A" }],
     });
     expect((disabled.props as any)?.target).toBeUndefined();
+  });
+
+  it("refreshes context menu items in beforeOpen via resolveItems", () => {
+    const uiFactory = createSyncfusionUiFactory();
+    const onAction = vi.fn();
+    const vnode = uiFactory.contextMenu({
+      target: "#grid",
+      resolveItems: () => [{ name: "edit", label: "编辑", onAction }],
+    });
+    const args = { event: new Event("contextmenu"), cancel: false, items: [] };
+    vnode.props.beforeOpen(args);
+    expect(args.cancel).toBeFalsy();
+    expect(args.items[0].text).toBe("编辑");
+    vnode.props.select({ item: { id: "edit", text: "编辑" } });
+    expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens Grid context menu from rowActions", () => {
+    const onAction = vi.fn();
+    const table = createTableRenderer({
+      button: () => h("button"),
+      paginator: () => h("div"),
+      resolveIcon: (name: string) => name,
+    });
+    const metaUi = {
+      objName: "Product",
+      getListedFields: () => [
+        { fieldName: "name", displayLabel: "名称", dataType: 48 },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const openSettings = vi.fn();
+    const vnode = gridOf(
+      table([{ id: "1", rowNum: "1", name: "a" }], metaUi, {
+        rowActions: () => [{ name: "details", label: "详情", onAction }],
+        tableSettings: {
+          persist: vi.fn(),
+          rev: { value: 0 },
+          open: openSettings,
+        },
+      }),
+    );
+    expect(vnode.props.contextMenuItems?.[0]?.target).toBe(".e-content");
+    const openArgs = {
+      type: "Content",
+      cancel: false,
+      items: [],
+      rowInfo: { rowData: { id: "1", name: "a" } },
+    };
+    vnode.props.contextMenuOpen(openArgs);
+    expect(openArgs.cancel).toBeFalsy();
+    expect(openArgs.items.map((item: any) => item.text ?? item.separator)).toEqual([
+      "详情",
+      true,
+      "自动列宽",
+      "表格设置",
+    ]);
+    vnode.props.contextMenuClick({
+      item: { id: "details", text: "详情" },
+      rowInfo: { rowData: { id: "1", name: "a" } },
+    });
+    expect(onAction).toHaveBeenCalledTimes(1);
+    vnode.props.contextMenuClick({
+      item: { id: "tableSettings", text: "表格设置" },
+      rowInfo: { rowData: { id: "1", name: "a" } },
+    });
+    expect(openSettings).toHaveBeenCalledTimes(1);
+    const headerArgs = { type: "Header", cancel: false, rowInfo: {} };
+    vnode.props.contextMenuOpen(headerArgs);
+    expect(headerArgs.cancel).toBe(true);
+    const plain = gridOf(
+      table([{ id: "1", rowNum: "1", name: "a" }], metaUi, {}),
+    );
+    expect(plain.props.contextMenuItems).toBeUndefined();
   });
 
   it("renders list toolbar actions from module authority", () => {
@@ -4115,6 +4405,53 @@ describe("gridFiltersToModel join/multi", () => {
       operator: "IN",
       values: ["A", "B"],
     });
+  });
+
+  it("accepts a single Predicate object, not only arrays", () => {
+    expect(
+      gridFiltersToModel(
+        { field: "status", operator: "equal", value: "RAW" },
+        [statusField] as any,
+      ),
+    ).toEqual({
+      status: { filterType: "set", operator: "IN", values: ["RAW"] },
+    });
+  });
+
+  it("maps a single boolean checkbox to boolean FilterModel", () => {
+    const active = { fieldName: "active", dataType: 113 };
+    expect(
+      gridFiltersToModel(
+        [{ field: "active", operator: "equal", value: true }],
+        [active] as any,
+      ),
+    ).toEqual({ active: { filterType: "boolean", value: true } });
+    expect(
+      gridFiltersToModel(
+        [{ field: "active", operator: "equal", value: 0 }],
+        [active] as any,
+      ),
+    ).toEqual({ active: { filterType: "boolean", value: false } });
+    expect(
+      gridFiltersToModel(
+        [{ field: "active", operator: "isnull", value: null }],
+        [active] as any,
+      ),
+    ).toEqual({ active: { filterType: "boolean", value: null } });
+    expect(
+      gridFiltersToModel(
+        [
+          {
+            condition: "or",
+            predicates: [
+              { field: "active", operator: "equal", value: true },
+              { field: "active", operator: "equal", value: false },
+            ],
+          },
+        ],
+        [active] as any,
+      ),
+    ).toEqual({});
   });
 
   it("maps within to WITHIN and keeps it off the official date Menu", () => {
