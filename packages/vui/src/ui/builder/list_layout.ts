@@ -9,7 +9,6 @@ import {
   type MetaUi,
   type MetaUiField,
   type MetaUiFilter,
-  EntityQuery,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { indexTableMetaUi } from "./join_list_mode";
@@ -114,7 +113,7 @@ export async function persistListPack(context: VueUiContext<any>) {
   const logic = context.logic as
     | {
         repository?: string;
-        meta?: { metaUi?: MetaUi; filters?: MetaUiFilter[] };
+        meta?: { metaUi?: MetaUi; metaVui?: MetaUi };
         metaUiService?: {
           updateForCache: (
             repository: string,
@@ -125,14 +124,12 @@ export async function persistListPack(context: VueUiContext<any>) {
       }
     | undefined;
   if (!logic?.repository || !logic.meta?.metaUi || !logic.metaUiService) return;
-  syncQuickFiltersToMeta(context);
   try {
     await logic.metaUiService.updateForCache(
       logic.repository,
       {
-        ...logic.meta,
         metaUi: context.metaUi,
-        lastQuery: EntityQuery.copy(context.searchParam),
+        ...(logic.meta.metaVui ? { metaVui: logic.meta.metaVui } : {}),
       },
       listServiceName(context),
     );

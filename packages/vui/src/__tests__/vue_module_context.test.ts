@@ -28,4 +28,32 @@ describe("createModuleContext", () => {
     expect(applyRow).toHaveBeenCalledWith(current);
     expect(insertAtZero).not.toHaveBeenCalled();
   });
+
+  it("applyCurrentRow no-ops after host destroy and works after remount", () => {
+    const applyRow = vi.fn();
+    const insertAtZero = vi.fn();
+    const applyRemove = vi.fn();
+    const sync = createModuleContext();
+    const current = { id: "d1", shortName: "旧", rowNum: "7" };
+    const context = {
+      many: true,
+      metaUi: { primaryKey: "id" },
+      currentItem: current,
+      currentIndex: 0,
+      model: {
+        list: [current],
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+      },
+      indexTableHost: { applyRow, insertAtZero, applyRemove },
+    } as unknown as VueUiContext;
+    sync.registerIndex(context);
+    context.indexTableHost = undefined;
+    sync.applyCurrentRow({ id: "d1", shortName: "离页" });
+    expect(current.shortName).toBe("离页");
+    expect(applyRow).not.toHaveBeenCalled();
+    context.indexTableHost = { applyRow, insertAtZero, applyRemove };
+    sync.applyCurrentRow({ id: "d1", shortName: "回来" });
+    expect(applyRow).toHaveBeenCalledWith(current);
+    expect(current.shortName).toBe("回来");
+  });
 });

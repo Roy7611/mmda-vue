@@ -1,4 +1,4 @@
-import { reactive, type VNode } from 'vue'
+import { h, reactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
@@ -67,32 +67,16 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
       }
     },
     async confirm(props: UiConfirmProps) {
-      try {
-        const { DialogUtility } = await import('@syncfusion/ej2-popups')
-        return await new Promise<boolean>(resolve => {
-          const dlg = DialogUtility.confirm({
-            title: props.title,
-            content: String(props.message ?? ''),
-            okButton: {
-              click: () => {
-                dlg.hide()
-                resolve(true)
-              },
-            },
-            cancelButton: {
-              click: () => {
-                dlg.hide()
-                resolve(false)
-              },
-            },
-          })
-        })
-      } catch {
-        return (
-          typeof window !== 'undefined' &&
-          window.confirm(String(props.message ?? 'Confirm?'))
-        )
-      }
+      const button = await overlay.dialog(
+        h('div', String(props.message ?? '')),
+        {
+          title: props.title,
+          buttons: 'okCancel',
+          width: '22rem',
+          enableResize: false,
+        },
+      )
+      return button === 'ok' || button === 'yes'
     },
     dialog(content: VNode, props: UiDialogProps, context?: UiContext) {
       return new Promise<UiDialogAction>(resolve => {

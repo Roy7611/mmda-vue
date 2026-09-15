@@ -80,7 +80,7 @@ export function setFieldFilterValues(
   writeListFilterModel(context.searchParam, model);
   delete context.searchParam.queryID;
   delete context.searchParam.queryName;
-  context.listLayoutRev.value += 1;
+  context.rememberLastQuery?.();
   return context.search?.();
 }
 
@@ -135,7 +135,7 @@ export function applyNamedQuery(
   context.searchParam.queryPredifined = row.predifined === true;
   delete context.searchParam.searchWord;
   if (context.searchParam.pager) context.searchParam.pager.pageNo = 1;
-  context.listLayoutRev.value += 1;
+  context.rememberLastQuery?.();
   return true;
 }
 
@@ -173,7 +173,6 @@ export async function deleteNamedQuery(
     repository: CUSTOMIZED_QUERY_REPO,
   });
   if (context.searchParam.queryID === row.queryID) clearNamedQueryRef(context);
-  context.listLayoutRev.value += 1;
   return true;
 }
 
@@ -224,7 +223,6 @@ export async function promptSaveNamedQuery(
     repository: CUSTOMIZED_QUERY_REPO,
   });
   context.searchParam.queryName = queryName;
-  context.listLayoutRev.value += 1;
   return true;
 }
 

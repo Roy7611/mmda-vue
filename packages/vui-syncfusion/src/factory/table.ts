@@ -1,22 +1,27 @@
 // @ts-nocheck
 /**
- * 现网列表表格渲染器（factory.table）。
- * 新功能加这里。components/SfGrid 是迁移目标，接线前不要双写。
+ * index 列表拼装（factory.table）：分页、选行、远程查。底层 SfGridHost。
+ * 表头过滤 ↔ FilterModel 在 table_filter.ts；芯片条是 SfGridFilterBar。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, DefaultFieldFilter, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
-import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
+import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, logListPaint, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { MultiSelect, CheckBoxSelection } from '@syncfusion/ej2-dropdowns'
 import {
-  applyCompareColumnFilters,
   createCompareColumnFilterStore,
   sfCompareColumnFilter,
   usesCompareColumnFilter,
   writeCompareColumnFilter,
 } from './column_filter'
+import {
+  filterModelFromGridEvent,
+  paintFilterFunnels,
+  sameFilterModel,
+  selectedSetValuesOf,
+} from './table_filter'
 import { SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { getSyncfusionCulture } from '../syncfusion_i18n'
 import { SfGrid, SfGridLoadingHost, syncMetaUiFromGridColumns } from './grid'
@@ -38,7 +43,6 @@ import {
   gridColumnFormat,
   gridColumnType,
   applyChoiceFilterExistingPredicate,
-  gridFiltersToModel,
   gridFilterOperator,
   gridTextAlign,
   gridTextAlignCss,
@@ -60,25 +64,6 @@ export type TableFactoryDeps = {
   button: (props: any, slots?: any) => any
   paginator: (pagination: any, props: UiPaginatorPropsType) => any
   resolveIcon: (icon: string) => string
-}
-
-/** EJ2 CheckBox 勾选后 where 可能是单条 Predicate；回写 dataSource 会再抛空 filtering。 */
-const gridFilterPredicatesOf = (state: any) =>
-  state?.where ??
-  state?.filteredColumns ??
-  state?.action?.currentFilterObject
-
-const isClearFilterAction = (state: any) =>
-  String(state?.action?.action ?? '').toLowerCase().includes('clear')
-
-const hasGridFilterPredicates = (value: unknown) => {
-  if (value == null) return false
-  if (Array.isArray(value)) return value.length > 0
-  if (typeof value === 'object') {
-    const item = value as { field?: unknown; predicates?: unknown[] }
-    return Boolean(item.field) || Boolean(item.predicates?.length)
-  }
-  return false
 }
 
 export function createTableRenderer(deps: TableFactoryDeps) {
@@ -105,6 +90,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         props.filterDisplay == null)
     const showGrouping = props.groupable !== false
     const pagination = props.pagination
+    const liveFilterModel = () =>
+      (typeof props.filterModelOf === 'function'
+        ? props.filterModelOf()
+        : undefined) ?? props.filterModel
     const fieldEditors = props.fieldCellEditors ?? {}
     const inplaceEdit = props.editable === true && !pagination
     const inplaceEditStart = props.inplaceEditStart ?? 'excel'
@@ -130,6 +119,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     const rows = Array.isArray(model)
       ? (Array.from(toRaw(model) as T[]) as T[])
       : []
+    logListPaint('table-factory', {
+      rows: rows.length,
+      host: getCurrentInstance()?.type?.name,
+    })
 
     let ej2Grid: any = null
     let focusedEditCell: { rowIndex: number; field: string } | null = null
@@ -336,22 +329,11 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       }
     }
 
-    const selectedSetValuesOf = (field: MetaUiField) => {
-      const current = props.filterModel?.[field.fieldName] as
-        | FieldFilter
-        | undefined
-      if (!current) return [] as unknown[]
-      if (field.reference?.isEnum) {
-        return DefaultFieldFilter.includedValues(field, current)
-      }
-      if (current.filterType === 'set') return current.values ?? []
-      if (current.filterType === 'multi') {
-        const set = current.filterModels.find(item => item.filterType === 'set')
-        return set && 'values' in set ? set.values ?? [] : []
-      }
-      if (current.value != null && current.value !== '') return [current.value]
-      return []
-    }
+    const selectedSetValuesOfField = (field: MetaUiField) =>
+      selectedSetValuesOf(
+        props.filterModel?.[field.fieldName] as FieldFilter | undefined,
+        field,
+      )
 
     const findChoiceOption = (field: MetaUiField, raw: unknown) => {
       const ref = field.reference
@@ -371,7 +353,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           page.map(row => String(ref?.valueOf(row))),
         )
         const merged = [...page]
-        for (const value of selectedSetValuesOf(field)) {
+        for (const value of selectedSetValuesOfField(field)) {
           if (seen.has(String(value))) continue
           const row = lazySeenByField.get(field.fieldName)?.get(String(value))
           if (row) merged.push(row)
@@ -408,6 +390,16 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         return Promise.resolve(choiceDataSourceOf(field))
       }
       return Promise.resolve(showHome())
+    }
+
+    /** 首页 50 回来后写入已打开的 CheckBox（不要 getDistinct）。 */
+    const bindOpenedChoiceList = (field: MetaUiField, items: unknown[], options?: any) => {
+      if (options) options.dataSource = items
+      const filterModule = ej2Grid?.filterModule?.filterModule
+      if (filterModule?.options?.field === field.fieldName) {
+        filterModule.options.dataSource = items
+        filterModule.refreshCheckboxes?.()
+      }
     }
 
     /** 引用列 CheckBox：数据与表单下拉相同（valueOf/labelOf）。
@@ -463,7 +455,14 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (!isChoiceFilterField(field)) return
       args.executeQuery = false
       if (isLazyChoiceFilterField(field)) {
-        args.dataSource = choiceDataSourceOf(field)
+        const current = choiceDataSourceOf(field)
+        args.dataSource = current
+        if (current.length === 0) {
+          void openChoicePage(field, '').then(items => {
+            args.dataSource = items
+            bindOpenedChoiceList(field, items)
+          })
+        }
         return
       }
       const items = choiceDataSourceOf(field)
@@ -480,12 +479,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
 
 
-    /** MULTI=32 且有 SET 选项源才追加勾选。 */
+    /** MULTI+SET 才追加勾选。ref/hasOne 只走 CheckBox，不进比较段。 */
     const usesSetSlot = (field: MetaUiField) =>
+      !field.reference?.isRef &&
+      !field.reference?.hasOne &&
       hasFilterType(field, MetaUiFilterType.MULTI) &&
       hasFilterType(field, MetaUiFilterType.SET) &&
-      (isLazyChoiceFilterField(field) ||
-        Boolean(field.reference?.isEnum || field.reference?.isRef) ||
+      (Boolean(field.reference?.isEnum) ||
         Boolean(props.loadFilterOptions) ||
         Boolean(
           simpleFilterTypeOf(field) === 'date' && props.loadPivotDates,
@@ -935,10 +935,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       }
     }
 
-    /** 列头过滤：0 走原生 Menu；enum/ref/hasOne 默认 CheckBox；JOIN / MULTI+SET 只追加增量。 */
+    /** 列头过滤：0 走原生 Menu；ref/hasOne/enum 默认 CheckBox；JOIN / 日期 MULTI+SET 只追加增量。 */
     const columnFilter = (field: MetaUiField) => {
       const kind = columnFilterKindOf(field)
       if (kind === 'boolean') return booleanCheckBoxFilter(field)
+      if (field.reference?.isRef || field.reference?.hasOne) {
+        return choiceCheckBoxFilter(field)
+      }
       if (usesJoinSlot(field)) return multiMenuFilter(field)
       if (usesCompareColumnFilter(field, compareFilterExtras())) {
         return sfCompareColumnFilter(field, compareFilterExtras())
@@ -953,7 +956,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         }
         return choiceCheckBoxFilter(field)
       }
-      if (field.reference?.isEnum || field.reference?.isRef || field.reference?.hasOne) {
+      if (field.reference?.isEnum) {
         return choiceCheckBoxFilter(field)
       }
       return simpleFilterTypeOf(field) === 'text'
@@ -1397,6 +1400,23 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         grid.dataSource = rows.slice()
       }
     }
+    const rebindPager = () => {
+      if (!pagination) return
+      const root =
+        gridHost ??
+        (resolveEj2Grid()?.element as HTMLElement | undefined)?.closest?.(
+          '.mmda-pagable-table',
+        )
+      const pager = (root as HTMLElement | null | undefined)?.querySelector?.(
+        '.e-pager',
+      ) as { ej2_instances?: Array<{ currentPage?: number; pageSize?: number; totalRecordsCount?: number; dataBind?: () => void }> } | null
+      const instance = pager?.ej2_instances?.[0]
+      if (!instance) return
+      instance.totalRecordsCount = pagination.recordCount ?? 0
+      instance.pageSize = pagination.pageSize ?? instance.pageSize
+      instance.currentPage = pagination.pageNo ?? 1
+      instance.dataBind?.()
+    }
     const listHost = {
       applyRow(entity: Record<string, unknown>) {
         const pk = String(primaryKey ?? 'id')
@@ -1404,6 +1424,12 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         if (id == null || String(id) === '') return
         if (!resolveEj2Grid()) return
         syncRowsFromSource()
+        const key = String(id)
+        const index = rows.findIndex(
+          row => String((row as any)[pk] ?? (row as any).id) === key,
+        )
+        if (index >= 0) Object.assign(rows[index] as object, entity)
+        // 详情/编辑回来只改当前行，不要把 virtualSkip 清零。
         rebindDataSource()
       },
       insertAtZero(_entity: Record<string, unknown>) {
@@ -1418,6 +1444,15 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         }
         rebindDataSource()
       },
+      rebind() {
+        syncRowsFromSource()
+        if (pagination) {
+          virtualSkip = 0
+        }
+        rebindDataSource()
+        rebindPager()
+        paintFilterFunnels(resolveEj2Grid() ?? ej2Grid, liveFilterModel())
+      },
     }
     props.onIndexTableHostReady?.(listHost)
 
@@ -1428,6 +1463,15 @@ export function createTableRenderer(deps: TableFactoryDeps) {
         if (virtualized) void resolveCustomBinding()
         else rebindDataSource()
       })
+    }
+
+    const commitFilterModel = (model: ReturnType<typeof filterModelFromGridEvent>) => {
+      if (model === undefined) return
+      if (!props.onFilterModelChange) return
+      if (sameFilterModel(model, liveFilterModel())) return
+      virtualSkip = 0
+      if (pagination) runRemoteQuery(props.onFilterModelChange(model))
+      else props.onFilterModelChange(model)
     }
 
     const persistLayoutFromGrid = () => {
@@ -1606,6 +1650,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             }
           : {}),
         dataBound: () => {
+          logListPaint('ej2-dataBound', { rows: rows.length })
+          paintFilterFunnels(resolveEj2Grid() ?? ej2Grid, liveFilterModel())
           if (rowDetail) expandAllDetails()
         },
         ...(rowDetail
@@ -1625,17 +1671,13 @@ export function createTableRenderer(deps: TableFactoryDeps) {
           ej2Grid?.on?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
         },
         created: () => {
+          logListPaint('ej2-created', { rows: rows.length })
           ej2Grid?.on?.('filter-cbox-value', onFilterCheckboxLabel)
           ej2Grid?.on?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
+          paintFilterFunnels(resolveEj2Grid() ?? ej2Grid, liveFilterModel())
           queueMicrotask(() => bindInplaceEditTriggers())
         },
         resizeStop: () => persistLayoutFromGrid(),
-        actionComplete: (args: any) => {
-          const requestType = args?.requestType
-          if (requestType === 'reorder' || requestType === 'columnstate') {
-            persistLayoutFromGrid()
-          }
-        },
         destroyed: () => {
           ej2Grid?.off?.('filter-cbox-value', onFilterCheckboxLabel)
           ej2Grid?.off?.('beforeCheckboxRenderer', onBeforeCheckboxRenderer)
@@ -1748,10 +1790,10 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               applyChoiceFilterExistingPredicate(
                 args.filterModel,
                 field.fieldName,
-                selectedSetValuesOf(field),
+                selectedSetValuesOfField(field),
               )
               void openChoicePage(field, '').then(items => {
-                args.filterModel.options.dataSource = items
+                bindOpenedChoiceList(field, items, args.filterModel.options)
               })
             }
           }
@@ -1812,22 +1854,24 @@ export function createTableRenderer(deps: TableFactoryDeps) {
             return
           }
           if (requestType === 'filtering' && props.onFilterModelChange) {
-            const predicates = gridFilterPredicatesOf(state)
-            if (!hasGridFilterPredicates(predicates) && !isClearFilterAction(state)) {
-              return
-            }
-            virtualSkip = 0
-            const model = applyCompareColumnFilters(
-              gridFiltersToModel(predicates, fields),
-              compareFilterStore,
+            commitFilterModel(
+              filterModelFromGridEvent(
+                state,
+                ej2Grid,
+                fields,
+                compareFilterStore,
+              ),
             )
-            runRemoteQuery(props.onFilterModelChange(model))
           }
         },
         actionComplete: (args: any) => {
+          const requestType = args?.requestType
+          if (requestType === 'reorder' || requestType === 'columnstate') {
+            persistLayoutFromGrid()
+          }
           if (
             !pagination &&
-            args.requestType === 'sorting' &&
+            requestType === 'sorting' &&
             props.sortable !== false
           ) {
             const sorts = args.columnName
@@ -1843,13 +1887,16 @@ export function createTableRenderer(deps: TableFactoryDeps) {
               : []
             props.onSort?.(sorts)
           }
-          if (
-            !pagination &&
-            args.requestType === 'filtering' &&
-            props.onFilterModelChange
-          ) {
-            props.onFilterModelChange(
-              gridFiltersToModel(args?.columns, fields),
+          if (requestType === 'filtering' && props.onFilterModelChange) {
+            // 虚拟滚动走 dataStateChange；每页不足开虚拟时 EJ2 只本地筛，必须在这里写回。
+            if (virtualized) return
+            commitFilterModel(
+              filterModelFromGridEvent(
+                args,
+                resolveEj2Grid() ?? ej2Grid,
+                fields,
+                compareFilterStore,
+              ),
             )
           }
         },

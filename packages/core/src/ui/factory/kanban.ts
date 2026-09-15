@@ -38,7 +38,7 @@ export interface UiKanbanChangeEvent<T = unknown> {
   native?: T
 }
 
-export interface UiKanbanViewProps extends UiProps {
+export interface UiKanbanProps extends UiProps {
   cards?: UiKanbanCard[]
   columns?: UiKanbanColumn[]
   readonly?: boolean
@@ -56,7 +56,7 @@ export interface UiKanbanViewProps extends UiProps {
 }
 
 export interface UiKanbanPlugin<TNode = any> {
-  kanbanView: (props: UiKanbanViewProps) => TNode
+  kanbanView: (props: UiKanbanProps) => TNode
 }
 
 export const KANBAN_PLUGIN_NOT_INSTALLED = 'kanban plugin not installed'
@@ -77,21 +77,21 @@ export function kanbanHookClass(
 }
 
 export function kanbanDragEnabled(
-  props: Pick<UiKanbanViewProps, 'readonly' | 'allowDragAndDrop'>,
+  props: Pick<UiKanbanProps, 'readonly' | 'allowDragAndDrop'>,
 ): boolean {
   if (props.readonly) return false
   return props.allowDragAndDrop !== false
 }
 
 export function kanbanAddCardEnabled(
-  props: Pick<UiKanbanViewProps, 'readonly' | 'allowAddCard'>,
+  props: Pick<UiKanbanProps, 'readonly' | 'allowAddCard'>,
 ): boolean {
   if (props.readonly) return false
   return props.allowAddCard === true
 }
 
 export async function emitKanbanChange(
-  handler: UiKanbanViewProps['onCardChange'] | undefined,
+  handler: UiKanbanProps['onCardChange'] | undefined,
   event: UiKanbanChangeEvent,
 ): Promise<boolean> {
   if (!handler) return true

@@ -8,12 +8,12 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttChartProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttViewMode } from '@mmda/vui'
+import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttChartProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttTimeScale } from '@mmda/vui'
 import '@syncfusion/ej2-treegrid/styles/material3.css'
 import '@syncfusion/ej2-gantt/styles/material3.css'
 
 export const GANTT_VIEW_MODES: Record<
-  UiGanttViewMode,
+  UiGanttTimeScale,
   { timelineViewMode: string; topTier?: unknown; bottomTier?: unknown }
 > = {
   day: { timelineViewMode: 'Day' },
@@ -131,7 +131,7 @@ export const SfGanttChart = defineComponent({
     allowTaskResize: { type: Boolean, default: true },
     allowLinks: { type: Boolean, default: true },
     allowRowReorder: { type: Boolean, default: false },
-    viewMode: { type: String as PropType<UiGanttViewMode>, default: 'week' },
+    viewMode: { type: String as PropType<UiGanttTimeScale>, default: 'week' },
     loading: { type: Boolean, default: false },
     locale: { type: String, default: 'zh-Hans' },
     onReady: { type: Function as PropType<UiGanttChartProps['onReady']> },

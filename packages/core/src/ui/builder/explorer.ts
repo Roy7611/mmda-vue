@@ -3,9 +3,9 @@ import type { UiTreeViewProps } from './tree'
 
 /**
  * 左树右表（Explorer）。
- * 不是单控件：Builder {@link import('../builder').UiBuilder.buildExplorerView} 拼两块 factory。
+ * 不是单控件：Builder {@link import('../builder').UiBuilder.buildExplorer} 拼两块 factory。
  */
-export interface UiExplorerViewProps<T = any, TNode = any> {
+export interface UiExplorerProps<T = any, TNode = any> {
   /** 与旧 viewKind 对齐；通常为 categoryList。 */
   viewKind?: string
   treeOption?:

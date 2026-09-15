@@ -1,9 +1,9 @@
 import type { UiListViewEmits, UiListViewPropsType, UiListViewSlots } from '../builder/list_view'
-import type { UiExplorerViewProps } from '@mmda/core'
+import type { UiExplorerProps } from '@mmda/core'
 import type { UiTreeViewProps } from './tree'
 import type { UiViewManyKind } from '../../contexts/view'
 
-export interface UiTreeListViewProps<T = any> extends UiExplorerViewProps<T> {
+export interface UiTreeListViewProps<T = any> extends UiExplorerProps<T> {
   viewKind?: UiViewManyKind | string
   treeOption?: UiTreeViewProps<T> | (() => UiTreeViewProps<T>)
   listOption?: UiListViewPropsType<T>

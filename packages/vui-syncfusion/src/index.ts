@@ -32,6 +32,7 @@ export {
 } from './components/SfCompareColumnFilter'
 export { SfGrid } from './components/SfGrid'
 export { SfGridLayout } from './components/SfGridLayout'
+export { SfGridFilterBar } from './components/SfGridFilterBar'
 export { SfGridHost, SfGridLoadingHost } from './factory/grid'
 export { SfLoadingHost, SfPageLoading } from './components/SfLoadingHost'
 export {

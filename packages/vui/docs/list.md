@@ -20,8 +20,10 @@ core 设计与用法：[entity_search.md](../../core/docs/models/entity_search.m
 - `buildListView`（`ui/builder/list_view.ts`）：工具栏、搜索栏、数据区、分页。数据区按场景走 `buildList`（`UiListProps`）/ `buildTable`（`UiTableProps`）/ `buildGrid`（`UiGridProps`）/ `buildTreeGrid`。table 与 grid 实现可落到同一皮肤表格。
 - 左树右表是 Builder 组合（`buildTreeListView`），见 [Builder](./builder.md)；树契约见 [树](./tree.md)；Logic 用 `viewOptions` 挂接，见 [实体交互逻辑](./logic.md)。
 - `UiFilter`：快捷过滤，编译进 `queryParams.filter`（兼容路径）。
-- `filterModel`：表头结构化 `FilterModel`（只在 `UiTableProps` / `UiGridProps`）。
+- `filterModel`：表头结构化 `FilterModel`（只在 `UiTableProps` / `UiGridProps`）。`AdvancedFilterModel` 日后。
 - 实体选择：`context.select(field)` 或 `select({ repository })`；视图仍是 `selectOne` / `selectMany`。不要独立 `UiSelector`，不要 `buildSearchForRelativeContent`。
+
+Index 桌面表能力（详细在 [sf-grid.md](../../vui-syncfusion/docs/sf-grid.md)）：列/模板自研；选择、分页、排序用原生；过滤自研（列头 ↔ FilterBar 同一份 `FilterModel`）；虚拟滚动进出详情/编辑要同步当前行。**Grouping 不做**。合计、行展开后续。
 
 ```ts
 import type { UiListProps, UiTableProps, UiGridProps } from '@mmda/core'
@@ -40,7 +42,7 @@ searchParam
 
 `VueUiContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
 
-打开列表时套用 pack 的 `lastQuery`（一整份 `EntityQuery`），否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
+打开列表时套用 pack 的 `lastQuery`（`EntityQuery.lastCache`：排序留下；**没有 `queryID` 不带回 `filterModel`**，列头随手滤不等于保存查询）。否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
 
 ## 工具栏
 
@@ -67,7 +69,7 @@ More 收纳导入、导出、打印和其它低频列表动作。批量模式（
 
 ## 表头过滤
 
-`filterModel` ↔ `searchParam.filterModel`。皮肤用各自的弹出层和编辑器。应用条件后页码回到 1。表头运算符是 `EntityFilterOperator`（i18n `matcher.${op}`，来自 `getFieldFilterOps`）。不要再依赖 SearchOp。
+`filterModel` ↔ `searchParam.filterModel`。皮肤用各自的弹出层和编辑器。应用条件后页码回到 1。表头运算符是 `EntityFilterOperator`（i18n `matcher.${op}`，来自 `getFieldFilterOps`）。不要再依赖 SearchOp。列表 FilterBar 常态显示（清除 / 保存）；有条件再出芯片。
 
 列筛总开关是 `filterable`（缺省 table 开；树表 / edit 关）。形态只认 `filterDisplay`: `'menu' | 'row'`。不要 `'none'` 兼关。快捷过滤走 module + searchbar。每列过滤器形态认 `MetaUiField.filterTypes`（0 = 按 dataType 原生一位，不是关过滤；要叠加勾选显式 `SET|MULTI`，要 AND/OR 显式 `JOIN`）。
 
@@ -127,4 +129,4 @@ Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: 
 - 不要在页面组件里维护第二份 `pageNo` / `searchWord`。
 - 自定义列表页可以 `props.content` 换掉表格，但仍应复用 `searchParam`。
 - 不要新增独立 Selector 组件旁路；选择一律走 Index / `select()`。
-- 持久化列表布局时把 `lastQuery: EntityQuery.copy(searchParam)` 一并写入 pack，不要单存 sorts。
+- 持久化列表布局时把 `lastQuery: EntityQuery.lastCache(searchParam)` 一并写入 pack，不要单存 sorts。没保存查询不写 `filterModel`。

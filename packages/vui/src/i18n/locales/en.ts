@@ -73,6 +73,7 @@ export default {
     clearAll: "Clear all",
     clearFilters: "Clear filters",
     all: "All",
+    lastQuery: "Last query",
     saveQuery: "Save query",
     saveQueryName: "Query name",
     deleteQuery: "Delete query",
@@ -131,6 +132,12 @@ export default {
     green: "Green",
     teal: "Teal",
     cyan: "Cyan",
+  },
+  fontScale: {
+    choose: "Choose text size",
+    standard: "Standard",
+    large: "Large",
+    xlarge: "Extra large",
   },
   layout: {
     collapseSummary: "Collapse summary",

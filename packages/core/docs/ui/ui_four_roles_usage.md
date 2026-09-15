@@ -36,7 +36,7 @@ const layout = factory.layout!
 | 应用壳 | `layout.scaffold({ variant: 'sidebarLeft', nav, page })` |
 | 模块列表整页 | `ui.buildIndexView(context, props?)` |
 | 详情/编辑整页 | `ui.buildDetailsView` / `buildEditView` → `buildEntityView` |
-| 左树右表 | `ui.buildExplorerView(context, props?)` |
+| 左树右表 | `ui.buildExplorer(context, props?)` |
 | 主表字段组 / 子表 | `ui.buildFieldGroup` / `ui.buildSubGroup` |
 | Toast / 确认 / 弹层 | `ui.toast` / `ui.confirm` / `ui.dialog` |
 
@@ -161,7 +161,7 @@ ui.buildSubGroup(group, context)
 ## 左树右表
 
 ```ts
-ui.buildExplorerView(context, {
+ui.buildExplorer(context, {
   viewKind: 'categoryList',
   foreignKey: 'categoryId',
   treeWidth: '16rem',
@@ -171,16 +171,16 @@ ui.buildExplorerView(context, {
 })
 ```
 
-旧名 `buildTreeListView` / `UiTreeListViewProps` 已弃用，改 `buildExplorerView` / `UiExplorerViewProps`。
+旧名 `buildTreeListView` / `UiTreeListViewProps` 已弃用，改 `buildExplorer` / `UiExplorerProps`。
 
 ## 插件整页
 
 ```ts
-ui.buildGanttView?.(context, props)
-ui.buildTimelineView?.(context, props)
-ui.buildSchedulerView?.(context, props)
-ui.buildKanbanView?.(context, props)
-ui.buildDiagramView?.(context, props)
+ui.buildGantt?.(context, props)
+ui.buildTimeline?.(context, props)
+ui.buildScheduler?.(context, props)
+ui.buildKanban?.(context, props)
+ui.buildDiagram?.(context, props)
 ```
 
 未安装对应 plugin 时会 **throw**。嵌在普通屏里的时间轴仍用 `factory.timeline`，不要 `fieldFactory.timeline`。

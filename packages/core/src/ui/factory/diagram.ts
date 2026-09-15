@@ -67,7 +67,7 @@ export type UiDiagramAsideRenderer<TNode = any> = (
   kind: 'node' | 'connector' | null,
 ) => TNode | null
 
-export interface UiDiagramViewProps<TNode = any> extends UiProps {
+export interface UiDiagramProps<TNode = any> extends UiProps {
   diagramType: UiDiagramType
   nodes?: UiDiagramNode[]
   connectors?: UiDiagramConnector[]
@@ -90,7 +90,7 @@ export interface UiDiagramViewProps<TNode = any> extends UiProps {
 }
 
 export interface UiDiagramPlugin<TNode = any> {
-  diagramView: (props: UiDiagramViewProps<TNode>) => TNode
+  diagramView: (props: UiDiagramProps<TNode>) => TNode
 }
 
 export const DIAGRAM_PLUGIN_NOT_INSTALLED = 'diagram plugin not installed'
@@ -232,13 +232,13 @@ export function diagramPaletteOf(
 }
 
 export function resolveDiagramPalette(
-  props: UiDiagramViewProps,
+  props: UiDiagramProps,
 ): UiDiagramPaletteGroup[] {
   return props.palette ?? diagramPaletteOf(props.diagramType)
 }
 
 export function diagramReadonlyOf(
-  props: Pick<UiDiagramViewProps, 'readonly'>,
+  props: Pick<UiDiagramProps, 'readonly'>,
   view?: string,
 ): boolean {
   if (props.readonly === true) return true
@@ -269,7 +269,7 @@ export function diagramNodeDataOf(
 
 
 export function findDiagramElement(
-  props: Pick<UiDiagramViewProps, 'nodes' | 'connectors'>,
+  props: Pick<UiDiagramProps, 'nodes' | 'connectors'>,
   selectedId?: string | number | null,
 ): {
   element: UiDiagramNode | UiDiagramConnector | null

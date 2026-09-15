@@ -16,8 +16,8 @@ import {
   type UiGanttPlugin,
   type UiGanttPrintOptions,
   type UiGanttTask,
-  type UiGanttViewMode,
-  type UiGanttViewProps,
+  type UiGanttTimeScale,
+  type UiGanttProps,
 } from '@mmda/vui'
 import {
   PROJECT_SERIALIZER_NOT_INSTALLED,
@@ -88,14 +88,14 @@ export const HyperGanttView = defineComponent({
   props: {
     tasks: { type: Array as PropType<UiGanttTask[]>, default: () => [] },
     links: { type: Array as PropType<UiGanttLink[]>, default: () => [] },
-    columns: { type: Array as PropType<UiGanttViewProps['columns']>, default: () => [] },
+    columns: { type: Array as PropType<UiGanttProps['columns']>, default: () => [] },
     height: { type: [String, Number], default: '100%' },
     readonly: { type: Boolean, default: false },
     allowTaskDrag: { type: Boolean, default: true },
     allowTaskResize: { type: Boolean, default: true },
     allowLinks: { type: Boolean, default: true },
     allowRowReorder: { type: Boolean, default: false },
-    viewMode: { type: String as PropType<UiGanttViewMode>, default: 'week' },
+    viewMode: { type: String as PropType<UiGanttTimeScale>, default: 'week' },
     loading: { type: Boolean, default: false },
     locale: { type: String, default: undefined },
     timelineStart: { type: [String, Date], default: undefined },
@@ -115,12 +115,12 @@ export const HyperGanttView = defineComponent({
     assignableResources: { type: Array as PropType<string[]>, default: undefined },
     resourceHourCosts: { type: Object as PropType<Record<string, number>>, default: undefined },
     resourceQuantities: { type: Object as PropType<Record<string, number>>, default: undefined },
-    onReady: { type: Function as PropType<UiGanttViewProps['onReady']> },
-    onTaskChange: { type: Function as PropType<UiGanttViewProps['onTaskChange']> },
-    onLinkChange: { type: Function as PropType<UiGanttViewProps['onLinkChange']> },
-    onTaskSelect: { type: Function as PropType<UiGanttViewProps['onTaskSelect']> },
-    onTaskDblClick: { type: Function as PropType<UiGanttViewProps['onTaskDblClick']> },
-    onRowReorder: { type: Function as PropType<UiGanttViewProps['onRowReorder']> },
+    onReady: { type: Function as PropType<UiGanttProps['onReady']> },
+    onTaskChange: { type: Function as PropType<UiGanttProps['onTaskChange']> },
+    onLinkChange: { type: Function as PropType<UiGanttProps['onLinkChange']> },
+    onTaskSelect: { type: Function as PropType<UiGanttProps['onTaskSelect']> },
+    onTaskDblClick: { type: Function as PropType<UiGanttProps['onTaskDblClick']> },
+    onRowReorder: { type: Function as PropType<UiGanttProps['onRowReorder']> },
   },
   setup(props) {
     const host = ref<HTMLElement | null>(null)
@@ -130,7 +130,7 @@ export const HyperGanttView = defineComponent({
     let serializer: { getXml: () => string; loadXml: (xml: string) => void } | undefined
     const undoStack: string[] = []
 
-    const propsAsView = () => props as unknown as UiGanttViewProps
+    const propsAsView = () => props as unknown as UiGanttProps
 
     const emitTasks = (action: string) => {
       const mapped = hyperItemsToVui(items.value)

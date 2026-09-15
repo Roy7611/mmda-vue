@@ -22,12 +22,12 @@ import type {
 } from './factory/signin'
 import type { UiFilterBarProps } from './builder/filter_bar'
 import type { UiListViewProps } from './builder/list_view'
-import type { UiExplorerViewProps } from './builder/explorer'
-import type { UiGanttViewProps } from './factory/gantt'
+import type { UiExplorerProps } from './builder/explorer'
+import type { UiGanttProps } from './factory/gantt'
 import type { UiTimelineProps } from './factory/timeline'
-import type { UiSchedulerViewProps } from './factory/scheduler'
-import type { UiKanbanViewProps } from './factory/kanban'
-import type { UiDiagramViewProps } from './factory/diagram'
+import type { UiSchedulerProps } from './factory/scheduler'
+import type { UiKanbanProps } from './factory/kanban'
+import type { UiDiagramProps } from './factory/diagram'
 
 /**
  * 界面构建器，负责拼屏与会话级弹层的契约（无实现、无 Vue）。
@@ -146,11 +146,11 @@ export interface UiBuilder<TNode = any> {
     slots?: UiSignupFormSlots<TNode>,
   ): TNode
 
-  // —— Module（具名入口 → buildEntityView）——
+  // —— Module（具名入口各管各的屏；各自拦 error / loading）——
 
   /**
-   * 索引列表页。内部：`buildModuleToolbar` + `factory.table|grid|list|treeGrid` + `factory.paginator`。
-   * 不要再经 `buildListView`。
+   * 索引列表页。拦 error / loading 后拼 toolbar、filterbar、table。
+   * categoryList / 插件页仍由本方法内部转 Explorer / Gantt 等。
    */
   buildIndexView(
     context: UiContext,
@@ -166,7 +166,7 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
   /**
-   * 详情页（只读表单）。转到 {@link buildEntityView}。
+   * 详情页（只读表单）。拦 error / loading 后拼 toolbar 与字段组。
    */
   buildDetailsView(
     context: UiContext,
@@ -179,18 +179,6 @@ export interface UiBuilder<TNode = any> {
   buildEditView(
     context: UiContext,
     props?: UiViewProps,
-  ): TNode
-
-  /**
-   * 实体屏共享实现。
-   * - many → Index/Select 数据区（或 Explorer / 插件页）
-   * - one → 扫 `metaUi.groups`：`many` ? {@link buildSubGroup} : {@link buildFieldGroup}
-   *
-   * 替代旧 `buildView`。
-   */
-  buildEntityView(
-    context: UiContext,
-    props?: UiViewProps | UiListViewProps,
   ): TNode
 
   /**
@@ -210,36 +198,36 @@ export interface UiBuilder<TNode = any> {
     props?: UiFilterBarProps<TNode>,
   ): TNode
 
-  // —— Module / 插件页（可选；未 setXxxPlugin 时 throw）——
+  // —— 页面组成块（可选；未 setXxxPlugin 时 throw）。不是整页 View ——
 
-  /** 甘特整页。不进 UiFactory；实现转 ganttPlugin。 */
-  buildGanttView?(
+  /** 甘特。不进 UiFactory；实现转 ganttPlugin。 */
+  buildGantt?(
     context: UiContext,
-    props?: UiGanttViewProps,
+    props?: UiGanttProps,
   ): TNode
 
-  /** 时间轴整页。嵌在屏里仍可用 `factory.timeline`。 */
-  buildTimelineView?(
+  /** 时间轴。嵌在屏里也可用 `factory.timeline`。 */
+  buildTimeline?(
     context: UiContext,
     props?: UiTimelineProps,
   ): TNode
 
-  /** 日程整页。 */
-  buildSchedulerView?(
+  /** 日程。 */
+  buildScheduler?(
     context: UiContext,
-    props?: UiSchedulerViewProps,
+    props?: UiSchedulerProps,
   ): TNode
 
-  /** 看板整页。 */
-  buildKanbanView?(
+  /** 看板。 */
+  buildKanban?(
     context: UiContext,
-    props?: UiKanbanViewProps,
+    props?: UiKanbanProps,
   ): TNode
 
-  /** 图整页。 */
-  buildDiagramView?(
+  /** 图。 */
+  buildDiagram?(
     context: UiContext,
-    props?: UiDiagramViewProps,
+    props?: UiDiagramProps,
   ): TNode
 
   // —— 复杂组件（多块组合）——
@@ -247,9 +235,9 @@ export interface UiBuilder<TNode = any> {
   /**
    * 左树右表（分类浏览）。不是单控件，故留在 Builder。
    */
-  buildExplorerView<T>(
+  buildExplorer<T>(
     context: UiContext,
-    props?: UiExplorerViewProps<T, TNode>,
+    props?: UiExplorerProps<T, TNode>,
   ): TNode
 
   /**

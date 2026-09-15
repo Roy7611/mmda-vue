@@ -16,6 +16,7 @@ import type { CustomFilter } from "../ui/factory/filter";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "./keys";
 import {
   readStoredColorPalette,
+  readStoredFontScale,
 } from "./theme";
 
 export type {
@@ -107,8 +108,10 @@ export class MmdaVueApp extends MmdaApplication {
     super(baseUrl, service, ui, { ...opts, locale });
     this.state = reactive(this.state);
     this.state.colorPalette = readStoredColorPalette();
+    this.state.fontScale = readStoredFontScale();
     ui.setColorScheme(Boolean(this.state.isDark));
     ui.setColorPalette(this.state.colorPalette as any);
+    ui.setFontScale(this.state.fontScale as any);
   }
 
   install(app: App): void {

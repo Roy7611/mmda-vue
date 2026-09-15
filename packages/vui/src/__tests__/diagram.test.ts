@@ -32,7 +32,7 @@ describe('diagramPlugin', () => {
         }),
     }
     ui.setDiagramPlugin(plugin)
-    const node = ui.buildDiagramView(
+    const node = ui.buildDiagram(
       { view: UiViewOne.Details },
       { diagramType: 'workflow' },
     )

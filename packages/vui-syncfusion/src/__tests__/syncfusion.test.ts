@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineComponent, h, nextTick, provide, render } from "vue";
 import { Internationalization, L10n } from "@syncfusion/ej2-base";
-import { MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth } from "@mmda/core";
+import { FieldFilter, MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth } from "@mmda/core";
 import { columnFilterKindOf } from "../factory/filter_kind";
 import { MMDA_COLOR_PALETTE_IDS, UI_APP_KEY, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
 import {
@@ -24,6 +24,7 @@ import { SfOverlayHost } from "../components/SfOverlayHost";
 import { createSyncfusionOverlay } from "../syncfusion_overlay";
 import { createTableRenderer } from "../factory/table";
 import { applyChoiceFilterExistingPredicate, gridFilterOperator, gridFiltersToModel, isChoiceFilterField, menuFilterOperators } from "../factory/utils";
+import { gridFilterColumnsFromModel, looksLikeFilterPredicates, paintFilterFunnels, sameFilterModel, selectedSetValuesOf } from "../factory/table_filter";
 
 /** 索引页 table()：pagable-table → loading-host → Grid；无分页时 loading-host → Grid。 */
 const gridOf = (vnode: any) => {
@@ -1301,12 +1302,8 @@ describe("Syncfusion skin", () => {
       (child: any) => child?.type?.name === "ListSearchField",
     );
     expect(field).toBeTruthy();
-    const addons = vnode.children.find(
-      (child: any) =>
-        child?.props?.class === "mmda-searchbar__addons" ||
-        child?.props?.class?.includes?.("mmda-searchbar__addons"),
-    );
-    expect(addons).toBeTruthy();
+    const addons = field.children?.default?.();
+    expect(addons?.props?.class).toMatch(/mmda-searchbar__addons/);
     const buttons = addons.children;
     expect(buttons[0].props.title).toBe("action.search");
     expect(buttons[1].props.title).toBe("action.refresh");
@@ -1356,6 +1353,35 @@ describe("Syncfusion skin", () => {
     const dialog = document.querySelector(".e-dialog.mmda-dialog");
     const footer = dialog?.querySelector(".e-footer-content, .mmda-dialog__footer");
     expect(footer?.textContent ?? "").toMatch(/Cancel|取消|OK|确定/);
+    render(null, host);
+    host.remove();
+    dialog?.remove();
+  });
+
+  it("overlay confirm uses centered mmda-dialog and resolves true on OK", async () => {
+    const overlay = createSyncfusionOverlay();
+    const confirmed = overlay.confirm({
+      message: "你确定要删除物料[M2025030346544]吗?",
+    });
+    const host = document.createElement("div");
+    document.body.append(host);
+    const Root = defineComponent({
+      setup() {
+        provide(UI_APP_KEY, { ui: { overlay } });
+        return () => h(SfOverlayHost);
+      },
+    });
+    render(h(Root), host);
+    await nextTick();
+    await nextTick();
+    const dialog = document.querySelector(".e-dialog.mmda-dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog?.textContent ?? "").toContain("你确定要删除物料");
+    const ok = dialog?.querySelector(".e-primary") as HTMLButtonElement | null;
+    expect(ok).toBeTruthy();
+    ok?.click();
+    await nextTick();
+    await expect(confirmed).resolves.toBe(true);
     render(null, host);
     host.remove();
     dialog?.remove();
@@ -1847,8 +1873,9 @@ describe("Syncfusion skin", () => {
       primaryKey: "id",
     } as any;
     const rows = [{ id: "1", rowNum: "21", name: "alpha" }];
+    const pagination = { pageNo: 3, pageSize: 10, recordCount: 45 };
     const host = factory.table(rows, metaUi, {
-      pagination: { pageNo: 3, pageSize: 10, recordCount: 45 },
+      pagination,
       onPage,
       selectionMode: "multiple",
       filterDisplay: "menu",
@@ -1879,6 +1906,14 @@ describe("Syncfusion skin", () => {
       pageSize: 10,
     });
     expect(onPage).toHaveBeenCalledWith({ pageNo: 4, pageSize: 10 });
+    onPage.mockClear();
+    pagination.pageNo = 4;
+    pager.props.click({
+      isInteracted: true,
+      currentPage: 1,
+      pageSize: 10,
+    });
+    expect(onPage).toHaveBeenCalledWith({ pageNo: 1, pageSize: 10 });
 
     const columns = vnode.props.columns;
     expect(columns[0]).toMatchObject({
@@ -1969,6 +2004,151 @@ describe("Syncfusion skin", () => {
     );
   });
 
+  it("rebind swaps the current page in place without recreating the grid", () => {
+    const factory = createSyncfusionUiFactory();
+    let listHost: any;
+    const metaUi = {
+      objName: "Department",
+      getListedFields: () => [
+        { fieldName: "deptCode", displayLabel: "部门编码" },
+        { fieldName: "shortName", displayLabel: "简称" },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = [
+      { id: "d1", deptCode: "D1", shortName: "甲" },
+      { id: "d2", deptCode: "D2", shortName: "乙" },
+    ];
+    const pagination = { pageNo: 1, pageSize: 20, recordCount: 40 };
+    const vnode = gridOf(
+      factory.table(rows, metaUi, {
+        pagination,
+        onIndexTableHostReady: (host) => {
+          listHost = host;
+        },
+      }),
+    );
+    const previous = vnode.props.dataSource;
+    const grid: any = {
+      dataSource: previous,
+      hideSpinner() {},
+      getColumns() {
+        return [];
+      },
+    };
+    vnode.props.ref({ ej2Instances: grid });
+    rows.splice(0, Infinity, { id: "d3", deptCode: "D3", shortName: "丙" });
+    pagination.pageNo = 2;
+    pagination.recordCount = 40;
+    listHost.rebind();
+    expect(grid.dataSource).not.toBe(previous);
+    expect(grid.dataSource).toEqual([
+      { id: "d3", deptCode: "D3", shortName: "丙" },
+    ]);
+  });
+
+  it("rebind paints e-filtered from live filterModelOf, not the table snapshot", () => {
+    const factory = createSyncfusionUiFactory();
+    let listHost: any;
+    let liveModel: Record<string, unknown> | undefined;
+    const genderIcon = { classList: { toggle: vi.fn() } };
+    const statusIcon = { classList: { toggle: vi.fn() } };
+    const rows = [{ id: "e1", gender: "FEMALE" }];
+    const vnode = gridOf(
+      factory.table(rows, {
+        objName: "Employee",
+        getListedFields: () => [
+          {
+            fieldName: "gender",
+            displayLabel: "性别",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+          {
+            fieldName: "status",
+            displayLabel: "状态",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+        ],
+        groups: [],
+        primaryKey: "id",
+      } as any, {
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+        filterModel: undefined,
+        filterModelOf: () => liveModel,
+        onIndexTableHostReady: (host) => {
+          listHost = host;
+        },
+      }),
+    );
+    vnode.props.ref({
+      ej2Instances: {
+        dataSource: vnode.props.dataSource,
+        hideSpinner() {},
+        getColumns: () => [{ field: "gender" }, { field: "status" }],
+        getColumnHeaderByField: (field: string) => ({
+          querySelector: () => (field === "gender" ? genderIcon : statusIcon),
+        }),
+      },
+    });
+    vnode.props.created();
+    vnode.props.dataBound();
+    expect(genderIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", false);
+    liveModel = { gender: FieldFilter.in(["FEMALE"]) };
+    genderIcon.classList.toggle.mockClear();
+    statusIcon.classList.toggle.mockClear();
+    listHost.rebind();
+    expect(genderIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", true);
+    expect(statusIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", false);
+  });
+
+  it("commitFilterModel compares the live filterModelOf", () => {
+    const factory = createSyncfusionUiFactory();
+    const onFilterModelChange = vi.fn();
+    const liveModel = { gender: FieldFilter.in(["FEMALE"]) };
+    const vnode = gridOf(
+      factory.table([], {
+        objName: "Employee",
+        getListedFields: () => [
+          {
+            fieldName: "gender",
+            displayLabel: "性别",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+        ],
+        groups: [],
+        primaryKey: "id",
+      } as any, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+        filterModel: undefined,
+        filterModelOf: () => liveModel,
+        onFilterModelChange,
+      }),
+    );
+    vnode.props.ref({
+      ej2Instances: {
+        on: vi.fn(),
+        off: vi.fn(),
+        getColumns: () => [{ field: "gender" }],
+        getColumnHeaderByField: () => ({
+          querySelector: () => ({ classList: { toggle: vi.fn() } }),
+        }),
+        filterSettings: {
+          columns: [{ field: "gender", operator: "equal", value: "FEMALE" }],
+        },
+      },
+    });
+    vnode.props.actionComplete({
+      requestType: "filtering",
+      columns: [{ field: "gender", operator: "equal", value: "FEMALE" }],
+    });
+    expect(onFilterModelChange).not.toHaveBeenCalled();
+  });
+
   it("applyRow rebinds the current virtual window when the page has more than 100 rows", () => {
     const factory = createSyncfusionUiFactory();
     let listHost: any;
@@ -2019,6 +2199,172 @@ describe("Syncfusion skin", () => {
     expect(grid.dataSource.result.find((row: any) => row.id === "15")?.shortName).toBe(
       "新简称",
     );
+  });
+
+  it("applyRow does not reset virtualSkip; insertAtZero does", () => {
+    const factory = createSyncfusionUiFactory();
+    let listHost: any;
+    const metaUi = {
+      objName: "Department",
+      getListedFields: () => [
+        { fieldName: "deptCode", displayLabel: "部门编码" },
+        { fieldName: "shortName", displayLabel: "简称" },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = Array.from({ length: 101 }, (_, index) => ({
+      id: String(index),
+      deptCode: `D${index}`,
+      shortName: `旧${index}`,
+    }));
+    const vnode = gridOf(
+      factory.table(rows, metaUi, {
+        pagination: { pageNo: 1, pageSize: 200, recordCount: 101 },
+        onIndexTableHostReady: (host) => {
+          listHost = host;
+        },
+      }),
+    );
+    const grid: any = {
+      dataSource: vnode.props.dataSource,
+      hideSpinner() {},
+      getColumns() {
+        return [];
+      },
+    };
+    vnode.props.ref({ ej2Instances: grid });
+    vnode.props.dataStateChange({
+      action: { requestType: "virtualscroll" },
+      skip: 10,
+      take: 50,
+    });
+    expect(grid.dataSource.result[0].id).toBe("10");
+    listHost.applyRow({ id: "15", shortName: "改过" });
+    expect(grid.dataSource.result[0].id).toBe("10");
+    expect(grid.dataSource.count).toBe(101);
+    expect(grid.dataSource.result).toHaveLength(50);
+    listHost.insertAtZero({ id: "new" });
+    expect(grid.dataSource.result[0].id).toBe("0");
+  });
+
+  it("applyRow still works after destroyed and a new host is ready", () => {
+    const factory = createSyncfusionUiFactory();
+    let listHost: any;
+    const metaUi = {
+      objName: "Department",
+      getListedFields: () => [
+        { fieldName: "deptCode", displayLabel: "部门编码" },
+        { fieldName: "shortName", displayLabel: "简称" },
+      ],
+      groups: [],
+      primaryKey: "id",
+    } as any;
+    const rows = Array.from({ length: 101 }, (_, index) => ({
+      id: String(index),
+      deptCode: `D${index}`,
+      shortName: `旧${index}`,
+    }));
+    const first = gridOf(
+      factory.table(rows, metaUi, {
+        pagination: { pageNo: 1, pageSize: 200, recordCount: 101 },
+        onIndexTableHostReady: (host) => {
+          listHost = host;
+        },
+      }),
+    );
+    first.props.ref({
+      ej2Instances: {
+        dataSource: first.props.dataSource,
+        hideSpinner() {},
+        getColumns() {
+          return [];
+        },
+      },
+    });
+    first.props.destroyed();
+    expect(listHost).toBeNull();
+
+    const vnode = gridOf(
+      factory.table(rows, metaUi, {
+        pagination: { pageNo: 1, pageSize: 200, recordCount: 101 },
+        onIndexTableHostReady: (host) => {
+          listHost = host;
+        },
+      }),
+    );
+    const grid: any = {
+      dataSource: vnode.props.dataSource,
+      hideSpinner() {},
+      getColumns() {
+        return [];
+      },
+    };
+    vnode.props.ref({ ej2Instances: grid });
+    rows[15].shortName = "重建后";
+    listHost.applyRow({ id: "15", shortName: "重建后" });
+    expect(grid.dataSource.result.find((row: any) => row.id === "15")?.shortName).toBe(
+      "重建后",
+    );
+    expect(grid.dataSource.result).toHaveLength(50);
+    expect(grid.dataSource.count).toBe(101);
+  });
+
+  it("virtual remote filter rebinds a window, not the whole page", async () => {
+    const factory = createSyncfusionUiFactory();
+    const rows = Array.from({ length: 101 }, (_, index) => ({
+      id: String(index),
+      category: index % 2 === 0 ? "RAW" : "PART",
+    }));
+    const grid: any = {
+      dataSource: undefined,
+      hideSpinner() {},
+      getColumns() {
+        return [];
+      },
+    };
+    const vnode = gridOf(
+      factory.table(rows, {
+        objName: "Material",
+        getListedFields: () => [
+          {
+            fieldName: "category",
+            displayLabel: "物料类别",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+        ],
+        groups: [],
+        primaryKey: "id",
+      } as any, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 200, recordCount: 101 },
+        onFilterModelChange: async () => {
+          rows.splice(
+            0,
+            rows.length,
+            ...rows.filter((row) => row.category === "RAW"),
+          );
+        },
+      }),
+    );
+    vnode.props.ref({ ej2Instances: grid });
+    vnode.props.dataStateChange({
+      action: { requestType: "virtualscroll" },
+      skip: 10,
+      take: 50,
+    });
+    expect(grid.dataSource.result).toHaveLength(50);
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+      where: [{ field: "category", operator: "equal", value: "RAW" }],
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(Array.isArray(grid.dataSource.result)).toBe(true);
+    expect(grid.dataSource.result.length).toBeLessThanOrEqual(50);
+    expect(grid.dataSource.count).toBe(rows.length);
+    expect(grid.dataSource).not.toEqual(expect.any(Array));
   });
 
   it("marks listed MetaUiField.primaryKey as isPrimaryKey without hidden id", () => {
@@ -2677,6 +3023,71 @@ describe("Syncfusion skin", () => {
     ]);
   });
 
+  it("does not put FilterModel into filterSettings.columns (that re-filters and loops)", () => {
+    const factory = createSyncfusionUiFactory();
+    const onFilterModelChange = vi.fn();
+    const statusIcon = { classList: { toggle: vi.fn() } };
+    const genderIcon = { classList: { toggle: vi.fn() } };
+    const vnode = gridOf(
+      factory.table([], {
+        objName: "Employee",
+        getListedFields: () => [
+          {
+            fieldName: "status",
+            displayLabel: "状态",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+          {
+            fieldName: "gender",
+            displayLabel: "性别",
+            dataType: 48,
+            reference: { isEnum: true },
+          },
+        ],
+        groups: [],
+        primaryKey: "id",
+      } as any, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 27 },
+        filterModel: {
+          status: FieldFilter.in(["ON_BOARD"]),
+          gender: FieldFilter.in(["MALE"]),
+        },
+        onFilterModelChange,
+      }),
+    );
+    expect(vnode.props.filterSettings.columns).toBeUndefined();
+    vnode.props.ref({
+      ej2Instances: {
+        on: vi.fn(),
+        off: vi.fn(),
+        getColumns: () => [{ field: "status" }, { field: "gender" }],
+        getColumnHeaderByField: (field: string) => ({
+          querySelector: () => (field === "status" ? statusIcon : genderIcon),
+        }),
+        filterSettings: {
+          columns: [
+            { field: "status", operator: "equal", value: "ON_BOARD" },
+            { field: "gender", operator: "equal", value: "MALE" },
+          ],
+        },
+      },
+    });
+    vnode.props.created();
+    vnode.props.dataBound();
+    expect(statusIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", true);
+    expect(genderIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", true);
+    vnode.props.actionComplete({
+      requestType: "filtering",
+      columns: [
+        { field: "status", operator: "equal", value: "ON_BOARD" },
+        { field: "gender", operator: "equal", value: "MALE" },
+      ],
+    });
+    expect(onFilterModelChange).not.toHaveBeenCalled();
+  });
+
   it("remote filter rebinds from the updated source list, not the stale snapshot", async () => {
     const factory = createSyncfusionUiFactory();
     const rows = [
@@ -2743,6 +3154,9 @@ describe("Syncfusion skin", () => {
         {
           filterDisplay: "menu",
           pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+          filterModel: {
+            category: { filterType: "set", operator: "IN", values: ["RAW"] },
+          },
           onFilterModelChange,
         },
       ),
@@ -2751,15 +3165,15 @@ describe("Syncfusion skin", () => {
       action: { requestType: "filtering" },
       where: [{ field: "category", operator: "equal", value: "RAW" }],
     });
-    expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+    expect(onFilterModelChange).not.toHaveBeenCalled();
     vnode.props.dataStateChange({
       action: { requestType: "filtering" },
     });
-    expect(onFilterModelChange).toHaveBeenCalledTimes(1);
+    expect(onFilterModelChange).not.toHaveBeenCalled();
     vnode.props.dataStateChange({
       action: { requestType: "filtering", action: "clear-filter" },
     });
-    expect(onFilterModelChange).toHaveBeenCalledTimes(2);
+    expect(onFilterModelChange).toHaveBeenCalledTimes(1);
     expect(onFilterModelChange).toHaveBeenLastCalledWith({});
   });
 
@@ -2817,6 +3231,154 @@ describe("Syncfusion skin", () => {
     expect(statusCol.filter.ui).toBeUndefined();
     expect(partnerCol.filter.type).toBe("CheckBox");
     expect(partnerCol.filter.ui).toBeUndefined();
+  });
+
+  it("keeps numeric REF/HAS_ONE department SET|MULTI as CheckBox, not compare Menu", () => {
+    const factory = createSyncfusionUiFactory();
+    const parentDept = new MetaUiField({
+      fieldName: "parentDeptID",
+      displayLabel: "上级部门",
+      fieldIdx: 0,
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+      selectOptions: "REF Department(deptID,deptName,parentDeptID)",
+      filterTypes:
+        MetaUiFilterType.SET | MetaUiFilterType.MULTI,
+    });
+    const workDept = new MetaUiField({
+      fieldName: "workDeptID",
+      displayLabel: "工作部门",
+      fieldIdx: 1,
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+      selectOptions:
+        "HAS_ONE Department(deptID,deptName,parentDeptID) AS workDepartment WHERE(status>0)",
+      filterTypes:
+        MetaUiFilterType.SET | MetaUiFilterType.MULTI,
+    });
+    const metaUi = new MetaUi({
+      objName: "Employee",
+      displayLabel: "职员",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [parentDept, workDept],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+      }),
+    );
+    const parentCol = vnode.props.columns.find(
+      (item: any) => item?.field === "parentDeptID",
+    );
+    const workCol = vnode.props.columns.find(
+      (item: any) => item?.field === "workDeptID",
+    );
+    expect(parentCol.filter.type).toBe("CheckBox");
+    expect(parentCol.filter.ui).toBeUndefined();
+    expect(workCol.filter.type).toBe("CheckBox");
+    expect(workCol.filter.ui).toBeUndefined();
+  });
+
+  it("loads homepage 50 when opening an empty REF department CheckBox", async () => {
+    const factory = createSyncfusionUiFactory();
+    const home = Array.from({ length: 50 }, (_, index) => ({
+      deptID: index + 1,
+      deptName: `部门${index + 1}`,
+    }));
+    const parentDept = new MetaUiField({
+      fieldName: "parentDeptID",
+      displayLabel: "上级部门",
+      fieldIdx: 0,
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+      selectOptions: "REF Department(deptID,deptName,parentDeptID)",
+      filterTypes:
+        MetaUiFilterType.SET | MetaUiFilterType.MULTI,
+    });
+    const loadFilterOptions = vi.fn(async (field: MetaUiField) => {
+      field.reference!.refOptions.splice(
+        0,
+        field.reference!.refOptions.length,
+        ...home,
+      );
+      field.reference!.refOptionsComplete = false;
+      return field.reference!.refOptions;
+    });
+    const metaUi = new MetaUi({
+      objName: "Department",
+      displayLabel: "部门",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [parentDept],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 0 },
+        loadFilterOptions,
+      }),
+    );
+    const column = vnode.props.columns.find(
+      (item: any) => item?.field === "parentDeptID",
+    );
+    expect(column.filter.type).toBe("CheckBox");
+    expect(column.filter.dataSource).toEqual([]);
+
+    const options = { field: "parentDeptID", dataSource: [] as unknown[] };
+    vnode.props.actionBegin({
+      requestType: "filterBeforeOpen",
+      filterModel: { options },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadFilterOptions).toHaveBeenCalledWith(parentDept);
+    expect(options.dataSource[0]).toEqual({
+      parentDeptID: 1,
+      text: "部门1",
+      __mmdaChoice: true,
+    });
+    expect(options.dataSource).toHaveLength(50);
+
+    const listeners: Record<string, (args: any) => void> = {};
+    vnode.props.ref?.({
+      ej2Instances: {
+        on: (name: string, handler: (args: any) => void) => {
+          listeners[name] = handler;
+        },
+        off: vi.fn(),
+      },
+    });
+    vnode.props.created();
+    const rendererArgs = {
+      field: "parentDeptID",
+      executeQuery: true,
+      dataSource: [],
+    };
+    listeners["beforeCheckboxRenderer"](rendererArgs);
+    expect(rendererArgs.executeQuery).toBe(false);
+    expect(rendererArgs.dataSource).toHaveLength(50);
+    expect(rendererArgs.dataSource[0]).toEqual({
+      parentDeptID: 1,
+      text: "部门1",
+      __mmdaChoice: true,
+    });
   });
 
   it("loads first 50 into refOptions; incomplete search does not overwrite", async () => {
@@ -4591,6 +5153,70 @@ describe("Syncfusion skin", () => {
   });
 });
 
+describe("gridFilterColumnsFromModel", () => {
+  it("sameFilterModel ignores a second write of the same chips", () => {
+    const model = {
+      status: FieldFilter.in(["ON_BOARD"]),
+      gender: FieldFilter.in(["MALE"]),
+    };
+    expect(sameFilterModel(model, { ...model })).toBe(true);
+    expect(sameFilterModel(model, { status: FieldFilter.in(["ON_BOARD"]) })).toBe(
+      false,
+    );
+    expect(sameFilterModel(undefined, {})).toBe(true);
+  });
+
+  it("paintFilterFunnels only toggles e-filtered from FilterModel", () => {
+    const statusIcon = { classList: { toggle: vi.fn() } };
+    const nameIcon = { classList: { toggle: vi.fn() } };
+    paintFilterFunnels(
+      {
+        getColumns: () => [{ field: "status" }, { field: "name" }],
+        getColumnHeaderByField: (field: string) => ({
+          querySelector: () => (field === "status" ? statusIcon : nameIcon),
+        }),
+      },
+      { status: FieldFilter.in(["ON_BOARD"]) },
+    );
+    expect(statusIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", true);
+    expect(nameIcon.classList.toggle).toHaveBeenCalledWith("e-filtered", false);
+  });
+
+  it("treats Menu compare groups as predicates", () => {
+    expect(
+      looksLikeFilterPredicates([
+        {
+          predicates: [
+            { field: "amount", operator: "greaterthanorequal", value: 10 },
+          ],
+        },
+      ]),
+    ).toBe(true);
+    expect(looksLikeFilterPredicates([{ field: "amount", type: "number" }])).toBe(
+      false,
+    );
+  });
+
+  it("restores EJ2 columns from FilterModel for funnel and reopen checks", () => {
+    const status = { fieldName: "status" };
+    const gender = { fieldName: "gender" };
+    const statusFilter = FieldFilter.in(["在岗", "试用"]);
+    const genderFilter = FieldFilter.in(["男"]);
+    const columns = gridFilterColumnsFromModel(
+      { status: statusFilter, gender: genderFilter },
+      [status, gender] as any,
+    );
+    expect(columns).toHaveLength(3);
+    expect(columns.filter((column) => column.field === "status").map((column) => column.value)).toEqual([
+      "在岗",
+      "试用",
+    ]);
+    expect(columns.find((column) => column.field === "gender")?.value).toBe("男");
+    expect(selectedSetValuesOf(statusFilter, status as any)).toEqual(["在岗", "试用"]);
+    expect(selectedSetValuesOf(undefined, gender as any)).toEqual([]);
+  });
+});
+
 describe("gridFiltersToModel join/multi", () => {
   const nameField = { fieldName: "name", dataType: 48 };
   const qtyField = { fieldName: "qty", dataType: 68 };
@@ -4783,6 +5409,279 @@ describe("gridFiltersToModel join/multi", () => {
       ),
     ).toEqual({
       status: { filterType: "set", operator: "IN", values: ["RAW"] },
+    });
+  });
+
+  it("maps REF/HAS_ONE checkbox equal to set FilterModel", () => {
+    const workDept = new MetaUiField({
+      fieldName: "workDeptID",
+      displayLabel: "工作部门",
+      fieldIdx: 0,
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+      selectOptions:
+        "HAS_ONE Department(deptID,deptName,parentDeptID) AS workDepartment WHERE(status>0)",
+      filterTypes: MetaUiFilterType.SET | MetaUiFilterType.MULTI,
+    });
+    expect(
+      gridFiltersToModel(
+        [{ field: "workDeptID", operator: "equal", value: 3 }],
+        [workDept] as any,
+      ),
+    ).toEqual({
+      workDeptID: { filterType: "set", operator: "IN", values: [3] },
+    });
+    expect(
+      gridFiltersToModel(
+        [
+          { field: "workDeptID", operator: "equal", value: 3 },
+          { field: "workDeptID", operator: "equal", value: 8 },
+        ],
+        [workDept] as any,
+      ),
+    ).toEqual({
+      workDeptID: { filterType: "set", operator: "IN", values: [3, 8] },
+    });
+  });
+
+  it("writes CheckBox filterModel from grid filterSettings when where is empty", () => {
+    const factory = createSyncfusionUiFactory();
+    const workDept = new MetaUiField({
+      fieldName: "workDeptID",
+      displayLabel: "工作部门",
+      fieldIdx: 0,
+      dataType: SqlDataType.INT,
+      nullable: true,
+      listed: true,
+      selectOptions:
+        "HAS_ONE Department(deptID,deptName,parentDeptID) AS workDepartment WHERE(status>0)",
+      filterTypes: MetaUiFilterType.SET | MetaUiFilterType.MULTI,
+    });
+    const onFilterModelChange = vi.fn();
+    const metaUi = new MetaUi({
+      objName: "Employee",
+      displayLabel: "职员",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [workDept],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
+        onFilterModelChange,
+      }),
+    );
+    vnode.props.ref?.({
+      ej2Instances: {
+        filterSettings: {
+          columns: [
+            { field: "workDeptID", operator: "equal", value: 3 },
+          ],
+        },
+        on: vi.fn(),
+        off: vi.fn(),
+      },
+    });
+    vnode.props.dataStateChange({
+      action: { requestType: "filtering" },
+    });
+    expect(onFilterModelChange).toHaveBeenCalledWith({
+      workDeptID: { filterType: "set", operator: "IN", values: [3] },
+    });
+  });
+
+  it("reads EJ2 Predicate getters instead of spreading column objects", () => {
+    const status = new MetaUiField({
+      fieldName: "status",
+      displayLabel: "状态",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "0;NEW;新员工|1;ON_BOARD;在岗|-1;LEAVE;离岗",
+    });
+    const predicate = {
+      get field() {
+        return "status";
+      },
+      get operator() {
+        return "equal";
+      },
+      get value() {
+        return "ON_BOARD";
+      },
+    };
+    expect(gridFiltersToModel([predicate], [status])).toEqual({
+      status: { filterType: "set", operator: "IN", values: ["ON_BOARD"] },
+    });
+  });
+
+  it("writes paged CheckBox filterModel from actionComplete", () => {
+    const factory = createSyncfusionUiFactory();
+    const status = new MetaUiField({
+      fieldName: "status",
+      displayLabel: "状态",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "0;NEW;新员工|1;ON_BOARD;在岗|-1;LEAVE;离岗",
+    });
+    const onFilterModelChange = vi.fn();
+    const metaUi = new MetaUi({
+      objName: "Employee",
+      displayLabel: "职员",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [status],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table(
+        [{ id: "1", status: "ON_BOARD" }],
+        metaUi,
+        {
+          filterDisplay: "menu",
+          pagination: { pageNo: 1, pageSize: 20, recordCount: 72 },
+          onFilterModelChange,
+        },
+      ),
+    );
+    vnode.props.actionComplete({
+      requestType: "filtering",
+      columns: [{ field: "status", operator: "equal", value: "ON_BOARD" }],
+    });
+    expect(onFilterModelChange).toHaveBeenCalledWith({
+      status: { filterType: "set", operator: "IN", values: ["ON_BOARD"] },
+    });
+  });
+
+  it("ignores actionComplete column defs and reads filterSettings predicates", () => {
+    const factory = createSyncfusionUiFactory();
+    const status = new MetaUiField({
+      fieldName: "status",
+      displayLabel: "状态",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "0;NEW;新员工|1;ON_BOARD;在岗|-1;LEAVE;离岗",
+    });
+    const onFilterModelChange = vi.fn();
+    const metaUi = new MetaUi({
+      objName: "Employee",
+      displayLabel: "职员",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [status],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([{ id: "1", status: "ON_BOARD" }], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 72 },
+        onFilterModelChange,
+      }),
+    );
+    vnode.props.ref?.({
+      ej2Instances: {
+        filterSettings: {
+          columns: [
+            { field: "status", operator: "equal", value: "ON_BOARD" },
+          ],
+        },
+        on: vi.fn(),
+        off: vi.fn(),
+      },
+    });
+    vnode.props.actionComplete({
+      requestType: "filtering",
+      columns: [{ field: "status", type: "string", uid: "grid-status" }],
+    });
+    expect(onFilterModelChange).toHaveBeenCalledWith({
+      status: { filterType: "set", operator: "IN", values: ["ON_BOARD"] },
+    });
+  });
+
+  it("keeps earlier column filters when actionComplete only has the latest field", () => {
+    const factory = createSyncfusionUiFactory();
+    const status = new MetaUiField({
+      fieldName: "status",
+      displayLabel: "状态",
+      fieldIdx: 0,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "0;NEW;新员工|1;ON_BOARD;在岗|-1;LEAVE;离岗",
+    });
+    const gender = new MetaUiField({
+      fieldName: "gender",
+      displayLabel: "性别",
+      fieldIdx: 1,
+      dataType: SqlDataType.VARCHAR,
+      nullable: true,
+      listed: true,
+      selectOptions: "0;UNKNOWN;-|1;MALE;男|2;FEMALE;女",
+    });
+    const onFilterModelChange = vi.fn();
+    const metaUi = new MetaUi({
+      objName: "Employee",
+      displayLabel: "职员",
+      primaryKey: "id",
+      groups: [
+        {
+          groupName: "base",
+          groupLabel: "base",
+          many: false,
+          fields: [status, gender],
+        },
+      ],
+    });
+    const vnode = gridOf(
+      factory.table([{ id: "1", status: "ON_BOARD", gender: "MALE" }], metaUi, {
+        filterDisplay: "menu",
+        pagination: { pageNo: 1, pageSize: 20, recordCount: 72 },
+        onFilterModelChange,
+      }),
+    );
+    vnode.props.ref?.({
+      ej2Instances: {
+        filterSettings: {
+          columns: [
+            { field: "status", operator: "equal", value: "ON_BOARD" },
+            { field: "gender", operator: "equal", value: "MALE" },
+          ],
+        },
+        on: vi.fn(),
+        off: vi.fn(),
+      },
+    });
+    vnode.props.actionComplete({
+      requestType: "filtering",
+      columns: [{ field: "gender", operator: "equal", value: "MALE" }],
+      action: { currentFilterObject: { field: "gender", operator: "equal", value: "MALE" } },
+    });
+    expect(onFilterModelChange).toHaveBeenCalledWith({
+      status: { filterType: "set", operator: "IN", values: ["ON_BOARD"] },
+      gender: { filterType: "set", operator: "IN", values: ["MALE"] },
     });
   });
 

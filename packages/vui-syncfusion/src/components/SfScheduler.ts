@@ -8,7 +8,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { createNoopSchedulerController, downloadSchedulerExcel, emitSchedulerChange, emitSchedulerEventClick, excelFileName, htmlAttributesOf, openSchedulerEventUrl, schedulerHookClass, schedulerWorkDaysOf, type UiSchedulerController, type UiSchedulerEvent, type UiSchedulerResource, type UiSchedulerView, type UiSchedulerViewProps } from '@mmda/vui'
+import { createNoopSchedulerController, downloadSchedulerExcel, emitSchedulerChange, emitSchedulerEventClick, excelFileName, htmlAttributesOf, openSchedulerEventUrl, schedulerHookClass, schedulerWorkDaysOf, type UiSchedulerController, type UiSchedulerEvent, type UiSchedulerResource, type UiSchedulerView, type UiSchedulerProps } from '@mmda/vui'
 import {
   ej2CurrentViewOf,
   ej2RecordToUiEvent,
@@ -95,7 +95,7 @@ export const SfScheduler = defineComponent({
     firstDayOfWeek: { type: Number },
     workDays: { type: Array as PropType<number[]> },
     showWeekend: { type: Boolean, default: true },
-    workHours: { type: Object as PropType<UiSchedulerViewProps['workHours']> },
+    workHours: { type: Object as PropType<UiSchedulerProps['workHours']> },
     startHour: { type: String },
     endHour: { type: String },
     slotDuration: { type: Number },
@@ -110,42 +110,42 @@ export const SfScheduler = defineComponent({
     hideEmptyAgendaDays: { type: Boolean, default: false },
     dayCount: { type: Number },
     showWeekNumber: { type: Boolean, default: false },
-    onReady: { type: Function as PropType<UiSchedulerViewProps['onReady']> },
+    onReady: { type: Function as PropType<UiSchedulerProps['onReady']> },
     onEventChange: {
-      type: Function as PropType<UiSchedulerViewProps['onEventChange']>,
+      type: Function as PropType<UiSchedulerProps['onEventChange']>,
     },
     onEventClick: {
-      type: Function as PropType<UiSchedulerViewProps['onEventClick']>,
+      type: Function as PropType<UiSchedulerProps['onEventClick']>,
     },
     onEventDblClick: {
-      type: Function as PropType<UiSchedulerViewProps['onEventDblClick']>,
+      type: Function as PropType<UiSchedulerProps['onEventDblClick']>,
     },
     onDateClick: {
-      type: Function as PropType<UiSchedulerViewProps['onDateClick']>,
+      type: Function as PropType<UiSchedulerProps['onDateClick']>,
     },
     onDateDblClick: {
-      type: Function as PropType<UiSchedulerViewProps['onDateDblClick']>,
+      type: Function as PropType<UiSchedulerProps['onDateDblClick']>,
     },
     onViewChange: {
-      type: Function as PropType<UiSchedulerViewProps['onViewChange']>,
+      type: Function as PropType<UiSchedulerProps['onViewChange']>,
     },
     onSelectRange: {
-      type: Function as PropType<UiSchedulerViewProps['onSelectRange']>,
+      type: Function as PropType<UiSchedulerProps['onSelectRange']>,
     },
     onRangeChange: {
-      type: Function as PropType<UiSchedulerViewProps['onRangeChange']>,
+      type: Function as PropType<UiSchedulerProps['onRangeChange']>,
     },
     onMoreEventsClick: {
-      type: Function as PropType<UiSchedulerViewProps['onMoreEventsClick']>,
+      type: Function as PropType<UiSchedulerProps['onMoreEventsClick']>,
     },
     onEventHover: {
-      type: Function as PropType<UiSchedulerViewProps['onEventHover']>,
+      type: Function as PropType<UiSchedulerProps['onEventHover']>,
     },
     eventContent: {
-      type: Function as PropType<UiSchedulerViewProps['eventContent']>,
+      type: Function as PropType<UiSchedulerProps['eventContent']>,
     },
     eventClassName: {
-      type: Function as PropType<UiSchedulerViewProps['eventClassName']>,
+      type: Function as PropType<UiSchedulerProps['eventClassName']>,
     },
   },
   setup(props) {

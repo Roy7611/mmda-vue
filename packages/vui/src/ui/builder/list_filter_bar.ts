@@ -5,6 +5,7 @@ import {
   chipValueEquals,
   isDateRangeKind,
   type FilterModel,
+  type MetaUi,
   type MetaUiField,
   type UiFilterBarProps,
 } from "@mmda/core";
@@ -22,6 +23,7 @@ import {
   promptSaveNamedQuery,
   setFieldFilterValues,
 } from "./list_named_query";
+import { applyLastQuery, dismissLastQuery } from "./list_last_query";
 
 export type ListFilterBarChip = {
   fieldName: string;
@@ -118,16 +120,17 @@ function formatLeaf(
   return [op, displayValue(context, field, filter.value)].filter(Boolean).join(" ");
 }
 
-export function listFilterBarChips(
-  context: VueUiContext<any>,
+export function filterModelChips(
+  model: FilterModel | undefined,
+  metaUi: MetaUi,
+  t: (key: string) => string,
+  skip: Set<string> = new Set(),
 ): ListFilterBarChip[] {
-  const model = context.searchParam?.filterModel as FilterModel | undefined;
   if (!model) return [];
-  const metaUi = indexTableMetaUi(context);
+  const context = { t } as VueUiContext<any>;
   const chips: ListFilterBarChip[] = [];
-  const fixed = listFixedFilterFieldNames(context);
   for (const [fieldName, filter] of Object.entries(model)) {
-    if (fixed.has(fieldName)) continue;
+    if (skip.has(fieldName)) continue;
     if (FieldFilter.isEmpty(filter)) continue;
     const field = metaUi.getField(fieldName);
     const title = field?.displayLabel || fieldName;
@@ -138,6 +141,17 @@ export function listFilterBarChips(
     });
   }
   return chips;
+}
+
+export function listFilterBarChips(
+  context: VueUiContext<any>,
+): ListFilterBarChip[] {
+  return filterModelChips(
+    context.searchParam?.filterModel as FilterModel | undefined,
+    indexTableMetaUi(context),
+    (key) => tOf(context, key),
+    listFixedFilterFieldNames(context),
+  );
 }
 
 function clearSearchField(context: VueUiContext<any>, fieldName: string) {
@@ -162,7 +176,6 @@ export function removeListFilterBarChip(
   deleteFilterKey(context, fieldName);
   clearSearchField(context, fieldName);
   writeListFilterModel(context.searchParam, context.searchParam.filterModel ?? {});
-  context.listLayoutRev.value += 1;
   return context.search?.();
 }
 
@@ -174,7 +187,6 @@ export function clearListFilterBar(context: VueUiContext<any>) {
     clearSearchField(context, fieldName);
   }
   writeListFilterModel(context.searchParam, context.searchParam.filterModel ?? {});
-  context.listLayoutRev.value += 1;
   return context.search?.();
 }
 
@@ -264,7 +276,7 @@ export const ListFilterBarView = defineComponent({
     return () => {
       void props.context.searchParam?.filterModel;
       void props.context.searchParam?.queryID;
-      void props.context.listLayoutRev?.value;
+      void props.context.lastQuery?.value;
       return createListFilterBar(props.factory, props.context, props.extra ?? {});
     };
   },
@@ -274,12 +286,11 @@ export function createListFilterBar(
   factory: UiFactory,
   context: VueUiContext<any>,
   props: UiFilterBarProps = {},
-): VNode | null {
+): VNode {
   const fixedGroups = listFixedFilterChipGroups(context);
   const chips = listFilterBarChips(context);
   const extra = props.chips?.();
   const extraNodes = extra == null ? [] : Array.isArray(extra) ? extra : [extra];
-  if (!fixedGroups.length && !chips.length && !extraNodes.length) return null;
   const items = chips.map((chip) => ({
     label: chip.label,
     value: chip.fieldName,
@@ -295,7 +306,19 @@ export function createListFilterBar(
           if (name) void removeListFilterBarChip(context, name);
         },
       })
-    : null;
+    : extraNodes.length || fixedGroups.length
+      ? null
+      : factory.chips?.({
+          class: "mmda-list-filter-bar__all",
+          kind: "action",
+          items: [
+            {
+              label: tOf(context, "action.all"),
+              value: ALL_FILTER_CHIP,
+            },
+          ],
+          selected: ALL_FILTER_CHIP,
+        });
   const fixedLists = fixedGroups.map((group) =>
     factory.chips?.({
       class: "mmda-list-filter-bar__fixed",
@@ -312,6 +335,30 @@ export function createListFilterBar(
       },
     }),
   );
+  const storedQuery = context.lastQuery?.value;
+  const lastQueryLink = storedQuery
+    ? h("span", { class: "mmda-list-filter-bar__last-query" }, [
+        h(
+          "button",
+          {
+            type: "button",
+            class: "mmda-list-filter-bar__last-query-apply",
+            onClick: () => void applyLastQuery(context),
+          },
+          tOf(context, "action.lastQuery"),
+        ),
+        h(
+          "button",
+          {
+            type: "button",
+            class: "mmda-list-filter-bar__last-query-dismiss",
+            title: tOf(context, "action.clear"),
+            onClick: () => void dismissLastQuery(context),
+          },
+          "×",
+        ),
+      ])
+    : null;
   const queryID = context.searchParam?.queryID;
   const actions = h("div", { class: "mmda-list-filter-bar__actions" }, [
     iconButton(
@@ -347,10 +394,21 @@ export function createListFilterBar(
         )
       : null,
   ]);
-  return h("div", { class: "mmda-list-filter-bar" }, [
-    ...fixedLists,
-    chipList,
-    ...extraNodes,
-    actions,
-  ]);
+  const empty = !fixedGroups.length && !items.length && !extraNodes.length;
+  return h(
+    "div",
+    {
+      class: empty
+        ? "mmda-list-filter-bar mmda-list-filter-bar--empty"
+        : "mmda-list-filter-bar",
+    },
+    [
+      h("span", { class: "mmda-list-filter-bar__title" }, tOf(context, "action.filter")),
+      ...fixedLists,
+      chipList,
+      lastQueryLink,
+      ...extraNodes,
+      actions,
+    ],
+  );
 }

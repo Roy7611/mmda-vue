@@ -12,7 +12,7 @@ import {
 
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
 
-import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField, LIST_SEARCH_MODE_NAMED, listSearchModeOf } from '@mmda/vui'
+import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField } from '@mmda/vui'
 
 import {
 
@@ -185,6 +185,16 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
   override setColorPalette(palette: any) {
 
     super.setColorPalette(palette)
+
+    refreshNaiveThemeFromCss()
+
+  }
+
+
+
+  override setFontScale(scale: any) {
+
+    super.setFontScale(scale)
 
     refreshNaiveThemeFromCss()
 
@@ -1762,8 +1772,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
           event.preventDefault()
 
-          if (listSearchModeOf(runtime) === LIST_SEARCH_MODE_NAMED) return
-
           submitFuzzySearch()
 
         },
@@ -1792,31 +1800,33 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
           onFuzzySearch: submitFuzzySearch,
 
+        }, {
+
+          default: () => h('span', { class: 'mmda-searchbar__addons' }, [
+
+            addonButton(
+
+              this.factory.resolveIcon('search'),
+
+              searchLabel,
+
+              submitFuzzySearch,
+
+            ),
+
+            addonButton(
+
+              this.factory.resolveIcon('refresh'),
+
+              refreshLabel,
+
+              refreshSearch,
+
+            ),
+
+          ]),
+
         }),
-
-        h('span', { class: 'mmda-searchbar__addons' }, [
-
-          addonButton(
-
-            this.factory.resolveIcon('search'),
-
-            searchLabel,
-
-            submitFuzzySearch,
-
-          ),
-
-          addonButton(
-
-            this.factory.resolveIcon('refresh'),
-
-            refreshLabel,
-
-            refreshSearch,
-
-          ),
-
-        ]),
 
         (filters.length > 0 || runtime.searchFields?.length > 0) &&
 

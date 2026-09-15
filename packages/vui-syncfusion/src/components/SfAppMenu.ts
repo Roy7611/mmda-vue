@@ -4,6 +4,7 @@ import {
   defineComponent,
   h,
   inject,
+  nextTick,
   ref,
   watch,
   type PropType,
@@ -13,6 +14,7 @@ import {
 import { RouterLink, useRoute } from 'vue-router'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
 import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, useCompactViewport, wrapRailLabel, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
+import { dockExpandedPx, dockPanelPx, dockRailPx, syncfusionSkinState } from '../syncfusion_skin'
 
 type SlotFn = () => VNodeChild
 
@@ -24,10 +26,7 @@ type SlotFn = () => VNodeChild
  * @see https://ej2.syncfusion.com/documentation/sidebar/docking-sidebar
  * @see https://ej2.syncfusion.com/documentation/sidebar/custom-context
  */
-const DOCK_WIDTH = '300px'
-const DOCK_SIZE = '72px'
-/** compact 二级抽屉宽 ≈ Dock 展开区（300 − 72） */
-const COMPACT_DRAWER_WIDTH = '228px'
+/** compact 二级抽屉宽由 dockPanelPx() 按字号档计算 */
 /** 与 VueUiLayout.scaffold / buildAppScaffold 根节点一致。 */
 const SHELL_TARGET = `.${uiCssClass('app-layout')}`
 const DOCK_SIDEBAR_ID = 'mmda-app-sidebar'
@@ -111,25 +110,41 @@ function isActiveRoute(path: string, route?: string): boolean {
   return !!route && (path === route || path.startsWith(`${route}/`))
 }
 
-function getSidebarInstance(refValue: unknown): {
+type SidebarApi = {
   toggle?: () => void
   show?: () => void
   hide?: () => void
-} | null {
+  dockSize?: string | number
+  width?: string | number
+}
+
+function getSidebarInstance(refValue: unknown): SidebarApi | null {
   if (!refValue || typeof refValue !== 'object') return null
-  const vue = refValue as {
-    toggle?: () => void
-    show?: () => void
-    hide?: () => void
-    ej2Instances?: {
-      toggle?: () => void
-      show?: () => void
-      hide?: () => void
-    }
+  const vue = refValue as SidebarApi & { ej2Instances?: SidebarApi }
+  if (typeof vue.toggle === 'function' || typeof vue.show === 'function') {
+    return vue
   }
-  if (typeof vue.toggle === 'function') return vue
   if (vue.ej2Instances) return vue.ej2Instances
   return null
+}
+
+function applyDockMetrics(
+  refValue: unknown,
+  rail: string,
+  expanded: string,
+  open: boolean,
+) {
+  const api = getSidebarInstance(refValue)
+  if (api) {
+    api.dockSize = rail
+    api.width = expanded
+    if (open) api.show?.()
+  }
+  if (typeof document === 'undefined') return
+  const page = document.querySelector(
+    '.mmda-app-page.e-main-content',
+  ) as HTMLElement | null
+  if (page) page.style.marginLeft = open ? expanded : rail
 }
 
 /**
@@ -176,6 +191,24 @@ export const SfAppSideMenu = defineComponent({
     const compact = computed(() =>
       typeof props.compact === 'boolean' ? props.compact : mediaCompact.value,
     )
+    const dockSize = computed(() => {
+      void syncfusionSkinState.fontRev
+      return `${dockRailPx()}px`
+    })
+    const dockWidth = computed(() => {
+      void syncfusionSkinState.fontRev
+      return `${dockExpandedPx()}px`
+    })
+    const compactDrawerWidth = computed(() => {
+      void syncfusionSkinState.fontRev
+      return `${dockPanelPx()}px`
+    })
+
+    watch([dockSize, dockWidth], ([rail, expanded]) => {
+      void nextTick(() => {
+        applyDockMetrics(sidebarRef.value, rail, expanded, dockOpen.value)
+      })
+    })
 
     const menuItems = computed(() => assembleMenuItems(props.modules))
     const withSystems = computed(
@@ -500,7 +533,7 @@ export const SfAppSideMenu = defineComponent({
                 type: 'Over',
                 isOpen: drawerOpen.value,
                 position: 'Left',
-                width: COMPACT_DRAWER_WIDTH,
+                width: compactDrawerWidth.value,
                 showBackdrop: true,
                 closeOnDocumentClick: true,
                 enableDock: false,
@@ -540,13 +573,13 @@ export const SfAppSideMenu = defineComponent({
             class: uiCssClasses('sidebar', 'dock'),
             // Docking Sidebar docs
             enableDock: true,
-            dockSize: DOCK_SIZE,
-            width: DOCK_WIDTH,
+            dockSize: dockSize.value,
+            width: dockWidth.value,
             // Types + Target docs: Push sibling content inside shell
             type: 'Push',
             target: SHELL_TARGET,
             position: 'Left',
-            isOpen: true,
+            isOpen: dockOpen.value,
             closeOnDocumentClick: false,
             showBackdrop: false,
             enableGestures: false,

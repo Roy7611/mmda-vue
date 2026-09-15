@@ -27,7 +27,7 @@ export type VueUiFieldFactory = CoreUiFieldFactory<VNode>;
 /**
  * 过渡名：皮肤仍写 UiFieldFactory。
  * 带标签行的入口见 core：`render` / `editFor` / `displayFor`（由 attachFieldRowApi 挂上）。
- * 没有 `timeline`：时间轴走 factory.timeline / buildTimelineView。
+ * 没有 `timeline`：时间轴走 factory.timeline / buildTimeline。
  */
 export interface UiFieldFactory extends VueUiFieldFactory {
   fallbackDisplay: VueFieldRenderer;
@@ -89,6 +89,7 @@ export const TABLE_CELL_PROP_KEYS = [
   "loadingSlot",
   "onFilterModelChange",
   "filterModel",
+  "filterModelOf",
   "filterLabels",
   "onSelect",
   "onSelectionChange",

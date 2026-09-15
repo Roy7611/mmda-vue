@@ -57,12 +57,12 @@ describe('createSfSchedulerPlugin', () => {
   it('throws until setSchedulerPlugin on the skin builder', () => {
     const builder = new SyncfusionUiBuilder()
     expect(() =>
-      builder.buildSchedulerView({} as any, {
+      builder.buildScheduler({} as any, {
         events: [{ id: 1, start: '2026-01-01' }],
       }),
     ).toThrow(SCHEDULER_PLUGIN_NOT_INSTALLED)
     builder.setSchedulerPlugin(createSfSchedulerPlugin())
-    const vnode = builder.buildSchedulerView({} as any, {
+    const vnode = builder.buildScheduler({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
       showHeader: false,
       showQuickInfo: true,

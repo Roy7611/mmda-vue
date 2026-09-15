@@ -96,8 +96,8 @@ export function buildNaiveThemeOverrides(): GlobalThemeOverrides {
       warningColor: warning,
       infoColor: info,
       borderRadius: '8px',
-      heightSmall: '28px',
-      heightMedium: '32px',
+      heightSmall: `${Math.round(28 * currentFontScaleRatio())}px`,
+      heightMedium: `${Math.round(32 * currentFontScaleRatio())}px`,
     },
     Button: {
       textColorPrimary: onPrimary,
@@ -170,9 +170,20 @@ export function buildAgGridTheme(): Theme {
       dark ? '#1c1b1e' : '#f7f2f7',
     ),
     browserColorScheme: dark ? 'dark' : 'light',
-    fontSize: 13,
-    headerFontSize: 13,
-    rowHeight: 32,
-    headerHeight: 36,
+    fontSize: Math.round(13 * currentFontScaleRatio()),
+    headerFontSize: Math.round(13 * currentFontScaleRatio()),
+    rowHeight: Math.round(32 * currentFontScaleRatio()),
+    headerHeight: Math.round(36 * currentFontScaleRatio()),
   })
+}
+
+function currentFontScaleRatio(): number {
+  if (typeof document === 'undefined') return 1
+  const raw =
+    document.documentElement.style.getPropertyValue('--mmda-font-scale').trim() ||
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--mmda-font-scale')
+      .trim()
+  const n = Number.parseFloat(raw)
+  return Number.isFinite(n) && n > 0 ? n : 1
 }

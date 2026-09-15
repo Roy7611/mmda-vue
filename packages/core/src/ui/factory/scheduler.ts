@@ -95,7 +95,7 @@ export interface UiSchedulerWorkHours {
   end: string
 }
 
-export interface UiSchedulerViewProps<TNode = any> extends UiProps {
+export interface UiSchedulerProps<TNode = any> extends UiProps {
   events?: UiSchedulerEvent[]
   resources?: UiSchedulerResource[]
   selectedDate?: string | Date
@@ -144,7 +144,7 @@ export interface UiSchedulerViewProps<TNode = any> extends UiProps {
 }
 
 export interface UiSchedulerPlugin<TNode = any> {
-  schedulerView: (props: UiSchedulerViewProps<TNode>) => TNode
+  schedulerView: (props: UiSchedulerProps<TNode>) => TNode
 }
 
 export const SCHEDULER_PLUGIN_NOT_INSTALLED = 'scheduler plugin not installed'
@@ -217,7 +217,7 @@ export function schedulerHiddenDaysOf(props: {
 }
 
 export async function emitSchedulerChange(
-  handler: UiSchedulerViewProps['onEventChange'] | undefined,
+  handler: UiSchedulerProps['onEventChange'] | undefined,
   event: UiSchedulerChangeEvent,
 ): Promise<boolean> {
   if (!handler) return true
@@ -225,7 +225,7 @@ export async function emitSchedulerChange(
 }
 
 export async function emitSchedulerEventClick(
-  handler: UiSchedulerViewProps['onEventClick'] | undefined,
+  handler: UiSchedulerProps['onEventClick'] | undefined,
   event: UiSchedulerEvent,
 ): Promise<boolean> {
   if (!handler) return true

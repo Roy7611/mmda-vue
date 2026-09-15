@@ -56,6 +56,7 @@ const t = (key: string) => {
     "dateRange.THIS_MONTH": "本月",
     "boolean.yes": "是",
     "tableSettings.activeFilters": "当前过滤",
+    "action.filter": "过滤",
     "action.clearFilters": "清除过滤",
     "action.all": "全部",
     "action.saveQuery": "保存查询",
@@ -122,7 +123,7 @@ describe("list filter bar actions", () => {
       status: FieldFilter.in(["OPEN"]),
     });
     expect(ctx.searchParam.pager.pageNo).toBe(1);
-    expect(ctx.listLayoutRev.value).toBe(1);
+    expect(ctx.listLayoutRev.value).toBe(0);
     expect(ctx.search).toHaveBeenCalledOnce();
   });
 
@@ -147,21 +148,45 @@ describe("list filter bar actions", () => {
     expect(ctx.search).toHaveBeenCalledOnce();
   });
 
-  it("does not render an empty bar and renders chips when filters exist", () => {
+  it("always renders the bar and adds chips when filters exist", () => {
     const factory = {
       chips: (props: any) =>
         h("div", { class: "mmda-chips", "data-count": props.items?.length }),
       button: (props: any) => h("button", { title: props.tooltip }, props.label),
       resolveIcon: (name: string) => name,
     } as any;
-    expect(createListFilterBar(factory, contextOf())).toBeNull();
+    const empty = createListFilterBar(factory, contextOf());
+    expect(empty.props?.class).toBe(
+      "mmda-list-filter-bar mmda-list-filter-bar--empty",
+    );
+    expect(empty.children?.[0]).toMatchObject({
+      props: { class: "mmda-list-filter-bar__title" },
+      children: "过滤",
+    });
+    let emptyChips: any;
+    createListFilterBar(
+      {
+        chips: (props: any) => {
+          emptyChips = props;
+          return h("div", { class: "mmda-chips" });
+        },
+        button: (props: any) => h("button", { title: props.tooltip }, props.label),
+        resolveIcon: (name: string) => name,
+      } as any,
+      contextOf(),
+    );
+    expect(emptyChips.kind).toBe("action");
+    expect(emptyChips.selected).toBe("__all__");
+    expect(emptyChips.items.map((item: { label: string }) => item.label)).toEqual(
+      ["全部"],
+    );
     const vnode = createListFilterBar(
       factory,
       contextOf({
         name: { filterType: "text", operator: "CONTAINS", value: "钢" },
       }),
     );
-    expect(vnode?.props?.class).toBe("mmda-list-filter-bar");
+    expect(vnode.props?.class).toBe("mmda-list-filter-bar");
     expect(vnode?.children).not.toContain(undefined);
     let chipsProps: any;
     const capturing = {
@@ -311,7 +336,7 @@ describe("list filter bar actions", () => {
     });
   });
 
-  it("ListFilterBarView appears after filterModel is written", async () => {
+  it("ListFilterBarView stays visible and grows chips after filterModel is written", async () => {
     const factory = {
       chips: (props: any) =>
         h("div", { class: "mmda-chips", "data-count": props.items?.length }),
@@ -326,12 +351,45 @@ describe("list filter bar actions", () => {
       h(ListFilterBarView, { factory, context }),
       host,
     );
-    expect(host.querySelector(".mmda-list-filter-bar")).toBeNull();
+    expect(host.querySelector(".mmda-list-filter-bar")).toBeTruthy();
+    expect(host.querySelector(".mmda-chips")?.getAttribute("data-count")).toBe(
+      "1",
+    );
     context.searchParam.filterModel = {
       name: { filterType: "text", operator: "CONTAINS", value: "钢" },
     };
     await nextTick();
     expect(host.querySelector(".mmda-list-filter-bar")).toBeTruthy();
+    expect(host.querySelector(".mmda-chips")?.getAttribute("data-count")).toBe(
+      "1",
+    );
+    render(null, host);
+    host.remove();
+  });
+
+  it("ListFilterBarView grows chips when filterModel is written without listLayoutRev", async () => {
+    const factory = {
+      chips: (props: any) =>
+        h("div", { class: "mmda-chips", "data-count": props.items?.length }),
+      button: (props: any) => h("button", { title: props.tooltip }, props.label),
+      resolveIcon: (name: string) => name,
+    } as any;
+    const context = contextOf();
+    context.searchParam = reactive(context.searchParam);
+    const host = document.createElement("div");
+    document.body.append(host);
+    render(h(ListFilterBarView, { factory, context }), host);
+    expect(host.querySelector(".mmda-list-filter-bar")).toBeTruthy();
+    expect(host.querySelector(".mmda-chips")?.getAttribute("data-count")).toBe(
+      "1",
+    );
+    context.searchParam.filterModel = {
+      workDeptID: FieldFilter.in(3),
+    };
+    await nextTick();
+    expect(host.querySelector(".mmda-chips")?.getAttribute("data-count")).toBe(
+      "1",
+    );
     render(null, host);
     host.remove();
   });

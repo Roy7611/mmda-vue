@@ -45,6 +45,7 @@ import { WithNavigate } from "./mixins/navigate";
 import { createSession, setSessionFactory } from "./mixins/session";
 import type { ChildContextOptions } from "./mixins/types";
 import type { UiIndexTableHost } from "../ui/factory/list";
+import { logListPaint } from "../ui/builder/list_query";
 
 type ContextCache = Map<string, VueUiContextBase<any>>;
 type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
@@ -93,6 +94,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
   readonly view: UiViewType;
   readonly locale: string;
   readonly loading: Ref<boolean>;
+  readonly error: Ref<unknown>;
   readonly app?: MmdaVueApp;
   logic?: EntityLogic<any>;
   router?: Router | any;
@@ -175,6 +177,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     );
     this.pageNotice = ref<UiMessageProps | null>(null);
     this.loading = ref(false);
+    this.error = ref<unknown>(null);
     this.initializedState = ref(!this.loader);
     this.cache.set(this.cachePath, this);
   }
@@ -403,6 +406,17 @@ class VueUiContextBase<E extends object = Record<string, any>>
     const target = this.model as Record<string, any>;
     if (isPagedList(target) && isPagedList(model)) {
       assignPagedList(target as any, model as any);
+      if (this.indexTableHost) {
+        this.indexTableHost.rebind();
+        const paged = target as {
+          list?: unknown[];
+          pagination?: { pageNo?: number };
+        };
+        logListPaint("table-rebind", {
+          pageNo: paged.pagination?.pageNo,
+          rows: Array.isArray(paged.list) ? paged.list.length : undefined,
+        });
+      }
       return;
     }
     for (const key of Object.keys(target)) {

@@ -13,6 +13,16 @@
   --mmda-border-radius-lg: 12px;
   --mmda-icon-button-size: 1.75rem;
   --mmda-page-end-space: 3rem;
+  /* 顶栏：侧栏 Logo/标题 与 右侧工具栏 同高，字号放大也不撑开 */
+  --mmda-app-header-height: 3rem;
+  /* 一级轨宽：跟字号档走，四字标签才塞得下 */
+  --mmda-side-rail-width: calc(72px * var(--mmda-font-scale, 1));
+  /* 二级栏只吃字号增量的一部分，避免主区被挤；还空改小，折行改大 */
+  --mmda-side-panel-grow: 0.4;
+  --mmda-side-panel-width: calc(
+    228px *
+      (1 + (var(--mmda-font-scale, 1) - 1) * var(--mmda-side-panel-grow))
+  );
   --mmda-primary-color: #6750a4;
   --mmda-primary-soft: #e9ddff;
   --mmda-on-primary: #ffffff;
@@ -24,6 +34,11 @@
   --mmda-danger-color: #b3261e;
   /* MD3 on-surface-variant：与次要文字色一致，随亮/暗色板切换 */
   --mmda-on-surface-variant: var(--mmda-text-muted-color);
+  --mmda-font-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--mmda-font-scale, 1));
 }
 
 /* MD3：accent + surface 均跟色板；soft = primaryContainer / secondaryContainer */
@@ -385,7 +400,8 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   margin-left: 0;
 }
 
-.mmda-color-palette-picker {
+.mmda-color-palette-picker,
+.mmda-font-scale-picker {
   display: inline-flex;
   flex: 0 0 auto;
   width: 2rem;
@@ -461,6 +477,35 @@ html[data-mmda-palette="cyan"] .mmda-palette-swatch--cyan::before {
 
 .mmda-palette-swatch--cyan {
   --mmda-palette-preview: #0dcaf0;
+}
+
+.mmda-font-scale-mark {
+  position: relative;
+  display: inline-grid !important;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mmda-font-scale-mark--standard {
+  font-size: 0.7rem;
+}
+
+.mmda-font-scale-mark--large {
+  font-size: 0.85rem;
+}
+
+.mmda-font-scale-mark--xlarge {
+  font-size: 1rem;
+}
+
+html[data-mmda-font-scale="standard"] .mmda-font-scale-mark--standard::before,
+html[data-mmda-font-scale="large"] .mmda-font-scale-mark--large::before,
+html[data-mmda-font-scale="xlarge"] .mmda-font-scale-mark--xlarge::before {
+  content: "\2713";
 }
 
 /* 自研 Dropup（侧栏色板 / 用户菜单）：Teleport + fixed，避开 overflow:hidden */
@@ -718,14 +763,14 @@ html.mmda-dark .mmda-dropup {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  padding: 0.15rem 0 0.35rem 0.85rem;
+  padding: 0.15rem 0 0.35rem 0.55rem;
 }
 
 .mmda-app-side-menu--compact {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  width: 72px;
+  width: var(--mmda-side-rail-width, 72px);
   height: 100%;
   min-height: 0;
   /* 勿 hidden：EJ2 Over 抽屉若相对本节点定位会被裁成一条缝 */
@@ -736,7 +781,12 @@ html.mmda-dark .mmda-dropup {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.25rem 0.25rem;
+  box-sizing: border-box;
+  height: var(--mmda-app-header-height, 3rem);
+  min-height: var(--mmda-app-header-height, 3rem);
+  max-height: var(--mmda-app-header-height, 3rem);
+  padding: 0;
+  overflow: hidden;
 }
 
 .mmda-app-side-menu__rail {
@@ -799,8 +849,11 @@ html.mmda-dark .mmda-dropup {
   align-items: center;
   flex: 0 0 auto;
   box-sizing: border-box;
-  min-height: 3.25rem;
+  height: var(--mmda-app-header-height, 3rem);
+  min-height: var(--mmda-app-header-height, 3rem);
+  max-height: var(--mmda-app-header-height, 3rem);
   padding: 0 0.75rem;
+  overflow: hidden;
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.2;
@@ -851,12 +904,12 @@ html.mmda-dark .mmda-dropup {
 .mmda-app-side-menu--compact .mmda-sidebar--drawer.e-sidebar.e-open,
 .mmda-app-side-menu--compact .mmda-app-side-menu__drawer.e-sidebar.e-open {
   /* 让出一级轨，避免盖住 L1 */
-  left: 72px !important;
+  left: var(--mmda-side-rail-width, 72px) !important;
 }
 
 .mmda-app-side-menu__drawer-fallback {
   position: fixed;
-  inset: 0 auto 0 72px;
+  inset: 0 auto 0 var(--mmda-side-rail-width, 72px);
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -887,12 +940,12 @@ html.mmda-dark .mmda-dropup {
   flex-shrink: 0;
   width: 100%;
   min-width: 0;
-  height: 3rem;
-  min-height: 3rem;
-  max-height: 3rem;
+  height: var(--mmda-app-header-height, 3rem);
+  min-height: var(--mmda-app-header-height, 3rem);
+  max-height: var(--mmda-app-header-height, 3rem);
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0 0.75rem;
+  padding: 0 0.8rem;
   color: var(--mmda-text-color);
   background: var(--mmda-surface-card);
   border-bottom: 1px solid var(--mmda-content-border-color, #cac4d0);
@@ -2061,6 +2114,15 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
   min-width: 0;
 }
 
+.mmda-list-filter-bar__title {
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mmda-text-muted-color, #49454f);
+}
+
 .mmda-list-filter-bar > .mmda-chips {
   flex: 1 1 auto;
   min-width: 0;
@@ -2084,61 +2146,51 @@ article.mmda-group.mmda-group--tab > .mmda-group__header {
   flex-shrink: 0;
 }
 
+.mmda-list-filter-bar__last-query {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.mmda-list-filter-bar__last-query-apply {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--mmda-primary-color, #6750a4);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mmda-list-filter-bar__last-query-dismiss {
+  border: 0;
+  padding: 0 0.2rem;
+  background: none;
+  color: var(--mmda-text-muted-color, #49454f);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .mmda-searchbar__field {
   position: relative;
   display: inline-flex;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.mmda-searchbar__mode {
-  flex: 0 0 auto;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
-}
-
-.mmda-searchbar__named-suggest {
-  position: absolute;
-  z-index: 8;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin: 0.15rem 0 0;
-  padding: 0.25rem 0;
-  list-style: none;
-  border-radius: 0.5rem;
-  background: var(--mmda-surface, #fff);
-  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 12%);
-}
-
-.mmda-searchbar__named-suggest-item {
-  display: flex;
   align-items: center;
-  gap: 0.25rem;
-}
-
-.mmda-searchbar__named-suggest-pick {
-  flex: 1 1 auto;
   min-width: 0;
-  margin: 0;
-  padding: 0.35rem 0.75rem;
-  border: 0;
-  background: transparent;
-  text-align: start;
-  font: inherit;
-  cursor: pointer;
 }
 
-.mmda-searchbar__named-suggest-delete {
-  flex: 0 0 auto;
-  margin: 0 0.35rem 0 0;
-  padding: 0 0.35rem;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
+.mmda-searchbar__field input[type="search"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.mmda-searchbar__field input[type="search"]::-webkit-search-decoration,
+.mmda-searchbar__field input[type="search"]::-webkit-search-cancel-button,
+.mmda-searchbar__field input[type="search"]::-webkit-search-results-button,
+.mmda-searchbar__field input[type="search"]::-webkit-search-results-decoration {
+  display: none;
 }
 
 .mmda-save-named-query {

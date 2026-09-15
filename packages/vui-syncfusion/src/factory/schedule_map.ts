@@ -1,4 +1,4 @@
-import type { UiSchedulerEvent, UiSchedulerResource, UiSchedulerView, UiSchedulerViewProps } from '@mmda/vui'
+import type { UiSchedulerEvent, UiSchedulerResource, UiSchedulerView, UiSchedulerProps } from '@mmda/vui'
 import { isSchedulerTimelineView, schedulerHourHms, schedulerSlotDurationOf, schedulerWorkDaysOf } from '@mmda/vui'
 
 export const EJ2_SCHEDULER_VIEWS: Record<UiSchedulerView, string> = {
@@ -80,7 +80,7 @@ export function schedulerTimeScaleOf(slotDuration?: number) {
   }
 }
 
-export function schedulerWorkHoursOf(props: UiSchedulerViewProps) {
+export function schedulerWorkHoursOf(props: UiSchedulerProps) {
   if (!props.workHours) return { highlight: false, start: '09:00', end: '18:00' }
   return {
     highlight: true,
@@ -97,7 +97,7 @@ export function uiViewOfEj2(currentView?: string): UiSchedulerView {
   return EJ2_TO_UI_VIEW[String(currentView)] ?? 'week'
 }
 
-export function usesTimelineOrResources(props: UiSchedulerViewProps): boolean {
+export function usesTimelineOrResources(props: UiSchedulerProps): boolean {
   return (
     isSchedulerTimelineView(props.view) || (props.resources?.length ?? 0) > 0
   )

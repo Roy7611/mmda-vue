@@ -132,6 +132,62 @@ export function writeStoredPageLayout(
   writeMmdaPref("pageLayout", layout, storage);
 }
 
+export const MMDA_FONT_SCALE_IDS = ["standard", "large", "xlarge"] as const;
+
+export type MmdaFontScale = (typeof MMDA_FONT_SCALE_IDS)[number];
+
+export interface MmdaFontScaleOption {
+  id: MmdaFontScale;
+  label: string;
+  ratio: number;
+}
+
+export const DEFAULT_FONT_SCALE: MmdaFontScale = "standard";
+
+export const FONT_SCALE_RATIO: Record<MmdaFontScale, number> = {
+  standard: 1,
+  large: 1.25,
+  xlarge: 1.5,
+};
+
+export const MMDA_FONT_SCALES: readonly MmdaFontScaleOption[] = [
+  { id: "standard", label: "fontScale.standard", ratio: FONT_SCALE_RATIO.standard },
+  { id: "large", label: "fontScale.large", ratio: FONT_SCALE_RATIO.large },
+  { id: "xlarge", label: "fontScale.xlarge", ratio: FONT_SCALE_RATIO.xlarge },
+];
+
+const FONT_SCALE_IDS = new Set<string>(MMDA_FONT_SCALE_IDS);
+
+export function isMmdaFontScale(value: unknown): value is MmdaFontScale {
+  return typeof value === "string" && FONT_SCALE_IDS.has(value);
+}
+
+export function resolveFontScale(value: unknown): MmdaFontScale {
+  return isMmdaFontScale(value) ? value : DEFAULT_FONT_SCALE;
+}
+
+export function fontScaleRatio(value: unknown): number {
+  return FONT_SCALE_RATIO[resolveFontScale(value)];
+}
+
+/** 读本地字号档（`mmda/fontScale`），无效时回落标准 */
+export function readStoredFontScale(
+  storage: Pick<Storage, "getItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): MmdaFontScale {
+  return resolveFontScale(readMmdaPref("fontScale", storage));
+}
+
+/** 用户切换字号档后写入本地（`mmda/fontScale`） */
+export function writeStoredFontScale(
+  scale: MmdaFontScale,
+  storage: Pick<Storage, "setItem"> | undefined =
+    typeof localStorage === "undefined" ? undefined : localStorage,
+): void {
+  if (!isMmdaFontScale(scale)) return;
+  writeMmdaPref("fontScale", scale, storage);
+}
+
 export const MMDA_COLOR_PALETTES: readonly MmdaColorPaletteOption[] = [
   {
     id: "indigo",

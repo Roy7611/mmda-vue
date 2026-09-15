@@ -3,8 +3,8 @@ import {
   type UiGanttLink,
   type UiGanttPrintOptions,
   type UiGanttTask,
-  type UiGanttViewMode,
-  type UiGanttViewProps,
+  type UiGanttTimeScale,
+  type UiGanttProps,
 } from '@mmda/vui'
 
 export const PROJECT_SERIALIZER_NOT_INSTALLED =
@@ -35,7 +35,7 @@ export type HyperGanttItem = Record<string, unknown> & {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export const HOUR_WIDTH_OF: Record<UiGanttViewMode, number> = {
+export const HOUR_WIDTH_OF: Record<UiGanttTimeScale, number> = {
   day: 24,
   week: 5,
   month: 1.5,
@@ -218,7 +218,7 @@ export function hyperItemsToVui(items: HyperGanttItem[] = []): {
   return { tasks, links }
 }
 
-export function scalesOf(mode: UiGanttViewMode = 'week') {
+export function scalesOf(mode: UiGanttTimeScale = 'week') {
   const current = {
     scaleType: 'CurrentTime',
     isHeaderVisible: false,
@@ -273,7 +273,7 @@ export function scalesOf(mode: UiGanttViewMode = 'week') {
   ]
 }
 
-export function hourWidthOf(props: UiGanttViewProps): number {
+export function hourWidthOf(props: UiGanttProps): number {
   if (props.hourWidth != null) return props.hourWidth
   return HOUR_WIDTH_OF[props.viewMode ?? 'week']
 }
@@ -292,7 +292,7 @@ export function printSettingsOf(options: UiGanttPrintOptions = {}) {
 }
 
 export function hyperSettingsOf(
-  props: UiGanttViewProps,
+  props: UiGanttProps,
   license?: string,
 ): Record<string, unknown> {
   const readonly = !!props.readonly

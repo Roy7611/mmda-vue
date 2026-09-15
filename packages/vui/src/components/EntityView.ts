@@ -31,7 +31,6 @@ import {
   resolveSearchParam,
   resolveViewManyProps,
   UiViewMany,
-  UiViewManyKind,
   UiViewOne,
   type UiViewType,
 } from "../contexts/view";
@@ -95,26 +94,12 @@ function isIndexView(path: string, queryView?: unknown): boolean {
   return view === UiViewMany.Index || view === UiViewMany.SelectMany;
 }
 
-function isCategoryListView(context: VueUiContext) {
-  const view = String(context.view ?? "");
-  const option =
-    context.logic?.viewOptions?.[view as UiViewType]?.(context as any) ?? {};
-  const kind = (option as { viewKind?: string }).viewKind;
-  return Boolean(
-    (option as { treeOption?: unknown }).treeOption ||
-      (option as { tree?: unknown }).tree ||
-      kind === UiViewManyKind.categoryList ||
-      kind === "categoryList",
-  );
-}
-
 function renderEntityPage(
   app: MmdaVueApp,
   context: VueUiContext,
   options: EntityViewOptions,
   route: ReturnType<typeof useRoute>,
 ) {
-  if (!isCategoryListView(context)) void context.loading.value;
   if (!context.many) {
     void context.pageNotice.value;
     void context.pageLayoutRev.value;
@@ -136,15 +121,31 @@ function renderEntityPage(
   if (CustomView && context.many) {
     return h(CustomView, { ctx: context });
   }
-  if (!context.many) {
-    return (app.ui as VueUiBuilder).build(context, { showToolbar: true });
+  const ui = app.ui as VueUiBuilder;
+  const view = String(context.view ?? "");
+  if (
+    view === UiViewMany.SelectOne ||
+    view === UiViewMany.SelectMany
+  ) {
+    return ui.buildSelectView(context, {
+      showToolbar: true,
+      showSearchbar: true,
+      selectionMode: view === UiViewMany.SelectOne ? "single" : "multiple",
+      onItemDoubleClick: (item: any) => {
+        context.details?.(item);
+      },
+    });
   }
-  return (app.ui as VueUiBuilder).build(context, {
-    loading: context.loading,
+  if (view === UiViewOne.Edit || view === UiViewOne.Create) {
+    return ui.buildEditView(context, { showToolbar: true });
+  }
+  if (!context.many) {
+    return ui.buildDetailsView(context, { showToolbar: true });
+  }
+  return ui.buildIndexView(context, {
     showToolbar: true,
     showSearchbar: true,
-    selectionMode:
-      context.view === UiViewMany.SelectOne ? "single" : "multiple",
+    selectionMode: "multiple",
     onItemDoubleClick: (item: any) => {
       context.details?.(item);
     },

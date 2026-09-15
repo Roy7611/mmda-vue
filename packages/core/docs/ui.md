@@ -43,14 +43,14 @@ Logic 只认 @mmda/core
 
 | 文件 | 接口 |
 |---|---|
-| `builder.ts` | `UiBuilder`：Overlay + `buildIndexView` / `buildEntityView` / `buildFieldGroup` / `buildExplorerView` … |
+| `builder.ts` | `UiBuilder`：Overlay + `buildIndexView` / `buildFieldGroup` / `buildExplorer` … |
 | `factory.ts` | `UiFactory`：chrome（`button` / `table` / `sidebar` …） |
 | `field_factory.ts` | `UiFieldFactory`：`render` / `editFor` / `displayFor` + 具名字段 renderer |
 | `layout.ts` | `UiLayout` / `AbstractUiLayout`（含 `scaffold`）。设计 [layout.md](./ui/layout.md) |
 | `context.ts` | `UiContext`（`searchRelative` / `select` …） |
 | `view.ts` | `UiViewProps`（单对象屏 extras） |
 | `builder/list_view.ts` | `UiListViewProps`（Index / Select extras） |
-| `builder/explorer.ts` | `UiExplorerViewProps`（左树右表） |
+| `builder/explorer.ts` | `UiExplorerProps`（左树右表） |
 | `builder/dialog.ts` | Overlay props |
 | `app_side_menu.ts` | `UiAppSideMenuProps` |
 | `factory/*.ts` | 各控件 `Ui*Props`（无 Vue） |

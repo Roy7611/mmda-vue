@@ -21,7 +21,7 @@ export interface MetaUiFilterCondition {
   displayLabel: string
   condition: string
   fallback: boolean
-  /** 本机上次勾选；打开列表时优先于 fallback */
+  /** @deprecated 打开只认 fallback + Module.defaultFilter，不落盘 */
   active?: boolean
 }
 

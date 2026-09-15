@@ -7,7 +7,7 @@ import type { UiProps } from '../props'
 
 export type UiGanttTaskType = 'task' | 'milestone' | 'project'
 
-export type UiGanttViewMode = 'day' | 'week' | 'month' | 'quarter' | 'year'
+export type UiGanttTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 export interface UiGanttTask {
   id: string | number
@@ -62,7 +62,7 @@ export interface UiGanttController {
   select: (ids: Array<string | number>) => void
   expandAll: () => void
   collapseAll: () => void
-  setViewMode: (mode: UiGanttViewMode) => void
+  setViewMode: (mode: UiGanttTimeScale) => void
   fitToProject: () => void
   undo: () => void
   scrollToDate: (date: string | Date) => void
@@ -86,7 +86,7 @@ export interface UiGanttChangeEvent<T = unknown> {
   native?: T
 }
 
-export interface UiGanttViewProps extends UiProps {
+export interface UiGanttProps extends UiProps {
   tasks?: UiGanttTask[]
   links?: UiGanttLink[]
   columns?: UiGanttColumn[]
@@ -96,7 +96,7 @@ export interface UiGanttViewProps extends UiProps {
   allowTaskResize?: boolean
   allowLinks?: boolean
   allowRowReorder?: boolean
-  viewMode?: UiGanttViewMode
+  viewMode?: UiGanttTimeScale
   loading?: boolean
   locale?: string
   timelineStart?: string | Date
@@ -128,11 +128,11 @@ export interface UiGanttViewProps extends UiProps {
   onRowReorder?: (task: UiGanttTask, event?: UiGanttChangeEvent) => void
 }
 
-/** @deprecated 使用 UiGanttViewProps */
-export type UiGanttChartProps = UiGanttViewProps
+/** @deprecated 使用 UiGanttProps */
+export type UiGanttChartProps = UiGanttProps
 
 export interface UiGanttPlugin<TNode = any> {
-  ganttView: (props: UiGanttViewProps) => TNode
+  ganttView: (props: UiGanttProps) => TNode
 }
 
 export const GANTT_PLUGIN_NOT_INSTALLED = 'gantt plugin not installed'

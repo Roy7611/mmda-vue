@@ -1,6 +1,6 @@
 # 排程：程序员怎么写
 
-从 `@mmda/vui` 导入类型；节点用 `app.ui.schedulerPlugin` 或 `ui.buildSchedulerView`。设计见 [scheduler.md](./scheduler.md)。EJ2 入门：[Schedule Vue 3](https://ej2.syncfusion.com/vue/documentation/schedule/getting-started-vue-3)。
+从 `@mmda/vui` 导入类型；节点用 `app.ui.schedulerPlugin` 或 `ui.buildScheduler`。设计见 [scheduler.md](./scheduler.md)。EJ2 入门：[Schedule Vue 3](https://ej2.syncfusion.com/vue/documentation/schedule/getting-started-vue-3)。
 
 Syncfusion（App 默认）：
 
@@ -11,7 +11,7 @@ import { createSfSchedulerPlugin } from '@mmda/vui-syncfusion/schedule'
 const ui = new SyncfusionUiBuilder()
 ui.setSchedulerPlugin(createSfSchedulerPlugin())
 
-ui.buildSchedulerView(context, {
+ui.buildScheduler(context, {
   events: [
     {
       id: 1,

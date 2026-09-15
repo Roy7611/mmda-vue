@@ -32,7 +32,7 @@ export interface UiFieldBindContext {
  * - {@link editFor} / {@link displayFor}：强制编辑/只读的快捷方式
  * - 具名方法（`textInput` 等）：裸控件，表格单元格用这些，不要走 render（会带标签）
  *
- * 没有 `timeline`：时间轴不是单字段，走 `factory.timeline` / `buildTimelineView`。
+ * 没有 `timeline`：时间轴不是单字段，走 `factory.timeline` / `buildTimeline`。
  */
 export interface UiFieldFactory<TNode = any>
   extends Record<

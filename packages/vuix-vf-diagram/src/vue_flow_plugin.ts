@@ -10,7 +10,7 @@ import type {
   UiDiagramPaletteGroup,
   UiDiagramPlugin,
   UiDiagramType,
-  UiDiagramViewProps,
+  UiDiagramProps,
 } from '@mmda/vui'
 import {
   diagramHookClass,
@@ -72,17 +72,17 @@ export const VueFlowDiagramView = defineComponent({
     height: { type: [String, Number], default: '28rem' },
     readonly: { type: Boolean, default: false },
     class: { type: [String, Array, Object], default: undefined },
-    onSelect: Function as PropType<UiDiagramViewProps['onSelect']>,
-    onUpdate: Function as PropType<UiDiagramViewProps['onUpdate']>,
-    'onUpdate:nodes': Function as PropType<UiDiagramViewProps['onUpdate:nodes']>,
+    onSelect: Function as PropType<UiDiagramProps['onSelect']>,
+    onUpdate: Function as PropType<UiDiagramProps['onUpdate']>,
+    'onUpdate:nodes': Function as PropType<UiDiagramProps['onUpdate:nodes']>,
     'onUpdate:connectors': Function as PropType<
-      UiDiagramViewProps['onUpdate:connectors']
+      UiDiagramProps['onUpdate:connectors']
     >,
-    renderAside: Function as PropType<UiDiagramViewProps['renderAside']>,
+    renderAside: Function as PropType<UiDiagramProps['renderAside']>,
   },
   setup(props) {
     return () => {
-      const groups = resolveDiagramPalette(props as UiDiagramViewProps)
+      const groups = resolveDiagramPalette(props as UiDiagramProps)
       const vfNodes = (props.nodes ?? []).map(vuiNodeToVueFlow)
       const vfEdges = (props.connectors ?? []).map(vuiConnectorToVueFlow)
       const palette = props.readonly
@@ -160,7 +160,7 @@ export function createVueDiagramPlugin(): UiDiagramPlugin {
 }
 
 export function emitVueFlowChange(
-  props: UiDiagramViewProps,
+  props: UiDiagramProps,
   nodes: UiDiagramNode[],
   connectors: UiDiagramConnector[],
 ): void {

@@ -379,7 +379,16 @@ const flattenFilterPredicates = (
       items.push(...flattenFilterPredicates(predicate.predicates, join));
       continue;
     }
-    if (predicate?.field) items.push({ ...predicate, join: parentJoin });
+    if (predicate?.field) {
+      // EJ2 Predicate 的 field/operator/value 是 getter，展开会丢。
+      items.push({
+        field: predicate.field,
+        operator: predicate.operator,
+        value: predicate.value,
+        predicate: predicate.predicate,
+        join: parentJoin,
+      });
+    }
   }
   return items;
 };
@@ -495,11 +504,13 @@ export const gridFiltersToModel = (
       String(item.operator ?? "").toLowerCase(),
     );
     if (
-      field.reference?.isEnum &&
+      (field.reference?.isEnum ||
+        field.reference?.isRef ||
+        field.reference?.hasOne) &&
       operators.length &&
       operators.every((op) => isSetLikeOperator(op))
     ) {
-      model[fieldName] = toEnumInFilter(items, field);
+      model[fieldName] = toSetFilter(items, field);
       continue;
     }
     const values = flattenValues(items);

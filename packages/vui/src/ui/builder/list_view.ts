@@ -495,6 +495,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           : this.buildModuleSearchbar(context, {
               onSearch: (text) => {
                 runtime.searchParam.searchWord = text;
+                runtime.rememberLastQuery?.();
                 props.onSearch?.(text);
                 if (!props.onSearch) void runtime.search?.();
               },
@@ -518,6 +519,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
                   void this.buildSearchPage(context, {
                     onSearch: (text) => {
                       runtime.searchParam.searchWord = text;
+                      runtime.rememberLastQuery?.();
                       props.onSearch?.(text);
                       if (!props.onSearch) void runtime.search?.();
                     },
@@ -551,7 +553,6 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       const rowProps = {
         ...props,
         display,
-        pagination: runtime.model?.pagination,
         onPage,
       };
       const list =
@@ -670,6 +671,17 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       context: UiContext,
       props: UiListPropsType<T> = {}
     ): VNode {
+      return h(IndexTableView, {
+        builder: this,
+        context,
+        spec: props,
+      });
+    }
+
+    buildIndexTable<T = any>(
+      context: UiContext,
+      props: UiListPropsType<T> = {}
+    ): VNode {
       const model = context.model as any;
       const runtime = context as any;
       return this.tableWithCells(
@@ -679,6 +691,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         {
           filterDisplay: props.filterDisplay ?? "menu",
           ...props,
+          pagination: props.pagination ?? model.pagination,
           joinListMode: Boolean((context as any).joinListMode),
           filterLabels: {
             all: context.translate("state.all"),
@@ -692,6 +705,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             ...props.filterLabels,
           },
           filterModel: runtime.searchParam?.filterModel,
+          filterModelOf: () => runtime.searchParam?.filterModel,
           loadFilterOptions: (field) => runtime.loadReferenceOptions(field),
           loadPivotDates: (field) =>
             runtime.logic?.getPivotDates?.(field.fieldName),
@@ -726,6 +740,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             writeListFilterModel(runtime.searchParam, filterModel);
             delete runtime.searchParam.queryID;
             delete runtime.searchParam.queryName;
+            runtime.rememberLastQuery?.();
             if (props.onFilterModelChange) {
               return props.onFilterModelChange(filterModel);
             }
@@ -733,7 +748,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           },
           onSort: (sorts) => {
             writeListSorts(runtime.searchParam, sorts);
-            schedulePersistListPack(runtime);
+            runtime.rememberLastQuery?.();
             if (props.onSort) return props.onSort(sorts);
             return runtime.search?.();
           },
@@ -753,7 +768,6 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           showActions: props.showActions === true,
           showActionColumn:
             props.showActionColumn ?? readStoredShowActionsColumn(),
-          loading: props.loading ?? runtime.loading,
           rowActions:
             props.rowActions ??
             this.createListRowActions(context, props.showActions === true),
@@ -997,6 +1011,72 @@ function hasRightSearch(context: UiContext) {
   return Boolean(context.customSearchFields?.some((field) => field.hasVal));
 }
 
+/** 有 host 就保住 Grid；没有则每次重画（其它皮肤）。 */
+const IndexTableLive = defineComponent({
+  name: "IndexTableLive",
+  props: {
+    builder: { type: Object, required: true },
+    context: { type: Object as PropType<UiContext>, required: true },
+    spec: { type: Object, default: () => ({}) },
+  },
+  setup(props) {
+    let table: VNode | undefined;
+    return () => {
+      const context = props.context as UiContext & {
+        indexTableHost?: { rebind?: () => void };
+      };
+      if (table && context.indexTableHost) return table;
+      table = (props.builder as VueUiBuilder).buildIndexTable(
+        context,
+        props.spec ?? {},
+      );
+      return table;
+    };
+  },
+});
+
+/** 有 host 只听列布局；无 host 仍听 list / 分页。 */
+const IndexTableView = defineComponent({
+  name: "IndexTableView",
+  props: {
+    builder: { type: Object, required: true },
+    context: { type: Object as PropType<UiContext>, required: true },
+    spec: { type: Object, default: () => ({}) },
+  },
+  setup(props) {
+    return () => {
+      const context = props.context as UiContext & {
+        listLayoutRev?: { value: number };
+        indexTableHost?: { rebind?: () => void };
+      };
+      const layoutRev = context.listLayoutRev?.value ?? 0;
+      void layoutRev;
+      if (!context.indexTableHost) {
+        const model = context.model as {
+          list?: unknown[];
+          pagination?: {
+            recordCount?: number;
+            pageNo?: number;
+            pageSize?: number;
+          };
+        };
+        if (Array.isArray(model.list)) void model.list.length;
+        if (model.pagination) {
+          void model.pagination.recordCount;
+          void model.pagination.pageNo;
+          void model.pagination.pageSize;
+        }
+      }
+      return h(IndexTableLive, {
+        key: layoutRev,
+        builder: props.builder,
+        context,
+        spec: props.spec ?? {},
+      });
+    };
+  },
+});
+
 const TreeListTreePane = defineComponent({
   name: "TreeListTreePane",
   props: {
@@ -1135,6 +1215,7 @@ const TreeListView = defineComponent({
                   void self.buildSearchPage(context, {
                     onSearch: (text) => {
                       (context as any).searchParam.searchWord = text;
+                      (context as any).rememberLastQuery?.();
                       void (context as any).search?.();
                     },
                     onRefresh: () => void (context as any).search?.(),

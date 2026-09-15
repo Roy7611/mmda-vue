@@ -23,7 +23,11 @@ import {
 } from "../../ui/factory/filter";
 import type { UiSearchForm } from "../../logic/logic";
 import { getFileInfo } from "../../components/FileIcons";
-import { schedulePersistListPack } from "../../ui/builder/list_layout";
+import { loadLastQuery, saveLastQuery } from "../../ui/builder/list_last_query";
+import {
+  logListPaint,
+  resetListPaintCount,
+} from "../../ui/builder/list_query";
 import { rx } from "../../rx";
 import { getModuleContext } from "../vue_module_context";
 import {
@@ -71,6 +75,8 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     searchFields: UiSearchField[] = [];
     customSearchFields: UiCustomSearchField[] = [];
     searchParam = rx(createDefaultSearchParam());
+    lastQuery = ref<import("@mmda/core").EntityQuery | null>(null);
+    #captureLastQuery = false;
     listLayoutRev = ref(0);
     searchMode: "fuzzy" | "named" = "fuzzy";
     pageLayoutRev = ref(0);
@@ -121,38 +127,37 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       if (name === "filter") this.#baseFilter = String(value ?? "");
     }
 
+    rememberLastQuery() {
+      this.#captureLastQuery = true;
+    }
+
     configureSearch(filters: MetaUiFilter[] = [], form?: UiSearchForm) {
       this.filters = filters.map((filter) => {
         const uiFilter = new UiFilter(filter);
         uiFilter.selectedConditions.value = filter.filterConditions.filter(
-          (condition) =>
-            condition.active === true ||
-            (condition.active == null && condition.fallback),
+          (condition) => condition.fallback,
         );
         return uiFilter;
       });
       if (form?.searchParam)
         EntitySearchParam.assign(this.searchParam, form.searchParam);
-      const lastQuery = this.logic?.meta?.lastQuery;
-      if (lastQuery) EntityQuery.apply(this.searchParam, lastQuery);
-      else {
-        const defaultSort = this.logic?.module?.defaultSort;
-        if (defaultSort && !this.searchParam.pager.sorts?.length) {
-          this.searchParam.pager.sorts = EntityQuery.parseDefaultSort(defaultSort);
-        }
-        const defaults = DefaultFieldFilter.parse(
-          this.logic?.module?.defaultFilter,
-        );
-        if (defaults.length) {
-          this.searchParam.filterModel = DefaultFieldFilter.applySelfToModel(
-            this.searchParam.filterModel,
-            defaults,
-            (name) => this.metaUi?.getField?.(name),
-          );
-        }
+      const defaultSort = this.logic?.module?.defaultSort;
+      if (defaultSort && !this.searchParam.pager.sorts?.length) {
+        this.searchParam.pager.sorts = EntityQuery.parseDefaultSort(defaultSort);
       }
-      // 每页条数全局共用 `mmda/pageSize`，不被模块 lastQuery 覆盖
+      const defaults = DefaultFieldFilter.parse(
+        this.logic?.module?.defaultFilter,
+      );
+      if (defaults.length) {
+        this.searchParam.filterModel = DefaultFieldFilter.applySelfToModel(
+          this.searchParam.filterModel,
+          defaults,
+          (name) => this.metaUi?.getField?.(name),
+        );
+      }
+      // 每页条数全局共用 `mmda/pageSize`
       this.searchParam.pager.pageSize = readStoredPageSize();
+      void loadLastQuery(this as any);
       if (form?.queryParams) {
         Object.assign(this.getQueryParam(), form.queryParams);
         if (form.queryParams.filter) {
@@ -197,7 +202,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     ) {
       filter.toggle(condition, single);
       this.syncQuickFilters();
-      schedulePersistListPack(this as any);
+      this.rememberLastQuery();
     }
 
     syncQuickFilters() {
@@ -244,8 +249,6 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         delete this.getQueryParam()[customField.searchParam];
       }
       this.syncQuickFilters();
-      this.listLayoutRev.value += 1;
-      schedulePersistListPack(this as any);
     }
 
     async init(params?: EntityUrlParam) {
@@ -398,16 +401,40 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       if (!this.logic) return;
       if (param) this.applySearchParam(param);
       this.syncSearchState();
+      resetListPaintCount();
+      const currentList = (this.model as { list?: unknown[] })?.list;
+      logListPaint("search-start", {
+        searchWord: this.searchParam.searchWord,
+        pageNo: this.searchParam.pager?.pageNo,
+        listLen: Array.isArray(currentList) ? currentList.length : undefined,
+        loading: this.loading.value,
+      });
+      this.error.value = null;
       this.loading.value = true;
       try {
         const useJoinList = this.joinListMode && !!this.logic.meta?.metaVui;
         const page = useJoinList
           ? await this.logic.getJoinList(this.searchParam)
           : await this.logic.getAll(this.searchParam);
+        const nextList = (page as { list?: unknown[] })?.list;
+        logListPaint("search-setModel", {
+          pageNo:
+            (page as { pagination?: { pageNo?: number } })?.pagination
+              ?.pageNo ?? this.searchParam.pager?.pageNo,
+          listLen: Array.isArray(nextList) ? nextList.length : undefined,
+        });
         if (page) this.setModel(page);
+        if (this.#captureLastQuery) {
+          this.#captureLastQuery = false;
+          void saveLastQuery(this as any);
+        }
         return page;
+      } catch (e) {
+        this.error.value = e;
+        throw e;
       } finally {
         this.loading.value = false;
+        logListPaint("search-end", { loading: this.loading.value });
       }
     }
 

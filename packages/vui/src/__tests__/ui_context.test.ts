@@ -800,4 +800,51 @@ describe("VueUiContext", () => {
     expect(ctx.searchParam.pager.pageNo).toBe(3);
     expect(ctx.searchParam.searchWord).toBe("螺丝");
   });
+
+  it("lastQuery 没有 queryID 时不带回列头 filterModel", () => {
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
+      model: { list: [] },
+      metaUi,
+      view: "index",
+      logic: {
+        meta: {
+          lastQuery: {
+            pager: { pageNo: 1, pageSize: 20 },
+            filterModel: {
+              status: { filterType: "set", operator: "IN", values: ["OPEN"] },
+            },
+          },
+        },
+      },
+    } as any);
+    ctx.configureSearch([]);
+    expect(ctx.searchParam.filterModel).toBeUndefined();
+  });
+
+  it("保存过的命名查询 lastQuery 才带回 filterModel", () => {
+    const { metaUi } = createOrderMetaUi();
+    const ctx = new VueUiContext({
+      model: { list: [] },
+      metaUi,
+      view: "index",
+      logic: {
+        meta: {
+          lastQuery: {
+            queryID: "q1",
+            queryName: "在岗",
+            pager: { pageNo: 1, pageSize: 20 },
+            filterModel: {
+              status: { filterType: "set", operator: "IN", values: ["OPEN"] },
+            },
+          },
+        },
+      },
+    } as any);
+    ctx.configureSearch([]);
+    expect(ctx.searchParam.filterModel).toEqual({
+      status: { filterType: "set", operator: "IN", values: ["OPEN"] },
+    });
+    expect(ctx.searchParam.queryID).toBe("q1");
+  });
 });

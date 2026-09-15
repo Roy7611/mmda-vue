@@ -16,7 +16,7 @@ import {
   moduleOf,
   type UiContext,
 } from "./utils";
-import { paintModuleToolbar, defaultToolbarMoreActions, ListSearchField, LIST_SEARCH_MODE_NAMED, listSearchModeOf } from "@mmda/vui"
+import { paintModuleToolbar, defaultToolbarMoreActions, ListSearchField } from "@mmda/vui"
 
 type ModuleBarHost = any;
 
@@ -279,7 +279,6 @@ export function buildModuleSearchbar(
       class: "mmda-searchbar",
       onSubmit: (event: Event) => {
         event.preventDefault();
-        if (listSearchModeOf(runtime) === LIST_SEARCH_MODE_NAMED) return;
         submitFuzzySearch();
       },
     },
@@ -291,12 +290,15 @@ export function buildModuleSearchbar(
       ...(runtime.customSearchFields ?? []).map((field: any) =>
         field.renderer(context, field),
       ),
-      h(ListSearchField, {
-        context: runtime,
-        onFuzzySearch: submitFuzzySearch,
-        inputClass: "e-small mmda-searchbar__input",
-      }),
-      searchAddons(),
+      h(
+        ListSearchField,
+        {
+          context: runtime,
+          onFuzzySearch: submitFuzzySearch,
+          inputClass: "e-small mmda-searchbar__input",
+        },
+        { default: () => searchAddons() },
+      ),
     ],
   );
 }

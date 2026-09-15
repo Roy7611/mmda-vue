@@ -3,7 +3,7 @@
  * App：ui.setSchedulerPlugin(createSfSchedulerPlugin())
  */
 import { h } from 'vue'
-import type { UiSchedulerPlugin, UiSchedulerViewProps } from '@mmda/vui'
+import type { UiSchedulerPlugin, UiSchedulerProps } from '@mmda/vui'
 import { SfScheduler } from '../components/SfScheduler'
 
 export {
@@ -16,7 +16,7 @@ export {
 
 export function createSfSchedulerPlugin(): UiSchedulerPlugin {
   return {
-    schedulerView: (props: UiSchedulerViewProps) =>
+    schedulerView: (props: UiSchedulerProps) =>
       h(SfScheduler, props as any),
   }
 }

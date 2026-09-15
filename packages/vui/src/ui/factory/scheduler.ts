@@ -18,7 +18,7 @@ export type {
   UiSchedulerExportExcelOptions,
   UiSchedulerController,
   UiSchedulerWorkHours,
-  UiSchedulerViewProps,
+  UiSchedulerProps,
   UiSchedulerPlugin,
 } from '@mmda/core'
 

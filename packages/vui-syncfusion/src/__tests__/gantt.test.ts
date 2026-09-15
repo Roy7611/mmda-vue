@@ -35,10 +35,10 @@ describe('createSfGanttPlugin', () => {
   it('throws until setGanttPlugin on the skin builder', () => {
     const builder = new SyncfusionUiBuilder()
     expect(() =>
-      builder.buildGanttView({} as any, { tasks: [{ id: 1, name: 'Cut' }] }),
+      builder.buildGantt({} as any, { tasks: [{ id: 1, name: 'Cut' }] }),
     ).toThrow(GANTT_PLUGIN_NOT_INSTALLED)
     builder.setGanttPlugin(createSfGanttPlugin())
-    const vnode = builder.buildGanttView({} as any, {
+    const vnode = builder.buildGantt({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],
       readonly: true,
     })

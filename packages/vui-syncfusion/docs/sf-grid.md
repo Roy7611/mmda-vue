@@ -2,7 +2,7 @@
 
 本文是 **vui Grid 的对外接口**：`scene`、`metaui`、`dataSource`、开关、回调、Logic 钩子。**不出现任何厂商类型、模块名或列配置对象。** Syncfusion 的 `SfGrid` 与日后 AgGrid 包装层实现 **同一套 props / 事件 / 方法**；Builder 只调 `factory.grid`。
 
-- 本包皮肤：[`SfGrid.ts`](../src/components/SfGrid.ts)（契约控件）、[`SfGridLayout.ts`](../src/components/SfGridLayout.ts)（布局伴侣）。EJ2 宿主为 `SfGridHost`。列映射见 `sf_grid_column.ts`（读 `filterTypes`）。
+- 本包皮肤：[`SfGrid.ts`](../src/components/SfGrid.ts)（契约控件）、[`SfGridLayout.ts`](../src/components/SfGridLayout.ts)（列布局）、[`SfGridFilterBar.ts`](../src/components/SfGridFilterBar.ts)（过滤芯片，与表头共用 `FilterModel`）。EJ2 宿主为 `SfGridHost`。列映射见 `sf_grid_column.ts`（读 `filterTypes`）。表头过滤写回见 `factory/table_filter.ts`。
 - **实现笔记（本皮肤）** 见 [sf-grid-design.md](./sf-grid-design.md)。
 - **现网唯一生长路径：`factory.table`**。`components/SfGrid` 是目标契约；vui `buildTable` 改调 `factory.grid` 之前，不要两边同时加功能。
 
@@ -109,6 +109,24 @@ gridRef.value?.autoFitColumns()
 | 合计 footer | 关 | 关 | 子表 `aggregates` | 同 edit；有 `defaultGroupBy` 则分组 |
 
 自动列宽四种 scene 点一下都写 `listSize`，不跟 edit 的 `persistLayout: false`。
+
+## Index table 能力
+
+`index` / 默认 `selector` 走 `factory.table`。`edit` / `details` 子表走 `factory.grid`（带 `scene`）。`scene` 只改默认开关，不是会话 `view`。
+
+| 能力 | 谁做 | 状态 |
+|---|---|---|
+| 元数据列 + 模板渲染/编辑器 | 自研（`MetaUi` → 列；`fieldCellRenderers` / `fieldCellEditors`） | 有；大表慎挂 Vue 模板，否则虚拟滚动失效 |
+| Selection | 原生（行 / 单元格 / CheckBox；Ctrl/Shift） | 够用 |
+| Filtering | 自研：列头 `FieldFilter` ↔ `FilterModel` ↔ `SfGridFilterBar` | 重点。`AdvancedFilterModel` **日后** |
+| Paging | 原生外挂分页 + 服务端 `searchParam.pager` | 够用 |
+| Sorting | 原生列头；Ctrl 多列 → `pager.sorts` 再查 | 够用 |
+| Scrolling | 原生虚拟滚动；进出详情/编辑用 `indexTableHost.applyRow` 同步当前页行 | 当前页 > 100 行才开虚拟 |
+| Grouping | — | **不做**（原生拖列分组不好用） |
+| Aggregation | 底栏合计 | **后续** |
+| RowDetails | 行展开 | **后续**（现网开 `rowDetail` 会关掉虚拟滚动） |
+
+过滤和虚拟滚动**不要** bump `listLayoutRev`。列布局只走 `SfGridLayout` / `bumpListLayout`。
 
 ## 分页 / 虚拟滚动 / 排序 / 过滤：都有开关
 
@@ -293,6 +311,8 @@ selector 只做选择时：`showActionColumn: false`，`allowContextMenu: false`
 列筛选项 / 日期透视 / hasOne 联想由 Builder 注入皮肤 extras（`loadFilterOptions` / `loadPivotDates` / `searchRelative`），不进程序员 `UiTableProps`。index 列布局走 `tableSettings`（与 `TableSettingView` 同一套 persist）。
 
 日期列显式 `DATE|SET|MULTI`：Menu 上半是比较（含 WITHIN），下半是可折叠「选项过滤」。展开后 `loadPivotDates` 拉日历日，Menu 内联 TreeView 渲染年→月→日勾选树（不是 DropDownTree，也不是引用 MultiSelect）。写出 `set` 周期 token。纯 SET 日期列没有比较槽，树直接铺开。不要对日期列 `getDistinct`。
+
+ref / hasOne（如部门上级、职员工作部门）即使带了 `SET|MULTI` 也只走 CheckBox：顶栏是 EJ2 搜框（按 `labelOf` 搜关联对象、加载选项），不是 `factory.searchBox`，也没有「包含」比较算子。点开加载首页 50；勾选提交 `valueOf`。不要对选项 `getDistinct`。
 
 列头挂哪种过滤控件由 **`MetaUiField.filterTypes`**（TINYINT 位掩码）决定；`0` 按 `dataType` / `reference` 只给原生一位（关列筛用 `filterable`）。见 core `MetaUiFilterType`（TEXT=1、NUMBER=2、DATE=4、BOOLEAN=8、SET=16、MULTI=32、JOIN=64）。
 

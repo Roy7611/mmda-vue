@@ -1,6 +1,6 @@
 # 甘特：程序员怎么写
 
-从 `@mmda/vui` 导入类型；节点用 `app.ui.ganttPlugin` 或 `ui.buildGanttView`。设计见 [gantt.md](./gantt.md)。
+从 `@mmda/vui` 导入类型；节点用 `app.ui.ganttPlugin` 或 `ui.buildGantt`。设计见 [gantt.md](./gantt.md)。
 
 Syncfusion（App 默认）：
 
@@ -11,7 +11,7 @@ import { createSfGanttPlugin } from '@mmda/vui-syncfusion/gantt'
 const ui = new SyncfusionUiBuilder()
 ui.setGanttPlugin(createSfGanttPlugin())
 
-ui.buildGanttView(context, {
+ui.buildGantt(context, {
   tasks: [
     {
       id: 1,
@@ -33,7 +33,7 @@ import { createHyperGanttPlugin } from '@mmda/vuix-hyper-gantt'
 
 ui.setGanttPlugin(createHyperGanttPlugin({ license: import.meta.env.VITE_DLHSOFT_GANTT_LICENSE }))
 
-const vnode = ui.buildGanttView(context, {
+const vnode = ui.buildGantt(context, {
   tasks: [{ id: 1, name: '下料', startDate: '2026-01-01', duration: 3, assignments: 'R1' }],
   links: [{ source: 1, target: 2, type: 'FS', lag: 0 }],
   assignableResources: ['R1'],
@@ -46,4 +46,4 @@ const vnode = ui.buildGanttView(context, {
 })
 ```
 
-需要 optional peer `@dlhsoft/ganttcharthyperlibrary`。`buildGanttChart` 与 `buildGanttView` 相同。不要 `factory.gantt`。
+需要 optional peer `@dlhsoft/ganttcharthyperlibrary`。`buildGanttChart` 与 `buildGantt` 相同。不要 `factory.gantt`。

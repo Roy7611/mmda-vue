@@ -19,6 +19,8 @@ export interface UiIndexTableHost {
   insertAtZero(entity: Record<string, unknown>): void
   /** 按 id 从当前窗口去掉一行。 */
   applyRemove(id: string): void
+  /** 搜索 / 翻页后 list 已 splice：就地换 dataSource，不要重建 Grid。 */
+  rebind(): void
 }
 
 /**

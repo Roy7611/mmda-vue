@@ -9,7 +9,7 @@ import {
   type UiDiagramConnector,
   type UiDiagramNode,
   type UiDiagramPlugin as CorePlugin,
-  type UiDiagramViewProps,
+  type UiDiagramProps,
 } from '@mmda/core'
 
 export type {
@@ -22,7 +22,7 @@ export type {
   UiDiagramPaletteGroup,
   UiDiagramSelectEvent,
   UiDiagramAsideRenderer,
-  UiDiagramViewProps,
+  UiDiagramProps,
   UiDiagramPlugin,
 } from '@mmda/core'
 
@@ -42,7 +42,7 @@ export {
 
 /** Vue：`onUpdate` / `onUpdate:nodes` / `onUpdate:connectors`。 */
 export function emitDiagramUpdate(
-  props: UiDiagramViewProps,
+  props: UiDiagramProps,
   nodes: UiDiagramNode[],
   connectors: UiDiagramConnector[],
 ): void {

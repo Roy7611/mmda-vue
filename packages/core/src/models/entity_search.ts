@@ -710,7 +710,7 @@ export namespace EntityQuery {
   }
 
   export function copy(src: EntityQuery): EntityQuery {
-    return {
+    const next: EntityQuery = {
       queryID: src.queryID,
       queryName: src.queryName,
       objName: src.objName,
@@ -719,6 +719,9 @@ export namespace EntityQuery {
       advancedFilterModel: AdvancedFilterModel.clone(src.advancedFilterModel),
       pager: clonePager(src.pager ?? defaultPager()),
     };
+    const word = (src as EntitySearchParam).searchWord;
+    if (word != null) (next as EntitySearchParam).searchWord = word;
+    return next;
   }
 
   export function apply(to: EntitySearchParam, src: EntityQuery) {

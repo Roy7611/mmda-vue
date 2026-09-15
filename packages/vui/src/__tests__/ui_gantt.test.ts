@@ -30,7 +30,7 @@ describe('ui gantt contract', () => {
   it('throws until setGanttPlugin', () => {
     const ui = new TestUiBuilder()
     expect(() => ui.ganttPlugin.ganttView({})).toThrow(GANTT_PLUGIN_NOT_INSTALLED)
-    expect(() => ui.buildGanttView({} as any, { tasks: [{ id: 1 }] })).toThrow(
+    expect(() => ui.buildGantt({} as any, { tasks: [{ id: 1 }] })).toThrow(
       GANTT_PLUGIN_NOT_INSTALLED,
     )
     expect(unimplementedGanttPlugin().ganttView).toBeTypeOf('function')
@@ -52,13 +52,13 @@ describe('ui gantt contract', () => {
 
   it('stub builder throws until a plugin is set and exposes a no-op controller', () => {
     const stub = createStubUiBuilder()
-    expect(() => stub.buildGanttView({} as any, {})).toThrow(
+    expect(() => stub.buildGantt({} as any, {})).toThrow(
       GANTT_PLUGIN_NOT_INSTALLED,
     )
     stub.setGanttPlugin({
       ganttView: () => h('div', { class: 'mmda-gantt' }),
     })
-    expect(stub.buildGanttView({} as any, {}).props?.class).toBe('mmda-gantt')
+    expect(stub.buildGantt({} as any, {}).props?.class).toBe('mmda-gantt')
     const controller = createNoopGanttController()
     controller.refresh()
     controller.setViewMode('week')

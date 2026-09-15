@@ -8,7 +8,7 @@ import {
   h,
   type PropType,
 } from 'vue'
-import type { UiKanbanCard, UiKanbanColumn, UiKanbanPlugin, UiKanbanViewProps } from '@mmda/vui'
+import type { UiKanbanCard, UiKanbanColumn, UiKanbanPlugin, UiKanbanProps } from '@mmda/vui'
 import { htmlAttributesOf, kanbanDragEnabled, kanbanHookClass } from '@mmda/vui'
 
 const KNOWN = new Set([
@@ -137,10 +137,10 @@ export const SfKanbanView = defineComponent({
     height: { type: [String, Number], default: '70vh' },
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
-    onCardChange: Function as PropType<UiKanbanViewProps['onCardChange']>,
-    onCardClick: Function as PropType<UiKanbanViewProps['onCardClick']>,
-    onCardDblClick: Function as PropType<UiKanbanViewProps['onCardDblClick']>,
-    onColumnToggle: Function as PropType<UiKanbanViewProps['onColumnToggle']>,
+    onCardChange: Function as PropType<UiKanbanProps['onCardChange']>,
+    onCardClick: Function as PropType<UiKanbanProps['onCardClick']>,
+    onCardDblClick: Function as PropType<UiKanbanProps['onCardDblClick']>,
+    onColumnToggle: Function as PropType<UiKanbanProps['onColumnToggle']>,
   },
   setup(props) {
     let dragFrom: string | number | undefined

@@ -4,7 +4,7 @@ import {
   h,
   type PropType,
 } from 'vue'
-import type { UiDiagramConnector, UiDiagramNode, UiDiagramPaletteGroup, UiDiagramPlugin, UiDiagramShape, UiDiagramType, UiDiagramViewProps } from '@mmda/vui'
+import type { UiDiagramConnector, UiDiagramNode, UiDiagramPaletteGroup, UiDiagramPlugin, UiDiagramShape, UiDiagramType, UiDiagramProps } from '@mmda/vui'
 import { diagramHookClass, diagramNodeDataOf, emitDiagramUpdate, htmlAttributesOf, resolveDiagramPalette } from '@mmda/vui'
 
 const UML_CLASS_KINDS = new Set(['class', 'interface', 'enumeration'])
@@ -228,13 +228,13 @@ export const SfDiagramView = defineComponent({
     selectedId: { type: [String, Number] as PropType<string | number | null> },
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
-    onSelect: Function as PropType<UiDiagramViewProps['onSelect']>,
-    onUpdate: Function as PropType<UiDiagramViewProps['onUpdate']>,
-    'onUpdate:nodes': Function as PropType<UiDiagramViewProps['onUpdate:nodes']>,
+    onSelect: Function as PropType<UiDiagramProps['onSelect']>,
+    onUpdate: Function as PropType<UiDiagramProps['onUpdate']>,
+    'onUpdate:nodes': Function as PropType<UiDiagramProps['onUpdate:nodes']>,
     'onUpdate:connectors': Function as PropType<
-      UiDiagramViewProps['onUpdate:connectors']
+      UiDiagramProps['onUpdate:connectors']
     >,
-    renderAside: Function as PropType<UiDiagramViewProps['renderAside']>,
+    renderAside: Function as PropType<UiDiagramProps['renderAside']>,
   },
   setup(props) {
     const snapshot = () => ({
@@ -243,7 +243,7 @@ export const SfDiagramView = defineComponent({
     })
 
     return () => {
-      const groups = resolveDiagramPalette(props as UiDiagramViewProps)
+      const groups = resolveDiagramPalette(props as UiDiagramProps)
       const canvas = h(DiagramImpl, {
         width: props.width,
         height: props.height,
@@ -266,7 +266,7 @@ export const SfDiagramView = defineComponent({
         'onCollectionChange': () => {
           if (props.readonly) return
           emitDiagramUpdate(
-            props as UiDiagramViewProps,
+            props as UiDiagramProps,
             snapshot().nodes,
             snapshot().connectors,
           )

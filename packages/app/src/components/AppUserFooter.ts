@@ -3,6 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { UiContext } from '@mmda/core'
 import {
   ColorPalettePicker,
+  FontScalePicker,
   UI_APP_KEY,
   UI_BUILDER_KEY,
   writeMmdaPref,
@@ -152,6 +153,7 @@ export const AppUserFooter = defineComponent({
             tooltip: app.state.isDark ? '切换到明亮模式' : '切换到暗黑模式',
             onClick: () => setDark(!app.state.isDark),
           }),
+          h(FontScalePicker),
           h(ColorPalettePicker),
           builder.factory.dropDownButton(
             {

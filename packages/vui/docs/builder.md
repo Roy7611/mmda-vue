@@ -150,8 +150,8 @@ Factory 用短名（`list` / `table` / `grid` / `treeGrid`、`tree`）。Builder
 | `list` 或未设 | `buildListView` |
 | `categoryList` | `buildTreeListView`（左 `buildTreeView` + 右表） |
 | `treeGrid` | `buildTreeGridView`（树形表格，见 [treegrid.md](./treegrid.md)、[怎么写](./treegrid_usage.md)） |
-| `gantt` | `buildGanttView` |
-| `scheduler` | `buildSchedulerView` |
+| `gantt` | `buildGantt` |
+| `scheduler` | `buildScheduler` |
 
 `UiTreeListViewProps` 三块分开：`treeOption`（左树，`UiTreeViewPropsType` 或工厂）、`listOption`（右表，与 `buildListView` 同一套）、`foreignKey`（列表外键，对应 `treeOption.fields.id`）。左栏走 `buildTreeView`：默认打开树顶搜索和树底栏。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。折叠只改布局，不听、不改查询。左栏 `collapsible: true`，折叠用皮肤 Splitter 的 `paneSettings`（[SF expand-collapse](https://ej2.syncfusion.com/vue/documentation/splitter/expand-collapse)）。
 
@@ -168,15 +168,15 @@ vui **不** import `primevue/*` 或 `@syncfusion/*`。皮肤包实现 `UiFactory
 | `buildTree` | 薄包 `factory.tree` |
 | `buildTreeView` | 顶栏（`header()` 或 `factory.textInput`）+ `factory.tree` + 底栏 |
 | `buildTreeListView` | 工具栏 + `factory.splitter`（左树右表）+ 分页 |
-| `buildGanttView` | 转调 `ganttPlugin.ganttView`（未安装则 throw） |
+| `buildGantt` | 转调 `ganttPlugin.ganttView`（未安装则 throw） |
 | `buildRibbon` | 转调 `ribbonPlugin.ribbon`（未安装则 throw） |
-| `buildSchedulerView` | 转调 `schedulerPlugin.schedulerView`（未安装则 throw） |
+| `buildScheduler` | 转调 `schedulerPlugin.schedulerView`（未安装则 throw） |
 | `buildPivotTable` | 转调 `pivotPlugin.pivotTable`（未安装则 throw） |
 | `buildAiAssistant` | 转调 `aiAssistantPlugin.aiAssistant`（未安装则 throw） |
 | `buildView` | 单对象：工具栏 + 分组表单 |
 | `buildList` / `buildTable` / `buildGrid` / `buildTreeGrid` | 只有数据区（Props 分家；内部可带 `display` 捷径标签） |
 | `buildBpmnDiagram` | BPMN XML（Prime/Naive：bpmn-js）。通用图走 `diagramPlugin` |
-| `buildDiagramView` | 转调 `diagramPlugin.diagramView`（未安装则 throw） |
+| `buildDiagram` | 转调 `diagramPlugin.diagramView`（未安装则 throw） |
 
 列表工具栏分三截：左面包屑，中搜索+刷新，右主操作；导入/导出/打印收进 More。详见 [列表与过滤](./list.md)。
 

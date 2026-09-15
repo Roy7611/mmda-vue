@@ -1,7 +1,7 @@
 import type {
   UiSchedulerEvent,
   UiSchedulerView,
-  UiSchedulerViewProps,
+  UiSchedulerProps,
 } from '@mmda/vui'
 import {
   schedulerHiddenDaysOf,
@@ -105,7 +105,7 @@ export function fcEventToUi(event: any): UiSchedulerEvent {
   }
 }
 
-export function fcCalendarOptionsOf(props: UiSchedulerViewProps) {
+export function fcCalendarOptionsOf(props: UiSchedulerProps) {
   const workDays = schedulerWorkDaysOf(props.workDays)
   const hiddenDays = schedulerHiddenDaysOf(props)
   return {

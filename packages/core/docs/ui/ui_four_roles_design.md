@@ -42,7 +42,7 @@ flowchart TB
   named --> entity[buildEntityView]
   entity --> cx
   entity --> fact
-  cx --> ex[buildExplorerView]
+  cx --> ex[buildExplorer]
   cx --> grp[buildFieldGroup]
   cx --> sub[buildSubGroup]
   ex --> fact
@@ -62,7 +62,7 @@ Entity 路由 / context.select
   buildIndexView | buildSelectView | buildDetailsView | buildEditView
     → buildEntityView
          many → buildModuleToolbar + factory.table|grid|list|treeGrid + factory.paginator
-                 （categoryList → buildExplorerView）
+                 （categoryList → buildExplorer）
                  （gantt/timeline/… → buildXxxView，插件未装则 throw）
          one  → 扫 metaUi.groups
                   many ? buildSubGroup → factory.grid|treeGrid
@@ -89,14 +89,14 @@ Entity 路由 / context.select
 
 ### Module / 插件页（可选）
 
-`buildGanttView` · `buildTimelineView` · `buildSchedulerView` · `buildKanbanView` · `buildDiagramView`
+`buildGantt` · `buildTimeline` · `buildScheduler` · `buildKanban` · `buildDiagram`
 
 - **进 Builder、不进 UiFactory**
 - 未 `setXxxPlugin` 时方法 **throw**（与现有 `GANTT_PLUGIN_NOT_INSTALLED` 同款），不要 silently 空 `div`
 
 ### 复杂组件
 
-`buildExplorerView` · `buildFieldGroup` · `buildSubGroup`
+`buildExplorer` · `buildFieldGroup` · `buildSubGroup`
 
 ### 明确不进 Builder
 
@@ -121,7 +121,7 @@ Entity 路由 / context.select
 
 - `buildFieldGroup` 与自定义屏默认 **`render`**
 - **具名 renderer 仍是裸控件**；表格单元格用具名方法，**不要**走这三条（会带标签）
-- **没有** `fieldFactory.timeline`：时间轴走 `factory.timeline` / `buildTimelineView`
+- **没有** `fieldFactory.timeline`：时间轴走 `factory.timeline` / `buildTimeline`
 
 vui 构造 Builder 时 `attachFieldRowApi(fieldFactory, layout)` 挂上三入口并注入 `layout`。
 
@@ -150,7 +150,7 @@ vui 构造 Builder 时 `attachFieldRowApi(fieldFactory, layout)` 挂上三入口
 | `ui.buildTable(rows, meta, props)` | `ui.factory.table(rows, meta, props)` |
 | `ui.buildContainer([...])` | 仍 `ui.buildContainer([...])` |
 | `ui.buildAppScaffold({...})` | `layout.scaffold({...})` |
-| `ui.buildTreeListView` | `ui.buildExplorerView` |
+| `ui.buildTreeListView` | `ui.buildExplorer` |
 | `ui.buildView` | `ui.buildEntityView` |
 | `ui.buildGroup`（主+子） | `buildFieldGroup` / `buildSubGroup` 分开 |
 

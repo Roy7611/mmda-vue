@@ -45,6 +45,8 @@ export interface MmdaApplicationState {
   envMode?: string
   isDark?: boolean
   colorPalette: string
+  /** 字号档：standard / large / xlarge */
+  fontScale: string
   systemList?: any[]
   todoCount?: number
   theLatestTodoList?: any[]
@@ -186,6 +188,10 @@ export abstract class MmdaApplication {
         (typeof localStorage !== 'undefined'
           ? localStorage.getItem('mmda/colorPalette')
           : null) ?? 'purple',
+      fontScale:
+        (typeof localStorage !== 'undefined'
+          ? localStorage.getItem('mmda/fontScale')
+          : null) ?? 'standard',
       expandUserMenu: false,
       todoCount: 0,
       theLatestTodoList: [],

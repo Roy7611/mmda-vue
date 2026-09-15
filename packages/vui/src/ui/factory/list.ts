@@ -1,5 +1,6 @@
 import { h, type VNode, type VNodeChild } from "vue";
 import type {
+  FilterModel,
   MetaUiField,
   Pagination,
   Pager,
@@ -123,6 +124,8 @@ export type UiTableSkinExtras<T = any> = {
   tableSettings?: UiTableSettings;
   /** index 工作区保活宿主。Builder 注入；销毁传 null。 */
   onIndexTableHostReady?: (host: UiIndexTableHost | null) => void;
+  /** 就地 rebind 后读现在的 searchParam.filterModel，不要建表快照。 */
+  filterModelOf?: () => FilterModel | undefined;
   /**
    * Builder 默认单元格写回。程序员请用 fieldCellEditors[name].onSave。
    */

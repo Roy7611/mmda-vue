@@ -673,7 +673,7 @@ export const UserStatusEnum = {
 | 横竖方向     | `UiOrientation`                         | 弃用 `UiDirection`；控件私有 `UiStepperOrientation` / `UiDividerOrientation` / `UiChartOrientation`（已弃用）；Splitter 的 PascalCase 除外 |
 | 带输入选日   | `factory.datePicker` / `monthPicker`   | `factory.calendar`、厂商 `start`/`depth` |
 | 月视选日     | `factory.calendar`                     | `scheduler`、甘特                      |
-| 排程日历     | `scheduler` 插件 / `buildSchedulerView` | `factory.calendar`、`factory.scheduler`、`ejs-schedule`、`FullCalendar` |
+| 排程日历     | `scheduler` 插件 / `buildScheduler` | `factory.calendar`、`factory.scheduler`、`ejs-schedule`、`FullCalendar` |
 | 日期时间     | `factory.dateTimePicker`               | 当成 `datePicker` + 自己拼时间         |
 | 时刻         | `factory.timePicker`                   | 字符串 `"HH:mm"` 当 chrome 值          |
 | 日期区间     | `factory.dateRangePicker`（`[Date, Date]`） | `datePicker` + `selectionMode: range` |

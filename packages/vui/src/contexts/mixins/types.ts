@@ -23,6 +23,7 @@ export interface ContextHost {
   router?: any;
   editing: boolean;
   loading: { value: boolean };
+  error: { value: unknown };
   showDialog: boolean;
   isInDialog: boolean;
   root: ContextHost;
@@ -34,6 +35,8 @@ export interface ContextHost {
   searchFields: any[];
   customSearchFields: any[];
   searchParam: any;
+  lastQuery?: { value: import("@mmda/core").EntityQuery | null };
+  rememberLastQuery(): void;
   listLayoutRev: { value: number };
   searchMode?: "fuzzy" | "named";
   pageLayoutRev: { value: number };

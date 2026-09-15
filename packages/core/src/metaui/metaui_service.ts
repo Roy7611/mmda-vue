@@ -12,7 +12,7 @@ import type { MetaUiFilter } from './metaui_filter'
 import { type Module, ModuleFactory } from './module'
 import type { ReportTemplate } from '../models/file'
 import type { MetaUiFieldAlignment, MetaUiFieldFrozen } from './metaui_field'
-import type { EntityQuery } from '../models/entity_search'
+import { EntityQuery } from '../models/entity_search'
 
 export interface MetaUiFilters {
   filters?: MetaUiFilter[]
@@ -22,7 +22,7 @@ export interface MetaUiPack extends MetaUiFilters {
   metaUi: MetaUi
   /** 联查列定义；勾选后才拉，不控制菜单 */
   metaVui?: MetaUi
-  /** 本地上次查询定义（含 pager.sorts），不来自服务器 pack */
+  /** @deprecated 查询不进元数据包；用 `{repository}/lastQuery` */
   lastQuery?: EntityQuery
 }
 
@@ -166,6 +166,10 @@ export interface MetaUiService {
    * POST `{baseUrl}meta/listSettings/save`
    */
   saveListSettings(payload: ListSettingsPayload): Promise<unknown>
+  /** 本机上次完整查询。键 `{repository}/lastQuery`，不是 meta。 */
+  getLastQuery(repository: string, service?: string): Promise<EntityQuery | undefined>
+  putLastQuery(repository: string, query: EntityQuery, service?: string): Promise<void>
+  deleteLastQuery(repository: string, service?: string): Promise<void>
 }
 
 /**
@@ -176,6 +180,13 @@ export interface MetaUiService {
  */
 export const defaultMetaUiService = (apiClient: ApiClient): MetaUiService =>
   new MetaUiServiceImpl(apiClient)
+
+export const lastQueryCacheKey = (repository: string) => `${repository}/lastQuery`
+
+const legacyLastQueryKeys = (repository: string) => [
+  `meta/${repository}/lastQuery`,
+  `meta/${repository}/query`,
+]
 
 /**
  * 元界面服务默认实现
@@ -343,7 +354,6 @@ class MetaUiServiceImpl implements MetaUiService {
     return {
       metaUi,
       filters: metaPack[1],
-      lastQuery: metaPack[2] ?? undefined,
       metaVui,
     }
   }
@@ -363,7 +373,7 @@ class MetaUiServiceImpl implements MetaUiService {
   }
   private getPackFromCache(repository: string, service?: string) {
     const metaRepo = `meta/${repository}`
-    const metaRepos = [metaRepo, `${metaRepo}/filters`, `${metaRepo}/query`]
+    const metaRepos = [metaRepo, `${metaRepo}/filters`]
     return this.cacheFor(service)
       .getMany(metaRepos)
       .then(meta => this.assemblePack(metaRepo, meta, service))
@@ -452,17 +462,15 @@ class MetaUiServiceImpl implements MetaUiService {
     metaPack: any,
     service?: string,
   ) {
-    const { filters, lastQuery } = metaPack
+    const { filters } = metaPack
     const snapshot = this.snapshotMeta(metaPack.metaUi)
     const metaUiPack: MetaUiPack = {
       metaUi: new MetaUi(snapshot),
       filters,
     }
     const assemblies = this.disassemble(`meta/${repository}`, snapshot)
-    assemblies.push([`meta/${repository}/filters`, filters])
-    if ('lastQuery' in metaPack) {
-      assemblies.push([`meta/${repository}/query`, lastQuery ?? null])
-      if (lastQuery) metaUiPack.lastQuery = lastQuery
+    if ('filters' in metaPack) {
+      assemblies.push([`meta/${repository}/filters`, filters])
     }
     if (metaPack.metaVui) {
       const relation = joinListRelationName(metaUiPack.metaUi)
@@ -475,13 +483,7 @@ class MetaUiServiceImpl implements MetaUiService {
       }
     }
 
-    const db = this.cacheFor(service)
-    return db.putMany(assemblies).then(async () => {
-      if (metaUiPack.lastQuery) return metaUiPack
-      const query = await db.get(`meta/${repository}/query`)
-      if (query) metaUiPack.lastQuery = query
-      return metaUiPack
-    })
+    return this.cacheFor(service).putMany(assemblies).then(() => metaUiPack)
   }
   private fetchMetaUiJson(
     repository: string,
@@ -620,6 +622,35 @@ class MetaUiServiceImpl implements MetaUiService {
         updateMeta.metaUi.getListedFields(true)
       },
     )
+  }
+
+  async getLastQuery(repository: string, service?: string) {
+    const db = this.cacheFor(service)
+    const key = lastQueryCacheKey(repository)
+    let query = await db.get(key)
+    if (query) return query as EntityQuery
+    for (const legacy of legacyLastQueryKeys(repository)) {
+      query = await db.get(legacy)
+      if (!query) continue
+      await db.put(key, query)
+      await db.deleteMany(legacyLastQueryKeys(repository))
+      return query as EntityQuery
+    }
+    return undefined
+  }
+
+  putLastQuery(repository: string, query: EntityQuery, service?: string) {
+    return this.cacheFor(service).put(
+      lastQueryCacheKey(repository),
+      EntityQuery.copy(query),
+    )
+  }
+
+  deleteLastQuery(repository: string, service?: string) {
+    return this.cacheFor(service).deleteMany([
+      lastQueryCacheKey(repository),
+      ...legacyLastQueryKeys(repository),
+    ])
   }
 
   saveListSettings(payload: ListSettingsPayload) {

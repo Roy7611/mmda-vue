@@ -3,7 +3,7 @@
  * App：ui.setGanttPlugin(createSfGanttPlugin())
  */
 import { h } from 'vue'
-import type { UiGanttPlugin, UiGanttViewProps } from '@mmda/vui'
+import type { UiGanttPlugin, UiGanttProps } from '@mmda/vui'
 import { SfGanttChart } from '../components/SfGanttChart'
 
 export {
@@ -14,6 +14,6 @@ export {
 
 export function createSfGanttPlugin(): UiGanttPlugin {
   return {
-    ganttView: (props: UiGanttViewProps) => h(SfGanttChart, props as any),
+    ganttView: (props: UiGanttProps) => h(SfGanttChart, props as any),
   }
 }

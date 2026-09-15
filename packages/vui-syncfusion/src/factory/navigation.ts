@@ -23,8 +23,10 @@ export const navigationRenderers = {
     const currentSize = pagination.pageSize ?? readStoredPageSize();
     const notifyPage = (pageNo: number, pageSize: number) => {
       const nextNo = Math.max(1, Number(pageNo) || 1);
-      const nextSize = Number(pageSize) || currentSize;
-      if (nextNo === currentPage && nextSize === currentSize) return;
+      const nextSize = Number(pageSize) || (pagination.pageSize ?? currentSize);
+      const liveNo = pagination.pageNo ?? 1;
+      const liveSize = pagination.pageSize ?? currentSize;
+      if (nextNo === liveNo && nextSize === liveSize) return;
       props.onPage({ pageNo: nextNo, pageSize: nextSize });
     };
     return h(PagerComponent as any, {
@@ -36,12 +38,12 @@ export const navigationRenderers = {
       click: (args: any) => {
         if (args?.cancel || args?.isInteracted === false) return;
         notifyPage(
-          args.currentPage ?? currentPage,
-          args.pageSize ?? currentSize,
+          args.currentPage ?? pagination.pageNo ?? 1,
+          args.pageSize ?? pagination.pageSize ?? currentSize,
         );
       },
       dropDownChanged: (args: any) => {
-        const nextSize = args?.pageSize ?? args?.value ?? currentSize;
+        const nextSize = args?.pageSize ?? args?.value ?? pagination.pageSize ?? currentSize;
         notifyPage(1, nextSize);
       },
     });

@@ -8,14 +8,14 @@ import type { UiGanttPlugin as CorePlugin } from '@mmda/core'
 
 export type {
   UiGanttTaskType,
-  UiGanttViewMode,
+  UiGanttTimeScale,
   UiGanttTask,
   UiGanttLink,
   UiGanttColumn,
   UiGanttPrintOptions,
   UiGanttController,
   UiGanttChangeEvent,
-  UiGanttViewProps,
+  UiGanttProps,
   UiGanttChartProps,
   UiGanttPlugin,
 } from '@mmda/core'

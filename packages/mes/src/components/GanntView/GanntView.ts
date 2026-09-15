@@ -13,7 +13,7 @@ import {
   type MmdaApplication,
   type VueUiContext,
   type UiGanttController,
-  type UiGanttViewMode,
+  type UiGanttTimeScale,
 } from '@mmda/vui'
 import {
   ganttLinkToSavePayload,
@@ -35,7 +35,7 @@ export default defineComponent({
     const tasks = ref<any[]>([])
     const links = ref<any[]>([])
     const loading = ref(true)
-    const viewMode = ref<UiGanttViewMode>('week')
+    const viewMode = ref<UiGanttTimeScale>('week')
     const controller = shallowRef<UiGanttController>()
     const snapshot = ref({ tasks: [] as any[], links: [] as any[] })
 
@@ -100,8 +100,8 @@ export default defineComponent({
                     { label: t('ganttLabel.year'), value: 'year' },
                   ],
                   onChange: (value) => {
-                    viewMode.value = value as UiGanttViewMode
-                    controller.value?.setViewMode(value as UiGanttViewMode)
+                    viewMode.value = value as UiGanttTimeScale
+                    controller.value?.setViewMode(value as UiGanttTimeScale)
                   },
                 }),
             },

@@ -44,3 +44,18 @@ export function settleRemoteListQuery(work: unknown): Promise<void> {
     (): void => undefined,
   );
 }
+
+let paintCount = 0;
+
+/** 控制台数列表画了几遍。搜索开始会清零，一次点击对一套序号。 */
+export function resetListPaintCount() {
+  paintCount = 0;
+}
+
+export function logListPaint(
+  where: string,
+  extra?: Record<string, unknown>,
+) {
+  paintCount += 1;
+  console.info(`[mmda-list-paint] #${paintCount} ${where}`, extra ?? {});
+}

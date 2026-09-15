@@ -510,3 +510,27 @@ describe("ApiClient.searchJoinList", () => {
     );
   });
 });
+
+describe("EntityQuery.lastCache", () => {
+  it("没保存查询时去掉 filterModel", () => {
+    const cached = EntityQuery.lastCache({
+      pager: { pageNo: 1, pageSize: 20, sorts: [{ sortBy: "name", sortOrder: SortOrder.ASC }] },
+      filterModel: { status: FieldFilter.in("OPEN") },
+    });
+    expect(cached.filterModel).toBeUndefined();
+    expect(cached.pager.sorts).toEqual([
+      { sortBy: "name", sortOrder: SortOrder.ASC },
+    ]);
+  });
+
+  it("有 queryID 时整份留下", () => {
+    const cached = EntityQuery.lastCache({
+      queryID: "q1",
+      queryName: "在岗",
+      pager: { pageNo: 1, pageSize: 20 },
+      filterModel: { status: FieldFilter.in("OPEN") },
+    });
+    expect(cached.queryID).toBe("q1");
+    expect(cached.filterModel).toEqual({ status: FieldFilter.in("OPEN") });
+  });
+});

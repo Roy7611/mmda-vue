@@ -1538,6 +1538,18 @@ describe('vui-agnaive skin', () => {
     naiveSkinState.dark = false
   })
 
+  it('scales AG Grid font and row sizes with the font-scale token', () => {
+    const prev = document.documentElement.style.getPropertyValue('--mmda-font-scale')
+    document.documentElement.style.setProperty('--mmda-font-scale', '1.5')
+    naiveSkinState.themeRev += 1
+    const grid = buildAgGridTheme()
+    expect(grid).toBeTruthy()
+    const overrides = naiveOverridesRef.value
+    expect(overrides.common?.heightMedium).toBe('48px')
+    document.documentElement.style.setProperty('--mmda-font-scale', prev || '1')
+    naiveSkinState.themeRev += 1
+  })
+
   it('SelectMany in dialog still shows Create when allowed', () => {
     const builder = new AgNaiveUiBuilder()
     const module = {

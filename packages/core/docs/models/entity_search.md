@@ -168,9 +168,9 @@ items.xxx=2
 ## 本地上次查询 / CustomizedQuery
 
 - 元数据包仍整体从服务器拉（metaui + filters）。
-- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在对应微服务的 IndexedDB（库名 = service）键 `meta/{repository}/query`，挂在 `MetaUiPack.lastQuery`。
+- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在对应微服务的 IndexedDB（库名 = service）键 `meta/{repository}/query`，挂在 `MetaUiPack.lastQuery`。写入用 `EntityQuery.lastCache`：没点保存查询（无 `queryID`）不缓存 `filterModel`。
 - **不要**再单独缓存 sorts。
-- 打开列表顺序：CustomizedQuery / 本地 `lastQuery` → 套到 SearchParam；否则 Module 默认。
+- 打开列表顺序：CustomizedQuery / 本地 `lastQuery`（无 `queryID` 只套排序）→ 套到 SearchParam；否则 Module 默认。
 
 `updateForCache` 仅在 pack **显式带** `lastQuery` 时写入该键，避免服务器 pack 冲掉本地查询。
 

@@ -3,13 +3,13 @@ import {
   isSchedulerTimelineView,
   SCHEDULER_TIMELINE_NOT_SUPPORTED,
   type UiSchedulerPlugin,
-  type UiSchedulerViewProps,
+  type UiSchedulerProps,
 } from '@mmda/vui'
 import { FcScheduler } from './FcScheduler'
 
 export function createFcSchedulerPlugin(): UiSchedulerPlugin {
   return {
-    schedulerView: (props: UiSchedulerViewProps) => {
+    schedulerView: (props: UiSchedulerProps) => {
       if (isSchedulerTimelineView(props.view)) {
         throw new Error(SCHEDULER_TIMELINE_NOT_SUPPORTED)
       }

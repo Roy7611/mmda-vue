@@ -11,7 +11,7 @@ export type {
   UiKanbanCard,
   UiKanbanColumn,
   UiKanbanChangeEvent,
-  UiKanbanViewProps,
+  UiKanbanProps,
   UiKanbanPlugin,
 } from '@mmda/core'
 

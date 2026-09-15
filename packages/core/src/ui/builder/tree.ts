@@ -2,7 +2,7 @@ import type { UiTreeProps } from '../factory/tree'
 
 /**
  * Builder 组合树（搜索 + factory.tree + 底栏）。
- * 不是厂商 TreeView 控件名；整页左树右表见 {@link import('./explorer').UiExplorerViewProps}。
+ * 不是厂商 TreeView 控件名；整页左树右表见 {@link import('./explorer').UiExplorerProps}。
  */
 export interface UiTreeViewProps<T = any, TNode = any>
   extends UiTreeProps<T, TNode> {
@@ -37,4 +37,4 @@ export interface UiTreeViewProps<T = any, TNode = any>
   onTreeRefresh?: () => void | Promise<void>
 }
 
-export type { UiExplorerViewProps } from './explorer'
+export type { UiExplorerProps } from './explorer'

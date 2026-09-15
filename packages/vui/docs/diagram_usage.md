@@ -1,6 +1,6 @@
 # 图：程序员怎么写
 
-从 `@mmda/vui` 导入类型；节点用 `app.ui.diagramPlugin` 或 `ui.buildDiagramView`。设计见 [diagram.md](./diagram.md)。
+从 `@mmda/vui` 导入类型；节点用 `app.ui.diagramPlugin` 或 `ui.buildDiagram`。设计见 [diagram.md](./diagram.md)。
 
 ```ts
 import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
@@ -9,7 +9,7 @@ import { createSfDiagramEditorPlugin } from '@mmda/vui-syncfusion/diagram-editor
 const ui = new SyncfusionUiBuilder()
 ui.setDiagramPlugin(createSfDiagramEditorPlugin())
 
-ui.buildDiagramView(context, {
+ui.buildDiagram(context, {
   diagramType: 'workflow',
   nodes: [
     {

@@ -26,7 +26,7 @@ describe('ui scheduler contract', () => {
       SCHEDULER_PLUGIN_NOT_INSTALLED,
     )
     expect(() =>
-      ui.buildSchedulerView({} as any, { events: [{ id: 1, start: '2026-01-01' }] }),
+      ui.buildScheduler({} as any, { events: [{ id: 1, start: '2026-01-01' }] }),
     ).toThrow(SCHEDULER_PLUGIN_NOT_INSTALLED)
     expect(unimplementedSchedulerPlugin().schedulerView).toBeTypeOf('function')
   })
@@ -41,7 +41,7 @@ describe('ui scheduler contract', () => {
         }),
     }
     ui.setSchedulerPlugin(plugin)
-    const node = ui.buildSchedulerView({} as any, {
+    const node = ui.buildScheduler({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
     })
     expect(node.props?.['data-count']).toBe(1)
@@ -89,13 +89,13 @@ describe('ui scheduler contract', () => {
 
   it('exposes helpers, csv and noop controller', () => {
     const stub = createStubUiBuilder()
-    expect(() => stub.buildSchedulerView({} as any, {})).toThrow(
+    expect(() => stub.buildScheduler({} as any, {})).toThrow(
       SCHEDULER_PLUGIN_NOT_INSTALLED,
     )
     stub.setSchedulerPlugin({
       schedulerView: () => h('div', { class: 'mmda-scheduler' }),
     })
-    expect(stub.buildSchedulerView({} as any, {}).props?.class).toBe(
+    expect(stub.buildScheduler({} as any, {}).props?.class).toBe(
       'mmda-scheduler',
     )
     expect(schedulerWorkDaysOf()).toEqual([1, 2, 3, 4, 5])

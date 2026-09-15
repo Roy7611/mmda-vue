@@ -90,6 +90,7 @@ export default {
     clearAll: "清除全部",
     clearFilters: "清除过滤",
     all: "全部",
+    lastQuery: "上次查询",
     saveQuery: "保存查询",
     saveQueryName: "查询名称",
     deleteQuery: "删除查询",
@@ -164,6 +165,12 @@ export default {
     green: "绿色",
     teal: "青绿",
     cyan: "青色",
+  },
+  fontScale: {
+    choose: "选择字号",
+    standard: "标准",
+    large: "大",
+    xlarge: "更大",
   },
   layout: {
     collapseSummary: "收起右侧",

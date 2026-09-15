@@ -8,8 +8,9 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { debounce, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
-import { VueUiBuilder, GroupCard, UiViewMany, pageLayoutMenuItems, joinListModeMenuItems, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
+import { VueUiBuilder, GroupCard, UiViewMany, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, joinListModeMenuItems, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
+import { SfGridFilterBar } from "../components/SfGridFilterBar";
 import { SfOverlayHost } from "../components/SfOverlayHost";
 import { createSyncfusionOverlay } from "../syncfusion_overlay";
 import { SfAttachmentPanel } from "../components/SfAttachmentPanel";
@@ -47,6 +48,7 @@ import {
   renderHeader,
   renderMain,
 } from "./shell";
+import { refreshSyncfusionSkin } from "../syncfusion_skin";
 
 export class SyncfusionUiBuilder extends VueUiBuilder {
   declare readonly factory: SyncfusionUiFactory;
@@ -70,6 +72,11 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   override setColorScheme(dark: boolean) {
     super.setColorScheme(dark);
     applyColorScheme(dark);
+  }
+
+  override setFontScale(scale: MmdaFontScale) {
+    super.setFontScale(scale);
+    refreshSyncfusionSkin();
   }
 
   override buildGroupCard(
@@ -738,6 +745,50 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
 
   buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {
     return renderModuleSearchbar.call(this, context, props);
+  }
+
+  override buildFilterBar(context: UiContext, props?: Record<string, unknown>) {
+    const extra = (props as { chips?: () => unknown })?.chips?.();
+    const extraNodes =
+      extra == null ? [] : Array.isArray(extra) ? extra : [extra];
+    const runtime = context as any;
+    return h(SfGridFilterBar, {
+      filterModel: runtime.searchParam?.filterModel,
+      metaUi: indexTableMetaUi(runtime),
+      labels: {
+        filter: context.t("action.filter"),
+        all: context.t("action.all"),
+        clearFilters: context.t("action.clearFilters"),
+        saveQuery: context.t("action.saveQuery"),
+        deleteQuery: context.t("action.deleteQuery"),
+      },
+      t: (key: string) => context.t(key),
+      chips: (chipProps: Record<string, unknown>) =>
+        this.factory.chips?.(chipProps as any),
+      button: (btnProps: Record<string, unknown>) =>
+        this.factory.button(btnProps as any),
+      resolveIcon: (icon: string) => this.factory.resolveIcon(icon),
+      skipFields: listFixedFilterFieldNames(runtime),
+      extra: extraNodes,
+      queryID: runtime.searchParam?.queryID,
+      canDeleteQuery: canDeleteNamedQuery({
+        predifined: runtime.searchParam?.queryPredifined,
+        queryID: runtime.searchParam?.queryID,
+      }),
+      onFilterModelChange: (model) => {
+        writeListFilterModel(runtime.searchParam, model);
+        delete runtime.searchParam.queryID;
+        delete runtime.searchParam.queryName;
+        return runtime.search?.();
+      },
+      onSaveQuery: () => void promptSaveNamedQuery(runtime, this.factory),
+      onDeleteQuery: () =>
+        void deleteNamedQuery(runtime, {
+          queryID: runtime.searchParam.queryID,
+          queryName: runtime.searchParam.queryName,
+          predifined: runtime.searchParam.queryPredifined,
+        }),
+    });
   }
 
   buildSearchForRelative(

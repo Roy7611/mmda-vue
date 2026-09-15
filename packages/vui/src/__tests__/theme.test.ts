@@ -5,14 +5,20 @@ import { MmdaVueApp } from "../app/app";
 import { createStubUiBuilder } from "../ui/builder/builder";
 import { TestUiBuilder } from "./test_builder";
 import { ColorPalettePicker } from "../components/ColorPalettePicker";
+import { FontScalePicker } from "../components/FontScalePicker";
 import {
   DEFAULT_COLOR_PALETTE,
+  DEFAULT_FONT_SCALE,
   MMDA_COLOR_PALETTES,
+  MMDA_FONT_SCALES,
   readStoredColorPalette,
+  readStoredFontScale,
   readStoredPageLayout,
   readStoredPageSize,
   readStoredShowActionsColumn,
   resolveColorPalette,
+  resolveFontScale,
+  writeStoredFontScale,
   writeStoredPageLayout,
   writeStoredPageSize,
   writeStoredShowActionsColumn,
@@ -21,6 +27,8 @@ import {
 afterEach(() => {
   localStorage.clear();
   delete document.documentElement.dataset.mmdaPalette;
+  delete document.documentElement.dataset.mmdaFontScale;
+  document.documentElement.style.removeProperty("--mmda-font-scale");
 });
 
 describe("MMDA color palettes", () => {
@@ -90,9 +98,11 @@ describe("MMDA color palettes", () => {
   it("restores theme state before the application mounts", () => {
     localStorage.setItem("mmda/isDark", "true");
     localStorage.setItem("mmda/colorPalette", "orange");
+    localStorage.setItem("mmda/fontScale", "large");
     const ui = createStubUiBuilder();
     const setColorScheme = vi.spyOn(ui, "setColorScheme");
     const setColorPalette = vi.spyOn(ui, "setColorPalette");
+    const setFontScale = vi.spyOn(ui, "setFontScale");
 
     const app = new MmdaVueApp(
       "/api",
@@ -103,8 +113,10 @@ describe("MMDA color palettes", () => {
 
     expect(app.state.isDark).toBe(true);
     expect(app.state.colorPalette).toBe("orange");
+    expect(app.state.fontScale).toBe("large");
     expect(setColorScheme).toHaveBeenCalledWith(true);
     expect(setColorPalette).toHaveBeenCalledWith("orange");
+    expect(setFontScale).toHaveBeenCalledWith("large");
   });
 
   it("renders ten choices and persists the selected palette", async () => {
@@ -150,6 +162,87 @@ describe("MMDA color palettes", () => {
     expect(localStorage.getItem("mmda/colorPalette")).toBe("blue");
     expect(localStorage.getItem("colorPalette")).toBeNull();
     expect(setColorPalette).toHaveBeenLastCalledWith("blue");
+
+    vueApp.unmount();
+    host.remove();
+  });
+});
+
+describe("MMDA font scale", () => {
+  it("provides three scales and falls back to standard", () => {
+    expect(MMDA_FONT_SCALES.map((item) => item.id)).toEqual([
+      "standard",
+      "large",
+      "xlarge",
+    ]);
+    expect(resolveFontScale("large")).toBe("large");
+    expect(resolveFontScale("xlarge")).toBe("xlarge");
+    expect(resolveFontScale("unknown")).toBe(DEFAULT_FONT_SCALE);
+  });
+
+  it("persists fontScale preference under mmda/fontScale", () => {
+    expect(readStoredFontScale()).toBe("standard");
+    writeStoredFontScale("xlarge");
+    expect(localStorage.getItem("mmda/fontScale")).toBe("xlarge");
+    expect(readStoredFontScale()).toBe("xlarge");
+    localStorage.setItem("mmda/fontScale", "tiny");
+    expect(readStoredFontScale()).toBe("standard");
+  });
+
+  it("switches the document font-scale attribute and CSS variable", () => {
+    const ui = new TestUiBuilder();
+    ui.setFontScale("large");
+    expect(document.documentElement.dataset.mmdaFontScale).toBe("large");
+    expect(
+      document.documentElement.style.getPropertyValue("--mmda-font-scale"),
+    ).toBe("1.25");
+    ui.setFontScale("unknown" as any);
+    expect(document.documentElement.dataset.mmdaFontScale).toBe("standard");
+    expect(
+      document.documentElement.style.getPropertyValue("--mmda-font-scale"),
+    ).toBe("1");
+  });
+
+  it("renders three choices and persists the selected scale", async () => {
+    const ui = createStubUiBuilder();
+    ui.factory.resolveIcon = (icon: string) => icon;
+    ui.factory.dropDownButton = (_props, actions) =>
+      h(
+        "div",
+        actions.map((action) =>
+          h(
+            "button",
+            {
+              class: action.icon,
+              "data-font-scale-action": action.name,
+              onClick: action.onAction,
+            },
+            action.label,
+          ),
+        ),
+      );
+    const setFontScale = vi.spyOn(ui, "setFontScale");
+    const mmda = new MmdaVueApp("/api", "test", ui, setupI18n({}, "zh"));
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = defineComponent(() => () => h(FontScalePicker));
+    const vueApp = createApp(root);
+    vueApp.use(mmda);
+    vueApp.mount(host);
+
+    const choices = host.querySelectorAll("[data-font-scale-action]");
+    expect(choices).toHaveLength(3);
+    (
+      host.querySelector(
+        '[data-font-scale-action="font-scale-xlarge"]',
+      ) as HTMLButtonElement
+    ).click();
+    await Promise.resolve();
+
+    expect(mmda.state.fontScale).toBe("xlarge");
+    expect(localStorage.getItem("mmda/fontScale")).toBe("xlarge");
+    expect(localStorage.getItem("fontScale")).toBeNull();
+    expect(setFontScale).toHaveBeenLastCalledWith("xlarge");
 
     vueApp.unmount();
     host.remove();

@@ -8,14 +8,14 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/scheduler.ts` | 事件 / 资源 / `UiSchedulerViewProps` / 控制器；未安装 stub |
-| `VueUiBuilder.schedulerPlugin` | 默认 `unimplementedSchedulerPlugin`；`setSchedulerPlugin`；`buildSchedulerView` 转调插件 |
+| vui `ui/factory/scheduler.ts` | 事件 / 资源 / `UiSchedulerProps` / 控制器；未安装 stub |
+| `VueUiBuilder.schedulerPlugin` | 默认 `unimplementedSchedulerPlugin`；`setSchedulerPlugin`；`buildScheduler` 转调插件 |
 | `@mmda/vui-syncfusion/schedule` | `createSfSchedulerPlugin`，EJ2 Schedule（App 默认）；组件 `SfScheduler` |
 | `@mmda/vuix-fc-scheduler` | `createFcSchedulerPlugin`，FullCalendar；组件 `FcScheduler` |
 
 不要 `factory.scheduler`。不要把 `ejs-schedule` / `FullCalendar` 当 vui 名。皮肤标识 **Sf** / **Fc**。Logic 不画排程。core `UiBuilder` 不加排程方法。
 
-`viewKind === scheduler` 分发到 `buildSchedulerView`。
+`viewKind === scheduler` 分发到 `buildScheduler`。
 
 GSTC 一类「行=资源、横轴可缩放、一行多条」不是 `scheduler`，也不是 `gantt` / `calendar`。
 

@@ -1,6 +1,6 @@
 # 看板：程序员怎么写
 
-从 `@mmda/vui` 导入类型；节点用 `ui.buildKanbanView`。设计见 [kanban.md](./kanban.md)。
+从 `@mmda/vui` 导入类型；节点用 `ui.buildKanban`。设计见 [kanban.md](./kanban.md)。
 
 ## Syncfusion（App）
 
@@ -13,7 +13,7 @@ import { createSfKanbanPlugin } from '@mmda/vui-syncfusion/kanban'
 const ui = new SyncfusionUiBuilder()
 ui.setKanbanPlugin(createSfKanbanPlugin())
 
-ui.buildKanbanView({
+ui.buildKanban({
   columns: [
     { key: 'todo', header: '待做' },
     { key: 'doing', header: '进行中', maxCount: 5 },
@@ -51,7 +51,7 @@ SVAR 没有泳道、没有原生双击（插件在根节点听 `dblclick`）。`
 
 ## 注意
 
-- Prime 不要 `setKanbanPlugin`；未 set 时 `buildKanbanView` 抛 `kanban plugin not installed`。
+- Prime 不要 `setKanbanPlugin`；未 set 时 `buildKanban` 抛 `kanban plugin not installed`。
 - 不要 `factory.kanban`。
 - `allowAddCard` 默认 false；加卡用 `onCardClick` / `onCardDblClick` + Logic 弹窗。
 - 不要把 EJ2 `keyField` / SVAR `column` / `Willow` 写进 vui props。

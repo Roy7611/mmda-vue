@@ -34,7 +34,7 @@ Data 回新数据 → Logic 更新状态 → UI 重绘
 | 方向 | 通道 | 干什么 |
 |---|---|---|
 | **Logic → Data** | `ApiClient` | 读写实体、动作、查询。`this.apiClient` 与 `context.apiClient` 同一实例。实体 CRUD 用 Logic 方法；不要在 Logic 再包一层 `get` / `doAction` |
-| **Logic → UI** | `context.uiBuilder` | Overlay（toast / confirm / dialog）；拼屏 `buildEntityView` / `buildIndexView`；原子控件 `factory.*` / 字段行 `fieldFactory.render`。换皮换实现，Logic 只认 core **四职**契约（见 [ui_four_roles_design.md](packages/core/docs/ui/ui_four_roles_design.md)） |
+| **Logic → UI** | `context.uiBuilder` | Overlay（toast / confirm / dialog）；拼屏 `buildIndexView` / `buildSelectView` / `buildDetailsView` / `buildEditView`；原子控件 `factory.*` / 字段行 `fieldFactory.render`。换皮换实现，Logic 只认 core **四职**契约（见 [ui_four_roles_design.md](packages/core/docs/ui/ui_four_roles_design.md)） |
 | **职责** | 处理用户交互 | 钩子、校验、`refWhere`、把业务函数挂到会话。不认 Vue/React 类型，不碰皮肤控件 |
 
 Logic 只认 core **`UiContext`**。不要写成 vui `VueUiContext`。日常不要掏 `globalProps.$ui` / `$api`。

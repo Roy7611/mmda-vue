@@ -19,4 +19,4 @@
 | `buildTable` 等 | `factory.table` 等 |
 | `buildAppScaffold` | `AppLayout.scaffold` |
 | `buildView` | `buildEntityView` |
-| `buildTreeListView` | `buildExplorerView` |
+| `buildTreeListView` | `buildExplorer` |

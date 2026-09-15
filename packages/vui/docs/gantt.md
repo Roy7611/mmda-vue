@@ -8,14 +8,14 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/gantt.ts` | 任务 / 连线 / `UiGanttViewProps` / 控制器；未安装 stub |
-| `VueUiBuilder.ganttPlugin` | 默认 `unimplementedGanttPlugin`；`setGanttPlugin`；`buildGanttView` 转调插件 |
+| vui `ui/factory/gantt.ts` | 任务 / 连线 / `UiGanttProps` / 控制器；未安装 stub |
+| `VueUiBuilder.ganttPlugin` | 默认 `unimplementedGanttPlugin`；`setGanttPlugin`；`buildGantt` 转调插件 |
 | `@mmda/vui-syncfusion/gantt` | `createSfGanttPlugin`，EJ2 Gantt（App 默认） |
 | `@mmda/vuix-hyper-gantt` | `createHyperGanttPlugin`，DlhSoft Hyper Library |
 
 不要 `factory.gantt` / `factory.ganttChart`。Logic 不画甘特。core `UiBuilder` 不加甘特方法。不要叫 `ganttMixin`。不要把 EJ2 `TaskID` 或 DlhSoft `content` / `indentation` 写进调用方。
 
-`buildGanttChart` 是 `buildGanttView` 的别名。`viewKind === gantt` 仍分发到 `buildGanttView`。
+`buildGanttChart` 是 `buildGantt` 的别名。`viewKind === gantt` 仍分发到 `buildGantt`。
 
 ## 失败
 

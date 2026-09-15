@@ -13,6 +13,7 @@ import {
 } from "@mmda/core";
 import { VueAppSideMenu } from "../../components/AppSideMenu";
 import { openTableSettingDialog } from "../../components/TableSettingView";
+import { logListPaint } from "./list_query";
 import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
 import type {
   UiFactory,
@@ -26,7 +27,7 @@ import {
   diagramReadonlyOf,
   unimplementedDiagramPlugin,
   type UiDiagramPlugin,
-  type UiDiagramViewProps,
+  type UiDiagramProps,
 } from "../factory/diagram";
 import {
   unimplementedMarkdownEditorPlugin,
@@ -41,13 +42,13 @@ import {
 import {
   unimplementedKanbanPlugin,
   type UiKanbanPlugin,
-  type UiKanbanViewProps,
+  type UiKanbanProps,
 } from "../factory/kanban";
 import {
   unimplementedGanttPlugin,
   type UiGanttChartProps,
   type UiGanttPlugin,
-  type UiGanttViewProps,
+  type UiGanttProps,
 } from "../factory/gantt";
 import {
   unimplementedRibbonPlugin,
@@ -57,7 +58,7 @@ import {
 import {
   unimplementedSchedulerPlugin,
   type UiSchedulerPlugin,
-  type UiSchedulerViewProps,
+  type UiSchedulerProps,
 } from "../factory/scheduler";
 import {
   unimplementedPivotPlugin,
@@ -89,7 +90,13 @@ import type {
   ModuleSearchbarProps,
   ModuleToolbarProps,
 } from "../../app/app";
-import { resolveColorPalette, type MmdaColorPalette } from "../../app/theme";
+import {
+  FONT_SCALE_RATIO,
+  resolveColorPalette,
+  resolveFontScale,
+  type MmdaColorPalette,
+  type MmdaFontScale,
+} from "../../app/theme";
 import type {
   SigninFormProps,
   SignupFormProps,
@@ -298,19 +305,19 @@ export abstract class VueUiBuilderBase {
     return this;
   }
 
-  buildGanttView(_context: any, props: UiGanttViewProps): VNode {
+  buildGantt(_context: any, props: UiGanttProps): VNode {
     return this.ganttPlugin.ganttView(props);
   }
 
   buildGanttChart(context: any, props: UiGanttChartProps): VNode {
-    return this.buildGanttView(context, props);
+    return this.buildGantt(context, props);
   }
 
   buildRibbon(props: UiRibbonProps): VNode {
     return this.ribbonPlugin.ribbon(props);
   }
 
-  buildSchedulerView(_context: any, props: UiSchedulerViewProps): VNode {
+  buildScheduler(_context: any, props: UiSchedulerProps): VNode {
     return this.schedulerPlugin.schedulerView(props);
   }
 
@@ -318,7 +325,7 @@ export abstract class VueUiBuilderBase {
     return this.pivotPlugin.pivotTable(props);
   }
 
-  buildDiagramView(context: any, props: UiDiagramViewProps): VNode {
+  buildDiagram(context: any, props: UiDiagramProps): VNode {
     const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
     return this.diagramPlugin.diagramView({ ...props, readonly });
   }
@@ -331,7 +338,7 @@ export abstract class VueUiBuilderBase {
     return this.imageEditorPlugin.imageEditor(props);
   }
 
-  buildKanbanView(props: UiKanbanViewProps): VNode {
+  buildKanban(props: UiKanbanProps): VNode {
     return this.kanbanPlugin.kanbanView(props);
   }
 
@@ -352,6 +359,16 @@ export abstract class VueUiBuilderBase {
   setColorPalette(palette: MmdaColorPalette) {
     if (typeof document === "undefined") return;
     document.documentElement.dataset.mmdaPalette = resolveColorPalette(palette);
+  }
+
+  setFontScale(scale: MmdaFontScale) {
+    if (typeof document === "undefined") return;
+    const resolved = resolveFontScale(scale);
+    document.documentElement.dataset.mmdaFontScale = resolved;
+    document.documentElement.style.setProperty(
+      "--mmda-font-scale",
+      String(FONT_SCALE_RATIO[resolved]),
+    );
   }
 
   openTableSettings(context: CoreUiContext) {
@@ -827,18 +844,18 @@ export interface VueUiBuilder {
     props?: UiProps,
   ): VNode;
   buildAttachmentGroup(context: any, props?: UiProps): VNode;
-  buildGanttView(context: any, props: UiGanttViewProps): VNode;
+  buildGantt(context: any, props: UiGanttProps): VNode;
   buildGanttChart(context: any, props: UiGanttChartProps): VNode;
   buildRibbon(props: UiRibbonProps): VNode;
-  buildSchedulerView(context: any, props: UiSchedulerViewProps): VNode;
+  buildScheduler(context: any, props: UiSchedulerProps): VNode;
   buildPivotTable(props: UiPivotTableProps): VNode;
   buildBpmnDiagram(
     flowTrails: any[],
     context: any,
     props?: UiProps,
   ): VNode;
-  buildDiagramView(context: any, props: UiDiagramViewProps): VNode;
-  buildKanbanView(props: UiKanbanViewProps): VNode;
+  buildDiagram(context: any, props: UiDiagramProps): VNode;
+  buildKanban(props: UiKanbanProps): VNode;
   buildListView(context: any, props?: any): VNode;
   buildFilterBar(context: any, props?: any): VNode;
   buildView(context: any, props?: UiViewPropsType): VNode;
@@ -850,61 +867,55 @@ export abstract class VueUiBuilder
   implements CoreUiBuilder
 {
   build(context: CoreUiContext, props: Record<string, unknown> = {}): VNode {
-    return this.buildEntityView(context, props as any);
-  }
-
-  /** 实体屏共享实现（many → 列表/树…；one → 表单）。 */
-  buildEntityView(
-    context: CoreUiContext,
-    props: Record<string, unknown> = {},
-  ): VNode {
-    const runtime = context as any;
-    const view = String(runtime.view ?? "") as UiViewType;
-    const factories = runtime.logic?.viewOptions;
-    const option = factories?.[view]?.(runtime) ?? {};
-    const merged = { ...option, ...props } as Record<string, any>;
-    if (isViewMany(view)) {
-      const kind = merged.viewKind;
-      if (
-        merged.treeOption ||
-        merged.tree ||
-        kind === UiViewManyKind.categoryList ||
-        kind === "categoryList"
-      ) {
-        return this.buildExplorerView(runtime, merged);
-      }
-      if (kind === UiViewManyKind.gantt || kind === "gantt") {
-        return this.buildGanttView(runtime, merged);
-      }
-      if (kind === UiViewManyKind.scheduler || kind === "scheduler") {
-        return this.buildSchedulerView(runtime, merged);
-      }
-      if (kind === UiViewManyKind.treeGrid || kind === "treeGrid") {
-        return this.buildTreeGridView(runtime, merged);
-      }
-      return this.buildListView(runtime, merged);
+    const view = String((context as any).view ?? "");
+    if (view === UiViewMany.SelectOne || view === UiViewMany.SelectMany) {
+      return this.buildSelectView(context, props as UiListViewProps);
     }
-    return this.buildView(runtime, merged as UiViewPropsType);
+    if (isViewMany(view)) {
+      return this.buildIndexView(context, props as UiListViewProps);
+    }
+    if (view === UiViewOne.Edit || view === UiViewOne.Create) {
+      return this.buildEditView(context, props as UiViewProps);
+    }
+    return this.buildDetailsView(context, props as UiViewProps);
   }
 
   buildIndexView(context: CoreUiContext, props?: UiListViewProps): VNode {
-    return this.buildEntityView(context, props as any);
+    const gated = entityPageGate(this, context);
+    if (gated) return gated;
+    return h(IndexPage, {
+      builder: this,
+      context,
+      spec: mergeNamedViewProps(context, props),
+    });
   }
 
   buildSelectView(context: CoreUiContext, props?: UiListViewProps): VNode {
-    return this.buildEntityView(context, props as any);
+    const gated = entityPageGate(this, context);
+    if (gated) return gated;
+    return assembleIndexScreen(this, context, mergeNamedViewProps(context, props));
   }
 
   buildDetailsView(context: CoreUiContext, props?: UiViewProps): VNode {
-    return this.buildView(context, props as UiViewPropsType);
+    const gated = entityPageGate(this, context);
+    if (gated) return gated;
+    return this.buildView(
+      context,
+      mergeNamedViewProps(context, props) as UiViewPropsType,
+    );
   }
 
   buildEditView(context: CoreUiContext, props?: UiViewProps): VNode {
-    return this.buildView(context, props as UiViewPropsType);
+    const gated = entityPageGate(this, context);
+    if (gated) return gated;
+    return this.buildView(
+      context,
+      mergeNamedViewProps(context, props) as UiViewPropsType,
+    );
   }
 
   /** 左树右表；旧名 `buildTreeListView`。 */
-  buildExplorerView(context: CoreUiContext, props?: Record<string, unknown>): VNode {
+  buildExplorer(context: CoreUiContext, props?: Record<string, unknown>): VNode {
     return this.buildTreeListView(context as any, props as any);
   }
 
@@ -925,6 +936,91 @@ export abstract class VueUiBuilder
   ): VNode {
     return this.buildGroup(group, context as any, undefined, props);
   }
+}
+
+function mergeNamedViewProps(
+  context: CoreUiContext,
+  props?: Record<string, unknown>,
+) {
+  const runtime = context as any;
+  const view = String(runtime.view ?? "") as UiViewType;
+  const option = runtime.logic?.viewOptions?.[view]?.(runtime) ?? {};
+  return { ...option, ...props } as Record<string, any>;
+}
+
+/**
+ * 具名入口：error 独占整页。
+ * 首次打开由 EntityView pageLoading 挡；context 已在时 loading 是翻页 / 筛选 / 刷新，
+ * 不能拆掉表格，否则分页器卸载后会回到第 1 页。
+ */
+function entityPageGate(
+  builder: VueUiBuilder,
+  context: CoreUiContext,
+): VNode | null {
+  const runtime = context as any;
+  const err = runtime.error?.value;
+  if (err) {
+    return (
+      builder.factory.errorRetry?.({
+        error: err,
+        onRetry: () => {
+          runtime.error.value = null;
+          if (runtime.many) void runtime.search?.();
+          else void runtime.refresh?.();
+        },
+      }) ?? h("div", { class: "mmda-entity-page-error" }, String(err))
+    );
+  }
+  return null;
+}
+
+const IndexPage = defineComponent({
+  name: "IndexPage",
+  props: {
+    builder: { type: Object, required: true },
+    context: { type: Object, required: true },
+    spec: { type: Object, default: () => ({}) },
+  },
+  setup(props) {
+    let assembled = false;
+    return () => {
+      const builder = props.builder as VueUiBuilder;
+      const context = props.context as CoreUiContext;
+      const reason = assembled ? "rerender" : "mount";
+      assembled = true;
+      logListPaint("index-shell", {
+        objName: (context as any).metaUi?.objName,
+        reason,
+      });
+      return assembleIndexScreen(builder, context, props.spec ?? {});
+    };
+  },
+});
+
+function assembleIndexScreen(
+  builder: VueUiBuilder,
+  context: CoreUiContext,
+  merged: Record<string, any>,
+): VNode {
+  const kind = merged.viewKind;
+  if (
+    merged.treeOption ||
+    merged.tree ||
+    kind === UiViewManyKind.categoryList ||
+    kind === "categoryList"
+  ) {
+    return builder.buildExplorer(context, merged);
+  }
+  if (kind === UiViewManyKind.gantt || kind === "gantt") {
+    return builder.buildGantt(context, merged);
+  }
+  if (kind === UiViewManyKind.scheduler || kind === "scheduler") {
+    return builder.buildScheduler(context, merged);
+  }
+  if (kind === UiViewManyKind.treeGrid || kind === "treeGrid") {
+    return builder.buildTreeGridView(context, merged);
+  }
+  return builder.buildListView(context, merged);
 }
 
 const emptyNode = () => h("div");
@@ -948,7 +1044,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildGroup: emptyNode,
     buildBpmnDiagram: emptyNode,
     buildView: emptyNode,
-    buildEntityView: emptyNode,
     buildIndexView: emptyNode,
     buildSelectView: emptyNode,
     buildDetailsView: emptyNode,
@@ -964,7 +1059,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildTreeGridView: emptyNode,
     buildListView: emptyNode,
     buildTreeListView: emptyNode,
-    buildExplorerView: emptyNode,
+    buildExplorer: emptyNode,
     buildCustomView: emptyNode,
     buildGrid: emptyNode,
     buildList: emptyNode,
@@ -983,6 +1078,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildAppMenu: emptyNode,
     setColorScheme: (): void => undefined,
     setColorPalette: (): void => undefined,
+    setFontScale: (): void => undefined,
     buildLoading: emptyNode,
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
@@ -1009,7 +1105,7 @@ export function createStubUiBuilder(): VueUiBuilder {
       this.diagramPlugin = plugin;
       return this;
     },
-    buildDiagramView(context: any, props: UiDiagramViewProps) {
+    buildDiagram(context: any, props: UiDiagramProps) {
       const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
       return this.diagramPlugin.diagramView({ ...props, readonly });
     },
@@ -1034,7 +1130,7 @@ export function createStubUiBuilder(): VueUiBuilder {
       this.kanbanPlugin = plugin;
       return this;
     },
-    buildKanbanView(props: UiKanbanViewProps) {
+    buildKanban(props: UiKanbanProps) {
       return this.kanbanPlugin.kanbanView(props);
     },
     ganttPlugin: unimplementedGanttPlugin(),
@@ -1042,11 +1138,11 @@ export function createStubUiBuilder(): VueUiBuilder {
       this.ganttPlugin = plugin;
       return this;
     },
-    buildGanttView(_context: any, props: UiGanttViewProps) {
+    buildGantt(_context: any, props: UiGanttProps) {
       return this.ganttPlugin.ganttView(props);
     },
     buildGanttChart(context: any, props: UiGanttChartProps) {
-      return this.buildGanttView(context, props);
+      return this.buildGantt(context, props);
     },
     ribbonPlugin: unimplementedRibbonPlugin(),
     setRibbonPlugin(plugin: UiRibbonPlugin) {
@@ -1061,7 +1157,7 @@ export function createStubUiBuilder(): VueUiBuilder {
       this.schedulerPlugin = plugin;
       return this;
     },
-    buildSchedulerView(_context: any, props: UiSchedulerViewProps) {
+    buildScheduler(_context: any, props: UiSchedulerProps) {
       return this.schedulerPlugin.schedulerView(props);
     },
     pivotPlugin: unimplementedPivotPlugin(),

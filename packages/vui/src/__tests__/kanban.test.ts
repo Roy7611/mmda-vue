@@ -28,7 +28,7 @@ describe('kanbanPlugin', () => {
         }),
     }
     ui.setKanbanPlugin(plugin)
-    const node = ui.buildKanbanView({
+    const node = ui.buildKanban({
       cards: [{ id: 1, title: 'A', status: 'todo' }],
       columns: [{ key: 'todo', header: 'To Do' }],
     })
