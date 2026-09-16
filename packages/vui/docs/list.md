@@ -42,7 +42,7 @@ searchParam
 
 `VueUiContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
 
-打开列表时套用 pack 的 `lastQuery`（`EntityQuery.lastCache`：排序留下；**没有 `queryID` 不带回 `filterModel`**，列头随手滤不等于保存查询）。否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
+打开列表时套用 `{repository}/lastQuery`（`EntityQuery.lastCache`：排序留下；**没有 `queryID` 不带回 `filterModel`**，列头随手滤不等于保存查询）。否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
 
 ## 工具栏
 
@@ -129,4 +129,4 @@ Logic：`this.group('items').rowDetail('operations')`。Builder 写 `expandAll: 
 - 不要在页面组件里维护第二份 `pageNo` / `searchWord`。
 - 自定义列表页可以 `props.content` 换掉表格，但仍应复用 `searchParam`。
 - 不要新增独立 Selector 组件旁路；选择一律走 Index / `select()`。
-- 持久化列表布局时把 `lastQuery: EntityQuery.lastCache(searchParam)` 一并写入 pack，不要单存 sorts。没保存查询不写 `filterModel`。
+- 上次查询由 `EntityLogic` 写入 `{repository}/lastQuery`，不要单存 sorts。没保存查询不写 `filterModel`。

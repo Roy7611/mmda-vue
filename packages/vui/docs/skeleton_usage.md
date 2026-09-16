@@ -38,7 +38,7 @@ factory.skeleton({ shape: 'rectangle', width: '100%', height: 120, shimmer: 'non
 | 有 `metaUi`，实体还没水合 | `!context.initialized`（或 model 仍只有 `id`） | 按字段 `factory.skeleton` |
 | 已有实体，后续忙碌 | `context.loading` | 表单保留；盖 `factory.loading` 或表格自己的 loading |
 
-1. **壳先上。** `getPack` 后就挂 `VueUiContext`（model 可以只有 `id`），不要等第一次 `init()` 才 `buildView`。Create 一般不用 Skeleton。
+1. **壳先上。** `get` 后就挂 `VueUiContext`（model 可以只有 `id`），不要等第一次 `init()` 才 `buildView`。Create 一般不用 Skeleton。
 2. **Skeleton 只看「还没水合」。** `buildField` 在 `!initialized` 时换皮：普通框 `text`、头像 `circle`、子表一块 `rectangle`（子表仍不分页）。水合后不要再因 `loading` 换皮。
 3. **`context.loading` 继续给忙碌指示。** `refresh()` / `search()` 已经拨这个 Ref；列表、局部 overlay 仍走现有 loading。
 4. **首次结束要置 `initialized`。** `VueUiContext.load()` 已写 `initializedState`；EntityView 走 mixin `refresh()` 时，第一次 load 成功后同样置位，否则 Skeleton 不会收。

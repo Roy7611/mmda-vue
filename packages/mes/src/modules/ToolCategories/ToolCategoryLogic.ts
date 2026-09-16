@@ -13,7 +13,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, MetaUiPack, type UiContext } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, type UiContext } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ToolCategory, defineToolCategory } from "@/models/ToolCategory";
 import { MaterialTypeEnum, MaterialType } from '@mmda/base/src/enums/MaterialType';

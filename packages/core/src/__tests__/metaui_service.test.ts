@@ -22,24 +22,21 @@ const metaJson = {
 };
 
 describe("MetaUiService 从 JSON 构造 MetaUi", () => {
-  it("fetchPackFromServer 消费 metaUi JSON，不经过 ApiClient.new MetaUi", async () => {
-    const getJson = vi.fn(async () => ({
-      filters: [],
-      metaUi: metaJson,
-    }));
+  it("get 消费 MetaUi JSON，不经过 ApiClient.new MetaUi", async () => {
+    const getJson = vi.fn(async () => metaJson);
     const api = new ApiClient(
       { getJson } as any,
       { service: "base", repository: "Things" },
     );
     const service = defaultMetaUiService(api);
 
-    const pack = await service.fetchPackFromServer({ repository: "Things" });
+    const metaUi = await service.get("Things", undefined, true);
 
     expect(getJson).toHaveBeenCalledWith(
-      expect.stringMatching(/Things\/metaUiPack/),
+      expect.stringMatching(/Things\/metaui/),
     );
-    expect(pack.metaUi).toBeInstanceOf(MetaUi);
-    expect(pack.metaUi.objName).toBe("Thing");
+    expect(metaUi).toBeInstanceOf(MetaUi);
+    expect(metaUi.objName).toBe("Thing");
   });
 
   it("按 service 分本地库；key 为 meta/{repository}，不含 service 前缀", async () => {
@@ -49,28 +46,21 @@ describe("MetaUiService 从 JSON 构造 MetaUi", () => {
       locale: "zh",
     });
     const service = defaultMetaUiService(api);
-    const pack = { metaUi: metaJson, filters: [] };
 
-    await service.updateForCache("Equipments", pack as any, "mes");
-    await service.updateForCache("Users", pack as any, "base");
+    await service.updateToCache("Equipments", new MetaUi(metaJson), "mes");
+    await service.updateToCache("Users", new MetaUi(metaJson), "base");
 
-    // 宿主 localDb = base 库：有 Users，没有 mes 的 Equipments
     expect(await service.localDb.get("meta/Users")).toBeTruthy();
     expect(await service.localDb.get("meta/Equipments")).toBeFalsy();
-    // 不再使用 meta/{service}/{repository}
     expect(await service.localDb.get("meta/mes/Equipments")).toBeFalsy();
     expect(await service.localDb.get("meta/base/Users")).toBeFalsy();
 
-    // mes 库命中缓存，不再请求网络
-    const mesPack = await service.getPack({
-      repository: "Equipments",
-      service: "mes",
-    });
-    expect(mesPack.metaUi).toBeInstanceOf(MetaUi);
-    expect(mesPack.metaUi.objName).toBe("Thing");
+    const mesMeta = await service.get("Equipments", "mes");
+    expect(mesMeta).toBeInstanceOf(MetaUi);
+    expect(mesMeta.objName).toBe("Thing");
   });
 
-  it("getMetaVui 本地组装并写入 itemsView", async () => {
+  it("getViewUi 本地组装并写入 itemsView", async () => {
     const getJson = vi.fn();
     const api = new ApiClient(
       { getJson } as any,
@@ -114,19 +104,19 @@ describe("MetaUiService 从 JSON 构造 MetaUi", () => {
         }),
       ],
     });
-    await service.updateForCache("Things", { metaUi, filters: [] });
-    const view = await service.getMetaVui({ repository: "Things" });
+    await service.updateToCache("Things", metaUi);
+    const view = await service.getViewUi({ repository: "Things" });
     expect(getJson).not.toHaveBeenCalled();
-    expect(view.objName).toBe("ThingJoin");
+    expect(view.objName).toBe("ItemView");
     expect(view.getField("items.itemID")?.fieldName).toBe("items.itemID");
     expect(await service.localDb.get("meta/Things/itemsView")).toBeTruthy();
 
-    const again = await service.getMetaVui({ repository: "Things" });
+    const again = await service.getViewUi({ repository: "Things" });
     expect(getJson).not.toHaveBeenCalled();
-    expect(again.objName).toBe("ThingJoin");
+    expect(again.objName).toBe("ItemView");
   });
 
-  it("服务端重载 pack 后删除 itemsView", async () => {
+  it("服务端重载 MetaUi 后删除 itemsView", async () => {
     const metaJson = {
       objName: "Thing",
       displayLabel: "物",
@@ -164,20 +154,17 @@ describe("MetaUiService 从 JSON 构造 MetaUi", () => {
         },
       ],
     };
-    const getJson = vi.fn(async () => ({
-      filters: [],
-      metaUi: metaJson,
-    }));
+    const getJson = vi.fn(async () => metaJson);
     const api = new ApiClient(
       { getJson } as any,
       { service: "base", repository: "Things" },
     );
     const service = defaultMetaUiService(api);
-    await service.updateForCache("Things", { metaUi: new MetaUi(metaJson), filters: [] });
-    await service.getMetaVui({ repository: "Things" });
+    await service.updateToCache("Things", new MetaUi(metaJson));
+    await service.getViewUi({ repository: "Things" });
     expect(await service.localDb.get("meta/Things/itemsView")).toBeTruthy();
 
-    await service.fetchPackFromServer({ repository: "Things" }, true);
+    await service.get("Things", undefined, true);
     expect(await service.localDb.get("meta/Things/itemsView")).toBeFalsy();
   });
 });

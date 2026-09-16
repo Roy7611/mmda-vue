@@ -16,8 +16,6 @@ import type { RouteParams } from 'vue-router'
 import { readStoredPageSize } from '../app/theme'
 
 export {
-  UI_CREATE,
-  UI_SEARCH,
   resolveViewProp,
   resolveViewPropBool,
   resolveViewPropNumber,

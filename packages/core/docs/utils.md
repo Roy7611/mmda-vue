@@ -25,7 +25,7 @@ const { start, end } = dateTimeRange[DateRangeKind.LAST_7_DAYS]()
 
 // MetaUi：一微服务一库（库名 = service），key 为 meta/{repository}/…
 const db = useLocalAsyncDb('mes', locale)
-await db.put(`meta/${repo}`, pack)
+await db.put(`meta/${repo}`, metaUi)
 
 const onSearch = debounce((q: string) => api.searchAll({ pager: { pageNo: 1, pageSize: 20 }, searchWord: q }), 300)
 ```
@@ -96,7 +96,7 @@ import {
 import { useLocalAsyncDb, LocalStorageDb } from '@mmda/core'
 
 const db = useLocalAsyncDb('wms', 'zh-Hans')
-await db.put('meta/Warehouses', pack)
+await db.put('meta/Warehouses', metaUi)
 const hit = await db.get('meta/Warehouses')
 
 await db.putMany([

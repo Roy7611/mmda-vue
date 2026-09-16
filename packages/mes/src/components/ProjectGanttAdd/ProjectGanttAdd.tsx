@@ -1,7 +1,7 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs, Suspense } from 'vue';
 import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
-import { label, UI_CREATE } from '@mmda/vui';
+import { label, UiViewOne } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
@@ -88,7 +88,7 @@ export default defineComponent({
 						{
 							default: h(ProjectTaskEditor, {
 								id: '_',
-								view: UI_CREATE,
+								view: UiViewOne.Create,
 								gantt: props.gantt ?? null,
 								onChange: (logic:any) => {
 									logicData = logic

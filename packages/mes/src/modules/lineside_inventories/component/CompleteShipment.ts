@@ -36,7 +36,7 @@ const CompleteShipment = defineComponent({
         })
         const bomCtx = new VueUiContext<any>({
             model: emptyPagedList<Bom>(),
-            metaUi: bomLogic.meta.metaUi,
+            metaUi: bomLogic.metaUi,
             view: props.context.view,
             logic: bomLogic,
             app: props.context.app,

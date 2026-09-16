@@ -10,7 +10,7 @@ import {
 
 } from 'vue'
 
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, hasBit, ModuleActionMode, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from '@mmda/core'
 
 import { VueUiBuilder, GroupCard, UiViewMany, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField } from '@mmda/vui'
 
@@ -1000,7 +1000,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
             (action: ModuleAction) =>
 
-              action.actionModes === 4 &&
+              hasBit(action.actionModes, ModuleActionMode.LIST) &&
 
               action.promptType === 'MULTIPLE_SELECT',
 
@@ -1036,7 +1036,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
             (action: ModuleAction) =>
 
-              action.actionModes === 4 &&
+              hasBit(action.actionModes, ModuleActionMode.LIST) &&
 
               action.promptType !== 'MULTIPLE_SELECT',
 

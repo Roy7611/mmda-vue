@@ -206,13 +206,13 @@ async function openEntityContext(
     new VueEntityLogic(defineEntity, init);
   if (module) logic.module = module;
 
-  const pack = await app.meta.getPack({ repository, service });
-  if (!pack?.metaUi) {
+  const metaUi = await app.meta.get(repository, service);
+  if (!metaUi) {
     throw new Error(
       translateMessage("invalid.repositoryMissing", { repository }),
     );
   }
-  logic.meta = pack;
+  logic.metaUi = metaUi;
 
   const view = viewOverride ?? resolveEntityView(route.path, route.query.view);
   const many =
@@ -223,7 +223,7 @@ async function openEntityContext(
     model: many
       ? (emptyPagedList() as any)
       : ({ id: route.params.id } as any),
-    metaUi: pack.metaUi,
+    metaUi,
     view,
     logic,
     app,

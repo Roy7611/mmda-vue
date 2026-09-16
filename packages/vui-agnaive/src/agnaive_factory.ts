@@ -318,7 +318,7 @@ export function createAgNaiveUiFactory(): UiFactory {
     table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
       h(AgGrid, { data: model, metaUi, ...props } as any),
     pagableTable: (loader, metadata, props) =>
-      factory.table(loader.model.list as any[], metadata.metaUi, {
+      factory.table(loader.model.list as any[], metadata, {
         ...props,
         pagination: props.pagination ?? loader.model.pagination,
         onPage: props.onPage,

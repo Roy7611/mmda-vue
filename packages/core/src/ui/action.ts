@@ -1,8 +1,9 @@
 import type { ActionCallback } from '../models/entity_action'
+import type { UiContext } from './context'
 import type { UiBoxed, UiColorRole } from './props'
 
 /** 行/实体谓词；与 Logic Predicate 同形，ui 层不依赖 logic/。 */
-export type UiPredicate<T = unknown> = (t: T, context?: any) => boolean
+export type UiPredicate<T = unknown> = (t: T, context?: UiContext) => boolean
 
 /**
  * 界面动作（菜单、按钮、行操作）。无 Vue。

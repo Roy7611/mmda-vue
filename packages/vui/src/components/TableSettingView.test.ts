@@ -9,8 +9,8 @@ import {
 } from "@mmda/core";
 import { TableSettingView } from "./TableSettingView";
 import {
-  applyListSettingsFields,
-  collectListSettingsFields,
+  applyTableColumnSettings,
+  collectTableColumnSettings,
   snapshotListLayoutRows,
 } from "../ui/builder/list_layout";
 
@@ -221,12 +221,12 @@ describe("list settings align", () => {
     expect(rows.find((row) => row.fieldName === "name")?.align).toBe(
       MetaUiFieldAlignment.CENTER,
     );
-    applyListSettingsFields(metaUi, [
+    applyTableColumnSettings(metaUi, [
       { fieldName: "qty", align: MetaUiFieldAlignment.LEFT },
     ]);
     expect(metaUi.getField("qty")?.align).toBe(MetaUiFieldAlignment.LEFT);
     expect(
-      collectListSettingsFields(metaUi).find((item) => item.fieldName === "qty")
+      collectTableColumnSettings(metaUi).find((item) => item.fieldName === "qty")
         ?.align,
     ).toBe(MetaUiFieldAlignment.LEFT);
   });

@@ -845,7 +845,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
       ),
     table,
     pagableTable: (loader, metadata, props) =>
-      factory.table(loader.model.list as any[], metadata.metaUi, {
+      factory.table(loader.model.list as any[], metadata, {
         ...props,
         pagination: props.pagination ?? loader.model.pagination,
         onPage: props.onPage,

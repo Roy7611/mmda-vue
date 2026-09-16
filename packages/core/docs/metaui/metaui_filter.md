@@ -8,7 +8,7 @@
 
 过滤器**词汇表**：类型位、算子。字段能力问 `MetaUiField.inferColumnFilterType()`；选项是否穷尽问 `MetaUiFieldRef.isRefOptionsFull`。
 
-`MetaUiFilter` / `MetaUiFilterCondition` 是旧快捷 SQL 芯片，**不进** `FilterModel`。vui 芯片 UI 另开。
+`MetaUiFilter` / `MetaUiFilterCondition` 是快捷 SQL 芯片，**不进** `FilterModel`。打开认 `fallback`，不落盘。vui 芯片 UI 另开。
 
 ## `MetaUiFilterType`
 

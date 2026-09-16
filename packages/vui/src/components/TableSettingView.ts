@@ -2,17 +2,16 @@ import { defineComponent, h, reactive, ref, type PropType } from "vue";
 import {
   MetaUiFieldAlignment,
   MetaUiFieldFrozen,
-  type ListSettingsField,
+  type TableColumnSettings,
   type MetaUi,
-  type MetaUiPack,
 } from "@mmda/core";
 import type { UiFactory } from "../ui/factory/factory";
 import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { UiDialogProps } from "@mmda/core";
 import {
-  applyListSettingsFields,
+  applyTableColumnSettings,
   bumpListLayout,
-  collectListSettingsFields,
+  collectTableColumnSettings,
   layoutRowsByBand,
   listServiceName,
   persistListPack,
@@ -366,7 +365,7 @@ export async function openTableSettingDialog(
   const saving = reactive({ value: false });
 
   const applyRows = () => {
-    applyListSettingsFields(
+    applyTableColumnSettings(
       tableMeta(),
       rows.map((row) => ({
         fieldName: row.fieldName,
@@ -383,13 +382,15 @@ export async function openTableSettingDialog(
   const restoreDefault = async (reloadFromDb = false) => {
     const logic = context.logic as {
       repository?: string;
-      meta?: MetaUiPack;
+      metaUi?: MetaUi;
+      viewUi?: MetaUi;
       metaUiService?: {
-        fetchPackFromServer: (
-          params: object,
+        get: (
+          repository: string,
+          service?: string,
           reload?: boolean,
-        ) => Promise<MetaUiPack>;
-        getMetaVui?: (
+        ) => Promise<MetaUi>;
+        getViewUi?: (
           params: object,
           reload?: boolean,
         ) => Promise<MetaUi>;
@@ -399,31 +400,29 @@ export async function openTableSettingDialog(
     if (!logic?.repository || !logic.metaUiService) return;
     restoring.value = true;
     try {
-      if (context.joinListMode && logic.metaUiService.getMetaVui) {
-        const metaVui = await logic.metaUiService.getMetaVui(
+      if (context.joinListMode && logic.metaUiService.getViewUi) {
+        const viewUi = await logic.metaUiService.getViewUi(
           {
             repository: logic.repository,
             service: listServiceName(context),
           },
           reloadFromDb,
         );
-        if (logic.meta) logic.meta.metaVui = metaVui;
-        rows.splice(0, rows.length, ...snapshotListLayoutRows(metaVui));
+        logic.viewUi = viewUi;
+        rows.splice(0, rows.length, ...snapshotListLayoutRows(viewUi));
         bumpListLayout(context);
         await (context as any).search?.();
         return;
       }
-      const pack = await logic.metaUiService.fetchPackFromServer(
-        {
-          repository: logic.repository,
-          service: listServiceName(context),
-        },
+      const metaUi = await logic.metaUiService.get(
+        logic.repository,
+        listServiceName(context),
         reloadFromDb,
       );
-      logic.meta = pack;
-      context.metaUi = pack.metaUi;
-      context.configureSearch(pack.filters ?? [], logic.beforeSearch?.());
-      rows.splice(0, rows.length, ...snapshotListLayoutRows(pack.metaUi));
+      logic.metaUi = metaUi;
+      context.metaUi = metaUi;
+      context.configureSearch(undefined, logic.beforeSearch?.());
+      rows.splice(0, rows.length, ...snapshotListLayoutRows(metaUi));
       bumpListLayout(context);
       await (context as any).search?.();
     } catch {
@@ -445,19 +444,17 @@ export async function openTableSettingDialog(
       if (forever) {
         const logic = context.logic as {
           repository?: string;
-          metaUiService?: {
-            saveListSettings: (payload: {
-              service: string;
-              repository: string;
-              fields: ListSettingsField[];
-            }) => Promise<unknown>;
-          };
+          saveListSettings?: (payload: {
+            service: string;
+            repository: string;
+            fields: TableColumnSettings[];
+          }) => Promise<unknown>;
         };
         try {
-          await logic.metaUiService?.saveListSettings({
+          await logic.saveListSettings?.({
             service: listServiceName(context) ?? "",
             repository: logic.repository ?? "",
-            fields: collectListSettingsFields(tableMeta()),
+            fields: collectTableColumnSettings(tableMeta()),
           });
         } catch {
           await context.app?.ui?.toast?.(context as any, {

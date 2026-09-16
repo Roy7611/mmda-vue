@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, UiBuildContext, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, UI_CREATE, type UiLogicFnResult, UiAction } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, UiBuildContext, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
 import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';
@@ -109,7 +109,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 		return uiBuilder.dialog(
 			productionEventEditorNode({
 							id: '_',
-							view: UI_CREATE,
+							view: UiViewOne.Create,
 							editing: true,
 							isInDialog: true,
 							params: reporteventparams,
@@ -882,7 +882,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 	// 				default: () =>
 	// 					h(ProductionItemEditor, {
 	// 						id: `groupDisk_${Date.now()}`, // 增加唯一ID，便于追踪
-	// 						view: UI_CREATE,
+	// 						view: UiViewOne.Create,
 	// 						editing: true,
 	// 						isInDialog: true,
 	// 						params: {

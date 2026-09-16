@@ -7,7 +7,7 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { debounce, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
+import { debounce, hasBit, ModuleActionMode, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
 import { VueUiBuilder, GroupCard, UiViewMany, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, joinListModeMenuItems, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfGridFilterBar } from "../components/SfGridFilterBar";
@@ -483,7 +483,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         ...auth.authorizedActions
           .filter(
             (action: ModuleAction) =>
-              action.actionModes === 4 &&
+              hasBit(action.actionModes, ModuleActionMode.LIST) &&
               action.promptType === "MULTIPLE_SELECT",
           )
           .map(
@@ -501,7 +501,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         ...auth.authorizedActions
           .filter(
             (action: ModuleAction) =>
-              action.actionModes === 4 &&
+              hasBit(action.actionModes, ModuleActionMode.LIST) &&
               action.promptType !== "MULTIPLE_SELECT",
           )
           .map((action: ModuleAction) =>

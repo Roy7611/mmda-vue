@@ -324,7 +324,7 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 							ctx.setFieldValue('taskID', value ?? null);
 						},
 						toSearch: async () => {
-							const metaFields = ctx.root.logic!.meta.metaUi.groups.filter((item: any) => item.relObjName === 'DailyReportTask');
+							const metaFields = ctx.root.logic!.metaUi.groups.filter((item: any) => item.relObjName === 'DailyReportTask');
 							const taskGroup = metaFields[0];
 							if (!taskGroup?.groupUi) return false;
 							const rows = filterReportTasks(getReportTasks(ctx), '');

@@ -94,7 +94,7 @@ export class EquipmentTallyLogic extends EntityLogic<EquipmentTally> {
 								MetaModel.addSubGroupItems<EquipmentTally, EquipmentTallyRecord>({
 									target: model,
 									source: res.list,
-									metaUiGroup: this.meta.metaUi.getGroup('records'),
+									metaUiGroup: this.metaUi.getGroup('records'),
 									sequenceKey: 'itemID',
 									propsMapper: {
 										deletable: () => false,
@@ -177,7 +177,7 @@ export class EquipmentTallyLogic extends EntityLogic<EquipmentTally> {
 	 * @param target
 	 */
 	async oneClickNormal(context: UiContext<any>, target: EquipmentTally) {
-		const metaFields = context.logic!.meta.metaUi.groups.filter((item: any) => item.relObjName === 'EquipmentTallyRecord')
+		const metaFields = context.logic!.metaUi.groups.filter((item: any) => item.relObjName === 'EquipmentTallyRecord')
 		const recordGroup = metaFields[0]
 		if (!recordGroup?.groupUi) return
 		const items = target.records.map(v => ({ ...v, id: `${v.tallyID},${v.itemID}` }))

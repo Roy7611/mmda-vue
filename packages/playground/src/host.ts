@@ -1,9 +1,9 @@
-import type { MetaUiPack, MetaUiService, Module } from "@mmda/core";
+import type { MetaUiService, Module } from "@mmda/core";
 import type { MmdaApplication, EntityLogic, EntityLogicInit } from "@mmda/vui";
 import {
   playgroundModuleFactory,
   playgroundModules,
-  playgroundPacks,
+  playgroundMetaUis,
 } from "./catalog";
 import { CatalogLogic, CategoryLogic, ProductLogic } from "./logics";
 
@@ -22,16 +22,14 @@ export function installPlaygroundMeta(app: MmdaApplication) {
     nameOrUrl.includes("/")
       ? playgroundModuleFactory.findModuleByUrl(nameOrUrl)
       : playgroundModuleFactory.findModuleByName(nameOrUrl);
-  meta.getPack = async (params) => {
-    const repository = params?.repository ?? "";
-    const pack = playgroundPacks[repository];
-    if (!pack) {
+  meta.get = async (repository) => {
+    const metaUi = playgroundMetaUis[repository];
+    if (!metaUi) {
       throw new Error(`Playground repository missing: ${repository}`);
     }
-    return pack as MetaUiPack;
+    return metaUi;
   };
   meta.getSystems = async () => [];
-  meta.getTodoCount = async () => 0;
 }
 
 export function installGuestSession(

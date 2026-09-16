@@ -615,7 +615,7 @@ const externalLink = (
     return h("span", { name: field.fieldName, ...domProps }, fldText);
   }
   const { modules = [] } = app;
-  const systemList: any[] = app.state.systemList ?? [];
+  const systemList: Module[] = app.state.systemList ?? [];
   const api = context.logic?.apiClient ?? app.api;
   const isCurrentSystem =
     !reference.refDbName || reference.refDbName === api?.config.service;
@@ -625,7 +625,7 @@ const externalLink = (
           (subModule: Module) => subModule.objName === reference.refObjName,
         ),
       )
-    : systemList.find((system: any) => system.service === reference.refDbName);
+    : systemList.find((system) => system.service === reference.refDbName);
   const refModule = refMainModule?.subModules?.find(
     (subModule: Module) => subModule.objName === reference.refObjName,
   );

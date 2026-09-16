@@ -1,35 +1,14 @@
 import { EntityQuery, type EntitySearchParam } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
-import { listServiceName } from "./list_layout";
 
-function lastQueryService(context: VueUiContext<any>) {
-  return context.logic?.metaUiService as
+function lastQueryLogic(context: VueUiContext<any>) {
+  return context.logic as
     | {
-        getLastQuery?: (
-          repository: string,
-          service?: string,
-        ) => Promise<EntityQuery | undefined>;
-        putLastQuery?: (
-          repository: string,
-          query: EntityQuery,
-          service?: string,
-        ) => Promise<void>;
-        deleteLastQuery?: (
-          repository: string,
-          service?: string,
-        ) => Promise<void>;
+        getLastQuery?: () => Promise<EntityQuery | undefined>;
+        putLastQuery?: (query: EntityQuery) => Promise<void>;
+        deleteLastQuery?: () => Promise<void>;
       }
     | undefined;
-}
-
-function lastQueryRepo(context: VueUiContext<any>) {
-  const repository = context.logic?.repository as string | undefined;
-  if (!repository) return undefined;
-  return {
-    repository,
-    service: listServiceName(context),
-    api: lastQueryService(context),
-  };
 }
 
 function lastQuerySlot(context: VueUiContext<any>) {
@@ -38,20 +17,22 @@ function lastQuerySlot(context: VueUiContext<any>) {
 
 export async function loadLastQuery(context: VueUiContext<any>) {
   const slot = lastQuerySlot(context);
-  const target = lastQueryRepo(context);
-  if (!target?.api?.getLastQuery) {
-    slot.value = null;
-    return;
+  const query = (await lastQueryLogic(context)?.getLastQuery?.()) ?? null;
+  slot.value = query;
+  if (!query) return;
+  const pageSize = context.searchParam.pager?.pageSize;
+  EntityQuery.apply(context.searchParam, query);
+  if (!query.queryID) delete context.searchParam.filterModel;
+  if (pageSize != null && context.searchParam.pager) {
+    context.searchParam.pager.pageSize = pageSize;
   }
-  slot.value =
-    (await target.api.getLastQuery(target.repository, target.service)) ?? null;
 }
 
 export async function saveLastQuery(context: VueUiContext<any>) {
-  const target = lastQueryRepo(context);
-  if (!target?.api?.putLastQuery) return;
+  const logic = lastQueryLogic(context);
+  if (!logic?.putLastQuery) return;
   const query = EntityQuery.copy(context.searchParam as EntitySearchParam);
-  await target.api.putLastQuery(target.repository, query, target.service);
+  await logic.putLastQuery(query);
   lastQuerySlot(context).value = query;
 }
 
@@ -64,9 +45,9 @@ export async function applyLastQuery(context: VueUiContext<any>) {
 }
 
 export async function dismissLastQuery(context: VueUiContext<any>) {
-  const target = lastQueryRepo(context);
-  if (target?.api?.deleteLastQuery) {
-    await target.api.deleteLastQuery(target.repository, target.service);
+  const logic = lastQueryLogic(context);
+  if (logic?.deleteLastQuery) {
+    await logic.deleteLastQuery();
   }
   lastQuerySlot(context).value = null;
 }

@@ -4,11 +4,11 @@
  * 字段能力问 {@link MetaUiField.inferColumnFilterType}；
  * 选项是否穷尽问 {@link MetaUiFieldRef.isRefOptionsFull}。
  *
- * @deprecated {@link MetaUiFilter} / {@link MetaUiFilterCondition} 是移动端快捷 SQL，不进 FilterModel。
+ * {@link MetaUiFilter} / {@link MetaUiFilterCondition} 是快捷 SQL 芯片，不进 FilterModel。
  */
 import { hasBit } from '../extensions/number_extensions'
 
-/** @deprecated 快捷 SQL 芯片；新代码用 FilterModel / FieldFilter。 */
+/** 快捷 SQL 芯片。打开认 fallback，不落盘。 */
 export interface MetaUiFilter {
   filterName: string
   filterTitle: string
@@ -16,12 +16,11 @@ export interface MetaUiFilter {
   filterConditions: MetaUiFilterCondition[]
 }
 
-/** @deprecated */
 export interface MetaUiFilterCondition {
   displayLabel: string
   condition: string
   fallback: boolean
-  /** @deprecated 打开只认 fallback + Module.defaultFilter，不落盘 */
+  /** 打开只认 fallback + Module.defaultFilter，不落盘 */
   active?: boolean
 }
 

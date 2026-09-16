@@ -53,7 +53,7 @@ export const normalizeActionColorRole = (
   role?: string | number | null,
 ): UiColorRole | undefined => {
   if (role == null || role === '') return undefined
-  // ModuleDisplayHint numeric wire form: 0;INFO|1;SUCCESS|2;WARNING|4;DANGER
+  // MetaDisplayHint numeric wire form: 0;INFO|1;SUCCESS|2;WARNING|4;DANGER
   const numeric: Record<string, UiColorRole> = {
     '0': 'info',
     '1': 'success',
@@ -225,12 +225,12 @@ export const UiActionDivider = (): UiAction => {
 export function isActionVisible(
   action: UiAction,
   target?: unknown,
-  ctx?: unknown,
+  ctx?: UiContext,
 ): boolean {
   const visible = action.visible;
   if (visible == null) return true;
   if (typeof visible === "boolean") return visible;
-  if (typeof visible === "function") return visible(target, ctx as any) !== false;
+  if (typeof visible === "function") return visible(target, ctx) !== false;
   if (typeof visible === "object" && visible !== null && "value" in visible) {
     return (visible as { value: boolean }).value !== false;
   }
@@ -241,11 +241,11 @@ export function isActionVisible(
 export function isActionEnabled(
   action: UiAction,
   target?: unknown,
-  ctx?: unknown,
+  ctx?: UiContext,
 ): boolean {
   if (action.disabled === true) return false;
   const canDo = action.canDo;
   if (canDo == null) return true;
   if (typeof canDo === "boolean") return canDo;
-  return canDo(target, ctx as any) !== false;
+  return canDo(target, ctx) !== false;
 }

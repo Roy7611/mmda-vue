@@ -10,7 +10,6 @@ import {
   ModuleVersion,
   SqlDataType,
   type EntitySearchParam,
-  type MetaUiPack,
   type Module,
   type PagedList,
 } from "@mmda/core";
@@ -224,13 +223,10 @@ export const categoryMeta = new MetaUi({
   ],
 });
 
-const productPack: MetaUiPack = { metaUi: productMeta };
-const categoryPack: MetaUiPack = { metaUi: categoryMeta };
-
-export const playgroundPacks: Record<string, MetaUiPack> = {
-  Products: productPack,
-  Catalog: productPack,
-  Categories: categoryPack,
+export const playgroundMetaUis: Record<string, MetaUi> = {
+  Products: productMeta,
+  Catalog: productMeta,
+  Categories: categoryMeta,
 };
 
 function feature(

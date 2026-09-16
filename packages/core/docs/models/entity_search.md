@@ -102,8 +102,8 @@ join 外壳相同（`filterType:'join'` + `AND`/`OR` + `conditions[]`）。靠�
 | 放哪 | 放什么 |
 |---|---|
 | **models** | EntityQuery / SearchParam / FilterModel / Operator；同名 namespace：`FieldFilter.in`、`EntityQuery.parse`、`DefaultFieldFilter.parse` |
-| **metaui** | `Module.defaultFilter` / `defaultSort` / `defaultGroupBy`；pack 的 `lastQuery` |
-| **logic** | 套用默认查询、`refWhere`；**无 SearchOp**；SQL 用 `SqlOperator` |
+| **metaui** | `Module.defaultFilter` / `defaultSort` / `defaultGroupBy` |
+| **logic** | `{repository}/lastQuery`；套用默认查询、`refWhere`；**无 SearchOp**；SQL 用 `SqlOperator` |
 | **net** | `searchAll`；`toSearchRequest` / `toQueryParams`；空 filterModel → GET |
 | **vui** | 只读写 EntityQuery / SearchParam；芯片与表头运算符用 `EntityFilterOperator` |
 
@@ -167,12 +167,10 @@ items.xxx=2
 
 ## 本地上次查询 / CustomizedQuery
 
-- 元数据包仍整体从服务器拉（metaui + filters）。
-- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在对应微服务的 IndexedDB（库名 = service）键 `meta/{repository}/query`，挂在 `MetaUiPack.lastQuery`。写入用 `EntityQuery.lastCache`：没点保存查询（无 `queryID`）不缓存 `filterModel`。
+- 元数据只拉 `GET {service}/{repository}/metaui`（`MetaUi` JSON）。默认条件 / 排序走 `Module.defaultFilter` / `defaultSort`。
+- **本地上次查询** = 一份 EntityQuery JSON（含 `pager.sorts`），缓存在对应微服务的 IndexedDB（库名 = service）键 `{repository}/lastQuery`。由 `EntityLogic` 读写。写入用 `EntityQuery.lastCache`：没点保存查询（无 `queryID`）不缓存 `filterModel`。
 - **不要**再单独缓存 sorts。
 - 打开列表顺序：CustomizedQuery / 本地 `lastQuery`（无 `queryID` 只套排序）→ 套到 SearchParam；否则 Module 默认。
-
-`updateForCache` 仅在 pack **显式带** `lastQuery` 时写入该键，避免服务器 pack 冲掉本地查询。
 
 保存自定义查询：
 

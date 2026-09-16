@@ -10,12 +10,12 @@
 - `MetaUiField`：字段声明、数据类型、展示与引用配置。对齐成员/值都是 `LEFT`；皮肤 CSS 再小写。
 - `MetaUiField.filterTypes`：列头过滤器 **TINYINT 位掩码**（`MetaUiFilterType`）。字段推断见 `inferColumnFilterType()`。[metaui_filter.md](./metaui/metaui_filter.md) · [过滤框架](./models/entity_filter_design.md)。
 - `SqlDataType`：后端字段类型及默认值映射。
-- `MetaUiFilter`：旧快捷 SQL 芯片，不进 `FilterModel`。
+- `MetaUiFilter`：快捷 SQL 芯片，不进 `FilterModel`。打开认 `fallback`，不落盘。
 - 列表字段条件：`FilterModel` / `FieldFilter` + `MetaUiFilterOpCode`（见 [entity_search.md](./models/entity_search.md)）。
 - SQL 片段：`SqlOperator`（where / `refWhere`）。
-- 排序只在 `pager.sorts`。本地上次查询是 pack 上的 `lastQuery: EntityQuery`，不单存 sorts。
-- `MetaUiService`：加载、缓存和组装元数据包（含可选 `lastQuery`）。
-- `Module`：功能目录与权限位；`defaultFilter` 是 `[alias.]field[=value]` 固定字段芯片（`t.status=1`；`items.xxx` 先解析）。
+- 排序只在 `pager.sorts`。本地上次查询是 `{repository}/lastQuery` 的 `EntityQuery`，不单存 sorts。
+- `MetaUiService`：加载、缓存 `MetaUi` 与联查 `getViewUi`。
+- `Module`：功能目录与权限位；`defaultFilter` / `defaultSort` 是打开列表的默认条件与排序。
 
 ```ts
 import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'

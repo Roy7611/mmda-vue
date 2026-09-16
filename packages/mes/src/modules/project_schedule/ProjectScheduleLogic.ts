@@ -8,7 +8,6 @@ import { resolve } from 'node:path';
  */
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
-import { MetaUiPack } from '@mmda/core';
 import type { EntityLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
 import { EntityLogic } from '@mmda/vui';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';

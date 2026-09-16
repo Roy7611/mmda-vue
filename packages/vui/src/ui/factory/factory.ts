@@ -5,7 +5,6 @@ import {
   relativeTime as formatRelativeTime,
   type EntitySearchParam,
   type MetaUi,
-  type MetaUiPack,
   type Module,
   type PagedList,
   type Pagination,
@@ -251,7 +250,7 @@ export interface UiFactory extends CoreUiFactory<VNode> {
   ) => VNode
   pagableTable: <T>(
     dataLoader: UiPagableDataLoader<T>,
-    metadata: MetaUiPack,
+    metadata: MetaUi,
     props: UiPagableListPropsType<T>,
   ) => VNode
   scrollbar: UiRenderer<VNodeChild>

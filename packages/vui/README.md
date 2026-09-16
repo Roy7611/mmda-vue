@@ -108,10 +108,10 @@ vueApp.use(app)
 
 ```ts
 const logic = app.di.get('MaterialsLogic')
-const pack = await app.meta.getPack({ repository: 'Materials' })
+const metaUi = await app.meta.get('Materials')
 const context = new VueUiContext({
   model: { list: [] },
-  metaUi: pack.metaUi,
+  metaUi,
   view: UiViewMany.Index,
   app,
   logic,

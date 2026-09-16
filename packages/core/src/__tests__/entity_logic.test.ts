@@ -20,11 +20,11 @@ function createLogic(api: Record<string, unknown> = {}) {
   const init: EntityLogicInit = {
     repository: "Items",
     apiService: "base",
-    meta: { metaUi } as any,
+    metaUi,
     module: { moduleCode: "A.01", objName: "Item" } as any,
     metaUiService: {
       getApiClient: () => api,
-      getPack: vi.fn(async () => ({ metaUi })),
+      get: vi.fn(async () => metaUi),
       findModule: vi.fn(),
     } as any,
   };
@@ -40,11 +40,11 @@ describe("EntityLogic", () => {
     const init: EntityLogicInit = {
       repository: "Items",
       apiService: "base",
-      meta: { metaUi } as any,
+      metaUi,
       module: { moduleCode: "A.01", objName: "Item" } as any,
       metaUiService: {
         getApiClient: () => ({}),
-        getPack: vi.fn(async () => ({ metaUi })),
+        get: vi.fn(async () => metaUi),
         findModule: vi.fn(),
       } as any,
     };

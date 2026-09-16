@@ -53,7 +53,7 @@ export const enum ModuleStatus {
 }
 
 /**
- * 模块操作按钮应用在哪些界面
+ * 模块操作出现在哪些界面。位，可组合。
  * 0;NONE;无|1;READ;详情|2;EDIT;编辑|4;LIST;列表
  */
 export const enum ModuleActionMode {
@@ -88,7 +88,7 @@ export const enum ModuleActionType {
  * 模块操作显示提示
  * 显示暗示：0;INFO;信息|1;SUCCESS;成功|2;WARNING;警告|4;DANGER;危险
  */
-export const enum ModuleDisplayHint {
+export const enum MetaDisplayHint {
   INFO = 'INFO', //信息
   SUCCESS = 'SUCCESS', //成功
   WARNING = 'WARNING', //警告
@@ -176,15 +176,16 @@ export interface Module {
 /**
  * 模块业务操作的元数据目录，只给角色权限打勾用。
  * 不是客户端按钮入口；服务器转成 EntityAction 后再建 UiAction。
- * @remarks moduleCode:模块编码 actionCode:操作编码 actionModes:操作模式 actionName:操作名称 actionType:操作类型 description:操作描述 displayHint:操作提示 displayIcon:操作提示图标 displayLabel:操作提示标签 ownerOnly:仅负责人允许 promptType:操作交互类型 executableExpression:执行表达式
+ * @remarks moduleCode:模块编码 actionCode:操作编码 actionModes:界面位掩码 actionName:操作名称 actionType:操作类型 description:操作描述 displayHint:操作提示 displayIcon:操作提示图标 displayLabel:操作提示标签 ownerOnly:仅负责人允许 promptType:操作交互类型 executableExpression:执行表达式
  */
 export interface ModuleAction {
   moduleCode: string;
   actionCode: string;
+  /** 出现在哪些界面。位掩码：`READ|EDIT|LIST`，不是单选。 */
   actionModes: ModuleActionMode;
   actionName: string;
   actionType?: ModuleActionType;
-  displayHint?: ModuleDisplayHint;
+  displayHint?: MetaDisplayHint;
   displayIcon?: string;
   displayLabel?: string;
   description?: string;

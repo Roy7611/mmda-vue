@@ -265,11 +265,8 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
       const app = context.app;
       if (!repository || !app) return;
       const catLogic = await resolveCategoryTreeLogicOp(context, repository);
-      const pack = await app.meta.getPack({
-        repository,
-        service: catLogic.apiService,
-      });
-      if (!pack?.metaUi) return;
+      const metaUi = await app.meta.get(repository, catLogic.apiService);
+      if (!metaUi) return;
       const id = view === UiViewOne.Create ? undefined : treeIdOf(node, props.fields);
       const queryParams =
         view === UiViewOne.Create
@@ -277,7 +274,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
           : undefined;
       const ctx = new VueUiContext({
         model: (id ? { id } : {}) as any,
-        metaUi: pack.metaUi,
+        metaUi,
         view,
         logic: catLogic,
         app,
@@ -286,7 +283,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
       await ctx.init({ path: id, queryParams });
       const editing = view !== UiViewOne.Details;
       const dlgProps = {
-        title: pack.metaUi.displayLabel,
+        title: metaUi.displayLabel,
         width: "70vw",
         height: "80vh",
         maxHeight: "90vh",

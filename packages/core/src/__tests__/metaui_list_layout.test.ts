@@ -87,8 +87,8 @@ describe("列表列顺序", () => {
   });
 });
 
-describe("updateForCache", () => {
-  it("把 metaUi/filters 与 lastQuery 写入缓存，不写 sorts", async () => {
+describe("updateToCache", () => {
+  it("只写入 MetaUi，不写 filters/sorts/lastQuery", async () => {
     const metaUi = metaOf(field("code", { listSize: 120, listPos: 0 }));
     const apiClient = {
       config: { service: "base", locale: "zh" },
@@ -96,26 +96,10 @@ describe("updateForCache", () => {
       buildEntityURL: () => "meta/listSettings/save",
     } as any;
     const service = defaultMetaUiService(apiClient);
-    const filters = [
-      {
-        filterName: "status",
-        filterTitle: "状态",
-        fixed: false,
-        filterConditions: [
-          {
-            displayLabel: "开",
-            condition: "t.status=1",
-            fallback: true,
-            active: true,
-          },
-        ],
-      },
-    ];
-    await service.updateForCache("Things", { metaUi, filters, lastQuery: { pager: { pageSize: 20, pageNo: 1 }, searchWord: "x" }, sorts: [{ sortBy: "code", sortOrder: "ASC" }] } as any, "base");
-    const cached = await service.getPack({ repository: "Things", service: "base" });
-    expect(cached.metaUi.getField("code")?.listSize).toBe(120);
-    expect(cached.filters?.[0]?.filterConditions[0].active).toBe(true);
-    expect((cached as { sorts?: unknown }).sorts).toBeUndefined();
-    expect((cached.lastQuery as { searchWord?: string } | undefined)?.searchWord).toBe("x");
+    await service.updateToCache("Things", metaUi, "base");
+    const cached = await service.get("Things", "base");
+    expect(cached.getField("code")?.listSize).toBe(120);
+    expect(await service.localDb.get("Things/lastQuery")).toBeFalsy();
+    expect(await service.localDb.get("meta/Things/filters")).toBeFalsy();
   });
 });

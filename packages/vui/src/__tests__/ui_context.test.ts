@@ -750,17 +750,13 @@ describe("VueUiContext", () => {
     expect(root.getCacheByID("i1")?.model).toMatchObject({ itemName: "" });
   });
 
-  it("打开列表时勾选缓存的 active 过滤，不从 pack 拉排序", () => {
+  it("打开列表时勾选 fallback 过滤，不从元数据拉排序", () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
       model: { list: [] },
       metaUi,
       view: "index",
-      logic: {
-        meta: {
-          sorts: [{ sortBy: "orderNo", sortOrder: "DESC" }],
-        },
-      },
+      logic: {},
     } as any);
     ctx.configureSearch([
       {
@@ -774,12 +770,12 @@ describe("VueUiContext", () => {
       },
     ]);
     expect(ctx.filters[0]?.selectedConditions.value.map((item) => item.displayLabel)).toEqual(
-      ["B"],
+      ["A"],
     );
     expect(ctx.searchParam.pager.sorts ?? []).toEqual([]);
   });
 
-  it("列表 pageSize 用全局 mmda/pageSize，不被模块 lastQuery 覆盖", () => {
+  it("列表 pageSize 用全局 mmda/pageSize，不被 lastQuery 覆盖", async () => {
     localStorage.setItem("mmda/pageSize", "200");
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
@@ -787,61 +783,62 @@ describe("VueUiContext", () => {
       metaUi,
       view: "index",
       logic: {
-        meta: {
-          lastQuery: {
-            pager: { pageNo: 3, pageSize: 1000 },
-            searchWord: "螺丝",
-          },
-        },
+        getLastQuery: async () => ({
+          pager: { pageNo: 3, pageSize: 1000 },
+          searchWord: "螺丝",
+        }),
       },
     } as any);
     ctx.configureSearch([]);
+    const { loadLastQuery } = await import("../ui/builder/list_last_query");
+    await loadLastQuery(ctx);
+    ctx.searchParam.pager.pageSize = 200;
     expect(ctx.searchParam.pager.pageSize).toBe(200);
     expect(ctx.searchParam.pager.pageNo).toBe(3);
     expect(ctx.searchParam.searchWord).toBe("螺丝");
   });
 
-  it("lastQuery 没有 queryID 时不带回列头 filterModel", () => {
+  it("lastQuery 没有 queryID 时不带回列头 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
       model: { list: [] },
       metaUi,
       view: "index",
       logic: {
-        meta: {
-          lastQuery: {
-            pager: { pageNo: 1, pageSize: 20 },
-            filterModel: {
-              status: { filterType: "set", operator: "IN", values: ["OPEN"] },
-            },
+        getLastQuery: async () => ({
+          pager: { pageNo: 1, pageSize: 20 },
+          filterModel: {
+            status: { filterType: "set", operator: "IN", values: ["OPEN"] },
           },
-        },
+        }),
       },
     } as any);
     ctx.configureSearch([]);
+    const { loadLastQuery } = await import("../ui/builder/list_last_query");
+    await loadLastQuery(ctx);
     expect(ctx.searchParam.filterModel).toBeUndefined();
   });
 
-  it("保存过的命名查询 lastQuery 才带回 filterModel", () => {
+  it("保存过的命名查询 lastQuery 才带回 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
       model: { list: [] },
       metaUi,
       view: "index",
       logic: {
-        meta: {
-          lastQuery: {
-            queryID: "q1",
-            queryName: "在岗",
-            pager: { pageNo: 1, pageSize: 20 },
-            filterModel: {
-              status: { filterType: "set", operator: "IN", values: ["OPEN"] },
-            },
+        getLastQuery: async () => ({
+          queryID: "q1",
+          queryName: "在岗",
+          pager: { pageNo: 1, pageSize: 20 },
+          filterModel: {
+            status: { filterType: "set", operator: "IN", values: ["OPEN"] },
           },
-        },
+        }),
       },
     } as any);
     ctx.configureSearch([]);
+    const { loadLastQuery } = await import("../ui/builder/list_last_query");
+    await loadLastQuery(ctx);
     expect(ctx.searchParam.filterModel).toEqual({
       status: { filterType: "set", operator: "IN", values: ["OPEN"] },
     });

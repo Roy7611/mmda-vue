@@ -255,7 +255,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     })(model, metaUi, props)) as typeof factory.table;
   wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-pagable");
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
-    factory.table(loader.model.list as any[], metadata.metaUi, {
+    factory.table(loader.model.list as any[], metadata, {
       ...props,
       pagination: props.pagination ?? loader.model.pagination,
       onPage: props.onPage,

@@ -12,11 +12,15 @@ import {
 import type { PagedList } from "../models/pagination";
 import { DEFAULT_PAGE_SIZE, NO_PAGINATION } from "../models/pagination";
 import type { EntityAction } from "../models/entity_action";
-import type { MetaUiGroup } from "../metaui/metaui_group";
+import type { MetaUi, MetaUiGroup } from "../metaui/metaui_group";
 import { MetaUiFieldLogic } from "./field_logic";
 import { MetaUiGroupLogic } from "./group_logic";
-import type { MetaUiPack, MetaUiService } from "../metaui/metaui_service";
+import type {
+  TableColumnSettings,
+  MetaUiService,
+} from "../metaui/metaui_service";
 import type { Module } from "../metaui/module";
+import type { EntityQuery } from "../models/entity_search";
 import type { UiContext } from "../ui/context";
 import type { UiValidation } from "./validation";
 import type { Predicate } from "./logic_functions";
@@ -25,10 +29,20 @@ import { UiViewMany, UiViewOne } from "../ui/view";
 import { getSqlOperator } from "./sql_operator";
 import "../extensions/string_extensions";
 
+export interface ListSettingsPayload {
+  service: string;
+  repository: string;
+  fields: TableColumnSettings[];
+}
+
+function lastQueryCacheKey(repository: string) {
+  return `${repository}/lastQuery`;
+}
+
 export interface EntityLogicInit {
   metaUiService: MetaUiService;
   repository: string;
-  meta?: MetaUiPack;
+  metaUi?: MetaUi;
   module?: Module;
   isChild?: boolean;
   customPage?: boolean;
@@ -95,7 +109,8 @@ export type UiLogicManyAfterFn<E> = (
  * - 面向用户文案用 `context.t()`（vui 由 VueUiContext 实现）。
  */
 export abstract class EntityLogic<E extends Entity> {
-  meta: MetaUiPack;
+  metaUi?: MetaUi;
+  viewUi?: MetaUi;
   module?: Module;
   createParam: any;
   readonly metaUiService: MetaUiService;
@@ -162,7 +177,7 @@ export abstract class EntityLogic<E extends Entity> {
   ) {
     this.metaUiService = init.metaUiService;
     this.repository = init.repository;
-    this.meta = init.meta ?? ({ metaUi: undefined } as any);
+    this.metaUi = init.metaUi;
     this.module = init.module;
     this.isChild = init.isChild ?? false;
     this.customPage = init.customPage ?? false;
@@ -257,21 +272,21 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   getModelTitle(model: E) {
-    const metaUi = this.meta.metaUi;
+    const metaUi = this.metaUi;
     if (!metaUi) return model.id;
     return `${metaUi.displayLabel}?${metaUi.uniqueKey ? model[metaUi.uniqueKey] : model.id}?`;
   }
 
   createDefault(proto?: object): E {
     return MetaModel.createEntity<E>(
-      this.meta.metaUi,
+      this.metaUi,
       this.createEntity,
       proto,
     );
   }
 
   field(fldName: string) {
-    const metaUi = this.meta?.metaUi;
+    const metaUi = this.metaUi;
     if (!metaUi) {
       throw new Error(
         `Logic "${this.repository}" has no metadata (field ${fldName})`,
@@ -287,7 +302,7 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   group<G>(groupName: string) {
-    const metaUi = this.meta?.metaUi;
+    const metaUi = this.metaUi;
     if (!metaUi) {
       throw new Error(
         `Logic "${this.repository}" has no metadata (group ${groupName})`,
@@ -548,7 +563,7 @@ export abstract class EntityLogic<E extends Entity> {
   async save(model: E) {
     try {
       const savable = MetaModel.savable(
-        this.meta.metaUi,
+        this.metaUi,
         model,
         this.getSimplifyOptions(),
       );
@@ -711,27 +726,58 @@ export abstract class EntityLogic<E extends Entity> {
 
   async initMetadata(reload = false, params?: EntityUrlParam) {
     if (this.customPage) return;
-    this.meta = await this.metaUiService.getPack(
-      Object.assign(
-        {},
-        { repository: this.repository, service: this.apiService },
-        params,
-      ),
-      reload,
-    );
+    const repository =
+      params?.redirection ?? params?.repository ?? this.repository;
+    const service = params?.service ?? this.apiService;
+    this.metaUi = await this.metaUiService.get(repository, service, reload);
     if (
-      this.meta?.metaUi?.objName &&
+      this.metaUi?.objName &&
       this.module &&
-      this.meta.metaUi.objName !== this.module.objName &&
+      this.metaUi.objName !== this.module.objName &&
       !params?.redirection
     ) {
-      this.module = this.metaUiService.findModule(this.meta.metaUi.objName);
+      this.module = this.metaUiService.findModule(this.metaUi.objName);
     }
-    return this.meta;
+    return this.metaUi;
   }
 
   loadMetadata(repository: string, service?: string, reload = false) {
-    return this.metaUiService.getPack({ repository, service }, reload);
+    return this.metaUiService.get(repository, service, reload);
+  }
+
+  async getReportTemplates(repository?: string) {
+    try {
+      const res = await this.apiClient.getAll({
+        repository: repository ?? this.repository,
+        action: "getAllTemplate",
+      });
+      return res?.list ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  saveListSettings(payload: ListSettingsPayload) {
+    return this.apiClient.http.postJson("meta/listSettings/save", payload);
+  }
+
+  getLastQuery() {
+    return this.metaUiService.localDb?.get(
+      lastQueryCacheKey(this.repository),
+    ) as Promise<EntityQuery | undefined>;
+  }
+
+  putLastQuery(query: EntityQuery) {
+    return this.metaUiService.localDb?.put(
+      lastQueryCacheKey(this.repository),
+      query,
+    );
+  }
+
+  deleteLastQuery() {
+    return this.metaUiService.localDb?.delete(
+      lastQueryCacheKey(this.repository),
+    );
   }
 }
 
@@ -748,20 +794,20 @@ export class SubEntityLogic<
     public readonly master: P,
     public readonly groupName: string,
   ) {
-    const { meta, metaUiService, module } = parent;
-    const metaUiGroup = meta.metaUi?.getGroup(groupName);
+    const { metaUi, metaUiService, module } = parent;
+    const metaUiGroup = metaUi?.getGroup(groupName);
     if (!metaUiGroup?.groupUi) {
       throw new Error(
         `SubEntityLogic "${groupName}": parent MetaUi has no groupUi` +
-          ` (parent.objName=${meta.metaUi?.objName ?? "?"},` +
-          ` groups=[${(meta.metaUi?.groups ?? [])
+          ` (parent.objName=${metaUi?.objName ?? "?"},` +
+          ` groups=[${(metaUi?.groups ?? [])
             .map((g: { groupName: string }) => g.groupName)
             .join(",")}])`,
       );
     }
     super(defineGroupItem, {
       module,
-      meta: { metaUi: metaUiGroup.groupUi },
+      metaUi: metaUiGroup.groupUi,
       metaUiService: metaUiService,
       repository: groupName,
       isChild: true,
@@ -781,7 +827,7 @@ export class SubEntityLogic<
   create(param?: any) {
     this.createParam = param;
     return Promise.resolve(
-      MetaModel.createEntity(this.meta.metaUi, this.createEntity, param),
+      MetaModel.createEntity(this.metaUi, this.createEntity, param),
     );
   }
 
@@ -811,19 +857,15 @@ export class SubEntityLogic<
 
   async initMetadata(reload = false, params?: EntityUrlParam) {
     if (params?.redirection) {
-      this.meta = await this.metaUiService.getPack(
-        Object.assign(
-          {},
-          { repository: this.repository, service: this.apiService },
-          params,
-        ),
-        reload,
-      );
+      const repository =
+        params.redirection ?? params.repository ?? this.repository;
+      const service = params.service ?? this.apiService;
+      this.metaUi = await this.metaUiService.get(repository, service, reload);
     } else {
-      this.metaUiGroup = this.parent.meta.metaUi.getGroup(this.groupName)!;
-      this.meta = { metaUi: this.metaUiGroup.groupUi! };
+      this.metaUiGroup = this.parent.metaUi!.getGroup(this.groupName)!;
+      this.metaUi = this.metaUiGroup.groupUi!;
     }
-    return this.meta;
+    return this.metaUi;
   }
 }
 

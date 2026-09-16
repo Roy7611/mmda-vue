@@ -32,7 +32,7 @@ describe('VueUiContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     logic.save = save
     const ctx = new VueUiContext({
@@ -52,7 +52,7 @@ describe('VueUiContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     logic.save = save
     const ctx = new VueUiContext({
@@ -82,7 +82,7 @@ describe('VueUiContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'EquipmentChecklists',
-      meta: { metaUi },
+      metaUi,
       apiService: 'mes',
     })
     const ctx = new VueUiContext({
@@ -100,7 +100,7 @@ describe('VueUiContext', () => {
   it('附件与模板走 doAction / postBlob，不调用 ApiClient 专用方法', async () => {
     const doAction = vi.fn(async () => ({ ok: true }))
     const postBlob = vi.fn(async () => new Blob(['xlsx']))
-    const getAllTemplate = vi.fn(async () => [
+    const getReportTemplates = vi.fn(async () => [
       { templateName: '导入', templateFile: 'a.xlsx', templateID: 't1' },
     ])
     const logic = new OrderLogic(o => o as any, {
@@ -110,11 +110,11 @@ describe('VueUiContext', () => {
           http: { postBlob },
           buildEntityURL: () => '/Orders/downloadTemplate',
         }),
-        getAllTemplate,
       } as any,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
+    logic.getReportTemplates = getReportTemplates
     const ctx = new VueUiContext({
       model: { id: '1', orderNo: 'SO-1' } as any,
       metaUi,
@@ -134,7 +134,7 @@ describe('VueUiContext', () => {
       }),
       expect.objectContaining({ fileName: 'a.pdf' }),
     )
-    expect(getAllTemplate).toHaveBeenCalledWith('Orders')
+    expect(getReportTemplates).toHaveBeenCalledWith('Orders')
     expect(postBlob).toHaveBeenCalled()
     expect(ctx.templates[0].templateID).toBe('t1')
   })
@@ -145,7 +145,7 @@ describe('VueUiContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
@@ -182,7 +182,7 @@ describe('VueUiContext', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: { getApiClient: () => ({}) } as any,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany

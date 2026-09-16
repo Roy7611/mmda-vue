@@ -676,7 +676,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
         "data-load-mode": props.loadMode,
       }, [table(model, metaUi, props)]),
     pagableTable: (loader, metadata, props) =>
-      table(loader.model.list as any[], metadata.metaUi, props as any),
+      table(loader.model.list as any[], metadata, props as any),
     loading: (props: any = {}) =>
       h(
         "div",

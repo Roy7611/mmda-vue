@@ -4,7 +4,7 @@ import '../GanntView/GanntView.less';
 import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
 import { useRouter, useRoute } from 'vue-router';
-import { loading, VueUiContext, type UiContext, UI_CREATE } from '@mmda/vui';
+import { loading, VueUiContext, type UiContext, UiViewOne } from '@mmda/vui';
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
@@ -470,7 +470,7 @@ export default defineComponent({
 					ui.dialog(
 						h(MaterialTransEditor, {
 							id: '_',
-							view: UI_CREATE,
+							view: UiViewOne.Create,
 							name: 'CompleteInspectionMaterialTrans',
 
 							createFn: async (logic) => {
@@ -572,17 +572,14 @@ export default defineComponent({
 				groupBy.value = [];
 			}
 
-			const pack = await metaUiService.getPack({
-				repository: logic.repository,
-				service: 'mes',
-			});
-			if (!pack?.metaUi) {
+			const metaUi = await metaUiService.get(logic.repository, 'mes');
+			if (!metaUi) {
 				throw new Error($t('invalid.repositoryMissing', { repository: logic.repository }));
 			}
-			logic.meta = pack;
+			logic.metaUi = metaUi;
 			ctx = new VueUiContext({
 				model: defineEntity(),
-				metaUi: pack.metaUi,
+				metaUi,
 				view: viewProps.view,
 				loader: async () => {
 					await logic.getData();

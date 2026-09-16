@@ -87,7 +87,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     #selectionModeOverride: "single" | "multiple" | null | undefined;
     #baseFilter = "";
 
-    // 注意：不要在子 context 构造时用 options.metaUi 覆盖共享 logic.meta。
+    // 注意：不要在子 context 构造时用 options.metaUi 覆盖共享 logic.metaUi。
     // subGroupContext 会传入子表 groupUi，若写回父 Logic，随后 createRelativeLogic→getGroup 会炸。
 
     get many() {
@@ -256,7 +256,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       await this.logic.initMetadata(false, params);
       await this.logic.applyTo(this, this.view);
       if (this.many) {
-        this.configureSearch(this.logic.meta.filters, this.logic.beforeSearch());
+        this.configureSearch(undefined, this.logic.beforeSearch());
       }
       if (this.many) return this.search();
       if (this.view === UiViewOne.Create) {
@@ -288,14 +288,14 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
 
     async initMetadata(reload = false, params?: EntityUrlParam) {
       if (!this.logic) return;
-      const meta = await this.logic.initMetadata(reload, params);
-      if (this.logic.meta?.metaUi) {
-        this.metaUi = this.logic.meta.metaUi;
+      const metaUi = await this.logic.initMetadata(reload, params);
+      if (this.logic.metaUi) {
+        this.metaUi = this.logic.metaUi;
       }
       if (this.many) {
-        this.configureSearch(this.logic.meta.filters, this.logic.beforeSearch());
+        this.configureSearch(undefined, this.logic.beforeSearch());
       }
-      return meta;
+      return metaUi;
     }
 
     async save() {
@@ -412,7 +412,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       this.error.value = null;
       this.loading.value = true;
       try {
-        const useJoinList = this.joinListMode && !!this.logic.meta?.metaVui;
+        const useJoinList = this.joinListMode && !!this.logic.viewUi;
         const page = useJoinList
           ? await this.logic.getJoinList(this.searchParam)
           : await this.logic.getAll(this.searchParam);
@@ -572,7 +572,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     async getTemplates(repository = this.logic?.repository) {
       if (!this.logic) return this.templates;
       if (this.templates.length) return this.templates;
-      const list = await this.logic.metaUiService.getAllTemplate?.(repository);
+      const list = await this.logic.getReportTemplates?.(repository);
       this.templates = list ?? [];
       return this.templates;
     }

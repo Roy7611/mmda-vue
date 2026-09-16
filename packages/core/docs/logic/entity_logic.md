@@ -7,6 +7,8 @@
 
 `EntityLogic`：无 Vue 的 ApiClient + MetaModel CRUD，以及视图钩子 / `viewLogicLoaders` / `applyTo(UiContext)`。
 
+元界面在 `metaUi`，联查列在 `viewUi`（`getViewUi`）。上次查询键 `{repository}/lastQuery`。报表模板 `getReportTemplates`。列设置永久保存 `saveListSettings`。
+
 - 设计：[entity_logic_design.md](./entity_logic_design.md)
 - 用法：[entity_logic_usage.md](./entity_logic_usage.md)
 - vui 壳：[../../vui/docs/logic.md](../../../vui/docs/logic.md)

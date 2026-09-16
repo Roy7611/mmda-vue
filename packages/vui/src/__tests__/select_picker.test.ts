@@ -124,10 +124,7 @@ describe("select picker build", () => {
       app: {
         name: "base",
         meta: {
-          getPack: async () => ({
-            metaUi: catMeta,
-            filters: [],
-          }),
+          get: async () => catMeta,
           getApiClient: () => ({
             searchAll: async () => ({
               list: [],
@@ -243,10 +240,7 @@ describe("select picker build", () => {
       app: {
         name: "base",
         meta: {
-          getPack: async () => ({
-            metaUi: catMeta,
-            filters: [],
-          }),
+          get: async () => catMeta,
           getApiClient: () => ({
             searchAll: async () => ({
               list: [],
@@ -300,7 +294,7 @@ describe("select picker build", () => {
       app: {
         name: "base",
         meta: {
-          getPack: async () => ({ metaUi: catMeta, filters: [] }),
+          get: async () => catMeta,
           getApiClient: () => ({
             searchAll: async () => ({
               list: [],
@@ -372,10 +366,7 @@ describe("select picker build", () => {
       app: {
         name: "base",
         meta: {
-          getPack: async () => ({
-            metaUi: catMeta,
-            filters: [],
-          }),
+          get: async () => catMeta,
           getApiClient: () => ({
             searchAll: async () => ({
               list: [],

@@ -3,13 +3,11 @@ import { UiViewMany } from '@mmda/core'
 import type { VueUiContext } from '../../contexts/vue_ui_context'
 
 function joinListMetaUi(context: VueUiContext<any>): MetaUi | undefined {
-  return (context.logic?.meta as { metaUi?: MetaUi } | undefined)?.metaUi
-    ?? context.metaUi
+  return context.logic?.metaUi ?? context.metaUi
 }
 
 export function indexTableMetaUi(context: VueUiContext<any>): MetaUi {
-  const pack = context.logic?.meta as { metaVui?: MetaUi } | undefined
-  if (context.joinListMode && pack?.metaVui) return pack.metaVui
+  if (context.joinListMode && context.logic?.viewUi) return context.logic.viewUi
   return context.metaUi
 }
 
@@ -32,13 +30,13 @@ export async function toggleJoinListMode(context: VueUiContext<any>) {
     return
   }
   const logic = context.logic
-  if (!logic?.metaUiService?.getMetaVui || !logic.repository) return
+  if (!logic?.metaUiService?.getViewUi || !logic.repository) return
   try {
-    const metaVui = await logic.metaUiService.getMetaVui({
+    const viewUi = await logic.metaUiService.getViewUi({
       repository: logic.repository,
       service: logic.apiService ?? logic.serviceName,
     })
-    logic.meta.metaVui = metaVui
+    logic.viewUi = viewUi
     context.joinListMode = true
     context.listLayoutRev.value += 1
     await context.search()

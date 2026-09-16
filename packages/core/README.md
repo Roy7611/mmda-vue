@@ -25,7 +25,7 @@ import {
 ## 最小用法
 
 ```ts
-const { metaUi } = await metaUiService.getPack({ repository: 'Warehouses' })
+const metaUi = await metaUiService.get('Warehouses')
 
 const model = MetaModel.createEntity(metaUi, defineWarehouse, source)
 model.whName = '主仓'

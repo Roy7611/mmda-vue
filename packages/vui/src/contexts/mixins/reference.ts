@@ -189,11 +189,11 @@ export function WithReference<TBase extends Constructor>(
       const param = fieldOrParam as EntitySelectParam<T>;
       if (!this.app || !this.uiBuilder) return false;
       const service = param.service ?? this.app.name ?? "base";
-      const pack = await this.app.meta.getPack({
-        repository: param.repository,
-        service: param.service,
-      });
-      const objName = pack.metaUi.objName;
+      const metaUi = await this.app.meta.get(
+        param.repository,
+        param.service,
+      );
+      const objName = metaUi.objName;
       const foundModule =
         this.app.findModule?.(objName) ??
         this.app.meta.findModule?.(objName) ??
@@ -203,7 +203,7 @@ export function WithReference<TBase extends Constructor>(
         ? { ...foundModule, authority: { ...foundModule.authority, ...authority } }
         : ({
             moduleCode: objName,
-            moduleLabel: pack.metaUi.displayLabel ?? param.repository,
+            moduleLabel: metaUi.displayLabel ?? param.repository,
             moduleType: "FEATURE",
             moduleVersion: 0,
             objName,
@@ -222,19 +222,19 @@ export function WithReference<TBase extends Constructor>(
         logic = new VueEntityLogic(param.ctor ?? defineEntity, {
           metaUiService: this.app.meta,
           repository: param.repository,
-          meta: pack,
+          metaUi,
           module,
           apiService: param.service,
         });
       } else {
-        logic.meta = pack;
+        logic.metaUi = metaUi;
         logic.module = module;
       }
 
       const selectionMode = param.selectionMode ?? "multiple";
       const selectCtx = createSession({
         model: emptyPagedList<T>() as any,
-        metaUi: pack.metaUi,
+        metaUi,
         view:
           selectionMode === "single"
             ? UiViewMany.SelectOne
@@ -286,7 +286,7 @@ export function WithReference<TBase extends Constructor>(
       this.root.showDialog = true;
       try {
         const entityLabel =
-          pack.metaUi.displayLabel ?? param.repository;
+          metaUi.displayLabel ?? param.repository;
         const title = selectCtx.t(
           selectionMode === "single"
             ? "view.selectOneEntity"

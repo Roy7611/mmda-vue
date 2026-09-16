@@ -47,7 +47,7 @@ class OrderLogic extends EntityLogic<any> {}
 
 const service = {
   getApiClient: (): Record<string, never> => ({}),
-  getPack: async () => ({ metaUi }),
+  get: async () => metaUi,
   findModule: (): undefined => undefined,
   locale: 'zh',
 } as any
@@ -57,7 +57,7 @@ describe('EntityLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     expect(logic).toBeInstanceOf(EntityLogic)
   })
@@ -66,7 +66,7 @@ describe('EntityLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     const { fields, groups } = logic.beforeEdit()
     fields.push(logic.field('orderNo').lock())
@@ -89,7 +89,7 @@ describe('EntityLogic', () => {
     const logic = new OrderLogic(o => o as any, {
       metaUiService: service,
       repository: 'Orders',
-      meta: { metaUi },
+      metaUi,
     })
     logic.viewLogicLoaders = {
       index: async () => {

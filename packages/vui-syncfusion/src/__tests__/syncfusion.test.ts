@@ -4874,7 +4874,7 @@ describe("Syncfusion skin", () => {
       title: "物料事务",
       metaUi,
       model: { list: [] },
-      logic: { module, repository: "MaterialTranses", meta: { metaUi } },
+      logic: { module, repository: "MaterialTranses", metaUi },
       module,
       joinListMode: false,
       refresh: () => undefined,
@@ -4967,8 +4967,7 @@ describe("Syncfusion skin", () => {
     columns[1].width = "180px";
     columns[2].width = "96px";
 
-    const updateForCache = vi.fn().mockResolvedValue(undefined);
-    const pack = { metaUi, filters: [], sorts: [] };
+    const updateToCache = vi.fn().mockResolvedValue(undefined);
     const staleMetaUi = new MetaUi({
       objName: "Item",
       displayLabel: "Item",
@@ -5009,8 +5008,8 @@ describe("Syncfusion skin", () => {
       searchParam: { pager: { sorts: [] } },
       logic: {
         repository: "Items",
-        meta: { metaUi: staleMetaUi, filters: [], sorts: [] },
-        metaUiService: { updateForCache },
+        metaUi: staleMetaUi,
+        metaUiService: { updateToCache },
       },
     } as any;
 
@@ -5020,9 +5019,9 @@ describe("Syncfusion skin", () => {
     expect(metaUi.getField("name")?.listSize).toBe(180);
     expect(metaUi.getField("code")?.listSize).toBe(96);
     expect(staleMetaUi.getField("name")?.listSize).toBe(120);
-    expect(updateForCache).toHaveBeenCalledWith(
+    expect(updateToCache).toHaveBeenCalledWith(
       "Items",
-      expect.objectContaining({ metaUi }),
+      metaUi,
       undefined,
     );
 

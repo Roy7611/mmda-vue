@@ -582,6 +582,8 @@ search.filterModel = {
 | `LIST`             | 4   | `index`           |
 
 
+组合用 `hasBit(action.actionModes, ModuleActionMode.LIST)`，不要 `=== LIST`。
+
 `UiAction.view` 才是 `details,edit` 这种视图字符串。
 
 ### 标准动作 `EntityActionType`

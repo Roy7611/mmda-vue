@@ -135,10 +135,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
             const toast = (props: Record<string, unknown>) =>
               context.uiBuilder?.toast(context, props);
             try {
-              await context.app?.meta.getPack({
-                service: "mes",
-                repository: "Workers",
-              });
+              await context.app?.meta.get("Workers", "mes");
             } catch (error: any) {
               toast({
                 severity: "error",

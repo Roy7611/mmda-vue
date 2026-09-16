@@ -6,9 +6,6 @@ import { parseSorts, PagerCtor } from '../models/pagination'
 import type { EntitySearchParam } from '../models/entity_search'
 import type { UiDialogProps } from './builder/dialog'
 
-export const UI_CREATE = 'create'
-export const UI_SEARCH = 'search'
-
 export function resolveViewProp(
   routeParam: string | string[],
   attr: unknown,

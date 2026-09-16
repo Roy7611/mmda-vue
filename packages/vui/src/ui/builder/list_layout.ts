@@ -5,10 +5,11 @@ import {
   compareListColumns,
   ensureListFieldVisibleWhenFrozen,
   isListFrozen,
-  type ListSettingsField,
+  type TableColumnSettings,
   type MetaUi,
   type MetaUiField,
   type MetaUiFilter,
+  joinListRelationName,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { indexTableMetaUi } from "./join_list_mode";
@@ -32,7 +33,7 @@ export function bumpListLayout(context: VueUiContext<any>) {
   context.listLayoutRev.value += 1;
 }
 
-export function collectListSettingsFields(metaUi: MetaUi): ListSettingsField[] {
+export function collectTableColumnSettings(metaUi: MetaUi): TableColumnSettings[] {
   return metaUi.getListLayoutFields().map((field) => ({
     fieldName: field.fieldName,
     listSize: field.listSize,
@@ -43,9 +44,9 @@ export function collectListSettingsFields(metaUi: MetaUi): ListSettingsField[] {
   }));
 }
 
-export function applyListSettingsFields(
+export function applyTableColumnSettings(
   metaUi: MetaUi,
-  fields: ListSettingsField[],
+  fields: TableColumnSettings[],
 ) {
   for (const patch of fields) {
     const field = metaUi.getField(patch.fieldName);
@@ -109,30 +110,50 @@ export function syncQuickFiltersToMeta(context: VueUiContext<any>) {
   }
 }
 
+function snapshotMeta(meta: MetaUi) {
+  return JSON.parse(
+    JSON.stringify(meta, (key, value) => {
+      if (typeof value === "function") return undefined;
+      if (String(key).startsWith("_")) return undefined;
+      if (key === "reference") return undefined;
+      return value;
+    }),
+  );
+}
+
 export async function persistListPack(context: VueUiContext<any>) {
   const logic = context.logic as
     | {
         repository?: string;
-        meta?: { metaUi?: MetaUi; metaVui?: MetaUi };
+        metaUi?: MetaUi;
+        viewUi?: MetaUi;
         metaUiService?: {
-          updateForCache: (
+          updateToCache: (
             repository: string,
-            pack: any,
+            metaUi: MetaUi,
             service?: string,
           ) => Promise<void>;
+          localDb?: { put: (key: string, value: unknown) => Promise<unknown> };
         };
       }
     | undefined;
-  if (!logic?.repository || !logic.meta?.metaUi || !logic.metaUiService) return;
+  if (!logic?.repository || !logic.metaUi || !logic.metaUiService) return;
   try {
-    await logic.metaUiService.updateForCache(
-      logic.repository,
-      {
-        metaUi: context.metaUi,
-        ...(logic.meta.metaVui ? { metaVui: logic.meta.metaVui } : {}),
-      },
-      listServiceName(context),
-    );
+    if (context.joinListMode && logic.viewUi) {
+      const relationName = joinListRelationName(logic.metaUi);
+      if (relationName && logic.metaUiService.localDb) {
+        await logic.metaUiService.localDb.put(
+          `meta/${logic.repository}/${relationName}View`,
+          snapshotMeta(logic.viewUi),
+        );
+      }
+    } else {
+      await logic.metaUiService.updateToCache(
+        logic.repository,
+        context.metaUi,
+        listServiceName(context),
+      );
+    }
   } catch {
     await context.app?.ui?.toast?.(context as any, {
       severity: "error",

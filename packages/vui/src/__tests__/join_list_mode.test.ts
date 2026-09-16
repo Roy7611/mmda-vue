@@ -68,7 +68,7 @@ describe("joinListMode", () => {
       metaUi,
       view: UiViewMany.Index,
     });
-    ctx.logic = { meta: { metaUi } } as any;
+    ctx.logic = { metaUi } as any;
     expect(joinListModeMenuItems(ctx)).toEqual([]);
   });
 
@@ -94,9 +94,9 @@ describe("joinListMode", () => {
       logic: {
         repository: "Orders",
         apiService: "mes",
-        meta: { metaUi },
+        metaUi,
         metaUiService: {
-          getMetaVui: vi.fn(async () => metaVui),
+          getViewUi: vi.fn(async () => metaVui),
         },
         getJoinList: vi.fn(async () => ({ list: [], pagination: {} })),
         getAll: vi.fn(async () => ({ list: [], pagination: {} })),
@@ -153,9 +153,9 @@ describe("joinListMode", () => {
       logic: {
         repository: "Orders",
         apiService: "mes",
-        meta: { metaUi },
+        metaUi,
         metaUiService: {
-          getMetaVui: vi.fn(async () => metaVui),
+          getViewUi: vi.fn(async () => metaVui),
         },
         getJoinList: vi.fn(async () => ({ list: [], pagination: {} })),
         getAll: vi.fn(async () => ({ list: [], pagination: {} })),

@@ -36,6 +36,6 @@ Playground（`pnpm dev:vui`）仍是假数据对照，不要改成 base。
 ## 分层约束
 
 - `package.json` 不得出现 `@mmda/mes`
-- 跨服务选人：`getPack({ service: 'mes', repository: 'Workers' })` + `select()`（`ctor` 可选）+ base `Employees.batchSave`
+- 跨服务选人：`get('Workers', 'mes')` + `select()`（`ctor` 可选）+ base `Employees.batchSave`
 - 标准 CRUD 走元数据路由 `/BASE/:repository`、`/Create`、`/Edit/:id`、`/:id`
 - toast 走 `context.uiBuilder.toast` / `app.toast`；查询只写 `searchParam.queryParams` / `searchParams`

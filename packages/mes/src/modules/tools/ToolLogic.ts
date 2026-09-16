@@ -811,7 +811,7 @@ try {
 		if (selectedItems.length) returnParmas.value = Object.assign({}, ...selectedItems.map((item: any) => ({ [item.toolID]: 0 })));
 
 		// new logic 
-		const showFields = [].concat(this.meta.metaUi.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.meta.metaUi.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
+		const showFields = [].concat(this.metaUi.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.metaUi.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
 		const metaUi = MetaUiBuilder.create('BatchReturn').fields(showFields).build()
 		return await context.uiBuilder.dialog(
 			uiBuilder.factory.table(

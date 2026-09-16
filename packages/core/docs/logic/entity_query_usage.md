@@ -144,12 +144,12 @@ customized.queryExpression = EntityQuery.stringify(
 
 vui 侧典型顺序（Logic 也可自己做）：
 
-1. 本地 pack 的 `lastQuery`（一份 EntityQuery，含 pager）
+1. 本地 `{repository}/lastQuery`（一份 EntityQuery，含 pager）
 2. 否则用户选中的 CustomizedQuery
 3. 否则 `Module.defaultSort`（无 sorts 时）
 4. 字段条件始终来自当前 `searchParam.filterModel`
 
-持久化上次查询时把 `EntityQuery.lastCache(searchParam)` 写入 pack 的 `lastQuery`，不要单存 sorts。没保存查询不写 `filterModel`。
+持久化上次查询时把 `EntityQuery.lastCache(searchParam)` 写入 `{repository}/lastQuery`，不要单存 sorts。没保存查询不写 `filterModel`。
 
 ## `refWhere` 才用 `SqlOperator`
 
@@ -192,5 +192,5 @@ UI 文案：`t('matcher.' + op)`。
 - 日期过滤：[date_filter.md](../models/date_filter.md) · [date_filter_usage.md](./date_filter_usage.md)
 - 传输：[api_client.md](../net/api_client.md)
 - 模块默认：[module.md](../metaui/module.md)
-- 本地 pack：[metaui_service.md](../metaui/metaui_service.md)
+- 上次查询 / MetaUi：[metaui_service.md](../metaui/metaui_service.md)
 - vui 列表：[list.md](../../../vui/docs/list.md)

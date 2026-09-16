@@ -322,7 +322,7 @@ URL 形状：
 | `deleteAll(ids)` | `.../deleteAll` | |
 | `doAction({ action, path }, body)` | `POST .../{action}` | 自定义动作 |
 
-`metaui` / `metaUiPack` 由 `MetaUiService` 用 `buildEntityURL` + `http.getJson` 拉取 JSON，再 `new MetaUi`。`ApiClient` 不解析元数据。
+`metaui` 由 `MetaUiService` 用 `buildEntityURL` + `http.getJson` 拉取 JSON，再 `new MetaUi`。`ApiClient` 不解析元数据。
 
 换服务或仓储，把参数传进方法，不必新开客户端：
 

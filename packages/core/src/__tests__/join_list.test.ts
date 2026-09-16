@@ -128,7 +128,7 @@ describe("assembleViewUi", () => {
     const metaUi = viewSourceMeta()
     const status = metaUi.getField("status")!
     const view = assembleViewUi(metaUi, "items")
-    expect(view.objName).toBe("OrderJoin")
+    expect(view.objName).toBe("ItemView")
     expect(view.primaryKey).toBe("id,items.itemID")
     expect(view.getField("status")?.reference).toBe(status.reference)
     expect(view.getField("status")?.subGroupLabel).toBeUndefined()

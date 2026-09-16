@@ -47,7 +47,7 @@ export interface MmdaApplicationState {
   colorPalette: string
   /** 字号档：standard / large / xlarge */
   fontScale: string
-  systemList?: any[]
+  systemList?: Module[]
   todoCount?: number
   theLatestTodoList?: any[]
 }
@@ -444,7 +444,7 @@ export abstract class MmdaApplication {
         'base',
         reload,
       )
-      this.state.systemList = (res ?? []).map((item: any) => ({
+      this.state.systemList = (res ?? []).map((item: Module) => ({
         ...item,
         label: item.moduleLabel,
         service: String(item.shortLabel ?? '').toLowerCase(),
@@ -455,8 +455,8 @@ export abstract class MmdaApplication {
     }
   }
 
-  getSystem(moduleCode: string, systemList: any[]) {
-    return systemList.find((item: any) => item.moduleCode === moduleCode) ?? {}
+  getSystem(moduleCode: string, systemList: Module[]) {
+    return systemList.find((item) => item.moduleCode === moduleCode) ?? {}
   }
 
   async getTodoCount(force = false) {
@@ -468,12 +468,16 @@ export abstract class MmdaApplication {
     }
     this.todoCountInFlight = (async () => {
       try {
-        this.state.todoCount = await this.meta.getTodoCount({
+        const res: any = await this.api.getAll({
           service: 'base',
           repository: 'Notifications',
           action: 'getTodoCount',
           queryParams: { userID: this.user.userId },
         })
+        const raw = res?.list?.[0]
+        this.state.todoCount = Number(
+          typeof raw === 'number' ? raw : (raw?.todoCount ?? raw?.count ?? 0),
+        ) || 0
         this.todoCountFetchedAt = Date.now()
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem(
@@ -481,6 +485,8 @@ export abstract class MmdaApplication {
             JSON.stringify(this.state.todoCount),
           )
         }
+      } catch {
+        this.state.todoCount = 0
       } finally {
         this.todoCountInFlight = undefined
       }

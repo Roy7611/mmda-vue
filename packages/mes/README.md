@@ -26,4 +26,4 @@
 
 - toast 走 `context.uiBuilder.toast` / `app.toast`
 - 查询只写 `searchParam.queryParams` / `searchParams`
-- 跨服务选人/物料：`getPack({ service: 'base', repository: '...' })` + `select()`
+- 跨服务选人/物料：`get(repository, 'base')` + `select()`
