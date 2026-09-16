@@ -16,7 +16,6 @@ export type {
   UiGanttController,
   UiGanttChangeEvent,
   UiGanttProps,
-  UiGanttChartProps,
   UiGanttPlugin,
 } from '@mmda/core'
 

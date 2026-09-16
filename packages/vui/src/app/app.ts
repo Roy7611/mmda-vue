@@ -5,12 +5,13 @@ import {
   type MmdaApplicationOptions,
   type Module,
   type UiContext,
+  type UiModuleBreadcrumbProps,
 } from "@mmda/core";
 import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "../contexts/view";
-import type { UiAppLayoutVariant } from "../ui/layout/layout";
+import type { UiAppLayoutVariant } from "../ui/layout";
 import type { UiToolbarLayout } from "../ui/factory/toolbar";
-import type { VueUiBuilder } from "../ui/builder/builder";
+import type { VueUiBuilder } from "../ui/builder";
 import type { UiAction } from "../ui/factory/action";
 import type { CustomFilter } from "../ui/factory/filter";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "./keys";
@@ -49,12 +50,7 @@ export interface AppScaffoldProps {
   floatingActionBar?: ChildSlot | VNode;
 }
 
-export interface ModuleBreadcrumbProps {
-  module: Module;
-  label: string;
-  item?: ChildSlot;
-  role?: string;
-}
+export type ModuleBreadcrumbProps = UiModuleBreadcrumbProps
 
 export interface ModuleToolbarProps {
   role?: string;

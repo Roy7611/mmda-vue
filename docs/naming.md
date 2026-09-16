@@ -386,7 +386,7 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 
 ## list、table、grid
 
-三套 **不同 Props**，不要再靠一份 `UiListProps` + `display` 糊三种能力。契约在 core：[`list.ts`](../packages/core/src/ui/list.ts) / [`table.ts`](../packages/core/src/ui/table.ts) / [`grid.ts`](../packages/core/src/ui/grid.ts) / [`tree.ts`](../packages/core/src/ui/tree.ts)。vui 只叠 Vue slots；树装配字段在 [`factory/tree_grid.ts`](../packages/vui/src/ui/factory/tree_grid.ts)。整页（工具栏、搜索、分页）在 [`builder/list_view.ts`](../packages/vui/src/ui/builder/list_view.ts)。
+三套 **不同 Props**，不要再靠一份 `UiListProps` + `display` 糊三种能力。契约在 core：[`list.ts`](../packages/core/src/ui/factory/list.ts) / [`table.ts`](../packages/core/src/ui/factory/table.ts) / [`grid.ts`](../packages/core/src/ui/factory/grid.ts) / [`tree.ts`](../packages/core/src/ui/factory/tree.ts)。vui 只叠 Vue slots；树装配字段在 [`factory/tree_grid.ts`](../packages/vui/src/ui/factory/tree_grid.ts)。整页（工具栏、搜索、分页）在 [`builder/list_view.ts`](../packages/vui/src/ui/builder/list_view.ts)。
 
 ```text
 UiListProps         buildList / factory.list           移动端卡片、行条；字段少

@@ -8,23 +8,22 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
-import { VueUiBuilder } from "../ui/builder/builder";
+import { VueUiBuilder } from "../ui/builder";
 import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/factory/auth";
 import type {
   AppSideBarProps,
   AppTopBarProps,
-  ModuleBreadcrumbProps,
   ModuleSearchbarProps,
   ModuleToolbarProps,
 } from "../app/app";
-import type { UiFactory, UiFieldFactory } from "../ui/factory/factory";
-import { VueUiLayout, type UiProps, type UiLayout, type UiSlots } from "../ui/layout/layout";
+import type { UiFactory, UiFieldFactory } from "../ui/factory";
+import { VueUiLayout, type UiProps, type UiLayout, type UiSlots } from "../ui/layout";
 import type { UiListPropsType } from "../ui/factory/list";
 import { bindListDisplayRenderers } from "../ui/factory/list";
 import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
 import { treeIdOf, treeLabelOf, treeModifierClasses, type UiTreePropsType } from "../ui/factory/tree";
-import { paintModuleToolbar, defaultToolbarMoreActions } from "../ui/builder/module_toolbar";
+import { paintIndexToolbar, paintDetailsToolbar, paintEditToolbar } from "../ui/builder/toolbar_paint";
 
 type UiContext = VueUiContext<any>;
 
@@ -876,64 +875,32 @@ export class TestUiBuilder extends VueUiBuilder {
     return h("div", { class: "mmda-error", ...props }, context.title);
   }
 
-  buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
-    const { module, label } = props;
-    if (!module) {
-      return this.factory.breadcrumb({
-        items: [{ label: label || context.title }],
-        class: "mmda-test-breadcrumb",
-      });
-    }
-    const chain: any[] = [];
-    for (let cur: any = module; cur; cur = cur.parent) chain.unshift(cur);
-    const items = chain.map((item, index) => {
-      const leaf = index === chain.length - 1 && !label;
-      return {
-        key: item.moduleCode,
-        label: item.moduleLabel ?? item.moduleName,
-        icon: item.moduleIcon || undefined,
-        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
-      };
-    });
-    if (label) {
-      items.push({ key: `${module.moduleCode}-title`, label });
-    }
-    return this.factory.breadcrumb({
-      items,
-      class: "mmda-test-breadcrumb",
-    });
-  }
-
-  buildModuleToolbar(
+  buildIndexToolbar(
     context: UiContext,
-    props: ModuleToolbarProps,
+    props?: ModuleToolbarProps,
     slots?: UiSlots,
   ) {
-    return paintModuleToolbar(this.factory, context, props, slots, {
-      breadcrumb: () =>
-        this.buildModuleBreadcrumb(context, {
-          module: (context as any).module,
-          label: props.breadcrumbLeaf || "",
-        }),
-      actionGroup: (_dense) =>
-        this.factory.buttonGroup(() => [], {
-          class: "mmda-toolbar-actions",
-        }),
-      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
-      navActions: () => [],
-      openSearchPage: () => {
-        if (props.onSearchPage) props.onSearchPage();
-        else void this.buildSearchPage(context);
-      },
-    });
+    return paintIndexToolbar(this, context, props ?? {}, slots);
+  }
+
+  buildDetailsToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ) {
+    return paintDetailsToolbar(this, context, props ?? {}, slots);
+  }
+
+  buildEditToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ) {
+    return paintEditToolbar(this, context, props ?? {}, slots);
   }
 
   buildSearchField(_field: UiSearchField) {
     return stub("buildSearchField");
-  }
-
-  buildSearchForm() {
-    return stub("buildSearchForm");
   }
 
   buildModuleSearchbar(_context: UiContext, props: ModuleSearchbarProps) {

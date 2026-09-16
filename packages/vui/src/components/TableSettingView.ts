@@ -5,7 +5,7 @@ import {
   type TableColumnSettings,
   type MetaUi,
 } from "@mmda/core";
-import type { UiFactory } from "../ui/factory/factory";
+import type { UiFactory } from "../ui/factory";
 import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { UiDialogProps } from "@mmda/core";
 import {

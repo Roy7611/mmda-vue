@@ -10,7 +10,7 @@ import {
   uiCssClass,
   type UiMessageProps,
 } from "@mmda/core";
-import { type UiFieldGroupType, type UiProps } from "../layout/layout";
+import { type UiFieldGroupType, type UiProps } from "../layout";
 import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { wrapRowDetail } from "../factory/list";
@@ -677,10 +677,15 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         toolbarVisible === false
           ? null
           : (props.toolbar?.() ??
-            this.buildModuleToolbar(context, {
-              showBreadcrumb: props.showBreadcrumb ?? true,
-              showActions: props.showActions ?? true,
-            }));
+            (runtime.editing
+              ? this.buildEditToolbar(context, {
+                  showBreadcrumb: props.showBreadcrumb ?? true,
+                  showActions: props.showActions ?? true,
+                })
+              : this.buildDetailsToolbar(context, {
+                  showBreadcrumb: props.showBreadcrumb ?? true,
+                  showActions: props.showActions ?? true,
+                })));
       const notice = runtime.pageNotice?.value as UiMessageProps | null | undefined;
       const banner =
         notice && notice.visible !== false

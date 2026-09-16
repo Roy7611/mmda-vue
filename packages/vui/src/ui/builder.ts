@@ -1,5 +1,6 @@
 import { defineComponent, h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
 import {
+  moduleChain,
   uiCssClass,
   type Entity,
   type EntityUrlParam,
@@ -10,70 +11,70 @@ import {
   type UiBuilder as CoreUiBuilder,
   type UiContext as CoreUiContext,
   type UiDialogAction,
+  type UiModuleBreadcrumbProps,
 } from "@mmda/core";
-import { VueAppSideMenu } from "../../components/AppSideMenu";
-import { openTableSettingDialog } from "../../components/TableSettingView";
-import { logListPaint } from "./list_query";
-import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "../layout/layout";
+import { VueAppSideMenu } from "../components/AppSideMenu";
+import { openTableSettingDialog } from "../components/TableSettingView";
+import { logListPaint } from "./builder/list_query";
+import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "./layout";
 import type {
   UiFactory,
   UiFieldFactory,
-} from "../factory/factory";
+} from "./factory";
 import {
   unimplementedChartFactory,
   type UiChartFactory,
-} from "../factory/chart";
+} from "./factory/chart";
 import {
   diagramReadonlyOf,
   unimplementedDiagramPlugin,
   type UiDiagramPlugin,
   type UiDiagramProps,
-} from "../factory/diagram";
+} from "./factory/diagram";
 import {
   unimplementedMarkdownEditorPlugin,
   type UiMarkdownEditorPlugin,
   type UiMarkdownEditorProps,
-} from "../factory/markdown_editor";
+} from "./factory/markdown_editor";
 import {
   unimplementedImageEditorPlugin,
   type UiImageEditorPlugin,
   type UiImageEditorProps,
-} from "../factory/image_editor";
+} from "./factory/image_editor";
 import {
   unimplementedKanbanPlugin,
   type UiKanbanPlugin,
   type UiKanbanProps,
-} from "../factory/kanban";
+} from "./factory/kanban";
 import {
   unimplementedGanttPlugin,
-  type UiGanttChartProps,
   type UiGanttPlugin,
   type UiGanttProps,
-} from "../factory/gantt";
+} from "./factory/gantt";
 import {
   unimplementedRibbonPlugin,
   type UiRibbonPlugin,
   type UiRibbonProps,
-} from "../factory/ribbon";
+} from "./factory/ribbon";
 import {
   unimplementedSchedulerPlugin,
   type UiSchedulerPlugin,
   type UiSchedulerProps,
-} from "../factory/scheduler";
+} from "./factory/scheduler";
 import {
   unimplementedPivotPlugin,
   type UiPivotPlugin,
   type UiPivotTableProps,
-} from "../factory/pivot_table";
+} from "./factory/pivot_table";
 import {
   unimplementedAiAssistantPlugin,
   type UiAiAssistantPlugin,
   type UiAiAssistantProps,
-} from "../factory/ai_assistant";
+} from "./factory/ai_assistant";
 import {
   bindTimelineFactory,
   type UiTimelinePlugin,
-} from "../factory/timeline";
+} from "./factory/timeline";
 import {
   isViewMany,
   UiViewMany,
@@ -81,37 +82,36 @@ import {
   UiViewOne,
   type UiViewPropsType,
   type UiViewType,
-} from "../../contexts/view";
+} from "../contexts/view";
 import type {
   AppScaffoldProps,
   AppSideBarProps,
   AppTopBarProps,
-  ModuleBreadcrumbProps,
   ModuleSearchbarProps,
   ModuleToolbarProps,
-} from "../../app/app";
+} from "../app/app";
 import {
   FONT_SCALE_RATIO,
   resolveColorPalette,
   resolveFontScale,
   type MmdaColorPalette,
   type MmdaFontScale,
-} from "../../app/theme";
+} from "../app/theme";
 import type {
   SigninFormProps,
   SignupFormProps,
   SigninFormSlots,
-} from "../factory/auth";
+} from "./factory/auth";
 import type {
   SearchForRelativeContentProps,
   SearchForRelativeProps,
   UiSearchField,
-} from "../factory/filter";
-import type { UiAction } from "../factory/action";
-import { VueUiContext } from "../../contexts/vue_ui_context";
+} from "./factory/filter";
+import type { UiAction } from "./factory/action";
+import { VueUiContext } from "../contexts/vue_ui_context";
 import { createHtmlOverlay, type UiOverlay } from "./overlay";
-import { DocxFilePreview } from "../../components/DocxFilePreview";
-import { XlsxFilePreview } from "../../components/XlsxFilePreview";
+import { DocxFilePreview } from "../components/DocxFilePreview";
+import { XlsxFilePreview } from "../components/XlsxFilePreview";
 import type {
   UiConfirmProps,
   UiDialogProps,
@@ -121,12 +121,12 @@ import type {
   UiToastProps,
   UiViewProps,
 } from "@mmda/core";
-import { UiActionFactory } from "./actions";
-import { WithForm } from "./form";
-import { WithList } from "./list_view";
-import { ListFilterBarView } from "./list_filter_bar";
-import { WithTree } from "./tree";
-import { attachFieldRowApi } from "../factory/field_row";
+import { UiActionFactory } from "./builder/actions";
+import { WithForm } from "./builder/form";
+import { WithList } from "./builder/list_view";
+import { ListFilterBarView } from "./builder/list_filter_bar";
+import { WithTree } from "./builder/tree_view";
+import { attachFieldRowApi } from "./factory/field_row";
 
 export { UiActionFactory };
 
@@ -309,7 +309,7 @@ export abstract class VueUiBuilderBase {
     return this.ganttPlugin.ganttView(props);
   }
 
-  buildGanttChart(context: any, props: UiGanttChartProps): VNode {
+  buildGanttChart(context: any, props: UiGanttProps): VNode {
     return this.buildGantt(context, props);
   }
 
@@ -448,16 +448,69 @@ export abstract class VueUiBuilderBase {
   }
   buildModuleBreadcrumb(
     context: UiContext,
-    props: ModuleBreadcrumbProps,
+    props: UiModuleBreadcrumbProps = {},
   ): VNode {
-    return unimplemented("buildModuleBreadcrumb") as VNode;
+    const { module, label } = props;
+    if (!module) {
+      return this.factory.breadcrumb!({
+        items: [{ label: label || context.title }],
+        class: "mmda-breadcrumb",
+      });
+    }
+    const chain = moduleChain(module);
+    const items = chain.map((item, index) => {
+      const leaf = index === chain.length - 1 && !label;
+      return {
+        key: item.moduleCode,
+        label: item.moduleLabel ?? item.moduleName,
+        icon: item.moduleIcon || undefined,
+        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
+      };
+    });
+    if (label) {
+      items.push({
+        key: `${module.moduleCode}-title`,
+        label,
+        icon: undefined,
+        to: undefined,
+      });
+    }
+    return this.factory.breadcrumb!({
+      items,
+      class: "mmda-breadcrumb",
+    });
   }
-  buildModuleToolbar(
+  buildIndexToolbar(
     context: UiContext,
-    props: ModuleToolbarProps,
+    props?: ModuleToolbarProps,
     slots?: UiSlots,
   ): VNode {
-    return unimplemented("buildModuleToolbar") as VNode;
+    return unimplemented("buildIndexToolbar") as VNode;
+  }
+  buildDetailsToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ): VNode {
+    return unimplemented("buildDetailsToolbar") as VNode;
+  }
+  buildEditToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ): VNode {
+    return unimplemented("buildEditToolbar") as VNode;
+  }
+  /** @deprecated 用 buildIndexToolbar / buildDetailsToolbar / buildEditToolbar */
+  buildModuleToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ): VNode {
+    const runtime = context as { many?: boolean; editing?: boolean };
+    if (runtime.many) return this.buildIndexToolbar(context, props, slots);
+    if (runtime.editing) return this.buildEditToolbar(context, props, slots);
+    return this.buildDetailsToolbar(context, props, slots);
   }
   buildSearchField(
     field: UiSearchField,
@@ -465,9 +518,6 @@ export abstract class VueUiBuilderBase {
     props: UiProps,
   ): VNode {
     return unimplemented("buildSearchField") as VNode;
-  }
-  buildSearchForm(context: UiContext, props?: UiProps): VNode {
-    return unimplemented("buildSearchForm") as VNode;
   }
   buildModuleSearchbar(
     context: UiContext,
@@ -482,7 +532,7 @@ export abstract class VueUiBuilderBase {
       extra: props ?? {},
     });
   }
-  buildSearchPage(context: UiContext, props?: ModuleSearchbarProps) {
+  buildSearchView(context: UiContext, props?: ModuleSearchbarProps) {
     const content = this.buildModuleSearchbar(context, props ?? {});
     return this.dialog(content, context, {
       title: context.t("action.search"),
@@ -845,7 +895,7 @@ export interface VueUiBuilder {
   ): VNode;
   buildAttachmentGroup(context: any, props?: UiProps): VNode;
   buildGantt(context: any, props: UiGanttProps): VNode;
-  buildGanttChart(context: any, props: UiGanttChartProps): VNode;
+  buildGanttChart(context: any, props: UiGanttProps): VNode;
   buildRibbon(props: UiRibbonProps): VNode;
   buildScheduler(context: any, props: UiSchedulerProps): VNode;
   buildPivotTable(props: UiPivotTableProps): VNode;
@@ -1082,12 +1132,15 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildLoading: emptyNode,
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
+    buildIndexToolbar: emptyNode,
+    buildDetailsToolbar: emptyNode,
+    buildEditToolbar: emptyNode,
     buildModuleToolbar: emptyNode,
     openTableSettings: async () => false,
     buildSearchField: emptyNode,
-    buildSearchForm: emptyNode,
     buildModuleSearchbar: emptyNode,
     buildFilterBar: emptyNode,
+    buildSearchView: emptyNode,
     buildSearchForRelative: emptyNode,
     buildSigninForm: emptyNode,
     buildSignupForm: emptyNode,
@@ -1140,9 +1193,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     },
     buildGantt(_context: any, props: UiGanttProps) {
       return this.ganttPlugin.ganttView(props);
-    },
-    buildGanttChart(context: any, props: UiGanttChartProps) {
-      return this.buildGantt(context, props);
     },
     ribbonPlugin: unimplementedRibbonPlugin(),
     setRibbonPlugin(plugin: UiRibbonPlugin) {

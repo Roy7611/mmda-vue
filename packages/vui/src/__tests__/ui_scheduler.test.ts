@@ -16,7 +16,7 @@ import {
   unimplementedSchedulerPlugin,
   type UiSchedulerPlugin,
 } from '../ui/factory/scheduler'
-import { createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
 describe('ui scheduler contract', () => {

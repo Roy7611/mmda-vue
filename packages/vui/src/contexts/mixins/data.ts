@@ -14,7 +14,7 @@ import {
   EntityQuery,
 } from "@mmda/core";
 import { ref } from "vue";
-import type { ImportOrExportParam } from "../../ui/builder/builder";
+import type { ImportOrExportParam } from "../../ui/builder";
 import {
   UiCustomSearchField,
   UiFilter,

@@ -1,7 +1,7 @@
 import { h, type VNode } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, uiCssClass } from "@mmda/core";
+import { DATE_RANGE_FILTER_KINDS, SqlDataType } from "@mmda/core";
 import type { VueUiBuilder } from "@mmda/vui"
-import type { ModuleBreadcrumbProps, ModuleSearchbarProps, ModuleToolbarProps, UiProps, UiSearchField, UiSlots } from "@mmda/vui"
+import type { ModuleSearchbarProps, UiProps, UiSearchField } from "@mmda/vui"
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import {
   DropDownListComponent,
@@ -12,96 +12,11 @@ import {
   TextBoxComponent,
 } from "@syncfusion/ej2-vue-inputs";
 import {
-  moduleChain,
-  moduleOf,
   type UiContext,
 } from "./utils";
-import { paintModuleToolbar, defaultToolbarMoreActions, ListSearchField } from "@mmda/vui"
-
-type ModuleBarHost = any;
+import { ListSearchField } from "@mmda/vui"
 
 export { SfSearchTextInput, moduleChain } from "./utils";
-
-export function buildModuleBreadcrumb(
-  this: VueUiBuilder,
-  context: UiContext,
-  props: ModuleBreadcrumbProps,
-) {
-  const { module, label } = props;
-  if (!module) {
-    return this.factory.breadcrumb({
-      items: [{ label: label || context.title }],
-      class: "mmda-breadcrumb",
-    });
-  }
-
-  const chain = moduleChain(module);
-  const items = chain.map((item, index) => {
-    const leaf = index === chain.length - 1 && !label;
-    return {
-      key: item.moduleCode,
-      label: item.moduleLabel ?? (item as any).moduleName,
-      icon: item.moduleIcon || undefined,
-      to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
-    };
-  });
-
-  if (label) {
-    items.push({
-      key: `${module.moduleCode}-title`,
-      label,
-      icon: undefined,
-      to: undefined,
-    });
-  }
-
-  return this.factory.breadcrumb({
-    items,
-    class: "mmda-breadcrumb",
-  });
-}
-
-export function buildModuleToolbar(
-  this: ModuleBarHost,
-  context: UiContext,
-  props: ModuleToolbarProps & { breadcrumbLeaf?: string },
-  slots?: UiSlots,
-) {
-  const runtime = context as any;
-  const module = moduleOf(context);
-  return paintModuleToolbar(this.factory, context, props, slots, {
-    breadcrumb: () => {
-      if (module) {
-        return buildModuleBreadcrumb.call(this, context, {
-          module,
-          label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
-        });
-      }
-      return h("strong", context.title);
-    },
-    actionGroup: (dense) =>
-      this.factory.buttonGroup(
-        () => this.toolbarActionButtons(context, dense),
-        {
-          class: uiCssClass("toolbar-actions"),
-          role: "group",
-        },
-      ),
-    moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
-    navActions: () =>
-      module
-        ? moduleChain(module).map((item) => ({
-            name: item.moduleCode,
-            label: item.moduleLabel ?? (item as any).moduleName,
-            icon: item.moduleIcon,
-          }))
-        : [],
-    openSearchPage: () => {
-      if (props.onSearchPage) props.onSearchPage();
-      else void this.buildSearchPage(context);
-    },
-  });
-}
 
 export function buildSearchField(
   field: UiSearchField,
@@ -167,23 +82,6 @@ export function buildSearchField(
     h("span", meta.displayLabel),
     editor,
   ]);
-}
-
-export function buildSearchForm(
-  context: UiContext,
-  props?: UiProps,
-) {
-  return h(
-    "form",
-    {
-      class: "mmda-search-form",
-      ...props,
-      onSubmit: (event: Event) => event.preventDefault(),
-    },
-    ((context as any).searchFields ?? []).map((field: UiSearchField) =>
-      buildSearchField(field, context, {}),
-    ),
-  );
 }
 
 export function buildModuleSearchbar(

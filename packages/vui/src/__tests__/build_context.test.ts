@@ -46,7 +46,7 @@ describe('VueUiContext', () => {
   })
 
   it('工具栏 save 动作在编辑页成功后跳转详情', async () => {
-    const { UiActionFactory } = await import('../ui/builder/builder')
+    const { UiActionFactory } = await import('../ui/builder')
     const push = vi.fn()
     const save = vi.fn(async (model: any) => ({ ...model, id: '42' }))
     const logic = new OrderLogic(o => o as any, {
@@ -203,7 +203,7 @@ describe('VueUiContext', () => {
     const toast = vi.fn()
     const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn(async () => true)
-    const { UiActionFactory } = await import('../ui/builder/builder')
+    const { UiActionFactory } = await import('../ui/builder')
     const factory = new UiActionFactory(
       { toast, confirm } as any,
       (icon: string) => icon,
@@ -231,7 +231,7 @@ describe('VueUiContext', () => {
     const toast = vi.fn()
     const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn()
-    const { UiActionFactory } = await import('../ui/builder/builder')
+    const { UiActionFactory } = await import('../ui/builder')
     const factory = new UiActionFactory(
       { toast, confirm } as any,
       (icon: string) => icon,
@@ -255,7 +255,7 @@ describe('VueUiContext', () => {
   })
 
   it('模块动作未配置 displayHint 时默认 warning', async () => {
-    const { UiActionFactory } = await import('../ui/builder/builder')
+    const { UiActionFactory } = await import('../ui/builder')
     const factory = new UiActionFactory(
       { toast: async () => undefined } as any,
       (icon: string) => icon,

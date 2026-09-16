@@ -61,7 +61,7 @@ AppShell
 Entity 路由 / context.select
   buildIndexView | buildSelectView | buildDetailsView | buildEditView
     → buildEntityView
-         many → buildModuleToolbar + factory.table|grid|list|treeGrid + factory.paginator
+         many → layoutIndexPage(toolbar=buildIndexToolbar, filterBar, default=factory.table|grid|list|treeGrid, footer=factory.paginator)
                  （categoryList → buildExplorer）
                  （gantt/timeline/… → buildXxxView，插件未装则 throw）
          one  → 扫 metaUi.groups
@@ -85,7 +85,7 @@ Entity 路由 / context.select
 
 ### Module
 
-`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildEntityView` · `buildModuleToolbar`
+`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildEntityView` · `buildIndexToolbar` · `buildDetailsToolbar` · `buildEditToolbar` · `buildSearchView`
 
 ### Module / 插件页（可选）
 

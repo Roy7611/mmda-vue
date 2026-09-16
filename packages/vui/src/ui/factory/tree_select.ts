@@ -3,7 +3,7 @@
  * 字段 fieldFactory.treeSelect 译 MetaUiField 后再调本控件。
  */
 import { MetaOptionsShape, type MetaUiField, type MetaUiFieldRef } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 import { treeDataProvider } from '../builder/tree_data'
 import {
   setTreeChildren,

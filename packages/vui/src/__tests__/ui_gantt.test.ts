@@ -10,7 +10,7 @@ import {
   type UiGanttPlugin,
   type UiGanttTask,
 } from '../ui/factory/gantt'
-import { createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
 describe('ui gantt contract', () => {

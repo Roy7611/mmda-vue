@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, inject } from 'vue'
 import { setupI18n } from '../i18n/i18n'
 import { MmdaVueApp } from '../app/app'
-import { createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder'
 import { UI_APP_KEY, UI_BUILDER_KEY } from '../app/keys'
 import { getFileInfo } from '../components/FileIcons'
 

@@ -18,7 +18,7 @@ import {
   type UiFilesUploaderProps,
   type UiFileUploadStatus,
 } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 import { getFileInfo } from '../../components/FileIcons'
 import { uploadedFileNames } from '../builder/helpers'
 

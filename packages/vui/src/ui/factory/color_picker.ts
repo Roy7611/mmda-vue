@@ -6,7 +6,7 @@
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 
 export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 

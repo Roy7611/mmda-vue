@@ -3,9 +3,9 @@ import { defineComponent, h, type VNode, type VNodeChild } from 'vue'
 import type { ModuleToolbarProps } from '../../app/app'
 import { useCompactViewport } from '../../composables/useCompactViewport'
 import type { UiAction } from '../factory/action'
-import type { UiFactory } from '../factory/factory'
+import type { UiFactory } from '../factory'
 import type { UiToolbarLayout } from '../factory/toolbar'
-import type { UiSlots } from '../layout/layout'
+import type { UiSlots } from '../layout'
 import type { UiActionFactory } from './actions'
 
 export function defaultToolbarMoreActions(

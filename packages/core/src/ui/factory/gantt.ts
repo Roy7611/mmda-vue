@@ -128,9 +128,6 @@ export interface UiGanttProps extends UiProps {
   onRowReorder?: (task: UiGanttTask, event?: UiGanttChangeEvent) => void
 }
 
-/** @deprecated 使用 UiGanttProps */
-export type UiGanttChartProps = UiGanttProps
-
 export interface UiGanttPlugin<TNode = any> {
   ganttView: (props: UiGanttProps) => TNode
 }

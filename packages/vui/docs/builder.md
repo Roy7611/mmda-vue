@@ -50,7 +50,7 @@ UiFactory / UiFieldFactory 契约  →  皮肤实现
 | **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳 |
 | **Factory** | 用 `MetaUi` + props **生产**组件 | 皮肤 `factory/`、`field_factory/` |
 | **Builder** | 用 Factory 原子件拼工具栏、分组、分页、确认框 | vui `VueUiBuilder`；皮肤只补壳/覆盖 |
-| **Layout** | 壳 `layout.scaffold`；页内 `VueUiLayout` | vui `ui/layout/` |
+| **Layout** | 壳 `layout.scaffold`；页内 `VueUiLayout` | vui `ui/layout.ts` |
 
 Index / Select 数据区：**直接** `factory.table|grid|list|treeGrid` + `factory.paginator`，不要再薄包 `buildTable`。字段行走 `fieldFactory.render`，不要 `buildField`。
 
@@ -67,9 +67,13 @@ app/                MmdaVueApp、inject keys、主题
 logic/              EntityLogic
 contexts/           VueUiContext（会话；设计见 docs/vue_ui_context.md）
 components/         无厂商壳
-ui/layout/          UiLayout
+ui/layout.ts        VueUiLayout
+ui/factory.ts       UiFactory
+ui/field_factory.ts UiFieldFactory
+ui/overlay.ts       createHtmlOverlay
+ui/builder.ts       VueUiBuilder
 ui/factory/         一控件一文件的 props；参数约定见 [factory.md](./factory.md)
-ui/builder/         VueUiBuilderBase + WithForm/WithList/WithTree、overlay
+ui/builder/         WithForm/WithList/WithTree、actions
 ```
 
 `context.uiBuilder` 的类型是 core `UiBuilder`（值为 `app.ui`）。对外仍从 `@mmda/vui` 导入 `VueUiBuilder`、`UiFactory`、`UiActionFactory`。
@@ -201,9 +205,9 @@ buildField
 `UiFactory` 至少覆盖：
 
 - 布局：`layout.row` / `column` / `cell`
-- 动作：`button`、`dropDownButton`、`moreMenuButton`、`splitButton`、`floatingActionButton`、`badge`、`avatar`、`autoComplete`、`card`、`divider`、`colorPicker`、`maskedTextBox`、`oneTimePasswordInput`、`numberInput`、`textInput`、`textArea`、`progressBar`、`signaturePad`、`stepper`、`skeleton`、`loading`、`speechToText`、`switch`、`toolbar`、`datePicker`、`monthPicker`、`dateTimePicker`、`timePicker`、`dateRangePicker`、`dropDownList`、`radioButtonGroup`、`comboBox`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`、`selectButtonGroup`（chrome 参数见 [factory.md](./factory.md)；Button 见 [button.md](./button.md)；DropDownButton 见 [drop_down_button.md](./drop_down_button.md)；SplitButton 见 [split_button.md](./split_button.md)；FAB 见 [floating_action_button.md](./floating_action_button.md)；Badge 见 [badge.md](./badge.md)；Avatar 见 [avatar.md](./avatar.md)；AutoComplete 见 [autocomplete.md](./autocomplete.md)；Card 见 [card.md](./card.md)；Divider 见 [divider.md](./divider.md)；ColorPicker 见 [color_picker.md](./color_picker.md)；MaskedTextBox 见 [masked_text_box.md](./masked_text_box.md)；OTP Input 见 [one_time_password_input.md](./one_time_password_input.md)；NumberInput 见 [number_input.md](./number_input.md)；ProgressBar 见 [progress_bar.md](./progress_bar.md)（不要 Builder 方法，不要当成 `factory.loading`）；SignaturePad 见 [signature_pad.md](./signature_pad.md)（不要 Builder 方法，不要当成 `imageEditor`）；Stepper 见 [stepper.md](./stepper.md)（不要 Builder 方法）；Skeleton 见 [skeleton.md](./skeleton.md)（不要 Builder 方法，不要当成 `factory.loading`）；Loading 见 [loading.md](./loading.md)（不要 Builder 方法以外的第二套节点；不要 `factory.spinner`；不要当成进度条 / Skeleton / 按钮 loading）；SpeechToText 见 [speech_to_text.md](./speech_to_text.md)（不要 Builder 方法，不要当成 `factory.textInput`）；Switch 见 [switch.md](./switch.md)（不要 Builder 方法，不要当成 `checkBox`）；Toolbar 见 [toolbar.md](./toolbar.md)（`buildModuleToolbar` 走 `factory.toolbar`）；DatePicker 见 [date_picker.md](./date_picker.md)；DropDownList 见 [drop_down_list.md](./drop_down_list.md)；RadioButtonGroup 见 [radio_button_group.md](./radio_button_group.md)（不要 Builder 方法）；ComboBox 见 [combo_box.md](./combo_box.md)）
+- 动作：`button`、`dropDownButton`、`moreMenuButton`、`splitButton`、`floatingActionButton`、`badge`、`avatar`、`autoComplete`、`card`、`divider`、`colorPicker`、`maskedTextBox`、`oneTimePasswordInput`、`numberInput`、`textInput`、`textArea`、`progressBar`、`signaturePad`、`stepper`、`skeleton`、`loading`、`speechToText`、`switch`、`toolbar`、`datePicker`、`monthPicker`、`dateTimePicker`、`timePicker`、`dateRangePicker`、`dropDownList`、`radioButtonGroup`、`comboBox`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`、`selectButtonGroup`（chrome 参数见 [factory.md](./factory.md)；Button 见 [button.md](./button.md)；DropDownButton 见 [drop_down_button.md](./drop_down_button.md)；SplitButton 见 [split_button.md](./split_button.md)；FAB 见 [floating_action_button.md](./floating_action_button.md)；Badge 见 [badge.md](./badge.md)；Avatar 见 [avatar.md](./avatar.md)；AutoComplete 见 [autocomplete.md](./autocomplete.md)；Card 见 [card.md](./card.md)；Divider 见 [divider.md](./divider.md)；ColorPicker 见 [color_picker.md](./color_picker.md)；MaskedTextBox 见 [masked_text_box.md](./masked_text_box.md)；OTP Input 见 [one_time_password_input.md](./one_time_password_input.md)；NumberInput 见 [number_input.md](./number_input.md)；ProgressBar 见 [progress_bar.md](./progress_bar.md)（不要 Builder 方法，不要当成 `factory.loading`）；SignaturePad 见 [signature_pad.md](./signature_pad.md)（不要 Builder 方法，不要当成 `imageEditor`）；Stepper 见 [stepper.md](./stepper.md)（不要 Builder 方法）；Skeleton 见 [skeleton.md](./skeleton.md)（不要 Builder 方法，不要当成 `factory.loading`）；Loading 见 [loading.md](./loading.md)（不要 Builder 方法以外的第二套节点；不要 `factory.spinner`；不要当成进度条 / Skeleton / 按钮 loading）；SpeechToText 见 [speech_to_text.md](./speech_to_text.md)（不要 Builder 方法，不要当成 `factory.textInput`）；Switch 见 [switch.md](./switch.md)（不要 Builder 方法，不要当成 `checkBox`）；Toolbar 见 [toolbar.md](./toolbar.md)（`buildIndexToolbar / buildDetailsToolbar / buildEditToolbar` 走 `factory.toolbar`）；DatePicker 见 [date_picker.md](./date_picker.md)；DropDownList 见 [drop_down_list.md](./drop_down_list.md)；RadioButtonGroup 见 [radio_button_group.md](./radio_button_group.md)（不要 Builder 方法）；ComboBox 见 [combo_box.md](./combo_box.md)）
 - 列表：`list`、`table`、`grid`、`treeGrid`、`paginator`（`bindListDisplayRenderers` 按 `display` 分发；本轮 table/grid 可同一 renderer）
-- chrome：`sidebar`、`drawer`（drawer = Sidebar `type: Over`）、`splitter`、`toolbar`（Prime 三槽，`buildModuleToolbar` 走它）、`searchForRelative`（字段选择 chrome，不是 Dialog）
+- chrome：`sidebar`、`drawer`（drawer = Sidebar `type: Over`）、`splitter`、`toolbar`（Prime 三槽，`buildIndexToolbar / buildDetailsToolbar / buildEditToolbar` 走它）、`searchForRelative`（字段选择 chrome，不是 Dialog）
 - 弹层：`UiOverlay`（toast / confirm / `dialog` 队列）；OverlayHost 直接画厂商窗；不要把 toast/confirm/dialog 写进 Factory
 
 `UiFieldFactory` 用字段 `editor` / `renderer` 名做索引（`textInput`、`dropDownList`、`HasOneText`…）。PrimeVue / Syncfusion / Naive 皮肤映射到各自控件。

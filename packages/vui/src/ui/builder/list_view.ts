@@ -22,8 +22,8 @@ import {
 } from "@mmda/core";
 import { readStoredPageSize, writeStoredPageSize, readStoredShowActionsColumn } from "../../app/theme";
 import { schedulePersistListPack } from "./list_layout";
-import { cleanTableCellProps } from "../factory/factory";
-import type {UiProps} from "../layout/layout";
+import { cleanTableCellProps } from "../factory";
+import type {UiProps} from "../layout";
 import type {
   UiListProps,
   UiListPropsType,
@@ -49,7 +49,7 @@ import {
 import { UiActionDivider, type UiAction } from "../factory/action";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { getModuleContext } from "../../contexts/vue_module_context";
-import type { VueUiBuilder } from "./builder";
+import type { VueUiBuilder } from "../builder";
 import type { UiToolbarLayout } from "../factory/toolbar";
 import type { UiContext } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
@@ -229,27 +229,10 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         ...props,
         content: () => treeGrid,
       });
-      return this.buildContainer(
-        [
-          toolbar ? this.buildHeader(toolbar) : null,
-          !toolbar && searchbar ? this.buildHeader(searchbar) : null,
-          this.buildMain(treeGrid, {
-            class: uiCssClass("page", "body"),
-            style: { flex: "1 1 auto", minHeight: 0, overflow: "auto" },
-          }),
-        ].filter(Boolean) as VNode[],
-        {
-          class: "mmda-tree-grid-view",
-          role: runtime.view,
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            minHeight: 0,
-            overflow: "hidden",
-          },
-        },
-      );
+      return this.layout.layoutIndexPage({
+        toolbar: toolbar ?? (!toolbar && searchbar ? searchbar : undefined) ?? undefined,
+        default: treeGrid,
+      });
     }
     
     async loadTreeGridChildren<T>(
@@ -508,7 +491,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         props.showToolbar === false
           ? null
           : (props.toolbar?.() ??
-            this.buildModuleToolbar(
+            this.buildIndexToolbar(
               context,
               {
                 showBreadcrumb: props.showBreadcrumb ?? true,
@@ -516,7 +499,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
                 showSearchBar: props.showSearchbar ?? true,
                 layout: props.toolbarLayout ?? "full",
                 onSearchPage: () =>
-                  void this.buildSearchPage(context, {
+                  void this.buildSearchView(context, {
                     onSearch: (text) => {
                       runtime.searchParam.searchWord = text;
                       runtime.rememberLastQuery?.();
@@ -578,34 +561,12 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
     ): VNode {
       const { runtime, toolbar, searchbar, list, paginator } =
         this.listViewParts(context, props);
-      return this.buildContainer(
-        [
-          toolbar ? this.buildHeader(toolbar) : null,
-          !toolbar && searchbar ? this.buildHeader(searchbar) : null,
-          this.buildFilterBar(runtime),
-          this.buildMain(list, {
-            class: uiCssClass("page", "body"),
-            style: {
-              flex: "1 1 auto",
-              minWidth: 0,
-              minHeight: 0,
-              overflow: "auto",
-            },
-          }),
-          paginator ? this.buildFooter(paginator) : null,
-        ].filter(Boolean) as VNode[],
-        {
-          class: "mmda-list-view",
-          role: runtime.view,
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            minHeight: 0,
-            overflow: "hidden",
-          },
-        },
-      );
+      return this.layout.layoutIndexPage({
+        toolbar: toolbar ?? (!toolbar && searchbar ? searchbar : undefined) ?? undefined,
+        filterBar: this.buildFilterBar(runtime),
+        default: list,
+        footer: paginator ?? undefined,
+      });
     }
     
     buildTreeListView<T = any>(
@@ -1202,7 +1163,7 @@ const TreeListView = defineComponent({
       const toolbar =
         listOption.showToolbar === false
           ? null
-          : self.buildModuleToolbar(
+          : self.buildIndexToolbar(
               context,
               {
                 showBreadcrumb: listOption.showBreadcrumb ?? true,
@@ -1212,7 +1173,7 @@ const TreeListView = defineComponent({
                 breadcrumbLeaf:
                   pickedLabel.value || selectedTreeLabel(latestSpec()),
                 onSearchPage: () =>
-                  void self.buildSearchPage(context, {
+                  void self.buildSearchView(context, {
                     onSearch: (text) => {
                       (context as any).searchParam.searchWord = text;
                       (context as any).rememberLastQuery?.();

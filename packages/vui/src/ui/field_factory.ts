@@ -6,8 +6,8 @@ import {
   type UiFieldFactory as CoreUiFieldFactory,
   type UiFieldRenderer,
 } from "@mmda/core";
-import type {UiProps} from "../layout/layout";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
+import type {UiProps} from "./layout";
+import type { VueUiContext } from "../contexts/vue_ui_context";
 
 export type { UiFieldRenderer } from "@mmda/core";
 

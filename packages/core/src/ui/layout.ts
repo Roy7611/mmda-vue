@@ -167,6 +167,18 @@ export interface UiPageSlots<TNode = any> {
   summaryExpanded?: boolean
 }
 
+/** 索引/选择列表页 {@link UiLayout.layoutIndexPage} 入参。 */
+export interface UiIndexPageSlots<TNode = any> {
+  /** 模块工具栏（面包屑 + 动作 + 搜索）。 */
+  toolbar?: TNode
+  /** 工具栏与表格之间的过滤条。 */
+  filterBar?: TNode
+  /** 数据区：table / grid / list。 */
+  default?: TNode
+  /** 底部分页器。 */
+  footer?: TNode
+}
+
 /**
  * 应用壳变体。
  * - `sidebarLeft`：左侧 nav + 右侧 page（可选顶栏）
@@ -245,6 +257,12 @@ export interface UiLayout<TNode = any> {
    */
   layoutPage(slots: UiPageSlots<TNode>): TNode
 
+  /**
+   * 索引/选择列表页：工具栏、过滤条、数据区、底部分页。
+   * 与 {@link layoutPage} 并列，不要用 cards/tabs。
+   */
+  layoutIndexPage(slots: UiIndexPageSlots<TNode>): TNode
+
   /** 移动端列表项。左侧图标、中间标题/副标题、右侧操作 */
   listTile(slots: UiListTileSlots<TNode>): TNode
 }
@@ -279,6 +297,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
 
   abstract scaffold(slots: UiAppScaffoldSlots<TNode>): TNode
 
+  /** 包装器，vui使用h()实现。 */
   protected abstract wrap(
     tag: string,
     props: UiWrapProps,
@@ -476,6 +495,58 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
           height: '100%',
           minHeight: 0,
           overflow: 'auto',
+        },
+      },
+      children,
+    )
+  }
+
+  /**
+   * 缺省铺平：toolbar → filterBar → default → footer。vui 覆写加 list-view 壳。
+   */
+  layoutIndexPage(slots: UiIndexPageSlots<TNode>): TNode {
+    const children: TNode[] = []
+    if (slots.toolbar != null) {
+      children.push(
+        this.wrap(
+          'header',
+          { className: uiCssClass('page', 'header') },
+          [slots.toolbar],
+        ),
+      )
+    }
+    if (slots.filterBar != null) children.push(slots.filterBar)
+    if (slots.default != null) {
+      children.push(
+        this.wrap(
+          'div',
+          {
+            className: uiCssClass('page', 'body'),
+            style: { flex: '1 1 auto', minWidth: 0, minHeight: 0, overflow: 'auto' },
+          },
+          [slots.default],
+        ),
+      )
+    }
+    if (slots.footer != null) {
+      children.push(
+        this.wrap(
+          'footer',
+          { className: uiCssClass('page', 'footer') },
+          [slots.footer],
+        ),
+      )
+    }
+    return this.wrap(
+      'section',
+      {
+        className: uiCssClass('index-page'),
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
         },
       },
       children,

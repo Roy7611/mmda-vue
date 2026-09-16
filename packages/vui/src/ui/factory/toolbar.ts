@@ -14,7 +14,7 @@ import {
   toolbarModifierClasses,
   toolbarSlotModifierClasses,
 } from '@mmda/core'
-import { htmlAttributesOf } from '../layout/layout'
+import { htmlAttributesOf } from '../layout'
 
 export type {
   UiToolbarLayout,

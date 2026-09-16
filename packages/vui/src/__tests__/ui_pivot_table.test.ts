@@ -8,7 +8,7 @@ import {
   unimplementedPivotPlugin,
   type UiPivotPlugin,
 } from '../ui/factory/pivot_table'
-import { createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
 describe('ui pivot table contract', () => {

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import { setupI18n } from "../i18n/i18n";
 import { MmdaVueApp } from "../app/app";
-import { createStubUiBuilder } from "../ui/builder/builder";
+import { createStubUiBuilder } from "../ui/builder";
 import { TestUiBuilder } from "./test_builder";
 import { ColorPalettePicker } from "../components/ColorPalettePicker";
 import { FontScalePicker } from "../components/FontScalePicker";

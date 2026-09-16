@@ -5,7 +5,7 @@ import {
   UiContextAction,
   type IconResolver,
 } from "../factory/action";
-import type { VueUiBuilder, ImportOrExportParam } from "./builder";
+import type { VueUiBuilder, ImportOrExportParam } from "../builder";
 import { deletableSelectedItems } from "../../contexts/vue_ui_context";
 import { getModuleContext } from "../../contexts/vue_module_context";
 import { UiViewOne } from "../../contexts/view";

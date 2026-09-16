@@ -8,11 +8,12 @@ chrome 路径导航，走 `factory.breadcrumb`。EJ2 见 [Breadcrumb Vue 3 getti
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/breadcrumb.ts` | `UiBreadcrumbProps`：`items` / `separator` |
+| core `UiBuilder.buildModuleBreadcrumb` | 契约；props 是 `UiModuleBreadcrumbProps`（`module` / `label`） |
+| vui `VueUiBuilder` | 默认实现：`moduleChain` 拼 `items`，再调 `factory.breadcrumb`。皮肤不要再抄一份 |
+| vui `ui/factory/breadcrumb.ts` | chrome `UiBreadcrumbProps`：`items` / `separator` |
 | 皮肤 `factory/breadcrumb.ts` | SF `BreadcrumbComponent`；Prime `Breadcrumb`；Naive 手写 nav |
-| Builder `buildModuleBreadcrumb` | 从模块 parent 链拼 `items`，再调 `factory.breadcrumb` |
 
-模块壳 props（`ModuleBreadcrumbProps`）不是 chrome。不要在 Builder 上再开通用 `buildBreadcrumb(items)`。
+模块壳 props 不是 chrome。不要在 Builder 上再开通用 `buildBreadcrumb(items)`。
 
 ## 属性
 
@@ -37,6 +38,7 @@ chrome 路径导航，走 `factory.breadcrumb`。EJ2 见 [Breadcrumb Vue 3 getti
 
 ## 源码
 
+- core：[`builder.ts`](../../core/src/ui/builder.ts) `buildModuleBreadcrumb`；props [`toolbar.ts`](../../core/src/ui/builder/toolbar.ts)
 - vui：[`breadcrumb.ts`](../src/ui/factory/breadcrumb.ts)
 - SF：[`vui-syncfusion/src/factory/breadcrumb.ts`](../../vui-syncfusion/src/factory/breadcrumb.ts)
 - Prime：[`vui-primevue/src/factory/breadcrumb.ts`](../../vui-primevue/src/factory/breadcrumb.ts)

@@ -1,5 +1,5 @@
-import type { UiListProps } from './list'
-import type { UiTreeViewProps } from './tree'
+import type { UiListProps } from '../factory/list'
+import type { UiTreeViewProps } from './tree_view'
 
 /**
  * 左树右表（Explorer）。

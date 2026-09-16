@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanTableCellProps } from "../ui/factory/factory";
+import { cleanTableCellProps } from "../ui/factory";
 
 describe("cleanTableCellProps", () => {
   it("strips table-level props such as rowStyle from cell renderer props", () => {

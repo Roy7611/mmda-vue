@@ -10,7 +10,7 @@ import {
   type UiFilterBarProps,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { UiFactory } from "../factory/factory";
+import type { UiFactory } from "../factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
 import {

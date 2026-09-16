@@ -8,7 +8,7 @@ chrome 导航树走 `factory.tree`。[EJ2 Vue TreeView](https://ej2.syncfusion.c
 
 单纯树（节点标签 + 展开）。
 
-`factory.tree` 是皮肤树控件（`SfTree` / `PrimeTree` / `NaiveTree`）。`buildTree`（vui `ui/builder/tree.ts`）薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
+`factory.tree` 是皮肤树控件（`SfTree` / `PrimeTree` / `NaiveTree`）。`buildTree`（vui `ui/builder/tree_view.ts`）薄包它。`buildTreeView` 在树上再加搜索和可选编辑，不依赖左树右表。组合页见 [Builder](./builder.md)，挂接见 [Logic](./logic.md)。
 
 ## 单纯树
 

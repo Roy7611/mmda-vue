@@ -36,5 +36,3 @@ export interface UiTreeViewProps<T = any, TNode = any>
   /** 分类树落库后刷新节点。 */
   onTreeRefresh?: () => void | Promise<void>
 }
-
-export type { UiExplorerProps } from './explorer'

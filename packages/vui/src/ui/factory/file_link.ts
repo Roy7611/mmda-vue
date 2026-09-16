@@ -12,7 +12,7 @@ import {
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
 import { getFileInfo } from '../../components/FileIcons'
-import {htmlAttributesOf, type UiProps} from '../layout/layout'
+import {htmlAttributesOf, type UiProps} from '../layout'
 
 export type { UiFileLinkPreviewKind, UiFileLinkProps } from '@mmda/core'
 export {

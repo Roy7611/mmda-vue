@@ -22,7 +22,7 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaVueApp } from "../app/app";
-import type { VueUiBuilder } from "../ui/builder/builder";
+import type { VueUiBuilder } from "../ui/builder";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
 import { VueEntityLogic, type EntityLogicInit } from "../logic/logic";

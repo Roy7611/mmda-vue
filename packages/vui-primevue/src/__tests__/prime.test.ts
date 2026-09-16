@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth } from '@mmda/core'
+import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from '@mmda/core'
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany } from '@mmda/vui'
 import { PrimeVueUiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
@@ -1066,14 +1066,14 @@ describe('PrimeVue skin', () => {
       selectionMode: null,
     }
     const withoutDelete = { ...context, module: { ...module, authority: auth(ModuleOp.READ | ModuleOp.CREATE) } }
-    const withDeleteButtons = (builder as any).indexViewActionButtons(context)
-    const withoutDeleteButtons = (builder as any).indexViewActionButtons({
+    const withDelete = resolveIndexToolbarActions(context as any)
+    const withoutDeleteGroups = resolveIndexToolbarActions({
       ...withoutDelete,
       logic: { module: withoutDelete.module, repository: 'Departments' },
-    })
-    expect(withDeleteButtons.length).toBeGreaterThan(withoutDeleteButtons.length)
-    expect(JSON.stringify(withDeleteButtons)).toContain('deleteAll')
-    expect(JSON.stringify(withoutDeleteButtons)).not.toContain('deleteAll')
+    } as any)
+    expect(withDelete.batch.some((action) => action.name === 'deleteAll')).toBe(true)
+    expect(withoutDeleteGroups.batch.some((action) => action.name === 'deleteAll')).toBe(false)
+    expect(builder.buildIndexToolbar(context as any)).toBeTruthy()
   })
 
   it('orders details actions, applies entity roles, and groups file actions', () => {
@@ -1107,29 +1107,24 @@ describe('PrimeVue skin', () => {
       translate: (message: string) => message,
     }
 
-    const buttons = (builder as any).detailsViewActionButtons(context)
-    expect(buttons.map((button: any) => button.props?.label)).toEqual([
-      'action.back',
-      'action.edit',
-      'action.create',
-      'action.delete',
-      '弃用',
-      'action.more',
+    const groups = resolveDetailsToolbarActions(context as any)
+    expect(groups.primary.map((action) => action.name)).toEqual([
+      'back',
+      'edit',
+      'create',
+      'delete',
+      'deprecate',
     ])
-    expect(buttons[4].props.severity).toBe('danger')
-    expect(buttons[5].props.model.map((item: any) =>
-      item.separator ? { separator: true } : item.label,
-    )).toEqual([
-      'action.print',
-      'action.export',
-      'action.import',
-      { separator: true },
-      'action.pageLayoutCards',
-      'action.pageLayoutTabs',
+    expect(groups.more.map((action) => action.name)).toEqual([
+      'print',
+      'export',
+      'import',
     ])
-    expect(buttons[5].props.text).toBeFalsy()
-    expect(buttons[5].props.severity).toBe('secondary')
-    expect(buttons[5].props.icon).toBe('pi pi-ellipsis-v')
+    const extraMore = builder.buildDetailsToolbar(context as any).props
+      ?.extraMore
+    expect(
+      extraMore?.map((item: any) => item.name).filter(Boolean),
+    ).toEqual(['pageLayoutCards', 'pageLayoutTabs'])
   })
 })
 

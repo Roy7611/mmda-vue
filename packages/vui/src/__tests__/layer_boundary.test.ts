@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const buildersDir = join(process.cwd(), 'src/ui/builder')
+const builderEntry = join(process.cwd(), 'src/ui/builder.ts')
 
 function collectTsFiles(dir: string): string[] {
   const out: string[] = []
@@ -16,7 +17,7 @@ function collectTsFiles(dir: string): string[] {
 
 describe('layer boundary: builders', () => {
   it('不得 import @mmda/core net，也不得直接碰 .apiClient', () => {
-    const files = collectTsFiles(buildersDir)
+    const files = [...collectTsFiles(buildersDir), builderEntry]
     expect(files.length).toBeGreaterThan(0)
 
     const offenders: string[] = []

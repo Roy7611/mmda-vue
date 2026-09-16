@@ -6,7 +6,7 @@ import {
 } from "../app/theme";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
 import type { MmdaApplication } from "../app/app";
-import type { VueUiBuilder } from "../ui/builder/builder";
+import type { VueUiBuilder } from "../ui/builder";
 import { translateMessage } from "../i18n/i18n";
 
 const SCALE_ACTIONS = MMDA_FONT_SCALES.map((option) => ({

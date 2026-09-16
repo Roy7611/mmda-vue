@@ -10,7 +10,7 @@ import type {
   UiOneTimePasswordInputProps,
   UiOneTimePasswordType,
 } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 
 export const DEFAULT_OTP_LENGTH = 4
 

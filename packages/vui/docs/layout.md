@@ -1,6 +1,6 @@
 # 布局设计
 
-契约在 [`@mmda/core` `src/ui/layout.ts`](../../core/src/ui/layout.ts)。Vue 实现是 [`VueUiLayout`](../src/ui/layout/layout.ts)。程序员用法：[layout_usage.md](./layout_usage.md)。
+契约在 [`@mmda/core` `src/ui/layout.ts`](../../core/src/ui/layout.ts)。Vue 实现是 [`VueUiLayout`](../src/ui/layout.ts)。程序员用法：[layout_usage.md](./layout_usage.md)。
 
 **不是** `factory.toolbar`（chrome 三栏条）。`UiLayout` 管字段栅格、分组、详情页区域、列表项，以及应用壳 `scaffold`。
 

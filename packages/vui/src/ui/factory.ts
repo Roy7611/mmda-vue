@@ -15,9 +15,9 @@ import {
   type UiMenuItem,
   type UiMultiSelectProps,
 } from '@mmda/core'
-import type {UiProps, UiLayout, UiSlots} from '../layout/layout'
-import type { IconResolver, UiAction } from './action'
-import type { SearchForRelativeProps } from './filter'
+import type {UiProps, UiLayout, UiSlots} from './layout'
+import type { IconResolver, UiAction } from './factory/action'
+import type { SearchForRelativeProps } from './factory/filter'
 import type {
   UiListColumnProps,
   UiListColumnSlots,
@@ -25,14 +25,14 @@ import type {
   UiPagableListPropsType,
   UiPaginatorPropsType,
   UiTableCellRenderer,
-} from './list'
-import type { UiTreePropsType } from './tree'
-import type { UiTreeGridPropsType } from './tree_grid'
-import type { Rx } from '../../rx'
-import type { ChildSlot } from '../../contexts/view'
+} from './factory/list'
+import type { UiTreePropsType } from './factory/tree'
+import type { UiTreeGridPropsType } from './factory/tree_grid'
+import type { Rx } from '../rx'
+import type { ChildSlot } from '../contexts/view'
 
 export * from './field_factory'
-export type { UiTableCellRenderer, UiFieldCellRenderer } from './list'
+export type { UiTableCellRenderer, UiFieldCellRenderer } from './factory/list'
 export type {
   UiAvatarProps,
   UiAvatarShape,
@@ -73,43 +73,43 @@ export type {
   UiCalendarSelection,
   UiCalendarValue,
   UiCalendarView,
-} from './calendar'
+} from './factory/calendar'
 export type {
   UiCarouselAnimation,
   UiCarouselItem,
   UiCarouselProps,
-} from './carousel'
-export type { UiChipItem, UiChipsKind, UiChipsProps } from './chips'
-export type { UiContextMenuProps } from './context_menu'
+} from './factory/carousel'
+export type { UiChipItem, UiChipsKind, UiChipsProps } from './factory/chips'
+export type { UiContextMenuProps } from './factory/context_menu'
 export type {
   UiTooltipController,
   UiTooltipOpensOn,
   UiTooltipProps,
   UiTooltipSlots,
-} from './tooltip'
-export type { UiColorPickerMode, UiColorPickerProps } from './color_picker'
-export type { UiMaskedTextBoxProps } from './masked_text_box'
+} from './factory/tooltip'
+export type { UiColorPickerMode, UiColorPickerProps } from './factory/color_picker'
+export type { UiMaskedTextBoxProps } from './factory/masked_text_box'
 export type {
   UiOneTimePasswordInputProps,
   UiOneTimePasswordType,
-} from './one_time_password_input'
+} from './factory/one_time_password_input'
 export type {
   UiSliderProps,
   UiSliderType,
   UiSliderValue,
-} from './slider'
+} from './factory/slider'
 export type {
   UiRatingProps,
   UiRatingTemplate,
   UiRatingTemplateContext,
-} from './rating'
+} from './factory/rating'
 export type {
   UiDrawerProps,
   UiSidebarPosition,
   UiSidebarProps,
   UiSidebarSlots,
   UiSidebarType,
-} from './sidebar'
+} from './factory/sidebar'
 export type {
   UiNormalizedTabItem,
   UiTabHeader,
@@ -117,20 +117,20 @@ export type {
   UiTabsHeaderPlacement,
   UiTabsHeightAdjustMode,
   UiTabsProps,
-} from './tabs'
+} from './factory/tabs'
 export type {
   UiToolbarLayout,
   UiToolbarProps,
   UiToolbarSlotName,
   UiToolbarSlots,
-} from './toolbar'
+} from './factory/toolbar'
 export type {
   UiSplitterCollapseEvent,
   UiSplitterOrientation,
   UiSplitterPane,
   UiSplitterProps,
   UiSplitterResizeEvent,
-} from './splitter'
+} from './factory/splitter'
 export type {
   UiTimelineAlign,
   UiTimelineController,
@@ -140,34 +140,34 @@ export type {
   UiTimelineProps,
   UiTimelineRange,
   UiTimelineTimeDisplay,
-} from './timeline'
+} from './factory/timeline'
 export type { UiLoadingProps, UiLoadingSize } from '@mmda/core'
 export type {
   UiSpeechToTextController,
   UiSpeechToTextProps,
-} from './speech_to_text'
+} from './factory/speech_to_text'
 export type {
   UiDateInputProps,
   UiDatePickerProps,
   UiDatePrecision,
   UiDateShortcut,
   UiDateShortcutKind,
-} from './date_picker'
+} from './factory/date_picker'
 export type {
   UiTreeSelectDisplay,
   UiTreeSelectLoadMode,
   UiTreeSelectProps,
   UiTreeSelectValue,
-} from './tree_select'
+} from './factory/tree_select'
 export type {
   UiDropDownButtonPlacement,
   UiDropDownButtonProps,
 } from '@mmda/core'
-export type { UiSplitButtonProps } from './split_button'
+export type { UiSplitButtonProps } from './factory/split_button'
 export type {
   UiFabPosition,
   UiFloatingActionButtonProps,
-} from './floating_action_button'
+} from './factory/floating_action_button'
 
 export type UiRenderer<T = any> = (
   model: T,

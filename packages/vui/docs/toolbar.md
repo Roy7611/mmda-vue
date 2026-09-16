@@ -4,7 +4,7 @@ chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.o
 
 程序员用法：[toolbar_usage.md](./toolbar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
-**不是** EJ2 `items` 命令条。**不是** `factory.buttonGroup`。模块页顶栏 `buildModuleToolbar` 只填槽，壳走本控件。没有 `fieldFactory.toolbar`。
+**不是** EJ2 `items` 命令条。**不是** `factory.buttonGroup`。模块页顶栏 `buildIndexToolbar` / `buildDetailsToolbar` / `buildEditToolbar` 只填槽，壳走本控件。没有 `fieldFactory.toolbar`。
 
 ## 分层
 
@@ -38,6 +38,8 @@ chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.o
 `ModuleToolbarProps.showSearchBar` 控制 full/medium 的中间搜索、compact 的放大镜。
 
 视口 ≤1024（`useCompactViewport`）时 full/medium 动作会 **dense**：按钮只留图标，文案进 `tooltip` / `aria-label`；`moreMenuButton` 始终带 `more` 图标。这与 `layout: 'compact'`（汉堡 + 标题 + 放大镜）不是同一套。
+
+模块页顶栏走 `buildIndexToolbar` / `buildDetailsToolbar` / `buildEditToolbar`。产品动作（allowCreate、LIST 位、批量删除等）由 core `resolve*ToolbarActions` 决定；vui `paintIndexToolbar` 等把它们接到 `actionFactory` 再填槽。皮肤只加 extraMore（例如 SF 的自动列宽 / 表格设置，详情页的卡片/页签布局）。
 
 ## 皮肤映射
 

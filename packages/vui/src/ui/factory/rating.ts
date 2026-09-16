@@ -8,7 +8,7 @@
 import type { VNodeChild } from 'vue'
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 
 export const DEFAULT_RATING_ITEMS_COUNT = 5
 

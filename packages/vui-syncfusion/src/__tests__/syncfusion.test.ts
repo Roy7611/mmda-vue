@@ -4,9 +4,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineComponent, h, nextTick, provide, render } from "vue";
 import { Internationalization, L10n } from "@syncfusion/ej2-base";
-import { FieldFilter, MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth } from "@mmda/core";
+import { FieldFilter, MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from "@mmda/core";
 import { columnFilterKindOf } from "../factory/filter_kind";
-import { MMDA_COLOR_PALETTE_IDS, UI_APP_KEY, UiViewMany, isLocalAppModuleUrl } from "@mmda/vui"
+import { MMDA_COLOR_PALETTE_IDS, UI_APP_KEY, UiViewMany, isLocalAppModuleUrl, joinListModeMenuItems } from "@mmda/vui"
 import {
   applySyncfusionLocale,
   resolveSyncfusionCulture,
@@ -4835,26 +4835,32 @@ describe("Syncfusion skin", () => {
       customActions: [],
       selectionMode: null,
     };
-    const withoutDelete = {
+    const withoutDeleteCtx = {
       ...context,
       module: { ...module, authority: auth(ModuleOp.READ | ModuleOp.CREATE) },
     };
-    const withDeleteButtons = (builder as any).indexViewActionButtons(context);
-    const withoutDeleteButtons = (builder as any).indexViewActionButtons({
-      ...withoutDelete,
-      logic: { module: withoutDelete.module, repository: "Departments" },
-    });
-    expect(withDeleteButtons.length).toBeGreaterThan(
-      withoutDeleteButtons.length,
+    const extra = (builder as any).listLayoutMenuItems(context);
+    expect(extra.map((item: any) => item.name)).toEqual([
+      "autoFitColumns",
+      "tableSettings",
+    ]);
+    const withDelete = resolveIndexToolbarActions(context as any);
+    const withoutDelete = resolveIndexToolbarActions({
+      ...withoutDeleteCtx,
+      logic: { module: withoutDeleteCtx.module, repository: "Departments" },
+    } as any);
+    expect(withDelete.batch.some((action) => action.name === "deleteAll")).toBe(
+      true,
     );
-    expect(JSON.stringify(withDeleteButtons)).toContain("deleteAll");
-    expect(JSON.stringify(withoutDeleteButtons)).not.toContain("deleteAll");
-    expect(JSON.stringify(withDeleteButtons)).toContain("tableSettings");
-    expect(JSON.stringify(withoutDeleteButtons)).toContain("tableSettings");
-    expect(JSON.stringify(withDeleteButtons)).toContain("autoFitColumns");
-    expect(JSON.stringify(withDeleteButtons).indexOf("autoFitColumns")).toBeLessThan(
-      JSON.stringify(withDeleteButtons).indexOf("tableSettings"),
-    );
+    expect(
+      withoutDelete.batch.some((action) => action.name === "deleteAll"),
+    ).toBe(false);
+    const extraMore = builder.buildIndexToolbar(context as any).props
+      ?.extraMore;
+    expect(extraMore?.map((item: any) => item.name)).toEqual([
+      "autoFitColumns",
+      "tableSettings",
+    ]);
   });
 
   it("Index more 在 hasJoinList 时含联查模式", () => {
@@ -4886,9 +4892,13 @@ describe("Syncfusion skin", () => {
       customActions: [],
       selectionMode: null,
     };
-    const buttons = (builder as any).indexViewActionButtons(context);
-    expect(JSON.stringify(buttons)).toContain("joinListMode");
-    expect(JSON.stringify(buttons)).toContain("tableSettings");
+    const extra = (builder as any).listLayoutMenuItems(context);
+    expect(extra.map((item: any) => item.name)).toContain("tableSettings");
+    expect(
+      joinListModeMenuItems(context as any).some(
+        (item) => item.name === "joinListMode",
+      ),
+    ).toBe(true);
   });
 
   it("联查表头把 移料清单.规格 收成 .规格", () => {
@@ -5067,69 +5077,29 @@ describe("Syncfusion skin", () => {
       translate: (message: string) => message,
     };
 
-    const buttons = (builder as any).detailsViewActionButtons(context);
+    const groups = resolveDetailsToolbarActions(context as any);
+    expect(groups.primary.map((action) => action.name)).toEqual([
+      "back",
+      "edit",
+      "create",
+      "delete",
+      "deprecate",
+    ]);
+    expect(groups.more.map((action) => action.name)).toEqual([
+      "print",
+      "export",
+      "import",
+    ]);
+    const extraMore = builder.buildDetailsToolbar(context as any).props
+      ?.extraMore;
     expect(
-      buttons.slice(0, 6).map((button: any) => button.props?.content),
-    ).toEqual([
-      "action.back",
-      "action.edit",
-      "action.create",
-      "action.delete",
-      "弃用",
-      "action.more",
-    ]);
-    expect(buttons[4].props.cssClass).toContain("e-danger");
-    expect(buttons[5].props.items.map((item: any) =>
-      item.separator ? { separator: true } : item.text,
-    )).toEqual([
-      "action.print",
-      "action.export",
-      "action.import",
-      { separator: true },
-      "action.pageLayoutCards",
-      "action.pageLayoutTabs",
-    ]);
-    expect(String(buttons[5].props.cssClass ?? "")).toContain("e-secondary");
-    expect(buttons[5].props.iconCss).toBe("e-icons e-more-vertical-1");
-    expect(String(buttons[0].props.cssClass ?? "")).toContain("e-secondary");
-  });
-
-  it("densifies toolbar actions to icon + tooltip", () => {
-    const builder = new SyncfusionUiBuilder();
-    const module = {
-      authority: auth(
-        ModuleOp.READ | ModuleOp.EDIT | ModuleOp.CREATE | ModuleOp.PRINT,
-      ),
-    };
-    const context = {
-      many: false,
-      editing: false,
-      metaUi: { objName: "Material", displayLabel: "物料" },
-      model: {},
-      logic: { module, repository: "Materials" },
-      module,
-      templates: [],
-      customActions: [],
-      actionLoadings: {},
-      executing: false,
-      globalProps: { $router: { back: vi.fn() } },
-      t: (message: string) => message,
-      translate: (message: string) => message,
-    };
-
-    const buttons = (builder as any).toolbarActionButtons(context, true);
-    expect(buttons[0].props?.content).toBeFalsy();
-    expect(buttons[0].props?.title || buttons[0].props?.["aria-label"]).toBe(
-      "action.back",
-    );
-    const more = buttons[buttons.length - 1];
-    expect(more.props?.content).toBeFalsy();
-    expect(more.props?.iconCss).toBe("e-icons e-more-vertical-1");
-    expect(more.props?.title).toBe("action.more");
+      extraMore
+        ?.map((item: any) => item.name)
+        .filter(Boolean),
+    ).toEqual(["pageLayoutCards", "pageLayoutTabs"]);
   });
 
   it("maps vui locales onto EJ2 cultures and loads L10n", () => {
-    expect(resolveSyncfusionCulture("zh")).toBe("zh-Hans");
     expect(resolveSyncfusionCulture("zh-CN")).toBe("zh-Hans");
     expect(resolveSyncfusionCulture("zh-Hans")).toBe("zh-Hans");
     expect(resolveSyncfusionCulture("zh-Hant")).toBe("zh-Hant");

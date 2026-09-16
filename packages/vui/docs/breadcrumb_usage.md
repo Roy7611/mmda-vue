@@ -11,7 +11,7 @@ builder.factory.breadcrumb({
 })
 ```
 
-模块页路径仍走 `builder.buildModuleBreadcrumb(context, { module, label })`：Builder 拼模块链，内部调 `factory.breadcrumb`。不要自己写 EJ2 `url` / Prime `model`。
+模块页路径走 `builder.buildModuleBreadcrumb(context, { module, label })`（core `UiBuilder`；vui 有默认实现）：拼模块链后调 `factory.breadcrumb`。不要自己写 EJ2 `url` / Prime `model`。
 
 ## 不要
 

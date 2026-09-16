@@ -9,7 +9,7 @@ import {
   type VNode,
 } from "vue";
 import { translateMessage } from "../i18n/i18n";
-import type { UiFactory } from "../ui/factory/factory";
+import type { UiFactory } from "../ui/factory";
 import {
   detachTreeNode,
   filterMappedTree,

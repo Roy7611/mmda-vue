@@ -5,9 +5,9 @@ import {
   type MetaUiField,
   type UiLayout,
 } from '@mmda/core'
-import type { UiProps } from '../layout/layout'
+import type { UiProps } from '../layout'
 import type { VueUiContext } from '../../contexts/vue_ui_context'
-import type { UiFieldFactory } from './field_factory'
+import type { UiFieldFactory } from '../field_factory'
 
 type UiContext = VueUiContext<any>
 

@@ -8,15 +8,16 @@ import {
   type UiFieldGroupLayout,
   type UiPageLayout,
   type UiPageSlots,
+  type UiIndexPageSlots,
   type UiProps,
   type UiWrapProps,
 } from '@mmda/core'
-import type { ChildSlot } from '../../contexts/view'
-import { PageBody } from '../../components/PageBody'
+import type { ChildSlot } from '../contexts/view'
+import { PageBody } from '../components/PageBody'
 import {
   readStoredPageLayout,
   writeStoredPageLayout,
-} from '../../app/theme'
+} from '../app/theme'
 
 export type {
   UiOrientation,
@@ -30,6 +31,7 @@ export type {
   UiFieldGroupProps,
   UiWrapProps,
   UiPageSlots,
+  UiIndexPageSlots,
   UiPageLayout,
   UiLayout,
   AbstractUiLayout,
@@ -214,6 +216,57 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
           },
         ),
         footerNode,
+      ],
+    )
+  }
+
+  layoutIndexPage(slots: UiIndexPageSlots<VNode>): VNode {
+    return h(
+      'section',
+      {
+        class: [uiCssClass('list-view'), uiCssClass('index-page')],
+        role: 'main',
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
+        },
+      },
+      [
+        slots.toolbar == null
+          ? null
+          : h(
+              'header',
+              {
+                class: [
+                  uiCssClass('page', 'header'),
+                  uiCssClass('page', 'header', 'sticky'),
+                ],
+                style: { position: 'sticky', top: 0, zIndex: 2 },
+              },
+              slots.toolbar,
+            ),
+        slots.filterBar ?? null,
+        slots.default == null
+          ? null
+          : h(
+              'div',
+              {
+                class: uiCssClass('page', 'body'),
+                style: {
+                  flex: '1 1 auto',
+                  minWidth: 0,
+                  minHeight: 0,
+                  overflow: 'auto',
+                },
+              },
+              slots.default,
+            ),
+        slots.footer == null
+          ? null
+          : h('footer', { class: uiCssClass('page', 'footer') }, slots.footer),
       ],
     )
   }

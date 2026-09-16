@@ -5,8 +5,8 @@ import {
   type UiInplaceEditorProps,
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
-import type {UiProps} from '../layout/layout'
-import type { UiFieldFactory } from './field_factory'
+import type {UiProps} from '../layout'
+import type { UiFieldFactory } from '../field_factory'
 import type { UiFieldRenderer } from '@mmda/core'
 
 type Ctx = {

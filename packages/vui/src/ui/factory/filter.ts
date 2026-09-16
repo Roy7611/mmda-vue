@@ -20,7 +20,7 @@ import type {
 } from "@mmda/core";
 import { h, ref, unref, type Ref, type VNode } from "vue";
 
-import type { UiProps } from "../layout/layout";
+import type { UiProps } from "../layout";
 
 export interface SearchForRelativeProps extends UiProps {
   contentProps?: Record<string, any>;

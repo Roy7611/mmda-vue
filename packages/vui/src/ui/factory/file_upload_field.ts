@@ -1,6 +1,6 @@
 import type { MetaUiField } from '@mmda/core'
 import { h, type VNode } from 'vue'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 import {
   createFileUploader,
   createFilesUploader,

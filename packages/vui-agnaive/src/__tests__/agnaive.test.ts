@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createApp, h, nextTick } from 'vue'
-import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth } from '@mmda/core'
+import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from '@mmda/core'
 import { UiViewMany } from '@mmda/vui'
 import { AgNaiveUiBuilder } from '../agnaive_builder'
 import { createAgNaiveFieldFactory } from '../agnaive_field_factory'
@@ -1574,11 +1574,11 @@ describe('vui-agnaive skin', () => {
       customActions: [],
       selectionMode: 'multiple',
     }
-    const buttons = (builder as any).indexViewActionButtons(context)
-    const json = JSON.stringify(buttons)
-    expect(json).toContain('create')
-    expect(json).toContain('tableSettings')
-    expect(json).not.toContain('cancel')
+    const groups = resolveIndexToolbarActions(context as any)
+    const extra = (builder as any).listLayoutMenuItems(context)
+    expect(groups.primary.map((action) => action.name)).toEqual(['create'])
+    expect(groups.primary.some((action) => action.name === 'cancel')).toBe(false)
+    expect(extra.map((item: any) => item.name)).toContain('tableSettings')
   })
 
   it('SelectMany in dialog without create still shows More with tableSettings', () => {
@@ -1605,10 +1605,10 @@ describe('vui-agnaive skin', () => {
       customActions: [],
       selectionMode: 'multiple',
     }
-    const buttons = (builder as any).indexViewActionButtons(context)
-    const json = JSON.stringify(buttons)
-    expect(json).not.toContain('create')
-    expect(json).toContain('tableSettings')
+    const groups = resolveIndexToolbarActions(context as any)
+    const extra = (builder as any).listLayoutMenuItems(context)
+    expect(groups.primary.some((action) => action.name === 'create')).toBe(false)
+    expect(extra.map((item: any) => item.name)).toContain('tableSettings')
   })
 
   it('renders list toolbar actions from module authority', () => {
@@ -1650,14 +1650,13 @@ describe('vui-agnaive skin', () => {
       ...context,
       module: { ...module, authority: auth(1 | 4) },
     }
-    const withDeleteButtons = (builder as any).indexViewActionButtons(context)
-    const withoutDeleteButtons = (builder as any).indexViewActionButtons({
+    const withDelete = resolveIndexToolbarActions(context as any)
+    const withoutDeleteGroups = resolveIndexToolbarActions({
       ...withoutDelete,
       logic: { module: withoutDelete.module, repository: 'Departments' },
-    })
-    expect(withDeleteButtons.length).toBeGreaterThan(withoutDeleteButtons.length)
-    expect(JSON.stringify(withDeleteButtons)).toContain('deleteAll')
-    expect(JSON.stringify(withoutDeleteButtons)).not.toContain('deleteAll')
+    } as any)
+    expect(withDelete.batch.some((action) => action.name === 'deleteAll')).toBe(true)
+    expect(withoutDeleteGroups.batch.some((action) => action.name === 'deleteAll')).toBe(false)
   })
 
   it('orders details actions and groups file actions', () => {
@@ -1682,14 +1681,13 @@ describe('vui-agnaive skin', () => {
       t: (message: string) => message,
       translate: (message: string) => message,
     }
-    const buttons = (builder as any).detailsViewActionButtons(context)
-    expect(buttons.map((button: any) => button.props?.label)).toEqual([
-      'action.back',
-      'action.edit',
-      'action.create',
-      'action.delete',
-      '弃用',
-      'action.more',
+    const groups = resolveDetailsToolbarActions(context as any)
+    expect(groups.primary.map((action) => action.name)).toEqual([
+      'back',
+      'edit',
+      'create',
+      'delete',
+      'deprecate',
     ])
   })
 

@@ -6,7 +6,7 @@ import {
   unimplementedRibbonPlugin,
   type UiRibbonPlugin,
 } from '../ui/factory/ribbon'
-import { createStubUiBuilder } from '../ui/builder/builder'
+import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
 const sampleTabs = [

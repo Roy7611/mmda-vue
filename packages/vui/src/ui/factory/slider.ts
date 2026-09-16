@@ -7,7 +7,7 @@
  */
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
-import type {UiProps} from '../layout/layout'
+import type {UiProps} from '../layout'
 
 export const DEFAULT_SLIDER_MIN = 0
 export const DEFAULT_SLIDER_MAX = 100

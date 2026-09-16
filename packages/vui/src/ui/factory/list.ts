@@ -15,10 +15,10 @@ import type {
   UiTreeGridProps as CoreUiTreeGridProps,
 } from "@mmda/core";
 import type { ChildSlot } from "../../contexts/view";
-import type { UiSlots } from "../layout/layout";
+import type { UiSlots } from "../layout";
 import { uiCssClass } from '@mmda/core'
 
-export type { UiSlots } from "../layout/layout";
+export type { UiSlots } from "../layout";
 
 export type {
   UiGridScene,

@@ -1,6 +1,6 @@
 # Factory 控件契约
 
-vui [`ui/factory/`](../src/ui/factory/) 只定 **chrome 控件怎么叫、props 叫什么**。皮肤 `factory/` 生产厂商节点。拼整页仍走 [Builder 与皮肤](./builder.md)。
+vui [`UiFactory`](../src/ui/factory.ts) / [`UiFieldFactory`](../src/ui/field_factory.ts) 在 `src/ui/`；[`ui/factory/`](../src/ui/factory/) 只定 **chrome 控件怎么叫、props 叫什么**。皮肤 `factory/` 生产厂商节点。拼整页仍走 [Builder 与皮肤](./builder.md)。
 
 字段单元格单枚 `tag` / `statusLight` 在 `UiFieldFactory`。多枚 `chips` / `tags` 走 chrome `factory.chips`。
 
@@ -104,7 +104,8 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`scheduler.ts`](../src/ui/factory/scheduler.ts) | **不是** chrome。`UiSchedulerPlugin` 插件，见 [排程](./scheduler.md)、[怎么写](./scheduler_usage.md) |
 | [`pivot_table.ts`](../src/ui/factory/pivot_table.ts) | **不是** chrome。`UiPivotPlugin` 插件，见 [透视表](./pivot_table.md)、[怎么写](./pivot_table_usage.md) |
 | [`ai_assistant.ts`](../src/ui/factory/ai_assistant.ts) | **不是** chrome。`UiAiAssistantPlugin` 插件，见 [AI 助手](./ai_assistant.md)、[怎么写](./ai_assistant_usage.md) |
-| [`factory.ts`](../src/ui/factory/factory.ts) | `UiFactory` 方法表 |
+| [`factory.ts`](../src/ui/factory.ts) | `UiFactory` 方法表 |
+| [`field_factory.ts`](../src/ui/field_factory.ts) | `UiFieldFactory` 字段生产 |
 
 新 chrome 控件：先在 vui 定 props（沿用上表），再在三套皮肤实现 `factory.xxx()`。图表走 `setChartFactory`，图走 `setDiagramPlugin`，Markdown 走 `setMarkdownEditorPlugin`，图片编辑走 `setImageEditorPlugin`，看板走 `setKanbanPlugin`，甘特走 `setGanttPlugin`，Ribbon 走 `setRibbonPlugin`，排程走 `setSchedulerPlugin`，透视表走 `setPivotPlugin`，AI 助手走 `setAiAssistantPlugin`，时间轴默认是 chrome `factory.timeline`，`setTimelinePlugin` 可换成 Tempis，不要把 Tempis 写进皮肤。Query Builder 是 chrome `factory.queryBuilder`，不是插件。
 

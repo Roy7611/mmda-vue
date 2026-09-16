@@ -6,7 +6,7 @@
  * 不要 vui 主名 visible / show（只在 drawer 入口翻译旧词）。
  */
 import type { VNode } from 'vue'
-import type {UiProps, UiSlots} from '../layout/layout'
+import type {UiProps, UiSlots} from '../layout'
 
 export const DEFAULT_SIDEBAR_WIDTH = 280
 

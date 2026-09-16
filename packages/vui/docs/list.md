@@ -6,9 +6,9 @@
 
 | Props | 文件 | 用途 |
 |---|---|---|
-| `UiListProps` | [`core/.../list.ts`](../../core/src/ui/list.ts) | 移动端卡片 / 行条；`buildList` / `factory.list` |
-| `UiTableProps` | [`core/.../table.ts`](../../core/src/ui/table.ts) | 只读桌面 index；selector **默认同 index**；`buildTable` / `factory.table` |
-| `UiGridProps` | [`core/.../grid.ts`](../../core/src/ui/grid.ts) | edit / details；特殊 selector；`buildGrid` / `factory.grid` |
+| `UiListProps` | [`core/.../factory/list.ts`](../../core/src/ui/factory/list.ts) | 移动端卡片 / 行条；`buildList` / `factory.list` |
+| `UiTableProps` | [`core/.../factory/table.ts`](../../core/src/ui/factory/table.ts) | 只读桌面 index；selector **默认同 index**；`buildTable` / `factory.table` |
+| `UiGridProps` | [`core/.../factory/grid.ts`](../../core/src/ui/factory/grid.ts) | edit / details；特殊 selector；`buildGrid` / `factory.grid` |
 | `UiTreeGridProps` | core grid + vui [`tree_grid.ts`](../src/ui/factory/tree_grid.ts) | 树形可编表 |
 
 vui [`ui/factory/list.ts`](../src/ui/factory/list.ts) 只 re-export + Vue slots。整页在 [`ui/builder/list_view.ts`](../src/ui/builder/list_view.ts)（`UiListViewProps`、`buildListView`）。命名见仓库 [list、table、grid](../../docs/naming.md#listtablegrid)。皮肤负责画出 chips / 搜索框 / 表头菜单，不要自己拼 URL。表格能力见 [表格契约](../../vui-syncfusion/docs/sf-grid.md)；Syncfusion 落地见 [SfGrid 设计](../../vui-syncfusion/docs/sf-grid-design.md)。

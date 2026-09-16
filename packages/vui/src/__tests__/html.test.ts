@@ -74,7 +74,7 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("html overlay toast 用 title/message，confirm 为 boolean", async () => {
-    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { createHtmlOverlay } = await import("../ui/overlay");
     const overlay = createHtmlOverlay();
     overlay.toast({
       severity: "success",
@@ -93,7 +93,7 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("html overlay dialog 返回标准按钮名，onReject 可拦关", async () => {
-    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { createHtmlOverlay } = await import("../ui/overlay");
     const { h } = await import("vue");
     const overlay = createHtmlOverlay();
     const p = overlay.dialog(h("div", "body"), {
@@ -109,7 +109,7 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("html overlay dialog header 插槽换掉 title", async () => {
-    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { createHtmlOverlay } = await import("../ui/overlay");
     const { h } = await import("vue");
     const overlay = createHtmlOverlay();
     void overlay.dialog(h("div", "body"), {
@@ -124,7 +124,7 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("html overlay dialog footer 插槽不画标准键", async () => {
-    const { createHtmlOverlay } = await import("../ui/builder/overlay");
+    const { createHtmlOverlay } = await import("../ui/overlay");
     const { h } = await import("vue");
     const overlay = createHtmlOverlay();
     void overlay.dialog(h("div", "body"), {

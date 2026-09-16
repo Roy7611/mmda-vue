@@ -4,8 +4,8 @@ import {
   type VNode,
   type VNodeArrayChildren,
 } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, hasBit, ModuleActionMode, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module, type ModuleAction, type ModuleAuth } from "@mmda/core";
-import { VueUiBuilder, UiViewMany, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleBreadcrumbProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, paintModuleToolbar, defaultToolbarMoreActions, ListSearchField } from "@mmda/vui"
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from "@mmda/core";
+import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -26,44 +26,14 @@ import { SigninForm } from "./components/SigninForm";
 import { createPrimeVueFieldFactory } from "./prime_field_factory";
 import { createPrimeVueUiFactory } from "./prime_factory";
 import { primeLayout } from "./prime_layout";
-
-const UI_NAME = "mmda";
+import { PrimeIndexToolBar } from "./components/PrimeIndexToolBar";
+import { PrimeDetailsToolBar } from "./components/PrimeDetailsToolBar";
+import { PrimeEditToolBar } from "./components/PrimeEditToolBar";
 
 const invoke = (value: unknown): any =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-const moduleChain = (module: Module): Module[] => {
-  const chain: Module[] = [module];
-  let parent = (module as Module & { parent?: Module }).parent;
-  while (parent) {
-    chain.unshift(parent);
-    parent = (parent as Module & { parent?: Module }).parent;
-  }
-  // 一级 SYSTEM 已在侧栏显示，面包屑从二级模块起
-  const withoutSystem = chain.filter((item) => item.moduleType !== "SYSTEM");
-  return withoutSystem.length ? withoutSystem : chain;
-};
-
 type UiContext = UiViewContext<any>;
-
-const moduleOf = (context: UiContext): Module | undefined => {
-  const runtime = context as any;
-  return (runtime.module ?? runtime.logic?.module) as Module | undefined;
-};
-
-const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
-  moduleOf(context)?.authority;
-
-const visibleActions = (actions: UiAction[]) =>
-  actions.filter((action) => {
-    const visible = action.visible
-    if (visible == null) return true
-    if (typeof visible === 'function') return true
-    if (typeof visible === 'object' && visible !== null && 'value' in visible) {
-      return Boolean((visible as { value: unknown }).value)
-    }
-    return Boolean(visible)
-  })
 
 export class PrimeVueUiBuilder extends VueUiBuilder {
   declare readonly factory: PrimeVueUiFactory;
@@ -201,41 +171,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildModuleBreadcrumb(context: UiContext, props: ModuleBreadcrumbProps) {
-    const { module, label } = props;
-    if (!module) {
-      return this.factory.breadcrumb({
-        items: [{ label: label || context.title }],
-        class: "mmda-breadcrumb",
-      });
-    }
-
-    const chain = moduleChain(module);
-    const items = chain.map((item, index) => {
-      const leaf = index === chain.length - 1 && !label;
-      return {
-        key: item.moduleCode,
-        label: item.moduleLabel ?? (item as any).moduleName,
-        icon: item.moduleIcon || undefined,
-        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
-      };
-    });
-
-    if (label) {
-      items.push({
-        key: `${module.moduleCode}-title`,
-        label,
-        icon: undefined,
-        to: undefined,
-      });
-    }
-
-    return this.factory.breadcrumb({
-      items,
-      class: "mmda-breadcrumb",
-    });
-  }
-
   buildImportOrExportAction(
     context: UiContext,
     props: ImportAndExportActionProps,
@@ -286,150 +221,11 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     return this.toolbarActionButton(context, action);
   }
 
-  private importOrExportMenuItem(
-    context: UiContext,
-    role: "import" | "export",
-  ) {
-    const runtime = context as any;
-    const repository = runtime.isRoot
-      ? runtime.logic.repository
-      : pluralize(context.metaUi.objName);
-    const action =
-      role === "import"
-        ? this.actionFactory.import(context, { repository })
-        : this.actionFactory.export(context, { repository });
-    const icon = this.factory.resolveIcon(action.icon ?? role);
-    const templates = runtime.templates ?? [];
-
-    if (!templates.length) {
-      return {
-        label: action.label,
-        icon,
-        command: action.onAction,
-      };
-    }
-
-    return {
-      label: action.label,
-      icon,
-      items: [
-        {
-          label: action.label,
-          icon,
-          command: action.onAction,
-        },
-        ...templates.map((template: any) => ({
-          label: template.templateName,
-          icon: "pi pi-file",
-          command: () => {
-            runtime.currentTemplate = template;
-            if (role === "import") {
-              void (runtime.many
-                ? runtime.importFiles?.({ repository })
-                : runtime.importFile?.({ repository }));
-            } else {
-              void (runtime.many
-                ? runtime.exportFiles?.({ repository })
-                : runtime.exportFile?.({ repository }));
-            }
-          },
-        })),
-      ],
-    };
-  }
-
-  /** paintModuleToolbar dense 时临时打开；供 action / more / batch 共用。 */
-  private toolbarDense = false;
-
-  private assembleMoreButton(context: UiContext, items: any[]): VNode[] {
-    if (!items.length) return [];
-    const dense = this.toolbarDense;
-    const moreLabel = context.t("action.more");
-    return [
-      this.factory.moreMenuButton(
-        {
-          icon: this.factory.resolveIcon("more"),
-          label: dense ? "" : moreLabel,
-          tooltip: moreLabel,
-          "aria-label": moreLabel,
-          hideCaret: dense,
-          buttonType: "tonal",
-          colorRole: "secondary",
-        },
-        items.map((item, index) =>
-          item.divider
-            ? { divider: true }
-            : {
-                name: item.name ?? `more-${index}`,
-                label: item.label,
-                icon: item.icon,
-                disabled: item.disabled === true,
-                onAction: item.command ?? item.onAction,
-                items: item.items,
-              },
-        ),
-      ),
-    ];
-  }
-
-  private assembleMultipleSelectionButtons(
-    context: UiContext,
-    actions: UiAction[],
-  ): VNode[] {
-    if (!actions.length) return [];
-    const dense = this.toolbarDense;
-    const render = (action: UiAction) =>
-      this.toolbarActionButton(
-        context,
-        {
-          ...action,
-          onAction: () => {
-            if (action.onAction) action.onAction();
-            else (context as any).doAction?.(action, context.model);
-          },
-        },
-        { id: `${action.name}-button` },
-      );
-
-    if (actions.length === 1) return [render(actions[0]!)];
-
-    const batchLabel = context.t("action.batchOperation");
-    return [
-      this.factory.dropDownButton(
-        {
-          label: dense ? "" : batchLabel,
-          icon: dense
-            ? this.factory.resolveIcon(actions[0]?.icon ?? "more")
-            : undefined,
-          tooltip: batchLabel,
-          "aria-label": batchLabel,
-          hideCaret: dense,
-          class: "mmda-batch-menu-button",
-          buttonType: "tonal",
-          colorRole: "secondary",
-        },
-        actions.map((action) => ({
-          name: action.name,
-          label: action.label,
-          icon: action.icon,
-          onAction: () => {
-            if (action.onAction) action.onAction();
-            else (context as any).doAction?.(action, context.model);
-          },
-        })),
-      ),
-    ];
-  }
-
   private toolbarActionButton(
     context: UiContext,
     action: UiAction,
     props?: UiProps,
   ) {
-    const dense = this.toolbarDense;
-    const label =
-      action.label ??
-      (action.name ? context.t(`action.${action.name}`) : action.name);
     return this.factory.actionButton(
       action,
       (message) => context.t(message),
@@ -437,338 +233,55 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       {
         size: "small",
         ...props,
-        ...(dense
-          ? {
-              label: "",
-              tooltip: action.tooltip ?? label,
-              "aria-label": label,
-            }
-          : {}),
       },
     );
   }
 
-  private indexViewActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any;
-    const { globalProps, selectionMode, customActions, view } = runtime;
-    const { $t } = globalProps ?? { $t: (m: string) => context.t(m) };
-    const auth = moduleAuth(context);
-    const children: VNode[] = [];
-    const moreItems: any[] = [];
-
-    const inBatchMode =
-      view === UiViewMany.SelectMany ||
-      view === UiViewMany.EditMany ||
-      selectionMode === "multiple";
-
-    if (inBatchMode) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.cancel(context)),
-        this.toolbarActionButton(context, this.actionFactory.confirm(context)),
-      );
-      return children;
-    }
-
-    if (!auth) return children;
-
-    if (auth.allowImport) {
-      moreItems.push(this.importOrExportMenuItem(context, "import"));
-    }
-    if (auth.allowExport) {
-      moreItems.push(this.importOrExportMenuItem(context, "export"));
-    }
-    if (auth.allowCreate) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.create(context)),
-      );
-    }
-    if (auth.allowPrint) {
-      const action = this.actionFactory.print(context);
-      moreItems.push({
-        label: action.label,
-        icon: this.factory.resolveIcon(action.icon ?? "print"),
-        command: action.onAction,
-      });
-    }
-
-    const listActions: UiAction[] = [];
-    const multipleSelectActions: UiAction[] = [];
-
-    if (auth.authorizedActions?.length) {
-      multipleSelectActions.push(
-        ...auth.authorizedActions
-          .filter(
-            (action: ModuleAction) =>
-              hasBit(action.actionModes, ModuleActionMode.LIST) &&
-              action.promptType === 'MULTIPLE_SELECT',
-          )
-          .map(
-            (action: ModuleAction) =>
-              ({
-                id: `${action.actionName}-button`,
-                name: action.actionName,
-                role: `${UI_NAME}-${action.actionName}-action`,
-                icon: action.displayIcon,
-                label: action.displayLabel,
-              }) as UiAction,
-          ),
-      );
-      listActions.push(
-        ...auth.authorizedActions
-          .filter(
-            (action: ModuleAction) =>
-              hasBit(action.actionModes, ModuleActionMode.LIST) &&
-              action.promptType !== 'MULTIPLE_SELECT',
-          )
-          .map((action: ModuleAction) =>
-            this.actionFactory.action(context, {
-              id: `${action.actionName}-button`,
-              name: action.actionName,
-              icon: action.displayIcon,
-              label: action.displayLabel,
-              role: action.displayHint,
-              executableExpression: action.executableExpression,
-            }),
-          ),
-      );
-    }
-
-    if (auth.allowDelete) {
-      multipleSelectActions.unshift({
-        id: "delete-all-button",
-        name: "deleteAll",
-        role: `${UI_NAME}-delete-all-action`,
-        label: $t("action.deleteAll"),
-        icon: "fas fa-trash-alt",
-        colorRole: "danger",
-        onAction: () => this.actionFactory.deleteAll(context).onAction?.(),
-      });
-    }
-
-    children.push(
-      ...this.assembleMultipleSelectionButtons(context, multipleSelectActions),
-    );
-
-    if (
-      customActions?.length &&
-      (view === UiViewMany.SelectMany || selectionMode !== "multiple")
-    ) {
-      listActions.push(
-        ...customActions
-          .filter((action: UiAction) =>
-            auth.authorizedActions?.some(
-              (item: ModuleAction) => item.actionName === action.name,
-            ),
-          )
-          .map((action: UiAction) =>
-            this.actionFactory.action(context, action as any),
-          ),
-      );
-    }
-
-    moreItems.push(
-      ...visibleActions(listActions).map((action) => ({
-        label: action.label,
-        icon: this.factory.resolveIcon(action.icon ?? action.name ?? ""),
-        disabled: action.disabled,
-        command: action.onAction,
-      })),
-    );
-    children.push(...this.assembleMoreButton(context, moreItems));
-
-    return children;
-  }
-
-  private detailsViewActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any;
-    const { model, customActions } = runtime;
-    const auth = moduleAuth(context);
-    const entityAuth = runtime.getModuleAuth?.(model) ?? auth;
-    const children: VNode[] = [
-      this.toolbarActionButton(context, this.actionFactory.back(context)),
-    ];
-    const moreItems: any[] = [];
-    if (!entityAuth) {
-      moreItems.push(
-      ...pageLayoutMenuItems(context as any).map((item) =>
-        item.divider
-          ? item
-          : {
-              ...item,
-              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
-            },
-      ),
-    );
-      children.push(...this.assembleMoreButton(context, moreItems));
-      return children;
-    }
-
-    if (entityAuth.allowEdit && model?.editable !== false) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.edit(context)),
-      );
-    }
-    if (entityAuth.allowCreate) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.create(context)),
-      );
-    }
-    if (entityAuth.allowDelete && model?.deletable !== false) {
-      children.push(
-        this.toolbarActionButton(context, this.actionFactory.delete(context)),
-      );
-    }
-    if (model?.actions?.length) {
-      children.push(
-        ...model.actions.map((action: any) =>
-          this.toolbarActionButton(
-            context,
-            this.actionFactory.action(context, action),
-            {
-              id: `${action.name ?? action.actionName}-button`,
-            },
-          ),
-        ),
-      );
-    }
-    if (customActions?.length) {
-      children.push(
-        ...customActions
-          .filter((action: UiAction) =>
-            entityAuth.authorizedActions?.some(
-              (item: ModuleAction) => item.actionName === action.name,
-            ),
-          )
-          .map((action: UiAction) =>
-            this.toolbarActionButton(
-              context,
-              this.actionFactory.action(context, action as any),
-              {
-                id: `${action.name}-button`,
-              },
-            ),
-          ),
-      );
-    }
-    if (entityAuth.allowPrint) {
-      const action = this.actionFactory.print(context);
-      moreItems.push({
-        label: action.label,
-        icon: this.factory.resolveIcon(action.icon ?? "print"),
-        command: action.onAction,
-      });
-    }
-    if (entityAuth.allowExport) {
-      moreItems.push(this.importOrExportMenuItem(context, "export"));
-    }
-    if (entityAuth.allowImport) {
-      moreItems.push(this.importOrExportMenuItem(context, "import"));
-    }
-    moreItems.push(
-      ...pageLayoutMenuItems(context as any).map((item) =>
-        item.divider
-          ? item
-          : {
-              ...item,
-              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
-            },
-      ),
-    );
-    children.push(...this.assembleMoreButton(context, moreItems));
-    return children;
-  }
-
-  private editViewActionButtons(context: UiContext): VNode[] {
-    const runtime = context as any;
-    const { customActions } = runtime;
-    const auth = moduleAuth(context);
-    const children: VNode[] = [
-      this.toolbarActionButton(context, this.actionFactory.back(context)),
-    ];
-    if (auth?.allowImport) {
-      children.push(
-        this.buildImportOrExportAction(context, { role: "import" }),
-      );
-    }
-    children.push(
-      this.toolbarActionButton(context, {
-        ...this.actionFactory.save(context),
-        disabled: runtime.uploading?.value,
-      }),
-    );
-    if (customActions?.length && auth?.authorizedActions?.length) {
-      children.push(
-        ...customActions
-          .filter((action: UiAction) =>
-            auth.authorizedActions!.some(
-              (item: ModuleAction) => item.actionName === action.name,
-            ),
-          )
-          .map((action: UiAction) =>
-            this.toolbarActionButton(
-              context,
-              this.actionFactory.action(context, action as any),
-              {
-                id: `${action.name}-button`,
-              },
-            ),
-          ),
-      );
-    }
-    return children;
-  }
-
-  private toolbarActionButtons(context: UiContext, dense = false): VNode[] {
-    const prev = this.toolbarDense;
-    this.toolbarDense = dense;
-    try {
-      const runtime = context as any;
-      if (runtime.many) return this.indexViewActionButtons(context);
-      if (runtime.editing) return this.editViewActionButtons(context);
-      return this.detailsViewActionButtons(context);
-    } finally {
-      this.toolbarDense = prev;
-    }
-  }
-
-  buildModuleToolbar(
+  buildIndexToolbar(
     context: UiContext,
-    props: ModuleToolbarProps,
+    props?: ModuleToolbarProps,
     slots?: UiSlots,
   ) {
-    const runtime = context as any;
-    const module = moduleOf(context);
-    return paintModuleToolbar(this.factory, context, props, slots, {
-      breadcrumb: () => {
-        if (module) {
-          return this.buildModuleBreadcrumb(context, {
-            module,
-            label: props.breadcrumbLeaf || (runtime.many ? "" : context.title),
-          });
-        }
-        return h("strong", context.title);
-      },
-      actionGroup: (dense) =>
-        this.factory.buttonGroup(
-          () => this.toolbarActionButtons(context, dense),
-          {
-            class: uiCssClass("toolbar-actions"),
-            role: "group",
-          },
-        ),
-      moreActions: () => defaultToolbarMoreActions(this.actionFactory, context),
-      navActions: () =>
-        module
-          ? moduleChain(module).map((item) => ({
-              name: item.moduleCode,
-              label: item.moduleLabel ?? (item as any).moduleName,
-              icon: item.moduleIcon,
-            }))
-          : [],
-      openSearchPage: () => {
-        if (props.onSearchPage) props.onSearchPage();
-        else void this.buildSearchPage(context);
-      },
+    return h(PrimeIndexToolBar, {
+      builder: this,
+      context,
+      toolbarProps: props ?? {},
+      slots,
+    });
+  }
+
+  buildDetailsToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ) {
+    return h(PrimeDetailsToolBar, {
+      builder: this,
+      context,
+      toolbarProps: props ?? {},
+      slots,
+      extraMore: pageLayoutMenuItems(context as any).map((item) =>
+        item.divider
+          ? item
+          : {
+              ...item,
+              icon: this.factory.resolveIcon(item.icon ?? "page-layout"),
+              onAction: item.onAction ?? item.command,
+            },
+      ),
+    });
+  }
+
+  buildEditToolbar(
+    context: UiContext,
+    props?: ModuleToolbarProps,
+    slots?: UiSlots,
+  ) {
+    return h(PrimeEditToolBar, {
+      builder: this,
+      context,
+      toolbarProps: props ?? {},
+      slots,
     });
   }
 
@@ -828,20 +341,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       h("span", meta.displayLabel),
       editor,
     ]);
-  }
-
-  buildSearchForm(context: UiContext, props?: UiProps) {
-    return h(
-      "form",
-      {
-        class: "mmda-search-form",
-        ...props,
-        onSubmit: (event: Event) => event.preventDefault(),
-      },
-      ((context as any).searchFields ?? []).map((field: UiSearchField) =>
-        this.buildSearchField(field, context, {}),
-      ),
-    );
   }
 
   buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {

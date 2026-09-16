@@ -49,8 +49,9 @@ Logic 只认 @mmda/core
 | `layout.ts` | `UiLayout` / `AbstractUiLayout`（含 `scaffold`）。设计 [layout.md](./ui/layout.md) |
 | `context.ts` | `UiContext`（`searchRelative` / `select` …） |
 | `view.ts` | `UiViewProps`（单对象屏 extras） |
-| `builder/list_view.ts` | `UiListViewProps`（Index / Select extras） |
+| `builder/list_view.ts` | `UiListViewProps`（Index / Select extras）、`UiIndexTableHost` |
 | `builder/explorer.ts` | `UiExplorerProps`（左树右表） |
+| `builder/toolbar.ts` | `UiToolbarActionGroups`、`UiModuleBreadcrumbProps` |
 | `builder/dialog.ts` | Overlay props |
 | `app_side_menu.ts` | `UiAppSideMenuProps` |
 | `factory/*.ts` | 各控件 `Ui*Props`（无 Vue） |

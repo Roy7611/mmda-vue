@@ -1,7 +1,7 @@
 import type { ApiClient, LocalAsyncDb, MetaUiService, MmdaApplication } from '@mmda/core'
 import type { InjectionKey } from 'vue'
 import type { VueUiContext } from '../contexts/vue_ui_context'
-import type { VueUiBuilder } from '../ui/builder/builder'
+import type { VueUiBuilder } from '../ui/builder'
 
 export type ApiClientConstrutor = (repository?: string) => ApiClient
 

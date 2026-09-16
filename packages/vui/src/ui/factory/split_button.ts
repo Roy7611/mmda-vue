@@ -1,5 +1,5 @@
 import type { ChildSlot } from '../../contexts/view'
-import type {UiProps, UiSlots} from '../layout/layout'
+import type {UiProps, UiSlots} from '../layout'
 import type { UiSplitButtonProps as CoreUiSplitButtonProps } from '@mmda/core'
 
 export type { UiSplitButtonProps as CoreSplitButtonProps } from '@mmda/core'

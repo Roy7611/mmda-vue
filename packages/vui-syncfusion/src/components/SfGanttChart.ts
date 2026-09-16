@@ -8,7 +8,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttChartProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttTimeScale } from '@mmda/vui'
+import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttTimeScale } from '@mmda/vui'
 import '@syncfusion/ej2-treegrid/styles/material3.css'
 import '@syncfusion/ej2-gantt/styles/material3.css'
 
@@ -124,7 +124,7 @@ export const SfGanttChart = defineComponent({
   props: {
     tasks: { type: Array as PropType<UiGanttTask[]>, default: () => [] },
     links: { type: Array as PropType<UiGanttLink[]>, default: () => [] },
-    columns: { type: Array as PropType<UiGanttChartProps['columns']>, default: () => [] },
+    columns: { type: Array as PropType<UiGanttProps['columns']>, default: () => [] },
     height: { type: [String, Number], default: '100%' },
     readonly: { type: Boolean, default: false },
     allowTaskDrag: { type: Boolean, default: true },
@@ -134,12 +134,12 @@ export const SfGanttChart = defineComponent({
     viewMode: { type: String as PropType<UiGanttTimeScale>, default: 'week' },
     loading: { type: Boolean, default: false },
     locale: { type: String, default: 'zh-Hans' },
-    onReady: { type: Function as PropType<UiGanttChartProps['onReady']> },
-    onTaskChange: { type: Function as PropType<UiGanttChartProps['onTaskChange']> },
-    onLinkChange: { type: Function as PropType<UiGanttChartProps['onLinkChange']> },
-    onTaskSelect: { type: Function as PropType<UiGanttChartProps['onTaskSelect']> },
-    onTaskDblClick: { type: Function as PropType<UiGanttChartProps['onTaskDblClick']> },
-    onRowReorder: { type: Function as PropType<UiGanttChartProps['onRowReorder']> },
+    onReady: { type: Function as PropType<UiGanttProps['onReady']> },
+    onTaskChange: { type: Function as PropType<UiGanttProps['onTaskChange']> },
+    onLinkChange: { type: Function as PropType<UiGanttProps['onLinkChange']> },
+    onTaskSelect: { type: Function as PropType<UiGanttProps['onTaskSelect']> },
+    onTaskDblClick: { type: Function as PropType<UiGanttProps['onTaskDblClick']> },
+    onRowReorder: { type: Function as PropType<UiGanttProps['onRowReorder']> },
   },
   setup(props) {
     const instance = shallowRef<any>()

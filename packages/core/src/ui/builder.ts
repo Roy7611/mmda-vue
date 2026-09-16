@@ -22,6 +22,7 @@ import type {
 } from './factory/signin'
 import type { UiFilterBarProps } from './builder/filter_bar'
 import type { UiListViewProps } from './builder/list_view'
+import type { UiModuleBreadcrumbProps } from './builder/toolbar'
 import type { UiExplorerProps } from './builder/explorer'
 import type { UiGanttProps } from './factory/gantt'
 import type { UiTimelineProps } from './factory/timeline'
@@ -181,10 +182,52 @@ export interface UiBuilder<TNode = any> {
     props?: UiViewProps,
   ): TNode
 
+  
   /**
-   * 模块页工具栏（面包屑 + 动作 + 可选搜索）。
+   * 移动端 / compact 放大镜的独立搜索屏。
    */
-  buildModuleToolbar(
+  buildSearchView(
+    context: UiContext,
+    props?: UiProps,
+  ): TNode
+
+  /** 单个搜索条件控件，包括操作符、值域，用于搜索屏。 */
+  buildSearchField(
+    field: unknown,
+    context: UiContext,
+    props?: UiProps,
+  ): TNode
+
+
+  /** 列表页工具栏。Select 复用。 */
+  buildIndexToolbar(
+    context: UiContext,
+    props?: UiProps,
+  ): TNode
+
+  /** 详情页工具栏。 */
+  buildDetailsToolbar(
+    context: UiContext,
+    props?: UiProps,
+  ): TNode
+
+  /** 编辑/新建页工具栏。 */
+  buildEditToolbar(
+    context: UiContext,
+    props?: UiProps,
+  ): TNode
+
+  /**
+   * 模块面包屑（工具栏 start）。
+   * 拼模块 parent 链后调 `factory.breadcrumb`；不要再开 `buildBreadcrumb(items)`。
+   */
+  buildModuleBreadcrumb(
+    context: UiContext,
+    props?: UiModuleBreadcrumbProps,
+  ): TNode
+
+  /** 模块搜索条（工具栏中间）。 */
+  buildModuleSearchbar(
     context: UiContext,
     props?: UiProps,
   ): TNode

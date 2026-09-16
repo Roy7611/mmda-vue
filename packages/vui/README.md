@@ -54,9 +54,13 @@ src/
   contexts/         一屏会话：VueUiContext（Handbook mixin：data / validate / subgroup / navigate / reference）、view
   components/       皮肤无关 Vue 组件（EntityView、TableSettingView、GroupCard、侧栏、预览…）
   ui/
-    layout/         栅格与槽：VueUiLayout、UiProps、UiSlots
-    factory/        控件契约（一控件一文件）：UiFactory、UiFieldFactory、list/tree/dialog…
-    builder/        VueUiBuilder 拼屏：form/list/tree mixin、overlay、list_query / tree_data 等辅助函数
+    layout.ts       VueUiLayout、UiProps、UiSlots
+    factory.ts      UiFactory
+    field_factory.ts UiFieldFactory
+    overlay.ts      createHtmlOverlay
+    builder.ts      VueUiBuilder
+    factory/        控件契约（一控件一文件）：list/tree/dialog…
+    builder/        form/list/tree mixin、list_query / tree_data 等辅助函数
   i18n/             语言包与 setupI18n
   assets/
     css/            theme.css、fontawesome.css、material-symbols.css（对外仍 @mmda/vui/theme.css）
@@ -73,9 +77,10 @@ src/
 | `logic/` | 显示 / 锁定 / 校验 / 动作装配 | Vue 组件、HTTP 拼装 |
 | `contexts/` | 一实体一份会话；Logic 钩子认 core `UiContext` | 皮肤控件 |
 | `components/` | 无厂商依赖的页面壳与预览 | `SfGrid` / `AgGrid` 一类皮肤实现 |
-| `ui/layout/` | 行列栅格形状 | 业务 Logic |
-| `ui/factory/` | props / emits / slots；字段也是一类生产控件 | 远程查询函数、列宽落盘 |
-| `ui/builder/` | 模板方法拼复杂视图；`list_query` / `list_layout` / `tree_data` / `tree_category` 是辅助函数不是第二套控件 | 皮肤 `components/` |
+| `ui/layout.ts` | 行列栅格形状 | 业务 Logic |
+| `ui/factory.ts` / `ui/factory/` | props / emits / slots；字段走 `ui/field_factory.ts` | 远程查询函数、列宽落盘 |
+| `ui/builder.ts` / `ui/builder/` | 模板方法拼复杂视图；`list_query` / `list_layout` / `tree_data` / `tree_category` 是辅助函数不是第二套控件 | 皮肤 `components/` |
+| `ui/overlay.ts` | toast / confirm / dialog 宿主 | 业务 Logic |
 | `assets/` | 入口样式与 FA 静态资源 | 业务文案（走 `i18n/`） |
 
 厂商表格和皮肤 factory 在 `@mmda/vui-syncfusion` / `primevue` / `agnaive`。细则见 [Builder 与皮肤](./docs/builder.md)。
