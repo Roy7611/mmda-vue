@@ -19,7 +19,6 @@ export * from './extensions/array_extensions'
 
 // Data：metaUi（含 Module）
 export * from './metaui/datatype'
-export * from './metaui/metaui_action'
 export * from './metaui/metaui_field'
 export * from './metaui/metaui_group'
 export * from './metaui/metaui_builder'
@@ -28,6 +27,7 @@ export * from './metaui/metaui_service'
 export * from './metaui/module'
 
 // Data：models
+export * from './models/entity_action'
 export * from './models/entity'
 export * from './models/file'
 export * from './models/flow'

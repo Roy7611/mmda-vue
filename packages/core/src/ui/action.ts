@@ -1,4 +1,4 @@
-import type { ActionCallback } from '../metaui/metaui_action'
+import type { ActionCallback } from '../models/entity_action'
 import type { UiBoxed, UiColorRole } from './props'
 
 /** 行/实体谓词；与 Logic Predicate 同形，ui 层不依赖 logic/。 */

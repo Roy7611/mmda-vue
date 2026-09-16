@@ -1,4 +1,4 @@
-import type { EntityAction } from "../metaui/metaui_action";
+import type { EntityAction } from "./entity_action";
 
 export * from "./entity_search";
 export * from "./date_range";

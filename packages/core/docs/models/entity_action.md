@@ -1,7 +1,7 @@
-# metaui/metaui_action.ts
+# models/entity_action.ts
 
-- **层**：Data / metaui
-- **源码**：packages/core/src/metaui/metaui_action.ts
+- **层**：Data / models
+- **源码**：packages/core/src/models/entity_action.ts
 
 ## 职责
 

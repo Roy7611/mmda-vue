@@ -482,43 +482,51 @@ table 与 grid **实现**可落到同一皮肤表格（SF / AgGrid / Prime DataT
 
 ## 业务枚举成员
 
-元数据串是 `value;code;label`，多成员用 `|` 连接：
+字段 `selectOptions` 是 JSON 或 `id;value;text` 串（文档里也叫 `value;code;label`），多成员用 `|` 连接：
 
 ```text
 0;NEW;新注册|1;ACTIVATED;已激活|-1;LOCKED;锁定
 ```
 
+| 段 | 也叫 | 是什么 | 谁用 |
+| --- | --- | --- | --- |
+| `id` | `value` | 库里的值（TINYINT，**可负**） | 后端列；不要在前端拼 SQL |
+| `value` | `code` | 英文成员名 | **程序员写这个**；`reference.valueOf`；`FieldFilter` |
+| `text` | `label` | 显示文本 | `reference.labelOf` |
 
-| 段       | 是什么      | 谁用                                     |
-| ------- | -------- | -------------------------------------- |
-| `value` | 数字序号（可负） | 位掩码、后端TINYINT                          |
-| `code`  | 英文成员名    | **实体字段存这个**；`reference.valueOf`        |
-| `label` | 显示文本     | `reference.labelOf` / `XxxEnum.textOf` |
-
-
-前端生成文件：`packages/base/src/enums/UserStatus.ts`。
+前端生成文件只出 `const enum`（code）。id / 文案留在文件头注释，给人对齐库值。不要再生成 `XxxEnum`（`*_VALUE` / `*_TEXT` / `valueOf` / `textOf`）。那是旧拼 SQL 路径。
 
 ```ts
+/**
+ * 用户状态
+ *
+ * 0;NEW;新注册|1;ACTIVATED;已激活|-1;LOCKED;锁定
+ */
 export const enum UserStatus {
-  NEW = 'NEW',           // 0 新注册
+  NEW = 'NEW',
   ACTIVATED = 'ACTIVATED',
+  LOCKED = 'LOCKED',
 }
-export const UserStatusEnum = {
-  NEW_VALUE: 0,
-  NEW_TEXT: '新注册',
-  valueOf(code: UserStatus): number { /* code → 序号 */ },
-  textOf(code: UserStatus): string { /* code → 中文 */ },
+
+if (row.status === UserStatus.LOCKED) { /* ... */ }
+
+search.filterModel = {
+  status: FieldFilter.in([UserStatus.NEW, UserStatus.ACTIVATED]),
 }
 ```
+
+下拉 / 列筛走字段 `selectOptions` → `reference`，不要从 `UserStatus` 凑选项。
 
 约定：
 
 - 文件 / `const enum`：**PascalCase**（`UserStatus`）
 - 成员：**SCREAMING_SNAKE**，字符串值与成员名相同（`LOCKED = 'LOCKED'`）
-- 配套对象：`XxxEnum`，键 `MEMBER_VALUE` / `MEMBER_TEXT`
 - 目录：`src/enums/`，不要塞进 `modules/`
+- 已生成的 `XxxEnum` 可留着；新代码不要用 `XxxEnum.valueOf` 拼 SQL
 
-`MetaUiFieldRef.valueOf`（选项对象 → 存库值）和 `UserStatusEnum.valueOf`（code → 序号）同名不同层，不要混调。表单/列筛只走字段引用的 `valueOf` / `labelOf`。
+框架对齐成员和值都是大写（`LEFT`）。元数据 / 提交保持大写；皮肤 CSS 再 `toLowerCase()`。冻结列仍是 `'left'`，别混。不是业务三元组，不要再套 `*Enum.valueOf`。
+
+`MetaUiFieldRef.valueOf`（选项对象 → 存库/提交值）和旧 `UserStatusEnum.valueOf`（code → 库 id）同名不同层。表单/列筛只走字段引用的 `valueOf` / `labelOf`。
 
 框架自己的位枚举（`ModuleOp`、`EntityState`）成员是数字；业务状态枚举成员是字符串 code。不要把 `UserStatus.NEW` 写成 `0`。
 

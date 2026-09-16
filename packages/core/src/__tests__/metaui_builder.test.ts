@@ -37,4 +37,16 @@ describe('MetaUiBuilder', () => {
     )
     expect(metaUi.getField('qty')?.dataType).toBe(SqlDataType.NVARCHAR)
   })
+
+  it('create 第二参直接带字段', () => {
+    const metaUi = MetaUiBuilder.create('Person', [
+      { fieldName: 'name', displayLabel: 'Name', listSize: 100 },
+      { fieldName: 'age', displayLabel: 'Age', listed: true },
+    ]).build()
+    expect(metaUi.objName).toBe('Person')
+    expect(metaUi.getListedFields().map((f) => f.fieldName)).toEqual([
+      'name',
+      'age',
+    ])
+  })
 })

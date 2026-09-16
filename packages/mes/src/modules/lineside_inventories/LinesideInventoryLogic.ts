@@ -17,8 +17,6 @@ import {
 	debounce,
 	isObject,
 	triggerEscKey,
-	MetaUiFieldAlignmentEnum,
-	MetaUiFieldAlignment,
 	isFunction,
 	EntityAction,
 	type Pager,

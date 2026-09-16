@@ -20,17 +20,23 @@ export const enum MetaUiSubGroupShape {
   CALENDAR = 'CALENDAR', //日历事件，用 Scheduler
   IMAGE_GALLERY = 'IMAGE_GALLERY', //图片画廊
 }
-export interface MetaUiMasterGroup {
+/**
+ * 主表/子表共用声明。完整构造袋还要 `many`，走 {@link MetaUiGroup} 或 `master` / `sub`。
+ */
+export interface MetaUiGroupInit {
   groupName: string // 组名称，如a1,items
   groupLabel: string // 分组标签，如：订单信息
-  fields: MetaUiField[] // 主表组的元域集合
   groupIdx?: number // 组顺序位置，primary(0~19), summary(20,29), details(30~)
   secondary?: boolean //次要组，放概要组下面
-  // new(groupName: string, groupLabel: string, fields: MetaUiField[]): MetaUiMasterGroup;
 }
-export interface MetaUiSubGroup {
-  groupName: string // 组名称，如a1,items
-  groupLabel: string // 分组标签，如：订单信息
+
+/** 主表组：一组 {@link MetaUiField}。 */
+export interface MetaUiMasterGroup extends MetaUiGroupInit {
+  fields: MetaUiField[]
+}
+
+/** 子表组：一对多关联。 */
+export interface MetaUiSubGroup extends MetaUiGroupInit {
   relObjName: string // 对象名称，参见`MetaObject.objName`
   joinOn: string // 连接条件，形如whID=@whID
   groupUi: MetaUi // 子表组的元界面
@@ -41,124 +47,56 @@ export interface MetaUiSubGroup {
   sequenceKey?: string // 序列键，如itemID
   displayShape?: MetaUiSubGroupShape //显示形状
   shapeKey?: string //形状键
-  secondary?: boolean //次要组，放概要组下面
-  aggregates?: string //聚合设置，例如SUM(fld1),COUNT(fld2)
-  // new(groupName: string, groupLabel: string, relObjName: string, joinOn: string, groupUi: MetaUi, requiredOnly?: boolean,readOnly?: boolean): MetaUiSubGroup;
-}
-export interface MetaUiGroupInit {
-  groupName: string // 组名称，如a1,items
-  groupLabel: string // 分组标签，如：订单信息
-  many: boolean // 是否一对多，子表否
-  groupIdx?: number // 组顺序位置，primary(0~19), summary(20,29), details(30~)
-  fields?: MetaUiField[] // 主表组的元域集合
-  relObjName?: string // 对象名称，参见`MetaObject.objName`
-  joinOn?: string // 连接条件，形如whID=@whID
-  requiredAny?: boolean // 要求子表必须有至少一个元素
-  allowJoinList?: boolean // 允许作为联查列表的默认子表
-  readOnly?: boolean // 只读否
-  groupUi?: MetaUi // 子表组的元界面
-  canHave?: string // 是否有此子表的控制属性
-  sequenceKey?: string // 序列键，如itemID
-  displayShape?: MetaUiSubGroupShape //显示形状
-  shapeKey?: string //形状键
-  secondary?: boolean //次要组，放概要组下面
   aggregates?: string //聚合设置，例如SUM(fld1),COUNT(fld2)
 }
+
+/**
+ * 组运行时形状在 {@link MetaUiGroupInit}；这里只补判别、主表字段和构造后成员。
+ * 子表专有字段复用 {@link MetaUiSubGroup}。
+ */
+export interface MetaUiGroup extends MetaUiGroupInit,
+  Partial<Omit<MetaUiSubGroup, keyof MetaUiGroupInit>> {
+  many: boolean
+  fields?: MetaUiField[]
+  joinFields?: Record<string, string>
+  assembled?: boolean
+  expanded?: boolean
+  aggregate?: boolean
+}
+
 const _joinExp = /(\w+)=\@(\w+)/gm
 
 export class MetaUiGroup {
-  /**
-   * 构造一个元界面组
-   * @param param0 构造
-   */
-  constructor({
-    groupName,
-    groupLabel,
-    many,
-    groupIdx,
-    fields,
-    relObjName,
-    joinOn,
-    requiredAny,
-    allowJoinList,
-    readOnly,
-    groupUi,
-    canHave,
-    sequenceKey,
-    displayShape, shapeKey,
-    secondary, aggregates
-  }: MetaUiGroupInit) {
-    this.groupName = groupName
-    this.groupLabel = groupLabel
-    this.many = many
-    this.groupIdx = groupIdx
-    this.fields = fields
-    this.relObjName = relObjName
-    this.joinOn = joinOn
-    this.requiredAny = requiredAny
-    this.allowJoinList = allowJoinList
-    this.readOnly = readOnly
-    this.canHave = canHave
-    this.sequenceKey = sequenceKey
-    this.displayShape = displayShape
-    this.shapeKey = shapeKey
-    this.secondary = secondary
-    this.aggregates = aggregates
+  constructor(
+    init: MetaUiGroupInit & { many: boolean } & Partial<MetaUiMasterGroup> & Partial<MetaUiSubGroup>,
+  ) {
+    Object.assign(this, init)
     this.expanded = true
-    if (fields && fields.length > 0) {
-      this.fields = fields.map((fld) =>
+    if (this.fields?.length) {
+      this.fields = this.fields.map((fld) =>
         fld instanceof MetaUiField ? fld : new MetaUiField(fld),
       )
     }
-    if (many) {
-      if (groupUi) this.groupUi = new MetaUi(groupUi)
-      const matches = [...joinOn.matchAll(_joinExp)]
-      this.joinFields = {}
-      matches.forEach(m => (this.joinFields[m[1]] = m[2]))
+    if (this.many) {
+      if (this.groupUi) this.groupUi = new MetaUi(this.groupUi)
+      const joinFields: Record<string, string> = {}
+      for (const m of (this.joinOn ?? '').matchAll(_joinExp)) {
+        joinFields[m[1]] = m[2]
+      }
+      this.joinFields = joinFields
       this.aggregate = true
     } else {
       this.aggregate = false
     }
   }
-  /**
-   * 构造主表元界面组，包含主表中一组元界面域{@link MetaUiField}
-   * @remarks 使用工厂构造方法
-   * @param g 主表组
-   * @returns 元界面组
-   */
+
+  /** 主表组，含一组 {@link MetaUiField}。 */
   static master = (g: MetaUiMasterGroup) =>
     new MetaUiGroup({ many: false, ...g })
-  /**
-   * 构造子表元界面组
-   * @param g 子表组
-   * @returns 元界面组
-   */
-  static sub = (g: MetaUiSubGroup) => new MetaUiGroup({ many: true, ...g })
 
-  readonly groupName: string // 组名称，如a1,items
-  readonly groupLabel: string // 分组标签，如：订单信息
-  readonly many: boolean // 是否一对多，子表否
-  readonly groupIdx?: number // 组顺序位置，primary(0~19), summary(20,29), details(30~)
-  readonly fields: MetaUiField[] // 主表组的元域集合
-  readonly relObjName?: string // 对象名称，参见`MetaObject.objName`
-  readonly joinOn?: string // 连接条件，形如whID=@whID
-  readonly joinFields?: Record<string, string>
-  readonly requiredAny?: boolean // 要求子表必须有至少一个元素
-  readonly allowJoinList?: boolean // 允许作为联查列表的默认子表
-  readonly readOnly?: boolean // 只读否
-  readonly canHave?: string // 是否有此子表的控制属性
-  readonly sequenceKey?: string // 序列键，如itemID
-
-  //2024.12.23 增加
-  readonly displayShape?: MetaUiSubGroupShape //显示形状
-  readonly shapeKey?: string //形状键
-  readonly secondary?: boolean //次要组，放概要组下面
-  readonly aggregates?: string //聚合设置，例如SUM(fld1),COUNT(fld2)
-
-  groupUi?: MetaUi // 子表组的元界面
-  assembled?: boolean
-  expanded?: boolean // 默认展开
-  aggregate?: boolean // 是否聚合（子表=true，主表=false，构造时设置）
+  /** 子表组。 */
+  static sub = (g: MetaUiSubGroup) =>
+    new MetaUiGroup({ many: true, ...g })
 
   //左边主要区域
   isPrimary() {
@@ -175,15 +113,15 @@ export class MetaUiGroup {
     return this.groupName[0] == 't' && this.groupName.length == 2
   }
 
-  private _listedFields: MetaUiField[] = []
+  #listedFields: MetaUiField[] = []
   getListedFields(reset = false) {
-    if (this._listedFields.length == 0 || reset) {
-      this._listedFields = this.many
+    if (this.#listedFields.length == 0 || reset) {
+      this.#listedFields = this.many
         ? this.groupUi!.getListedFields(reset)
         : this.fields!.filter(field => field.listed && !field.hidden)
             .sort(compareListColumns)
     }
-    return this._listedFields
+    return this.#listedFields
   }
 
   getListLayoutFields() {
@@ -218,24 +156,28 @@ export const enum MetaUiAssemblyStatus {
   ASSEMBLED_ALL,
 }
 
+/**
+ * 元界面声明袋，{@link MetaUi} 构造入参。
+ *
+ * `assembled` 只在这里，构造后折成 `assembleStatus`。
+ * `groups` 可以是服务端 JSON 或已有 {@link MetaUiGroup}。
+ */
 export interface MetaUiInit {
-  // String dbName;
-  objName: string
-  displayLabel: string
-  uniqueKey?: string
-  primaryKey?: string
-  labelKey?: string
-  /** 后端旧名称：列表中作为详情链接的字段。 */
-  nameCol?: string
-  locale?: string
+  objName: string // 对象名称
+  displayLabel: string // 默认显示标签
+  uniqueKey?: string // 租户内唯一索引字段
+  primaryKey?: string // 主键字段
+  labelKey?: string // 链接标签字段，列表渲染为超链接
+  locale?: string // 语言区域，如en,zh-Hans,zh-Hant
   lastModified?: Date
   groups: any[]
-  assembled?: boolean
+  assembled?: boolean // 已装齐全量关联；构造后不再保留
   /** 联查视图：数据打这个主表仓储的 getJoinList */
   sourceRepository?: string
   /** 联查视图：对着哪张子表拼的 */
   sourceRelation?: string
 }
+
 /**
  * 元界面是一个用户界面的元数据，用于自动化构建一个前端用户界面。
  *
@@ -243,8 +185,13 @@ export interface MetaUiInit {
  *
  * `MetaUi`包含多个{@link MetaUiGroup|元界面组}，而组中包含多个{@link MetaUiField|元界面域}。
  * 通过{@link MetaUi#locale|区域语言属性}支持国际化。
- * 元界面数据通常从服务器端首次获取，在本地缓存，框架利用它动态创建一个屏幕，供用户操作和互动。
+ * 声明形状在 {@link MetaUiInit}；这里只补构造后的 `groups` 实例和 `assembleStatus`。
  */
+export interface MetaUi extends Omit<MetaUiInit, 'assembled' | 'groups'> {
+  groups: MetaUiGroup[]
+  assembleStatus?: MetaUiAssemblyStatus
+}
+
 export class MetaUi {
   /** `MetaUiBuilder.create(name).fields(inits).build()` 短写。 */
   static list(objName: string, fields: MetaUiField[] = []) {
@@ -263,107 +210,45 @@ export class MetaUi {
     })
   }
 
-  constructor({
-    objName,
-    displayLabel,
-    uniqueKey,
-    primaryKey,
-    labelKey,
-    nameCol,
-    locale,
-    lastModified,
-    groups,
-    assembled,
-    sourceRepository,
-    sourceRelation,
-  }: MetaUiInit) {
-    this.objName = objName
-    this.displayLabel = displayLabel
-    this.uniqueKey = uniqueKey
-    this.primaryKey = primaryKey
-    this.labelKey = labelKey
-    this.nameCol = nameCol
-    this.locale = locale
-    this.lastModified = lastModified
-    this.sourceRepository = sourceRepository
-    this.sourceRelation = sourceRelation
-    this.groups = groups.map(g => new MetaUiGroup(g))
-    this.assembleStatus = assembled
+  constructor(init: MetaUiInit) {
+    Object.assign(this, init)
+    delete (this as { assembled?: unknown }).assembled
+    this.groups = (init.groups ?? []).map(g =>
+      g instanceof MetaUiGroup ? g : new MetaUiGroup(g),
+    )
+    this.assembleStatus = init.assembled
       ? MetaUiAssemblyStatus.ASSEMBLED_ALL
       : MetaUiAssemblyStatus.ASSEMBLED_ONE
-    this._namedFields = {}
     this.groups.forEach(g => {
       if (g.many) return
-
-      g.fields.forEach(fld => (this._namedFields[fld.fieldName] = fld))
+      g.fields?.forEach(fld => (this.#namedFields[fld.fieldName] = fld))
     })
-    if (this.labelField && this._namedFields[this.labelField])
-      this._namedFields[this.labelField].linkable = true
+    if (this.labelField && this.#namedFields[this.labelField])
+      this.#namedFields[this.labelField].linkable = true
   }
-  // 数据库名称
-  // String dbName;
-
-  // 对象名称
-  objName: string
-
-  // 默认显示标签
-  displayLabel: string
-
-  // 租户内唯一索引字段，可生成findByXxx函数，查重等
-  uniqueKey?: string
-
-  // 主键字段，UI层需要
-  primaryKey?: string
-
-  // 链接标签字段，UI列表上渲染为超链接
-  labelKey?: string
-
-  // 后端兼容字段；新元数据优先使用 labelKey
-  nameCol?: string
-
-  // 语言区域，如en,zh-Hans,zh-Hant
-  locale?: string
-
-  // 租户标识，0表示默认租户，公用
-  // int? tenantID;
-
-  // 最后修改时间
-  lastModified?: Date
-
-  /** 联查视图：数据打这个主表仓储的 getJoinList */
-  sourceRepository?: string
-  /** 联查视图：对着哪张子表拼的 */
-  sourceRelation?: string
-
-  // 分组
-  groups: MetaUiGroup[]
-
-  // 组装状态
-  assembleStatus?: MetaUiAssemblyStatus
 
   /**
    * 链接标签域，如果没设置`labelKey`则默认为`uniqueKey`
    */
   get labelField() {
-    return this.labelKey ?? this.nameCol ?? this.uniqueKey
-  }
-  // 命名域查找
-  private _namedFields: Record<string, MetaUiField>
-  getField(name: string): MetaUiField | undefined {
-    return this._namedFields[name]
+    return this.labelKey ?? this.uniqueKey
   }
 
-  // 列表显示域
-  private _listedFields: MetaUiField[] = []
+  #namedFields: Record<string, MetaUiField> = {}
+  getField(name: string): MetaUiField | undefined {
+    return this.#namedFields[name]
+  }
+
+  #listedFields: MetaUiField[] = []
   getListedFields(reset = false) {
-    if (this._listedFields.length == 0 || reset) {
-      this._listedFields = this.groups
+    if (this.#listedFields.length == 0 || reset) {
+      this.#listedFields = this.groups
         .filter(g => !g.many)
         .reduce((prev, curr) => {
           return prev.concat(curr.getListedFields(reset))
         }, []).sort(compareListColumns)
     }
-    return this._listedFields
+    return this.#listedFields
   }
 
   getListLayoutFields() {
@@ -372,19 +257,11 @@ export class MetaUi {
       .reduce((prev, curr) => prev.concat(curr.getListLayoutFields()), [] as MetaUiField[])
       .sort(compareListColumns)
   }
-  /**
-   * 获取元界面组
-   * @param name 组名称
-   * @returns
-   */
+
   getGroup(name: string): MetaUiGroup | undefined {
     return this.groups.find(g => g.groupName == name)
   }
-  /**
-   * 获取子表组的元界面
-   * @param name 组名称
-   * @returns
-   */
+
   getGroupUi(name: string): MetaUi | undefined {
     return this.getGroup(name)?.groupUi
   }
@@ -493,7 +370,6 @@ export function assembleViewUi(metaUi: MetaUi, relationName: string): MetaUi {
     uniqueKey: metaUi.uniqueKey,
     primaryKey: primaryKey || undefined,
     labelKey: metaUi.labelKey,
-    nameCol: metaUi.nameCol,
     locale: metaUi.locale,
     sourceRepository: pluralize(metaUi.objName),
     sourceRelation: relationName,

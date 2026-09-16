@@ -14,7 +14,7 @@ import type { UiValidation } from '../logic/validation'
 import type { ApiClient } from '../net/api_client'
 import type { UiBuilder } from './builder'
 import type { MmdaApplication } from '../mmda_app'
-import type { EntityAction } from '../metaui/metaui_action'
+import type { EntityAction } from '../models/entity_action'
 
 export type UiSelectionMode = 'single' | 'multiple' | 'none' | undefined | ''
 

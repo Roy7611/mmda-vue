@@ -1,4 +1,4 @@
-import type { EntityAction, ActionCallback } from '../metaui/metaui_action'
+import type { EntityAction, ActionCallback } from '../models/entity_action'
 import { MetaUiField } from '../metaui/metaui_field'
 import { MetaUiGroup } from '../metaui/metaui_group'
 import { parseEntityBoolExpression } from './entity_bool_expr'

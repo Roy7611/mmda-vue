@@ -11,7 +11,7 @@ import {
 } from "../models/metamodel";
 import type { PagedList } from "../models/pagination";
 import { DEFAULT_PAGE_SIZE, NO_PAGINATION } from "../models/pagination";
-import type { EntityAction } from "../metaui/metaui_action";
+import type { EntityAction } from "../models/entity_action";
 import type { MetaUiGroup } from "../metaui/metaui_group";
 import { MetaUiFieldLogic } from "./field_logic";
 import { MetaUiGroupLogic } from "./group_logic";

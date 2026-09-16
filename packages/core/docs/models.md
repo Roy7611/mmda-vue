@@ -10,6 +10,7 @@ MetaUi -> MetaModel -> Models
 ## 主要内容
 
 - `Entity` / `EntityState`：实体数据和客户端状态。
+- `EntityAction`：按钮/行为声明；实例列表在 `Entity.actions`。
 - **行身份 `id`**：`defineEntityWithId(metaUi, row)` 用 `defineID` 装 getter（不是服务端字段）。`MetaUi.primaryKey` 为单字段时 `id === row[primaryKey]`；为 `key1,key2` 时 `id === key1 + "," + key2`。`MetaUiField.primaryKey` 标「该字段是否主键」。列表 / 选择视图勾选、表格 `persistSelection` 都认这个 `id`。
 - `MetaModel`：创建、赋值、取值、子表操作和可提交数据转换。
 - **`EntityQuery` / `EntitySearchParam`**：可保存查询与当次请求；字段条件在 `filterModel`。
@@ -60,7 +61,6 @@ const payload = MetaModel.savable(metaui, model)
 
 不属于数据模型：
 
-- `EntityAction`：按钮元数据（metaui）
 - `UiValidation`：界面校验状态（logic）
 - `UiContext`：跨场景宿主（logic）
 - `SqlOperator`：where / refWhere 片段（logic）

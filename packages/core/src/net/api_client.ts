@@ -91,6 +91,7 @@ export interface EntitySearchRequest {
   filterModel?: FilterModel;
 }
 
+/** 将搜索参数{@link EntitySearchParam} 中分页、模糊搜索等转换为 URL query 参数 */
 export function toQueryParams(param: EntitySearchParam) {
   const queryParams: Record<string, unknown> = Paginator.pagerToJson(
     param.pager,

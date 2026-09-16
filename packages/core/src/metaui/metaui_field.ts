@@ -27,18 +27,6 @@ export enum MetaUiFieldAlignment {
   START = 'START',
   END = 'END',
 }
-export const MetaUiFieldAlignmentEnum = {
-  LEFT_VALUE: 'left',
-  RIGHT_VALUE: 'right',
-  CENTER_VALUE: 'center',
-  JUSTIFY_VALUE: 'justify',
-  START_VALUE: 'start',
-  END_VALUE: 'end',
-
-  valueOf(enumCode: MetaUiFieldAlignment): string {
-    return this[`${enumCode}_VALUE`]
-  },
-} as const
 
 /**
  * 聚合类型
@@ -214,7 +202,18 @@ export function ensureListFieldVisibleWhenFrozen(field: MetaUiField) {
  *
  * 指用户界面的一个基本元素的定义，比如一个输入框，表格列或者显示文本的元数据。
  * 定义了其展现方式、编辑和互动行为。
+ *
+ * 字段形状在 {@link MetaUiFieldInit}；这里只补构造后才有的成员。
  */
+export interface MetaUiField extends MetaUiFieldInit {
+  frozen: MetaUiFieldFrozen
+  linkable?: boolean
+  validatorDescriptors: ValidatorDescriptor[]
+  /** 参考选项，四种 {@link MetaRelationType}，定义选择数据源 */
+  reference?: MetaUiFieldRef
+  imageFormat?: MetaUiImageFormat
+}
+
 export class MetaUiField {
   constructor(init: MetaUiFieldInit) {
     Object.assign(this, init)
@@ -247,84 +246,6 @@ export class MetaUiField {
   inferColumnFilterType(): MetaUiFilterType {
     return MetaUiField.inferColumnFilterType(this)
   }
-
-  fieldIdx: number
-  readonly fieldName: string
-  readonly displayLabel: string
-  readonly dataType: SqlDataType
-  readonly nullable: boolean
-
-  readonly emphasized?: boolean
-  listed?: boolean
-  subGroupLabel?: string
-  readonly mergeLabel?: string
-  readonly mergePrefix?: string
-  listSize?: number
-  listPos?: number
-  align?: MetaUiFieldAlignment
-  readonly sortable?: boolean
-  /** 列过滤器类型位掩码。见 {@link MetaUiFilterType}。 */
-  readonly filterTypes?: number
-  readonly aggregationSet?: MetaAggregation
-
-  hidden?: boolean
-  readonly readOnly?: boolean
-  frozen: MetaUiFieldFrozen
-  linkable?: boolean //是否超链接
-  /** 详情组占几列，缺省 1 */
-  colSpan?: number
-  /** 详情组占几行，缺省 1 */
-  rowSpan?: number
-  readonly renderer?: string
-  readonly formatter?: string
-  readonly prefix?: string
-  readonly suffix?: string
-  readonly nullDisplayText?: string
-
-  readonly editor?: string
-  readonly selectOptions?: string
-  readonly validationRules?: string
-  validatorDescriptors: ValidatorDescriptor[]
-  readonly placeholder?: string
-  readonly tooltip?: string
-
-  readonly dataBinding?: string
-
-  readonly primaryKey?: boolean
-  readonly maxLength?: number
-  readonly unsigned?: boolean
-  readonly numericPrecision?: number
-  readonly numericScale?: number
-  readonly defaultVal?: string
-
-  readonly formula?: string
-
-  /**
-   * 参考选项，包含四种类型的{@link MetaRelationType}，
-   * 用于定义选择数据源
-   */
-  reference?: MetaUiFieldRef
-
-  /**
-   * 图片格式
-   */
-  imageFormat?: MetaUiImageFormat
-
-
-
-  // /**
-  //  * 给实体赋值
-  //  * @param entity 实体
-  //  * @param value 值
-  //  */
-  // assign(entity: Entity, value: any){
-  //   if(this.reference){
-  //     this.reference.assign(entity,this.fieldName,value);
-  //   }
-  //   else{
-  //     entity[this.fieldName] = value;
-  //   }
-  // }
 }
 
 /**

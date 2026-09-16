@@ -1,6 +1,6 @@
 export type ActionCallback = (...args: any[]) => any
 
-/** 按钮/行为的界面元数据。 */
+/** 按钮/行为的界面配置数据。 */
 export interface EntityAction {
   [index: string]: any
   name: string

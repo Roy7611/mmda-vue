@@ -7,6 +7,8 @@
 
 字段声明、reference.where、`validationRules` → `validatorDescriptors`（见 validator_parse）。回调类型不在此。
 
+`MetaUiFieldAlignment` 成员和值都是大写（`LEFT`）。元数据 / 提交保持大写。皮肤 CSS 再 `toLowerCase()`。冻结列仍是 `'left'`，别混。
+
 `MetaUiField.filterTypes` 是 `MetaUiFilterType` 位掩码。除此之外字段只提供 `inferColumnFilterType()`（dataType + reference → boolean | date | number | text | set；enum / ref / hasOne → set）。静态 `MetaUiField.inferColumnFilterType(field)` 给皮肤处理尚未 `new` 的字段袋。选项是否穷尽：`MetaUiFieldRef.isRefOptionsFull`。词汇表见 [metaui_filter.md](./metaui_filter.md)，框架见 [entity_filter_design.md](../models/entity_filter_design.md)。
 
 ## 不要

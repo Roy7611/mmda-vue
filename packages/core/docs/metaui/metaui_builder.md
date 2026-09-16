@@ -22,6 +22,6 @@ const node = context.uiBuilder.factory.table(rows, metaUi, {
 })
 ```
 
-短写：`MetaUiBuilder.list('LocalPick', [{ fieldName: 'code', displayLabel: '编码' }])`。
+短写：`MetaUiBuilder.create('LocalPick', [{ fieldName: 'code', displayLabel: '编码' }]).build()`。
 
 `.field` 三种：`(name, label?)`、`(init)`、`(name, partial)`。链式 `.listed()` / `.listSize()` / `.align()` 作用在**刚加的那一列**。

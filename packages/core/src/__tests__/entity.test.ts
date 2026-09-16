@@ -82,13 +82,13 @@ describe('entity factory', () => {
   })
 })
 
-describe('MetaUi name column', () => {
-  it('marks the legacy nameCol field as the list details link', () => {
+describe('MetaUi labelKey', () => {
+  it('marks the labelKey field as the list details link', () => {
     const metaUi = new MetaUi({
       objName: 'Material',
       displayLabel: '物料',
       primaryKey: 'materialID',
-      nameCol: 'materialCode',
+      labelKey: 'materialCode',
       groups: [
         {
           groupName: 'basic',

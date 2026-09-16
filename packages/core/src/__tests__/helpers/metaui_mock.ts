@@ -49,11 +49,10 @@ export function createMockMetaUi(
       groupName: subGroup.groupName,
       groupLabel: "子表组",
       groupIdx: 30,
-      fields: subGroup.fields,
+      relObjName: "SubObj",
       joinOn: "id=@id",
       groupUi: subMetaUi,
-      many: true,
-    } as any);
+    });
     groups.push(sg);
   }
 

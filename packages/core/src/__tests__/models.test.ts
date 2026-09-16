@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { entityActionFactory, EntityActionType } from "../metaui/metaui_action";
+import { entityActionFactory, EntityActionType } from "../models/entity_action";
 import { SqlDataType } from "../metaui/datatype";
 import { MetaUiField } from "../metaui/metaui_field";
 import {

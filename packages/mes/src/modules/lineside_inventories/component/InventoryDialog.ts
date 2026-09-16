@@ -1,6 +1,6 @@
 import { defineComponent, type SlotsType, ref, type Ref, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode } from 'vue';
 import type { Entity, EntitySearchParam, Pager, Pagination, PagedList, UiContext } from "@mmda/core";
-import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignmentEnum, MetaUiFieldAlignment, MetaModel, } from '@mmda/core';
+import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignment, MetaModel, } from '@mmda/core';
 import { CustomColumn, type VueUiContext } from "@mmda/vui";
 import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
@@ -232,13 +232,13 @@ const InventoryDialog = defineComponent({
                                                     'z-index': props.context.getFieldLogic(f)?.frozen ? 99 : 1,
                                                     width: `${uiBuilder._tableColumnWidth(f)}px`,
                                                     maxWidth: `${uiBuilder._tableColumnWidth(f)}px`,
-                                                    'text-align': MetaUiFieldAlignmentEnum.valueOf(f.align ?? MetaUiFieldAlignment.LEFT),
+                                                    'text-align': (f.align ?? MetaUiFieldAlignment.LEFT).toLowerCase(),
                                                 },
                                                 pt: {
                                                     columnHeaderContent: (o: any) => {
                                                         return {
                                                             style: {
-                                                                justifyContent: MetaUiFieldAlignmentEnum.valueOf(f.align ?? MetaUiFieldAlignment.LEFT),
+                                                                justifyContent: (f.align ?? MetaUiFieldAlignment.LEFT).toLowerCase(),
                                                             },
                                                         };
                                                     },

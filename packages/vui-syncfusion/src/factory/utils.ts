@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE_SIZE_OPTIONS, DefaultFieldFilter, FieldFilter, MetaUiFieldAlignmentEnum, SqlDataType, MetaUiFilterType, type FilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOpCode } from "@mmda/core";
+import { DEFAULT_PAGE_SIZE_OPTIONS, DefaultFieldFilter, FieldFilter, SqlDataType, MetaUiFilterType, type FilterModel, type MetaUi, type MetaUiField, type MetaUiFilterOpCode } from "@mmda/core";
 import { columnFilterKindOf, hasFilterType, resolveColumnFilterTypes, simpleFilterTypeOf } from "./filter_kind";
 
 export const EMPTY_SELECTION: unknown[] = [];
@@ -70,14 +70,11 @@ export const gridTextAlign = (
   field: MetaUiField,
 ): "Left" | "Right" | "Center" | "Justify" => {
   if (field.align) {
-    const mapped = MetaUiFieldAlignmentEnum.valueOf(field.align);
-    if (mapped) {
-      return `${mapped.charAt(0).toUpperCase()}${mapped.slice(1)}` as
-        | "Left"
-        | "Right"
-        | "Center"
-        | "Justify";
-    }
+    const mapped = String(field.align).toLowerCase();
+    if (mapped === "right" || mapped === "end") return "Right";
+    if (mapped === "center") return "Center";
+    if (mapped === "justify") return "Justify";
+    return "Left";
   }
   if (
     field.reference?.isEnum ||

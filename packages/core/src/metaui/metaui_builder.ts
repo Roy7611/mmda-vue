@@ -8,50 +8,70 @@ import {
 } from './metaui_field'
 import { MetaUi, MetaUiGroup } from './metaui_group'
 
-export type MetaUiFieldPartial = Partial<MetaUiFieldInit> & {
-  fieldName?: string
-}
+type MetaUiFieldInput = MetaUiField | Partial<MetaUiFieldInit>
 
-function asField(
-  value: MetaUiField | MetaUiFieldInit | MetaUiFieldPartial,
-  fieldIdx: number,
-): MetaUiField {
+function asField(value: MetaUiFieldInput, fieldIdx: number): MetaUiField {
   if (value instanceof MetaUiField) {
     if (value.listed == null) value.listed = true
     return value
   }
-  const init = value as MetaUiFieldPartial
   return new MetaUiField({
-    fieldIdx: init.fieldIdx ?? fieldIdx,
-    fieldName: init.fieldName ?? `field${fieldIdx}`,
-    displayLabel: init.displayLabel ?? init.fieldName ?? `field${fieldIdx}`,
-    dataType: init.dataType ?? SqlDataType.NVARCHAR,
-    nullable: init.nullable ?? true,
-    listed: init.listed ?? true,
-    ...init,
+    fieldIdx: value.fieldIdx ?? fieldIdx,
+    fieldName: value.fieldName ?? `field${fieldIdx}`,
+    displayLabel: value.displayLabel ?? value.fieldName ?? `field${fieldIdx}`,
+    dataType: value.dataType ?? SqlDataType.NVARCHAR,
+    nullable: value.nullable ?? true,
+    listed: value.listed ?? true,
+    ...value,
   })
 }
 
 /**
  * 流式拼一份列表用 MetaUi，再交给 `factory.table(rows, metaUi)`。
+ * @example
+ * 流式：
+ * ```ts
+ * const metaUi = MetaUiBuilder.create('Person')
+ *   .rowNumber()
+ *   .field('name', 'Name').listSize(100)
+ *   .field('age', 'Age').listSize(100).align(MetaUiFieldAlignment.RIGHT)
+ *   .build()
+ * ```
+ * 短写：
+ * ```ts
+ * const metaUi = MetaUiBuilder.create('Person', [
+ *   { fieldName: 'name', displayLabel: 'Name', listSize: 100 },
+ *   { fieldName: 'age', displayLabel: 'Age', listSize: 100, align: MetaUiFieldAlignment.RIGHT },
+ * ]).build()
+ * ```
+ * @remarks
+ * 构造器：MetaUiBuilder.create(objName, fields?)
+ * 方法：
+ * - field(name: string, label?: string): this
+ * - field(init: MetaUiFieldInput): this
+ * - field(name: string, partial: Partial<MetaUiFieldInit>): this
+ * - fields(items: MetaUiFieldInput[]): this
+ * - listed(value = true): this
+ * - listSize(px: number): this
+ * - align(value: MetaUiFieldAlignment): this
+ * - frozen(value: MetaUiFieldFrozen): this
+ * - aggregation(value: MetaAggregation): this
+ * - build(): MetaUi
  */
 export class MetaUiBuilder {
-  private readonly _fields: MetaUiField[] = []
-  private last?: MetaUiField
-  private idx = 0
+  #fields: MetaUiField[] = []
+  #last?: MetaUiField
+  #idx = 0
+  #objName: string
 
-  private constructor(private readonly objName: string) {}
-
-  static create(objName: string) {
-    return new MetaUiBuilder(objName)
+  private constructor(objName: string) {
+    this.#objName = objName
   }
 
-  /** `MetaUi.list` 的短写：名 + 字段数组。 */
-  static list(
-    objName: string,
-    fields: Array<MetaUiField | MetaUiFieldInit | MetaUiFieldPartial> = [],
-  ) {
-    return MetaUiBuilder.create(objName).fields(fields).build()
+  static create(objName: string, fields?: MetaUiFieldInput[]) {
+    const builder = new MetaUiBuilder(objName)
+    if (fields) builder.fields(fields)
+    return builder
   }
 
   rowNumber(label = '#') {
@@ -65,11 +85,11 @@ export class MetaUiBuilder {
   }
 
   field(name: string, label?: string): this
-  field(init: MetaUiField | MetaUiFieldInit | MetaUiFieldPartial): this
-  field(name: string, partial: MetaUiFieldPartial): this
+  field(init: MetaUiFieldInput): this
+  field(name: string, partial: Partial<MetaUiFieldInit>): this
   field(
-    nameOrInit: string | MetaUiField | MetaUiFieldInit | MetaUiFieldPartial,
-    labelOrPartial?: string | MetaUiFieldPartial,
+    nameOrInit: string | MetaUiFieldInput,
+    labelOrPartial?: string | Partial<MetaUiFieldInit>,
   ): this {
     let field: MetaUiField
     if (typeof nameOrInit === 'string') {
@@ -80,65 +100,62 @@ export class MetaUiBuilder {
             displayLabel:
               typeof labelOrPartial === 'string' ? labelOrPartial : nameOrInit,
           },
-          this.idx++,
+          this.#idx++,
         )
       } else {
         field = asField(
           { ...labelOrPartial, fieldName: nameOrInit },
-          this.idx++,
+          this.#idx++,
         )
       }
     } else {
-      field = asField(nameOrInit, this.idx++)
+      field = asField(nameOrInit, this.#idx++)
     }
-    this._fields.push(field)
-    this.last = field
+    this.#fields.push(field)
+    this.#last = field
     return this
   }
 
-  fields(
-    items: Array<MetaUiField | MetaUiFieldInit | MetaUiFieldPartial>,
-  ): this {
+  fields(items: MetaUiFieldInput[]): this {
     for (const item of items) this.field(item)
     return this
   }
 
   listed(value = true) {
-    if (this.last) this.last.listed = value
+    if (this.#last) this.#last.listed = value
     return this
   }
 
   listSize(px: number) {
-    if (this.last) this.last.listSize = px
+    if (this.#last) this.#last.listSize = px
     return this
   }
 
   align(value: MetaUiFieldAlignment) {
-    if (this.last) (this.last as { align?: MetaUiFieldAlignment }).align = value
+    if (this.#last) this.#last.align = value
     return this
   }
 
   frozen(value: MetaUiFieldFrozen) {
-    if (this.last) this.last.frozen = value
+    if (this.#last) this.#last.frozen = value
     return this
   }
 
   aggregation(value: MetaAggregation) {
-    if (this.last)
-      (this.last as { aggregationSet?: MetaAggregation }).aggregationSet = value
+    if (this.#last) this.#last.aggregationSet = value
     return this
   }
 
   build(): MetaUi {
     return new MetaUi({
-      objName: this.objName,
-      displayLabel: this.objName,
+      objName: this.#objName,
+      displayLabel: this.#objName,
       groups: [
         new MetaUiGroup({
           groupName: 'a1',
-          groupLabel: this.objName,
+          groupLabel: this.#objName,
           many: false,
-          fields: this._fields,
+          fields: this.#fields,
         }),
       ],
       assembled: true,

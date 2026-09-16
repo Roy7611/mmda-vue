@@ -182,12 +182,20 @@ const jsonizePager = (pager: Pager) => {
   }
 }
 
+/** 分页器 */
 export const Paginator = {
-  sort: SortCtor,
-  parseSort: SortImpl.parse,
-  pager: PagerCtor,
-  pagerToString: stringifyPager,
-  pagerToJson: jsonizePager,
-  pagerFromJson: PagerImpl.fromJSON,
-  pagedList,
+  /** 创建排序 */
+  sort: SortCtor, 
+  /** 解析排序 */
+  parseSort: SortImpl.parse, 
+  /** 创建分页器 */
+  pager: PagerCtor, 
+  /** 将分页器转换为字符串 */
+  pagerToString: stringifyPager, 
+  /** 将分页器转换为 JSON */
+  pagerToJson: jsonizePager, 
+  /** 从 JSON 创建分页器 */
+  pagerFromJson: PagerImpl.fromJSON, 
+  /** 创建分页列表 */
+  pagedList, 
 }

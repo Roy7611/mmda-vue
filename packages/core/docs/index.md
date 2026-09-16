@@ -57,7 +57,6 @@
 
 - [datatype.ts](./metaui/datatype.md)
 - [metaui_builder.ts](./metaui/metaui_builder.md)
-- [metaui_action.ts](./metaui/metaui_action.md)
 - [metaui_field.ts](./metaui/metaui_field.md)
 - [validator_parse.ts](./metaui/validator_parse.md)
 - [metaui_filter.ts](./metaui/metaui_filter.md)
@@ -68,6 +67,7 @@
 ## models
 
 - [entity.ts](./models/entity.md)
+- [entity_action.ts](./models/entity_action.md)
 - [entity_collection.ts](./models/entity_collection.md)
 - [entity_search.ts](./models/entity_search.md)
 - [date_filter.ts](./models/date_filter.md)
