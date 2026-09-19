@@ -4,9 +4,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineComponent, h, nextTick, provide, render } from "vue";
 import { Internationalization, L10n } from "@syncfusion/ej2-base";
-import { FieldFilter, MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from "@mmda/core";
+import { FieldFilter, MetaModel, MetaUi, MetaUiField, MetaUiFilterType, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, SqlDataType, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from "@mmda/core";
 import { columnFilterKindOf } from "../factory/filter_kind";
-import { MMDA_COLOR_PALETTE_IDS, UI_APP_KEY, UiViewMany, isLocalAppModuleUrl, joinListModeMenuItems } from "@mmda/vui"
+import { MMDA_COLOR_PALETTE_IDS, UI_APP_KEY, UiViewMany, isLocalAppModuleUrl, joinListModeMenuItems, pageLayoutMenuItems } from "@mmda/vui"
 import {
   applySyncfusionLocale,
   resolveSyncfusionCulture,
@@ -66,7 +66,6 @@ describe("Syncfusion skin", () => {
 
   it("implements the vui factory and layout contracts", () => {
     const factory = createSyncfusionUiFactory();
-    expect(factory.layout).toBe(syncfusionLayout);
     expect(factory.nativeInplaceEdit).toBe(true);
     expect(factory.paginator).toBeTypeOf("function");
     expect(factory.table).toBeTypeOf("function");
@@ -774,27 +773,47 @@ describe("Syncfusion skin", () => {
     expect((list[0].children as any).content).toBeUndefined();
   });
 
-  it("maps factory.toolbar slots and align", () => {
+  it("maps factory.toolbar default slot onto EJ2 items", () => {
     const factory = createSyncfusionUiFactory();
     const vnode = factory.toolbar(
-      { layout: "medium", align: { end: "left" }, class: "skin" },
-      {
-        start: () => "S",
-        center: () => "C",
-        end: () => "E",
-      },
+      { overflow: "popup", class: "skin" },
+      { default: () => "S" },
     );
-    const cls = Array.isArray(vnode.props?.class)
-      ? vnode.props.class.flat(8).filter(Boolean).join(" ")
-      : String(vnode.props?.class ?? "");
+    const cls = String(vnode.props?.cssClass ?? vnode.props?.class ?? "");
     expect(cls).toContain("mmda-toolbar");
-    expect(cls).toContain("mmda-toolbar--medium");
-    expect(cls).toContain("mmda-toolbar--with-center");
-    const kids = vnode.children as any[];
-    const endCls = Array.isArray(kids[2].props.class)
-      ? kids[2].props.class.flat(8).filter(Boolean).join(" ")
-      : String(kids[2].props.class ?? "");
-    expect(endCls).toContain("mmda-toolbar__end--left");
+    expect(vnode.props?.overflowMode).toBe("Popup");
+    expect(vnode.props?.width).toBe("100%");
+    const itemsDir = (vnode.children as any).default();
+    const itemsRoot = Array.isArray(itemsDir) ? itemsDir[0] : itemsDir;
+    const list = (itemsRoot.children as any).default();
+    const items = Array.isArray(list) ? list : [list];
+    expect(items).toHaveLength(1);
+    expect(items[0].props?.align).toBe("Left");
+    expect(items[0].props?.type).toBe("Input");
+    expect((items[0].children as any).template()).toBe("S");
+  });
+
+  it("maps factory.toolbar start/end onto EJ2 item align", () => {
+    const factory = createSyncfusionUiFactory();
+    const vnode = factory.toolbar(
+      { overflow: "multirow", disabled: true },
+      { start: () => "L", end: () => "R" },
+    );
+    expect(vnode.props?.overflowMode).toBe("MultiRow");
+    expect(vnode.props?.["aria-disabled"]).toBe("true");
+    const cls = String(vnode.props?.cssClass ?? "");
+    expect(cls).toContain("mmda-toolbar--disabled");
+    expect(cls).toContain("mmda-toolbar--multirow");
+    const itemsDir = (vnode.children as any).default();
+    const itemsRoot = Array.isArray(itemsDir) ? itemsDir[0] : itemsDir;
+    const list = (itemsRoot.children as any).default();
+    const items = Array.isArray(list) ? list : [list];
+    expect(items.map((item: any) => item.props?.align)).toEqual([
+      "Left",
+      "Right",
+    ]);
+    expect((items[0].children as any).template()).toBe("L");
+    expect((items[1].children as any).template()).toBe("R");
   });
 
   it("maps factory.drawer to Over with backdrop", () => {
@@ -1326,7 +1345,7 @@ describe("Syncfusion skin", () => {
 
   it("constructs the builder against the new VueUiBuilder contract", () => {
     const builder = new SyncfusionUiBuilder();
-    expect(builder.factory.layout.fieldVertical).toBe(false);
+    expect(builder.layout.fieldVertical).toBe(false);
     expect(builder.buildAppScaffold()).toBeTruthy();
     expect(builder.overlayHost).toBeTruthy();
   });
@@ -1400,14 +1419,14 @@ describe("Syncfusion skin", () => {
           (key) => key,
         ),
       ],
-      { class: "mmda-toolbar-actions" },
+      { class: "mmda-topbar-actions" },
     );
     const className = Array.isArray(group.props?.class)
       ? group.props.class.join(" ")
       : String(group.props?.class ?? "");
     expect(className).toContain("e-btn-group");
     expect(className).toContain("mmda-button-group");
-    expect(className).toContain("mmda-toolbar-actions");
+    expect(className).toContain("mmda-topbar-actions");
   });
 
   it("maps button colorRole onto EJ2 style classes", () => {
@@ -4823,7 +4842,7 @@ describe("Syncfusion skin", () => {
       editing: false,
       title: "部门",
       metaUi: { objName: "Department", displayLabel: "部门" },
-      model: { list: [] },
+      model: [],
       logic: { module, repository: "Departments" },
       module,
       refresh: () => undefined,
@@ -4844,8 +4863,8 @@ describe("Syncfusion skin", () => {
       "autoFitColumns",
       "tableSettings",
     ]);
-    const withDelete = resolveIndexToolbarActions(context as any);
-    const withoutDelete = resolveIndexToolbarActions({
+    const withDelete = resolveIndexTopbarActions(context as any);
+    const withoutDelete = resolveIndexTopbarActions({
       ...withoutDeleteCtx,
       logic: { module: withoutDeleteCtx.module, repository: "Departments" },
     } as any);
@@ -4855,12 +4874,6 @@ describe("Syncfusion skin", () => {
     expect(
       withoutDelete.batch.some((action) => action.name === "deleteAll"),
     ).toBe(false);
-    const extraMore = builder.buildIndexToolbar(context as any).props
-      ?.extraMore;
-    expect(extraMore?.map((item: any) => item.name)).toEqual([
-      "autoFitColumns",
-      "tableSettings",
-    ]);
   });
 
   it("Index more 在 hasJoinList 时含联查模式", () => {
@@ -4879,7 +4892,7 @@ describe("Syncfusion skin", () => {
       editing: false,
       title: "物料事务",
       metaUi,
-      model: { list: [] },
+      model: [],
       logic: { module, repository: "MaterialTranses", metaUi },
       module,
       joinListMode: false,
@@ -5077,7 +5090,7 @@ describe("Syncfusion skin", () => {
       translate: (message: string) => message,
     };
 
-    const groups = resolveDetailsToolbarActions(context as any);
+    const groups = resolveDetailsTopbarActions(context as any);
     expect(groups.primary.map((action) => action.name)).toEqual([
       "back",
       "edit",
@@ -5090,11 +5103,9 @@ describe("Syncfusion skin", () => {
       "export",
       "import",
     ]);
-    const extraMore = builder.buildDetailsToolbar(context as any).props
-      ?.extraMore;
     expect(
-      extraMore
-        ?.map((item: any) => item.name)
+      pageLayoutMenuItems(context as any)
+        .map((item: any) => item.name)
         .filter(Boolean),
     ).toEqual(["pageLayoutCards", "pageLayoutTabs"]);
   });

@@ -24,9 +24,8 @@ export function applyPageLayout(
   const normalized: UiPageLayout = next === 'tabs' ? 'tabs' : 'cards'
   if (layout) {
     layout.pageLayout = normalized
-  } else {
-    writeStoredPageLayout(normalized)
   }
+  writeStoredPageLayout(normalized)
   context.pageLayoutRev.value += 1
 }
 

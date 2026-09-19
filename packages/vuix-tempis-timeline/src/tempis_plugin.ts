@@ -8,15 +8,16 @@ import {
   type PropType,
 } from 'vue'
 import {
-  htmlAttributesOf,
   noopTimelineController,
   tempisItemsOf,
   timelineModifierClasses,
   type UiTimelineController,
-  type UiTimelinePlugin,
   type UiTimelineProps,
+  timelineAsPlugin,
+  type UiPlugin
 } from '@mmda/vui'
 import { tempisOptionsOf } from './tempis_map'
+import { uiRenderProps } from '@mmda/core'
 
 export const TEMPIS_MISSING = 'Timeline requires @tempis/timeline'
 
@@ -118,7 +119,7 @@ export const TempisTimelineHost = defineComponent({
             height: props.source.height ?? 300,
             width: '100%',
           },
-          ...htmlAttributesOf(props.source),
+          ...uiRenderProps(props.source).attributes,
         },
         missing.value
           ? TEMPIS_MISSING
@@ -130,8 +131,8 @@ export const TempisTimelineHost = defineComponent({
   },
 })
 
-export function createTempisTimelinePlugin(): UiTimelinePlugin {
-  return {
-    timeline: (props) => h(TempisTimelineHost, { source: props }),
-  }
+export function createTempisTimelinePlugin(): UiPlugin {
+  return timelineAsPlugin((props) =>
+    h(TempisTimelineHost, { source: props }),
+  )
 }

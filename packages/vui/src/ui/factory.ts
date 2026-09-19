@@ -11,7 +11,7 @@ import {
   type TranslateFn,
   type UiButtonProps,
   type UiButtonSlots,
-  type UiFactory as CoreUiFactory,
+  type UiFactory,
   type UiMenuItem,
   type UiMultiSelectProps,
 } from '@mmda/core'
@@ -24,9 +24,8 @@ import type {
   UiListPropsType,
   UiPagableListPropsType,
   UiPaginatorPropsType,
-  UiTableCellRenderer,
 } from './factory/list'
-import type { UiTreePropsType } from './factory/tree'
+import type { UiTreeProps } from './factory/tree'
 import type { UiTreeGridPropsType } from './factory/tree_grid'
 import type { Rx } from '../rx'
 import type { ChildSlot } from '../contexts/view'
@@ -58,10 +57,6 @@ export type {
   UiQrCodeProps,
   UiBreadcrumbItem,
   UiBreadcrumbProps,
-  AgAdvancedFilterModel,
-  AgColumnAdvancedFilter,
-  AgJoinAdvancedFilter,
-  QueryBuilderRuleModel,
   UiQueryBuilderChoice,
   UiQueryBuilderColumn,
   UiQueryBuilderProps,
@@ -119,28 +114,18 @@ export type {
   UiTabsProps,
 } from './factory/tabs'
 export type {
-  UiToolbarLayout,
   UiToolbarProps,
+  UiToolbarRegions,
   UiToolbarSlotName,
   UiToolbarSlots,
 } from './factory/toolbar'
 export type {
-  UiSplitterCollapseEvent,
+  UiSplitterCollapseEventArgs,
   UiSplitterOrientation,
   UiSplitterPane,
   UiSplitterProps,
-  UiSplitterResizeEvent,
+  UiSplitterResizeEventArgs,
 } from './factory/splitter'
-export type {
-  UiTimelineAlign,
-  UiTimelineController,
-  UiTimelineFieldOf,
-  UiTimelineItem,
-  UiTimelinePlugin,
-  UiTimelineProps,
-  UiTimelineRange,
-  UiTimelineTimeDisplay,
-} from './factory/timeline'
 export type { UiLoadingProps, UiLoadingSize } from '@mmda/core'
 export type {
   UiSpeechToTextController,
@@ -210,9 +195,8 @@ export interface UploadFile {
 
 export const previewList = ['xlsx', 'docx', 'xls', 'doc']
 
-export interface UiFactory extends CoreUiFactory<VNode> {
+export interface VueUiFactory extends UiFactory<VNode> {
   [index: string]: any
-  layout: UiLayout
   actionIcons: Record<string, string>
   viewIcons: Record<string, string>
   dialogIcons: Record<string, string>
@@ -240,7 +224,7 @@ export interface UiFactory extends CoreUiFactory<VNode> {
     slots?: UiSlots,
   ) => VNode
   list: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
-  tree: <T>(props: UiTreePropsType<T>) => VNode
+  tree: <T>(props: UiTreeProps<T>) => VNode
   table: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
   grid?: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
   treeGrid: <T>(
@@ -263,9 +247,6 @@ export interface UiFactory extends CoreUiFactory<VNode> {
   ) => VNode
   formField: (props: UiProps, slots?: UiSlots) => VNode
 }
-
-/** core UiFactory 钉成 VNode；仅补图标表、pagableTable、menu 等 Vue 会话件。 */
-export type VueUiFactory = UiFactory
 
 export const durationOfSeconds: UiRenderer<number> = (seconds, props) =>
   h('span', props, () => friendlySeconds(seconds, props?.locale as string | undefined))

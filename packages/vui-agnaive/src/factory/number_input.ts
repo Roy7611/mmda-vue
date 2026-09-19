@@ -1,9 +1,8 @@
 import { h } from 'vue'
 import { NInputNumber } from 'naive-ui'
 import type { UiNumberInputProps } from '@mmda/core'
-import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf } from '@mmda/core'
+import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf, uiRenderProps } from '@mmda/core'
 import { emitNumberInputChange } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
 
 export function createNumberInput(props: UiNumberInputProps) {
   const {
@@ -31,7 +30,7 @@ export function createNumberInput(props: UiNumberInputProps) {
 
   return h(NInputNumber, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: (value ?? modelValue ?? null) as number | null,
     min: min ?? (percent ? 0 : undefined),
     max: max ?? (percent ? 100 : undefined),

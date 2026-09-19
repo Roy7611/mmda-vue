@@ -15,15 +15,13 @@ import type {
   AppSideBarProps,
   AppTopBarProps,
   ModuleSearchbarProps,
-  ModuleToolbarProps,
 } from "../app/app";
-import type { UiFactory, UiFieldFactory } from "../ui/factory";
+import type { VueUiFactory, UiFieldFactory } from "../ui/factory";
 import { VueUiLayout, type UiProps, type UiLayout, type UiSlots } from "../ui/layout";
 import type { UiListPropsType } from "../ui/factory/list";
 import { bindListDisplayRenderers } from "../ui/factory/list";
 import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
-import { treeIdOf, treeLabelOf, treeModifierClasses, type UiTreePropsType } from "../ui/factory/tree";
-import { paintIndexToolbar, paintDetailsToolbar, paintEditToolbar } from "../ui/builder/toolbar_paint";
+import { treeIdOf, treeLabelOf, treeModifierClasses, type UiTreeProps } from "../ui/factory/tree";
 
 type UiContext = VueUiContext<any>;
 
@@ -51,7 +49,7 @@ const listedFields = (metaUi: MetaUi) => {
     : metaUi.groups.filter((g) => !g.many).flatMap((g) => g.fields);
 };
 
-function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
+function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
   const button = (props: any, slots?: any) =>
     h(
       "button",
@@ -665,7 +663,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
           ),
         ),
       ),
-    tree: <T>(props: UiTreePropsType<T>) => h(TestTree, props as any),
+    tree: <T>(props: UiTreeProps<T>) => h(TestTree, props as any),
     table,
     treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) =>
       h("div", {
@@ -739,24 +737,30 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
           );
         }),
       ),
-    toolbar: (props: any = {}, slots?: any) =>
-      h(
+    toolbar: (props: any = {}, slots?: any) => {
+      const named =
+        typeof slots?.start === "function" ||
+        typeof slots?.center === "function" ||
+        typeof slots?.end === "function";
+      const kids = named
+        ? (["start", "center", "end"] as const).flatMap((name) => {
+            const content = slots?.[name];
+            if (typeof content !== "function") return [];
+            return [
+              h("div", { class: `mmda-toolbar__${name}` }, content()),
+            ];
+          })
+        : slots?.default?.();
+      return h(
         "div",
         {
           class: ["mmda-test-chrome-toolbar", "mmda-toolbar", props.class],
-          "data-layout": props.layout ?? "full",
-          "data-align-start": props.align?.start ?? "left",
-          "data-align-center": props.align?.center ?? "center",
-          "data-align-end": props.align?.end ?? "right",
+          "data-overflow": props.overflow ?? "popup",
+          "aria-disabled": props.disabled ? "true" : undefined,
         },
-        [
-          h("div", { class: "mmda-toolbar__start" }, slots?.start?.()),
-          slots?.center
-            ? h("div", { class: "mmda-toolbar__center" }, slots.center())
-            : null,
-          h("div", { class: "mmda-toolbar__end" }, slots?.end?.()),
-        ],
-      ),
+        kids,
+      );
+    },
     splitter: (panes, props) => renderTestSplitter(panes, props),
     searchForRelative: () => stub("searchForRelative"),
     formField: (props: any = {}, slots?: UiSlots) =>
@@ -766,7 +770,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): UiFactory {
           : null,
         slots?.default?.(),
       ]),
-  } as UiFactory;
+  } as VueUiFactory;
   bindListDisplayRenderers(factory);
   return factory;
 }
@@ -873,30 +877,6 @@ export class TestUiBuilder extends VueUiBuilder {
 
   buildError(context: UiContext, props?: UiProps) {
     return h("div", { class: "mmda-error", ...props }, context.title);
-  }
-
-  buildIndexToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return paintIndexToolbar(this, context, props ?? {}, slots);
-  }
-
-  buildDetailsToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return paintDetailsToolbar(this, context, props ?? {}, slots);
-  }
-
-  buildEditToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return paintEditToolbar(this, context, props ?? {}, slots);
   }
 
   buildSearchField(_field: UiSearchField) {
@@ -1040,7 +1020,7 @@ const TestTree = defineComponent({
     allowDragDrop: { type: Boolean, default: false },
     onNodeMove: { type: Function, default: undefined },
   },
-  setup(props: UiTreePropsType) {
+  setup(props: UiTreeProps) {
     const menu = ref<{ items: { label: string; divider?: boolean }[] } | null>(
       null,
     );

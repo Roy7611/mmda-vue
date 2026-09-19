@@ -5,7 +5,7 @@ import {
   type TableColumnSettings,
   type MetaUi,
 } from "@mmda/core";
-import type { UiFactory } from "../ui/factory";
+import type { VueUiFactory } from "../ui/factory";
 import type { VueUiContext } from "../contexts/vue_ui_context";
 import type { UiDialogProps } from "@mmda/core";
 import {
@@ -35,7 +35,7 @@ export type TableSettingRow = {
 };
 
 interface TableSettingHost {
-  factory: UiFactory;
+  factory: VueUiFactory;
   dialog(
     content: ReturnType<typeof h>,
     context: VueUiContext<any>,
@@ -44,7 +44,7 @@ interface TableSettingHost {
 }
 
 const iconButton = (
-  factory: UiFactory,
+  factory: VueUiFactory,
   icon: string,
   title: string,
   onClick: () => void,
@@ -65,7 +65,7 @@ const iconButton = (
 export const TableSettingView = defineComponent({
   name: "TableSettingView",
   props: {
-    factory: { type: Object as PropType<UiFactory>, required: true },
+    factory: { type: Object as PropType<VueUiFactory>, required: true },
     t: { type: Function as PropType<(key: string) => string>, required: true },
     rows: { type: Array as PropType<TableSettingRow[]>, required: true },
     showActionsColumn: { type: Object as PropType<{ value: boolean }>, required: true },

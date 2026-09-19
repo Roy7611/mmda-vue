@@ -10,7 +10,8 @@ import {
 import { NDropdown } from 'naive-ui'
 import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { contextMenuItemsOf, contextMenuModifierClasses, htmlAttributesOf, invokeContextMenuItem } from '@mmda/vui'
+import { contextMenuItemsOf, contextMenuModifierClasses, invokeContextMenuItem } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function mapNaiveItem(
   item: UiMenuItem,
@@ -94,7 +95,7 @@ const MmdaNaiveContextMenu = defineComponent({
 
     return () =>
       h(NDropdown, {
-        ...htmlAttributesOf(props.menuProps),
+        ...uiRenderProps(props.menuProps).attributes,
         trigger: 'manual',
         show: show.value,
         x: x.value,

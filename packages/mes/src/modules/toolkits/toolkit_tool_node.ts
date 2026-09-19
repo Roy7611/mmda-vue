@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import type { MetaUiGroup, UiProps } from '@mmda/core'
 import { MetaModel } from '@mmda/core'
-import { UiViewOne, type UiViewContext } from '@mmda/vui'
+import { UiViewOne, type VueUiContext } from '@mmda/vui'
 import type { Tool } from '@/models/Tool'
 
 function callBagHandler(
@@ -15,7 +15,7 @@ function callBagHandler(
 	}
 }
 
-export function toolkitEmptyNode(context: UiViewContext<any>) {
+export function toolkitEmptyNode(context: VueUiContext<any>) {
 	return h('div', {
 		class: 'flex-1 overflow-y-auto p-4! col-span-full flex items-center justify-center text-gray-500',
 		id: 'tool-list-empty',
@@ -25,7 +25,7 @@ export function toolkitEmptyNode(context: UiViewContext<any>) {
 export function toolkitToolCardNode(
 	item: Tool,
 	group: MetaUiGroup,
-	context: UiViewContext<any>,
+	context: VueUiContext<any>,
 	props: UiProps,
 	dimmed: boolean,
 ) {
@@ -114,7 +114,7 @@ export function toolkitToolCardNode(
 
 export function toolkitToolListNode(
 	group: MetaUiGroup,
-	context: UiViewContext<any>,
+	context: VueUiContext<any>,
 	props: UiProps,
 	currentId?: string,
 	targetId?: string,

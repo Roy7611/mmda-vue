@@ -1,6 +1,6 @@
 import { h, mergeProps, type Component, type VNode } from 'vue'
 import { SqlDataType, MetaModel, type MetaUiField, type Module, autoCompleteBindValue, autoCompletePropsFromField, avatarPropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from '@mmda/core'
-import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type UiViewContext } from '@mmda/vui'
+import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type VueUiContext } from '@mmda/vui'
 import { createAutoComplete } from './factory/autocomplete'
 import { createCheckBox } from './factory/checkbox'
 import { createSwitch } from './factory/switch'
@@ -41,13 +41,13 @@ import Message from 'primevue/message'
 import Password from 'primevue/password'
 import Tag from 'primevue/tag'
 
-type UiContext = UiViewContext<any>
+type UiContext = VueUiContext<any>
 
 const update = (field: MetaUiField, context: UiContext) => (value: any) =>
   context.setFieldValue(field, value)
 
 const invalidOf = (field: MetaUiField, context: UiContext) =>
-  Boolean((context as any).isInvalid?.(field))
+  Boolean(context.isInvalid?.(field))
 
 const control = (
   component: Component,
@@ -77,7 +77,7 @@ const control = (
     }),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -115,7 +115,7 @@ const dropDownList = (field: MetaUiField, context: UiContext, props?: UiProps) =
     createDropDownList(dropDownListPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -132,7 +132,7 @@ const radioButtonGroup = (
     ),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -143,7 +143,7 @@ const treeSelect = (field: MetaUiField, context: UiContext, props?: UiProps) => 
     createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -154,7 +154,7 @@ const comboBox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
     createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -168,7 +168,7 @@ const multiSelect = (
     field,
     context,
     createMultiSelect(
-      multiSelectPropsFromField(field, context as any, props ?? {}),
+      multiSelectPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -181,7 +181,7 @@ const multiItemSelect = (
     field,
     context,
     createMultiItemSelect(
-      multiItemSelectPropsFromField(field, context as any, props ?? {}),
+      multiItemSelectPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -194,7 +194,7 @@ const multiValueSelect = (
     field,
     context,
     createMultiValueSelect(
-      multiValueSelectPropsFromField(field, context as any, props ?? {}),
+      multiValueSelectPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -207,7 +207,7 @@ const multiTextSelect = (
     field,
     context,
     createMultiTextSelect(
-      multiTextSelectPropsFromField(field, context as any, props ?? {}),
+      multiTextSelectPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -220,7 +220,7 @@ const multiBitSelect = (
     field,
     context,
     createMultiBitSelect(
-      multiBitSelectPropsFromField(field, context as any, props ?? {}),
+      multiBitSelectPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -233,7 +233,7 @@ const checkBoxList = (
     field,
     context,
     createCheckBoxList(
-      checkBoxListPropsFromField(field, context as any, props ?? {}),
+      checkBoxListPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -246,7 +246,7 @@ const bitCheckBoxListField = (
     field,
     context,
     createBitCheckBoxList(
-      bitCheckBoxListPropsFromField(field, context as any, props ?? {}),
+      bitCheckBoxListPropsFromField(field, context, props ?? {}),
     ),
   )
 
@@ -260,7 +260,7 @@ const tagAutoComplete = (
     context,
     createTagAutoComplete(tagAutoCompletePropsFromField(
       field,
-      context as any,
+      context,
       props ?? {},
     )),
   )
@@ -303,7 +303,7 @@ const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
     createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -314,7 +314,7 @@ const switchControl = (field: MetaUiField, context: UiContext, props?: UiProps) 
     createSwitch(switchPropsFromField(field, context, props ?? {})),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -329,7 +329,7 @@ function wrapChrome(
     child,
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -469,7 +469,7 @@ const searchBox = (
       void context.searchRelative(field, value)
     },
     toSearch: async () => {
-      const picked = await (context as any).select(field)
+      const picked = await context.select(field)
       if (picked) fldOptions.currentSelectOption = picked
       return true
     },
@@ -496,7 +496,7 @@ const autoComplete = (
     }),
     invalid &&
       h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ])
 }
@@ -705,7 +705,7 @@ const factory: UiFieldFactory = {
       createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
       invalid &&
         h(Message, { severity: 'error', size: 'small', variant: 'simple' }, () =>
-          (context as any).getInvalidMessage?.(field),
+          context.getInvalidMessage?.(field),
         ),
     ])
   },
@@ -736,7 +736,7 @@ const factory: UiFieldFactory = {
     return createAvatar(
       avatarProps,
       (name) =>
-        (context as any).uiBuilder?.factory?.resolveIcon?.(name) ?? name,
+        context.uiBuilder?.factory?.resolveIcon?.(name) ?? name,
     )
   },
   progressBar: (field, context, props) =>
@@ -757,13 +757,13 @@ const factory: UiFieldFactory = {
     wrapChrome(
       field,
       context,
-      ((context as any).uiBuilder?.factory?.timeline ?? createTimeline)(
+      (context.uiBuilder?.factory?.timeline ?? createTimeline)(
         timelinePropsFromField(field, context, props ?? {}),
       ),
     ),
   relativeTime: (field, context, props) =>
     relativeTimeView(timelineSqlOf(context.getFieldValue(field, props?.row)) ?? '', {
-      locale: (context as any).locale,
+      locale: context.locale,
     }),
   tag,
   tags,

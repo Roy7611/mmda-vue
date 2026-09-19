@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createApp, h, nextTick } from 'vue'
-import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from '@mmda/core'
+import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
 import { UiViewMany } from '@mmda/vui'
 import { AgNaiveUiBuilder } from '../agnaive_builder'
 import { createAgNaiveFieldFactory } from '../agnaive_field_factory'
@@ -58,7 +58,6 @@ const productMeta = () =>
 describe('vui-agnaive skin', () => {
   it('implements the vui factory and layout contracts', () => {
     const factory = createAgNaiveUiFactory()
-    expect(factory.layout).toBe(agNaiveLayout)
     expect(factory.table).toBeTypeOf('function')
     expect(factory.grid).toBeTypeOf('function')
     expect(factory.dialog).toBeUndefined()
@@ -375,26 +374,37 @@ describe('vui-agnaive skin', () => {
     expect(cls).toContain('mmda-tabs--demand')
   })
 
-  it('maps factory.toolbar slots and align', () => {
+  it('maps factory.toolbar default slot', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.toolbar(
-      { layout: 'medium', align: { end: 'left' } },
-      {
-        start: () => 'S',
-        center: () => 'C',
-        end: () => 'E',
-      },
+      { class: 'skin' },
+      { default: () => 'S' },
     )
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-toolbar')
-    expect(cls).toContain('mmda-toolbar--medium')
+    expect(vnode.props?.role).toBe('toolbar')
+    expect(vnode.children).toBe('S')
+  })
+
+  it('maps factory.toolbar start/end onto region divs', () => {
+    const factory = createAgNaiveUiFactory()
+    const vnode = factory.toolbar(
+      { disabled: true },
+      { start: () => 'L', end: () => 'R' },
+    )
+    expect(vnode.props?.['aria-disabled']).toBe('true')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-toolbar--disabled')
     const kids = vnode.children as any[]
-    const endCls = Array.isArray(kids[2].props.class)
-      ? kids[2].props.class.flat(8).filter(Boolean).join(' ')
-      : String(kids[2].props.class ?? '')
-    expect(endCls).toContain('mmda-toolbar__end--left')
+    expect(kids).toHaveLength(2)
+    expect(kids[0].props.class).toContain('mmda-toolbar__start')
+    expect(kids[0].children).toBe('L')
+    expect(kids[1].props.class).toContain('mmda-toolbar__end')
+    expect(kids[1].children).toBe('R')
   })
 
   it('maps factory.splitter orientation to NSplit direction', () => {
@@ -1032,7 +1042,7 @@ describe('vui-agnaive skin', () => {
 
   it('constructs the builder against VueUiBuilder', () => {
     const builder = new AgNaiveUiBuilder()
-    expect(builder.factory.layout.fieldVertical).toBe(false)
+    expect(builder.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
@@ -1562,7 +1572,7 @@ describe('vui-agnaive skin', () => {
       isInDialog: true,
       title: '部门',
       metaUi: { objName: 'Department', displayLabel: '部门' },
-      model: { list: [] },
+      model: [],
       logic: { module, repository: 'Departments' },
       module,
       refresh: () => undefined,
@@ -1574,7 +1584,7 @@ describe('vui-agnaive skin', () => {
       customActions: [],
       selectionMode: 'multiple',
     }
-    const groups = resolveIndexToolbarActions(context as any)
+    const groups = resolveIndexTopbarActions(context as any)
     const extra = (builder as any).listLayoutMenuItems(context)
     expect(groups.primary.map((action) => action.name)).toEqual(['create'])
     expect(groups.primary.some((action) => action.name === 'cancel')).toBe(false)
@@ -1593,7 +1603,7 @@ describe('vui-agnaive skin', () => {
       isInDialog: true,
       title: '部门',
       metaUi: { objName: 'Department', displayLabel: '部门' },
-      model: { list: [] },
+      model: [],
       logic: { module, repository: 'Departments' },
       module,
       refresh: () => undefined,
@@ -1605,7 +1615,7 @@ describe('vui-agnaive skin', () => {
       customActions: [],
       selectionMode: 'multiple',
     }
-    const groups = resolveIndexToolbarActions(context as any)
+    const groups = resolveIndexTopbarActions(context as any)
     const extra = (builder as any).listLayoutMenuItems(context)
     expect(groups.primary.some((action) => action.name === 'create')).toBe(false)
     expect(extra.map((item: any) => item.name)).toContain('tableSettings')
@@ -1634,7 +1644,7 @@ describe('vui-agnaive skin', () => {
       editing: false,
       title: '部门',
       metaUi: { objName: 'Department', displayLabel: '部门' },
-      model: { list: [] },
+      model: [],
       logic: { module, repository: 'Departments' },
       module,
       refresh: () => undefined,
@@ -1650,8 +1660,8 @@ describe('vui-agnaive skin', () => {
       ...context,
       module: { ...module, authority: auth(1 | 4) },
     }
-    const withDelete = resolveIndexToolbarActions(context as any)
-    const withoutDeleteGroups = resolveIndexToolbarActions({
+    const withDelete = resolveIndexTopbarActions(context as any)
+    const withoutDeleteGroups = resolveIndexTopbarActions({
       ...withoutDelete,
       logic: { module: withoutDelete.module, repository: 'Departments' },
     } as any)
@@ -1681,7 +1691,7 @@ describe('vui-agnaive skin', () => {
       t: (message: string) => message,
       translate: (message: string) => message,
     }
-    const groups = resolveDetailsToolbarActions(context as any)
+    const groups = resolveDetailsTopbarActions(context as any)
     expect(groups.primary.map((action) => action.name)).toEqual([
       'back',
       'edit',

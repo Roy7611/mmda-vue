@@ -149,6 +149,7 @@ export type SyncSelectionOptions<E extends Entity> = {
 /**
  * 把勾选结果同步到子表：去掉走 deleteItem，新增 CREATED，已删再勾 reset。
  * 原地改 `current`，不要整表替换。
+ * 用于单元格中多选的勾选同步至一个子表，例如权限的可执行Actions。
  */
 export function syncSelection<E extends Entity>(
   current: E[],

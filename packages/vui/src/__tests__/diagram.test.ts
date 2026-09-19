@@ -8,33 +8,37 @@ import {
   diagramPaletteOf,
   diagramReadonlyOf,
   unimplementedDiagramPlugin,
-  type UiDiagramPlugin,
-} from '../ui/factory/diagram'
+  UiPluginName,
+  type UiPlugin,
+} from '@mmda/core'
 import { TestUiBuilder } from './test_builder'
 
 describe('diagramPlugin', () => {
-  it('throws until setDiagramPlugin', () => {
+  it('throws until diagram plugin is used', () => {
     const ui = new TestUiBuilder()
-    expect(() =>
-      ui.diagramPlugin.diagramView({ diagramType: 'org' }),
-    ).toThrow(DIAGRAM_PLUGIN_NOT_INSTALLED)
+    expect(() => ui.buildDiagram({} as any, { diagramType: 'org' })).toThrow(
+      DIAGRAM_PLUGIN_NOT_INSTALLED,
+    )
     expect(unimplementedDiagramPlugin().diagramView).toBeTypeOf('function')
   })
 
-  it('uses the plugin after setDiagramPlugin', () => {
+  it('uses the plugin after use()', () => {
     const ui = new TestUiBuilder()
-    const plugin: UiDiagramPlugin = {
-      diagramView: (props) =>
+    const plugin: UiPlugin = {
+      name: UiPluginName.diagram,
+      buildUi: (_ctx, props) =>
         h('div', {
           class: 'mmda-diagram',
-          'data-type': props.diagramType,
-          'data-readonly': props.readonly ? '1' : '0',
+          'data-type': (props as { diagramType?: string })?.diagramType,
+          'data-readonly': (props as { readonly?: boolean })?.readonly
+            ? '1'
+            : '0',
         }),
     }
-    ui.setDiagramPlugin(plugin)
+    ui.use(plugin)
     const node = ui.buildDiagram(
-      { view: UiViewOne.Details },
-      { diagramType: 'workflow' },
+      { view: UiViewOne.Details } as any,
+      { diagramType: 'workflow', readonly: true },
     )
     expect(node.props?.['data-type']).toBe('workflow')
     expect(node.props?.['data-readonly']).toBe('1')

@@ -47,11 +47,12 @@ Logic 只认 @mmda/core
 | `factory.ts` | `UiFactory`：chrome（`button` / `table` / `sidebar` …） |
 | `field_factory.ts` | `UiFieldFactory`：`render` / `editFor` / `displayFor` + 具名字段 renderer |
 | `layout.ts` | `UiLayout` / `AbstractUiLayout`（含 `scaffold`）。设计 [layout.md](./ui/layout.md) |
-| `context.ts` | `UiContext`（`searchRelative` / `select` …） |
+| `props.ts` | `UiProps`；袋工具 `hasProp` / `getProp` / `htmlAttributesOf` |
 | `view.ts` | `UiViewProps`（单对象屏 extras） |
 | `builder/list_view.ts` | `UiListViewProps`（Index / Select extras）、`UiIndexTableHost` |
 | `builder/explorer.ts` | `UiExplorerProps`（左树右表） |
-| `builder/toolbar.ts` | `UiToolbarActionGroups`、`UiModuleBreadcrumbProps` |
+| `builder/topbar.ts` | `UiIndexTopbar` / `UiDetailsTopbar` / `UiEditTopbar`、`UiTopbarActionGroups`、`UiModuleBreadcrumbProps` |
+| `factory/toolbar.ts` | 原生命令条 `UiToolbarProps`（不是页头） |
 | `builder/dialog.ts` | Overlay props |
 | `app_side_menu.ts` | `UiAppSideMenuProps` |
 | `factory/*.ts` | 各控件 `Ui*Props`（无 Vue） |
@@ -80,7 +81,7 @@ Logic 只认 @mmda/core
 字段行：
 
 ```text
-fieldFactory.render(field, context)
+builder.buildField(field, context)
   → 选 editor/renderer
   → layout.layoutField({ label, control })  # validation copy drawn by skin control
 ```

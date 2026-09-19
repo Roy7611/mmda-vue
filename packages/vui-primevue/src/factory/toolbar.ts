@@ -1,44 +1,24 @@
 import { h } from "vue";
 import Toolbar from "primevue/toolbar";
-import type { UiToolbarProps, UiToolbarSlots, UiToolbarSlotName } from "@mmda/vui"
-import { htmlAttributesOf, toolbarHasCenter, toolbarModifierClasses, toolbarSlotModifierClasses, toolbarSlotStyle, toolbarSlotContent } from "@mmda/vui"
+import type { UiToolbarProps, UiToolbarSlots } from "@mmda/vui"
+import { toolbarModifierClasses, toolbarRegionsOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
-function wrap(
-  props: UiToolbarProps,
-  slots: UiToolbarSlots | undefined,
-  slot: UiToolbarSlotName,
-) {
-  return h(
-    "div",
-    {
-      class: toolbarSlotModifierClasses(props, slot),
-      style: toolbarSlotStyle(props, slot),
-    },
-    toolbarSlotContent(slots, slot) as any,
-  );
-}
-
-export function createToolbar(props: UiToolbarProps, slots?: UiToolbarSlots) {
-  const {
-    align: _align,
-    layout: _layout,
-    htmlAttributes,
-    class: _className,
-    ...rest
-  } = props;
+export function createToolbar(props: UiToolbarProps = {}, slots?: UiToolbarSlots) {
+  const { overflow: _overflow, disabled, htmlAttributes, class: _className, ...rest } = props;
+  const regions = toolbarRegionsOf(slots);
+  const children: Record<string, () => unknown> = {};
+  if (regions.start) children.start = regions.start;
+  if (regions.center) children.center = regions.center;
+  if (regions.end) children.end = regions.end;
   return h(
     Toolbar,
     {
       ...rest,
-      ...htmlAttributesOf(props),
-      class: toolbarModifierClasses(props, slots),
+      ...uiRenderProps(props).attributes,
+      ...(disabled ? { "aria-disabled": "true" } : {}),
+      class: toolbarModifierClasses(props),
     },
-    {
-      start: () => wrap(props, slots, "start"),
-      center: toolbarHasCenter(slots)
-        ? () => wrap(props, slots, "center")
-        : undefined,
-      end: () => wrap(props, slots, "end"),
-    },
+    children,
   );
 }

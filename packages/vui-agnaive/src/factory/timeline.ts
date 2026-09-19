@@ -6,7 +6,8 @@ import { h } from "vue";
 import { NTimeline, NTimelineItem } from "naive-ui";
 import type { UiTimelineProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from "@mmda/vui"
+import { noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createTimeline(
   props: UiTimelineProps,
@@ -57,7 +58,7 @@ export function createTimeline(
     NTimeline,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       horizontal: timelineOrientationOf(props) === "horizontal",
       itemPlacement: align === "before" ? "left" : "right",
       class: timelineModifierClasses(props),

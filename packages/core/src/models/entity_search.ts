@@ -13,7 +13,7 @@ import type {
   BooleanFilterOpCode,
 } from "../metaui/metaui_filter";
 import type { ModuleAuth } from "../metaui/module";
-import type { EntityCtor } from "./entity";
+import type { Entity, EntityCtor } from "./entity";
 import { defaultPager, parseSorts, type Pager } from "./pagination";
 
 export interface FieldFilter {
@@ -158,7 +158,7 @@ export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
  * searchFieldProps 搜索条件组件props 例如：{fieldName: {param1: value,param2: value}}
  * searchFieldSearchParam 搜索条件自定义接口入参 例如：{fieldName: {param1: value,param2: value}}
  */
-export interface EntitySelectParam<E> {
+export interface EntitySelectParam<E extends Entity = Entity> {
   repository: string;
   service?: string;
   searchParam?: EntitySearchParam;
@@ -555,7 +555,7 @@ export namespace DefaultFieldFilter {
           rawDefault,
         };
       })
-      .filter((item): item is DefaultFieldFilter => item != null);
+      .filter((item): item is NonNullable<typeof item> => item != null);
   }
 
   /**

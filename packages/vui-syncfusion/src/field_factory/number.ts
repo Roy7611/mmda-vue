@@ -27,7 +27,7 @@ const wrapNumber = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };

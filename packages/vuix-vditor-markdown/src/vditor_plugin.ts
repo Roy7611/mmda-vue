@@ -8,10 +8,10 @@ import {
   type PropType,
 } from 'vue'
 import type {
-  UiMarkdownEditorPlugin,
   UiMarkdownEditorProps,
 } from '@mmda/vui'
-import { htmlAttributesOf, markdownEditorHookClass } from '@mmda/vui'
+import { markdownEditorHookClass, UiPluginName, type UiPlugin } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function cssSize(value: string | number | undefined, fallback: string) {
   if (value == null) return fallback
@@ -99,7 +99,7 @@ export const VditorMarkdownEditor = defineComponent({
           width: cssSize(props.width, '100%'),
           height: cssSize(props.height, '70vh'),
         },
-        ...htmlAttributesOf(props as any),
+        ...uiRenderProps(props as any).attributes,
       }, [
         h('div', {
           ref: host,
@@ -109,8 +109,11 @@ export const VditorMarkdownEditor = defineComponent({
   },
 })
 
-export function createMarkdownEditorPlugin(): UiMarkdownEditorPlugin {
+export function createMarkdownEditorPlugin(): UiPlugin {
   return {
-    markdownEditor: (props) => h(VditorMarkdownEditor, props as any),
+    name: UiPluginName.markdownEditor,
+    buildUi(_context, props) {
+      return h(VditorMarkdownEditor, props as UiMarkdownEditorProps as any)
+    },
   }
 }

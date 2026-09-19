@@ -8,6 +8,7 @@
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
 import type {UiProps} from '../layout'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export const DEFAULT_SLIDER_MIN = 0
 export const DEFAULT_SLIDER_MAX = 100
@@ -94,8 +95,7 @@ export function emitSliderChange(props: UiSliderProps, value: unknown): void {
     next = n ?? null
   }
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }
 
 export { sliderModifierClasses } from '@mmda/core'

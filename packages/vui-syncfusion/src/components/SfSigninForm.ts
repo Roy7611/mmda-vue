@@ -1,4 +1,4 @@
-import { required, uiCssClass, uiCssClasses } from '@mmda/core'
+import { required, uiCssClass, uiClassModifiers } from '@mmda/core'
 import {
   invokeSignin,
   resolveSigninHandlers,
@@ -26,7 +26,7 @@ function fieldVert(label: VNode, control: VNode, message?: string) {
   return h(
     'div',
     {
-      class: uiCssClasses('field', 'vertical'),
+      class: uiClassModifiers('field', 'vertical'),
       style: { minWidth: 0 },
     },
     [

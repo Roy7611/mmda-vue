@@ -9,10 +9,10 @@ import {
   chipsModifierClasses,
   chipsSelectedOf,
   emitChipsChange,
-  htmlAttributesOf,
   isChipsRemovable,
-  toggleChipSelection,
+  toggleChipSelection
 } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 /** EJ2 click 的 index 会错位（点已启用却写成新）。先对文案，再对 cN，最后才信 index。 */
 function chipIndexFromEvent(
@@ -113,7 +113,7 @@ export function createChips(
 
   return h(ChipListComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     key: selectable ? selectedChips.join(",") : undefined,
     chips,
     enabled: disabled ? false : true,

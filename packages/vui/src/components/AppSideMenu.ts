@@ -4,7 +4,7 @@ import {
   hasSystemModules,
   isLocalAppModuleUrl,
   uiCssClass,
-  uiCssClasses,
+  uiClassModifiers,
   type Module,
   type UiAppMenuItem,
 } from "@mmda/core";
@@ -396,7 +396,7 @@ export const VueAppSideMenu = defineComponent({
         return h(
           "div",
           {
-            class: [uiCssClasses("app-side-menu", "compact"), attrs.class],
+            class: [uiClassModifiers("app-side-menu", "compact"), attrs.class],
           },
           [
             props.logo

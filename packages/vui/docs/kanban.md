@@ -1,6 +1,6 @@
 # 看板插件
 
-看板不进 chrome `factory`。vui 只定 [`UiKanbanPlugin`](../src/ui/factory/kanban.ts)；应用 `setKanbanPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+看板不进 chrome `factory`。vui 只定 [`UiKanbanPlugin`](../src/ui/plugins/kanban.ts)；应用 `setKanbanPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 两家有引擎、一家没有（Prime）→ 皮肤子路径（EJ2）或 **独立 `vuix-*` 包**（SVAR），不是 `factory.kanban`。对齐 [甘特](./gantt.md) / [图](./diagram.md) / [Markdown](./markdown_editor.md)。
 
@@ -10,7 +10,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/kanban.ts` | 卡 / 列 / `UiKanbanProps` / 变更事件；未安装 stub |
+| vui `ui/plugins/kanban.ts` | 卡 / 列 / `UiKanbanProps` / 变更事件；未安装 stub |
 | `VueUiBuilder.kanbanPlugin` | 默认 `unimplementedKanbanPlugin`；`setKanbanPlugin`；`buildKanban` 转调插件 |
 | `@mmda/vui-syncfusion/kanban` | `createSfKanbanPlugin`，EJ2 Kanban（App 默认） |
 | `@mmda/vuix-svar-kanban` | `createVueKanbanPlugin`，`@svar-ui/vue-kanban` MIT |
@@ -79,7 +79,7 @@
 形态对齐甘特 `onTaskChange`：带 `action`，返回 `false` 可回滚。不要把 EJ2 `actionBegin` 或 SVAR `api.exec` 泄漏出去。
 
 ```ts
-interface UiKanbanChangeEvent {
+interface UiKanbanChangeEventArgs extends UiEventArgs {
   action: 'move' | 'update' | 'add' | 'delete'
   card: UiKanbanCard
   fromStatus?: string | number

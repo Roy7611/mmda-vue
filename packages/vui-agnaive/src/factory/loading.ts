@@ -2,11 +2,11 @@ import { h } from 'vue'
 import { NSpin } from 'naive-ui'
 import type { UiLoadingProps } from '@mmda/vui'
 import {
-  htmlAttributesOf,
   loadingLabelOf,
   loadingModifierClasses,
-  loadingSizeOf,
+  loadingSizeOf
 } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 /** Naive 尺寸词 */
 export function loadingNaiveSizeOf(
@@ -28,7 +28,7 @@ export function createLoading(props: UiLoadingProps = {}) {
 
   return h(NSpin, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     size: loadingNaiveSizeOf(props),
     description: label,
     class: loadingModifierClasses(props).flat(),

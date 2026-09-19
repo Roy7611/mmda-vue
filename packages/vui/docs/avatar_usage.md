@@ -77,7 +77,7 @@ builder.factory.avatar({
 ```ts
 fieldFactory.avatar(field, context)
 // 或
-fieldFactory.displayFor(field, context)
+builder.displayFor(field, context)
 ```
 
 `avatarPropsFromField`：`src` 来自字段值；无图回落 `fas fa-user`；默认 `circle`；表单 `medium`，有 `props.row` 时 `small`。不要用 `fieldFactory.image` 画人像。

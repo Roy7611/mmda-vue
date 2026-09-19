@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import Chart from 'primevue/chart'
 import type { UiChartData, UiChartFactory, UiChartProps, UiCircularGaugeProps, UiBubbleProps } from '@mmda/vui'
-import { chartHookClass, chartShortcuts, htmlAttributesOf, resolveChartData, resolveChartType, unsupportedChartMethod } from '@mmda/vui'
+import { chartHookClass, chartShortcuts, resolveChartData, resolveChartType, unsupportedChartMethod } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function primeType(type: ReturnType<typeof resolveChartType>): string {
   return type === 'area' ? 'line' : type
@@ -32,7 +33,7 @@ function renderChart(data: UiChartData, props: UiChartProps = {}) {
     type === 'bar' && orientation === 'horizontal' ? 'y' : undefined
   return h(Chart as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: primeType(type),
     data: primeData(resolved, type),
     options: {
@@ -57,7 +58,7 @@ function renderBubble(props: UiBubbleProps) {
   } = props
   return h(Chart as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: 'bubble',
     data: {
       datasets: [
@@ -90,7 +91,7 @@ function renderComboChart(data: UiChartData, props: UiChartProps = {}) {
   const indexAxis = orientation === 'horizontal' ? 'y' : undefined
   return h(Chart as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: 'bar',
     data: {
       ...resolved,

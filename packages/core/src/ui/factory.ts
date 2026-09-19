@@ -1,7 +1,6 @@
 import type { MetaUi } from '../metaui/metaui_group'
 import type { Pagination } from '../models/pagination'
 import type { UiAction } from './action'
-import type { UiLayout } from './layout'
 import type { UiProps } from './props'
 import type { UiAutoCompleteProps } from './factory/autocomplete'
 import type { UiTagAutoCompleteProps } from './factory/tag_auto_complete'
@@ -26,7 +25,7 @@ import type { UiQueryBuilderProps } from './factory/query_builder'
 import type { UiSignaturePadProps } from './factory/signature_pad'
 import type { UiSpeechToTextProps } from './factory/speech_to_text'
 import type { UiStepperProps } from './factory/stepper'
-import type { UiTimelineProps } from './factory/timeline'
+import type { UiTimelineProps } from './plugins/timeline'
 import type { UiTreeSelectProps } from './factory/tree_select'
 import type {
   UiButtonGroupProps,
@@ -36,9 +35,15 @@ import type {
   UiLinkSlots,
   UiSelectButtonGroupProps,
 } from './factory/button'
-import type { UiDropDownButtonProps } from './factory/drop_down_button'
+import type {
+  UiDropDownButtonProps,
+  UiDropDownButtonSlots,
+} from './factory/drop_down_button'
 import type { UiFloatingActionButtonProps } from './factory/floating_action_button'
-import type { UiSplitButtonProps } from './factory/split_button'
+import type {
+  UiSplitButtonProps,
+  UiSplitButtonSlots,
+} from './factory/split_button'
 import type { UiCheckBoxProps } from './factory/checkbox'
 import type { UiSwitchProps } from './factory/switch'
 import type { UiAvatarProps } from './factory/avatar'
@@ -81,6 +86,14 @@ import type { UiRadioButtonGroupProps } from './factory/radio_button_group'
 import type { UiNumberInputProps } from './factory/number_input'
 import type { UiTextAreaProps } from './factory/text_area'
 import type { UiTextInputProps } from './factory/text_input'
+import type { UiTextProps } from './factory/text'
+import type { UiIconProps } from './factory/icon'
+import type { UiImageProps } from './factory/image'
+
+// export type UiRenderer<T = any, TNode = any> = (
+//   model: T,
+//   props?: UiProps,
+// ) => TNode
 
 /**
  * 原子 chrome 控件工厂。皮肤在 vui-* 实现。
@@ -91,16 +104,15 @@ import type { UiTextInputProps } from './factory/text_input'
  * 参数用具名 Ui*Props（本包），不要 Record 糊弄。
  */
 export interface UiFactory<TNode = any> {
-  layout?: UiLayout<TNode>
   /** 表格组件是否原生支持单元格编辑。 */
   nativeInplaceEdit?: boolean
 
-  textSpan(text: string, props?: UiProps): TNode
-  label?(text: string, props?: UiProps): TNode
-  title?(text: string, props?: UiProps): TNode
-  subtitle?(text: string, props?: UiProps): TNode
-  icon?(iconClass: string, props?: UiProps): TNode
-  image?(src: string, props?: UiProps): TNode
+  textSpan(text: string, props?: UiTextProps): TNode
+  label?(text: string, props?: UiTextProps): TNode
+  title?(text: string, props?: UiTextProps): TNode
+  subtitle?(text: string, props?: UiTextProps): TNode
+  icon?(iconClass: string, props?: UiIconProps): TNode
+  image?(src: string, props?: UiImageProps): TNode
 
   button(
     props?: UiButtonProps,
@@ -117,12 +129,12 @@ export interface UiFactory<TNode = any> {
   link?(props: UiLinkProps, slots?: UiLinkSlots<TNode>): TNode
   splitButton?(
     props: UiSplitButtonProps,
-    slots?: Record<string, unknown>,
+    slots?: UiSplitButtonSlots<TNode>,
   ): TNode
   dropDownButton?(
     props: UiDropDownButtonProps,
     actions: UiAction[],
-    slots?: Record<string, unknown>,
+    slots?: UiDropDownButtonSlots<TNode>,
   ): TNode
   moreMenuButton?(
     props: UiDropDownButtonProps,
@@ -171,6 +183,7 @@ export interface UiFactory<TNode = any> {
   textArea?(props?: UiTextAreaProps): TNode
   numberInput?(props?: UiNumberInputProps): TNode
   datePicker?(props?: UiDatePickerProps): TNode
+  /** 月份模式：调 DatePicker（视图与选项值不同）。 */
   monthPicker?(props?: UiDatePickerProps): TNode
   dateTimePicker?(props?: UiDateTimePickerProps): TNode
   timePicker?(props?: UiTimePickerProps): TNode
@@ -182,6 +195,7 @@ export interface UiFactory<TNode = any> {
   multiSelect?(props?: UiMultiSelectProps): TNode
   radioButtonGroup?(props?: UiRadioButtonGroupProps): TNode
   treeSelect?(props?: UiTreeSelectProps<any, TNode>): TNode
+  /** {@link treeSelect} 的别名（服务端老配置沿用这个名字）。 */
   dropDownTree?(props?: UiTreeSelectProps<any, TNode>): TNode
   autoComplete?(props?: UiAutoCompleteProps): TNode
   tagAutoComplete?(props?: UiTagAutoCompleteProps): TNode

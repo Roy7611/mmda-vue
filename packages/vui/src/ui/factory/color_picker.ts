@@ -7,6 +7,7 @@
 import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 import type {UiProps} from '../layout'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 
@@ -100,8 +101,7 @@ export function emitColorPickerChange(
 ): void {
   const hex = colorPickerHexOf(value)
   props.onChange?.(hex)
-  callUiBagFn(props, 'onUpdate:modelValue', hex)
-  callUiBagFn(props, 'onUpdate', hex)
+  vueUpdateOf(props)?.(hex)
 }
 
 export { colorPickerModifierClasses } from '@mmda/core'

@@ -1,9 +1,8 @@
 import { h } from 'vue'
 import { NInput } from 'naive-ui'
 import type { UiTextAreaProps } from '@mmda/core'
-import { textAreaAutoResizeOf, textAreaCssResizeOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf } from '@mmda/core'
+import { textAreaAutoResizeOf, textAreaCssResizeOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf, uiRenderProps } from '@mmda/core'
 import { emitTextAreaChange } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
 
 export function createTextArea(props: UiTextAreaProps) {
   const {
@@ -27,7 +26,7 @@ export function createTextArea(props: UiTextAreaProps) {
 
   return h(NInput, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: 'textarea',
     value: textAreaValueOf(props),
     placeholder,

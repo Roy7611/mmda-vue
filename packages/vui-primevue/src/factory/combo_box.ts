@@ -1,13 +1,12 @@
 import { h, reactive } from "vue";
 import AutoComplete from "primevue/autocomplete";
 import type { UiComboBoxProps, UiSelectOption } from "@mmda/core"
-import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, normalizeSelectOption, selectOptionsOf } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, normalizeSelectOption, selectOptionsOf, uiRenderProps } from "@mmda/core"
 import { emitComboBoxChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 function defineInputProps(props: UiComboBoxProps) {
   return {
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     class: [...comboBoxModifierClasses(props)].flat(),
     disabled: props.disabled === true,
     placeholder: props.placeholder,

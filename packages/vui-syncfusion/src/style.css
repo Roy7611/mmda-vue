@@ -1510,10 +1510,11 @@ html.e-dark-mode .mmda-dropup {
   grid-template-columns: var(--mmda-side-rail-width, 72px);
 }
 
-/* 工具栏默认左右两栏；有搜索中区时再三列均分。
- * 独立使用（列表页）：固定高度、贴顶直角。
- * 嵌在 .mmda-page__header 内时由主题层盖底（padding/border 清零）。 */
-.mmda-toolbar {
+/* 页头顶栏：独立使用时固定高度、贴顶直角。
+ * 嵌在 .mmda-page__header 内时由主题层盖底。 */
+.mmda-index-topbar,
+.mmda-details-topbar,
+.mmda-edit-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1534,16 +1535,19 @@ html.e-dark-mode .mmda-dropup {
   background: var(--mmda-surface-card, #fffbfe);
 }
 
-.mmda-toolbar--with-center {
+.mmda-index-topbar--with-center {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   justify-content: initial;
 }
 
-.mmda-toolbar__start,
-.mmda-toolbar__center,
-.mmda-toolbar__center-inner,
-.mmda-toolbar__end {
+.mmda-index-topbar__start,
+.mmda-index-topbar__center,
+.mmda-index-topbar__end,
+.mmda-details-topbar__start,
+.mmda-details-topbar__end,
+.mmda-edit-topbar__start,
+.mmda-edit-topbar__end {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -1551,26 +1555,35 @@ html.e-dark-mode .mmda-dropup {
   min-width: 0;
 }
 
-.mmda-toolbar__start {
+.mmda-index-topbar__start,
+.mmda-details-topbar__start,
+.mmda-edit-topbar__start {
   justify-content: flex-start;
 }
 
-.mmda-toolbar__center,
-.mmda-toolbar__center-inner {
+.mmda-index-topbar__center {
   justify-content: center;
 }
 
-.mmda-toolbar__end {
+.mmda-index-topbar__end,
+.mmda-details-topbar__end,
+.mmda-edit-topbar__end {
   justify-content: flex-end;
   margin-left: auto;
 }
 
-.mmda-toolbar--with-center .mmda-toolbar__end {
+.mmda-index-topbar--with-center .mmda-index-topbar__end {
   margin-left: 0;
 }
 
-.mmda-toolbar-actions.e-btn-group,
-.mmda-toolbar-actions {
+.mmda-toolbar {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.mmda-topbar-actions.e-btn-group,
+.mmda-topbar-actions {
   display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -1580,8 +1593,8 @@ html.e-dark-mode .mmda-dropup {
   max-height: 2.25rem;
 }
 
-.mmda-toolbar-actions .e-btn,
-.mmda-toolbar-actions .e-dropdown-btn,
+.mmda-topbar-actions .e-btn,
+.mmda-topbar-actions .e-dropdown-btn,
 .mmda-toolbar__end .e-btn,
 .mmda-toolbar__end .e-dropdown-btn {
   flex: 0 0 auto;
@@ -2264,35 +2277,35 @@ html.e-dark-mode .mmda-app-side-menu__collapse:hover {
 }
 
 /* 工具栏 ButtonGroup：贴合 EJ2 e-btn-group，去掉散开间距 */
-.mmda-toolbar-actions.e-btn-group {
+.mmda-topbar-actions.e-btn-group {
   box-shadow: none;
 }
 
-.mmda-toolbar-actions.e-btn-group > .e-btn,
-.mmda-toolbar-actions.e-btn-group > .e-dropdown-btn {
+.mmda-topbar-actions.e-btn-group > .e-btn,
+.mmda-topbar-actions.e-btn-group > .e-dropdown-btn {
   margin: 0;
 }
 
-.mmda-toolbar-actions.e-btn-group > .e-btn:not(:first-child),
-.mmda-toolbar-actions.e-btn-group > .e-dropdown-btn:not(:first-child) {
+.mmda-topbar-actions.e-btn-group > .e-btn:not(:first-child),
+.mmda-topbar-actions.e-btn-group > .e-dropdown-btn:not(:first-child) {
   margin-inline-start: -1px;
 }
 
-.mmda-toolbar-actions.e-btn-group > .e-btn:not(:first-child):not(:last-child),
-.mmda-toolbar-actions.e-btn-group
+.mmda-topbar-actions.e-btn-group > .e-btn:not(:first-child):not(:last-child),
+.mmda-topbar-actions.e-btn-group
   > .e-dropdown-btn:not(:first-child):not(:last-child) {
   border-radius: 0;
 }
 
-.mmda-toolbar-actions.e-btn-group > .e-btn:first-child:not(:last-child),
-.mmda-toolbar-actions.e-btn-group
+.mmda-topbar-actions.e-btn-group > .e-btn:first-child:not(:last-child),
+.mmda-topbar-actions.e-btn-group
   > .e-dropdown-btn:first-child:not(:last-child) {
   border-start-end-radius: 0;
   border-end-end-radius: 0;
 }
 
-.mmda-toolbar-actions.e-btn-group > .e-btn:last-child:not(:first-child),
-.mmda-toolbar-actions.e-btn-group
+.mmda-topbar-actions.e-btn-group > .e-btn:last-child:not(:first-child),
+.mmda-topbar-actions.e-btn-group
   > .e-dropdown-btn:last-child:not(:first-child) {
   border-start-start-radius: 0;
   border-end-start-radius: 0;
@@ -2369,10 +2382,10 @@ html.mmda-dark .e-dropdown-btn.mmda-button--tonal,
 html.e-dark-mode .e-dropdown-btn.mmda-button--tonal,
 html.mmda-dark .e-css.e-btn.mmda-button--tonal,
 html.e-dark-mode .e-css.e-btn.mmda-button--tonal,
-html.mmda-dark .mmda-toolbar-actions .e-btn.mmda-button--tonal,
-html.e-dark-mode .mmda-toolbar-actions .e-btn.mmda-button--tonal,
-html.mmda-dark .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal,
-html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal {
+html.mmda-dark .mmda-topbar-actions .e-btn.mmda-button--tonal,
+html.e-dark-mode .mmda-topbar-actions .e-btn.mmda-button--tonal,
+html.mmda-dark .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal,
+html.e-dark-mode .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal {
   background: rgb(255 255 255 / 14%);
   color: var(--mmda-text-color, #e6e1e5);
   border-color: transparent;
@@ -2390,21 +2403,21 @@ html.mmda-dark .e-css.e-btn.mmda-button--tonal:hover,
 html.e-dark-mode .e-css.e-btn.mmda-button--tonal:hover,
 html.mmda-dark .e-css.e-btn.mmda-button--tonal:focus,
 html.e-dark-mode .e-css.e-btn.mmda-button--tonal:focus,
-html.mmda-dark .mmda-toolbar-actions .e-btn.mmda-button--tonal:hover,
-html.e-dark-mode .mmda-toolbar-actions .e-btn.mmda-button--tonal:hover,
-html.mmda-dark .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:hover,
-html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:hover,
-html.mmda-dark .mmda-toolbar-actions .e-btn.mmda-button--tonal:focus,
-html.e-dark-mode .mmda-toolbar-actions .e-btn.mmda-button--tonal:focus,
-html.mmda-dark .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus,
-html.e-dark-mode .mmda-toolbar-actions .e-dropdown-btn.mmda-button--tonal:focus {
+html.mmda-dark .mmda-topbar-actions .e-btn.mmda-button--tonal:hover,
+html.e-dark-mode .mmda-topbar-actions .e-btn.mmda-button--tonal:hover,
+html.mmda-dark .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal:hover,
+html.e-dark-mode .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal:hover,
+html.mmda-dark .mmda-topbar-actions .e-btn.mmda-button--tonal:focus,
+html.e-dark-mode .mmda-topbar-actions .e-btn.mmda-button--tonal:focus,
+html.mmda-dark .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal:focus,
+html.e-dark-mode .mmda-topbar-actions .e-dropdown-btn.mmda-button--tonal:focus {
   background: rgb(255 255 255 / 22%);
   color: var(--mmda-text-color, #e6e1e5);
 }
 
 /* 更多 / 批处理下拉：组内 tonal 按钮 */
-.mmda-toolbar-actions .mmda-more-menu-button.e-dropdown-btn,
-.mmda-toolbar-actions .mmda-batch-menu-button.e-dropdown-btn {
+.mmda-topbar-actions .mmda-more-menu-button.e-dropdown-btn,
+.mmda-topbar-actions .mmda-batch-menu-button.e-dropdown-btn {
   box-shadow: none;
 }
 

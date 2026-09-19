@@ -38,7 +38,7 @@ chrome 路径导航，走 `factory.breadcrumb`。EJ2 见 [Breadcrumb Vue 3 getti
 
 ## 源码
 
-- core：[`builder.ts`](../../core/src/ui/builder.ts) `buildModuleBreadcrumb`；props [`toolbar.ts`](../../core/src/ui/builder/toolbar.ts)
+- core：[`builder.ts`](../../core/src/ui/builder.ts) `buildModuleBreadcrumb`；props [`topbar.ts`](../../core/src/ui/builder/topbar.ts)
 - vui：[`breadcrumb.ts`](../src/ui/factory/breadcrumb.ts)
 - SF：[`vui-syncfusion/src/factory/breadcrumb.ts`](../../vui-syncfusion/src/factory/breadcrumb.ts)
 - Prime：[`vui-primevue/src/factory/breadcrumb.ts`](../../vui-primevue/src/factory/breadcrumb.ts)

@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter } from '@mmda/core';
-import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 import { type MaintenancePlan } from '@/models/MaintenancePlan';
@@ -424,12 +424,13 @@ export class ToolLogic extends EntityLogic<Tool> {
 			actionName.value = '';
 			if (context.view === UiViewMany.Index) return;
 			if (model?.category?.materialX) {
-				await context.initMetadata(false, {
+				await this.initMetadata(false, {
 					redirection: model?.category?.materialX,
 					queryParams: {
 						xMetaObject: model?.category?.materialX,
 					},
 				});
+				;(context as { metaUi: typeof this.metaUi }).metaUi = this.metaUi
 				if (model.category.materialX === 'ToolFlask' && isNullOrUndefined((model as any).hasBelt)) {
 					(model as any).hasBelt = false;
 				}
@@ -546,16 +547,17 @@ export class ToolLogic extends EntityLogic<Tool> {
 
 	async getAll(param: EntitySearchParam, context?: UiContext): Promise<PagedList<Tool>> {
 		if (!this.currentCategory) {
-			await context.initMetadata(false, {
+			await this.initMetadata(false, {
 				repository: this.repository,
 			});
 		} else if (this.currentCategory?.materialX) {
 			// 初始化扩展对象元数据，使列表能正确渲染扩展字段列
-			await context.initMetadata(false, {
+			await this.initMetadata(false, {
 				redirection: this.currentCategory.materialX,
 				queryParams: { xMetaObject: this.currentCategory.materialX },
 			});
 		}
+		if (context) (context as { metaUi: typeof this.metaUi }).metaUi = this.metaUi
 		param.queryParams = Object.assign({}, param.queryParams, {
 			categoryID: this.currentCategory?.categoryID ?? '',
 			xMetaObject: this.currentCategory?.materialX ?? '',
@@ -1227,8 +1229,9 @@ try {
 				this.field('categoryID')
 					// .lockIf((model: Tool) => this.currentCategory?.categoryID && this.currentCategory?.categoryID === model.categoryID)
 					.onChange(async (ctx: UiContext, model, newVal, oldVal) => {
-						if (ctx.loading.value || newVal === oldVal) return;
-						ctx.loading.value = true
+						const loading = (ctx as UiContext & { loading: { value: boolean } }).loading
+						if (loading.value || newVal === oldVal) return;
+						loading.value = true
 						try {
 							// 切换器具类别时，清空已选的关联物料（物料可能不属于新类别）
 							if (newVal !== oldVal) {
@@ -1240,7 +1243,7 @@ try {
 							const categoryOption = this.currentCategory = ctx.getFieldCurrentOption('categoryID');
 							if (categoryOption?.materialX) {
 								console.log('categoryOption.materialX', categoryOption.materialX)
-								await ctx.initMetadata(true, {
+								await this.initMetadata(true, {
 									redirection: categoryOption.materialX,
 									queryParams: {
 										xMetaObject: categoryOption.materialX,
@@ -1250,13 +1253,14 @@ try {
 									(model as any).hasBelt = false;
 								}
 							} else {
-								await ctx.initMetadata(false, {
+								await this.initMetadata(false, {
 									repository: this.repository,
 								});
 								model.length = model.width = model.height = model.innerHeight = model.weight = 0
 							}
+							;(ctx as { metaUi: typeof this.metaUi }).metaUi = this.metaUi
 						} finally {
-							ctx.loading.value = false
+							loading.value = false
 						}
 					}),
 				this.field('asEquip').lockIf((model: Tool) => !!(model.checklistID || model.maintenancePlanID)),
@@ -1530,7 +1534,7 @@ try {
 
 	/**
 	 * 搜索物料分类
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {string} [searchWord=''] - 搜索关键词,默认为空字符串
 	 * @returns {Promise<boolean>} - 搜索成功返回true,否则返回false
 	 */
@@ -1558,7 +1562,7 @@ try {
 
 	/**
 	 * 器具类别编辑对话框
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {UiDialogProps & {toolCategory?: ToolCategory,}} props - 对话框props
 	 * @returns dialog 按钮名
 	 */
@@ -1577,7 +1581,7 @@ try {
 
 	/**
 	 * 添加目录
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {string} key - 添加目录的类型,addRoot, addSibling, addChild
 	 * @param {ToolCategory} [node] - 父目录
 	 */
@@ -1625,7 +1629,7 @@ try {
 
 	/**
 	 * 删除器具类别
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {ToolCategory} node - 需具类别对象
 	 */
 	async delHandle(ctx: UiContext, node: ToolCategory) {
@@ -1648,7 +1652,7 @@ try {
 
 	/**
 	 * 编辑器具类别名称
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {ToolCategory} node - 需具类别对象
 	 * @returns {Promise<boolean>} - 是否成功保存
 	 */
@@ -1691,7 +1695,7 @@ try {
 
 	/**
 	 * 保存器具类别
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {any} params - 保存参数
 	 * @returns {Promise<void>} - 是否成功保存
 	 */
@@ -1720,7 +1724,7 @@ try {
 
 	/**
 	 * 删除器具类别
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {number} childrenCount - 需具类别的子节点数量
 	 * @param {any} params - 删除参数
 	 */
@@ -1782,7 +1786,7 @@ try {
 
 	/**
 	 * 目录编辑操作方法,对应 addRoot, addSibling, addChild, delete, rename 等操作
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {string} type - 操作类型
 	 * @param {ToolCategory} [node] - 父目录
 	 */
@@ -1817,24 +1821,25 @@ try {
 	}
 	/**
 	 * 节点点击事件处理
-	 * @param {UiBuildContext<any>} ctx - 上下文对象
+	 * @param {UiContext<any>} ctx - 上下文对象
 	 * @param {ToolCategory} data - 节点数据
 	 */
 	async onNodeSelectFn(ctx: UiContext, data: ToolCategory) {
 		this.currentCategory = data;
 		if (this.currentCategory?.materialX) {
-			await ctx.initMetadata(false, {
+			await this.initMetadata(false, {
 				redirection: data.materialX,
 				queryParams: {
 					xMetaObject: data.materialX,
 				},
 			});
 		} else {
-			await ctx.initMetadata(false, {
+			await this.initMetadata(false, {
 				repository: this.repository,
 			});
 		}
-		ctx.refresh(false);
+		;(ctx as { metaUi: typeof this.metaUi }).metaUi = this.metaUi
+		await ctx.refresh?.(false);
 
 	}
 	//#endregion

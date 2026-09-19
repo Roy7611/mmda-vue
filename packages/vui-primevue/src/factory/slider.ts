@@ -1,7 +1,8 @@
 import { h } from "vue";
 import Slider from "primevue/slider";
 import type { UiSliderProps } from "@mmda/vui"
-import { emitSliderChange, htmlAttributesOf, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf } from "@mmda/vui"
+import { emitSliderChange, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createSlider(props: UiSliderProps) {
   const {
@@ -21,7 +22,7 @@ export function createSlider(props: UiSliderProps) {
 
   return h(Slider, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: sliderValueOf(props),
     min: sliderMinOf(props),
     max: sliderMaxOf(props),

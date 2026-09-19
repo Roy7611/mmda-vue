@@ -10,14 +10,14 @@ import {
 import {
   createNoopGanttController,
   ganttHookClass,
-  htmlAttributesOf,
   type UiGanttController,
   type UiGanttLink,
-  type UiGanttPlugin,
   type UiGanttPrintOptions,
   type UiGanttTask,
   type UiGanttTimeScale,
   type UiGanttProps,
+  UiPluginName,
+  type UiPlugin
 } from '@mmda/vui'
 import {
   PROJECT_SERIALIZER_NOT_INSTALLED,
@@ -30,6 +30,7 @@ import {
   vuiTasksToHyper,
   type HyperGanttItem,
 } from './hyper_map'
+import { uiRenderProps } from '@mmda/core'
 
 export interface HyperGanttPluginOptions {
   license?: string
@@ -137,7 +138,6 @@ export const HyperGanttView = defineComponent({
       void props.onTaskChange?.({
         action,
         tasks: mapped.tasks,
-        native: items.value,
       })
     }
 
@@ -271,14 +271,12 @@ export const HyperGanttView = defineComponent({
           void props.onLinkChange?.({
             action: 'predecessors',
             link: mapped.links[0],
-            native: item,
           })
           return
         }
         void props.onTaskChange?.({
           action: _propertyName,
           task: mapped.tasks[0],
-          native: item,
         })
       }
       settings.itemSelectionChangeHandler = (
@@ -332,7 +330,7 @@ export const HyperGanttView = defineComponent({
         class: ganttHookClass('mmda-hyper-gantt', props.readonly),
         style: { height, minHeight: '16rem' },
         'data-loading': props.loading || undefined,
-        ...htmlAttributesOf(props as any),
+        ...uiRenderProps(props as any).attributes,
       })
     }
   },
@@ -340,12 +338,14 @@ export const HyperGanttView = defineComponent({
 
 export function createHyperGanttPlugin(
   options: HyperGanttPluginOptions = {},
-): UiGanttPlugin {
+): UiPlugin {
   return {
-    ganttView: (props) =>
-      h(HyperGanttView, {
-        ...props,
-        license: props.license ?? options.license,
-      } as any),
+    name: UiPluginName.gantt,
+    buildUi(_context, props) {
+      return h(HyperGanttView, {
+        ...(props as UiGanttProps),
+        license: (props as UiGanttProps)?.license ?? options.license,
+      } as any)
+    },
   }
 }

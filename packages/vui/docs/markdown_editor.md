@@ -1,6 +1,6 @@
 # Markdown 编辑器插件
 
-Markdown 不进 chrome `factory`。vui 只定 [`UiMarkdownEditorPlugin`](../src/ui/factory/markdown_editor.ts)；应用 `setMarkdownEditorPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+Markdown 不进 chrome `factory`。vui 只定 [`UiMarkdownEditorPlugin`](../src/ui/plugins/markdown_editor.ts)；应用 `setMarkdownEditorPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[markdown_editor_usage.md](./markdown_editor_usage.md)。
 
@@ -8,7 +8,7 @@ Markdown 不进 chrome `factory`。vui 只定 [`UiMarkdownEditorPlugin`](../src/
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/markdown_editor.ts` | `UiMarkdownEditorProps`；未安装 stub |
+| vui `ui/plugins/markdown_editor.ts` | `UiMarkdownEditorProps`；未安装 stub |
 | `VueUiBuilder.markdownEditorPlugin` | 默认 `unimplementedMarkdownEditorPlugin`；`setMarkdownEditorPlugin`；`buildMarkdownEditor` 转调插件 |
 | `@mmda/vuix-vditor-markdown` | `createMarkdownEditorPlugin`，Vditor；三家皮肤共用 |
 

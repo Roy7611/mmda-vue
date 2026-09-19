@@ -1,7 +1,13 @@
 import { h } from "vue";
 import { QueryBuilderComponent } from "@syncfusion/ej2-vue-querybuilder";
 import type { UiQueryBuilderProps } from '@mmda/core';
-import { advancedToQueryBuilderRule, emitQueryBuilderChange, htmlAttributesOf, queryBuilderColumnsOf, queryBuilderColumnsToEj2, queryBuilderModifierClasses, queryBuilderRuleToAdvanced, queryBuilderValueOf } from "@mmda/vui"
+import { emitQueryBuilderChange, queryBuilderColumnsOf, queryBuilderModifierClasses, queryBuilderValueOf } from "@mmda/vui"
+import {
+  advancedToQueryBuilderRule,
+  queryBuilderColumnsToEj2,
+  queryBuilderRuleToAdvanced,
+} from "./ej2_query";
+import { uiRenderProps } from "@mmda/core"
 
 export function createQueryBuilder(props: UiQueryBuilderProps) {
   const {
@@ -24,7 +30,7 @@ export function createQueryBuilder(props: UiQueryBuilderProps) {
 
   return h(QueryBuilderComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     columns: queryBuilderColumnsToEj2(columns),
     rule: advancedToQueryBuilderRule(queryBuilderValueOf(props), columns),
     readonly: disabled === true,

@@ -2,7 +2,7 @@
 
 契约在 [`@mmda/core` `src/ui/layout.ts`](../../core/src/ui/layout.ts)。Vue 实现是 [`VueUiLayout`](../src/ui/layout.ts)。程序员用法：[layout_usage.md](./layout_usage.md)。
 
-**不是** `factory.toolbar`（chrome 三栏条）。`UiLayout` 管字段栅格、分组、详情页区域、列表项，以及应用壳 `scaffold`。
+**不是** `factory.toolbar`（原生命令条）。页头是 [Topbar](./topbar.md)。`UiLayout` 管字段栅格、分组、详情页区域、列表项，以及应用壳 `scaffold`。
 
 ## 分层
 
@@ -51,7 +51,7 @@ CSS class：字段测控为 `mmda-field` / `mmda-field-label` / `mmda-field-cont
 | `UiHorzAlign` | `left` / `center` / `right` | `between` / `around` / `evenly` |
 | `UiVertAlign` | `top` / `middle` / `bottom` | `between` / `around` / `evenly` |
 
-Toolbar 槽内只用 `left`/`center`/`right`。皮肤把 `between` 等映射成 CSS `space-between`。
+Topbar 槽内只用 `left`/`center`/`right`。皮肤把 `between` 等映射成 CSS `space-between`。
 
 `props` 用 **`UiProps`**。
 
@@ -165,7 +165,7 @@ Index 铺底常驻；Create / Edit / Details 进 `__one` **盖住**（绝对定�
 | `mmda-section--summary` | 摘要（cards 下 `flex:1`） |
 | `mmda-section__toggle` / `__body` | 折叠钮 / 摘要内容 |
 
-`mmda-form`、`mmda-list-view`、`mmda-toolbar`、`mmda-field` 是独立块，不塞进上面这棵树当元素。
+`mmda-form`、`mmda-list-view`、`mmda-index-topbar` / `mmda-details-topbar` / `mmda-edit-topbar`、`mmda-toolbar`、`mmda-field` 是独立块，不塞进上面这棵树当元素。
 
 ## Vue
 

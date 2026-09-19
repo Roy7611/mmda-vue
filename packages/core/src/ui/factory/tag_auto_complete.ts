@@ -105,7 +105,9 @@ export function tagAutoCompletePropsFromField(
     highlight: extra.highlight as boolean | undefined,
     suggestionCount: extra.suggestionCount as number | undefined,
     separator: extra.separator as string | undefined,
-    onUpdate: (text) => {
+    // 过渡期：core 袋里仍写 v-model 写入键（vui 的 `vueUpdateOf` 读它），
+    // 但 core 契约不再声明 `onUpdate?`，所以这里显式标类型。
+    onUpdate: (text: string) => {
       context.setFieldValue(field, text)
       if (typeof extra.onUpdate === 'function') extra.onUpdate(text)
       if (typeof extra.onChange === 'function') extra.onChange(text)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createAgChartFactory } from '../factory/charts'
+import { createAgChartFactory } from '../plugins/chart'
 
 const data = {
   labels: ['A', 'B'],

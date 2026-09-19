@@ -1,7 +1,8 @@
 import { h } from "vue";
 import ColorPicker from "primevue/colorpicker";
 import type { UiColorPickerProps } from "@mmda/vui"
-import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange, htmlAttributesOf } from "@mmda/vui"
+import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createColorPicker(props: UiColorPickerProps) {
   const {
@@ -17,7 +18,7 @@ export function createColorPicker(props: UiColorPickerProps) {
 
   return h(ColorPicker, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: colorPickerValueOf(props),
     disabled,
     format: "hex",

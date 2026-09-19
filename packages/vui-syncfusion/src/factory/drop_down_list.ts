@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { DropDownListComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiDropDownListProps, UiSelectOption } from "@mmda/core"
-import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf, uiRenderProps } from "@mmda/core"
 import { emitDropDownListChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function syncfusionSelectFields(options: UiSelectOption[]) {
   const fields: { value: string; text: string; groupBy?: string } = {
@@ -76,7 +75,7 @@ export function createDropDownList(props: UiDropDownListProps) {
 
   return h(DropDownListComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: dropDownListValueOf(props) ?? null,
     dataSource: options,
     fields: syncfusionSelectFields(options),

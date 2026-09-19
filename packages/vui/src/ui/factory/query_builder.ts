@@ -2,29 +2,21 @@ import {
   AdvancedFilterModel,
   type UiQueryBuilderProps,
 } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
-  AgAdvancedFilterModel,
-  AgColumnAdvancedFilter,
-  AgJoinAdvancedFilter,
-  QueryBuilderRuleModel,
   UiQueryBuilderChoice,
   UiQueryBuilderColumn,
   UiQueryBuilderProps,
   UiQueryBuilderValueType,
 } from '@mmda/core'
 export {
-  advancedToQueryBuilderRule,
-  agAdvancedToEntity,
   defaultAdvancedColumn,
   defaultAdvancedJoin,
   defaultQueryBuilderOperators,
-  entityToAgAdvanced,
   queryBuilderColumnOf,
   queryBuilderColumnsOf,
-  queryBuilderColumnsToEj2,
   queryBuilderModifierClasses,
-  queryBuilderRuleToAdvanced,
   queryBuilderValueOf,
   queryBuilderValueTypeOf,
 } from '@mmda/core'
@@ -36,9 +28,5 @@ export function emitQueryBuilderChange(
 ): void {
   const next = AdvancedFilterModel.compact(model)
   props.onChange?.(next)
-  const vueUpdate = props['onUpdate:modelValue']
-  if (typeof vueUpdate === 'function') {
-    vueUpdate(next)
-  }
-  props.onUpdate?.(next)
+  vueUpdateOf<AdvancedFilterModel | undefined>(props)?.(next)
 }

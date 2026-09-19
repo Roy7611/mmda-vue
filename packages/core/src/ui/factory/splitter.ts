@@ -1,4 +1,5 @@
 import { uiCssClass } from '../css'
+import type { UiEventArgs } from '../events'
 
 export type UiSplitterOrientation = 'Horizontal' | 'Vertical'
 
@@ -13,12 +14,12 @@ export interface UiSplitterPane<TNode = any> {
   cssClass?: string
 }
 
-export interface UiSplitterCollapseEvent {
+export interface UiSplitterCollapseEventArgs extends UiEventArgs {
   index: number
   collapsed: boolean
 }
 
-export interface UiSplitterResizeEvent {
+export interface UiSplitterResizeEventArgs extends UiEventArgs {
   index: number
   paneSize?: number[]
 }
@@ -32,11 +33,11 @@ export interface UiSplitterProps {
   enabled?: boolean
   enableReversePanes?: boolean
   collapseTick?: number
-  onCollapsed?: (event: UiSplitterCollapseEvent) => void
-  onExpanded?: (event: UiSplitterCollapseEvent) => void
-  onResizeStart?: (event: UiSplitterResizeEvent) => void
-  onResizing?: (event: UiSplitterResizeEvent) => void
-  onResizeStop?: (event: UiSplitterResizeEvent) => void
+  onCollapsed?: (event: UiSplitterCollapseEventArgs) => void
+  onExpanded?: (event: UiSplitterCollapseEventArgs) => void
+  onResizeStart?: (event: UiSplitterResizeEventArgs) => void
+  onResizing?: (event: UiSplitterResizeEventArgs) => void
+  onResizeStop?: (event: UiSplitterResizeEventArgs) => void
 }
 
 export const DEFAULT_SPLITTER_SIZE = '100%'
@@ -100,7 +101,7 @@ export function emitSplitterResize(
   phase: 'start' | 'resizing' | 'stop',
   args?: { index?: number | number[]; paneSize?: number[] },
 ): void {
-  const event: UiSplitterResizeEvent = {
+  const event: UiSplitterResizeEventArgs = {
     index: splitterEventIndex(args),
     paneSize: Array.isArray(args?.paneSize) ? args.paneSize : undefined,
   }

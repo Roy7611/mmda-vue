@@ -1,10 +1,9 @@
 import { h } from "vue";
 import { TimePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import type { UiTimePickerProps } from "@mmda/core"
-import { dateTimePickerStepOf, timePickerModifierClasses } from "@mmda/core"
+import { dateTimePickerStepOf, timePickerModifierClasses, uiRenderProps } from "@mmda/core"
 import { TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 export function createTimePicker(props: UiTimePickerProps) {
@@ -45,7 +44,7 @@ export function createTimePicker(props: UiTimePickerProps) {
 
   return h(TimePickerComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: datePickerDateOf(props) ?? null,
     min: datePickerMinOf(props) ?? undefined,
     max: datePickerMaxOf(props) ?? undefined,

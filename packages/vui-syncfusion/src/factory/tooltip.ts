@@ -12,15 +12,15 @@ import type {
   UiTooltipSlots,
 } from "@mmda/vui"
 import {
-  htmlAttributesOf,
   noopTooltipController,
   tooltipContentOf,
   tooltipDisabledOf,
   tooltipModifierClasses,
   tooltipOpensOnOf,
   tooltipPositionOf,
-  tooltipShowPointerOf,
+  tooltipShowPointerOf
 } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
@@ -68,7 +68,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
       "span",
       {
         class: tooltipModifierClasses(props),
-        ...htmlAttributesOf(props),
+        ...uiRenderProps(props).attributes,
       },
       children,
     );
@@ -98,7 +98,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
     TooltipComponent as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       ref: (el: any) => {
         host = el;
       },

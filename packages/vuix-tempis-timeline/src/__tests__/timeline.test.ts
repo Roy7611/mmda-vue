@@ -49,7 +49,7 @@ describe('tempisOptionsOf', () => {
 describe('createTempisTimelinePlugin', () => {
   it('returns a timeline renderer', () => {
     const plugin = createTempisTimelinePlugin()
-    const vnode = plugin.timeline({ items: [] })
+    const vnode = plugin.buildUi({} as any, { items: [] })
     expect(vnode.type).toBeTruthy()
   })
 })

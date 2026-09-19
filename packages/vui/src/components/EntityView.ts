@@ -1,6 +1,5 @@
 import {
   defineEntity,
-  emptyPagedList,
   type MmdaApplication,
   type Module,
   type UiErrorProps,
@@ -220,9 +219,7 @@ async function openEntityContext(
     view === UiViewMany.SelectMany ||
     view === UiViewMany.SelectOne;
   const context = new VueUiContext({
-    model: many
-      ? (emptyPagedList() as any)
-      : ({ id: route.params.id } as any),
+    model: many ? [] : ({ id: route.params.id } as any),
     metaUi,
     view,
     logic,

@@ -3,7 +3,7 @@
  *
  * {@link UiLayout} 管页内排法与应用壳 scaffold，为 UiBuilder 提供布局能力。
  */
-import { uiCssClass, uiCssClasses } from './css'
+import { uiCssClass, uiClassModifiers } from './css'
 import type { UiProps } from './props'
 
 /** 界面定位方向，横竖两种。控件和域布局都用这个名。 */
@@ -410,7 +410,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     return this.wrap(
       'div',
       {
-        className: uiCssClasses('field', 'horizontal'),
+        className: uiClassModifiers('field', 'horizontal'),
         style: {
           minWidth: 0,
           ...this.fieldCellStyle(slots),
@@ -424,7 +424,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     return this.wrap(
       'div',
       {
-        className: uiCssClasses('field', 'vertical'),
+        className: uiClassModifiers('field', 'vertical'),
         style: {
           minWidth: 0,
           ...this.fieldCellStyle(slots),
@@ -440,7 +440,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     return this.wrap(
       'div',
       {
-        className: uiCssClasses('field-group', type),
+        className: uiClassModifiers('field-group', type),
         attributes: {
           role: 'group',
           'data-grid-cols': gridCols,
@@ -487,7 +487,7 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
       'section',
       {
         className: pageLayout
-          ? uiCssClasses('page', pageLayout)
+          ? uiClassModifiers('page', pageLayout)
           : uiCssClass('page'),
         style: {
           display: 'grid',

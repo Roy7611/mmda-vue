@@ -1,7 +1,7 @@
 import { getCurrentInstance, h, type CSSProperties } from "vue";
 import { BreadcrumbComponent } from "@syncfusion/ej2-vue-navigations";
 import type { IconResolver, UiBreadcrumbProps } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function routeOfItem(item: any): string | undefined {
   const raw = item?.url ?? item?.properties?.url;
@@ -56,7 +56,7 @@ export function createBreadcrumb(
 
   return h(BreadcrumbComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     items: ejItems,
     enableNavigation: false,
     ...(customSep != null ? { separatorTemplate: () => customSep } : {}),

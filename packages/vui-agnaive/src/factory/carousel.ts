@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NCarousel } from 'naive-ui'
 import type { UiCarouselProps } from '@mmda/core'
-import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange, htmlAttributesOf } from '@mmda/vui'
+import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createCarousel(props: UiCarouselProps) {
   const {
@@ -22,7 +23,7 @@ export function createCarousel(props: UiCarouselProps) {
     NCarousel,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       defaultIndex: carouselBoundIndex(props),
       autoplay: autoPlay ?? false,
       ...(interval != null ? { interval } : {}),

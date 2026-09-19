@@ -18,12 +18,13 @@
     "dev:apps": "pnpm dev:app",
     "dev:gateway": "node scripts/dev-gateway.mjs",
     "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app test",
+    "typecheck": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app typecheck",
     "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
     "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""
   },
   "devDependencies": {
     "concurrently": "^9.2.4",
-    "prettier": "^3.3.3",
+    "prettier": "^3.9.8",
     "typescript": "~5.9.3",
     "vite": "8.2.2",
     "vitest": "^4.1.11"

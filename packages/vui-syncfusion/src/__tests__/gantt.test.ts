@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { GANTT_PLUGIN_NOT_INSTALLED } from '@mmda/vui'
 import { SyncfusionUiBuilder } from '../syncfusion_builder'
 import {
   createSfGanttPlugin,
   GANTT_VIEW_MODES,
   mapUiTasksToEj2,
-} from '../factory/gantt'
+} from '../plugins/gantt'
 
 describe('createSfGanttPlugin', () => {
   it('maps unified gantt tasks onto EJ2 fields and view modes', () => {
@@ -22,9 +21,9 @@ describe('createSfGanttPlugin', () => {
     expect(GANTT_VIEW_MODES.week.timelineViewMode).toBe('Week')
   })
 
-  it('renders ganttView host with tasks', () => {
+  it('renders gantt host with tasks', () => {
     const plugin = createSfGanttPlugin()
-    const vnode = plugin.ganttView({
+    const vnode = plugin.buildUi({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],
       readonly: true,
     })
@@ -32,12 +31,9 @@ describe('createSfGanttPlugin', () => {
     expect(vnode.props?.readonly).toBe(true)
   })
 
-  it('throws until setGanttPlugin on the skin builder', () => {
+  it('skin builder installs gantt by default', () => {
     const builder = new SyncfusionUiBuilder()
-    expect(() =>
-      builder.buildGantt({} as any, { tasks: [{ id: 1, name: 'Cut' }] }),
-    ).toThrow(GANTT_PLUGIN_NOT_INSTALLED)
-    builder.setGanttPlugin(createSfGanttPlugin())
+    expect(builder.hasPlugin('gantt')).toBe(true)
     const vnode = builder.buildGantt({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],
       readonly: true,

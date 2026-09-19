@@ -1,6 +1,6 @@
 import { defineComponent, h, nextTick, ref } from "vue";
 import { ensureListFieldVisibleWhenFrozen, isListFrozen, MetaUiFieldFrozen, type MetaUi } from "@mmda/core";
-import { isPersistableListColumn, persistListPack, type UiViewContext } from "@mmda/vui"
+import { isPersistableListColumn, persistListPack, type VueUiContext } from "@mmda/vui"
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid_inject";
 
@@ -68,7 +68,7 @@ export const waitForGridPaint = async () => {
 };
 
 /** 工具栏「自动列宽」：EJ2 autoFitColumns + 回写 metaUi.listSize 并缓存。 */
-export async function autoFitSyncfusionListGrid(context: UiViewContext<any>) {
+export async function autoFitSyncfusionListGrid(context: VueUiContext<any>) {
   if (typeof document === "undefined") return;
   const metaUi = context.metaUi;
   if (!metaUi) return;

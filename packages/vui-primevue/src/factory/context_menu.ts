@@ -2,7 +2,8 @@ import { h } from "vue";
 import ContextMenu from "primevue/contextmenu";
 import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { contextMenuItemsOf, contextMenuModifierClasses, htmlAttributesOf, invokeContextMenuItem } from "@mmda/vui"
+import { contextMenuItemsOf, contextMenuModifierClasses, invokeContextMenuItem } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function mapPrimeItem(
   item: UiMenuItem,
@@ -44,7 +45,7 @@ export function createContextMenu(
 
   return h(ContextMenu, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     model: items.map((item) => mapPrimeItem(item, props, resolveIcon)),
     target: disabled ? undefined : target,
     class: [...contextMenuModifierClasses(props)].flat(),

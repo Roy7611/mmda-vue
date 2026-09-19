@@ -4,10 +4,11 @@ import type {
   UiConfirmProps,
   UiDialogAction,
   UiDialogProps,
+  UiMessageProps,
   UiToastProps,
 } from '@mmda/core'
 import { shouldCloseDialog } from '@mmda/core'
-import type { UiOverlay } from '@mmda/vui'
+import type { VueUiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
@@ -22,7 +23,7 @@ export interface AgNaiveOverlayServices {
   confirm?: (props: UiConfirmProps) => Promise<boolean>
 }
 
-export interface AgNaiveOverlay extends UiOverlay {
+export interface AgNaiveOverlay extends VueUiOverlay {
   dialogs: DialogRequest[]
   services: AgNaiveOverlayServices
 }
@@ -38,6 +39,12 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
     services,
     toast(props: UiToastProps) {
       services.toast?.(props)
+    },
+    message(props: UiMessageProps) {
+      overlay.toast({
+        severity: props.severity,
+        message: props.content,
+      })
     },
     confirm(props: UiConfirmProps) {
       if (services.confirm) return services.confirm(props)

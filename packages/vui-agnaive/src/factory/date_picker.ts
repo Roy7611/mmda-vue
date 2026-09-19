@@ -1,9 +1,9 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
 import type { UiDatePickerProps, UiDateShortcut, UiDateShortcutKind } from '@mmda/core'
-import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from '@mmda/core'
+import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts, uiRenderProps } from '@mmda/core'
 import { emitDateChange } from '@mmda/vui'
-import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat, htmlAttributesOf } from '@mmda/vui'
+import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat } from '@mmda/vui'
 
 function toTs(value: Date | null | undefined): number | null {
   if (!value) return null
@@ -73,7 +73,7 @@ export function createDatePicker(props: UiDatePickerProps) {
 
   return h(NDatePicker as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: month ? 'month' : 'date',
     value: toTs(datePickerDateOf(props) ?? null),
     'onUpdate:value': (next: number | null) => emitDateChange(props, fromTs(next)),

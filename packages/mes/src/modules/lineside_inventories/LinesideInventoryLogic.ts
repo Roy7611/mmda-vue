@@ -21,7 +21,7 @@ import {
 	EntityAction,
 	type Pager,
 } from '@mmda/core';
-import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
@@ -124,7 +124,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 				return Promise.reject(false);
 			}
 
-			let materialTransCtx: UiBuildContext<any>;
+			let materialTransCtx: UiContext<any>;
 			try {
 				await this.apiClient.doAction(
 					{
@@ -159,8 +159,9 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 						width: '80%',
 						onAccept: async (button) => {
 						  return await materialTransCtx.save().then(() => {
-								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
-								window.open(url, '_blank');
+								const origin = String(materialTransCtx.apiClient?.http.baseUrl ?? '').replace(/\/api\/?$/, '')
+								const id = String((materialTransCtx.model as { id?: string }).id ?? '')
+								window.open(`${origin}/MES/MaterialTranses/${id}`, '_blank');
 
 								return true;
 							});
@@ -214,7 +215,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 				return Promise.reject(false);
 			}
 
-			let materialTransCtx: UiBuildContext<any>;
+			let materialTransCtx: UiContext<any>;
 			try {
 				await this.apiClient.doAction(
 					{
@@ -249,8 +250,9 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 						width: '80%',
 						onAccept: async (button) => {
 						  return await materialTransCtx.save().then(() => {
-								const url = materialTransCtx.apiClient.http.baseUrl.replace('/api', '') + materialTransCtx.routeTo(materialTransCtx.model)
-								window.open(url, '_blank');
+								const origin = String(materialTransCtx.apiClient?.http.baseUrl ?? '').replace(/\/api\/?$/, '')
+								const id = String((materialTransCtx.model as { id?: string }).id ?? '')
+								window.open(`${origin}/MES/MaterialTranses/${id}`, '_blank');
 
 								return true;
 							});

@@ -24,9 +24,9 @@ export function uiCssClass(
 
 /**
  * 块 + 若干块修饰符（`--`）。
- * `uiCssClass('page', 'header', 'sticky')` → `mmda-page__header--sticky`
+ * `uiClassModifiers('page', 'sticky')` → `mmda-page mmda-page--sticky`
  */
-export function uiCssClasses(
+export function uiClassModifiers(
   block: string,
   ...modifiers: Array<string | false | null | undefined>
 ): string {
@@ -36,4 +36,24 @@ export function uiCssClasses(
       .filter((m): m is string => Boolean(m))
       .map((m) => uiCssClass(block, undefined, m)),
   ].join(' ')
+}
+
+/**
+ * 把已有的 class 段合并成一个字符串：字符串原样、数组递归、假值丢掉。
+ * 不造 BEM 名、不加 `mmda-` 前缀（那是 `uiCssClass` / `uiClassModifiers` 的事）。
+ *
+ * 用于"控件自算的 modifier class + 程序员给的 `className`"归一处：
+ * `uiClassName(textInputModifierClasses(props), props.className)`
+ */
+export function uiClassName(...parts: unknown[]): string {
+  const out: string[] = []
+  const walk = (part: unknown): void => {
+    if (Array.isArray(part)) {
+      for (const item of part) walk(item)
+      return
+    }
+    if (typeof part === 'string' && part !== '') out.push(part)
+  }
+  for (const part of parts) walk(part)
+  return out.join(' ')
 }

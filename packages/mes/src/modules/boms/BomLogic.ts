@@ -24,7 +24,6 @@ import { type MaterialCat } from '@mmda/base/src/models/MaterialCat';
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { ResourceType } from '@/enums/ResourceType';
 import { ProcessOperationResource } from '@/models/ProcessOperationResource';
-import type { UiBuildContext } from '@mmda/vui';
 import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 
 const tableData = { value: [] };

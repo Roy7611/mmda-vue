@@ -40,9 +40,6 @@ export interface UiTreeProps<T = any> {
   contextMenu?: (node: T) => UiAction[]
   showHoverAdd?: boolean | ((node: T) => boolean)
   allowDragDrop?: boolean
-}
-
-export interface UiTreeEmits<T = any> {
   onNodeSelect?: (node: T | T[]) => void
   onExpand?: (node: T) => void | Promise<void>
   onNodeContextMenu?: (node: T, event: MouseEvent) => void
@@ -57,7 +54,7 @@ export interface UiTreeEmits<T = any> {
 
 `data` 是 `T[]`，不是 `Ref`。接口对着 `h()`，不会自动解包。Logic 里可以 `ref`，调用时传 `.value`。
 
-控件类型合成一份 `UiTreeProps`（契约在 `@mmda/core` `ui/tree.ts`）。`UiTreePropsType` 是 deprecated 别名。`selected` 与 `onNodeSelect` 都在 Props 上。
+控件类型合成一份 `UiTreeProps`（契约在 `@mmda/core` `ui/tree.ts`）。`selected` 与 `onNodeSelect` 都在 Props 上。
 
 ## 组合树
 
@@ -73,14 +70,11 @@ export interface UiTreeViewProps<T> extends UiTreeProps<T> {
   footerContent?: (node: T) => VNodeChild
   loadMode?: 'eager' | 'lazy'
   preloader?: () => T[] | Promise<T[]>
-}
-
-export interface UiTreeViewEmits<T> extends UiTreeEmits<T> {
-  onNodeRename?: (node: T, text: string) => void
   onNodeAdd?: (parent?: T) => void
   onNodeAddChild?: (parent: T) => void
   onNodeAddSibling?: (node: T) => void
   onNodeDelete?: (node: T) => void
+  onTreeRefresh?: () => void | Promise<void>
 }
 ```
 

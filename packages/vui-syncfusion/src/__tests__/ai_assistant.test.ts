@@ -1,15 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AI_ASSISTANT_PLUGIN_NOT_INSTALLED } from '@mmda/vui'
 import { SyncfusionUiBuilder } from '../syncfusion_builder'
 import {
   createSfAiAssistantPlugin,
   wrapAiPromptRequest,
-} from '../factory/ai_assistant'
+} from '../plugins/ai_assistant'
 
 describe('createSfAiAssistantPlugin', () => {
   it('renders aiAssistant host with props', () => {
     const plugin = createSfAiAssistantPlugin()
-    const vnode = plugin.aiAssistant({
+    const vnode = plugin.buildUi({} as any, {
       relateTo: '#summarizeBtn',
       prompt: '总结',
       responseMode: 'popup',
@@ -35,13 +34,10 @@ describe('createSfAiAssistantPlugin', () => {
     expect(addResponse).toHaveBeenCalledWith('ok')
   })
 
-  it('throws until setAiAssistantPlugin on the skin builder', () => {
+  it('skin builder installs ai-assistant by default', () => {
     const builder = new SyncfusionUiBuilder()
-    expect(() => builder.buildAiAssistant({ relateTo: '#btn' })).toThrow(
-      AI_ASSISTANT_PLUGIN_NOT_INSTALLED,
-    )
-    builder.setAiAssistantPlugin(createSfAiAssistantPlugin())
-    const vnode = builder.buildAiAssistant({
+    expect(builder.hasPlugin('ai-assistant')).toBe(true)
+    const vnode = builder.plugin('ai-assistant')!.buildUi({} as any, {
       relateTo: '#btn',
       prompt: 'hi',
     })

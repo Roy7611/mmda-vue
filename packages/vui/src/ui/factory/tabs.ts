@@ -14,6 +14,7 @@ import type {
   UiTabsHeightAdjustMode,
   UiTabsProps,
 } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   UiTabHeader,
@@ -122,8 +123,7 @@ export function emitTabsChange(props: UiTabsProps, raw: unknown): void {
   const next = finiteIndex(unpacked)
   if (next == null) return
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }
 
 export {

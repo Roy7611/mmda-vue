@@ -1,4 +1,5 @@
 import { callUiBagFn, type UiComboBoxProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiComboBoxProps } from '@mmda/core'
 export {
@@ -14,6 +15,5 @@ export function emitComboBoxChange(
   value: string | number | null,
 ): void {
   props.onChange?.(value)
-  callUiBagFn(props, 'onUpdate:modelValue', value)
-  callUiBagFn(props, 'onUpdate', value)
+  vueUpdateOf(props)?.(value)
 }

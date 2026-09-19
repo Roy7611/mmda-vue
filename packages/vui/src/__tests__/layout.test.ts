@@ -804,11 +804,11 @@ describe("VueUiBuilder layout wiring", () => {
     });
     context.isInDialog = true;
     const hidden = mount(new TestUiBuilder().buildView(context));
-    expect(hidden.querySelector(".mmda-toolbar")).toBeNull();
+    expect(hidden.querySelector(".mmda-edit-topbar")).toBeNull();
 
     const shown = mount(
       new TestUiBuilder().buildView(context, { showToolbar: true }),
     );
-    expect(shown.querySelector(".mmda-toolbar")).not.toBeNull();
+    expect(shown.querySelector(".mmda-edit-topbar")).not.toBeNull();
   });
 });

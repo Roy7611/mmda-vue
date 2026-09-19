@@ -7,7 +7,7 @@ import {
   type FilterModel,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { UiFactory } from "../factory";
+import type { VueUiFactory } from "../factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
 
@@ -178,7 +178,7 @@ export async function deleteNamedQuery(
 
 export async function promptSaveNamedQuery(
   context: VueUiContext<any>,
-  factory: UiFactory,
+  factory: VueUiFactory,
 ): Promise<boolean> {
   const builder = context.uiBuilder ?? context.app?.ui;
   if (!builder?.dialog || !factory.textInput) return false;

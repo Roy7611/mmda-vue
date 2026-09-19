@@ -1,6 +1,6 @@
 # 排程插件
 
-排程不进 chrome `factory`。vui 只定 [`UiSchedulerPlugin`](../src/ui/factory/scheduler.ts)；应用 `setSchedulerPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+排程不进 chrome `factory`。vui 只定 [`UiSchedulerPlugin`](../src/ui/plugins/scheduler.ts)；应用 `setSchedulerPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[scheduler_usage.md](./scheduler_usage.md)。月视**选日**仍是 [calendar.md](./calendar.md)，不是本控件。甘特是 [gantt.md](./gantt.md)。
 
@@ -8,9 +8,9 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/scheduler.ts` | 事件 / 资源 / `UiSchedulerProps` / 控制器；未安装 stub |
+| vui `ui/plugins/scheduler.ts` | 事件 / 资源 / `UiSchedulerProps` / 控制器；未安装 stub |
 | `VueUiBuilder.schedulerPlugin` | 默认 `unimplementedSchedulerPlugin`；`setSchedulerPlugin`；`buildScheduler` 转调插件 |
-| `@mmda/vui-syncfusion/schedule` | `createSfSchedulerPlugin`，EJ2 Schedule（App 默认）；组件 `SfScheduler` |
+| `@mmda/vui-syncfusion/scheduler` | `createSfSchedulerPlugin`，EJ2 Schedule（App 默认）；组件 `SfScheduler` |
 | `@mmda/vuix-fc-scheduler` | `createFcSchedulerPlugin`，FullCalendar；组件 `FcScheduler` |
 
 不要 `factory.scheduler`。不要把 `ejs-schedule` / `FullCalendar` 当 vui 名。皮肤标识 **Sf** / **Fc**。Logic 不画排程。core `UiBuilder` 不加排程方法。

@@ -53,7 +53,6 @@ export interface UiSelectButtonGroupProps extends UiProps {
   /** 默认 `single`。`multiple` 时 value / onUpdate 为数组。 */
   selectionMode?: 'single' | 'multiple'
   modelValue?: unknown
-  onUpdate?: (value: unknown) => void
   orientation?: UiOrientation
 }
 

@@ -48,8 +48,8 @@ export type FileUploaderFieldContext = {
     | undefined
   editing?: boolean
   uiBuilder?: {
-    imageEditorPlugin?: { installed?: boolean }
-    buildImageEditor?: (props: Record<string, unknown>) => unknown
+    hasPlugin?: (name: string) => boolean
+    plugin?: (name: string) => { buildUi: (context: unknown, props?: Record<string, unknown>) => unknown } | undefined
     buildFilePreview?: (source: string, props?: Record<string, unknown>) => unknown
     buildDialog?: (content: unknown, props?: Record<string, unknown>) => unknown
   }

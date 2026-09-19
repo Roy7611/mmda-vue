@@ -5,7 +5,7 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from "@mmda/core";
-import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type ModuleToolbarProps, type PrimeVueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, ListSearchField } from "@mmda/vui"
+import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -26,17 +26,14 @@ import { SigninForm } from "./components/SigninForm";
 import { createPrimeVueFieldFactory } from "./prime_field_factory";
 import { createPrimeVueUiFactory } from "./prime_factory";
 import { primeLayout } from "./prime_layout";
-import { PrimeIndexToolBar } from "./components/PrimeIndexToolBar";
-import { PrimeDetailsToolBar } from "./components/PrimeDetailsToolBar";
-import { PrimeEditToolBar } from "./components/PrimeEditToolBar";
 
 const invoke = (value: unknown): any =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-type UiContext = UiViewContext<any>;
+type UiContext = VueUiContext<any>;
 
 export class PrimeVueUiBuilder extends VueUiBuilder {
-  declare readonly factory: PrimeVueUiFactory;
+  declare readonly factory: VueUiFactory;
 
   constructor(
     factory = createPrimeVueUiFactory(),
@@ -45,7 +42,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     super(
       factory,
       fieldFactory,
-      factory.layout ?? primeLayout,
+      primeLayout,
       createPrimeOverlay(),
     );
   }
@@ -237,30 +234,17 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildIndexToolbar(
+  buildDetailsTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: Parameters<VueUiBuilder["buildDetailsTopbar"]>[1],
     slots?: UiSlots,
   ) {
-    return h(PrimeIndexToolBar, {
-      builder: this,
+    return paintDetailsTopbar(
+      this,
       context,
-      toolbarProps: props ?? {},
+      props ?? {},
       slots,
-    });
-  }
-
-  buildDetailsToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return h(PrimeDetailsToolBar, {
-      builder: this,
-      context,
-      toolbarProps: props ?? {},
-      slots,
-      extraMore: pageLayoutMenuItems(context as any).map((item) =>
+      pageLayoutMenuItems(context as any).map((item) =>
         item.divider
           ? item
           : {
@@ -269,20 +253,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
               onAction: item.onAction ?? item.command,
             },
       ),
-    });
-  }
-
-  buildEditToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return h(PrimeEditToolBar, {
-      builder: this,
-      context,
-      toolbarProps: props ?? {},
-      slots,
-    });
+    );
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
@@ -444,7 +415,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           await props.toSearch(event)
           return
         }
-        await (context as any).select(field)
+        await context.select(field)
       } catch (error) {
         console.error(error)
       }

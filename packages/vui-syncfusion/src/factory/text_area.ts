@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { TextAreaComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiTextAreaProps } from "@mmda/core"
-import { textAreaColsOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf } from "@mmda/core"
+import { textAreaColsOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf, uiRenderProps } from "@mmda/core"
 import { emitTextAreaChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTextArea(props: UiTextAreaProps) {
   const {
@@ -32,7 +31,7 @@ export function createTextArea(props: UiTextAreaProps) {
 
   return h(TextAreaComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: textAreaValueOf(props),
     placeholder,
     enabled: !textAreaDisabledOf(props),

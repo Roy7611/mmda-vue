@@ -1,6 +1,6 @@
 # MMDA 前端架构
 
-**产品横向分层只有一处定义：本文。** 术语用词见 [docs/naming.md](docs/naming.md)；代理约束见 [AGENTS.md](AGENTS.md)；包内 API 细节见各包 `docs/`。
+**产品横向分层只有一处定义：本文。** 术语用词见 [docs/naming.md](docs/naming.md)；代理约束见 [AGENTS.md](AGENTS.md)；包内 API 细节见各包 `docs/`。重构见[分层架构](packages/core/docs/design/layers_architecture.md)
 
 ## UI → Logic → Data
 

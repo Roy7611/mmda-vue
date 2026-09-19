@@ -3,7 +3,7 @@ import type { UiBoxed, UiProps } from '../props'
 
 /**
  * 模块列表页（Index / Select）拼屏 extras。
- * 工具栏已由 {@link import('../builder').UiBuilder.buildIndexToolbar} 吃掉；
+ * 工具栏已由 {@link import('../builder').UiBuilder.buildIndexTopbar} 吃掉；
  * 数据区直接 `factory.table|grid|list|treeGrid`，不要再套 `buildListView`。
  */
 export interface UiListViewProps extends UiProps {

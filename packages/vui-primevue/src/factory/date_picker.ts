@@ -1,9 +1,9 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
 import type { UiDatePickerProps, UiDateShortcut } from "@mmda/core"
-import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
+import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts, uiRenderProps } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
-import { datePickerPrimeFormat, htmlAttributesOf } from "@mmda/vui"
+import { datePickerPrimeFormat } from "@mmda/vui"
 
 export function primeDateShortcutFooter(
   items: UiDateShortcut[],
@@ -70,7 +70,7 @@ export function createDatePicker(props: UiDatePickerProps) {
     DatePicker as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       modelValue: datePickerDateOf(props) ?? null,
       "onUpdate:modelValue": (next: Date | null) =>
         emitDateChange(props, next ?? null),

@@ -19,7 +19,7 @@ export const textInput = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -42,7 +42,7 @@ export const textArea = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };

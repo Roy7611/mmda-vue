@@ -10,8 +10,8 @@ import {
 import {
   treeIdOf,
   treeParentFieldName,
-  type UiTreePropsType,
-  type UiTreeViewPropsType,
+  type UiTreeProps,
+  type UiTreeViewProps,
 } from "../factory/tree";
 import {
   deleteCategoryTreeNodeData,
@@ -30,7 +30,7 @@ import type { AbstractConstructor } from "./mixin";
 export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
   abstract class TreeBuilder extends Base {
 
-    buildTree<T = any>(props: UiTreePropsType<T>): VNode {
+    buildTree<T = any>(props: UiTreeProps<T>): VNode {
       return this.factory.tree({
         selectionMode: props.selectionMode ?? "single",
         ...props,
@@ -39,7 +39,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     buildTreeView<T = any>(
       context: UiContext,
-      props: UiTreeViewPropsType<T> = {} as UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T> = {} as UiTreeViewProps<T>,
     ): VNode {
       const categoryRepo = props.repository;
       const mode = props.editMode ?? "hover";
@@ -53,7 +53,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
               this.resolveCategoryTreeAuth(context, props, undefined as never)
                 .allowEdit,
           ));
-      const wired: UiTreeViewPropsType<T> = {
+      const wired: UiTreeViewProps<T> = {
         ...props,
         reloadTick,
         editMode: mode,
@@ -102,7 +102,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async loadCategoryTreeNodes<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       parent?: T,
     ): Promise<T[]> {
       if (!parent && props.loadMode === "lazy" && props.preloader) {
@@ -141,7 +141,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     resolveCategoryTreeAuth<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       node: T,
     ) {
       const repository = props.repository;
@@ -160,7 +160,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     treeCategoryMenu<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       node: T,
     ): UiAction[] {
       const repository = props.repository;
@@ -248,7 +248,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async refreshCategoryTree<T>(
       _context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> }
     ) {
       await refreshCategoryTreeData(props, logic);
@@ -256,7 +256,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async openCategoryTreeDialog<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       view: typeof UiViewOne.Create | typeof UiViewOne.Edit | typeof UiViewOne.Details,
       node: T,
       createKind?: "root" | "child" | "sibling",
@@ -310,7 +310,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async deleteCategoryTreeNode<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       node: T,
     ) {
       const repository = props.repository;
@@ -332,7 +332,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async renameCategoryTreeNode<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       node: T,
       text: string,
     ) {
@@ -341,7 +341,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
     
     async moveCategoryTreeNode<T>(
       context: UiContext,
-      props: UiTreeViewPropsType<T>,
+      props: UiTreeViewProps<T>,
       node: T,
       parent: T | undefined,
     ) {

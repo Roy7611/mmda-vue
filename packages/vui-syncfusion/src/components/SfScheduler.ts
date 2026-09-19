@@ -8,7 +8,7 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { createNoopSchedulerController, downloadSchedulerExcel, emitSchedulerChange, emitSchedulerEventClick, excelFileName, htmlAttributesOf, openSchedulerEventUrl, schedulerHookClass, schedulerWorkDaysOf, type UiSchedulerController, type UiSchedulerEvent, type UiSchedulerResource, type UiSchedulerView, type UiSchedulerProps } from '@mmda/vui'
+import { createNoopSchedulerController, downloadSchedulerExcel, emitSchedulerChange, emitSchedulerEventClick, excelFileName, openSchedulerEventUrl, schedulerHookClass, schedulerWorkDaysOf, type UiSchedulerController, type UiSchedulerEvent, type UiSchedulerResource, type UiSchedulerView, type UiSchedulerProps } from '@mmda/vui'
 import {
   ej2CurrentViewOf,
   ej2RecordToUiEvent,
@@ -18,7 +18,8 @@ import {
   schedulerWorkHoursOf,
   uiViewOfEj2,
   usesTimelineOrResources,
-} from '../factory/schedule_map'
+} from '../plugins/scheduler'
+import { uiRenderProps } from '@mmda/core'
 import '@syncfusion/ej2-schedule/styles/material3.css'
 
 const ScheduleImpl = defineAsyncComponent(async () => {
@@ -227,7 +228,7 @@ export const SfScheduler = defineComponent({
         'div',
         {
           class: schedulerHookClass('mmda-scheduler', props.readonly),
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
         },
         [
           h(ScheduleImpl, {
@@ -315,7 +316,6 @@ export const SfScheduler = defineComponent({
                 const ok = await emitSchedulerChange(props.onEventChange, {
                   action,
                   event: ej2RecordToUiEvent(data),
-                  native: args,
                 })
                 if (!ok) {
                   args.cancel = true
@@ -327,7 +327,6 @@ export const SfScheduler = defineComponent({
               const ok = await emitSchedulerChange(props.onEventChange, {
                 action: 'move',
                 event: ej2RecordToUiEvent(args?.data),
-                native: args,
               })
               if (!ok) {
                 args.cancel = true
@@ -338,7 +337,6 @@ export const SfScheduler = defineComponent({
               const ok = await emitSchedulerChange(props.onEventChange, {
                 action: 'resize',
                 event: ej2RecordToUiEvent(args?.data),
-                native: args,
               })
               if (!ok) {
                 args.cancel = true

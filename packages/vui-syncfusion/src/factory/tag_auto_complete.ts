@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiTagAutoCompleteProps } from '@mmda/core';
-import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf } from "@mmda/core"
+import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, uiRenderProps } from "@mmda/core"
 import { tagAutoCompleteUpdateOf } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
   const value = props.value
@@ -38,7 +37,7 @@ export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
 
   return h(MultiSelectComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     dataSource: labels,
     fields: { value: "value", text: "label" },
     value: tagAutoCompleteItemsOf(props.modelValue ?? value, props),

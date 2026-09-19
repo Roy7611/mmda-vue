@@ -5,7 +5,8 @@
 import { defineComponent, h, ref, watch, type PropType } from 'vue'
 import Inplace from 'primevue/inplace'
 import type { UiInplaceEditorController, UiInplaceEditorProps, UiInplaceEditorSlots } from '@mmda/core'
-import { htmlAttributesOf, inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from '@mmda/vui'
+import { inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 const PrimeInplaceEditorHost = defineComponent({
   name: 'MmdaPrimeInplaceEditor',
@@ -77,7 +78,7 @@ export function createInplaceEditor(
     props.onReady?.(noopInplaceEditorController)
     return h('div', {
       class: inplaceEditorModifierClasses(props),
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
     })
   }
   return h(
@@ -86,7 +87,7 @@ export function createInplaceEditor(
       disabled: inplaceEditorDisabledOf(props),
       active: props.active,
       class: props.class,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       onOpen: () => props.onOpen?.(),
       onClose: () => props.onClose?.(),
       onReady: (controller: UiInplaceEditorController) =>

@@ -11,6 +11,9 @@ import {
   type UiBuilder as CoreUiBuilder,
   type UiContext as CoreUiContext,
   type UiDialogAction,
+  type UiDetailsTopbar,
+  type UiEditTopbar,
+  type UiIndexTopbar,
   type UiModuleBreadcrumbProps,
 } from "@mmda/core";
 import { VueAppSideMenu } from "../components/AppSideMenu";
@@ -18,63 +21,10 @@ import { openTableSettingDialog } from "../components/TableSettingView";
 import { logListPaint } from "./builder/list_query";
 import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "./layout";
 import type {
-  UiFactory,
+  VueUiFactory,
   UiFieldFactory,
 } from "./factory";
-import {
-  unimplementedChartFactory,
-  type UiChartFactory,
-} from "./factory/chart";
-import {
-  diagramReadonlyOf,
-  unimplementedDiagramPlugin,
-  type UiDiagramPlugin,
-  type UiDiagramProps,
-} from "./factory/diagram";
-import {
-  unimplementedMarkdownEditorPlugin,
-  type UiMarkdownEditorPlugin,
-  type UiMarkdownEditorProps,
-} from "./factory/markdown_editor";
-import {
-  unimplementedImageEditorPlugin,
-  type UiImageEditorPlugin,
-  type UiImageEditorProps,
-} from "./factory/image_editor";
-import {
-  unimplementedKanbanPlugin,
-  type UiKanbanPlugin,
-  type UiKanbanProps,
-} from "./factory/kanban";
-import {
-  unimplementedGanttPlugin,
-  type UiGanttPlugin,
-  type UiGanttProps,
-} from "./factory/gantt";
-import {
-  unimplementedRibbonPlugin,
-  type UiRibbonPlugin,
-  type UiRibbonProps,
-} from "./factory/ribbon";
-import {
-  unimplementedSchedulerPlugin,
-  type UiSchedulerPlugin,
-  type UiSchedulerProps,
-} from "./factory/scheduler";
-import {
-  unimplementedPivotPlugin,
-  type UiPivotPlugin,
-  type UiPivotTableProps,
-} from "./factory/pivot_table";
-import {
-  unimplementedAiAssistantPlugin,
-  type UiAiAssistantPlugin,
-  type UiAiAssistantProps,
-} from "./factory/ai_assistant";
-import {
-  bindTimelineFactory,
-  type UiTimelinePlugin,
-} from "./factory/timeline";
+import { mixPluginHost, VuePluginHost } from "./plugins/host";
 import {
   isViewMany,
   UiViewMany,
@@ -88,7 +38,6 @@ import type {
   AppSideBarProps,
   AppTopBarProps,
   ModuleSearchbarProps,
-  ModuleToolbarProps,
 } from "../app/app";
 import {
   FONT_SCALE_RATIO,
@@ -109,7 +58,7 @@ import type {
 } from "./factory/filter";
 import type { UiAction } from "./factory/action";
 import { VueUiContext } from "../contexts/vue_ui_context";
-import { createHtmlOverlay, type UiOverlay } from "./overlay";
+import { createHtmlOverlay, type VueUiOverlay } from "./overlay";
 import { DocxFilePreview } from "../components/DocxFilePreview";
 import { XlsxFilePreview } from "../components/XlsxFilePreview";
 import type {
@@ -126,7 +75,11 @@ import { WithForm } from "./builder/form";
 import { WithList } from "./builder/list_view";
 import { ListFilterBarView } from "./builder/list_filter_bar";
 import { WithTree } from "./builder/tree_view";
-import { attachFieldRowApi } from "./factory/field_row";
+import {
+  paintDetailsTopbar,
+  paintEditTopbar,
+  paintIndexTopbar,
+} from "./builder/topbar";
 
 export { UiActionFactory };
 
@@ -137,75 +90,6 @@ export interface ImportOrExportParam extends EntityUrlParam {
   handlerFn?: (context: UiContext, response: any) => void;
   importFn?: (context: UiContext, model: any) => void;
   exportFn?: (context: UiContext, model: any) => void;
-}
-
-export const isNullish = (value: unknown): value is null | undefined =>
-  value == null;
-
-export const hasProp = (name: string, props?: UiProps) =>
-  props != null && !isNullish(props[name]);
-
-export const hasPropEx = <T>(name: string, value: T, props?: UiProps) =>
-  props != null && props[name] === value;
-
-export function getProp<T>(
-  name: string,
-  props?: UiProps,
-  remove = false,
-): T | undefined {
-  if (!hasProp(name, props)) return undefined;
-  const value = props![name] as T;
-  if (remove) delete props![name];
-  return value;
-}
-
-export function addProp<T>(name: string, value: T, props: UiProps = {}) {
-  props[name] = value;
-  return props;
-}
-
-export function addDefaultProp<T>(
-  name: string,
-  value: T,
-  props: UiProps = {},
-) {
-  if (!hasProp(name, props)) props[name] = value;
-  return props;
-}
-
-export function addDefaultProps(addingProps: UiProps, props: UiProps = {}) {
-  for (const [name, value] of Object.entries(addingProps)) {
-    if (!hasProp(name, props)) props[name] = value;
-  }
-  return props;
-}
-
-export function ignoreNullishProps(props: UiProps) {
-  for (const name of Object.keys(props)) {
-    if (isNullish(props[name])) delete props[name];
-  }
-  return props;
-}
-
-export function copyProps(
-  dest: UiProps,
-  src: UiProps,
-  names: string[],
-  ignoreNullish = true,
-) {
-  for (const name of names) {
-    if (!ignoreNullish || !isNullish(src[name])) dest[name] = src[name];
-  }
-}
-
-export function selectProps(
-  src: UiProps,
-  names: string[],
-  ignoreNullish = true,
-) {
-  const dest: UiProps = {};
-  copyProps(dest, src, names, ignoreNullish);
-  return dest;
 }
 
 const unimplemented = (name: string) => {
@@ -219,131 +103,20 @@ const unimplemented = (name: string) => {
  * 皮肤再 `extends VueUiBuilder`（SyncfusionUiBuilder / PrimeVueUiBuilder / …）。
  * form / list / tree 用 Handbook mixin 叠在 `VueUiBuilderBase` 上。
  */
-export abstract class VueUiBuilderBase {
+export abstract class VueUiBuilderBase extends VuePluginHost {
   readonly actionFactory: UiActionFactory;
-  chartFactory: UiChartFactory = unimplementedChartFactory();
-  diagramPlugin: UiDiagramPlugin = unimplementedDiagramPlugin();
-  markdownEditorPlugin: UiMarkdownEditorPlugin =
-    unimplementedMarkdownEditorPlugin();
-  imageEditorPlugin: UiImageEditorPlugin = unimplementedImageEditorPlugin();
-  kanbanPlugin: UiKanbanPlugin = unimplementedKanbanPlugin();
-  ganttPlugin: UiGanttPlugin = unimplementedGanttPlugin();
-  ribbonPlugin: UiRibbonPlugin = unimplementedRibbonPlugin();
-  schedulerPlugin: UiSchedulerPlugin = unimplementedSchedulerPlugin();
-  pivotPlugin: UiPivotPlugin = unimplementedPivotPlugin();
-  aiAssistantPlugin: UiAiAssistantPlugin = unimplementedAiAssistantPlugin();
-  timelinePlugin: UiTimelinePlugin | null = null;
 
   constructor(
-    public readonly factory: UiFactory,
+    public readonly factory: VueUiFactory,
     public readonly fieldFactory: UiFieldFactory,
     public readonly layout: UiLayout,
-    public overlay: UiOverlay = createHtmlOverlay(),
+    public overlay: VueUiOverlay = createHtmlOverlay(),
   ) {
-    attachFieldRowApi(fieldFactory, layout);
+    super();
     this.actionFactory = new UiActionFactory(
       this as unknown as VueUiBuilder,
       factory.resolveIcon,
     );
-    if (typeof factory.timeline === "function") {
-      bindTimelineFactory(factory, () => this.timelinePlugin);
-    }
-  }
-
-  setChartFactory(factory: UiChartFactory): this {
-    this.chartFactory = factory;
-    return this;
-  }
-
-  setDiagramPlugin(plugin: UiDiagramPlugin): this {
-    this.diagramPlugin = plugin;
-    return this;
-  }
-
-  setMarkdownEditorPlugin(plugin: UiMarkdownEditorPlugin): this {
-    this.markdownEditorPlugin = plugin;
-    return this;
-  }
-
-  setImageEditorPlugin(plugin: UiImageEditorPlugin): this {
-    this.imageEditorPlugin = plugin;
-    return this;
-  }
-
-  setKanbanPlugin(plugin: UiKanbanPlugin): this {
-    this.kanbanPlugin = plugin;
-    return this;
-  }
-
-  setGanttPlugin(plugin: UiGanttPlugin): this {
-    this.ganttPlugin = plugin;
-    return this;
-  }
-
-  setRibbonPlugin(plugin: UiRibbonPlugin): this {
-    this.ribbonPlugin = plugin;
-    return this;
-  }
-
-  setSchedulerPlugin(plugin: UiSchedulerPlugin): this {
-    this.schedulerPlugin = plugin;
-    return this;
-  }
-
-  setPivotPlugin(plugin: UiPivotPlugin): this {
-    this.pivotPlugin = plugin;
-    return this;
-  }
-
-  setAiAssistantPlugin(plugin: UiAiAssistantPlugin): this {
-    this.aiAssistantPlugin = plugin;
-    return this;
-  }
-
-  setTimelinePlugin(plugin: UiTimelinePlugin | null): this {
-    this.timelinePlugin = plugin;
-    return this;
-  }
-
-  buildGantt(_context: any, props: UiGanttProps): VNode {
-    return this.ganttPlugin.ganttView(props);
-  }
-
-  buildGanttChart(context: any, props: UiGanttProps): VNode {
-    return this.buildGantt(context, props);
-  }
-
-  buildRibbon(props: UiRibbonProps): VNode {
-    return this.ribbonPlugin.ribbon(props);
-  }
-
-  buildScheduler(_context: any, props: UiSchedulerProps): VNode {
-    return this.schedulerPlugin.schedulerView(props);
-  }
-
-  buildPivotTable(props: UiPivotTableProps): VNode {
-    return this.pivotPlugin.pivotTable(props);
-  }
-
-  buildDiagram(context: any, props: UiDiagramProps): VNode {
-    const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
-    return this.diagramPlugin.diagramView({ ...props, readonly });
-  }
-
-  buildMarkdownEditor(props: UiMarkdownEditorProps): VNode {
-    return this.markdownEditorPlugin.markdownEditor(props);
-  }
-
-  buildImageEditor(props: UiImageEditorProps): VNode {
-    return this.imageEditorPlugin.imageEditor(props);
-  }
-
-  buildKanban(props: UiKanbanProps): VNode {
-    return this.kanbanPlugin.kanbanView(props);
-  }
-
-  buildAiAssistant(props: UiAiAssistantProps): VNode {
-    return this.aiAssistantPlugin.aiAssistant(props);
   }
 
   get overlayHost(): Component | undefined {
@@ -480,37 +253,26 @@ export abstract class VueUiBuilderBase {
       class: "mmda-breadcrumb",
     });
   }
-  buildIndexToolbar(
+  buildIndexTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: UiIndexTopbar,
     slots?: UiSlots,
   ): VNode {
-    return unimplemented("buildIndexToolbar") as VNode;
+    return paintIndexTopbar(this, context, props ?? {}, slots);
   }
-  buildDetailsToolbar(
+  buildDetailsTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: UiDetailsTopbar,
     slots?: UiSlots,
   ): VNode {
-    return unimplemented("buildDetailsToolbar") as VNode;
+    return paintDetailsTopbar(this, context, props ?? {}, slots);
   }
-  buildEditToolbar(
+  buildEditTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: UiEditTopbar,
     slots?: UiSlots,
   ): VNode {
-    return unimplemented("buildEditToolbar") as VNode;
-  }
-  /** @deprecated 用 buildIndexToolbar / buildDetailsToolbar / buildEditToolbar */
-  buildModuleToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ): VNode {
-    const runtime = context as { many?: boolean; editing?: boolean };
-    if (runtime.many) return this.buildIndexToolbar(context, props, slots);
-    if (runtime.editing) return this.buildEditToolbar(context, props, slots);
-    return this.buildDetailsToolbar(context, props, slots);
+    return paintEditTopbar(this, context, props ?? {}, slots);
   }
   buildSearchField(
     field: UiSearchField,
@@ -894,18 +656,17 @@ export interface VueUiBuilder {
     props?: UiProps,
   ): VNode;
   buildAttachmentGroup(context: any, props?: UiProps): VNode;
-  buildGantt(context: any, props: UiGanttProps): VNode;
-  buildGanttChart(context: any, props: UiGanttProps): VNode;
-  buildRibbon(props: UiRibbonProps): VNode;
-  buildScheduler(context: any, props: UiSchedulerProps): VNode;
-  buildPivotTable(props: UiPivotTableProps): VNode;
+  buildGantt(context: any, props?: UiProps): VNode;
+  buildGanttChart(context: any, props?: UiProps): VNode;
+  buildScheduler(context: any, props?: UiProps): VNode;
   buildBpmnDiagram(
     flowTrails: any[],
     context: any,
     props?: UiProps,
   ): VNode;
-  buildDiagram(context: any, props: UiDiagramProps): VNode;
-  buildKanban(props: UiKanbanProps): VNode;
+  buildDiagram(context: any, props?: UiProps): VNode;
+  buildKanban(context: any, props?: UiProps): VNode;
+  buildTimeline(context: any, props?: UiProps): VNode;
   buildListView(context: any, props?: any): VNode;
   buildFilterBar(context: any, props?: any): VNode;
   buildView(context: any, props?: UiViewPropsType): VNode;
@@ -1080,7 +841,7 @@ export function createStubUiBuilder(): VueUiBuilder {
   const factory = {
     layout: new VueUiLayout(),
     resolveIcon: (icon: string) => icon,
-  } as unknown as UiFactory;
+  } as unknown as VueUiFactory;
   const stub: any = {
     factory,
     layout: factory.layout,
@@ -1132,10 +893,9 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildLoading: emptyNode,
     buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
-    buildIndexToolbar: emptyNode,
-    buildDetailsToolbar: emptyNode,
-    buildEditToolbar: emptyNode,
-    buildModuleToolbar: emptyNode,
+    buildIndexTopbar: emptyNode,
+    buildDetailsTopbar: emptyNode,
+    buildEditTopbar: emptyNode,
     openTableSettings: async () => false,
     buildSearchField: emptyNode,
     buildModuleSearchbar: emptyNode,
@@ -1148,89 +908,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildSubGroup: emptyNode,
     overlay: createHtmlOverlay(),
     overlayHost: undefined,
-    chartFactory: unimplementedChartFactory(),
-    setChartFactory(factory: UiChartFactory) {
-      this.chartFactory = factory;
-      return this;
-    },
-    diagramPlugin: unimplementedDiagramPlugin(),
-    setDiagramPlugin(plugin: UiDiagramPlugin) {
-      this.diagramPlugin = plugin;
-      return this;
-    },
-    buildDiagram(context: any, props: UiDiagramProps) {
-      const readonly = diagramReadonlyOf(props, String(context?.view ?? ""));
-      return this.diagramPlugin.diagramView({ ...props, readonly });
-    },
-    markdownEditorPlugin: unimplementedMarkdownEditorPlugin(),
-    setMarkdownEditorPlugin(plugin: UiMarkdownEditorPlugin) {
-      this.markdownEditorPlugin = plugin;
-      return this;
-    },
-    buildMarkdownEditor(props: UiMarkdownEditorProps) {
-      return this.markdownEditorPlugin.markdownEditor(props);
-    },
-    imageEditorPlugin: unimplementedImageEditorPlugin(),
-    setImageEditorPlugin(plugin: UiImageEditorPlugin) {
-      this.imageEditorPlugin = plugin;
-      return this;
-    },
-    buildImageEditor(props: UiImageEditorProps) {
-      return this.imageEditorPlugin.imageEditor(props);
-    },
-    kanbanPlugin: unimplementedKanbanPlugin(),
-    setKanbanPlugin(plugin: UiKanbanPlugin) {
-      this.kanbanPlugin = plugin;
-      return this;
-    },
-    buildKanban(props: UiKanbanProps) {
-      return this.kanbanPlugin.kanbanView(props);
-    },
-    ganttPlugin: unimplementedGanttPlugin(),
-    setGanttPlugin(plugin: UiGanttPlugin) {
-      this.ganttPlugin = plugin;
-      return this;
-    },
-    buildGantt(_context: any, props: UiGanttProps) {
-      return this.ganttPlugin.ganttView(props);
-    },
-    ribbonPlugin: unimplementedRibbonPlugin(),
-    setRibbonPlugin(plugin: UiRibbonPlugin) {
-      this.ribbonPlugin = plugin;
-      return this;
-    },
-    buildRibbon(props: UiRibbonProps) {
-      return this.ribbonPlugin.ribbon(props);
-    },
-    schedulerPlugin: unimplementedSchedulerPlugin(),
-    setSchedulerPlugin(plugin: UiSchedulerPlugin) {
-      this.schedulerPlugin = plugin;
-      return this;
-    },
-    buildScheduler(_context: any, props: UiSchedulerProps) {
-      return this.schedulerPlugin.schedulerView(props);
-    },
-    pivotPlugin: unimplementedPivotPlugin(),
-    setPivotPlugin(plugin: UiPivotPlugin) {
-      this.pivotPlugin = plugin;
-      return this;
-    },
-    buildPivotTable(props: UiPivotTableProps) {
-      return this.pivotPlugin.pivotTable(props);
-    },
-    aiAssistantPlugin: unimplementedAiAssistantPlugin(),
-    setAiAssistantPlugin(plugin: UiAiAssistantPlugin) {
-      this.aiAssistantPlugin = plugin;
-      return this;
-    },
-    timelinePlugin: null as UiTimelinePlugin | null,
-    setTimelinePlugin(plugin: UiTimelinePlugin | null) {
-      this.timelinePlugin = plugin;
-      return this;
-    },
-    buildAiAssistant(props: UiAiAssistantProps) {
-      return this.aiAssistantPlugin.aiAssistant(props);
-    },
     toast: async (): Promise<void> => undefined,
     message: (): void => undefined,
     confirm: async () => false,
@@ -1239,7 +916,8 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildXlsxFilePreview: emptyNode,
     buildFilePreview: emptyNode,
   };
-    attachFieldRowApi(stub.fieldFactory as any, factory.layout as any);
+    mixPluginHost(stub);
+    // 字段行入口在 WithForm（builder 构造表单时按 MetaUiField 选 factory 函数）
   return stub as VueUiBuilder;
 }
 

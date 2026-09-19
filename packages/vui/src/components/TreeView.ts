@@ -9,7 +9,7 @@ import {
   type VNode,
 } from "vue";
 import { translateMessage } from "../i18n/i18n";
-import type { UiFactory } from "../ui/factory";
+import type { VueUiFactory } from "../ui/factory";
 import {
   detachTreeNode,
   filterMappedTree,
@@ -22,7 +22,7 @@ import {
   treeShouldLoadChildren,
   type UiTreeFields,
   type UiTreeMoveMeta,
-  type UiTreeViewPropsType,
+  type UiTreeViewProps,
 } from "../ui/factory/tree";
 
 export type TreeChildrenLoader<T = any> = (parent?: T) => Promise<T[]>;
@@ -47,8 +47,8 @@ function mergeTreeNodes<T>(
 export const TreeView = defineComponent({
   name: "TreeView",
   props: {
-    spec: { type: Object as PropType<UiTreeViewPropsType>, required: true },
-    factory: { type: Object as PropType<UiFactory>, required: true },
+    spec: { type: Object as PropType<UiTreeViewProps>, required: true },
+    factory: { type: Object as PropType<VueUiFactory>, required: true },
     loadChildren: {
       type: Function as PropType<TreeChildrenLoader>,
       default: undefined,
@@ -218,8 +218,8 @@ export const TreeView = defineComponent({
 const TreeViewBody = defineComponent({
   name: "TreeViewBody",
   props: {
-    factory: { type: Object as PropType<UiFactory>, required: true },
-    spec: { type: Object as PropType<UiTreeViewPropsType>, required: true },
+    factory: { type: Object as PropType<VueUiFactory>, required: true },
+    spec: { type: Object as PropType<UiTreeViewProps>, required: true },
     treeData: { type: Array, required: true },
     editing: { type: String, default: "" },
     mode: { type: String, default: "hover" },
@@ -275,7 +275,7 @@ const TreeViewBody = defineComponent({
 const TreeViewFooter = defineComponent({
   name: "TreeViewFooter",
   props: {
-    spec: { type: Object as PropType<UiTreeViewPropsType>, required: true },
+    spec: { type: Object as PropType<UiTreeViewProps>, required: true },
     node: { default: undefined },
   },
   setup(props) {
@@ -319,8 +319,8 @@ const TreeViewFooter = defineComponent({
 });
 
 export function renderTreeView(
-  factory: UiFactory,
-  spec: UiTreeViewPropsType,
+  factory: VueUiFactory,
+  spec: UiTreeViewProps,
   loadChildren?: TreeChildrenLoader,
 ): VNode {
   return h(TreeView, { spec, factory, loadChildren });

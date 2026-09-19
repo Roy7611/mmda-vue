@@ -1,7 +1,7 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
 import type { UiCalendarProps, UiCalendarView } from '@mmda/core';
-import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
+import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, emitCalendarChange, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
 
 export function calendarPrimeView(
   view?: UiCalendarView,
@@ -12,6 +12,7 @@ export function calendarPrimeView(
   return 'date'
 }
 import { primeVueI18n } from "../prime_i18n";
+import { uiRenderProps } from "@mmda/core"
 
 function primeLocaleOf(locale?: string, firstDayOfWeek?: number) {
   if (!locale && firstDayOfWeek == null) return undefined;
@@ -70,7 +71,7 @@ export function createCalendar(props: UiCalendarProps) {
     DatePicker,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       inline: true,
       modelValue: bound ?? null,
       "onUpdate:modelValue": (next: Date | Date[] | null) =>

@@ -12,7 +12,7 @@ import {
 
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from '@mmda/core'
 
-import { VueUiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type ModuleToolbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext, ListSearchField } from '@mmda/vui'
+import { VueUiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from '@mmda/vui'
 
 import {
 
@@ -45,11 +45,10 @@ import { createAgNaiveFieldFactory } from './agnaive_field_factory'
 import { createAgNaiveUiFactory } from './agnaive_factory'
 
 import { agNaiveLayout } from './agnaive_layout'
+import { createAgPivotPlugin } from './plugins/pivot_table'
+import { createAgChartFactory } from './plugins/chart'
 
 import { wrapNaiveConfig } from './agnaive_provider'
-import { NIndexToolBar } from './components/NIndexToolBar'
-import { NDetailsToolBar } from './components/NDetailsToolBar'
-import { NEditToolBar } from './components/NEditToolBar'
 
 import { naiveSkinState, refreshNaiveThemeFromCss } from './agnaive_theme'
 
@@ -61,13 +60,13 @@ const invoke = (value: unknown): any =>
 
 
 
-type UiContext = UiViewContext<any>
+type UiContext = VueUiContext<any>
 
 
 
 export class AgNaiveUiBuilder extends VueUiBuilder {
 
-  declare readonly factory: UiFactory
+  declare readonly factory: VueUiFactory
 
 
 
@@ -85,11 +84,16 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
       fieldFactory,
 
-      factory.layout ?? agNaiveLayout,
+      agNaiveLayout,
 
       createAgNaiveOverlay(),
 
     )
+    this.use(createAgPivotPlugin())
+    this.use(chartAsPlugin(createAgChartFactory()))
+    if (typeof factory.timeline === 'function') {
+      this.use(timelineAsPlugin((props) => factory.timeline!(props)))
+    }
 
   }
 
@@ -493,31 +497,31 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     )
   }
 
-  buildIndexToolbar(
+  buildIndexTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: Parameters<VueUiBuilder['buildIndexTopbar']>[1],
     slots?: UiSlots,
   ) {
-    return h(NIndexToolBar, {
-      builder: this,
+    return paintIndexTopbar(
+      this,
       context,
-      toolbarProps: props ?? {},
+      props ?? {},
       slots,
-      extraMore: this.listLayoutMenuItems(context),
-    })
+      this.listLayoutMenuItems(context),
+    )
   }
 
-  buildDetailsToolbar(
+  buildDetailsTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: Parameters<VueUiBuilder['buildDetailsTopbar']>[1],
     slots?: UiSlots,
   ) {
-    return h(NDetailsToolBar, {
-      builder: this,
+    return paintDetailsTopbar(
+      this,
       context,
-      toolbarProps: props ?? {},
+      props ?? {},
       slots,
-      extraMore: pageLayoutMenuItems(context as any).map((item) =>
+      pageLayoutMenuItems(context as any).map((item) =>
         item.divider
           ? item
           : {
@@ -526,20 +530,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
               onAction: item.onAction ?? item.command,
             },
       ),
-    })
-  }
-
-  buildEditToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return h(NEditToolBar, {
-      builder: this,
-      context,
-      toolbarProps: props ?? {},
-      slots,
-    })
+    )
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
@@ -978,7 +969,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
         }
 
-        await (context as any).select(field)
+        await context.select(field)
 
       } catch (error) {
 

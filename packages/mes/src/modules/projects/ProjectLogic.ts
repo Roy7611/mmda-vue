@@ -29,7 +29,6 @@ import { confirmCenterNode, createSelectMaterialFooter } from './select_material
 import { cpSync } from 'fs';
 import { template } from 'lodash';
 import { ProjectStatus } from '../../enums/ProjectStatus';
-import type { UiBuildContext } from '@mmda/vui';
 //时间对比
 const compareTime = (time1: any, time2: any) => {
 	const date1 = new Date(time1).getTime();

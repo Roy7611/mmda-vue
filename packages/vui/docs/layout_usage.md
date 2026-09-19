@@ -19,7 +19,7 @@ layout.layoutField({
 })
 ```
 
-全局横竖改 `layout.fieldVertical`（默认 `false` = 横排）。单次字段也可 `fieldFactory.render(field, ctx, { fieldVertical: true })`（或 `orientation: 'vertical'`）走 Vert，不碰全局开关。`cards` / `tabs` 详情页默认横排。根 class 是 `mmda-field mmda-field--horizontal`（或 `--vertical`）。控件在 `.mmda-field-control`。校验文案由皮肤控件自绘，不要再传 message。
+全局横竖改 `layout.fieldVertical`（默认 `false` = 横排）。单次字段也可 `builder.buildField(field, ctx, { fieldVertical: true })`（或 `orientation: 'vertical'`）走 Vert，不碰全局开关。`cards` / `tabs` 详情页默认横排。根 class 是 `mmda-field mmda-field--horizontal`（或 `--vertical`）。控件在 `.mmda-field-control`。校验文案由皮肤控件自绘，不要再传 message。
 
 组间距可改 `layout.gap`（默认 `0.75rem`），作用于 `row` / `column` / `grid` / `listTile`。
 

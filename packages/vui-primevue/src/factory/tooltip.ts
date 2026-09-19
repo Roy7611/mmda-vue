@@ -5,7 +5,8 @@
 import { h, withDirectives } from 'vue'
 import Tooltip from 'primevue/tooltip'
 import type { UiTooltipProps, UiTooltipSlots } from '@mmda/vui'
-import { htmlAttributesOf, noopTooltipController, tooltipContentOf, tooltipDisabledOf, tooltipModifierClasses, tooltipOpensOnOf, tooltipPositionOf } from '@mmda/vui'
+import { noopTooltipController, tooltipContentOf, tooltipDisabledOf, tooltipModifierClasses, tooltipOpensOnOf, tooltipPositionOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
   const children = slots?.default?.() ?? []
@@ -16,7 +17,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
       'span',
       {
         class: tooltipModifierClasses(props),
-        ...htmlAttributesOf(props),
+        ...uiRenderProps(props).attributes,
       },
       children,
     )
@@ -34,7 +35,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
     'span',
     {
       class: tooltipModifierClasses(props),
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
     },
     children,
   )

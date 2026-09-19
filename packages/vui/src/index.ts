@@ -2,6 +2,8 @@ export * from './i18n/i18n'
 export {
   UI_CSS_PREFIX,
   uiCssClass,
+  htmlAttributesOf,
+  type HtmlAttributes,
   avatarModifierClasses,
   avatarPropsFromField,
   badgeModifierClasses,
@@ -32,17 +34,12 @@ export {
   inplaceEditorModifierClasses,
   isInplaceFieldEditorKey,
   noopInplaceEditorController,
-  advancedToQueryBuilderRule,
-  agAdvancedToEntity,
   defaultAdvancedColumn,
   defaultAdvancedJoin,
   defaultQueryBuilderOperators,
-  entityToAgAdvanced,
   queryBuilderColumnOf,
   queryBuilderColumnsOf,
-  queryBuilderColumnsToEj2,
   queryBuilderModifierClasses,
-  queryBuilderRuleToAdvanced,
   queryBuilderValueOf,
   queryBuilderValueTypeOf,
   type UiDialogSeverity,
@@ -70,10 +67,6 @@ export {
   type UiInplaceEditorController,
   type UiInplaceEditorProps,
   type UiInplaceEditorSlots,
-  type AgAdvancedFilterModel,
-  type AgColumnAdvancedFilter,
-  type AgJoinAdvancedFilter,
-  type QueryBuilderRuleModel,
   type UiQueryBuilderChoice,
   type UiQueryBuilderColumn,
   type UiQueryBuilderProps,
@@ -328,16 +321,7 @@ export {
   tagAutoCompleteUpdateOf,
 } from './ui/factory/tag_auto_complete'
 export { emitQueryBuilderChange } from './ui/factory/query_builder'
-export * from './ui/factory/gantt'
-export * from './ui/factory/ribbon'
-export * from './ui/factory/scheduler'
-export * from './ui/factory/pivot_table'
-export * from './ui/factory/chart'
-export * from './ui/factory/diagram'
-export * from './ui/factory/markdown_editor'
-export * from './ui/factory/image_editor'
-export * from './ui/factory/kanban'
-export * from './ui/factory/ai_assistant'
+export * from './ui/plugins'
 export * from './components/EntityView'
 export * from './ui/layout'
 export * from './ui/factory/action'
@@ -362,7 +346,6 @@ export * from './ui/factory/sidebar'
 export * from './ui/factory/tabs'
 export * from './ui/factory/toolbar'
 export * from './ui/factory/splitter'
-export * from './ui/factory/timeline'
 export {
   LOADING_WIDTH_LARGE,
   LOADING_WIDTH_MEDIUM,
@@ -398,12 +381,11 @@ export * from './ui/factory/tree_grid'
 export * from './ui/builder/tree_category'
 export * from './ui/factory/tree_category_list'
 export * from './ui/factory/auth'
+export * from './ui/vue_ui_props'
 export * from './ui/factory'
 export * from './ui/field_factory'
-export * from './ui/factory/field_row'
 export * from './ui/builder'
-export * from './ui/builder/module_toolbar'
-export * from './ui/builder/toolbar_paint'
+export * from './ui/builder/topbar'
 export * from './ui/overlay'
 export * from './app/app'
 export * from './logic/logic'

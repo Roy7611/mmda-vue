@@ -29,7 +29,7 @@ describe('createSfDiagramEditorPlugin', () => {
 
   it('renders diagramView host with type and hides palette when readonly', () => {
     const plugin = createSfDiagramPlugin()
-    const vnode = plugin.diagramView({
+    const vnode = plugin.buildUi({} as any, {
       diagramType: 'workflow',
       readonly: true,
       nodes: [{ id: 'a', text: 'A' }],

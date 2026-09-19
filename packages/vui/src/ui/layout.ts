@@ -2,7 +2,7 @@ import { h, type VNode } from 'vue'
 import {
   AbstractUiLayout,
   uiCssClass,
-  uiCssClasses,
+  uiClassModifiers,
   type UiAppLayoutVariant,
   type UiAppScaffoldSlots,
   type UiFieldGroupLayout,
@@ -14,10 +14,7 @@ import {
 } from '@mmda/core'
 import type { ChildSlot } from '../contexts/view'
 import { PageBody } from '../components/PageBody'
-import {
-  readStoredPageLayout,
-  writeStoredPageLayout,
-} from '../app/theme'
+import { readStoredPageLayout } from '../app/theme'
 
 export type {
   UiOrientation,
@@ -42,8 +39,6 @@ export type {
   UiAppScaffoldSlots,
 } from '@mmda/core'
 
-export { htmlAttributesOf, placeFields } from '@mmda/core'
-
 export type UiSlots = {
   [index: string]: any
   default?: ChildSlot
@@ -64,28 +59,14 @@ function layoutDomProps(
   }
 }
 
-function normalizePageLayout(value: unknown): UiPageLayout {
-  return value === 'tabs' ? 'tabs' : 'cards'
-}
-
 export class VueUiLayout extends AbstractUiLayout<VNode> {
-  #pageLayout: UiPageLayout = readStoredPageLayout()
+  override pageLayout: UiPageLayout = readStoredPageLayout()
 
   fieldGroupLayout: UiFieldGroupLayout = {
     type: 'grid',
     gridCols: 2,
   }
   maxCols = 12
-
-  get pageLayout(): UiPageLayout {
-    return this.#pageLayout
-  }
-
-  set pageLayout(value: UiPageLayout) {
-    const next = normalizePageLayout(value)
-    this.#pageLayout = next
-    writeStoredPageLayout(next)
-  }
 
   protected wrap(tag: string, props: UiWrapProps, children: VNode[]): VNode {
     return h(
@@ -149,7 +130,7 @@ export class VueUiLayout extends AbstractUiLayout<VNode> {
       return h(
         'section',
         {
-          class: uiCssClasses('page', 'tabs'),
+          class: uiClassModifiers('page', 'tabs'),
           style: {
             display: 'flex',
             flexDirection: 'column',

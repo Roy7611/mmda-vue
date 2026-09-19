@@ -6,10 +6,10 @@ import {
   watch,
 } from "vue";
 import type { Module, ModuleAuth } from "@mmda/core";
-import { isActionVisible, type UiAction, type UiViewContext } from "@mmda/vui"
+import { isActionVisible, type UiAction, type VueUiContext } from "@mmda/vui"
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 
-export type UiContext = UiViewContext<any>;
+export type UiContext = VueUiContext<any>;
 
 const SfSearchTextInput = defineComponent({
   name: "SfSearchTextInput",

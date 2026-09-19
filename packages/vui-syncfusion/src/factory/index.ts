@@ -1,6 +1,6 @@
 import { h } from "vue";
-import type { UiProps, SyncfusionUiFactory, UiSlots } from "@mmda/vui"
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry } from "@mmda/vui"
+import type { UiProps, VueUiFactory, UiSlots } from "@mmda/vui"
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry, vueUpdateOf } from "@mmda/vui"
 import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid_inject";
 import { createTableRenderer } from "./table";
@@ -65,12 +65,11 @@ export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid_inject";
-export function createSyncfusionUiFactory(): SyncfusionUiFactory {
+export function createSyncfusionUiFactory(): VueUiFactory {
   patchChoiceFilter();
   const button = createButton;
 
   const factory: any = {
-    layout: syncfusionLayout,
     nativeInplaceEdit: true,
     actionIcons: {
       details: "e-icons e-eye",
@@ -231,7 +230,7 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
             createTextInput({
               ...props,
               value: props.modelValue,
-              onChange: props.onChange ?? props.onUpdate ?? props["onUpdate:modelValue"],
+              onChange: props.onChange ?? vueUpdateOf(props),
             }),
         ],
       ),
@@ -262,5 +261,5 @@ export function createSyncfusionUiFactory(): SyncfusionUiFactory {
     });
   bindListDisplayRenderers(factory);
 
-  return factory as SyncfusionUiFactory;
+  return factory as VueUiFactory;
 }

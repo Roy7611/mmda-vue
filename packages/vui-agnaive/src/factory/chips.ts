@@ -10,10 +10,10 @@ import {
   chipsModifierClasses,
   createIconVNode,
   emitChipsChange,
-  htmlAttributesOf,
   isChipsRemovable,
-  toggleChipSelection,
+  toggleChipSelection
 } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 /** Naive NTag.type：secondary→default，danger→error。 */
 export function naiveChipType(
@@ -38,7 +38,7 @@ export function createChips(
   return h(
     'div',
     {
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       class: [...chipsModifierClasses(props)].flat(),
     },
     items.map((item, index) => {

@@ -1,7 +1,8 @@
 import { h } from "vue";
 import Rating from "primevue/rating";
 import type { UiRatingProps } from "@mmda/vui"
-import { emitRatingChange, htmlAttributesOf, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from "@mmda/vui"
+import { emitRatingChange, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createRating(props: UiRatingProps) {
   const {
@@ -32,7 +33,7 @@ export function createRating(props: UiRatingProps) {
     Rating as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       modelValue: ratingValueOf(props),
       stars: ratingItemsCountOf(props),
       readonly: ratingReadOnlyOf(props),

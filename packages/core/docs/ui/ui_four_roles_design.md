@@ -46,7 +46,7 @@ flowchart TB
   cx --> grp[buildFieldGroup]
   cx --> sub[buildSubGroup]
   ex --> fact
-  grp --> fld[fieldFactory.render]
+  grp --> fld[builder.buildField]
   sub --> fact
 ```
 
@@ -61,12 +61,12 @@ AppShell
 Entity 路由 / context.select
   buildIndexView | buildSelectView | buildDetailsView | buildEditView
     → buildEntityView
-         many → layoutIndexPage(toolbar=buildIndexToolbar, filterBar, default=factory.table|grid|list|treeGrid, footer=factory.paginator)
+         many → layoutIndexPage(topbar=buildIndexTopbar, filterBar, default=factory.table|grid|list|treeGrid, footer=factory.paginator)
                  （categoryList → buildExplorer）
                  （gantt/timeline/… → buildXxxView，插件未装则 throw）
          one  → 扫 metaUi.groups
                   many ? buildSubGroup → factory.grid|treeGrid
-                       : buildFieldGroup → fieldFactory.render（内含 layoutField）
+                       : buildFieldGroup → builder.buildField（内含 layoutField）
 ```
 
 登录路由：页内 `ui.buildSigninForm(...)`（不要 `factory.signinForm`）。
@@ -85,7 +85,7 @@ Entity 路由 / context.select
 
 ### Module
 
-`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildEntityView` · `buildIndexToolbar` · `buildDetailsToolbar` · `buildEditToolbar` · `buildSearchView`
+`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildEntityView` · `buildIndexTopbar` · `buildDetailsTopbar` · `buildEditTopbar` · `buildSearchView`
 
 ### Module / 插件页（可选）
 
@@ -106,7 +106,7 @@ Entity 路由 / context.select
 | `buildListView` / `buildTableView` / `buildGridView` / `buildTreeGridView` | Index 内直接拼 factory + toolbar |
 | `buildContainer` / `buildHeader` / `buildMain` / `buildFooter` / `buildAside` | 仍走 Builder（列表等还在用） |
 | `buildAppScaffold` | `UiLayout.scaffold` |
-| `buildField` | `fieldFactory.render`（或 `editFor` / `displayFor`） |
+| `buildField` | `builder.buildField`（或 `editFor` / `displayFor`） |
 | `buildCustomView` | 插件 `resolveCustomView`（整页覆盖） |
 
 ## fieldFactory 三入口
@@ -123,7 +123,7 @@ Entity 路由 / context.select
 - **具名 renderer 仍是裸控件**；表格单元格用具名方法，**不要**走这三条（会带标签）
 - **没有** `fieldFactory.timeline`：时间轴走 `factory.timeline` / `buildTimeline`
 
-vui 构造 Builder 时 `attachFieldRowApi(fieldFactory, layout)` 挂上三入口并注入 `layout`。
+vui 构造 Builder 时 `字段行入口在 Builder（`WithForm` mixin）。
 
 ## layout 两层
 
@@ -145,8 +145,8 @@ vui 构造 Builder 时 `attachFieldRowApi(fieldFactory, layout)` 挂上三入口
 
 | 旧写法 | 新写法 |
 |---|---|
-| `ui.buildField(field, ctx)` | `ui.fieldFactory.render(field, ctx)` |
-| `ui.editFor` / `displayFor`（裸控件） | 裸控件 → 具名 `fieldFactory.textInput` 等；带行 → `fieldFactory.editFor` / `displayFor` |
+| `ui.buildField(field, ctx)` | `ui.buildField(field, ctx)` |
+| `ui.editFor` / `displayFor`（裸控件） | 裸控件 → 具名 `fieldFactory.textInput` 等；带行 → `builder.editFor` / `displayFor` |
 | `ui.buildTable(rows, meta, props)` | `ui.factory.table(rows, meta, props)` |
 | `ui.buildContainer([...])` | 仍 `ui.buildContainer([...])` |
 | `ui.buildAppScaffold({...})` | `layout.scaffold({...})` |

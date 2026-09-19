@@ -10,7 +10,7 @@ import {
   type UiFilterBarProps,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { UiFactory } from "../factory";
+import type { VueUiFactory } from "../factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
 import {
@@ -247,7 +247,7 @@ export function listFixedFilterChipGroups(context: VueUiContext<any>) {
 }
 
 function iconButton(
-  factory: UiFactory,
+  factory: VueUiFactory,
   className: string,
   icon: string,
   title: string,
@@ -268,7 +268,7 @@ function iconButton(
 export const ListFilterBarView = defineComponent({
   name: "ListFilterBarView",
   props: {
-    factory: { type: Object as PropType<UiFactory>, required: true },
+    factory: { type: Object as PropType<VueUiFactory>, required: true },
     context: { type: Object as PropType<VueUiContext<any>>, required: true },
     extra: { type: Object as PropType<UiFilterBarProps>, default: () => ({}) },
   },
@@ -283,7 +283,7 @@ export const ListFilterBarView = defineComponent({
 });
 
 export function createListFilterBar(
-  factory: UiFactory,
+  factory: VueUiFactory,
   context: VueUiContext<any>,
   props: UiFilterBarProps = {},
 ): VNode {

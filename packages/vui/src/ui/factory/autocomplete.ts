@@ -1,10 +1,9 @@
 import type { UiAutoCompleteProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
-/** Vue v-model 袋键：优先 `onUpdate`，否则 `onUpdate:modelValue`。 */
+/** Vue v-model 写入回调：`onUpdate` → `onUpdate:modelValue`（归一在 `vueUpdateOf`）。 */
 export function autoCompleteUpdateOf(
   props?: UiAutoCompleteProps,
 ): ((value: string) => void) | undefined {
-  if (props?.onUpdate) return props.onUpdate
-  const bag = props?.['onUpdate:modelValue']
-  return typeof bag === 'function' ? (bag as (value: string) => void) : undefined
+  return vueUpdateOf<string>(props)
 }

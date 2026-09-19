@@ -1,4 +1,4 @@
-import { type Module, uiCssClass, uiCssClasses } from '@mmda/core'
+import { type Module, uiCssClass, uiClassModifiers } from '@mmda/core'
 import {
   computed,
   defineComponent,
@@ -570,7 +570,7 @@ export const SfAppSideMenu = defineComponent({
           {
             ref: sidebarRef,
             id: DOCK_SIDEBAR_ID,
-            class: uiCssClasses('sidebar', 'dock'),
+            class: uiClassModifiers('sidebar', 'dock'),
             // Docking Sidebar docs
             enableDock: true,
             dockSize: dockSize.value,
@@ -632,7 +632,7 @@ export const SfAppSideMenu = defineComponent({
         h('div', { class: uiCssClass('sidebar', 'body') }, [
           renderModuleTree(
             items,
-            uiCssClasses('app-side-menu', 'accordion'),
+            uiClassModifiers('app-side-menu', 'accordion'),
           ),
         ]),
         props.footer

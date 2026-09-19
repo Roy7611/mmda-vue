@@ -4,8 +4,9 @@ import {
   RIBBON_PLUGIN_NOT_INSTALLED,
   ribbonHookClass,
   unimplementedRibbonPlugin,
-  type UiRibbonPlugin,
-} from '../ui/factory/ribbon'
+  UiPluginName,
+  type UiPlugin,
+} from '@mmda/core'
 import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
@@ -26,42 +27,44 @@ const sampleTabs = [
 ]
 
 describe('ui ribbon contract', () => {
-  it('throws until setRibbonPlugin', () => {
+  it('throws until ribbon plugin is used', () => {
     const ui = new TestUiBuilder()
-    expect(() => ui.ribbonPlugin.ribbon({ tabs: sampleTabs })).toThrow(
-      RIBBON_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() => ui.buildRibbon({ tabs: sampleTabs })).toThrow(
+    expect(() => ui.requirePlugin(UiPluginName.ribbon)).toThrow(
       RIBBON_PLUGIN_NOT_INSTALLED,
     )
     expect(unimplementedRibbonPlugin().ribbon).toBeTypeOf('function')
   })
 
-  it('uses the plugin after setRibbonPlugin', () => {
+  it('uses plugin().buildUi after use()', () => {
     const ui = new TestUiBuilder()
-    const plugin: UiRibbonPlugin = {
-      ribbon: (props) =>
+    const plugin: UiPlugin = {
+      name: UiPluginName.ribbon,
+      buildUi: (_ctx, props) =>
         h('div', {
           class: 'mmda-ribbon',
-          'data-tabs': props.tabs.length,
+          'data-tabs': (props as { tabs?: unknown[] })?.tabs?.length ?? 0,
         }),
     }
-    ui.setRibbonPlugin(plugin)
-    const node = ui.buildRibbon({ tabs: sampleTabs })
+    ui.use(plugin)
+    const node = ui.plugin(UiPluginName.ribbon)!.buildUi({} as any, {
+      tabs: sampleTabs,
+    })
     expect(node.props?.['data-tabs']).toBe(1)
   })
 
-  it('stub builder throws until a plugin is set', () => {
+  it('stub builder throws until a plugin is used', () => {
     const stub = createStubUiBuilder()
-    expect(() => stub.buildRibbon({ tabs: sampleTabs })).toThrow(
+    expect(() => stub.requirePlugin(UiPluginName.ribbon)).toThrow(
       RIBBON_PLUGIN_NOT_INSTALLED,
     )
-    stub.setRibbonPlugin({
-      ribbon: () => h('div', { class: 'mmda-ribbon' }),
+    stub.use({
+      name: UiPluginName.ribbon,
+      buildUi: () => h('div', { class: 'mmda-ribbon' }),
     })
-    expect(stub.buildRibbon({ tabs: sampleTabs }).props?.class).toBe(
-      'mmda-ribbon',
-    )
+    expect(
+      stub.plugin(UiPluginName.ribbon)!.buildUi({} as any, { tabs: sampleTabs })
+        .props?.class,
+    ).toBe('mmda-ribbon')
     expect(ribbonHookClass()).toEqual(['mmda-ribbon', undefined])
   })
 })

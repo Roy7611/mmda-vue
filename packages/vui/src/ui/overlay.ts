@@ -10,18 +10,12 @@ import {
   type UiConfirmProps,
   type UiDialogAction,
   type UiDialogProps,
-  type UiDialogSeverity,
+  type UiMessageProps,
   type UiToastProps,
 } from '@mmda/core'
 
 /** core UiOverlay 钉成 VNode；无额外方法则 type 别名。 */
 export type VueUiOverlay = CoreUiOverlay<VNode>
-/** @deprecated 用 VueUiOverlay */
-export type UiOverlay = VueUiOverlay
-/** 弹层内容；框架节点具象为 VNode。 */
-export type UiDialogContent = VNode | VNode[]
-/** @deprecated 用 UiDialogSeverity */
-export type UiToastSeverity = UiDialogSeverity
 
 function buttonLabel(button: UiDialogAction): string {
   const defaults: Record<UiDialogAction, string> = {
@@ -46,6 +40,12 @@ export function createHtmlOverlay(): VueUiOverlay {
       node.textContent = [props.title, props.message].filter(Boolean).join(' ')
       document.body.append(node)
       setTimeout(() => node.remove(), props.life ?? 3000)
+    },
+    message(props: UiMessageProps) {
+      this.toast({
+        severity: props.severity,
+        message: props.content,
+      })
     },
     confirm(props: UiConfirmProps) {
       if (typeof window === 'undefined') return Promise.resolve(false)

@@ -23,6 +23,7 @@ import type {
   UiSidebarProps,
   UiSidebarType,
 } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type UiSidebarSlots = UiSlots
 
@@ -121,8 +122,7 @@ export function emitSidebarChange(
 ): void {
   const next = isTrue(isOpen)
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }
 
 export { sidebarModifierClasses } from '@mmda/core'

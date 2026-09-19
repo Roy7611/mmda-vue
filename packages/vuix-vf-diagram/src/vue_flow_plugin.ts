@@ -8,20 +8,22 @@ import type {
   UiDiagramConnector,
   UiDiagramNode,
   UiDiagramPaletteGroup,
-  UiDiagramPlugin,
   UiDiagramType,
   UiDiagramProps,
 } from '@mmda/vui'
 import {
   diagramHookClass,
+  diagramReadonlyOf,
   emitDiagramUpdate,
-  htmlAttributesOf,
   resolveDiagramPalette,
+  UiPluginName,
+  type UiPlugin
 } from '@mmda/vui'
 import {
   vuiConnectorToVueFlow,
   vuiNodeToVueFlow,
 } from './vue_flow_map'
+import { uiRenderProps } from '@mmda/core'
 
 const FlowCanvas = defineAsyncComponent(async () => {
   try {
@@ -73,10 +75,16 @@ export const VueFlowDiagramView = defineComponent({
     readonly: { type: Boolean, default: false },
     class: { type: [String, Array, Object], default: undefined },
     onSelect: Function as PropType<UiDiagramProps['onSelect']>,
-    onUpdate: Function as PropType<UiDiagramProps['onUpdate']>,
-    'onUpdate:nodes': Function as PropType<UiDiagramProps['onUpdate:nodes']>,
+    onNodesChange: Function as PropType<UiDiagramProps['onNodesChange']>,
+    onConnectorsChange: Function as PropType<
+      UiDiagramProps['onConnectorsChange']
+    >,
+    // Vue 的 v-model:nodes / v-model:connectors 糖（运行时入参，不进 core 契约）
+    'onUpdate:nodes': Function as PropType<
+      NonNullable<UiDiagramProps['onNodesChange']>
+    >,
     'onUpdate:connectors': Function as PropType<
-      UiDiagramProps['onUpdate:connectors']
+      NonNullable<UiDiagramProps['onConnectorsChange']>
     >,
     renderAside: Function as PropType<UiDiagramProps['renderAside']>,
   },
@@ -132,7 +140,7 @@ export const VueFlowDiagramView = defineComponent({
         'div',
         {
           class: diagramHookClass(props.class, props.readonly),
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
           'data-diagram-type': props.diagramType,
           'data-engine': 'vue-flow',
         },
@@ -153,9 +161,19 @@ export const VueFlowDiagramView = defineComponent({
   },
 })
 
-export function createVueDiagramPlugin(): UiDiagramPlugin {
+export function createVueDiagramPlugin(): UiPlugin {
   return {
-    diagramView: (props) => h(VueFlowDiagramView, props as any),
+    name: UiPluginName.diagram,
+    buildUi(context, props) {
+      const next = {
+        ...(props as UiDiagramProps),
+        readonly: diagramReadonlyOf(
+          props as UiDiagramProps,
+          String(context?.view ?? ''),
+        ),
+      }
+      return h(VueFlowDiagramView, next as any)
+    },
   }
 }
 

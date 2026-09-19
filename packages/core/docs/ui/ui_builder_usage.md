@@ -15,7 +15,7 @@
 
 | 旧 | 新 |
 |---|---|
-| `buildField` | `fieldFactory.render` |
+| `buildField` | `builder.buildField` |
 | `buildTable` 等 | `factory.table` 等 |
 | `buildAppScaffold` | `AppLayout.scaffold` |
 | `buildView` | `buildEntityView` |

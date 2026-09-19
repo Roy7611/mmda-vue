@@ -167,7 +167,7 @@ describe("TreeGrid builder", () => {
       ],
     });
     const context = new VueUiContext({
-      model: { list: [{ categoryID: "1", categoryName: "根" }] },
+      model: [{ categoryID: "1", categoryName: "根" }],
       metaUi,
       view: "index",
     });
@@ -182,7 +182,7 @@ describe("TreeGrid builder", () => {
     };
     const builder = new TestUiBuilder();
     const spy = vi.spyOn(builder, "buildTreeGridView");
-    builder.build(context);
+    builder.buildSelectView(context);
     expect(spy).toHaveBeenCalled();
   });
 });
@@ -230,13 +230,12 @@ describe("index pagination wiring", () => {
       captured = props;
       return h("div", { class: "mmda-table" });
     };
-    const vnode = builder.buildListView(context);
+    const vnode = builder.buildIndexTable(context);
     expect(captured.pagination).toMatchObject({
       pageNo: 2,
       pageSize: 20,
       recordCount: 40,
     });
-    expect(captured.onPage).toBeTypeOf("function");
     expect(hasUnimplemented(vnode, "paginator")).toBe(false);
   });
 });

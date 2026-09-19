@@ -22,7 +22,6 @@ import { type MaterialTransReason, defineMaterialTransReason } from '@/models/Ma
 import { materialRItemNode } from './MaterialRItem/MaterialRItem';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
 import { ProductionOrder } from '@/models/ProductionOrder';
-import type { UiBuildContext } from '@mmda/vui';
 /**
  * 移料单交互逻辑
  * @author mmda codebot

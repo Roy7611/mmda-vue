@@ -7,16 +7,17 @@ import {
 import type {
   UiKanbanCard,
   UiKanbanColumn,
-  UiKanbanPlugin,
   UiKanbanProps,
 } from '@mmda/vui'
 import {
-  htmlAttributesOf,
   kanbanAddCardEnabled,
   kanbanDragEnabled,
   kanbanHookClass,
+  UiPluginName,
+  type UiPlugin
 } from '@mmda/vui'
 import { svarCardToUi, uiCardToSvar, uiColumnsToSvar } from './map'
+import { uiRenderProps } from '@mmda/core'
 
 function cssSize(value: string | number | undefined, fallback: string) {
   if (value == null) return fallback
@@ -105,7 +106,6 @@ export const VueKanbanView = defineComponent({
           fromStatus: card.status,
           toStatus: ev.column,
           beforeId: ev.before ?? null,
-          native: ev,
         })
         return result !== false
       })
@@ -118,7 +118,6 @@ export const VueKanbanView = defineComponent({
         const result = props.onCardChange?.({
           action: 'add',
           card: mapped,
-          native: ev,
         })
         return result !== false
       })
@@ -128,7 +127,6 @@ export const VueKanbanView = defineComponent({
         const result = props.onCardChange?.({
           action: 'delete',
           card,
-          native: ev,
         })
         return result !== false
       })
@@ -138,7 +136,6 @@ export const VueKanbanView = defineComponent({
         const result = props.onCardChange?.({
           action: 'update',
           card: { ...card, ...svarCardToUi({ ...card, ...(ev.card ?? {}) }) },
-          native: ev,
         })
         return result !== false
       })
@@ -162,7 +159,7 @@ export const VueKanbanView = defineComponent({
             width: cssSize(props.width, '100%'),
             height: cssSize(props.height, '70vh'),
           },
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
           onDblclick: (event: MouseEvent) => {
             const host = (event.target as HTMLElement | null)?.closest?.(
               '[data-id]',
@@ -189,8 +186,11 @@ export const VueKanbanView = defineComponent({
   },
 })
 
-export function createVueKanbanPlugin(): UiKanbanPlugin {
+export function createVueKanbanPlugin(): UiPlugin {
   return {
-    kanbanView: (props) => h(VueKanbanView, props as any),
+    name: UiPluginName.kanban,
+    buildUi(_context, props) {
+      return h(VueKanbanView, props as any)
+    },
   }
 }

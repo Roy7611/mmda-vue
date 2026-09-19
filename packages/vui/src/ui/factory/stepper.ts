@@ -1,4 +1,5 @@
 import { callUiBagFn, type UiStepperProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   UiStepperDisplay,
@@ -21,6 +22,5 @@ export {
 /** Vue v-model：`onUpdate:modelValue` / `onUpdate`。 */
 export function emitStepperChange(props: UiStepperProps, value: number): void {
   props.onChange?.(value)
-  callUiBagFn(props, 'onUpdate:modelValue', value)
-  callUiBagFn(props, 'onUpdate', value)
+  vueUpdateOf(props)?.(value)
 }

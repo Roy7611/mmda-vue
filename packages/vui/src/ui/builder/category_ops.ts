@@ -9,7 +9,7 @@ import {
   treeIdOf,
   treeLabelFieldName,
   treeParentFieldName,
-  type UiTreeViewPropsType,
+  type UiTreeViewProps,
 } from "../factory/tree";
 
 type UiContext = VueUiContext<any>;
@@ -44,7 +44,7 @@ export async function resolveCategoryTreeLogic(
 }
 
 export async function refreshCategoryTree<T>(
-  props: UiTreeViewPropsType<T>,
+  props: UiTreeViewProps<T>,
   logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> },
 ) {
   if (props.onTreeRefresh) {
@@ -65,7 +65,7 @@ export async function refreshCategoryTree<T>(
 
 export async function deleteCategoryTreeNodeData<T>(
   context: UiContext,
-  props: UiTreeViewPropsType<T>,
+  props: UiTreeViewProps<T>,
   node: T,
 ) {
   const repository = props.repository;
@@ -97,7 +97,7 @@ export async function deleteCategoryTreeNodeData<T>(
 
 export async function renameCategoryTreeNodeData<T>(
   context: UiContext,
-  props: UiTreeViewPropsType<T>,
+  props: UiTreeViewProps<T>,
   node: T,
   text: string,
 ) {
@@ -115,7 +115,7 @@ export async function renameCategoryTreeNodeData<T>(
 
 export async function moveCategoryTreeNodeData<T>(
   context: UiContext,
-  props: UiTreeViewPropsType<T>,
+  props: UiTreeViewProps<T>,
   node: T,
   parent: T | undefined,
 ) {

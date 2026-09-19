@@ -1,4 +1,5 @@
 import { callUiBagFn, type UiTextInputProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   UiTextInputProps,
@@ -32,6 +33,5 @@ export function emitTextInputChange(
   }
   const next = unpacked == null ? '' : String(unpacked)
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }

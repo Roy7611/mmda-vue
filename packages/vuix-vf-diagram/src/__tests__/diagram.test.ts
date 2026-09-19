@@ -31,7 +31,7 @@ describe('createVueDiagramPlugin', () => {
 
   it('returns a diagramView host', () => {
     const plugin = createVueDiagramPlugin()
-    const vnode = plugin.diagramView({
+    const vnode = plugin.buildUi({} as any, {
       diagramType: 'dataflow',
       readonly: true,
       nodes: [{ id: 'p1', text: 'Process' }],

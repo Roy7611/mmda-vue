@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NTabPane, NTabs } from 'naive-ui'
 import type { UiNormalizedTabItem, UiTabsProps } from '@mmda/vui'
-import { emitTabsChange, htmlAttributesOf, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsNaivePlacementOf, tabsValueOf } from '@mmda/vui'
+import { emitTabsChange, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsNaivePlacementOf, tabsValueOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function tabLabel(item: UiNormalizedTabItem) {
   return item.header.text ?? ''
@@ -32,7 +33,7 @@ export function createTabs(props: UiTabsProps) {
     NTabs,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value: selectedName,
       placement: tabsNaivePlacementOf(props),
       class: tabsModifierClasses(props).flat(),

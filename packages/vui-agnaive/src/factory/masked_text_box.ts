@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NInput } from 'naive-ui'
 import type { UiMaskedTextBoxProps } from '@mmda/vui'
-import { emitMaskedTextBoxChange, htmlAttributesOf, maskedTextBoxModifierClasses, maskedTextBoxValueOf } from '@mmda/vui'
+import { emitMaskedTextBoxChange, maskedTextBoxModifierClasses, maskedTextBoxValueOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createMaskedTextBox(props: UiMaskedTextBoxProps) {
   const {
@@ -18,7 +19,7 @@ export function createMaskedTextBox(props: UiMaskedTextBoxProps) {
 
   return h(NInput, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: maskedTextBoxValueOf(props),
     placeholder: placeholder || mask,
     disabled: disabled === true,

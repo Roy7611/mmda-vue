@@ -41,7 +41,7 @@ export const dropDownList = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -60,7 +60,7 @@ export const treeSelect = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -77,7 +77,7 @@ export const comboBox = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -90,7 +90,7 @@ function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 }
@@ -117,7 +117,7 @@ export const multiSelect = (
     field,
     context,
     createMultiSelect(
-      multiSelectPropsFromField(field, context as any, props ?? {}),
+      multiSelectPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -130,7 +130,7 @@ export const multiItemSelect = (
     field,
     context,
     createMultiItemSelect(
-      multiItemSelectPropsFromField(field, context as any, props ?? {}),
+      multiItemSelectPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -143,7 +143,7 @@ export const multiValueSelect = (
     field,
     context,
     createMultiValueSelect(
-      multiValueSelectPropsFromField(field, context as any, props ?? {}),
+      multiValueSelectPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -156,7 +156,7 @@ export const multiTextSelect = (
     field,
     context,
     createMultiTextSelect(
-      multiTextSelectPropsFromField(field, context as any, props ?? {}),
+      multiTextSelectPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -169,7 +169,7 @@ export const multiBitSelect = (
     field,
     context,
     createMultiBitSelect(
-      multiBitSelectPropsFromField(field, context as any, props ?? {}),
+      multiBitSelectPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -182,7 +182,7 @@ export const checkBoxList = (
     field,
     context,
     createCheckBoxList(
-      checkBoxListPropsFromField(field, context as any, props ?? {}),
+      checkBoxListPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -195,7 +195,7 @@ export const bitCheckBoxList = (
     field,
     context,
     createBitCheckBoxList(
-      bitCheckBoxListPropsFromField(field, context as any, props ?? {}),
+      bitCheckBoxListPropsFromField(field, context, props ?? {}),
     ),
   );
 
@@ -209,7 +209,7 @@ export const tagAutoComplete = (
     context,
     createTagAutoComplete(tagAutoCompletePropsFromField(
       field,
-      context as any,
+      context,
       props ?? {},
     )),
   );
@@ -227,7 +227,7 @@ export const checkbox = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -244,7 +244,7 @@ export const switchControl = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -325,7 +325,7 @@ export const searchBox = (
       }
     },
     toSearch: async () => {
-      const picked = await (context as any).select(field);
+      const picked = await context.select(field);
       if (picked) fldOptions.currentSelectOption = picked;
       return true;
     },
@@ -353,7 +353,7 @@ export const autoComplete = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };

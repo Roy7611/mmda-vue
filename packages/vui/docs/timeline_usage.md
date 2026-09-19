@@ -20,10 +20,10 @@ factory.timeline({
 ```ts
 import { createTempisTimelinePlugin } from '@mmda/vuix-tempis-timeline'
 
-ui.setTimelinePlugin(createTempisTimelinePlugin())
+ui.use(createTempisTimelinePlugin())
 ```
 
-区间条用 `startField` / `endField`。卸插件：`ui.setTimelinePlugin(null)`。
+区间条用 `startField` / `endField`。后装覆盖：再 `ui.use(timelineAsPlugin(skinTimeline))`。
 
 字段：
 

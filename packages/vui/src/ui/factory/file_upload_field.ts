@@ -31,11 +31,11 @@ async function editImageFromContext(
   src: string,
 ): Promise<File | void> {
   const ui = context.uiBuilder
-  if (ui?.imageEditorPlugin?.installed !== true || !ui.buildImageEditor) {
+  if (!ui?.hasPlugin?.('image-editor')) {
     return
   }
   return new Promise((resolve) => {
-    const node = ui.buildImageEditor({
+    const node = ui.plugin?.('image-editor')?.buildUi(context as any, {
       src,
       onSave: (result: { blob: Blob }) => {
         const name = src.split(/[\\/]/).pop() || 'image.png'
@@ -108,7 +108,7 @@ export function renderImageUploaderField(
 ): VNode {
   const showImageEditor =
     extra.showImageEditor === true ||
-    context.uiBuilder?.imageEditorPlugin?.installed === true
+    context.uiBuilder?.hasPlugin?.('image-editor') === true
   const props = imageUploaderPropsFromField(field, context, {
     ...extra,
     showImageEditor,
@@ -127,7 +127,7 @@ export function renderImagesUploaderField(
 ): VNode {
   const showImageEditor =
     extra.showImageEditor === true ||
-    context.uiBuilder?.imageEditorPlugin?.installed === true
+    context.uiBuilder?.hasPlugin?.('image-editor') === true
   return createImagesUploader(
     imagesUploaderPropsFromField(field, context, {
       ...extra,

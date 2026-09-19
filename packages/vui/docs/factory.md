@@ -65,14 +65,14 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`sidebar.ts`](../src/ui/factory/sidebar.ts) | 侧栏 `factory.sidebar`；`factory.drawer` 是 Over 特化。见 [Sidebar](./sidebar.md)、[怎么写](./sidebar_usage.md) |
 | [`splitter.ts`](../src/ui/factory/splitter.ts) | 分隔栏 `factory.splitter(panes, props)`。pane 不是 panel。见 [Splitter](./splitter.md)、[怎么写](./splitter_usage.md) |
 | [`tabs.ts`](../src/ui/factory/tabs.ts) | 页签 `factory.tabs`。value 是下标；headerPlacement / scrollable。见 [Tabs](./tabs.md)、[怎么写](./tabs_usage.md) |
-| [`toolbar.ts`](../src/ui/factory/toolbar.ts) | 三栏壳 `factory.toolbar`（Prime `start`/`center`/`end`）。**不是** EJ2 items。见 [Toolbar](./toolbar.md)、[怎么写](./toolbar_usage.md) |
+| [`toolbar.ts`](../src/ui/factory/toolbar.ts) | 原生命令条 `factory.toolbar`。页头见 [Topbar](./topbar.md)。见 [Toolbar](./toolbar.md)、[怎么写](./toolbar_usage.md) |
 | [`number_input.ts`](../src/ui/factory/number_input.ts) | 数值输入 `factory.numberInput`；format 用 EJ2 语法。见 [NumberInput](./number_input.md)、[怎么写](./number_input_usage.md) |
 | [`text_input.ts`](../src/ui/factory/text_input.ts) | 单行文本 `factory.textInput`。见 [TextInput](./text_input.md)、[怎么写](./text_input_usage.md) |
 | [`text_area.ts`](../src/ui/factory/text_area.ts) | 多行文本 `factory.textArea`。resizeMode 用 EJ2。见 [TextArea](./text_area.md)、[怎么写](./text_area_usage.md) |
 | [`progress_bar.ts`](../src/ui/factory/progress_bar.ts) | 进度条 `factory.progressBar`；值 0–100。**不是** `factory.loading`。见 [ProgressBar](./progress_bar.md)、[怎么写](./progress_bar_usage.md) |
 | [`signature_pad.ts`](../src/ui/factory/signature_pad.ts) | 签名面板 `factory.signaturePad`；值 PNG data URL。**不是** `imageEditor`。见 [SignaturePad](./signature_pad.md)、[怎么写](./signature_pad_usage.md) |
 | [`stepper.ts`](../src/ui/factory/stepper.ts) | 步骤条 `factory.stepper`；值当前步索引。见 [Stepper](./stepper.md)、[怎么写](./stepper_usage.md) |
-| [`timeline.ts`](../src/ui/factory/timeline.ts) | 时间轴 `factory.timeline`；默认事件列表。`setTimelinePlugin` 可换成 Tempis。见 [Timeline](./timeline.md)、[怎么写](./timeline_usage.md) |
+| core [`plugins/timeline.ts`](../../core/src/ui/plugins/timeline.ts) | 时间轴契约。chrome 默认 `factory.timeline`；`builder.use` 可换成 Tempis。见 [Timeline](./timeline.md)、[怎么写](./timeline_usage.md) |
 | core [`chrome.ts`](../../core/src/ui/chrome.ts) `UiSkeletonProps` | 内容占位 `factory.skeleton`。**不是** `factory.loading`，没有 fieldFactory。见 [Skeleton](./skeleton.md)、[怎么写](./skeleton_usage.md) |
 | [`loading.ts`](../src/ui/factory/loading.ts) | 忙碌指示 `factory.loading`。EJ2 是 Spinner API，不是 Vue 控件。见 [Loading](./loading.md)、[怎么写](./loading_usage.md) |
 | [`speech_to_text.ts`](../src/ui/factory/speech_to_text.ts) | 麦克风转写 `factory.speechToText`。没有 fieldFactory。见 [SpeechToText](./speech_to_text.md)、[怎么写](./speech_to_text_usage.md) |
@@ -94,20 +94,20 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`context_menu.ts`](../src/ui/factory/context_menu.ts) | 右键菜单 `factory.contextMenu`；见 [ContextMenu](./context_menu.md)、[怎么写](./context_menu_usage.md) |
 | [`list.ts`](../src/ui/factory/list.ts) | re-export core `UiListProps` / `UiTableProps` / `UiGridProps` + Vue slots；管道最宽类型 `UiListPropsType`（= Grid）。`factory.list` / `table` / `grid` / `treeGrid` 捷径。程序员 API 分家，见 [列表与过滤](./list.md)。整页 props 在 [`builder/list_view.ts`](../src/ui/builder/list_view.ts)。树字段在 [`tree_grid.ts`](../src/ui/factory/tree_grid.ts)。列来自 MetaUi，不要 `GridColumn` |
 | [`tree.ts`](../src/ui/factory/tree.ts) | 导航树 `factory.tree`。vui 名是 tree，不是 TreeView。见 [树](./tree.md)、[怎么写](./tree_usage.md) |
-| [`chart.ts`](../src/ui/factory/chart.ts) | **不是** chrome。`UiChartFactory` 插件，见 [图表](./chart.md)、[怎么写](./chart_usage.md) |
-| [`diagram.ts`](../src/ui/factory/diagram.ts) | **不是** chrome。`UiDiagramPlugin` 插件，见 [图](./diagram.md)、[怎么写](./diagram_usage.md) |
-| [`markdown_editor.ts`](../src/ui/factory/markdown_editor.ts) | **不是** chrome。`UiMarkdownEditorPlugin` 插件，见 [Markdown 编辑器](./markdown_editor.md)、[怎么写](./markdown_editor_usage.md) |
-| [`image_editor.ts`](../src/ui/factory/image_editor.ts) | **不是** chrome。`UiImageEditorPlugin` 插件，见 [图片编辑器](./image_editor.md)、[怎么写](./image_editor_usage.md) |
-| [`kanban.ts`](../src/ui/factory/kanban.ts) | **不是** chrome。`UiKanbanPlugin` 插件，见 [看板](./kanban.md)、[怎么写](./kanban_usage.md) |
-| [`gantt.ts`](../src/ui/factory/gantt.ts) | **不是** chrome。`UiGanttPlugin` 插件，见 [甘特](./gantt.md)、[怎么写](./gantt_usage.md) |
-| [`ribbon.ts`](../src/ui/factory/ribbon.ts) | **不是** chrome。`UiRibbonPlugin` 插件，见 [Ribbon](./ribbon.md)、[怎么写](./ribbon_usage.md)。**不是** [`toolbar`](./toolbar.md) |
-| [`scheduler.ts`](../src/ui/factory/scheduler.ts) | **不是** chrome。`UiSchedulerPlugin` 插件，见 [排程](./scheduler.md)、[怎么写](./scheduler_usage.md) |
-| [`pivot_table.ts`](../src/ui/factory/pivot_table.ts) | **不是** chrome。`UiPivotPlugin` 插件，见 [透视表](./pivot_table.md)、[怎么写](./pivot_table_usage.md) |
-| [`ai_assistant.ts`](../src/ui/factory/ai_assistant.ts) | **不是** chrome。`UiAiAssistantPlugin` 插件，见 [AI 助手](./ai_assistant.md)、[怎么写](./ai_assistant_usage.md) |
+| [`chart.ts`](../src/ui/plugins/chart.ts) | **不是** chrome。`builder.use(chartAsPlugin(...))`，见 [图表](./chart.md)、[怎么写](./chart_usage.md) |
+| [`diagram.ts`](../src/ui/plugins/diagram.ts) | **不是** chrome。`builder.plugin('diagram').buildUi`，见 [图](./diagram.md)、[怎么写](./diagram_usage.md) |
+| [`markdown_editor.ts`](../src/ui/plugins/markdown_editor.ts) | **不是** chrome。`builder.plugin('markdown-editor').buildUi`，见 [Markdown 编辑器](./markdown_editor.md)、[怎么写](./markdown_editor_usage.md) |
+| [`image_editor.ts`](../src/ui/plugins/image_editor.ts) | **不是** chrome。`builder.plugin('image-editor').buildUi`，见 [图片编辑器](./image_editor.md)、[怎么写](./image_editor_usage.md) |
+| [`kanban.ts`](../src/ui/plugins/kanban.ts) | **不是** chrome。`builder.buildKanban`，见 [看板](./kanban.md)、[怎么写](./kanban_usage.md) |
+| [`gantt.ts`](../src/ui/plugins/gantt.ts) | **不是** chrome。`builder.buildGantt`，见 [甘特](./gantt.md)、[怎么写](./gantt_usage.md) |
+| [`ribbon.ts`](../src/ui/plugins/ribbon.ts) | **不是** chrome。`builder.plugin('ribbon').buildUi`，见 [Ribbon](./ribbon.md)、[怎么写](./ribbon_usage.md)。**不是** [`toolbar`](./toolbar.md) |
+| [`scheduler.ts`](../src/ui/plugins/scheduler.ts) | **不是** chrome。`builder.buildScheduler`，见 [排程](./scheduler.md)、[怎么写](./scheduler_usage.md) |
+| [`pivot_table.ts`](../src/ui/plugins/pivot_table.ts) | **不是** chrome。`builder.plugin('pivot-table').buildUi`，见 [透视表](./pivot_table.md)、[怎么写](./pivot_table_usage.md) |
+| [`ai_assistant.ts`](../src/ui/plugins/ai_assistant.ts) | **不是** chrome。`builder.plugin('ai-assistant').buildUi`，见 [AI 助手](./ai_assistant.md)、[怎么写](./ai_assistant_usage.md) |
 | [`factory.ts`](../src/ui/factory.ts) | `UiFactory` 方法表 |
 | [`field_factory.ts`](../src/ui/field_factory.ts) | `UiFieldFactory` 字段生产 |
 
-新 chrome 控件：先在 vui 定 props（沿用上表），再在三套皮肤实现 `factory.xxx()`。图表走 `setChartFactory`，图走 `setDiagramPlugin`，Markdown 走 `setMarkdownEditorPlugin`，图片编辑走 `setImageEditorPlugin`，看板走 `setKanbanPlugin`，甘特走 `setGanttPlugin`，Ribbon 走 `setRibbonPlugin`，排程走 `setSchedulerPlugin`，透视表走 `setPivotPlugin`，AI 助手走 `setAiAssistantPlugin`，时间轴默认是 chrome `factory.timeline`，`setTimelinePlugin` 可换成 Tempis，不要把 Tempis 写进皮肤。Query Builder 是 chrome `factory.queryBuilder`，不是插件。
+新 chrome 控件：先在 vui 定 props（沿用上表），再在三套皮肤实现 `factory.xxx()`。图表、图、Markdown、图片编辑、看板、甘特、Ribbon、排程、透视表、AI 助手走 `builder.use(plugin)` / `plugin(name).buildUi`，不进 chrome factory。时间轴默认是 chrome `factory.timeline`，`builder.use(createTempisTimelinePlugin())` 可换成 Tempis，不要把 Tempis 写进皮肤。Query Builder 是 chrome `factory.queryBuilder`，不是插件。
 
 ## 皮肤 factory 怎么组装
 

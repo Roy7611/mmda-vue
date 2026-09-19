@@ -19,13 +19,12 @@ import {
   downloadSchedulerExcel,
   emitSchedulerChange,
   emitSchedulerEventClick,
-  htmlAttributesOf,
   openSchedulerEventUrl,
   schedulerHookClass,
   type UiSchedulerController,
   type UiSchedulerEvent,
   type UiSchedulerView,
-  type UiSchedulerProps,
+  type UiSchedulerProps
 } from '@mmda/vui'
 import {
   fcCalendarOptionsOf,
@@ -34,6 +33,7 @@ import {
   mapUiEventToFc,
   uiViewOfFc,
 } from './fc_map'
+import { uiRenderProps } from '@mmda/core'
 
 export const FcScheduler = defineComponent({
   name: 'FcScheduler',
@@ -165,7 +165,7 @@ export const FcScheduler = defineComponent({
             if (target?.closest('.fc-event')) return
             props.onDateDblClick?.(apiOf()?.getDate?.() ?? new Date())
           },
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
         },
         [
           h(FullCalendar as any, {
@@ -196,7 +196,6 @@ export const FcScheduler = defineComponent({
                 const ok = await emitSchedulerChange(props.onEventChange, {
                   action: 'move',
                   event: fcEventToUi(info.event),
-                  native: info,
                 })
                 if (!ok) info.revert()
               },
@@ -204,7 +203,6 @@ export const FcScheduler = defineComponent({
                 const ok = await emitSchedulerChange(props.onEventChange, {
                   action: 'resize',
                   event: fcEventToUi(info.event),
-                  native: info,
                 })
                 if (!ok) info.revert()
               },

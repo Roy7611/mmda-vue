@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiComboBoxProps } from "@mmda/core"
-import { SELECT_DEBOUNCE_MS, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, selectOptionsOf } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, selectOptionsOf, uiRenderProps } from "@mmda/core"
 import { emitComboBoxChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 import {
   syncfusionSelectFields,
   syncfusionSelectFiltering,
@@ -36,7 +35,7 @@ export function createComboBox(props: UiComboBoxProps) {
 
   return h(ComboBoxComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: comboBoxValueOf(props) ?? null,
     dataSource: options,
     fields: syncfusionSelectFields(options),

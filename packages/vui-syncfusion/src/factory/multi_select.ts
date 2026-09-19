@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiMultiSelectProps } from "@mmda/core"
-import { SELECT_DEBOUNCE_MS, multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode } from "@mmda/core"
+import { SELECT_DEBOUNCE_MS, multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode, uiRenderProps } from "@mmda/core"
 import { applyAndEmitMultiSelectKeys } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 function dataSourceOf(props: UiMultiSelectProps) {
   return multiSelectChromeOptionsOf(props).map((item) => ({
@@ -18,7 +17,7 @@ function defineInputProps(props: UiMultiSelectProps) {
     .filter(Boolean)
     .join(" ");
   return {
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     cssClass,
     placeholder: props.placeholder,
     enabled: props.disabled !== true,

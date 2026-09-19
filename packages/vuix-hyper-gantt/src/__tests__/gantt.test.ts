@@ -106,7 +106,7 @@ describe('hyperSettingsOf', () => {
 describe('createHyperGanttPlugin', () => {
   it('renders host vnode', () => {
     const plugin = createHyperGanttPlugin({ license: 'trial' })
-    const vnode = plugin.ganttView({
+    const vnode = plugin.buildUi({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],
       readonly: true,
     })

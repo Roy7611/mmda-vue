@@ -10,6 +10,9 @@ export default defineConfig({
       '@mmda/vui': fileURLToPath(
         new URL('../vui/src/index.ts', import.meta.url),
       ),
+      '@mmda/core': fileURLToPath(
+        new URL('../core/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

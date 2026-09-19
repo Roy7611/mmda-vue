@@ -1,8 +1,7 @@
 import { h } from 'vue'
 import type { UiCheckBoxListProps } from '@mmda/core'
-import { checkBoxListAllChecked, checkBoxListIndeterminate, checkBoxListItemChecked, checkBoxListModifierClasses, checkBoxListSelectableOptions, checkBoxListShowSelectAll, multiSelectOptionLabelOf, withMultiSelectBindMode } from '@mmda/core'
+import { checkBoxListAllChecked, checkBoxListIndeterminate, checkBoxListItemChecked, checkBoxListModifierClasses, checkBoxListSelectableOptions, checkBoxListShowSelectAll, multiSelectOptionLabelOf, withMultiSelectBindMode, uiRenderProps } from '@mmda/core'
 import { emitCheckBoxListSelectAll, emitCheckBoxListToggle } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
 import { createCheckBox } from './checkbox'
 
 export function createCheckBoxList(props: UiCheckBoxListProps) {
@@ -32,7 +31,7 @@ export function createCheckBoxList(props: UiCheckBoxListProps) {
   return h(
     'div',
     {
-      ...htmlAttributesOf(list),
+      ...uiRenderProps(list).attributes,
       class: [...checkBoxListModifierClasses(list)].flat(),
     },
     [all, h('div', { class: 'mmda-checkbox-list__items' }, items)],

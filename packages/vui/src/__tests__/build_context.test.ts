@@ -150,7 +150,7 @@ describe('VueUiContext', () => {
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
     const ctx = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi,
       view: 'index',
       logic,
@@ -187,7 +187,7 @@ describe('VueUiContext', () => {
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
     const ctx = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi,
       view: 'index',
       logic,

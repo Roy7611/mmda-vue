@@ -1,9 +1,9 @@
 import {
   MetaUiFieldLogic,
-  emptyPagedList,
   defaultChoicePager,
   defineEntity,
   pagedListIsComplete,
+  type Entity,
   type MetaUiField,
   type EntitySelectParam,
   type Module,
@@ -28,7 +28,7 @@ const SELECT_READONLY_AUTH: ModuleAuth = {
 };
 
 function resolveSelectAuthority(
-  param: EntitySelectParam<unknown>,
+  param: EntitySelectParam<Entity>,
   module: Module | undefined,
 ): ModuleAuth {
   if (param.authority) {
@@ -49,8 +49,10 @@ export function WithReference<TBase extends Constructor>(
     async searchRelative(
       field: MetaUiField,
       searchWord = "",
-      model = this.model,
+      model?: Entity,
     ) {
+      const row =
+        model ?? (Array.isArray(this.model) ? undefined : this.model);
       const options = this.getFieldOptions(field);
       if (options.searching) return options;
       options.searching = true;
@@ -64,7 +66,7 @@ export function WithReference<TBase extends Constructor>(
         if (!ref || !this.logic || !ref.refRepository) return options;
         const where = (
           this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
-        ).buildRefWhere(model, this as any);
+        ).buildRefWhere(row as Entity, this as any);
         const queryParams = { ...(options.searchParam.queryParams ?? {}) };
         if (where) queryParams.filter = where;
         else delete queryParams.filter;
@@ -136,9 +138,9 @@ export function WithReference<TBase extends Constructor>(
       }
     }
 
-    async select<T>(
+    async select<T extends Entity>(
       fieldOrParam: MetaUiField | string | EntitySelectParam<T>,
-    ): Promise<any> {
+    ): Promise<Entity | false | boolean | T[]> {
       if (
         typeof fieldOrParam === "string" ||
         (fieldOrParam &&
@@ -233,7 +235,7 @@ export function WithReference<TBase extends Constructor>(
 
       const selectionMode = param.selectionMode ?? "multiple";
       const selectCtx = createSession({
-        model: emptyPagedList<T>() as any,
+        model: [] as T[],
         metaUi,
         view:
           selectionMode === "single"

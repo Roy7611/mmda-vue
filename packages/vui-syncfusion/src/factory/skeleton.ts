@@ -1,7 +1,8 @@
 import { h } from "vue";
 import { SkeletonComponent } from "@syncfusion/ej2-vue-notifications";
 import type { UiSkeletonProps, UiSkeletonShape, UiSkeletonShimmer } from "@mmda/vui"
-import { htmlAttributesOf, skeletonModifierClasses } from "@mmda/vui"
+import { skeletonModifierClasses } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 const ej2Shape = (shape?: UiSkeletonShape) => {
   if (shape === "circle") return "Circle";
@@ -36,7 +37,7 @@ export function createSkeleton(props: UiSkeletonProps = {}) {
 
   return h(SkeletonComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     shape: ej2Shape(shape),
     width,
     height,

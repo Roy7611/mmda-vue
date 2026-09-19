@@ -44,21 +44,25 @@ import type { UiTreeListViewPropsType } from "../factory/tree_category_list";
 import {
   treeIdOf,
   treeLabelOf,
-  type UiTreeViewPropsType,
+  type UiTreeViewProps,
 } from "../factory/tree";
 import { UiActionDivider, type UiAction } from "../factory/action";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { getModuleContext } from "../../contexts/vue_module_context";
 import type { VueUiBuilder } from "../builder";
-import type { UiToolbarLayout } from "../factory/toolbar";
+import type { UiIndexTopbarLayout } from "@mmda/core";
 import type { UiContext } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
+
+function listRows(model: unknown): unknown[] {
+  return Array.isArray(model) ? model : [];
+}
 
 export interface UiListViewProps<T = any> extends UiListProps<T> {
   showToolbar?: boolean;
   showBreadcrumb?: boolean;
   showSearchbar?: boolean;
-  toolbarLayout?: UiToolbarLayout;
+  topbarLayout?: UiIndexTopbarLayout;
   showMainHead?: boolean;
   linkField?: string;
   linkable?: boolean;
@@ -188,8 +192,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       props: UiTreeGridViewPropsType<T> = {}
     ): VNode {
       const runtime = context as any;
-      const model = context.model as any;
-      const rows = (Array.isArray(model?.list) ? model.list : model) ?? [];
+      const rows = listRows(context.model);
       const treeShape = props.treeShape ?? "TREE";
       const shapeKey = props.shapeKey ?? "";
       const loadMode = props.loadMode ?? "lazy";
@@ -491,13 +494,13 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         props.showToolbar === false
           ? null
           : (props.toolbar?.() ??
-            this.buildIndexToolbar(
+            this.buildIndexTopbar(
               context,
               {
                 showBreadcrumb: props.showBreadcrumb ?? true,
                 showActions: props.showActions ?? true,
                 showSearchBar: props.showSearchbar ?? true,
-                layout: props.toolbarLayout ?? "full",
+                layout: props.topbarLayout ?? "full",
                 onSearchPage: () =>
                   void this.buildSearchView(context, {
                     onSearch: (text) => {
@@ -544,7 +547,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           ? this.buildList(context, rowProps)
           : display === "treeGrid"
             ? this.buildTreeGrid(
-                (runtime.model?.list ?? runtime.model ?? []) as any[],
+                listRows(runtime.model) as any[],
                 indexTableMetaUi(context as any),
                 () => context,
                 rowProps,
@@ -601,8 +604,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       context: UiContext,
       props: UiListPropsType<T> = {}
     ): VNode {
-      const model = context.model as any;
-      return this.factory.list(model.list ?? model ?? [], indexTableMetaUi(context as any), {
+      return this.factory.list(listRows(context.model), indexTableMetaUi(context as any), {
         ...props,
         display: props.display ?? "list",
       });
@@ -643,16 +645,15 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       context: UiContext,
       props: UiListPropsType<T> = {}
     ): VNode {
-      const model = context.model as any;
       const runtime = context as any;
       return this.tableWithCells(
-        model.list ?? model ?? [],
+        listRows(context.model),
         indexTableMetaUi(context as any),
         () => context,
         {
           filterDisplay: props.filterDisplay ?? "menu",
           ...props,
-          pagination: props.pagination ?? model.pagination,
+          pagination: props.pagination ?? runtime.searchParam?.pager,
           joinListMode: Boolean((context as any).joinListMode),
           filterLabels: {
             all: context.translate("state.all"),
@@ -884,12 +885,13 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       props: UiPaginatorPropsType = {},
     ): VNode {
       const runtime = context as any;
-      const pagination = runtime.model?.pagination ??
-        runtime.pagination ?? {
-          pageNo: runtime.searchParam?.pager?.pageNo ?? 1,
-          pageSize: runtime.searchParam?.pager?.pageSize ?? readStoredPageSize(),
-          recordCount: runtime.model?.list?.length ?? 0,
-        };
+      const pager = runtime.searchParam?.pager ?? {};
+      const pagination = {
+        pageNo: pager.pageNo ?? 1,
+        pageSize: pager.pageSize ?? readStoredPageSize(),
+        recordCount: pager.recordCount ?? listRows(runtime.model).length,
+        ...pager,
+      };
       const paginatorProps = {
         onPage: () => undefined,
         ...props,
@@ -940,7 +942,7 @@ function treeListQuery(context: UiContext) {
 }
 
 function selectedCategoryNode<T>(
-  spec: UiTreeViewPropsType<T> | undefined,
+  spec: UiTreeViewProps<T> | undefined,
   context: UiContext,
 ): T | undefined {
   if (spec?.selectedNode) return spec.selectedNode;
@@ -1013,19 +1015,15 @@ const IndexTableView = defineComponent({
       const layoutRev = context.listLayoutRev?.value ?? 0;
       void layoutRev;
       if (!context.indexTableHost) {
-        const model = context.model as {
-          list?: unknown[];
-          pagination?: {
-            recordCount?: number;
-            pageNo?: number;
-            pageSize?: number;
-          };
-        };
-        if (Array.isArray(model.list)) void model.list.length;
-        if (model.pagination) {
-          void model.pagination.recordCount;
-          void model.pagination.pageNo;
-          void model.pagination.pageSize;
+        const rows = listRows(context.model);
+        void rows.length;
+        const pager = context.searchParam?.pager as
+          | { recordCount?: number; pageNo?: number; pageSize?: number }
+          | undefined;
+        if (pager) {
+          void pager.recordCount;
+          void pager.pageNo;
+          void pager.pageSize;
         }
       }
       return h(IndexTableLive, {
@@ -1140,12 +1138,10 @@ const TreeListView = defineComponent({
     return () => {
       const self = props.builder as VueUiBuilder;
       const context = props.context;
-      const paged = context.model as {
-        list?: unknown[];
-        pagination?: { recordCount?: number };
-      };
-      if (Array.isArray(paged.list)) void paged.list.length;
-      if (paged.pagination) void paged.pagination.recordCount;
+      const rows = listRows(context.model);
+      void rows.length;
+      const pager = context.searchParam?.pager as { recordCount?: number } | undefined;
+      if (pager) void pager.recordCount;
       const viewProps = props.spec;
       const { listOption } = resolveTreeListOptions(viewProps);
       const { runtime, searchbar, list, paginator } = (
@@ -1163,13 +1159,13 @@ const TreeListView = defineComponent({
       const toolbar =
         listOption.showToolbar === false
           ? null
-          : self.buildIndexToolbar(
+          : self.buildIndexTopbar(
               context,
               {
                 showBreadcrumb: listOption.showBreadcrumb ?? true,
                 showActions: listOption.showActions ?? true,
                 showSearchBar: listOption.showSearchbar ?? true,
-                layout: listOption.toolbarLayout ?? "full",
+                layout: listOption.topbarLayout ?? "full",
                 breadcrumbLeaf:
                   pickedLabel.value || selectedTreeLabel(latestSpec()),
                 onSearchPage: () =>
@@ -1261,7 +1257,7 @@ const TreeListView = defineComponent({
 } as any);
 
 function selectedTreeLabel<T>(
-  spec?: UiTreeViewPropsType<T>,
+  spec?: UiTreeViewProps<T>,
 ): string {
   if (!spec) return "";
   if (spec.selectedNode) return treeLabelOf(spec.selectedNode, spec.fields);

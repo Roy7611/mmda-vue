@@ -104,7 +104,7 @@ ui.buildEntityView(context, props)
 Index **内部**已经是：
 
 ```text
-layoutIndexPage：toolbar=buildIndexToolbar + filterBar + default=factory.table|grid|list|treeGrid + footer=factory.paginator
+layoutIndexPage：topbar=buildIndexTopbar + filterBar + default=factory.table|grid|list|treeGrid + footer=factory.paginator
 ```
 
 程序员自定义列表屏时同样直调 `factory.*`，不要再找 `buildListView`。

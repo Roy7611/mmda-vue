@@ -7,7 +7,6 @@ import {
 import type { UiTabsProps } from "@mmda/vui";
 import {
   emitTabsChange,
-  htmlAttributesOf,
   tabsHeaderPlacementOf,
   tabsHeaderStyleOf,
   tabsHeightAdjustModeOf,
@@ -17,8 +16,9 @@ import {
   tabsLoadOnOf,
   tabsModifierClasses,
   tabsOverflowModeOf,
-  tabsValueOf,
+  tabsValueOf
 } from "@mmda/vui";
+import { uiRenderProps } from "@mmda/core"
 
 const EJ2_HEADER_STYLE: Record<string, string | undefined> = {
   fill: "e-fill",
@@ -68,7 +68,7 @@ export function createTabs(props: UiTabsProps): VNode {
     TabComponent as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       selectedItem: tabsValueOf(props),
       headerPlacement: tabsHeaderPlacementOf(props),
       overflowMode: tabsOverflowModeOf(props),

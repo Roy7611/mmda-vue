@@ -2,10 +2,9 @@ import { h } from "vue";
 import { DateTimePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import type { UiDateTimePickerProps } from "@mmda/core"
 import type { UiDateShortcut } from "@mmda/core"
-import { dateTimePickerModifierClasses, dateTimePickerStepOf } from "@mmda/core"
+import { dateTimePickerModifierClasses, dateTimePickerStepOf, uiRenderProps } from "@mmda/core"
 import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 export function createDateTimePicker(props: UiDateTimePickerProps) {
@@ -49,7 +48,7 @@ export function createDateTimePicker(props: UiDateTimePickerProps) {
     DateTimePickerComponent as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value: datePickerDateOf(props) ?? null,
       min: datePickerMinOf(props) ?? undefined,
       max: datePickerMaxOf(props) ?? undefined,

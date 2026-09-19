@@ -6,17 +6,19 @@ import {
   MetaUiGroupLogic,
   MetaModel,
   defaultFieldSearchOptions,
-  assignPagedList,
   isPagedList,
   defineValidation,
   validateFieldResult,
   pluralize,
   type Entity,
   type EntityAction,
+  type EntityLogic,
   type FieldSearchOptions,
   type Module,
   type ModuleAuth,
+  type PagedList,
   type Pager,
+  type Pagination,
   type SelectableFn,
   type SubGroupItemTransformParam,
   type Translatable,
@@ -34,7 +36,6 @@ import {
   type UiViewType,
 } from "./view";
 import type { MmdaVueApp } from "../app/app";
-import type { EntityLogic } from "@mmda/core";
 import type { UiAction } from "../ui/factory/action";
 import type { Router } from "vue-router";
 import { WithSubgroup } from "./mixins/subgroup";
@@ -47,56 +48,67 @@ import type { ChildContextOptions } from "./mixins/types";
 import type { UiIndexTableHost } from "../ui/factory/list";
 import { logListPaint } from "../ui/builder/list_query";
 
-type ContextCache = Map<string, VueUiContextBase<any>>;
+type ContextCache = Map<string, VueUiContextBase<Entity>>;
 type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
 type GroupLogicMap = Record<string, MetaUiGroupLogic<any, any>>;
 
 export type CustomManyActionHandleFn = (
-  context: VueUiContext<any>,
-  selected: any[],
+  context: VueUiContext<Entity>,
+  selected: Entity[],
 ) => unknown;
 
-export interface VueUiContextOptions<E extends object> {
-  model: E;
+export interface VueUiContextOptions<M extends Entity = Entity> {
+  model: M | M[];
   metaUi: MetaUi;
   view?: UiViewType;
   locale?: string;
   translate?: TranslateFn;
-  loader?: () => Promise<E>;
+  loader?: () => Promise<M | M[]>;
   fieldLogics?: FieldLogicMap;
   groupLogics?: GroupLogicMap;
   app?: MmdaVueApp;
-  logic?: EntityLogic<any>;
+  logic?: EntityLogic<M>;
   /** vue-router；导航用，不放在 Logic 上。 */
   router?: Router | any;
-}
-
-/** @deprecated 使用 VueUiContextOptions；logic 在有 IO 时传入即可。 */
-export type UiViewContextOptions<E extends object> = VueUiContextOptions<E>;
-
-export interface UiBuildContextOptions<E extends Entity>
-  extends VueUiContextOptions<E> {
-  logic: EntityLogic<E>;
 }
 
 const identityTranslate: TranslateFn = (message) =>
   typeof message === "string" ? message : message.message;
 
+function applyPaginationToSearchParam(
+  searchParam: { pager?: Pager } | undefined,
+  pagination: Pagination,
+) {
+  if (!searchParam?.pager) return;
+  const pager = searchParam.pager as Pager & Pagination;
+  pager.pageSize = pagination.pageSize;
+  pager.pageNo = pagination.pageNo;
+  if (pagination.sorts) pager.sorts = pagination.sorts;
+  pager.recordCount = pagination.recordCount;
+  pager.pageCount = pagination.pageCount;
+  pager.from = pagination.from;
+  pager.to = pagination.to;
+}
+
+function sessionRow<M>(model: M | M[] | undefined, explicit?: M): M | undefined {
+  if (explicit) return explicit;
+  if (model == null || Array.isArray(model)) return undefined;
+  return model;
+}
+
 /**
  * 会话本体：构造、model、Logic 绑定、选择态、i18n、会话树。
  * 能力 mixin 叠在导出类 `VueUiContext` 上。
  */
-class VueUiContextBase<E extends object = Record<string, any>>
-  implements UiContext<E>
-{
-  readonly model: E;
+class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
+  readonly model: M | M[];
   metaUi: MetaUi;
   readonly view: UiViewType;
   readonly locale: string;
   readonly loading: Ref<boolean>;
   readonly error: Ref<unknown>;
   readonly app?: MmdaVueApp;
-  logic?: EntityLogic<any>;
+  logic?: EntityLogic<M>;
   router?: Router | any;
   customActions: EntityAction[] = [];
   actionLoadings: Record<string, boolean> = reactive({});
@@ -104,11 +116,11 @@ class VueUiContextBase<E extends object = Record<string, any>>
   isInDialog = false;
   showDialog = false;
   readonly initializedState: Ref<boolean>;
-  readonly parent?: VueUiContextBase<any>;
+  readonly parent?: VueUiContextBase<Entity>;
   readonly cache: ContextCache;
   readonly cachePath: string;
   readonly translateFn: TranslateFn;
-  readonly loader?: () => Promise<E>;
+  readonly loader?: () => Promise<M | M[]>;
   fieldLogics: FieldLogicMap;
   groupLogics: GroupLogicMap;
   _groupActions: Record<string, UiAction[]> = {};
@@ -119,9 +131,9 @@ class VueUiContextBase<E extends object = Record<string, any>>
   readonly pageNotice: Ref<UiMessageProps | null>;
   readonly unsavedRows = new WeakMap<object, string>();
   unsavedRowSequence = 0;
-  #selection: any[] = [];
+  #selection: M[] = [];
   /** 列表进详情/编辑的当前行；与勾选 selectedItems 分开。 */
-  currentItem: any | null = null;
+  currentItem: M | null = null;
   currentIndex = -1;
   indexTableHost?: UiIndexTableHost;
   #selectableKey = "default";
@@ -129,23 +141,24 @@ class VueUiContextBase<E extends object = Record<string, any>>
   #customManyActionKey = "default";
   readonly #customManyActionFns = new Map<string, CustomManyActionHandleFn>();
   #selectionModeValue: "single" | "multiple" | null = null;
+  #pendingPagination?: Pagination;
 
-  constructor(options: VueUiContextOptions<E>, child?: ChildContextOptions) {
+  constructor(options: VueUiContextOptions<M>, child?: ChildContextOptions) {
     this.view = options.view ?? UiViewOne.Details;
     const editing =
       this.view === UiViewOne.Edit ||
       this.view === UiViewOne.Create ||
       this.view === UiViewMany.EditMany;
-    if (!editing && isPagedList(options.model)) {
-      const paged = options.model as { list: unknown[]; pagination: object };
-      this.model = shallowReactive({
-        list: shallowReactive([...paged.list]),
-        pagination: reactive({ ...paged.pagination }),
-      }) as E;
+    if (isPagedList(options.model)) {
+      const paged = options.model as unknown as PagedList<M>;
+      this.model = shallowReactive([...paged.list]) as M[];
+      this.#pendingPagination = paged.pagination;
+    } else if (Array.isArray(options.model)) {
+      this.model = shallowReactive([...options.model]) as M[];
     } else {
       this.model = (
         editing ? reactive(options.model) : shallowReactive(options.model)
-      ) as E;
+      ) as M;
     }
     this.metaUi = options.metaUi;
     this.locale = options.locale ?? options.metaUi.locale ?? "zh";
@@ -166,7 +179,9 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.fieldLogics = options.fieldLogics ?? {};
     this.groupLogics = options.groupLogics ?? {};
     this.app = app;
-    this.logic = options.logic ?? (child?.parent as any)?.logic;
+    this.logic = (options.logic ?? (child?.parent as any)?.logic) as
+      | EntityLogic<M>
+      | undefined;
     this.router =
       options.router ?? (child?.parent as any)?.router;
     this.parent = child?.parent as any;
@@ -179,7 +194,13 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.loading = ref(false);
     this.error = ref<unknown>(null);
     this.initializedState = ref(!this.loader);
-    this.cache.set(this.cachePath, this);
+    this.cache.set(this.cachePath, this as any);
+  }
+
+  flushPendingPagination(searchParam?: { pager?: Pager }) {
+    if (!this.#pendingPagination) return;
+    applyPaginationToSearchParam(searchParam, this.#pendingPagination);
+    this.#pendingPagination = undefined;
   }
 
   get title() {
@@ -230,7 +251,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     return this.#selection;
   }
 
-  set selectedItems(items: any[]) {
+  set selectedItems(items: M[]) {
     this.#selection = items;
   }
 
@@ -267,12 +288,12 @@ class VueUiContextBase<E extends object = Record<string, any>>
     return this.#customManyActionFns.get(key)?.(this as any, this.selectedItems);
   }
 
-  get prev(): VueUiContextBase<any> {
-    return this.parent ?? this;
+  get prev(): VueUiContextBase<M> {
+    return (this.parent ?? this) as VueUiContextBase<M>;
   }
 
-  get root(): VueUiContextBase<any> {
-    return this.parent?.root ?? this;
+  get root(): VueUiContextBase<Entity> {
+    return (this.parent?.root ?? this) as VueUiContextBase<Entity>;
   }
 
   get isRoot() {
@@ -367,7 +388,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     return path;
   }
 
-  getModelTitle(model: Record<string, any> = this.model) {
+  getModelTitle(model: Record<string, any> = this.model as Record<string, any>) {
     const key = this.metaUi.labelField ?? this.metaUi.primaryKey;
     const label = key ? model[key] : undefined;
     return label == null || label === ""
@@ -402,23 +423,33 @@ class VueUiContextBase<E extends object = Record<string, any>>
     }
   }
 
-  setModel(model: E) {
-    const target = this.model as Record<string, any>;
-    if (isPagedList(target) && isPagedList(model)) {
-      assignPagedList(target as any, model as any);
+  setModel(model: M | M[]) {
+    if (Array.isArray(this.model)) {
+      let rows: M[] = [];
+      if (isPagedList(model)) {
+        const paged = model as unknown as PagedList<M>;
+        applyPaginationToSearchParam(
+          (this as { searchParam?: { pager?: Pager } }).searchParam,
+          paged.pagination,
+        );
+        rows = paged.list ?? [];
+      } else if (Array.isArray(model)) {
+        rows = model;
+      }
+      this.model.splice(0, Infinity, ...rows);
       if (this.indexTableHost) {
         this.indexTableHost.rebind();
-        const paged = target as {
-          list?: unknown[];
-          pagination?: { pageNo?: number };
-        };
+        const pager = (this as { searchParam?: { pager?: Pager & Pagination } })
+          .searchParam?.pager;
         logListPaint("table-rebind", {
-          pageNo: paged.pagination?.pageNo,
-          rows: Array.isArray(paged.list) ? paged.list.length : undefined,
+          pageNo: pager?.pageNo,
+          rows: this.model.length,
         });
       }
       return;
     }
+    if (isPagedList(model) || Array.isArray(model)) return;
+    const target = this.model as Record<string, any>;
     for (const key of Object.keys(target)) {
       if (!(key in (model as object))) delete target[key];
     }
@@ -447,8 +478,8 @@ class VueUiContextBase<E extends object = Record<string, any>>
   }
 
   bindLogics(
-    fields: MetaUiFieldLogic<any>[] = [],
-    groups: MetaUiGroupLogic<any, any>[] = [],
+    fields: MetaUiFieldLogic<M>[] = [],
+    groups: MetaUiGroupLogic<M, Entity>[] = [],
     customActions: EntityAction[] = [],
   ) {
     for (const field of fields) this.setupFieldLogic(field);
@@ -465,16 +496,18 @@ class VueUiContextBase<E extends object = Record<string, any>>
     delete this._groupActions[logic.group.groupName];
   }
 
-  getFieldValue(field: MetaUiField | string, model: E = this.model) {
+  getFieldValue(field: MetaUiField | string, model?: M) {
     const fld = this.resolveField(field);
-    return MetaModel.getFieldValue(model, fld);
+    const row = sessionRow(this.model, model);
+    if (row == null) return undefined;
+    return MetaModel.getFieldValue(row, fld);
   }
 
-  beginEdit(item: object, cacheKey?: string) {
+  beginEdit(item: M, cacheKey?: string) {
     return this.with(item, cacheKey);
   }
 
-  endEdit(item: object, cacheKey?: string) {
+  endEdit(item: M, cacheKey?: string) {
     this.release(item, cacheKey);
   }
 
@@ -500,9 +533,11 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.getFieldLogic(fld)?.onChangeFn?.(this, this.model, value, oldValue);
   }
 
-  displayField(field: MetaUiField | string, model: E = this.model) {
+  displayField(field: MetaUiField | string, model?: M) {
     const fld = this.resolveField(field);
-    return MetaModel.displayField(model, fld);
+    const row = sessionRow(this.model, model);
+    if (row == null) return undefined;
+    return MetaModel.displayField(row, fld);
   }
 
   getFieldOptions(field: MetaUiField | string) {
@@ -599,7 +634,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     return fn(item, master, this) !== false;
   }
 
-  with<G extends object>(model: G, cacheKey = "id") {
+  with<G extends Entity>(model: G, cacheKey = "id") {
     const rowKey = this.rowCacheKey(model, cacheKey, this.metaUi.primaryKey);
     const path = `${this.cachePath}/@row/${rowKey}`;
     const cached = this.cache.get(path);
@@ -607,10 +642,10 @@ class VueUiContextBase<E extends object = Record<string, any>>
       if (toRaw(cached.model as object) !== toRaw(model as object)) {
         this.cache.delete(path);
       } else {
-        return cached as any;
+        return cached as VueUiContext<G>;
       }
     }
-    return this.createChild(model, this.metaUi, path, this.view) as any;
+    return this.createChild(model, this.metaUi, path, this.view) as VueUiContext<G>;
   }
 
   release(model: object, cacheKey = "id") {
@@ -618,7 +653,7 @@ class VueUiContextBase<E extends object = Record<string, any>>
     this.cache.delete(`${this.cachePath}/@row/${rowKey}`);
   }
 
-  treeWith<G extends object>(model: G, cacheKey = "id") {
+  treeWith<G extends Entity>(model: G, cacheKey = "id") {
     return this.with(model, cacheKey);
   }
 
@@ -652,8 +687,8 @@ class VueUiContextBase<E extends object = Record<string, any>>
     return pluralize(this.metaUi.objName);
   }
 
-  createChild<G extends object>(
-    model: G,
+  createChild<G extends Entity>(
+    model: G | G[],
     metaUi: MetaUi,
     cachePath: string,
     view: UiViewType,
@@ -756,20 +791,18 @@ class VueUiContextBase<E extends object = Record<string, any>>
 /**
  * Vue 表单交互会话。一个类叠能力 mixin；行为由 `view` + 可选 `logic` 门控。
  */
-export class VueUiContext<E extends object = Record<string, any>> extends WithNavigate(
+export class VueUiContext<M extends Entity = Entity> extends WithNavigate(
   WithData(WithReference(WithValidate(WithSubgroup(VueUiContextBase)))),
 ) {
-  constructor(options: VueUiContextOptions<E>, child?: ChildContextOptions) {
+  constructor(options: VueUiContextOptions<M>, child?: ChildContextOptions) {
     super(options, child);
+    this.flushPendingPagination(this.searchParam);
   }
 }
 
 setSessionFactory(
   (options, child) => new VueUiContext(options as any, child),
 );
-
-/** @deprecated 与 VueUiContext 同值；新代码不要再用。 */
-export { VueUiContext as UiViewContext, VueUiContext as UiBuildContext };
 
 export type { ChildContextOptions };
 export {

@@ -22,6 +22,7 @@ import type {
   UiRatingTemplate,
   UiRatingTemplateContext,
 } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type RatingFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -65,8 +66,7 @@ export function emitRatingChange(
       : value
   const next = finiteNumber(unpacked) ?? null
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }
 
 export function resolveRatingTemplate(

@@ -11,9 +11,8 @@ import {
 } from "vue";
 import { SignatureComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core';
-import { signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from "@mmda/core"
+import { signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf, uiRenderProps, uiClassName } from "@mmda/core"
 import { emitSignaturePadChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
@@ -116,7 +115,7 @@ const SfSignaturePad = defineComponent({
     );
 
     const cssClass = () =>
-      signaturePadModifierClasses(vuiProps()).flat().filter(Boolean).join(" ");
+      uiClassName(signaturePadModifierClasses(vuiProps()));
 
     const sizeStyle = () => {
       const width = signaturePadSizeCss(props.width);
@@ -144,7 +143,7 @@ const SfSignaturePad = defineComponent({
         enableRtl: Boolean(props.rtl),
         cssClass: cssClass(),
         style: sizeStyle(),
-        ...htmlAttributesOf(vuiProps()),
+        ...uiRenderProps(vuiProps()).attributes,
         created: () => {
           applyValue(signaturePadValueOf(vuiProps()));
           props.onReady?.(controller());

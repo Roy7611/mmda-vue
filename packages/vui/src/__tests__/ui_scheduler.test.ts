@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { h } from 'vue'
-import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
+import { createApp, h } from 'vue'
+import { MetaUi, MetaUiField, SqlDataType, UiPluginName, type UiPlugin } from '@mmda/core'
 import { VueUiContext } from '../contexts/vue_ui_context'
 import { UiViewManyKind } from '../contexts/view'
 import {
@@ -14,33 +14,34 @@ import {
   schedulerSlotDurationOf,
   schedulerWorkDaysOf,
   unimplementedSchedulerPlugin,
-  type UiSchedulerPlugin,
-} from '../ui/factory/scheduler'
+} from '@mmda/core'
 import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
+const schedulerPlugin = (render: UiPlugin['buildUi']): UiPlugin => ({
+  name: UiPluginName.scheduler,
+  buildUi: render,
+})
+
 describe('ui scheduler contract', () => {
-  it('throws until setSchedulerPlugin', () => {
+  it('throws until scheduler plugin is used', () => {
     const ui = new TestUiBuilder()
-    expect(() => ui.schedulerPlugin.schedulerView({})).toThrow(
-      SCHEDULER_PLUGIN_NOT_INSTALLED,
-    )
     expect(() =>
       ui.buildScheduler({} as any, { events: [{ id: 1, start: '2026-01-01' }] }),
     ).toThrow(SCHEDULER_PLUGIN_NOT_INSTALLED)
     expect(unimplementedSchedulerPlugin().schedulerView).toBeTypeOf('function')
   })
 
-  it('uses the plugin after setSchedulerPlugin', () => {
+  it('uses the plugin after use()', () => {
     const ui = new TestUiBuilder()
-    const plugin: UiSchedulerPlugin = {
-      schedulerView: (props) =>
+    ui.use(
+      schedulerPlugin((_ctx, props) =>
         h('div', {
           class: 'mmda-scheduler',
-          'data-count': props.events?.length ?? 0,
+          'data-count': (props as { events?: unknown[] })?.events?.length ?? 0,
         }),
-    }
-    ui.setSchedulerPlugin(plugin)
+      ),
+    )
     const node = ui.buildScheduler({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
     })
@@ -70,7 +71,7 @@ describe('ui scheduler contract', () => {
       ],
     })
     const context = new VueUiContext({
-      model: { list: [] },
+      model: [],
       metaUi,
       view: 'index',
     })
@@ -80,11 +81,14 @@ describe('ui scheduler contract', () => {
       },
     }
     const builder = new TestUiBuilder()
-    builder.setSchedulerPlugin({
-      schedulerView: () => h('div', { class: 'mmda-scheduler' }),
-    })
-    const node = builder.build(context)
-    expect(node.props?.class).toBe('mmda-scheduler')
+    builder.use(schedulerPlugin(() => h('div', { class: 'mmda-scheduler' })))
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const app = createApp({ render: () => builder.build(context) })
+    app.mount(host)
+    expect(host.querySelector('.mmda-scheduler')).toBeTruthy()
+    app.unmount()
+    host.remove()
   })
 
   it('exposes helpers, csv and noop controller', () => {
@@ -92,9 +96,7 @@ describe('ui scheduler contract', () => {
     expect(() => stub.buildScheduler({} as any, {})).toThrow(
       SCHEDULER_PLUGIN_NOT_INSTALLED,
     )
-    stub.setSchedulerPlugin({
-      schedulerView: () => h('div', { class: 'mmda-scheduler' }),
-    })
+    stub.use(schedulerPlugin(() => h('div', { class: 'mmda-scheduler' })))
     expect(stub.buildScheduler({} as any, {}).props?.class).toBe(
       'mmda-scheduler',
     )

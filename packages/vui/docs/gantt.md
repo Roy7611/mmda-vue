@@ -1,6 +1,6 @@
 # 甘特插件
 
-甘特不进 chrome `factory`。vui 只定 [`UiGanttPlugin`](../src/ui/factory/gantt.ts)；应用 `setGanttPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+甘特不进 chrome `factory`。vui 只定 [`UiGanttPlugin`](../src/ui/plugins/gantt.ts)；应用 `setGanttPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[gantt_usage.md](./gantt_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
@@ -8,7 +8,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/gantt.ts` | 任务 / 连线 / `UiGanttProps` / 控制器；未安装 stub |
+| vui `ui/plugins/gantt.ts` | 任务 / 连线 / `UiGanttProps` / 控制器；未安装 stub |
 | `VueUiBuilder.ganttPlugin` | 默认 `unimplementedGanttPlugin`；`setGanttPlugin`；`buildGantt` 转调插件 |
 | `@mmda/vui-syncfusion/gantt` | `createSfGanttPlugin`，EJ2 Gantt（App 默认） |
 | `@mmda/vuix-hyper-gantt` | `createHyperGanttPlugin`，DlhSoft Hyper Library |

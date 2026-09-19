@@ -1,8 +1,6 @@
 import { computed, defineComponent, h, ref, watch, type PropType } from 'vue'
 import { NDropdown, NInput, NTree, type TreeOption } from 'naive-ui'
-import { createIconVNode, mapTreeNodes, resolveMappedTreeDrop, selectedIdSet, type UiTreeEmits, type UiTreeFields, type UiTreeMappedNode, type UiTreeProps } from '@mmda/vui'
-
-type TreeProps = UiTreeProps & UiTreeEmits
+import { createIconVNode, mapTreeNodes, resolveMappedTreeDrop, selectedIdSet, type UiTreeFields, type UiTreeMappedNode, type UiTreeProps } from '@mmda/vui'
 
 export const NaiveTree = defineComponent({
   name: 'NaiveTree',
@@ -20,11 +18,11 @@ export const NaiveTree = defineComponent({
     showIcon: { type: Boolean, default: false },
     class: { type: [String, Array, Object], default: undefined },
     onNodeSelect: {
-      type: Function as PropType<UiTreeEmits['onNodeSelect']>,
+      type: Function as PropType<UiTreeProps['onNodeSelect']>,
       default: undefined,
     },
     onExpand: {
-      type: Function as PropType<UiTreeEmits['onExpand']>,
+      type: Function as PropType<UiTreeProps['onExpand']>,
       default: undefined,
     },
     editing: { type: String, default: '' },
@@ -37,24 +35,24 @@ export const NaiveTree = defineComponent({
       default: undefined,
     },
     onNodeAddChild: {
-      type: Function as PropType<UiTreeEmits['onNodeAddChild']>,
+      type: Function as PropType<UiTreeProps['onNodeAddChild']>,
       default: undefined,
     },
     onNodeContextMenu: {
-      type: Function as PropType<UiTreeEmits['onNodeContextMenu']>,
+      type: Function as PropType<UiTreeProps['onNodeContextMenu']>,
       default: undefined,
     },
     onNodeRename: {
-      type: Function as PropType<UiTreeEmits['onNodeRename']>,
+      type: Function as PropType<UiTreeProps['onNodeRename']>,
       default: undefined,
     },
     allowDragDrop: { type: Boolean, default: false },
     onNodeMove: {
-      type: Function as PropType<UiTreeEmits['onNodeMove']>,
+      type: Function as PropType<UiTreeProps['onNodeMove']>,
       default: undefined,
     },
   },
-  setup(props: TreeProps) {
+  setup(props: UiTreeProps) {
     const roots = computed(() => mapTreeNodes(props.data ?? [], props.fields))
     const options = computed(() => roots.value.map((node) => toOption(node, props.showIcon)))
     const byId = computed(() => indexMapped(roots.value))

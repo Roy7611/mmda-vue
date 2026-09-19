@@ -1,0 +1,111 @@
+' ============================================================================
+' MMDA 三层职责（UI → Logic → Data）
+' ----------------------------------------------------------------------------
+' 真源：仓库根 ARCHITECTURE.md（产品横向分层只在那一处写全）；本文件只做摘要 + 图。
+' 总则：数据向下、事件向上；层只与相邻层交互；换皮/换框架不动 Logic。
+'
+' 【UI 层 · 表现层】
+'   包与目录：@mmda/vui（拼屏、会话）、@mmda/vui-*（皮肤控件与 factory）
+'   做什么：拼屏（模块页、侧栏菜单、登录/注册、字段组、Explorer）、控件与外壳、
+'           路由与会话落地（vui VueUiContext ≈ Flutter BuildContext、MmdaVueApp）。
+'   不做什么：业务计算、校验规则、改共享元数据（MetaUiField）；皮肤不感知 Data。
+'   契约：core src/ui/ —— UiBuilder（组装）· UiFactory（chrome 控件）·
+'         UiFieldFactory（字段控件）· UiLayout（排法）· UiOverlay（弹层宿主）· UiContext（会话）。
+'   依赖：只认 core 契约与相邻的 Logic；实现侧被注入（皮肤构造注入 factory / fieldFactory / layout / overlay）。
+'
+' 【Logic 层 · 交互逻辑】
+'   包与目录：@mmda/core 的 src/logic/（EntityLogic / SubEntityLogic / FieldLogic /
+'             GroupLogic / validation / filters）；业务 *Logic.ts 继承 EntityLogic（base / mes）。
+'   做什么：显示 / 锁定 / 校验 / refWhere 引用加码 / onChange / 业务动作；
+'           把业务函数挂到会话（ApiClient 没有的那些）。
+'   不做什么：不画控件、不认 Vue/React 类型、不碰皮肤控件、不自己拼 URL 或 HTTP。
+'   通道：→ Data 走 ApiClient（this.apiClient 与 context.apiClient 同一实例）；
+'         → UI 走 context.uiBuilder（拼屏四职 / toast / confirm / dialog）。
+'
+' 【Data 层 · 数据】
+'   包与目录：@mmda/core 的 metaui（界面元数据）· models（实体框架 MetaModel）·
+'             net（HTTP / ApiClient）· di（DependencyContainer）· utils · extensions。
+'   做什么：元数据、实体操纵、HTTP 读写；单一事实来源（SSOT）。
+'   不做什么：界面组件、会话状态写回 MetaUiField（元数据是只读事实）。
+'   内部依赖：utils / extensions → metaui → models → net；di 只依赖 utils；
+'             metaui / models / utils 不 import logic/；MetaUiService 可依赖 net。
+'   引用：元数据 reference.where 是 SQL 硬限制、不可改写；业务加码用 Logic refWhere，
+'         与 where 取 AND。不要把 JS 过滤器塞进 MetaUiField。
+'
+' 速记路径：通用读写 context.apiClient；业务实体 Logic 方法（同一实例）；
+'           业务操作 Logic 挂到 context；换皮 context.uiBuilder；应用壳 context.app（读 app.state）。
+' ============================================================================
+
+@startuml core_layer
+package "数据层（data）" <<layer>> as data_layer {
+  package "meta ui"
+  package "models"
+  package "net" {
+    component ApiClient
+  }
+
+
+  "models" .left.> "meta ui" : MetaModel
+  "net" .up.> "meta ui"
+  "net" .up.> "models"
+
+}
+package "辅助" as helpers {
+  package "utils" {
+    [is]
+    [local db]
+    [platform]
+    [pluralize]
+  }
+  package "extensions" {
+    [datetime]
+    [number]
+    [string]
+    [array]
+  }
+  package "di" {
+    [DependencyContainer]
+  }
+  component MmdaApplication
+  MmdaApplication -up-> "1" DependencyContainer : $di
+  MmdaApplication .up.> "utils" : use
+}
+package "逻辑层（logic）" <<layer>> as logic_layer {
+  [EntityLogic]
+  [SubEntityLogic]
+  [FieldLogic]
+  package "校验（validation）" {
+    package validators
+    package validateResult
+  }
+  package "过滤器（filters）" {
+    [EntitySearchParam]
+    [FilterModel]
+  }
+  EntityLogic *-left- "*" FieldLogic
+  SubEntityLogic -up-> EntityLogic : extends
+}
+
+package "表现层（ui）" <<layer>> as ui_layer {
+    interface UiBuilder
+    interface UiContext
+    interface UiPlugin
+    interface UiLayout
+    interface UiOverlay
+    interface UiFieldFactory
+    interface UiFactory
+
+    UiBuilder .left.> UiContext : build on
+    UiBuilder .right.> "*" UiPlugin : extend
+    UiBuilder -down-> "1" UiLayout : 持有
+    UiBuilder -down-> "1" UiOverlay : 持有
+    UiBuilder -down-> "1" UiFieldFactory : 持有
+    UiBuilder -down-> "1" UiFactory : 持有
+    UiFieldFactory .right.> UiFactory : Invoke
+}
+
+data_layer .down.> logic_layer : data fetch
+logic_layer .down.> ui_layer : data present
+ui_layer .up.> logic_layer : event up
+logic_layer .up.> data_layer : data update
+@enduml

@@ -2,11 +2,11 @@
  * chrome 分隔栏走 factory.splitter(panes, props)。算法在 @mmda/core。
  */
 export type {
-  UiSplitterCollapseEvent,
+  UiSplitterCollapseEventArgs,
   UiSplitterOrientation,
   UiSplitterPane,
   UiSplitterProps,
-  UiSplitterResizeEvent,
+  UiSplitterResizeEventArgs,
 } from '@mmda/core'
 
 export {

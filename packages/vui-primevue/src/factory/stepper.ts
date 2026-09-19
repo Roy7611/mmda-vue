@@ -6,9 +6,8 @@ import { h } from 'vue'
 import Steps from 'primevue/steps'
 import type { UiStepperController, UiStepperProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { noopStepperController, stepperItemsOf, stepperModifierClasses, stepperValueOf } from '@mmda/core'
+import { noopStepperController, stepperItemsOf, stepperModifierClasses, stepperValueOf, uiRenderProps } from '@mmda/core'
 import { emitStepperChange } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
 
 export function createStepper(
   props: UiStepperProps,
@@ -78,7 +77,7 @@ export function createStepper(
 
   return h(Steps, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     model,
     activeStep: current,
     readonly: locked,

@@ -1,54 +1,31 @@
 # Toolbar
 
-chrome 三栏壳，走 `factory.toolbar`。[PrimeVue Toolbar](https://primevue.org/toolbar/) 就是这个控件（`start` / `center` / `end`）。
+原生命令条，走 `factory.toolbar`。不是页头 [Topbar](./topbar.md)。
 
-程序员用法：[toolbar_usage.md](./toolbar_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
+| MMDA | [EJ2 Toolbar](https://ej2.syncfusion.com/vue/documentation/api/toolbar/index-default) | [Prime Toolbar](https://primevue.org/toolbar/) | Naive |
+|---|---|---|---|
+| 槽 `start` / `center` / `end` | `Item.align` Left / Center / Right，`type: Input` + template | `#start` `#center` `#end` | `role="toolbar"` 三区 |
+| 槽 `default` | 无 named 时当作 start | 无 named 时进 `#start` | 无 named 时直接当子节点 |
+| `overflow` | `overflowMode`：Popup / Scrollable / MultiRow / Extended | 忽略 | 忽略 |
+| `disabled` | `aria-disabled` + `--disabled` | 同左 | 同左 |
 
-**不是** EJ2 `items` 命令条。**不是** `factory.buttonGroup`。模块页顶栏 `buildIndexToolbar` / `buildDetailsToolbar` / `buildEditToolbar` 只填槽，壳走本控件。没有 `fieldFactory.toolbar`。
+不暴露 EJ2 `items` ItemModel、`allowKeyboard`、`scrollStep`；不暴露 Prime `pt`。Naive 没有 Toolbar 控件。
 
-## 分层
-
-| 层 | 做什么 |
-|---|---|
-| vui `ui/factory/toolbar.ts` | `UiToolbarProps` / `UiToolbarSlots`；`UiHorzAlign` 在 core layout |
-| 皮肤 `factory/toolbar.ts` | SF / Naive 三栏 grid；Prime `primevue/toolbar` |
-
-槽名 **`start` / `center` / `end`**。不要 `left` / `right`。不要 `ToolbarComponent` / `ejs-toolbar` 当 vui 名。
+程序员用法：[toolbar_usage.md](./toolbar_usage.md)。
 
 ## 属性
 
 | 属性 | 说明 |
 |---|---|
-| `layout` | `full`（缺省）/ `medium` / `compact`。不要 `size` / `variant` / `collapsed` |
-| `align.start` / `align.center` / `align.end` | 槽内横对齐，类型 [`UiHorzAlign`](../../core/src/ui/layout.ts)：`left` / `center` / `right`。缺省左 / 中 / 右。竖向写死居中 |
-| 槽 `start` `center` `end` | `() => VNodeChild`。事件写在槽里的 button / input 上，不要条级 `onClick` |
+| `overflow` | `popup`（缺省）/ `scroll` / `multirow` / `none` |
+| `disabled` | 整条不可用 |
+| 槽 `start` / `center` / `end` | 左 / 中 / 右 |
+| 槽 `default` | 无 named 槽时当作 `start` |
 
-整条 grid `1fr auto 1fr`，不要根上 `around`。槽对齐只用 `UiHorzAlign` 的 `left` / `center` / `right`，不要 `between` / `around` / `evenly`。
-
-钩子 class：`mmda-toolbar`；缺省 full **不挂** layout 修饰；非缺省才有 `--medium` / `--compact`；视口 densify 另有 `--dense`；有 center 时 `--with-center`；槽 `--left` / `--center` / `--right`。
-
-## 模块栏 layout
-
-| layout | start | center | end |
-|---|---|---|---|
-| `full` | 面包屑 | 搜索条 | 动作按钮组 |
-| `medium` | 面包屑 | 搜索条 | `factory.moreMenuButton` |
-| `compact` | 横条下拉 | 标题 | 放大镜；点击进搜索页 |
-
-`ModuleToolbarProps.showSearchBar` 控制 full/medium 的中间搜索、compact 的放大镜。
-
-视口 ≤1024（`useCompactViewport`）时 full/medium 动作会 **dense**：按钮只留图标，文案进 `tooltip` / `aria-label`；`moreMenuButton` 始终带 `more` 图标。这与 `layout: 'compact'`（汉堡 + 标题 + 放大镜）不是同一套。
-
-模块页顶栏走 `buildIndexToolbar` / `buildDetailsToolbar` / `buildEditToolbar`。产品动作（allowCreate、LIST 位、批量删除等）由 core `resolve*ToolbarActions` 决定；vui `paintIndexToolbar` 等把它们接到 `actionFactory` 再填槽。皮肤只加 extraMore（例如 SF 的自动列宽 / 表格设置，详情页的卡片/页签布局）。
-
-## 皮肤映射
-
-| vui | Syncfusion | PrimeVue | Naive |
-|---|---|---|---|
-| 壳 | 三栏 grid（不用 EJ2 Toolbar items） | `Toolbar` 三槽 + 槽内 flex | 同 SF 三栏 |
-| `align` | `justify-content` | 槽内 flex | 同左 |
+钩子 class：`mmda-toolbar`；槽 `mmda-toolbar__start` / `__center` / `__end`。
 
 ## 源码
 
-- vui：[`toolbar.ts`](../src/ui/factory/toolbar.ts)
+- 契约：[`core/src/ui/factory/toolbar.ts`](../../core/src/ui/factory/toolbar.ts)
+- vui：[`factory/toolbar.ts`](../src/ui/factory/toolbar.ts)
 - 皮肤：各包 `factory/toolbar.ts`

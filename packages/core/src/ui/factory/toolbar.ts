@@ -1,59 +1,60 @@
-import type { UiHorzAlign } from '../layout'
 import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 
-export type UiToolbarLayout = 'full' | 'medium' | 'compact'
+/**
+ * 原生 Toolbar 单控件。不是页头 Topbar。
+ * 页头见 {@link import('../builder/topbar').UiIndexTopbar}。
+ */
+export interface UiToolbarProps extends UiProps {
+  overflow?: 'popup' | 'scroll' | 'multirow' | 'none'
+  disabled?: boolean
+}
+
 export type UiToolbarSlotName = 'start' | 'center' | 'end'
 
-export interface UiToolbarProps extends UiProps {
-  align?: {
-    start?: UiHorzAlign
-    center?: UiHorzAlign
-    end?: UiHorzAlign
-  }
-  layout?: UiToolbarLayout
-}
-
 export interface UiToolbarSlots<TNode = any> {
-  start?: () => unknown
-  center?: () => unknown
-  end?: () => unknown
+  start?: () => TNode
+  center?: () => TNode
+  end?: () => TNode
+  /** 无 named 槽时当作 start。 */
+  default?: () => TNode
 }
 
-const TOOLBAR_SLOT_ALIGN: Record<UiToolbarSlotName, UiHorzAlign> = {
-  start: 'left',
-  center: 'center',
-  end: 'right',
+export type UiToolbarRegions<TNode = any> = {
+  start?: () => TNode
+  center?: () => TNode
+  end?: () => TNode
 }
 
-export function toolbarModifierClasses(
-  props: UiToolbarProps = {},
-  slots?: UiToolbarSlots,
-): unknown[] {
-  const layout =
-    props.layout === 'medium' || props.layout === 'compact'
-      ? props.layout
+/** 有 start/center/end 用 named；否则 default → start。 */
+export function toolbarRegionsOf<TNode>(
+  slots?: UiToolbarSlots<TNode>,
+): UiToolbarRegions<TNode> {
+  const named =
+    typeof slots?.start === 'function' ||
+    typeof slots?.center === 'function' ||
+    typeof slots?.end === 'function'
+  if (named) {
+    return {
+      start: slots?.start,
+      center: slots?.center,
+      end: slots?.end,
+    }
+  }
+  return { start: slots?.default }
+}
+
+export function toolbarModifierClasses(props: UiToolbarProps = {}): unknown[] {
+  const overflow =
+    props.overflow === 'scroll' ||
+    props.overflow === 'none' ||
+    props.overflow === 'multirow'
+      ? props.overflow
       : undefined
-  const hasCenter = typeof slots?.center === 'function'
   return [
     uiCssClass('toolbar'),
-    layout ? uiCssClass('toolbar', undefined, layout) : undefined,
-    hasCenter ? uiCssClass('toolbar', undefined, 'with-center') : undefined,
+    overflow ? uiCssClass('toolbar', undefined, overflow) : undefined,
+    props.disabled ? uiCssClass('toolbar', undefined, 'disabled') : undefined,
     props.class,
-  ]
-}
-
-export function toolbarSlotModifierClasses(
-  props: UiToolbarProps = {},
-  slot: UiToolbarSlotName,
-): unknown[] {
-  const raw = props.align?.[slot]
-  const align =
-    raw === 'left' || raw === 'center' || raw === 'right'
-      ? raw
-      : TOOLBAR_SLOT_ALIGN[slot]
-  return [
-    uiCssClass('toolbar', slot),
-    uiCssClass('toolbar', slot, align),
   ]
 }

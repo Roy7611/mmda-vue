@@ -23,7 +23,7 @@ export const CategoryTreeView = defineComponent({
           },
         },
         [
-          builder.buildIndexToolbar(props.ctx, { showActions: false }),
+          builder.buildIndexTopbar(props.ctx, { showActions: false }),
           builder.buildTreeView(props.ctx, {
             data: categoryRows,
             fields: {

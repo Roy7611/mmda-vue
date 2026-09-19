@@ -6,8 +6,9 @@ import {
   pivotAggregateOf,
   pivotHookClass,
   unimplementedPivotPlugin,
-  type UiPivotPlugin,
-} from '../ui/factory/pivot_table'
+  UiPluginName,
+  type UiPlugin,
+} from '@mmda/core'
 import { createStubUiBuilder } from '../ui/builder'
 import { TestUiBuilder } from './test_builder'
 
@@ -19,41 +20,44 @@ describe('ui pivot table contract', () => {
     expect(ej2PivotTypeOf('avg')).toBe('Avg')
   })
 
-  it('throws until setPivotPlugin', () => {
+  it('throws until pivot-table plugin is used', () => {
     const ui = new TestUiBuilder()
-    expect(() => ui.pivotPlugin.pivotTable({})).toThrow(
-      PIVOT_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() => ui.buildPivotTable({ data: [] })).toThrow(
+    expect(() => ui.requirePlugin(UiPluginName.pivotTable)).toThrow(
       PIVOT_PLUGIN_NOT_INSTALLED,
     )
     expect(unimplementedPivotPlugin().pivotTable).toBeTypeOf('function')
   })
 
-  it('uses the plugin after setPivotPlugin', () => {
+  it('uses plugin().buildUi after use()', () => {
     const ui = new TestUiBuilder()
-    const plugin: UiPivotPlugin = {
-      pivotTable: (props) =>
+    const plugin: UiPlugin = {
+      name: UiPluginName.pivotTable,
+      buildUi: (_ctx, props) =>
         h('div', {
           class: 'mmda-pivot',
-          'data-rows': props.rows?.length ?? 0,
+          'data-rows': (props as { rows?: unknown[] })?.rows?.length ?? 0,
         }),
     }
-    ui.setPivotPlugin(plugin)
-    const node = ui.buildPivotTable({
+    ui.use(plugin)
+    const node = ui.plugin(UiPluginName.pivotTable)!.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
     })
     expect(node.props?.['data-rows']).toBe(1)
   })
 
-  it('stub builder throws until a plugin is set', () => {
+  it('stub builder throws until a plugin is used', () => {
     const stub = createStubUiBuilder()
-    expect(() => stub.buildPivotTable({})).toThrow(PIVOT_PLUGIN_NOT_INSTALLED)
-    stub.setPivotPlugin({
-      pivotTable: () => h('div', { class: 'mmda-pivot' }),
+    expect(() => stub.requirePlugin(UiPluginName.pivotTable)).toThrow(
+      PIVOT_PLUGIN_NOT_INSTALLED,
+    )
+    stub.use({
+      name: UiPluginName.pivotTable,
+      buildUi: () => h('div', { class: 'mmda-pivot' }),
     })
-    expect(stub.buildPivotTable({}).props?.class).toBe('mmda-pivot')
+    expect(
+      stub.plugin(UiPluginName.pivotTable)!.buildUi({} as any, {}).props?.class,
+    ).toBe('mmda-pivot')
     expect(pivotHookClass(undefined)).toEqual(['mmda-pivot', undefined])
   })
 })

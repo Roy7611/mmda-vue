@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { PIVOT_PLUGIN_NOT_INSTALLED } from '@mmda/vui'
 import { SyncfusionUiBuilder } from '../syncfusion_builder'
 import {
   createSfPivotPlugin,
   toEj2DataSourceSettings,
-} from '../factory/pivot_table'
+} from '../plugins/pivot_table'
 
 describe('createSfPivotPlugin', () => {
   it('maps AG axes onto EJ2 dataSourceSettings', () => {
@@ -24,7 +23,7 @@ describe('createSfPivotPlugin', () => {
 
   it('renders PivotView host with mapped settings', () => {
     const plugin = createSfPivotPlugin()
-    const vnode = plugin.pivotTable({
+    const vnode = plugin.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
     })
@@ -35,13 +34,10 @@ describe('createSfPivotPlugin', () => {
     expect(String(vnode.props?.cssClass ?? '')).toContain('mmda-pivot')
   })
 
-  it('throws until setPivotPlugin on the skin builder', () => {
+  it('skin builder installs pivot-table by default', () => {
     const builder = new SyncfusionUiBuilder()
-    expect(() => builder.buildPivotTable({ data: [] })).toThrow(
-      PIVOT_PLUGIN_NOT_INSTALLED,
-    )
-    builder.setPivotPlugin(createSfPivotPlugin())
-    const vnode = builder.buildPivotTable({
+    expect(builder.hasPlugin('pivot-table')).toBe(true)
+    const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],
     })
     expect(vnode.props?.dataSourceSettings?.values?.[0]?.type).toBe('Sum')

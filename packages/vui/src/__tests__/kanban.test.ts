@@ -5,30 +5,32 @@ import {
   kanbanAddCardEnabled,
   kanbanDragEnabled,
   unimplementedKanbanPlugin,
-  type UiKanbanPlugin,
-} from '../ui/factory/kanban'
+  UiPluginName,
+  type UiPlugin,
+} from '@mmda/core'
 import { TestUiBuilder } from './test_builder'
 
 describe('kanbanPlugin', () => {
-  it('throws until setKanbanPlugin', () => {
+  it('throws until kanban plugin is used', () => {
     const ui = new TestUiBuilder()
-    expect(() => ui.kanbanPlugin.kanbanView({ cards: [], columns: [] })).toThrow(
+    expect(() => ui.buildKanban({} as any, { cards: [], columns: [] })).toThrow(
       KANBAN_PLUGIN_NOT_INSTALLED,
     )
     expect(unimplementedKanbanPlugin().kanbanView).toBeTypeOf('function')
   })
 
-  it('uses the plugin after setKanbanPlugin', () => {
+  it('uses the plugin after use()', () => {
     const ui = new TestUiBuilder()
-    const plugin: UiKanbanPlugin = {
-      kanbanView: (props) =>
+    const plugin: UiPlugin = {
+      name: UiPluginName.kanban,
+      buildUi: (_ctx, props) =>
         h('div', {
           class: 'mmda-kanban',
-          'data-count': props.cards?.length ?? 0,
+          'data-count': (props as { cards?: unknown[] })?.cards?.length ?? 0,
         }),
     }
-    ui.setKanbanPlugin(plugin)
-    const node = ui.buildKanban({
+    ui.use(plugin)
+    const node = ui.buildKanban({} as any, {
       cards: [{ id: 1, title: 'A', status: 'todo' }],
       columns: [{ key: 'todo', header: 'To Do' }],
     })

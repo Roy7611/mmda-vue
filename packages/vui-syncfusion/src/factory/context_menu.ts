@@ -2,7 +2,8 @@ import { h } from "vue";
 import { ContextMenuComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiContextMenuProps, UiMenuItem } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { contextMenuItemsOf, contextMenuModifierClasses, findContextMenuItem, htmlAttributesOf, invokeContextMenuItem } from "@mmda/vui"
+import { contextMenuItemsOf, contextMenuModifierClasses, findContextMenuItem, invokeContextMenuItem } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function mapSyncfusionItem(
   item: UiMenuItem,
@@ -47,7 +48,7 @@ export function createContextMenu(
 
   return h(ContextMenuComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     items: liveItems.map((item) => mapSyncfusionItem(item, resolveIcon)),
     target: disabled ? undefined : target,
     cssClass,

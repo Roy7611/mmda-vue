@@ -1,4 +1,4 @@
-import type { Entity, PagedList, UiMessageProps } from "@mmda/core";
+import type { Entity, Pager, Pagination, UiMessageProps } from "@mmda/core";
 import type { InjectionKey } from "vue";
 import type { VueUiContext } from "./vue_ui_context";
 import type { UiIndexTableHost } from "../ui/factory/list";
@@ -33,10 +33,12 @@ function primaryKeyOf(context: VueUiContext): string {
   return context.metaUi?.primaryKey ?? "id";
 }
 
-function listModel(context: VueUiContext): PagedList<Entity> | null {
-  const model = context.model as PagedList<Entity> | undefined;
-  if (!model || !Array.isArray(model.list) || !model.pagination) return null;
-  return model;
+function listRows(context: VueUiContext): Entity[] | null {
+  return Array.isArray(context.model) ? (context.model as Entity[]) : null;
+}
+
+function listPager(context: VueUiContext): (Pager & Pagination) | undefined {
+  return context.searchParam?.pager as (Pager & Pagination) | undefined;
 }
 
 function applyToHost(
@@ -83,23 +85,24 @@ export function createModuleContext(): VueModuleContext {
     appendNewRow(entity) {
       const context = indexContext;
       if (!context?.many) return;
-      const paged = listModel(context);
-      if (!paged) return;
+      const rows = listRows(context);
+      if (!rows) return;
+      const pager = listPager(context);
       const key = primaryKeyOf(context);
       const id = entity[key] ?? entity.id;
       if (id == null || String(id) === "") return;
       const idStr = String(id);
       // 已在列表（重复 save）则当改行
-      const existing = paged.list.find(
+      const existing = rows.find(
         (item) =>
           String((item as Record<string, unknown>)[key] ?? item.id) === idStr,
       );
       if (existing) {
-        const rowNum = (existing as Entity).rowNum;
+        const rowNum = existing.rowNum;
         Object.assign(existing, entity);
-        (existing as Entity).rowNum = rowNum;
+        existing.rowNum = rowNum;
         context.currentItem = existing;
-        context.currentIndex = paged.list.indexOf(existing);
+        context.currentIndex = rows.indexOf(existing);
         applyToHost(
           context.indexTableHost,
           "applyRow",
@@ -108,22 +111,24 @@ export function createModuleContext(): VueModuleContext {
         return;
       }
       const from =
-        Number(paged.pagination.from) ||
-        (Number(paged.pagination.pageNo ?? 1) - 1) *
-          Number(paged.pagination.pageSize ?? paged.list.length) +
+        Number(pager?.from) ||
+        (Number(pager?.pageNo ?? 1) - 1) *
+          Number(pager?.pageSize ?? rows.length) +
           1;
-      paged.list.unshift(entity as Entity);
-      for (let i = 0; i < paged.list.length; i++) {
-        (paged.list[i] as Entity).rowNum = String(from + i);
+      rows.unshift(entity as Entity);
+      for (let i = 0; i < rows.length; i++) {
+        rows[i]!.rowNum = String(from + i);
       }
-      const total = Number(paged.pagination.recordCount ?? 0);
-      paged.pagination.recordCount = total + 1;
-      context.currentItem = paged.list[0] as Entity;
+      if (pager) {
+        const total = Number(pager.recordCount ?? 0);
+        pager.recordCount = total + 1;
+      }
+      context.currentItem = rows[0] as Entity;
       context.currentIndex = 0;
       applyToHost(
         context.indexTableHost,
         "insertAtZero",
-        paged.list[0] as Record<string, unknown>,
+        rows[0] as Record<string, unknown>,
       );
     },
     applyCurrentRow(entity) {
@@ -139,11 +144,12 @@ export function createModuleContext(): VueModuleContext {
     removeById(id) {
       const context = indexContext;
       if (!context?.many) return;
-      const paged = listModel(context);
-      if (!paged) return;
+      const rows = listRows(context);
+      if (!rows) return;
+      const pager = listPager(context);
       const key = primaryKeyOf(context);
       const idStr = String(id);
-      const idx = paged.list.findIndex(
+      const idx = rows.findIndex(
         (item) =>
           String((item as Record<string, unknown>)[key] ?? item.id) === idStr,
       );
@@ -164,27 +170,27 @@ export function createModuleContext(): VueModuleContext {
         context.currentIndex = -1;
       }
 
-      const pageSize = Number(paged.pagination.pageSize ?? paged.list.length);
-      const pageNo = Number(paged.pagination.pageNo ?? 1);
-      const total = Number(paged.pagination.recordCount ?? paged.list.length);
+      const pageSize = Number(pager?.pageSize ?? rows.length);
+      const pageNo = Number(pager?.pageNo ?? 1);
+      const total = Number(pager?.recordCount ?? rows.length);
 
       if (idx >= 0) {
-        paged.list.splice(idx, 1);
-        paged.pagination.recordCount = Math.max(0, total - 1);
-        if (paged.list.length === 0 && pageNo > 1) {
-          paged.pagination.pageNo = pageNo - 1;
+        rows.splice(idx, 1);
+        if (pager) pager.recordCount = Math.max(0, total - 1);
+        if (rows.length === 0 && pageNo > 1) {
+          if (pager) pager.pageNo = pageNo - 1;
           needsSearch = true;
         } else if (
-          paged.list.length < pageSize &&
-          paged.pagination.recordCount >
-            (pageNo - 1) * pageSize + paged.list.length
+          rows.length < pageSize &&
+          (pager?.recordCount ?? 0) >
+            (pageNo - 1) * pageSize + rows.length
         ) {
           needsSearch = true;
         }
         applyToHost(context.indexTableHost, "remove", idStr);
         return;
       }
-      if (total > 0) paged.pagination.recordCount = total - 1;
+      if (pager && total > 0) pager.recordCount = total - 1;
     },
     consumeNeedsSearch() {
       if (!needsSearch) return false;

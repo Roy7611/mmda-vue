@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { IconResolver, UiBreadcrumbProps } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createBreadcrumb(
   props: UiBreadcrumbProps,
@@ -19,7 +19,7 @@ export function createBreadcrumb(
     'nav',
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       class: ['mmda-breadcrumb', className],
       'aria-label': 'breadcrumb',
     },

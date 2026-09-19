@@ -1,7 +1,7 @@
 import { h, reactive, type VNode } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
-import type { PrimeVueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
-import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry } from "@mmda/vui"
+import type { VueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
+import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -171,7 +171,7 @@ const normalizeMenuItem = (item: any): any => {
   };
 };
 
-export function createPrimeVueUiFactory(): PrimeVueUiFactory {
+export function createPrimeVueUiFactory(): VueUiFactory {
   const button = createButton;
 
   const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) => {
@@ -569,8 +569,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
     });
   };
 
-  const factory: PrimeVueUiFactory = {
-    layout: primeLayout,
+  const factory: VueUiFactory = {
     nativeInplaceEdit: true,
     actionIcons: {
       create: "pi pi-plus",
@@ -884,10 +883,7 @@ export function createPrimeVueUiFactory(): PrimeVueUiFactory {
             createTextInput({
               ...props,
               value: props.modelValue ?? props.value,
-              onChange:
-                props.onChange ??
-                props.onUpdate ??
-                props["onUpdate:modelValue"],
+              onChange: props.onChange ?? vueUpdateOf(props),
             }),
         ],
       ),

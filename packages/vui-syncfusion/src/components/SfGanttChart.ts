@@ -8,7 +8,8 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, htmlAttributesOf, type UiGanttProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttTimeScale } from '@mmda/vui'
+import { applyGanttLinksToTasks, createNoopGanttController, ganttHookClass, type UiGanttProps, type UiGanttController, type UiGanttLink, type UiGanttTask, type UiGanttTimeScale } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 import '@syncfusion/ej2-treegrid/styles/material3.css'
 import '@syncfusion/ej2-gantt/styles/material3.css'
 
@@ -169,7 +170,6 @@ export const SfGanttChart = defineComponent({
         action,
         task: kind === 'task' ? ej2RecordToUiTask(payload.task ?? payload) : undefined,
         link: kind === 'link' ? payload.link ?? payload : undefined,
-        native: payload,
       })
       if (ok === false) restoreSnapshot()
       else snapshot.value = cloneState()
@@ -216,7 +216,7 @@ export const SfGanttChart = defineComponent({
         {
           class: ganttHookClass('mmda-gantt', props.readonly),
           'data-loading': props.loading || undefined,
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
         },
         [
         h(GanttImpl, {
@@ -274,7 +274,6 @@ export const SfGanttChart = defineComponent({
             if (type.includes('RowDropped')) {
               void props.onRowReorder?.(ej2RecordToUiTask(args.data ?? args.rowData), {
                 action: 'reorder',
-                native: args,
               })
             }
           },

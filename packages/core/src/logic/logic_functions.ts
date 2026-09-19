@@ -1,5 +1,6 @@
 import type { MetaUiField } from '../metaui/metaui_field'
 import type { Translatable } from '../metaui/metaui_field'
+import type { Entity } from '../models/entity'
 import type { UiContext } from '../ui/context'
 
 /** 实体/行条件。程序员在 lockIf / hideIf / requiredIf 中使用。 */
@@ -28,8 +29,8 @@ export function sqlOr(a?: string, b?: string) {
   return `(${a}) OR (${b})`
 }
 
-export type OnChangeFn<E = any, T = any> = (
-  context: UiContext<E & object>,
+export type OnChangeFn<E extends Entity = Entity, T = any> = (
+  context: UiContext<E>,
   model: E,
   newVal: T,
   oldVal: T,
@@ -38,13 +39,13 @@ export type OnChangeFn<E = any, T = any> = (
 export type OnValidateFn<T = any, E = any> = (
   value: T,
   model: E,
-  ctx?: UiContext<E & object>,
+  ctx?: UiContext,
 ) => string | Translatable | undefined
 
 /** 关联引用的额外 SQL WHERE 片段；由 refWhere 叠加，与元数据 where AND。 */
-export type RefWhereFn<T = unknown> = (
+export type RefWhereFn<T extends Entity = Entity> = (
   model: T,
-  ctx: UiContext<T & object>,
+  ctx: UiContext<T>,
   fieldOptions?: Record<string, unknown>,
 ) => string
 

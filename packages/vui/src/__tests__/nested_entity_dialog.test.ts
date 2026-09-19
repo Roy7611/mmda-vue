@@ -35,7 +35,7 @@ describe("nested entity dialog", () => {
     }));
     const routeTo = vi.fn();
     const ctx = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {
@@ -71,7 +71,7 @@ describe("nested entity dialog", () => {
     const routeTo = vi.fn();
     const openNestEntityDialog = vi.fn();
     const ctx = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi: listMeta,
       view: UiViewMany.Index,
       app: {
@@ -94,7 +94,7 @@ describe("nested entity dialog", () => {
     builder.dialog = dialog as any;
 
     const ctx = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {
@@ -126,7 +126,7 @@ describe("nested entity dialog", () => {
     const saved = { id: "n1", categoryName: "新建" };
     const builder = new TestUiBuilder();
     const parent = new VueUiContext({
-      model: { list: [] } as any,
+      model: [],
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {

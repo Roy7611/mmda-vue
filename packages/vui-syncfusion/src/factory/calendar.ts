@@ -1,7 +1,8 @@
 import { h, render } from "vue";
 import { CalendarComponent } from "@syncfusion/ej2-vue-calendars";
 import type { UiCalendarProps, UiCalendarView } from '@mmda/core';
-import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
+import { calendarBoundValue, calendarDaySelected, calendarModifierClasses, emitCalendarChange, isCalendarDateDisabled, sameCalendarDay } from "@mmda/vui"
+import { uiRenderProps, uiClassName } from "@mmda/core"
 
 export function calendarEj2View(
   view?: UiCalendarView,
@@ -38,13 +39,13 @@ export function createCalendar(props: UiCalendarProps) {
   const bound = calendarBoundValue(props);
   const start = calendarEj2View(view);
   const ejDepth = calendarEj2View(depth);
-  const cssClass = calendarModifierClasses(props).flat().filter(Boolean).join(" ");
+  const cssClass = uiClassName(calendarModifierClasses(props));
 
   const today = new Date();
 
   return h(CalendarComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     ...(multiple
       ? {
           isMultiSelection: true,

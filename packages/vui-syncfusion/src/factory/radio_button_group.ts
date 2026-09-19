@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { RadioButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import type { UiRadioButtonGroupProps } from "@mmda/core"
-import { radioButtonGroupItemSelected, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf } from "@mmda/core"
+import { radioButtonGroupItemSelected, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, uiRenderProps } from "@mmda/core"
 import { emitRadioButtonGroupChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const {
@@ -28,7 +27,7 @@ export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
     "div",
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       role: "radiogroup",
       class: radioButtonGroupModifierClasses(props),
     },

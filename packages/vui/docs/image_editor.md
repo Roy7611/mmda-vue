@@ -1,6 +1,6 @@
 # 图片编辑器插件
 
-图片编辑不进 chrome `factory`。vui 只定 [`UiImageEditorPlugin`](../src/ui/factory/image_editor.ts)；应用 `setImageEditorPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+图片编辑不进 chrome `factory`。vui 只定 [`UiImageEditorPlugin`](../src/ui/plugins/image_editor.ts)；应用 `setImageEditorPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 目前只有 Syncfusion EJ2 实现。Prime / Naive 不挂插件时，`buildImageEditor` 抛未安装。不要和 `factory.image` / `imageGallery` / `imageUploader` / `buildFilePreview` 混用。`ImagePicker` 以后是跟表单一起上传的选图预览，不是只读图。手写签名是 chrome `factory.signaturePad`，不是本插件。
 
@@ -10,7 +10,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/image_editor.ts` | `UiImageEditorProps`；未安装 stub |
+| vui `ui/plugins/image_editor.ts` | `UiImageEditorProps`；未安装 stub |
 | `VueUiBuilder.imageEditorPlugin` | 默认 `unimplementedImageEditorPlugin`；`setImageEditorPlugin`；`buildImageEditor` 转调插件 |
 | `@mmda/vui-syncfusion/image-editor` | `createSfImageEditorPlugin`，EJ2 ImageEditor |
 

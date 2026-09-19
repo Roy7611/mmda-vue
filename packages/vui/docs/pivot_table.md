@@ -1,6 +1,6 @@
 # 透视表插件
 
-透视表不进 chrome `factory`。vui 只定 [`UiPivotPlugin`](../src/ui/factory/pivot_table.ts)；应用 `setPivotPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+透视表不进 chrome `factory`。vui 只定 [`UiPivotPlugin`](../src/ui/plugins/pivot_table.ts)；应用 `setPivotPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[pivot_table_usage.md](./pivot_table_usage.md)。chrome 参数约定：[factory.md](./factory.md)。列表过滤对齐见 [sf-grid-design.md](../../vui-syncfusion/docs/sf-grid-design.md)。
 
@@ -8,7 +8,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/pivot_table.ts` | AG 轴 props、小写 `aggregate`、stub |
+| vui `ui/plugins/pivot_table.ts` | AG 轴 props、小写 `aggregate`、stub |
 | `VueUiBuilder.pivotPlugin` | 默认 `unimplementedPivotPlugin`；`setPivotPlugin`；`buildPivotTable` 转调 |
 | `@mmda/vui-syncfusion/pivot` | `createSfPivotPlugin`，EJ2 PivotView，**只绑本地 `data`** |
 | `@mmda/vui-agnaive/pivot` | `createAgPivotPlugin`，AG Grid `pivotMode` |
@@ -90,6 +90,6 @@ vui **小写跟 AG**；SF 皮肤用 `ej2PivotTypeOf` 翻译。`distinctCount`：
 
 ## 源码
 
-- vui：[`pivot_table.ts`](../src/ui/factory/pivot_table.ts)
-- SF：[`vui-syncfusion/src/factory/pivot_table.ts`](../../vui-syncfusion/src/factory/pivot_table.ts)、[`pivot_plugin.ts`](../../vui-syncfusion/src/pivot_plugin.ts)
-- AG：[`vui-agnaive/src/factory/pivot_table.ts`](../../vui-agnaive/src/factory/pivot_table.ts)、[`pivot_plugin.ts`](../../vui-agnaive/src/pivot_plugin.ts)
+- vui：[`pivot_table.ts`](../src/ui/plugins/pivot_table.ts)
+- SF：[`vui-syncfusion/src/plugins/pivot_table.ts`](../../vui-syncfusion/src/plugins/pivot_table.ts)
+- AG：[`vui-agnaive/src/plugins/pivot_table.ts`](../../vui-agnaive/src/plugins/pivot_table.ts)

@@ -1,0 +1,230 @@
+' ============================================================================
+' MMDA · UI 层（表现层）设计
+' ----------------------------------------------------------------------------
+' 分层真源      ARCHITECTURE.md（UI → Logic → Data）
+' 四职设计与用法 packages/core/docs/ui/ui_four_roles_design.md / _usage.md
+' 契约源码      packages/core/src/ui/（无 Vue、无框架类型）
+' 实现          packages/vui（Vue 会话与共用拼屏）+ packages/vui-*（皮肤控件与 factory）
+' 约定          只写仓内真实符号，不引入自造词；TNode = 框架节点（vui 为 Vue VNode）
+' 查看          VS Code PlantUML 扩展；本文件每张图独立渲染
+' ============================================================================
+
+
+@startuml ui_layer_roles
+allowmixing
+skinparam defaultFontName "Microsoft YaHei"
+title UI 层 · 四职与邻居
+
+package "packages/core/src/ui（契约，无 Vue）" {
+  interface "UiBuilder<TNode>" as UiBuilder
+  interface "UiLayout<TNode>" as UiLayout
+  abstract "AbstractUiLayout<TNode>" as AbstractUiLayout
+  interface "UiFactory<TNode>" as UiFactory
+  interface "UiFieldFactory<TNode>" as UiFieldFactory
+  interface "UiOverlay<TNode>" as UiOverlay
+  interface "UiPlugin<TNode>" as UiPlugin
+}
+
+package "packages/core（相邻层的契约）" {
+  interface "UiContext<M>" as UiContext
+  abstract "MmdaApplication" as MmdaApplication
+  component "ApiClient" as ApiClient
+  component "MetaUiField · MetaUiGroup" as MetaUiField
+}
+
+AbstractUiLayout ..|> UiLayout
+UiBuilder *-- "1" UiFactory : factory
+UiBuilder *-- "1" UiFieldFactory : fieldFactory
+UiBuilder o-- "*" UiPlugin : use / plugin
+UiFieldFactory ..> UiFactory : 具名 renderer 复用控件
+UiBuilder ..> UiContext : 每个拼屏方法显式传入
+UiBuilder ..> UiOverlay : 弹层委托（实现侧持有）
+UiBuilder ..> MetaUiField : 按 field.editor / field.renderer 选控件
+UiContext ..> UiBuilder : uiBuilder
+UiContext ..> ApiClient : apiClient
+UiContext ..> MmdaApplication : app
+
+note bottom of UiBuilder
+  core UiBuilder 只声明 factory / fieldFactory，不声明 layout。
+  layout 由实现侧持有：vui 的 VueUiBuilderBase.layout（皮肤构造时注入）。
+  toast / message / confirm / dialog 四个方法直接长在 UiBuilder 上；
+  UiOverlay 是皮肤宿主契约，vui 默认 createHtmlOverlay()。
+  薄包单个 factory 的方法（buildTable / buildPaginator / buildContainer）
+  不进 Builder：一个 factory.x() 或一层 DOM 能完成的，不进组装层。
+end note
+@enduml
+
+
+@startuml ui_layer_impl
+skinparam defaultFontName "Microsoft YaHei"
+title UI 层 · 契约 → vui → 皮肤
+
+package "core（框架无关契约）" as core {
+  interface "UiBuilder<TNode>" as C_Builder
+  interface "UiLayout<TNode>" as C_Layout
+  abstract "AbstractUiLayout<TNode>" as C_AbstractLayout
+  interface "UiFactory<TNode>" as C_Factory
+  interface "UiFieldFactory<TNode>" as C_FieldFactory
+  interface "UiOverlay<TNode>" as C_Overlay
+  interface "UiContext<M>" as C_Context
+  abstract "MmdaApplication" as C_App
+}
+
+package "vui（Vue 落地）" as vui {
+  abstract "VuePluginHost" as V_Host
+  abstract "VueUiBuilderBase\nfactory · fieldFactory · layout · overlay" as V_Base
+  abstract "VueUiBuilder\nWithForm / WithList / WithTree" as V_Builder
+  class "VueUiLayout\nextends AbstractUiLayout<VNode>" as V_Layout
+  interface "VueUiFactory\nextends UiFactory<VNode>" as V_Factory
+  class "VueUiFieldFactory\n= UiFieldFactory<VNode>" as V_FieldFactory
+  class "VueUiOverlay\n= UiOverlay<VNode>" as V_Overlay
+  class "VueUiContext<M>\nimplements UiContext<M>" as V_Context
+  class "MmdaVueApp\nextends MmdaApplication" as V_App
+}
+
+package "皮肤 vui-syncfusion / vui-primevue / vui-agnaive" as skin {
+  class "SyncfusionUiBuilder\nPrimeVueUiBuilder\nAgNaiveUiBuilder" as S_Builder
+  class "SyncfusionLayout\nPrimeLayout / AgNaiveLayout" as S_Layout
+  class "createSyncfusionUiFactory()\ncreatePrimeVueUiFactory() …" as S_Factory
+  class "createSyncfusionFieldFactory()\ncreatePrimeVueFieldFactory() …" as S_FieldFactory
+  class "createSyncfusionOverlay()\ncreatePrimeOverlay() …" as S_Overlay
+}
+
+V_Host <|-- V_Base
+V_Base <|-- V_Builder
+V_Builder ..|> C_Builder
+V_Layout --|> C_AbstractLayout
+V_Factory --|> C_Factory
+V_FieldFactory --|> C_FieldFactory
+V_Overlay --|> C_Overlay
+V_Context ..|> C_Context
+V_App --|> C_App
+
+S_Builder --|> V_Builder
+S_Layout --|> V_Layout
+S_Builder ..> S_Factory : 构造注入 factory
+S_Builder ..> S_FieldFactory : 构造注入 fieldFactory
+S_Builder ..> S_Layout : 构造注入 layout
+S_Builder ..> S_Overlay : 构造注入 overlay
+
+note bottom of V_Builder
+  Logic 只认 core UiBuilder<VNode>；皮肤不要再 alias 成 core 的 UiBuilder，
+  也不要在 vui 重声明同名的 interface UiFactory。
+  换 rui 另写 ReactUiBuilder，不从 vui 抄。
+end note
+@enduml
+
+
+@startuml ui_layer_flow
+skinparam defaultFontName "Microsoft YaHei"
+title UI 层 · 一屏怎么拼出来（列表 / 表单）
+
+actor 用户 as user
+participant "AppShell\n（皮肤壳）" as shell
+participant "UiContext\n会话" as context
+participant "UiBuilder\n拼多块组合" as builder
+participant "UiLayout\n排法" as layout
+participant "UiFactory\nchrome 控件" as factory
+participant "UiFieldFactory\n字段" as fieldFactory
+participant "XxxLogic" as logic
+participant "ApiClient" as api
+
+user -> shell : 路由 / 菜单
+shell -> context : app.state → model / metaUi / editing
+shell -> builder : build(context)
+note right of builder
+  view 分发：
+  index · selectOne · selectMany → buildIndexView / buildSelectView
+  edit · create             → buildEditView
+  details                   → buildDetailsView
+end note
+
+group 列表页（vui ui/builder/list_view.ts）
+  builder -> layout : layoutIndexPage({ toolbar, filterBar, default, footer })
+  builder -> builder : buildIndexTopbar · buildModuleBreadcrumb · buildFilterBar
+  builder -> factory : table | grid | list | treeGrid
+  builder -> factory : paginator
+end
+
+group 表单页（vui ui/builder/form.ts）
+  builder -> layout : layoutPage({ toolbar, banner, primary, summary, footer })
+  builder -> builder : buildFieldGroup / buildSubGroup
+  builder -> builder : editFor / displayFor（带标签行）
+  builder -> fieldFactory : 具名 renderer（裸控件，单元格）
+  fieldFactory -> factory : textInput · dropDownList · datePicker …
+end
+
+user -> context : 事件（点击 / 输入 / 勾选）
+context -> logic : 钩子（onChange · 校验 · refWhere）
+logic -> api : 读写实体 / 动作
+api --> logic : 新数据
+logic -> context : setFieldValue() / refresh()
+context -> builder : 数据向下 → 重新拼屏
+builder --> user : 节点树（事件向上）
+@enduml
+
+
+@startuml ui_layer_props
+skinparam defaultFontName "Microsoft YaHei"
+title UI 层 · 控件入参通道
+
+class "UiProps\n（袋：索引签名）" as UiProps
+class "Ui*Props\n每控件一个具名入参" as NamedProps
+class "HtmlAttributes\nRecord<string, string>" as HtmlAttributes
+class "UiRenderProps\nprops · attributes · className · style" as UiRenderProps
+class "UiAction / UiMenuItem\n工具栏 · 菜单 · 行操作" as UiAction
+class "UiEventArgs\n领域事件基座（空）" as UiEventArgs
+class "皮肤事件子类型\n如 UiGanttChangeEventArgs" as SkinEvent
+
+NamedProps --|> UiProps
+UiProps ..> UiRenderProps : uiRenderProps()
+UiProps ..> HtmlAttributes : htmlAttributesOf()\n读袋键 htmlAttributes
+UiProps ..> UiAction : onAction / 动作表
+SkinEvent --|> UiEventArgs
+
+note bottom of UiProps
+  通道约定（packages/core/docs/ui/ui_prop_channels_design.md）：
+  · onXxx          → emits，袋键由 callUiBagFn() 触发
+  · class / style  → attrs（uiClassName / styleObjectOf）
+  · htmlAttributes → 原生 id / data-* / aria-*，皮肤各自透传
+  · slots          → 方法第二参，不是 props 里的键
+  · 其余具名键     → 落 attrs（placeholder / disabled 是控件具名）
+  厂商原始 args（EJ2 args / svar ev）不进契约，由皮肤子类型自加字段。
+end note
+@enduml
+
+
+@startuml ui_layer_plugins
+skinparam defaultFontName "Microsoft YaHei"
+title UI 层 · 插件宿主（复杂视图）
+
+interface "UiPlugin<TNode>" as UiPlugin {
+  name : string
+  install?(builder : UiBuilder<TNode>)
+  buildUi(context, props?) : TNode
+}
+
+class "VuePluginHost\nuse · plugin · hasPlugin · requirePlugin" as VuePluginHost
+class "VueUiBuilderBase" as VueUiBuilderBase
+VueUiBuilderBase --|> VuePluginHost
+
+package "core 插件面（packages/core/src/ui/plugins/）" {
+  class "UiPluginName\ngantt · scheduler · kanban · diagram · timeline\nmarkdown-editor · image-editor · pivot-table\nribbon · ai-assistant · chart" as UiPluginName
+  class "uiPlugin(name, buildUi, install?)" as uiPluginFn <<function>>
+}
+
+class "皮肤插件\ncreateSfGanttPlugin() · createSfKanbanPlugin()\ncreateSfSchedulerPlugin() · chartAsPlugin() …" as SkinPlugin
+class "vuix-*（厂商组件）\nvuix-hyper-gantt · vuix-svar-kanban …" as Vuix
+
+SkinPlugin ..|> UiPlugin
+SkinPlugin ..> Vuix : 包成 buildUi
+SkinPlugin ..> uiPluginFn : 用工厂构造
+VuePluginHost ..> SkinPlugin : use(plugin)
+VuePluginHost ..> UiPluginName : 具名查找 / requirePlugin
+
+note bottom of VuePluginHost
+  Builder 薄封装：buildGantt · buildTimeline · buildScheduler · buildKanban · buildDiagram。
+  未装插件时 throw（GANTT_PLUGIN_NOT_INSTALLED 同款），不静默返回空 div。
+  插件不进 chrome UiFactory；整页覆盖走插件 resolveCustomView。
+end note
+@enduml

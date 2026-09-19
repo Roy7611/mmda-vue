@@ -1,7 +1,8 @@
 import { h } from "vue";
 import { SpeechToTextComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiSpeechToTextProps } from '@mmda/core';
-import { emitSpeechToTextChange, htmlAttributesOf, speechToTextErrorCode, speechToTextInterimOf, speechToTextModifierClasses, speechToTextValueOf } from "@mmda/vui"
+import { emitSpeechToTextChange, speechToTextErrorCode, speechToTextInterimOf, speechToTextModifierClasses, speechToTextValueOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
@@ -41,7 +42,7 @@ export function createSpeechToText(props: UiSpeechToTextProps = {}) {
 
   return h(SpeechToTextComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     transcript: speechToTextValueOf(props),
     lang,
     allowInterimResults: speechToTextInterimOf(props),

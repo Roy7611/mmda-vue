@@ -9,6 +9,7 @@
 - [产品与包](#产品与包)
 - [分层词](#分层词)
 - [UI 构造：组件 → Factory → Builder](#ui-构造组件--factory--builder)
+  - [UI 插件](#ui-插件)
   - [chrome 参数](#chrome-参数)
 - [服务、模块、实体、仓库、交互逻辑](#服务模块实体仓库交互逻辑)
   - [relation 与 relative](#relation-与-relative)
@@ -47,13 +48,13 @@
 | `@mmda/vui`                |      | Vue 3 运行时：会话、拼屏、Builder；应用壳实现为 `MmdaVueApp` |
 | `@mmda/vui-*`              | 皮肤包  | PrimeVue / Syncfusion / Naive 控件实现     |
 | `@mmda/vuix-*`             |      | 跨皮肤或替代厂商的可选 UI 插件 |
-| `@mmda/vuix-echarts`        |      | ECharts 图表插件，应用 `setChartFactory` |
-| `@mmda/vuix-vf-diagram`        |      | Vue Flow 图插件，应用 `setDiagramPlugin` |
-| `@mmda/vuix-vditor-markdown` |     | Vditor Markdown 插件，应用 `setMarkdownEditorPlugin` |
-| `@mmda/vuix-svar-kanban`    |      | SVAR 看板插件，应用 `setKanbanPlugin` |
-| `@mmda/vuix-hyper-gantt`    |      | DlhSoft Hyper 甘特插件，应用 `setGanttPlugin` |
-| `@mmda/vuix-tempis-timeline` |     | Tempis 时间轴插件，应用 `setTimelinePlugin` 替换 `factory.timeline` |
-| `@mmda/vuix-fc-scheduler`   |      | FullCalendar 排程插件，应用 `setSchedulerPlugin` |
+| `@mmda/vuix-echarts`        |      | ECharts 图表插件，应用 `builder.use(createEchartsPlugin())` |
+| `@mmda/vuix-vf-diagram`        |      | Vue Flow 图插件，应用 `builder.use(createVueDiagramPlugin())` |
+| `@mmda/vuix-vditor-markdown` |     | Vditor Markdown 插件，应用 `builder.use(createMarkdownEditorPlugin())` |
+| `@mmda/vuix-svar-kanban`    |      | SVAR 看板插件，应用 `builder.use(createVueKanbanPlugin())` |
+| `@mmda/vuix-hyper-gantt`    |      | DlhSoft Hyper 甘特插件，应用 `builder.use(createHyperGanttPlugin())` |
+| `@mmda/vuix-tempis-timeline` |     | Tempis 时间轴插件，应用 `builder.use(createTempisTimelinePlugin())` 替换 `factory.timeline` |
+| `@mmda/vuix-fc-scheduler`   |      | FullCalendar 排程插件，应用 `builder.use(createFcSchedulerPlugin())` |
 | `@mmda/app`                |      | 统一 SPA 壳、Router、部署入口                   |
 | `@mmda/base` / `@mmda/mes` |      | 业务插件，不是独立 SPA                          |
 
@@ -103,8 +104,8 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 | 词 | 英文 | 典型写法 | 是什么 |
 | --- | --- | --- | --- |
-| 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳 |
-| 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `type VueUiFactory = UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
+| 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳。`components/` 不 import builder / factory；依赖只许 **builder → factory → components** |
+| 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `interface VueUiFactory extends UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
 | 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildView` / `buildListView` | **core** `src/ui/builder.ts`，无 Vue |
 | 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SyncfusionOverlay` 等。不要 `factory.dialog` |
@@ -120,10 +121,24 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 - Logic 只 import `@mmda/core`；`UiButtonProps` 等参数类型也在 core。
 - vui：只钉 `VNode` → `type VueUiX = UiX<VNode>`；有 mixin/共用代码 → `abstract class`；多方法 → `interface extends`。
+- **袋 → 渲染前标准形态归 core**：`uiRenderProps(props)`（`core/src/ui/props.ts`）把袋拆成 `props` / `attributes` / `className` / `style`，框架无关；`className` 已收成字符串（`uiClassName`）、`style` 已收成对象、袋键 `htmlAttributes` 已压平、`for` 规范成 `htmlFor`、Vue 的 `onUpdate*` 别名不进标准形态；`htmlAttributesOf` 过渡期保留。vui 只做两处键名映射（`vueRenderProps`：`className`→`class`、`htmlFor`→`for`），rui 零映射。设计与迁移见 [UI Props 标准形态设计](../packages/core/docs/ui/ui_prop_channels_design.md)。
 - **不要** core 写 `Ref` / `VNode`；`loading` / `layoutRev` 用 `UiBoxed`（`boolean | { value: boolean }`）。
 - 厂商类名用短前缀：`PrimeUiBuilder`（不要 `PrimeVueUiBuilder` 与 Vue 层混）。
 
-vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮肤已有 `factory/`。细则见 [Builder 与皮肤](../packages/vui/docs/builder.md)。chrome 控件参数名见 [Factory 控件契约](../packages/vui/docs/factory.md)。
+### UI 插件
+
+甘特 / 排程 / 看板 / 图 / Markdown 等**不是** chrome `factory`。契约在 core `src/ui/plugins/`，vui 宿主在 `src/ui/plugins/`，皮肤引擎在各皮肤 `src/plugins/`（`createSfGanttPlugin` 等）。
+
+```text
+builder.use(plugin)              安装；同名后装覆盖
+builder.plugin('gantt')          取插件；未装返回 undefined
+builder.hasPlugin('gantt')
+plugin.buildUi(ctx, props)       渲染
+```
+
+Index 薄封装只有 `buildGantt` / `buildScheduler` / `buildKanban` / `buildDiagram` / `buildTimeline`，内部都转 `plugin(name).buildUi`。Markdown、图片编辑、Ribbon、透视表、图表、AI 助手没有 Builder 具名方法，直接 `plugin('markdown-editor')?.buildUi`。`treeGrid` 是内建，不是插件。时间轴契约在 core `ui/plugins/timeline`；chrome 默认仍是 `factory.timeline`，Tempis 用 `builder.use` 覆盖。Syncfusion / AgNaive 构造时自行 `use` 自带引擎；vuix 由 App `builder.use(...)` 挂上，后装覆盖皮肤默认。
+
+vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮肤 chrome 在 `factory/`，插件引擎在 `plugins/`（不要把 `createXxxPlugin` 放进 factory）。可选引擎走独立 `ui/plugins/`：core 定 `UiPlugin`，vui 宿主 `builder.use(plugin)` / `plugin(name).buildUi`。细则见 [Builder 与皮肤](../packages/vui/docs/builder.md)。chrome 控件参数名见 [Factory 控件契约](../packages/vui/docs/factory.md)。
 
 ### chrome 参数
 
@@ -136,11 +151,13 @@ vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮
 | 颜色 | `colorRole` | `severity`、`type`、`color` |
 | 位置 | `position` | 角标四角不要复用 tooltip 的 `UiPosition` |
 | 横竖 | `orientation`（类型 `UiOrientation`） | 控件私有 `*Orientation`（Splitter 的 `'Horizontal'\|'Vertical'` 除外）；弃用 `UiDirection` |
-| HTML | 袋键 `htmlAttributes`（非 `UiProps` 具名；走索引签名） | `attrs`、把 `title`/`name` 拆成 vui 专用字段 |
+| HTML | 袋键 `htmlAttributes`（非 `UiProps` 具名；走索引签名） | 把袋键改名成 `attrs`；把 `title`/`name` 拆成 vui 专用字段 |
 
 `placeholder` / `disabled` 是控件具名属性，不进 `htmlAttributes`。皮肤用 `htmlAttributesOf` 读袋键并透传到真实节点（EJ2 接组件的 `htmlAttributes`）。
 
-`severity` 留给 toast / 校验轻重。Badge 细节：[设计](../packages/vui/docs/badge.md) / [怎么写](../packages/vui/docs/badge_usage.md)。内容面板是 `factory.card`（[设计](../packages/vui/docs/card.md)），不是 `GroupCard`。分隔线是 `factory.divider`（[设计](../packages/vui/docs/divider.md)），不是菜单 `action.divider`。提示气泡是 `factory.tooltip`（[设计](../packages/vui/docs/tooltip.md)）包一层子节点；按钮上的 `tooltip` 仍是原生 `title`。就地编辑壳是 `factory.inplaceEditor`（[设计](../packages/vui/docs/inplace_editor.md)），点 display 换成 content；字段是 `inplaceFieldEditor` / `InplaceFieldEditor`，不要 `inplace` / `inplaceEdit` / `InplaceEditor`（后两个是表格 Logic / SF 类名）。表单还没接线。芯片列表是 `factory.chips`（[设计](../packages/vui/docs/chips.md)）。自由文本字段是 `tags`；枚举多值是 `enumChipSet` / `EnumChipSet`；按位勾选是 `bitChipSet` / `BitChipSet`。不要 `enumSetTags` / `BitTags`。横排位勾选仍是 `bitCheckBoxList`。文件链接是 `factory.fileLink`（[设计](../packages/vui/docs/file_link.md)），`Url` / `FileLink` 别名；值是 URL，不是 `externalLink`。单文件上传是 `factory.fileUploader`，多文件是 `filesUploader`（[设计](../packages/vui/docs/file_uploader.md)）；件数写在方法名里，不要 `factory.uploader` / `multiple`。单文件是 SearchBox 形输入框，框内可拖文件，**没有** `layout: 'dropArea'`。`fileUpload`→`filesUploader`。`FilePicker` / `ImagePicker` 现在暂时画 Uploader；以后是跟表单一起上传、只选和预览，见 [怎么写](../packages/vui/docs/file_uploader_usage.md)。图片上传是 `imageUploader` / `imagesUploader`（[设计](../packages/vui/docs/image_uploader.md)）。详情只读图是 `factory.image` / 子表 `imageGallery`。人像字段显示走 `renderer` `Avatar` / `fieldFactory.avatar`（[设计](../packages/vui/docs/avatar.md)），不要用 `Image` 当头像；改图仍是 `ImageUploader`。`UploadFile.uploader` 是上传人。取色是 `factory.colorPicker`（[设计](../packages/vui/docs/color_picker.md)），值是 hex，不是 `colorRole`。掩码输入是 `factory.maskedTextBox`（[设计](../packages/vui/docs/masked_text_box.md)），mask 用 EJ2 元素，不要 `InputMask` / `ejs-maskedtextbox` 当 vui 名。OTP 是 `factory.oneTimePasswordInput`（[设计](../packages/vui/docs/one_time_password_input.md)），不要 `InputOtp` / `ejs-otpinput` 当 vui 名。数值输入是 `factory.numberInput`（[设计](../packages/vui/docs/number_input.md)），format 用 EJ2 语法，不要 `NumericTextBox` / `InputNumber` 当 vui 名。进度条是 `factory.progressBar`（[设计](../packages/vui/docs/progress_bar.md)），值 0–100，不要 `ejs-progressbar` / `NProgress` 当 vui 名，不要当成 `factory.loading`。签名面板是 `factory.signaturePad`（[设计](../packages/vui/docs/signature_pad.md)），值是 PNG data URL，不要 `ejs-signature` / `SignatureComponent` / npm `signature_pad` 当 vui 名，不要当成 `imageEditor`。步骤条是 `factory.stepper`（[设计](../packages/vui/docs/stepper.md)），值是当前步索引；`items` 可绑子表行（`labelField` 等），不要 `ejs-stepper` / `StepperComponent` / `NSteps` 当 vui 名。时间轴是 `factory.timeline`（[设计](../packages/vui/docs/timeline.md)），默认事件列表，对侧缺省 `relativeTime`；`setTimelinePlugin` 换成 Tempis，不要 `ejs-timeline` / `TempisTimeline` / `NTimeline`。带输入选日是 `factory.datePicker`（[设计](../packages/vui/docs/date_picker.md)），选月是 `monthPicker` 捷径，不是 `factory.calendar`。封闭下拉是 `factory.dropDownList`（[设计](../packages/vui/docs/drop_down_list.md)），不要叫 `dropdown`。少选项单选组是 `factory.radioButtonGroup`（[设计](../packages/vui/docs/radio_button_group.md)），绑定对齐 DropDownList，不要 `ejs-radiobutton` / `radioGroup`，不要当成 `selectButtonGroup`。可编下拉是 `factory.comboBox`（[设计](../packages/vui/docs/combo_box.md)）。整钮菜单是 `factory.dropDownButton`（[设计](../packages/vui/docs/drop_down_button.md)），不要 `menuButton` / `dropdownMenuButton`。更多菜单是 `factory.moreMenuButton`（只调 `dropDownButton`）。主段+箭头是 `factory.splitButton`（[设计](../packages/vui/docs/split_button.md)）。浮钮是 `factory.floatingActionButton`（[设计](../packages/vui/docs/floating_action_button.md)），不是 SpeedDial，不要 `Fab` / `ejs-fab` 当 vui 名。
+**袋键 `htmlAttributes` 与标准形态的 `attributes` 是两层，不要混**：袋键是**输入**（只吃字符串的小表，`id` / `data-*` / `aria-*` / `name`）；`attributes` 是 `uiRenderProps().attributes` —— 落到真实节点的**压平结果**（`class` / `style` 分别收进 `className` / `style`，见 [UI Props 标准形态设计](../packages/core/docs/ui/ui_prop_channels_design.md)）。
+
+`severity` 留给 toast / 校验轻重。Badge 细节：[设计](../packages/vui/docs/badge.md) / [怎么写](../packages/vui/docs/badge_usage.md)。内容面板是 `factory.card`（[设计](../packages/vui/docs/card.md)），不是 `GroupCard`。分隔线是 `factory.divider`（[设计](../packages/vui/docs/divider.md)），不是菜单 `action.divider`。提示气泡是 `factory.tooltip`（[设计](../packages/vui/docs/tooltip.md)）包一层子节点；按钮上的 `tooltip` 仍是原生 `title`。就地编辑壳是 `factory.inplaceEditor`（[设计](../packages/vui/docs/inplace_editor.md)），点 display 换成 content；字段是 `inplaceFieldEditor` / `InplaceFieldEditor`，不要 `inplace` / `inplaceEdit` / `InplaceEditor`（后两个是表格 Logic / SF 类名）。表单还没接线。芯片列表是 `factory.chips`（[设计](../packages/vui/docs/chips.md)）。自由文本字段是 `tags`；枚举多值是 `enumChipSet` / `EnumChipSet`；按位勾选是 `bitChipSet` / `BitChipSet`。不要 `enumSetTags` / `BitTags`。横排位勾选仍是 `bitCheckBoxList`。文件链接是 `factory.fileLink`（[设计](../packages/vui/docs/file_link.md)），`Url` / `FileLink` 别名；值是 URL，不是 `externalLink`。单文件上传是 `factory.fileUploader`，多文件是 `filesUploader`（[设计](../packages/vui/docs/file_uploader.md)）；件数写在方法名里，不要 `factory.uploader` / `multiple`。单文件是 SearchBox 形输入框，框内可拖文件，**没有** `layout: 'dropArea'`。`fileUpload`→`filesUploader`。`FilePicker` / `ImagePicker` 现在暂时画 Uploader；以后是跟表单一起上传、只选和预览，见 [怎么写](../packages/vui/docs/file_uploader_usage.md)。图片上传是 `imageUploader` / `imagesUploader`（[设计](../packages/vui/docs/image_uploader.md)）。详情只读图是 `factory.image` / 子表 `imageGallery`。人像字段显示走 `renderer` `Avatar` / `fieldFactory.avatar`（[设计](../packages/vui/docs/avatar.md)），不要用 `Image` 当头像；改图仍是 `ImageUploader`。`UploadFile.uploader` 是上传人。取色是 `factory.colorPicker`（[设计](../packages/vui/docs/color_picker.md)），值是 hex，不是 `colorRole`。掩码输入是 `factory.maskedTextBox`（[设计](../packages/vui/docs/masked_text_box.md)），mask 用 EJ2 元素，不要 `InputMask` / `ejs-maskedtextbox` 当 vui 名。OTP 是 `factory.oneTimePasswordInput`（[设计](../packages/vui/docs/one_time_password_input.md)），不要 `InputOtp` / `ejs-otpinput` 当 vui 名。数值输入是 `factory.numberInput`（[设计](../packages/vui/docs/number_input.md)），format 用 EJ2 语法，不要 `NumericTextBox` / `InputNumber` 当 vui 名。进度条是 `factory.progressBar`（[设计](../packages/vui/docs/progress_bar.md)），值 0–100，不要 `ejs-progressbar` / `NProgress` 当 vui 名，不要当成 `factory.loading`。签名面板是 `factory.signaturePad`（[设计](../packages/vui/docs/signature_pad.md)），值是 PNG data URL，不要 `ejs-signature` / `SignatureComponent` / npm `signature_pad` 当 vui 名，不要当成 `imageEditor`。步骤条是 `factory.stepper`（[设计](../packages/vui/docs/stepper.md)），值是当前步索引；`items` 可绑子表行（`labelField` 等），不要 `ejs-stepper` / `StepperComponent` / `NSteps` 当 vui 名。时间轴是 `factory.timeline`（[设计](../packages/vui/docs/timeline.md)），默认事件列表，对侧缺省 `relativeTime`；`builder.use(createTempisTimelinePlugin())` 换成 Tempis，不要 `ejs-timeline` / `TempisTimeline` / `NTimeline`。带输入选日是 `factory.datePicker`（[设计](../packages/vui/docs/date_picker.md)），选月是 `monthPicker` 捷径，不是 `factory.calendar`。封闭下拉是 `factory.dropDownList`（[设计](../packages/vui/docs/drop_down_list.md)），不要叫 `dropdown`。少选项单选组是 `factory.radioButtonGroup`（[设计](../packages/vui/docs/radio_button_group.md)），绑定对齐 DropDownList，不要 `ejs-radiobutton` / `radioGroup`，不要当成 `selectButtonGroup`。可编下拉是 `factory.comboBox`（[设计](../packages/vui/docs/combo_box.md)）。整钮菜单是 `factory.dropDownButton`（[设计](../packages/vui/docs/drop_down_button.md)），不要 `menuButton` / `dropdownMenuButton`。更多菜单是 `factory.moreMenuButton`（只调 `dropDownButton`）。主段+箭头是 `factory.splitButton`（[设计](../packages/vui/docs/split_button.md)）。浮钮是 `factory.floatingActionButton`（[设计](../packages/vui/docs/floating_action_button.md)），不是 SpeedDial，不要 `Fab` / `ejs-fab` 当 vui 名。
 
 以后加控件：皮肤 `components/` 写组件 → 皮肤 `factory/` 用 `MetaUi` 生产 → vui Builder 只决定何时分页、分组、弹选择器。**不要**把 EJ2 / ag-grid / PrimeVue 控件写进 `@mmda/vui`。对外接口以 **UiListProps / UiTableProps / UiGridProps** 分家，见 [list、table、grid](#listtablegrid)。真源流水线见 [packages/core/docs/ui.md](../packages/core/docs/ui.md)「怎么生产控件」。
 
@@ -671,6 +688,7 @@ search.filterModel = {
 | 无 Vue 业务 Logic 基类 | `EntityLogic`（core）                 | `UiLogic`、`EntityManager`、`RepositoryLogic`、`VueEntityLogic`（后者仅 vui） |
 | 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
 | 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
+| 落到真实节点的属性 | core `uiRenderProps(props).attributes`（袋键已压平；`class` → `className`、`style` → 对象） | 袋键 `htmlAttributes`（那是输入、只吃字符串）；把两者都叫 `attrs` |
 | 取色         | `factory.colorPicker`（hex）           | `colorRole`、厂商 `modeSwitcher`     |
 | 掩码输入     | `factory.maskedTextBox`                | 普通 `input`、`InputMask`、`ejs-maskedtextbox` |
 | OTP          | `factory.oneTimePasswordInput`         | `InputOtp`、`ejs-otpinput`、普通 `input` |

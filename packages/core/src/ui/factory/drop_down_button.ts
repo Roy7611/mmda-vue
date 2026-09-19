@@ -1,4 +1,13 @@
-import type { UiButtonProps } from './button'
+import type { UiButtonProps, UiButtonSlots } from './button'
+
+/**
+ * 下拉按钮（`dropDownButton` / `moreMenuButton`）透传插槽。
+ * 菜单键名字随厂商，这一层留索引。
+ */
+export interface UiDropDownButtonSlots<TNode = any>
+  extends UiButtonSlots<TNode> {
+  [slot: string]: (() => TNode[]) | undefined
+}
 
 export type UiDropDownButtonPlacement =
   | 'bottom'

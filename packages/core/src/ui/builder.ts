@@ -22,20 +22,25 @@ import type {
 } from './factory/signin'
 import type { UiFilterBarProps } from './builder/filter_bar'
 import type { UiListViewProps } from './builder/list_view'
-import type { UiModuleBreadcrumbProps } from './builder/toolbar'
+import type { UiModuleBreadcrumbProps } from './builder/topbar'
+import type {
+  UiDetailsTopbar,
+  UiDetailsTopbarSlots,
+  UiEditTopbar,
+  UiEditTopbarSlots,
+  UiIndexTopbar,
+  UiIndexTopbarSlots,
+} from './builder/topbar'
 import type { UiExplorerProps } from './builder/explorer'
-import type { UiGanttProps } from './factory/gantt'
-import type { UiTimelineProps } from './factory/timeline'
-import type { UiSchedulerProps } from './factory/scheduler'
-import type { UiKanbanProps } from './factory/kanban'
-import type { UiDiagramProps } from './factory/diagram'
+import type { UiPlugin } from './plugins/plugin'
 
 /**
  * 界面构建器，负责拼屏与会话级弹层的契约（无实现、无 Vue）。
  *
  * 职责分工：
  * - {@link UiLayout}：布局怎么排（壳 scaffold、字段行、container）
- * - {@link UiFieldFactory}：界面域工厂负责将一个 MetaUiField 画成控件（`render` / `editFor` / `displayFor`）
+ * - {@link UiFieldFactory}：界面域工厂，一个 MetaUiField → 一个**裸控件**
+- **本接口**：按 `MetaUiField` 选工厂函数并套布局（`editFor` / `displayFor`）
  * - {@link UiFactory}：界面工厂负责创建一个独立控件（table、button、sidebar…）
  * - {@link Overlay}：会话入口，提供toast、message、dialog等弹层支持
  * - **本接口**：组装多块组合（模块页、侧栏菜单、登录/注册、字段组、Explorer）+ Overlay
@@ -48,8 +53,20 @@ import type { UiDiagramProps } from './factory/diagram'
 export interface UiBuilder<TNode = any> {
   /** 原子控件工厂。拼屏时 `this.factory.table(...)` 等。 */
   readonly factory: UiFactory<TNode>
-  /** 字段控件工厂。表单行用 `fieldFactory.render`；单元格用具名 renderer。 */
+  /** 字段控件工厂（裸控件表）。单元格用具名 renderer；带标签的字段行走 {@link editFor} / {@link displayFor}。 */
   readonly fieldFactory: UiFieldFactory<TNode>
+
+  /**
+   * 强制编辑行（标签 + 输入）。按 `MetaUiField` 选 `fieldFactory` 里的函数，再套 `layout` 排。
+   * 控件：`customEditor` ?? `field.editor` ?? `fieldFactory.fallbackInput`。
+   */
+  editFor(field: MetaUiField, context: UiContext, props?: UiProps): TNode
+
+  /**
+   * 强制只读行（标签 + 展示）。
+   * 控件：`customRenderer` ?? `field.renderer`（bool 默认 checkedIcon）?? `fieldFactory.fallbackDisplay`。
+   */
+  displayFor(field: MetaUiField, context: UiContext, props?: UiProps): TNode
 
   // —— Overlay（会话入口，不是控件）——
 
@@ -86,7 +103,7 @@ export interface UiBuilder<TNode = any> {
 
   /**
    * 实体编辑/新建弹窗。内容 = {@link buildEditView}。
-   * 默认藏模块工具栏、底栏 okCancel；`onAccept` 由调用方在 `dlgProps` 传入（如 save）。
+   * 默认藏模块顶栏、底栏 okCancel；`onAccept` 由调用方在 `dlgProps` 传入（如 save）。
    */
   editDialog(
     context: UiContext,
@@ -95,7 +112,7 @@ export interface UiBuilder<TNode = any> {
 
   /**
    * 实体详情弹窗（只读）。内容 = {@link buildDetailsView}。
-   * 默认藏工具栏、无底栏；Esc / 点蒙层可关。
+   * 默认藏顶栏、无底栏；Esc / 点蒙层可关。
    */
   detailsDialog(
     context: UiContext,
@@ -150,7 +167,7 @@ export interface UiBuilder<TNode = any> {
   // —— Module（具名入口各管各的屏；各自拦 error / loading）——
 
   /**
-   * 索引列表页。拦 error / loading 后拼 toolbar、filterbar、table。
+   * 索引列表页。拦 error / loading 后拼 topbar、filterbar、table。
    * categoryList / 插件页仍由本方法内部转 Explorer / Gantt 等。
    */
   buildIndexView(
@@ -167,7 +184,7 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
   /**
-   * 详情页（只读表单）。拦 error / loading 后拼 toolbar 与字段组。
+   * 详情页（只读表单）。拦 error / loading 后拼 topbar 与字段组。
    */
   buildDetailsView(
     context: UiContext,
@@ -199,26 +216,29 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
 
-  /** 列表页工具栏。Select 复用。 */
-  buildIndexToolbar(
+  /** 列表页顶栏。Select 复用。 */
+  buildIndexTopbar(
     context: UiContext,
-    props?: UiProps,
+    props?: UiIndexTopbar,
+    slots?: UiIndexTopbarSlots<TNode>,
   ): TNode
 
-  /** 详情页工具栏。 */
-  buildDetailsToolbar(
+  /** 详情页顶栏。 */
+  buildDetailsTopbar(
     context: UiContext,
-    props?: UiProps,
+    props?: UiDetailsTopbar,
+    slots?: UiDetailsTopbarSlots<TNode>,
   ): TNode
 
-  /** 编辑/新建页工具栏。 */
-  buildEditToolbar(
+  /** 编辑/新建页顶栏。 */
+  buildEditTopbar(
     context: UiContext,
-    props?: UiProps,
+    props?: UiEditTopbar,
+    slots?: UiEditTopbarSlots<TNode>,
   ): TNode
 
   /**
-   * 模块面包屑（工具栏 start）。
+   * 模块面包屑（Index Topbar start）。
    * 拼模块 parent 链后调 `factory.breadcrumb`；不要再开 `buildBreadcrumb(items)`。
    */
   buildModuleBreadcrumb(
@@ -226,7 +246,7 @@ export interface UiBuilder<TNode = any> {
     props?: UiModuleBreadcrumbProps,
   ): TNode
 
-  /** 模块搜索条（工具栏中间）。 */
+  /** 模块搜索条（Index Topbar 中间）。 */
   buildModuleSearchbar(
     context: UiContext,
     props?: UiProps,
@@ -241,37 +261,29 @@ export interface UiBuilder<TNode = any> {
     props?: UiFilterBarProps<TNode>,
   ): TNode
 
-  // —— 页面组成块（可选；未 setXxxPlugin 时 throw）。不是整页 View ——
+  // —— 插件宿主 ——
 
-  /** 甘特。不进 UiFactory；实现转 ganttPlugin。 */
-  buildGantt?(
-    context: UiContext,
-    props?: UiGanttProps,
-  ): TNode
+  /** 安装 UI 插件。同名后装覆盖。 */
+  use(plugin: UiPlugin<TNode>): this
+  plugin(name: string): UiPlugin<TNode> | undefined
+  hasPlugin(name: string): boolean
+
+  // —— Index 插件薄封装（内部 plugin(name).buildUi）。treeGrid 不是插件 ——
+
+  /** 甘特。viewKind === gantt。 */
+  buildGantt(context: UiContext, props?: UiProps): TNode
 
   /** 时间轴。嵌在屏里也可用 `factory.timeline`。 */
-  buildTimeline?(
-    context: UiContext,
-    props?: UiTimelineProps,
-  ): TNode
+  buildTimeline(context: UiContext, props?: UiProps): TNode
 
-  /** 日程。 */
-  buildScheduler?(
-    context: UiContext,
-    props?: UiSchedulerProps,
-  ): TNode
+  /** 日程。viewKind === scheduler。 */
+  buildScheduler(context: UiContext, props?: UiProps): TNode
 
   /** 看板。 */
-  buildKanban?(
-    context: UiContext,
-    props?: UiKanbanProps,
-  ): TNode
+  buildKanban(context: UiContext, props?: UiProps): TNode
 
   /** 图。 */
-  buildDiagram?(
-    context: UiContext,
-    props?: UiDiagramProps,
-  ): TNode
+  buildDiagram(context: UiContext, props?: UiProps): TNode
 
   // —— 复杂组件（多块组合）——
 
@@ -285,7 +297,7 @@ export interface UiBuilder<TNode = any> {
 
   /**
    * 主表字段分组（`group.many === false`）。
-   * 对每个可见字段调 `fieldFactory.render`（内含默认 layoutField）。
+   * 对每个可见字段按编辑态调 `editFor` / `displayFor`（内含默认 layoutField）。
    * 不要一个方法兼管子表。
    */
   buildFieldGroup(

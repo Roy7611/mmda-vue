@@ -2,7 +2,7 @@
 
 chrome 时间轴，走 `factory.timeline`。默认是事件列表。[EJ2 Vue Timeline](https://ej2.syncfusion.com/vue/documentation/timeline/vue3-getting-started)。
 
-应用 `setTimelinePlugin(createTempisTimelinePlugin())` 之后，**同一调用**改走 [Tempis](https://tempis.dev/) canvas 轴（包 `@mmda/vuix-tempis-timeline`）。`setTimelinePlugin(null)` 卸回皮肤。未装插件 **不 throw**。
+应用 `builder.use(createTempisTimelinePlugin())` 之后，**同一调用**改走 [Tempis](https://tempis.dev/) canvas 轴（包 `@mmda/vuix-tempis-timeline`）。后装皮肤 `timelineAsPlugin` 可卸回默认。未装插件 **不 throw**，走 `factory.timeline`。
 
 程序员用法：[timeline_usage.md](./timeline_usage.md)。
 
@@ -14,7 +14,7 @@ vui 名是 **`timeline`**。不要 `ejs-timeline` / `TempisTimeline` / Prime `Ti
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/timeline.ts` | `UiTimelineProps`；`*Field`；`timelineItemsOf` / `tempisItemsOf`；`setTimelinePlugin` 覆盖 `factory.timeline` |
+| core / vui `ui/plugins/timeline.ts` | `UiTimelineProps`；`*Field`；`timelineItemsOf` / `tempisItemsOf`；`builder.use(timelineAsPlugin)` 覆盖 `factory.timeline` |
 | 皮肤 `factory/timeline.ts` | 无插件时：SF `TimelineComponent`；Prime `Timeline`；Naive `NTimeline` |
 | `@mmda/vuix-tempis-timeline` | 插件：canvas 起止轴 |
 | `fieldFactory.timeline` | 字段值若是数组当 `items`；走当前 `factory.timeline`（含插件） |
@@ -38,7 +38,7 @@ vui 名是 **`timeline`**。不要 `ejs-timeline` / `TempisTimeline` / Prime `Ti
 
 ## 源码
 
-- vui [`timeline.ts`](../src/ui/factory/timeline.ts)
+- vui [`timeline.ts`](../src/ui/plugins/timeline.ts)
 - Syncfusion [`factory/timeline.ts`](../../vui-syncfusion/src/factory/timeline.ts)
 - Prime [`factory/timeline.ts`](../../vui-primevue/src/factory/timeline.ts)
 - Naive [`factory/timeline.ts`](../../vui-agnaive/src/factory/timeline.ts)

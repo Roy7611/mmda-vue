@@ -1,10 +1,10 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
 import type { UiDateRangePickerProps } from "@mmda/core"
-import { dateRangePickerModifierClasses, dateRangePickerValueOf } from "@mmda/core"
+import { dateRangePickerModifierClasses, dateRangePickerValueOf, uiRenderProps } from "@mmda/core"
 import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcuts } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
-import { datePickerPrimeFormat, htmlAttributesOf } from "@mmda/vui"
+import { datePickerPrimeFormat } from "@mmda/vui"
 import { primeDateShortcutFooter } from "./date_picker";
 
 export function createDateRangePicker(props: UiDateRangePickerProps) {
@@ -47,7 +47,7 @@ export function createDateRangePicker(props: UiDateRangePickerProps) {
     DatePicker as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       modelValue: bound ?? null,
       "onUpdate:modelValue": (next: Date[] | null) => {
         if (!Array.isArray(next) || next.length < 2 || !next[0] || !next[1]) {

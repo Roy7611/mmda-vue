@@ -92,9 +92,6 @@ export const SfLoadingHost = defineComponent({
   },
 })
 
-/** @deprecated 使用 SfLoadingHost */
-export const SfPageLoading = SfLoadingHost
-
 /** 表格盖层：默认不转圈，由 loading 绑定。 */
 export const SfGridLoadingHost = defineComponent({
   name: 'SfGridLoadingHost',

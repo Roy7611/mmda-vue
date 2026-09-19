@@ -6,7 +6,7 @@ Syncfusion（App 默认）：
 
 ```ts
 import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
-import { createSfSchedulerPlugin } from '@mmda/vui-syncfusion/schedule'
+import { createSfSchedulerPlugin } from '@mmda/vui-syncfusion/scheduler'
 
 const ui = new SyncfusionUiBuilder()
 ui.setSchedulerPlugin(createSfSchedulerPlugin())

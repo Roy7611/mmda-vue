@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { SCHEDULER_PLUGIN_NOT_INSTALLED } from '@mmda/vui'
 import { SyncfusionUiBuilder } from '../syncfusion_builder'
 import {
   createSfSchedulerPlugin,
   EJ2_SCHEDULER_VIEWS,
   mapUiEventsToEj2,
   schedulerTimeScaleOf,
-} from '../factory/schedule'
+} from '../plugins/scheduler'
 
 describe('createSfSchedulerPlugin', () => {
   it('maps unified events onto EJ2 fields and views', () => {
@@ -34,9 +33,9 @@ describe('createSfSchedulerPlugin', () => {
     })
   })
 
-  it('renders schedulerView host with events', () => {
+  it('renders scheduler host with events', () => {
     const plugin = createSfSchedulerPlugin()
-    const vnode = plugin.schedulerView({
+    const vnode = plugin.buildUi({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
       view: 'week',
       readonly: true,
@@ -54,14 +53,9 @@ describe('createSfSchedulerPlugin', () => {
     expect(vnode.props?.allowOverlap).toBe(false)
   })
 
-  it('throws until setSchedulerPlugin on the skin builder', () => {
+  it('skin builder installs scheduler by default', () => {
     const builder = new SyncfusionUiBuilder()
-    expect(() =>
-      builder.buildScheduler({} as any, {
-        events: [{ id: 1, start: '2026-01-01' }],
-      }),
-    ).toThrow(SCHEDULER_PLUGIN_NOT_INSTALLED)
-    builder.setSchedulerPlugin(createSfSchedulerPlugin())
+    expect(builder.hasPlugin('scheduler')).toBe(true)
     const vnode = builder.buildScheduler({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
       showHeader: false,

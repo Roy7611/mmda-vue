@@ -62,7 +62,7 @@ describe("MetaUiFieldLogic 属性隔离", () => {
 
   it("lockIf 连续调用 OR 叠加", () => {
     const logic = new MetaUiFieldLogic(createMockField());
-    logic.lockIf((m: { a?: boolean }) => !!m.a).lockIf((m: { b?: boolean }) => !!m.b);
+    logic.lockIf((m: any) => !!m.a).lockIf((m: any) => !!m.b);
     expect(logic.readonlyFn?.({ a: true, b: false } as any)).toBe(true);
     expect(logic.readonlyFn?.({ a: false, b: true } as any)).toBe(true);
     expect(logic.readonlyFn?.({ a: false, b: false } as any)).toBe(false);
@@ -126,8 +126,8 @@ describe("MetaUiGroupLogic 属性隔离", () => {
       ({ groupName: "items", groupLabel: "明细", many: true }) as any;
     const l1 = new MetaUiGroupLogic(many());
     const l2 = new MetaUiGroupLogic(many());
-    l1.canDo("clear", (m: { a?: boolean }) => !!m.a);
-    l1.canDo("clear", (m: { b?: boolean }) => !!m.b);
+    l1.canDo("clear", (m: any) => !!m.a);
+    l1.canDo("clear", (m: any) => !!m.b);
     l2.canDo("add", () => false);
     const clear1 = l1.stdActions.find((a) => a.name === "clear")
       ?.executableExpression as (m: any) => boolean;
@@ -141,7 +141,7 @@ describe("MetaUiGroupLogic 属性隔离", () => {
   });
 
   it("itemDeletableFunc 行+主表 AND 叠加；beforeItemRemove 后写覆盖", () => {
-    const logic = new MetaUiGroupLogic<{ status: string }, { locked?: boolean }>(
+    const logic = new MetaUiGroupLogic<any, any>(
       { groupName: "items", groupLabel: "明细", many: true } as any,
     );
     logic

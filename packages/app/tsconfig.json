@@ -14,10 +14,11 @@
       "@mmda/core": ["../core/src/index.ts"],
       "@mmda/vui": ["../vui/src/index.ts"],
       "@mmda/vui-syncfusion": ["../vui-syncfusion/src/index.ts"],
-      "@mmda/vui-syncfusion/gantt": ["../vui-syncfusion/src/gantt_plugin.ts"],
-      "@mmda/vui-syncfusion/kanban": ["../vui-syncfusion/src/kanban_plugin.ts"],
-      "@mmda/vui-syncfusion/schedule": ["../vui-syncfusion/src/schedule_plugin.ts"],
-      "@mmda/vui-syncfusion/pivot": ["../vui-syncfusion/src/pivot_plugin.ts"],
+      "@mmda/vui-syncfusion/gantt": ["../vui-syncfusion/src/plugins/gantt.ts"],
+      "@mmda/vui-syncfusion/kanban": ["../vui-syncfusion/src/plugins/kanban.ts"],
+      "@mmda/vui-syncfusion/scheduler": ["../vui-syncfusion/src/plugins/scheduler.ts"],
+      "@mmda/vui-syncfusion/schedule": ["../vui-syncfusion/src/plugins/scheduler.ts"],
+      "@mmda/vui-syncfusion/pivot": ["../vui-syncfusion/src/plugins/pivot_table.ts"],
       "@mmda/base/*": ["../base/*"],
       "@mmda/mes/*": ["../mes/*"]
     }

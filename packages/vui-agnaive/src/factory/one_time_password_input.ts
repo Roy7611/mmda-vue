@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NInput } from 'naive-ui'
 import type { UiOneTimePasswordInputProps } from '@mmda/vui'
-import { emitOneTimePasswordChange, htmlAttributesOf, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from '@mmda/vui'
+import { emitOneTimePasswordChange, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createOneTimePasswordInput(
   props: UiOneTimePasswordInputProps,
@@ -37,7 +38,7 @@ export function createOneTimePasswordInput(
       h(NInput, {
         key: i,
         ...rest,
-        ...htmlAttributesOf(props),
+        ...uiRenderProps(props).attributes,
         value: chars[i] ?? '',
         maxlength: 1,
         placeholder: i === 0 ? placeholder : undefined,

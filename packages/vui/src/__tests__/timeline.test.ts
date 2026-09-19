@@ -8,7 +8,8 @@ import {
   timelineOrientationOf,
   timelinePropsFromField,
   timelineTimeTextOf,
-} from '../ui/factory/timeline'
+  timelineAsPlugin,
+} from '../ui/plugins/timeline'
 import { TestUiBuilder } from './test_builder'
 
 describe('timeline helpers', () => {
@@ -78,24 +79,32 @@ describe('timeline helpers', () => {
   })
 })
 
-describe('setTimelinePlugin', () => {
-  it('keeps the skin timeline until a plugin is set', () => {
+describe('timeline plugin', () => {
+  it('keeps the skin timeline until a plugin is used', () => {
     const ui = new TestUiBuilder()
     const node = ui.factory.timeline({ items: [{ label: '甲' }] })
     expect(node.props?.class).toContain('mmda-timeline')
     expect(node.props?.['data-items']).toBe(1)
+    expect(ui.buildTimeline({} as any, { items: [{ label: '甲' }] }).props?.class).toContain(
+      'mmda-timeline',
+    )
   })
 
-  it('routes factory.timeline to the plugin and back on null', () => {
+  it('routes factory.timeline to the plugin; later use restores the skin', () => {
     const ui = new TestUiBuilder()
-    ui.setTimelinePlugin({
-      timeline: (props) =>
+    const skin = ui.factory.timeline.bind(ui.factory)
+    ui.use(
+      timelineAsPlugin((props) =>
         h('div', { class: 'mmda-tempis', 'data-count': props.items?.length }),
-    })
+      ),
+    )
     expect(ui.factory.timeline({ items: [1, 2] }).props?.class).toBe(
       'mmda-tempis',
     )
-    ui.setTimelinePlugin(null)
+    expect(ui.buildTimeline({} as any, { items: [1, 2] }).props?.class).toBe(
+      'mmda-tempis',
+    )
+    ui.use(timelineAsPlugin(skin))
     expect(ui.factory.timeline({ items: [] }).props?.class).toContain(
       'mmda-timeline',
     )

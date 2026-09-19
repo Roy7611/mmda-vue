@@ -15,7 +15,7 @@
 - 横排 flex：`cell` / `row` — `nCol` / `nCols[i]` 为 **flex 权重**（`flex: N 1 0`，`minWidth: 0`）；`row` 可 wrap
 - CSS grid：`grid` — 字段组装箱用；`nCols` 为各列 `fr`，与 `row` 的 flex 权重不是一回事
 - 列：`column`
-- 字段方向：`fieldVertical`（默认 `false` = 横排）；赋值时把 `layoutFieldHorz` / `layoutFieldVert` 挂到 `layoutField`。单次调用也可经 props `fieldVertical: true` 走 Vert（vui `attachFieldRowApi`）
+- 字段方向：`fieldVertical`（默认 `false` = 横排）；赋值时把 `layoutFieldHorz` / `layoutFieldVert` 挂到 `layoutField`。单次调用也可经 props `fieldVertical: true` 走 Vert（vui Builder 的字段行）
 - 字段：`layoutField`（入参 `UiFieldSlots`：标签 + 控件；可选 `gridColumn` / `gridRow` 占格坐标）。校验文案由皮肤控件自绘
 - 组：`layoutFieldGroup`（入参只 `fields`；排法用 `fieldGroupLayout: { type, gridCols? }`）；组是 N 列网格，一格一 field
 - 页：`layoutPage`（入参 `UiPageSlots`：toolbar / banner / `pageLayout?` / `emphasis?` / primary / summary / tails / footer）

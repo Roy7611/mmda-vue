@@ -64,7 +64,7 @@ describe("joinListMode", () => {
   it("没有 hasJoinList 时不出现菜单", () => {
     const metaUi = metaWithJoin(false, true);
     const ctx = new VueUiContext({
-      model: { list: [], pagination: {} },
+      model: [],
       metaUi,
       view: UiViewMany.Index,
     });
@@ -88,7 +88,7 @@ describe("joinListMode", () => {
       ],
     });
     const ctx = new VueUiContext({
-      model: { list: [], pagination: {} },
+      model: [],
       metaUi,
       view: UiViewMany.Index,
       logic: {
@@ -147,7 +147,7 @@ describe("joinListMode", () => {
       ],
     });
     const ctx = new VueUiContext({
-      model: { list: [], pagination: {} },
+      model: [],
       metaUi,
       view: UiViewMany.Index,
       logic: {

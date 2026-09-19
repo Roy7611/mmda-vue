@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsToolbarActions, resolveIndexToolbarActions } from '@mmda/core'
-import { MMDA_COLOR_PALETTE_IDS, UiViewMany } from '@mmda/vui'
+import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
+import { MMDA_COLOR_PALETTE_IDS, UiViewMany, pageLayoutMenuItems } from '@mmda/vui'
 import { PrimeVueUiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
 import { createPrimeVueUiFactory } from '../prime_factory'
@@ -25,7 +25,6 @@ describe('PrimeVue skin', () => {
 
   it('implements the vui factory and layout contracts', () => {
     const factory = createPrimeVueUiFactory()
-    expect(factory.layout).toBe(primeLayout)
     expect(factory.table).toBeTypeOf('function')
     expect(factory.grid).toBeTypeOf('function')
     expect(factory.dialog).toBeUndefined()
@@ -332,26 +331,34 @@ describe('PrimeVue skin', () => {
     expect(cls).toContain('mmda-tabs--demand')
   })
 
-  it('maps factory.toolbar start center end slots', () => {
+  it('maps factory.toolbar default slot onto Prime Toolbar', () => {
     const factory = createPrimeVueUiFactory()
     const vnode = factory.toolbar(
-      { layout: 'compact', align: { end: 'left' } },
-      {
-        start: () => 'S',
-        center: () => 'C',
-        end: () => 'E',
-      },
+      { class: 'skin' },
+      { default: () => 'S' },
     )
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-toolbar')
-    expect(cls).toContain('mmda-toolbar--compact')
-    expect(vnode.children.start()).toBeTruthy()
-    const endCls = Array.isArray(vnode.children.end().props.class)
-      ? vnode.children.end().props.class.flat(8).filter(Boolean).join(' ')
-      : String(vnode.children.end().props.class ?? '')
-    expect(endCls).toContain('mmda-toolbar__end--left')
+    expect(vnode.children.start()).toBe('S')
+    expect(vnode.children.center).toBeUndefined()
+  })
+
+  it('maps factory.toolbar start/end onto Prime slots', () => {
+    const factory = createPrimeVueUiFactory()
+    const vnode = factory.toolbar(
+      { disabled: true },
+      { start: () => 'L', end: () => 'R' },
+    )
+    expect(vnode.props?.['aria-disabled']).toBe('true')
+    const cls = Array.isArray(vnode.props?.class)
+      ? vnode.props.class.flat(8).filter(Boolean).join(' ')
+      : String(vnode.props?.class ?? '')
+    expect(cls).toContain('mmda-toolbar--disabled')
+    expect(vnode.children.start()).toBe('L')
+    expect(vnode.children.end()).toBe('R')
+    expect(vnode.children.center).toBeUndefined()
   })
 
   it('maps factory.splitter orientation to Prime layout', () => {
@@ -721,7 +728,7 @@ describe('PrimeVue skin', () => {
 
   it('constructs the builder against the new VueUiBuilder contract', () => {
     const builder = new PrimeVueUiBuilder()
-    expect(builder.factory.layout.fieldVertical).toBe(false)
+    expect(builder.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
@@ -1053,7 +1060,7 @@ describe('PrimeVue skin', () => {
       editing: false,
       title: '部门',
       metaUi: { objName: 'Department', displayLabel: '部门' },
-      model: { list: [] },
+      model: [],
       logic: { module, repository: 'Departments' },
       module,
       refresh: () => undefined,
@@ -1066,14 +1073,14 @@ describe('PrimeVue skin', () => {
       selectionMode: null,
     }
     const withoutDelete = { ...context, module: { ...module, authority: auth(ModuleOp.READ | ModuleOp.CREATE) } }
-    const withDelete = resolveIndexToolbarActions(context as any)
-    const withoutDeleteGroups = resolveIndexToolbarActions({
+    const withDelete = resolveIndexTopbarActions(context as any)
+    const withoutDeleteGroups = resolveIndexTopbarActions({
       ...withoutDelete,
       logic: { module: withoutDelete.module, repository: 'Departments' },
     } as any)
     expect(withDelete.batch.some((action) => action.name === 'deleteAll')).toBe(true)
     expect(withoutDeleteGroups.batch.some((action) => action.name === 'deleteAll')).toBe(false)
-    expect(builder.buildIndexToolbar(context as any)).toBeTruthy()
+    expect(builder.buildIndexTopbar(context as any)).toBeTruthy()
   })
 
   it('orders details actions, applies entity roles, and groups file actions', () => {
@@ -1107,7 +1114,7 @@ describe('PrimeVue skin', () => {
       translate: (message: string) => message,
     }
 
-    const groups = resolveDetailsToolbarActions(context as any)
+    const groups = resolveDetailsTopbarActions(context as any)
     expect(groups.primary.map((action) => action.name)).toEqual([
       'back',
       'edit',
@@ -1120,10 +1127,10 @@ describe('PrimeVue skin', () => {
       'export',
       'import',
     ])
-    const extraMore = builder.buildDetailsToolbar(context as any).props
-      ?.extraMore
     expect(
-      extraMore?.map((item: any) => item.name).filter(Boolean),
+      pageLayoutMenuItems(context as any)
+        .map((item: any) => item.name)
+        .filter(Boolean),
     ).toEqual(['pageLayoutCards', 'pageLayoutTabs'])
   })
 })

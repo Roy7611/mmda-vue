@@ -1,8 +1,7 @@
 import { h } from "vue";
 import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import type { UiProgressBarProps } from "@mmda/core"
-import { progressBarModifierClasses } from "@mmda/core"
-import { htmlAttributesOf } from "@mmda/vui"
+import { progressBarModifierClasses, uiRenderProps } from "@mmda/core"
 
 const numberOf = (raw: unknown): number => {
   if (raw == null || raw === "") return 0;
@@ -33,7 +32,7 @@ export function createProgressBar(props: UiProgressBarProps) {
 
   return h(ProgressBarComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: numberOf(value ?? modelValue),
     minimum: min ?? 0,
     maximum: max ?? 100,

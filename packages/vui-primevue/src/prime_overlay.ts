@@ -4,10 +4,11 @@ import type {
   UiConfirmProps,
   UiDialogAction,
   UiDialogProps,
+  UiMessageProps,
   UiToastProps,
 } from '@mmda/core'
 import { shouldCloseDialog } from '@mmda/core'
-import type { UiOverlay } from '@mmda/vui'
+import type { VueUiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
@@ -24,7 +25,7 @@ export interface PrimeOverlayServices {
   }
 }
 
-export interface PrimeOverlay extends UiOverlay {
+export interface PrimeOverlay extends VueUiOverlay {
   dialogs: DialogRequest[]
   services: PrimeOverlayServices
 }
@@ -44,6 +45,12 @@ export function createPrimeOverlay(): PrimeOverlay {
         summary: props.title,
         detail: props.message,
         life: props.life ?? 3000,
+      })
+    },
+    message(props: UiMessageProps) {
+      overlay.toast({
+        severity: props.severity,
+        message: props.content,
       })
     },
     confirm(props: UiConfirmProps) {

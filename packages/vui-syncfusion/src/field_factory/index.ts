@@ -79,7 +79,7 @@ const wrapMasked = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -98,7 +98,7 @@ const wrapOtp = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -115,7 +115,7 @@ const wrapSlider = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -132,7 +132,7 @@ const wrapRating = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };
@@ -211,7 +211,7 @@ const factory: UiFieldFactory = {
         h(
           "span",
           { class: "e-error" },
-          (context as any).getInvalidMessage?.(field),
+          context.getInvalidMessage?.(field),
         ),
     ]);
   },

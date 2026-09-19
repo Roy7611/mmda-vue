@@ -6,7 +6,8 @@ import { h } from "vue";
 import { TimelineComponent } from "@syncfusion/ej2-vue-layouts";
 import type { UiTimelineItem, UiTimelineProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineAlignToEj2, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf, timelineOrientationToEj2 } from "@mmda/vui"
+import { noopTimelineController, timelineAlignOf, timelineAlignToEj2, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf, timelineOrientationToEj2 } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function itemsOf(items: UiTimelineItem[], resolveIcon?: IconResolver) {
   return items.map((item, index) => ({
@@ -70,7 +71,7 @@ export function createTimeline(
 
   return h(TimelineComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     items: itemsOf(timelineItemsOf(props), resolveIcon),
     orientation: timelineOrientationToEj2(timelineOrientationOf(props)),
     align: timelineAlignToEj2(timelineAlignOf(props)),

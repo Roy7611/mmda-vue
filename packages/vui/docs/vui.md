@@ -72,8 +72,9 @@
 | [勾选：怎么写](./checkbox_usage.md) | label / indeterminate / 字段翻译 |
 | [Switch 设计](./switch.md) | `factory.switch`；滑动开关；**不是** `checkBox` |
 | [Switch：怎么写](./switch_usage.md) | checked / onLabel；字段 `fieldFactory.switch` |
-| [Toolbar 设计](./toolbar.md) | `factory.toolbar`；Prime 三槽；**不是** EJ2 items |
-| [Toolbar：怎么写](./toolbar_usage.md) | start / center / end；layout full/medium/compact |
+| [Toolbar 设计](./toolbar.md) | `factory.toolbar` 原生命令条；页头是 [Topbar](./topbar.md) |
+| [Toolbar：怎么写](./toolbar_usage.md) | `start` / `center` / `end`；overflow popup/scroll/multirow/none |
+| [Topbar](./topbar.md) | `buildIndexTopbar` 三槽；Details/Edit 两槽 |
 | [布局设计](./layout.md) | `UiLayout` / `AbstractUiLayout` / `VueUiLayout`；**不是** AppLayout 脚手架 |
 | [布局：怎么写](./layout_usage.md) | `layout.layoutField` / `layoutPage` / `listTile` |
 | [CheckBoxList 设计](./check_box_list.md) | 横排 `checkBoxList` / `bitCheckBoxList` |
@@ -84,7 +85,7 @@
 | [MaskedTextBox：怎么写](./masked_text_box_usage.md) | `MOBILE_MASK` / `ZIP_MASK`；字段翻译 |
 | [OTP Input 设计](./one_time_password_input.md) | `factory.oneTimePasswordInput`；length / type 用 EJ2 词 |
 | [OTP Input：怎么写](./one_time_password_input_usage.md) | `length` / `type` / `separator`；字段翻译 |
-| [Query Builder 设计](./query_builder.md) | `factory.queryBuilder`；AG Advanced Filter 树，不是列 FilterModel |
+| [Query Builder 设计](./query_builder.md) | `factory.queryBuilder`；`AdvancedFilterModel` 树，不是列 FilterModel |
 | [Query Builder：怎么写](./query_builder_usage.md) | `fields` / `value` / `onChange`；searchAll 本轮不传 |
 | [Slider 设计](./slider.md) | `factory.slider`；EJ2 Range Slider 就是本控件 |
 | [Slider：怎么写](./slider_usage.md) | `type` Default / MinRange / Range；字段翻译 |
@@ -109,7 +110,7 @@
 | [Stepper 设计](./stepper.md) | `factory.stepper`；当前步索引 |
 | [Stepper：怎么写](./stepper_usage.md) | `orientation` / 子表 `*Field` |
 | [Timeline 设计](./timeline.md) | `factory.timeline`；默认列表，插件 Tempis |
-| [Timeline：怎么写](./timeline_usage.md) | `setTimelinePlugin`；`timeField` / `relativeTime` |
+| [Timeline：怎么写](./timeline_usage.md) | `builder.use(createTempisTimelinePlugin())`；`timeField` / `relativeTime` |
 | [Skeleton 设计](./skeleton.md) | `factory.skeleton`；内容占位；**不是** `loading` |
 | [Skeleton：怎么写](./skeleton_usage.md) | 首次水合用 skeleton；后续忙碌仍用 loading |
 | [Loading 设计](./loading.md) | `factory.loading`；整页/区域转圈；不要 spinner |

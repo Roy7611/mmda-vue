@@ -6,7 +6,8 @@ import { h } from 'vue'
 import Timeline from 'primevue/timeline'
 import type { UiTimelineAlign, UiTimelineProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { htmlAttributesOf, noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from '@mmda/vui'
+import { noopTimelineController, timelineAlignOf, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function primeAlignOf(
   orientation: 'horizontal' | 'vertical',
@@ -68,7 +69,7 @@ export function createTimeline(
     Timeline,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value: items,
       layout: orientation,
       align: primeAlignOf(orientation, timelineAlignOf(props)),

@@ -1,4 +1,5 @@
 import type { EntityAction, ActionCallback } from '../models/entity_action'
+import type { Entity } from '../models/entity'
 import { MetaUiField } from '../metaui/metaui_field'
 import { MetaUiGroup } from '../metaui/metaui_group'
 import { parseEntityBoolExpression } from './entity_bool_expr'
@@ -17,7 +18,7 @@ import {
 
 export type SubGroupStdOp = 'add' | 'clear'
 
-export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
+export class MetaUiGroupFieldLogic<E extends Entity, G extends Entity> extends MetaUiFieldLogic<G> {
   constructor(
     field: MetaUiField,
     public readonly parent: MetaUiGroupLogic<E, G>,
@@ -29,7 +30,7 @@ export class MetaUiGroupFieldLogic<E, G> extends MetaUiFieldLogic<G> {
   }
 }
 
-export class MetaUiGroupLogic<E, G> {
+export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Entity> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
   inplaceEditable = true
   inplaceEditStart: 'click' | 'dblclick' | 'excel' = 'excel'

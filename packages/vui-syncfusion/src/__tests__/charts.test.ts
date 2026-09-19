@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createSfChartFactory } from '../factory/charts'
+import { createSfChartFactory } from '../plugins/chart'
 
 const data = {
   labels: ['A', 'B'],

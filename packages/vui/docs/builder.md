@@ -9,7 +9,7 @@
 ```text
 UiLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 四职
     ↑
-VueUiLayout / （attachFieldRowApi）/ VueUiFactory / VueUiBuilder
+VueUiLayout / （Builder 的字段行）/ VueUiFactory / VueUiBuilder
     ↑
 Syncfusion* / Prime* / AgNaive*
 ```
@@ -27,7 +27,7 @@ Syncfusion* / Prime* / AgNaive*
 | 职 | vui 落点 |
 |---|---|
 | **layout** | `VueUiLayout.scaffold`；AppShell **直接**调 layout，不经 `buildAppScaffold` |
-| **fieldFactory** | 皮肤 field factory；Builder 构造时 `attachFieldRowApi` 挂 `render` / `editFor` / `displayFor` |
+| **fieldFactory** | 皮肤 field factory；Builder 构造时 字段行 `buildField` / `editFor` / `displayFor` 在 Builder 上 |
 | **factory** | 皮肤 `createXxxUiFactory`；**无** `factory.dialog` / `signinForm` |
 | **builder** | `VueUiBuilder`：模块 *View、Explorer、FieldGroup、Overlay、`buildSigninForm`；插件页可选方法 |
 
@@ -52,7 +52,7 @@ UiFactory / UiFieldFactory 契约  →  皮肤实现
 | **Builder** | 用 Factory 原子件拼工具栏、分组、分页、确认框 | vui `VueUiBuilder`；皮肤只补壳/覆盖 |
 | **Layout** | 壳 `layout.scaffold`；页内 `VueUiLayout` | vui `ui/layout.ts` |
 
-Index / Select 数据区：**直接** `factory.table|grid|list|treeGrid` + `factory.paginator`，不要再薄包 `buildTable`。字段行走 `fieldFactory.render`，不要 `buildField`。
+Index / Select 数据区：**直接** `factory.table|grid|list|treeGrid` + `factory.paginator`，不要再薄包 `buildTable`。字段行走 `builder.buildField`，不要 `buildField`。
 
 `buildIndexView` 等只补齐会话再调 `factory.*`。列怎么画、虚拟滚动、列筛控件都在皮肤组件里。本轮 `table` 与 `grid` 可共用同一 renderer。
 
@@ -97,7 +97,7 @@ ui/builder/         WithForm/WithList/WithTree、actions
 | `schedulerPlugin` | 无 | 可选插件，不进 `UiFactory`。App `setSchedulerPlugin`。见 [排程](./scheduler.md) |
 | `pivotPlugin` | 无 | 可选插件，不进 `UiFactory`。App `setPivotPlugin`。见 [透视表](./pivot_table.md) |
 | `aiAssistantPlugin` | 无 | 可选插件，不进 `UiFactory`。App `setAiAssistantPlugin`。见 [AI 助手](./ai_assistant.md) |
-| `timelinePlugin` | 无 | 可选。默认 chrome `factory.timeline`；`setTimelinePlugin` 替换实现。见 [Timeline](./timeline.md) |
+| `timeline` | chrome 默认 `factory.timeline`；`builder.use(timelineAsPlugin)` 覆盖。见 [Timeline](./timeline.md) |
 
 ```ts
 export abstract class VueUiBuilder extends WithTree(
@@ -113,7 +113,7 @@ export abstract class VueUiBuilder extends WithTree(
 
 - `UiBuilder`：core 拼屏接口（无 Vue）。从 `@mmda/core` 导入；四职见 [ui_four_roles_design.md](../../core/docs/ui/ui_four_roles_design.md)。
 - `VueUiBuilder`：vui 抽象实现；列表页/详情页默认结构、动作工厂、单元格解析。皮肤 `extends` 它。
-- `UiFactory` / `UiFieldFactory`：原子 chrome / 字段控件。登录 `buildSigninForm`。弹窗只走 Builder `dialog`，**没有 `factory.dialog`**。字段行用 `fieldFactory.render`（构造时 `attachFieldRowApi`）。
+- `UiFactory` / `UiFieldFactory`：原子 chrome / 字段控件。登录 `buildSigninForm`。弹窗只走 Builder `dialog`，**没有 `factory.dialog`**。字段行用 `builder.buildField`（构造时由 Builder 组装）。
 - `VueUiLayout.scaffold`：应用壳；AppShell 直接调，不经 Builder。
 - `chartFactory`：图表插件，不进 chrome factory。见 [图表](./chart.md)。
 - `diagramPlugin`：图插件，不进 chrome factory。见 [图](./diagram.md)。
@@ -157,7 +157,7 @@ Factory 用短名（`list` / `table` / `grid` / `treeGrid`、`tree`）。Builder
 | `gantt` | `buildGantt` |
 | `scheduler` | `buildScheduler` |
 
-`UiTreeListViewProps` 三块分开：`treeOption`（左树，`UiTreeViewPropsType` 或工厂）、`listOption`（右表，与 `buildListView` 同一套）、`foreignKey`（列表外键，对应 `treeOption.fields.id`）。左栏走 `buildTreeView`：默认打开树顶搜索和树底栏。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。折叠只改布局，不听、不改查询。左栏 `collapsible: true`，折叠用皮肤 Splitter 的 `paneSettings`（[SF expand-collapse](https://ej2.syncfusion.com/vue/documentation/splitter/expand-collapse)）。
+`UiTreeListViewProps` 三块分开：`treeOption`（左树，`UiTreeViewProps` 或工厂）、`listOption`（右表，与 `buildListView` 同一套）、`foreignKey`（列表外键，对应 `treeOption.fields.id`）。左栏走 `buildTreeView`：默认打开树顶搜索和树底栏。点树按 `foreignKey` 走 `getAll`，不考虑 `SearchParam`。工具栏模糊搜索和字段过滤清掉类别外键，按 `SearchParam` 查全部：有关键词走 GET `getAll`，有字段过滤才 POST `searchAll`。折叠只改布局，不听、不改查询。左栏 `collapsible: true`，折叠用皮肤 Splitter 的 `paneSettings`（[SF expand-collapse](https://ej2.syncfusion.com/vue/documentation/splitter/expand-collapse)）。
 
 `UiSplitterPane` 对齐 SF `paneSettings`：`size` / `min` / `max` / `collapsible` / `collapsed` / `resizable` / `cssClass`。
 
@@ -207,7 +207,7 @@ buildField
 - 布局：`layout.row` / `column` / `cell`
 - 动作：`button`、`dropDownButton`、`moreMenuButton`、`splitButton`、`floatingActionButton`、`badge`、`avatar`、`autoComplete`、`card`、`divider`、`colorPicker`、`maskedTextBox`、`oneTimePasswordInput`、`numberInput`、`textInput`、`textArea`、`progressBar`、`signaturePad`、`stepper`、`skeleton`、`loading`、`speechToText`、`switch`、`toolbar`、`datePicker`、`monthPicker`、`dateTimePicker`、`timePicker`、`dateRangePicker`、`dropDownList`、`radioButtonGroup`、`comboBox`、`actionButton`、`menu`、`panelMenu`、`menubar`、`buttonGroup`、`selectButtonGroup`（chrome 参数见 [factory.md](./factory.md)；Button 见 [button.md](./button.md)；DropDownButton 见 [drop_down_button.md](./drop_down_button.md)；SplitButton 见 [split_button.md](./split_button.md)；FAB 见 [floating_action_button.md](./floating_action_button.md)；Badge 见 [badge.md](./badge.md)；Avatar 见 [avatar.md](./avatar.md)；AutoComplete 见 [autocomplete.md](./autocomplete.md)；Card 见 [card.md](./card.md)；Divider 见 [divider.md](./divider.md)；ColorPicker 见 [color_picker.md](./color_picker.md)；MaskedTextBox 见 [masked_text_box.md](./masked_text_box.md)；OTP Input 见 [one_time_password_input.md](./one_time_password_input.md)；NumberInput 见 [number_input.md](./number_input.md)；ProgressBar 见 [progress_bar.md](./progress_bar.md)（不要 Builder 方法，不要当成 `factory.loading`）；SignaturePad 见 [signature_pad.md](./signature_pad.md)（不要 Builder 方法，不要当成 `imageEditor`）；Stepper 见 [stepper.md](./stepper.md)（不要 Builder 方法）；Skeleton 见 [skeleton.md](./skeleton.md)（不要 Builder 方法，不要当成 `factory.loading`）；Loading 见 [loading.md](./loading.md)（不要 Builder 方法以外的第二套节点；不要 `factory.spinner`；不要当成进度条 / Skeleton / 按钮 loading）；SpeechToText 见 [speech_to_text.md](./speech_to_text.md)（不要 Builder 方法，不要当成 `factory.textInput`）；Switch 见 [switch.md](./switch.md)（不要 Builder 方法，不要当成 `checkBox`）；Toolbar 见 [toolbar.md](./toolbar.md)（`buildIndexToolbar / buildDetailsToolbar / buildEditToolbar` 走 `factory.toolbar`）；DatePicker 见 [date_picker.md](./date_picker.md)；DropDownList 见 [drop_down_list.md](./drop_down_list.md)；RadioButtonGroup 见 [radio_button_group.md](./radio_button_group.md)（不要 Builder 方法）；ComboBox 见 [combo_box.md](./combo_box.md)）
 - 列表：`list`、`table`、`grid`、`treeGrid`、`paginator`（`bindListDisplayRenderers` 按 `display` 分发；本轮 table/grid 可同一 renderer）
-- chrome：`sidebar`、`drawer`（drawer = Sidebar `type: Over`）、`splitter`、`toolbar`（Prime 三槽，`buildIndexToolbar / buildDetailsToolbar / buildEditToolbar` 走它）、`searchForRelative`（字段选择 chrome，不是 Dialog）
+- chrome：`sidebar`、`drawer`（drawer = Sidebar `type: Over`）、`splitter`、`toolbar`（原生命令条）、`searchForRelative`（字段选择 chrome，不是 Dialog）。页头是 `buildIndexTopbar` / `buildDetailsTopbar` / `buildEditTopbar`，见 [Topbar](./topbar.md)。
 - 弹层：`UiOverlay`（toast / confirm / `dialog` 队列）；OverlayHost 直接画厂商窗；不要把 toast/confirm/dialog 写进 Factory
 
 `UiFieldFactory` 用字段 `editor` / `renderer` 名做索引（`textInput`、`dropDownList`、`HasOneText`…）。PrimeVue / Syncfusion / Naive 皮肤映射到各自控件。

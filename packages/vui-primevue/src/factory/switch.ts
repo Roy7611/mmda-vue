@@ -1,9 +1,8 @@
 import { h } from "vue";
 import ToggleSwitch from "primevue/toggleswitch";
 import type { UiSwitchProps } from "@mmda/core"
-import { switchCheckedOf, switchModifierClasses } from "@mmda/core"
+import { switchCheckedOf, switchModifierClasses, uiRenderProps } from "@mmda/core"
 import { emitSwitchChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createSwitch(props: UiSwitchProps) {
   const {
@@ -20,7 +19,7 @@ export function createSwitch(props: UiSwitchProps) {
 
   return h(ToggleSwitch, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: switchCheckedOf(props),
     disabled,
     class: switchModifierClasses(props),

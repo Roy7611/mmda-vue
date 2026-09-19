@@ -1,7 +1,8 @@
 import { h } from "vue";
 import { CarouselComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiCarouselProps } from '@mmda/core';
-import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange, htmlAttributesOf } from "@mmda/vui"
+import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function carouselEj2Effect(
   animation?: UiCarouselProps["animation"],
@@ -35,7 +36,7 @@ export function createCarousel(props: UiCarouselProps) {
     CarouselComponent as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       dataSource: items,
       selectedIndex: carouselBoundIndex(props),
       ...(autoPlay != null ? { autoPlay } : {}),

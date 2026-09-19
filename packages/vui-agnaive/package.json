@@ -15,12 +15,12 @@
       "import": "./dist/mmda-vui-agnaive.es.js"
     },
     "./charts": {
-      "types": "./dist/chart_factory.d.ts",
-      "import": "./src/chart_factory.ts"
+      "types": "./dist/plugins/chart.d.ts",
+      "import": "./src/plugins/chart.ts"
     },
     "./pivot": {
-      "types": "./dist/pivot_plugin.d.ts",
-      "import": "./src/pivot_plugin.ts"
+      "types": "./dist/plugins/pivot_table.d.ts",
+      "import": "./src/plugins/pivot_table.ts"
     },
     "./style.css": "./dist/style.css"
   },
@@ -33,7 +33,8 @@
   "scripts": {
     "build": "vite build --mode lib && tsc -p tsconfig.build.json",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "typecheck:dist": "tsc -p tsconfig.lib.json --noEmit"
   },
   "dependencies": {
     "@mmda/core": "workspace:^",

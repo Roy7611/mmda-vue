@@ -31,7 +31,6 @@ export interface UiAutoCompleteProps extends UiProps {
   debounceDelay?: number
   highlight?: boolean
   suggestionCount?: number
-  onUpdate?: (value: string) => void
 }
 
 export const AUTOCOMPLETE_MIN_LENGTH = 1

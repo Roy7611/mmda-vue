@@ -7,8 +7,9 @@ import {
   watch,
   type PropType,
 } from 'vue'
-import type { UiImageEditorPlugin, UiImageEditorProps, UiImageEditorTool } from '@mmda/vui'
-import { htmlAttributesOf, imageEditorHookClass, resolveImageEditorTools } from '@mmda/vui'
+import type { UiImageEditorProps, UiImageEditorTool } from '@mmda/vui'
+import { imageEditorHookClass, resolveImageEditorTools, UiPluginName, type UiPlugin } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function cssSize(value: string | number | undefined, fallback: string) {
   if (value == null) return fallback
@@ -125,7 +126,7 @@ export const SfImageEditorView = defineComponent({
         {
           class: imageEditorHookClass(props.class, props.readonly),
           style,
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
         },
         [
           h(ImageEditorImpl, {
@@ -157,9 +158,11 @@ export const SfImageEditorView = defineComponent({
   },
 })
 
-export function createSfImageEditorPlugin(): UiImageEditorPlugin {
+export function createSfImageEditorPlugin(): UiPlugin {
   return {
-    installed: true,
-    imageEditor: (props) => h(SfImageEditorView, props as any),
+    name: UiPluginName.imageEditor,
+    buildUi(_context, props) {
+      return h(SfImageEditorView, props as UiImageEditorProps as any)
+    },
   }
 }

@@ -17,7 +17,6 @@ import { getTaskData, getLinkRes, getPlanRes, getBreaks, getProSub } from '@/com
 import { TaskRelationship, TaskRelationshipEnum } from '@mmda/base/src/enums/TaskRelationship';
 import { TaskConstraintTypeEnum } from '@mmda/base/src/enums/TaskConstraintType';
 import { ganttPlanningNode, resetGanttPlanningShell, type GanttPlanningShell } from '@/components/GanntView/GanttPlanning';
-import type { UiBuildContext } from '@mmda/vui';
 
 const notice = {
 	data: {

@@ -1,10 +1,10 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
 import type { UiDateRangePickerProps } from '@mmda/core'
-import { dateRangePickerModifierClasses, dateRangePickerSeparatorOf, dateRangePickerValueOf } from '@mmda/core'
+import { dateRangePickerModifierClasses, dateRangePickerSeparatorOf, dateRangePickerValueOf, uiRenderProps } from '@mmda/core'
 import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus } from '@mmda/core'
 import { emitDateChange } from '@mmda/vui'
-import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat, htmlAttributesOf } from '@mmda/vui'
+import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat } from '@mmda/vui'
 import { fromTs, naiveDateShortcuts, toTs } from './date_picker'
 
 export function createDateRangePicker(props: UiDateRangePickerProps) {
@@ -46,7 +46,7 @@ export function createDateRangePicker(props: UiDateRangePickerProps) {
 
   return h(NDatePicker as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     type: 'daterange',
     value: model,
     'onUpdate:value': (next: [number, number] | null) => {

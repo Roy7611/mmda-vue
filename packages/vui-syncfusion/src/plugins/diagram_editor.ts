@@ -4,8 +4,9 @@ import {
   h,
   type PropType,
 } from 'vue'
-import type { UiDiagramConnector, UiDiagramNode, UiDiagramPaletteGroup, UiDiagramPlugin, UiDiagramShape, UiDiagramType, UiDiagramProps } from '@mmda/vui'
-import { diagramHookClass, diagramNodeDataOf, emitDiagramUpdate, htmlAttributesOf, resolveDiagramPalette } from '@mmda/vui'
+import type { UiDiagramConnector, UiDiagramNode, UiDiagramPaletteGroup, UiDiagramShape, UiDiagramType, UiDiagramProps } from '@mmda/vui'
+import { diagramHookClass, diagramNodeDataOf, diagramReadonlyOf, emitDiagramUpdate, resolveDiagramPalette, UiPluginName, type UiPlugin } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 const UML_CLASS_KINDS = new Set(['class', 'interface', 'enumeration'])
 const UML_ACTIVITY_KINDS = new Set([
@@ -229,10 +230,16 @@ export const SfDiagramView = defineComponent({
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
     onSelect: Function as PropType<UiDiagramProps['onSelect']>,
-    onUpdate: Function as PropType<UiDiagramProps['onUpdate']>,
-    'onUpdate:nodes': Function as PropType<UiDiagramProps['onUpdate:nodes']>,
+    onNodesChange: Function as PropType<UiDiagramProps['onNodesChange']>,
+    onConnectorsChange: Function as PropType<
+      UiDiagramProps['onConnectorsChange']
+    >,
+    // Vue 的 v-model:nodes / v-model:connectors 糖（运行时入参，不进 core 契约）
+    'onUpdate:nodes': Function as PropType<
+      NonNullable<UiDiagramProps['onNodesChange']>
+    >,
     'onUpdate:connectors': Function as PropType<
-      UiDiagramProps['onUpdate:connectors']
+      NonNullable<UiDiagramProps['onConnectorsChange']>
     >,
     renderAside: Function as PropType<UiDiagramProps['renderAside']>,
   },
@@ -290,7 +297,7 @@ export const SfDiagramView = defineComponent({
         'div',
         {
           class: diagramHookClass(props.class, props.readonly),
-          ...htmlAttributesOf(props as any),
+          ...uiRenderProps(props as any).attributes,
           'data-diagram-type': props.diagramType,
         },
         [
@@ -308,9 +315,19 @@ export const SfDiagramView = defineComponent({
   },
 })
 
-export function createSfDiagramEditorPlugin(): UiDiagramPlugin {
+export function createSfDiagramEditorPlugin(): UiPlugin {
   return {
-    diagramView: (props) => h(SfDiagramView, props as any),
+    name: UiPluginName.diagram,
+    buildUi(context, props) {
+      const next = {
+        ...(props as UiDiagramProps),
+        readonly: diagramReadonlyOf(
+          props as UiDiagramProps,
+          String(context?.view ?? ''),
+        ),
+      }
+      return h(SfDiagramView, next as any)
+    },
   }
 }
 

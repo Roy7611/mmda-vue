@@ -402,11 +402,11 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       if (param) this.applySearchParam(param);
       this.syncSearchState();
       resetListPaintCount();
-      const currentList = (this.model as { list?: unknown[] })?.list;
+      const currentList = Array.isArray(this.model) ? this.model : [];
       logListPaint("search-start", {
         searchWord: this.searchParam.searchWord,
         pageNo: this.searchParam.pager?.pageNo,
-        listLen: Array.isArray(currentList) ? currentList.length : undefined,
+        listLen: currentList.length,
         loading: this.loading.value,
       });
       this.error.value = null;

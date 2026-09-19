@@ -4,7 +4,7 @@ import { createSfImageEditorPlugin } from '../plugins/image_editor'
 describe('createSfImageEditorPlugin', () => {
   it('renders imageEditor host with hook class', () => {
     const plugin = createSfImageEditorPlugin()
-    const vnode = plugin.imageEditor({
+    const vnode = plugin.buildUi({} as any, {
       src: '/photo.png',
       readonly: true,
     })

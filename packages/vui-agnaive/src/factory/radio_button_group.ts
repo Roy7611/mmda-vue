@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { NRadio, NRadioGroup } from "naive-ui";
 import type { UiRadioButtonGroupProps } from "@mmda/core"
-import { radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, radioButtonGroupValueOf } from "@mmda/core"
+import { radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, radioButtonGroupValueOf, uiRenderProps } from "@mmda/core"
 import { emitRadioButtonGroupChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
   const {
@@ -27,7 +26,7 @@ export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
     NRadioGroup as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       name: radioButtonGroupNameOf(props),
       value: radioButtonGroupValueOf(props) ?? null,
       disabled: Boolean(disabled),

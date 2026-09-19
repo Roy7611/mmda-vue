@@ -1,4 +1,4 @@
-import { type Module, uiCssClass, uiCssClasses } from '@mmda/core'
+import { type Module, uiCssClass, uiClassModifiers } from '@mmda/core'
 import {
   computed,
   defineComponent,
@@ -445,11 +445,11 @@ export const NAppSideMenu = defineComponent({
           'aside',
           {
             class: [
-              uiCssClasses('sidebar', 'dock'),
+              uiClassModifiers('sidebar', 'dock'),
               uiCssClass('app-side-menu'),
               dockOpen.value
                 ? undefined
-                : uiCssClasses('sidebar', 'dock-closed'),
+                : uiClassModifiers('sidebar', 'dock-closed'),
               attrs.class,
             ],
           },
@@ -474,7 +474,7 @@ export const NAppSideMenu = defineComponent({
           class: [
             uiCssClass('sidebar'),
             uiCssClass('app-side-menu'),
-            dockOpen.value ? undefined : uiCssClasses('sidebar', 'collapsed'),
+            dockOpen.value ? undefined : uiClassModifiers('sidebar', 'collapsed'),
             attrs.class,
           ],
           style: { height: '100%', backgroundColor: 'transparent' },

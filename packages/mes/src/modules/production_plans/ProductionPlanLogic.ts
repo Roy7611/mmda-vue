@@ -22,7 +22,7 @@ import {
 	MetaUiGroup,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type UiBuildContext, type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ProductionPlan, defineProductionPlan } from '@/models/ProductionPlan';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionPlanItem, defineProductionPlanItem } from '@/models/ProductionPlanItem';

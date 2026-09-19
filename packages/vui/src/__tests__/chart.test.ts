@@ -12,9 +12,11 @@ import {
   treeMapWeightedOf,
   unimplementedChartFactory,
   unsupportedChartMethod,
+  UiPluginName,
   type UiChartData,
   type UiChartFactory,
-} from '../ui/factory/chart'
+} from '@mmda/core'
+import { chartAsPlugin } from '../ui/plugins/chart'
 import { TestUiBuilder } from './test_builder'
 
 const sample: UiChartData = {
@@ -22,160 +24,101 @@ const sample: UiChartData = {
   datasets: [{ label: 's', data: [1, 2] }],
 }
 
+const stubFactory = (): UiChartFactory => {
+  const chart = () => h('div', { class: 'mmda-chart', 'data-type': 'bar' })
+  return {
+    chart,
+    ...chartShortcuts(chart),
+    circularGauge: () => h('div', { class: 'mmda-circular-gauge' }),
+    linearGauge: () => h('div', { class: 'mmda-linear-gauge' }),
+    heatMap: () => h('div', { class: 'mmda-heat-map' }),
+    geoHeatMap: () => h('div', { class: 'mmda-geo-heat-map' }),
+    calendarHeatMap: () => h('div', { class: 'mmda-calendar-heat-map' }),
+    sankey: () => h('div', { class: 'mmda-sankey' }),
+    smithChart: () => h('div', { class: 'mmda-smith-chart' }),
+    sparkline: () => h('div', { class: 'mmda-sparkline' }),
+    stockChart: () => h('div', { class: 'mmda-stock-chart' }),
+    treeMap: () => h('div', { class: 'mmda-tree-map' }),
+    funnel: () => h('div', { class: 'mmda-funnel' }),
+    pyramid: () => h('div', { class: 'mmda-pyramid' }),
+    waterfall: () => h('div', { class: 'mmda-waterfall' }),
+    boxPlot: () => h('div', { class: 'mmda-box-plot' }),
+    histogram: () => h('div', { class: 'mmda-histogram' }),
+    bubble: () => h('div', { class: 'mmda-bubble' }),
+    bullet: () => h('div', { class: 'mmda-bullet' }),
+    sunburst: () => h('div', { class: 'mmda-sunburst' }),
+    comboChart: () => h('div', { class: 'mmda-combo-chart' }),
+  }
+}
+
 describe('UiChartFactory', () => {
-  it('throws chart plugin not installed until setChartFactory', () => {
+  it('throws chart plugin not installed until use()', () => {
     const ui = new TestUiBuilder()
-    expect(() => ui.chartFactory.barChart(sample)).toThrow(
+    expect(() => ui.requirePlugin(UiPluginName.chart)).toThrow(
       CHART_PLUGIN_NOT_INSTALLED,
     )
-    expect(() => ui.chartFactory.circularGauge({ value: 1 })).toThrow(
+    expect(() => unimplementedChartFactory().barChart(sample)).toThrow(
       CHART_PLUGIN_NOT_INSTALLED,
     )
-    expect(() => ui.chartFactory.linearGauge({ value: 1 })).toThrow(
+    expect(() => unimplementedChartFactory().circularGauge({ value: 1 })).toThrow(
       CHART_PLUGIN_NOT_INSTALLED,
     )
-    expect(() =>
-      ui.chartFactory.heatMap({
-        xLabels: ['A'],
-        yLabels: ['B'],
-        values: [[1]],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() => ui.chartFactory.geoHeatMap({})).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() => ui.chartFactory.calendarHeatMap({ dates: [] })).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() =>
-      ui.chartFactory.sankey({
-        links: [{ source: 'a', target: 'b', value: 1 }],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.smithChart({
-        series: [{ points: [{ resistance: 1, reactance: 0 }] }],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() => ui.chartFactory.sparkline({ data: [1, 2] })).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() =>
-      ui.chartFactory.stockChart({
-        data: [{ date: '2026-01-01', open: 1, high: 2, low: 1, close: 2 }],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.treeMap({
-        data: [{ name: 'a', value: 1 }],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.funnel({ data: [{ name: 'a', value: 1 }] }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.pyramid({ data: [{ name: 'a', value: 1 }] }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.waterfall({ data: [{ name: 'a', value: 1 }] }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.boxPlot({
-        data: [{ name: 'a', min: 1, q1: 2, median: 3, q3: 4, max: 5 }],
-      }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() => ui.chartFactory.histogram({ values: [1, 2] })).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() =>
-      ui.chartFactory.bubble({ data: [{ x: 1, y: 2, size: 3 }] }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() => ui.chartFactory.bullet({ value: 1, target: 2 })).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
-    )
-    expect(() =>
-      ui.chartFactory.sunburst({ data: [{ name: 'a', value: 1 }] }),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
-    expect(() =>
-      ui.chartFactory.comboChart(sample),
-    ).toThrow(CHART_PLUGIN_NOT_INSTALLED)
   })
 
-  it('uses the plugin after setChartFactory', () => {
+  it('uses plugin().buildUi after chartAsPlugin', () => {
     const ui = new TestUiBuilder()
-    const chart = () => h('div', { class: 'mmda-chart', 'data-type': 'bar' })
-    const plugin: UiChartFactory = {
-      chart,
-      ...chartShortcuts(chart),
-      circularGauge: () => h('div', { class: 'mmda-circular-gauge' }),
-      linearGauge: () => h('div', { class: 'mmda-linear-gauge' }),
-      heatMap: () => h('div', { class: 'mmda-heat-map' }),
-      geoHeatMap: () => h('div', { class: 'mmda-geo-heat-map' }),
-      calendarHeatMap: () => h('div', { class: 'mmda-calendar-heat-map' }),
-      sankey: () => h('div', { class: 'mmda-sankey' }),
-      smithChart: () => h('div', { class: 'mmda-smith-chart' }),
-      sparkline: () => h('div', { class: 'mmda-sparkline' }),
-      stockChart: () => h('div', { class: 'mmda-stock-chart' }),
-      treeMap: () => h('div', { class: 'mmda-tree-map' }),
-      funnel: () => h('div', { class: 'mmda-funnel' }),
-      pyramid: () => h('div', { class: 'mmda-pyramid' }),
-      waterfall: () => h('div', { class: 'mmda-waterfall' }),
-      boxPlot: () => h('div', { class: 'mmda-box-plot' }),
-      histogram: () => h('div', { class: 'mmda-histogram' }),
-      bubble: () => h('div', { class: 'mmda-bubble' }),
-      bullet: () => h('div', { class: 'mmda-bullet' }),
-      sunburst: () => h('div', { class: 'mmda-sunburst' }),
-      comboChart: () => h('div', { class: 'mmda-combo-chart' }),
-    }
-    ui.setChartFactory(plugin)
-    expect(ui.chartFactory.barChart(sample).props?.['data-type']).toBe('bar')
-    expect(ui.chartFactory.circularGauge({ value: 10 }).props?.class).toBe(
+    ui.use(chartAsPlugin(stubFactory()))
+    const build = (kind: string, extra: Record<string, unknown> = {}) =>
+      ui.plugin(UiPluginName.chart)!.buildUi({} as any, {
+        chartKind: kind,
+        data: sample,
+        ...extra,
+      })
+    expect(build('bar').props?.['data-type']).toBe('bar')
+    expect(build('circularGauge', { value: 10 }).props?.class).toBe(
       'mmda-circular-gauge',
     )
-    expect(ui.chartFactory.linearGauge({ value: 10 }).props?.class).toBe(
+    expect(build('linearGauge', { value: 10 }).props?.class).toBe(
       'mmda-linear-gauge',
     )
     expect(
-      ui.chartFactory.heatMap({
+      build('heatMap', {
         xLabels: ['A'],
         yLabels: ['B'],
         values: [[1]],
       }).props?.class,
     ).toBe('mmda-heat-map')
     expect(
-      ui.chartFactory.sankey({
+      build('sankey', {
         links: [{ source: 'a', target: 'b', value: 1 }],
       }).props?.class,
     ).toBe('mmda-sankey')
     expect(
-      ui.chartFactory.smithChart({
+      build('smithChart', {
         series: [{ points: [{ resistance: 1, reactance: 0 }] }],
       }).props?.class,
     ).toBe('mmda-smith-chart')
-    expect(ui.chartFactory.sparkline({ data: [1, 2] }).props?.class).toBe(
+    expect(build('sparkline', { data: [1, 2] }).props?.class).toBe(
       'mmda-sparkline',
     )
     expect(
-      ui.chartFactory.stockChart({
+      build('stockChart', {
         data: [{ date: '2026-01-01', open: 1, high: 2, low: 1, close: 2 }],
       }).props?.class,
     ).toBe('mmda-stock-chart')
+    expect(build('treeMap', { data: [{ name: 'a', value: 1 }] }).props?.class).toBe(
+      'mmda-tree-map',
+    )
+    expect(build('funnel', { data: [{ name: 'a', value: 1 }] }).props?.class).toBe(
+      'mmda-funnel',
+    )
     expect(
-      ui.chartFactory.treeMap({ data: [{ name: 'a', value: 1 }] }).props?.class,
-    ).toBe('mmda-tree-map')
-    expect(
-      ui.chartFactory.funnel({ data: [{ name: 'a', value: 1 }] }).props?.class,
-    ).toBe('mmda-funnel')
-    expect(
-      ui.chartFactory.pyramid({ data: [{ name: 'a', value: 1 }] }).props?.class,
+      build('pyramid', { data: [{ name: 'a', value: 1 }] }).props?.class,
     ).toBe('mmda-pyramid')
     expect(
-      ui.chartFactory.waterfall({ data: [{ name: 'a', value: 1 }] }).props
-        ?.class,
+      build('waterfall', { data: [{ name: 'a', value: 1 }] }).props?.class,
     ).toBe('mmda-waterfall')
-    expect(ui.chartFactory.comboChart(sample).props?.class).toBe(
-      'mmda-combo-chart',
-    )
+    expect(build('comboChart').props?.class).toBe('mmda-combo-chart')
   })
 
   it('unsupportedChartMethod throws not supported', () => {

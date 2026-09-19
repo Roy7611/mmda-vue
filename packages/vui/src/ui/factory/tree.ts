@@ -24,30 +24,6 @@ export type {
   UiTreeViewProps,
 } from '@mmda/core'
 
-/** @deprecated 用 UiTreeProps（props + emits 已合成） */
-export type UiTreePropsType<T = any> = UiTreeProps<T>
-/** @deprecated 用 UiTreeViewProps */
-export type UiTreeViewPropsType<T = any> = UiTreeViewProps<T>
-/** @deprecated 事件已并进 UiTreeProps */
-export type UiTreeEmits<T = any> = Pick<
-  UiTreeProps<T>,
-  | 'onNodeSelect'
-  | 'onExpand'
-  | 'onNodeContextMenu'
-  | 'onNodeRename'
-  | 'onNodeAddChild'
-  | 'onNodeMove'
->
-/** @deprecated 事件已并进 UiTreeViewProps */
-export type UiTreeViewEmits<T = any> = Pick<
-  UiTreeViewProps<T>,
-  | 'onNodeRename'
-  | 'onNodeAdd'
-  | 'onNodeAddChild'
-  | 'onNodeAddSibling'
-  | 'onNodeDelete'
-  | 'onTreeRefresh'
->
 export interface UiTreeViewSlots<T = any> {
   header?: () => VNodeChild
   footer?: () => VNodeChild

@@ -9,10 +9,11 @@ import {
   fileLinkPreviewKindOf,
   fileLinkUrlOf,
   type UiFileLinkProps,
+  type UiProps,
+  uiRenderProps
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
 import { getFileInfo } from '../../components/FileIcons'
-import {htmlAttributesOf, type UiProps} from '../layout'
 
 export type { UiFileLinkPreviewKind, UiFileLinkProps } from '@mmda/core'
 export {
@@ -79,7 +80,7 @@ export function renderFileLink(props: UiFileLinkProps = {}): VNode {
     'aria-hidden': 'true',
   })
   const inner = [iconNode, h('span', { class: 'mmda-file-link__name' }, label)]
-  const attrs = htmlAttributesOf(props)
+  const attrs = uiRenderProps(props).attributes
 
   if (downloadable && url) {
     return h(

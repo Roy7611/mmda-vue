@@ -16,7 +16,7 @@ const wrap = (field: MetaUiField, context: UiContext, child: ReturnType<typeof h
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };

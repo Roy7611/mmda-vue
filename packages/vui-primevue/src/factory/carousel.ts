@@ -1,7 +1,8 @@
 import { h } from "vue";
 import Carousel from "primevue/carousel";
 import type { UiCarouselProps } from '@mmda/core';
-import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange, htmlAttributesOf } from "@mmda/vui"
+import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createCarousel(props: UiCarouselProps) {
   const {
@@ -22,7 +23,7 @@ export function createCarousel(props: UiCarouselProps) {
     Carousel,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value: items,
       page: carouselBoundIndex(props),
       "onUpdate:page": (page: number) => emitCarouselChange(props, page),

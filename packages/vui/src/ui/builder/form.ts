@@ -41,11 +41,11 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     }
 
     /**
-     * @deprecated 用 `fieldFactory.editFor`（已含默认 layoutField）。
-     * 保留薄委托，避免皮肤/测试瞬时全断。
+     * 强制编辑行（标签 + 输入）。按 `MetaUiField` 选 `fieldFactory` 里的控件，再套 `layout` 排。
+     * 校验文案由皮肤控件自绘。控件：`customEditor` ?? `field.editor` ?? `fallbackInput`。
      */
     editFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      return this.fieldFactory.editFor(field, context, props);
+      return wrapFieldRow(this, field, context, props, true);
     }
 
     fieldDisplayName(field: MetaUiField) {
@@ -55,21 +55,20 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     }
 
     /**
-     * @deprecated 用 `fieldFactory.displayFor`（已含默认 layoutField）。
+     * 强制只读行（标签 + 展示）。
+     * 控件：`customRenderer` ?? `field.renderer`（bool 默认 `checkedIcon`）?? `fallbackDisplay`。
      */
     displayFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
-      return this.fieldFactory.displayFor(field, context, props);
+      return wrapFieldRow(this, field, context, props, false);
     }
 
-    /**
-     * @deprecated 用 `fieldFactory.render`。按会话自动选编辑/显示并套字段布局。
-     */
+    /** 按会话状态自动选编辑/显示行并套字段布局。 */
     buildField(field, context, props = {}) {
-      return this.fieldFactory.render(field, context, props);
+      return renderFieldRow(this, field, context, props);
     }
 
     buildResponsiveField(field, context, props = {}) {
-      return this.fieldFactory.render(field, context, props);
+      return renderFieldRow(this, field, context, props);
     }
     
     groupWrapClass(group: MetaUiGroup, props: UiProps = {}) {
@@ -391,7 +390,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
                   allowedExtensions: ".bmp,.gif,.jpeg,.jpg,.png,.webp",
                   dropText: context.translate("upload.dropImages") as string,
                   showImageEditor:
-                    this.imageEditorPlugin?.installed === true,
+                    this.hasPlugin("image-editor"),
                   onUpload: uploadOneImage,
                   onRemove: (item: { url?: string }) => {
                     const runtime = context as any;
@@ -575,7 +574,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           wrapProps,
         );
       }
-      // 主表字段行：走 fieldFactory.render（内含默认 layoutField）；先装箱再写坐标
+      // 主表字段行：按编辑态选编辑/显示并套默认 layoutField；先装箱再写坐标
       const gridCols = (cols as 1 | 2 | 3) ?? 2
       const fields =
         children ??
@@ -592,7 +591,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           )
           return visible.map((field, index) => {
             const cell = packed[index]!
-            return this.fieldFactory.render(field, context, {
+            return renderFieldRow(this, field, context, {
               ...fieldProps,
               ...(fieldVertical ? { fieldVertical: true } : {}),
               gridColumn: `${cell.column + 1} / span ${cell.colSpan}`,
@@ -670,7 +669,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             ? "tabs"
             : "cards";
       const runtime = context as any;
-      // 对话框内（isInDialog）默认不画模块工具栏，避免与底栏取消/确定重复；
+      // 对话框内（isInDialog）默认不画模块顶栏，避免与底栏取消/确定重复；
       // 显式 showToolbar:true 可恢复。
       const toolbarVisible = props.showToolbar ?? !runtime.isInDialog;
       const toolbar =
@@ -678,11 +677,11 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           ? null
           : (props.toolbar?.() ??
             (runtime.editing
-              ? this.buildEditToolbar(context, {
+              ? this.buildEditTopbar(context, {
                   showBreadcrumb: props.showBreadcrumb ?? true,
                   showActions: props.showActions ?? true,
                 })
-              : this.buildDetailsToolbar(context, {
+              : this.buildDetailsTopbar(context, {
                   showBreadcrumb: props.showBreadcrumb ?? true,
                   showActions: props.showActions ?? true,
                 })));
@@ -756,7 +755,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         if (emphasizedFields.length > 0) {
           emphasis = this.layout.row(
             emphasizedFields.map((field) =>
-              this.fieldFactory.displayFor(field, context),
+              wrapFieldRow(this, field, context, {}, false),
             ),
             emphasizedFields.map((field) => Math.max(1, field.colSpan ?? 1)),
           );
@@ -872,4 +871,130 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     }
   }
   return FormBuilder;
+}
+
+/**
+ * 字段行：选控件 + 套布局。builder 构表单时用（`buildEditView` → field set → field）。
+ *
+ * 具名 editor/renderer 仍是裸控件，表格单元格不要走这里；
+ * 校验文案由皮肤控件自绘，不由布局画。
+ */
+type FieldRowHost = {
+  fieldFactory: any;
+  layout: any;
+};
+
+function labelOf(field: MetaUiField, props?: UiProps) {
+  return h(
+    "label",
+    {
+      for: field.fieldName,
+      key: field.fieldName,
+      class: uiCssClass("field-label"),
+      ...props,
+    },
+    field.displayLabel,
+  );
+}
+
+/** 裸编辑控件（不含标签布局）。 */
+function editorFor(
+  host: FieldRowHost,
+  field: MetaUiField,
+  context: any,
+  props: UiProps = {},
+) {
+  const logic = context.getFieldLogic?.(field) as
+    | { customEditor?: (f: MetaUiField, c: any, p?: UiProps) => VNode }
+    | undefined;
+  const renderer =
+    logic?.customEditor ??
+    (field.editor ? host.fieldFactory[field.editor] : undefined) ??
+    host.fieldFactory.fallbackInput;
+  return renderer(field, context, props);
+}
+
+/** 裸展示控件（不含标签布局）。 */
+function displayRendererFor(
+  host: FieldRowHost,
+  field: MetaUiField,
+  context: any,
+  props: UiProps = {},
+) {
+  const logic = context.getFieldLogic?.(field) as
+    | { customRenderer?: (f: MetaUiField, c: any, p?: UiProps) => VNode }
+    | undefined;
+  const name = field.renderer
+    ? field.renderer
+    : SqlDataType.isBool(field.dataType)
+      ? "checkedIcon"
+      : "textSpan";
+  const renderer =
+    logic?.customRenderer ??
+    host.fieldFactory[name] ??
+    host.fieldFactory.fallbackDisplay;
+  return renderer(field, context, props);
+}
+
+/** 编辑/只读行共同外壳：剥掉行级 props，按 layout 横向或纵向排。 */
+function wrapFieldRow(
+  host: FieldRowHost,
+  field: MetaUiField,
+  context: any,
+  props: UiProps = {},
+  useEditor: boolean,
+) {
+  const {
+    editing: _e,
+    direction,
+    orientation,
+    isReadonly: _r,
+    fieldVertical,
+    gridColumn,
+    gridRow,
+    ...controlProps
+  } = props as UiProps & {
+    fieldVertical?: boolean;
+    gridColumn?: string;
+    gridRow?: string;
+  };
+  const control = useEditor
+    ? editorFor(host, field, context, controlProps)
+    : displayRendererFor(host, field, context, controlProps);
+  // 单次调用可覆写全局 layout.fieldVertical（cards 页组默认传 true）
+  const useVert =
+    fieldVertical === true ||
+    orientation === "vertical" ||
+    direction === "vertical";
+  const slots = {
+    label: labelOf(field),
+    control,
+    gridColumn,
+    gridRow,
+  };
+  return useVert
+    ? host.layout.layoutFieldVert(slots)
+    : host.layout.layoutField(slots);
+}
+
+/** 按会话状态自动选编辑或显示。 */
+function renderFieldRow(
+  host: FieldRowHost,
+  field: MetaUiField,
+  context: any,
+  props: UiProps = {},
+) {
+  if (context.isFieldHidden?.(field)) {
+    return h("span", { hidden: true });
+  }
+  const editing =
+    (props.editing as boolean | undefined) ?? context.editing;
+  const isReadonly = props.isReadonly as boolean | undefined;
+  const useEditor =
+    Boolean(editing) &&
+    !context.isFieldReadonly?.(field) &&
+    !isReadonly;
+  return useEditor
+    ? wrapFieldRow(host, field, context, props, true)
+    : wrapFieldRow(host, field, context, props, false);
 }

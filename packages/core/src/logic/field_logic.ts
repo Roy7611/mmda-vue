@@ -1,4 +1,5 @@
 import { MetaUiField } from '../metaui/metaui_field'
+import type { Entity } from '../models/entity'
 import type { UiContext } from '../ui/context'
 import {
   logicOr,
@@ -20,7 +21,7 @@ import {
 /**
  * 元域逻辑：只读、隐藏、校验、变更。自定义渲染由 vui 消费，VNode 类型在 vui。
  */
-export class MetaUiFieldLogic<E> {
+export class MetaUiFieldLogic<E extends Entity = Entity> {
   /** 对应的元数据字段（Data SSOT；Logic 不改写 readOnly / hidden / nullable）。 */
   constructor(public readonly field: MetaUiField) {
     this.hasField()
@@ -157,7 +158,7 @@ export class MetaUiFieldLogic<E> {
    */
   buildRefWhere(
     model: E,
-    ctx: UiContext<E & object>,
+    ctx: UiContext<E>,
     fieldOptions?: Record<string, unknown>,
   ): string | undefined {
     let where = this.field.reference?.where

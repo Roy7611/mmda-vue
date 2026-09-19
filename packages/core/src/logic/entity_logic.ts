@@ -67,16 +67,16 @@ export const beforeView = (viewType: string) =>
 export const clearView = (viewType: string) =>
   `clear${viewType.firstLetterUpper()}Logic`;
 
-export type UiLogicFnResult<E> = {
+export type UiLogicFnResult<E extends Entity = Entity> = {
   fields: MetaUiFieldLogic<E>[];
-  groups: MetaUiGroupLogic<E, any>[];
+  groups: MetaUiGroupLogic<E, Entity>[];
   customActions: EntityAction[];
 };
-export type UiLogicFn<E> = () => UiLogicFnResult<E>;
-export type UiViewLogicModule<E> =
+export type UiLogicFn<E extends Entity = Entity> = () => UiLogicFnResult<E>;
+export type UiViewLogicModule<E extends Entity = Entity> =
   | UiLogicFn<E>
   | Record<string, UiLogicFn<E> | unknown>;
-export type UiViewLogicLoader<E> = () => Promise<UiViewLogicModule<E>>;
+export type UiViewLogicLoader<E extends Entity = Entity> = () => Promise<UiViewLogicModule<E>>;
 
 export type UiLogicBeforeFn<E> = (
   context: UiContext,
@@ -301,7 +301,7 @@ export abstract class EntityLogic<E extends Entity> {
     return new MetaUiFieldLogic<E>(field);
   }
 
-  group<G>(groupName: string) {
+  group<G extends Entity>(groupName: string) {
     const metaUi = this.metaUi;
     if (!metaUi) {
       throw new Error(
@@ -399,7 +399,7 @@ export abstract class EntityLogic<E extends Entity> {
     this.selectManyActions = [];
   }
 
-  async applyTo(context: UiContext, view: UiViewType = UiViewOne.Edit) {
+  async applyTo(context: UiContext<E>, view: UiViewType = UiViewOne.Edit) {
     const logicView = await this.ensureViewLogic(view);
     const fn = this.getLogicFn(logicView);
     if (!fn) return;

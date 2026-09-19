@@ -204,7 +204,7 @@ export const timeline = (
   props?: UiProps,
 ) => {
   const render =
-    (context as any).uiBuilder?.factory?.timeline ?? createTimeline;
+    context.uiBuilder?.factory?.timeline ?? createTimeline;
   return render(timelinePropsFromField(field, context, props ?? {}));
 };
 
@@ -215,7 +215,7 @@ export const relativeTimeField = (
 ) =>
   relativeTime(
     timelineSqlOf(context.getFieldValue(field, props?.row)) ?? "",
-    { locale: (context as any).locale },
+    { locale: context.locale },
   );
 
 export const quantityUnit = (
@@ -297,6 +297,6 @@ export const fieldAvatar = (
   const render = (context as any).uiBuilder?.factory?.avatar;
   if (render) return render(avatarProps);
   return createAvatar(avatarProps, (name: string) =>
-    (context as any).uiBuilder?.factory?.resolveIcon?.(name) ?? name,
+    context.uiBuilder?.factory?.resolveIcon?.(name) ?? name,
   );
 };

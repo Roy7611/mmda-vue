@@ -1,4 +1,5 @@
 import { callUiBagFn, type UiNumberInputProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   UiNumberInputKind,
@@ -27,6 +28,5 @@ export function emitNumberInputChange(
     next = Number.isFinite(n) ? n : null
   }
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }

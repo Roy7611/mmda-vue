@@ -3,11 +3,11 @@ import { NSplit } from 'naive-ui'
 import type { UiSplitterPane, UiSplitterProps } from '@mmda/vui'
 import {
   emitSplitterResize,
-  htmlAttributesOf,
   splitterEnabledOf,
   splitterModifierClasses,
-  splitterOrientationOf,
+  splitterOrientationOf
 } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 /**
  * NSplit 拖动时用 seemly.depx 解析 min/max；depx('12rem') === NaN，会导致拖不动。
@@ -37,7 +37,7 @@ export function createSplitter(
   return h(
     NSplit,
     {
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       class: [
         'mmda-splitter',
         ...splitterModifierClasses(props).flat(),

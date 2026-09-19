@@ -1,4 +1,5 @@
 import { callUiBagFn, type UiCheckBoxProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiCheckBoxProps } from '@mmda/core'
 export {
@@ -13,6 +14,5 @@ export function emitCheckBoxChange(
   checked: boolean,
 ): void {
   props.onChange?.(checked)
-  callUiBagFn(props, 'onUpdate:modelValue', checked)
-  callUiBagFn(props, 'onUpdate', checked)
+  vueUpdateOf(props)?.(checked)
 }

@@ -1,9 +1,8 @@
 import { h } from "vue";
 import InputText from "primevue/inputtext";
 import type { UiTextInputProps } from "@mmda/core"
-import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputHtmlTypeOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputTypeOf, textInputValueOf } from "@mmda/core"
+import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputHtmlTypeOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputTypeOf, textInputValueOf, uiRenderProps } from "@mmda/core"
 import { emitTextInputChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTextInput(props: UiTextInputProps) {
   const {
@@ -29,7 +28,7 @@ export function createTextInput(props: UiTextInputProps) {
 
   return h(InputText as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: textInputValueOf(props),
     placeholder: textInputPlaceholderOf(props),
     disabled: textInputDisabledOf(props),

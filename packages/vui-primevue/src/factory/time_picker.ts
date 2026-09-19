@@ -1,10 +1,10 @@
 import { h } from "vue";
 import DatePicker from "primevue/datepicker";
 import type { UiTimePickerProps } from "@mmda/core"
-import { dateTimePickerStepOf, timePickerModifierClasses } from "@mmda/core"
+import { dateTimePickerStepOf, timePickerModifierClasses, uiRenderProps } from "@mmda/core"
 import { TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
-import { datePickerPrimeFormat, htmlAttributesOf } from "@mmda/vui"
+import { datePickerPrimeFormat } from "@mmda/vui"
 
 export function createTimePicker(props: UiTimePickerProps) {
   const {
@@ -39,7 +39,7 @@ export function createTimePicker(props: UiTimePickerProps) {
 
   return h(DatePicker as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: datePickerDateOf(props) ?? null,
     "onUpdate:modelValue": (next: Date | null) =>
       emitDateChange(props, next ?? null),

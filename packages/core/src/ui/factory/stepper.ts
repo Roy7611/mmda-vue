@@ -69,7 +69,6 @@ export interface UiStepperProps<T = any> extends UiProps {
   tooltipTemplate?: unknown
   sanitize?: boolean
   onChange?: (value: number) => void
-  onUpdate?: (value: number) => void
   onChanging?: (args: UiStepperChanging) => void
   onBeforeStepRender?: (args: unknown) => void
   onReady?: (controller: UiStepperController) => void

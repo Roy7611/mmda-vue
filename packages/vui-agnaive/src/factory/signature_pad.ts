@@ -13,9 +13,9 @@ import {
 } from "vue";
 import SignaturePad from "signature_pad";
 import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core';
-import { signaturePadBlobOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf } from "@mmda/core"
+import { signaturePadBlobOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf, uiRenderProps } from "@mmda/core"
 import { emitSignaturePadChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
+import { vueUpdateOf } from "@mmda/vui"
 
 type Stroke = ReturnType<SignaturePad["toData"]>[number];
 
@@ -180,7 +180,7 @@ const MmdaSignaturePad = defineComponent({
       return h(
         "div",
         {
-          ...htmlAttributesOf(vuiProps()),
+          ...uiRenderProps(vuiProps()).attributes,
           class: signaturePadModifierClasses(vuiProps()),
           style: {
             width,
@@ -221,7 +221,7 @@ export function createSignaturePad(props: UiSignaturePadProps) {
     class: signaturePadModifierClasses(props),
     htmlAttributes: props.htmlAttributes,
     onChange: props.onChange,
-    onUpdate: props.onUpdate,
+    onUpdate: vueUpdateOf(props),
     "onUpdate:modelValue": props["onUpdate:modelValue"],
     onReady: props.onReady,
   });

@@ -1,4 +1,4 @@
-export { createEchartsFactory } from './echarts_factory'
+export { createEchartsFactory, createEchartsPlugin } from './echarts_factory'
 export {
   echartsBoxPlotOptionOf,
   echartsBubbleOptionOf,

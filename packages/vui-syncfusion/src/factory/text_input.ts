@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiTextInputProps } from "@mmda/core"
-import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputShowClearButtonOf, textInputTypeOf, textInputValueOf } from "@mmda/core"
+import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputShowClearButtonOf, textInputTypeOf, textInputValueOf, uiRenderProps } from "@mmda/core"
 import { emitTextInputChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createTextInput(props: UiTextInputProps) {
   const {
@@ -32,7 +31,7 @@ export function createTextInput(props: UiTextInputProps) {
   const maxLength = textInputMaxLengthOf(props);
   const autocomplete = textInputAutocompleteOf(props);
   const attrs = {
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     ...(autocomplete ? { autocomplete } : {}),
   };
 

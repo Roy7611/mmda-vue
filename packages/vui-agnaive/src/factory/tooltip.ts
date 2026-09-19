@@ -11,15 +11,15 @@ import type {
   UiTooltipSlots,
 } from '@mmda/vui'
 import {
-  htmlAttributesOf,
   noopTooltipController,
   tooltipContentOf,
   tooltipDisabledOf,
   tooltipModifierClasses,
   tooltipOpensOnOf,
   tooltipPositionOf,
-  tooltipShowPointerOf,
+  tooltipShowPointerOf
 } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 /** Naive trigger */
 export function tooltipOpensOnToTrigger(
@@ -53,7 +53,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
       'span',
       {
         class: tooltipModifierClasses(props),
-        ...htmlAttributesOf(props),
+        ...uiRenderProps(props).attributes,
       },
       children,
     )
@@ -80,7 +80,7 @@ export function createTooltip(props: UiTooltipProps, slots?: UiTooltipSlots) {
     NTooltip as any,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       ref: (el: any) => {
         inst = el
       },

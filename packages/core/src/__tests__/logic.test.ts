@@ -263,8 +263,8 @@ describe('FieldLogic.refWhere', () => {
     l1.refWhere(() => 'plant=P1')
     l2.refWhere(() => 'site=B')
 
-    const f1 = l1.buildRefWhere({}, {} as any)
-    const f2 = l2.buildRefWhere({}, {} as any)
+    const f1 = l1.buildRefWhere({} as any, {} as any)
+    const f2 = l2.buildRefWhere({} as any, {} as any)
     expect(f1).toContain(where!)
     expect(f1).toContain('site=A')
     expect(f1).toContain('plant=P1')
@@ -272,8 +272,8 @@ describe('FieldLogic.refWhere', () => {
     expect(f2).toContain('site=B')
     expect(f2).not.toContain('site=A')
 
-    expect(l1.buildRefWhere({}, {} as any)).toContain('site=A')
-    expect(l2.buildRefWhere({}, {} as any)).toContain('site=B')
+    expect(l1.buildRefWhere({} as any, {} as any)).toContain('site=A')
+    expect(l2.buildRefWhere({} as any, {} as any)).toContain('site=B')
   })
 
   it('buildRefWhere 替换 @param，不拼 searchWord LIKE', () => {
@@ -301,6 +301,6 @@ describe('FieldLogic.refWhere', () => {
       selectOptions: 'REF Warehouse(whID,whName) WHERE (siteID=1)',
     })
     const logic = new MetaUiFieldLogic(fld)
-    expect(logic.buildRefWhere({}, {} as any)).toBe(fld.reference!.where)
+    expect(logic.buildRefWhere({} as any, {} as any)).toBe(fld.reference!.where)
   })
 })

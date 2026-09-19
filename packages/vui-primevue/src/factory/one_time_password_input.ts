@@ -1,7 +1,8 @@
 import { h } from "vue";
 import InputOtp from "primevue/inputotp";
 import type { UiOneTimePasswordInputProps } from "@mmda/vui"
-import { emitOneTimePasswordChange, htmlAttributesOf, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from "@mmda/vui"
+import { emitOneTimePasswordChange, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 export function createOneTimePasswordInput(
   props: UiOneTimePasswordInputProps,
@@ -23,7 +24,7 @@ export function createOneTimePasswordInput(
   const type = oneTimePasswordTypeOf(props);
   const vnodeProps = {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     modelValue: oneTimePasswordValueOf(props),
     length,
     integerOnly: type === "number",

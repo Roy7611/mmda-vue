@@ -6,9 +6,8 @@ import { h } from "vue";
 import { NStep, NSteps } from "naive-ui";
 import type { UiStepperController, UiStepperProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { noopStepperController, stepperItemsOf, stepperModifierClasses, stepperOrientationOf, stepperValueOf } from "@mmda/core"
+import { noopStepperController, stepperItemsOf, stepperModifierClasses, stepperOrientationOf, stepperValueOf, uiRenderProps } from "@mmda/core"
 import { emitStepperChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createStepper(
   props: UiStepperProps,
@@ -68,7 +67,7 @@ export function createStepper(
     NSteps,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       current,
       vertical: stepperOrientationOf(props) === "vertical",
       class: stepperModifierClasses(props),

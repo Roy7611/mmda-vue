@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, UiBuildContext, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
 import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';
@@ -103,7 +103,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 			}
 		}
 
-		let eventCtx: (UiBuildContext<any> & {
+		let eventCtx: (UiContext<any> & {
 			prepareFn(action: EntityAction): Promise<any>;
 		}) | null = null;
 		return uiBuilder.dialog(
@@ -116,7 +116,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 							showToolbar: false,
 							attachmentsCollapsed: true,
 							onMountedSuccess: (ctx: UiContext) => {
-								eventCtx = ctx as UiBuildContext<any> & {
+								eventCtx = ctx as UiContext<any> & {
 									prepareFn(action: EntityAction): Promise<any>;
 								};
 							},

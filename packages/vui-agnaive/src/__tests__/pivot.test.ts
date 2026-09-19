@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { PIVOT_PLUGIN_NOT_INSTALLED } from '@mmda/vui'
 import { AgNaiveUiBuilder } from '../agnaive_builder'
 import {
   createAgPivotPlugin,
   toAgPivotColumnDefs,
-} from '../factory/pivot_table'
+} from '../plugins/pivot_table'
 
 describe('createAgPivotPlugin', () => {
   it('maps AG axes onto pivotMode column defs', () => {
@@ -23,7 +22,7 @@ describe('createAgPivotPlugin', () => {
 
   it('renders AgGridVue with pivotMode', () => {
     const plugin = createAgPivotPlugin()
-    const vnode = plugin.pivotTable({
+    const vnode = plugin.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
     })
@@ -37,13 +36,10 @@ describe('createAgPivotPlugin', () => {
     expect(cls).toContain('mmda-pivot')
   })
 
-  it('throws until setPivotPlugin on the skin builder', () => {
+  it('skin builder installs pivot-table by default', () => {
     const builder = new AgNaiveUiBuilder()
-    expect(() => builder.buildPivotTable({ data: [] })).toThrow(
-      PIVOT_PLUGIN_NOT_INSTALLED,
-    )
-    builder.setPivotPlugin(createAgPivotPlugin())
-    const vnode = builder.buildPivotTable({
+    expect(builder.hasPlugin('pivot-table')).toBe(true)
+    const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],
     })
     expect(vnode.props?.pivotMode).toBe(true)

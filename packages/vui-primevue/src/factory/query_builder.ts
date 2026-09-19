@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import type { UiQueryBuilderProps } from '@mmda/core'
-import { QueryBuilderHost, htmlAttributesOf, queryBuilderModifierClasses } from '@mmda/vui'
+import { QueryBuilderHost, queryBuilderModifierClasses } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 export function createQueryBuilder(props: UiQueryBuilderProps) {
   const {
@@ -11,7 +12,7 @@ export function createQueryBuilder(props: UiQueryBuilderProps) {
   } = props
   return h(QueryBuilderHost, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     class: queryBuilderModifierClasses(props).flat(),
     onChange,
   })

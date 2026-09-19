@@ -51,7 +51,7 @@ describe('createVueKanbanPlugin', () => {
 
   it('returns a kanbanView host', () => {
     const plugin = createVueKanbanPlugin()
-    const vnode = plugin.kanbanView({
+    const vnode = plugin.buildUi({} as any, {
       cards: [{ id: 1, title: 'Cut', status: 'todo' }],
       columns: [{ key: 'todo', header: 'To Do' }],
       readonly: true,

@@ -188,7 +188,7 @@ describe("VueUiContext", () => {
     const { metaUi } = createOrderMetaUi();
     const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
     const ctx = new VueUiContext({
-      model: { list: [row], pagination: {} },
+      model: [row],
       metaUi,
       view: "index",
     });
@@ -402,14 +402,14 @@ describe("VueUiContext", () => {
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
     const dialog = vi
       .fn()
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce(true);
+      .mockResolvedValueOnce("cancel")
+      .mockResolvedValueOnce("ok");
     const root = new VueUiContext({
       model,
       metaUi,
       view: "edit",
       app: {
-        ui: { buildView: () => ({}), dialog },
+        ui: { buildView: () => ({}), dialog, editDialog: dialog },
       } as any,
     });
 
@@ -753,7 +753,7 @@ describe("VueUiContext", () => {
   it("打开列表时勾选 fallback 过滤，不从元数据拉排序", () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
-      model: { list: [] },
+      model: [],
       metaUi,
       view: "index",
       logic: {},
@@ -779,7 +779,7 @@ describe("VueUiContext", () => {
     localStorage.setItem("mmda/pageSize", "200");
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
-      model: { list: [] },
+      model: [],
       metaUi,
       view: "index",
       logic: {
@@ -801,7 +801,7 @@ describe("VueUiContext", () => {
   it("lastQuery 没有 queryID 时不带回列头 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
-      model: { list: [] },
+      model: [],
       metaUi,
       view: "index",
       logic: {
@@ -822,7 +822,7 @@ describe("VueUiContext", () => {
   it("保存过的命名查询 lastQuery 才带回 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
     const ctx = new VueUiContext({
-      model: { list: [] },
+      model: [],
       metaUi,
       view: "index",
       logic: {

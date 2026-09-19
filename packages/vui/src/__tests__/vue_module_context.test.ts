@@ -15,10 +15,8 @@ describe("createModuleContext", () => {
       metaUi: { primaryKey: "id" },
       currentItem: current,
       currentIndex: 6,
-      model: {
-        list: [current],
-        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
-      },
+      model: [current],
+      searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
       indexTableHost: { applyRow, insertAtZero, applyRemove },
     } as unknown as VueUiContext;
     sync.registerIndex(context);
@@ -40,10 +38,8 @@ describe("createModuleContext", () => {
       metaUi: { primaryKey: "id" },
       currentItem: current,
       currentIndex: 0,
-      model: {
-        list: [current],
-        pagination: { pageNo: 1, pageSize: 20, recordCount: 1 },
-      },
+      model: [current],
+      searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
       indexTableHost: { applyRow, insertAtZero, applyRemove },
     } as unknown as VueUiContext;
     sync.registerIndex(context);

@@ -1,8 +1,8 @@
 # Ribbon 插件
 
-Ribbon 不进 chrome `factory`。vui 只定 [`UiRibbonPlugin`](../src/ui/factory/ribbon.ts)；应用 `setRibbonPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+Ribbon 不进 chrome `factory`。vui 只定 [`UiRibbonPlugin`](../src/ui/plugins/ribbon.ts)；应用 `setRibbonPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
-与 [`factory.toolbar`](./toolbar.md)（三栏壳）无关。不要用 `tabs` + `button` 拼假 Ribbon。
+与 [`factory.toolbar`](./toolbar.md)（原生命令条）和 [Topbar](./topbar.md) 都无关。不要用 `tabs` + `button` 拼假 Ribbon。
 
 程序员用法：[ribbon_usage.md](./ribbon_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
@@ -10,7 +10,7 @@ Ribbon 不进 chrome `factory`。vui 只定 [`UiRibbonPlugin`](../src/ui/factory
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/ribbon.ts` | `UiRibbonProps` / tabs→groups→collections→items；未安装 stub |
+| vui `ui/plugins/ribbon.ts` | `UiRibbonProps` / tabs→groups→collections→items；未安装 stub |
 | `VueUiBuilder.ribbonPlugin` | 默认 `unimplementedRibbonPlugin`；`setRibbonPlugin`；`buildRibbon` 转调插件 |
 | `@mmda/vui-syncfusion/ribbon` | `createSfRibbonPlugin`，EJ2 `RibbonComponent` |
 

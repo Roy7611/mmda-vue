@@ -1,6 +1,6 @@
 # AI 助手插件
 
-AI 助手不进 chrome `factory`。vui 只定 [`UiAiAssistantPlugin`](../src/ui/factory/ai_assistant.ts)；应用 `setAiAssistantPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+AI 助手不进 chrome `factory`。vui 只定 [`UiAiAssistantPlugin`](../src/ui/plugins/ai_assistant.ts)；应用 `setAiAssistantPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[ai_assistant_usage.md](./ai_assistant_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
@@ -8,7 +8,7 @@ AI 助手不进 chrome `factory`。vui 只定 [`UiAiAssistantPlugin`](../src/ui/
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/ai_assistant.ts` | props / controller / 未安装 stub |
+| vui `ui/plugins/ai_assistant.ts` | props / controller / 未安装 stub |
 | `VueUiBuilder.aiAssistantPlugin` | 默认 `unimplementedAiAssistantPlugin`；`setAiAssistantPlugin`；`buildAiAssistant` 转调插件 |
 | `@mmda/vui-syncfusion/ai-assistant` | `createSfAiAssistantPlugin`，EJ2 Inline AI Assist |
 

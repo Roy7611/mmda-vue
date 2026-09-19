@@ -353,7 +353,10 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   background: var(--mmda-danger-color, #b3261e);
 }
 
-.mmda-toolbar {
+.mmda-toolbar,
+.mmda-index-topbar,
+.mmda-details-topbar,
+.mmda-edit-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -363,7 +366,8 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   min-width: 0;
 }
 
-.mmda-toolbar--with-center {
+.mmda-toolbar--with-center,
+.mmda-index-topbar--with-center {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   justify-content: initial;
@@ -373,7 +377,14 @@ html.mmda-dark[data-mmda-palette="cyan"] {
 .mmda-toolbar__start,
 .mmda-toolbar__center,
 .mmda-toolbar__end,
-.mmda-toolbar-actions {
+.mmda-index-topbar__start,
+.mmda-index-topbar__center,
+.mmda-index-topbar__end,
+.mmda-details-topbar__start,
+.mmda-details-topbar__end,
+.mmda-edit-topbar__start,
+.mmda-edit-topbar__end,
+.mmda-topbar-actions {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -381,22 +392,31 @@ html.mmda-dark[data-mmda-palette="cyan"] {
   gap: 0.5rem;
 }
 
-.mmda-toolbar__start {
+.mmda-toolbar__start,
+.mmda-index-topbar__start,
+.mmda-details-topbar__start,
+.mmda-edit-topbar__start {
   justify-content: flex-start;
 }
 
-.mmda-toolbar__center {
+.mmda-toolbar__center,
+.mmda-index-topbar__center {
   justify-content: center;
 }
 
 .mmda-toolbar__end,
-.mmda-toolbar-actions {
+.mmda-index-topbar__end,
+.mmda-details-topbar__end,
+.mmda-edit-topbar__end,
+.mmda-topbar-actions {
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .mmda-toolbar--with-center .mmda-toolbar__end,
-.mmda-toolbar--with-center .mmda-toolbar-actions {
+.mmda-toolbar--with-center .mmda-topbar-actions,
+.mmda-index-topbar--with-center .mmda-index-topbar__end,
+.mmda-index-topbar--with-center .mmda-topbar-actions {
   margin-left: 0;
 }
 
@@ -930,8 +950,8 @@ html.mmda-dark .mmda-dropup {
 }
 
 /*
- * 模块页顶栏（包住 factory.toolbar）：固定高度、上下居中；贴顶直角。
- * sticky 时内容滚过不透底。内层 .mmda-toolbar 可透明，由本层提供表面色。
+ * 模块页顶栏：固定高度、上下居中；贴顶直角。
+ * sticky 时内容滚过不透底。内层 Topbar 可透明，由本层提供表面色。
  */
 .mmda-page__header {
   box-sizing: border-box;
@@ -955,7 +975,10 @@ html.mmda-dark .mmda-dropup {
   background: var(--mmda-surface-card);
 }
 
-.mmda-page__header .mmda-toolbar {
+.mmda-page__header .mmda-toolbar,
+.mmda-page__header .mmda-index-topbar,
+.mmda-page__header .mmda-details-topbar,
+.mmda-page__header .mmda-edit-topbar {
   margin: 0;
   padding: 0;
   border: 0;

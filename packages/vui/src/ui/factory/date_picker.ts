@@ -3,6 +3,7 @@
  * Vue v-model emit 与厂商格式映射留在本文件。
  */
 import { callUiBagFn, type UiProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   UiDateInputProps,
@@ -46,8 +47,7 @@ export {
 /** Vue v-model + 产品 onChange / onUpdatePicker。 */
 export function emitDateChange(props: UiProps, value: unknown): void {
   callUiBagFn(props, 'onChange', value)
-  callUiBagFn(props, 'onUpdate:modelValue', value)
-  callUiBagFn(props, 'onUpdate', value)
+  vueUpdateOf(props)?.(value)
   callUiBagFn(props, 'onUpdatePicker', value)
 }
 

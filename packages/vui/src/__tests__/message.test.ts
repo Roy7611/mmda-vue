@@ -50,7 +50,7 @@ describe("uiBuilder.message", () => {
     const builder = new TestUiBuilder();
     const toast = vi.spyOn(builder.overlay, "toast");
     const ctx = new VueUiContext({
-      model: { list: [], pagination: { pageNo: 1, pageSize: 20, recordCount: 0 } },
+      model: [],
       metaUi: new MetaUi({ objName: "Item", groups: [] }),
       view: UiViewMany.Index,
     });

@@ -1,147 +1,110 @@
 import type { MetaUiField } from '../metaui/metaui_field'
+import type { UiContext } from './context'
 import type { UiLayout } from './layout'
 
 /**
  * 单个字段的渲染函数。
- * 返回裸控件节点；带标签行请走 {@link UiFieldFactory.render} / `editFor` / `displayFor`。
+ * 返回裸控件节点；带标签的字段行由 `UiBuilder.editFor` / `displayFor` 套 `UiLayout`。
  */
 export type UiFieldRenderer<TNode = any> = (
   field: MetaUiField,
-  context: any,
+  context: UiContext,
   props?: Record<string, unknown>,
 ) => TNode
 
-/** 字段读写；*PropsFromField 用。 */
+/**
+ * 字段读写；`*PropsFromField` 用。
+ *
+ * 签名**借用** `UiContext`（同一个主人），不要各写一份 —— 手抄一遍就会因为参数反变对不上
+ * （`getFieldValue` 第二参写 `unknown` 就吃不下 `Entity`）。
+ */
 export interface UiFieldBindContext {
-  getFieldValue: (field: MetaUiField, row?: unknown) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
-  isFieldReadonly: (field: MetaUiField | string) => boolean
-  t?: (key: string) => string
+  getFieldValue: UiContext<any>['getFieldValue']
+  setFieldValue?: UiContext<any>['setFieldValue']
+  isFieldReadonly: UiContext<any>['isFieldReadonly']
+  t?: UiContext<any>['t']
   model?: object
-  searchRelative?: (
-    field: MetaUiField,
-    searchWord?: string,
-  ) => Promise<unknown>
+  searchRelative?: UiContext<any>['searchRelative']
 }
 
 /**
  * 字段渲染器表。皮肤用编辑器/renderer 名做索引。
  *
- * 程序员入口：
- * - {@link render}：按会话自动选编辑或显示，并套默认字段布局（替代旧 `builder.buildField`）
- * - {@link editFor} / {@link displayFor}：强制编辑/只读的快捷方式
- * - 具名方法（`textInput` 等）：裸控件，表格单元格用这些，不要走 render（会带标签）
+ * 这里**只放控件**（裸控件）。带标签的字段行在 `UiBuilder`：builder 构表单时按 `MetaUiField`
+ * 选这里的函数，再套 `UiLayout` 排（`editFor` / `displayFor`）。
+ * - 具名方法（`textInput` 等）：裸控件，表格单元格用这些
+ * - {@link fallbackInput} / {@link fallbackDisplay}：元数据没配时的兜底
  *
- * 没有 `timeline`：时间轴不是单字段，走 `factory.timeline` / `buildTimeline`。
  */
 export interface UiFieldFactory<TNode = any>
-  extends Record<
-    string,
-    UiFieldRenderer<TNode> | UiLayout<TNode> | undefined
-  > {
-  /**
-   * 排字段行用的布局。vui 构造时注入；`render` / `editFor` / `displayFor` 调 `layout.layoutField`。
-   */
-  layout?: UiLayout<TNode>
-
+  extends Record<string, UiFieldRenderer<TNode>> {
   /** 元数据未配 editor 时的默认输入控件。 */
   fallbackInput: UiFieldRenderer<TNode>
   /** 元数据未配 renderer 时的默认只读展示。 */
   fallbackDisplay: UiFieldRenderer<TNode>
 
-  /**
-   * 按会话/字段状态自动选编辑或显示，并套默认 `layout.layoutField`。
-   * `editing && !readonly` → 等价 {@link editFor}；否则 → {@link displayFor}。
-   * `buildFieldGroup` 与自定义屏默认走本方法。
-   */
-  render(
-    field: MetaUiField,
-    context: any,
-    props?: Record<string, unknown>,
-  ): TNode
+  textSpan: UiFieldRenderer<TNode>
+  textInput: UiFieldRenderer<TNode>
+  textArea: UiFieldRenderer<TNode>
+  password: UiFieldRenderer<TNode>
+  numberInput: UiFieldRenderer<TNode>
+  percentInput: UiFieldRenderer<TNode>
+  positiveNumberInput: UiFieldRenderer<TNode>
+  negativeNumberInput: UiFieldRenderer<TNode>
+  maskedTextBox: UiFieldRenderer<TNode>
+  oneTimePasswordInput: UiFieldRenderer<TNode>
+  mobileInput: UiFieldRenderer<TNode>
+  zipCodeInput: UiFieldRenderer<TNode>
 
-  /**
-   * 强制编辑行（标签 + 输入）。校验文案由皮肤控件自绘。
-   * 控件：`customEditor` ?? `field.editor` ?? {@link fallbackInput}。
-   */
-  editFor(
-    field: MetaUiField,
-    context: any,
-    props?: Record<string, unknown>,
-  ): TNode
+  datePicker: UiFieldRenderer<TNode>
+  dateTimePicker: UiFieldRenderer<TNode>
+  monthPicker: UiFieldRenderer<TNode>
+  timePicker: UiFieldRenderer<TNode>
+  dateRangePicker: UiFieldRenderer<TNode>
 
-  /**
-   * 强制只读行（标签 + 展示）。
-   * 控件：`customRenderer` ?? `field.renderer`（bool 默认 checkedIcon）?? {@link fallbackDisplay}。
-   */
-  displayFor(
-    field: MetaUiField,
-    context: any,
-    props?: Record<string, unknown>,
-  ): TNode
+  dropDownList: UiFieldRenderer<TNode>
+  comboBox: UiFieldRenderer<TNode>
+  autoComplete: UiFieldRenderer<TNode>
+  tagAutoComplete: UiFieldRenderer<TNode>
+  treeSelect: UiFieldRenderer<TNode>
+  radioButtonGroup: UiFieldRenderer<TNode>
+  multiSelect: UiFieldRenderer<TNode>
+  checkBoxList: UiFieldRenderer<TNode>
+  bitCheckBoxList: UiFieldRenderer<TNode>
 
-  textSpan?: UiFieldRenderer<TNode>
-  textInput?: UiFieldRenderer<TNode>
-  textArea?: UiFieldRenderer<TNode>
-  password?: UiFieldRenderer<TNode>
-  numberInput?: UiFieldRenderer<TNode>
-  percentInput?: UiFieldRenderer<TNode>
-  positiveNumberInput?: UiFieldRenderer<TNode>
-  negativenumberInput?: UiFieldRenderer<TNode>
-  maskedTextBox?: UiFieldRenderer<TNode>
-  oneTimePasswordInput?: UiFieldRenderer<TNode>
-  mobileInput?: UiFieldRenderer<TNode>
-  zipCodeInput?: UiFieldRenderer<TNode>
+  checkBox: UiFieldRenderer<TNode>
+  switch: UiFieldRenderer<TNode>
+  slider: UiFieldRenderer<TNode>
+  rating: UiFieldRenderer<TNode>
+  colorPicker: UiFieldRenderer<TNode>
 
-  datePicker?: UiFieldRenderer<TNode>
-  dateTimePicker?: UiFieldRenderer<TNode>
-  monthPicker?: UiFieldRenderer<TNode>
-  timePicker?: UiFieldRenderer<TNode>
-  dateRangePicker?: UiFieldRenderer<TNode>
+  quantityUnit: UiFieldRenderer<TNode>
+  relativeTime: UiFieldRenderer<TNode>
+  percentage: UiFieldRenderer<TNode>
+  multilineText: UiFieldRenderer<TNode>
+  amountText: UiFieldRenderer<TNode>
 
-  dropDownList?: UiFieldRenderer<TNode>
-  comboBox?: UiFieldRenderer<TNode>
-  autoComplete?: UiFieldRenderer<TNode>
-  tagAutoComplete?: UiFieldRenderer<TNode>
-  treeSelect?: UiFieldRenderer<TNode>
-  radioButtonGroup?: UiFieldRenderer<TNode>
-  multiSelect?: UiFieldRenderer<TNode>
-  checkBoxList?: UiFieldRenderer<TNode>
-  bitCheckBoxList?: UiFieldRenderer<TNode>
+  fileLink: UiFieldRenderer<TNode>
+  externalLink: UiFieldRenderer<TNode>
+  hasOneText: UiFieldRenderer<TNode>
+  HasOneText: UiFieldRenderer<TNode>
 
-  checkBox?: UiFieldRenderer<TNode>
-  switch?: UiFieldRenderer<TNode>
-  slider?: UiFieldRenderer<TNode>
-  rating?: UiFieldRenderer<TNode>
-  colorPicker?: UiFieldRenderer<TNode>
+  fileUploader: UiFieldRenderer<TNode>
+  filesUploader: UiFieldRenderer<TNode>
+  imageUploader: UiFieldRenderer<TNode>
+  imagesUploader: UiFieldRenderer<TNode>
+  image: UiFieldRenderer<TNode>
+  avatar: UiFieldRenderer<TNode>
 
-  quantityUnit?: UiFieldRenderer<TNode>
-  relativeTime?: UiFieldRenderer<TNode>
-  percentage?: UiFieldRenderer<TNode>
-  multilineText?: UiFieldRenderer<TNode>
-  amountText?: UiFieldRenderer<TNode>
-
-  fileLink?: UiFieldRenderer<TNode>
-  externalLink?: UiFieldRenderer<TNode>
-  hasOneText?: UiFieldRenderer<TNode>
-  HasOneText?: UiFieldRenderer<TNode>
-
-  fileUploader?: UiFieldRenderer<TNode>
-  filesUploader?: UiFieldRenderer<TNode>
-  imageUploader?: UiFieldRenderer<TNode>
-  imagesUploader?: UiFieldRenderer<TNode>
-  image?: UiFieldRenderer<TNode>
-  avatar?: UiFieldRenderer<TNode>
-
-  progressBar?: UiFieldRenderer<TNode>
-  signaturePad?: UiFieldRenderer<TNode>
-  stepper?: UiFieldRenderer<TNode>
-  inplaceFieldEditor?: UiFieldRenderer<TNode>
-  chips?: UiFieldRenderer<TNode>
-  tags?: UiFieldRenderer<TNode>
-  enumChipSet?: UiFieldRenderer<TNode>
-  bitChipSet?: UiFieldRenderer<TNode>
-  colorBox?: UiFieldRenderer<TNode>
-  checkIcon?: UiFieldRenderer<TNode>
-  checkedIcon?: UiFieldRenderer<TNode>
+  progressBar: UiFieldRenderer<TNode>
+  signaturePad: UiFieldRenderer<TNode>
+  stepper: UiFieldRenderer<TNode>
+  inPlaceFieldEditor: UiFieldRenderer<TNode>
+  chips: UiFieldRenderer<TNode>
+  tags: UiFieldRenderer<TNode>
+  enumChipSet: UiFieldRenderer<TNode>
+  bitChipSet: UiFieldRenderer<TNode>
+  colorBox: UiFieldRenderer<TNode>
+  checkIcon: UiFieldRenderer<TNode>
+  checkedIcon: UiFieldRenderer<TNode>
 }

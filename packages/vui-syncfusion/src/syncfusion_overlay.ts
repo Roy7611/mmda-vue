@@ -4,10 +4,11 @@ import type {
   UiConfirmProps,
   UiDialogAction,
   UiDialogProps,
+  UiMessageProps,
   UiToastProps,
 } from '@mmda/core'
 import { shouldCloseDialog } from '@mmda/core'
-import type { UiOverlay } from '@mmda/vui'
+import type { VueUiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
@@ -21,7 +22,7 @@ export interface SyncfusionOverlayServices {
   toast?: { show: (model: Record<string, unknown>) => void }
 }
 
-export interface SyncfusionOverlay extends UiOverlay {
+export interface SyncfusionOverlay extends VueUiOverlay {
   dialogs: DialogRequest[]
   services: SyncfusionOverlayServices
 }
@@ -65,6 +66,12 @@ export function createSyncfusionOverlay(): SyncfusionOverlay {
           else window.alert([title, content].filter(Boolean).join('\n'))
         }, 0)
       }
+    },
+    message(props: UiMessageProps) {
+      overlay.toast({
+        severity: props.severity,
+        message: props.content,
+      })
     },
     async confirm(props: UiConfirmProps) {
       const button = await overlay.dialog(

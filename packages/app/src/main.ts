@@ -1,10 +1,6 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
 import { SyncfusionUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
-import { createSfGanttPlugin } from "@mmda/vui-syncfusion/gantt";
-import { createSfKanbanPlugin } from "@mmda/vui-syncfusion/kanban";
-import { createSfSchedulerPlugin } from "@mmda/vui-syncfusion/schedule";
-import { createSfPivotPlugin } from "@mmda/vui-syncfusion/pivot";
 import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
 import baseZh from "@mmda/base/src/locales/zh";
 import baseEn from "@mmda/base/src/locales/en";
@@ -28,11 +24,7 @@ const i18n = setupI18n(
   "zh",
 );
 const builder = new SyncfusionUiBuilder();
-builder.setMarkdownEditorPlugin(createMarkdownEditorPlugin());
-builder.setKanbanPlugin(createSfKanbanPlugin());
-builder.setSchedulerPlugin(createSfSchedulerPlugin());
-builder.setGanttPlugin(createSfGanttPlugin());
-builder.setPivotPlugin(createSfPivotPlugin());
+builder.use(createMarkdownEditorPlugin());
 const mmda = new MmdaVueApp(
   import.meta.env.VITE_BASE_API || "/api",
   "base",

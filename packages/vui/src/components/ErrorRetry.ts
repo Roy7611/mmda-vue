@@ -1,10 +1,10 @@
 import {
   errorDisplayOf,
   errorModifierClasses,
-  htmlAttributesOf,
   uiCssClass,
   type UiErrorProps,
   type UiErrorStatus,
+  uiRenderProps
 } from '@mmda/core'
 import { defineComponent, h, inject } from 'vue'
 import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from '../app/icon'
@@ -73,7 +73,7 @@ export const ErrorRetry = defineComponent({
       return h(
         'div',
         {
-          ...htmlAttributesOf(uiProps),
+          ...uiRenderProps(uiProps).attributes,
           class: errorModifierClasses(uiProps).flat(),
           role: 'alert',
         },

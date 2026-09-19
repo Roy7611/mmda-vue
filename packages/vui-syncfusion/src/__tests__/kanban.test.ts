@@ -5,7 +5,7 @@ import {
   ej2RecordToUiCard,
   uiCardToEj2,
   uiColumnsToEj2,
-} from '../factory/kanban'
+} from '../plugins/kanban'
 
 describe('createSfKanbanPlugin', () => {
   it('maps vui cards and columns onto EJ2 fields', () => {
@@ -51,7 +51,7 @@ describe('createSfKanbanPlugin', () => {
 
   it('returns a kanbanView host with hook class helpers', () => {
     const plugin = createSfKanbanPlugin()
-    const vnode = plugin.kanbanView({
+    const vnode = plugin.buildUi({} as any, {
       cards: [{ id: 1, title: 'Cut', status: 'todo' }],
       columns: [{ key: 'todo', header: 'To Do' }],
       readonly: true,

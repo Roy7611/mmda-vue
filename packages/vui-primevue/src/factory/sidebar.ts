@@ -1,7 +1,8 @@
 import { h } from "vue";
 import Drawer from "primevue/drawer";
 import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui"
-import { applyDrawerDefaults, emitSidebarChange, htmlAttributesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarWidthOf } from "@mmda/vui"
+import { applyDrawerDefaults, emitSidebarChange, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarWidthOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function widthStyle(width: string | number): Record<string, string> {
   const w = typeof width === "number" ? `${width}px` : String(width);
@@ -38,7 +39,7 @@ function renderSidebar(
     Drawer,
     {
       ...rest,
-      ...htmlAttributesOf(applied),
+      ...uiRenderProps(applied).attributes,
       visible: sidebarIsOpenOf(applied),
       position: sidebarPositionOf(applied).toLowerCase(),
       modal: sidebarShowBackdropOf(applied, asDrawer),

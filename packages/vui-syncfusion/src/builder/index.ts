@@ -8,7 +8,7 @@ import {
   type VNodeArrayChildren,
 } from "vue";
 import { debounce, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from "@mmda/core";
-import { VueUiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type ModuleToolbarProps, type SyncfusionUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiFieldFactory, type UiSearchField, type UiSlots, type UiViewContext } from "@mmda/vui"
+import { VueUiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type VueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext } from "@mmda/vui"
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import { SfGridFilterBar } from "../components/SfGridFilterBar";
 import { SfOverlayHost } from "../components/SfOverlayHost";
@@ -17,6 +17,14 @@ import { SfAttachmentPanel } from "../components/SfAttachmentPanel";
 import { createSyncfusionFieldFactory } from "../syncfusion_field_factory";
 import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "../syncfusion_factory";
 import { syncfusionLayout } from "../syncfusion_layout";
+import { createSfGanttPlugin } from "../plugins/gantt";
+import { createSfKanbanPlugin } from "../plugins/kanban";
+import { createSfSchedulerPlugin } from "../plugins/scheduler";
+import { createSfPivotPlugin } from "../plugins/pivot_table";
+import { createSfDiagramEditorPlugin } from "../plugins/diagram_editor";
+import { createSfImageEditorPlugin } from "../plugins/image_editor";
+import { createSfAiAssistantPlugin } from "../plugins/ai_assistant";
+import { createSfChartFactory } from "../plugins/chart";
 
 import {
   invoke,
@@ -27,9 +35,6 @@ import {
   buildModuleSearchbar as renderModuleSearchbar,
   buildSearchField as renderSearchField,
 } from "./module_bar";
-import { SfIndexToolBar } from "../components/SfIndexToolBar";
-import { SfDetailsToolBar } from "../components/SfDetailsToolBar";
-import { SfEditToolBar } from "../components/SfEditToolBar";
 import {
   buildBpmnDiagram as renderBpmnDiagram,
   buildSigninForm as renderSigninForm,
@@ -48,7 +53,7 @@ import {
 import { refreshSyncfusionSkin } from "../syncfusion_skin";
 
 export class SyncfusionUiBuilder extends VueUiBuilder {
-  declare readonly factory: SyncfusionUiFactory;
+  declare readonly factory: VueUiFactory;
 
   constructor(
     factory = createSyncfusionUiFactory(),
@@ -57,9 +62,20 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     super(
       factory,
       fieldFactory,
-      factory.layout ?? syncfusionLayout,
+      syncfusionLayout,
       createSyncfusionOverlay(),
     );
+    this.use(createSfGanttPlugin())
+      .use(createSfKanbanPlugin())
+      .use(createSfSchedulerPlugin())
+      .use(createSfPivotPlugin())
+      .use(createSfDiagramEditorPlugin())
+      .use(createSfImageEditorPlugin())
+      .use(createSfAiAssistantPlugin())
+      .use(chartAsPlugin(createSfChartFactory()));
+    if (typeof factory.timeline === "function") {
+      this.use(timelineAsPlugin((props) => factory.timeline!(props)));
+    }
   }
 
   get overlayHost() {
@@ -115,7 +131,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   override buildAttachmentGroup(
-    context: UiViewContext<any>,
+    context: VueUiContext<any>,
     props: UiProps = {},
   ): VNode {
     const panel = ref<{ choose: () => void }>();
@@ -253,31 +269,31 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     ];
   }
 
-  buildIndexToolbar(
+  buildIndexTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: Parameters<VueUiBuilder["buildIndexTopbar"]>[1],
     slots?: UiSlots,
   ) {
-    return h(SfIndexToolBar, {
-      builder: this,
+    return paintIndexTopbar(
+      this,
       context,
-      toolbarProps: props ?? {},
+      props ?? {},
       slots,
-      extraMore: this.listLayoutMenuItems(context),
-    });
+      this.listLayoutMenuItems(context),
+    );
   }
 
-  buildDetailsToolbar(
+  buildDetailsTopbar(
     context: UiContext,
-    props?: ModuleToolbarProps,
+    props?: Parameters<VueUiBuilder["buildDetailsTopbar"]>[1],
     slots?: UiSlots,
   ) {
-    return h(SfDetailsToolBar, {
-      builder: this,
+    return paintDetailsTopbar(
+      this,
       context,
-      toolbarProps: props ?? {},
+      props ?? {},
       slots,
-      extraMore: pageLayoutMenuItems(context as any).map((item) =>
+      pageLayoutMenuItems(context as any).map((item) =>
         item.divider
           ? item
           : {
@@ -286,20 +302,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
               onAction: item.onAction ?? item.command,
             },
       ),
-    });
-  }
-
-  buildEditToolbar(
-    context: UiContext,
-    props?: ModuleToolbarProps,
-    slots?: UiSlots,
-  ) {
-    return h(SfEditToolBar, {
-      builder: this,
-      context,
-      toolbarProps: props ?? {},
-      slots,
-    });
+    );
   }
 
   buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
@@ -453,7 +456,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
         if (typeof props.toSearch === 'function') {
           await props.toSearch(event as Event)
         } else {
-          await (context as any).select(field)
+          await context.select(field)
         }
       } catch (error) {
         console.error(error)

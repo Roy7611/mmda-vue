@@ -1,24 +1,22 @@
 # Toolbar：怎么写
 
-从当前皮肤的 `builder.factory.toolbar` 取节点。设计见 [toolbar.md](./toolbar.md)。
+从当前皮肤的 `builder.factory.toolbar` 取节点。设计见 [toolbar.md](./toolbar.md)。页头请用 [Topbar](./topbar.md)。
 
 ```ts
 factory.toolbar(
+  { overflow: 'popup' },
   {
-    layout: 'full',
-    align: { end: 'right' },
-    class: 'mmda-page__header',
-  },
-  {
-    start: () => factory.breadcrumb({ items }),
-    center: () => searchbar,
-    end: () => factory.buttonGroup(() => [save, cancel]),
+    start: () => factory.buttonGroup(() => [cut, copy, paste]),
+    end: () => factory.button({ icon: 'more' }),
   },
 )
 ```
 
-Pad 竖用 `layout: 'medium'`（动作进 `moreMenuButton`）。Mobile 用 `layout: 'compact'`（放大镜进搜索页，不在条上展开输入框）。
+只有一段内容时仍可用 `default`（当作 `start`）：
 
-视口 ≤1024 时 full 动作会 dense（图标 + tooltip），与 `layout: 'compact'` 无关。
-
-槽里放 `factory.button` / `factory.input` / `factory.dropDownButton`，事件写在那些控件上。
+```ts
+factory.toolbar(
+  { overflow: 'scroll' },
+  { default: () => factory.buttonGroup(() => [cut, copy, paste]) },
+)
+```

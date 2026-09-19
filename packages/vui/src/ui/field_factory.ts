@@ -3,54 +3,33 @@ import {
   isNullObject,
   type MetaUiField,
   type MetaUiGroup,
-  type UiFieldFactory as CoreUiFieldFactory,
+  type UiFieldFactory,
   type UiFieldRenderer,
 } from "@mmda/core";
 import type {UiProps} from "./layout";
 import type { VueUiContext } from "../contexts/vue_ui_context";
 
 export type { UiFieldRenderer } from "@mmda/core";
+/** 过渡名：皮肤与 vui 内部仍写 `UiFieldFactory`（core 的契约名）。 */
+export type { UiFieldFactory } from "@mmda/core";
 
-type UiContext = VueUiContext<any>;
 type VueFieldRenderer = UiFieldRenderer<VNode>;
 
 export type UiGroupRenderer = (
   group: MetaUiGroup,
-  context: UiContext,
+  context: VueUiContext<any>,
   children?: VNode[],
   props?: UiProps,
 ) => VNode;
 
-/** core 字段工厂钉成 VNode；无额外方法。 */
-export type VueUiFieldFactory = CoreUiFieldFactory<VNode>;
-
 /**
- * 过渡名：皮肤仍写 UiFieldFactory。
- * 带标签行的入口见 core：`render` / `editFor` / `displayFor`（由 attachFieldRowApi 挂上）。
- * 没有 `timeline`：时间轴走 factory.timeline / buildTimeline。
+ * Vue 侧的字段工厂：只把泛型收到 `VNode`，成员**全部**来自 core 契约。
+ *
+ * 不要在这里重抄 core 的成员 —— 抄一遍就会出现"core 必需 / 这里可选"的冲突，
+ * 抄错一个名字（曾经有 `negativenumberInput`）编译器还查不出来。
+ * 带标签的字段行在 Builder 上（`editFor` / `displayFor` / `buildField`），本表只放裸控件。
  */
-export interface UiFieldFactory extends VueUiFieldFactory {
-  fallbackDisplay: VueFieldRenderer;
-  fallbackInput: VueFieldRenderer;
-  maskedTextBox?: VueFieldRenderer;
-  oneTimePasswordInput?: VueFieldRenderer;
-  slider?: VueFieldRenderer;
-  rating?: VueFieldRenderer;
-  mobileInput?: VueFieldRenderer;
-  zipCodeInput?: VueFieldRenderer;
-  numberInput?: VueFieldRenderer;
-  percentInput?: VueFieldRenderer;
-  positiveNumberInput?: VueFieldRenderer;
-  negativenumberInput?: VueFieldRenderer;
-  progressBar?: VueFieldRenderer;
-  signaturePad?: VueFieldRenderer;
-  stepper?: VueFieldRenderer;
-  radioButtonGroup?: VueFieldRenderer;
-  imageUploader?: VueFieldRenderer;
-  inplaceFieldEditor?: VueFieldRenderer;
-  quantityUnit?: VueFieldRenderer;
-  relativeTime?: VueFieldRenderer;
-}
+export type VueUiFieldFactory = UiFieldFactory<VNode>;
 
 export const defineFieldProps = (field: MetaUiField): UiProps => ({
   ".id": field.fieldName,

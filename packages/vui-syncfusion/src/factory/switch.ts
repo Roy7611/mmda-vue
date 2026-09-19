@@ -1,9 +1,8 @@
 import { h } from "vue";
 import { SwitchComponent } from "@syncfusion/ej2-vue-buttons";
 import type { UiSwitchProps } from "@mmda/core"
-import { switchCheckedOf, switchModifierClasses } from "@mmda/core"
+import { switchCheckedOf, switchModifierClasses, uiRenderProps } from "@mmda/core"
 import { emitSwitchChange } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 export function createSwitch(props: UiSwitchProps) {
   const {
@@ -26,7 +25,7 @@ export function createSwitch(props: UiSwitchProps) {
 
   return h(SwitchComponent as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     checked: switchCheckedOf(props),
     onLabel,
     offLabel,

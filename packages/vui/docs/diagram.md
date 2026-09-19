@@ -1,6 +1,6 @@
 # 图插件
 
-图不进 chrome `factory`。vui 只定 [`UiDiagramPlugin`](../src/ui/factory/diagram.ts)；应用 `setDiagramPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
+图不进 chrome `factory`。vui 只定 [`UiDiagramPlugin`](../src/ui/plugins/diagram.ts)；应用 `setDiagramPlugin` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[diagram_usage.md](./diagram_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
@@ -8,7 +8,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/diagram.ts` | `UiDiagramType` / 节点连线 / `UiDiagramProps`；未安装 stub |
+| vui `ui/plugins/diagram.ts` | `UiDiagramType` / 节点连线 / `UiDiagramProps`；未安装 stub |
 | `VueUiBuilder.diagramPlugin` | 默认 `unimplementedDiagramPlugin`；`setDiagramPlugin`；`buildDiagram` 转调插件 |
 | `@mmda/vui-syncfusion/diagrams` | `createSfDiagramPlugin`，EJ2 Diagram（兼容路径） |
 | `@mmda/vui-syncfusion/diagram-editor` | 同上，正式路径 `createSfDiagramEditorPlugin` |

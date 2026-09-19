@@ -1,8 +1,8 @@
 import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
-import type { UiProps, UiAction, UiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
-import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry } from '@mmda/vui'
+import type { UiProps, UiAction, VueUiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
+import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
@@ -82,12 +82,11 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
   command: action.onAction,
 })
 
-export function createAgNaiveUiFactory(): UiFactory {
+export function createAgNaiveUiFactory(): VueUiFactory {
   const button = (props: any, slots?: any) =>
     createButton(props, slots, (name) => factory.resolveIcon(name))
 
-  const factory: UiFactory = {
-    layout: agNaiveLayout,
+  const factory: VueUiFactory = {
     nativeInplaceEdit: true,
     actionIcons: {
       create: 'fas fa-plus',
@@ -377,10 +376,7 @@ export function createAgNaiveUiFactory(): UiFactory {
             createTextInput({
               ...props,
               value: props.modelValue ?? props.value,
-              onChange:
-                props.onChange ??
-                props.onUpdate ??
-                props['onUpdate:modelValue'],
+              onChange: props.onChange ?? vueUpdateOf(props),
             }),
         ],
       ),

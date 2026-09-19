@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import { NDatePicker } from 'naive-ui'
 import type { UiCalendarProps } from '@mmda/core'
-import { calendarBoundValue, calendarModifierClasses, emitCalendarChange, htmlAttributesOf, isCalendarDateDisabled, startOfDay } from '@mmda/vui'
+import { calendarBoundValue, calendarModifierClasses, emitCalendarChange, isCalendarDateDisabled, startOfDay } from '@mmda/vui'
+import { uiRenderProps } from '@mmda/core'
 
 function toTimestamp(value: Date | null | undefined): number | null {
   if (!value) return null
@@ -54,7 +55,7 @@ export function createCalendar(props: UiCalendarProps) {
 
   return h(NDatePicker as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     panel: true,
     type,
     value: modelValue,

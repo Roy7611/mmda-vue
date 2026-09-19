@@ -4,6 +4,7 @@
  * 契约与纯 TS 辅助在 @mmda/core；v-model emit 在本文件。
  */
 import { callUiBagFn, type UiChipsProps } from '@mmda/core'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export type {
   ChipsFieldContext,
@@ -38,6 +39,5 @@ export function emitChipsChange(
   selected: string | number | Array<string | number> | undefined,
 ): void {
   props.onChange?.(selected)
-  callUiBagFn(props, 'onUpdate:modelValue', selected)
-  callUiBagFn(props, 'onUpdate', selected)
+  vueUpdateOf(props)?.(selected)
 }

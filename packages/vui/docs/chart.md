@@ -1,6 +1,6 @@
 # 图表插件
 
-图表不进 chrome `factory`。vui 只定 [`UiChartFactory`](../src/ui/factory/chart.ts)；应用 `setChartFactory` 才挂引擎。皮肤 Builder **默认不挂**。
+图表不进 chrome `factory`。vui 只定 [`UiChartFactory`](../src/ui/plugins/chart.ts)；应用 `setChartFactory` 才挂引擎。皮肤 Builder **默认不挂**。
 
 程序员用法：[chart_usage.md](./chart_usage.md)。chrome 参数约定：[factory.md](./factory.md)。
 
@@ -8,7 +8,7 @@
 
 | 层 | 做什么 |
 |---|---|
-| vui `ui/factory/chart.ts` | `UiChartData` / `UiChartProps` / Gauge、热图、桑基、漏斗、瀑布、箱线、直方图、气泡、子弹图、旭日图、combo 等；未安装 stub |
+| vui `ui/plugins/chart.ts` | `UiChartData` / `UiChartProps` / Gauge、热图、桑基、漏斗、瀑布、箱线、直方图、气泡、子弹图、旭日图、combo 等；未安装 stub |
 | `VueUiBuilder.chartFactory` | 默认 `unimplementedChartFactory`；`setChartFactory` |
 | 皮肤 `./charts` | 可选：Prime Chart.js、SF EJ2、AG Charts。不要从 `createXxxUiFactory` 引用 |
 | 独立引擎包 | 不依赖皮肤；能力见该包 README |

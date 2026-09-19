@@ -49,8 +49,8 @@ export interface UiSignaturePadProps extends UiProps {
   persist?: boolean
   locale?: string
   rtl?: boolean
-  onChange?: (value: string, action?: UiSignaturePadAction) => void
-  onUpdate?: (value: string) => void
+  onChange?: (value: string) => void
+  onAction?: (action: UiSignaturePadAction) => void
   onBeforeSave?: (args: UiSignaturePadBeforeSave) => void
   onReady?: (controller: UiSignaturePadController) => void
 }
@@ -141,10 +141,12 @@ export function signaturePadPropsFromField(
     persist: extra.persist as boolean | undefined,
     locale: extra.locale as string | undefined,
     rtl: extra.rtl as boolean | undefined,
-    onChange: (value, action) => {
+    onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value, action)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
+      if (typeof extra.onChange === 'function') extra.onChange(value)
+    },
+    onAction: (action) => {
+      if (typeof extra.onAction === 'function') extra.onAction(action)
     },
     onBeforeSave: extra.onBeforeSave as UiSignaturePadProps['onBeforeSave'],
     onReady: extra.onReady as UiSignaturePadProps['onReady'],

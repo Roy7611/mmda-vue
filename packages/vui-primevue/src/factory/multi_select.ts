@@ -1,9 +1,8 @@
 import { h } from "vue";
 import MultiSelect from "primevue/multiselect";
 import type { UiMultiSelectProps } from "@mmda/core"
-import { multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode } from "@mmda/core"
+import { multiSelectChromeOptionsOf, multiSelectModifierClasses, multiSelectOptionKeyOf, multiSelectOptionLabelOf, multiSelectSelectedKeysOf, withMultiSelectBindMode, uiRenderProps } from "@mmda/core"
 import { applyAndEmitMultiSelectKeys } from "@mmda/vui"
-import { htmlAttributesOf } from "@mmda/vui"
 
 function optionsOf(props: UiMultiSelectProps) {
   return multiSelectChromeOptionsOf(props).map((item) => ({
@@ -35,7 +34,7 @@ export function createMultiSelect(props: UiMultiSelectProps) {
 
   return h(MultiSelect as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     options: optionsOf(props),
     optionLabel: "label",
     optionValue: "value",

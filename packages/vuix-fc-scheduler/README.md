@@ -1,6 +1,6 @@
 # @mmda/vuix-fc-scheduler
 
-FullCalendar 的 `UiSchedulerPlugin`。皮肤标识 **Fc**（`FcScheduler` / `createFcSchedulerPlugin`）。不替换 `@mmda/vui-syncfusion/schedule`。契约见 [vui 排程插件](../vui/docs/scheduler.md)。
+FullCalendar 的 `UiSchedulerPlugin`。皮肤标识 **Fc**（`FcScheduler` / `createFcSchedulerPlugin`）。不替换 `@mmda/vui-syncfusion/scheduler`。契约见 [vui 排程插件](../vui/docs/scheduler.md)。
 
 ```ts
 import { createFcSchedulerPlugin } from '@mmda/vuix-fc-scheduler'

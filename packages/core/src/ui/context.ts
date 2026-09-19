@@ -15,6 +15,7 @@ import type { ApiClient } from '../net/api_client'
 import type { UiBuilder } from './builder'
 import type { MmdaApplication } from '../mmda_app'
 import type { EntityAction } from '../models/entity_action'
+import type { EntityLogic } from '../logic/entity_logic'
 
 export type UiSelectionMode = 'single' | 'multiple' | 'none' | undefined | ''
 
@@ -25,11 +26,12 @@ export type UiSubGroupView = 'create' | 'edit' | 'details'
  * 一屏（或会话节点）交互上下文。Logic 钩子用这个类型。
  * Vue globalProps 不在此接口上。
  */
-export interface UiContext<M extends object = any> {
+export interface UiContext<M extends Entity = Entity> {
   readonly metaUi: MetaUi
   readonly locale: string
   readonly initialized: boolean
-  readonly model: M
+  /** One 是 M，Many 是 M[]。分页在 searchParam.pager。 */
+  readonly model: M | M[]
   readonly editing: boolean
   readonly title?: string
   readonly name?: string
@@ -40,9 +42,10 @@ export interface UiContext<M extends object = any> {
    */
   isInDialog?: boolean
   searchParam?: EntitySearchParam
-  selectedItems?: any[]
+  logic?: EntityLogic<M>
+  selectedItems?: M[]
   /** 列表进详情/编辑记住的当前行（与勾选 selectedItems 分开）。 */
-  currentItem?: any | null
+  currentItem?: M | null
   currentIndex?: number
   selectionMode?: 'single' | 'multiple' | null
 
@@ -56,12 +59,12 @@ export interface UiContext<M extends object = any> {
   readonly apiClient?: ApiClient
   readonly uiBuilder?: UiBuilder
 
-  getFieldValue(field: MetaUiField | string, model?: any): any
-  displayField(field: MetaUiField | string, model?: any): any
-  getFieldLogic(field: MetaUiField | string): MetaUiFieldLogic<any> | undefined
+  getFieldValue(field: MetaUiField | string, model?: M): any
+  displayField(field: MetaUiField | string, model?: M): any
+  getFieldLogic(field: MetaUiField | string): MetaUiFieldLogic<M> | undefined
   getGroupLogic(
     group: MetaUiGroup | string,
-  ): MetaUiGroupLogic<any, any> | undefined
+  ): MetaUiGroupLogic<M, Entity> | undefined
   isFieldReadonly(field: MetaUiField | string): boolean
   isFieldHidden(field: MetaUiField | string): boolean
   isGroupHidden(group: MetaUiGroup | string): boolean
@@ -82,15 +85,17 @@ export interface UiContext<M extends object = any> {
   ): Promise<FieldSearchOptions>
 
   /** 打开选择器。字段走 pick；对象走任意仓库。 */
-  select?(field: MetaUiField | string): Promise<any>
-  select?<T>(param: EntitySelectParam<T>): Promise<boolean | T[]>
+  select?(field: MetaUiField | string): Promise<Entity | false>
+  select?<T extends Entity>(param: EntitySelectParam<T>): Promise<boolean | T[]>
 
   load?(): Promise<void>
   getModelTitle?(model?: Record<string, any>): string
-  setModel?(model: M): void
+  setModel?(model: M | M[]): void
   refresh?(reloadMetadata?: boolean, setLoading?: boolean): Promise<void>
   search?(): Promise<unknown>
   reload?(): Promise<unknown> | unknown
+  save?(): Promise<unknown>
+  delete?(): Promise<unknown>
   validate?(): Promise<boolean>
   resetValidation?(): void
   isFieldRequired?(field: MetaUiField | string): boolean
@@ -100,25 +105,25 @@ export interface UiContext<M extends object = any> {
   isGroupReadonly?(group: MetaUiGroup | string): boolean
   isSubGroupItemDeletable?(group: MetaUiGroup | string, item: Entity): boolean
 
-  readonly prev?: UiContext<any>
-  readonly root?: UiContext<any>
+  readonly prev?: UiContext<M>
+  readonly root?: UiContext<Entity>
   readonly isRoot?: boolean
-  with?<G extends object>(model: G, cacheKey?: string): UiContext<G>
-  treeWith?<G extends object>(model: G, cacheKey?: string): UiContext<G>
-  getCache?(cacheKey?: string): UiContext<any> | undefined
+  with?<G extends Entity>(model: G, cacheKey?: string): UiContext<G>
+  treeWith?<G extends Entity>(model: G, cacheKey?: string): UiContext<G>
+  getCache?(cacheKey?: string): UiContext<M> | undefined
   subGroupContext?<G extends Entity = Entity>(
     group: MetaUiGroup | string,
-  ): UiContext<G[]>
+  ): UiContext<G>
   subGroupItemContext?<G extends Entity>(
     group: MetaUiGroup | string,
     item: G,
     groupMode?: UiSubGroupView,
     cacheKey?: string,
   ): UiContext<G>
-  beginEdit?(item: object, cacheKey?: string): UiContext<any>
-  endEdit?(item: object, cacheKey?: string): void
+  beginEdit?(item: M, cacheKey?: string): UiContext<M>
+  endEdit?(item: M, cacheKey?: string): void
 
-  subGroupItem?<G>(
+  subGroupItem?<G extends Entity>(
     group: string | MetaUiGroup,
     item: G,
     props?: Record<string, any>,
@@ -158,8 +163,8 @@ export interface UiContext<M extends object = any> {
 
   /** 把视图 Field/Group Logic 与自定义动作绑到当前会话。 */
   bindLogics?(
-    fields?: MetaUiFieldLogic<any>[],
-    groups?: MetaUiGroupLogic<any, any>[],
+    fields?: MetaUiFieldLogic<M>[],
+    groups?: MetaUiGroupLogic<M, Entity>[],
     customActions?: EntityAction[],
   ): void
 }

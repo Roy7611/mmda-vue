@@ -5,7 +5,8 @@ import Tab from "primevue/tab";
 import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
 import type { UiNormalizedTabItem, UiTabsProps } from "@mmda/vui"
-import { emitTabsChange, htmlAttributesOf, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsScrollableOf, tabsValueOf } from "@mmda/vui"
+import { emitTabsChange, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsScrollableOf, tabsValueOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function headerNodes(item: UiNormalizedTabItem) {
   const text = item.header.text ?? "";
@@ -36,7 +37,7 @@ export function createTabs(props: UiTabsProps) {
     Tabs,
     {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value,
       scrollable: tabsScrollableOf(props),
       class: tabsModifierClasses(props).flat(),

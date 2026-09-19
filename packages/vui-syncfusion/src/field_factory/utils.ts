@@ -1,15 +1,15 @@
 import { h, type Component, type VNode } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import type { UiProps, UiViewContext } from "@mmda/vui"
+import type { UiProps, VueUiContext } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n";
 
-export type UiContext = UiViewContext<any>;
+export type UiContext = VueUiContext<any>;
 
 export const update = (field: MetaUiField, context: UiContext) => (value: any) =>
   context.setFieldValue(field, value);
 
 export const invalidOf = (field: MetaUiField, context: UiContext) =>
-  Boolean((context as any).isInvalid?.(field));
+  Boolean(context.isInvalid?.(field));
 
 export const control = (
   component: Component,
@@ -55,7 +55,7 @@ export const control = (
       h(
         "span",
         { class: "e-error" },
-        (context as any).getInvalidMessage?.(field),
+        context.getInvalidMessage?.(field),
       ),
   ]);
 };

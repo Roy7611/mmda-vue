@@ -4,7 +4,7 @@ import { createMarkdownEditorPlugin } from '../index'
 describe('createMarkdownEditorPlugin', () => {
   it('returns a markdownEditor host', () => {
     const plugin = createMarkdownEditorPlugin()
-    const vnode = plugin.markdownEditor({
+    const vnode = plugin.buildUi({} as any, {
       value: '# hello',
       readonly: true,
     })

@@ -59,12 +59,14 @@ describe('createFcSchedulerPlugin', () => {
 
   it('renders host vnode and throws on timeline views', () => {
     const plugin = createFcSchedulerPlugin()
-    const vnode = plugin.schedulerView({
+    const vnode = plugin.buildUi({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],
       readonly: true,
     })
     expect(vnode.props?.readonly).toBe(true)
-    expect(() => plugin.schedulerView({ view: 'timelineWeek' })).toThrow(
+    expect(() =>
+      plugin.buildUi({} as any, { view: 'timelineWeek' }),
+    ).toThrow(
       SCHEDULER_TIMELINE_NOT_SUPPORTED,
     )
     const csv = schedulerEventsToCsv([

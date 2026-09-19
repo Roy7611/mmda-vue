@@ -1,7 +1,8 @@
 import { h } from "vue";
 import { SidebarComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui"
-import { applyDrawerDefaults, emitSidebarChange, htmlAttributesOf, sidebarCloseOnDocumentClickOf, sidebarEnableDockOf, sidebarEnableGesturesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarTypeOf, sidebarWidthOf } from "@mmda/vui"
+import { applyDrawerDefaults, emitSidebarChange, sidebarCloseOnDocumentClickOf, sidebarEnableDockOf, sidebarEnableGesturesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarTypeOf, sidebarWidthOf } from "@mmda/vui"
+import { uiRenderProps } from "@mmda/core"
 
 function renderSidebar(
   props: UiSidebarProps,
@@ -40,7 +41,7 @@ function renderSidebar(
     SidebarComponent as any,
     {
       ...rest,
-      ...htmlAttributesOf(applied),
+      ...uiRenderProps(applied).attributes,
       isOpen: sidebarIsOpenOf(applied),
       position: sidebarPositionOf(applied),
       type: sidebarTypeOf(applied, asDrawer),

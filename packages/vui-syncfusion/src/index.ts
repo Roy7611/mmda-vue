@@ -16,7 +16,6 @@ export * from './components/SfOverlayHost'
 export * from './components/SfBpmnDiagram'
 export * from './components/SfHelpPanel'
 export * from './components/SfSigninForm'
-export * from './components/AppSideMenu'
 export * from './components/SfAppMenu'
 export * from './components/SfDropupMenuButton'
 export * from './components/SfAttachmentPanel'
@@ -34,7 +33,7 @@ export { SfGrid } from './components/SfGrid'
 export { SfGridLayout } from './components/SfGridLayout'
 export { SfGridFilterBar } from './components/SfGridFilterBar'
 export { SfGridHost, SfGridLoadingHost } from './factory/grid'
-export { SfLoadingHost, SfPageLoading } from './components/SfLoadingHost'
+export { SfLoadingHost } from './components/SfLoadingHost'
 export {
   applyCompareColumnFilters,
   compareColumnVariantOf,
@@ -42,6 +41,12 @@ export {
   sfCompareColumnFilter,
   usesCompareColumnFilter,
 } from './factory/column_filter'
+export {
+  advancedToQueryBuilderRule,
+  queryBuilderColumnsToEj2,
+  queryBuilderRuleToAdvanced,
+  type QueryBuilderRuleModel,
+} from './factory/ej2_query'
 export {
   buildSfGridColumns,
   buildSfTreeGridColumns,

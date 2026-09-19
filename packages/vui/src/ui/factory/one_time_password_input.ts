@@ -11,6 +11,7 @@ import type {
   UiOneTimePasswordType,
 } from '@mmda/core'
 import type {UiProps} from '../layout'
+import { vueUpdateOf } from '../vue_ui_props'
 
 export const DEFAULT_OTP_LENGTH = 4
 
@@ -55,8 +56,7 @@ export function emitOneTimePasswordChange(
 ): void {
   const next = value == null ? '' : String(value)
   props.onChange?.(next)
-  callUiBagFn(props, 'onUpdate:modelValue', next)
-  callUiBagFn(props, 'onUpdate', next)
+  vueUpdateOf(props)?.(next)
 }
 
 export { oneTimePasswordModifierClasses } from '@mmda/core'

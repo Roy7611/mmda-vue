@@ -1,9 +1,8 @@
 import { h, reactive } from 'vue'
 import { NAutoComplete, NSelect } from 'naive-ui'
 import type { UiComboBoxProps, UiSelectOption } from '@mmda/core'
-import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, normalizeSelectOption, selectOptionsOf } from '@mmda/core'
+import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, normalizeSelectOption, selectOptionsOf, uiRenderProps } from '@mmda/core'
 import { emitComboBoxChange } from '@mmda/vui'
-import { htmlAttributesOf } from '@mmda/vui'
 import { naiveSelectOptions, naiveSelectRenderLabel } from './drop_down_list'
 
 export function createComboBox(props: UiComboBoxProps) {
@@ -32,7 +31,7 @@ export function createComboBox(props: UiComboBoxProps) {
   if (!custom) {
     return h(NSelect as any, {
       ...rest,
-      ...htmlAttributesOf(props),
+      ...uiRenderProps(props).attributes,
       value: comboBoxValueOf(props) ?? null,
       options: naiveSelectOptions(local),
       placeholder,
@@ -76,7 +75,7 @@ export function createComboBox(props: UiComboBoxProps) {
 
   return h(NAutoComplete as any, {
     ...rest,
-    ...htmlAttributesOf(props),
+    ...uiRenderProps(props).attributes,
     value: comboBoxValueOf(props) ?? null,
     options: state.options,
     placeholder,

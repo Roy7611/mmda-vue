@@ -1,9 +1,0 @@
-export {
-  VueAppSideMenu,
-  assembleMenuItems,
-  activeAncestorKeys,
-  hasSystemModules,
-  isLocalAppModuleUrl,
-  type AppMenuItem,
-} from '@mmda/vui'
-export { SfAppSideMenu, SfAppMenu } from './SfAppMenu'
