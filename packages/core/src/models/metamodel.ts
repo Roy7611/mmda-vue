@@ -42,35 +42,37 @@ import type { NumberGetter } from './entity_collection'
 
 export const REF_PROP_PREFIX = "$";
 
-const getCustomProp = (e: any, propName: string) => {
+type EntityRecord = Record<string, any>
+
+const getCustomProp = (e: EntityRecord, propName: string) => {
   if (!e.customProperties) return undefined;
   return e.customProperties[propName];
 };
-const setCustomProp = (e: any, propName: string, propVal: any) => {
+const setCustomProp = (e: EntityRecord, propName: string, propVal: unknown) => {
   if (!e) return;
   (e.customProperties ??= {})[propName] = propVal;
 };
-const delCustomProp = (e: any, propName: string) => {
+const delCustomProp = (e: EntityRecord, propName: string) => {
   if (!e.customProperties) return;
   delete e.customProperties[propName];
 };
-const getRefProp = (e: any, propName: string) => {
+const getRefProp = (e: EntityRecord, propName: string) => {
   return getCustomProp(e, REF_PROP_PREFIX + propName) ?? e[propName];
 };
-const setRefProp = (e: any, propName: string, propVal: any) => {
+const setRefProp = (e: EntityRecord, propName: string, propVal: unknown) => {
   return setCustomProp(e, REF_PROP_PREFIX + propName, propVal);
 };
 
-const getValueObject = (e: any, propName: string): ValueObject => {
+const getValueObject = (e: EntityRecord, propName: string): ValueObject => {
   return {
     value: e[propName],
     label: getRefProp(e, propName),
   };
 };
-const getRefObject = (e: any, f: MetaUiField): any => {
-  const item: any = {};
+const getRefObject = (e: EntityRecord, f: MetaUiField): Record<string, unknown> => {
+  const item: Record<string, unknown> = {};
   const propName = f.fieldName;
-  const refFlds = f.reference.refFlds;
+  const refFlds = f.reference?.refFlds ?? [];
 
   // 加一个逻辑，判断customProperties是否有值，没值补一个进去
   if (!e.customProperties) {
@@ -86,18 +88,18 @@ const getRefObject = (e: any, f: MetaUiField): any => {
   return item;
 };
 
-const getEnumObject = (e: any, f: MetaUiField): any => {
+const getEnumObject = (e: EntityRecord, f: MetaUiField): unknown => {
   const fldRef = f.reference!;
   const enumItem = fldRef.enumFn(e[f.fieldName]);
 
   return enumItem;
 };
-const setValueObject = (e: any, propName: string, valueObj?: ValueObject) => {
+const setValueObject = (e: EntityRecord, propName: string, valueObj?: ValueObject) => {
   e[propName] = valueObj?.value;
   setRefProp(e, propName, valueObj?.label);
 };
 
-const getDataProp = (e: any, dataPath: string) => {
+const getDataProp = (e: EntityRecord, dataPath: string) => {
   if (dataPath.startsWith(REF_PROP_PREFIX)) {
     return getCustomProp(e, dataPath);
   } else if (dataPath.indexOf(".") == -1) {
@@ -109,7 +111,7 @@ const getDataProp = (e: any, dataPath: string) => {
   }, e);
 };
 
-const getOneProp = (e: any, one: string, propName: string) => {
+const getOneProp = (e: EntityRecord, one: string, propName: string) => {
   // if(!one || !e[one]) {
   //   console.warn('MetaModel.getOneProp',e,one,propName);
   // }
@@ -123,23 +125,23 @@ const getOneProp = (e: any, one: string, propName: string) => {
  * @param f 元界面域
  * @returns
  */
-const displayField = (e: any, f: MetaUiField, linkable: boolean = true) => {
+const displayField = (e: EntityRecord, f: MetaUiField, linkable: boolean = true) => {
   if (f.reference && linkable) {
     const r = f.reference;
     // console.debug(f);
-    return r.hasOne ? r.labelFn(e[r.alias]) : getRefProp(e, f.fieldName);
+    return r.hasOne ? r.labelFn(e[r.alias!]) : getRefProp(e, f.fieldName);
   } else {
     return e[f.fieldName];
   }
 };
 
-const getFieldValue = (e: any, f: MetaUiField) => {
+const getFieldValue = (e: EntityRecord, f: MetaUiField) => {
   const fv = e[f.fieldName] ?? f.defaultVal; // 如果实体中没有值，则使用字段的默认值
   if (f.reference) {
     if (fv === null || fv === undefined) return fv;
     const r = f.reference;
     return r.hasOne
-      ? e[r.alias]
+      ? e[r.alias!]
       : r.isRef
         ? getRefObject(e, f)
         : r.isEnum ? getEnumObject(e, f)
@@ -161,12 +163,14 @@ const isBitField = (f: MetaUiField) =>
  *                取决于字段的引用类型。
  * @returns 一个布尔值，指示字段值是否已修改。
  */
-const setFieldValue = (e: any, f: MetaUiField, value: any): boolean => {
+const setFieldValue = (e: EntityRecord, f: MetaUiField, value: unknown): boolean => {
   if (f.reference) {
     const r = f.reference;
     if (isBitField(f)) {
       //value should be a number or object
-      const v = isNumber(value) ? value : (value.id ?? 0);
+      const v = isNumber(value)
+        ? value
+        : Number((value as { id?: unknown } | null | undefined)?.id ?? 0);
       if (e[f.fieldName] == v) return false;
       e[f.fieldName] = v;
       const labels = r.refOptions
@@ -181,31 +185,33 @@ const setFieldValue = (e: any, f: MetaUiField, value: any): boolean => {
       e[f.fieldName] = v;
       // 处理引用 
       if (isObject(value)) { // 当是对象时 把所有refFlds的值都设置到 customProperties
-        f.reference.refFlds.forEach((rf, i) => i == 0 ? setRefProp(e, f.fieldName, r.labelOf(value)) : setCustomProp(e, rf, value?.[rf]));
+        const valueObject = value as Record<string, unknown>
+        f.reference.refFlds.forEach((rf, i) => i == 0 ? setRefProp(e, f.fieldName, r.labelOf(value)) : setCustomProp(e, rf, valueObject?.[rf]));
       } else { // 当是值时 拿当前实体中的ref设置到 customProperties
         setRefProp(e, f.fieldName, getRefProp(e, f.fieldName));
       }
-      value && r.findOrAddValueObject(value); // 当有值时，添加到refOptions中
+      if (value) r.findOrAddValueObject(value); // 当有值时，添加到refOptions中
     } else if (r.hasOne) {
       const v = r.valueOf(value);
       if (e[f.fieldName] == v) return false;
       e[f.fieldName] = v;
-      e[r.alias] = value;
+      e[r.alias!] = value;
     } else {
-      e[r.alias] = value;
+      e[r.alias!] = value;
     }
   } else {
     if (e[f.fieldName] == value) return false;
     e[f.fieldName] = value;
   }
-  modify(e);
+  modify(e as Entity);
   return true;
 };
 
-function withValue(value: any): PropertyDescriptor {
+type WithValueCache = { d?: PropertyDescriptor & { value?: unknown } }
+function withValue(value: unknown): PropertyDescriptor {
   const d =
-    (withValue as any).d ||
-    ((withValue as any).d = {
+    (withValue as WithValueCache).d ||
+    ((withValue as WithValueCache).d = {
       enumerable: true,
       writable: true,
       configurable: true,
@@ -218,24 +224,24 @@ function withValue(value: any): PropertyDescriptor {
   return d;
 }
 
-export const defineDataProperty = <T, V = any>(
+export const defineDataProperty = <T, V = unknown>(
   o: T,
   p: PropertyKey,
   value?: V
 ) => Object.defineProperty(o, p, withValue(value));
-export const defineGetter = <T, P = any>(
+export const defineGetter = <T, P = unknown>(
   o: T,
   p: PropertyKey,
   getter: () => P
 ) => Object.defineProperty(o, p, { get: getter });
-export const defineSetter = <T, P = any>(
+export const defineSetter = <T, P = unknown>(
   o: T,
   p: PropertyKey,
   setter: (value: P) => void
 ) => Object.defineProperty(o, p, { set: setter });
 export const defineID = <T>(o: T, getId: () => string) =>
   defineGetter(o, "id", getId);
-export const defineCompute = <T>(o: T, computeFn: () => any) =>
+export const defineCompute = <T>(o: T, computeFn: () => unknown) =>
   defineGetter(o, "compute", computeFn);
 
 const entity: Entity = {
@@ -246,14 +252,14 @@ const entity: Entity = {
 };
 //待试验，性能与new Entity()比较
 export function defineEntity<T = any>(o?: object): T {
-  if (!o) o = Object.create(entity);
-  defineGetter(o, "isDirty", () => dirty(o));
-  defineGetter(o, "isCreated", () => created(o));
-  defineGetter(o, "isModified", () => modified(o));
-  defineGetter(o, "isDeleted", () => deleted(o));
-  defineSetter(o, "setModified", () => modify(o));
-  defineSetter(o, "setDeleted", () => destroy(o));
-  return o as T;
+  const target = o ?? Object.create(entity);
+  defineGetter(target, "isDirty", () => dirty(target));
+  defineGetter(target, "isCreated", () => created(target));
+  defineGetter(target, "isModified", () => modified(target));
+  defineGetter(target, "isDeleted", () => deleted(target));
+  defineSetter(target, "setModified", () => modify(target));
+  defineSetter(target, "setDeleted", () => destroy(target));
+  return target as T;
 }
 export function defineEntityWithId<E>(metaUi: MetaUi, o?: object): E {
   const e = defineEntity<E>(o);
@@ -263,7 +269,7 @@ export function defineEntityWithId<E>(metaUi: MetaUi, o?: object): E {
       const getId = () => keys.map((k) => (o as any)[k]).join(",");
       defineID(e, getId);
     } else {
-      const getId = () => (o as any)[metaUi.primaryKey];
+      const getId = () => (o as any)[metaUi.primaryKey!];
       defineID(e, getId);
     }
   }
@@ -279,7 +285,7 @@ export class EntityArray<E extends Entity> extends Array<E> {
   ) {
     super(...items.map((it) => ctor(it)));
   }
-  hasAny(predicate?: (e: E, context?: any) => boolean) {
+  hasAny(predicate?: (e: E, context?: unknown) => boolean) {
     return hasAny(this, predicate);
   }
   sum(numProp: string | NumberGetter<E>) {
@@ -366,7 +372,7 @@ function createEntity<E>(
         }
         defineDataProperty(e, group.groupName, defVal);
       } else {
-        group.fields.forEach((field) => {
+        (group.fields ?? []).forEach((field) => {
           const r = field.reference;
           if (r) {
             if (mapper && mapper[field.fieldName]) {
@@ -406,7 +412,7 @@ function createEntity<E>(
         }
         defineDataProperty(e, group.groupName, defVal);
       } else {
-        group.fields.forEach((field) => {
+        (group.fields ?? []).forEach((field) => {
           if (field.reference) {
             let defVal = field.reference.defaultValueObject(field.defaultVal);
             setFieldValue(e, field, defVal);
@@ -501,7 +507,7 @@ function assign<E extends Entity>(metaUi: MetaUi, model: E, data: any) {
         ...(data[g.groupName] ?? [])
       );
     } else {
-      g.fields.forEach((f) => setFieldValue(model, f, getFieldValue(data, f)));
+      (g.fields ?? []).forEach((f) => setFieldValue(model, f, getFieldValue(data, f)));
     }
   });
   model.actions = data.actions;
@@ -589,13 +595,13 @@ function createSubGroupItems<E, G extends Entity>(
   if (Array.isArray(source)) {
     // 1. 将源数据转换为子表项实体对象
     const newItems = source
-      .map((it) => createEntity(metaUiGroup.groupUi, creator, it, propsMapper))
+      .map((it) => createEntity(metaUiGroup.groupUi!, creator, it, propsMapper))
 
     if (addToTarget) toItems.push(...newItems);
     return newItems;
   } else {
     const newItem = createEntity(
-      metaUiGroup.groupUi,
+      metaUiGroup.groupUi!,
       creator,
       source ?? target,
       // target,

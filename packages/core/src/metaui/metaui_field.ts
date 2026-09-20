@@ -14,7 +14,7 @@ export {
 
 export interface Translatable {
   message: string
-  param?: any
+  param?: unknown
   plural?: number
 }
 
@@ -43,9 +43,6 @@ export const enum MetaAggregation {
 
 export type Nullable<T> = T | null
 export type Nullishable<T> = T | null | undefined
-
-// type BoolFunc = (entity: any, editing: boolean) => boolean;
-// type ReadOnlyFunc = (entity: any) => boolean;
 
 /**
  * 元界面域初始化类型
@@ -135,8 +132,8 @@ const parseImageFormat = (format: string): MetaUiImageFormat | null => {
   if (matches == null) return null
   let [w, h, fileExt] = matches
   return {
-    width: Number.isNaN(w) ? null : Number(w),
-    height: Number.isNaN(h) ? null : Number(h),
+    width: Number.isNaN(w) ? undefined : Number(w),
+    height: Number.isNaN(h) ? undefined : Number(h),
     fileExt,
   }
 }
@@ -221,7 +218,7 @@ export class MetaUiField {
     delete (this as { max?: unknown }).max
     if (this.frozen == null) this.frozen = MetaUiFieldFrozen.None
     if (this.selectOptions) {
-      this.reference = MetaUiFieldRef.parse(this.selectOptions)
+      this.reference = MetaUiFieldRef.parse(this.selectOptions) ?? undefined
     }
     this.validatorDescriptors = parseValidatorDescriptors(this.validationRules)
   }
@@ -269,7 +266,8 @@ export enum MetaOptionsShape {
 // test at https://www.mklab.cn/utils/regex
 const _refExp =
   /^(\w+)\s(\w+(?:\.\w+)?)\(([\w|,]+)\)(?:\s+AS\s+(\w+))?(?:\s+WHERE\s*\((.+)\))?(?:\s+GROUP\s+BY\s+(\w+))?(?:\s+(READONLY))?$/
-type propFn = (item: any) => any
+type propFn = (item: unknown) => any
+type MetaUiRefOption = Record<string, any>
 export interface MetaUiFieldRefInit {
   refType: MetaRelationType
   refObjName: string
@@ -280,7 +278,7 @@ export interface MetaUiFieldRefInit {
   where?: string
   readOnly?: boolean
   refDbName?: string
-  refOptions?: any[]
+  refOptions?: MetaUiRefOption[]
   refOptionsShape: MetaOptionsShape
 }
 export class MetaUiFieldRef {
@@ -298,8 +296,10 @@ export class MetaUiFieldRef {
         refOptions: refOptions,
         refOptionsShape: MetaOptionsShape.FLAT,
       })
-      reference.labelFn = (valueObject: any) =>
-        valueObject ? (valueObject.text ?? valueObject.label ?? '') : ''
+      reference.labelFn = (valueObject: unknown) => {
+        const option = valueObject as MetaUiRefOption | null | undefined
+        return option ? (option.text ?? option.label ?? '') : ''
+      }
       return reference
     } else if (selectOptions.indexOf('|') != -1) {
       // `0;LABOR;劳动力`：value=数值, code=英文成员（实体存这个）, label=显示文本
@@ -346,7 +346,7 @@ export class MetaUiFieldRef {
         return null
       }
 
-      let refDbName: string = null
+      let refDbName: string | null = null
       if (refObjName.indexOf('.') != -1) {
         let refDbObj = refObjName.split('.')
         refDbName = refDbObj[0]
@@ -372,24 +372,24 @@ export class MetaUiFieldRef {
         groupBy: groupBy,
         where: where,
         readOnly: readOnly === 'READONLY',
-        refDbName: refDbName,
+        refDbName: refDbName ?? undefined,
         refOptionsShape: shape,
       })
     }
   }
 
-  readonly refType: MetaRelationType
-  readonly refObjName: string
+  readonly refType!: MetaRelationType
+  readonly refObjName!: string
   readonly refRepository?: string
-  readonly refFlds: string[]
+  readonly refFlds!: string[]
   readonly alias?: string
   readonly groupBy?: string
   readonly where?: string
-  readonly readOnly: boolean
+  readonly readOnly!: boolean
   readonly refDbName?: string
 
-  readonly refOptions: any[]
-  readonly refOptionsShape: MetaOptionsShape
+  readonly refOptions!: MetaUiRefOption[]
+  readonly refOptionsShape!: MetaOptionsShape
   /** 运行时：首页 50 已穷尽，列筛可本地过滤。 */
   refOptionsComplete?: boolean
 
@@ -434,7 +434,7 @@ export class MetaUiFieldRef {
     if (!this._enumFn) {
       this._enumFn =
         this.refOptions.length > 0
-          ? (value: any) => {
+          ? (value: unknown) => {
             if (value) {
               // const value = this.valueFn(valueObject)
               const enumItem = this.refOptions.find(it => value === it[this.refFlds[0]])
@@ -443,7 +443,7 @@ export class MetaUiFieldRef {
               return null
             }
           }
-          : (value: any) => value
+          : (value: unknown) => value
     }
     return this._enumFn
   }
@@ -454,11 +454,11 @@ export class MetaUiFieldRef {
     if (!this._valueFn) {
       this._valueFn =
         this.refFlds.length > 0
-          ? (valueObject: any) =>
+          ? (valueObject: unknown) =>
             isNullOrUndefined(valueObject) ? null :
               !isNullObject(valueObject) ? // 空对象等于是空
-                valueObject[this.refFlds[0]] : null
-          : (valueObject: any) => valueObject
+                (valueObject as MetaUiRefOption)[this.refFlds[0]] : null
+          : (valueObject: unknown) => valueObject
     }
     return this._valueFn
   }
@@ -472,19 +472,20 @@ export class MetaUiFieldRef {
         this.refOptionsShape != MetaOptionsShape.TREE
       ) {
         // HAS_ONE 常带 parentXxx：拼 label 时跳过空值，避免出现字面量 "undefined"
-        this._labelFn = (valueObject: any) => {
-          if (!valueObject) return ''
+        this._labelFn = (valueObject: unknown) => {
+          const option = valueObject as MetaUiRefOption | null | undefined
+          if (!option) return ''
           return this.refFlds
             .filter((_, i) => i > 0)
-            .map((f) => valueObject[f])
+            .map((f) => option[f])
             .filter((v) => v != null && v !== '')
             .join(' ')
         }
       } else if (this.refFlds.length > 1) {
-        this._labelFn = (valueObject: any) =>
-          valueObject ? valueObject[this.refFlds[1]] : ''
+        this._labelFn = (valueObject: unknown) =>
+          valueObject ? (valueObject as MetaUiRefOption)[this.refFlds[1]] : ''
       } else {
-        this._labelFn = (valueObject: any) => this.valueFn(valueObject)
+        this._labelFn = (valueObject: unknown) => this.valueFn(valueObject)
       }
     }
     return this._labelFn
@@ -494,11 +495,12 @@ export class MetaUiFieldRef {
   }
   get groupByFn() {
     if (!this._groupByFn) {
-      this._groupByFn = this.groupBy
-        ? (valueObject: any) => valueObject[this.groupBy] ?? '.'
+      const groupBy = this.groupBy
+      this._groupByFn = groupBy
+        ? (valueObject: unknown) => (valueObject as MetaUiRefOption)[groupBy] ?? '.'
         : this.refFlds.length > 2
-          ? (valueObject: any) => valueObject[this.refFlds[2]] ?? '.'
-          : (valueObject: any) => ''
+          ? (valueObject: unknown) => (valueObject as MetaUiRefOption)[this.refFlds[2]] ?? '.'
+          : (valueObject: unknown) => ''
     }
     return this._groupByFn
   }
@@ -512,18 +514,19 @@ export class MetaUiFieldRef {
     return undefined
   }
 
-  valueOf(valueObject: any) {
+  valueOf(valueObject: unknown) {
     return this.valueFn(valueObject)
   }
-  labelOf(valueObject: any) {
+  labelOf(valueObject: unknown) {
     return this.labelFn(valueObject)
   }
-  itemOf(valueObject: any) {
-    const item: Record<string, any> = {}
+  itemOf(valueObject: unknown) {
+    const option = (valueObject ?? {}) as MetaUiRefOption
+    const item: MetaUiRefOption = {}
     if (this.refFlds.length > 2) {
       for (let i = 0; i < this.refFlds.length; i++) {
         const refFld = this.refFlds[i]
-        item[refFld] = valueObject[refFld]
+        item[refFld] = option[refFld]
       }
     } else {
       item[this.refFlds[0]] = this.valueFn(valueObject)
@@ -531,7 +534,7 @@ export class MetaUiFieldRef {
     }
     return item
   }
-  defaultValueObject(val: any) {
+  defaultValueObject(val: unknown) {
     if (this.isEnum) {
       let vo = this.refOptions.find(it => this.valueFn(it) === val)
       if (!vo) vo = this.refOptions[0]
@@ -548,7 +551,7 @@ export class MetaUiFieldRef {
    * @param valueObject 要查找或添加的值对象
    * @return 找到的或增值的对象
    */
-  findOrAddValueObject(valueObject: any) {
+  findOrAddValueObject(valueObject: unknown) {
     const val = this.valueOf(valueObject)
     let item = this.refOptions.find(it => this.valueFn(it) === val)
     if (!item) item = this.itemOf(valueObject)
@@ -564,4 +567,3 @@ export class MetaUiFieldPair extends MetaUiField {
     return this
   }
 }
-

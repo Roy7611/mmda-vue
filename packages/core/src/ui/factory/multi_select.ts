@@ -1,9 +1,9 @@
-import { hasBit } from '../../extensions/number_extensions'
+import { hasBit } from '../../utils/number'
 import type { MetaUiField, MetaUiFieldRef } from '../../metaui/metaui_field'
 import { EntityState } from '../../models/entity'
 import { MetaModel } from '../../models/metamodel'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
   MULTI_SELECT_SEPARATOR,
@@ -200,7 +200,7 @@ export function multiSelectBoundOf(
 export function multiSelectSelectedKeysOf(
   props: UiMultiSelectProps,
 ): Array<string | number> {
-  const bound = props.value !== undefined ? props.value : props.modelValue
+  const bound = props.value
   return multiSelectItemsOf(bound, props)
     .map((item) => multiSelectOptionKeyOf(item, props))
     .filter((key) => key !== '')
@@ -210,7 +210,7 @@ export function resolveMultiSelectItems(
   keys: Array<string | number>,
   props: UiMultiSelectProps,
 ): unknown[] {
-  const bound = props.value !== undefined ? props.value : props.modelValue
+  const bound = props.value
   const current = Array.isArray(bound) ? bound : []
   return keys
     .map((key) => {
@@ -241,7 +241,7 @@ export function applyMultiSelectSelection(
   if (multiSelectBindModeOf(props) !== 'item_array') {
     return multiSelectBoundOf(selectedItems, props)
   }
-  const bound = props.value !== undefined ? props.value : props.modelValue
+  const bound = props.value
   const current = Array.isArray(bound) ? bound : []
   if (current.some((item) => MetaModel.isEntity(item))) {
     MetaModel.syncSelection(current as any[], selectedItems, {
@@ -262,8 +262,7 @@ export function withMultiSelectBindMode(
   return { ...props, bindMode }
 }
 
-function fieldOptionSource(field: MetaUiField, extra: UiProps): unknown[] {
-  if (Array.isArray(extra.options)) return extra.options
+function fieldOptionSource(field: MetaUiField): unknown[] {
   const reference = field.reference
   if (!reference || reference.hasOne) return []
   return reference.refOptions ?? []
@@ -271,24 +270,17 @@ function fieldOptionSource(field: MetaUiField, extra: UiProps): unknown[] {
 
 export function multiSelectPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiMultiSelectProps {
   const bindMode =
-    (extra.bindMode as UiMultiSelectBindMode | undefined) ?? 'item_array'
+    'item_array'
   return {
     value: context.getFieldValue(field),
-    options: fieldOptionSource(field, extra),
+    options: fieldOptionSource(field),
     bindMode,
-    valueField: extra.valueField as string | undefined,
-    labelField: extra.labelField as string | undefined,
-    separator: extra.separator as string | undefined,
-    display: extra.display as UiMultiSelectDisplay | undefined,
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    placeholder: field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    allowFiltering: extra.allowFiltering as boolean | undefined,
-    suggest: extra.suggest as UiSelectSuggest | undefined,
+      context.isFieldReadonly(field),
     reference: field.reference,
     onChange: (bound) => {
       if (bindMode === 'item_array') {
@@ -298,58 +290,51 @@ export function multiSelectPropsFromField(
       } else {
         context.setFieldValue(field, bound)
       }
-      if (typeof extra.onChange === 'function') extra.onChange(bound)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(bound)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }
 
 export function multiItemSelectPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiMultiSelectProps {
-  return multiSelectPropsFromField(field, context, {
-    ...extra,
+  return {
+    ...multiSelectPropsFromField(field, context),
     bindMode: 'item_array',
-  })
+  }
 }
 
 export function multiValueSelectPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiMultiSelectProps {
-  return multiSelectPropsFromField(field, context, {
-    ...extra,
+  return {
+    ...multiSelectPropsFromField(field, context),
     bindMode: 'value_array',
-  })
+  }
 }
 
 export function multiTextSelectPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiMultiSelectProps {
-  return multiSelectPropsFromField(field, context, {
-    ...extra,
+  return {
+    ...multiSelectPropsFromField(field, context),
     bindMode: 'join_text',
-  })
+  }
 }
 
 export function multiBitSelectPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiMultiSelectProps {
-  return multiSelectPropsFromField(field, context, {
-    ...extra,
+  return {
+    ...multiSelectPropsFromField(field, context),
     bindMode: 'or_bits',
-  })
+  }
 }

@@ -1,7 +1,6 @@
 import type { MetaUiField, MetaUiFieldRef } from '../../metaui/metaui_field'
 import { MetaOptionsShape } from '../../metaui/metaui_field'
 import type { UiProps } from '../props'
-
 export type UiSelectOption = {
   value: string | number
   label: string
@@ -119,10 +118,8 @@ export function selectOptionFromSource(
 }
 
 export function selectFieldOptionSource(
-  field: MetaUiField,
-  extra: UiProps,
+  field: MetaUiField
 ): unknown[] {
-  if (Array.isArray(extra.options)) return extra.options
   const reference = field.reference
   if (!reference || reference.hasOne) return []
   return reference.refOptions ?? []
@@ -147,12 +144,11 @@ export function selectFieldValueOf(
 
 export function selectFieldWritebackOf(
   field: MetaUiField,
-  extra: UiProps,
   value: string | number | null,
 ): unknown {
   if (value == null || value === '') return null
   const reference = field.reference
-  const source = selectFieldOptionSource(field, extra)
+  const source = selectFieldOptionSource(field)
   const hit = source.find((item) => {
     if (typeof item === 'string' || typeof item === 'number') return item === value
     if (reference && item != null && typeof item === 'object') {

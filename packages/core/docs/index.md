@@ -30,7 +30,6 @@
 - [metaui.md](./metaui.md) / [models.md](./models.md) / [net.md](./net.md) — **Data**
 - [dependency-injection.md](./dependency-injection.md)
 - [utils.md](./utils.md)
-- [extensions.md](./extensions.md)
 
 ## logic
 
@@ -93,11 +92,15 @@
 
 ## utils
 
+- [array.ts](./utils/array.md)
+- [datetime.ts](./utils/datetime.md)
 - [formatter.ts](./utils/formatter.md)
 - [is.ts](./utils/is.md)
 - [localdb.ts](./utils/localdb.md)
+- [number.ts](./utils/number.md)
 - [platform.ts](./utils/platform.md)
 - [pluralize.ts](./utils/pluralize.md)
+- [string.ts](./utils/string.md)
 - [tools.ts](./utils/tools.md)
 
 ## ui
@@ -106,10 +109,3 @@
 - [layout.ts](./ui/layout.md)
 - [ui_four_roles_design.md](./ui/ui_four_roles_design.md) / [ui_four_roles_usage.md](./ui/ui_four_roles_usage.md)
 - [ui_builder_usage.md](./ui/ui_builder_usage.md)（旧入口）
-
-## extensions
-
-- [array_extensions.ts](./extensions/array_extensions.md)
-- [datetime_extensions.ts](./extensions/datetime_extensions.md)
-- [number_extensions.ts](./extensions/number_extensions.md)
-- [string_extensions.ts](./extensions/string_extensions.md)

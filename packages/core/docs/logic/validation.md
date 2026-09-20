@@ -5,7 +5,7 @@
 
 ## 职责
 
-`$v` 状态树（`UiValidation` / `UiFieldValidation`）、`defineValidation`、`validateField` / `validateFieldResult`。
+`$v` 状态树（`Validation` / `FieldValidation`）、`defineValidation`、`validateField` / `validateFieldResult`。
 
 顺序：Required（`nullable` / `requiredFn` / 引用 `requiredNonZero`）→ `FieldLogic.validators`（元数据 + `onValidate`）。全部执行，按 `severity` 分拣：`message` 为 error（拦保存），`warning` 不计入 `errorNum`。
 

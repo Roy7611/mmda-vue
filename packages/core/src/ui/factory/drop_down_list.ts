@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 import {
   isSelectOptionsGroupedField,
@@ -34,11 +34,6 @@ export function dropDownListValueOf(
   props: UiDropDownListProps,
 ): string | number | null | undefined {
   if (props.value !== undefined) return props.value ?? null
-  if (props.modelValue !== undefined) {
-    const raw = props.modelValue
-    if (typeof raw === 'string' || typeof raw === 'number') return raw
-    return raw == null ? null : String(raw)
-  }
   return undefined
 }
 
@@ -54,20 +49,17 @@ function searchRelativeRows(result: unknown): unknown[] {
 
 export function dropDownListPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiDropDownListProps {
   const reference = field.reference
   const grouped = isSelectOptionsGroupedField(reference)
-  const source = selectFieldOptionSource(field, extra)
+  const source = selectFieldOptionSource(field)
   const options = source.map((item) =>
     selectOptionFromSource(item, reference, grouped),
   )
-  const remote = extra.remote === true || Boolean(reference?.hasOne)
-  const suggest: UiSelectSuggest | undefined =
-    typeof extra.suggest === 'function'
-      ? (extra.suggest as UiSelectSuggest)
-      : remote && context.searchRelative
+  const remote = Boolean(reference?.hasOne)
+    const suggest: UiSelectSuggest | undefined =
+      remote && context.searchRelative
         ? async (query) => {
             const result = await context.searchRelative!(field, query)
             return searchRelativeRows(result).map((row) =>
@@ -79,23 +71,17 @@ export function dropDownListPropsFromField(
   return {
     value: selectFieldValueOf(field, context.getFieldValue(field)),
     options,
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    placeholder: field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    allowFiltering: extra.allowFiltering as boolean | undefined,
+      context.isFieldReadonly(field),
     suggest,
-    minLength: extra.minLength as number | undefined,
-    debounceDelay: extra.debounceDelay as number | undefined,
     onChange: (value) => {
-      context.setFieldValue(field, selectFieldWritebackOf(field, extra, value))
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
+      context.setFieldValue(field, selectFieldWritebackOf(field, value))
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

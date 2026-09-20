@@ -6,7 +6,7 @@
  *
  * {@link MetaUiFilter} / {@link MetaUiFilterCondition} 是快捷 SQL 芯片，不进 FilterModel。
  */
-import { hasBit } from '../extensions/number_extensions'
+import { hasBit } from '../utils/number'
 
 /** 快捷 SQL 芯片。打开认 fallback，不落盘。 */
 export interface MetaUiFilter {

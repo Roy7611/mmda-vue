@@ -1,7 +1,6 @@
 import type { MetaUiField, MetaUiFieldRef } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiAutoCompleteSize = 'small' | 'large'
 
 export type UiAutoCompleteOption = {
@@ -31,6 +30,8 @@ export interface UiAutoCompleteProps extends UiProps {
   debounceDelay?: number
   highlight?: boolean
   suggestionCount?: number
+  /** 写回字段：标准形状的事件入口（tagAutoComplete 复用本接口）。 */
+  onChange?: (text: string) => void
 }
 
 export const AUTOCOMPLETE_MIN_LENGTH = 1
@@ -92,27 +93,18 @@ export function routeAutoCompleteField(
 }
 
 export function autoCompletePropsFromField(
-  field: MetaUiField,
-  extra: UiProps = {},
+  field: MetaUiField
 ): UiAutoCompleteProps {
   const maxLength =
     field.maxLength != null ? String(field.maxLength) : undefined
   return {
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
-    options: extra.options as UiAutoCompleteProps['options'],
-    suggest: extra.suggest as UiAutoCompleteProps['suggest'],
+    placeholder: field.placeholder,
     reference: field.reference?.isRef ? field.reference : undefined,
-    minLength: extra.minLength as number | undefined,
-    debounceDelay: extra.debounceDelay as number | undefined,
-    highlight: extra.highlight as boolean | undefined,
-    suggestionCount: extra.suggestionCount as number | undefined,
-    size: extra.size as UiAutoCompleteProps['size'],
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
       ...(maxLength ? { maxlength: maxLength } : {}),
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

@@ -1,8 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
-
+import type { UiProps } from '../props'
 export type UiTextInputType =
   | 'Text'
   | 'Password'
@@ -56,7 +55,7 @@ function isTrue(raw: unknown): boolean {
 }
 
 export function textInputValueOf(props: UiTextInputProps): string {
-  const raw = props.value !== undefined ? props.value : props.modelValue
+  const raw = props.value
   if (raw == null) return ''
   return String(raw)
 }
@@ -79,14 +78,14 @@ export function textInputHtmlTypeOf(type: UiTextInputType): string {
 export function textInputMaxLengthOf(
   props: UiTextInputProps,
 ): number | undefined {
-  const raw = props.maxLength ?? props.maxlength
+  const raw = props.maxLength
   const n = Number(raw)
   if (!Number.isFinite(n) || n < 0) return undefined
   return Math.floor(n)
 }
 
 export function textInputReadonlyOf(props: UiTextInputProps): boolean {
-  return isTrue(props.readonly) || isTrue(props.readOnly)
+  return isTrue(props.readonly)
 }
 
 export function textInputDisabledOf(props: UiTextInputProps): boolean {
@@ -114,39 +113,25 @@ export function emitTextInputBlur(props: UiTextInputProps): void {
 
 export function textInputPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiTextInputProps {
   const raw = context.getFieldValue(field)
   return {
     value: raw == null ? '' : String(raw),
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    placeholder: field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    readonly:
-      (extra.readonly as boolean | undefined) ??
-      (extra.readOnly as boolean | undefined) ??
       context.isFieldReadonly(field),
-    type: extra.type as UiTextInputType | undefined,
+    readonly:
+      context.isFieldReadonly(field),
     maxLength:
-      (extra.maxLength as number | undefined) ??
-      (extra.maxlength as number | undefined) ??
       field.maxLength,
-    showClearButton: extra.showClearButton as boolean | undefined,
-    autocomplete: extra.autocomplete as string | undefined,
-    width: extra.width as string | number | undefined,
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    onFocus: extra.onFocus as UiTextInputProps['onFocus'],
-    onBlur: extra.onBlur as UiTextInputProps['onBlur'],
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

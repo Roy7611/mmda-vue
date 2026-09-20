@@ -1,6 +1,5 @@
 import type { UiTreeFields } from './tree'
 import type { UiProps } from '../props'
-
 export type UiTreeSelectDisplay = 'text' | 'chips' | 'delimiter' | 'custom'
 export type UiTreeSelectLoadMode = 'full' | 'lazy'
 export type UiTreeSelectValue = string | number | null | Array<string | number>

@@ -3,7 +3,6 @@
  * 不进 chrome UiFactory；App 挂 Builder 插件。
  */
 import type { UiProps } from '../props'
-
 export type UiAiResponseMode = 'inline' | 'popup'
 
 export interface UiAiPromptRequest {

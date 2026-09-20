@@ -1,6 +1,5 @@
 import type { UiSelectionMode } from '../context'
 import type { UiBoxed, UiProps } from '../props'
-
 /**
  * 模块列表页（Index / Select）拼屏 extras。
  * 工具栏已由 {@link import('../builder').UiBuilder.buildIndexTopbar} 吃掉；

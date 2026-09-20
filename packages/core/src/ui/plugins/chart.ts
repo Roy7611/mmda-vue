@@ -5,7 +5,6 @@
  */
 import type { UiOrientation } from '../layout'
 import type { UiProps } from '../props'
-
 export type UiChartType =
   | 'bar'
   | 'line'

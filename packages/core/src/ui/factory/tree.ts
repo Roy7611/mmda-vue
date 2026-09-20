@@ -1,6 +1,5 @@
 import type { UiAction } from '../action'
 import type { UiProps } from '../props'
-
 export interface UiTreeFields<T = any> {
   id?: string
   label?: string | ((node: T) => string)

@@ -42,5 +42,5 @@ export interface UiOverlay<TNode = any> {
    * 关闭最上层对话框，等价点右侧标准键（如选择列表双击 → 'ok'）。
    * 左侧 customAction 不要走这个，除非该动作自己要关。
    */
-  closeTopDialog?(button: UiDialogAction): Promise<void>
+  closeTopDialog(button: UiDialogAction): Promise<void>
 }

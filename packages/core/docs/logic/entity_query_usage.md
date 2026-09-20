@@ -149,7 +149,7 @@ vui 侧典型顺序（Logic 也可自己做）：
 3. 否则 `Module.defaultSort`（无 sorts 时）
 4. 字段条件始终来自当前 `searchParam.filterModel`
 
-持久化上次查询时把 `EntityQuery.lastCache(searchParam)` 写入 `{repository}/lastQuery`，不要单存 sorts。没保存查询不写 `filterModel`。
+持久化上次查询时把 `saveLastQuery(searchParam)`（vui `src/ui/builder/list_last_query.ts`） 写入 `{repository}/lastQuery`，不要单存 sorts。没保存查询不写 `filterModel`。
 
 ## `refWhere` 才用 `SqlOperator`
 

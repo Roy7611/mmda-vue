@@ -1,7 +1,7 @@
-# extensions/datetime_extensions.ts
+# utils/number.ts
 
-- **层**：Data / extensions
-- **源码**：packages/core/src/extensions/datetime_extensions.ts
+- **层**：Data / utils
+- **源码**：packages/core/src/utils/number.ts
 
 ## 职责
 

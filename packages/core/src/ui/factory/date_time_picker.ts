@@ -22,24 +22,21 @@ export function dateTimePickerModifierClasses(
   return [uiCssClass('datetimepicker'), props.class]
 }
 
-export function dateTimePickerStepOf(props: UiProps): number {
+export function dateTimePickerStepOf(props: Pick<UiDateTimePickerProps, 'step'>): number {
   return typeof props.step === 'number' ? props.step : DATE_TIME_STEP_MINUTES
 }
 
 export function dateTimePickerPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiDateTimePickerProps {
   const { precision: _precision, ...base } = datePickerPropsFromField(
     field,
     context,
-    extra,
   )
   return {
     ...base,
     value: dateOf(context.getFieldValue(field)),
-    format: (extra.format as string | undefined) ?? DATE_TIME_PICKER_FORMAT,
-    step: dateTimePickerStepOf(extra),
+    format: DATE_TIME_PICKER_FORMAT,
   }
 }

@@ -1,6 +1,5 @@
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiSliderType = 'Default' | 'MinRange' | 'Range'
 export type UiSliderValue = number | number[] | null
 
@@ -25,7 +24,7 @@ export function sliderModifierClasses(props: UiSliderProps): unknown[] {
     type = props.type
   } else {
     const raw =
-      props.value !== undefined ? props.value : props.modelValue
+      props.value
     if (Array.isArray(raw) && raw.length >= 2) type = 'Range'
   }
   return [

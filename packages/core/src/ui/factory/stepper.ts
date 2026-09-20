@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiOrientation } from '../layout'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 
 export type UiStepperDisplay = 'default' | 'indicator' | 'label'
@@ -128,7 +128,6 @@ export function stepperIndexOf(raw: unknown): number {
 
 export function stepperValueOf(props: UiStepperProps): number {
   if (props.value !== undefined) return stepperIndexOf(props.value)
-  if (props.modelValue !== undefined) return stepperIndexOf(props.modelValue)
   return 0
 }
 
@@ -227,48 +226,19 @@ export function stepperModifierClasses(props: UiStepperProps): unknown[] {
 
 export function stepperPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiStepperProps {
   return {
-    items: extra.items as UiStepperProps['items'],
-    keyField: extra.keyField as UiStepperProps['keyField'],
-    labelField: extra.labelField as UiStepperProps['labelField'],
-    textField: extra.textField as UiStepperProps['textField'],
-    iconField: extra.iconField as UiStepperProps['iconField'],
-    optionalField: extra.optionalField as UiStepperProps['optionalField'],
-    disabledField: extra.disabledField as UiStepperProps['disabledField'],
-    validField: extra.validField as UiStepperProps['validField'],
-    statusField: extra.statusField as UiStepperProps['statusField'],
-    cssClassField: extra.cssClassField as UiStepperProps['cssClassField'],
     value: stepperIndexOf(context.getFieldValue(field)),
-    orientation: extra.orientation as UiStepperProps['orientation'],
-    display: extra.display as UiStepperProps['display'],
-    labelPosition: extra.labelPosition as UiStepperProps['labelPosition'],
-    linear: extra.linear as boolean | undefined,
     readOnly:
-      (extra.readOnly as boolean | undefined) ?? context.isFieldReadonly(field),
-    showTooltip: extra.showTooltip as boolean | undefined,
-    persist: extra.persist as boolean | undefined,
-    locale: extra.locale as string | undefined,
-    rtl: extra.rtl as boolean | undefined,
-    animation: extra.animation as UiStepperProps['animation'],
-    template: extra.template as UiStepperProps['template'],
-    tooltipTemplate: extra.tooltipTemplate as UiStepperProps['tooltipTemplate'],
-    sanitize: extra.sanitize as boolean | undefined,
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    onChanging: extra.onChanging as UiStepperProps['onChanging'],
-    onBeforeStepRender: extra.onBeforeStepRender as UiStepperProps['onBeforeStepRender'],
-    onReady: extra.onReady as UiStepperProps['onReady'],
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

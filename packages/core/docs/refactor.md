@@ -46,4 +46,4 @@
 
 ## 本轮不删
 
-旧 HTTP：`FetchClient` / `OAuthApiClient` / `ApiError` 仅标 deprecated。推荐 `FetchApi` + `OAuth2ApiClient` + `ApiProblem`。
+旧 HTTP：`FetchClient` / `OAuthApiClient` / `ApiError` / `toApiError` 仅标 deprecated，行为保留，待下游迁完后在下一主版本移除。推荐 `FetchApi` + `OAuth2ApiClient` + `ApiProblem`。Logic 层已迁到 `ApiProblem`（`EntityLogic.doAction` / `BomLogic` 不再引用 `ApiError`）；`FetchApiHttp` 的 200 业务错误体也直接归一为 `ApiProblem`。

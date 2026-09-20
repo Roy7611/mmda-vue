@@ -1,8 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
-
+import type { UiProps } from '../props'
 export type UiNumberInputKind = 'number' | 'percent'
 
 export interface UiNumberInputProps extends UiProps {
@@ -18,6 +17,8 @@ export interface UiNumberInputProps extends UiProps {
   suffix?: string
   kind?: UiNumberInputKind
   onChange?: (value: number | null) => void
+  /** 通用别名：小数位数上限（与 `decimals` 同义，各家数值控件通用）。 */
+  maxFractionDigits?: number
 }
 
 export function numberInputModifierClasses(props: UiNumberInputProps): unknown[] {
@@ -50,8 +51,9 @@ export function numberInputFormatOf(
 export function numberInputDecimalsOf(
   props: UiNumberInputProps,
 ): number | undefined {
+  // `decimals` 与 `maxFractionDigits` 同义：后者是各家数值控件的通用名。
   const raw = props.decimals ?? props.maxFractionDigits
-  if (raw == null || raw === '') return undefined
+  if (raw == null) return undefined
   const n = Number(raw)
   return Number.isNaN(n) ? undefined : n
 }
@@ -64,13 +66,10 @@ function fieldNumberOf(raw: unknown): number | null {
 
 export function numberInputPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiNumberInputProps {
-  const kind = (extra.kind as UiNumberInputKind | undefined) ?? 'number'
+  const kind = 'number'
   const decimalsRaw =
-    extra.decimals ??
-    extra.maxFractionDigits ??
     (field as { scale?: unknown }).scale ??
     field.numericScale
   const decimals =
@@ -79,10 +78,6 @@ export function numberInputPropsFromField(
       : Number(decimalsRaw)
   const draft: UiNumberInputProps = {
     kind,
-    min: extra.min as number | undefined,
-    max: extra.max as number | undefined,
-    step: extra.step as number | undefined,
-    format: extra.format as string | undefined,
   }
   return {
     value: fieldNumberOf(context.getFieldValue(field)),
@@ -92,21 +87,16 @@ export function numberInputPropsFromField(
     step: numberInputStepOf(draft),
     decimals: decimals != null && !Number.isNaN(decimals) ? decimals : undefined,
     format: numberInputFormatOf(draft),
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    placeholder: field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    showSpinButton: extra.showSpinButton as boolean | undefined,
-    suffix: extra.suffix as string | undefined,
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

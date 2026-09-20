@@ -18,6 +18,15 @@ import {
 
 export type SubGroupStdOp = 'add' | 'clear'
 
+/**
+ * 子表分组里的单个字段逻辑。
+ *
+ * 继承 `MetaUiFieldLogic<G>`，因此拥有字段的 `lockIf / hideIf / requiredIf`、
+ * `onChange`、`onValidate` 等能力；差异是它持有所属的 `MetaUiGroupLogic`，
+ * 并可通过 `nextField` 取同组兄弟字段，适合做字段间联动。
+ *
+ * 通常不直接 `new`，而是由 `MetaUiGroupLogic.field(fieldName)` 创建。
+ */
 export class MetaUiGroupFieldLogic<E extends Entity, G extends Entity> extends MetaUiFieldLogic<G> {
   constructor(
     field: MetaUiField,
@@ -25,11 +34,38 @@ export class MetaUiGroupFieldLogic<E extends Entity, G extends Entity> extends M
   ) {
     super(field)
   }
+  /** 返回同组内另一个字段的逻辑，用于组内字段联动。 */
   nextField(fieldName: string) {
     return this.parent.field(fieldName)
   }
 }
 
+/**
+ * 子表分组的视图逻辑配置。
+ *
+ * 这是 `MetaUiGroup` 在 Logic 层的“配置对象”，负责声明：
+ * - 组内字段：`fields`，通过 `field(fieldName)` 添加。
+ * - 组级只读/隐藏：`lockIf / hideIf`，求值时接收主表 `model` 和 `UiContext`。
+ * - 行删除规则：`itemDeletable / beforeItemRemove`。
+ * - 新增与变更回调：`beforeAdd / defaultAdder / onChange`。
+ * - 标准动作 `add / clear` 与自定义动作：`canDo / addCustomAction`。
+ * - 行详情嵌套：`rowDetail`。
+ *
+ * 创建入口是 `EntityLogic.group<G>(groupName)`，之后由 `UiContext.bindLogics()`
+ * 绑定到当前会话，vui 通过 `context.getGroupLogic()` 读取这些配置。
+ *
+ * 注意：它只管“这组子表怎么显示和交互”，不做子表数据的 CRUD；
+ * 子表行级数据逻辑由 `SubEntityLogic` 承担。
+ *
+ * @example
+ * ```ts
+ * this.group<OrderItem>('items')
+ *   .lockIf((m, ctx) => m.status === 'DONE')
+ *   .itemDeletable((row, master) => master.status !== 'DONE')
+ *   .onChange((ctx, model, items) => model.total = items.length)
+ *   .field('qty').requiredIf((row) => row.amount > 0)
+ * ```
+ */
 export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Entity> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
   inplaceEditable = true
@@ -49,10 +85,10 @@ export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Enti
   hiddenFn?: Predicate<E>
   itemDeletableFunc?: ItemDeletableFn<E, G>
   beforeItemRemoveFunc?: BeforeItemRemoveFn<E, G>
-  filterFn?: GroupFilterFn
+  filterFn?: GroupFilterFn<E, G>
   defaultAddFn?: ActionCallback
-  beforeAddFn?: CreateGroupItemsFn
-  onChangeFn?: OnChangeGroupFn
+  beforeAddFn?: CreateGroupItemsFn<E, G>
+  onChangeFn?: OnChangeGroupFn<E, G>
   /** 行实体上的 many 组名；表格行展开画该孙子组，不是 TreeGrid 子行。 */
   rowDetailGroup?: string
 
@@ -112,7 +148,7 @@ export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Enti
     return this
   }
 
-  beforeAdd(beforeAdd: CreateGroupItemsFn) {
+  beforeAdd(beforeAdd: CreateGroupItemsFn<E, G>) {
     this.beforeAddFn = beforeAdd
     return this
   }

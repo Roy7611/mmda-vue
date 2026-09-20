@@ -1,6 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { uiCssClass } from '../css'
 
 export type UiSignaturePadFileType = 'png' | 'jpeg' | 'svg'
@@ -62,7 +62,6 @@ export function signaturePadStringOf(raw: unknown): string {
 
 export function signaturePadValueOf(props: UiSignaturePadProps): string {
   if (props.value !== undefined) return signaturePadStringOf(props.value)
-  if (props.modelValue !== undefined) return signaturePadStringOf(props.modelValue)
   return ''
 }
 
@@ -121,40 +120,21 @@ export function signaturePadSizeCss(
 
 export function signaturePadPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiSignaturePadProps {
   return {
     value: signaturePadStringOf(context.getFieldValue(field)),
-    width: extra.width as UiSignaturePadProps['width'],
-    height: extra.height as UiSignaturePadProps['height'],
-    disabled: extra.disabled as boolean | undefined,
     readOnly:
-      (extra.readOnly as boolean | undefined) ?? context.isFieldReadonly(field),
-    strokeColor: extra.strokeColor as string | undefined,
-    backgroundColor: extra.backgroundColor as string | undefined,
-    backgroundImage: extra.backgroundImage as string | undefined,
-    minStrokeWidth: extra.minStrokeWidth as number | undefined,
-    maxStrokeWidth: extra.maxStrokeWidth as number | undefined,
-    velocity: extra.velocity as number | undefined,
-    saveWithBackground: extra.saveWithBackground as boolean | undefined,
-    persist: extra.persist as boolean | undefined,
-    locale: extra.locale as string | undefined,
-    rtl: extra.rtl as boolean | undefined,
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
     },
     onAction: (action) => {
-      if (typeof extra.onAction === 'function') extra.onAction(action)
     },
-    onBeforeSave: extra.onBeforeSave as UiSignaturePadProps['onBeforeSave'],
-    onReady: extra.onReady as UiSignaturePadProps['onReady'],
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

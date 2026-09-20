@@ -1,6 +1,5 @@
 import type { UiAction } from '../action'
 import type { UiColorRole } from '../props'
-
 /** toast / confirm / dialog 共用轻重。 */
 export type UiDialogSeverity = 'success' | 'info' | 'warning' | 'error'
 

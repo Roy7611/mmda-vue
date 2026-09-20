@@ -2,6 +2,8 @@ import {
   assembleViewUi,
   joinListRelationName,
   MetaUi,
+  type MetaUiGroup,
+  type MetaUiInit,
 } from './metaui_group'
 import {
   type LocalAsyncDb,
@@ -75,7 +77,7 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.cacheFor()
   }
   get locale() {
-    return this.apiClient.config.locale
+    return this.apiClient.config.locale ?? ''
   }
   changeLocale(locale: string) {
     this.apiClient.config.locale = locale
@@ -88,18 +90,19 @@ class MetaUiServiceImpl implements MetaUiService {
   async getModules(reload: boolean = false) {
     if (!this.#moduleFactory || reload) {
       await this.apiClient.getAll({ repository: 'ModuleAuths', queryParams: { asTree: 1 } })
-        .then((m: any) => {
-          const list = (m?.list ?? []) as Module[]
+        .then((m: unknown) => {
+          const payload = m as { list?: unknown } | null | undefined
+          const list = (payload?.list ?? []) as Module[]
           this.logModuleTree('ModuleAuths?asTree=1', list)
           this.#moduleFactory = new ModuleFactory(list)
           this.logModuleTree('ModuleFactory.modules', this.#moduleFactory.modules)
         })
     }
-    return this.#moduleFactory.modules
+    return this.#moduleFactory?.modules ?? []
   }
 
   private logModuleTree(tag: string, list: Module[]) {
-    const sample = (list ?? []).slice(0, 3).map((m: any) => ({
+    const sample = (list ?? []).slice(0, 3).map((m: Module) => ({
       moduleCode: m.moduleCode,
       moduleType: m.moduleType,
       moduleLabel: m.moduleLabel,
@@ -117,8 +120,8 @@ class MetaUiServiceImpl implements MetaUiService {
     }))
     let featureCount = 0
     const walk = (nodes: Module[] = []) => {
-      for (const n of nodes as any[]) {
-        if (n.moduleType === 'FEATURE' || n.moduleType === 2) featureCount++
+      for (const n of nodes) {
+        if (n.moduleType === 'FEATURE' || Number(n.moduleType) === 2) featureCount++
         walk(n.subModules ?? [])
       }
     }
@@ -138,12 +141,12 @@ class MetaUiServiceImpl implements MetaUiService {
       : this.#moduleFactory.findModuleByName(nameOrUrl)
   }
 
-  private async assemble(metaRepo: string, meta: any, service?: string) {
+  private async assemble(metaRepo: string, meta: MetaUiInit | null, service?: string) {
     if (meta) {
-      const manyGroups: any[] = meta.groups.filter((g: any) => g.many)
+      const manyGroups = meta.groups.filter((g: MetaUiGroup) => g.many)
       if (manyGroups.length > 0) {
         const manyGroupKeys: string[] = manyGroups.map(
-          (g: any) => `${metaRepo}/${g.groupName}`,
+          (g) => `${metaRepo}/${g.groupName}`,
         )
         const assemblies = await this.cacheFor(service).getMany(manyGroupKeys)
         assemblies.forEach((a, i) => {
@@ -158,22 +161,22 @@ class MetaUiServiceImpl implements MetaUiService {
     const metaRepo = `meta/${repository}`
     return this.cacheFor(service)
       .get(metaRepo)
-      .then(meta => this.assemble(metaRepo, meta, service))
+      .then(meta => this.assemble(metaRepo, meta as MetaUiInit | null, service))
   }
 
   private viewUiCacheKey(repository: string, relationName: string) {
     return `meta/${repository}/${relationName}View`
   }
 
-  private viewUiCacheKeys(repository: string, metaUi?: MetaUi | { groups?: any[] }) {
+  private viewUiCacheKeys(repository: string, metaUi?: MetaUi | { groups?: MetaUiGroup[] }) {
     return (metaUi?.groups ?? [])
-      .filter((group: any) => group.many)
-      .map((group: any) => this.viewUiCacheKey(repository, group.groupName))
+      .filter((group) => group.many)
+      .map((group) => this.viewUiCacheKey(repository, group.groupName))
   }
 
   private invalidateViewUiCache(
     repository: string,
-    metaUi: MetaUi | { groups?: any[] } | undefined,
+    metaUi: MetaUi | { groups?: MetaUiGroup[] } | undefined,
     service?: string,
   ) {
     const keys = this.viewUiCacheKeys(repository, metaUi)
@@ -185,19 +188,20 @@ class MetaUiServiceImpl implements MetaUiService {
     return assembleViewUi(metaUi, relationName)
   }
 
-  private disassemble(metaRepo: string, meta: any) {
-    const assemblies: [string, any][] = []
-    meta.groups.forEach((g: any) => {
+  private disassemble(metaRepo: string, meta: MetaUiInit) {
+    const assemblies: Array<[string, unknown]> = []
+    meta.groups.forEach((rawGroup: MetaUiGroup) => {
+      const g = rawGroup as MetaUiGroup & { groupUi?: MetaUi | null }
       if (g.many) {
         assemblies.push([`${metaRepo}/${g.groupName}`, g.groupUi])
-        g.groupUi = null
+        Object.assign(g, { groupUi: null })
       }
     })
     assemblies.push([metaRepo, meta])
     return assemblies
   }
 
-  private putToCache(repository: string, meta: any, service?: string) {
+  private putToCache(repository: string, meta: MetaUiInit, service?: string) {
     const write = () => {
       const metaUi = new MetaUi(meta)
       const assemblies = this.disassemble(`meta/${repository}`, meta)
@@ -206,8 +210,8 @@ class MetaUiServiceImpl implements MetaUiService {
     return this.invalidateViewUiCache(repository, meta, service).then(write, write)
   }
 
-  private snapshotMeta(meta: any) {
-    if (meta == null) return meta
+  private snapshotMeta(meta: MetaUi | MetaUiInit): MetaUiInit | null {
+    if (meta == null) return null
     return JSON.parse(
       JSON.stringify(meta, (key, value) => {
         if (typeof value === 'function') return undefined
@@ -215,7 +219,7 @@ class MetaUiServiceImpl implements MetaUiService {
         if (key === 'reference') return undefined
         return value
       }),
-    )
+    ) as MetaUiInit
   }
 
   private fetchMetaUiJson(
@@ -238,7 +242,7 @@ class MetaUiServiceImpl implements MetaUiService {
     )
   }
 
-  private applyViewListLayout(view: MetaUi, cached: any) {
+  private applyViewListLayout(view: MetaUi, cached: MetaUi | MetaUiInit) {
     const cachedUi = cached instanceof MetaUi ? cached : new MetaUi(cached)
     for (const field of view.getListLayoutFields()) {
       const src = cachedUi.getField(field.fieldName)
@@ -268,7 +272,7 @@ class MetaUiServiceImpl implements MetaUiService {
     if (reload) await db.delete(key)
     const view = assembleViewUi(metaUi, relationName)
     if (!reload) {
-      const cached = await db.get(key)
+      const cached = (await db.get(key)) as MetaUi | MetaUiInit | null
       if (cached) this.applyViewListLayout(view, cached)
     }
     await db.put(key, this.snapshotMeta(view))
@@ -297,6 +301,7 @@ class MetaUiServiceImpl implements MetaUiService {
     service?: string,
   ) {
     const snapshot = this.snapshotMeta(metaUi)
+    if (snapshot == null) return Promise.resolve()
     const assemblies = this.disassemble(`meta/${repository}`, snapshot)
     return this.cacheFor(service).putMany(assemblies).then(() => {
       metaUi.getListedFields(true)
@@ -306,7 +311,7 @@ class MetaUiServiceImpl implements MetaUiService {
   private getSystemsFromCache(service?: string) {
     return this.cacheFor(service)
       .get(`meta/systems`)
-      .then((systems: Module[]) => systems)
+      .then((systems) => systems as Module[])
   }
 
   private getSystemsFromServer(
@@ -315,7 +320,10 @@ class MetaUiServiceImpl implements MetaUiService {
     reload: boolean = false,
   ) {
     return this.apiClient.getAll({ service, repository, queryParams: { reload } })
-      .then((res: any) => (res.list ?? []) as Module[])
+      .then((res: unknown) => {
+        const payload = res as { list?: unknown } | null | undefined
+        return (payload?.list ?? []) as Module[]
+      })
       .then(systems =>
         this.cacheFor(service)
           .put(`meta/systems`, systems)
@@ -328,7 +336,7 @@ class MetaUiServiceImpl implements MetaUiService {
 
   async getSystems(
     repository: string,
-    service: string,
+    service?: string,
     reload?: boolean,
   ): Promise<Module[]> {
     if (reload) return this.getSystemsFromServer(repository, service, reload)

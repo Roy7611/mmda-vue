@@ -1,6 +1,5 @@
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiRatingTemplateContext = { value: number; index: number }
 
 export type UiRatingTemplate<TNode = any> =

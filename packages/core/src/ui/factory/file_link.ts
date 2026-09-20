@@ -1,5 +1,4 @@
 import type { UiProps } from '../props'
-
 export type UiFileLinkPreviewKind = 'none' | 'app' | 'browser'
 
 export const FILE_LINK_APP_PREVIEW_EXTS = ['xlsx', 'xls', 'docx', 'doc'] as const

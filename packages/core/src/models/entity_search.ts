@@ -150,7 +150,7 @@ export interface EntitySearchParam extends EntityQuery {
 }
 
 /** 标记行是否可选（列表勾选 / 选择弹层）。 */
-export type SelectableFn<E = any> = (e: E, context?: any) => boolean;
+export type SelectableFn<E = unknown> = (e: E, context?: unknown) => boolean;
 
 /**
  * 实体选择参数
@@ -168,13 +168,13 @@ export interface EntitySelectParam<E extends Entity = Entity> {
    */
   ctor?: EntityCtor<E>;
   searchFieldList?: string[];
-  searchFieldProps?: Record<string, any>;
-  searchFieldSearchParam?: Record<string, any>;
+  searchFieldProps?: Record<string, unknown>;
+  searchFieldSearchParam?: Record<string, unknown>;
   pageSizeOptions?: number[];
   labelKey?: string;
   selectableFn?: SelectableFn;
   /** 弹窗 Footer 操作按钮（可选），显示在取消/确认按钮左侧 */
-  labelFn?: (item: any) => string;
+  labelFn?: (item: unknown) => string;
   /**
    * 覆盖弹层 CRUD 权限四项；未传时有模块跟模块 authority，无模块只读。
    */
@@ -184,7 +184,7 @@ export interface EntitySelectParam<E extends Entity = Entity> {
 }
 
 export type ParsedQueryExpression =
-  | { kind: "query"; query: EntityQuery }
+  | { kind: "query"; query: EntitySearchParam }
   | { kind: "sql"; sql: string };
 
 function isNoValueFilterOperator(

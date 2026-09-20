@@ -160,34 +160,11 @@ export const defaultSqlOps = {
   SetFieldOps: [IN, NOT_IN],
 };
 
-export const SqlOperatorNameList = [
-  "EQ",
-  "NEQ",
-  "GT",
-  "GE",
-  "LT",
-  "LE",
-  "STARTS_WITH",
-  "ENDS_WITH",
-  "CONTAINS",
-  "NOT_CONTAINS",
-  "IS_NULL",
-  "IS_NOT_NULL",
-  "IS_BLANK",
-  "IS_NOT_BLANK",
-  "IS_ALL",
-  "IS_TRUE",
-  "IS_FALSE",
-  "IN",
-  "NOT_IN",
-  "BETWEEN",
-  "WITHIN",
-] as const;
-
-export type SqlOperatorName = (typeof SqlOperatorNameList)[number];
+/** 可参与 SQL 片段拼装的操作符：`MetaUiFilterOpCode` 去掉 `AND / OR` 连接符。 */
+export type SqlOperatorName = Exclude<MetaUiFilterOpCode, "AND" | "OR">;
 
 export const getSqlOperator = (
-  op: MetaUiFilterOpCode | SqlOperatorName,
+  op: MetaUiFilterOpCode,
 ): SqlOperator | undefined => {
   const ops = ([] as SqlOperator[]).concat(
     ...Object.values(defaultSqlOps),

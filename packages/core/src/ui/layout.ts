@@ -5,7 +5,6 @@
  */
 import { uiCssClass, uiClassModifiers } from './css'
 import type { UiProps } from './props'
-
 /** 界面定位方向，横竖两种。控件和域布局都用这个名。 */
 export type UiOrientation = 'vertical' | 'horizontal'
 

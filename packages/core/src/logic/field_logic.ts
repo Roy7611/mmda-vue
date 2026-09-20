@@ -15,11 +15,37 @@ import {
   customValidator,
   descriptorsToValidators,
   type FieldValidator,
+  type ValidatorFn,
   type ValidatorSeverity,
 } from './validators'
 
 /**
- * 元域逻辑：只读、隐藏、校验、变更。自定义渲染由 vui 消费，VNode 类型在 vui。
+ * 单个元数据字段的 Logic 层配置。
+ *
+ * 它围绕一个 `MetaUiField`（Data 层 SSOT）追加“当前视图”的交互规则，不修改元数据本身。
+ * 主要能力：
+ * - 业务只读 / 隐藏 / 必填：`lockIf / hideIf / requiredIf`，多次调用按 OR 叠加。
+ * - 值变更与校验：`onChange / onValidate`，`onValidate` 追加到 `validators`。
+ * - 引用字段范围：`refWhere` 叠加 SQL 片段，`buildRefWhere` 与元数据 `reference.where` AND。
+ * - 自定义渲染/编辑：`setCustomRenderer / setCustomEditor` 等，由 vui / rui 消费。
+ * - 表格原位编辑：`inplaceEdit`，与 `lockIf` 互不影响。
+ *
+ * 创建入口通常是 `EntityLogic.field(fieldName)`，分组字段则用
+ * `MetaUiGroupLogic.field(fieldName)`；随后经 `UiContext.bindLogics()` 绑定。
+ *
+ * @example 基础字段规则
+ * ```ts
+ * this.field('status')
+ *   .lockIf((m, ctx) => m.status === 'DONE')
+ *   .requiredIf((m) => m.qty > 0)
+ *   .onChange((ctx, model, next, prev) => { model.amount = next })
+ * ```
+ *
+ * @example 引用字段范围
+ * ```ts
+ * this.field('customer')
+ *   .refWhere((model, ctx) => `salesman = ${ctx.app?.state.user.userId}`)
+ * ```
  */
 export class MetaUiFieldLogic<E extends Entity = Entity> {
   /** 对应的元数据字段（Data SSOT；Logic 不改写 readOnly / hidden / nullable）。 */
@@ -53,11 +79,11 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
   /** 列表/子表合计自定义；vui 读此函数，返回 number。 */
   aggregateFn?: AggregateFn<E>
   /** 引用范围 SQL 片段列表；refWhere 追加，buildRefWhere 与元数据 where AND。 */
-  private readonly refWheres: RefWhereFn<E>[] = []
+  readonly #refWheres: RefWhereFn<E>[] = []
 
   private hasField() {
     if (!this.field) {
-      console.warn(`${this?.field?.fieldName || ''} field invalid.`)
+      console.warn('field invalid.')
     }
     return this
   }
@@ -106,7 +132,7 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
     severity: ValidatorSeverity = 'error',
   ) {
     this.onValidateFn = validate as OnValidateFn<unknown, E>
-    this.validators.push(customValidator(validate as OnValidateFn, severity))
+    this.validators.push(customValidator(validate as ValidatorFn, severity))
     return this
   }
 
@@ -148,7 +174,7 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
       console.warn(`${this?.field?.fieldName || ''} field reference invalid.`)
       return this
     }
-    this.refWheres.push(whereFn)
+    this.#refWheres.push(whereFn)
     return this
   }
 
@@ -162,7 +188,7 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
     fieldOptions?: Record<string, unknown>,
   ): string | undefined {
     let where = this.field.reference?.where
-    for (const fn of this.refWheres) {
+    for (const fn of this.#refWheres) {
       where = sqlAnd(where, fn(model, ctx, fieldOptions))
     }
     if (where && where.indexOf('@') != -1) {

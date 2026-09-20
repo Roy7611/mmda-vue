@@ -1,7 +1,6 @@
 import type { UiBuilder } from '../builder'
 import type { UiContext } from '../context'
 import type { UiProps } from '../props'
-
 /**
  * UI 引擎插件。App / 皮肤 `builder.use(plugin)`；渲染走 {@link buildUi}。
  * 无 Vue。

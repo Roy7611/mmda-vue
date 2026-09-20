@@ -1,5 +1,4 @@
-import { callUiBagFn, type UiProps } from '../props'
-
+import type { UiProps } from '../props'
 export type UiDatePrecision = 'day' | 'month'
 
 export type UiDateShortcutValue = Date | [Date, Date] | null
@@ -11,13 +10,33 @@ export type UiDateShortcut = {
 
 export type UiDateShortcutKind = 'day' | 'month' | 'datetime' | 'time' | 'range'
 
-export interface UiDateInputProps extends UiProps {
+/**
+ * 日期类控件（picker / range / datetime / time）共用的**具名事件成员**。
+ * 事件出口只有 `emitDateChange` / `emitDateClear` / `emitDateFocus` / `emitDateBlur`，
+ * 参数统一收这个类型——不要再靠袋键裸读（`UiProps` 已无索引签名）。
+ */
+export interface UiDateEmitProps extends UiProps {
+  onChange?: (value: unknown) => void
+  /** 产品侧回调：选中的值变化（业务 Logic 直接用，如 MES 的排产日历）。 */
+  onUpdatePicker?: (value: unknown) => void
+  onClear?: () => void
+  onFocus?: () => void
+  onBlur?: () => void
+}
+
+export interface UiDateInputProps extends UiDateEmitProps {
   min?: Date
   max?: Date
+  /** 通用别名：与 `min` / `max` 同义（厂商与 MES 元数据都用这两个名字）。 */
+  minDate?: Date
+  maxDate?: Date
   format?: string
   placeholder?: string
   disabled?: boolean
   allowInput?: boolean
+  /** 通用别名：与 `allowInput` 同义。 */
+  manualInput?: boolean
+  allowEdit?: boolean
   showClear?: boolean
   openOnFocus?: boolean
   inputFormats?: string[]
@@ -25,10 +44,6 @@ export interface UiDateInputProps extends UiProps {
   showShortcuts?: boolean
   shortcuts?: UiDateShortcut[]
   firstDayOfWeek?: number
-  onChange?: (value: unknown) => void
-  onClear?: () => void
-  onFocus?: () => void
-  onBlur?: () => void
 }
 
 export const DATE_PICKER_FORMAT = 'yyyy-MM-dd'
@@ -64,38 +79,35 @@ export function startOfLocalMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
-export function datePickerDateOf(props: UiProps): Date | null | undefined {
+export function datePickerDateOf(props: { value?: Date | null }): Date | null | undefined {
   if (props.value !== undefined) return dateOf(props.value)
-  if (props.modelValue !== undefined) return dateOf(props.modelValue)
   return undefined
 }
 
-export function datePickerMinOf(props: UiProps): Date | null | undefined {
-  if (props.min !== undefined) return dateOf(props.min)
-  if (props.minDate !== undefined) return dateOf(props.minDate)
+export function datePickerMinOf(props: UiDateInputProps): Date | null | undefined {
+  const raw = props.minDate ?? props.min
+  if (raw !== undefined) return dateOf(raw)
   return undefined
 }
 
-export function datePickerMaxOf(props: UiProps): Date | null | undefined {
-  if (props.max !== undefined) return dateOf(props.max)
-  if (props.maxDate !== undefined) return dateOf(props.maxDate)
+export function datePickerMaxOf(props: UiDateInputProps): Date | null | undefined {
+  const raw = props.maxDate ?? props.max
+  if (raw !== undefined) return dateOf(raw)
   return undefined
 }
 
-export function datePickerAllowInput(props: UiProps): boolean {
-  if (props.allowInput != null) return props.allowInput === true
-  if (props.manualInput != null) return props.manualInput === true
-  if (props.allowEdit != null) return props.allowEdit === true
-  return false
+export function datePickerAllowInput(props: UiDateInputProps): boolean {
+  const raw = props.allowInput ?? props.manualInput ?? props.allowEdit
+  return raw === true
 }
 
-export function datePickerFirstDayOfWeek(props: UiProps): number {
+export function datePickerFirstDayOfWeek(props: UiDateInputProps): number {
   const raw = props.firstDayOfWeek
   return typeof raw === 'number' ? raw : DATE_PICKER_FIRST_DAY_OF_WEEK
 }
 
 export function datePickerShowClear(
-  props: UiProps,
+  props: UiDateInputProps,
   fieldNullable?: boolean,
 ): boolean {
   if (props.showClear != null) return props.showClear !== false
@@ -113,16 +125,16 @@ export function datePickerFormatOf(
 }
 
 
-export function emitDateClear(props: UiProps): void {
-  callUiBagFn(props, 'onClear')
+export function emitDateClear(props: UiDateEmitProps): void {
+  props.onClear?.()
 }
 
-export function emitDateFocus(props: UiProps): void {
-  callUiBagFn(props, 'onFocus')
+export function emitDateFocus(props: UiDateEmitProps): void {
+  props.onFocus?.()
 }
 
-export function emitDateBlur(props: UiProps): void {
-  callUiBagFn(props, 'onBlur')
+export function emitDateBlur(props: UiDateEmitProps): void {
+  props.onBlur?.()
 }
 
 export function resolveDateShortcutValue(

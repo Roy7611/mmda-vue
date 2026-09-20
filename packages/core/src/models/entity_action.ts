@@ -1,4 +1,4 @@
-export type ActionCallback = (...args: any[]) => any
+export type ActionCallback = (...args: never[]) => unknown
 
 /** 按钮/行为的界面配置数据。 */
 export interface EntityAction {
@@ -9,7 +9,7 @@ export interface EntityAction {
   role?: string
   redirectTo?: string
   description?: string
-  param?: any
+  param?: unknown
   disabled?: boolean
   group?: string
   view?: string

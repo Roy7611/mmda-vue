@@ -22,9 +22,6 @@ export interface UiSpeechToTextProps extends UiProps {
 
 export function speechToTextValueOf(props: UiSpeechToTextProps): string {
   if (props.value !== undefined && props.value != null) return String(props.value)
-  if (props.modelValue !== undefined && props.modelValue != null) {
-    return String(props.modelValue)
-  }
   return ''
 }
 

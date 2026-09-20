@@ -1,14 +1,13 @@
-import { isNullOrUndefined } from '../utils/is'
 import { uiClassName } from './css'
 
 /**
  * chrome / 列表共用的轻量 props 底。无 Vue。
  *
- * - `class` / `style`：壳样式（接口字段名合法；读 `props.class`，不要解构绑定名）
- * - 索引签名：袋里可有 `htmlAttributes`（原生 id / data-* / aria-* / name），
- *   由皮肤各自透传（`htmlAttributesOf`）；不要整份 props spread 到厂商。
- *   `modelValue` / `onUpdate:modelValue` 由 vui 的 emit* 读写，不要在 core factory 里调。
- * - `placeholder` / `disabled` 是控件具名，不进 `htmlAttributes`。
+ * 设计：[`vui_architecture.md`](../../../docs/design/vui_architecture.md) §1。三条规则：
+ * - **无索引签名**：键名拼错当场报错；DOM 数据属性（`data-*` / `aria-*`）另有模板字面量放行。
+ * - **只有壳样式三键**：`class` / `style` / `htmlAttributes` 在 `uiRenderProps` 里统一归一。
+ * - **区域不进这里**：区域（`default` / `header` / …）走工厂 / Builder 的**第二参** `UiXxxSlots`。
+ *   合并进 props 会让 Vue 把未被消费的函数键静默写成 DOM 属性（实测见设计文档 §1.1）。
  */
 export type UiColorRole =
   | 'primary'
@@ -32,154 +31,122 @@ export function unboxed<T>(raw: UiBoxed<T> | null | undefined): T | undefined {
   return raw as T
 }
 
-export interface UiProps {
-  class?: unknown
-  style?: unknown
-  [key: string]: unknown
-}
+/**
+ * 壳样式的宽松写法：字符串 / 数组（可嵌套）/ 键值对象 / 假值。
+ * 归一只有一处（`uiRenderProps`），语义同 Vue 的 `normalizeClass`。
+ */
+export type UiClassValue =
+  | string
+  | number
+  | null
+  | undefined
+  | false
+  | UiClassValue[]
+  | Record<string, unknown>
 
-/** 落到真实 input / 根节点的 HTML 属性。读 UiProps 袋键 `htmlAttributes`；皮肤透传，不要改名。 */
-export type HtmlAttributes = Record<string, string>
-
-export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
-  return (props?.htmlAttributes as HtmlAttributes | undefined) ?? {}
-}
-
-/** 袋键回调（如 `onUpdate:modelValue`）。索引签名下不是函数类型。 */
-export function callUiBagFn(
-  props: UiProps | undefined,
-  key: string,
-  ...args: unknown[]
-): void {
-  const fn = props?.[key]
-  if (typeof fn === 'function') {
-    ;(fn as (...a: unknown[]) => void)(...args)
-  }
-}
-
-export function hasProp(name: string, props?: UiProps): boolean {
-  return props != null && !isNullOrUndefined(props[name])
-}
-
-export function hasPropEx<T>(name: string, value: T, props?: UiProps): boolean {
-  return props != null && props[name] === value
-}
-
-export function getProp<T>(
-  name: string,
-  props?: UiProps,
-  remove = false,
-): T | undefined {
-  if (!hasProp(name, props)) return undefined
-  const value = props![name] as T
-  if (remove) delete props![name]
-  return value
-}
-
-export function addProp<T>(name: string, value: T, props: UiProps = {}): UiProps {
-  props[name] = value
-  return props
-}
-
-export function addDefaultProp<T>(
-  name: string,
-  value: T,
-  props: UiProps = {},
-): UiProps {
-  if (!hasProp(name, props)) props[name] = value
-  return props
-}
-
-export function addDefaultProps(
-  addingProps: UiProps,
-  props: UiProps = {},
-): UiProps {
-  for (const [name, value] of Object.entries(addingProps)) {
-    if (!hasProp(name, props)) props[name] = value
-  }
-  return props
-}
-
-export function ignoreNullishProps(props: UiProps): UiProps {
-  for (const name of Object.keys(props)) {
-    if (isNullOrUndefined(props[name])) delete props[name]
-  }
-  return props
-}
-
-export function copyProps(
-  dest: UiProps,
-  src: UiProps,
-  names: string[],
-  ignoreNullish = true,
-): void {
-  for (const name of names) {
-    if (!ignoreNullish || !isNullOrUndefined(src[name])) dest[name] = src[name]
-  }
-}
-
-export function selectProps(
-  src: UiProps,
-  names: string[],
-  ignoreNullish = true,
-): UiProps {
-  const dest: UiProps = {}
-  copyProps(dest, src, names, ignoreNullish)
-  return dest
-}
-
-/** 归一到渲染前的 style：普通对象（Vue / React 都只吃对象）。 */
+/** 渲染前的 style 一律是对象；字符串形式只在输入侧容忍。 */
 export type UiStyle = Record<string, string | number>
+export type UiStyleValue = string | UiStyle | null | undefined
+
+/** DOM 属性值：白名单通道只收标量（函数 / 对象永远不进 DOM 属性，见 `uiRenderProps`）。 */
+export type HtmlAttributeValue = string | number | boolean
+
+/** 落到真实 input / 根节点的 HTML 属性：袋键 `htmlAttributes` 或顶层 `data-*` / `aria-*`。 */
+export type HtmlAttributes = Record<string, HtmlAttributeValue>
 
 /**
- * 袋归一到"渲染前标准形态"——框架无关，`h` 与 `createElement` 都能直接吃。
+ * 所有控件具名入参的底：只有壳样式三键 + DOM 数据属性，**没有 `[key: string]` 索引签名**。
+ * 确需灵活键的控件在自己的 `UiXxxProps` 里显式声明。
+ */
+export interface UiProps {
+  class?: UiClassValue
+  style?: UiStyleValue
+  /** ARIA 角色（如 `group` / `dialog`）：每个元素都可能用，属标准属性。 */
+  role?: string
+  /** 标签关联（label 的 `for`）：平台原名，vui 直传；rui 侧译成 `htmlFor`。 */
+  for?: string
+  htmlAttributes?: HtmlAttributes
+  [key: `data-${string}` | `aria-${string}`]: unknown
+}
+
+/** 读袋键 `htmlAttributes`（压平前的原始表）。 */
+export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
+  return props?.htmlAttributes ?? {}
+}
+
+/**
+ * 袋 → 「渲染前标准形态」：框架无关，`h` / `createElement` / Svelte 都能直接吃。
  *
- * - `props`：具名参数 + `onXxx` 回调（`class` / `style` / `htmlAttributes` 已摘走，
- *   Vue 专属的 `onUpdate` / `onUpdate:modelValue` 别名被滤掉）；
- * - `attributes`：袋键 `htmlAttributes` 压平后的 DOM 属性表（键取两个运行时同名的那些）；
- * - `className`：已收成字符串（袋 `class` 允许数组，见 `uiClassName`）；
- * - `style`：已收成对象（字符串 style 会被解析，React 见字符串 style 会抛错）。
+ * - `props`：具名成员 + `onXxx` + 归一后的 `class`（字符串）与 `style`（对象）。
+ *   Vue 专属的 `onUpdate` / `onUpdate:modelValue` 别名被滤掉，取值归口 vui 的 `vueUpdateOf`。
+ * - `attributes`：DOM 属性白名单通道 —— 袋键 `htmlAttributes` 压平 + 顶层 `data-*` / `aria-*`。
  *
- * 实测依据见 [`ui_prop_channels_design.md`](../../docs/ui/ui_prop_channels_design.md)。
+ * 判定只写在这里（**控件无关**）：
+ *
+ * | 输入 | 去向 |
+ * |---|---|
+ * | `class`（数组 / 字符串 / 假值） | `props.class`，字符串（袋键 `htmlAttributes.class` 并进来） |
+ * | `style`（对象 / 字符串） | `props.style`，对象 |
+ * | 袋键 `htmlAttributes` | 压平进 `attributes` |
+ * | 顶层 `data-*` / `aria-*`（标量） | `attributes` |
+ * | `onUpdate` / `onUpdate:*` | 丢弃（Vue 形状，不进契约） |
+ * | 其余（含函数 / 对象） | 原样进 `props`，**不进 `attributes`** |
+ *
+ * 「其余」不按值种类二次分流：core 在运行时**分不清**「控件声明的逐项渲染委托」（如
+ * `itemRenderer`，必须留在 props 里给控件消费）与「游离函数键」——两者都是 `typeof === 'function'`。
+ * core 只做**通道约束**：函数 / 对象永远不进 DOM 属性通道；是否消费由控件负责。
  */
 export interface UiRenderProps<TProps extends UiProps = UiProps> {
   props: TProps
   attributes: HtmlAttributes
-  className?: string
-  style?: UiStyle
 }
 
 /** 通道外的键：袋 `class` / `style` / 袋键 `htmlAttributes`。 */
 const UI_ATTR_KEYS = new Set(['class', 'style', 'htmlAttributes'])
 
-/** Vue 的 v-model 别名，不进标准形态（React 认不出，会告警并忽略）。 */
+/** Vue 的 v-model 别名，不进标准形态。 */
 function isVueModelAlias(key: string): boolean {
   return key === 'onUpdate' || key.startsWith('onUpdate:')
 }
 
-/** 袋 → 渲染前标准形态。拆分规则只写在这里。 */
+/** 按名字就能确定是 DOM 属性的键。 */
+function isDomDataKey(key: string): boolean {
+  return key.startsWith('data-') || key.startsWith('aria-')
+}
+
+function isAttributeValue(value: unknown): value is HtmlAttributeValue {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  )
+}
+
+/** 袋 → 标准形态。拆分规则只写在这里。 */
 export function uiRenderProps<TProps extends UiProps = UiProps>(
   props?: TProps,
 ): UiRenderProps<TProps> {
-  const bag: UiProps = props ?? {}
-  const named: UiProps = {}
+  const bag = (props ?? {}) as Record<string, unknown>
+  const named: Record<string, unknown> = {}
+  const attributes: HtmlAttributes = { ...htmlAttributesOf(props) }
+
   for (const [key, value] of Object.entries(bag)) {
     if (UI_ATTR_KEYS.has(key) || isVueModelAlias(key)) continue
-    // `for` 两个运行时都不吃原名（React 报 Did you mean `htmlFor`；Vue 渲成 htmlfor），
-    // 规范名取 `htmlFor`，各运行时再换回自己的（vui → for）。
-    named[key === 'for' ? 'htmlFor' : key] = value
+    if (isDomDataKey(key)) {
+      if (isAttributeValue(value)) attributes[key] = value
+      continue
+    }
+    named[key] = value
   }
 
-  const attributes: HtmlAttributes = { ...htmlAttributesOf(bag) }
   const className = uiClassName(unboxed(bag.class), attributes.class)
-  if (className) delete attributes.class
+  if (className) named.class = className
+  delete attributes.class
 
-  return {
-    props: named as TProps,
-    attributes,
-    className: className || undefined,
-    style: styleObjectOf(unboxed(bag.style)),
-  }
+  const style = styleObjectOf(unboxed(bag.style))
+  if (style) named.style = style
+
+  return { props: named as TProps, attributes }
 }
 
 /** `style` 归一到对象：对象浅拷（只留 string / number）、字符串解析、其余丢弃。 */

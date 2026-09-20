@@ -4,7 +4,8 @@ import { EntityState } from './entity'
 import { created, deleted, destroy, isEntity, reset } from './entity_state'
 
 export type NumberGetter<E> = (e: E) => number | null | undefined;
-const getNumProp = (e: any, prop: string) => e[prop] as number;
+const getNumProp = (e: Record<string, unknown>, prop: string) =>
+  e[prop] as number | null | undefined;
 
 /**
  * 计算实体数组中某个数值属性的和
@@ -77,7 +78,7 @@ export const count = <E extends Entity>(entities: E[]) => {
  * @returns 如果存在满足条件的实体，返回true，否则返回false
  */
 
-export const hasAny = <E extends Entity>(items: E[], predicate?: (e: E, context?: any) => boolean) => {
+export const hasAny = <E extends Entity>(items: E[], predicate?: (e: E, context?: unknown) => boolean) => {
   if (isEmpty(items)) return false;
   return predicate
     ? items.some((it) => !deleted(it) && predicate(it))
@@ -91,7 +92,7 @@ export const hasAny = <E extends Entity>(items: E[], predicate?: (e: E, context?
  */
 export const hasAnyLike = <E extends Entity>(
   items: E[],
-  props: Record<string, any>
+  props: Record<string, unknown>
 ) => {
   const predicate = (e: E) => {
     for (const k in props) {

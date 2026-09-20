@@ -48,9 +48,6 @@ export function queryBuilderValueOf(
   props: UiQueryBuilderProps,
 ): AdvancedFilterModel | undefined {
   if (props.value !== undefined) return props.value
-  if (props.modelValue !== undefined) {
-    return props.modelValue as AdvancedFilterModel
-  }
   return undefined
 }
 

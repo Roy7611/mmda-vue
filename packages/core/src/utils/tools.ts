@@ -1,7 +1,7 @@
 /*
  * 框架公共方法。debounce / 树工具可在 Node 使用；`triggerEscKey` 依赖 DOM。
  */
-export const debounce = <T extends (...args: any[]) => void>(
+export const debounce = <T extends (...args: never[]) => unknown>(
   callback: T,
   delay = 300,
 ) => {
@@ -14,7 +14,7 @@ export const debounce = <T extends (...args: any[]) => void>(
   }
 }
 
-export const throttle = <T extends (...args: any[]) => void>(
+export const throttle = <T extends (...args: never[]) => unknown>(
   callback: T,
   limit = 300,
 ) => {
@@ -31,7 +31,7 @@ export const throttle = <T extends (...args: any[]) => void>(
 /**
  * 在 document 上派发 Escape（关闭弹层）。仅浏览器。
  */
-export const triggerEscKey = (callback?: (...args: any[]) => void) => {
+export const triggerEscKey = (callback?: () => void) => {
   const escEvent = new KeyboardEvent('keydown', {
     key: 'Escape',
     keyCode: 27,
@@ -79,7 +79,11 @@ export const mapTree = (
  * @param key 检查的钥匙
  * @returns 如果ARRA中的每个元素在ARRB中
  */
-export const isSubsetByKey = (arrA: any[], arrB: any[], key: string): boolean => {
+export const isSubsetByKey = (
+  arrA: readonly Record<string, unknown>[],
+  arrB: readonly Record<string, unknown>[],
+  key: string,
+): boolean => {
     // 将数组B的id存入Set，方便快速查找
     const idSet = new Set(arrB.map(item => item[key]));
     // 检查数组A中的每个id是否都在Set中存在

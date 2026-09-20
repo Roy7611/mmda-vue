@@ -51,7 +51,7 @@ packages/core/src
 |---|---|---|
 | `confirmMessage` | **`confirm(context, props)`** | 是/否，`Promise<boolean>` |
 | `confirmDialog` | **`dialog(content, context, props?)`** | 弹层里塞内容，`Promise<unknown>` |
-| `buildSelector` | 删除 | 选择器就是 `view = selectOne / selectMany` 的 **`buildView`** |
+| `buildSelector` | 删除 | 选择器就是 `view = selectOne / selectMany` 的 **`buildSelectView`** |
 
 不要再导出 `confirmMessage` / `confirmDialog` 别名。
 
@@ -62,7 +62,7 @@ packages/core/src
 | `searchRelative` | **保留**：联想 / 列筛，**不弹层** |
 | `pickRelative(field)` | **`select(field)`**：对话框 + 写回当前字段 |
 | `buildSearchForRelativeContent(...)` | **`select({ repository, service?, selectionMode })`**：任意仓库；返回 `false` 或 `T[]` |
-| 本地行勾选再搜一遍 | **`MetaUiBuilder` + `factory.table` + `dialog`** |
+| 本地行勾选再搜一遍 | **`MetaUiBuilder` + `builder.table` + `dialog`** |
 
 `select` 两个重载：字段（hasOne 弹选并 `setFieldValue`）；`EntitySelectParam`（跨服务选实体，不必 import 对方模型包）。
 
@@ -70,11 +70,11 @@ packages/core/src
 
 ## MetaUiBuilder
 
-流式拼一份**列表用** `MetaUi`，再 `factory.table(rows, metaUi)`。内部数组叫 `_fields`，避免和方法 `fields()` 撞名。用法 [metaui_builder.md](./metaui/metaui_builder.md)。
+流式拼一份**列表用** `MetaUi`，再 `builder.table(metaUi, props)`。内部数组叫 `_fields`，避免和方法 `fields()` 撞名。用法 [metaui_builder.md](./metaui/metaui_builder.md)。
 
 ## Logic 边界
 
-允许：`context.uiBuilder.factory` / `fieldFactory` / `buildView` / `confirm` / `dialog` / `select`。
+允许：`context.uiBuilder.factory` / `fieldFactory` / `buildIndexView` / `buildDetailsView` / `buildEditView` / `confirm` / `dialog` / `select`。
 
 不允许：业务 `*Logic.ts` 里 `h`、`VNode`、`defineComponent`、`ref`、`reactive`。Vue 组件仍可放在 `packages/mes/src/components/`。
 

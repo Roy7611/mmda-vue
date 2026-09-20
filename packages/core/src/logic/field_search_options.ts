@@ -13,10 +13,10 @@ import {
  */
 export interface FieldSearchOptions {
   searching?: boolean
-  currentSelectOption?: any
+  currentSelectOption?: unknown
   searchParam: EntitySearchParam
-  selectOptions: any[]
-  cachedSelectOption?: any
+  selectOptions: unknown[]
+  cachedSelectOption?: unknown
   pagination: Pagination
   /** 联想框输入法组词中，跳过即时远程搜索 */
   isComposing?: boolean
@@ -27,7 +27,7 @@ export interface FieldSearchOptions {
 const DEFAULT_SEARCH_WORD = '__'
 
 export const defaultFieldSearchOptions = (
-  option?: any,
+  option?: unknown,
 ): FieldSearchOptions => ({
   searchParam: EntitySearchParam.create(DEFAULT_SEARCH_WORD),
   searching: false,

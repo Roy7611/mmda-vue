@@ -51,7 +51,7 @@ Logic 只认 @mmda/core
 | `view.ts` | `UiViewProps`（单对象屏 extras） |
 | `builder/list_view.ts` | `UiListViewProps`（Index / Select extras）、`UiIndexTableHost` |
 | `builder/explorer.ts` | `UiExplorerProps`（左树右表） |
-| `builder/topbar.ts` | `UiIndexTopbar` / `UiDetailsTopbar` / `UiEditTopbar`、`UiTopbarActionGroups`、`UiModuleBreadcrumbProps` |
+| `builder/topbar.ts` | `UiIndexTopbarProps` / `UiDetailsTopbarProps` / `UiEditTopbarProps`、`UiTopbarActionGroups`、`UiModuleBreadcrumbProps` |
 | `factory/toolbar.ts` | 原生命令条 `UiToolbarProps`（不是页头） |
 | `builder/dialog.ts` | Overlay props |
 | `app_side_menu.ts` | `UiAppSideMenuProps` |
@@ -71,7 +71,7 @@ Logic 只认 @mmda/core
 ```text
 程序员    MetaUi（列/字段） + Ui*Props（交互）
                 ↓
-皮肤      factory.table(rows, metaUi, props)
+皮肤      builder.table(metaUi, props)
                 ↓
           defineVendorProps(metaUi, props)   // 只在皮肤
                 ↓
@@ -81,7 +81,7 @@ Logic 只认 @mmda/core
 字段行：
 
 ```text
-builder.buildField(field, context)
+builder.editFor(field, context)
   → 选 editor/renderer
   → layout.layoutField({ label, control })  # validation copy drawn by skin control
 ```

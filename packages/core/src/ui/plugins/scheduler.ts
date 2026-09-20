@@ -6,7 +6,6 @@
  */
 import type { UiEventArgs } from '../events'
 import type { UiProps } from '../props'
-
 export type UiSchedulerView =
   | 'day'
   | 'week'

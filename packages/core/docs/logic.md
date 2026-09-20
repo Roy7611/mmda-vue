@@ -14,7 +14,7 @@
 
 - `MetaUiFieldLogic`：字段只读、隐藏、校验、搜索和自定义渲染。
 - `MetaUiGroupLogic`：子表行为、导入导出、聚合和自定义操作。
-- `UiValidation` / `validateField`：校验状态和执行。设计 [validation_design.md](./logic/validation_design.md)，用法 [validation_usage.md](./logic/validation_usage.md)，名字 [validator.md](./logic/validator.md)。
+- `Validation` / `validateField`：校验状态和执行。设计 [validation_design.md](./logic/validation_design.md)，用法 [validation_usage.md](./logic/validation_usage.md)，名字 [validator.md](./logic/validator.md)。
 - 列表查询：设计在 models [entity_search.md](./models/entity_search.md)，用法 [entity_query_usage.md](./logic/entity_query_usage.md)。日期 / join / multi：[date_filter.md](./models/date_filter.md) · [date_filter_usage.md](./logic/date_filter_usage.md)。
 - `SqlOperator`：仅 where / `refWhere` 的 SQL 片段（[sql_operator.md](./logic/sql_operator.md)）。列表字段条件用 `EntityFilterOperator`，不要再使用已删除的 SearchOp。
 

@@ -3,7 +3,6 @@
  * 不进 chrome UiFactory。契约跟 AG 轴（rowGroup / pivot / value）。
  */
 import type { UiProps } from '../props'
-
 export const PIVOT_PLUGIN_NOT_INSTALLED = 'pivot plugin not installed'
 
 export type UiPivotAggregate =

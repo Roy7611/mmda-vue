@@ -4,18 +4,17 @@
  */
 export { DateTime, Duration, Interval } from 'luxon'
 
-// Data：utils / extensions
+// Data：utils
 export * from './utils/is'
 export * from './utils/platform'
 export * from './utils/formatter'
 export * from './utils/localdb'
 export * from './utils/pluralize'
-export * from './models/date_range'
 export * from './utils/tools'
-export * from './extensions/string_extensions'
-export * from './extensions/datetime_extensions'
-export * from './extensions/number_extensions'
-export * from './extensions/array_extensions'
+export * from './utils/string'
+export * from './utils/datetime'
+export * from './utils/number'
+export * from './utils/array'
 
 // Data：metaUi（含 Module）
 export * from './metaui/datatype'
@@ -28,6 +27,7 @@ export * from './metaui/module'
 
 // Data：models
 export * from './models/entity_action'
+export * from './models/date_range'
 export * from './models/entity'
 export * from './models/file'
 export * from './models/flow'
@@ -39,7 +39,7 @@ export * from './mmda_app'
 
 // UI 契约（无 Vue / 皮肤实现）
 export * from './ui/props'
-export * from './ui/slot'
+export * from './ui/slots'
 export * from './ui/events'
 export * from './ui/css'
 export * from './ui/action'
@@ -113,6 +113,7 @@ export * from './ui/factory/avatar'
 export * from './ui/factory/skeleton'
 export * from './ui/factory/loading'
 export * from './ui/factory/error'
+export * from './ui/factory/search_relative'
 export * from './ui/factory/breadcrumb'
 export * from './ui/factory/progress_bar'
 export * from './ui/factory/slider'

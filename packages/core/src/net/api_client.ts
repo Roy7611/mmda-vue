@@ -185,7 +185,7 @@ export class ApiClient {
   protected pagedDataExtractor(res: Response) {
     return res.json().then((data) => {
       let pagination: Pagination = res.headers.has(PAGINATION_HEADER)
-        ? JSON.parse(res.headers.get(PAGINATION_HEADER))
+        ? JSON.parse(res.headers.get(PAGINATION_HEADER) ?? '')
         : NO_PAGINATION;
       return pagedList(data, pagination);
     });
@@ -283,7 +283,7 @@ export class ApiClient {
   /** 联查导出：当前查询条件下的全部打平行。 */
   exportJoinList(
     options: EntityUrlParam = {},
-    body?: any,
+    body?: unknown,
   ) {
     return this.exportAll(
       {
@@ -344,7 +344,7 @@ export class ApiClient {
   }
 
   createOne(
-    createParam: any,
+    createParam: unknown,
     { repository, queryParams, service }: EntityUrlParam = { action: "create" },
   ) {
     const url = this.buildEntityURL({
@@ -362,7 +362,7 @@ export class ApiClient {
     return this.http.postJson(url, savable);
   }
 
-  saveAll(data: any[], { repository, service }: EntityUrlParam = {}) {
+  saveAll(data: Entity[], { repository, service }: EntityUrlParam = {}) {
     const url = this.buildEntityURL({ repository, action: "saveAll", service });
     return this.http.postJson(url, data);
   }
@@ -370,7 +370,7 @@ export class ApiClient {
   exportOne(
     id: string,
     { repository, queryParams, service }: EntityUrlParam = { action: "export" },
-    body?: any,
+    body?: unknown,
   ) {
     const url = this.buildEntityURL({
       repository,
@@ -379,14 +379,14 @@ export class ApiClient {
       queryParams,
       service,
     });
-    return this.http.downloadFile(url, { options: { body } });
+    return this.http.downloadFile(url, { options: { body: body as BodyInit | undefined } });
   }
 
   exportAll(
     { action, queryParams, path, repository, service }: EntityUrlParam = {
       action: "export",
     },
-    body?: any,
+    body?: unknown,
   ) {
     const url = this.buildEntityURL({
       repository,
@@ -396,7 +396,7 @@ export class ApiClient {
       service,
     });
     return this.http.downloadFile(url, {
-      options: { body },
+      options: { body: body as BodyInit | undefined },
       beforeSend: this.http.buildJsonHeaders(),
     });
   }
@@ -483,7 +483,7 @@ export class ApiClient {
 
   doAction(
     { path: id, action, queryParams, repository, service }: EntityUrlParam = {},
-    body?: any,
+    body?: unknown,
   ) {
     const url = this.buildEntityURL({
       path: id,

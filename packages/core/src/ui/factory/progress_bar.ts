@@ -47,19 +47,9 @@ function progressNumberOf(raw: unknown): number {
 
 export function progressBarPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiProgressBarProps {
   return {
-    value: progressNumberOf(context.getFieldValue(field, extra.row)),
-    min: extra.min as number | undefined,
-    max: extra.max as number | undefined,
-    kind: extra.kind as UiProgressBarKind | undefined,
-    size: extra.size as UiProgressBarSize | undefined,
-    indeterminate: extra.indeterminate as boolean | undefined,
-    showValue: extra.showValue as boolean | undefined,
-    colorRole: extra.colorRole as UiColorRole | undefined,
-    class: extra.class,
-    htmlAttributes: extra.htmlAttributes as UiProgressBarProps['htmlAttributes'],
+    value: progressNumberOf(context.getFieldValue(field)),
   }
 }

@@ -61,7 +61,7 @@ const payload = MetaModel.savable(metaui, model)
 
 不属于数据模型：
 
-- `UiValidation`：界面校验状态（logic）
+- `Validation`：界面校验状态（logic）
 - `UiContext`：跨场景宿主（logic）
 - `SqlOperator`：where / refWhere 片段（logic）
 

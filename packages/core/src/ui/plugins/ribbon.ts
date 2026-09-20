@@ -3,7 +3,6 @@
  * 不进 chrome UiFactory；与 factory.toolbar（原生命令条）和 Topbar 都无关。
  */
 import type { UiProps } from '../props'
-
 export type UiRibbonItemType =
   | 'button'
   | 'dropDown'

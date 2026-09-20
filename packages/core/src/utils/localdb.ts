@@ -10,9 +10,9 @@ export const MMDA_LOCAL_DB_NAME = 'mmda'
 /**
  * 本地数据库
  */
-export interface LocalDb {
-  get: (key: string) => any
-  put: (key: string, value: any) => void
+export interface LocalDb<T = unknown> {
+  get: (key: string) => T | null
+  put: (key: string, value: T) => void
   delete: (key: string) => void
   clear: () => void
 }
@@ -21,7 +21,7 @@ export interface LocalDb {
  * 基于localStorage的本地数据库
  * @see {@link https://juejin.cn/post/7048976403349536776|使用Typescript封装本地存储}
  */
-export class LocalStorageDb implements LocalDb {
+export class LocalStorageDb<T = unknown> implements LocalDb<T> {
   private readonly dbName: string
   private readonly storage: Storage
   constructor(
@@ -37,13 +37,13 @@ export class LocalStorageDb implements LocalDb {
     return this.dbName + '/' + key
   }
 
-  get(key: string) {
+  get(key: string): T | null {
     const value = this.storage.getItem(this.getStorageKey(key))
     if (!value) return null
-    return JSON.parse(value)
+    return JSON.parse(value) as T
   }
 
-  put(key: string, value: any) {
+  put(key: string, value: T) {
     const data = JSON.stringify(value)
     this.storage.setItem(this.getStorageKey(key), data)
   }
@@ -66,11 +66,11 @@ export class LocalStorageDb implements LocalDb {
 /**
  * 本地异步数据库
  */
-export interface LocalAsyncDb {
-  get: (key: string) => Promise<any>
-  getMany(keys: string[]): Promise<any[]>
-  put: (key: string, value: any) => Promise<void>
-  putMany(entries: [string, any][]): Promise<void>
+export interface LocalAsyncDb<T = unknown> {
+  get: (key: string) => Promise<T | null>
+  getMany(keys: string[]): Promise<Array<T | null>>
+  put: (key: string, value: T) => Promise<void>
+  putMany(entries: Array<[string, T]>): Promise<void>
   delete: (key: string) => Promise<void>
   deleteMany(keys: string[]): Promise<void>
   clear: () => Promise<void>
@@ -79,8 +79,8 @@ export interface LocalAsyncDb {
 /**
  * 本地异步存储数据库，使用Promise封装了{@link LocalStorageDb}
  */
-export class LocalAsyncStorageDb implements LocalAsyncDb {
-  readonly db: LocalStorageDb
+export class LocalAsyncStorageDb<T = unknown> implements LocalAsyncDb<T> {
+  readonly db: LocalStorageDb<T>
   constructor(dbName: string, locale: string = 'zh') {
     this.db = new LocalStorageDb(dbName, locale)
   }
@@ -89,14 +89,14 @@ export class LocalAsyncStorageDb implements LocalAsyncDb {
     return Promise.resolve(this.db.get(key))
   }
 
-  getMany(keys: string[]): Promise<any[]> {
+  getMany(keys: string[]): Promise<Array<T | null>> {
     return Promise.resolve(keys.map(key => this.db.get(key)))
   }
 
-  put(key: string, value: any) {
+  put(key: string, value: T) {
     return Promise.resolve(this.db.put(key, value))
   }
-  putMany(entries: [string, any][]): Promise<void> {
+  putMany(entries: Array<[string, T]>): Promise<void> {
     return Promise.resolve(
       entries.forEach(entry => this.db.put(entry[0], entry[1]))
     )
@@ -117,10 +117,10 @@ enum TxMode {
   READ_WRITE = 'readwrite',
   VERSION_CHANGE = 'versionchange',
 }
-type UseIDbStore = <T>(
+type UseIDbStore = <TResult>(
   txMode: IDBTransactionMode,
-  callback: (store: IDBObjectStore) => T | PromiseLike<T>
-) => Promise<T>
+  callback: (store: IDBObjectStore) => TResult | PromiseLike<TResult>
+) => Promise<TResult>
 
 function promisifyRequest<T = undefined>(
   request: IDBRequest<T> | IDBTransaction
@@ -136,7 +136,7 @@ function promisifyRequest<T = undefined>(
 /**
  * 基于IndexedDb的本地异步数据库
  */
-export class LocalIndexedDb implements LocalAsyncDb {
+export class LocalIndexedDb<T = unknown> implements LocalAsyncDb<T> {
   private readonly dbStore: UseIDbStore
   constructor(
     public readonly dbName: string,
@@ -185,8 +185,11 @@ export class LocalIndexedDb implements LocalAsyncDb {
       return dbPromise
     }
 
-    return async (txMode, callback) => {
-      const run = async (retried = false): Promise<any> => {
+    return async <TResult>(
+      txMode: IDBTransactionMode,
+      callback: (store: IDBObjectStore) => TResult | PromiseLike<TResult>,
+    ): Promise<TResult> => {
+      const run = async (retried = false): Promise<TResult> => {
         const db = await getDb()
         try {
           if (!db.objectStoreNames.contains(storeName)) {
@@ -198,10 +201,11 @@ export class LocalIndexedDb implements LocalAsyncDb {
           return await callback(
             db.transaction(storeName, txMode).objectStore(storeName),
           )
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorName = error instanceof Error ? error.name : undefined
           const missingStore =
-            error?.name === 'NotFoundError' ||
-            error?.name === 'InvalidStateError'
+            errorName === 'NotFoundError' ||
+            errorName === 'InvalidStateError'
           if (!retried && missingStore) {
             try {
               db.close()
@@ -218,23 +222,27 @@ export class LocalIndexedDb implements LocalAsyncDb {
     }
   }
 
-  get(key: string): Promise<any> {
+  get(key: string): Promise<T | null> {
     return this.dbStore(TxMode.READ_ONLY, store =>
-      promisifyRequest(store.get(key))
+      promisifyRequest(store.get(key) as IDBRequest<T | null>),
     )
   }
-  getMany(keys: string[]): Promise<any[]> {
+  getMany(keys: string[]): Promise<Array<T | null>> {
     return this.dbStore(TxMode.READ_ONLY, store =>
-      Promise.all(keys.map(key => promisifyRequest(store.get(key))))
+      Promise.all(
+        keys.map(key =>
+          promisifyRequest(store.get(key) as IDBRequest<T | null>),
+        ),
+      ),
     )
   }
-  put(key: string, value: any): Promise<void> {
+  put(key: string, value: T): Promise<void> {
     return this.dbStore(TxMode.READ_WRITE, store => {
       store.put(value, key)
       return promisifyRequest(store.transaction)
     })
   }
-  putMany(entries: [string, any][]): Promise<void> {
+  putMany(entries: Array<[string, T]>): Promise<void> {
     return this.dbStore(TxMode.READ_WRITE, store => {
       entries.forEach(entry => store.put(entry[1], entry[0]))
       return promisifyRequest(store.transaction)
@@ -288,14 +296,14 @@ export class LocalIndexedDb implements LocalAsyncDb {
  * 公共 SSO 库（仅 `user` / `config`）。
  * 优先 localStorage（`mmda/user`、`mmda/config`），避开 IndexedDB objectStore 升级竞态。
  */
-export function useMmdaSsoDb(
+export function useMmdaSsoDb<T = unknown>(
   options?: IDBObjectStoreParameters,
-): LocalAsyncDb {
+): LocalAsyncDb<T> {
   if (supportLocalStorage) {
-    return new LocalAsyncStorageDb(MMDA_LOCAL_DB_NAME, '')
+    return new LocalAsyncStorageDb<T>(MMDA_LOCAL_DB_NAME, '')
   }
   if (supportIndexedDb) {
-    return new LocalIndexedDb(MMDA_LOCAL_DB_NAME, 'sso', options)
+    return new LocalIndexedDb<T>(MMDA_LOCAL_DB_NAME, 'sso', options)
   }
   throw new Error('Local db not supported!')
 }
@@ -310,12 +318,12 @@ export function useMmdaSsoDb(
  * @returns ``localasyncdb''的实例，它可能由索引eddb或localstorage支持。
  * @throws 如果不支持索引和localstorage，将会丢弃错误。
  */
-export function useLocalAsyncDb(
+export function useLocalAsyncDb<T = unknown>(
   dbName: string,
   locale: string = 'zh',
   options?: IDBObjectStoreParameters,
-): LocalAsyncDb {
-  if (supportIndexedDb) return new LocalIndexedDb(dbName, locale, options)
-  else if (supportLocalStorage) return new LocalAsyncStorageDb(dbName, locale)
+): LocalAsyncDb<T> {
+  if (supportIndexedDb) return new LocalIndexedDb<T>(dbName, locale, options)
+  else if (supportLocalStorage) return new LocalAsyncStorageDb<T>(dbName, locale)
   else throw new Error('Local db not supported!')
 }

@@ -244,7 +244,7 @@ export class MetaUi {
     if (this.#listedFields.length == 0 || reset) {
       this.#listedFields = this.groups
         .filter(g => !g.many)
-        .reduce((prev, curr) => {
+        .reduce<MetaUiField[]>((prev, curr) => {
           return prev.concat(curr.getListedFields(reset))
         }, []).sort(compareListColumns)
     }

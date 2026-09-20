@@ -1,6 +1,5 @@
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiOneTimePasswordType = 'number' | 'text' | 'password'
 
 export interface UiOneTimePasswordInputProps extends UiProps {

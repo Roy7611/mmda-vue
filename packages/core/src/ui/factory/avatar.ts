@@ -45,40 +45,21 @@ function avatarSrcOf(raw: unknown): string | undefined {
   return text || undefined
 }
 
-function avatarSizeOf(extra: UiProps): UiAvatarSize | undefined {
-  const size = extra.size
-  if (
-    size === 'xsmall' ||
-    size === 'small' ||
-    size === 'medium' ||
-    size === 'large' ||
-    size === 'xlarge'
-  ) {
-    return size
-  }
-  return undefined
-}
-
 export function avatarPropsFromField(
   field: MetaUiField,
-  context: AvatarFieldContext,
-  extra: UiProps = {},
+  context: AvatarFieldContext
 ): UiAvatarProps {
-  const src = avatarSrcOf(context.getFieldValue(field, extra.row))
+  const src = avatarSrcOf(context.getFieldValue(field))
   return {
     src,
     icon:
-      (extra.icon as string | undefined) ??
       (src ? undefined : DEFAULT_AVATAR_ICON),
-    label: extra.label as string | undefined,
-    shape: (extra.shape as UiAvatarShape | undefined) ?? 'circle',
-    size: avatarSizeOf(extra) ?? (extra.row != null ? 'small' : 'medium'),
-    colorRole: extra.colorRole as UiColorRole | undefined,
-    class: extra.class,
+    shape: 'circle',
+        size: 'medium',
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

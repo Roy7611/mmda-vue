@@ -1,5 +1,6 @@
 import { uiCssClass } from '../css'
 import type { UiEventArgs } from '../events'
+import type { UiProps } from '../props'
 
 export type UiSplitterOrientation = 'Horizontal' | 'Vertical'
 
@@ -24,7 +25,7 @@ export interface UiSplitterResizeEventArgs extends UiEventArgs {
   paneSize?: number[]
 }
 
-export interface UiSplitterProps {
+export interface UiSplitterProps extends UiProps {
   orientation?: UiSplitterOrientation
   class?: string
   width?: string
@@ -38,6 +39,11 @@ export interface UiSplitterProps {
   onResizeStart?: (event: UiSplitterResizeEventArgs) => void
   onResizing?: (event: UiSplitterResizeEventArgs) => void
   onResizeStop?: (event: UiSplitterResizeEventArgs) => void
+}
+
+/** 分隔栏插槽：`default` 返回带尺寸/折叠配置的分栏描述。 */
+export interface UiSplitterSlots<TNode = any> {
+  default: () => UiSplitterPane<TNode>[]
 }
 
 export const DEFAULT_SPLITTER_SIZE = '100%'

@@ -1,7 +1,7 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import type { UiOrientation } from '../layout'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { uiCssClass, UI_CSS_PREFIX } from '../css'
 import {
   selectButtonGroupSelected,
@@ -55,7 +55,6 @@ export function radioButtonGroupValueOf(
   props: UiRadioButtonGroupProps,
 ): unknown {
   if (props.value !== undefined) return props.value ?? null
-  if (props.modelValue !== undefined) return props.modelValue ?? null
   return undefined
 }
 
@@ -92,22 +91,20 @@ export function radioButtonGroupItemSelected(
 
 export function radioButtonGroupPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiRadioButtonGroupProps {
   const reference = field.reference
   const grouped = isSelectOptionsGroupedField(reference)
-  const source = selectFieldOptionSource(field, extra)
+  const source = selectFieldOptionSource(field)
   const options: UiSelectOption[] = source.map((item) =>
     selectOptionFromSource(item, reference, grouped),
   )
   return {
     value: selectFieldValueOf(field, context.getFieldValue(field)),
     options,
-    orientation: extra.orientation as UiRadioButtonGroupProps['orientation'],
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    name: (extra.name as string | undefined) ?? field.fieldName,
+      context.isFieldReadonly(field),
+    name: field.fieldName,
     onChange: (value) => {
       const scalar =
         value == null || value === ''
@@ -115,15 +112,12 @@ export function radioButtonGroupPropsFromField(
           : typeof value === 'string' || typeof value === 'number'
             ? value
             : selectFieldValueOf(field, value)
-      context.setFieldValue(field, selectFieldWritebackOf(field, extra, scalar))
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
+      context.setFieldValue(field, selectFieldWritebackOf(field, scalar))
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

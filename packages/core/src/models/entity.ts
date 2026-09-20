@@ -29,10 +29,9 @@ export enum EntityState {
  * 值对象，常用于选择域（如Dropdown）的数据源
  */
 export interface ValueObject {
-  value: any;
+  value: unknown;
   label: string;
 }
-
 
 /**
  * 实体抽象基类，从服务器获取的Json数据
@@ -55,10 +54,10 @@ export interface ValueObject {
 
 export abstract class Entity {
   [index: string]: any;
-  rowNum: string;
-  editable: boolean;
-  deletable: boolean;
-  entityState: EntityState;
+  rowNum!: string;
+  editable!: boolean;
+  deletable!: boolean;
+  entityState!: EntityState;
   actions?: EntityAction[];
   customProperties?: Record<string, any>;
 }
@@ -67,116 +66,6 @@ export abstract class Entity {
  * 实体构造函数
  */
 export type EntityCtor<E> = (o: object) => E;
-
-// export abstract class Entity {
-//   // [index: string]: any;
-//   constructor(public rowNum: number = 0,
-//     public entityState: EntityState = EntityState.CREATED,
-//     public editable: boolean = true,
-//     public deletable: boolean = true,
-//     public actions?: EntityAction[],
-//     public customProperties?: Record<string,any>){
-//   }
-//   abstract get id():any;
-
-//   get isCreated(){
-//       return (this.entityState & EntityState.CREATED) > 0;
-//   }
-//   get isModified(){
-//       return (this.entityState & EntityState.MODIFIED) > 0;
-//   }
-//   get isDeleted(){
-//       return (this.entityState & EntityState.DELETED) > 0;
-//   }
-//   get isDirty(){
-//       return this.entityState != EntityState.DEFAULT;
-//   }
-
-//   setModified(){ this.entityState |= EntityState.MODIFIED; }
-//   setDeleted(){ this.entityState |= EntityState.DELETED; }
-
-//   getCustomProp(propName: string){
-//       return getCustomProp(this,propName);
-//   }
-//   setCustomProp(propName: string, propVal: any){
-//     setCustomProp(this,propName,propVal);
-//   }
-//   removeCustomProperty(propName: string){
-//     if(!this.customProperties) return;
-//     this.customProperties.delete(propName);
-//   }
-
-//   getRefProp(propName: string){
-//     return getRefProp(this,propName)
-//   }
-//   setRefProp(propName: string, propVal: any){
-//     setRefProp(this,propName,propVal)
-//   }
-
-//   getValueObject(propName: string){
-//     return getValueObject(this,propName)
-//   }
-//   setValueObject(propName: string, valueObj: any){
-//     setValueObject(this,propName,valueObj)
-//   }
-
-//   getDataProp(dataPath: string){
-//     return getDataProp(this,dataPath)
-//   }
-
-//   getOneProp(one: string, propName: string){
-//     return getOneProp(this,one,propName)
-//   }
-
-//   toJSON(){
-//     return JSON.stringify(this);
-//   }
-// }
-
-/**
- * 视图模型
- *
- * @remarks
- *
- * 包含：
- * 1. entity 主实体对象
- * 2. valueObjects 值对象存储主实体对象的关联数据，比如选择项，枚举项，hidden函数，readOnly函数，引用值修改函数setValueObject
- * 3. computed 函数可用于valueObjects
- * 4. methods 方法比如，save, calc, doAction(a) 事件和行为
- * 5. lifetimes 声明周期钩子
- * 6. props, emits, slots, attrs 等组件架构
- * 使用选项式API更适合先写纯TS/JS的逻辑，然后组装成Vue或者Wx小程序的Component
- *
- * @example
- * 可以这么写一个实体编辑器逻辑
- * ```ts
- * // putaway_logic.ts
- * export default {
- *  props: ["id"]
- *  data() {
- *    return buildViewModel(Putaway, metaUi)
- *  },
- *  computed: {
- *    totalQuantity(){ return this.items.reduce((prev,curr)=>prev+curr.quantity),0},
- *  },
- *  methods: {},
- *  lifetimes: {
- *    // 小程序和H5不一样写法
- *  },
- * }
- * ```
- *
- * 然后这么定义编辑器组件
- * ```ts
- * //putaway_edit.ts
- * import * as PutawayLogic from './putaway_logic.ts'
- * <script lang="ts">
- * export default defineEditor(
- *  PutawayLogic
- * );
- * </script>
- * ```
- */
 
 /**
  * 实体引用键
@@ -197,4 +86,3 @@ export interface EntityRefItemKey extends EntityRefKey {
 export interface EntityCreateParam extends Partial<EntityRefKey> {
   refItemKeys?: EntityRefItemKey[];
 }
-

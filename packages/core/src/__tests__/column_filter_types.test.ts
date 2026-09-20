@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasBit } from '../extensions/number_extensions'
+import { hasBit } from '../utils/number'
 import { SqlDataType } from '../metaui/datatype'
 import {
   MetaUiFilterOperator,

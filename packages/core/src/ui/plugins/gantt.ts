@@ -5,7 +5,6 @@
  */
 import type { UiEventArgs } from '../events'
 import type { UiProps } from '../props'
-
 export type UiGanttTaskType = 'task' | 'milestone' | 'project'
 
 export type UiGanttTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'

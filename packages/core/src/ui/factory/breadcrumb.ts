@@ -1,5 +1,4 @@
 import type { UiProps } from '../props'
-
 export interface UiBreadcrumbItem {
   key?: string
   label: string

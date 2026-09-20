@@ -6,7 +6,7 @@
 
 ## 要解决的两个目标
 
-1. 程序员写 `factory.textInput(...)` / `builder.buildGrid(...)`，传的是**标准化的 MMDA 参数类型**（`UiTextInputProps` / `UiGridProps`…），不必知道皮肤，也不必知道 Vue。
+1. 程序员写 `factory.textInput(...)` / `builder.grid(metaUi, props)`，传的是**标准化的 MMDA 参数类型**（`UiTextInputProps` / `UiGridProps`…），不必知道皮肤，也不必知道 Vue。
 2. core **跨 vue / react**：参数类型与接口统一，vui / rui 只做极少转换就能直接喂 `h` / `createElement`。
 
 ## 为什么改

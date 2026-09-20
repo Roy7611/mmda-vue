@@ -3,10 +3,12 @@ import { SqlDataType } from '../metaui/datatype'
 import { MetaUiField } from '../metaui/metaui_field'
 import {
   defaultFieldSearchOptions,
+  defineGroupValidation,
   defineValidation,
   getFieldFilterOps,
   getSqlOperator,
   isDefaultFieldSearchOptions,
+  MetaUiGroup,
   MetaUiFieldLogic,
   parseValidatorDescriptors,
   required,
@@ -241,6 +243,38 @@ describe('validation', () => {
     } as any)
     expect((withRows.items as any)['1'].rowNum).toBe('1')
     expect((withRows.items as any)['2'].summary).toEqual({ errorNum: 0 })
+  })
+
+  it('defineGroupValidation builds requiredAny/readOnly state', () => {
+    const items = new MetaUiGroup({
+      groupName: 'items',
+      groupLabel: 'items',
+      many: true,
+      requiredAny: true,
+    })
+    const empty = defineGroupValidation(items)
+    expect(empty.summary).toEqual({
+      errorNum: 1,
+      errorMessage: 'invalid.requiredAny',
+    })
+
+    const withRows = defineGroupValidation(items, [
+      { rowNum: '1' } as any,
+    ])
+    expect(withRows['1']).toEqual({ rowNum: '1', summary: { errorNum: 0 } })
+    expect(withRows.summary).toBeUndefined()
+
+    const readOnly = defineGroupValidation(
+      new MetaUiGroup({
+        groupName: 'logs',
+        groupLabel: 'logs',
+        many: true,
+        readOnly: true,
+        requiredAny: true,
+      }),
+      [],
+    )
+    expect(readOnly).toEqual({})
   })
 })
 

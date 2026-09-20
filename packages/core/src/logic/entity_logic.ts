@@ -1,6 +1,5 @@
 import { ApiClient, type EntityUrlParam } from "../net/api_client";
-import { ApiProblem, toApiProblem } from "../net/api_problem";
-import { ApiError, isApiErrorPayload, toApiError } from "../net/api_error";
+import { ApiProblem, isApiProblemPayload, toApiProblem } from "../net/api_problem";
 import { isObject, isNullObject } from "../utils/is";
 import { Entity, type EntityCtor, EntitySearchParam, type SelectableFn } from "../models/entity";
 import {
@@ -13,6 +12,8 @@ import type { PagedList } from "../models/pagination";
 import { DEFAULT_PAGE_SIZE, NO_PAGINATION } from "../models/pagination";
 import type { EntityAction } from "../models/entity_action";
 import type { MetaUi, MetaUiGroup } from "../metaui/metaui_group";
+import type { MetaUiField } from "../metaui/metaui_field";
+import type { MetaUiFilterOpCode } from "../metaui/metaui_filter";
 import { MetaUiFieldLogic } from "./field_logic";
 import { MetaUiGroupLogic } from "./group_logic";
 import type {
@@ -22,12 +23,12 @@ import type {
 import type { Module } from "../metaui/module";
 import type { EntityQuery } from "../models/entity_search";
 import type { UiContext } from "../ui/context";
-import type { UiValidation } from "./validation";
+import type { Validation } from "./validation";
 import type { Predicate } from "./logic_functions";
 import type { UniListViewProps, UiViewType } from "../ui/view";
 import { UiViewMany, UiViewOne } from "../ui/view";
 import { getSqlOperator } from "./sql_operator";
-import "../extensions/string_extensions";
+import { firstLetterUpper } from "../utils/string";
 
 export interface ListSettingsPayload {
   service: string;
@@ -50,54 +51,90 @@ export interface EntityLogicInit {
   apiService?: string;
 }
 
-/** 搜索栏装配结果；searchFields 元素由 UI 壳提供（vui 为 UiSearchField）。 */
-export interface EntitySearchForm {
-  searchParam?: EntitySearchParam;
-  queryParams?: Record<string, any>;
-  searchFields: any[];
-  customSearchFields: any[];
+/** 结构化搜索字段：Logic 只读取字段名、当前操作符和值。 */
+export interface EntitySearchField {
+  field: MetaUiField;
+  currentOp: MetaUiFilterOpCode;
+  hasVal: boolean;
+  searchValue: unknown;
 }
 
+/** 自定义搜索字段的 Logic 层最小视图：业务装配时只需给出渲染与取值契约。 */
+export interface EntityCustomSearchField {
+  searchLabel?: string;
+  searchParam: string;
+  renderer?: (...args: any[]) => unknown;
+  defaultValue?: unknown;
+  valueFn?: (value: unknown) => unknown;
+  hasVal?: boolean;
+  searchValue?: unknown;
+}
+
+/** 搜索栏装配结果；`searchFields` 由 UI 壳提供，`customSearchFields` 由业务装配。 */
+export interface EntitySearchForm {
+  searchParam?: EntitySearchParam;
+  queryParams?: Record<string, unknown>;
+  searchFields: EntitySearchField[];
+  customSearchFields: EntityCustomSearchField[];
+}
+
+/** 各视图类型的额外配置：键为视图类型，值为返回该视图渲染选项的函数。 */
 export type UiViewOptions = Partial<
-  Record<UiViewType, (ctx: UiContext) => Record<string, any>>
+  Record<UiViewType, (ctx: UiContext) => Record<string, unknown>>
 >;
 
+/** 由视图类型推导 `beforeXxx` 钩子名，例如 `edit` -> `beforeEdit`。 */
 export const beforeView = (viewType: string) =>
-  `before${viewType.firstLetterUpper()}`;
-export const clearView = (viewType: string) =>
-  `clear${viewType.firstLetterUpper()}Logic`;
+  `before${firstLetterUpper(viewType)}`;
 
+/** `beforeXxx` 钩子的返回值：字段逻辑、分组逻辑和自定义动作的集合。 */
 export type UiLogicFnResult<E extends Entity = Entity> = {
+  /** 字段逻辑：可见、只读、校验、onChange，自定义渲染器和编辑器等 */
   fields: MetaUiFieldLogic<E>[];
+  /** 子表逻辑：整组可见、只读、onChangeGroup，添加、删除操作以及自定义渲染器和编辑器，细到子表字段级逻辑 */
   groups: MetaUiGroupLogic<E, Entity>[];
+  /** 页面级自定义操作：例如详情页面上工具栏临时加个按钮 */
   customActions: EntityAction[];
 };
+
+/** 视图逻辑钩子：在视图初始化前装配该视图的字段/分组/动作。 */
 export type UiLogicFn<E extends Entity = Entity> = () => UiLogicFnResult<E>;
-export type UiViewLogicModule<E extends Entity = Entity> =
+
+/** 视图逻辑函数集合：可以是一个钩子函数，也可以是多个钩子组成的对象。 */
+export type UiLogicFnResultSet<E extends Entity = Entity> =
   | UiLogicFn<E>
   | Record<string, UiLogicFn<E> | unknown>;
-export type UiViewLogicLoader<E extends Entity = Entity> = () => Promise<UiViewLogicModule<E>>;
 
+/** 视图逻辑函数异步加载器：返回 Promise，适合按需分包加载。 */
+export type UiLogicFnAsyncLoader<E extends Entity = Entity> = () => Promise<UiLogicFnResultSet<E>>;
+
+/** 单个实体动作执行前的钩子：返回 `false` 可取消动作。 */
 export type UiLogicBeforeFn<E> = (
   context: UiContext,
   model?: E,
-  ...args: any[]
+  ...args: unknown[]
 ) => Promise<boolean>;
+
+/** 单个实体动作执行后的钩子：`apiResultOrError` 是接口结果或异常。 */
 export type UiLogicAfterFn<E> = (
   context: UiContext,
   model: E,
   action?: EntityAction,
   apiResultOrError?: unknown,
-) => any;
-export type UiLogicManyBeforeFn<E> = (
+) => unknown;
+
+/** 批量实体动作执行前的钩子：返回 `false` 可取消动作。 */
+export type UiManyLogicBeforeFn<E> = (
   context: UiContext,
   models: E[],
-  ...args: any[]
+  ...args: unknown[]
 ) => Promise<boolean>;
-export type UiLogicManyAfterFn<E> = (
+
+/** 批量实体动作执行后的钩子。 */
+export type UiManyLogicAfterFn<E> = (
   context: UiContext,
   models: E[],
-  ...args: any[]
+  ...args: unknown[]
 ) => void;
 
 /**
@@ -112,7 +149,7 @@ export abstract class EntityLogic<E extends Entity> {
   metaUi?: MetaUi;
   viewUi?: MetaUi;
   module?: Module;
-  createParam: any;
+  createParam: unknown;
   readonly metaUiService: MetaUiService;
   readonly apiClient: ApiClient;
   readonly repository: string;
@@ -120,55 +157,77 @@ export abstract class EntityLogic<E extends Entity> {
   readonly customPage: boolean;
   readonly apiService?: string;
 
-  listViewProps?: UniListViewProps;
-  viewLogicLoaders: Partial<Record<UiViewType, UiViewLogicLoader<E>>> = {};
+  indexViewProps?: UniListViewProps;
+  viewLogicLoaders: Partial<Record<UiViewType, UiLogicFnAsyncLoader<E>>> = {};
   viewOptions?: UiViewOptions;
 
-  private readonly relativeLogics: Record<
+  readonly #relativeLogics: Record<
     string,
-    (master: E) => SubEntityLogic<any, E>
+    (master: E) => SubEntityLogic<Entity, E>
   >;
-  private searchForm?: EntitySearchForm;
+  #searchForm?: EntitySearchForm;
 
-  private editFields?: MetaUiFieldLogic<E>[];
-  private editGroups?: MetaUiGroupLogic<E, any>[];
-  private editActions?: EntityAction[];
-  private detailsFields?: MetaUiFieldLogic<E>[];
-  private detailsGroups?: MetaUiGroupLogic<E, any>[];
-  private detailsActions?: EntityAction[];
-  private listFields?: MetaUiFieldLogic<E>[];
-  private listGroups?: MetaUiGroupLogic<E, any>[];
-  private listActions?: EntityAction[];
-  private selectManyFields?: MetaUiFieldLogic<E>[];
-  private selectManyGroups?: MetaUiGroupLogic<E, any>[];
-  private selectManyActions?: EntityAction[];
-  private readonly loadingViewLogics = new Map<UiViewType, Promise<void>>();
+  #editFields?: MetaUiFieldLogic<E>[];
+  #editGroups?: MetaUiGroupLogic<E, Entity>[];
+  #editActions?: EntityAction[];
+  #detailsFields?: MetaUiFieldLogic<E>[];
+  #detailsGroups?: MetaUiGroupLogic<E, Entity>[];
+  #detailsActions?: EntityAction[];
+  #indexFields?: MetaUiFieldLogic<E>[];
+  #indexGroups?: MetaUiGroupLogic<E, Entity>[];
+  #indexActions?: EntityAction[];
+  #selectManyFields?: MetaUiFieldLogic<E>[];
+  #selectManyGroups?: MetaUiGroupLogic<E, Entity>[];
+  #selectManyActions?: EntityAction[];
+  readonly #loadingViewLogics = new Map<UiViewType, Promise<void>>();
 
+  /** 加载当前实体数据前；返回 `false` 可取消加载。 */
   beforeLoad?: UiLogicBeforeFn<E>;
+  /** 当前实体数据加载完成后。 */
   afterLoad?: UiLogicAfterFn<E>;
+  /** 校验前；返回 `false` 可取消校验。 */
   beforeValidate?: UiLogicBeforeFn<E>;
+  /** 校验完成后；返回本次校验的错误数量。 */
   afterValidate?: (
     context: UiContext,
     model: E,
-    validation: UiValidation,
+    validation: Validation,
   ) => Promise<number>;
+  /** 保存前；返回 `false` 可取消保存。 */
   beforeSave?: UiLogicBeforeFn<E>;
+  /** 保存完成后。 */
   afterSave?: UiLogicAfterFn<E>;
+  /** 导入前；返回 `false` 可取消导入。 */
   beforeImport?: UiLogicBeforeFn<E>;
+  /** 导入完成后。 */
   afterImport?: UiLogicAfterFn<E>;
+  /** 打印前；返回 `false` 可取消打印。 */
   beforePrint?: UiLogicBeforeFn<E>;
+  /** 打印完成后。 */
   afterPrint?: UiLogicAfterFn<E>;
+  /** 上传前；返回 `false` 可取消上传。 */
   beforeUpload?: UiLogicBeforeFn<E>;
+  /** 上传完成后。 */
   afterUpload?: UiLogicAfterFn<E>;
+  /** 通用实体动作执行前；返回 `false` 可取消动作。 */
   beforeAction?: UiLogicBeforeFn<E>;
+  /** 通用实体动作执行完成后。 */
   afterAction?: UiLogicAfterFn<E>;
+  /** 删除前；返回 `false` 可取消删除。 */
   beforeDelete?: UiLogicBeforeFn<E>;
+  /** 删除完成后。 */
   afterDelete?: UiLogicAfterFn<E>;
-  beforeDeleteAll?: UiLogicManyBeforeFn<E>;
-  afterDeleteAll?: UiLogicManyAfterFn<E>;
-  beforeResetFilters?: UiLogicManyBeforeFn<E>;
-  afterResetFilters?: UiLogicManyAfterFn<E>;
-  groupActionVisibles?: Record<string, Record<string, Predicate>>;
+  /** 批量删除前；返回 `false` 可取消批量删除。 */
+  beforeDeleteAll?: UiManyLogicBeforeFn<E>;
+  /** 批量删除完成后。 */
+  afterDeleteAll?: UiManyLogicAfterFn<E>;
+  /** 重置筛选前；返回 `false` 可取消重置。 */
+  beforeResetFilters?: UiManyLogicBeforeFn<E>;
+  /** 重置筛选完成后。 */
+  afterResetFilters?: UiManyLogicAfterFn<E>;
+  /** 分组动作可见性：按组名和动作名返回谓词。 */
+  groupActionVisibles?: Record<string, Record<string, Predicate<E>>>;
+  /** 按名称注册的可选项生成函数。 */
   selectableList?: Record<string, SelectableFn<E>>;
 
   constructor(
@@ -183,21 +242,12 @@ export abstract class EntityLogic<E extends Entity> {
     this.customPage = init.customPage ?? false;
     this.apiService = init.apiService;
     this.apiClient = this.metaUiService.getApiClient(this.repository);
-    this.relativeLogics = {};
-  }
-
-  get logicFields() {
-    return this.editFields || this.detailsFields || this.listFields || [];
-  }
-
-  getLogicField(fieldName: string) {
-    return this.logicFields.find((field) => field.field.fieldName === fieldName)
-      ?.field;
+    this.#relativeLogics = {};
   }
 
   get searchParams() {
     const fields = Object.fromEntries(
-      (this.searchForm?.searchFields ?? []).map((field) => [
+      (this.#searchForm?.searchFields ?? []).map((field) => [
         field.field.fieldName,
         field.hasVal
           ? (getSqlOperator(field.currentOp)?.toSQL(field.searchValue) ?? "")
@@ -205,7 +255,7 @@ export abstract class EntityLogic<E extends Entity> {
       ]),
     );
     const custom = Object.fromEntries(
-      (this.searchForm?.customSearchFields ?? []).map((field) => [
+      (this.#searchForm?.customSearchFields ?? []).map((field) => [
         field.searchParam,
         field.hasVal ? field.searchValue : "",
       ]),
@@ -217,24 +267,23 @@ export abstract class EntityLogic<E extends Entity> {
     name: string,
     logicCreator: (master: E) => SubEntityLogic<R, E>,
   ) {
-    this.relativeLogics[name] = logicCreator;
+    this.#relativeLogics[name] = logicCreator as unknown as (master: E) => SubEntityLogic<Entity, E>;
   }
 
   createRelativeLogic<R extends Entity>(name: string, master: E) {
-    const logicCreator = this.relativeLogics[name];
-    return logicCreator ? (logicCreator(master) as SubEntityLogic<R, E>) : null;
+    const logicCreator = this.#relativeLogics[name];
+    return logicCreator
+      ? (logicCreator(master) as unknown as SubEntityLogic<R, E>)
+      : null;
   }
 
-  getLogicFn(
-    view: UiViewType,
-    type: "before" | "clear" = "before",
-  ): UiLogicFn<E> {
-    return (this as any)[
-      type === "before" ? beforeView(view) : clearView(view)
-    ];
+  getLogicFn(view: UiViewType): UiLogicFn<E> {
+    const self = this as unknown as Record<string, UiLogicFn<E> | undefined>
+    const key = beforeView(view)
+    return self[key] as UiLogicFn<E>
   }
 
-  private resolveLogicView(view: UiViewType): UiViewType {
+  #resolveLogicView(view: UiViewType): UiViewType {
     if (view === "create" || view === "editMany") return UiViewOne.Edit;
     if (view === "selectOne") return UiViewMany.Index;
     if (
@@ -248,24 +297,26 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   async ensureViewLogic(view: UiViewType): Promise<UiViewType> {
-    const logicView = this.resolveLogicView(view);
+    const logicView = this.#resolveLogicView(view);
     const loader = this.viewLogicLoaders[logicView];
     if (!loader) return logicView;
 
-    let loading = this.loadingViewLogics.get(logicView);
+    let loading = this.#loadingViewLogics.get(logicView);
     if (!loading) {
       loading = loader().then((loaded) => {
         const methodName = beforeView(logicView);
         if (typeof loaded === "function") {
-          (this as any)[methodName] = loaded;
+          const self = this as unknown as Record<string, UiLogicFn<E>>
+          self[methodName] = loaded;
           return;
         }
         const method = loaded[methodName];
         if (typeof method === "function") {
-          (this as any)[methodName] = method;
+          const self = this as unknown as Record<string, UiLogicFn<E>>
+          self[methodName] = method as UiLogicFn<E>;
         }
       });
-      this.loadingViewLogics.set(logicView, loading);
+      this.#loadingViewLogics.set(logicView, loading);
     }
     await loading;
     return logicView;
@@ -279,7 +330,7 @@ export abstract class EntityLogic<E extends Entity> {
 
   createDefault(proto?: object): E {
     return MetaModel.createEntity<E>(
-      this.metaUi,
+      this.metaUi!,
       this.createEntity,
       proto,
     );
@@ -328,75 +379,51 @@ export abstract class EntityLogic<E extends Entity> {
   }
 
   beforeSearch(): EntitySearchForm {
-    return (this.searchForm ??= this.createSearchForm());
+    return (this.#searchForm ??= this.createSearchForm());
   }
 
   beforeEdit(): UiLogicFnResult<E> {
-    this.editFields ??= [];
-    this.editGroups ??= [];
-    this.editActions ??= [];
+    this.#editFields ??= [];
+    this.#editGroups ??= [];
+    this.#editActions ??= [];
     return {
-      fields: this.editFields,
-      groups: this.editGroups,
-      customActions: this.editActions,
+      fields: this.#editFields,
+      groups: this.#editGroups,
+      customActions: this.#editActions,
     };
-  }
-
-  clearEditLogic() {
-    this.editFields = [];
-    this.editGroups = [];
-    this.editActions = [];
   }
 
   beforeDetails(): UiLogicFnResult<E> {
-    this.detailsFields ??= [];
-    this.detailsGroups ??= [];
-    this.detailsActions ??= [];
+    this.#detailsFields ??= [];
+    this.#detailsGroups ??= [];
+    this.#detailsActions ??= [];
     return {
-      fields: this.detailsFields,
-      groups: this.detailsGroups,
-      customActions: this.detailsActions,
+      fields: this.#detailsFields,
+      groups: this.#detailsGroups,
+      customActions: this.#detailsActions,
     };
-  }
-
-  clearDetailsLogic() {
-    this.detailsFields = [];
-    this.detailsGroups = [];
-    this.detailsActions = [];
   }
 
   beforeIndex(): UiLogicFnResult<E> {
-    this.listFields ??= [];
-    this.listGroups ??= [];
-    this.listActions ??= [];
+    this.#indexFields ??= [];
+    this.#indexGroups ??= [];
+    this.#indexActions ??= [];
     return {
-      fields: this.listFields,
-      groups: this.listGroups,
-      customActions: this.listActions,
+      fields: this.#indexFields,
+      groups: this.#indexGroups,
+      customActions: this.#indexActions,
     };
-  }
-
-  clearIndexLogic() {
-    this.listFields = [];
-    this.listGroups = [];
-    this.listActions = [];
   }
 
   beforeSelectMany(): UiLogicFnResult<E> {
-    this.selectManyFields ??= [];
-    this.selectManyGroups ??= [];
-    this.selectManyActions ??= [];
+    this.#selectManyFields ??= [];
+    this.#selectManyGroups ??= [];
+    this.#selectManyActions ??= [];
     return {
-      fields: this.selectManyFields,
-      groups: this.selectManyGroups,
-      customActions: this.selectManyActions,
+      fields: this.#selectManyFields,
+      groups: this.#selectManyGroups,
+      customActions: this.#selectManyActions,
     };
-  }
-
-  clearSelectManyLogic() {
-    this.selectManyFields = [];
-    this.selectManyGroups = [];
-    this.selectManyActions = [];
   }
 
   async applyTo(context: UiContext<E>, view: UiViewType = UiViewOne.Edit) {
@@ -411,12 +438,12 @@ export abstract class EntityLogic<E extends Entity> {
     return defaultEntitySimplifyOptions;
   }
 
-  error(e: any): never {
+  error(e: unknown): never {
     console.error(e);
     throw e;
   }
 
-  success(message: any) {
+  success(message: unknown) {
     console.info(message);
   }
 
@@ -502,12 +529,13 @@ export abstract class EntityLogic<E extends Entity> {
     });
   }
 
-  async create(param: any = {}, entityUrlParam?: EntityUrlParam) {
+  async create(param: unknown = {}, entityUrlParam?: EntityUrlParam) {
     try {
       this.createParam = param;
+      const paramRecord = param as { entity?: unknown };
       const data =
-        isObject(param.entity) && !isNullObject(param.entity)
-          ? param.entity
+        isObject(paramRecord.entity) && !isNullObject(paramRecord.entity)
+          ? paramRecord.entity
           : await this.apiClient.createOne(param, {
               service: this.apiService,
               ...entityUrlParam,
@@ -518,11 +546,11 @@ export abstract class EntityLogic<E extends Entity> {
     }
   }
 
-  importCreate(param: any = {}) {
+  importCreate(param: unknown = {}) {
     return this.create(param);
   }
 
-  async crossSystemAccess(param: EntityUrlParam & { body?: any }) {
+  async crossSystemAccess(param: EntityUrlParam & { body?: unknown }) {
     try {
       const data = await this.apiClient.doAction(param, param.body);
       return this.createEntity(data);
@@ -531,9 +559,9 @@ export abstract class EntityLogic<E extends Entity> {
     }
   }
 
-  async load(id: any) {
+  async load(id: unknown) {
     try {
-      const data = await this.apiClient.getOne(id, {
+      const data = await this.apiClient.getOne(String(id), {
         service: this.apiService,
       });
       return this.createEntity(data);
@@ -542,9 +570,9 @@ export abstract class EntityLogic<E extends Entity> {
     }
   }
 
-  async delete(id: any) {
+  async delete(id: unknown) {
     try {
-      return await this.apiClient.deleteOne(id, { service: this.apiService });
+      return await this.apiClient.deleteOne(String(id), { service: this.apiService });
     } catch (e) {
       this.error(e);
     }
@@ -563,7 +591,7 @@ export abstract class EntityLogic<E extends Entity> {
   async save(model: E) {
     try {
       const savable = MetaModel.savable(
-        this.metaUi,
+        this.metaUi!,
         model,
         this.getSimplifyOptions(),
       );
@@ -615,7 +643,7 @@ export abstract class EntityLogic<E extends Entity> {
     });
   }
 
-  exportFile(id: string, options: EntityUrlParam = {}, body?: any) {
+  exportFile(id: string, options: EntityUrlParam = {}, body?: unknown) {
     return this.apiClient.exportOne(
       id,
       {
@@ -627,7 +655,7 @@ export abstract class EntityLogic<E extends Entity> {
     );
   }
 
-  exportFiles(options: EntityUrlParam = {}, body?: any) {
+  exportFiles(options: EntityUrlParam = {}, body?: unknown) {
     return this.apiClient.exportAll(
       {
         repository: options.repository ?? this.repository,
@@ -638,7 +666,7 @@ export abstract class EntityLogic<E extends Entity> {
     );
   }
 
-  exportJoinList(options: EntityUrlParam = {}, body?: any) {
+  exportJoinList(options: EntityUrlParam = {}, body?: unknown) {
     return this.apiClient.exportJoinList(
       {
         repository: options.repository ?? this.repository,
@@ -651,8 +679,11 @@ export abstract class EntityLogic<E extends Entity> {
 
   async doAction(model: E, a: EntityAction) {
     try {
+      const actionParam = a.param as { type?: unknown; value?: unknown } | undefined;
       const params =
-        a.param?.type === "execute" ? a.param.value || {} : a.param;
+        actionParam?.type === "execute"
+          ? (actionParam.value as object | undefined) ?? {}
+          : a.param;
       const result = await this.invokeAction(
         {
           path: model.id,
@@ -663,10 +694,8 @@ export abstract class EntityLogic<E extends Entity> {
       if (result instanceof ApiProblem) {
         throw result;
       }
-      if (result instanceof ApiError || isApiErrorPayload(result)) {
-        throw toApiProblem(
-          result instanceof ApiError ? result : toApiError(result),
-        );
+      if (result instanceof ApiProblem || isApiProblemPayload(result)) {
+        throw toApiProblem(result);
       }
       return result;
     } catch (e) {
@@ -824,31 +853,31 @@ export class SubEntityLogic<
     });
   }
 
-  create(param?: any) {
+  create(param?: unknown) {
     this.createParam = param;
     return Promise.resolve(
-      MetaModel.createEntity(this.metaUi, this.createEntity, param),
+      MetaModel.createEntity(this.metaUi!, this.createEntity, param),
     );
   }
 
-  load(id: any) {
-    const e = this.items.find((it: any) => it.id == id);
+  load(id: unknown) {
+    const e = this.items.find((it: G) => it.id == id);
     return e ? Promise.resolve(e) : Promise.reject(Error(`${id} not found`));
   }
 
-  delete(id: any) {
-    const idx = this.items.findIndex((it: any) => it.id == id);
+  delete(id: unknown) {
+    const idx = this.items.findIndex((it: G) => it.id == id);
     if (idx >= 0)
       return Promise.resolve(MetaModel.deleteItemByIndex(this.items, idx));
     return Promise.reject(Error(`${id} not found`));
   }
 
   save(child: G) {
-    const idx = this.items.findIndex((it: any) => it.id == child.id);
+    const idx = this.items.findIndex((it: G) => it.id == child.id);
     if (idx >= 0) Object.assign(this.items[idx], child);
     else {
       Object.entries(this.metaUiGroup.joinFields ?? {}).forEach(([k, v]) => {
-        (child as any)[k] = this.master[v];
+        (child as Record<string, unknown>)[k] = this.master[v];
       });
       this.items.push(child);
     }

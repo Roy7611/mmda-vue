@@ -1,5 +1,4 @@
 import type { UiProps } from '../props'
-
 /** 登录方式。 */
 export type UiSigninMode = 'password' | 'sms' | 'qrCode' | 'thirdParty'
 

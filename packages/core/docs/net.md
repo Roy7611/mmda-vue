@@ -188,7 +188,7 @@ try {
 }
 ```
 
-`toApiProblem(x)` 把 `ApiError` / 已是 Problem 的值收成 `ApiProblem`（对实例幂等）。`ApiClient.handleApiError`：已是 `ApiProblem` 则再抛，否则旧路径仍 `toApiError`。
+`toApiProblem(x)` 把 `ApiError` / 已是 Problem 的值 / 旧 HTTP 200 业务错误体收成 `ApiProblem`（对实例幂等）。Logic 层（`EntityLogic.doAction` 等）只依赖 `ApiProblem` 与 `isApiProblemPayload`，不再引用 `ApiError`。`ApiClient.handleApiError`：已是 `ApiProblem` 则再抛，否则旧路径仍 `toApiError`。
 
 网络失败（DNS、断连）不是服务端 Problem，保持原生 TypeError / fetch rejection。
 

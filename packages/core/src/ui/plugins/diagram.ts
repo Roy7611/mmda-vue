@@ -5,7 +5,7 @@
  */
 import type { UiEventArgs } from '../events'
 import type { MetaUi } from '../../metaui/metaui_group'
-import { type UiProps } from '../props'
+import type { UiProps } from '../props'
 import { UiViewOne } from '../view'
 
 export type UiDiagramType = 'org' | 'workflow' | 'dataflow' | 'er' | 'uml'

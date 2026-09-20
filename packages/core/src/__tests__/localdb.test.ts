@@ -56,14 +56,14 @@ describe('LocalAsyncStorageDb', () => {
 
 describe('useLocalAsyncDb', () => {
   it('对象可存，函数字段 JSON 化后丢失', async () => {
-    const db = useLocalAsyncDb('mmda-idb-test', 'zh-Hans')
+    const db = useLocalAsyncDb<Record<string, unknown>>('mmda-idb-test', 'zh-Hans')
     await db.put('a', { a: 1, b: '2' })
     await db.put('m', {
       a: 4,
       m: () => 'method',
     })
-    expect((await db.get('a')).b).toBe('2')
-    expect((await db.get('m')).m).toBeUndefined()
+    expect((await db.get('a'))?.b).toBe('2')
+    expect((await db.get('m'))?.m).toBeUndefined()
     await db.delete('a')
     expect(await db.get('a')).toBeFalsy()
   })

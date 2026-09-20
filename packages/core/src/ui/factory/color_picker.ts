@@ -1,6 +1,5 @@
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiColorPickerMode = 'picker' | 'palette'
 
 export interface UiColorPickerProps extends UiProps {

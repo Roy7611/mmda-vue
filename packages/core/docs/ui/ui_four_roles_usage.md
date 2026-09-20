@@ -31,11 +31,11 @@ const layout = factory.layout!
 | 标签+输入的字段行 | `fld.render(field, context)` |
 | 强制编辑行 / 强制只读行 | `fld.editFor` / `fld.displayFor` |
 | 表格单元格裸控件 | `fld.textInput` / `fld.checkedIcon` / …（**不要** `render`） |
-| 一张表 / 一页分页 | `factory.table` / `factory.paginator` |
+| 一张表 / 一页分页 | `builder.table` / `factory.paginator` |
 | 登录表单 | `ui.buildSigninForm(props, slots?)` |
 | 应用壳 | `layout.scaffold({ variant: 'sidebarLeft', nav, page })` |
 | 模块列表整页 | `ui.buildIndexView(context, props?)` |
-| 详情/编辑整页 | `ui.buildDetailsView` / `buildEditView` → `buildEntityView` |
+| 详情/编辑整页 | `ui.buildDetailsView` / `ui.buildEditView` |
 | 左树右表 | `ui.buildExplorer(context, props?)` |
 | 主表字段组 / 子表 | `ui.buildFieldGroup` / `ui.buildSubGroup` |
 | Toast / 确认 / 弹层 | `ui.toast` / `ui.confirm` / `ui.dialog` |
@@ -97,8 +97,7 @@ ui.buildSelectView(context, { selectionMode: 'multiple' })
 ui.buildDetailsView(context, { primaryCols: 2 } satisfies UiViewProps)
 ui.buildEditView(context, { showAttachments: true })
 
-// 共享实现（自定义屏也可直接调）
-ui.buildEntityView(context, props)
+// 自定义屏按需组合 buildIndexView / buildDetailsView / buildEditView
 ```
 
 Index **内部**已经是：
@@ -112,7 +111,8 @@ layoutIndexPage：topbar=buildIndexTopbar + filterBar + default=factory.table|gr
 ### 本地勾选表 + 弹层
 
 ```ts
-const table = factory.table!(rows, metaUi, {
+const table = ui.table(metaUi, {
+  rows,
   selectionMode: 'single',
 })
 const result = await ui.dialog(table, context, { title: '选择' })

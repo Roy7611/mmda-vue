@@ -212,7 +212,7 @@ export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
         return (model: unknown, ctx?: unknown) => {
           if (this.isGroupReadonly(grp)) return false;
           const pred = canDoFromExecutableExpression(this as any, action);
-          return pred ? pred(model, ctx as any) !== false : true;
+          return pred ? pred(model as Entity, ctx as any) !== false : true;
         };
       };
 

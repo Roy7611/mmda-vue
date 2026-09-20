@@ -2,7 +2,6 @@ import type { Pagination } from '../../models/pagination'
 import type { UiSelectionMode } from '../context'
 import type { UiAction } from '../action'
 import type { UiBoxed, UiProps } from '../props'
-
 /**
  * factory 捷径内部标签。公开契约已拆成 UiListProps / UiTableProps / UiGridProps，
  * 不要再靠一份 Props + `display` 糊三种能力。程序员请用对应 `build*` / `factory.*`。
@@ -16,6 +15,10 @@ export type UiListDisplay = 'list' | 'table' | 'grid' | 'treeGrid'
  * 桌面 index / 默认 selector 用 `UiTableProps`。
  */
 export interface UiListProps<T = any> extends UiProps {
+  /** 当前行数据。factory 不看 MetaUi，由 Builder 从会话模型注入。 */
+  rows?: T[]
+  /** 行主键字段。缺省实体 `id`；Builder 从 MetaUi 注入。 */
+  primaryKey?: string
   /**
    * 工具栏/行上是否出业务动作。缺省由 Builder 按视图决定。
    * 与 `UiTableProps.showActionColumn`（最右操作列）不是同一件事。
@@ -69,13 +72,15 @@ export interface UiListProps<T = any> extends UiProps {
 
 /** 底部分页条。`factory.paginator` / `buildPaginator`。 */
 export interface UiPaginatorProps extends UiProps {
+  /** 当前分页。原 `factory.paginator(pagination, props)` 的第一参并入 props。 */
+  pagination: Pagination
   pageSizeOptions?: number[]
   pagerCount?: number
   layout?: string
   template?: string
   currentPageReportTemplate?: string
   role?: string
-  onPage?: (pager: {
+  onPage: (pager: {
     pageSize?: number
     pageNo?: number
   }) => void | Promise<unknown>

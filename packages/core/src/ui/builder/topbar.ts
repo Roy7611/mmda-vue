@@ -1,4 +1,4 @@
-import { hasBit } from '../../extensions/number_extensions'
+import { hasBit } from '../../utils/number'
 import {
   ModuleActionMode,
   ModuleActionPromptType,
@@ -18,7 +18,7 @@ export type UiIndexTopbarSlotName = 'start' | 'center' | 'end'
 export type UiTwoSlotTopbarSlotName = 'start' | 'end'
 
 /** 列表页顶栏（三槽）。不是 factory.toolbar。 */
-export interface UiIndexTopbar extends UiProps {
+export interface UiIndexTopbarProps extends UiProps {
   showBreadcrumb?: boolean
   showActions?: boolean
   showSearchBar?: boolean
@@ -41,7 +41,7 @@ export interface UiIndexTopbarSlots<TNode = any> {
 }
 
 /** 详情页顶栏（两槽）。 */
-export interface UiDetailsTopbar extends UiProps {
+export interface UiDetailsTopbarProps extends UiProps {
   showBreadcrumb?: boolean
   showActions?: boolean
   breadcrumbLeaf?: string
@@ -57,7 +57,7 @@ export interface UiDetailsTopbarSlots<TNode = any> {
 }
 
 /** 编辑/新建页顶栏（两槽）。 */
-export type UiEditTopbar = UiDetailsTopbar
+export type UiEditTopbarProps = UiDetailsTopbarProps
 export type UiEditTopbarSlots<TNode = any> = UiDetailsTopbarSlots<TNode>
 
 const INDEX_SLOT_ALIGN: Record<UiIndexTopbarSlotName, UiHorzAlign> = {
@@ -72,7 +72,7 @@ const TWO_SLOT_ALIGN: Record<UiTwoSlotTopbarSlotName, UiHorzAlign> = {
 }
 
 export function indexTopbarLayoutOf(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
 ): UiIndexTopbarLayout {
   const layout = props.layout
   if (layout === 'medium' || layout === 'compact') return layout
@@ -80,7 +80,7 @@ export function indexTopbarLayoutOf(
 }
 
 export function indexTopbarModifierClasses(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slots?: UiIndexTopbarSlots,
 ): unknown[] {
   const layout =
@@ -97,7 +97,7 @@ export function indexTopbarModifierClasses(
 }
 
 export function indexTopbarSlotAlignOf(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slot: UiIndexTopbarSlotName,
 ): UiHorzAlign {
   const raw = props.align?.[slot]
@@ -106,7 +106,7 @@ export function indexTopbarSlotAlignOf(
 }
 
 export function indexTopbarSlotModifierClasses(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slot: UiIndexTopbarSlotName,
 ): unknown[] {
   const align = indexTopbarSlotAlignOf(props, slot)
@@ -118,13 +118,13 @@ export function indexTopbarSlotModifierClasses(
 
 export function twoSlotTopbarModifierClasses(
   block: 'details-topbar' | 'edit-topbar',
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
 ): unknown[] {
   return [uiCssClass(block), props.class]
 }
 
 export function twoSlotTopbarSlotAlignOf(
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
   slot: UiTwoSlotTopbarSlotName,
 ): UiHorzAlign {
   const raw = props.align?.[slot]
@@ -134,7 +134,7 @@ export function twoSlotTopbarSlotAlignOf(
 
 export function twoSlotTopbarSlotModifierClasses(
   block: 'details-topbar' | 'edit-topbar',
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
   slot: UiTwoSlotTopbarSlotName,
 ): unknown[] {
   const align = twoSlotTopbarSlotAlignOf(props, slot)

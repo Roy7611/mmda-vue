@@ -1,38 +1,43 @@
 import { EntityState } from './entity'
+import type { Entity } from './entity'
+
+type EntityStateLike = Pick<Entity, 'entityState'>
 
 /**
  * 判断是否实体类型
  * @param e 对象
  * @returns
  */
-export const isEntity = (e: any): e is object => Object.prototype.hasOwnProperty.call(e, "entityState");
+export const isEntity = (e: unknown): e is EntityStateLike =>
+  typeof e === 'object' && e !== null &&
+  Object.prototype.hasOwnProperty.call(e, 'entityState')
 /**
 *如果实体已创建，则返回 true。
  *@param e 实体对象
  *@如果实体被创建则返回 true，否则返回 false
  */
-export const created = (e: any) =>
+export const created = (e: EntityStateLike) =>
   (e.entityState & EntityState.CREATED) === EntityState.CREATED;
 /**
 *如果实体已创建且已修改，则返回 true。
  *@param e 实体对象
  *@如果实体被创建且已修改则返回 true，否则返回 false
  */
-export const createdForModified = (e: any) =>
+export const createdForModified = (e: EntityStateLike) =>
   (e.entityState & EntityState.CREATED_MODIFIED) === EntityState.CREATED_MODIFIED;
 /**
  * 如果实体已修改，则返回 true。
  * @param e 实体对象
  * @returns 如果实体被修改则返回 true，否则返回 false
  */
-export const modified = (e: any) =>
+export const modified = (e: EntityStateLike) =>
   (e.entityState & EntityState.MODIFIED) === EntityState.MODIFIED;
 /**
  * 如果实体已删除，则返回 true。
  * @param e 实体对象
  * @returns 如果实体被删除则返回 true，否则返回 false
  */
-export const deleted = (e: any) =>
+export const deleted = (e: EntityStateLike) =>
   (e.entityState & EntityState.DELETED) === EntityState.DELETED;
 
 /**
@@ -40,14 +45,14 @@ export const deleted = (e: any) =>
  * @param e 实体对象
  * @returns 如果实体已更改则返回 true，否则返回 false
  */
-export const dirty = (e: any) => e.entityState !== EntityState.DEFAULT;
+export const dirty = (e: EntityStateLike) => e.entityState !== EntityState.DEFAULT;
 
 /**
  * 通过将实体的entityState 设置为MODIFIED 将实体标记为已修改 
  * 
  * @param e -要标记为已修改的实体对象
  */
-export const modify = (e: any) => {
+export const modify = (e: EntityStateLike) => {
   e.entityState |= EntityState.MODIFIED;
 };
 /**
@@ -55,7 +60,7 @@ export const modify = (e: any) => {
  * 
  * @param e -要标记为已删除的实体对象。
  */
-export const destroy = (e: any) => {
+export const destroy = (e: EntityStateLike) => {
   // old logic 是通过 逻辑运算符|= EntityState.DELETED 来标记删除的，这样做的好处是可以保留之前的状态（比如是否已修改），坏处是如果之前是MODIFIED状态，那么现在就是MODIFIED | DELETED状态了，可能会导致一些逻辑判断上的混乱。
   // e.entityState |= EntityState.DELETED;
 
@@ -68,7 +73,7 @@ export const destroy = (e: any) => {
  * 
  * @param e -要重置删除状态的实体对象。
  */
-export const reset = (e: any) => {
+export const reset = (e: EntityStateLike) => {
   e.entityState = (e.entityState & ~EntityState.DELETED) | EntityState.MODIFIED;
 };
 

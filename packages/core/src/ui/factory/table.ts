@@ -1,4 +1,5 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
+import type { TableColumnSettings } from '../../metaui/metaui_service'
 import type { FilterModel } from '../../models/entity_search'
 import type { Sort } from '../../models/pagination'
 import type { UiListProps } from './list'
@@ -27,7 +28,8 @@ export interface UiRowDetail<T = any, TNode = any> {
  *
  * @example
  * ```ts
- * factory.table(rows, metaUi, {
+ * builder.table(metaUi, {
+ *   rows,
  *   fieldCellRenderers: {
  *     arrivedQuantity: (_field, row) =>
  *       factory.numberInput({
@@ -54,6 +56,12 @@ export type UiFieldCellRenderer<T = any, TNode = any> = (
  * - 列筛加载 / 列布局持久化是会话标准，由 Builder 注入皮肤 extras，不进本契约
  */
 export interface UiTableProps<T = any, TNode = any> extends UiListProps<T> {
+  /** 已列出的表格字段。Builder 从 MetaUi.getListedFields() 注入；factory 不接触 MetaUi。 */
+  fields?: MetaUiField[]
+  /** 表格实体名。Builder 从 MetaUi.objName 注入，供皮肤做行详情/缓存等。 */
+  objName?: string
+  /** 列宽/列序等布局变化。factory 只上报，回写交给 Builder / 厂商布局组件。 */
+  onLayoutChange?: (columns: TableColumnSettings[]) => void
   /** 隔行底色。 */
   striped?: boolean
   /** 画单元格网格线。 */

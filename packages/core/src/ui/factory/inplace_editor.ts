@@ -38,11 +38,11 @@ export function inplaceEditorActiveOf(
 
 export function inplaceEditorModifierClasses(
   props: UiInplaceEditorProps,
-  extra?: { open?: boolean },
+  options?: { open?: boolean },
 ): unknown[] {
   return [
     uiCssClass('inplace-editor'),
-    extra?.open || props.active === true
+    options?.open || props.active === true
       ? uiCssClass('inplace-editor', undefined, 'open')
       : undefined,
     inplaceEditorDisabledOf(props)

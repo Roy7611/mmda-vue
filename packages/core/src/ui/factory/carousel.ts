@@ -35,7 +35,7 @@ export function carouselModifierClasses(props: {
 
 export function carouselBoundIndex(props: UiCarouselProps): number {
   const raw =
-    props.selectedIndex !== undefined ? props.selectedIndex : props.modelValue
+    props.selectedIndex
   const index = typeof raw === 'number' ? raw : 0
   return index < 0 ? 0 : index
 }
@@ -47,4 +47,16 @@ export interface UiImageGalleryItem {
   title?: string
   description?: string
   data?: unknown
+}
+
+/** 图片墙（`factory.imageGallery`）属性。 */
+export interface UiImageGalleryProps extends UiProps {
+  items: UiImageGalleryItem[]
+  /** 缩略图网格列数。 */
+  columns?: number
+  emptyText?: string
+  dialogTitle?: string
+  loop?: boolean
+  onItemClick?: (item: UiImageGalleryItem, index: number) => void
+  onItemDblclick?: (item: UiImageGalleryItem, index: number) => void
 }

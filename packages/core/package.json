@@ -6,9 +6,7 @@
   "private": true,
   "version": "1.2.0",
   "type": "module",
-  "sideEffects": [
-    "./src/extensions/*.ts"
-  ],
+  "sideEffects": false,
   "main": "./dist/mmda-core.es.js",
   "module": "./dist/mmda-core.es.js",
   "types": "./dist/index.d.ts",

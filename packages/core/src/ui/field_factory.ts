@@ -9,7 +9,6 @@ import type { UiLayout } from './layout'
 export type UiFieldRenderer<TNode = any> = (
   field: MetaUiField,
   context: UiContext,
-  props?: Record<string, unknown>,
 ) => TNode
 
 /**
@@ -18,14 +17,11 @@ export type UiFieldRenderer<TNode = any> = (
  * 签名**借用** `UiContext`（同一个主人），不要各写一份 —— 手抄一遍就会因为参数反变对不上
  * （`getFieldValue` 第二参写 `unknown` 就吃不下 `Entity`）。
  */
-export interface UiFieldBindContext {
-  getFieldValue: UiContext<any>['getFieldValue']
-  setFieldValue?: UiContext<any>['setFieldValue']
-  isFieldReadonly: UiContext<any>['isFieldReadonly']
-  t?: UiContext<any>['t']
-  model?: object
-  searchRelative?: UiContext<any>['searchRelative']
-}
+export type UiFieldBindContext = Pick<
+  UiContext<any>,
+  'getFieldValue' | 'setFieldValue' | 'isFieldReadonly'
+> &
+  Partial<Pick<UiContext<any>, 't' | 'model' | 'searchRelative'>>
 
 /**
  * 字段渲染器表。皮肤用编辑器/renderer 名做索引。

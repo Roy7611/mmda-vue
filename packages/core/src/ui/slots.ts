@@ -14,6 +14,12 @@
 export type UiSlot<TNode = any> = () => TNode | TNode[]
 
 /**
+ * 区域表（备用）：没有具名接口时的通用形状。
+ * 每控件仍优先写具名 `UiXxxSlots`（键名有类型、拼错报错）；这个是兜底与工具函数的参数类型。
+ */
+export type UiSlots<TNode = any> = Record<string, UiSlot<TNode> | undefined>
+
+/**
  * 区域求值的**唯一出口**：控件实现读区域一律走它，不要各写 `slots?.header?.()`。
  *
  * 语义：

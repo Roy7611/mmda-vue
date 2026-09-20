@@ -1,7 +1,7 @@
-# extensions/number_extensions.ts
+# utils/array.ts
 
-- **层**：Data / extensions
-- **源码**：packages/core/src/extensions/number_extensions.ts
+- **层**：Data / utils
+- **源码**：packages/core/src/utils/array.ts
 
 ## 职责
 

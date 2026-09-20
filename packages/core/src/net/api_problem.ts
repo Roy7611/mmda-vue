@@ -1,7 +1,11 @@
 import {
   ApiError,
+  isApiErrorPayload,
   type ValidationError,
 } from './api_error'
+
+/** 新 API 对旧 {@link ApiErrorPayload} 业务错误体的判别别名。 */
+export { isApiErrorPayload as isApiProblemPayload } from './api_error'
 
 /**
  * RFC 9457 Problem Details 文档对象。
@@ -68,6 +72,15 @@ const STANDARD_MEMBERS = new Set([
 ])
 
 const isUri = (value: string) => /^[a-z][a-z\d+\-.]*:/i.test(value)
+
+const asStatus = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && !Number.isNaN(value)) return value
+  if (typeof value === 'string' && value !== '') {
+    const n = Number(value)
+    return Number.isNaN(n) ? undefined : n
+  }
+  return undefined
+}
 
 const asValidationErrors = (
   value: unknown,
@@ -321,6 +334,20 @@ export function toApiProblem(error: unknown, request?: Request): ApiProblem {
       validationErrors: error.validationErrors,
       cause: error.cause,
       request: request ?? error.request,
+      ...(code && !isUri(code) ? { code } : {}),
+    })
+  }
+  if (isApiErrorPayload(error)) {
+    const code = error.code
+    const type = code && isUri(code) ? code : 'about:blank'
+    return new ApiProblem({
+      type,
+      title: error.error || error.message || error.detail || 'HTTP API problem',
+      status: asStatus(error.status),
+      detail: error.message ?? error.detail,
+      validationErrors: asValidationErrors(error.validationErrors),
+      cause: error.cause,
+      request,
       ...(code && !isUri(code) ? { code } : {}),
     })
   }

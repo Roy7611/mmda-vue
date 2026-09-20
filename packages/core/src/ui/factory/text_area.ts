@@ -1,11 +1,12 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import { type UiProps } from '../props'
-
+import type { UiProps } from '../props'
 export type UiTextAreaResizeMode = 'None' | 'Both' | 'Horizontal' | 'Vertical'
 
 export interface UiTextAreaProps extends UiProps {
+  /** 高度随内容自适应。 */
+  autoResize?: boolean
   value?: string
   placeholder?: string
   disabled?: boolean
@@ -24,7 +25,7 @@ export function textAreaModifierClasses(props: UiTextAreaProps): unknown[] {
       ? m
       : 'Vertical'
   const autoResize =
-    props.autoResize === true || props.autoResize === 'true'
+    props.autoResize === true
   return [
     uiCssClass('textarea'),
     uiCssClass('textarea', undefined, mode.toLowerCase()),
@@ -40,7 +41,7 @@ function isTrue(raw: unknown): boolean {
 export const DEFAULT_TEXT_AREA_ROWS = 3
 
 export function textAreaValueOf(props: UiTextAreaProps): string {
-  const raw = props.value !== undefined ? props.value : props.modelValue
+  const raw = props.value
   if (raw == null) return ''
   return String(raw)
 }
@@ -93,32 +94,24 @@ export function textAreaDisabledOf(props: UiTextAreaProps): boolean {
 
 export function textAreaPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiTextAreaProps {
   const raw = context.getFieldValue(field)
   return {
     value: raw == null ? '' : String(raw),
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
+    placeholder: field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+      context.isFieldReadonly(field),
     readOnly:
-      (extra.readOnly as boolean | undefined) ?? context.isFieldReadonly(field),
-    rows: extra.rows as number | undefined,
-    cols: extra.cols as number | undefined,
-    maxLength: (extra.maxLength as number | undefined) ?? field.maxLength,
-    resizeMode: extra.resizeMode as UiTextAreaResizeMode | undefined,
-    autoResize: extra.autoResize,
+      context.isFieldReadonly(field),
+    maxLength: field.maxLength,
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

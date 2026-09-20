@@ -1,8 +1,8 @@
 # 工具函数（@mmda/core）
 
-面向业务与框架开发者。`utils` 与 [extensions](./extensions.md) **同属包内最底层**，不依赖 models / net / metaui。全部从 `@mmda/core` 导出。框架真正依赖的只有 **`is` / `localdb` / `pluralize`**；格式化、树、防抖、UA 主要给 vui 和页面用。位运算 `hasBit` 在 extensions，不在这里。
+面向业务与框架开发者。`utils` 是**包内最底层**，不依赖 models / net / metaui。全部从 `@mmda/core` 导出。框架真正依赖的只有 **`is` / `localdb` / `pluralize`**；格式化、树、防抖、UA 主要给 vui 和页面用。位运算 `hasBit` 在 `utils/number.ts`。
 
-日期时间计算优先用包里再导出的 luxon（`DateTime` / `Duration` / `Interval`），不要再引一份 moment。某个 `Date` 实例上的 `weekStart()` / `toSQL()` 见 [extensions.md](./extensions.md)。
+日期时间计算优先用包里再导出的 luxon（`DateTime` / `Duration` / `Interval`），不要再引一份 moment。单个 `Date` 的边界/格式化用 `DateUtils`（`DateUtils.weekStart(date)` / `DateUtils.toSQL(date)`）。
 
 ---
 
@@ -47,7 +47,7 @@ const onSearch = debounce((q: string) => api.searchAll({ pager: { pageNo: 1, pag
 | `localdb` | 按应用+语言隔离的本地 KV | 浏览器（IndexedDB 优先） |
 | `pluralize` | 实体名 → 仓储名 | 任意 |
 | `date_range` | 预定义 luxon 区间 | 任意 |
-| 原型扩展 | `Date`/`String` 实例方法、`hasBit`，见 [extensions.md](./extensions.md) | 任意 |
+| `string` / `array` / `number` / `datetime` | 首字母、千分位、`hasBit`、`DateUtils` / `tryParseDate` | 任意 |
 | `formatter` | 显示用：金额、工期、文件大小 | 任意（相对时间要能跑 luxon） |
 | `platform` | UA：手机 / 微信 / 小程序 | 读 `navigator`，结果进程内缓存 |
 | `tools` | 防抖、树、模拟 ESC | ESC 仅 DOM |
@@ -170,7 +170,7 @@ const { start, end } = toDateRange(luxonRange) // JS Date，给日期控件
 dateTimeRange[DateRangeKind.EARLIER] // 类型上就不存在
 ```
 
-每次调用都按 **调用当下的 `DateTime.now()`** 算，不是单例。周、月边界用 luxon，不要自己 `setDate`。已有 `Date` 上的 `weekStart()` / `toSQL()` 见 [extensions.md](./extensions.md)。
+每次调用都按 **调用当下的 `DateTime.now()`** 算，不是单例。周、月边界用 luxon，不要自己 `setDate`。单个 `Date` 的边界用 `DateUtils.weekStart(date)` / `DateUtils.toSQL(date)`。
 
 ---
 

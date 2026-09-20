@@ -1,6 +1,6 @@
 # MetaUiBuilder
 
-流式拼一份**列表用** `MetaUi`，交给 `factory.table(rows, metaUi)`。源码 [`metaui_builder.ts`](../../src/metaui/metaui_builder.ts)。
+流式拼一份**列表用** `MetaUi`，交给 `builder.table(metaUi, props)`。源码 [`metaui_builder.ts`](../../src/metaui/metaui_builder.ts)。
 
 不要用它改服务端下发的共享 `MetaUi`。仓库选记录用 `context.select({ repository })`，不必先 Builder。
 
@@ -17,7 +17,8 @@ const metaUi = MetaUiBuilder.create('LocalPick')
   .fields([{ fieldName: 'qty', displayLabel: '数量' }])
   .build()
 
-const node = context.uiBuilder.factory.table(rows, metaUi, {
+const node = context.uiBuilder.table(metaUi, {
+  rows,
   selectionMode: 'single',
 })
 ```

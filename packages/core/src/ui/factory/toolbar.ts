@@ -3,7 +3,7 @@ import { uiCssClass } from '../css'
 
 /**
  * 原生 Toolbar 单控件。不是页头 Topbar。
- * 页头见 {@link import('../builder/topbar').UiIndexTopbar}。
+ * 页头见 {@link import('../builder/topbar').UiIndexTopbarProps}。
  */
 export interface UiToolbarProps extends UiProps {
   overflow?: 'popup' | 'scroll' | 'multirow' | 'none'

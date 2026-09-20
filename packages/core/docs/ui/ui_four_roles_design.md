@@ -39,14 +39,14 @@ flowchart TB
   app --> side[buildAppSideMenu]
   layoutApp --> side
   mod --> named["buildIndexView / Details / Edit / Select"]
-  named --> entity[buildEntityView]
+  named --> entity[entity page]
   entity --> cx
   entity --> fact
   cx --> ex[buildExplorer]
   cx --> grp[buildFieldGroup]
   cx --> sub[buildSubGroup]
   ex --> fact
-  grp --> fld[builder.buildField]
+  grp --> fld[builder.editFor / builder.displayFor]
   sub --> fact
 ```
 
@@ -60,13 +60,13 @@ AppShell
 
 Entity 路由 / context.select
   buildIndexView | buildSelectView | buildDetailsView | buildEditView
-    → buildEntityView
+    → entity page
          many → layoutIndexPage(topbar=buildIndexTopbar, filterBar, default=factory.table|grid|list|treeGrid, footer=factory.paginator)
                  （categoryList → buildExplorer）
                  （gantt/timeline/… → buildXxxView，插件未装则 throw）
          one  → 扫 metaUi.groups
                   many ? buildSubGroup → factory.grid|treeGrid
-                       : buildFieldGroup → builder.buildField（内含 layoutField）
+                       : buildFieldGroup → builder.editFor / builder.displayFor（内含 layoutField）
 ```
 
 登录路由：页内 `ui.buildSigninForm(...)`（不要 `factory.signinForm`）。
@@ -85,7 +85,7 @@ Entity 路由 / context.select
 
 ### Module
 
-`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildEntityView` · `buildIndexTopbar` · `buildDetailsTopbar` · `buildEditTopbar` · `buildSearchView`
+`buildIndexView` · `buildSelectView` · `buildDetailsView` · `buildEditView` · `buildIndexTopbar` · `buildDetailsTopbar` · `buildEditTopbar` · `buildSearchView`
 
 ### Module / 插件页（可选）
 
@@ -102,11 +102,11 @@ Entity 路由 / context.select
 
 | 旧 | 新 |
 |---|---|
-| `buildTable` / `buildGrid` / `buildList` / `buildPaginator` / `buildTree` | `factory.*` |
-| `buildListView` / `buildTableView` / `buildGridView` / `buildTreeGridView` | Index 内直接拼 factory + toolbar |
+| `buildTable` / `buildGrid` / `buildList` / `buildPaginator` / `buildTree` | `builder.table` / `builder.grid` / `builder.list`（入参 `metaUi`）；`factory.paginator` / `factory.tree` |
+| `buildListView` / `buildTableView` / `buildGridView` / `buildTreeGridView` | `buildIndexView`（topbar + filterBar + factory.table|grid|list|treeGrid） |
 | `buildContainer` / `buildHeader` / `buildMain` / `buildFooter` / `buildAside` | 仍走 Builder（列表等还在用） |
 | `buildAppScaffold` | `UiLayout.scaffold` |
-| `buildField` | `builder.buildField`（或 `editFor` / `displayFor`） |
+| `buildField` | `builder.editFor` / `builder.displayFor` |
 | `buildCustomView` | 插件 `resolveCustomView`（整页覆盖） |
 
 ## fieldFactory 三入口
@@ -145,13 +145,13 @@ vui 构造 Builder 时 `字段行入口在 Builder（`WithForm` mixin）。
 
 | 旧写法 | 新写法 |
 |---|---|
-| `ui.buildField(field, ctx)` | `ui.buildField(field, ctx)` |
+| `ui.buildField(field, ctx)` | `ui.editFor(field, ctx)` / `ui.displayFor(field, ctx)` |
 | `ui.editFor` / `displayFor`（裸控件） | 裸控件 → 具名 `fieldFactory.textInput` 等；带行 → `builder.editFor` / `displayFor` |
-| `ui.buildTable(rows, meta, props)` | `ui.factory.table(rows, meta, props)` |
+| `ui.buildTable(rows, meta, props)` | `ui.builder.table(meta, props)` |
 | `ui.buildContainer([...])` | 仍 `ui.buildContainer([...])` |
 | `ui.buildAppScaffold({...})` | `layout.scaffold({...})` |
 | `ui.buildTreeListView` | `ui.buildExplorer` |
-| `ui.buildView` | `ui.buildEntityView` |
+| `ui.buildView` | `ui.buildIndexView` / `ui.buildDetailsView` / `ui.buildEditView` |
 | `ui.buildGroup`（主+子） | `buildFieldGroup` / `buildSubGroup` 分开 |
 
 皮肤侧：登录 / 注册在 Builder 实现（`h(SigninForm, …)`），不要挂到 `factory`。

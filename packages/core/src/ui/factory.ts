@@ -1,6 +1,3 @@
-import type { MetaUi } from '../metaui/metaui_group'
-import type { Pagination } from '../models/pagination'
-import type { UiAction } from './action'
 import type { UiProps } from './props'
 import type { UiAutoCompleteProps } from './factory/autocomplete'
 import type { UiTagAutoCompleteProps } from './factory/tag_auto_complete'
@@ -51,15 +48,16 @@ import type { UiBadgeProps } from './factory/badge'
 import type { UiMessageProps } from './factory/message'
 import type { UiBreadcrumbProps } from './factory/breadcrumb'
 import type { UiCardProps, UiCardSlots } from './factory/card'
-import type { UiCarouselProps, UiImageGalleryItem } from './factory/carousel'
+import type { UiCarouselProps, UiImageGalleryProps } from './factory/carousel'
 import type { UiContextMenuProps } from './factory/context_menu'
 import type { UiDividerProps } from './factory/divider'
 import type { UiErrorProps } from './factory/error'
+import type { UiSearchRefProps } from './factory/search_relative'
 import type { UiLoadingProps } from './factory/loading'
 import type { UiProgressBarProps } from './factory/progress_bar'
 import type { UiDrawerProps, UiSidebarProps } from './factory/sidebar'
 import type { UiSkeletonProps } from './factory/skeleton'
-import type { UiSplitterPane, UiSplitterProps } from './factory/splitter'
+import type { UiSplitterProps, UiSplitterSlots } from './factory/splitter'
 import type { UiTabsProps } from './factory/tabs'
 import type { UiToolbarProps, UiToolbarSlots } from './factory/toolbar'
 import type { UiTooltipProps, UiTooltipSlots } from './factory/tooltip'
@@ -107,160 +105,133 @@ export interface UiFactory<TNode = any> {
   /** 表格组件是否原生支持单元格编辑。 */
   nativeInplaceEdit?: boolean
 
-  textSpan(text: string, props?: UiTextProps): TNode
-  label?(text: string, props?: UiTextProps): TNode
-  title?(text: string, props?: UiTextProps): TNode
-  subtitle?(text: string, props?: UiTextProps): TNode
-  icon?(iconClass: string, props?: UiIconProps): TNode
-  image?(src: string, props?: UiImageProps): TNode
+  textSpan(props: UiTextProps): TNode
+  label(props: UiTextProps): TNode
+  title(props: UiTextProps): TNode
+  subtitle(props: UiTextProps): TNode
+  icon(props: UiIconProps): TNode
+  image(props: UiImageProps): TNode
 
   button(
-    props?: UiButtonProps,
+    props: UiButtonProps,
     slots?: UiButtonSlots<TNode>,
   ): TNode
   buttonGroup(
-    children: () => TNode[],
     props?: UiButtonGroupProps,
+    slots?: UiButtonSlots<TNode>,
   ): TNode
-  selectButtonGroup?(
-    value: unknown,
-    props?: UiSelectButtonGroupProps,
-  ): TNode
-  link?(props: UiLinkProps, slots?: UiLinkSlots<TNode>): TNode
-  splitButton?(
+  selectButtonGroup(props: UiSelectButtonGroupProps): TNode
+  link(props: UiLinkProps, slots?: UiLinkSlots<TNode>): TNode
+  splitButton(
     props: UiSplitButtonProps,
     slots?: UiSplitButtonSlots<TNode>,
   ): TNode
-  dropDownButton?(
+  dropDownButton(
     props: UiDropDownButtonProps,
-    actions: UiAction[],
     slots?: UiDropDownButtonSlots<TNode>,
   ): TNode
-  moreMenuButton?(
+  moreMenuButton(
     props: UiDropDownButtonProps,
-    actions: UiAction[],
-    slots?: Record<string, unknown>,
+    slots?: UiDropDownButtonSlots<TNode>,
   ): TNode
-  floatingActionButton?(
+  floatingActionButton(
     props: UiFloatingActionButtonProps,
     slots?: UiButtonSlots<TNode>,
   ): TNode
 
-  formField?(
+  formField(
     props: UiProps,
     slots?: { default?: () => TNode },
   ): TNode
 
-  list?<T>(
-    rows: T[],
-    metaUi: MetaUi,
-    props?: UiListProps<T>,
-  ): TNode
-  table<T>(
-    rows: T[],
-    metaUi: MetaUi,
-    props?: UiTableProps<T, TNode>,
-  ): TNode
-  grid?<T>(
-    rows: T[],
-    metaUi: MetaUi,
-    props?: UiGridProps<T, TNode>,
-  ): TNode
-  treeGrid?<T>(
-    rows: T[],
-    metaUi: MetaUi,
-    props?: UiTreeGridProps<T, TNode>,
-  ): TNode
+  list<T>(props: UiListProps<T>): TNode
+  table<T>(props: UiTableProps<T, TNode>): TNode
+  grid<T>(props: UiGridProps<T, TNode>): TNode
+  treeGrid<T>(props: UiTreeGridProps<T, TNode>): TNode
   /** chrome 导航树。不是 treeSelect / treeGrid。 */
-  tree?<T>(props: UiTreeProps<T, TNode>): TNode
+  tree<T>(props: UiTreeProps<T, TNode>): TNode
 
-  paginator?(
-    pagination: Pagination,
-    props?: UiPaginatorProps,
-  ): TNode
+  paginator(props: UiPaginatorProps): TNode
 
-  textInput?(props?: UiTextInputProps): TNode
-  textArea?(props?: UiTextAreaProps): TNode
-  numberInput?(props?: UiNumberInputProps): TNode
-  datePicker?(props?: UiDatePickerProps): TNode
+  textInput(props: UiTextInputProps): TNode
+  textArea(props: UiTextAreaProps): TNode
+  numberInput(props: UiNumberInputProps): TNode
+  datePicker(props: UiDatePickerProps): TNode
   /** 月份模式：调 DatePicker（视图与选项值不同）。 */
-  monthPicker?(props?: UiDatePickerProps): TNode
-  dateTimePicker?(props?: UiDateTimePickerProps): TNode
-  timePicker?(props?: UiTimePickerProps): TNode
-  dateRangePicker?(props?: UiDateRangePickerProps): TNode
-  checkBox?(props?: UiCheckBoxProps): TNode
-  switch?(props?: UiSwitchProps): TNode
-  dropDownList?(props?: UiDropDownListProps): TNode
-  comboBox?(props?: UiComboBoxProps): TNode
-  multiSelect?(props?: UiMultiSelectProps): TNode
-  radioButtonGroup?(props?: UiRadioButtonGroupProps): TNode
-  treeSelect?(props?: UiTreeSelectProps<any, TNode>): TNode
+  monthPicker(props: UiDatePickerProps): TNode
+  dateTimePicker(props: UiDateTimePickerProps): TNode
+  timePicker(props: UiTimePickerProps): TNode
+  dateRangePicker(props: UiDateRangePickerProps): TNode
+  checkBox(props: UiCheckBoxProps): TNode
+  switch(props: UiSwitchProps): TNode
+  dropDownList(props: UiDropDownListProps): TNode
+  comboBox(props: UiComboBoxProps): TNode
+  multiSelect(props: UiMultiSelectProps): TNode
+  radioButtonGroup(props: UiRadioButtonGroupProps): TNode
+  treeSelect(props: UiTreeSelectProps<any, TNode>): TNode
   /** {@link treeSelect} 的别名（服务端老配置沿用这个名字）。 */
-  dropDownTree?(props?: UiTreeSelectProps<any, TNode>): TNode
-  autoComplete?(props?: UiAutoCompleteProps): TNode
-  tagAutoComplete?(props?: UiTagAutoCompleteProps): TNode
-  checkBoxList?(props?: UiCheckBoxListProps): TNode
-  bitCheckBoxList?(props?: UiCheckBoxListProps): TNode
-  calendar?(props?: UiCalendarProps<TNode>): TNode
-  carousel?(props?: UiCarouselProps<TNode>): TNode
-  contextMenu?(props?: UiContextMenuProps): TNode
-  inplaceEditor?(
-    props?: UiInplaceEditorProps,
+  dropDownTree(props: UiTreeSelectProps<any, TNode>): TNode
+  autoComplete(props: UiAutoCompleteProps): TNode
+  tagAutoComplete(props: UiTagAutoCompleteProps): TNode
+  checkBoxList(props: UiCheckBoxListProps): TNode
+  bitCheckBoxList(props: UiCheckBoxListProps): TNode
+  calendar(props: UiCalendarProps<TNode>): TNode
+  carousel(props: UiCarouselProps<TNode>): TNode
+  contextMenu(props: UiContextMenuProps): TNode
+  inplaceEditor(
+    props: UiInplaceEditorProps,
     slots?: UiInplaceEditorSlots<TNode>,
   ): TNode
-  queryBuilder?(props?: UiQueryBuilderProps): TNode
-  signaturePad?(props?: UiSignaturePadProps): TNode
-  stepper?(props?: UiStepperProps): TNode
-  timeline?(props?: UiTimelineProps): TNode
-  speechToText?(props?: UiSpeechToTextProps): TNode
-  barcode?(props?: UiBarcodeProps): TNode
-  qrCode?(props?: UiQrCodeProps): TNode
-  fileLink?(props?: UiFileLinkProps): TNode
-  fileUploader?(props?: UiFileUploaderProps): TNode
-  filesUploader?(props?: UiFilesUploaderProps): TNode
-  imageUploader?(props?: UiImageUploaderProps): TNode
-  imagesUploader?(props?: UiImagesUploaderProps): TNode
-  imageGallery?(items: UiImageGalleryItem[], props?: UiProps): TNode
-  colorPicker?(props?: UiColorPickerProps): TNode
-  maskedTextBox?(props?: UiMaskedTextBoxProps): TNode
-  oneTimePasswordInput?(props?: UiOneTimePasswordInputProps): TNode
-  slider?(props?: UiSliderProps): TNode
-  rating?(props?: UiRatingProps<TNode>): TNode
-  chips?(props?: UiChipsProps): TNode
-  progressBar?(props?: UiProgressBarProps): TNode
+  queryBuilder(props: UiQueryBuilderProps): TNode
+  signaturePad(props: UiSignaturePadProps): TNode
+  stepper(props: UiStepperProps): TNode
+  timeline(props: UiTimelineProps): TNode
+  speechToText(props: UiSpeechToTextProps): TNode
+  barcode(props: UiBarcodeProps): TNode
+  qrCode(props: UiQrCodeProps): TNode
+  fileLink(props: UiFileLinkProps): TNode
+  fileUploader(props: UiFileUploaderProps): TNode
+  filesUploader(props: UiFilesUploaderProps): TNode
+  imageUploader(props: UiImageUploaderProps): TNode
+  imagesUploader(props: UiImagesUploaderProps): TNode
+  imageGallery?(props: UiImageGalleryProps): TNode
+  colorPicker(props: UiColorPickerProps): TNode
+  maskedTextBox(props: UiMaskedTextBoxProps): TNode
+  oneTimePasswordInput(props: UiOneTimePasswordInputProps): TNode
+  slider(props: UiSliderProps): TNode
+  rating(props: UiRatingProps<TNode>): TNode
+  chips(props: UiChipsProps): TNode
+  progressBar(props: UiProgressBarProps): TNode
 
-  badge?(props?: UiBadgeProps): TNode
+  badge(props: UiBadgeProps): TNode
   /** 页内消息条（详情/编辑顶栏）；不要用 toast 画这条。 */
-  message?(props?: UiMessageProps): TNode
-  avatar?(props?: UiAvatarProps): TNode
-  breadcrumb?(props?: UiBreadcrumbProps): TNode
-  card?(props?: UiCardProps, slots?: UiCardSlots<TNode>): TNode
-  divider?(props?: UiDividerProps): TNode
-  tooltip?(
-    props?: UiTooltipProps,
+  message(props: UiMessageProps): TNode
+  avatar(props: UiAvatarProps): TNode
+  breadcrumb(props: UiBreadcrumbProps): TNode
+  card(props: UiCardProps, slots?: UiCardSlots<TNode>): TNode
+  divider(props: UiDividerProps): TNode
+  tooltip(
+    props: UiTooltipProps,
     slots?: UiTooltipSlots<TNode>,
   ): TNode
-  tabs?(props?: UiTabsProps<TNode>): TNode
-  toolbar?(
-    props?: UiToolbarProps,
+  tabs(props: UiTabsProps<TNode>): TNode
+  toolbar(
+    props: UiToolbarProps,
     slots?: UiToolbarSlots<TNode>,
   ): TNode
-  splitter?(
-    panes: UiSplitterPane<TNode>[],
-    props?: UiSplitterProps,
-  ): TNode
-  sidebar?(
-    props?: UiSidebarProps,
+  splitter(props?: UiSplitterProps, slots?: UiSplitterSlots<TNode>): TNode
+  sidebar(
+    props: UiSidebarProps,
     slots?: { default?: () => TNode },
   ): TNode
-  drawer?(
-    props?: UiDrawerProps,
+  drawer(
+    props: UiDrawerProps,
     slots?: { default?: () => TNode },
   ): TNode
-  loading?(props?: UiLoadingProps): TNode
+  loading(props?: UiLoadingProps): TNode
   /** 页级异常重试面板（打开失败 / 列表重载失败）；不要用 message 顶栏顶替。 */
-  errorRetry?(props?: UiErrorProps): TNode
-  skeleton?(props?: UiSkeletonProps): TNode
+  error(props: UiErrorProps): TNode
+  skeleton(props: UiSkeletonProps): TNode
 
-  searchForRelative?(props?: UiProps): TNode
+  searchRelative(props: UiSearchRefProps): TNode
 }

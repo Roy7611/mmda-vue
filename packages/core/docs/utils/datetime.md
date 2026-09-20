@@ -1,7 +1,7 @@
-# extensions/string_extensions.ts
+# utils/datetime.ts
 
-- **层**：Data / extensions
-- **源码**：packages/core/src/extensions/string_extensions.ts
+- **层**：Data / utils
+- **源码**：packages/core/src/utils/datetime.ts
 
 ## 职责
 

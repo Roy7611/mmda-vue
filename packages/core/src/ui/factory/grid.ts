@@ -17,7 +17,8 @@ export type UiGridScene = 'index' | 'selector' | 'edit' | 'details'
  *
  * @example
  * ```ts
- * factory.grid(rows, metaUi, {
+ * builder.grid(metaUi, {
+ *   rows,
  *   fieldCellEditors: {
  *     status: { canEdit: false },
  *     qty: {

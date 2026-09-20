@@ -1,6 +1,5 @@
 import type { UiDialogSeverity } from '../builder/dialog'
 import type { UiProps } from '../props'
-
 /** 对齐 EJ2 Message variant；产品默认 filled。 */
 export type UiMessageVariant = 'text' | 'outlined' | 'filled'
 

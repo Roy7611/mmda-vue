@@ -65,11 +65,11 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 导航是会话能力，不是实体 CRUD。
 
 - `vue-router` 实例在 `VueUiContext.router`（`EntityView` 构造会话时注入）。
-- `index` / `details` / `edit` / `create` / `routeTo` 在 vui mixin [`navigate.ts`](../../../vui/src/contexts/mixins/navigate.ts)。
+- `routeTo` / `routeToIndex` / `routeToDetails` / `routeToEdit` / `routeToCreate` 在 vui mixin [`navigate.ts`](../../../vui/src/contexts/mixins/navigate.ts)。
 - 动作 `redirectTo` 走 `context.router.push`，不读 `logic.router`。
 - `EntityLogicInit` **没有** `router` / `i18n`。
 
-业务跳转：`context.index()` / `context.edit(row)`。不要 `this.router`。
+业务跳转：`context.routeToIndex()` / `context.routeToEdit(row)`。不要 `this.router`。
 
 ## 国际化
 

@@ -1,3 +1,4 @@
+import type { Entity } from '../models/entity'
 import type { Predicate } from './logic_functions'
 
 /**
@@ -7,12 +8,12 @@ import type { Predicate } from './logic_functions'
  */
 export function parseEntityBoolExpression(
   source?: string | null,
-): Predicate {
+): Predicate<Entity> {
   const text = source?.trim() ?? ''
   if (!text) return () => true
   try {
     const evalNode = compile(text)
-    return (row: unknown) => Boolean(evalNode(asRecord(row)))
+    return (row: Entity) => Boolean(evalNode(asRecord(row)))
   } catch {
     return () => false
   }

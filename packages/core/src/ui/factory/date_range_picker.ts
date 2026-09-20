@@ -25,7 +25,7 @@ export function dateRangePickerModifierClasses(
   return [uiCssClass('daterangepicker'), props.class]
 }
 
-export function dateRangePickerSeparatorOf(props: UiProps): string {
+export function dateRangePickerSeparatorOf(props: Pick<UiDateRangePickerProps, 'separator'>): string {
   return typeof props.separator === 'string' && props.separator.length
     ? props.separator
     : DATE_RANGE_SEPARATOR
@@ -42,29 +42,23 @@ export function dateRangeValueOf(raw: unknown): UiDateRangeValue | undefined {
 }
 
 export function dateRangePickerValueOf(
-  props: UiProps,
+  props: Pick<UiDateRangePickerProps, 'value'>,
 ): UiDateRangeValue | undefined {
   if (props.value !== undefined) return dateRangeValueOf(props.value)
-  if (props.modelValue !== undefined) return dateRangeValueOf(props.modelValue)
   return undefined
 }
 
 export function dateRangePickerPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiDateRangePickerProps {
   const { precision: _precision, ...base } = datePickerPropsFromField(
     field,
     context,
-    extra,
   )
   return {
     ...base,
     value: dateRangeValueOf(context.getFieldValue(field)) ?? null,
-    format: (extra.format as string | undefined) ?? DATE_RANGE_PICKER_FORMAT,
-    separator: dateRangePickerSeparatorOf(extra),
-    minDays: extra.minDays as number | undefined,
-    maxDays: extra.maxDays as number | undefined,
+    format: DATE_RANGE_PICKER_FORMAT,
   }
 }

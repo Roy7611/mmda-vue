@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { uiSlot, type UiSlot } from '../ui/slot'
+import { uiSlot, type UiSlot } from '../ui/slots'
 
 describe('uiSlot：区域求值唯一出口', () => {
   it('有区域时用它的返回值', () => {
@@ -36,7 +36,7 @@ describe('uiSlot：区域求值唯一出口', () => {
   })
 
   it('返回值是假值但非 nullish 时不算空（0 / 空串 / false 照用）', () => {
-    expect(uiSlot(() => 0, () => 'F')).toBe(0)
+    expect(uiSlot<number | string>(() => 0, () => 'F')).toBe(0)
     expect(uiSlot(() => '', () => 'F')).toBe('')
   })
 })

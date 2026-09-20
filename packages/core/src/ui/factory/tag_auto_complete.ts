@@ -1,7 +1,6 @@
 import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
-import type { UiProps } from '../props'
 import {
   AUTOCOMPLETE_DEBOUNCE_MS,
   AUTOCOMPLETE_MIN_LENGTH,
@@ -68,8 +67,6 @@ export function tagAutoCompleteNormalizeOption(
   return normalizeAutoCompleteOption(item)
 }
 
-
-
 export function tagAutoCompleteModifierClasses(
   props: UiTagAutoCompleteProps,
 ): unknown[] {
@@ -83,40 +80,24 @@ export const TAG_AUTOCOMPLETE_MIN_LENGTH = AUTOCOMPLETE_MIN_LENGTH
 export const TAG_AUTOCOMPLETE_DEBOUNCE_MS = AUTOCOMPLETE_DEBOUNCE_MS
 export const TAG_AUTOCOMPLETE_SUGGESTION_COUNT = AUTOCOMPLETE_SUGGESTION_COUNT
 
+/** 字段 → 标准形状。分隔符走默认（`MULTI_SELECT_SEPARATOR`），字段级覆盖留给调用方合并。 */
 export function tagAutoCompletePropsFromField(
   field: MetaUiField,
   context: UiFieldBindContext,
-  extra: UiProps = {},
 ): UiTagAutoCompleteProps {
-  const sep = extra as Pick<UiTagAutoCompleteProps, 'separator'>
   return {
     value: tagAutoCompleteTextOf(
-      tagAutoCompleteItemsOf(context.getFieldValue(field), sep),
-      sep,
+      tagAutoCompleteItemsOf(context.getFieldValue(field)),
     ),
-    placeholder: (extra.placeholder as string | undefined) ?? field.placeholder,
-    disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    options: extra.options as UiTagAutoCompleteProps['options'],
-    suggest: extra.suggest as UiTagAutoCompleteProps['suggest'],
+    placeholder: field.placeholder,
+    disabled: context.isFieldReadonly(field),
     reference: field.reference?.isRef ? field.reference : undefined,
-    minLength: extra.minLength as number | undefined,
-    debounceDelay: extra.debounceDelay as number | undefined,
-    highlight: extra.highlight as boolean | undefined,
-    suggestionCount: extra.suggestionCount as number | undefined,
-    separator: extra.separator as string | undefined,
-    // 过渡期：core 袋里仍写 v-model 写入键（vui 的 `vueUpdateOf` 读它），
-    // 但 core 契约不再声明 `onUpdate?`，所以这里显式标类型。
-    onUpdate: (text: string) => {
+    onChange: (text: string) => {
       context.setFieldValue(field, text)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(text)
-      if (typeof extra.onChange === 'function') extra.onChange(text)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
     },
   }
 }

@@ -76,7 +76,7 @@ validationRules 字符串
 
 全部执行，消息用 `；` 拼接。空值除 `NotBlank` / `NotEmpty` / Required 外通过。列 `maxLength` 只绑控件，不生成 `MaxLength`。已删除从未下发的 `MetaUiField.min` / `max`。
 
-`validateField` 仍返回 error 字符串（兼容 `getFieldError`）。完整结果走 `validateFieldResult`：`{ errors, warnings }`。`UiFieldValidation.warning` 不计 `errorNum`。
+`validateField` 仍返回 error 字符串（兼容 `getFieldError`）。完整结果走 `validateFieldResult`：`{ errors, warnings }`。`FieldValidation.warning` 不计 `errorNum`。
 
 已删除独立 `onWarn`。未知校验器名 warn 后跳过。后补名字（`Alpha`、`CreditCode` 等）尚未注册，出现在规则串里会走未知名警告。
 

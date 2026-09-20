@@ -1,3 +1,5 @@
+import { DateUtils } from '../utils/datetime'
+
 // 元数据类型
 //
 // 让你可以获得实体[Entity]属性的dart数据类型[Type]
@@ -133,14 +135,14 @@ export function defaultDataTypeValue(dt: SqlDataType, val?: string) {
   if (val !== undefined && val !== null) {
     if (SqlDataType.isBool(dt)) return !!Number(val)
     else if (SqlDataType.isNum(dt)) return Number(val)
-    else if (SqlDataType.isDateTime(dt)) return new Date().toSQL()
+    else if (SqlDataType.isDateTime(dt)) return DateUtils.toSQL(new Date())
     else if (SqlDataType.isBlob(dt)) return new Blob()
     else {
       switch (dt) {
         case SqlDataType.TIME:
-          return new Date().toSQLTime()
+          return DateUtils.toSQLTime(new Date())
         case SqlDataType.DATE:
-          return new Date().toSQLDate()
+          return DateUtils.toSQLDate(new Date())
         case SqlDataType.YEAR:
         case SqlDataType.YEAR_MONTH:
           return Number(val)

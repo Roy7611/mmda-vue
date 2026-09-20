@@ -32,7 +32,7 @@ export interface RequestContext {
 type DataType = "text" | "json" | "blob" | "arrayBuffer" | "formData";
 export type BeforeRequest = (r: RequestContext) => void;
 export type AfterResponse = (r: Response) => Promise<any>;
-export type HttpErrorHandler = (error: any, req: Request) => void;
+export type HttpErrorHandler = (error: unknown, req: Request) => void;
 export enum HttpMethod {
   GET = "GET",
   POST = "POST",
@@ -69,7 +69,7 @@ export interface HttpRequestParam {
  * @abstract 
  */
 export abstract class HttpClient {
-  readonly signal: AbortSignal;
+  readonly signal!: AbortSignal;
   errorHandler?: HttpErrorHandler;
   unauthorizedErrorHandler?: HttpErrorHandler;
   /** 401 时调用；多个并发 401 共用同一次 refresh */
@@ -199,7 +199,7 @@ export abstract class HttpClient {
       .then((r) => (resultExtractor ? resultExtractor(r) : r));
   }
 
-  protected catchError(error: any, req: Request): Promise<never> {
+  protected catchError(error: unknown, req: Request): Promise<never> {
     const apiError = toApiError(error, req);
     if (apiError.status === 401 && this.unauthorizedErrorHandler) {
       this.unauthorizedErrorHandler(apiError, req);
@@ -351,11 +351,11 @@ export abstract class HttpClient {
     // });
     // reader.readAsArrayBuffer(blob);
     // });
-    if (options.body) {
+    if (options?.body) {
       options.body = this.buildJsonBody(options.body);
       // beforeSend = r => this.buildJsonHeaders(beforeSend)
     }
-    const method: HttpMethod = (options.method ??
+    const method: HttpMethod = (options?.method ??
       HttpMethod.POST) as HttpMethod;
     const req = this.buildRequest(method, url, options);
     return this.sendRequest(
@@ -417,7 +417,7 @@ export abstract class HttpClient {
       });
     };
   }
-  private buildJsonBody(data?: any) {
+  private buildJsonBody(data?: unknown) {
     return data ? JSON.stringify(data) : (data as BodyInit);
   }
 
@@ -430,7 +430,7 @@ export abstract class HttpClient {
   }
   postJson(
     url: string | URL,
-    data: any,
+    data: unknown,
     { options, beforeSend }: HttpRequestParam = {},
   ) {
     return this.post(url, {
@@ -441,7 +441,7 @@ export abstract class HttpClient {
   }
   postBlob(
     url: string | URL,
-    data: any,
+    data: unknown,
     { options, beforeSend }: HttpRequestParam = {},
   ) {
     return this.post(url, {
@@ -452,7 +452,7 @@ export abstract class HttpClient {
   }
   putJson(
     url: string | URL,
-    data: any,
+    data: unknown,
     { options, beforeSend }: HttpRequestParam = {},
   ) {
     return this.put(url, {
@@ -463,7 +463,7 @@ export abstract class HttpClient {
   }
   patchJson(
     url: string | URL,
-    data: any,
+    data: unknown,
     { options, beforeSend }: HttpRequestParam = {},
   ) {
     return this.patch(url, {
@@ -474,7 +474,7 @@ export abstract class HttpClient {
   }
   deleteJson(
     url: string | URL,
-    data: any,
+    data: unknown,
     { options, beforeSend }: HttpRequestParam = {},
   ) {
     return this.delete(url, {

@@ -27,7 +27,7 @@ export function resolveViewPropBool(
   if (routeParam && isString(routeParam)) return !!routeParam
   else if (attr && isString(attr)) return !!attr
   else if (prop !== undefined) return prop
-  else return defaultValue
+  else return defaultValue ?? false
 }
 
 export function resolveViewPropNumber(
@@ -66,7 +66,7 @@ export function resolveViewOneType(
   propView?: UiViewOneType,
 ): UiViewOneType {
   const viewType = resolveViewProp(routeView, attrView, propView)
-  if (isViewOne(viewType)) return viewType as UiViewOneType
+  if (viewType && isViewOne(viewType)) return viewType as UiViewOneType
   return UiViewOne.Details
 }
 
@@ -103,7 +103,7 @@ export function resolveViewManyType(
   propView?: UiViewManyType,
 ): UiViewManyType {
   const viewType = resolveViewProp(routeView, attrView, propView)
-  if (isViewMany(viewType)) return viewType as UiViewManyType
+  if (viewType && isViewMany(viewType)) return viewType as UiViewManyType
   return UiViewMany.Index
 }
 
@@ -122,7 +122,7 @@ export function resolveSearchParam(
   viewProps: UiViewManyProps,
 ): EntitySearchParam {
   const { pageSize, pageNo, sort, searchWord, queryParams } = viewProps
-  const pager = PagerCtor(pageSize, pageNo, parseSorts(sort))
+  const pager = PagerCtor(pageSize, pageNo, parseSorts(sort ?? ''))
   return {
     pager,
     searchWord,
@@ -146,7 +146,6 @@ export interface UniListViewProps {
 }
 
 import type { UiProps } from './props'
-
 /**
  * 单对象实体屏（details / edit / create）拼屏 extras。
  * 不要塞 selectionMode / showSearchbar（那是 {@link import('./builder/list_view').UiListViewProps}）。

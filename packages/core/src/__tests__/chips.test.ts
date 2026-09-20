@@ -98,9 +98,6 @@ describe('chips helpers', () => {
   it('enumChipSet bindMode follows array vs join', () => {
     expect(enumChipSetBindModeOf(['a'])).toBe('value_array')
     expect(enumChipSetBindModeOf('a,b')).toBe('join_text')
-    expect(enumChipSetBindModeOf('a', { bindMode: 'value_array' })).toBe(
-      'value_array',
-    )
   })
 
   it('bitChipSet lists all bits when editable and writes or_bits', () => {

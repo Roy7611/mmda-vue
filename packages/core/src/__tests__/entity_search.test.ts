@@ -346,7 +346,8 @@ describe("EntityQuery", () => {
     const parsed = EntityQuery.parse(expr);
     expect(parsed?.kind).toBe("query");
     if (parsed?.kind === "query") {
-      expect(parsed.query).not.toHaveProperty("searchWord");
+      // searchWord 是查询的一部分（见本文件 :157 的 URL 断言），序列化往返保留
+      expect(parsed.query.searchWord).toBe("仓");
       expect(parsed.query.filterModel).toEqual(param.filterModel);
       expect(parsed.query.advancedFilterModel).toEqual(param.advancedFilterModel);
       expect(parsed.query.pager.sorts?.[0].sortBy).toBe("code");
@@ -508,29 +509,5 @@ describe("ApiClient.searchJoinList", () => {
         options: { body: JSON.stringify(filterModel) },
       }),
     );
-  });
-});
-
-describe("EntityQuery.lastCache", () => {
-  it("没保存查询时去掉 filterModel", () => {
-    const cached = EntityQuery.lastCache({
-      pager: { pageNo: 1, pageSize: 20, sorts: [{ sortBy: "name", sortOrder: SortOrder.ASC }] },
-      filterModel: { status: FieldFilter.in("OPEN") },
-    });
-    expect(cached.filterModel).toBeUndefined();
-    expect(cached.pager.sorts).toEqual([
-      { sortBy: "name", sortOrder: SortOrder.ASC },
-    ]);
-  });
-
-  it("有 queryID 时整份留下", () => {
-    const cached = EntityQuery.lastCache({
-      queryID: "q1",
-      queryName: "在岗",
-      pager: { pageNo: 1, pageSize: 20 },
-      filterModel: { status: FieldFilter.in("OPEN") },
-    });
-    expect(cached.queryID).toBe("q1");
-    expect(cached.filterModel).toEqual({ status: FieldFilter.in("OPEN") });
   });
 });

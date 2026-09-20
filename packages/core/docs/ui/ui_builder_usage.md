@@ -15,8 +15,8 @@
 
 | 旧 | 新 |
 |---|---|
-| `buildField` | `builder.buildField` |
-| `buildTable` 等 | `factory.table` 等 |
-| `buildAppScaffold` | `AppLayout.scaffold` |
-| `buildView` | `buildEntityView` |
+| `buildField` | `builder.editFor` / `builder.displayFor` |
+| `buildTable` 等 | `builder.table` 等 |
+| `buildAppScaffold` | `UiLayout.scaffold` |
+| `buildView` | `buildIndexView` / `buildDetailsView` / `buildEditView` |
 | `buildTreeListView` | `buildExplorer` |

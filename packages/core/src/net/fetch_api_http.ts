@@ -5,8 +5,8 @@ import {
   type HttpErrorHandler,
   type RequestContext,
 } from './http'
-import { isApiErrorPayload, toApiError } from './api_error'
 import {
+  isApiProblemPayload,
   responseToApiProblem,
   toApiProblem,
 } from './api_problem'
@@ -123,8 +123,8 @@ export class FetchApiHttp extends HttpClient {
 
   override jsonExtractor = (res: Response) =>
     res.json().then((data) => {
-      if (isApiErrorPayload(data)) {
-        return Promise.reject(toApiProblem(toApiError(data)))
+      if (isApiProblemPayload(data)) {
+        return Promise.reject(toApiProblem(data))
       }
       return data
     })

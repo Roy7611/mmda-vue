@@ -1,7 +1,7 @@
-# extensions/array_extensions.ts
+# utils/string.ts
 
-- **层**：Data / extensions
-- **源码**：packages/core/src/extensions/array_extensions.ts
+- **层**：Data / utils
+- **源码**：packages/core/src/utils/string.ts
 
 ## 职责
 

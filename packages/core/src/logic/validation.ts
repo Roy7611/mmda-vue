@@ -1,6 +1,6 @@
 import { isFunction } from '../utils/is'
 
-import { MetaUi } from '../metaui/metaui_group'
+import { MetaUi, type MetaUiGroup } from '../metaui/metaui_group'
 import { MetaUiField } from '../metaui/metaui_field'
 import type { OnValidateFn } from './logic_functions'
 import { Entity } from '../models/entity'
@@ -24,7 +24,7 @@ export const requiredAny: OnValidateFn<any[]> = requiredAnyValidate
 /**
  * 域校验
  */
-export interface UiFieldValidation {
+export interface FieldValidation {
   /**
    * 是否已经进入过
    */
@@ -36,7 +36,7 @@ export interface UiFieldValidation {
   warning?: string | undefined
 }
 
-export interface UiValidationSummary {
+export interface ValidationSummary {
   errorNum: number
   errorMessage?: string
 }
@@ -44,37 +44,58 @@ export interface UiValidationSummary {
 /**
  * 校验集，包含所有域和子对象集合的校验结果
  */
-export interface UiValidation {
+export interface Validation {
   [index: string]:
-    | UiFieldValidation
-    | UiValidation
-    | Array<UiValidation>
-    | UiRowValidation
-    | Array<UiRowValidation>
-    | UiValidationSummary
-    | string
-    | number
-  summary?: UiValidationSummary
-}
-export interface UiRowValidation extends UiValidation {
-  [index: string]: UiFieldValidation | UiValidationSummary | string | number
-  rowNum: string
+    | FieldValidation
+    | Validation
+    | Array<Validation>
+    | RowValidation
+    | Array<RowValidation>
+    | ValidationSummary
+    | undefined
+  summary?: ValidationSummary
 }
 
-export const defineFieldValidation = (): UiFieldValidation => {
+export interface RowValidation {
+  rowNum: string
+  summary?: ValidationSummary
+}
+
+export const defineFieldValidation = (): FieldValidation => {
   return {
     touched: false,
     message: '',
     warning: '',
   }
 }
-export const defineRowValidation = (rowNum: string): UiRowValidation => {
+export const defineRowValidation = (rowNum: string): RowValidation => {
   return {
     rowNum,
     summary: { errorNum: 0 },
   }
 }
-export const defineGroupValidation = (groupName: string) => {}
+/**
+ * 定义子表分组校验状态。
+ * - `readOnly` 子表不生成校验节点。
+ * - `requiredAny` 且没有行时，写入 `summary.errorMessage`。
+ */
+export const defineGroupValidation = (
+  group: MetaUiGroup,
+  rows: Entity[] = [],
+): Validation => {
+  const state: Validation = {}
+  if (group.readOnly) return state
+
+  for (const row of rows) {
+    const rowNum = String(row.rowNum ?? '')
+    state[rowNum] = defineRowValidation(rowNum)
+  }
+
+  if (group.requiredAny && rows.length === 0) {
+    state.summary = { errorNum: 1, errorMessage: 'invalid.requiredAny' }
+  }
+  return state
+}
 /**
  * 定义模型的校验状态
  * @param metaUi 元界面
@@ -84,22 +105,16 @@ export const defineGroupValidation = (groupName: string) => {}
 export const defineValidation = <E extends Entity>(
   metaUi: MetaUi,
   model?: E,
-): UiValidation => {
-  const validation: UiValidation = {}
+): Validation => {
+  const validation: Validation = {}
   metaUi.groups.forEach((g) => {
     if (g.many) {
-      if (model && model[g.groupName] && model[g.groupName].length) {
-        const children: UiValidation = {}
-        for (const item of model[g.groupName]) {
-          const rowNum = item.rowNum as string
-          children[rowNum] = defineRowValidation(rowNum)
-        }
-        validation[g.groupName] = children
-      } else {
-        validation[g.groupName] = {}
-      }
+      validation[g.groupName] = defineGroupValidation(
+        g,
+        model?.[g.groupName] ?? [],
+      )
     } else {
-      g.fields.forEach((f) => {
+      (g.fields ?? []).forEach((f) => {
         validation[f.fieldName] = defineFieldValidation()
       })
     }
@@ -160,8 +175,8 @@ export const validateFieldResult = <P = any, E = any>(
   if (isFieldRequired(fld, model, ctx)) {
     const req =
       fld.reference && !fld.reference.isEnum
-        ? requiredNonZero(value, model, ctx)
-        : required(value, model, ctx)
+        ? requiredNonZero(value, model as Entity, ctx)
+        : required(value, model as Entity, ctx)
     const msg = translateMsg(ctx, req)
     if (msg) errors.push(msg)
   }

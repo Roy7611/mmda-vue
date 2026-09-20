@@ -27,7 +27,7 @@ function asField(value: MetaUiFieldInput, fieldIdx: number): MetaUiField {
 }
 
 /**
- * 流式拼一份列表用 MetaUi，再交给 `factory.table(rows, metaUi)`。
+ * 流式拼一份列表用 MetaUi，再交给 `builder.table(metaUi, { rows })`。
  * @example
  * 流式：
  * ```ts

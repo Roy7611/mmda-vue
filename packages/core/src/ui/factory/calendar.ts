@@ -1,6 +1,5 @@
 import { uiCssClass } from '../css'
 import type { UiProps } from '../props'
-
 export type UiCalendarSelection = 'single' | 'multiple'
 export type UiCalendarView = 'month' | 'year' | 'decade'
 export type UiCalendarValue = Date | Date[] | null
@@ -49,7 +48,7 @@ export function calendarModifierClasses(props: {
 export function calendarBoundValue(
   props: UiCalendarProps,
 ): UiCalendarValue | undefined {
-  const raw = props.value !== undefined ? props.value : props.modelValue
+  const raw = props.value
   if (raw === undefined) return undefined
   if (props.selectionMode === 'multiple') {
     if (raw == null) return []

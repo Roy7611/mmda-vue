@@ -23,36 +23,19 @@ describe('avatarPropsFromField', () => {
     expect(props.icon).toBe('fas fa-user')
   })
 
-  it('uses small size when a table row is present', () => {
-    const props = avatarPropsFromField(
-      field,
-      { getFieldValue: (_f, row) => (row as { avatar?: string }).avatar },
-      { row: { avatar: '/faces/roy.png' } },
-    )
-    expect(props.src).toBe('/faces/roy.png')
-    expect(props.size).toBe('small')
-  })
-
-  it('lets extra override icon, label, size, and htmlAttributes', () => {
-    const props = avatarPropsFromField(
-      field,
-      { getFieldValue: () => undefined },
-      {
-        icon: 'fas fa-user-tie',
-        label: 'GR',
-        size: 'large',
-        colorRole: 'primary',
-        htmlAttributes: { title: '职员' },
-      },
-    )
-    expect(props.icon).toBe('fas fa-user-tie')
-    expect(props.label).toBe('GR')
-    expect(props.size).toBe('large')
-    expect(props.colorRole).toBe('primary')
-    expect(props.htmlAttributes).toEqual({
-      name: 'avatar',
-      id: 'avatar',
-      title: '职员',
+  it('字段 → props 只给 src / icon / 壳属性，不掺调用方的 size / colorRole', () => {
+    const props = avatarPropsFromField(field, {
+      getFieldValue: () => '/faces/roy.png',
     })
+    expect(props.size).toBe('medium')
+    expect(props.colorRole).toBeUndefined()
+    expect(props.label).toBeUndefined()
+    expect(Object.keys(props).sort()).toEqual([
+      'htmlAttributes',
+      'icon',
+      'shape',
+      'size',
+      'src',
+    ])
   })
 })

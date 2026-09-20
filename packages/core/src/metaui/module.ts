@@ -1,4 +1,4 @@
-import { hasBit } from "../extensions/number_extensions";
+import { hasBit } from "../utils/number";
 
 /**
  * 三级模块类型：系统、模块、功能

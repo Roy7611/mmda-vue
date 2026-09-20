@@ -1,5 +1,5 @@
 import type { MetaUiField } from '../metaui/metaui_field'
-import type { MetaUiGroup } from '../metaui/metaui_group'
+import type { MetaUi, MetaUiGroup } from '../metaui/metaui_group'
 import type { UiContext } from './context'
 import type {
   UiConfirmProps,
@@ -23,16 +23,29 @@ import type {
 import type { UiFilterBarProps } from './builder/filter_bar'
 import type { UiListViewProps } from './builder/list_view'
 import type { UiModuleBreadcrumbProps } from './builder/topbar'
+import type { UiListProps } from './factory/list'
+import type { UiTableProps } from './factory/table'
+import type { UiGridProps, UiTreeGridProps } from './factory/grid'
 import type {
-  UiDetailsTopbar,
+  UiDetailsTopbarProps,
   UiDetailsTopbarSlots,
-  UiEditTopbar,
+  UiEditTopbarProps,
   UiEditTopbarSlots,
-  UiIndexTopbar,
+  UiIndexTopbarProps,
   UiIndexTopbarSlots,
 } from './builder/topbar'
 import type { UiExplorerProps } from './builder/explorer'
 import type { UiPlugin } from './plugins/plugin'
+import type { UiGanttProps } from './plugins/gantt'
+import type { UiTimelineProps } from './plugins/timeline'
+import type { UiSchedulerProps } from './plugins/scheduler'
+import type { UiKanbanProps } from './plugins/kanban'
+import type { UiDiagramProps } from './plugins/diagram'
+
+/** 单个搜索条件的最小契约。实现由 UI 壳提供（vui 为 `UiSearchField`）。 */
+export interface UiSearchField {
+  readonly field: MetaUiField
+}
 
 /**
  * 界面构建器，负责拼屏与会话级弹层的契约（无实现、无 Vue）。
@@ -45,7 +58,9 @@ import type { UiPlugin } from './plugins/plugin'
  * - {@link Overlay}：会话入口，提供toast、message、dialog等弹层支持
  * - **本接口**：组装多块组合（模块页、侧栏菜单、登录/注册、字段组、Explorer）+ Overlay
  *
- * 不要把单控件薄包装进 Builder（无 `buildTable` / `buildPaginator` / `buildContainer`）。
+ * 不要把单控件薄包装进 Builder（无 `buildPaginator` / `buildContainer`）。
+ * 例外：`list` / `table` / `grid` / `treeGrid` 需要先按 `MetaUi` 整理出 fields/rows，
+ * 再由 Builder 转发 metadata-agnostic 的 `factory.*`。
  * 弹层不要走 `factory.dialog`。业务用 `context.uiBuilder` 或 `app.ui`。
  *
  * @typeParam TNode 框架节点。vui 为 Vue `VNode`；core 保持 `any` 以免依赖 Vue。
@@ -56,17 +71,32 @@ export interface UiBuilder<TNode = any> {
   /** 字段控件工厂（裸控件表）。单元格用具名 renderer；带标签的字段行走 {@link editFor} / {@link displayFor}。 */
   readonly fieldFactory: UiFieldFactory<TNode>
 
+  // —— MetaUi 驱动的列表族 ——
+  // factory 不接触 MetaUi；Builder 先把元数据整理进 Ui*Props，再转发 factory。
+
+  /** 移动端简单列表。`rows` 从 `props` 取，列字段无需显式给。 */
+  list<T>(metaUi: MetaUi, props: UiListProps<T>): TNode
+
+  /** 只读桌面表。`rows` / `fields` 由 Builder 注入 factory props。 */
+  table<T>(metaUi: MetaUi, props: UiTableProps<T, TNode>): TNode
+
+  /** 可编桌面表。 */
+  grid<T>(metaUi: MetaUi, props: UiGridProps<T, TNode>): TNode
+
+  /** 树形可编表。 */
+  treeGrid<T>(metaUi: MetaUi, props: UiTreeGridProps<T, TNode>): TNode
+
   /**
    * 强制编辑行（标签 + 输入）。按 `MetaUiField` 选 `fieldFactory` 里的函数，再套 `layout` 排。
    * 控件：`customEditor` ?? `field.editor` ?? `fieldFactory.fallbackInput`。
    */
-  editFor(field: MetaUiField, context: UiContext, props?: UiProps): TNode
+  editFor(field: MetaUiField, context: UiContext): TNode
 
   /**
    * 强制只读行（标签 + 展示）。
    * 控件：`customRenderer` ?? `field.renderer`（bool 默认 checkedIcon）?? `fieldFactory.fallbackDisplay`。
    */
-  displayFor(field: MetaUiField, context: UiContext, props?: UiProps): TNode
+  displayFor(field: MetaUiField, context: UiContext): TNode
 
   // —— Overlay（会话入口，不是控件）——
 
@@ -203,14 +233,14 @@ export interface UiBuilder<TNode = any> {
   /**
    * 移动端 / compact 放大镜的独立搜索屏。
    */
-  buildSearchView(
+  buildSearchView<TProps extends UiProps = UiProps>(
     context: UiContext,
-    props?: UiProps,
+    props?: TProps,
   ): TNode
 
   /** 单个搜索条件控件，包括操作符、值域，用于搜索屏。 */
   buildSearchField(
-    field: unknown,
+    field: UiSearchField,
     context: UiContext,
     props?: UiProps,
   ): TNode
@@ -219,21 +249,21 @@ export interface UiBuilder<TNode = any> {
   /** 列表页顶栏。Select 复用。 */
   buildIndexTopbar(
     context: UiContext,
-    props?: UiIndexTopbar,
+    props?: UiIndexTopbarProps,
     slots?: UiIndexTopbarSlots<TNode>,
   ): TNode
 
   /** 详情页顶栏。 */
   buildDetailsTopbar(
     context: UiContext,
-    props?: UiDetailsTopbar,
+    props?: UiDetailsTopbarProps,
     slots?: UiDetailsTopbarSlots<TNode>,
   ): TNode
 
   /** 编辑/新建页顶栏。 */
   buildEditTopbar(
     context: UiContext,
-    props?: UiEditTopbar,
+    props?: UiEditTopbarProps,
     slots?: UiEditTopbarSlots<TNode>,
   ): TNode
 
@@ -247,9 +277,9 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
   /** 模块搜索条（Index Topbar 中间）。 */
-  buildModuleSearchbar(
+  buildModuleSearchbar<TProps extends UiProps = UiProps>(
     context: UiContext,
-    props?: UiProps,
+    props?: TProps,
   ): TNode
 
   /**
@@ -271,19 +301,19 @@ export interface UiBuilder<TNode = any> {
   // —— Index 插件薄封装（内部 plugin(name).buildUi）。treeGrid 不是插件 ——
 
   /** 甘特。viewKind === gantt。 */
-  buildGantt(context: UiContext, props?: UiProps): TNode
+  buildGantt(context: UiContext, props?: UiGanttProps): TNode
 
   /** 时间轴。嵌在屏里也可用 `factory.timeline`。 */
-  buildTimeline(context: UiContext, props?: UiProps): TNode
+  buildTimeline(context: UiContext, props?: UiTimelineProps): TNode
 
   /** 日程。viewKind === scheduler。 */
-  buildScheduler(context: UiContext, props?: UiProps): TNode
+  buildScheduler(context: UiContext, props?: UiSchedulerProps<TNode>): TNode
 
   /** 看板。 */
-  buildKanban(context: UiContext, props?: UiProps): TNode
+  buildKanban(context: UiContext, props?: UiKanbanProps): TNode
 
   /** 图。 */
-  buildDiagram(context: UiContext, props?: UiProps): TNode
+  buildDiagram(context: UiContext, props?: UiDiagramProps<TNode>): TNode
 
   // —— 复杂组件（多块组合）——
 

@@ -2,11 +2,11 @@ import type { MetaUiField } from '../../metaui/metaui_field'
 import { uiCssClass } from '../css'
 import type { UiFieldBindContext } from '../field_factory'
 import type { UiProps } from '../props'
-import { dateOf, TIME_PICKER_FORMAT } from './date_common'
+import { dateOf, TIME_PICKER_FORMAT, type UiDateEmitProps, type UiDateShortcut } from './date_common'
 import { datePickerPropsFromField } from './date_picker'
 import { dateTimePickerStepOf } from './date_time_picker'
 
-export interface UiTimePickerProps extends UiProps {
+export interface UiTimePickerProps extends UiDateEmitProps {
   value?: Date | null
   format?: string
   placeholder?: string
@@ -14,8 +14,8 @@ export interface UiTimePickerProps extends UiProps {
   allowInput?: boolean
   showClear?: boolean
   step?: number
-  onChange?: (value: unknown) => void
-  onClear?: () => void
+  /** 快捷选项（与日期选择器同形）。 */
+  shortcuts?: UiDateShortcut[]
 }
 
 export function timePickerModifierClasses(props: UiTimePickerProps): unknown[] {
@@ -24,20 +24,15 @@ export function timePickerModifierClasses(props: UiTimePickerProps): unknown[] {
 
 export function timePickerPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiTimePickerProps {
   const { precision: _precision, ...base } = datePickerPropsFromField(
     field,
     context,
-    extra,
   )
   return {
     ...base,
     value: dateOf(context.getFieldValue(field)),
-    format: (extra.format as string | undefined) ?? TIME_PICKER_FORMAT,
-    step: dateTimePickerStepOf(extra),
-    showShortcuts: false,
-    shortcuts: undefined,
+    format: TIME_PICKER_FORMAT,
   }
 }

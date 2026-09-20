@@ -12,11 +12,10 @@ packages/core/src
   net/            ← Data：HTTP、ApiClient
   di/             ← Data：依赖注入
   utils/          ← Data：工具
-  extensions/     ← Data：类型扩展
 ```
 
 - **没有 UI 实现。** 契约在 `src/ui/`；vui / 皮肤不在本包。应用壳 abstract class 在 `mmda_app.ts`（`state`，无弹层方法）。
-- Data 内部依赖：`utils` / `extensions` → `metaui` → `models` → `net`。`di` 只依赖 utils。
+- Data 内部依赖：`utils` → `metaui` → `models` → `net`。`di` 只依赖 utils。
 - `metaui` / `models` / `utils` **不** import `logic/`。
 - 业务类在 `@mmda/base` / `@mmda/mes`，经 vui `EntityLogic` 继承本包 `EntityLogic`。
 

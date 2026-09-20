@@ -3,15 +3,15 @@ export const isBrowser = typeof window !== 'undefined'
 export const isNullOrUndefined = (val: unknown) =>
   val === undefined || val === null
 export const isRefNone = (val: unknown) => !val || val === '0'
-export const isEmpty = (items?: any[]) => !items || items.length == 0
+export const isEmpty = (items?: readonly unknown[] | null) => !items || items.length == 0
 export const isBoolean = (val: unknown): val is boolean =>
   typeof val === 'boolean'
 export const isNumber = (val: unknown): val is number => typeof val === 'number'
 
 export const isArray = Array.isArray
-export const isMap = (val: unknown): val is Map<any, any> =>
+export const isMap = (val: unknown): val is Map<unknown, unknown> =>
   toTypeString(val) === '[object Map]'
-export const isSet = (val: unknown): val is Set<any> =>
+export const isSet = (val: unknown): val is Set<unknown> =>
   toTypeString(val) === '[object Set]'
 
 export const isDate = (val: unknown): val is Date =>
@@ -24,17 +24,17 @@ export const isString = (val: unknown): val is string => typeof val === 'string'
 export const isFile = (val: unknown): val is File =>
   typeof File !== 'undefined' && val instanceof File
 export const isSymbol = (val: unknown): val is symbol => typeof val === 'symbol'
-export const isObject = (val: unknown): val is Record<any, any> =>
+export const isObject = (val: unknown): val is Record<string, unknown> =>
   !!val && typeof val === 'object'
-export const isNullObject = (val: unknown): val is Record<any, any> =>
+export const isNullObject = (val: unknown): val is Record<string, unknown> =>
   !!val && typeof val === 'object' && !Object.keys(val).length
 
-export const isPromise = <T = any>(val: unknown): val is Promise<T> => {
+export const isPromise = <T = unknown>(val: unknown): val is Promise<T> => {
   return isObject(val) && isFunction(val.then) && isFunction(val.catch)
 }
 
 /** thenable（含带 then/catch 的函数）。普通 Promise 用 {@link isPromise} 即可。 */
-export const isPromiseLike = <T = any>(val: unknown): val is Promise<T> => {
+export const isPromiseLike = <T = unknown>(val: unknown): val is Promise<T> => {
   if (isPromise<T>(val)) return true
   if (!isFunction(val)) return false
   const fn = val as Function & { then?: unknown; catch?: unknown }

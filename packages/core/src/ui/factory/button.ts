@@ -42,6 +42,9 @@ export interface UiButtonSlots<TNode = any> {
   default: () => TNode[]
 }
 
+/** 按钮组插槽：`default` 返回组内按钮节点。 */
+export type UiButtonGroupSlots<TNode = any> = UiButtonSlots<TNode>
+
 export interface UiButtonGroupProps extends UiProps {
   orientation?: UiOrientation
 }
@@ -53,6 +56,7 @@ export interface UiSelectButtonGroupProps extends UiProps {
   /** 默认 `single`。`multiple` 时 value / onUpdate 为数组。 */
   selectionMode?: 'single' | 'multiple'
   modelValue?: unknown
+  onUpdate?: (value: any) => void
   orientation?: UiOrientation
 }
 

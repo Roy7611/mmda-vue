@@ -102,34 +102,24 @@ export function checkBoxListKeysAfterSelectAll(
 
 export function checkBoxListPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiCheckBoxListProps {
   return {
-    ...multiSelectPropsFromField(field, context, {
-      ...extra,
-      bindMode: 'value_array',
-    }),
-    showSelectAll: extra.showSelectAll as boolean | undefined,
+    ...multiSelectPropsFromField(field, context),
+    bindMode: 'value_array',
     selectAllLabel:
-      (extra.selectAllLabel as string | undefined) ??
       context.t?.('action.selectAll'),
   }
 }
 
 export function bitCheckBoxListPropsFromField(
   field: MetaUiField,
-  context: UiFieldBindContext,
-  extra: UiProps = {},
+  context: UiFieldBindContext
 ): UiCheckBoxListProps {
   return {
-    ...multiSelectPropsFromField(field, context, {
-      ...extra,
-      bindMode: 'or_bits',
-    }),
-    showSelectAll: extra.showSelectAll as boolean | undefined,
+    ...multiSelectPropsFromField(field, context),
+    bindMode: 'or_bits',
     selectAllLabel:
-      (extra.selectAllLabel as string | undefined) ??
       context.t?.('action.selectAll'),
   }
 }
@@ -139,7 +129,7 @@ export function checkBoxListBoundPreview(
 ): unknown {
   return multiSelectBoundOf(
     multiSelectItemsOf(
-      props.value !== undefined ? props.value : props.modelValue,
+      props.value,
       props,
     ),
     props,

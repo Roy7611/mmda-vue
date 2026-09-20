@@ -4,7 +4,6 @@
  */
 import type { UiEventArgs } from '../events'
 import type { UiProps } from '../props'
-
 export type UiKanbanChangeAction = 'move' | 'update' | 'add' | 'delete'
 
 export interface UiKanbanCard {
