@@ -1,4 +1,4 @@
-export type ActionCallback = (...args: never[]) => unknown
+export type ActionCallback = (...args: any[]) => unknown
 
 /** 按钮/行为的界面配置数据。 */
 export interface EntityAction {

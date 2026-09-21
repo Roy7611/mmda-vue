@@ -31,7 +31,7 @@ export async function resolveCategoryTreeLogic(
     // 未注册的仓库走通用 Logic
   }
   const module =
-    resolveRepositoryModule(app, repository) ?? app?.findModule(repository);
+    resolveRepositoryModule(app!, repository) ?? app?.findModule(repository);
   return GenericEntityLogic.resolve(
     app!.di,
     token,
@@ -47,7 +47,7 @@ export async function resolveCategoryTreeLogic(
 
 export async function refreshCategoryTree<T>(
   props: UiTreeViewProps<T>,
-  logic: { getAll?: (param: any) => Promise<{ list?: unknown[] }> },
+  logic: { getAll?: (param: any) => Promise<{ list?: unknown[] } | undefined> },
 ) {
   if (props.onTreeRefresh) {
     await props.onTreeRefresh();

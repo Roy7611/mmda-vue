@@ -10,7 +10,7 @@ import type {
   UiOneTimePasswordType,
 } from '@mmda/core'
 import type {UiProps} from '../layout'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
 
 export const DEFAULT_OTP_LENGTH = 4
 
@@ -23,7 +23,7 @@ export type OneTimePasswordFieldContext = {
 }
 
 export function oneTimePasswordValueOf(
-  props: UiOneTimePasswordInputProps,
+  props: VueModelProps<UiOneTimePasswordInputProps>,
 ): string {
   if (props.value !== undefined && props.value != null) return String(props.value)
   if (props.modelValue !== undefined && props.modelValue != null) {

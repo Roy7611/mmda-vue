@@ -195,7 +195,7 @@ class VueUiContextBase<M extends Entity = Entity> {
     this.validationState = reactive(
       child?.validation ?? defineValidation(this.metaUi, this.model as Entity),
     );
-    this.pageNotice = ref<UiMessageProps | null>(null);
+    this.pageNotice = ref(null) as Ref<UiMessageProps | null>;
     this.loading = ref(false);
     this.error = ref<unknown>(null);
     this.initializedState = ref(!this.loader);

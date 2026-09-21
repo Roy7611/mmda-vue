@@ -131,9 +131,6 @@ function renderEntityPage(
       showToolbar: true,
       showSearchbar: true,
       selectionMode: view === UiViewMany.SelectOne ? "single" : "multiple",
-      onItemDoubleClick: (item: any) => {
-        context.details?.(item);
-      },
     });
   }
   if (view === UiViewOne.Edit || view === UiViewOne.Create) {
@@ -146,9 +143,6 @@ function renderEntityPage(
     showToolbar: true,
     showSearchbar: true,
     selectionMode: "multiple",
-    onItemDoubleClick: (item: any) => {
-      context.details?.(item);
-    },
   });
 }
 

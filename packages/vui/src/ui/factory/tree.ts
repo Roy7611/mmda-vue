@@ -472,7 +472,7 @@ export function moveTreeNode<T>(
   writeMovedParent(found, parent, fields)
   if (parent) {
     const kids = treeChildrenOf(parent, fields)
-    if (kids) kids.push(found)
+    if (kids) kids.push(found as NonNullable<T>)
     else setTreeChildren(parent, [found], fields)
     bumpTreeChildrenCount(parent, 1, fields)
   } else {

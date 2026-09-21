@@ -199,7 +199,7 @@ export class UiActionFactory {
     const raw =
       (action as { colorRole?: string | number }).colorRole ??
       action.role ??
-      action.param?.hint ??
+      (action.param as { hint?: string | number } | undefined)?.hint ??
       (action as { displayHint?: string | number }).displayHint;
     // 元数据 colorRole / displayHint；未配置时默认 warning（工具栏业务动作）
     action.role = normalizeActionColorRole(

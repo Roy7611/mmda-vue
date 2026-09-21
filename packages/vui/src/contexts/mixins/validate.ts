@@ -1,5 +1,6 @@
 import {
   defineGroupValidation,
+  type Entity,
   type MetaUiField,
   type MetaUiGroup,
   type FieldValidation,
@@ -57,7 +58,7 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
           any
         >[]) ?? [];
       const groupState = (this.validationState[grp.groupName] ??=
-        defineGroupValidation(grp, rows)) as Validation;
+        defineGroupValidation(grp, rows as Entity[])) as Validation;
       let errorCount = groupState.summary?.errorNum ?? 0;
       rows.forEach((row, index) => {
         const rowKey = String(row.rowNum ?? row.id ?? index);

@@ -147,6 +147,8 @@ export interface EntityQuery {
 export interface EntitySearchParam extends EntityQuery {
   searchWord?: string;
   queryParams?: Record<string, unknown>;
+  /** 保存查询是否为系统预置（客户端名；服务端预置查询不允许删除）。 */
+  queryPredifined?: boolean;
 }
 
 /** 标记行是否可选（列表勾选 / 选择弹层）。 */

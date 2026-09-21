@@ -218,7 +218,7 @@ export interface VueUiFactory extends UiFactory<VNode> {
     action: UiAction,
     t: TranslateFn,
     resolve?: boolean,
-    props?: UiProps,
+    props?: UiButtonProps,
   ) => VNode
   paginator: (props: UiPaginatorPropsType, slots?: UiSlots) => VNode
   list: <T>(props: UiListPropsType<T>) => VNode
@@ -240,11 +240,11 @@ export interface VueUiFactory extends UiFactory<VNode> {
 }
 
 export const durationOfSeconds: UiRenderer<number> = (seconds, props) =>
-  h('span', props, () => friendlySeconds(seconds, props?.locale as string | undefined))
+  h('span', props, () => friendlySeconds(seconds, (props as { locale?: string } | undefined)?.locale))
 export const durationOfDays: UiRenderer<string[]> = (dates, props) =>
-  h('span', props, () => daysBetween(dates[0], dates[1], props?.locale as string | undefined))
+  h('span', props, () => daysBetween(dates[0], dates[1], (props as { locale?: string } | undefined)?.locale))
 export const relativeTime: UiRenderer<string> = (sqlDateTime, props) =>
-  h('span', props, () => formatRelativeTime(sqlDateTime, props?.locale as string | undefined))
+  h('span', props, () => formatRelativeTime(sqlDateTime, (props as { locale?: string } | undefined)?.locale))
 export const label: UiRenderer<string> = (text, props) =>
   h('label', props, text)
 export const faIcon: UiRenderer<string> = (iconClass, props) =>

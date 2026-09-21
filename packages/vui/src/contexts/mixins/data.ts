@@ -244,7 +244,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         searchField.searchVal.value = null;
       }
       for (const customField of this.customSearchFields) {
-        customField.searchWord = null;
+        if (customField.searchWord) customField.searchWord.value = null;
         customField.searchVal.value = null;
         delete this.getQueryParam()[customField.searchParam];
       }

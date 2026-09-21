@@ -22,6 +22,7 @@ import type {
   UiRatingTemplateContext,
 } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
+import type { VueModelProps } from '../vue_ui_props'
 
 export type RatingFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -41,7 +42,9 @@ export function ratingItemsCountOf(props: UiRatingProps): number {
   return DEFAULT_RATING_ITEMS_COUNT
 }
 
-export function ratingValueOf(props: UiRatingProps): number | null {
+export function ratingValueOf(
+  props: VueModelProps<UiRatingProps>,
+): number | null {
   const raw =
     props.value !== undefined ? props.value : props.modelValue
   const n = finiteNumber(raw)

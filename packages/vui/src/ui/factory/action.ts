@@ -43,7 +43,6 @@ export function resolveActionButtonIcon(
 }
 
 export interface UiActionContext extends UiContext {
-  readonly model: Record<string, any>
   actionLoadings: Record<string, boolean>
   readonly executing: boolean
 }
@@ -166,39 +165,38 @@ export const UiContextAction = (
       };
       context.actionLoadings[name] = true;
 
-      // 判断 onAction 的类型
-      if (isPromise(onAction)) {
-        return onAction(context).finally(() => {
-          context.actionLoadings[name] = false;
-        })
-      } else {
-        try {
-          const res = onAction(context);
-          if (isPromise(res)) {
-            return res.finally(() => {
-              context.actionLoadings[name] = false;
-            })
-          } else {
+      const handler = onAction;
+      if (typeof handler !== "function") {
+        context.actionLoadings[name] = false;
+        return;
+      }
+
+      try {
+        const res = handler(context);
+        if (isPromise(res)) {
+          return res.finally(() => {
             context.actionLoadings[name] = false;
-            return res;
-          }
-        } catch (error) {
+          })
+        } else {
           context.actionLoadings[name] = false;
-          // 勿静默吞掉：否则工具栏「返回」等像没点一样
-          try {
-            context.uiBuilder?.toast?.(context, {
-              severity: "error",
-              message:
-                error instanceof Error
-                  ? error.message
-                  : context.translate?.("failure.action") ?? String(error),
-              life: 4000,
-            });
-          } catch {
-            // ignore toast failures
-          }
-          throw error;
+          return res;
         }
+      } catch (error) {
+        context.actionLoadings[name] = false;
+        // 勿静默吞掉：否则工具栏「返回」等像没点一样
+        try {
+          context.uiBuilder?.toast?.(context, {
+            severity: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : context.translate?.("failure.action") ?? String(error),
+            life: 4000,
+          });
+        } catch {
+          // ignore toast failures
+        }
+        throw error;
       }
     },
     disabled,

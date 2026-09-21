@@ -111,11 +111,11 @@ export interface UiContext<M extends Entity = Entity> {
   ): string
 
   /** 应用壳，读应用状态、找模块等。 */
-  readonly app?: MmdaApplication
+  readonly app: MmdaApplication
   /** 通用读写客户端，业务逻辑不要自行拼 HTTP。 */
-  readonly apiClient?: ApiClient
+  readonly apiClient: ApiClient
   /** UI 构建器，弹层、表格、拼屏都从这里走。 */
-  readonly uiBuilder?: UiBuilder
+  readonly uiBuilder: UiBuilder
 
   /** 读取字段值。 */
   getFieldValue(field: MetaUiField | string, model?: M): any
@@ -191,11 +191,11 @@ export interface UiContext<M extends Entity = Entity> {
   isSubGroupItemDeletable(group: MetaUiGroup | string, item: Entity): boolean
 
   /** 父级上下文。 */
-  readonly prev?: UiContext<M>
+  readonly parent?: UiContext<M>
   /** 根上下文。 */
-  readonly root?: UiContext<Entity>
+  readonly root: UiContext<Entity>
   /** 是否为根上下文。 */
-  readonly isRoot?: boolean
+  readonly isRoot: boolean
   /** 派生当前行的子上下文，例如 `context.with(row)`。 */
   with<G extends Entity>(model: G, cacheKey?: string): UiContext<G>
   /** 派生树形行上下文。 */

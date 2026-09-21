@@ -123,6 +123,14 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     );
   }
 
+  /** 模板方法依赖的视图拼装，由 mixin 组合后的子类实现。 */
+  abstract buildEditView(context: CoreUiContext, props?: UiViewProps): VNode;
+  abstract buildDetailsView(context: CoreUiContext, props?: UiViewProps): VNode;
+  abstract buildSelectView(
+    context: CoreUiContext,
+    props?: UiListViewProps,
+  ): VNode;
+
   get overlayHost(): Component | undefined {
     return undefined;
   }
@@ -177,8 +185,8 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   buildAppSideBar(props: AppSideBarProps = { modules: [], header: () => null }): VNode {
     return this.buildAppSideMenu({
       modules: props.modules,
-      logo: props.header,
-      footer: props.footer,
+      logo: () => props.header() as VNode,
+      footer: props.footer ? () => props.footer!() as VNode : undefined,
     });
   }
   buildAppSideMenu(props: UiAppSideMenuProps<VNode> = {}): VNode {
@@ -194,7 +202,7 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     const { module, label } = props;
     if (!module) {
       return this.factory.breadcrumb!({
-        items: [{ label: label || context.title }],
+        items: [{ label: label || context.title || "" }],
         class: "mmda-breadcrumb",
       });
     }
@@ -226,21 +234,21 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     props?: UiIndexTopbarProps,
     slots?: UiSlots,
   ): VNode {
-    return paintIndexTopbar(this, context, props ?? {}, slots);
+    return paintIndexTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
   }
   buildDetailsTopbar(
     context: UiContext,
     props?: UiDetailsTopbarProps,
     slots?: UiSlots,
   ): VNode {
-    return paintDetailsTopbar(this, context, props ?? {}, slots);
+    return paintDetailsTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
   }
   buildEditTopbar(
     context: UiContext,
     props?: UiEditTopbarProps,
     slots?: UiSlots,
   ): VNode {
-    return paintEditTopbar(this, context, props ?? {}, slots);
+    return paintEditTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
   }
   buildSearchField(
     field: UiSearchField,
@@ -564,7 +572,14 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     return h(XlsxFilePreview, { source, ...props });
   }
 
-  buildFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
+  buildFilePreview(
+    source: string | ArrayBuffer,
+    props: UiProps & {
+      extension?: string
+      height?: string | number
+      title?: string
+    } = {},
+  ) {
     const explicit = String(props.extension ?? "");
     const raw = typeof source === "string" ? source.split(/[?#]/)[0] : explicit;
     const extension = (explicit || raw.split(".").pop() || "")
@@ -716,12 +731,12 @@ export abstract class VueUiBuilder
 
 function mergeNamedViewProps(
   context: CoreUiContext,
-  props?: Record<string, unknown>,
+  props?: object,
 ) {
   const runtime = context as any;
   const view = String(runtime.view ?? "") as UiViewType;
   const option = runtime.logic?.viewOptions?.[view]?.(runtime) ?? {};
-  return { ...option, ...props } as Record<string, any>;
+  return { ...option, ...(props ?? {}) } as Record<string, any>;
 }
 
 /**

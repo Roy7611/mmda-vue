@@ -176,6 +176,7 @@ export class UiSearchField {
     this.currentOp = this.availableOps[0] ?? "EQ";
     this.currentOpLabel = ref(t(`matcher.${this.currentOp}`));
     this.searchVal = ref(null);
+    this.defaultVal = ref(null);
   }
 
   get hasVal() {

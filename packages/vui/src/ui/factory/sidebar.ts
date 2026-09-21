@@ -6,7 +6,7 @@
  * 不要 vui 主名 visible / show（只在 drawer 入口翻译旧词）。
  */
 import type { VNode } from 'vue'
-import type {UiProps, UiSlots} from '../layout'
+import type { UiSlots } from '../layout'
 
 export const DEFAULT_SIDEBAR_WIDTH = 280
 
@@ -22,7 +22,7 @@ import type {
   UiSidebarProps,
   UiSidebarType,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
 
 export type UiSidebarSlots = UiSlots
 
@@ -34,7 +34,9 @@ function isFalse(raw: unknown): boolean {
   return raw === false || raw === 'false'
 }
 
-export function sidebarIsOpenOf(props: UiSidebarProps): boolean {
+export function sidebarIsOpenOf(
+  props: VueModelProps<UiSidebarProps>,
+): boolean {
   if (props.isOpen !== undefined) return isTrue(props.isOpen)
   if (props.modelValue !== undefined) return isTrue(props.modelValue)
   return false
@@ -88,11 +90,11 @@ export function sidebarEnableGesturesOf(props: UiSidebarProps): boolean {
 
 /** drawer 入口：锁 Over、默认遮罩；翻译 visible / show / onUpdateVisible */
 export function applyDrawerDefaults(props: UiSidebarProps): UiSidebarProps {
-  const loose = props as UiProps
+  const loose = props as Record<string, unknown>
   const openRaw =
     props.isOpen !== undefined
       ? props.isOpen
-      : (loose.visible ?? loose.show ?? props.modelValue)
+      : (loose.visible ?? loose.show ?? loose.modelValue)
   const onChange =
     props.onChange ??
     loose.onUpdateVisible ??

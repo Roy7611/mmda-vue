@@ -39,7 +39,7 @@ export type ChildSlot = (...args: any[]) => VNodeChild
 
 export function resolveViewOneProps(
   routeParam: RouteParams,
-  attrs: UiProps,
+  attrs: Record<string, unknown>,
   props?: any,
 ): UiViewOneProps {
   return {

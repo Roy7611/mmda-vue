@@ -79,10 +79,8 @@ export const MmdaSpeechToTextHost = defineComponent({
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
     onChange: Function as PropType<UiSpeechToTextProps['onChange']>,
-    onUpdate: Function as PropType<UiSpeechToTextProps['onUpdate']>,
-    'onUpdate:modelValue': Function as PropType<
-      UiSpeechToTextProps['onUpdate:modelValue']
-    >,
+    onUpdate: Function as PropType<(value: string) => void>,
+    'onUpdate:modelValue': Function as PropType<(value: string) => void>,
     onListening: Function as PropType<UiSpeechToTextProps['onListening']>,
     onError: Function as PropType<UiSpeechToTextProps['onError']>,
     onReady: Function as PropType<UiSpeechToTextProps['onReady']>,

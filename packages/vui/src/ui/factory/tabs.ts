@@ -13,7 +13,7 @@ import type {
   UiTabsHeightAdjustMode,
   UiTabsProps,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
 
 export type {
   UiTabHeader,
@@ -43,7 +43,7 @@ function finiteIndex(raw: unknown): number | undefined {
   return Math.floor(n)
 }
 
-export function tabsValueOf(props: UiTabsProps): number {
+export function tabsValueOf(props: VueModelProps<UiTabsProps>): number {
   const raw = props.value !== undefined ? props.value : props.modelValue
   return finiteIndex(raw) ?? 0
 }

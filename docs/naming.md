@@ -71,7 +71,7 @@
 | --- | --- | --- |
 | UI / 展现 | UI | vui + 皮肤 |
 | Logic / 交互逻辑 | Logic | `*Logic.ts`；core `src/logic/`；**不是** Data |
-| Data / 数据 | Data | core 的 metaui / models / net / di / utils / extensions |
+| Data / 数据 | Data | core 的 metaui / models / net / di / utils |
 | 会话接口 | `UiContext` | core；业务 Logic 只认这个。声明 `uiBuilder` / `apiClient` / `app` |
 | 应用壳 | `MmdaApplication` | core abstract class；鉴权、MetaUi、DI、locale。`context.app` 的类型。业务读 **`app.state`** |
 | Vue 应用壳 | `MmdaVueApp` | vui `extends MmdaApplication`；不是 Vue `createApp()` |

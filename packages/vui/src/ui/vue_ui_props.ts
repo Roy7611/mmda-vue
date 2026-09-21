@@ -35,3 +35,13 @@ export function vueUpdateOf<T = unknown>(
     for (const fn of fns) fn(value)
   }
 }
+
+/**
+ * core 契约 + Vue v-model 的 `modelValue`。
+ *
+ * vui 皮肤用 v-model 时，读入口除了 core 的 `value` 还要兼容 `modelValue`；
+ * 该键不进 core 契约，所以只在这里用交叉类型补上，不扩散到各控件 props。
+ */
+export type VueModelProps<TProps extends object> = TProps & {
+  modelValue?: unknown
+}

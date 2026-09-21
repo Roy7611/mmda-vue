@@ -14,6 +14,7 @@ import {
   twoSlotTopbarModifierClasses,
   twoSlotTopbarSlotModifierClasses,
   uiCssClass,
+  type UiClassValue,
   type UiDetailsTopbarProps,
   type UiDetailsTopbarSlots,
   type UiEditTopbarProps,
@@ -68,13 +69,13 @@ export function topbarSlotJustifyContent(align: UiHorzAlign): string {
 }
 
 export function indexTopbarHasCenter(
-  slots?: UiIndexTopbarSlots<VNode>,
+  slots?: UiIndexTopbarSlots<VNodeChild>,
 ): boolean {
   return typeof slots?.center === 'function'
 }
 
 export function indexTopbarRootStyle(
-  slots?: UiIndexTopbarSlots<VNode>,
+  slots?: UiIndexTopbarSlots<VNodeChild>,
 ): Record<string, string> {
   const columns = indexTopbarHasCenter(slots)
     ? 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)'
@@ -129,7 +130,7 @@ function twoSlotStyle(
 
 export function renderIndexTopbar(
   props: UiIndexTopbarProps = {},
-  slots?: UiIndexTopbarSlots<VNode>,
+  slots?: UiIndexTopbarSlots<VNodeChild>,
 ): VNode {
   const {
     align: _align,
@@ -174,7 +175,7 @@ export function renderIndexTopbar(
 function renderTwoSlotTopbar(
   block: 'details-topbar' | 'edit-topbar',
   props: UiDetailsTopbarProps = {},
-  slots?: UiDetailsTopbarSlots<VNode>,
+  slots?: UiDetailsTopbarSlots<VNodeChild>,
 ): VNode {
   const {
     align: _align,
@@ -209,14 +210,14 @@ function renderTwoSlotTopbar(
 
 export function renderDetailsTopbar(
   props: UiDetailsTopbarProps = {},
-  slots?: UiDetailsTopbarSlots<VNode>,
+  slots?: UiDetailsTopbarSlots<VNodeChild>,
 ): VNode {
   return renderTwoSlotTopbar('details-topbar', props, slots)
 }
 
 export function renderEditTopbar(
   props: UiEditTopbarProps = {},
-  slots?: UiEditTopbarSlots<VNode>,
+  slots?: UiEditTopbarSlots<VNodeChild>,
 ): VNode {
   return renderTwoSlotTopbar('edit-topbar', props, slots)
 }
@@ -235,7 +236,7 @@ export function defaultTopbarMoreActions(
 }
 
 export type TopbarPaintParts = {
-  className?: unknown
+  className?: UiClassValue
   breadcrumb: () => VNodeChild
   actionGroup: (dense?: boolean) => VNodeChild
   moreActions: () => UiAction[]

@@ -7,6 +7,7 @@ import {
   type FilterModel,
   type MetaUi,
   type MetaUiField,
+  type UiColorRole,
   type UiFilterBarProps,
 } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
@@ -196,7 +197,7 @@ export function listFixedFilterChipGroups(context: VueUiContext<any>) {
   const groups: Array<{
     fieldName: string;
     selected: string | number | Array<string | number>;
-    items: Array<{ label: string; value: string | number; colorRole?: string }>;
+    items: Array<{ label: string; value: string | number; colorRole?: UiColorRole }>;
   }> = [];
   for (const item of listSelfDefaultFilters(context)) {
     const field = metaUi.getField(item.fieldName);
@@ -213,24 +214,34 @@ export function listFixedFilterChipGroups(context: VueUiContext<any>) {
           DefaultFieldFilter.resolveValue(field, String(entry ?? "")) ?? entry,
       )
       .filter((entry) => entry !== undefined);
-    const items = [
+    const items: Array<{
+      label: string;
+      value: string | number;
+      colorRole?: UiColorRole;
+    }> = [
       {
         label: allLabel,
         value: ALL_FILTER_CHIP,
         colorRole: selectedValues.length ? undefined : "primary",
       },
-      ...options.map((option) => {
-        const value = reference.valueOf(option);
-        const label = String(reference.labelOf(option) ?? value ?? "");
-        const picked = selectedValues.some((entry) =>
-          chipValueEquals(entry, value),
-        );
-        return {
-          label,
-          value: value as string | number,
-          colorRole: picked ? "primary" : undefined,
-        };
-      }),
+      ...options.map(
+        (option): {
+          label: string;
+          value: string | number;
+          colorRole?: UiColorRole;
+        } => {
+          const value = reference.valueOf(option);
+          const label = String(reference.labelOf(option) ?? value ?? "");
+          const picked = selectedValues.some((entry) =>
+            chipValueEquals(entry, value),
+          );
+          return {
+            label,
+            value: value as string | number,
+            colorRole: picked ? "primary" : undefined,
+          };
+        },
+      ),
     ];
     groups.push({
       fieldName: item.fieldName,
@@ -378,7 +389,6 @@ export function createListFilterBar(
     queryID &&
     canDeleteNamedQuery({
       predifined: context.searchParam?.queryPredifined,
-      queryID,
     })
       ? iconButton(
           factory,

@@ -6,7 +6,7 @@
  */
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 import type {UiProps} from '../layout'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
 
 export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 
@@ -82,7 +82,9 @@ export function colorPickerHexOf(raw: unknown): string {
   return s
 }
 
-export function colorPickerValueOf(props: UiColorPickerProps): string | undefined {
+export function colorPickerValueOf(
+  props: VueModelProps<UiColorPickerProps>,
+): string | undefined {
   if (props.value !== undefined) {
     const hex = colorPickerHexOf(props.value)
     return hex || undefined

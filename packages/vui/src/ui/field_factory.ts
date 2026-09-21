@@ -31,19 +31,21 @@ export type UiGroupRenderer = (
  */
 export type VueUiFieldFactory = UiFieldFactory<VNode>;
 
-export const defineFieldProps = (field: MetaUiField): UiProps => ({
-  ".id": field.fieldName,
-  ".name": field.fieldName,
-  required: !field.nullable,
-});
+export const defineFieldProps = (field: MetaUiField): UiProps =>
+  ({
+    ".id": field.fieldName,
+    ".name": field.fieldName,
+    required: !field.nullable,
+  }) as unknown as UiProps;
 
-export const defineInputProps = (field: MetaUiField): UiProps => ({
-  ".id": field.fieldName,
-  ".name": field.fieldName,
-  maxlength: field.maxLength,
-  required: !field.nullable,
-  placeholder: field.placeholder,
-});
+export const defineInputProps = (field: MetaUiField): UiProps =>
+  ({
+    ".id": field.fieldName,
+    ".name": field.fieldName,
+    maxlength: field.maxLength,
+    required: !field.nullable,
+    placeholder: field.placeholder,
+  }) as unknown as UiProps;
 
 /** 表格 cell renderer 不需要、也不应透传到 DOM 的 table 级 props */
 export const TABLE_CELL_PROP_KEYS = [
@@ -131,11 +133,11 @@ export const cleanProps = (
   props: UiProps,
 ): UiProps => {
   if (!props || isNullObject(props)) return {};
-  const cleaned = Object.assign({}, props) as UiProps;
+  const cleaned = Object.assign({}, props) as Record<string, unknown>;
   for (const key of unwantedKeys) {
     delete cleaned[key];
   }
-  return cleaned;
+  return cleaned as UiProps;
 };
 
 /** 构造列级 cell renderer 时调用一次，勿在逐行循环里重复清理 */

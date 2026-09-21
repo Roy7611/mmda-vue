@@ -17,6 +17,7 @@ import {
   watch,
   type PropType,
   type VNode,
+  type VNodeChild,
 } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
@@ -150,7 +151,7 @@ export const VueAppSideMenu = defineComponent({
     const renderModuleLink = (
       url: string,
       linkProps: Record<string, unknown>,
-      children: () => VNode[],
+      children: () => VNodeChild[],
     ): VNode => {
       const local = isLocalAppModuleUrl(
         app?.state.localAppPrefixes ?? app?.name ?? "",

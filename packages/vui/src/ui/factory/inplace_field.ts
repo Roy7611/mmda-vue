@@ -2,6 +2,7 @@ import {
   inplaceEditorDisabledOf,
   isInplaceFieldEditorKey,
   type MetaUiField,
+  type UiContext,
   type UiInplaceEditorProps,
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
@@ -63,15 +64,15 @@ export function renderInplaceFieldEditor(
     context.isFieldReadonly(field)
   const chrome = context.uiBuilder?.factory?.inplaceEditor
   if (!chrome || disabled) {
-    return display(field, context)
+    return display(field, context as UiContext)
   }
   return chrome(
     {
       disabled: inplaceEditorDisabledOf({ disabled }),
     },
     {
-      display: () => display(field, context),
-      content: () => content(field, context),
+      display: () => display(field, context as UiContext),
+      content: () => content(field, context as UiContext),
     },
   )
 }

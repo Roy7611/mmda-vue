@@ -53,21 +53,21 @@ flowchart LR
 | 层 | 包 / 目录 |
 |---|---|
 | UI | `@mmda/vui`（拼屏、会话）、`@mmda/vui-*`（皮肤控件与 factory） |
-| Logic | `@mmda/core` 的 `src/logic/`（`EntityLogic` 等）；业务 `*Logic.ts` 在 `@mmda/base` / `@mmda/mes` 继承 `EntityLogic`；vui 的 `VueEntityLogic` 只做响应式扩展 |
-| Data | `@mmda/core` 的 `metaui` / `models` / `net` / `di` / `utils` / `extensions` |
+| Logic | `@mmda/core` 的 `src/logic/`（`EntityLogic` 等）；业务 `*Logic.ts` 在 `@mmda/base` / `@mmda/mes` 继承 `EntityLogic`；无定制的实体用 core 的 `GenericEntityLogic.resolve(di, token, …)`，不要再建空 Logic 子类 |
+| Data | `@mmda/core` 的 `metaui` / `models` / `net` / `di` / `utils` |
 
 `@mmda/core` **没有 UI 实现**；契约在 `src/ui/`（`UiBuilder` / `UiFactory` / `UiContext`）。core 里的 `logic/` 是产品 **Logic 层**，不是 Data 的子目录。
 
 ### Data 在 core 内的目录
 
-内部依赖：`utils` / `extensions` → `metaui` → `models` → `net`。`di` 只依赖 utils。`metaui` / `models` / `utils` **不** import `logic/`。
+内部依赖：`utils` → `metaui` → `models` → `net`。`di` 只依赖 utils。`metaui` / `models` / `utils` **不** import `logic/`。
 
 | 目录 | 职责 |
 |---|---|
 | `metaui` | 服务端界面元数据；`Module` 在此；`MetaUiService` 可依赖 net |
 | `models` | 实体框架；`MetaModel` 用元数据操纵实体 |
 | `net` | HTTP / `ApiClient` |
-| `di` / `utils` / `extensions` | 注入与工具 |
+| `di` / `utils` | 注入与工具（原 `extensions/` 的原型补丁已改为 `utils/` 纯函数） |
 
 引用：元数据 `reference.where`（SQL 硬限制）不可改写；业务加码用 Logic `refWhere`，与 `where` AND。不要把 JS 过滤器写进 `MetaUiField`。
 

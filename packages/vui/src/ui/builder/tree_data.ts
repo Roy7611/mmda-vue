@@ -157,7 +157,7 @@ function nestFlat<T>(rows: T[], spec: TreeDataSpec): T[] {
     const parent = parentId ? byId.get(parentId) : undefined
     if (parent && parent !== row) {
       const siblings = childrenOf(parent, childrenKey)
-      if (!siblings.includes(row)) siblings.push(row)
+      if (!siblings.some((existing) => existing === row)) siblings.push(row as NonNullable<T>)
     } else if (!seen.has(row)) {
       roots.push(row)
     }

@@ -6,7 +6,7 @@
  */
 import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
 import type {UiProps} from '../layout'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
 
 /** 大陆手机：11 位数字，中间空格。EJ2 `0` = 数字。 */
 export const MOBILE_MASK = '000 0000 0000'
@@ -21,7 +21,9 @@ export type MaskedTextBoxFieldContext = {
   isFieldReadonly: (field: MetaUiField | string) => boolean
 }
 
-export function maskedTextBoxValueOf(props: UiMaskedTextBoxProps): string {
+export function maskedTextBoxValueOf(
+  props: VueModelProps<UiMaskedTextBoxProps>,
+): string {
   if (props.value !== undefined && props.value != null) return String(props.value)
   if (props.modelValue !== undefined && props.modelValue != null) {
     return String(props.modelValue)
