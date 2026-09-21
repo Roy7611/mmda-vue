@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Equipment, defineEquipment } from '@/models/Equipment';
 import { type EquipmentStation, defineEquipmentStation } from '@/models/EquipmentStation';
 import { User, defineUser } from '@mmda/base/src/models/User';

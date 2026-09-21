@@ -14,7 +14,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, EntityUrlParam, type UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type ToolCategory, defineToolCategory } from "@/models/ToolCategory";
 import { MaterialTypeEnum, MaterialType } from '@mmda/base/src/enums/MaterialType';
 

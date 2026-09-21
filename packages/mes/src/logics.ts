@@ -1,5 +1,4 @@
-import type { EntityLogic, EntityLogicInit } from '@mmda/vui'
-
+import type {EntityLogic, EntityLogicInit} from '@mmda/core'
 type LogicCtor = new (init: EntityLogicInit) => EntityLogic<any>
 type LogicLoader = () => Promise<LogicCtor>
 const logic = <M>(load: () => Promise<M>, name: keyof M): LogicLoader =>

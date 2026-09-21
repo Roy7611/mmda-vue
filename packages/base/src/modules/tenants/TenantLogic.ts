@@ -16,13 +16,7 @@ import {
   MetaModel,
   isRefNone,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Tenant, defineTenant } from "../../models/Tenant";
 import {
   type TenantModule,

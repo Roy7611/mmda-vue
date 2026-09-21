@@ -8,7 +8,7 @@
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined, debounce, isObject } from '@mmda/core';
 import { QaStatus, QaStatusEnum } from '@mmda/base/src/enums/QaStatus';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Rectification, defineRectification } from '@/models/Rectification';
 import { type RectificationItem, defineRectificationItem } from '@/models/RectificationItem';
 import { RectifiableProduct, defineRectifiableProduct } from '@/models/RectifiableProduct';

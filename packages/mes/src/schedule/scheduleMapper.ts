@@ -3,8 +3,7 @@ import {
   persistScheduleGanttTaskExpectedDates,
 } from '../components/GanntView/ganttScheduleDateHelpers'
 import { isProjectScheduleTaskLocked } from '../components/GanntView/ganttProjectScheduleLockHelpers'
-import type { UiGanttLink, UiGanttTask } from '@mmda/vui'
-
+import type {UiGanttLink, UiGanttTask} from '@mmda/core'
 export function toGanttTaskId(id: unknown) {
   return id === 0 || id === '0' ? 'project_0' : id
 }

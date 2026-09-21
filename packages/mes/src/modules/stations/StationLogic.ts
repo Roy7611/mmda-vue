@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, EntityState, isRefNone } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type Station, defineStation } from '@/models/Station';
 import { type StationOperation, defineStationOperation } from '@/models/StationOperation';
 /**

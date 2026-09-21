@@ -6,8 +6,8 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, ApiClient, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
-import { EntityLogic } from '@mmda/vui';
+import type {EntityLogicInit, UiLogicFnResult} from '@mmda/core'
+import {EntityLogic} from '@mmda/core'
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 

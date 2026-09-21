@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, MetaModel } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type WorkOrder, defineWorkOrder } from '@/models/WorkOrder';
 import { EmployeeStatus } from '@mmda/base/src/enums/EmployeeStatus';
 import { type WorkOrderMember, defineWorkOrderMember } from '@/models/WorkOrderMember';

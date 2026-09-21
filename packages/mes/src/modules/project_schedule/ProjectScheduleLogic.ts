@@ -8,8 +8,8 @@ import { resolve } from 'node:path';
  */
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
-import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
-import { EntityLogic } from '@mmda/vui';
+import type {EntityLogicInit, UiLogicFnResult} from '@mmda/core'
+import {EntityLogic} from '@mmda/core'
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
 import { getTaskData, getLinkRes, getProSub, getPlanRes, getBreaks, getReflash, getReload } from '@/components/ProjectGanntView/ProjectGanttUpdate';

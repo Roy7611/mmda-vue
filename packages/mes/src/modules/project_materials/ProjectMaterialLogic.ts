@@ -6,7 +6,7 @@
  * 
  */
 import { MetaUiService, Module } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic} from '@mmda/core'
 import { type ProjectMaterial, defineProjectMaterial } from '@/models/ProjectMaterial';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 /**

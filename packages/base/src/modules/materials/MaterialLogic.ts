@@ -19,15 +19,7 @@ import {
   defineEntityArray,
   isNullOrUndefined,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  type UiViewOptions,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewManyKind,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, type UiViewOptions, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewManyKind, UiViewOne} from '@mmda/core'
 import { type Material, defineMaterial } from "../../models/Material";
 import {
   type MaterialFeature,

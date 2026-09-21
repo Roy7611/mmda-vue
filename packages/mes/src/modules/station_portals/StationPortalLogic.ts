@@ -6,7 +6,8 @@
  *
  */
 import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction} from '@mmda/core'
+import { UI_BUILDER_KEY } from '@mmda/vui'
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
 import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';

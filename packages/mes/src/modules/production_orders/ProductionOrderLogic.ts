@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionOrderMaterial, defineProductionOrderMaterial } from '@/models/ProductionOrderMaterial';
 import { ProductionOrderStatusEnum } from '@/enums/ProductionOrderStatus';

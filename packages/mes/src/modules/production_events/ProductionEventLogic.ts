@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, EntityAction, isNullOrUndefined, ApiClient, getSqlOperator } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProductionEvent, defineProductionEvent } from '@/models/ProductionEvent';
 import { ProductionTaskStatus } from '@/enums/ProductionTaskStatus';
 import { ProductionEventPhoto, defineProductionEventPhoto } from '@/models/ProductionEventPhoto';

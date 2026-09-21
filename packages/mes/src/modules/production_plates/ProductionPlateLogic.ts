@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProductionPlate, defineProductionPlate } from '@/models/ProductionPlate';
 /**
  * 生产货组交互逻辑

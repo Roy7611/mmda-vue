@@ -1,5 +1,6 @@
 import { MES_KEY } from '../keys'
-import { UI_APP_KEY, UI_BUILDER_KEY, type MmdaApplication, type VueUiBuilder } from '@mmda/vui'
+import {type MmdaApplication} from '@mmda/core'
+import { UI_APP_KEY, UI_BUILDER_KEY, type VueUiBuilder } from '@mmda/vui'
 import { defineComponent, h, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Module } from '@mmda/core'

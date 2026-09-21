@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Wbs, defineWbs } from '@/models/Wbs';
 import { type WbsTask, defineWbsTask } from '@/models/WbsTask';
 import { UserStatus } from '@mmda/base/src/enums/UserStatus';

@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type MaintenancePlan, defineMaintenancePlan } from '@/models/MaintenancePlan';
 /**	/** 原有逻辑
  * import { MaintenanceFrequencyEnum, MaintenanceFrequency } from '@/enums/MaintenanceFrequency';

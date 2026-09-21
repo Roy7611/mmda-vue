@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, MetaModel, defaultPager, MetaUiBuilder } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type DailyReport, defineDailyReport } from '@/models/DailyReport';
 import { type DailyReportTask, defineDailyReportTask } from '@/models/DailyReportTask';
 import { type DailyReportEvent, defineDailyReportEvent } from '@/models/DailyReportEvent';

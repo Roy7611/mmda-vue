@@ -21,7 +21,8 @@ import {
 	defaultPager,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, getFileInfo, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
+import { getFileInfo } from '@mmda/vui'
 import { type Doc, defineDoc } from '@/models/Doc';
 import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';

@@ -18,13 +18,7 @@ import {
   isRefNone,
   isNullOrUndefined,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type User, defineUser } from "../../models/User";
 import { type UserRole, defineUserRole } from "../../models/UserRole";
 import { type UserDevice, defineUserDevice } from "../../models/UserDevice";

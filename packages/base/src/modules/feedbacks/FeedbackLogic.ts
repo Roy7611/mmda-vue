@@ -15,13 +15,7 @@ import {
   isNullOrUndefined,
   ApiClient,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Feedback, defineFeedback } from "../../models/Feedback";
 import {
   type FeedbackPhoto,

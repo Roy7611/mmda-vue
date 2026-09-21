@@ -9,3 +9,7 @@ dist-ssr
 .svn/
 .env
 .vscode/
+
+# 工作区临时产物（搜索 / 错误转储），不要提交
+.tmp_*
+*_errors.txt

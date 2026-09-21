@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type QualityControlStandard, defineQualityControlStandard } from '@/models/QualityControlStandard';
 import { type QualityControlStandardItem, defineQualityControlStandardItem } from '@/models/QualityControlStandardItem';
 import { QualityInspectionMethod } from '@/enums/QualityInspectionMethod';

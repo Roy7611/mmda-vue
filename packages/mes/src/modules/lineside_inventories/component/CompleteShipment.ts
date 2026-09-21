@@ -9,7 +9,8 @@
 import { defineComponent, type SlotsType, inject, ref, type Ref, watch, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode, computed, toRaw } from 'vue';
 import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, } from "@mmda/core";
 import { isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, toPrecise, thousandDigitFormat } from '@mmda/core';
-import { VueUiContext, type UiSearchField, type UiCustomSearchField, type CustomColumn } from '@mmda/vui';
+import {type UiSearchField} from '@mmda/core'
+import { VueUiContext, type UiCustomSearchField, type CustomColumn } from '@mmda/vui'
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { useRouter, useRoute } from 'vue-router';
 import { MES_KEY } from '@/keys';

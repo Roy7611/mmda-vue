@@ -1,0 +1,49 @@
+{
+  "name": "@mmda/rui",
+  "description": "Metadata Model Driven Architecture React UI runtime",
+  "author": "roshion luo",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/mmda-rui.es.js",
+  "module": "./dist/mmda-rui.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/mmda-rui.es.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "typecheck:dist": "tsc -p tsconfig.lib.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0 || ^18.3.0",
+    "react-dom": "^19.0.0 || ^18.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.0",
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type UiContext, MetaModel, MetaAggregation, defaultPager, isRefNone, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type Maintenance, defineMaintenance } from '@/models/Maintenance';
 import { type MaintenancePart, defineMaintenancePart } from '@/models/MaintenancePart';
 import { type EquipmentSparePart, defineEquipmentSparePart } from '@/models/EquipmentSparePart';

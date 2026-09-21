@@ -1,8 +1,8 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed, toRefs, Suspense } from 'vue';
 import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
-import { label, UiViewOne } from '@mmda/vui';
-import { get } from 'http';
+import {UiViewOne} from '@mmda/core'
+import { label } from '@mmda/vui'import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
 import { emit } from 'process';

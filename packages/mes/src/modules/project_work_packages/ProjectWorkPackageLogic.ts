@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isRefNone, EntityAction, isNullOrUndefined, triggerEscKey, isObject, debounce } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProjectWorkPackage, defineProjectWorkPackage } from '@/models/ProjectWorkPackage';
 import { type ProjectWorkPackageItem, defineProjectWorkPackageItem } from '@/models/ProjectWorkPackageItem';
 import { MES_KEY } from '@/keys';

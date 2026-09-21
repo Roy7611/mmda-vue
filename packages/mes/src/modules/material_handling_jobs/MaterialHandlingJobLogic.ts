@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type MaterialHandlingJob, defineMaterialHandlingJob } from '@/models/MaterialHandlingJob';
 import { type MaterialHandlingJobStep, defineMaterialHandlingJobStep } from '@/models/MaterialHandlingJobStep';
 import { type MaterialHandlingJobRelation, defineMaterialHandlingJobRelation } from '@/models/MaterialHandlingJobRelation';

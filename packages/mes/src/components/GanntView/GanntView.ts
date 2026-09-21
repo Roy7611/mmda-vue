@@ -8,13 +8,8 @@ import {
   type PropType,
 } from 'vue'
 import type { ApiClient } from '@mmda/core'
-import {
-  UI_APP_KEY,
-  type MmdaApplication,
-  type VueUiContext,
-  type UiGanttController,
-  type UiGanttTimeScale,
-} from '@mmda/vui'
+import {type MmdaApplication, type UiGanttController, type UiGanttTimeScale} from '@mmda/core'
+import { UI_APP_KEY, type VueUiContext } from '@mmda/vui'
 import {
   ganttLinkToSavePayload,
   ganttTaskToSavePayload,

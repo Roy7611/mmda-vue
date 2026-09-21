@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type EquipmentChecklist, defineEquipmentChecklist } from '@/models/EquipmentChecklist';
 import { type EquipmentChecklistItem, defineEquipmentChecklistItem } from '@/models/EquipmentChecklistItem';
 /**

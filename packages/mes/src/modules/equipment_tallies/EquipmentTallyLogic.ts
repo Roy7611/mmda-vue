@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, MetaUiBuilder, isRefNone, isNullOrUndefined } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type EquipmentTally, defineEquipmentTally } from '@/models/EquipmentTally';
 import { type EquipmentTallyRecord, defineEquipmentTallyRecord } from '@/models/EquipmentTallyRecord';
 import { EquipmentCheckResult, EquipmentCheckResultEnum } from '@/enums/EquipmentCheckResult';

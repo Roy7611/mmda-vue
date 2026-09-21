@@ -8,8 +8,8 @@
 
 import { isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey, FieldFilter, DateUtils } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
-import type { EntityLogicInit } from '@mmda/vui';
-import { EntityLogic } from '@mmda/vui';
+import type {EntityLogicInit} from '@mmda/core'
+import {EntityLogic} from '@mmda/core'
 import { primeVueFactory } from '@/compat/primevue_legacy'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';

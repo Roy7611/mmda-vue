@@ -17,12 +17,7 @@ import {
   isRefNone,
   isNullOrUndefined,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type Department, defineDepartment } from "../../models/Department";
 import { DepartmentStatus } from "../../enums/DepartmentStatus";
 import { EmployeeStatus } from "../../enums/EmployeeStatus";

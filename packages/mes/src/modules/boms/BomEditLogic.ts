@@ -3,7 +3,7 @@
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 import { MetaModel, isNullOrUndefined, getSqlOperator, type UiContext } from '@mmda/core';
-import { EntityLogic, UiViewOne, type UiLogicFnResult } from '@mmda/vui';
+import {EntityLogic, UiViewOne, type UiLogicFnResult} from '@mmda/core'
 import type { Bom } from '@/models/Bom';
 import type { BomItem } from '@/models/BomItem';
 import { BomStatus } from '@/enums/BomStatus';

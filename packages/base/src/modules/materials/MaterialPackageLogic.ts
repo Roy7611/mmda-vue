@@ -6,7 +6,7 @@
  *
  */
 import { DEFAULT_PAGE_SIZE, type EntitySearchParam, type MetaUiService, type Module, type MetaUiField } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type MaterialPackage, defineMaterialPackage } from '../../models/MaterialPackage';
 import { UsageStatus } from '../../enums/UsageStatus';
 

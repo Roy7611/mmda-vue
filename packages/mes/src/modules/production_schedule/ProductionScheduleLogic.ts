@@ -8,8 +8,8 @@ import { resolve } from 'node:path';
  */
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
-import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
-import { EntityLogic } from '@mmda/vui';
+import type {EntityLogicInit, UiLogicFnResult} from '@mmda/core'
+import {EntityLogic} from '@mmda/core'
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
 import { applyScheduleGanttTaskDates } from '@/components/GanntView/ganttScheduleDateHelpers';
 import { primeVueFactory } from '@/compat/primevue_legacy'

@@ -14,7 +14,7 @@
  * 
  */
 import { type UiContext, type MetaUiService, type Module, defaultPager } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type WorkTeamType, defineWorkTeamType } from '@/models/WorkTeamType';
 import { type WorkTeamTypeCert, defineWorkTeamTypeCert } from '@/models/WorkTeamTypeCert';
 

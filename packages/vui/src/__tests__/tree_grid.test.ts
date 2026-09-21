@@ -62,8 +62,8 @@ describe("TreeGrid builder", () => {
     });
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.list = (rows, _metaUi, props) => {
-      captured = { rows, props };
+    builder.factory.list = (props: any) => {
+      captured = { rows: props.rows, props };
       return h("div", { class: "mmda-tree-grid" });
     };
     builder.buildGroup(metaUi.getGroup("items")!, context);
@@ -96,7 +96,7 @@ describe("TreeGrid builder", () => {
     });
     let used = "none";
     const builder = new TestUiBuilder();
-    builder.factory.list = (_rows, _metaUi, props) => {
+    builder.factory.list = (props: any) => {
       used = String(props?.display ?? "list");
       return h("div");
     };
@@ -123,7 +123,7 @@ describe("TreeGrid builder", () => {
     let used = "none";
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.list = (_rows, _metaUi, props) => {
+    builder.factory.list = (props: any) => {
       used = String(props?.display ?? "list");
       captured = props;
       return h("div");
@@ -226,7 +226,7 @@ describe("index pagination wiring", () => {
     });
     let captured: any;
     const builder = new TestUiBuilder();
-    builder.factory.list = (_rows, _metaUi, props) => {
+    builder.factory.list = (props: any) => {
       captured = props;
       return h("div", { class: "mmda-table" });
     };

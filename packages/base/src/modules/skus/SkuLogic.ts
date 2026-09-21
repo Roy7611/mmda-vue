@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type Sku, defineSku } from '../../models/Sku';
 import { type SkuFeature, defineSkuFeature } from '../../models/SkuFeature';
 import { type SkuMedia, defineSkuMedia } from '../../models/SkuMedia';

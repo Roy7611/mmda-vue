@@ -16,7 +16,7 @@ import {
 	PagedList,
 	MetaModel,
 } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type Shift, defineShift } from '@/models/Shift';
 /**
  * 班次交互逻辑

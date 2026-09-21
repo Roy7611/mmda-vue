@@ -6,7 +6,7 @@
  *
  */
 import type { MetaUiService, Module, UiContext, EntityAction } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult} from '@mmda/core'
 import { type ProjectAcceptance, defineProjectAcceptance } from '@/models/ProjectAcceptance';
 import { type ProjectAcceptanceItem, defineProjectAcceptanceItem } from '@/models/ProjectAcceptanceItem';
 import { type ProjectDeliveryItem, defineProjectDeliveryItem } from '@/models/ProjectDeliveryItem';

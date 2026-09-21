@@ -51,15 +51,33 @@ describe('architecture gate', () => {
   })
 
   it('非测试源码 any 数量不超过 206（防止重新泛滥）', () => {
-    const files = collectTsFiles(srcDir).filter(
-      (file) => !file.replace(/\\/g, '/').includes('/__tests__/'),
-    )
-    const count = files.reduce(
-      (total, file) =>
-        total +
-        (readFileSync(file, 'utf8').match(/\bany\b/g)?.length ?? 0),
-      0,
-    )
-    expect(count).toBeLessThanOrEqual(206)
-  })
+      const files = collectTsFiles(srcDir).filter(
+        (file) => !file.replace(/\\/g, '/').includes('/__tests__/'),
+      )
+      const count = files.reduce(
+        (total, file) =>
+          total +
+          (readFileSync(file, 'utf8').match(/\bany\b/g)?.length ?? 0),
+        0,
+      )
+      expect(count).toBeLessThanOrEqual(206)
+    })
+
+    it('业务 Logic 不得新增 import vui/rui（残余 ≤ 6）', () => {
+      const monorepoRoot = join(process.cwd(), '..')
+      const runtimeImport = /from\s+['"']@mmda\/(?:vui|rui)['"]/
+      const offenders: string[] = []
+      for (const pkg of ['base', 'mes']) {
+        const modDir = join(monorepoRoot, pkg, 'src', 'modules')
+        for (const file of collectTsFiles(modDir)) {
+          if (!file.endsWith('Logic.ts')) continue
+          if (runtimeImport.test(readFileSync(file, 'utf8'))) {
+            offenders.push(file.replace(/\\/g, '/'))
+          }
+        }
+      }
+      // 当前残余 6 处（defineInputProps / getFileInfo / UI_BUILDER_KEY / setGroupWatermark / Rx / rx）
+      // 每消一处就把此数字减一，最终归零。
+      expect(offenders.length).toBeLessThanOrEqual(6)
+    })
 })

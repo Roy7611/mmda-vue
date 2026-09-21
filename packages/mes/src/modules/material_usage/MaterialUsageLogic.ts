@@ -1,6 +1,7 @@
 import { useRouter } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction} from '@mmda/core'
+import { UI_BUILDER_KEY } from '@mmda/vui'
 import { type MaterialUsage, defineMaterialUsage } from '@/models/MaterialUsage';
 /**
  * 用料分析交互逻辑

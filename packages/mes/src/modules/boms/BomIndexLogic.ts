@@ -2,7 +2,7 @@
  * Copyright (c) 2006, 2024, www.syclive.com All rights reserved.
  * MMDA.CLOUD PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-import { EntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {EntityLogic, type UiLogicFnResult} from '@mmda/core'
 import type { Bom } from '@/models/Bom';
 import type { BomLogic } from './BomLogic';
 

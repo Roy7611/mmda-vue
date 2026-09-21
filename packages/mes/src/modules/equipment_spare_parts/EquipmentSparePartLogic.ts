@@ -7,7 +7,7 @@
  */
 
 import { MetaUiService, Module, MetaUiField, ApiClient, type UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey, EntityAction } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type EquipmentSparePart, defineEquipmentSparePart } from '@/models/EquipmentSparePart';
 /**
  * 备品备件交互逻辑

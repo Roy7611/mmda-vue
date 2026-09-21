@@ -8,7 +8,8 @@
 import { useRouter } from 'vue-router';
 import { ApiProblem, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiProblemPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiProblem, getSqlOperator, FieldFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, Validation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn} from '@mmda/core'
+import { defineInputProps } from '@mmda/vui'
 import { type Bom, defineBom } from '@/models/Bom';
 import { type BomItem, defineBomItem } from '@/models/BomItem';
 import { type BomItemOperation, defineBomItemOperation } from '@/models/BomItemOperation';

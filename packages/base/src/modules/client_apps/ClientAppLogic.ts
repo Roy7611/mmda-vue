@@ -14,13 +14,7 @@ import {
   defaultPager,
   Validation,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type ClientApp, defineClientApp } from "../../models/ClientApp";
 import {
   type ClientAppModule,

@@ -21,7 +21,7 @@ import {
 	EntityAction,
 	type Pager,
 } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult} from '@mmda/core'
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';

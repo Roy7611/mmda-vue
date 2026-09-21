@@ -6,7 +6,7 @@
  * 
  */
 import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined, type UiContext, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProjectTask, defineProjectTask } from '@/models/ProjectTask';
 import { stringify } from 'querystring';
 //计算两个天数之间的日期

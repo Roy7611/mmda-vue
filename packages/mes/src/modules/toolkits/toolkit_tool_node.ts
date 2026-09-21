@@ -1,7 +1,8 @@
 import { h } from 'vue'
 import type { MetaUiGroup, UiProps } from '@mmda/core'
 import { MetaModel } from '@mmda/core'
-import { UiViewOne, type VueUiContext } from '@mmda/vui'
+import {UiViewOne} from '@mmda/core'
+import { type VueUiContext } from '@mmda/vui'
 import type { Tool } from '@/models/Tool'
 
 function callBagHandler(

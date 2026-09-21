@@ -5,8 +5,8 @@
  */
 
 import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, defaultPager, FieldFilter, DateUtils } from '@mmda/core'
-import type { EntityLogicInit } from '@mmda/vui'
-import { EntityLogic } from '@mmda/vui'
+import type {EntityLogicInit} from '@mmda/core'
+import {EntityLogic} from '@mmda/core'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage'
 import type { HomeKpi, Worker, Equipment, Material, ProductionChartData, SafetyAlert, EquipmentAlarm, TodaySummary, QcStats, EquipmentOverview, PendingNotification } from './types'

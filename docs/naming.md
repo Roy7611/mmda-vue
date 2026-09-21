@@ -121,7 +121,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 - Logic 只 import `@mmda/core`；`UiButtonProps` 等参数类型也在 core。
 - vui：只钉 `VNode` → `type VueUiX = UiX<VNode>`；有 mixin/共用代码 → `abstract class`；多方法 → `interface extends`。
-- **袋 → 渲染前标准形态归 core**：`uiRenderProps(props)`（`core/src/ui/props.ts`）把袋拆成 `props` / `attributes` / `className` / `style`，框架无关；`className` 已收成字符串（`uiClassName`）、`style` 已收成对象、袋键 `htmlAttributes` 已压平、`for` 规范成 `htmlFor`、Vue 的 `onUpdate*` 别名不进标准形态；`htmlAttributesOf` 过渡期保留。vui 只做两处键名映射（`vueRenderProps`：`className`→`class`、`htmlFor`→`for`），rui 零映射。设计与迁移见 [UI Props 标准形态设计](../packages/core/docs/ui/ui_prop_channels_design.md)。
+- **袋 → 渲染前标准形态归 core**：`uiRenderProps(props)`（`core/src/ui/props.ts`）把袋拆成 `props` / `attributes`，框架无关；`class` 已收成字符串（`uiClassName`）、`style` 已收成对象、袋键 `htmlAttributes` 已压平、`for` 用平台原名、Vue 的 `onUpdate*` 别名不进标准形态。vui **零键名翻译**直传 `h`（标准形态即 `class` / `for`）；rui 做两处映射（`className` / `htmlFor`）。设计与迁移见 [vui_architecture.md](design/vui_architecture.md) §1。
 - **不要** core 写 `Ref` / `VNode`；`loading` / `layoutRev` 用 `UiBoxed`（`boolean | { value: boolean }`）。
 - 厂商类名用短前缀：`PrimeUiBuilder`（不要 `PrimeVueUiBuilder` 与 Vue 层混）。
 

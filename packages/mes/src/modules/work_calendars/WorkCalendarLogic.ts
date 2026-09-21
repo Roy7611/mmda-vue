@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined, DateUtils } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type WorkCalendar, defineWorkCalendar } from '@/models/WorkCalendar';
 import { type WorkCalendarDay, defineWorkCalendarDay } from '@/models/WorkCalendarDay';
 import { type WorkShift, defineWorkShift } from '@/models/WorkShift';

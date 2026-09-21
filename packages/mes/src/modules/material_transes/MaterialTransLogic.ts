@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, isNullOrUndefined, getSqlOperator, debounce, EntityUrlParam, FieldFilter } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiLogicBeforeFn, UiViewOne} from '@mmda/core'
 import { type MaterialTrans, defineMaterialTrans } from '@/models/MaterialTrans';
 import { type MaterialTransItem, defineMaterialTransItem } from '@/models/MaterialTransItem';
 import { type MaterialTransTool, defineMaterialTransTool } from '@/models/MaterialTransTool';

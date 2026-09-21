@@ -7,7 +7,7 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
 import { getSqlOperator, MetaModel } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type AlternativeStrategy, defineAlternativeStrategy } from '@/models/AlternativeStrategy';
 import { type AlternativeStrategyItem, defineAlternativeStrategyItem } from '@/models/AlternativeStrategyItem';
 /**

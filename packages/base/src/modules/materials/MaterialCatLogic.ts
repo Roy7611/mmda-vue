@@ -17,13 +17,7 @@ import {
   isRefNone,
   EntityUrlParam,
 } from "@mmda/core";
-import {
-  type EntityLogicInit,
-  EntityLogic,
-  SubEntityLogic,
-  type UiLogicFnResult,
-  UiViewOne,
-} from "@mmda/vui";
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type MaterialCat, defineMaterialCat } from "../../models/MaterialCat";
 import { MaterialTypeEnum, MaterialType } from "../../enums/MaterialType";
 

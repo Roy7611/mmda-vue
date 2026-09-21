@@ -258,6 +258,39 @@ sui:  { ...std.props, ...std.attributes }                              // Svelte
 | `UiFactory` 扩展位 | [packages/vui/src/ui/factory.ts:199](../../packages/vui/src/ui/factory.ts) 收成具名后，皮肤新增控件是否需要 core 侧泛型扩展位 |
 | 逐项渲染委托的边界 | `UiListColumnProps.cellRenderer` 进列配置（对齐各生态惯例）；控件级（如 `rowClassName`）留 props —— 逐控件清点时再定 |
 
+### 1.9 落地状态（core 收口轮后同步）
+
+> 本节记录 2026-09 core 重构轮（`2177114` / `b02751d`，决策记录见 [`docs/reviews/core-refactor.md`](../../docs/reviews/core-refactor.md)）之后，本文各决策的实际落地情况；与源码不符处一律以源码为准。
+
+| 本文决策 | 落地状态 |
+|---|---|
+| 标准形态用平台原名 `class` / `for`（D4）| **已落地**：vui 零翻译直传 `h` |
+| `UiProps` 无通用索引签名（D2）| **已落地**：`packages/core/src/ui/props.ts` 只留 `class` / `style` / `for` / `htmlAttributes` + `data-*` / `aria-*` 模板索引 |
+| `UiSlot` / `uiSlot`（D6）| **已落地**：家已由 `ui/slot.ts` 改名 **`packages/core/src/ui/slots.ts`**（`UiSlot` / `UiSlots` / `uiSlot`）；`uiSlot` 目前只有自身单测在调，实现侧尚未统一改用它 |
+| 区域走工厂第二参 `(props, slots)` | **已落地**：factory 全族（`buttonGroup` / `splitter` / …）均为 `(props, slots)`；例外见下「仍开」 |
+| `extra` 通道消灭 | **已落地**：core / vui / 三皮肤源码 0 处 `extra.` 读取（残留仅在 vendored `packages/vui/src/assets/fa/js/all.js`） |
+| `vueRenderProps` 让位 `vueUpdateOf` | **已落地**：`vueUpdateOf` 是 v-model 写入的唯一出口，两个别名键同写 |
+
+本轮新增的**强制机制**（本文后续验收按它们写）：
+
+- **架构门禁**：`packages/core/src/__tests__/architecture_gate.test.ts` —— ① Data（`metaui` / `models` / `net` / `utils` / `di`）不得反向 import `logic`；② 除 `__tests__` 外禁 `declare global`；③ `logic/` 保持纯 TS（禁 vue / react）；④ 非测试源码 `any` 计数 **≤ 206**（封顶，无余量）。
+- **CI**：`.github/workflows/ci.yml` 目前只跑 `@mmda/core`（typecheck / test / build）；vui 与皮肤尚未纳入。
+- **注意**：`__tests__` 不在 `tsconfig.typecheck.json` 的 program 里，契约变更后测试脚手架漂移 **tsc 看不见**——改契约要同时跑逐包 `vitest`。
+
+与本轮接口变动相关的两条（本文原表述已过时）：
+
+- `UiBuilder.buildView` 已拆为 **`buildIndexView` / `buildDetailsView` / `buildEditView`**。
+- vui 的 `VueEntityLogic` 已删除；无定制的实体用 core 的 **`GenericEntityLogic.resolve(di, token, …)`**。
+
+### 1.10 仍开（截至本轮）
+
+| 项 | 现状 |
+|---|---|
+| `packages/vui/src/ui/factory.ts:201` 的 `[index: string]: any` | 仍在（§1.8 第 2 条未收），皮肤新增控件靠它兜 |
+| `packages/vui/src/utils/resolve_slots.ts` | 5 个导出函数（`resolveSlot` / `resolveSlotWithProps` / `resolveWrappedSlot` / `resolveWrappedSlotWithProps` / `isSlotEmpty`）**0 个调用点**，只被 barrel 再导出 |
+| 测试脚手架漂移 | `packages/vui/src/__tests__/test_builder.ts` 仍是旧形态（`buttonGroup(buttons, props)` / `table(model, metaUi, props)`）→ vui 测试 33 红 |
+| 四支数组工具 | `skipUndefined` / `skipNullAndUndefined` 与其等价别名 `nonUndefinedArray` / `nonNullArray` 生产代码 0 调用（只有单测），且成对重复 |
+
 ---
 
 对照源码：`packages/core/src/ui/`（契约）、`packages/vui/src/`（落地）、`packages/vui-*/src/`（皮肤）。

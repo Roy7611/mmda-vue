@@ -6,7 +6,7 @@
  *
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, isRefNone } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type Role, defineRole } from '../../models/Role';
 import { type RoleModuleAuth, defineRoleModuleAuth } from '../../models/RoleModuleAuth';
 import { type RoleDataAuth, defineRoleDataAuth } from '../../models/RoleDataAuth';

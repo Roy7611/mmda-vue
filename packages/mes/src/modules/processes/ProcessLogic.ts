@@ -7,7 +7,7 @@
  */
 import { MetaUiService, Module, MetaUiField, type UiContext, defaultPager, isNullOrUndefined, MetaModel, MetaUiGroup, Entity, getSqlOperator, EntitySearchParam, PagedList, type EntityUrlParam, FieldFilter } from '@mmda/core';
 import { processBpmnNode } from '@/components/BpmnModeler';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn} from '@mmda/core'
 import { type Process, defineProcess } from '@/models/Process';
 import { type ProcessOperation, defineProcessOperation } from '@/models/ProcessOperation';
 import { type ProcessRoute, defineProcessRoute } from '@/models/ProcessRoute';

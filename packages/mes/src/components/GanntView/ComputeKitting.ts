@@ -4,7 +4,8 @@ import '../GanntView/GanntView.less';
 import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
 import { useRouter, useRoute } from 'vue-router';
-import { loading, VueUiContext, type UiContext, UiViewOne } from '@mmda/vui';
+import {type UiContext, UiViewOne} from '@mmda/core'
+import { loading, VueUiContext } from '@mmda/vui'
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';

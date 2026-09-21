@@ -6,7 +6,7 @@
  * 
  */
 import type { MetaUiService, Module, MetaUiField, UiContext } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProductionJob, defineProductionJob } from '@/models/ProductionJob';
 import { type ProductionJobFeeding, defineProductionJobFeeding } from '@/models/ProductionJobFeeding';
 /**

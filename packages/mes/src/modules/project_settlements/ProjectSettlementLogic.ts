@@ -6,7 +6,7 @@
  *
  */
 import { type MetaUiService, type Module, type MetaUiField, MetaModel } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { type ProjectSettlement, defineProjectSettlement } from '@/models/ProjectSettlement';
 import { type ProjectSettlementItem, defineProjectSettlementItem } from '@/models/ProjectSettlementItem';
 import { CapitalFlows } from '@mmda/base/src/enums/CapitalFlows';

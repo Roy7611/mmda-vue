@@ -41,7 +41,8 @@ class TestLayout extends VueUiLayout {
 
 const testLayout = new TestLayout()
 
-const listedFields = (metaUi: MetaUi) => {
+const listedFields = (metaUi?: MetaUi | null): MetaUiField[] => {
+  if (!metaUi) return [];
   const listed = metaUi.getListedFields();
   return listed.length
     ? listed
@@ -69,8 +70,15 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
       ],
     );
 
-  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
-    const fields = listedFields(metaUi);
+  /**
+   * list 家族（list / table / grid / treeGrid）的**内部实现**一律单参 `(props)`：
+   * `bindListDisplayRenderers` 负责把三参旧形态归一成 `props.rows` / `props.fields` /
+   * `props.objName` 再调它（见 `src/ui/factory/list.ts` 的 `propsOf`）。
+   */
+  const table = <T>(props: UiListPropsType<T> = {} as UiListPropsType<T>) => {
+    const bag = props as any;
+    const model = (bag.rows ?? bag.model ?? []) as T[];
+    const fields = (props.fields ?? listedFields(bag.metaUi)) as MetaUiField[];
     const detail = props.rowDetail;
     return h("table", { class: "mmda-table" }, [
       h("thead", [h("tr", fields.map((field) => h("th", field.displayLabel)))]),
@@ -633,7 +641,8 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         "data-value": props.modelValue ?? value,
       }),
     button,
-    buttonGroup: (buttons, props) => h("div", props, buttons()),
+    buttonGroup: (props: any = {}, slots?: UiSlots) =>
+      h("div", props, slots?.default?.()),
     splitButton: (props) => button(props),
     dropDownButton: (buttonProps) => button(buttonProps),
     moreMenuButton: (buttonProps) => button(buttonProps),
@@ -646,33 +655,48 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
     actionButton: (action, _t, _resolve, props) =>
       button({ ...action, ...props, onClick: action.onAction }),
     paginator: () => stub("paginator"),
-    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
-      h(
-        "ul",
-        { class: "mmda-list" },
-        model.map((item, index) =>
+    list: <T>(props: UiListPropsType<T> = {} as UiListPropsType<T>) => {
+          const bag = props as any;
+          const model = (bag.rows ?? bag.model ?? []) as T[];
+          return h(
+            "ul",
+            { class: "mmda-list" },
+            model.map((item, index) =>
+              h(
+                "li",
+                {
+                  onClick: () => props.onItemClick?.(item),
+                  onDblclick: () => props.onItemDoubleClick?.(item),
+                },
+                (props.item?.(item, index) ??
+                  String(
+                    (item as any)[bag.labelField ?? bag.primaryKey ?? "id"] ?? "",
+                  )) as any,
+              ),
+            ),
+          );
+        },
+        tree: <T>(props: UiTreeProps<T>) => h(TestTree, props as any),
+        table,
+        treeGrid: <T>(props: any = {}) =>
           h(
-            "li",
+            "div",
             {
-              onClick: () => props.onItemClick?.(item),
-              onDblclick: () => props.onItemDoubleClick?.(item),
+              class: "mmda-tree-grid",
+              "data-tree-shape": props.treeShape,
+              "data-shape-key": props.shapeKey,
+              "data-load-mode": props.loadMode,
             },
-            (props.item?.(item, index) ??
-              String((item as any)[metaUi.labelField ?? metaUi.primaryKey] ?? "")) as any,
+            [table(props)],
           ),
-        ),
-      ),
-    tree: <T>(props: UiTreeProps<T>) => h(TestTree, props as any),
-    table,
-    treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) =>
-      h("div", {
-        class: "mmda-tree-grid",
-        "data-tree-shape": props.treeShape,
-        "data-shape-key": props.shapeKey,
-        "data-load-mode": props.loadMode,
-      }, [table(model, metaUi, props)]),
-    pagableTable: (loader, metadata, props) =>
-      table(loader.model.list as any[], metadata, props as any),
+        pagableTable: (loader: any, metadata: MetaUi, props: any = {}) =>
+          table({
+            ...props,
+            rows: loader.model.list,
+            primaryKey: props.primaryKey ?? metadata?.primaryKey,
+            objName: props.objName ?? metadata?.objName,
+            fields: props.fields ?? listedFields(metadata),
+          } as any),
     loading: (props: any = {}) =>
       h(
         "div",
@@ -760,7 +784,8 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         kids,
       );
     },
-    splitter: (panes, props) => renderTestSplitter(panes, props),
+    splitter: (props: UiSplitterProps = {}, slots?: UiSlots) =>
+      renderTestSplitter(splitterPanesOf(props, slots), props),
     searchRelative: () => stub("searchRelative"),
     formField: (props: any = {}, slots?: UiSlots) =>
       h("div", { class: ["mmda-form-field", props.class], style: props.style }, [
@@ -881,6 +906,16 @@ export class TestUiBuilder extends VueUiBuilder {
     return stub("buildSignupForm");
   }
 }
+
+/**
+ * panes 走 slots：`factory.splitter(props, { default: () => [pane…] })`；
+ * 兼容直接把数组挂在 `props.panes` 上的旧写法。
+ */
+const splitterPanesOf = (
+  props: UiSplitterProps & { panes?: UiSplitterPane[] } = {},
+  slots?: UiSlots,
+): UiSplitterPane[] =>
+  props.panes ?? ((slots?.default?.() ?? []) as unknown as UiSplitterPane[]);
 
 function renderTestSplitter(panes: UiSplitterPane[], props: UiSplitterProps = {}) {
   return h(TestSplitter, {

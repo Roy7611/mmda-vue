@@ -7,7 +7,7 @@
  */
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup, UiProps } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, FieldFilter } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
+import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
 import { toolkitToolListNode } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
