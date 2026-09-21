@@ -1,5 +1,5 @@
 import { defineComponent, reactive, toRaw, toRef, h, onMounted, computed, ref, onBeforeMount, getCurrentInstance, inject } from 'vue';
-import { defineEntity, type MetaUiService, type Module, type ModuleAction, type MetaUiField, MetaModel } from '@mmda/core';
+import { defineEntity, type MetaUiService, type Module, type ModuleAction, type MetaUiField, MetaModel, toPrecise } from '@mmda/core';
 import '../GanntView/GanntView.less';
 import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
@@ -705,13 +705,13 @@ export default defineComponent({
 					ownerID: MetaModel.getRefProp(it, 'ownerID'),
 					ownerDeptID: MetaModel.getRefProp(it, 'ownerDeptID'),
 					bomID: `${it?.bom?.bomNo} ${it?.bom?.bomGroup}`,
-					producedRate: (it.producedRate * 100).toPrecise(2),
-					outputProgress: (it.outputProgress * 100).toPrecise(2),
-					qualifiedRate: (it.qualifiedRate * 100).toPrecise(2),
-					firstPassYield: (it.firstPassYield * 100).toPrecise(2),
-					unqualifiedRate: (it.unqualifiedRate * 100).toPrecise(2),
-					goodRate: (it.goodRate * 100).toPrecise(2),
-					scrapRate: (it.scrapRate * 100).toPrecise(2),
+					producedRate: toPrecise(it.producedRate * 100, 2),
+					outputProgress: toPrecise(it.outputProgress * 100, 2),
+					qualifiedRate: toPrecise(it.qualifiedRate * 100, 2),
+					firstPassYield: toPrecise(it.firstPassYield * 100, 2),
+					unqualifiedRate: toPrecise(it.unqualifiedRate * 100, 2),
+					goodRate: toPrecise(it.goodRate * 100, 2),
+					scrapRate: toPrecise(it.scrapRate * 100, 2),
 				}));
 				if (reloadParam.orderID && orderData.value.length > 0) {
 					selectgOrder.value = orderData.value[0];
@@ -872,7 +872,7 @@ export default defineComponent({
 										{
 											default: () =>
 												h('div', { class: 'selfdivBox project' }, [
-													ui.factory.searchForRelative({
+													ui.factory.searchRelative({
 														role: `defectDesc-search-for-sProject`,
 														name: 'defectDesc-search-for-sProject',
 														id: 'defectDesc-search-for-sProject',
@@ -930,7 +930,7 @@ export default defineComponent({
 										{
 											default: () =>
 												h('div', { class: 'selfdivBox project' }, [
-													ui.factory.searchForRelative({
+													ui.factory.searchRelative({
 														role: `defectDesc-search-for-sProductionOrder-kitting`,
 														name: 'defectDesc-search-for-sProductionOrder-kitting',
 														id: 'defectDesc-search-for-sProductionOrder-kitting',
@@ -1006,7 +1006,7 @@ export default defineComponent({
 														valueField: 'id',
 														labelField: 'label',
 													})
-													: ui.factory.textSpan(getSingleGroupLabel() || $t('ganttLabel.chooseGroups'), {
+													: ui.factory.textSpan({ text: getSingleGroupLabel() || $t('ganttLabel.chooseGroups'),
 														class: 'gantt-group-single-label',
 													}),
 										}
@@ -1169,7 +1169,7 @@ export default defineComponent({
 																{
 																	body: (row: any) => {
 																		const dataItem = row?.node?.data;
-																		return ui.factory.image((dataItem?.[item.field] as string) || '', {
+																		return ui.factory.image({ src: (dataItem?.[item.field] as string) || '',
 																			width: '50',
 																			height: '50',
 																			preview: true,
@@ -1185,7 +1185,7 @@ export default defineComponent({
 																{
 																	body: (row: any) => {
 																		const dataItem = row?.node?.data;
-																		return ui.factory.textSpan(MaterialTracingModeEnum.textOfValue(dataItem?.[item.field]), {});
+																		return ui.factory.textSpan({ text: MaterialTracingModeEnum.textOfValue(dataItem?.[item.field]) });
 																	},
 																}
 															)

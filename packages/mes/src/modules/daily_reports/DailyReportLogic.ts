@@ -277,8 +277,10 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 				this.field('refPhotos').setCustomEditor((fld, ctx: UiContext<any>, props) => {
 					const factory = ctx.uiBuilder.factory;
 					const t = ctx.t.bind(ctx);
-					return factory.buttonGroup(() => [
-							factory.image(ctx.model.refPhotos, {
+					return factory.buttonGroup({ class: 'upBox' }, {
+						default: () => [
+							factory.image({
+								src: ctx.model.refPhotos,
 								isEdit: true,
 								preview: true,
 								style: {
@@ -296,7 +298,8 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 								},
 								onAction: () => chooseImages(ctx, this.master, 'simple'),
 							}),
-						], { class: 'upBox' });
+						],
+					});
 
 					// ui.factory.button({
 					// 	label: t('action.chooseImage'),
@@ -311,7 +314,7 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 					const tasks = getReportTasks(ctx);
 					const selectedId = ctx.model.taskID?.taskID ?? ctx.model.taskID;
 					const selectedTask = tasks.find((item: any) => item.taskID === selectedId) ?? ctx.model.taskID;
-					return ui.factory.searchForRelative({
+					return ui.factory.searchRelative({
 						role: 'taskID-search-for',
 						name: 'taskID-search-for',
 						id: 'taskID-search-for',
@@ -330,7 +333,8 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 							const rows = filterReportTasks(getReportTasks(ctx), '');
 							let data = null as any;
 							const result = await ctx.uiBuilder.dialog(
-								ctx.uiBuilder.factory.table(rows, taskGroup.groupUi, {
+								ctx.uiBuilder.table(taskGroup.groupUi, {
+									rows,
 									selectionMode: 'single',
 									onSelect: (selection: any) => {
 										data = Array.isArray(selection) ? selection[0] : selection;

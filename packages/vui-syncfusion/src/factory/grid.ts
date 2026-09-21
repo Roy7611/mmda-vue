@@ -1,5 +1,5 @@
 import { defineComponent, h, nextTick, ref } from "vue";
-import { ensureListFieldVisibleWhenFrozen, isListFrozen, MetaUiFieldFrozen, type MetaUi } from "@mmda/core";
+import { ensureListFieldVisibleWhenFrozen, isListFrozen, MetaUiFieldFrozen, type MetaUi, type TableColumnSettings } from "@mmda/core";
 import { isPersistableListColumn, persistListPack, type VueUiContext } from "@mmda/vui"
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid_inject";
@@ -37,24 +37,38 @@ export const parseGridColumnWidth = (width: unknown): number | undefined => {
   return Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
 };
 
-export const syncMetaUiFromGridColumns = (ej2Grid: any, metaUi: MetaUi) => {
+export const collectGridColumnSettings = (ej2Grid: any): TableColumnSettings[] => {
   const columns = (ej2Grid.getColumns?.() ?? []).filter(
     (column: any) =>
       isPersistableListColumn(column.field) && column.type !== "checkbox",
   );
-  columns.forEach((column: any, index: number) => {
-    const field = metaUi.getField(column.field);
-    if (!field) return;
-    field.listPos = index;
-    const width = parseGridColumnWidth(column.width);
-    if (width != null) field.listSize = width;
+  return columns.map((column: any, index: number) => {
     const freeze = String(column.freeze ?? "");
-    if (freeze === "Left") field.frozen = MetaUiFieldFrozen.Left;
-    else if (freeze === "Right") field.frozen = MetaUiFieldFrozen.Right;
-    else field.frozen = MetaUiFieldFrozen.None;
+    return {
+      fieldName: column.field,
+      listSize: parseGridColumnWidth(column.width),
+      listed: column.visible !== false,
+      frozen:
+        freeze === "Left"
+          ? MetaUiFieldFrozen.Left
+          : freeze === "Right"
+            ? MetaUiFieldFrozen.Right
+            : MetaUiFieldFrozen.None,
+      listPos: index,
+    };
+  });
+};
+
+export const syncMetaUiFromGridColumns = (ej2Grid: any, metaUi: MetaUi) => {
+  collectGridColumnSettings(ej2Grid).forEach((patch) => {
+    const field = metaUi.getField(patch.fieldName);
+    if (!field) return;
+    field.listPos = patch.listPos;
+    if (patch.listSize != null) field.listSize = patch.listSize;
+    field.frozen = patch.frozen as MetaUiFieldFrozen;
     ensureListFieldVisibleWhenFrozen(field);
     if (!isListFrozen(field.frozen)) {
-      field.listed = column.visible !== false;
+      field.listed = patch.listed;
     }
   });
   metaUi.getListedFields(true);

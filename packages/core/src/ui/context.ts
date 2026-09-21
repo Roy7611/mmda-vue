@@ -30,7 +30,7 @@ export type UiSubGroupView = 'create' | 'edit' | 'details'
  * - 字段搜索状态：`getFieldSearchOptions` / `getFieldSelectedOption` / `setFieldSearchParam`
  * - 生命周期：`load` / `search` / `reload` / `save` / `delete`
  * - 子上下文：`with` / `treeWith` / `subGroupContext` / `beginEditRow`
- * - 页面跳转与选择：`routeToIndex` / `routeToDetails` / `select` / `selectMany`
+ * - 页面跳转与选择：`routeToIndex` / `routeToDetails` / `routeToSearch` / `select` / `selectMany`
  *
  * Vue globalProps 不在此接口上。
  *
@@ -262,6 +262,8 @@ export interface UiContext<M extends Entity = Entity> {
   routeToEdit(id?: string): void
   /** 跳转到新建页。 */
   routeToCreate(): void
+  /** 跳转到查询表单页（`UiViewOne.Search`）。 */
+  routeToSearch(): void
   /** 打开多选列表页，并把选中结果交给 `handleFn`。 */
   selectMany(
     selectableKey: string,

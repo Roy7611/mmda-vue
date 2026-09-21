@@ -8,20 +8,15 @@ import { invalidOf, type UiContext } from "./utils";
 
 const wrapNumber = (
   field: MetaUiField,
-  context: UiContext,
-  extra: UiProps = {},
+  context: UiContext
 ) => {
   const invalid = invalidOf(field, context);
-  const suffix =
-    extra.suffix != null && extra.suffix !== ""
-      ? String(extra.suffix)
-      : resolveFieldUnit(field);
+  const suffix = resolveFieldUnit(field);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createNumberInput(
-      numberInputPropsFromField(field, context, {
-        ...extra,
-        ...(suffix ? { suffix } : {}),
-      }),
+    createNumberInput({
+      ...numberInputPropsFromField(field, context),
+      ...(suffix ? { suffix } : {}),
+    },
     ),
     invalid &&
       h(
@@ -36,7 +31,7 @@ export const numberInput = (
   field: MetaUiField,
   context: UiContext,
   props: UiProps = {},
-) => wrapNumber(field, context, props);
+) => wrapNumber(field, context);
 
 export const percentInput = (
   field: MetaUiField,

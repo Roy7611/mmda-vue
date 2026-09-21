@@ -198,10 +198,13 @@ export function sfTreeGridColumnOf(
 
 /** 字段列表与现网 tree-grid 一致：{@link listedTableFields}。 */
 export function buildSfTreeGridColumns(
-  metaUi: MetaUi,
+  fieldsOrMetaUi: MetaUiField[] | MetaUi,
   options: SfTreeGridColumnOptions = {},
 ) {
-  return listedTableFields(metaUi).map((field, index) =>
+  const fields = Array.isArray(fieldsOrMetaUi)
+    ? fieldsOrMetaUi
+    : listedTableFields(fieldsOrMetaUi)
+  return fields.map((field, index) =>
     sfTreeGridColumnOf(field, index, options),
   )
 }

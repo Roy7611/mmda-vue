@@ -6,7 +6,6 @@
     "moduleResolution": "Bundler",
     "moduleDetection": "force",
     "strict": true,
-    "strictNullChecks": false,
     "jsx": "preserve",
     "resolveJsonModule": true,
     "isolatedModules": true,

@@ -125,7 +125,7 @@ export function setI18nLocale(i18n: I18n, locale: string) {
    *
    * axios.defaults.headers.common['Accept-Language'] = locale
    */
-  document.querySelector("html").setAttribute("lang", locale);
+  document.querySelector("html")!.setAttribute("lang", locale);
 }
 
 export async function loadLocaleMessage(i18n: I18n, locale: string) {

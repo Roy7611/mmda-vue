@@ -230,13 +230,11 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
   
-  /**
-   * 移动端 / compact 放大镜的独立搜索屏。
-   */
-  buildSearchView<TProps extends UiProps = UiProps>(
-    context: UiContext,
-    props?: TProps,
-  ): TNode
+  // TODO: 移动端 / compact 放大镜的独立搜索屏契约暂缓，后续再收敛。
+  // buildSearchView<TProps extends UiProps = UiProps>(
+  //   context: UiContext,
+  //   props?: TProps,
+  // ): TNode
 
   /** 单个搜索条件控件，包括操作符、值域，用于搜索屏。 */
   buildSearchField(

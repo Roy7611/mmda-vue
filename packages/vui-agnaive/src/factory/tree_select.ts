@@ -1,7 +1,7 @@
 import { h, reactive } from 'vue'
 import { NTreeSelect } from 'naive-ui'
 import type { UiTreeSelectProps } from '@mmda/core'
-import { callUiBagFn, uiRenderProps } from '@mmda/core'
+import { uiRenderProps } from '@mmda/core'
 import { treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields, vueUpdateOf } from '@mmda/vui'
 
 type NaiveTreeOption = {

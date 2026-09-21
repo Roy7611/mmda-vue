@@ -34,22 +34,21 @@ export const FileUploadContent = (context: any, props: UiProps) => {
                         // content
                         h('div', { class: 'flex_column flex_item_start flex_content_center p-2' }, [
                             h('div', { class: 'flex_item_center' }, [
-                                ui.factory.textSpan(fileName, {
+                                ui.factory.textSpan({ text: fileName,
                                     class: 'word-ellipsis pr-2 max-w-48',
                                     tooltip: fileName.length > 13 ? fileName : null,
                                     tooltipPosition: 'bottom'
                                 })
                             ]),
                             h('div', { class: 'flex_item_center' }, [
-                                ui.factory.textSpan(fileSize ? formatFileSize(fileSize) : '-', {
+                                ui.factory.textSpan({ text: fileSize ? formatFileSize(fileSize) : '-',
                                     class: 'mr-2 text-sm'
                                 }),
-                                uploadTime ? ui.factory.textSpan(
-                                    uploader +
+                                uploadTime ? ui.factory.textSpan({
+                                    text: uploader +
                                     t('time.noticeTo', {
                                         it: relativeTime(uploadTime, context.locale)
                                     }),
-                                    {
                                         class: 'text-sm',
                                         tooltip:
                                             (
@@ -65,7 +64,7 @@ export const FileUploadContent = (context: any, props: UiProps) => {
                                                 : null,
                                         tooltipPosition: 'bottom'
                                     }
-                                ) : ui.factory.textSpan(t('time.just'), { class: 'text-sm' })
+                                ) : ui.factory.textSpan({ text: t('time.just'), class: 'text-sm' })
                             ])
                         ]),
                         // end

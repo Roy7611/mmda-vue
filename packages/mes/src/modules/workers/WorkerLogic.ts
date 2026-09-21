@@ -6,7 +6,7 @@
  *
  */
 
-import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, FieldFilter } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, type UiContext, MetaModel, ApiClient, EntityAction, defaultPager, FieldFilter, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type Worker, defineWorker } from '@/models/Worker';
 import { type WorkerSkill, defineWorkerSkill } from '@/models/WorkerSkill';
@@ -67,7 +67,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 				role: 'primary',
 				onAction: async (context: UiContext<Worker>) => {
 					//多选职员变成工人
-					// context.toSelectManyIndex('importWorkerEmployees', () => this.importWorkerEmployees(context));
+					// context.selectMany('importWorkerEmployees', () => this.importWorkerEmployees(context));
 					const { $t} = context.globalProps;
 					const apiClient = this.apiClient;
 					return context
@@ -282,7 +282,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 						group: 'skills',
 						source: selection,
 						propsMapper: {
-							workFrom: () => new Date().toSQLDate(),
+							workFrom: () => DateUtils.toSQLDate(new Date()),
 							skillID: s => s,
 						},
 					});

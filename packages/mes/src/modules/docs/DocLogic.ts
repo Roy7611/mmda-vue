@@ -6,6 +6,7 @@
  *
  */
 
+import { DateUtils } from '@mmda/core';
 import {
 	type MetaUiService,
 	type Module,
@@ -20,7 +21,7 @@ import {
 	defaultPager,
 	isNullOrUndefined,
 } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, getFileInfo, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, getFileInfo, type UiLogicFnResult } from '@mmda/vui';
 import { type Doc, defineDoc } from '@/models/Doc';
 import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';
@@ -64,7 +65,7 @@ const beforeshare = async (context: UiContext<Doc>, model: Doc, action: EntityAc
 				const submitBody = {
 					payload: {
 						shareeIDs: selection.map(it => it.userID),
-						validTo: new Date().toFormat('yyyy-MM-dd HH:mm:ss'),
+					validTo: DateUtils.toFormat(new Date(), 'yyyy-MM-dd HH:mm:ss'),
 						replyRequired: false,
 						remark: '',
 					},
@@ -218,12 +219,13 @@ export class DocLogic extends EntityLogic<Doc> {
 	}
 
 	async getAll(param: any) {
+		const qp = param.queryParams ?? {};
 		const res = await super.getAll({
 			...param,
 			queryParams: {
-				search: this.searchParams.search ?? '',
-				reclaimed: this.searchParams.queryParams?.reclaimed || false,
-				ancestorCategoryID: this.searchParam.queryParams?.ancestorCategoryID || ''
+				search: qp.search ?? '',
+				reclaimed: qp.reclaimed || false,
+				ancestorCategoryID: qp.ancestorCategoryID || ''
 			},
 		});
 		return res;
@@ -411,23 +413,18 @@ export class DocLogic extends EntityLogic<Doc> {
 				value: 'searchDocAudit',
 			},
 		];
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: 'doc.type',
 				searchParam: 'search',
 				renderer: (ctx: UiContext & any, csf) => {
-					if (!searchParam.queryParams) {
-						searchParam.queryParams = {
-							reclaimed: 'false',
-						};
-					}
-					ctx.addQueryParam('reclaimed', 'false');
+					(ctx.searchParam.queryParams ??= {}).reclaimed = 'false';
 					if (csf.searchVal.value !== 'searchReclaimedDoc') {
-						ctx.addQueryParam('reclaimed', 'false');
+						(ctx.searchParam.queryParams ??= {}).reclaimed = 'false';
 					} else {
-						ctx.addQueryParam('reclaimed', 'true');
+						(ctx.searchParam.queryParams ??= {}).reclaimed = 'true';
 					}
 					const { factory } = ctx.uiBuilder;
 					return factory.tagSelector(csf.searchVal.value, docType(ctx.t), {
@@ -439,11 +436,11 @@ export class DocLogic extends EntityLogic<Doc> {
 							ctx.app.localDb.put(`search/${ctx.logic.repository}/search`, JSON.parse(JSON.stringify(val)));
 							//如果不是回收站则reclaimed==false
 							if (csf.searchVal.value !== 'searchReclaimedDoc') {
-								ctx.addQueryParam('search', val);
-								ctx.addQueryParam('reclaimed', 'false');
+								(ctx.searchParam.queryParams ??= {}).search = val;
+								(ctx.searchParam.queryParams ??= {}).reclaimed = 'false';
 							} else {
-								ctx.addQueryParam('search', val);
-								ctx.addQueryParam('reclaimed', 'true');
+								(ctx.searchParam.queryParams ??= {}).search = val;
+								(ctx.searchParam.queryParams ??= {}).reclaimed = 'true';
 							}
 						},
 					});
@@ -451,8 +448,7 @@ export class DocLogic extends EntityLogic<Doc> {
 			});
 		}
 
-		this.searchParam = searchParam;
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 }
 

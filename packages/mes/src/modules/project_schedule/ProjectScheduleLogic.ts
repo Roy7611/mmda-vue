@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
  */
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
-import type { EntityLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
 import { EntityLogic } from '@mmda/vui';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 
@@ -377,7 +377,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 
 	async getAll(param: any) {
 		// console.log(this.searchParam)
-		console.log(this.searchParams);
 		// const params = super.getSearchParams()
 		// console.log(params);
 		// param.planID = this.searchParam.planID
@@ -385,7 +384,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		const res = await super.getAll({
 			...param,
 			queryParams: {
-				status: this.searchParams.status?.['status'] ?? '',
+				status: param.queryParams?.status?.['status'] ?? '',
 			},
 		});
 		return res;
@@ -504,8 +503,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	};
 
 	searchParam: Record<string, any> = {};
-	beforeSearch(): UiSearchForm {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+	beforeSearch() {
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
@@ -525,9 +524,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 			});
 		}
 
-		console.log(searchParam, 'searchParam');
-		this.searchParam = searchParam;
-		return { searchParam, searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 
 	async getData() {

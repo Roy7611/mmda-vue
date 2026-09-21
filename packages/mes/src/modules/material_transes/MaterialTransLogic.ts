@@ -336,10 +336,9 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 		isMaterialReason.value = ReasonArr.length ? true : false
 		if (transReasonID) {
 			ctx.searchParam.queryParams.transReasonID = transReasonID;
-			ctx.addQueryParam('transReasonID', transReasonID);
 		} else {
 			delete ctx.searchParam.queryParams.transReasonID;
-			ctx.addQueryParam('transReasonID', '');
+			ctx.searchParam.queryParams.transReasonID = '';
 		}
 		ctx.searchParam.pager.pageNo = 1;
 		this._debouncedRefreshList(ctx);

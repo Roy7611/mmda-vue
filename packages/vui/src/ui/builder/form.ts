@@ -44,7 +44,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
      * 强制编辑行（标签 + 输入）。按 `MetaUiField` 选 `fieldFactory` 里的控件，再套 `layout` 排。
      * 校验文案由皮肤控件自绘。控件：`customEditor` ?? `field.editor` ?? `fallbackInput`。
      */
-    editFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
+    editFor(field: MetaUiField, context: UiContext) {
       return wrapFieldRow(this, field, context, props, true);
     }
 
@@ -58,16 +58,16 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
      * 强制只读行（标签 + 展示）。
      * 控件：`customRenderer` ?? `field.renderer`（bool 默认 `checkedIcon`）?? `fallbackDisplay`。
      */
-    displayFor(field: MetaUiField, context: UiContext, props: UiProps = {}) {
+    displayFor(field: MetaUiField, context: UiContext) {
       return wrapFieldRow(this, field, context, props, false);
     }
 
     /** 按会话状态自动选编辑/显示行并套字段布局。 */
-    buildField(field, context, props = {}) {
+    buildField(field, context) {
       return renderFieldRow(this, field, context, props);
     }
 
-    buildResponsiveField(field, context, props = {}) {
+    buildResponsiveField(field, context) {
       return renderFieldRow(this, field, context, props);
     }
     
@@ -377,8 +377,9 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             }))
             .filter((item) => item.src);
           const gallery = !context.editing
-            ? this.factory.imageGallery(galleryItems, {
-                onItemDblclick: (item: { data?: unknown }) =>
+            ? this.factory.imageGallery({
+                items: galleryItems,
+                onItemDblclick: (item) =>
                   (context as any).subGroupItem?.(group, item.data),
               })
             : undefined;
@@ -911,7 +912,7 @@ function editorFor(
     logic?.customEditor ??
     (field.editor ? host.fieldFactory[field.editor] : undefined) ??
     host.fieldFactory.fallbackInput;
-  return renderer(field, context, props);
+  return renderer(field, context);
 }
 
 /** 裸展示控件（不含标签布局）。 */
@@ -933,7 +934,7 @@ function displayRendererFor(
     logic?.customRenderer ??
     host.fieldFactory[name] ??
     host.fieldFactory.fallbackDisplay;
-  return renderer(field, context, props);
+  return renderer(field, context);
 }
 
 /** 编辑/只读行共同外壳：剥掉行级 props，按 layout 横向或纵向排。 */

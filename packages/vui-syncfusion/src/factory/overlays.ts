@@ -5,7 +5,7 @@ export function overlayRenderers() {
   return {
     sidebar: createSidebar,
     drawer: createDrawer,
-    searchForRelative: (props: SearchForRelativeProps | UiProps, _slots?: UiSlots) =>
+    searchRelative: (props: SearchForRelativeProps | UiProps, _slots?: UiSlots) =>
       renderSearchForRelativeField(props as SearchForRelativeProps),
   };
 }

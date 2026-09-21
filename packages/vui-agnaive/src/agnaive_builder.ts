@@ -6,17 +6,13 @@ import {
 
   type VNode,
 
-  type VNodeArrayChildren,
-
 } from 'vue'
 
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from '@mmda/core'
 
-import { VueUiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type UiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from '@mmda/vui'
+import { VueUiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type VueUiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from '@mmda/vui'
 
 import {
-
-  NAlert,
 
   NButton,
 
@@ -74,7 +70,7 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
     factory = createAgNaiveUiFactory(),
 
-    fieldFactory: UiFieldFactory = createAgNaiveFieldFactory(),
+    fieldFactory: VueUiFieldFactory = createAgNaiveFieldFactory(),
 
   ) {
 
@@ -205,46 +201,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
 
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
-
-    return h('div', { class: 'mmda-container', ...props }, content)
-
-  }
-
-
-
-  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-
-    return h('header', { class: uiCssClass('page', 'header'), ...props }, content)
-
-  }
-
-
-
-  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
-
-    return h('aside', { class: 'mmda-aside', ...props }, content)
-
-  }
-
-
-
-  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
-
-    return h('main', { class: 'mmda-main', ...props }, content)
-
-  }
-
-
-
-  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
-
-    return h('footer', { class: 'mmda-footer', ...props }, content)
-
-  }
-
-
-
   override buildAppScaffold(props?: any) {
 
     return wrapNaiveConfig(super.buildAppScaffold(props))
@@ -346,30 +302,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
       ...rest,
 
     })
-
-  }
-
-
-
-  buildLoading(_context: UiContext, props?: UiProps) {
-
-    return this.factory.loading(props)
-
-  }
-
-
-
-  buildError(context: UiContext, props?: UiProps) {
-
-    return h(
-
-      NAlert,
-
-      { type: 'error', class: 'mmda-error', ...props },
-
-      { default: () => context.title },
-
-    )
 
   }
 
@@ -637,7 +569,9 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
 
 
-  buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {
+  buildModuleSearchbar(context: UiContext, rawProps?: UiProps) {
+    // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
+    const props = (rawProps ?? {}) as ModuleSearchbarProps;
 
     const runtime = context as any
 
@@ -856,252 +790,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
           ),
 
       ],
-
-    )
-
-  }
-
-
-
-  buildSearchForRelative(
-
-    context: UiContext,
-
-    field: MetaUiField,
-
-    props: SearchForRelativeProps,
-
-  ) {
-
-    const reference = field.reference
-
-    const rawOptions = ((props as { options?: any[] }).options as any[]) ?? []
-
-    const optionLabel = (props as { optionLabel?: string | ((row: any) => string) })
-
-      .optionLabel
-
-    const labelOf = (option: any): string => {
-
-      if (typeof optionLabel === 'function') return String(optionLabel(option) ?? '')
-
-      if (reference) return String(reference.labelOf(option) ?? '')
-
-      if (typeof optionLabel === 'string' && option && typeof option === 'object') {
-
-        return String(option[optionLabel] ?? '')
-
-      }
-
-      return option == null ? '' : String(option)
-
-    }
-
-    const valueOf = (option: any) =>
-
-      reference ? reference.valueOf(option) : option
-
-
-
-    const selectOptions = rawOptions.map(option => ({
-
-      label: labelOf(option),
-
-      value: valueOf(option),
-
-    }))
-
-
-
-    const current = (props as { modelValue?: any }).modelValue
-
-    const selectedValue =
-
-      current != null && typeof current === 'object'
-
-        ? valueOf(current)
-
-        : current === 0 || current === '0'
-
-          ? null
-
-          : current
-
-
-
-    // 当前值若不在 options 里，补一条以免 NSelect 只显示裸 id
-
-    if (
-
-      current != null &&
-
-      typeof current === 'object' &&
-
-      selectedValue != null &&
-
-      !selectOptions.some(item => item.value === selectedValue)
-
-    ) {
-
-      selectOptions.unshift({ label: labelOf(current), value: selectedValue })
-
-    }
-
-
-
-    const openPick = async (event?: Event) => {
-
-      event?.preventDefault?.()
-
-      event?.stopPropagation?.()
-
-      try {
-
-        const toSearch = (props as { toSearch?: (event: Event) => Promise<any> })
-
-          .toSearch
-
-        if (typeof toSearch === 'function') {
-
-          await toSearch(event as Event)
-
-          return
-
-        }
-
-        await context.select(field)
-
-      } catch (error) {
-
-        console.error(error)
-
-      }
-
-    }
-
-
-
-    const emitChange = (value: any) => {
-
-      const onChange = (props as { onChange?: (value: any) => void }).onChange
-
-      if (value == null || value === '') {
-
-        onChange?.(null)
-
-        return
-
-      }
-
-      const matched =
-
-        rawOptions.find(option => valueOf(option) === value) ??
-
-        (current != null &&
-
-        typeof current === 'object' &&
-
-        valueOf(current) === value
-
-          ? current
-
-          : null)
-
-      onChange?.(matched ?? null)
-
-    }
-
-
-
-    const searchTitle =
-
-      context.translate?.('action.search') ??
-
-      context.translate?.('action.select') ??
-
-      '搜索'
-
-
-
-    return h(
-
-      NSelect,
-
-      {
-
-        options: selectOptions,
-
-        value: selectedValue === 0 || selectedValue === '0' ? null : selectedValue,
-
-        filterable: true,
-
-        remote: true,
-
-        clearable:
-
-          (props as { showClear?: boolean }).showClear !== false &&
-
-          field.nullable,
-
-        placeholder:
-
-          props.placeholder ??
-
-          context.translate?.('action.select') ??
-
-          '请选择',
-
-        status: (props as { invalid?: boolean }).invalid ? 'error' : undefined,
-
-        class: 'mmda-search-combo',
-
-        'onUpdate:value': emitChange,
-
-        onSearch: (text: string) => {
-
-          ;(props as { onInput?: (value: string) => void }).onInput?.(text)
-
-          void (context as any).searchRelative?.(field, text)
-
-        },
-
-      },
-
-      {
-
-        // 对齐老 SearchBox / SF / Prime：箭头换成放大镜，点击打开选择对话框
-
-        arrow: () =>
-
-          h('i', {
-
-            class: 'fas fa-search mmda-search-combo__pick',
-
-            title: searchTitle,
-
-            'aria-label': searchTitle,
-
-            onMousedown: (event: MouseEvent) => {
-
-              event.preventDefault()
-
-              event.stopPropagation()
-
-            },
-
-            onClick: (event: MouseEvent) => {
-
-              event.preventDefault()
-
-              event.stopPropagation()
-
-              void openPick(event)
-
-            },
-
-          }),
-
-      },
 
     )
 

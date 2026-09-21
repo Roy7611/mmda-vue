@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject } from '@mmda/core';
+import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounce, isNullOrUndefined, triggerEscKey, isNullObject, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
@@ -544,7 +544,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.prodDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -559,7 +559,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.expiryDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -645,7 +645,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.prodDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -660,7 +660,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.expiryDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -750,7 +750,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.prodDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -765,7 +765,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 									modelValue: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
-										context.model.createMaterialtrack.list.expiryDate = e.toSQLDate();
+										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
 									},
 								}),
 					}
@@ -1178,7 +1178,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 	 */
 	searchParam: Record<string, any> = {};
 	beforeSearch() {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
@@ -1189,7 +1189,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						if (!tableDataplan.value.length && isObject(csf.searchVal.value)) {
 							tableDataplan.value.push(csf.searchVal.value)
 					}
-						return ctx.uiBuilder.factory.searchForRelative(
+						return ctx.uiBuilder.factory.searchRelative(
 							{
 								modelValue: csf.searchWord,
 								placeholder: ctx.t('action.select'),
@@ -1252,7 +1252,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 							tableDatatask.value.push(csf.searchVal.value)
 					}
 
-						return ctx.uiBuilder.factory.searchForRelative(
+						return ctx.uiBuilder.factory.searchRelative(
 							{
 								modelValue: csf.searchWord,
 								placeholder: ctx.t('action.select'),
@@ -1310,8 +1310,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				}
 			);
 		}
-		this.searchParam = searchParam;
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 	/**
 	 *

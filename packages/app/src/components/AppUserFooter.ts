@@ -164,22 +164,22 @@ export const AppUserFooter = defineComponent({
               hideCaret: true,
               popupPlacement: 'top-end',
               tooltip: '用户操作',
+              actions: [
+                ...systemActions.value,
+                {
+                  name: 'changePassword',
+                  label: '修改密码',
+                  icon: icon('fas fa-key'),
+                  onAction: changePassword,
+                },
+                {
+                  name: 'signOut',
+                  label: '注销',
+                  icon: icon('fas fa-sign-out-alt'),
+                  onAction: () => void signOut(),
+                },
+              ],
             },
-            [
-              ...systemActions.value,
-              {
-                name: 'changePassword',
-                label: '修改密码',
-                icon: icon('fas fa-key'),
-                onAction: changePassword,
-              },
-              {
-                name: 'signOut',
-                label: '注销',
-                icon: icon('fas fa-sign-out-alt'),
-                onAction: () => void signOut(),
-              },
-            ],
           ),
         ]),
       ])

@@ -4,7 +4,7 @@
  * 从单接口 Dashboards/home 改为 11 个独立 Dashboard 接口并行调用
  */
 
-import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, defaultPager, FieldFilter } from '@mmda/core'
+import { MetaUiService, Module, UiContext, debounce, isNullOrUndefined, isRefNone, isObject, pagedList, NO_PAGINATION, defaultPager, FieldFilter, DateUtils } from '@mmda/core'
 import type { EntityLogicInit } from '@mmda/vui'
 import { EntityLogic } from '@mmda/vui'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
@@ -150,8 +150,8 @@ export class HomeLogic extends EntityLogic<CustomPage> {
     }
 
     return {
-      beginTime: begin.toFormat('yyyy-MM-dd 00:00:00'),
-      endTime: end.toFormat('yyyy-MM-dd 23:59:59'),
+      beginTime: DateUtils.toFormat(begin, 'yyyy-MM-dd 00:00:00'),
+      endTime: DateUtils.toFormat(end, 'yyyy-MM-dd 23:59:59'),
     }
   }
 
@@ -160,33 +160,34 @@ export class HomeLogic extends EntityLogic<CustomPage> {
    */
   async home(ctx?: any) {
     const apiClient = this.apiClient
+    const qp = ctx?.searchParam?.queryParams ?? {}
 
     // 时间范围优先级：快捷范围 > 精确日期 > 回退本周
     let beginTime: string
     let endTime: string
-    const dateRange = this.searchParams.date as string
+    const dateRange = qp.date as string
     if (dateRange) {
       const resolved = this.resolveDateRange(dateRange)
       beginTime = resolved.beginTime
       endTime = resolved.endTime
-    } else if (this.searchParams.beginTime || this.searchParams.endTime) {
+    } else if (qp.beginTime || qp.endTime) {
       const now = new Date()
       const day = now.getDay()
       const mondayOffset = day === 0 ? -6 : 1 - day
       const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset)
-      beginTime = (this.searchParams.beginTime as string)
-        ? new Date(this.searchParams.beginTime as string).toFormat('yyyy-MM-dd 00:00:00')
-        : monday.toFormat('yyyy-MM-dd 00:00:00')
-      endTime = (this.searchParams.endTime as string)
-        ? new Date(this.searchParams.endTime as string).toFormat('yyyy-MM-dd 23:59:59')
-        : new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6).toFormat('yyyy-MM-dd 23:59:59')
+      beginTime = (qp.beginTime as string)
+        ? DateUtils.toFormat(new Date(qp.beginTime as string), 'yyyy-MM-dd 00:00:00')
+        : DateUtils.toFormat(monday, 'yyyy-MM-dd 00:00:00')
+      endTime = (qp.endTime as string)
+        ? DateUtils.toFormat(new Date(qp.endTime as string), 'yyyy-MM-dd 23:59:59')
+        : DateUtils.toFormat(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6), 'yyyy-MM-dd 23:59:59')
     } else {
       const resolved = this.resolveDateRange('THIS_WEEK')
       beginTime = resolved.beginTime
       endTime = resolved.endTime
     }
 
-    const siteID = (this.searchParams.siteID as string) ?? ''
+    const siteID = (qp.siteID as string) ?? ''
     const params = { ...(siteID ? { siteID } : {}), beginTime, endTime }
 
     // 单次聚合请求：/Dashboards/home 返回所有面板数据（含 pendingNotifications）
@@ -248,7 +249,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
   searchParam: Record<string, any> = {}
 
   beforeSearch() {
-    const { searchFields, customSearchFields } = super.beforeSearch()
+    const { fields, groups, customActions, customSearchFields } = super.beforeSearch()
     if (customSearchFields.length === 0) {
       customSearchFields.push(
         /* 工作中心搜索字段 */
@@ -260,7 +261,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
             if (!tableDataSite.value.length && isObject(csf.searchVal.value)) {
               tableDataSite.value.push(csf.searchVal.value)
             }
-            return ctx.uiBuilder.factory.searchForRelative({
+            return ctx.uiBuilder.factory.searchRelative({
               modelValue: csf.searchVal.value,
               dataKey: 'siteID',
               optionLabel: (v: any) => v.siteName,
@@ -303,7 +304,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
           searchParam: 'beginTime',
           renderer: (ctx: UiContext & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
-              csf.searchVal.value = new Date(csf.searchVal.value).toFormat('yyyy-MM-dd')
+              csf.searchVal.value = DateUtils.toFormat(new Date(csf.searchVal.value), 'yyyy-MM-dd')
             }
             return ctx.uiBuilder.factory.datePicker({
               modelValue: csf.searchVal.value,
@@ -321,7 +322,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
           searchParam: 'endTime',
           renderer: (ctx: UiContext & any, csf) => {
             if (!isNullOrUndefined(csf.searchVal.value)) {
-              csf.searchVal.value = new Date(csf.searchVal.value).toFormat('yyyy-MM-dd')
+              csf.searchVal.value = DateUtils.toFormat(new Date(csf.searchVal.value), 'yyyy-MM-dd')
             }
             return ctx.uiBuilder.factory.datePicker({
               modelValue: csf.searchVal.value,
@@ -369,7 +370,7 @@ export class HomeLogic extends EntityLogic<CustomPage> {
         },
       )
     }
-    return { searchFields, customSearchFields }
+    return { fields, groups, customActions, customSearchFields }
   }
 }
 

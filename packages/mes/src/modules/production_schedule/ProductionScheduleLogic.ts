@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
  */
 
 import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
-import type { EntityLogicInit, UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import type { EntityLogicInit, UiLogicFnResult } from '@mmda/vui';
 import { EntityLogic } from '@mmda/vui';
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
 import { applyScheduleGanttTaskDates } from '@/components/GanntView/ganttScheduleDateHelpers';
@@ -201,7 +201,7 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 	}
 
 	beforeSearch() {
-		const { searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		// customSearchFields.push(
 		// 		{
 		// 		searchLabel: '状态',
@@ -213,7 +213,7 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		// 				list: [],
 		// 				column: [],
 		// 			});
-		// 			return ui.factory.searchForRelative({
+		// 			return ui.factory.searchRelative({
 		// 				modelValue: searchValue.value,
 		// 				placeholder: t('action.select'),
 		// 				toSearch: async (event: Event) => {
@@ -228,7 +228,7 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		// 		},
 		// 	}
 		// );
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();

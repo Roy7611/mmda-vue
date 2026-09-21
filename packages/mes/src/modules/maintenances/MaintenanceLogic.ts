@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { type MetaUiService, type Module, type UiContext, MetaModel, MetaAggregation, defaultPager, isRefNone } from '@mmda/core';
+import { type MetaUiService, type Module, type UiContext, MetaModel, MetaAggregation, defaultPager, isRefNone, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Maintenance, defineMaintenance } from '@/models/Maintenance';
 import { type MaintenancePart, defineMaintenancePart } from '@/models/MaintenancePart';
@@ -77,7 +77,7 @@ export class MaintenanceLogic extends EntityLogic<Maintenance> {
 				this.field('expectToFinish').lockIf((model) => model.status === 'DISPATCHED'),
 				this.field('priority').lockIf((model) => model.status === 'DISPATCHED'),
 				this.field('finishedTime').lockIf((model) => model.status === 'DISPATCHED').onValidate((value, model, ctx) => {
-					if (value && new Date(value).isBefore(new Date())) {
+					if (value && DateUtils.isBefore(new Date(value), new Date())) {
 						return ctx.t('maintenance.finishAfterNow');
 					}
 				}),

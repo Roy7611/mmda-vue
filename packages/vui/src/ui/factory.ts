@@ -7,17 +7,19 @@ import {
   type MetaUi,
   type Module,
   type PagedList,
-  type Pagination,
   type TranslateFn,
   type UiButtonProps,
   type UiButtonSlots,
   type UiFactory,
+  type UiIconProps,
+  type UiImageProps,
   type UiMenuItem,
   type UiMultiSelectProps,
+  type UiSearchRefProps,
+  type UiTextProps,
 } from '@mmda/core'
 import type {UiProps, UiLayout, UiSlots} from './layout'
 import type { IconResolver, UiAction } from './factory/action'
-import type { SearchForRelativeProps } from './factory/filter'
 import type {
   UiListColumnProps,
   UiListColumnSlots,
@@ -165,7 +167,7 @@ export type UiButtonRenderer = (
   slots?: UiButtonSlots<VNode>,
 ) => VNode
 
-export type { UiImageGalleryItem } from '@mmda/core'
+export type { UiImageGalleryItem, UiImageGalleryProps } from '@mmda/core'
 
 export interface CustomColumn {
   field: string
@@ -201,12 +203,12 @@ export interface VueUiFactory extends UiFactory<VNode> {
   viewIcons: Record<string, string>
   dialogIcons: Record<string, string>
   resolveIcon: IconResolver
-  textSpan: UiRenderer<string>
-  label: UiRenderer<string>
-  image: UiRenderer<string>
-  icon: UiRenderer<string>
-  title: UiRenderer<string>
-  subtitle: UiRenderer<string>
+  textSpan: (props: UiTextProps) => VNode
+  label: (props: UiTextProps) => VNode
+  image: (props: UiImageProps) => VNode
+  icon: (props: UiIconProps) => VNode
+  title: (props: UiTextProps) => VNode
+  subtitle: (props: UiTextProps) => VNode
   iconField: UiRenderer<string>
   multiItemSelect: (props: UiMultiSelectProps) => VNode
   multiValueSelect: (props: UiMultiSelectProps) => VNode
@@ -218,20 +220,12 @@ export interface VueUiFactory extends UiFactory<VNode> {
     resolve?: boolean,
     props?: UiProps,
   ) => VNode
-  paginator: (
-    model: Pagination,
-    props: UiPaginatorPropsType & UiProps,
-    slots?: UiSlots,
-  ) => VNode
-  list: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
+  paginator: (props: UiPaginatorPropsType, slots?: UiSlots) => VNode
+  list: <T>(props: UiListPropsType<T>) => VNode
   tree: <T>(props: UiTreeProps<T>) => VNode
-  table: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
-  grid?: <T>(model: T[], metaUi: MetaUi, props?: UiListPropsType<T>) => VNode
-  treeGrid: <T>(
-    model: T[],
-    metaUi: MetaUi,
-    props: UiTreeGridPropsType<T>,
-  ) => VNode
+  table: <T>(props: UiListPropsType<T>) => VNode
+  grid: <T>(props: UiListPropsType<T>) => VNode
+  treeGrid: <T>(props: UiTreeGridPropsType<T>) => VNode
   pagableTable: <T>(
     dataLoader: UiPagableDataLoader<T>,
     metadata: MetaUi,
@@ -241,10 +235,7 @@ export interface VueUiFactory extends UiFactory<VNode> {
   menu: UiRenderer<UiMenuItem[] | any[]>
   panelMenu: UiRenderer<UiMenuItem[] | any[]>
   menubar: UiRenderer<UiMenuItem[] | any[]>
-  searchForRelative: (
-    props: SearchForRelativeProps | UiProps,
-    slots?: UiSlots,
-  ) => VNode
+  searchRelative: (props: UiSearchRefProps, slots?: UiSlots) => VNode
   formField: (props: UiProps, slots?: UiSlots) => VNode
 }
 

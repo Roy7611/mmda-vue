@@ -37,7 +37,7 @@ export class UiActionFactory {
           return runtime.cancel();
         }
         if (typeof runtime.index === "function") {
-          return runtime.index();
+          return runtime.routeToIndex();
         }
       } catch {
         // fall through to history back

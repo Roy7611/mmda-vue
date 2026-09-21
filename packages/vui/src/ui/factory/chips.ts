@@ -3,7 +3,7 @@
  * 字段：tags / chips 自由文本；enumChipSet 枚举多值；bitChipSet 按位勾选。
  * 契约与纯 TS 辅助在 @mmda/core；v-model emit 在本文件。
  */
-import { callUiBagFn, type UiChipsProps } from '@mmda/core'
+import { type UiChipsProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type {

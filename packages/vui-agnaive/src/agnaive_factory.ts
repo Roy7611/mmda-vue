@@ -1,6 +1,6 @@
 import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
-import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi, type Pagination } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi } from '@mmda/core'
 import type { UiProps, UiAction, VueUiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
 import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
@@ -85,6 +85,8 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
 export function createAgNaiveUiFactory(): VueUiFactory {
   const button = (props: any, slots?: any) =>
     createButton(props, slots, (name) => factory.resolveIcon(name))
+  const table = <T>(props: UiListPropsType<T> = {}) =>
+    h(AgGrid, { data: props.rows ?? [], fields: props.fields ?? [], primaryKey: props.primaryKey, ...props } as any)
 
   const factory: VueUiFactory = {
     nativeInplaceEdit: true,
@@ -135,10 +137,14 @@ export function createAgNaiveUiFactory(): VueUiFactory {
       if (icon.startsWith(MATERIAL_SYMBOL_PREFIX)) return icon
       return factory.actionIcons[icon] ?? `fas fa-${icon}`
     },
-    textSpan: (text, props) => h('span', props, text),
-    label: (text, props) => h('label', props, text),
-    image: (src, props) => h(NImage, { src, previewDisabled: !props?.preview, ...props }),
-    icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
+    textSpan: (props) => h('span', props, props.text),
+    label: (props) => h('label', props, props.text),
+    image: (props) => h(NImage, { ...props, src: props.src, previewDisabled: !props.preview }),
+    icon: (props) =>
+      createIconVNode(
+        factory.resolveIcon(props.iconClass ?? ''),
+        props as Record<string, unknown>,
+      ),
     badge: props => createBadge(props),
     message: props => createMessage(props),
     avatar: props => createAvatar(props, name => factory.resolveIcon(name)),
@@ -190,7 +196,7 @@ export function createAgNaiveUiFactory(): VueUiFactory {
     timeline: props => createTimeline(props, name => factory.resolveIcon(name)),
     skeleton: (props = {}) => createSkeleton(props),
     loading: (props = {}) => createLoading(props),
-    errorRetry: (props = {}) => createErrorRetry(props),
+    error: (props = {}) => createErrorRetry(props),
     speechToText: (props = {}) =>
       createSpeechToText(props, name => factory.resolveIcon(name)),
     datePicker: props => createDatePicker(props),
@@ -213,8 +219,8 @@ export function createAgNaiveUiFactory(): VueUiFactory {
     treeSelect: createTreeSelect,
     dropDownTree: createTreeSelect,
     comboBox: props => createComboBox(props),
-    title: (text, props) => h('h2', props, text),
-    subtitle: (text, props) => h('h3', props, text),
+    title: (props) => h('h2', props, props.text),
+    subtitle: (props) => h('h3', props, props.text),
     link: (props, slots) =>
       h(
         'a',
@@ -232,14 +238,15 @@ export function createAgNaiveUiFactory(): VueUiFactory {
     autoComplete: (props = {}) => createAutoComplete(props),
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
-    buttonGroup: createButtonGroup,
-    selectButtonGroup: (value, props) =>
-      createSelectButtonGroup(value, props, factory.resolveIcon),
+    buttonGroup: (props = {}, slots) =>
+      createButtonGroup(slots?.default ?? (() => []), props),
+    selectButtonGroup: (props) =>
+      createSelectButtonGroup(props.modelValue, props, factory.resolveIcon),
     splitButton: (props, slots) => createSplitButton(props, slots, button),
-    dropDownButton: (props, actions, slots) =>
-      createDropDownButton(props, actions, slots, button),
-    moreMenuButton: (props, actions, slots) =>
-      createMoreMenuButton(props, actions, slots, button),
+    dropDownButton: (props, slots) =>
+      createDropDownButton(props, props.actions ?? [], slots, button),
+    moreMenuButton: (props, slots) =>
+      createMoreMenuButton(props, props.actions ?? [], slots, button),
     floatingActionButton: (props, slots) =>
       createFloatingActionButton(props, slots, (name) =>
         factory.resolveIcon(name),
@@ -258,51 +265,53 @@ export function createAgNaiveUiFactory(): VueUiFactory {
         ),
         onClick: action.onAction,
       }),
-    paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
+    paginator: (props: UiPaginatorPropsType) =>
       h(NPagination, {
-        page: pagination.pageNo ?? 1,
-        pageSize: pagination.pageSize ?? DEFAULT_PAGE_SIZE,
-        itemCount: pagination.recordCount ?? 0,
+        page: props.pagination.pageNo ?? 1,
+        pageSize: props.pagination.pageSize ?? DEFAULT_PAGE_SIZE,
+        itemCount: props.pagination.recordCount ?? 0,
         pageSizes: props.pageSizeOptions ?? [...DEFAULT_PAGE_SIZE_OPTIONS],
         showSizePicker: true,
         'onUpdate:page': (page: number) =>
           props.onPage({
             pageNo: page,
-            pageSize: pagination.pageSize ?? DEFAULT_PAGE_SIZE,
+            pageSize: props.pagination.pageSize ?? DEFAULT_PAGE_SIZE,
           }),
         'onUpdate:pageSize': (pageSize: number) =>
           props.onPage({ pageNo: 1, pageSize }),
       }),
     tree: (props) => createTree(props),
-    treeGrid: <T>(model: T[], metaUi: MetaUi, props: any) => {
+    treeGrid: <T>(props: any) => {
+      const model = (props.rows ?? []) as T[];
       if (props.rowDetail) {
-        return h(AgGrid, { data: model, metaUi, ...props, treeData: false } as any)
+        return h(AgGrid, { data: model, fields: props.fields ?? [], primaryKey: props.primaryKey, ...props, treeData: false } as any)
       }
-      const { assembled } = assembleTreeGridRows(model, metaUi, {
+      const { assembled } = assembleTreeGridRows(model, { primaryKey: props.primaryKey } as MetaUi, {
         ...props,
         bindShape: props.bindShape ?? 'dataPath',
       })
       return h(AgGrid, {
         data: assembled.rows,
-        metaUi,
+        fields: props.fields ?? [],
+        primaryKey: props.primaryKey,
         ...props,
         treeData: true,
         getDataPath: assembled.getDataPath,
       } as any)
     },
-    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
+    list: <T>(props: UiListPropsType<T> = {}) =>
       h(
         'div',
         { class: 'mmda-list' },
-        model.length
-          ? model.map((item, index) =>
+        (props.rows ?? []).length
+          ? (props.rows ?? []).map((item, index) =>
               h(
                 'article',
                 {
                   key:
                     props.itemKey?.(item) ??
                     String(
-                      metaUi.primaryKey ? (item as any)[metaUi.primaryKey] : index,
+                      props.primaryKey ? (item as any)[props.primaryKey] : index,
                     ),
                   class: ['mmda-list__item', props.itemClass?.(item)],
                   style: props.itemStyle?.(item),
@@ -314,11 +323,15 @@ export function createAgNaiveUiFactory(): VueUiFactory {
             )
           : props.empty?.() ?? '',
       ),
-    table: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
-      h(AgGrid, { data: model, metaUi, ...props } as any),
+    table,
+    grid: table,
     pagableTable: (loader, metadata, props) =>
-      factory.table(loader.model.list as any[], metadata, {
+      factory.table({
         ...props,
+        rows: loader.model.list as any[],
+        fields: props.fields ?? metadata.getListedFields(),
+        primaryKey: props.primaryKey ?? metadata.primaryKey,
+        objName: props.objName ?? metadata.objName,
         pagination: props.pagination ?? loader.model.pagination,
         onPage: props.onPage,
       }),
@@ -361,8 +374,9 @@ export function createAgNaiveUiFactory(): VueUiFactory {
         },
         slots,
       ),
-    splitter: (panes, props) => createSplitter(panes, props),
-    searchForRelative: (props) =>
+    splitter: (props, slots) =>
+      createSplitter(slots?.default?.() ?? [], props),
+    searchRelative: (props) =>
       renderSearchForRelativeField(props as any),
     formField: (props: UiProps = {}, slots?: UiSlots) =>
       h(

@@ -29,7 +29,7 @@ export const datePicker = (
   wrap(
     field,
     context,
-    createDatePicker(datePickerPropsFromField(field, context, props ?? {})),
+    createDatePicker(datePickerPropsFromField(field, context)),
   );
 
 export const dateTimePicker = (
@@ -41,7 +41,7 @@ export const dateTimePicker = (
     field,
     context,
     createDateTimePicker(
-      dateTimePickerPropsFromField(field, context, props ?? {}),
+      dateTimePickerPropsFromField(field, context),
     ),
   );
 
@@ -53,7 +53,7 @@ export const monthPicker = (
   wrap(
     field,
     context,
-    createDatePicker(monthPickerPropsFromField(field, context, props ?? {})),
+    createDatePicker(monthPickerPropsFromField(field, context)),
   );
 
 export const timePicker = (
@@ -64,7 +64,7 @@ export const timePicker = (
   wrap(
     field,
     context,
-    createTimePicker(timePickerPropsFromField(field, context, props ?? {})),
+    createTimePicker(timePickerPropsFromField(field, context)),
   );
 
 export const dateRangePicker = (
@@ -76,6 +76,6 @@ export const dateRangePicker = (
     field,
     context,
     createDateRangePicker(
-      dateRangePickerPropsFromField(field, context, props ?? {}),
+      dateRangePickerPropsFromField(field, context),
     ),
   );

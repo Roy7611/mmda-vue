@@ -6,6 +6,7 @@ import {
   type Module,
   type UiContext,
   type UiModuleBreadcrumbProps,
+  type UiProps,
 } from "@mmda/core";
 import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "../contexts/view";
@@ -61,7 +62,7 @@ export interface ImportAndExportActionProps {
   exportFn?: (context: UiContext, model: any) => void;
 }
 
-export interface ModuleSearchbarProps {
+export interface ModuleSearchbarProps extends UiProps {
   role?: string;
   onSearch?: (searchText: string) => void;
   /** 用当前 searchWord + 字段过滤 + 分页再查一次，不清条件。 */

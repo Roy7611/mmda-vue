@@ -6,8 +6,8 @@
  *
  */
 import { useRouter } from 'vue-router';
-import { ApiError, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiErrorPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiError, getSqlOperator, FieldFilter } from '@mmda/core';
-import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, UiValidation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
+import { ApiProblem, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiProblemPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiProblem, getSqlOperator, FieldFilter } from '@mmda/core';
+import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, Validation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, defineInputProps, UiLogicBeforeFn } from '@mmda/vui';
 import { type Bom, defineBom } from '@/models/Bom';
 import { type BomItem, defineBomItem } from '@/models/BomItem';
@@ -146,7 +146,7 @@ const bomItemPicCommonStyle = {
 const renderBomItemMaterialPicContent = (picUrl: string, ctx: UiContext<BomItem>) => {
 	const factory = ctx.uiBuilder.factory;
 	if (!picUrl) {
-		return factory.icon?.('fas fa-image', {
+		return factory.icon?.({ iconClass: 'fas fa-image',
 				class: `${BOM_ITEM_PIC_CLASS} ${BOM_ITEM_PIC_CLASS}--empty${BOM_ITEM_PIC_EMPTY_SHOW_FRAME ? ` ${BOM_ITEM_PIC_CLASS}--framed` : ''}`,
 				style: {
 					...bomItemPicCommonStyle,
@@ -157,10 +157,10 @@ const renderBomItemMaterialPicContent = (picUrl: string, ctx: UiContext<BomItem>
 					fontSize: `${BOM_ITEM_PIC_ICON_SIZE}px`,
 					...bomItemPicEmptyFrameStyle,
 				},
-			}) ?? factory.textSpan('');
+			}) ?? factory.textSpan({ text: '' });
 	}
 
-	return factory.image(encodeUriAndFix(picUrl), {
+	return factory.image({ src: encodeUriAndFix(picUrl),
 		class: `${BOM_ITEM_PIC_CLASS} ${BOM_ITEM_PIC_CLASS}--img`,
 		preview: true,
 		imageStyle: {
@@ -224,11 +224,11 @@ export const collectEquipToolResourceIds = (process: any): string[] => {
 export const resolveProcessEntity = (context: UiContext<Bom>, processOrId: any) => {
 	if (!processOrId) return null;
 	if (typeof processOrId === 'object') return processOrId;
-	const option = context.getFieldCurrentOption('processID');
+	const option = context.getFieldSelectedOption('processID');
 	if (option && typeof option === 'object' && (option as any).processID === processOrId) {
 		return option;
 	}
-	const fieldOpts = context.getFieldOptions('processID') as any;
+	const fieldOpts = context.getFieldSearchOptions('processID') as any;
 	const list = fieldOpts?.options ?? fieldOpts?.list ?? [];
 	if (Array.isArray(list)) {
 		return list.find((p: any) => p?.processID === processOrId) ?? null;
@@ -385,10 +385,10 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 	}
 
 	const urls = getBomItemCommunicatePicUrls(fld, ctx);
-	if (!urls.length) return ctx.uiBuilder.factory.textSpan('');
+	if (!urls.length) return ctx.uiBuilder.factory.textSpan({ text: '' });
 
 	if (urls.length === 1) {
-		return ctx.uiBuilder.factory.image(urls[0], {
+		return ctx.uiBuilder.factory.image({ src: urls[0],
 			preview: true,
 			isEdit: false,
 			class: 'bom-item-communicate-pic',
@@ -401,15 +401,15 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 			},
 		});
 	}
-	return ctx.uiBuilder.factory.imageGallery?.(urls.map(src => ({ src })))
-		?? ctx.uiBuilder.factory.image(urls[0], { preview: true, class: 'bom-item-communicate-pic' });
+	return ctx.uiBuilder.factory.imageGallery?.({ items: urls.map(src => ({ src })) })
+		?? ctx.uiBuilder.factory.image({ src: urls[0], preview: true, class: 'bom-item-communicate-pic' });
 };
 
 //制品图片自定义居中渲染
 export const renderBomProductPic = (fld: MetaUiField, ctx: UiContext<Bom>) => {
 	const raw = ctx.getFieldValue(fld);
 	const picUrl = typeof raw === 'string' ? raw.trim() : '';
-	return ctx.uiBuilder.factory.image(picUrl, {
+	return ctx.uiBuilder.factory.image({ src: picUrl,
 		preview: true,
 		imageStyle: { maxWidth: '100%', maxHeight: '120px', objectFit: 'contain' },
 		style: { display: 'inline-flex', justifyContent: 'center', width: '100%' },
@@ -621,7 +621,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 			},
 			{
 				body: (rowData: any) =>
-					ui.factory.image(rowData.data.materialPic || '', {
+					ui.factory.image({ src: rowData.data.materialPic || '',
 						width: '50',
 						height: '50',
 						preview: true,
@@ -646,7 +646,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 						return null;
 					}
 
-					return ui.factory.searchForRelative({
+					return ui.factory.searchRelative({
 						role: `material-search-for-sProject`,
 						name: 'material-search-for-sProject',
 						id: 'material-search-for-sProject',
@@ -786,7 +786,8 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 	let selectedItems: BomItem[] = [];
 
 	const result = await context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(targetItems, metaUi, {
+		context.uiBuilder.table(metaUi, {
+			rows: targetItems,
 			selectionMode: 'multiple',
 			onSelect: (selection: BomItem[]) => { selectedItems = selection ?? []; },
 		}),
@@ -853,8 +854,8 @@ export class BomLogic extends EntityLogic<Bom> {
 					{ path: model.bomID, action: 'assignDesignTask', service: 'mes' },
 					body
 				).then(result => {
-					if (result instanceof ApiError || isApiErrorPayload(result)) {
-						throw result instanceof ApiError ? result : toApiError(result);
+					if (result instanceof ApiProblem || isApiProblemPayload(result)) {
+						throw toApiProblem(result);
 					}
 					this.success(result);
 					return result;
@@ -1297,7 +1298,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 						// 		sourcingModeFld.reference.valueOf(model) : model[sourcingModeFld.fieldName],
 						// 	ctx.model, ctx.validation);
 
-						const partBomOption = ctx.getFieldCurrentOption('partBomID') as Bom | undefined;
+						const partBomOption = ctx.getFieldSelectedOption('partBomID') as Bom | undefined;
 						const partBomID = partBomOption?.bomID ?? model.partBomID ?? (newVal as any)?.bomID ?? newVal;
 						const oldPartBomID = (oldVal as any)?.bomID ?? oldVal;
 						const rootModel = ctx.root?.model as Bom;
@@ -1454,7 +1455,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 							style: { color: '#409eff' },
 						});
 					} else {
-						return ctx.uiBuilder.factory.textSpan('');
+						return ctx.uiBuilder.factory.textSpan({ text: '' });
 					}
 				}),
 				this.field('partBomID')

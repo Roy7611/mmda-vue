@@ -147,10 +147,10 @@ export function buildModuleSearchbar(
     h("div", { class: "mmda-quick-filter" }, [
       h("span", { class: "mmda-quick-filter__label" }, filter.label),
       filter.metaUiFilter.fixed
-        ? this.factory.selectButtonGroup(filter.selectedConditions.value[0], {
+        ? this.factory.selectButtonGroup({
             options: filter.selectOptions,
             modelValue: filter.selectedConditions.value[0],
-            "onUpdate:modelValue": (condition: any) => {
+            onUpdate: (condition: any) => {
               if (condition)
                 runtime.toggleQuickFilter(filter, condition, true);
               else filter.selectedConditions.value = [];

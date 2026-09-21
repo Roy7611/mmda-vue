@@ -181,7 +181,7 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 	};
 
 	beforeSearch() {
-		const { searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
@@ -230,7 +230,7 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 							projectsData.projectsList.push(csf.searchVal.value);
 						}
 
-						return ui.factory.searchForRelative({
+						return ui.factory.searchRelative({
 							id: 'search_projectID',
 							modelValue: csf.searchVal.value,
 							placeholder: t('action.select'),
@@ -268,7 +268,7 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 			);
 		}
 
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 
 	/**

@@ -21,6 +21,7 @@ import {
 	isRefNone,
 	MetaUiGroup,
 	isNullOrUndefined,
+	DateUtils,
 } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type ProductionPlan, defineProductionPlan } from '@/models/ProductionPlan';
@@ -293,12 +294,12 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 	}
 
 	beforeSearch() {
-		const { searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: 'auth.PlanDate',
 				searchParam: 'planDate',
-				valueFn: (v: any) => (v.filter((item: any) => item !== null).length > 1 ? `BETWEEN '${v[0].toFormat('yyyy-MM-dd')}' AND '${v[1].toFormat('yyyy-MM-dd')}'` : ''),
+				valueFn: (v: any) => (v.filter((item: any) => item !== null).length > 1 ? `BETWEEN '${DateUtils.toFormat(v[0], 'yyyy-MM-dd')}' AND '${DateUtils.toFormat(v[1], 'yyyy-MM-dd')}'` : ''),
 				renderer: (ctx: UiContext & any, csf) => {
 					const { $ui: ui, $t: t } = ctx.globalProps;
 
@@ -333,7 +334,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 			});
 		}
 
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 
 	/**
@@ -375,7 +376,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 						modelValue: ctx.model.planDate,
 						minDate: today,
 						onUpdatePicker(value: any) {
-							ctx.model.planDate = value.toFormat('yyyy-MM-dd');
+							ctx.model.planDate = DateUtils.toFormat(value, 'yyyy-MM-dd');
 						},
 					});
 				})
@@ -637,7 +638,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});
 					}
-					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
+					return ctx.uiBuilder.factory.textSpan({ text: fldVal ?? '' });
 				}),
 				this.field('constraintType').onChange((ctx: UiContext<any>, model, newVal) => {
 					if (shouldHideConstraintDate(newVal)) {
@@ -656,7 +657,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 					}),
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 				})
 			);
 		}
@@ -679,7 +680,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});
 					}
-					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
+					return ctx.uiBuilder.factory.textSpan({ text: fldVal ?? '' });
 				}).setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
 					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
@@ -691,12 +692,12 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});
 					}
-					return ctx.uiBuilder.factory.textSpan(fldVal ?? '');
+					return ctx.uiBuilder.factory.textSpan({ text: fldVal ?? '' });
 				}),
 				this.field('constraintDate').hideIf(model => shouldHideConstraintDate(model.constraintType)),
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 				})
 			);
 		}

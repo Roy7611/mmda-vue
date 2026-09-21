@@ -32,14 +32,14 @@ export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 	 * 设置编辑交互逻辑
 	 */
 	async getAll(param: any) {
-		console.log(this.searchParams.projectID?.['projectID'])
+		console.log(param.queryParams?.projectID?.['projectID'])
 		const res = await super.getAll({
 			...param, queryParams:
 			{
-				...this.searchParams.queryParams,
-				projectID: this.searchParams.projectID?.['projectID'] ?? '',
-				projectinprogress: this.searchParams.projectinprogress ?? true,
-				shortageQuantity: this.searchParams.shortageQuantity ?? '',
+				...(param.queryParams ?? {}),
+				projectID: param.queryParams?.projectID?.['projectID'] ?? '',
+				projectinprogress: param.queryParams?.projectinprogress ?? true,
+				shortageQuantity: param.queryParams?.shortageQuantity ?? '',
 				// pageSize: 100
 			}
 		});
@@ -47,8 +47,8 @@ export class ProjectMaterialLogic extends EntityLogic<ProjectMaterial> {
 	}
 	/** Custom searchbar temporarily disabled (searchVal not ready). */
 	beforeSearch() {
-		const { searchParam, searchFields } = super.beforeSearch();
-		return { searchParam, searchFields, customSearchFields: [] }
+		const { fields, groups, customActions } = super.beforeSearch();
+		return { fields, groups, customActions }
 	}
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();

@@ -18,7 +18,7 @@ export function createSelectMaterialFooter(param: {
 		setup: () => {
 			const dialogRef: any = inject('dialogRef')
 			return () =>
-				primeVueFactory.buttonGroup(() => [
+				primeVueFactory.buttonGroup({}, { default: () => [
 					primeVueFactory.button({
 						outlined: true,
 						label: t('action.cancel'),
@@ -146,7 +146,7 @@ export function createSelectMaterialFooter(param: {
 							}
 						},
 					}),
-				])
+				] })
 		},
 	})
 }

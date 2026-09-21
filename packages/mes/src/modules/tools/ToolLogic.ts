@@ -6,7 +6,7 @@
  *
  */
 
-import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter } from '@mmda/core';
+import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany, type Rx, rx } from '@mmda/vui';
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
@@ -499,16 +499,16 @@ export class ToolLogic extends EntityLogic<Tool> {
 	handlerBeforeActionFn(context: UiContext<Tool>, action: EntityAction): Promise<boolean> {
 		// 关联操作的逻辑在 beforeRefToolUseAction 中处理
 		if (action.name == 'store' || action.name == 'return' || action.name == 'lend' || action.name == 'move') return this.beforeRefToolUseAction(context, context.model, action);
-		if (action.name == 'batchStore') context.toSelectManyIndex('batchStore', () => this.batchStoreFn(context));
-		if (action.name == 'batchLend') context.toSelectManyIndex('batchLend', () => this.batchLendFn(context));
-		if (action.name == 'batchMove') context.toSelectManyIndex('batchMove', () => this.batchMoveFn(context));
-		if (action.name == 'batchReturn') context.toSelectManyIndex('batchReturn', () => this.batchReturnFn(context));
-		if (action.name == 'batchOverhaul') context.toSelectManyIndex('batchOverhaul', () => this.batchOverhaulFn(context));
-		if (action.name == 'batchRetrofit') context.toSelectManyIndex('batchRetrofit', () => this.batchRetrofitFn(context));
-		if (action.name == 'batchRepair') context.toSelectManyIndex('batchRepair', () => this.batchRepairFn(context));
-		if (action.name == 'batchScrap') context.toSelectManyIndex('batchScrap', () => this.batchScrapFn(context));
-		if (action.name == 'batchDispose') context.toSelectManyIndex('batchDispose', () => this.batchDisposeFn(context));
-		if (action.name == 'batchStartUsing') context.toSelectManyIndex('batchStartUsing', () => this.batchStartUsingFn(context));
+		if (action.name == 'batchStore') context.selectMany('batchStore', () => this.batchStoreFn(context));
+		if (action.name == 'batchLend') context.selectMany('batchLend', () => this.batchLendFn(context));
+		if (action.name == 'batchMove') context.selectMany('batchMove', () => this.batchMoveFn(context));
+		if (action.name == 'batchReturn') context.selectMany('batchReturn', () => this.batchReturnFn(context));
+		if (action.name == 'batchOverhaul') context.selectMany('batchOverhaul', () => this.batchOverhaulFn(context));
+		if (action.name == 'batchRetrofit') context.selectMany('batchRetrofit', () => this.batchRetrofitFn(context));
+		if (action.name == 'batchRepair') context.selectMany('batchRepair', () => this.batchRepairFn(context));
+		if (action.name == 'batchScrap') context.selectMany('batchScrap', () => this.batchScrapFn(context));
+		if (action.name == 'batchDispose') context.selectMany('batchDispose', () => this.batchDisposeFn(context));
+		if (action.name == 'batchStartUsing') context.selectMany('batchStartUsing', () => this.batchStartUsingFn(context));
 
 		if (['batchStore', 'batchLend', 'batchMove', 'batchReturn', 'batchOverhaul', 'batchRetrofit', 'batchRepair', 'batchScrap', 'batchDispose', 'batchStartUsing'].includes(action.name)) {
 			return Promise.resolve(false)
@@ -522,7 +522,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 		const toolUse = rx(defineToolUse({
 			toolID: model.toolID,
 			itemID: (model.uses ? model.uses.length : 0) + 1,
-			transDate: new Date().toFormat('yyyy-MM-dd'),
+			transDate: DateUtils.toFormat(new Date(), 'yyyy-MM-dd'),
 		}));
 		if ((actionName.value === 'store' || actionName.value === 'batchStore') && userId) {
 			toolUse.ownerID = userId;
@@ -579,7 +579,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 			fields.push(
 				//当前没有器具类别模块，先以普通文本形式显示
 				this.field('categoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.category ? ctx.model.category.categoryName : '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.category ? ctx.model.category.categoryName : '-' });
 				}),
 				// 根据工位过滤
 				this.field('siteID'),
@@ -816,10 +816,10 @@ try {
 		const showFields = [].concat(this.metaUi.getListedFields().filter(f => ['toolNo', 'toolName', 'toolPic', 'remainingCycles'].includes(f.fieldName)), this.metaUi.getGroup('uses').getListedFields().filter(f => ['usedCycles'].includes(f.fieldName)));
 		const metaUi = MetaUiBuilder.create('BatchReturn').fields(showFields).build()
 		return await context.uiBuilder.dialog(
-			uiBuilder.factory.table(
-				selectedItems,
+			uiBuilder.table(
 				metaUi,
 				{
+					rows: selectedItems,
 					tableId: `batch-return-table`,
 					scrollHeight: '400px',
 				},
@@ -1172,42 +1172,42 @@ try {
 
 	// 计算下次维护日期
 	calculateNextMaintainDate(context: UiContext, maintenancePlan: MaintenancePlan): string {
-		let start: string | Date; // 维护开始计算日期 如 本周第一天 本月第一天等
+		let start: Date; // 维护开始计算日期 如 本周第一天 本月第一天等
 		let nextDate: string;
 		switch (maintenancePlan.frequency) {
 			case MaintainingFrequency.DAILY:
-				nextDate = new Date().plus({ day: 1 }).toSQLDate();
+				nextDate = DateUtils.toSQLDate(DateUtils.plus(new Date(), { day: 1 }));
 				break;
 			case MaintainingFrequency.WEEKLY:
-				start = new Date().weekStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.weekStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ week: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { week: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.MONTHLY:
-				start = new Date().monthStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.monthStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ month: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { month: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.QUARTERLY:
-				start = new Date().quarterStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.quarterStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ quarter: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { quarter: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.YEARLY:
-				start = new Date().monthStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.monthStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ year: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { year: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 
@@ -1235,12 +1235,12 @@ try {
 						try {
 							// 切换器具类别时，清空已选的关联物料（物料可能不属于新类别）
 							if (newVal !== oldVal) {
-								const materialOption = ctx.getFieldCurrentOption('materialID');
+								const materialOption = ctx.getFieldSelectedOption('materialID');
 								if (materialOption?.categoryID !== newVal) {
 									model.materialID = null;
 								}
 							}
-							const categoryOption = this.currentCategory = ctx.getFieldCurrentOption('categoryID');
+							const categoryOption = this.currentCategory = ctx.getFieldSelectedOption('categoryID');
 							if (categoryOption?.materialX) {
 								console.log('categoryOption.materialX', categoryOption.materialX)
 								await this.initMetadata(true, {
@@ -1309,7 +1309,7 @@ try {
 					if (isRefNone(newVal)) {
 						ctx.setFieldValue('planToMaintain', '');
 					} else {
-						const currentOption = ctx.getFieldCurrentOption('maintenancePlanID')
+						const currentOption = ctx.getFieldSelectedOption('maintenancePlanID')
 						ctx.setFieldValue('planToMaintain', this.calculateNextMaintainDate(ctx, currentOption));
 					}
 				}),
@@ -1348,7 +1348,7 @@ try {
 							return;
 						}
 
-						const materialOption = ctx.getFieldCurrentOption('materialID');
+						const materialOption = ctx.getFieldSelectedOption('materialID');
 						if (!model.toolName && materialOption?.materialName) {
 							ctx.setFieldValue('toolName', materialOption.materialName);
 						}
@@ -1362,7 +1362,7 @@ try {
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 1) == 1))
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.onChange((ctx: UiContext, model, newVal, oldVal) =>
-						ctx.setFieldValue('remainingLife', new Date().calculateDiff(new Date(), new Date(newVal), 'd'))
+						ctx.setFieldValue('remainingLife', DateUtils.calculateDiff(new Date(), new Date(newVal), 'd'))
 					)
 					.onValidate((value, model, ctx) => {
 						if (!value) return;
@@ -1460,12 +1460,12 @@ try {
 			fields.push(
 				//当前没有器具类别模块，先以普通文本形式显示
 				this.field('categoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.category ? ctx.model.category.categoryName : '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.category ? ctx.model.category.categoryName : '-' });
 				}),
 				this.field('lifecycleModes').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					const m = Number(ctx.model.lifecycleModes) || 0;
 					const text = [m & 1 && LifecycleModeEnum.TM_TEXT, m & 2 && LifecycleModeEnum.FM_TEXT, m & 4 && LifecycleModeEnum.CM_TEXT].filter(Boolean).join(',') || LifecycleModeEnum.NONE_TEXT;
-					return ctx.uiBuilder.factory.textSpan(text, {});
+					return ctx.uiBuilder.factory.textSpan({ text });
 				}),
 				// 设备管理相关字段 - 只有当 asEquip 为 true 时才显示
 				this.field('checklistID').hideIf((model: Tool) => !model.asEquip),
@@ -1481,7 +1481,7 @@ try {
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>) => {
-					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
+					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan({ text: '' });
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.materialID;
 					return ctx.uiBuilder.factory.link({
 						text: fldText,
@@ -1491,7 +1491,7 @@ try {
 					});
 				}),
 				this.field('toolkitID').setCustomRenderer((fld, ctx: UiContext<any>) => {
-					if (isRefNone(ctx.model.toolkitID)) return ctx.uiBuilder.factory.textSpan('');
+					if (isRefNone(ctx.model.toolkitID)) return ctx.uiBuilder.factory.textSpan({ text: '' });
 					const fldText = MetaModel.displayField(ctx.model, fld) || ctx.model.toolkitID;
 					return ctx.uiBuilder.factory.link({
 						text: fldText,
@@ -1941,7 +1941,7 @@ export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 						}
 					})
 					.onChange((ctx: UiContext, model, newVal) => {
-						ctx.setFieldValue('ownerDeptID', newVal ? ctx.getFieldCurrentOption('ownerID')?.deptID : '');
+						ctx.setFieldValue('ownerDeptID', newVal ? ctx.getFieldSelectedOption('ownerID')?.deptID : '');
 					}),
 			)
 		}
@@ -1953,7 +1953,7 @@ export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 		const { fields, groups, customActions } = super.beforeDetails();
 		if (fields.length == 0) {
 			// fields.push(this.field('userID').setCustomRenderer((fld, ctx: UiContext<any>, props) => h('span', ctx.model.customProperties[`$${fld.fieldName}`])));
-			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiContext<any>, props) => ctx.uiBuilder.factory.textSpan(ctx.model.customProperties[`$${fld.fieldName}`])));
+			fields.push(this.field('ownerID').setCustomRenderer((fld, ctx: UiContext<any>, props) => ctx.uiBuilder.factory.textSpan({ text: ctx.model.customProperties[`$${fld.fieldName}`] })));
 			/**
 			fields.push(
 				this.field('fldName')

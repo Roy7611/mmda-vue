@@ -304,7 +304,7 @@ export const HomeView = defineComponent({
                                   },
                                 },
                                 [
-                                  factory.icon(sm.moduleIcon, {
+                                  factory.icon({ iconClass: sm.moduleIcon,
                                     style: { color: "var(--p-primary-color)" },
                                   }),
                                 ],

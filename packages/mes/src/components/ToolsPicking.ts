@@ -588,10 +588,10 @@ export const ToolsPicking = defineComponent({
 
 		return () => h('div', { class: 'tools-picking' }, [
 			renderHeader(),
-			uiBuilder.buildContainer([
-				uiBuilder.buildAside(renderLeftPanel(), { width: '320px', class: 'tools-picking__aside' }),
-				uiBuilder.buildMain(renderRightPanel(), { class: 'tools-picking__main' }),
-			], { class: 'tools-picking__body' }),
+			h('div', { class: 'tools-picking__body' }, [
+				h('aside', { width: '320px', class: 'tools-picking__aside' }, renderLeftPanel()),
+				h('main', { class: 'tools-picking__main' }, renderRightPanel()),
+			]),
 			renderFooter(),
 		]);
 	},

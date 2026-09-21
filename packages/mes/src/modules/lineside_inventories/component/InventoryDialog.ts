@@ -1,6 +1,6 @@
 import { defineComponent, type SlotsType, ref, type Ref, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode } from 'vue';
 import type { Entity, EntitySearchParam, Pager, Pagination, PagedList, UiContext } from "@mmda/core";
-import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignment, MetaModel, } from '@mmda/core';
+import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignment, MetaModel, toPrecise, thousandDigitFormat } from '@mmda/core';
 import { CustomColumn, type VueUiContext } from "@mmda/vui";
 import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
@@ -112,21 +112,23 @@ const InventoryDialog = defineComponent({
                             },
                         }),
                         uiBuilder.factory.buttonGroup(
-                            () => [
-                                uiBuilder.factory.actionButton(
-                                    {
-                                        name: 'search',
-                                        colorRole: 'primary',
-                                        onAction: async () => {
-                                            await getLockMsg();
+                            { role: 'dlg-search-button-group' },
+                            {
+                                default: () => [
+                                    uiBuilder.factory.actionButton(
+                                        {
+                                            name: 'search',
+                                            colorRole: 'primary',
+                                            onAction: async () => {
+                                                await getLockMsg();
+                                            },
                                         },
-                                    },
-                                    $t,
-                                    true,
-                                    { id: `dlg-search-button` }
-                                ),
-                            ],
-                            { role: 'dlg-search-button-group' }
+                                        $t,
+                                        true,
+                                        { id: `dlg-search-button` }
+                                    ),
+                                ],
+                            }
                         ),
                     ]
                 ),
@@ -185,15 +187,13 @@ const InventoryDialog = defineComponent({
                                             footer: col.aggregation
                                                 ? ({ column }: any) => {
                                                     // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                                    return uiBuilder.factory.textSpan(
-                                                        lockMsgTree.value
-                                                            .reduce((prev: any, curr: any) => {
-                                                                return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                            }, 0)
-                                                            .toPrecise()
-                                                            .thousandDigitFormat()
-                                                            .toString(),
-                                                        {
+                                                    return uiBuilder.factory.textSpan({
+                                                        text: thousandDigitFormat(toPrecise(
+                                                            lockMsgTree.value
+                                                                .reduce((prev: any, curr: any) => {
+                                                                    return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
+                                                                }, 0)
+                                                        )),
                                                             class: `${column.key === 'lockQty' ? 'text-red-600' : column.key === 'unLockQty' ? 'text-green-600' : ''}`,
                                                             style: {
                                                                 width: '100%',
@@ -261,8 +261,8 @@ const InventoryDialog = defineComponent({
                                                     : (slotProps: any) => uiBuilder._tableCell(f, props.context.with(slotProps.data, props.context.metaUi.primaryKey)),
                                                 footer: f.aggregationSet ? ({ column }: any) => {
 
-                                                    return uiBuilder.factory.textSpan(
-                                                        (isFunction(props.context.getFieldLogic(f)?.aggregateFn) ? props.context.getFieldLogic(f)?.aggregateFn(props.context as unknown as UiContext<Entity>, f, data.inventories).toPrecise().thousandDigitFormat() : defaultSummaryMethod(f, data.inventories.filter((item: any) => !MetaModel.deleted(item)))).toString(), {
+                                                    return uiBuilder.factory.textSpan({
+                                                        text: (isFunction(props.context.getFieldLogic(f)?.aggregateFn) ? thousandDigitFormat(toPrecise(props.context.getFieldLogic(f)?.aggregateFn(props.context as unknown as UiContext<Entity>, f, data.inventories))) : defaultSummaryMethod(f, data.inventories.filter((item: any) => !MetaModel.deleted(item)))).toString(),
                                                         style: {
                                                             width: '100%',
                                                             textAlign: 'center',
@@ -289,34 +289,30 @@ const InventoryDialog = defineComponent({
                                         {
                                             class: 'flex_content_start flex_item_center',
                                         },
-                                        uiBuilder.factory.textSpan(props.context.globalProps.$t('state.noData'))
+                                        uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
                                     );
                                 },
                             }
                         )
                 ),
-                uiBuilder.factory.paginator(
-                    {
+                uiBuilder.factory.paginator({
+                    pagination: {
                         pageNo: lockMsgSearchParams.pager.pageNo,
                         pageSize: lockMsgSearchParams.pager.pageSize,
                         recordCount: recordCount.value,
                     },
-                    {
-                        onPage(pager: any) {
-                            pageFn(pager);
-                        },
+                    onPage(pager: any) {
+                        pageFn(pager);
                     },
-                    {
-                        start: (slotProps: any) =>
-                            h(
-                                'div',
-                                {},
-                                props.context.globalProps.$t('view.recordCount', {
-                                    it: recordCount.value,
-                                })
-                            ),
-                    }
-                ),
+                    start: (slotProps: any) =>
+                        h(
+                            'div',
+                            {},
+                            props.context.globalProps.$t('view.recordCount', {
+                                it: recordCount.value,
+                            })
+                        ),
+                }),
             ]);
     },
 })

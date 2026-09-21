@@ -4,9 +4,9 @@
 
 | 类型 | 槽 | Builder |
 |---|---|---|
-| `UiIndexTopbar` | `start` / `center` / `end` | `buildIndexTopbar` |
-| `UiDetailsTopbar` | `start` / `end` | `buildDetailsTopbar` |
-| `UiEditTopbar` | `start` / `end` | `buildEditTopbar` |
+| `UiIndexTopbarProps` | `start` / `center` / `end` | `buildIndexTopbar` |
+| `UiDetailsTopbarProps` | `start` / `end` | `buildDetailsTopbar` |
+| `UiEditTopbarProps` | `start` / `end` | `buildEditTopbar` |
 
 Index 典型内容：面包屑、搜索、动作（`buttonGroup` / `moreMenuButton`）。Details / Edit：面包屑、动作。动作槽**不必**走 `factory.toolbar`；和现有长相差太多就不要套原生命令条。
 

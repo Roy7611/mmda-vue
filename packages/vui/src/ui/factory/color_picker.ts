@@ -4,7 +4,6 @@
  * chrome 取色走 factory.colorPicker。值一律 hex。
  * 字段 fieldFactory.colorPicker 译 MetaUiField 后再调本控件。
  */
-import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 import type {UiProps} from '../layout'
 import { vueUpdateOf } from '../vue_ui_props'
@@ -108,25 +107,19 @@ export { colorPickerModifierClasses } from '@mmda/core'
 
 export function colorPickerPropsFromField(
   field: MetaUiField,
-  context: ColorPickerFieldContext,
-  extra: UiProps = {},
+  context: ColorPickerFieldContext
 ): UiColorPickerProps {
   return {
     value: colorPickerHexOf(context.getFieldValue(field)),
-    mode: extra.mode as UiColorPickerMode | undefined,
-    showModeSwitcher: extra.showModeSwitcher as boolean | undefined,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

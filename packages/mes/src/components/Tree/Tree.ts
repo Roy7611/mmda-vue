@@ -537,7 +537,7 @@ export const Tree = defineComponent({
 						default: (v: any) => {
 							const { node } = v;
 							// node.key = node.categoryName
-							return ui.factory.textSpan(node.categoryName);
+							return ui.factory.textSpan({ text: node.categoryName });
 						},
 					}
 				),

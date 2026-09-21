@@ -76,12 +76,12 @@ export class ToolCategoryLogic extends EntityLogic<ToolCategory> {
 				this.field('materialType')
 					.lockIf((model, ctx) => true)
 					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-						return ctx.uiBuilder.factory.textSpan(MaterialTypeEnum.textOf(MaterialType.TOOLS));
+						return ctx.uiBuilder.factory.textSpan({ text: MaterialTypeEnum.textOf(MaterialType.TOOLS) });
 					}),
 				this.field('materialX')
 					.lockIf((model, ctx) => !!model.parentCatID)
 					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-						return ctx.uiBuilder.factory.textSpan(ctx.model.materialX ? ctx.t(this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text ?? '') : '-');
+						return ctx.uiBuilder.factory.textSpan({ text: ctx.model.materialX ? ctx.t(this.materialXOptions.find(x => x.value == ctx.model.materialX)?.text ?? '') : '-' });
 					})
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						return ctx.uiBuilder.factory.dropDownList({

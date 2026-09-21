@@ -1,4 +1,10 @@
-import type { MetaUiField, MetaUiGroup, UiFieldValidation, UiValidation } from "@mmda/core";
+import {
+  defineGroupValidation,
+  type MetaUiField,
+  type MetaUiGroup,
+  type FieldValidation,
+  type Validation,
+} from "@mmda/core";
 import type { Constructor } from "./types";
 
 export function WithValidate<TBase extends Constructor>(Base: TBase) {
@@ -30,7 +36,7 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
 
     async validateGroup(group: MetaUiGroup | string) {
       const grp = this.resolveGroup(group);
-      if (this.isGroupHidden(grp)) return 0;
+      if (this.isGroupHidden(grp) || grp.readOnly) return 0;
       if (!grp.many) {
         return grp.fields.reduce(
           (count: number, field: MetaUiField) =>
@@ -51,14 +57,14 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
           any
         >[]) ?? [];
       const groupState = (this.validationState[grp.groupName] ??=
-        {}) as UiValidation;
-      let errorCount = grp.requiredAny && rows.length === 0 ? 1 : 0;
+        defineGroupValidation(grp, rows)) as Validation;
+      let errorCount = groupState.summary?.errorNum ?? 0;
       rows.forEach((row, index) => {
         const rowKey = String(row.rowNum ?? row.id ?? index);
         const rowState = (groupState[rowKey] ??= {
           rowNum: rowKey,
           summary: { errorNum: 0 },
-        }) as UiValidation;
+        }) as Validation;
         const rowContext = this.subGroupItemContext(grp, row);
         let rowErrors = 0;
         for (const field of grp.groupUi?.groups.flatMap((g: MetaUiGroup) => g.fields) ?? []) {
@@ -79,9 +85,9 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
     resetValidation() {
       for (const state of Object.values(this.validationState)) {
         if (state && typeof state === "object" && "touched" in state) {
-          (state as UiFieldValidation).touched = false;
-          (state as UiFieldValidation).message = "";
-          if ("warning" in state) (state as UiFieldValidation).warning = "";
+          (state as FieldValidation).touched = false;
+          (state as FieldValidation).message = "";
+          if ("warning" in state) (state as FieldValidation).warning = "";
         }
       }
     }
@@ -96,18 +102,18 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
         state &&
         typeof state === "object" &&
         "touched" in state &&
-        (state as UiFieldValidation).touched &&
-        (state as UiFieldValidation).message
+        (state as FieldValidation).touched &&
+        (state as FieldValidation).message
       );
     }
 
-    getInvalidMessage(field: MetaUiField | string) {
+    getInvalidMessage(field: MetaUiField | string): string {
       const state = this.validationState[this.resolveField(field).fieldName];
       return state &&
         typeof state === "object" &&
         "message" in state &&
-        typeof (state as UiFieldValidation).message === "string"
-        ? (state as UiFieldValidation).message
+        typeof (state as FieldValidation).message === "string"
+        ? ((state as FieldValidation).message ?? "")
         : "";
     }
 
@@ -120,7 +126,7 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
       const state = (this.validationState[name] ??= {
         touched: true,
         message: "",
-      }) as UiFieldValidation;
+      }) as FieldValidation;
       state.touched = true;
       state.message = error;
     }
@@ -133,7 +139,7 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
     collectInvalidMessages(value: unknown = this.validationState): string[] {
       if (!value || typeof value !== "object") return [];
       if ("touched" in value && "message" in value) {
-        const message = (value as UiFieldValidation).message;
+        const message = (value as FieldValidation).message;
         return message ? [this.translate(String(message))] : [];
       }
       const out: string[] = [];
@@ -145,7 +151,7 @@ export function WithValidate<TBase extends Constructor>(Base: TBase) {
           "touched" in child &&
           "message" in child
         ) {
-          const message = (child as UiFieldValidation).message;
+          const message = (child as FieldValidation).message;
           if (!message) continue;
           let label = key;
           try {

@@ -184,7 +184,7 @@ function dataPathOf<T>(row: T, spec: TreeDataSpec, byId: Map<string, T>): string
     walked.add(current)
     const id = treeRowId(current, spec)
     if (id) path.unshift(id)
-    const parentId = treeRowParentId(current, spec)
+    const parentId: string | undefined = treeRowParentId(current, spec)
     current = parentId ? byId.get(parentId) : undefined
   }
   return path.length ? path : [treeRowId(row, spec)]

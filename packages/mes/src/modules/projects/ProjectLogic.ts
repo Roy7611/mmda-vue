@@ -6,7 +6,7 @@
  *
  */
 
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel, MetaUiBuilder } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, defaultPager, EntityState, ApiClient, daysBetween, isNullOrUndefined, MetaModel, MetaUiBuilder, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Project, defineProject } from '@/models/Project';
 import { type ProjectMember, defineProjectMember } from '@/models/ProjectMember';
@@ -97,7 +97,8 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 	await getMetarlList(context, model, 'noMAKE');
 	const metaUi = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
 	const result = await context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(metarlData.value, metaUi, {
+		context.uiBuilder.table(metaUi, {
+			rows: metarlData.value,
 			selectionMode: 'multiple',
 			onSelect: (selection: any) => { selectMetarlList.data = selection; },
 		}),
@@ -123,7 +124,8 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 	await getMetarlList(context, model, 'noMAKE');
 	const metaUi = MetaUiBuilder.create('ProjectMaterials').fields(mUI.getListedFields()).build();
 	context.uiBuilder.dialog(
-		context.uiBuilder.factory.table(metarlData.value, metaUi, {
+		context.uiBuilder.table(metaUi, {
+			rows: metarlData.value,
 			selectionMode: 'multiple',
 			onSelect: (selection: any) => { selectMetarlList.data = selection; },
 		}),
@@ -700,7 +702,7 @@ export class ProjectLogic extends EntityLogic<Project> {
 						entityState: () => EntityState.CREATED,
 						projectID: () => target.projectID,
 						memberID: (m: User) => this.mapUserToProjectMemberRef(m),
-						joinTime: () => new Date().toFormat('yyyy-MM-dd HH:mm:ss'),
+						joinTime: () => DateUtils.toFormat(new Date(), 'yyyy-MM-dd HH:mm:ss'),
 					},
 				});
 			});

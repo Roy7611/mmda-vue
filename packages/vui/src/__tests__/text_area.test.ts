@@ -11,7 +11,7 @@ describe('textArea chrome helpers', () => {
 
   it('reads value from value or modelValue', () => {
     expect(textAreaValueOf({ value: 'a' })).toBe('a')
-    expect(textAreaValueOf({ modelValue: 'b' } as any)).toBe('b')
+    expect(textAreaValueOf({ value: 'b' } as any)).toBe('b')
   })
 
   it('parses string rows', () => {

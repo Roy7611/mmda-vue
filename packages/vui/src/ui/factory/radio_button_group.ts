@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiRadioButtonGroupProps } from '@mmda/core'
+import { type UiRadioButtonGroupProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiRadioButtonGroupProps } from '@mmda/core'

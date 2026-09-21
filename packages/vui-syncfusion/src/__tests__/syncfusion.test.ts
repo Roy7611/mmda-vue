@@ -75,11 +75,13 @@ describe("Syncfusion skin", () => {
     expect(factory.tabs).toBeTypeOf("function");
     expect(factory.toolbar).toBeTypeOf("function");
     const split = factory.splitter(
-      [
-        { content: h("span", "L"), size: "16rem", min: "12rem", collapsible: true },
-        { content: h("span", "R"), min: "16rem" },
-      ],
       { class: "mmda-tree-list-splitter" },
+      {
+        default: () => [
+          { content: h("span", "L"), size: "16rem", min: "12rem", collapsible: true },
+          { content: h("span", "R"), min: "16rem" },
+        ],
+      },
     );
     expect(split.type).toBeTruthy();
     expect((split.type as { name?: string }).name).toBe("SfSplitter");
@@ -137,14 +139,16 @@ describe("Syncfusion skin", () => {
     const factory = createSyncfusionUiFactory();
     const onResizeStop = vi.fn();
     const vnode = factory.splitter(
-      [
-        { content: h("span", "L"), size: "16rem" },
-        { content: h("span", "R") },
-      ],
       {
         enableReversePanes: true,
         class: "mmda-tree-list-splitter",
         onResizeStop,
+      },
+      {
+        default: () => [
+          { content: h("span", "L"), size: "16rem" },
+          { content: h("span", "R") },
+        ],
       },
     );
     const cls = Array.isArray(vnode.props?.class)
@@ -1271,13 +1275,10 @@ describe("Syncfusion skin", () => {
       valueOf: (option: any) => option?.categoryID,
       labelOf: (option: any) => option?.categoryName,
     };
-    const buildSearchForRelative = vi.fn(() =>
-      h("div", { class: "mmda-relative-search" }),
-    );
     const context = {
       model: { categoryID: "C1", category },
       getFieldValue: () => category,
-      getFieldOptions: () => ({
+      getFieldSearchOptions: () => ({
         selectOptions: [category],
         searchParam: { searchWord: "" },
         currentSelectOption: category,
@@ -1285,8 +1286,6 @@ describe("Syncfusion skin", () => {
       }),
       searchRelative: vi.fn(),
       setFieldValue: vi.fn(),
-      app: { ui: { buildSearchForRelative } },
-      uiBuilder: { buildSearchForRelative },
       isFieldReadonly: () => false,
       isInvalid: () => false,
     } as any;
@@ -1297,9 +1296,13 @@ describe("Syncfusion skin", () => {
       reference,
     } as any;
 
-    fields.searchBox(field, context);
-    expect(buildSearchForRelative).toHaveBeenCalled();
-    expect(buildSearchForRelative.mock.calls[0][1]).toBe(field);
+    const vnode = fields.searchBox(field, context) as any;
+    expect(vnode).toBeTruthy();
+    expect(String(vnode.props?.cssClass ?? "")).toContain("mmda-search-combo");
+    expect(vnode.props?.fields).toEqual({
+      text: "categoryName",
+      value: "categoryID",
+    });
   });
 
   it("puts search and refresh icons on the search TextBox appendTemplate", () => {
@@ -1409,17 +1412,19 @@ describe("Syncfusion skin", () => {
   it("wraps toolbar actions in a button group", () => {
     const builder = new SyncfusionUiBuilder();
     const group = builder.factory.buttonGroup(
-      () => [
-        builder.factory.actionButton(
-          { name: "refresh", label: "Refresh", onAction: () => undefined },
-          (key) => key,
-        ),
-        builder.factory.actionButton(
-          { name: "create", label: "Create", onAction: () => undefined },
-          (key) => key,
-        ),
-      ],
       { class: "mmda-topbar-actions" },
+      {
+        default: () => [
+          builder.factory.actionButton(
+            { name: "refresh", label: "Refresh", onAction: () => undefined },
+            (key) => key,
+          ),
+          builder.factory.actionButton(
+            { name: "create", label: "Create", onAction: () => undefined },
+            (key) => key,
+          ),
+        ],
+      },
     );
     const className = Array.isArray(group.props?.class)
       ? group.props.class.join(" ")
@@ -1448,7 +1453,8 @@ describe("Syncfusion skin", () => {
       { label: "Left", value: "left" },
       { label: "Center", value: "center" },
     ];
-    const single = factory.selectButtonGroup("center", {
+    const single = factory.selectButtonGroup({
+      modelValue: "center",
       options,
       optionLabel: "label",
       optionValue: "value",
@@ -1458,7 +1464,8 @@ describe("Syncfusion skin", () => {
     );
     expect(radios.length).toBe(2);
 
-    const multi = factory.selectButtonGroup(["left"], {
+    const multi = factory.selectButtonGroup({
+      modelValue: ["left"],
       selectionMode: "multiple",
       options,
       optionLabel: "label",
@@ -1469,7 +1476,8 @@ describe("Syncfusion skin", () => {
     );
     expect(checks.length).toBe(2);
 
-    const icons = factory.selectButtonGroup("LEFT", {
+    const icons = factory.selectButtonGroup({
+      modelValue: "LEFT",
       options: [
         { value: "LEFT", icon: "align-left", label: "左对齐" },
         { value: "CENTER", icon: "align-center", label: "居中" },
@@ -1538,18 +1546,16 @@ describe("Syncfusion skin", () => {
 
   it("builds more actions as DropDownButton, not horizontal Menu", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.factory.moreMenuButton(
-      {
+    const vnode = builder.factory.moreMenuButton({
         label: "action.more",
         buttonType: "tonal",
         colorRole: "secondary",
-      },
-      [
-        { name: "import", label: "导入", onAction: () => undefined },
-        { name: "export", label: "导出", onAction: () => undefined },
-        { name: "print", label: "打印", onAction: () => undefined },
-      ],
-    );
+        actions: [
+          { name: "import", label: "导入", onAction: () => undefined },
+          { name: "export", label: "导出", onAction: () => undefined },
+          { name: "print", label: "打印", onAction: () => undefined },
+        ],
+      });
     expect(
       vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
     ).toMatch(/DropDownButton/i);
@@ -1564,29 +1570,27 @@ describe("Syncfusion skin", () => {
 
   it("renders more-menu dividers as separators without more-N labels", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.factory.moreMenuButton(
-      {
+    const vnode = builder.factory.moreMenuButton({
         label: "action.more",
         buttonType: "tonal",
         colorRole: "secondary",
-      },
-      [
-        { name: "import", label: "导入", onAction: () => undefined },
-        { name: "export", label: "导出", onAction: () => undefined },
-        { name: "print", label: "打印", onAction: () => undefined },
-        { divider: true },
-        {
-          name: "autoFitColumns",
-          label: "自动列宽",
-          onAction: () => undefined,
-        },
-        {
-          name: "tableSettings",
-          label: "表格设置",
-          onAction: () => undefined,
-        },
-      ],
-    );
+        actions: [
+          { name: "import", label: "导入", onAction: () => undefined },
+          { name: "export", label: "导出", onAction: () => undefined },
+          { name: "print", label: "打印", onAction: () => undefined },
+          { divider: true },
+          {
+            name: "autoFitColumns",
+            label: "自动列宽",
+            onAction: () => undefined,
+          },
+          {
+            name: "tableSettings",
+            label: "表格设置",
+            onAction: () => undefined,
+          },
+        ],
+      });
     expect(vnode.props?.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ text: "导入" }),
@@ -1619,23 +1623,21 @@ describe("Syncfusion skin", () => {
 
   it("uses DropupMenuButton when popupPlacement opens upward", () => {
     const builder = new SyncfusionUiBuilder();
-    const vnode = builder.factory.dropDownButton(
-      {
+    const vnode = builder.factory.dropDownButton({
         icon: "fas fa-palette",
         popupPlacement: "top-end",
         hideCaret: true,
         shape: "circle",
         buttonType: "text",
-      },
-      [
-        {
-          name: "blue",
-          label: "蓝色",
-          icon: "mmda-palette-swatch",
-          onAction: () => undefined,
-        },
-      ],
-    );
+        actions: [
+          {
+            name: "blue",
+            label: "蓝色",
+            icon: "mmda-palette-swatch",
+            onAction: () => undefined,
+          },
+        ],
+      });
     expect(
       vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
     ).toMatch(/DropupMenuButton|SfDropupMenuButton/i);

@@ -8,7 +8,7 @@
  */
 import { defineComponent, type SlotsType, inject, ref, type Ref, watch, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode, computed, toRaw } from 'vue';
 import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, } from "@mmda/core";
-import { isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, } from '@mmda/core';
+import { isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, toPrecise, thousandDigitFormat } from '@mmda/core';
 import { VueUiContext, type UiSearchField, type UiCustomSearchField, type CustomColumn } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { useRouter, useRoute } from 'vue-router';
@@ -49,14 +49,14 @@ const CompleteShipment = defineComponent({
         const bomList = ref()
         const getBomList = async () => {
             panelLoading.value = true;
-            const projectID = bomLogic.searchParams.projectID ?? props.context.logic.searchParams.projectID // 获取线边库存的搜索参数
+            const projectID = props.context.searchParam?.queryParams?.projectID ?? '' // 获取线边库存的搜索参数
             return await apiClient
                 .getAll({
                     repository: 'Boms',
                     service: 'mes',
                     queryParams: {
-                        searchWord: bomLogic.searchParams.searchWord,
-                        bomType: bomLogic.searchParams.bomType,
+                        searchWord: props.context.searchParam?.searchWord ?? '',
+                        bomType: props.context.searchParam?.queryParams?.bomType,
                         status: 'IN+APPROVED',
                         projectID,
                     },
@@ -93,7 +93,7 @@ const CompleteShipment = defineComponent({
                             const defaultValue = props.context.customSearchFields.filter((sf: UiCustomSearchField) => sf.searchParam === 'projectID').map((sf: UiCustomSearchField) => sf.searchVal.value)[0]
                             if (isObject(defaultValue)) {
                                 sf.searchVal.value = defaultValue
-                                const fldOptions = bomCtx.getFieldOptions(sf.field)
+                                const fldOptions = bomCtx.getFieldSearchOptions(sf.field)
                                 // fldOptions.cachedSelectOption = defaultValue
                                 fldOptions.selectOptions.push(defaultValue)
                                 sf.searchWord = defaultValue
@@ -214,7 +214,7 @@ const CompleteShipment = defineComponent({
                                 h('div', { class: 'w-16 h-16 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-lg mr-4 relative' }, [
                                     // 如果有图片则显示图片，否则显示产品图标
                                     item.productPic
-                                        ? uiBuilder.factory.image(item.productPic, {
+                                        ? uiBuilder.factory.image({ src: item.productPic,
                                             width: '64',
                                             height: '64',
                                             preview: false,
@@ -503,15 +503,13 @@ const CompleteShipment = defineComponent({
                                     footer: col.aggregation
                                         ? ({ column }: any) => {
                                             // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                            return uiBuilder.factory.textSpan(
-                                                kitCompleteness.value
-                                                    .reduce((prev: any, curr: any) => {
-                                                        return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                    }, 0)
-                                                    .toPrecise()
-                                                    .thousandDigitFormat()
-                                                    .toString(),
-                                                {
+                                            return uiBuilder.factory.textSpan({
+                                                text: thousandDigitFormat(toPrecise(
+                                                    kitCompleteness.value
+                                                        .reduce((prev: any, curr: any) => {
+                                                            return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
+                                                        }, 0)
+                                                )),
                                                     class: `${column.key === 'lessQty' ? 'text-red-600 font-bold' : column.key === 'kitQty' ? 'text-green-600 font-bold' : 'font-bold'}`,
                                                     style: {
                                                         width: '100%',
@@ -552,7 +550,7 @@ const CompleteShipment = defineComponent({
                                         if (typeof v === 'string') return v;
                                         return '';
                                     };
-                                    return uiBuilder.factory.searchForRelative({
+                                    return uiBuilder.factory.searchRelative({
                                         modelValue: row.searchVal,
                                         dataKey: 'siteID',
                                         optionLabel,
@@ -634,15 +632,13 @@ const CompleteShipment = defineComponent({
                                         footer: col.aggregation && data.childKittings
                                             ? ({ column }: any) => {
                                                 // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                                return uiBuilder.factory.textSpan(
-                                                    data.childKittings
-                                                        .reduce((prev: any, curr: any) => {
-                                                            return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                        }, 0)
-                                                        .toPrecise()
-                                                        .thousandDigitFormat()
-                                                        .toString(),
-                                                    {
+                                                return uiBuilder.factory.textSpan({
+                                                    text: thousandDigitFormat(toPrecise(
+                                                        data.childKittings
+                                                            .reduce((prev: any, curr: any) => {
+                                                                return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
+                                                            }, 0)
+                                                    )),
                                                         class: `${column.key === 'lessQty' ? 'text-red-600 font-bold' : column.key === 'kitQty' ? 'text-green-600 font-bold' : 'font-bold'}`,
                                                         style: {
                                                             width: '100%',
@@ -662,7 +658,7 @@ const CompleteShipment = defineComponent({
                                 {
                                     class: 'flex_content_start flex_item_center',
                                 },
-                                uiBuilder.factory.textSpan(props.context.globalProps.$t('state.noData'))
+                                uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
                             );
                         },
                         empty: () => {
@@ -671,7 +667,7 @@ const CompleteShipment = defineComponent({
                                 {
                                     class: 'flex_content_start flex_item_center',
                                 },
-                                uiBuilder.factory.textSpan(props.context.globalProps.$t('state.noData'))
+                                uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
                             );
                         },
                     }
@@ -702,32 +698,39 @@ const CompleteShipment = defineComponent({
 
         //#endregion
 
-        const main: () => VNode = () => uiBuilder.buildContainer(
+        const main: () => VNode = () => h(
+            'div',
+            {
+                class: 'flex-1 min-h-0',
+            },
             [
-                uiBuilder.buildAside(
-                    selectPanel(),
+                h(
+                    'aside',
                     {
                         width: '450px',
                         class: 'p-4 h-full flex flex-col overflow-hidden',
-                    }
+                    },
+                    selectPanel(),
                 ),
-                uiBuilder.buildMain(
-                    kittingResultPanel(),
+                h(
+                    'main',
                     {
                         class: 'p-4 h-full flex flex-col',
-                    }
+                    },
+                    kittingResultPanel(),
                 ),
             ],
-            {
-                class: 'flex-1 min-h-0',
-            }
         )
 
-        return () => panelLoading.value ? uiBuilder.factory.loading() : uiBuilder.buildContainer([searchBar(), main()], {
-            role: 'complete-shipment',
-            "data-module": props.context.module?.moduleCode,
-            class: "flex_column",
-        });
+        return () => panelLoading.value ? uiBuilder.factory.loading() : h(
+            'div',
+            {
+                role: 'complete-shipment',
+                "data-module": props.context.module?.moduleCode,
+                class: "flex_column",
+            },
+            [searchBar(), main()],
+        );
     },
 })
 

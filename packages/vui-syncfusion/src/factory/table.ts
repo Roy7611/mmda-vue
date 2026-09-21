@@ -4,7 +4,7 @@
  * 表头过滤 ↔ FilterModel 在 table_filter.ts；芯片条是 SfGridFilterBar。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUi, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
 import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, logListPaint, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
@@ -24,7 +24,7 @@ import {
 } from './table_filter'
 import { SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { getSyncfusionCulture } from '../syncfusion_i18n'
-import { SfGrid, SfGridLoadingHost, syncMetaUiFromGridColumns } from './grid'
+import { collectGridColumnSettings, SfGrid, SfGridLoadingHost } from './grid'
 import { createDateSetTree } from './date_set_tree'
 
 MultiSelect.Inject(CheckBoxSelection)
@@ -50,7 +50,6 @@ import {
   isHasOneSetField,
   applyMenuOperators,
   keepAgMenuOperators,
-  listedFields,
   menuFilterOperators,
   normalizeAction,
   findAction,
@@ -62,7 +61,7 @@ import {
 
 export type TableFactoryDeps = {
   button: (props: any, slots?: any) => any
-  paginator: (pagination: any, props: UiPaginatorPropsType) => any
+  paginator: (props: UiPaginatorPropsType) => any
   resolveIcon: (icon: string) => string
 }
 
@@ -72,8 +71,9 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     paginator,
     resolveIcon: deps.resolveIcon,
   }
-  return <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) => {
-    const fields = listedFields(metaUi)
+  return <T>(props: UiListPropsType<T>) => {
+    const model = (props.rows ?? []) as T[]
+    const fields = (props.fields ?? []) as MetaUiField[]
     const rowNumField = fields.find(field => field.fieldName === 'rowNum')
     const dataFields = fields.filter(field => field.fieldName !== 'rowNum')
     const restrictTemplates = Array.isArray(props.templateCellFields)
@@ -993,7 +993,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
 
     // 行身份：defineEntityWithId 的 id getter。复合主键时 EJ2 只能认一列唯一键。
-    const primaryKey = metaUi.primaryKey
+    const primaryKey = props.primaryKey
     const compositePrimaryKey =
       typeof primaryKey === 'string' && primaryKey.includes(',')
     const listedIdField = dataFields.find(field => field.fieldName === 'id')
@@ -1349,7 +1349,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     }
 
     const layoutRev = props.tableSettings?.rev?.value ?? 0
-    const listGroupKey = String(metaUi.objName ?? primaryKey ?? 'list')
+    const listGroupKey = String(props.objName ?? primaryKey ?? 'list')
     const gridKey = `mmda-grid-${listGroupKey}-${layoutRev}`
 
     const resolveEj2Grid = () => {
@@ -1478,7 +1478,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       if (!props.tableSettings) return
       const grid = resolveEj2Grid()
       if (!grid) return
-      syncMetaUiFromGridColumns(grid, metaUi)
+      props.onLayoutChange?.(collectGridColumnSettings(grid))
       props.tableSettings.persist()
     }
 
@@ -1932,7 +1932,8 @@ export function createTableRenderer(deps: TableFactoryDeps) {
       { class: uiCssClass('pagable-table') },
       [
         withLoading(gridVNode),
-        factory.paginator(pagination, {
+        factory.paginator({
+          pagination,
           onPage: props.onPage ?? (() => undefined),
           pageSizeOptions: props.pageSizeOptions,
         }),

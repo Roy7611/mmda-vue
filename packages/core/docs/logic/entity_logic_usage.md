@@ -46,12 +46,12 @@ DI token 按仓库：`${service}:${repository}Logic`，例如 `base:MaterialsLog
 壳里不要空 `XxxLogic`。vui：
 
 ```ts
-import { VueEntityLogic } from '@mmda/vui'
+import { GenericEntityLogic } from '@mmda/core'
 
-new VueEntityLogic(defineNote, init)
+await GenericEntityLogic.resolve(di, `${service}:${repository}Logic`, defineNote, init)
 ```
 
-业务包不要 `extends VueEntityLogic`。
+业务包不要 `extends GenericEntityLogic`。
 
 ## 子表
 
@@ -98,14 +98,14 @@ export function beforeIndex(this: OrderLogic) {
 | 时机 | 方法 |
 |---|---|
 | 列表 / 编辑 / 详情字段组 | `beforeIndex` / `beforeEdit` / `beforeDetails` |
-| 搜索栏 | `beforeSearch`（返回表单描述；vui 会话再 `rx`） |
+| 搜索栏 | `beforeSearch`（返回 fields/groups/customActions 与 `customSearchFields`）；表单状态由 UI 上下文 `searchParam` 持有 |
 | CRUD 前后 | `beforeSave` / `afterLoad` / `beforeDelete` … |
 
 `applyTo` 由壳在 `context.init()` 里调用，把 Field/Group Logic 绑进当前会话。不要自己改共享 `MetaUiField`。
 
 ## 不要
 
-- `extends VueEntityLogic`（业务）
+- `extends GenericEntityLogic`（业务）
 - `UiLogic` / `UiLogicInit` / `GenericUiLogic` / `UiGroupLogic`
 - Logic 里写厂商控件、拼 URL、改元数据 `reference.where`
 - `field()` 错误信息走 i18n（那是装配期英文 throw）

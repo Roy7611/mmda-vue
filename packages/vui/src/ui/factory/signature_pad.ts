@@ -1,5 +1,4 @@
 import {
-  callUiBagFn,
   type UiSignaturePadAction,
   type UiSignaturePadProps,
 } from '@mmda/core'

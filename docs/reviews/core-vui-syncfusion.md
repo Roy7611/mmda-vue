@@ -369,7 +369,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 
 **本轮新立住（下次不扣）：**
 
-- **鉴权工具栏三件套已从所有皮肤删除**：`SfIndexToolBar` / `SfEditToolBar` / `SfDetailsToolBar` / `PrimeIndexToolBar` / `PrimeEditToolBar` / `PrimeDetailsToolBar` / `NIndexToolBar` / `NEditToolBar` / `NDetailsToolBar` 全部删除；`core/src/ui/builder/toolbar.ts`、`vui/src/ui/builder/module_toolbar.ts`、`toolbar_paint.ts` 删除。改为 core 三个契约 `UiIndexTopbar` / `UiDetailsTopbar` / `UiEditTopbar`（`core/src/ui/builder/topbar.ts`，329 行）+ vui 渲染（`vui/src/ui/builder/topbar.ts`，693 行）。**这是 09-06 以来连续三轮排第一的「换皮最大架构项」，本轮关闭。**
+- **鉴权工具栏三件套已从所有皮肤删除**：`SfIndexToolBar` / `SfEditToolBar` / `SfDetailsToolBar` / `PrimeIndexToolBar` / `PrimeEditToolBar` / `PrimeDetailsToolBar` / `NIndexToolBar` / `NEditToolBar` / `NDetailsToolBar` 全部删除；`core/src/ui/builder/toolbar.ts`、`vui/src/ui/builder/module_toolbar.ts`、`toolbar_paint.ts` 删除。改为 core 三个契约 `UiIndexTopbarProps` / `UiDetailsTopbarProps` / `UiEditTopbarProps`（`core/src/ui/builder/topbar.ts`，329 行）+ vui 渲染（`vui/src/ui/builder/topbar.ts`，693 行）。**这是 09-06 以来连续三轮排第一的「换皮最大架构项」，本轮关闭。**
 - 按 `ModuleAuth.authorizedActions` 挑按钮的逻辑集中到 `core/src/ui/builder/topbar.ts` 的 `resolveIndexTopbarActions` / `moduleAuthOf` / `listModuleActions`，皮肤只渲染。
 - 插件契约落 core：`core/src/ui/plugins/plugin.ts`（`UiPlugin` / `UiPluginName` / `uiPlugin`）；三包的 `chart` / `gantt` / `kanban` / `pivot_table` / `ribbon` / `scheduler` / `timeline` / `diagram` / `image_editor` / `markdown_editor` / `ai_assistant` 从 `factory/` 归位 `plugins/`；vui 新增 `ui/plugins/host.ts` 宿主。
 - core 运行时依赖仍只有 luxon / pluralize。
@@ -383,7 +383,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 | 概念 | 现在怎么叫 | 问题 |
 |---|---|---|
 | 拼屏三视图 | `buildIndexView` / `buildDetailsView` / `buildEditView` / `buildSelectView` | 名字对；但 vui 实现类上 tsc 报 `buildSelectView` / `buildDetailsView` / `buildEditView` **不存在于** `VueUiBuilderBase`（TS2551 / TS2339），`VueUiBuilder incorrectly implements UiBuilder`（TS2420） |
-| 三视图顶栏 | `UiIndexTopbar` / `UiDetailsTopbar` / `UiEditTopbar` | 新；命名与皮肤落地一致，`paintIndexTopbar` / `paintDetailsTopbar` / `paintModuleTopbar` 一组 |
+| 三视图顶栏 | `UiIndexTopbarProps` / `UiDetailsTopbarProps` / `UiEditTopbarProps` | 新；命名与皮肤落地一致，`paintIndexTopbar` / `paintDetailsTopbar` / `paintModuleTopbar` 一组 |
 | 插件 | `UiPlugin` / `uiPlugin` / `UiPluginName` / `chartAsPlugin` | 新；把「图表是控件还是插件」讲清了 |
 | 列表控件 | `factory.table` 现网 / `components/SfGrid` 目标 | 层次这次讲清了：`factory/grid.ts` = EJ2 壳（`SfGridHost`）、`components/SfGrid.ts` = 契约控件、`factory/table.ts` = 现网拼装。**但没有合并** |
 | 会话 | `VueUiContext` | 旧名别名已清；但 vui 实现类与 core 接口的赋值关系 tsc 不认 |
@@ -471,7 +471,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 7. HTTP 旧栈仍从 core barrel 导出（`core/src/index.ts:137` → `./net/http`，594 行，已弃用）
 8. `$app` / `$api` / `$di` / `$meta` / `$ui` 仍挂 `globalProperties`；`$v` 命名
 9. 皮肤相对搜索仍猜字段名（`vui-syncfusion/src/builder/index.ts:400` 的 `['categoryName','name','label','text']`）
-10. `factory.table`（1942 行）与 `components/SfGrid` 未合并；`EntityQuery.lastCache` 的 3 条红测试待处理；`mmda_app` 仍无测
+10. `factory.table`（1942 行）与 `components/SfGrid` 未合并；`EntityQuery.lastCache` 的 3 条红测试**已处理**（命名归 `lastQuery`，实现与测试都在 vui `ui/builder/list_last_query.ts`）；`mmda_app` 仍无测
 11. 权限挑按钮的产品策略落在 `core/src/ui/builder/topbar.ts`（UI 契约目录），按 ARCHITECTURE 属 Logic
 
 **09-08 清单的变动：** 第 1 条（鉴权工具栏在皮肤）**关闭**——已上移，且上到了 core 而非 vui；其余 9 条仍在，第 4 条重写为「typecheck 未接线」，第 10 条加重（新增 66 + 183 条类型错误）。

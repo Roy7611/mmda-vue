@@ -13,6 +13,7 @@ import {
   type Entity,
   type EntityAction,
   type EntityLogic,
+  type EntitySearchParam,
   type FieldSearchOptions,
   type Module,
   type ModuleAuth,
@@ -25,9 +26,9 @@ import {
   type TranslateFn,
   type UiBuilder,
   type UiContext,
-  type UiFieldValidation,
+  type FieldValidation,
   type UiMessageProps,
-  type UiValidation,
+  type Validation,
 } from "@mmda/core";
 import { reactive, ref, shallowReactive, toRaw, type Ref } from "vue";
 import {
@@ -67,7 +68,7 @@ export interface VueUiContextOptions<M extends Entity = Entity> {
   fieldLogics?: FieldLogicMap;
   groupLogics?: GroupLogicMap;
   app?: MmdaVueApp;
-  logic?: EntityLogic<M>;
+  logic: EntityLogic<M> | undefined;
   /** vue-router；导航用，不放在 Logic 上。 */
   router?: Router | any;
 }
@@ -100,7 +101,11 @@ function sessionRow<M>(model: M | M[] | undefined, explicit?: M): M | undefined 
  * 会话本体：构造、model、Logic 绑定、选择态、i18n、会话树。
  * 能力 mixin 叠在导出类 `VueUiContext` 上。
  */
-class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
+/**
+ * 会话本体：只实现字段级能力（读写、校验、子上下文），不含搜索/选择/导航。
+ * 完整 `UiContext` 契约由 mixin 与最终 `VueUiContext` 一起满足。
+ */
+class VueUiContextBase<M extends Entity = Entity> {
   readonly model: M | M[];
   metaUi: MetaUi;
   readonly view: UiViewType;
@@ -108,7 +113,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
   readonly loading: Ref<boolean>;
   readonly error: Ref<unknown>;
   readonly app?: MmdaVueApp;
-  logic?: EntityLogic<M>;
+  logic: EntityLogic<M> | undefined;
   router?: Router | any;
   customActions: EntityAction[] = [];
   actionLoadings: Record<string, boolean> = reactive({});
@@ -126,7 +131,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
   _groupActions: Record<string, UiAction[]> = {};
   readonly fieldOptions = reactive<Record<string, FieldSearchOptions>>({});
   readonly referenceOptionLoads = new Map<string, Promise<any[]>>();
-  readonly validationState: UiValidation;
+  readonly validationState: Validation;
   /** 详情/编辑页顶栏 Message；由 uiBuilder.message 写入。 */
   readonly pageNotice: Ref<UiMessageProps | null>;
   readonly unsavedRows = new WeakMap<object, string>();
@@ -288,16 +293,21 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     return this.#customManyActionFns.get(key)?.(this as any, this.selectedItems);
   }
 
-  get prev(): VueUiContextBase<M> {
-    return (this.parent ?? this) as VueUiContextBase<M>;
+  get prev(): VueUiContext<M> {
+    return (this.parent ?? this) as unknown as VueUiContext<M>;
   }
 
-  get root(): VueUiContextBase<Entity> {
-    return (this.parent?.root ?? this) as VueUiContextBase<Entity>;
+  get root(): VueUiContext<Entity> {
+    return (this.parent?.root ?? this) as unknown as VueUiContext<Entity>;
   }
 
   get isRoot() {
     return !this.parent;
+  }
+
+  /** base 只持有字段级能力，运行时 `this` 恒为完整 `VueUiContext`。 */
+  protected asContext(): UiContext<M> {
+    return this as unknown as UiContext<M>;
   }
 
   get uiBuilder(): UiBuilder | undefined {
@@ -503,11 +513,11 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     return MetaModel.getFieldValue(row, fld);
   }
 
-  beginEdit(item: M, cacheKey?: string) {
+  beginEditRow(item: M, cacheKey?: string) {
     return this.with(item, cacheKey);
   }
 
-  endEdit(item: M, cacheKey?: string) {
+  endEditRow(item: M, cacheKey?: string) {
     this.release(item, cacheKey);
   }
 
@@ -523,14 +533,19 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     this.validateSingleField(fld, validationValue, model, this.validationState);
     const modified = MetaModel.setFieldValue(model, fld, normalized);
     if (!modified) return;
-    const options = this.getFieldOptions(fld);
+    const options = this.getFieldSearchOptions(fld);
     if (fld.reference && normalized && typeof normalized === "object") {
       options.currentSelectOption = normalized;
       if (!options.selectOptions.includes(normalized)) {
         options.selectOptions.push(normalized);
       }
     }
-    this.getFieldLogic(fld)?.onChangeFn?.(this, this.model, value, oldValue);
+    this.getFieldLogic(fld)?.onChangeFn?.(
+      this.asContext(),
+      this.model,
+      value,
+      oldValue,
+    );
   }
 
   displayField(field: MetaUiField | string, model?: M) {
@@ -540,26 +555,22 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     return MetaModel.displayField(row, fld);
   }
 
-  getFieldOptions(field: MetaUiField | string) {
+  getFieldSearchOptions(field: MetaUiField | string) {
     const fld = this.resolveField(field);
     return (this.fieldOptions[fld.fieldName] ??= defaultFieldSearchOptions(
       this.getFieldValue(fld),
     ));
   }
 
-  getFieldCurrentOption(field: MetaUiField | string) {
-    return this.getFieldOptions(field).currentSelectOption;
+  getFieldSelectedOption(field: MetaUiField | string) {
+    return this.getFieldSearchOptions(field).currentSelectOption;
   }
 
-  setFieldQueryParams(
+  setFieldSearchParam(
     field: MetaUiField | string,
-    queryParams: Record<string, any>,
+    patch: Partial<EntitySearchParam>,
   ) {
-    this.getFieldOptions(field).searchParam.queryParams = queryParams;
-  }
-
-  setFieldPager(field: MetaUiField | string, pager: Pager) {
-    this.getFieldOptions(field).searchParam.pager = pager;
+    Object.assign(this.getFieldSearchOptions(field).searchParam, patch);
   }
 
   batchSetFieldValue(values: Record<string, any>) {
@@ -570,7 +581,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
 
   clearFieldValue(field: MetaUiField | string) {
     const fld = this.resolveField(field);
-    const options = this.getFieldOptions(fld);
+    const options = this.getFieldSearchOptions(fld);
     options.searchParam.searchWord = "";
     options.currentSelectOption = undefined;
     this.setFieldValue(fld, null);
@@ -589,21 +600,21 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     const fld = this.resolveField(field);
     return (
       !!fld.readOnly ||
-      !!this.getFieldLogic(fld)?.readonlyFn?.(this.model, this)
+      !!this.getFieldLogic(fld)?.readonlyFn?.(this.model, this.asContext())
     );
   }
 
   isFieldHidden(field: MetaUiField | string): boolean {
     const fld = this.resolveField(field);
     return (
-      !!fld.hidden || !!this.getFieldLogic(fld)?.hiddenFn?.(this.model, this)
+      !!fld.hidden || !!this.getFieldLogic(fld)?.hiddenFn?.(this.model, this.asContext())
     );
   }
 
   isFieldRequired(field: MetaUiField | string): boolean {
     const fld = this.resolveField(field);
     return (
-      !fld.nullable || !!this.getFieldLogic(fld)?.requiredFn?.(this.model, this)
+      !fld.nullable || !!this.getFieldLogic(fld)?.requiredFn?.(this.model, this.asContext())
     );
   }
 
@@ -611,13 +622,13 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     const grp = this.resolveGroup(group);
     return (
       !!grp.readOnly ||
-      !!this.getGroupLogic(grp)?.readonlyFn?.(this.model, this)
+      !!this.getGroupLogic(grp)?.readonlyFn?.(this.model, this.asContext())
     );
   }
 
   isGroupHidden(group: MetaUiGroup | string) {
     const grp = this.resolveGroup(group);
-    if (this.getGroupLogic(grp)?.hiddenFn?.(this.model, this)) return true;
+    if (this.getGroupLogic(grp)?.hiddenFn?.(this.model, this.asContext())) return true;
     if (grp.canHave) {
       const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
       return !master[grp.canHave];
@@ -631,7 +642,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     const fn = this.getGroupLogic(grp)?.itemDeletableFunc;
     if (!fn) return true;
     const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
-    return fn(item, master, this) !== false;
+    return fn(item, master, this.asContext()) !== false;
   }
 
   with<G extends Entity>(model: G, cacheKey = "id") {
@@ -657,7 +668,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     return this.with(model, cacheKey);
   }
 
-  getCache(cacheKey = "@root") {
+  cachedContext(cacheKey = "@root") {
     return this.cache.get(
       cacheKey.startsWith("@") ? cacheKey : `${this.cachePath}/${cacheKey}`,
     );
@@ -667,7 +678,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     return this.cache.size;
   }
 
-  getCacheByID(id: string) {
+  cachedContextByID(id: string) {
     for (const context of this.cache.values()) {
       const model = context.model as Record<string, any>;
       const key = context.metaUi.primaryKey ?? "id";
@@ -740,15 +751,15 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
     field: MetaUiField,
     value: any,
     model: Record<string, any>,
-    validation: UiValidation,
+    validation: Validation,
   ) {
     if (this.isFieldHidden(field) || this.isFieldReadonly(field)) return 0;
-    const result = validateFieldResult(field, value, model, this);
+    const result = validateFieldResult(field, value, model, this.asContext());
     const state = (validation[field.fieldName] ??= {
       touched: false,
       message: "",
       warning: "",
-    }) as UiFieldValidation;
+    }) as FieldValidation;
     state.touched = true;
     state.message = result.errors.join("；");
     state.warning = result.warnings.join("；");
@@ -758,7 +769,7 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
   countValidationErrors(value: unknown): number {
     if (!value || typeof value !== "object") return 0;
     if ("touched" in value && "message" in value) {
-      return (value as UiFieldValidation).message ? 1 : 0;
+      return (value as FieldValidation).message ? 1 : 0;
     }
     return Object.entries(value).reduce(
       (count, [key, child]) =>
@@ -789,15 +800,27 @@ class VueUiContextBase<M extends Entity = Entity> implements UiContext<M> {
 }
 
 /**
- * Vue 表单交互会话。一个类叠能力 mixin；行为由 `view` + 可选 `logic` 门控。
+ * 会话运行时。mixin 链在 JS 运行期退化为 `Entity`（TS 不允许 base 表达式引用类泛型），
+ * 所以运行时类不携带 `M`；对外泛型契约由下面的 `VueUiContext` 类型别名补回。
  */
-export class VueUiContext<M extends Entity = Entity> extends WithNavigate(
+class VueUiContextRuntime extends WithNavigate(
   WithData(WithReference(WithValidate(WithSubgroup(VueUiContextBase)))),
 ) {
-  constructor(options: VueUiContextOptions<M>, child?: ChildContextOptions) {
+  constructor(options: VueUiContextOptions<any>, child?: ChildContextOptions) {
     super(options, child);
     this.flushPendingPagination(this.searchParam);
   }
+}
+
+/** 会话实例类型：运行时 + core `UiContext` 契约，把泛型 `M` 收敛回正确位置。 */
+export type VueUiContext<M extends Entity = Entity> = VueUiContextRuntime &
+  UiContext<M>
+
+export const VueUiContext = VueUiContextRuntime as unknown as {
+  new <M extends Entity = Entity>(
+    options: VueUiContextOptions<M>,
+    child?: ChildContextOptions,
+  ): VueUiContext<M>
 }
 
 setSessionFactory(

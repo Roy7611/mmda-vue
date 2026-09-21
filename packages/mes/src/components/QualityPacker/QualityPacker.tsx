@@ -1,5 +1,6 @@
 import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounted, getCurrentInstance, watch, onUnmounted, onActivated, onBeforeMount, unref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { DateUtils } from '@mmda/core';
 import { label } from '@mmda/vui';
 
 import { get } from 'http';
@@ -40,7 +41,7 @@ export default defineComponent({
 							showTime: false,
 							showSeconds: false,
 							onUpdatePicker(value: any) {
-								dateTime.value = value.toFormat('yyyy-MM-dd');
+								dateTime.value = DateUtils.toFormat(value, 'yyyy-MM-dd');
 								console.log(dateTime.value, 'dateTime.value');
 								this.isPanelVisible = false;
 								emit('changeDateTime', value);

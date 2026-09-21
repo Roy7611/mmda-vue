@@ -1,0 +1,147 @@
+packages/vui/src/components/AppSideMenu.ts(221,17): error TS2322: Type 'VNode<RendererNode, RendererElement, { [key: string]: any; }> | null' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+  Type 'null' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+packages/vui/src/components/EntityView.ts(134,7): error TS2353: Object literal may only specify known properties, and 'onItemDoubleClick' does not exist in type 'UiListViewProps'.
+packages/vui/src/components/EntityView.ts(149,5): error TS2353: Object literal may only specify known properties, and 'onItemDoubleClick' does not exist in type 'UiListViewProps'.
+packages/vui/src/contexts/mixins/data.ts(247,9): error TS2322: Type 'null' is not assignable to type 'Ref<any, any> | undefined'.
+packages/vui/src/contexts/mixins/subgroup.ts(274,57): error TS2322: Type 'this' is not assignable to type 'never'.
+  Type 'Subgroup' is not assignable to type 'never'.
+packages/vui/src/contexts/mixins/subgroup.ts(274,63): error TS2322: Type 'any' is not assignable to type 'never'.
+packages/vui/src/contexts/mixins/validate.ts(60,36): error TS2345: Argument of type 'Record<string, any>[]' is not assignable to parameter of type 'Entity[]'.
+  Type 'Record<string, any>' is missing the following properties from type 'Entity': rowNum, editable, deletable, entityState
+packages/vui/src/contexts/view.ts(46,46): error TS2339: Property 'id' does not exist on type 'UiProps'.
+packages/vui/src/contexts/view.ts(47,53): error TS2339: Property 'view' does not exist on type 'UiProps'.
+packages/vui/src/contexts/vue_ui_context.ts(198,5): error TS2589: Type instantiation is excessively deep and possibly infinite.
+packages/vui/src/ui/builder.ts(180,7): error TS2322: Type 'ChildSlot' is not assignable to type '() => VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+  Type 'VNodeChild' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+    Type 'undefined' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+packages/vui/src/ui/builder.ts(181,7): error TS2322: Type 'ChildSlot | undefined' is not assignable to type '(() => VNode<RendererNode, RendererElement, { [key: string]: any; }>) | undefined'.
+  Type 'ChildSlot' is not assignable to type '() => VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+    Type 'VNodeChild' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+      Type 'undefined' is not assignable to type 'VNode<RendererNode, RendererElement, { [key: string]: any; }>'.
+packages/vui/src/ui/builder.ts(197,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/vui/src/ui/builder.ts(229,29): error TS2345: Argument of type 'this' is not assignable to parameter of type 'VueUiBuilder'.
+  Type 'VueUiBuilderBase' is missing the following properties from type 'VueUiBuilder': buildGroupCard, buildAttachmentGroup, buildBpmnDiagram, buildListView, and 60 more.
+packages/vui/src/ui/builder.ts(236,31): error TS2345: Argument of type 'this' is not assignable to parameter of type 'VueUiBuilder'.
+  Type 'VueUiBuilderBase' is missing the following properties from type 'VueUiBuilder': buildGroupCard, buildAttachmentGroup, buildBpmnDiagram, buildListView, and 60 more.
+packages/vui/src/ui/builder.ts(243,28): error TS2345: Argument of type 'this' is not assignable to parameter of type 'VueUiBuilder'.
+  Type 'VueUiBuilderBase' is missing the following properties from type 'VueUiBuilder': buildGroupCard, buildAttachmentGroup, buildBpmnDiagram, buildListView, and 60 more.
+packages/vui/src/ui/builder.ts(341,28): error TS2339: Property 'buildEditView' does not exist on type 'VueUiBuilderBase'.
+packages/vui/src/ui/builder.ts(362,28): error TS2339: Property 'buildDetailsView' does not exist on type 'VueUiBuilderBase'.
+packages/vui/src/ui/builder.ts(426,21): error TS2339: Property 'buildSelectView' does not exist on type 'VueUiBuilderBase'.
+packages/vui/src/ui/builder.ts(568,35): error TS2339: Property 'extension' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(579,22): error TS2339: Property 'height' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(580,22): error TS2339: Property 'height' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(581,20): error TS2339: Property 'height' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(589,20): error TS2339: Property 'title' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(596,22): error TS2339: Property 'title' does not exist on type 'UiProps'.
+packages/vui/src/ui/builder.ts(665,42): error TS2345: Argument of type 'UiListViewProps | undefined' is not assignable to parameter of type 'Record<string, unknown> | undefined'.
+  Type 'UiListViewProps' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'UiListViewProps'.
+packages/vui/src/ui/builder.ts(672,76): error TS2345: Argument of type 'UiListViewProps | undefined' is not assignable to parameter of type 'Record<string, unknown> | undefined'.
+  Type 'UiListViewProps' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'UiListViewProps'.
+packages/vui/src/ui/builder.ts(680,36): error TS2345: Argument of type 'UiViewProps | undefined' is not assignable to parameter of type 'Record<string, unknown> | undefined'.
+  Type 'UiViewProps' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'UiViewProps'.
+packages/vui/src/ui/builder.ts(689,36): error TS2345: Argument of type 'UiViewProps | undefined' is not assignable to parameter of type 'Record<string, unknown> | undefined'.
+  Type 'UiViewProps' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'UiViewProps'.
+packages/vui/src/ui/builder/actions.ts(202,21): error TS2339: Property 'hint' does not exist on type '{}'.
+packages/vui/src/ui/builder/category_ops.ts(34,29): error TS2345: Argument of type '(MmdaVueApp & MmdaApplication) | undefined' is not assignable to parameter of type 'MmdaApplication'.
+  Type 'undefined' is not assignable to type 'MmdaApplication'.
+packages/vui/src/ui/builder/category_ops.ts(96,36): error TS2345: Argument of type 'EntityLogic<any>' is not assignable to parameter of type '{ getAll?: ((param: any) => Promise<{ list?: unknown[] | undefined; }>) | undefined; }'.
+  The types returned by 'getAll(...)' are incompatible between these types.
+    Type 'Promise<PagedList<any> | undefined>' is not assignable to type 'Promise<{ list?: unknown[] | undefined; }>'.
+      Type 'PagedList<any> | undefined' is not assignable to type '{ list?: unknown[] | undefined; }'.
+        Type 'undefined' is not assignable to type '{ list?: unknown[] | undefined; }'.
+packages/vui/src/ui/builder/category_ops.ts(115,36): error TS2345: Argument of type 'EntityLogic<any>' is not assignable to parameter of type '{ getAll?: ((param: any) => Promise<{ list?: unknown[] | undefined; }>) | undefined; }'.
+  The types returned by 'getAll(...)' are incompatible between these types.
+    Type 'Promise<PagedList<any> | undefined>' is not assignable to type 'Promise<{ list?: unknown[] | undefined; }>'.
+      Type 'PagedList<any> | undefined' is not assignable to type '{ list?: unknown[] | undefined; }'.
+        Type 'undefined' is not assignable to type '{ list?: unknown[] | undefined; }'.
+packages/vui/src/ui/builder/list_filter_bar.ts(326,7): error TS2322: Type '{ label: string; value: string | number; colorRole?: string | undefined; }[]' is not assignable to type '(string | UiChipItem)[]'.
+  Type '{ label: string; value: string | number; colorRole?: string | undefined; }' is not assignable to type 'string | UiChipItem'.
+    Type '{ label: string; value: string | number; colorRole?: string | undefined; }' is not assignable to type 'UiChipItem'.
+      Types of property 'colorRole' are incompatible.
+        Type 'string | undefined' is not assignable to type 'UiColorRole | undefined'.
+          Type 'string' is not assignable to type 'UiColorRole | undefined'.
+packages/vui/src/ui/builder/list_filter_bar.ts(380,40): error TS2339: Property 'queryPredifined' does not exist on type '{ searchWord?: string | undefined; queryParams?: Record<string, unknown> | undefined; queryID?: string | undefined; queryName?: string | undefined; objName?: string | undefined; remark?: string | undefined; filterModel?: FilterModel | undefined; advancedFilterModel?: { ...; } | ... 1 more ... | undefined; pager: { ....'.
+packages/vui/src/ui/builder/list_filter_bar.ts(381,7): error TS2353: Object literal may only specify known properties, and 'queryID' does not exist in type '{ predifined?: boolean | undefined; }'.
+packages/vui/src/ui/builder/list_filter_bar.ts(392,47): error TS2339: Property 'queryPredifined' does not exist on type '{ searchWord?: string | undefined; queryParams?: Record<string, unknown> | undefined; queryID?: string | undefined; queryName?: string | undefined; objName?: string | undefined; remark?: string | undefined; filterModel?: FilterModel | undefined; advancedFilterModel?: { ...; } | ... 1 more ... | undefined; pager: { ....'.
+packages/vui/src/ui/builder/list_named_query.ts(118,30): error TS2339: Property 'queryPredifined' does not exist on type '{ searchWord?: string | undefined; queryParams?: Record<string, unknown> | undefined; queryID?: string | undefined; queryName?: string | undefined; objName?: string | undefined; remark?: string | undefined; filterModel?: FilterModel | undefined; advancedFilterModel?: { ...; } | ... 1 more ... | undefined; pager: { ....'.
+packages/vui/src/ui/builder/list_named_query.ts(135,23): error TS2339: Property 'queryPredifined' does not exist on type '{ searchWord?: string | undefined; queryParams?: Record<string, unknown> | undefined; queryID?: string | undefined; queryName?: string | undefined; objName?: string | undefined; remark?: string | undefined; filterModel?: FilterModel | undefined; advancedFilterModel?: { ...; } | ... 1 more ... | undefined; pager: { ....'.
+packages/vui/src/ui/builder/topbar.ts(334,9): error TS2322: Type 'unknown' is not assignable to type 'UiClassValue'.
+packages/vui/src/ui/builder/topbar.ts(372,24): error TS2345: Argument of type '{ class: unknown[]; }' is not assignable to parameter of type 'UiDetailsTopbarProps'.
+  Types of property 'class' are incompatible.
+    Type 'unknown[]' is not assignable to type 'UiClassValue'.
+      Type 'unknown[]' is not assignable to type 'UiClassValue[]'.
+        Type 'unknown' is not assignable to type 'UiClassValue'.
+packages/vui/src/ui/builder/topbar.ts(373,27): error TS2345: Argument of type '{ class: unknown[]; }' is not assignable to parameter of type 'UiDetailsTopbarProps'.
+  Types of property 'class' are incompatible.
+    Type 'unknown[]' is not assignable to type 'UiClassValue'.
+      Type 'unknown[]' is not assignable to type 'UiClassValue[]'.
+        Type 'unknown' is not assignable to type 'UiClassValue'.
+packages/vui/src/ui/builder/topbar.ts(485,7): error TS2353: Object literal may only specify known properties, and 'size' does not exist in type 'UiProps'.
+packages/vui/src/ui/builder/tree_data.ts(160,30): error TS2345: Argument of type 'T' is not assignable to parameter of type 'NonNullable<T>'.
+  Type 'T' is not assignable to type '{}'.
+packages/vui/src/ui/builder/tree_data.ts(160,50): error TS2345: Argument of type 'T' is not assignable to parameter of type 'NonNullable<T>'.
+  Type 'T' is not assignable to type '{}'.
+packages/vui/src/ui/factory.ts(243,58): error TS2339: Property 'locale' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory.ts(245,65): error TS2339: Property 'locale' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory.ts(247,65): error TS2339: Property 'locale' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/action.ts(45,18): error TS2430: Interface 'UiActionContext' incorrectly extends interface 'UiContext<Entity>'.
+  Types of property 'model' are incompatible.
+    Type 'Record<string, any>' is not assignable to type 'Entity | Entity[]'.
+      Type 'Record<string, any>' is missing the following properties from type 'Entity[]': length, pop, push, concat, and 35 more.
+packages/vui/src/ui/factory/action.ts(159,19): error TS2345: Argument of type 'UiActionContext' is not assignable to parameter of type 'UiContext<Entity>'.
+  Types of property 'model' are incompatible.
+    Type 'Record<string, any>' is not assignable to type 'Entity | Entity[]'.
+      Type 'Record<string, any>' is missing the following properties from type 'Entity[]': length, pop, push, concat, and 35 more.
+packages/vui/src/ui/factory/action.ts(171,16): error TS2571: Object is of type 'unknown'.
+packages/vui/src/ui/factory/action.ts(171,25): error TS2345: Argument of type 'UiActionContext' is not assignable to parameter of type 'never'.
+packages/vui/src/ui/factory/action.ts(176,23): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/vui/src/ui/factory/action.ts(176,23): error TS18048: 'onAction' is possibly 'undefined'.
+packages/vui/src/ui/factory/action.ts(176,32): error TS2345: Argument of type 'UiActionContext' is not assignable to parameter of type 'never'.
+packages/vui/src/ui/factory/action.ts(189,40): error TS2345: Argument of type 'UiActionContext' is not assignable to parameter of type 'UiContext<Entity>'.
+  Types of property 'model' are incompatible.
+    Type 'Record<string, any>' is not assignable to type 'Entity | Entity[]'.
+      Type 'Record<string, any>' is missing the following properties from type 'Entity[]': length, pop, push, concat, and 35 more.
+packages/vui/src/ui/factory/color_picker.ts(90,13): error TS2339: Property 'modelValue' does not exist on type 'UiColorPickerProps'.
+packages/vui/src/ui/factory/color_picker.ts(91,40): error TS2339: Property 'modelValue' does not exist on type 'UiColorPickerProps'.
+packages/vui/src/ui/factory/filter.ts(166,3): error TS2564: Property 'defaultVal' has no initializer and is not definitely assigned in the constructor.
+packages/vui/src/ui/factory/inplace_field.ts(66,27): error TS2345: Argument of type 'Ctx' is not assignable to parameter of type 'UiContext<Entity>'.
+  Type 'Ctx' is missing the following properties from type 'UiContext<Entity>': metaUi, locale, initialized, model, and 60 more.
+packages/vui/src/ui/factory/inplace_field.ts(73,37): error TS2345: Argument of type 'Ctx' is not assignable to parameter of type 'UiContext<Entity>'.
+  Type 'Ctx' is missing the following properties from type 'UiContext<Entity>': metaUi, locale, initialized, model, and 60 more.
+packages/vui/src/ui/factory/inplace_field.ts(74,37): error TS2345: Argument of type 'Ctx' is not assignable to parameter of type 'UiContext<Entity>'.
+  Type 'Ctx' is missing the following properties from type 'UiContext<Entity>': metaUi, locale, initialized, model, and 60 more.
+packages/vui/src/ui/factory/masked_text_box.ts(26,13): error TS2339: Property 'modelValue' does not exist on type 'UiMaskedTextBoxProps'.
+packages/vui/src/ui/factory/masked_text_box.ts(26,47): error TS2339: Property 'modelValue' does not exist on type 'UiMaskedTextBoxProps'.
+packages/vui/src/ui/factory/masked_text_box.ts(27,25): error TS2339: Property 'modelValue' does not exist on type 'UiMaskedTextBoxProps'.
+packages/vui/src/ui/factory/one_time_password_input.ts(29,13): error TS2339: Property 'modelValue' does not exist on type 'UiOneTimePasswordInputProps'.
+packages/vui/src/ui/factory/one_time_password_input.ts(29,47): error TS2339: Property 'modelValue' does not exist on type 'UiOneTimePasswordInputProps'.
+packages/vui/src/ui/factory/one_time_password_input.ts(30,25): error TS2339: Property 'modelValue' does not exist on type 'UiOneTimePasswordInputProps'.
+packages/vui/src/ui/factory/rating.ts(46,53): error TS2339: Property 'modelValue' does not exist on type 'UiRatingProps<any>'.
+packages/vui/src/ui/factory/sidebar.ts(39,13): error TS2339: Property 'modelValue' does not exist on type 'UiSidebarProps'.
+packages/vui/src/ui/factory/sidebar.ts(39,59): error TS2339: Property 'modelValue' does not exist on type 'UiSidebarProps'.
+packages/vui/src/ui/factory/sidebar.ts(95,16): error TS2339: Property 'visible' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/sidebar.ts(95,33): error TS2339: Property 'show' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/sidebar.ts(95,47): error TS2339: Property 'modelValue' does not exist on type 'UiSidebarProps'.
+packages/vui/src/ui/factory/sidebar.ts(98,11): error TS2339: Property 'onUpdateVisible' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/sidebar.ts(99,5): error TS7053: Element implicitly has an 'any' type because expression of type '"onUpdate:visible"' can't be used to index type 'UiProps'.
+  Property 'onUpdate:visible' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/sidebar.ts(100,5): error TS7053: Element implicitly has an 'any' type because expression of type '"onUpdate:show"' can't be used to index type 'UiProps'.
+  Property 'onUpdate:show' does not exist on type 'UiProps'.
+packages/vui/src/ui/factory/slider.ts(55,13): error TS2339: Property 'modelValue' does not exist on type 'UiSliderProps'.
+packages/vui/src/ui/factory/slider.ts(55,52): error TS2339: Property 'modelValue' does not exist on type 'UiSliderProps'.
+packages/vui/src/ui/factory/speech_to_text_host.ts(82,56): error TS2339: Property 'onUpdate' does not exist on type 'UiSpeechToTextProps'.
+packages/vui/src/ui/factory/speech_to_text_host.ts(84,27): error TS2339: Property 'onUpdate:modelValue' does not exist on type 'UiSpeechToTextProps'.
+packages/vui/src/ui/factory/tabs.ts(47,63): error TS2339: Property 'modelValue' does not exist on type 'UiTabsProps<any>'.
+packages/vui/src/ui/factory/tree.ts(475,25): error TS2345: Argument of type 'T' is not assignable to parameter of type 'NonNullable<T>'.
+  Type 'T' is not assignable to type '{}'.
+packages/vui/src/ui/field_factory.ts(35,3): error TS2353: Object literal may only specify known properties, and '".id"' does not exist in type 'UiProps'.
+packages/vui/src/ui/field_factory.ts(41,3): error TS2353: Object literal may only specify known properties, and '".id"' does not exist in type 'UiProps'.
+packages/vui/src/ui/field_factory.ts(136,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'UiProps'.
+  No index signature with a parameter of type 'string' was found on type 'UiProps'.
+packages/vui/src/ui/overlay.ts(104,67): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.

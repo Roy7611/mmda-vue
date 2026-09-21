@@ -68,98 +68,74 @@ function previewFileFromContext(context: Ctx, url: string): void {
 
 const imageReadonly = (
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps,
+  context: Ctx
 ): VNode => {
-  const src = String(context.getFieldValue(field, extra.row) ?? '')
+  const src = String(context.getFieldValue(field) ?? '')
   return h('img', {
     class: 'mmda-image',
     src,
-    alt: extra.alt as string | undefined,
   })
 }
 
 export function renderFileUploaderField(
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps = {},
+  context: Ctx
 ): VNode {
-  const props = fileUploaderPropsFromField(field, context, extra)
+  const props = fileUploaderPropsFromField(field, context)
   if (props.readOnly) {
-    return renderFileLink(fileLinkPropsFromField(field, context, extra))
+    return renderFileLink(fileLinkPropsFromField(field, context))
   }
   return createFileUploader(props)
 }
 
 export function renderFilesUploaderField(
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps = {},
+  context: Ctx
 ): VNode {
   return createFilesUploader(
-    filesUploaderPropsFromField(field, context, extra),
+    filesUploaderPropsFromField(field, context),
   )
 }
 
 export function renderImageUploaderField(
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps = {},
+  context: Ctx
 ): VNode {
   const showImageEditor =
-    extra.showImageEditor === true ||
     context.uiBuilder?.hasPlugin?.('image-editor') === true
-  const props = imageUploaderPropsFromField(field, context, {
-    ...extra,
+  const props = {
+    ...imageUploaderPropsFromField(field, context),
     showImageEditor,
-    editImage:
-      extra.editImage ??
-      ((src: string) => editImageFromContext(context, src)),
-  })
-  if (props.readOnly) return imageReadonly(field, context, extra)
+    editImage: (src: string) => editImageFromContext(context, src),
+  }
+  if (props.readOnly) return imageReadonly(field, context)
   return createImageUploader(props)
 }
 
 export function renderImagesUploaderField(
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps = {},
+  context: Ctx
 ): VNode {
   const showImageEditor =
-    extra.showImageEditor === true ||
     context.uiBuilder?.hasPlugin?.('image-editor') === true
-  return createImagesUploader(
-    imagesUploaderPropsFromField(field, context, {
-      ...extra,
-      showImageEditor,
-      editImage:
-        extra.editImage ??
-        ((src: string) => editImageFromContext(context, src)),
-    }),
+  return createImagesUploader({
+    ...imagesUploaderPropsFromField(field, context),
+    showImageEditor,
+    editImage: (src: string) => editImageFromContext(context, src),
+  },
   )
 }
 
 export function renderFileLinkField(
   field: MetaUiField,
-  context: Ctx,
-  extra: UiProps = {},
+  context: Ctx
 ): VNode {
-  const preview =
-    extra.preview === true
-      ? true
-      : extra.preview === false
-        ? false
-        : undefined
   const ui = context.uiBuilder
-  return renderFileLink(
-    fileLinkPropsFromField(field, context, {
-      ...extra,
-      preview,
-      onPreview:
-        extra.onPreview ??
-        (ui?.buildFilePreview && ui.buildDialog
-          ? (url: string) => previewFileFromContext(context, url)
-          : undefined),
-    }),
-  )
+  return renderFileLink({
+    ...fileLinkPropsFromField(field, context),
+    onPreview:
+      ui?.buildFilePreview && ui.buildDialog
+        ? (url: string) => previewFileFromContext(context, url)
+        : undefined,
+  })
 }

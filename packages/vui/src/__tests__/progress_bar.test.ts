@@ -15,10 +15,7 @@ describe('progress bar chrome helpers', () => {
     const props = progressBarPropsFromField(
       { fieldName: 'done' } as any,
       { getFieldValue: () => 42 } as any,
-      { kind: 'circular', size: 'small' },
     )
     expect(props.value).toBe(42)
-    expect(props.kind).toBe('circular')
-    expect(props.size).toBe('small')
   })
 })

@@ -69,10 +69,10 @@ export class TenantLogic extends EntityLogic<Tenant> {
           (
             fld,
             ctx: UiContext<Tenant> &
-              Pick<UiContext<Tenant>, "getFieldCurrentOption">,
+              Pick<UiContext<Tenant>, "getFieldSelectedOption">,
             props,
           ) => {
-            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan("");
+            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan({ text: "" });
             const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
@@ -93,12 +93,12 @@ export class TenantLogic extends EntityLogic<Tenant> {
                 (subModule: Module) =>
                   subModule.objName === fld.reference?.refObjName,
               );
-            const options = ctx.getFieldCurrentOption(fld);
+            const options = ctx.getFieldSelectedOption(fld);
             if (!url || !refModule?.authority?.allowRead)
-              return ctx.uiBuilder.factory.textSpan(
-                ctx.model.customProperties.$countryCode,
-              );
-            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(options?.briefName ?? "");
+              return ctx.uiBuilder.factory.textSpan({
+                text: ctx.model.customProperties.$countryCode,
+              });
+            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan({ text: options?.briefName ?? "" });
           },
         ),
       );
@@ -149,7 +149,7 @@ export class TenantLogic extends EntityLogic<Tenant> {
       fields.push(
         this.field("countryCode").setCustomRenderer(
           (fld, ctx: UiContext<Tenant>, props) => {
-            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan("");
+            if (isRefNone(ctx.model.countryCode)) return ctx.uiBuilder.factory.textSpan({ text: "" });
             const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
@@ -171,8 +171,8 @@ export class TenantLogic extends EntityLogic<Tenant> {
                   subModule.objName === fld.reference?.refObjName,
               );
             if (!url || !refModule?.authority?.allowRead)
-              return ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
-            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan(ctx.model.country.briefName);
+              return ctx.uiBuilder.factory.textSpan({ text: ctx.model.country.briefName });
+            return ctx.uiBuilder.fieldFactory.hasOneText?.(fld, ctx) ?? ctx.uiBuilder.factory.textSpan({ text: ctx.model.country.briefName });
           },
         ),
       );

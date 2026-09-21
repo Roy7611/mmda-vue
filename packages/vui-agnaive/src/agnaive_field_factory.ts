@@ -1,5 +1,5 @@
 import { h, type Component, type VNode } from "vue";
-import { MetaModel, SqlDataType, type MetaUiField, type Module } from "@mmda/core";
+import { MetaModel, SqlDataType, type MetaUiField, type Module, type UiAvatarProps } from "@mmda/core";
 import { autoCompleteBindValue, autoCompletePropsFromField, avatarPropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
 import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type VueUiContext } from "@mmda/vui"
 import { createAutoComplete } from "./factory/autocomplete";
@@ -34,6 +34,7 @@ import {
 import { createBitCheckBoxList, createCheckBoxList } from "./factory/check_box_list";
 import { createTagAutoComplete } from "./factory/tag_auto_complete";
 import { createTreeSelect } from "./factory/tree_select";
+import { createSearchRelative } from "./factory/search_relative";
 import { createAvatar } from "./factory/avatar";
 import { createChips } from "./factory/chips";
 import { NImage, NInput, NTag } from "naive-ui";
@@ -52,11 +53,10 @@ const control = (
   field: MetaUiField,
   context: UiContext,
   props: UiProps = {},
-  extra: UiProps = {},
   valueKey = "value",
 ) => {
   const invalid = invalidOf(field, context);
-  const onUpdate = extra[`onUpdate:${valueKey}`] ?? update(field, context);
+  const onUpdate = update(field, context);
   return h(
     "div",
     { class: ["mmda-control", invalid && "is-invalid"] },
@@ -70,7 +70,6 @@ const control = (
         placeholder: field.placeholder,
         maxlength: field.maxLength,
         [`onUpdate:${valueKey}`]: onUpdate,
-        ...extra,
         ...props,
       }),
       invalid &&
@@ -87,7 +86,7 @@ const textInput = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
-    createTextInput(textInputPropsFromField(field, context, props ?? {})),
+    createTextInput(textInputPropsFromField(field, context)),
   );
 
 const textArea = (field: MetaUiField, context: UiContext, props?: UiProps) =>
@@ -121,7 +120,7 @@ const dropDownList = (
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createDropDownList(
-        dropDownListPropsFromField(field, context, props ?? {}),
+        dropDownListPropsFromField(field, context),
       ),
       invalid &&
         h(
@@ -144,7 +143,7 @@ const radioButtonGroup = (
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
       createRadioButtonGroup(
-        radioButtonGroupPropsFromField(field, context, props ?? {}),
+        radioButtonGroupPropsFromField(field, context),
       ),
       invalid &&
         h(
@@ -166,7 +165,7 @@ const treeSelect = (
     "div",
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
-      createTreeSelect(treeSelectPropsFromField(field, context, props ?? {})),
+      createTreeSelect(treeSelectPropsFromField(field, context)),
       invalid &&
         h(
           "p",
@@ -187,7 +186,7 @@ const comboBox = (
     "div",
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
-      createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
+      createComboBox(comboBoxPropsFromField(field, context)),
       invalid &&
         h(
           "p",
@@ -207,7 +206,7 @@ const multiSelect = (
     field,
     context,
     createMultiSelect(
-      multiSelectPropsFromField(field, context, props ?? {}),
+      multiSelectPropsFromField(field, context),
     ),
   );
 
@@ -220,7 +219,7 @@ const multiItemSelect = (
     field,
     context,
     createMultiItemSelect(
-      multiItemSelectPropsFromField(field, context, props ?? {}),
+      multiItemSelectPropsFromField(field, context),
     ),
   );
 
@@ -233,7 +232,7 @@ const multiValueSelect = (
     field,
     context,
     createMultiValueSelect(
-      multiValueSelectPropsFromField(field, context, props ?? {}),
+      multiValueSelectPropsFromField(field, context),
     ),
   );
 
@@ -246,7 +245,7 @@ const multiTextSelect = (
     field,
     context,
     createMultiTextSelect(
-      multiTextSelectPropsFromField(field, context, props ?? {}),
+      multiTextSelectPropsFromField(field, context),
     ),
   );
 
@@ -259,7 +258,7 @@ const multiBitSelect = (
     field,
     context,
     createMultiBitSelect(
-      multiBitSelectPropsFromField(field, context, props ?? {}),
+      multiBitSelectPropsFromField(field, context),
     ),
   );
 
@@ -272,7 +271,7 @@ const checkBoxList = (
     field,
     context,
     createCheckBoxList(
-      checkBoxListPropsFromField(field, context, props ?? {}),
+      checkBoxListPropsFromField(field, context),
     ),
   );
 
@@ -285,7 +284,7 @@ const bitCheckBoxListField = (
     field,
     context,
     createBitCheckBoxList(
-      bitCheckBoxListPropsFromField(field, context, props ?? {}),
+      bitCheckBoxListPropsFromField(field, context),
     ),
   );
 
@@ -314,7 +313,7 @@ const numberInput = (
     field,
     context,
     createNumberInput(
-      numberInputPropsFromField(field, context, props ?? {}),
+      numberInputPropsFromField(field, context),
     ),
   );
 
@@ -342,7 +341,7 @@ const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
     "div",
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
-      createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
+      createCheckBox(checkBoxPropsFromField(field, context)),
       invalid &&
         h(
           "p",
@@ -363,7 +362,7 @@ const switchControl = (
     "div",
     { class: ["mmda-control", invalid && "is-invalid"] },
     [
-      createSwitch(switchPropsFromField(field, context, props ?? {})),
+      createSwitch(switchPropsFromField(field, context)),
       invalid &&
         h(
           "p",
@@ -399,7 +398,7 @@ const datePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
-    createDatePicker(datePickerPropsFromField(field, context, props ?? {})),
+    createDatePicker(datePickerPropsFromField(field, context)),
   );
 
 const dateTimePicker = (
@@ -411,7 +410,7 @@ const dateTimePicker = (
     field,
     context,
     createDateTimePicker(
-      dateTimePickerPropsFromField(field, context, props ?? {}),
+      dateTimePickerPropsFromField(field, context),
     ),
   );
 
@@ -423,14 +422,14 @@ const monthPicker = (
   wrapChrome(
     field,
     context,
-    createDatePicker(monthPickerPropsFromField(field, context, props ?? {})),
+    createDatePicker(monthPickerPropsFromField(field, context)),
   );
 
 const timePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   wrapChrome(
     field,
     context,
-    createTimePicker(timePickerPropsFromField(field, context, props ?? {})),
+    createTimePicker(timePickerPropsFromField(field, context)),
   );
 
 const fallbackDisplay = (
@@ -454,17 +453,17 @@ const fallbackInput = (
     (field.reference.hasOne ||
       (field.reference.isRef && field.reference.refRepository))
   ) {
-    return searchBox(field, context, props);
+    return searchBox(field, context);
   }
   if (field.reference?.refOptions?.length)
-    return dropDownList(field, context, props);
+    return dropDownList(field, context);
   if (SqlDataType.isBool(field.dataType))
-    return checkbox(field, context, props);
+    return checkbox(field, context);
   if (SqlDataType.isNum(field.dataType))
-    return numberInput(field, context, props);
+    return numberInput(field, context);
   if (SqlDataType.isDate(field.dataType))
-    return datePicker(field, context, props);
-  return textInput(field, context, props);
+    return datePicker(field, context);
+  return textInput(field, context);
 };
 
 const searchBox = (
@@ -476,13 +475,9 @@ const searchBox = (
   if (!reference) {
     return h("span", { class: "warning" }, "不是引用字段");
   }
-  const builder = context.app?.ui;
-  if (!builder?.buildSearchForRelative) {
-    return fallbackDisplay(field, context, props);
-  }
   const valueKey = reference.refFlds?.[0] ?? "value";
   const labelKey = reference.refFlds?.[1] ?? valueKey;
-  const fldOptions = context.getFieldOptions(field);
+  const fldOptions = context.getFieldSearchOptions(field);
   let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
     ? context.getFieldValue(field)
     : null;
@@ -502,7 +497,7 @@ const searchBox = (
     }
     fldOptions.currentSelectOption = fieldValue;
   }
-  return builder.buildSearchForRelative(context, field, {
+  return createSearchRelative(field, context, {
     modelValue: fldOptions.currentSelectOption ?? fieldValue,
     showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
     options: fldOptions.selectOptions,
@@ -544,8 +539,8 @@ const autoComplete = (
   props?: UiProps,
 ): VNode => {
   const route = routeAutoCompleteField(field);
-  if (route === "dropDownList") return dropDownList(field, context, props);
-  if (route === "searchBox") return searchBox(field, context, props);
+  if (route === "dropDownList") return dropDownList(field, context);
+  if (route === "searchBox") return searchBox(field, context);
   const invalid = invalidOf(field, context);
   const reference = field.reference?.isRef ? field.reference : undefined;
   return h(
@@ -576,15 +571,15 @@ const tag = (field: MetaUiField, context: UiContext, props?: UiProps) =>
   );
 
 const tags = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(chipsPropsFromField(field, context, props ?? {}));
+  createChips(chipsPropsFromField(field, context));
 
 const chips = tags;
 
 const bitChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(bitChipSetPropsFromField(field, context, props ?? {}));
+  createChips(bitChipSetPropsFromField(field, context));
 
 const enumChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(enumChipSetPropsFromField(field, context, props ?? {}));
+  createChips(enumChipSetPropsFromField(field, context));
 
 const cellDomProps = (props?: UiProps) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {});
@@ -595,11 +590,11 @@ const externalLink = (
   props?: UiProps,
 ) => {
   const app = context.app;
-  if (!app) return fallbackDisplay(field, context, props);
+  if (!app) return fallbackDisplay(field, context);
   const model = (props?.row ?? context.model) as Record<string, any>;
   const alias = field.reference?.alias;
   const fldVal = model[field.fieldName] ?? (alias ? model[alias] : undefined);
-  if (!fldVal) return fallbackDisplay(field, context, props);
+  if (!fldVal) return fallbackDisplay(field, context);
   const fldText = MetaModel.displayField(model, field);
   const domProps = cellDomProps(props);
   if (!fldText) {
@@ -677,9 +672,9 @@ const factory: UiFieldFactory = {
   checkBoxList,
   bitCheckBoxList: bitCheckBoxListField,
   numberInput,
-  positiveNumberInput: (field, context, props) =>
+  positiveNumberInput: (field, context) =>
     numberInput(field, context, { min: 0, ...props }),
-  negativenumberInput: (field, context, props) =>
+  negativenumberInput: (field, context) =>
     numberInput(field, context, { max: 0, ...props }),
   percentInput,
   checkBox: checkbox,
@@ -690,31 +685,31 @@ const factory: UiFieldFactory = {
   dateTimePicker,
   monthPicker,
   timePicker,
-  dateRangePicker: (field, context, props) =>
+  dateRangePicker: (field, context) =>
     wrapChrome(
       field,
       context,
       createDateRangePicker(
-        dateRangePickerPropsFromField(field, context, props ?? {}),
+        dateRangePickerPropsFromField(field, context),
       ),
     ),
-  maskedTextBox: (field, context, props) =>
+  maskedTextBox: (field, context) =>
     wrapChrome(
       field,
       context,
       createMaskedTextBox(
-        maskedTextBoxPropsFromField(field, context, props ?? {}),
+        maskedTextBoxPropsFromField(field, context),
       ),
     ),
-  oneTimePasswordInput: (field, context, props) =>
+  oneTimePasswordInput: (field, context) =>
     wrapChrome(
       field,
       context,
       createOneTimePasswordInput(
-        oneTimePasswordPropsFromField(field, context, props ?? {}),
+        oneTimePasswordPropsFromField(field, context),
       ),
     ),
-  mobileInput: (field, context, props) =>
+  mobileInput: (field, context) =>
     wrapChrome(
       field,
       context,
@@ -725,7 +720,7 @@ const factory: UiFieldFactory = {
         }),
       ),
     ),
-  zipCodeInput: (field, context, props) =>
+  zipCodeInput: (field, context) =>
     wrapChrome(
       field,
       context,
@@ -736,26 +731,26 @@ const factory: UiFieldFactory = {
         }),
       ),
     ),
-  slider: (field, context, props) =>
+  slider: (field, context) =>
     wrapChrome(
       field,
       context,
-      createSlider(sliderPropsFromField(field, context, props ?? {})),
+      createSlider(sliderPropsFromField(field, context)),
     ),
-  rating: (field, context, props) =>
+  rating: (field, context) =>
     wrapChrome(
       field,
       context,
-      createRating(ratingPropsFromField(field, context, props ?? {})),
+      createRating(ratingPropsFromField(field, context)),
     ),
-  colorPicker: (field, context, props) => {
+  colorPicker: (field, context) => {
     const invalid = invalidOf(field, context);
     return h(
       "div",
       { class: ["mmda-control", invalid && "is-invalid"] },
       [
         createColorPicker(
-          colorPickerPropsFromField(field, context, props ?? {}),
+          colorPickerPropsFromField(field, context),
         ),
         invalid &&
           h(
@@ -766,24 +761,28 @@ const factory: UiFieldFactory = {
       ],
     );
   },
-  filePicker: (field, context, props) =>
+  filePicker: (field, context) =>
     renderFileUploaderField(field, context as any, props ?? {}),
-  fileUpload: (field, context, props) =>
+  fileUpload: (field, context) =>
     renderFilesUploaderField(field, context as any, props ?? {}),
-  fileUploader: (field, context, props) =>
+  fileUploader: (field, context) =>
     renderFileUploaderField(field, context as any, props ?? {}),
-  filesUploader: (field, context, props) =>
+  filesUploader: (field, context) =>
     renderFilesUploaderField(field, context as any, props ?? {}),
-  imagePicker: (field, context, props) =>
+  imagePicker: (field, context) =>
     renderImageUploaderField(field, context as any, props ?? {}),
-  imageUploader: (field, context, props) =>
+  imageUploader: (field, context) =>
     renderImageUploaderField(field, context as any, props ?? {}),
-  imagesUploader: (field, context, props) =>
+  imagesUploader: (field, context) =>
     renderImagesUploaderField(field, context as any, props ?? {}),
-  image: (field, context, props) =>
+  image: (field, context) =>
     h(NImage, { src: context.getFieldValue(field, props?.row), ...props }),
-  avatar: (field, context, props) => {
-    const avatarProps = avatarPropsFromField(field, context, props ?? {});
+  avatar: (field, context, props?: UiProps) => {
+    const cell = props as UiAvatarProps | undefined;
+    const avatarProps: UiAvatarProps = {
+      ...avatarPropsFromField(field, context),
+      ...(cell ? { size: cell.size ?? 'small' } : {}),
+    };
     const render = (context as any).uiBuilder?.factory?.avatar;
     if (render) return render(avatarProps);
     return createAvatar(
@@ -792,31 +791,31 @@ const factory: UiFieldFactory = {
         context.uiBuilder?.factory?.resolveIcon?.(name) ?? name,
     );
   },
-  progressBar: (field, context, props) =>
-    createProgressBar(progressBarPropsFromField(field, context, props ?? {})),
-  signaturePad: (field, context, props) =>
+  progressBar: (field, context) =>
+    createProgressBar(progressBarPropsFromField(field, context)),
+  signaturePad: (field, context) =>
     wrapChrome(
       field,
       context,
       createSignaturePad(
-        signaturePadPropsFromField(field, context, props ?? {}),
+        signaturePadPropsFromField(field, context),
       ),
     ),
-  stepper: (field, context, props) =>
+  stepper: (field, context) =>
     wrapChrome(
       field,
       context,
-      createStepper(stepperPropsFromField(field, context, props ?? {})),
+      createStepper(stepperPropsFromField(field, context)),
     ),
-  timeline: (field, context, props) =>
+  timeline: (field, context) =>
     wrapChrome(
       field,
       context,
       (context.uiBuilder?.factory?.timeline ?? createTimeline)(
-        timelinePropsFromField(field, context, props ?? {}),
+        timelinePropsFromField(field, context),
       ),
     ),
-  relativeTime: (field, context, props) =>
+  relativeTime: (field, context) =>
     relativeTimeView(
       timelineSqlOf(context.getFieldValue(field, props?.row)) ?? "",
       { locale: context.locale },
@@ -826,25 +825,25 @@ const factory: UiFieldFactory = {
   chips,
   bitChipSet,
   enumChipSet,
-  fileLink: (field, context, props) =>
+  fileLink: (field, context) =>
     renderFileLinkField(field, context as any, props ?? {}),
   externalLink,
   textSpan: fallbackDisplay,
   span: fallbackDisplay,
-  multilineText: (field, context, props) =>
+  multilineText: (field, context) =>
     h(
       "span",
       { style: { whiteSpace: "pre-wrap" }, ...props },
       context.displayField(field, props?.row),
     ),
-  percentage: (field, context, props) =>
+  percentage: (field, context) =>
     h(
       "span",
       props,
       `${Number(context.getFieldValue(field, props?.row) ?? 0) * 100}%`,
     ),
   amountText: fallbackDisplay,
-  quantityUnit: (field, context, props) => {
+  quantityUnit: (field, context) => {
     const value = context.getFieldValue(field, props?.row);
     const unit = field.suffix?.trim();
     const text =
@@ -859,7 +858,7 @@ const factory: UiFieldFactory = {
       text,
     );
   },
-  checkIcon: (field, context, props) =>
+  checkIcon: (field, context) =>
     h("i", {
       class: context.getFieldValue(field, props?.row)
         ? "fas fa-check-circle"
@@ -869,7 +868,7 @@ const factory: UiFieldFactory = {
         : undefined,
       ...props,
     }),
-  checkedIcon: (field, context, props) =>
+  checkedIcon: (field, context) =>
     h("i", {
       class: context.getFieldValue(field, props?.row)
         ? "fas fa-check-circle"
@@ -889,7 +888,7 @@ const factory: UiFieldFactory = {
   toHoursInput: numberInput,
   toMinutesInput: numberInput,
   toSecondsInput: numberInput,
-  colorBox: (field, context, props) =>
+  colorBox: (field, context) =>
     h("span", {
       title: String(context.getFieldValue(field, props?.row) ?? ""),
       style: {
@@ -905,7 +904,7 @@ const factory: UiFieldFactory = {
   statusLight: tag,
 };
 
-factory.inplaceFieldEditor = (field, context, props) =>
+factory.inplaceFieldEditor = (field, context) =>
   renderInplaceFieldEditor(field, context as any, props ?? {}, factory);
 
 const aliases: Record<string, string> = {

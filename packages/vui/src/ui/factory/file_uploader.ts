@@ -85,68 +85,40 @@ export async function defaultUploadFileUrl(
 
 export function fileUploaderPropsFromField(
   field: MetaUiField,
-  context: FileUploaderFieldContext,
-  extra: UiProps = {},
+  context: FileUploaderFieldContext
 ): UiFileUploaderProps {
-  const raw = context.getFieldValue(field, extra.row)
+  const raw = context.getFieldValue(field)
   const url = typeof raw === 'string' ? raw : String(raw ?? '')
   const auth = context.getModuleAuth?.()
   const readOnly =
-    extra.readOnly === true ||
     context.isFieldReadonly(field) ||
     context.editing === false
   return {
     url: url || undefined,
-    autoUpload: extra.autoUpload as boolean | undefined,
-    allowedExtensions: extra.allowedExtensions as string | undefined,
-    minFileSize: extra.minFileSize as number | undefined,
-    maxFileSize: extra.maxFileSize as number | undefined,
-    disabled: extra.disabled === true || readOnly,
+    disabled:
+ readOnly,
     readOnly,
-    downloadable:
-      extra.downloadable !== undefined
-        ? Boolean(extra.downloadable)
-        : auth?.allowDownload !== false,
-    preview: extra.preview as boolean | undefined,
-    chooseText: extra.chooseText as string | undefined,
-    class: extra.class,
-    htmlAttributes: extra.htmlAttributes,
+    downloadable: auth?.allowDownload !== false,
     onUpload:
-      (extra.onUpload as UiFileUploaderProps['onUpload']) ??
       (async (file) => {
         const next = await defaultUploadFileUrl(file, context.uploadFile)
         context.setFieldValue(field, next)
         return next
       }),
-    onSelected: extra.onSelected as UiFileUploaderProps['onSelected'],
   }
 }
 
 export function filesUploaderPropsFromField(
   field: MetaUiField,
-  context: FileUploaderFieldContext,
-  extra: UiProps = {},
+  context: FileUploaderFieldContext
 ): UiFilesUploaderProps {
   const auth = context.getModuleAuth?.()
   return {
-    showDropArea: extra.showDropArea as boolean | undefined,
-    autoUpload: extra.autoUpload as boolean | undefined,
-    allowedExtensions: extra.allowedExtensions as string | undefined,
     disabled:
-      extra.disabled === true || context.isFieldReadonly(field),
-    downloadable:
-      extra.downloadable !== undefined
-        ? Boolean(extra.downloadable)
-        : auth?.allowDownload !== false,
-    preview: extra.preview as boolean | undefined,
-    dropText: extra.dropText as string | undefined,
-    urls: extra.urls as string[] | undefined,
-    class: extra.class,
-    htmlAttributes: extra.htmlAttributes,
+ context.isFieldReadonly(field),
+    downloadable: auth?.allowDownload !== false,
     onUpload:
-      (extra.onUpload as UiFilesUploaderProps['onUpload']) ??
       ((file) => defaultUploadFileUrl(file, context.uploadFile)),
-    onSelected: extra.onSelected as UiFilesUploaderProps['onSelected'],
   }
 }
 

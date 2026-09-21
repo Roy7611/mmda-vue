@@ -70,7 +70,7 @@ describe('multiSelect bindMode', () => {
     ).toBe('CONSUMABLE')
   })
 
-  it('propsFromField 预置 bindMode', () => {
+  it('propsFromField 默认 bindMode 为 item_array', () => {
     const field = { fieldName: 'flags', displayLabel: '标志' } as any
     const setFieldValue = vi.fn()
     const props = multiSelectPropsFromField(
@@ -80,9 +80,8 @@ describe('multiSelect bindMode', () => {
         setFieldValue,
         isFieldReadonly: () => false,
       },
-      { bindMode: 'or_bits', options },
     )
-    expect(props.bindMode).toBe('or_bits')
+    expect(props.bindMode).toBe('item_array')
     props.onChange?.(3)
     expect(setFieldValue).toHaveBeenCalledWith(field, 3)
   })

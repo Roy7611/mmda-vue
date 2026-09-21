@@ -24,32 +24,22 @@ export { IMAGE_UPLOADER_EXTENSIONS, imageUploaderAcceptOf } from '@mmda/core'
 
 export function imageUploaderPropsFromField(
   field: MetaUiField,
-  context: FileUploaderFieldContext,
-  extra: UiProps = {},
+  context: FileUploaderFieldContext
 ): UiImageUploaderProps {
-  const base = fileUploaderPropsFromField(field, context, extra)
+  const base = fileUploaderPropsFromField(field, context)
   return {
     ...base,
-    allowedExtensions: imageUploaderAcceptOf(
-      extra.allowedExtensions as string | undefined,
-    ),
-    showImageEditor: extra.showImageEditor === true,
-    editImage: extra.editImage as UiImageUploaderProps['editImage'],
+    allowedExtensions: imageUploaderAcceptOf(),
   }
 }
 
 export function imagesUploaderPropsFromField(
   field: MetaUiField,
-  context: FileUploaderFieldContext,
-  extra: UiProps = {},
+  context: FileUploaderFieldContext
 ): UiImagesUploaderProps {
-  const base = filesUploaderPropsFromField(field, context, extra)
+  const base = filesUploaderPropsFromField(field, context)
   return {
     ...base,
-    allowedExtensions: imageUploaderAcceptOf(
-      extra.allowedExtensions as string | undefined,
-    ),
-    showImageEditor: extra.showImageEditor === true,
-    editImage: extra.editImage as UiImagesUploaderProps['editImage'],
+    allowedExtensions: imageUploaderAcceptOf(),
   }
 }

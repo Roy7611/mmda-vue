@@ -6,7 +6,6 @@
  * 字段 fieldFactory.rating 译 MetaUiField 后再调本控件。
  */
 import type { VNodeChild } from 'vue'
-import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField } from '@mmda/core'
 import type {UiProps} from '../layout'
 
@@ -81,13 +80,8 @@ export function resolveRatingTemplate(
 export { ratingModifierClasses } from '@mmda/core'
 
 function itemsCountFromField(
-  field: MetaUiField,
-  extra: UiProps,
+  field: MetaUiField
 ): number | undefined {
-  if (extra.itemsCount != null && extra.itemsCount !== '') {
-    const n = finiteNumber(extra.itemsCount)
-    if (n != null && n >= 1) return Math.floor(n)
-  }
   const max = field.maxLength
   if (typeof max === 'number' && max >= 1 && max <= 10) return max
   return undefined
@@ -95,29 +89,22 @@ function itemsCountFromField(
 
 export function ratingPropsFromField(
   field: MetaUiField,
-  context: RatingFieldContext,
-  extra: UiProps = {},
+  context: RatingFieldContext
 ): UiRatingProps {
   const raw = context.getFieldValue(field)
   const n = finiteNumber(raw)
   return {
     value: n ?? null,
-    itemsCount: itemsCountFromField(field, extra),
+    itemsCount: itemsCountFromField(field),
     readOnly:
-      (extra.readOnly as boolean | undefined) ?? context.isFieldReadonly(field),
-    disabled: extra.disabled as boolean | undefined,
-    emptyTemplate: extra.emptyTemplate,
-    fullTemplate: extra.fullTemplate,
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

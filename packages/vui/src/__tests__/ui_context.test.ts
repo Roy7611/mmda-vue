@@ -248,11 +248,11 @@ describe("VueUiContext", () => {
       view: "editMany",
     });
 
-    const rowContext = ctx.beginEdit(row);
+    const rowContext = ctx.beginEditRow(row);
     expect(toRaw(rowContext.model)).toBe(row);
     expect(ctx.contextCount).toBe(2);
 
-    ctx.endEdit(row);
+    ctx.endEditRow(row);
     expect(ctx.contextCount).toBe(1);
   });
 
@@ -302,15 +302,15 @@ describe("VueUiContext", () => {
     const firstCtx = root.subGroupItemContext("items", first as any);
     const secondCtx = root.subGroupItemContext("items", second as any);
 
-    firstCtx.getFieldOptions(itemName).searchParam.searchWord = "first";
+    firstCtx.getFieldSearchOptions(itemName).searchParam.searchWord = "first";
     await firstCtx.validate();
 
     expect(firstCtx.isFieldReadonly(quantity)).toBe(true);
     expect(secondCtx.isFieldReadonly(quantity)).toBe(false);
-    expect(firstCtx.getFieldOptions(itemName)).not.toBe(
-      secondCtx.getFieldOptions(itemName),
+    expect(firstCtx.getFieldSearchOptions(itemName)).not.toBe(
+      secondCtx.getFieldSearchOptions(itemName),
     );
-    expect(secondCtx.getFieldOptions(itemName).searchParam.searchWord).not.toBe(
+    expect(secondCtx.getFieldSearchOptions(itemName).searchParam.searchWord).not.toBe(
       "first",
     );
     expect(firstCtx.isInvalid(itemName)).toBe(true);
@@ -595,7 +595,7 @@ describe("VueUiContext", () => {
     expect(packField.reference?.refOptions).toEqual(rows);
     expect(packField.reference?.labelOf(rows[0])).toBe("纸箱");
     expect(packField.reference?.refOptionsComplete).toBe(true);
-    expect(ctx.getFieldOptions(packField).selectOptions).toEqual(
+    expect(ctx.getFieldSearchOptions(packField).selectOptions).toEqual(
       packField.reference?.refOptions,
     );
     expect(searchRelative).toHaveBeenCalledOnce();
@@ -747,7 +747,7 @@ describe("VueUiContext", () => {
 
     await expect(root.validate()).resolves.toBe(false);
     expect(root.hasGroupError("items")).toBe(true);
-    expect(root.getCacheByID("i1")?.model).toMatchObject({ itemName: "" });
+    expect(root.cachedContextByID("i1")?.model).toMatchObject({ itemName: "" });
   });
 
   it("打开列表时勾选 fallback 过滤，不从元数据拉排序", () => {

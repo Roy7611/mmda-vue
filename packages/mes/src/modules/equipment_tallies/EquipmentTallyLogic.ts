@@ -184,7 +184,8 @@ export class EquipmentTallyLogic extends EntityLogic<EquipmentTally> {
 		const rows = items.filter(v => v.checkResult !== EquipmentCheckResult.OK)
 		collectmaterialparams.tableData = []
 		await context.uiBuilder.dialog(
-			context.uiBuilder.factory.table(rows, recordGroup.groupUi, {
+			context.uiBuilder.table(recordGroup.groupUi, {
+				rows,
 				selectionMode: 'multiple',
 				onSelect: (selection: any) => {
 					collectmaterialparams.tableData = (selection ?? []).map((v: any) => v.itemID)

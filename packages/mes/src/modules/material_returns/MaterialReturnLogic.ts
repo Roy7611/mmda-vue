@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, defaultPager, EntityAction, ApiClient, MetaModel, isRefNone, toPrecise } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type MaterialReturn, defineMaterialReturn } from '@/models/MaterialReturn';
 import { type MaterialReturnItem, defineMaterialReturnItem } from '@/models/MaterialReturnItem';
@@ -323,10 +323,10 @@ export class MaterialReturnItemLogic extends SubEntityLogic<MaterialReturnItem, 
 				this.field('returnQuantity').onChange((context, model, newVal) => {
 					// 计算申请总数量
 					this.master.totalReturnQuantity = Math.round(MetaModel.sum(this.master.items, items => items.returnQuantity))
-					model.returnCost = Number((newVal * model.returnPrice).toPrecise(2))
+					model.returnCost = Number(toPrecise(newVal * model.returnPrice, 2))
 				}),
 				this.field('returnPrice').onChange((context, model, newVal) => {
-					model.returnCost = Number((model.returnQuantity * newVal).toPrecise(2))
+					model.returnCost = Number(toPrecise(model.returnQuantity * newVal, 2))
 				}),
 			)
 		}

@@ -94,7 +94,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 | 名字 | 包 | 职责 |
 |---|---|---|
-| **`UiBuilder<TNode>`** | `@mmda/core` | 接口：`toast` / `confirm` / `dialog` / `buildView` / `factory`。Logic 只认这个 |
+| **`UiBuilder<TNode>`** | `@mmda/core` | 接口：`toast` / `confirm` / `dialog` / `buildIndexView` / `buildDetailsView` / `buildEditView` / `factory`。Logic 只认这个 |
 | **`VueUiBuilder`** | `@mmda/vui` | 抽象类，`implements UiBuilder<VNode>`。共用拼屏（列表/表单/树分发、动作工厂）。注入类型用本类 |
 | **皮肤 Builder** | `@mmda/vui-*` | `extends VueUiBuilder`：壳、overlay、具体控件。如 `SyncfusionUiBuilder`、`PrimeVueUiBuilder`、`AgNaiveUiBuilder` |
 
@@ -171,9 +171,9 @@ vui 现状：`VueUiContext` 实现 core `UiContext`（含 `apiClient` getter）�
 | 联想、列筛（无 UI） | `context.searchRelative(field, word)` | 把 hasOne 当小表灌 `refOptions` |
 | 字段弹选并写回 | `context.select(field)` | `pickRelative` |
 | 任意仓库勾选 | `context.select({ repository, service?, selectionMode })` | `buildSearchForRelativeContent`、`buildSelector` |
-| 本地行勾选 | `MetaUiBuilder` + `factory.table` + `dialog` | 为本地数组再开一套仓库查询 |
+| 本地行勾选 | `MetaUiBuilder` + `builder.table` + `dialog` | 为本地数组再开一套仓库查询 |
 
-业务 `*Logic.ts` 可以调 `factory` / `fieldFactory` / `buildView`，但不要出现 Vue 类型。`viewOptions` 仍只返回选项。
+业务 `*Logic.ts` 可以调 `factory` / `fieldFactory` / `buildIndexView` / `buildDetailsView` / `buildEditView`，但不要出现 Vue 类型。`viewOptions` 仍只返回选项。
 
 程序员用法：[UI 四职](packages/core/docs/ui/ui_four_roles_usage.md)、[UiContext](packages/core/docs/logic/ui_context_usage.md)、[vui 会话怎么写](packages/vui/docs/context.md)、[vui 会话设计](packages/vui/docs/vue_ui_context.md)、[MetaUiBuilder](packages/core/docs/metaui/metaui_builder.md)。四职设计：[ui_four_roles_design.md](packages/core/docs/ui/ui_four_roles_design.md)。本轮弹层/壳改名记录：[refactor_ui_app.md](packages/core/docs/refactor_ui_app.md)。
 

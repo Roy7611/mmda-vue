@@ -60,11 +60,31 @@ net_api .up.> models : fetch / update
 
 ## 逻辑层（Logic）
 
-逻辑层（`logic layer`）实现核心交互逻辑，衔接数据层和展现层之间的互动。如果没有复杂的处理逻辑，例如只需要展现数据和修改数据（`CRUD`），这一层是可选的，允许在UI层通过`UiContext`中的接口函数直接透过`ApiClient`接口提交数据。
+逻辑层（`logic layer`）实现核心交互逻辑，衔接数据层和展现层之间的互动。如果没有复杂的处理逻辑，例如只需要展现数据和修改数据（`CRUD`），这一层是可选的，允许在UI层通过`UiContext`会话上下文中的接口函数直接透过`ApiClient`接口提交数据。
 
 逻辑层依赖数据层，但与具体UI层的实现技术无关，它不知道是`vue`,`react`还是什么技术实现的，它只与UI层的接口打交道，是纯粹的`ts`语言。因此程序员只需要关注交互逻辑，无需直面技术框架的复杂性。
 
 实体逻辑（`EntityLogic`）本身是上下文无关的，组装进`UiContext`上下文后，使得逻辑函数真正应用于上下文中的实体模型。例如实体字段域的可见性、只读锁定、校验器、外观和数据变更监听器，子表逻辑、关联计算、选择数据源等。组装后的逻辑函数在`vue`的世界里变为了响应式`ref`,`watch`,`computed`属性。
+
+```plantuml
+@startuml
+package validation {
+  package validateResult
+  package validators
+}
+
+[MetaUiFieldLogic]
+[MetaUiGroupLogic] *-down- "*" [MetaUiGroupFieldLogic] : fields
+[SubEntityLogic] -up-> [EntityLogic] : extends
+
+
+
+MetaUiGroupFieldLogic -right-> MetaUiFieldLogic : extends
+EntityLogic *-left- "*" MetaUiGroupLogic : groups
+EntityLogic *-left- "*" MetaUiFieldLogic : fields
+EntityLogic .right.> UiContext : bind
+@enduml
+```
 
 ## 展现层（UI）
 

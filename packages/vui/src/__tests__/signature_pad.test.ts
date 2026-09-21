@@ -37,7 +37,7 @@ describe('signaturePad helpers', () => {
       '',
       'clear',
     )
-    expect(onChange).toHaveBeenCalledWith('', 'clear')
+    expect(onChange).toHaveBeenCalledWith('')
     expect(onModel).toHaveBeenCalledWith('')
   })
 

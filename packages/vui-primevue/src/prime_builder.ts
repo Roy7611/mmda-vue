@@ -2,16 +2,14 @@ import {
   h,
   reactive,
   type VNode,
-  type VNodeArrayChildren,
 } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, uiCssClass, type MetaUiField, type MetaUiGroup, type Module } from "@mmda/core";
-import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type UiProps, type SearchForRelativeProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from "@mmda/vui"
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from "@mmda/core";
+import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
 import InputNumber from "primevue/inputnumber";
 import InputText from "primevue/inputtext";
-import Message from "primevue/message";
 import MultiSelect from "primevue/multiselect";
 import Password from "primevue/password";
 import Select from "primevue/select";
@@ -37,7 +35,7 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
 
   constructor(
     factory = createPrimeVueUiFactory(),
-    fieldFactory: UiFieldFactory = createPrimeVueFieldFactory(),
+    fieldFactory: VueUiFieldFactory = createPrimeVueFieldFactory(),
   ) {
     super(
       factory,
@@ -87,26 +85,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("div", { class: "mmda-container", ...props }, content);
-  }
-
-  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("header", { class: uiCssClass("page-header"), ...props }, content);
-  }
-
-  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("aside", { class: "mmda-aside", ...props }, content);
-  }
-
-  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("main", { class: "mmda-main", ...props }, content);
-  }
-
-  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("footer", { class: "mmda-footer", ...props }, content);
-  }
-
   buildAppTopBar(props: AppTopBarProps = { modules: [], logo: () => null }) {
     const items = props.modules.map((module) => ({
       label: module.moduleName ?? module.moduleLabel,
@@ -154,18 +132,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
       class: "mmda-app-menu",
       ...rest,
     });
-  }
-
-  buildLoading(_context: UiContext, props?: UiProps) {
-    return this.factory.loading(props);
-  }
-
-  buildError(context: UiContext, props?: UiProps) {
-    return h(
-      Message,
-      { severity: "error", class: "mmda-error", ...props },
-      () => context.title,
-    );
   }
 
   buildImportOrExportAction(
@@ -314,7 +280,9 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
     ]);
   }
 
-  buildModuleSearchbar(context: UiContext, props: ModuleSearchbarProps) {
+  buildModuleSearchbar(context: UiContext, rawProps?: UiProps) {
+    // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
+    const props = (rawProps ?? {}) as ModuleSearchbarProps;
     const runtime = context as any;
     const filters = runtime.filters ?? [];
     const quickFilters = filters.map((filter: any) =>
@@ -389,71 +357,6 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
           }),
       ],
     );
-  }
-
-  buildSearchForRelative(
-    context: UiContext,
-    field: MetaUiField,
-    props: SearchForRelativeProps,
-  ) {
-    const reference = field.reference
-    const refFlds = reference?.refFlds?.length
-      ? reference.refFlds
-      : ["value", "text"]
-    const valueKey = (props.dataKey as string) ?? refFlds[0] ?? "value"
-    const labelKey =
-      typeof props.optionLabel === "string"
-        ? props.optionLabel
-        : (refFlds[1] ?? valueKey)
-    const options = (props.options as any[]) ?? []
-
-    const openPick = async (event: Event) => {
-      event.preventDefault()
-      event.stopPropagation()
-      try {
-        if (typeof props.toSearch === "function") {
-          await props.toSearch(event)
-          return
-        }
-        await context.select(field)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    // 对齐老 SearchBox：可编辑 Select，下拉图标换成放大镜并打开选择对话框
-    return h(Select, {
-      options,
-      optionLabel:
-        typeof props.optionLabel === "function"
-          ? props.optionLabel
-          : labelKey,
-      dataKey: valueKey,
-      modelValue: props.modelValue,
-      editable: true,
-      filter: true,
-      showClear: props.showClear !== false && field.nullable,
-      placeholder:
-        props.placeholder ??
-        context.translate?.("action.select") ??
-        "请选择",
-      invalid: props.invalid,
-      class: "mmda-search-combo",
-      "onUpdate:modelValue": (value: any) => props.onChange?.(value),
-      onFilter: (event: any) => {
-        const text = String(event?.value ?? "")
-        props.onInput?.(text)
-        void (context as any).searchRelative?.(field, text)
-      },
-      pt: {
-        dropdown: {
-          onClick: openPick,
-          title: context.translate?.("action.search") ?? "搜索",
-        },
-      },
-    }, {
-      dropdownicon: () => h("span", { class: "pi pi-search" }),
-    })
   }
 
   buildBpmnDiagram(

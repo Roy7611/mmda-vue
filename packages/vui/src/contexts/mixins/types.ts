@@ -1,4 +1,4 @@
-import type { MetaUi, MetaUiField, MetaUiGroup, UiValidation } from "@mmda/core";
+import type { MetaUi, MetaUiField, MetaUiGroup, Validation } from "@mmda/core";
 import type { UiViewType } from "../view";
 
 export type Constructor<T = any> = new (...args: any[]) => T;
@@ -9,7 +9,7 @@ export interface ChildContextOptions {
   parent: ContextHost;
   cache: Map<string, ContextHost>;
   cachePath: string;
-  validation?: UiValidation;
+  validation?: Validation;
 }
 
 /** Mixin 可调用的会话宿主（本体 + 已叠内层能力）。 */
@@ -46,8 +46,8 @@ export interface ContextHost {
   currentIndex: number;
   indexTableHost?: import("../../ui/factory/list").UiIndexTableHost;
   selectionMode: "single" | "multiple" | null;
-  $v: UiValidation;
-  validationState: UiValidation;
+  $v: Validation;
+  validationState: Validation;
   cache: Map<string, ContextHost>;
   cachePath: string;
   fieldLogics: Record<string, any>;
@@ -61,7 +61,7 @@ export interface ContextHost {
   setFieldValue(field: MetaUiField | string, value: any): void;
   getFieldLogic(field: MetaUiField | string): any;
   getGroupLogic(group: MetaUiGroup | string): any;
-  getFieldOptions(field: MetaUiField | string): any;
+  getFieldSearchOptions(field: MetaUiField | string): any;
   isFieldHidden(field: MetaUiField | string): boolean;
   isFieldReadonly(field: MetaUiField | string): boolean;
   isGroupHidden(group: MetaUiGroup | string): boolean;
@@ -83,7 +83,7 @@ export interface ContextHost {
     field: MetaUiField,
     value: any,
     model: Record<string, any>,
-    validation: UiValidation,
+    validation: Validation,
   ): number;
   countValidationErrors(value: unknown): number;
   collectInvalidMessages(value?: unknown): string[];

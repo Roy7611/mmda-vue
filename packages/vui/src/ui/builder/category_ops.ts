@@ -1,7 +1,6 @@
-import { defineEntity } from "@mmda/core";
+import { GenericEntityLogic, defineEntity, type EntityLogic } from "@mmda/core";
 import type { VueUiContext } from "../../contexts/vue_ui_context";
 import { resolveRepositoryModule } from "../../components/EntityView";
-import { VueEntityLogic } from "../../logic/logic";
 import { categoryMoveParams } from "./tree_category";
 import {
   collectNodeAndDescendantIds,
@@ -26,21 +25,24 @@ export async function resolveCategoryTreeLogic(
     "base";
   const token = `${service}:${repository}Logic`;
   try {
-    const injected = await app?.di.injectAsync<
-      InstanceType<typeof VueEntityLogic>
-    >(token);
+    const injected = await app?.di.injectAsync<EntityLogic<any>>(token);
     if (injected) return injected;
   } catch {
     // 未注册的仓库走通用 Logic
   }
   const module =
     resolveRepositoryModule(app, repository) ?? app?.findModule(repository);
-  return new VueEntityLogic(defineEntity, {
-    metaUiService: app!.meta,
-    repository,
-    module,
-    apiService: service,
-  });
+  return GenericEntityLogic.resolve(
+    app!.di,
+    token,
+    defineEntity,
+    {
+      metaUiService: app!.meta,
+      repository,
+      module,
+      apiService: service,
+    },
+  );
 }
 
 export async function refreshCategoryTree<T>(

@@ -399,10 +399,10 @@ export class MetaUiFieldRef {
     return this.refOptionsComplete === true
   }
 
-  private _enumFn?: propFn
-  private _valueFn?: propFn
-  private _labelFn?: propFn
-  private _groupByFn?: propFn
+  #enumFn?: propFn
+  #valueFn?: propFn
+  #labelFn?: propFn
+  #groupByFn?: propFn
 
   get isEnum() {
     return this.refType == MetaRelationType.ENUM
@@ -431,8 +431,8 @@ export class MetaUiFieldRef {
    *如果 `refOptions` 为空，则返回一个仅返回输入值的函数。
    */
   get enumFn() {
-    if (!this._enumFn) {
-      this._enumFn =
+    if (!this.#enumFn) {
+      this.#enumFn =
         this.refOptions.length > 0
           ? (value: unknown) => {
             if (value) {
@@ -445,14 +445,14 @@ export class MetaUiFieldRef {
           }
           : (value: unknown) => value
     }
-    return this._enumFn
+    return this.#enumFn
   }
   /**
    * 取值函数，返回关联对象的第一个字段值，通常是id
    */
   get valueFn() {
-    if (!this._valueFn) {
-      this._valueFn =
+    if (!this.#valueFn) {
+      this.#valueFn =
         this.refFlds.length > 0
           ? (valueObject: unknown) =>
             isNullOrUndefined(valueObject) ? null :
@@ -460,19 +460,19 @@ export class MetaUiFieldRef {
                 (valueObject as MetaUiRefOption)[this.refFlds[0]] : null
           : (valueObject: unknown) => valueObject
     }
-    return this._valueFn
+    return this.#valueFn
   }
   /**
    * 取标签函数，标签是用于显示的文本，返回关联对象的第二个及其之后的字段值文本拼接
    */
   get labelFn() {
-    if (!this._labelFn) {
+    if (!this.#labelFn) {
       if (
         this.refFlds.length > 2 &&
         this.refOptionsShape != MetaOptionsShape.TREE
       ) {
         // HAS_ONE 常带 parentXxx：拼 label 时跳过空值，避免出现字面量 "undefined"
-        this._labelFn = (valueObject: unknown) => {
+        this.#labelFn = (valueObject: unknown) => {
           const option = valueObject as MetaUiRefOption | null | undefined
           if (!option) return ''
           return this.refFlds
@@ -482,27 +482,27 @@ export class MetaUiFieldRef {
             .join(' ')
         }
       } else if (this.refFlds.length > 1) {
-        this._labelFn = (valueObject: unknown) =>
+        this.#labelFn = (valueObject: unknown) =>
           valueObject ? (valueObject as MetaUiRefOption)[this.refFlds[1]] : ''
       } else {
-        this._labelFn = (valueObject: unknown) => this.valueFn(valueObject)
+        this.#labelFn = (valueObject: unknown) => this.valueFn(valueObject)
       }
     }
-    return this._labelFn
+    return this.#labelFn
   }
   set labelFn(fn: propFn) {
-    this._labelFn = fn
+    this.#labelFn = fn
   }
   get groupByFn() {
-    if (!this._groupByFn) {
+    if (!this.#groupByFn) {
       const groupBy = this.groupBy
-      this._groupByFn = groupBy
+      this.#groupByFn = groupBy
         ? (valueObject: unknown) => (valueObject as MetaUiRefOption)[groupBy] ?? '.'
         : this.refFlds.length > 2
           ? (valueObject: unknown) => (valueObject as MetaUiRefOption)[this.refFlds[2]] ?? '.'
           : (valueObject: unknown) => ''
     }
-    return this._groupByFn
+    return this.#groupByFn
   }
 
   get service(): string | undefined {

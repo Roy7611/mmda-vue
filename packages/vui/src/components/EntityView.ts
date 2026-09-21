@@ -1,5 +1,7 @@
 import {
   defineEntity,
+  GenericEntityLogic,
+  type EntityLogicInit,
   type MmdaApplication,
   type Module,
   type UiErrorProps,
@@ -24,7 +26,6 @@ import type { MmdaVueApp } from "../app/app";
 import type { VueUiBuilder } from "../ui/builder";
 import { VueUiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
-import { VueEntityLogic, type EntityLogicInit } from "../logic/logic";
 import type { EntityLogic } from "@mmda/core";
 import {
   resolveSearchParam,
@@ -166,7 +167,7 @@ function loadingNode(app: MmdaVueApp) {
 
 function errorRetryNode(app: MmdaVueApp, props: UiErrorProps) {
   return (
-    (app.ui as VueUiBuilder).factory.errorRetry?.(props) ??
+    (app.ui as VueUiBuilder).factory.error?.(props) ??
     h(ErrorRetry, props as Record<string, unknown>)
   );
 }
@@ -202,7 +203,7 @@ async function openEntityContext(
   const logic =
     injected ??
     (await options.createLogic(repository, init)) ??
-    new VueEntityLogic(defineEntity, init);
+    (await GenericEntityLogic.resolve(app.di, token, defineEntity, init));
   if (module) logic.module = module;
 
   const metaUi = await app.meta.get(repository, service);

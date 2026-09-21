@@ -24,7 +24,7 @@ describe('tagAutoComplete', () => {
       },
     )
     expect(props.value).toBe('x,y')
-    props.onUpdate?.('x,y,z')
+    props.onChange?.('x,y,z')
     expect(setFieldValue).toHaveBeenCalledWith(field, 'x,y,z')
     expect(tagAutoCompleteModifierClasses(props).join(' ')).toContain(
       'mmda-tag-autocomplete',

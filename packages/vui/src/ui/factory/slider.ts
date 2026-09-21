@@ -5,7 +5,6 @@
  * 不要把 Prime range: boolean 写进 vui。Range Slider 文档就是本控件。
  * 字段 fieldFactory.slider 译 MetaUiField 后再调本控件。
  */
-import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
 import type {UiProps} from '../layout'
 import { vueUpdateOf } from '../vue_ui_props'
@@ -102,10 +101,9 @@ export { sliderModifierClasses } from '@mmda/core'
 
 export function sliderPropsFromField(
   field: MetaUiField,
-  context: SliderFieldContext,
-  extra: UiProps = {},
+  context: SliderFieldContext
 ): UiSliderProps {
-  const typeRaw = extra.type
+  const typeRaw: unknown = undefined
   const type: UiSliderType | undefined =
     typeRaw === 'MinRange' || typeRaw === 'Range' || typeRaw === 'Default'
       ? typeRaw
@@ -113,22 +111,16 @@ export function sliderPropsFromField(
   const raw = context.getFieldValue(field)
   return {
     value: (raw ?? null) as UiSliderValue,
-    min: extra.min as number | undefined,
-    max: extra.max as number | undefined,
-    step: extra.step as number | undefined,
     type,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

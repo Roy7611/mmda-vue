@@ -325,23 +325,21 @@ describe('vui-agnaive skin', () => {
 
   it('uses NDropupMenuButton when popupPlacement opens upward', () => {
     const factory = createAgNaiveUiFactory()
-    const vnode = factory.dropDownButton(
-      {
+    const vnode = factory.dropDownButton({
         icon: 'fas fa-palette',
         popupPlacement: 'top-end',
         hideCaret: true,
         shape: 'circle',
         buttonType: 'text',
-      },
-      [
-        {
-          name: 'blue',
-          label: '蓝色',
-          icon: 'mmda-palette-swatch',
-          onAction: () => undefined,
-        },
-      ],
-    )
+        actions: [
+          {
+            name: 'blue',
+            label: '蓝色',
+            icon: 'mmda-palette-swatch',
+            onAction: () => undefined,
+          },
+        ],
+      })
     const typeName =
       typeof vnode.type === 'object' && vnode.type && 'name' in vnode.type
         ? String((vnode.type as { name?: string }).name ?? '')
@@ -410,11 +408,13 @@ describe('vui-agnaive skin', () => {
   it('maps factory.splitter orientation to NSplit direction', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.splitter(
-      [
-        { content: h('span', 'L'), size: '16rem', min: '12rem' },
-        { content: h('span', 'R') },
-      ],
       { orientation: 'Vertical', enableReversePanes: true },
+      {
+        default: () => [
+          { content: h('span', 'L'), size: '16rem', min: '12rem' },
+          { content: h('span', 'R') },
+        ],
+      },
     )
     expect(vnode.props?.direction).toBe('vertical')
     // NSplit depx 不认 rem：size/min 必须落成 px，否则拖动 NaN
@@ -557,10 +557,10 @@ describe('vui-agnaive skin', () => {
     expect(cls).toContain('mmda-loading')
   })
 
-  it('maps factory.errorRetry to ErrorRetry', () => {
+  it('maps factory.error to ErrorRetry', () => {
     const factory = createAgNaiveUiFactory()
-    expect(factory.errorRetry).toBeTypeOf('function')
-    const vnode = factory.errorRetry!({ description: 'down' })
+    expect(factory.error).toBeTypeOf('function')
+    const vnode = factory.error!({ description: 'down' })
     expect(String(vnode.type?.name ?? vnode.type?.__name ?? vnode.type)).toMatch(
       /ErrorRetry/,
     )
@@ -907,21 +907,10 @@ describe('vui-agnaive skin', () => {
       valueOf: (option: any) => option?.categoryID,
       labelOf: (option: any) => option?.categoryName,
     }
-    const onChange = vi.fn()
-    const buildSearchForRelative = vi.fn(
-      (_ctx: any, _field: any, props: any) => {
-        expect(props.modelValue).toEqual(category)
-        expect(props.options).toEqual([category])
-        // 模拟皮肤：NSelect 用 id，回写时要还原对象
-        props.onChange?.(category)
-        return h('div', { class: 'mmda-search-combo' })
-      },
-    )
     const context = {
       model: { categoryID: 'C1', category },
-      app: { ui: { buildSearchForRelative } },
       getFieldValue: () => category,
-      getFieldOptions: () => ({
+      getFieldSearchOptions: () => ({
         selectOptions: [category],
         searchParam: { searchWord: '' },
         currentSelectOption: category,
@@ -940,25 +929,13 @@ describe('vui-agnaive skin', () => {
       reference,
     } as any
 
-    const vnode = fields.searchBox(field, context)
-    expect(buildSearchForRelative).toHaveBeenCalled()
-    expect(vnode.props?.class ?? vnode.props).toBeTruthy()
+    const vnode = fields.searchBox(field, context) as any
+    expect(vnode.props?.value).toBe('C1')
+    expect(vnode.props?.remote).toBe(true)
+    expect(String(vnode.props?.class ?? '')).toContain('mmda-search-combo')
+    vnode.props?.['onUpdate:value']?.('C1')
     expect(context.setFieldValue).toHaveBeenCalledWith(field, category)
-
-    const builder = new AgNaiveUiBuilder()
-    const skin = builder.buildSearchForRelative(context, field, {
-      modelValue: category,
-      options: [category],
-      optionLabel: 'categoryName',
-      showClear: true,
-      onChange,
-    } as any)
-    expect(skin.props?.value).toBe('C1')
-    expect(skin.props?.remote).toBe(true)
-    expect(skin.props?.class).toContain('mmda-search-combo')
-    skin.props?.['onUpdate:value']?.('C1')
-    expect(onChange).toHaveBeenCalledWith(category)
-    const arrow = skin.children?.arrow?.()
+    const arrow = vnode.children?.arrow?.()
     expect(String(arrow?.props?.class ?? '')).toContain('mmda-search-combo__pick')
   })
 
@@ -1048,12 +1025,18 @@ describe('vui-agnaive skin', () => {
 
   it('wraps actions in NButtonGroup', () => {
     const factory = createAgNaiveUiFactory()
-    const group = factory.buttonGroup(() => [
-      factory.button({ label: 'A' }),
-      factory.button({ label: 'B' }),
-    ])
+    const group = factory.buttonGroup(
+      {},
+      {
+        default: () => [
+          factory.button({ label: 'A' }),
+          factory.button({ label: 'B' }),
+        ],
+      },
+    )
     expect(String(group.type?.name ?? group.type)).toMatch(/ButtonGroup/)
-    const select = factory.selectButtonGroup('a', {
+    const select = factory.selectButtonGroup({
+      modelValue: 'a',
       options: [
         { label: 'A', value: 'a' },
         { label: 'B', value: 'b' },
@@ -1065,18 +1048,31 @@ describe('vui-agnaive skin', () => {
 
   it('wraps table in AgGrid', () => {
     const factory = createAgNaiveUiFactory()
-    const vnode = factory.table([], productMeta(), { selectionMode: 'multiple' })
+    const metaUi = productMeta()
+    const vnode = factory.table({
+      rows: [],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
+      selectionMode: 'multiple',
+    })
     expect(vnode.type).toBe(AgGrid)
-    expect(vnode.props?.metaUi.objName).toBe('Product')
+    expect(vnode.props?.fields[0].fieldName).toBe('code')
   })
 
   it('passes rowDetail through factory.table', () => {
     const factory = createAgNaiveUiFactory()
-    const vnode = factory.table([{ id: '1', code: 'P-001' }], productMeta(), {
+    const metaUi = productMeta()
+    const vnode = factory.table({
+      rows: [{ id: '1', code: 'P-001' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       rowDetail: { detail: () => h('div') },
     })
     expect(vnode.props?.rowDetail).toBeTruthy()
-    const flat = factory.treeGrid([{ id: '1', code: 'P-001' }], productMeta(), {
+    const flat = factory.treeGrid({
+      rows: [{ id: '1', code: 'P-001' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       rowDetail: { detail: () => h('div') },
       treeShape: 'TREE',
       shapeKey: 'parentId',
@@ -1501,7 +1497,11 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     const onFilterModelChange = vi.fn()
     const onSelectionChange = vi.fn()
-    const vnode = factory.table([{ id: '1', code: 'P-001' }], productMeta(), {
+    const metaUi = productMeta()
+    const vnode = factory.table({
+      rows: [{ id: '1', code: 'P-001' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       selectionMode: 'multiple',
       filterDisplay: 'menu',
       onFilterModelChange,

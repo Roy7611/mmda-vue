@@ -1,5 +1,5 @@
 import { h, mergeProps } from "vue";
-import { MetaModel, type MetaUiField, type Module } from "@mmda/core";
+import { MetaModel, type MetaUiField, type Module, type UiAvatarProps } from "@mmda/core";
 import { avatarPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField } from "@mmda/core"
 import { cleanProps, fasIcon, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime, TABLE_CELL_PROP_KEYS, type UiProps } from "@mmda/vui"
 import { resolveFieldUnit } from "../factory/utils";
@@ -40,7 +40,7 @@ export const tags = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createChips(chipsPropsFromField(field, context, props ?? {}));
+) => createChips(chipsPropsFromField(field, context));
 
 export const chips = tags;
 
@@ -48,13 +48,13 @@ export const bitChipSet = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createChips(bitChipSetPropsFromField(field, context, props ?? {}));
+) => createChips(bitChipSetPropsFromField(field, context));
 
 export const enumChipSet = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createChips(enumChipSetPropsFromField(field, context, props ?? {}));
+) => createChips(enumChipSetPropsFromField(field, context));
 
 export const externalLink = (
   field: MetaUiField,
@@ -62,12 +62,12 @@ export const externalLink = (
   props?: UiProps,
 ) => {
   const app = context.app;
-  if (!app) return fallbackDisplay(field, context, props);
+  if (!app) return fallbackDisplay(field, context);
 
   const model = (props?.row ?? context.model) as Record<string, any>;
   const alias = field.reference?.alias;
   const fldVal = model[field.fieldName] ?? (alias ? model[alias] : undefined);
-  if (!fldVal) return fallbackDisplay(field, context, props);
+  if (!fldVal) return fallbackDisplay(field, context);
 
   const fldText = MetaModel.displayField(model, field);
   const domProps = cellDomProps(props);
@@ -184,19 +184,19 @@ export const progressBar = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createProgressBar(progressBarPropsFromField(field, context, props ?? {}));
+) => createProgressBar(progressBarPropsFromField(field, context));
 
 export const signaturePad = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createSignaturePad(signaturePadPropsFromField(field, context, props ?? {}));
+) => createSignaturePad(signaturePadPropsFromField(field, context));
 
 export const stepper = (
   field: MetaUiField,
   context: UiContext,
   props?: UiProps,
-) => createStepper(stepperPropsFromField(field, context, props ?? {}));
+) => createStepper(stepperPropsFromField(field, context));
 
 export const timeline = (
   field: MetaUiField,
@@ -205,7 +205,7 @@ export const timeline = (
 ) => {
   const render =
     context.uiBuilder?.factory?.timeline ?? createTimeline;
-  return render(timelinePropsFromField(field, context, props ?? {}));
+  return render(timelinePropsFromField(field, context));
 };
 
 export const relativeTimeField = (
@@ -293,7 +293,12 @@ export const fieldAvatar = (
   context: UiContext,
   props?: UiProps,
 ) => {
-  const avatarProps = avatarPropsFromField(field, context, props ?? {});
+  // 表格单元格里的头像默认 small（表单里不默认，交给字段/调用方）
+  const cell = props as UiAvatarProps | undefined;
+  const avatarProps: UiAvatarProps = {
+    ...avatarPropsFromField(field, context),
+    ...(cell ? { size: cell.size ?? 'small' } : {}),
+  };
   const render = (context as any).uiBuilder?.factory?.avatar;
   if (render) return render(avatarProps);
   return createAvatar(avatarProps, (name: string) =>

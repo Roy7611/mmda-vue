@@ -3,10 +3,9 @@ import { stepperDisplayToEj2, stepperIndexOf, stepperItemsOf, stepperModifierCla
 import { emitStepperChange } from '@mmda/vui'
 
 describe('stepper helpers', () => {
-  it('reads index from value over modelValue', () => {
+  it('reads index from value', () => {
     expect(stepperIndexOf(null)).toBe(0)
-    expect(stepperValueOf({ value: 2, modelValue: 0 })).toBe(2)
-    expect(stepperValueOf({ modelValue: 1 })).toBe(1)
+    expect(stepperValueOf({ value: 2 })).toBe(2)
     expect(stepperValueOf({})).toBe(0)
   })
 
@@ -91,24 +90,16 @@ describe('stepper helpers', () => {
     ])
   })
 
-  it('translates field integer and extra items', () => {
+  it('translates field integer and readOnly', () => {
     const field = { fieldName: 'phase' } as any
     const setFieldValue = vi.fn()
-    const items = [{ label: '甲' }, { label: '乙' }]
-    const props = stepperPropsFromField(
-      field,
-      {
-        getFieldValue: () => 1,
-        setFieldValue,
-        isFieldReadonly: () => true,
-      },
-      { items, orientation: 'vertical', labelField: 'label' },
-    )
+    const props = stepperPropsFromField(field, {
+      getFieldValue: () => 1,
+      setFieldValue,
+      isFieldReadonly: () => true,
+    })
     expect(props.value).toBe(1)
-    expect(props.items).toEqual(items)
-    expect(props.labelField).toBe('label')
     expect(props.readOnly).toBe(true)
-    expect(props.orientation).toBe('vertical')
     props.onChange?.(2)
     expect(setFieldValue).toHaveBeenCalledWith(field, 2)
   })

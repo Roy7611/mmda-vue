@@ -163,15 +163,26 @@ export const AgGrid = defineComponent({
   inheritAttrs: false,
   props: {
     data: { type: Array as PropType<any[]>, default: () => [] },
-    metaUi: { type: Object as PropType<MetaUi>, required: true },
+    metaUi: { type: Object as PropType<MetaUi | null>, default: null },
+    fields: { type: Array as PropType<MetaUiField[]>, default: () => [] },
+    primaryKey: { type: String as PropType<string | undefined>, default: undefined },
   },
   setup(props, { attrs }) {
     const listProps = attrs as UiListPropsType<any>
     const api = ref<GridApi | null>(null)
     const applyingFilter = ref(false)
     const theme = computed(() => buildAgGridTheme())
+    const effectiveMeta = computed<MetaUi>(() =>
+      (props.fields?.length
+        ? {
+            primaryKey: props.primaryKey,
+            getListedFields: () => props.fields,
+            groups: [],
+          }
+        : props.metaUi) as MetaUi,
+    )
     const columnDefs = computed(() =>
-      buildColumnDefs(props.metaUi, listProps),
+      buildColumnDefs(effectiveMeta.value, listProps),
     )
 
     const syncFilterModel = () => {
@@ -180,7 +191,7 @@ export const AgGrid = defineComponent({
       applyingFilter.value = true
       try {
         grid.setFilterModel(
-          entityFilterToAgModel(listProps.filterModel, props.metaUi),
+          entityFilterToAgModel(listProps.filterModel, effectiveMeta.value),
         )
       } finally {
         applyingFilter.value = false
@@ -224,7 +235,7 @@ export const AgGrid = defineComponent({
 
     const onFilterChanged = (event: FilterChangedEvent) => {
       if (applyingFilter.value) return
-      const model = agFilterModelToEntity(event.api.getFilterModel(), props.metaUi)
+      const model = agFilterModelToEntity(event.api.getFilterModel(), effectiveMeta.value)
       return listProps.onFilterModelChange?.(model)
     }
 
@@ -332,9 +343,9 @@ export const AgGrid = defineComponent({
               suppressCellFocus: false,
               getRowId: listProps.itemKey
                 ? (params: { data: any }) => listProps.itemKey!(params.data)
-                : props.metaUi.primaryKey
+                : effectiveMeta.value.primaryKey
                   ? (params: { data: any }) =>
-                      String(params.data?.[props.metaUi.primaryKey!] ?? '')
+                      String(params.data?.[effectiveMeta.value.primaryKey!] ?? '')
                   : undefined,
               rowSelection: selectionMode
                 ? {

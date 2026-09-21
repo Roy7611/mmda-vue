@@ -20,24 +20,22 @@ import {
 import { dateRangePickerValueOf } from '@mmda/core'
 
 describe('datePicker helpers', () => {
-  it('parses Date and prefers value over modelValue', () => {
+  it('parses Date from value', () => {
     const day = new Date(2026, 8, 7)
     expect(dateOf(day)?.getTime()).toBe(day.getTime())
-    expect(datePickerDateOf({ value: day, modelValue: new Date(0) })?.getTime()).toBe(
-      day.getTime(),
-    )
-    expect(datePickerDateOf({ modelValue: '2026-09-07' })?.getFullYear()).toBe(2026)
+    expect(datePickerDateOf({ value: day })?.getTime()).toBe(day.getTime())
+    expect(datePickerDateOf({ value: '2026-09-07' })?.getFullYear()).toBe(2026)
     expect(datePickerDateOf({})).toBeUndefined()
   })
 
-  it('reads minDate leftover and default firstDayOfWeek Monday', () => {
+  it('reads minDate and default firstDayOfWeek Monday', () => {
     const min = new Date(2026, 0, 1)
     expect(datePickerMinOf({ minDate: min })?.getTime()).toBe(min.getTime())
     expect(datePickerFirstDayOfWeek({})).toBe(DATE_PICKER_FIRST_DAY_OF_WEEK)
     expect(datePickerFirstDayOfWeek({ firstDayOfWeek: 0 })).toBe(0)
   })
 
-  it('defaults allowInput to false and maps MES manualInput', () => {
+  it('defaults allowInput to false and accepts manualInput / allowEdit', () => {
     expect(datePickerAllowInput({})).toBe(false)
     expect(datePickerAllowInput({ allowInput: true })).toBe(true)
     expect(datePickerAllowInput({ manualInput: true })).toBe(true)

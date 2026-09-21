@@ -117,28 +117,19 @@ export function renderFileLink(props: UiFileLinkProps = {}): VNode {
 
 export function fileLinkPropsFromField(
   field: MetaUiField,
-  context: FileLinkFieldContext,
-  extra: UiProps = {},
+  context: FileLinkFieldContext
 ): UiFileLinkProps {
   const url = String(
-    extra.url ?? context.getFieldValue(field, extra.row) ?? '',
+    context.getFieldValue(field) ?? '',
   )
-  const displayed = context.displayField?.(field, extra.row)
+  const displayed = context.displayField?.(field)
   const auth = context.getModuleAuth?.()
   return {
     url,
     fileName:
-      (extra.fileName as string | undefined) ??
       (displayed != null && String(displayed) !== url
         ? String(displayed)
         : undefined),
-    downloadable:
-      extra.downloadable !== undefined
-        ? Boolean(extra.downloadable)
-        : auth?.allowDownload !== false,
-    preview: extra.preview as boolean | undefined,
-    onPreview: extra.onPreview as UiFileLinkProps['onPreview'],
-    class: extra.class,
-    htmlAttributes: extra.htmlAttributes,
+    downloadable: auth?.allowDownload !== false,
   }
 }

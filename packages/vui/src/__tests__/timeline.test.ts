@@ -69,13 +69,8 @@ describe('timeline helpers', () => {
   it('uses field array as items', () => {
     const field = { fieldName: 'events' } as any
     const rows = [{ label: '甲', time: '2026-01-01 00:00:00' }]
-    const props = timelinePropsFromField(
-      field,
-      { getFieldValue: () => rows },
-      { labelField: 'label', timeField: 'time' },
-    )
+    const props = timelinePropsFromField(field, { getFieldValue: () => rows })
     expect(props.items).toEqual(rows)
-    expect(props.labelField).toBe('label')
   })
 })
 

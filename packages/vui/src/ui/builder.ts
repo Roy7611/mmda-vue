@@ -1,28 +1,33 @@
-import { defineComponent, h, type Component, type VNode, type VNodeArrayChildren, type VNodeChild } from "vue";
+import { defineComponent, h, type Component, type VNode, type VNodeChild } from "vue";
 import {
   moduleChain,
   uiCssClass,
   type Entity,
   type EntityUrlParam,
-  type MetaUiField,
+  type MetaUi,
   type MetaUiGroup,
   type Module,
   type UiAppSideMenuProps,
   type UiBuilder as CoreUiBuilder,
   type UiContext as CoreUiContext,
   type UiDialogAction,
-  type UiDetailsTopbar,
-  type UiEditTopbar,
-  type UiIndexTopbar,
+  type UiDiagramProps,
+  type UiDetailsTopbarProps,
+  type UiEditTopbarProps,
+  type UiGanttProps,
+  type UiIndexTopbarProps,
+  type UiKanbanProps,
   type UiModuleBreadcrumbProps,
+  type UiSchedulerProps,
+  type UiTimelineProps,
 } from "@mmda/core";
 import { VueAppSideMenu } from "../components/AppSideMenu";
 import { openTableSettingDialog } from "../components/TableSettingView";
 import { logListPaint } from "./builder/list_query";
-import {VueUiLayout, type UiProps, type UiLayout, type UiSlots} from "./layout";
+import {VueUiLayout, type UiProps, type UiSlots} from "./layout";
 import type {
   VueUiFactory,
-  UiFieldFactory,
+  VueUiFieldFactory,
 } from "./factory";
 import { mixPluginHost, VuePluginHost } from "./plugins/host";
 import {
@@ -53,7 +58,6 @@ import type {
 } from "./factory/auth";
 import type {
   SearchForRelativeContentProps,
-  SearchForRelativeProps,
   UiSearchField,
 } from "./factory/filter";
 import type { UiAction } from "./factory/action";
@@ -108,8 +112,8 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
 
   constructor(
     public readonly factory: VueUiFactory,
-    public readonly fieldFactory: UiFieldFactory,
-    public readonly layout: UiLayout,
+    public readonly fieldFactory: VueUiFieldFactory,
+    public readonly layout: VueUiLayout,
     public overlay: VueUiOverlay = createHtmlOverlay(),
   ) {
     super();
@@ -151,36 +155,6 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     );
   }
 
-  buildContainer(
-    subContainer: VNode | VNodeArrayChildren,
-    props?: UiProps,
-  ): VNode {
-    return unimplemented("buildContainer") as VNode;
-  }
-  buildHeader(
-    content: VNode | VNodeArrayChildren,
-    props?: UiProps,
-  ): VNode {
-    return unimplemented("buildHeader") as VNode;
-  }
-  buildAside(
-    content: VNode | VNodeArrayChildren,
-    props?: UiProps,
-  ): VNode {
-    return unimplemented("buildAside") as VNode;
-  }
-  buildMain(
-    content: VNode | VNodeArrayChildren,
-    props?: UiProps,
-  ): VNode {
-    return unimplemented("buildMain") as VNode;
-  }
-  buildFooter(
-    content: VNode | VNodeArrayChildren,
-    props?: UiProps,
-  ): VNode {
-    return unimplemented("buildFooter") as VNode;
-  }
   buildAppScaffold(props: AppScaffoldProps = {}): VNode {
     const invoke = (value: unknown): VNodeChild =>
       typeof value === "function"
@@ -212,12 +186,6 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
   buildAppMenu(modules: Module[], props?: UiProps): VNode {
     return unimplemented("buildAppMenu") as VNode;
-  }
-  buildLoading(context: UiContext, props?: UiProps): VNode {
-    return unimplemented("buildLoading") as VNode;
-  }
-  buildError(context: UiContext, props?: UiProps): VNode {
-    return unimplemented("buildError") as VNode;
   }
   buildModuleBreadcrumb(
     context: UiContext,
@@ -255,21 +223,21 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
   buildIndexTopbar(
     context: UiContext,
-    props?: UiIndexTopbar,
+    props?: UiIndexTopbarProps,
     slots?: UiSlots,
   ): VNode {
     return paintIndexTopbar(this, context, props ?? {}, slots);
   }
   buildDetailsTopbar(
     context: UiContext,
-    props?: UiDetailsTopbar,
+    props?: UiDetailsTopbarProps,
     slots?: UiSlots,
   ): VNode {
     return paintDetailsTopbar(this, context, props ?? {}, slots);
   }
   buildEditTopbar(
     context: UiContext,
-    props?: UiEditTopbar,
+    props?: UiEditTopbarProps,
     slots?: UiSlots,
   ): VNode {
     return paintEditTopbar(this, context, props ?? {}, slots);
@@ -283,7 +251,7 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
   buildModuleSearchbar(
     context: UiContext,
-    props: ModuleSearchbarProps,
+    props?: UiProps,
   ): VNode {
     return unimplemented("buildModuleSearchbar") as VNode;
   }
@@ -294,19 +262,12 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
       extra: props ?? {},
     });
   }
-  buildSearchView(context: UiContext, props?: ModuleSearchbarProps) {
-    const content = this.buildModuleSearchbar(context, props ?? {});
-    return this.dialog(content, context, {
-      title: context.t("action.search"),
-    });
-  }
-  buildSearchForRelative(
-    context: UiContext,
-    field: MetaUiField,
-    props: SearchForRelativeProps,
-  ): VNode {
-    return unimplemented("buildSearchForRelative") as VNode;
-  }
+  // buildSearchView(context: UiContext, props: ModuleSearchbarProps) {
+  //   const content = this.buildModuleSearchbar(context, props ?? {});
+  //   return this.dialog(content, context, {
+  //     title: context.t("action.search"),
+  //   });
+  // }
   buildSigninForm(
     props?: SigninFormProps,
     slots?: SigninFormSlots,
@@ -656,18 +617,22 @@ export interface VueUiBuilder {
     props?: UiProps,
   ): VNode;
   buildAttachmentGroup(context: any, props?: UiProps): VNode;
-  buildGantt(context: any, props?: UiProps): VNode;
-  buildGanttChart(context: any, props?: UiProps): VNode;
-  buildScheduler(context: any, props?: UiProps): VNode;
+  buildGantt(context: any, props?: UiGanttProps): VNode;
+  buildGanttChart(context: any, props?: UiGanttProps): VNode;
+  buildScheduler(context: any, props?: UiSchedulerProps<VNode>): VNode;
   buildBpmnDiagram(
     flowTrails: any[],
     context: any,
     props?: UiProps,
   ): VNode;
-  buildDiagram(context: any, props?: UiProps): VNode;
-  buildKanban(context: any, props?: UiProps): VNode;
-  buildTimeline(context: any, props?: UiProps): VNode;
+  buildDiagram(context: any, props?: UiDiagramProps<VNode>): VNode;
+  buildKanban(context: any, props?: UiKanbanProps): VNode;
+  buildTimeline(context: any, props?: UiTimelineProps): VNode;
   buildListView(context: any, props?: any): VNode;
+  list(metaUi: MetaUi, props?: any): VNode;
+  table(metaUi: MetaUi, props?: any): VNode;
+  grid(metaUi: MetaUi, props?: any): VNode;
+  treeGrid(metaUi: MetaUi, props?: any): VNode;
   buildFilterBar(context: any, props?: any): VNode;
   buildView(context: any, props?: UiViewPropsType): VNode;
   groupWrapClass(group: MetaUiGroup, props?: UiProps): string;
@@ -772,7 +737,7 @@ function entityPageGate(
   const err = runtime.error?.value;
   if (err) {
     return (
-      builder.factory.errorRetry?.({
+      builder.factory.error?.({
         error: err,
         onRetry: () => {
           runtime.error.value = null;
@@ -845,7 +810,7 @@ export function createStubUiBuilder(): VueUiBuilder {
   const stub: any = {
     factory,
     layout: factory.layout,
-    fieldFactory: {} as UiFieldFactory,
+    fieldFactory: {} as VueUiFieldFactory,
     labelFor: (field: { displayLabel?: string }) => h("label", field.displayLabel),
     editFor: emptyNode,
     displayFor: emptyNode,
@@ -875,13 +840,12 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildGrid: emptyNode,
     buildList: emptyNode,
     buildTable: emptyNode,
+    list: emptyNode,
+    table: emptyNode,
+    grid: emptyNode,
+    treeGrid: emptyNode,
     buildColumns: (): unknown[] => [],
     buildPaginator: emptyNode,
-    buildContainer: emptyNode,
-    buildHeader: emptyNode,
-    buildAside: emptyNode,
-    buildMain: emptyNode,
-    buildFooter: emptyNode,
     buildAppScaffold: emptyNode,
     buildAppTopBar: emptyNode,
     buildAppSideBar: emptyNode,
@@ -890,8 +854,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     setColorScheme: (): void => undefined,
     setColorPalette: (): void => undefined,
     setFontScale: (): void => undefined,
-    buildLoading: emptyNode,
-    buildError: emptyNode,
     buildModuleBreadcrumb: emptyNode,
     buildIndexTopbar: emptyNode,
     buildDetailsTopbar: emptyNode,
@@ -901,7 +863,6 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildModuleSearchbar: emptyNode,
     buildFilterBar: emptyNode,
     buildSearchView: emptyNode,
-    buildSearchForRelative: emptyNode,
     buildSigninForm: emptyNode,
     buildSignupForm: emptyNode,
     buildFieldGroup: emptyNode,

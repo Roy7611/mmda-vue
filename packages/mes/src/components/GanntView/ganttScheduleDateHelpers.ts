@@ -1,5 +1,7 @@
 /** 排程甘特图日期：统一按当天 00:00:00 处理（含历史 23:59:59 数据归一化） */
 
+import { DateUtils } from '@mmda/core'
+
 export function normalizeScheduleDateTime(value?: string | Date | null): Date | null {
 	if (!value) {
 		return null;
@@ -13,7 +15,7 @@ export function normalizeScheduleDateTime(value?: string | Date | null): Date | 
 }
 
 export function formatScheduleDateTime(value: Date): string {
-	return value.toFormat('yyyy-MM-dd HH:mm:ss');
+	return DateUtils.toFormat(value, 'yyyy-MM-dd HH:mm:ss');
 }
 
 export function normalizeScheduleDateTimeString(value?: string | Date | null): string | undefined {

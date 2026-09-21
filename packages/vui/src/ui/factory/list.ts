@@ -180,33 +180,55 @@ export function bindListDisplayRenderers(factory: ListFamily) {
   const list = factory.list.bind(factory);
   const table = factory.table.bind(factory);
   const treeGrid = factory.treeGrid.bind(factory);
-  const dispatch = (
-    model: unknown,
-    metaUi: unknown,
-    props: UiListPropsType<any> = {},
-  ) => {
-    const display = props.display ?? "list";
-    if (display === "treeGrid") return treeGrid(model, metaUi, props);
-    if (display === "list") return list(model, metaUi, props);
-    return table(model, metaUi, props);
+  const propsOf = (...args: any[]) => {
+    if (args.length === 1) return (args[0] ?? {}) as UiListPropsType<any>;
+    const [rows, metaUi, props = {}] = args;
+    const meta = metaUi as {
+      primaryKey?: string;
+      objName?: string;
+      getListedFields?: () => unknown[];
+    };
+    return {
+      ...props,
+      rows,
+      primaryKey: props.primaryKey ?? meta?.primaryKey,
+      objName: props.objName ?? meta?.objName,
+      fields:
+        props.fields ??
+        (typeof meta?.getListedFields === "function"
+          ? meta.getListedFields()
+          : undefined),
+    } as UiListPropsType<any>;
   };
-  factory.list = (model, metaUi, props = {}) =>
-    dispatch(model, metaUi, { ...props, display: props.display ?? "list" });
-  factory.table = (model, metaUi, props = {}) =>
-    dispatch(model, metaUi, { ...props, display: props.display ?? "table" });
-  factory.grid = (model, metaUi, props = {}) =>
-    dispatch(model, metaUi, { ...props, display: props.display ?? "grid" });
-  factory.treeGrid = (model, metaUi, props = {}) =>
-    dispatch(model, metaUi, {
+  const dispatch = (props: UiListPropsType<any> = {}) => {
+    const display = props.display ?? "list";
+    if (display === "treeGrid") return treeGrid(props);
+    if (display === "list") return list(props);
+    return table(props);
+  };
+  factory.list = ((...args: any[]) =>
+    dispatch(propsOf(...args) as UiListPropsType<any>) as unknown) as typeof factory.list;
+  factory.table = ((...args: any[]) => {
+    const props = propsOf(...args) as UiListPropsType<any>;
+    return dispatch({ ...props, display: props.display ?? "table" });
+  }) as typeof factory.table;
+  factory.grid = ((...args: any[]) => {
+    const props = propsOf(...args) as UiListPropsType<any>;
+    return dispatch({ ...props, display: props.display ?? "grid" });
+  }) as typeof factory.grid;
+  factory.treeGrid = ((...args: any[]) => {
+    const props = propsOf(...args) as UiListPropsType<any>;
+    return dispatch({
       ...props,
       display: props.display ?? "treeGrid",
     });
+  }) as typeof factory.treeGrid;
 }
 
 /** 有 `pagination` 且 `pageable !== false` 时在内容下方接 `factory.paginator`。 */
 export function wrapWithPaginator(
   factory: {
-    paginator: (model: Pagination, props: UiPaginatorPropsType) => VNode;
+    paginator: (props: UiPaginatorPropsType) => VNode;
   },
   node: VNode,
   pagination: Pagination | undefined,
@@ -220,7 +242,8 @@ export function wrapWithPaginator(
   if (!pagination || props.pageable === false) return node;
   return h("div", { class: className }, [
     node,
-    factory.paginator(pagination, {
+    factory.paginator({
+      pagination,
       onPage: (pager) => {
         void props.onPage?.(pager);
       },
@@ -231,7 +254,7 @@ export function wrapWithPaginator(
 
 export function wrapListFamilyPaginator(
   factory: {
-    paginator: (model: Pagination, props: UiPaginatorPropsType) => VNode;
+    paginator: (props: UiPaginatorPropsType) => VNode;
     list: (...args: any[]) => VNode;
     table?: (...args: any[]) => VNode;
     treeGrid?: (...args: any[]) => VNode;
@@ -240,20 +263,31 @@ export function wrapListFamilyPaginator(
   className = uiCssClass('pagable'),
 ) {
   for (const name of names) {
-    const orig = factory[name];
+    const orig = (factory as any)[name];
     if (typeof orig !== "function") continue;
-    factory[name] = (
-      model: unknown,
-      metaUi: unknown,
-      props: UiListPropsType<any> = {},
-    ) =>
-      wrapWithPaginator(
+    (factory as any)[name] = (...args: any[]) => {
+      const props =
+        args.length === 1
+          ? ((args[0] ?? {}) as UiListPropsType<any>)
+          : {
+              ...(args[2] ?? {}),
+              rows: args[0],
+              primaryKey: args[2]?.primaryKey ?? (args[1] as any)?.primaryKey,
+              fields:
+                args[2]?.fields ??
+                (typeof (args[1] as any)?.getListedFields === "function"
+                  ? (args[1] as any).getListedFields()
+                  : undefined),
+              objName: args[2]?.objName ?? (args[1] as any)?.objName,
+            };
+      return wrapWithPaginator(
         factory,
-        orig(model, metaUi, props),
+        orig(props),
         props.pagination,
         props,
         className,
       );
+    };
   }
 }
 

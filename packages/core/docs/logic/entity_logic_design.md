@@ -28,7 +28,7 @@ EntityLogic（core：CRUD + 视图钩子 + applyTo(UiContext)）
     ↑
 MaterialLogic          业务；无 Vue 类型
 SubEntityLogic         子表；core
-VueEntityLogic         仅 vui 壳：无定制仓库可 new；搜索表单 rx
+GenericEntityLogic     core 壳：无定制仓库经 DI resolve
 ```
 
 ```mermaid
@@ -36,13 +36,13 @@ flowchart TB
   EntityLogic["EntityLogic core"]
   MaterialLogic["MaterialLogic 业务"]
   SubEntityLogic["SubEntityLogic 子表"]
-  VueEntityLogic["VueEntityLogic vui 壳"]
+  GenericEntityLogic["GenericEntityLogic core 壳"]
   VueUiContext["VueUiContext router / rx searchParam / t"]
   EntityLogic --> MaterialLogic
   EntityLogic --> SubEntityLogic
-  EntityLogic --> VueEntityLogic
+  EntityLogic --> GenericEntityLogic
   MaterialLogic --> VueUiContext
-  VueEntityLogic --> VueUiContext
+  GenericEntityLogic --> VueUiContext
 ```
 
 rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLogic`。
@@ -53,7 +53,6 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 |---|---|---|---|
 | `EntityLogic` | core | 程序员 `extends` | ApiClient CRUD、`beforeEdit` / `viewLogicLoaders`、`applyTo` |
 | `SubEntityLogic` | core | 子表 Logic `extends` | 主表内存行，不走 HTTP `getAll` |
-| `VueEntityLogic` | vui | **壳** `new`；业务不继承 | 覆盖 `createSearchForm` 用 `rx` |
 | `VueUiContext` | vui | 运行时 | `router`、`searchParam = rx(...)`、`bindLogics`、`t()` |
 
 已删除：`UiLogic`、`UiLogicInit`、`GenericUiLogic`、`UiGroupLogic`。
@@ -65,7 +64,7 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 导航是会话能力，不是实体 CRUD。
 
 - `vue-router` 实例在 `VueUiContext.router`（`EntityView` 构造会话时注入）。
-- `routeTo` / `routeToIndex` / `routeToDetails` / `routeToEdit` / `routeToCreate` 在 vui mixin [`navigate.ts`](../../../vui/src/contexts/mixins/navigate.ts)。
+- `routeTo` / `routeToIndex` / `routeToDetails` / `routeToEdit` / `routeToCreate` / `routeToSearch` 在 vui mixin [`navigate.ts`](../../../vui/src/contexts/mixins/navigate.ts)。
 - 动作 `redirectTo` 走 `context.router.push`，不读 `logic.router`。
 - `EntityLogicInit` **没有** `router` / `i18n`。
 
@@ -79,10 +78,10 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 
 ## 搜索响应式
 
-两处，不要混：
+搜索表单状态只属于 UI 上下文，Logic 不留 `searchForm`：
 
-1. **会话**：`VueUiContext` mixin 上 `searchParam = rx(...)`。列表 `init()` → `configureSearch(..., logic.beforeSearch())` 把 Logic 的表单拷进这份已 `rx` 的对象。`UiSearchField.searchVal` 本身是 `ref`。
-2. **VueEntityLogic.createSearchForm**：给无定制 `new VueEntityLogic` 的搜索表单再 `rx` 一层。业务 `MaterialLogic extends EntityLogic` **不走** 这条；业务列表的响应式靠第 1 条。
+1. **会话**：`VueUiContext` mixin 上 `searchParam = rx(...)`，`searchFields` / `customSearchFields` 也是会话状态。
+2. **装配**：业务 `beforeSearch()` 返回 `{ fields, groups, customActions, customSearchFields }`。vui 在 `init()` 里 `applyTo` 后把 `customSearchFields` 交给 `configureSearch`，运行时再包成 `UiCustomSearchField`。
 
 ## applyTo
 
@@ -93,13 +92,13 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 [`EntityView`](../../../vui/src/components/EntityView.ts)：
 
 1. DI `${service}:${repository}Logic` → `new MaterialLogic(init)`（`EntityLogic` 子类）
-2. 没有定制 → `new VueEntityLogic(defineEntity, init)`
+2. 没有定制 → `GenericEntityLogic.resolve(di, token, defineEntity, init)`
 
-跨仓库 `select()`、分类树同样：有 DI 用业务类，否则 `VueEntityLogic`。
+跨仓库 `select()`、分类树同样：有 DI 用业务类，否则 `GenericEntityLogic`。
 
 ## 不要
 
-- 业务 `extends VueEntityLogic`
+- 业务 `extends GenericEntityLogic`
 - Logic 上挂 `Router` / `I18n`
 - 把 mixins 上移 core
 - 再引入 `UiLogic` / `GenericUiLogic` / `UiGroupLogic`

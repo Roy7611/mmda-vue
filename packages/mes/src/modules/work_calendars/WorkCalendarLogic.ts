@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type WorkCalendar, defineWorkCalendar } from '@/models/WorkCalendar';
 import { type WorkCalendarDay, defineWorkCalendarDay } from '@/models/WorkCalendarDay';
@@ -91,7 +91,7 @@ export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
 				format: 'yy-mm-dd',
 				modelValue: entity.calendarDay,
 				onUpdatePicker: (value: Date) => {
-					entity.calendarDay = value.toFormat('yyyy-MM-dd')
+					entity.calendarDay = DateUtils.toFormat(value, 'yyyy-MM-dd')
 				},
 			})
 			,
@@ -132,16 +132,16 @@ export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
 							date.setDate(date.getDate() + 1); // 时间自增
 						}
 						if (m['days'].length > 0 && m['days'].findIndex((day: WorkCalendarDay) =>
-							day.calendarDay === date.toFormat('yyyy-MM-dd')
+						day.calendarDay === DateUtils.toFormat(date, 'yyyy-MM-dd')
 						) !== -1) {
 							date.setDate(date.getDate() + 1); // 时间自增
 							if (m['days'].length > 0 && m['days'].findIndex((day: WorkCalendarDay) =>
-								day.calendarDay === date.toFormat('yyyy-MM-dd')
+								day.calendarDay === DateUtils.toFormat(date, 'yyyy-MM-dd')
 							) !== -1) {
 								date.setDate(date.getDate() + 1); // 时间自增
 							}
 						}
-						return date.toFormat('yyyy-MM-dd')
+						return DateUtils.toFormat(date, 'yyyy-MM-dd')
 					},
 
 				},
@@ -173,16 +173,16 @@ export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
 							date.setDate(date.getDate() + 1); // 时间自增
 						}
 						if (m['shifts'].length > 0 && m['shifts'].findIndex((day: WorkCalendarDay) =>
-							day.startDate === date.toFormat('yyyy-MM-dd')
+							day.startDate === DateUtils.toFormat(date, 'yyyy-MM-dd')
 						) !== -1) {
 							date.setDate(date.getDate() + 1); // 时间自增
 							if (m['shifts'].length > 0 && m['shifts'].findIndex((day: WorkCalendarDay) =>
-								day.startDate === date.toFormat('yyyy-MM-dd')
+								day.startDate === DateUtils.toFormat(date, 'yyyy-MM-dd')
 							) !== -1) {
 								date.setDate(date.getDate() + 1); // 时间自增
 							}
 						}
-						return date.toFormat('yyyy-MM-dd')
+						return DateUtils.toFormat(date, 'yyyy-MM-dd')
 					}
 				},
 
@@ -247,7 +247,7 @@ export class WorkCalendarDayLogic extends SubEntityLogic<WorkCalendarDay, WorkCa
 						.join(" AND ");
 				}).onChange((context: UiContext<WorkCalendarDay>, model: WorkCalendarDay, newVal) => {
 					if (!isNullOrUndefined(newVal)) {
-						const shiftObj = context.getFieldCurrentOption('specificShiftID')
+						const shiftObj = context.getFieldSelectedOption('specificShiftID')
 						context.setFieldValue('shiftSystem', {
 							value: shiftObj.shiftSystem,
 							text: ShiftSystemEnum.textOf(shiftObj.shiftSystem)

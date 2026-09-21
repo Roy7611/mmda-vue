@@ -10,7 +10,7 @@ describe('textInput chrome helpers', () => {
 
   it('reads value from value or modelValue', () => {
     expect(textInputValueOf({ value: 'a' })).toBe('a')
-    expect(textInputValueOf({ modelValue: 'b' } as any)).toBe('b')
+    expect(textInputValueOf({ value: 'b' } as any)).toBe('b')
   })
 
   it('maps lowercase password to Password', () => {

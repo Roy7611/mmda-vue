@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiCheckBoxProps } from '@mmda/core'
+import { type UiCheckBoxProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiCheckBoxProps } from '@mmda/core'

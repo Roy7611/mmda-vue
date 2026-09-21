@@ -21,12 +21,15 @@ export function buttonRenderers(
 ) {
   return {
     button,
-    buttonGroup: createButtonGroup,
-    selectButtonGroup: (value, props) =>
-      createSelectButtonGroup(value, props, factory.resolveIcon),
+    buttonGroup: (props: any = {}, slots: any) =>
+      createButtonGroup(slots?.default ?? (() => []), props),
+    selectButtonGroup: (props: any) =>
+      createSelectButtonGroup(props.modelValue, props, factory.resolveIcon),
     splitButton: createSplitButton,
-    dropDownButton: createDropDownButton,
-    moreMenuButton: createMoreMenuButton,
+    dropDownButton: (props: any, slots: any) =>
+      createDropDownButton(props, props.actions ?? [], slots),
+    moreMenuButton: (props: any, slots: any) =>
+      createMoreMenuButton(props, props.actions ?? [], slots),
     floatingActionButton: createFloatingActionButton,
     actionButton: (action: any, t: any, _resolve: any, props: any) =>
       button({

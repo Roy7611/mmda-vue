@@ -15,6 +15,7 @@ import type {
   UiContext,
   Pager,
   Pagination,
+  UiSearchRefProps,
   SelectableFn,
   MetaUiFilterOpCode,
 } from "@mmda/core";
@@ -22,14 +23,11 @@ import { h, ref, unref, type Ref, type VNode } from "vue";
 
 import type { UiProps } from "../layout";
 
-export interface SearchForRelativeProps extends UiProps {
+export interface SearchForRelativeProps extends UiSearchRefProps {
   contentProps?: Record<string, any>;
-  onUpdate?: (value: any) => void;
-  modelValue: any;
   onSearch?: (params: any) => Promise<{ list: any; pager: Pagination }>;
   onSelect?: (selection: any[], row: any) => void;
   onRowDblclick?: (data: any, index: number) => void;
-  toSearch?: (event: Event) => Promise<any>;
   accept?: () => Promise<boolean>;
   onHide?: () => Promise<boolean>;
   reject?: () => Promise<boolean>;

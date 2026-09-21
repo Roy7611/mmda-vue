@@ -197,7 +197,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
           group: "selectMany",
           role: "primary",
           onAction: async (context: UiContext<Employee>) => {
-            context.toSelectManyIndex(
+            context.selectMany(
               "batchCreateEmployeeAccounts",
               async () => await this.batchCreateEmployeeAccounts(context),
             );

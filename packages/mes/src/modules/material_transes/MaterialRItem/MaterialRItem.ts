@@ -57,10 +57,10 @@ export const MaterialRItem = defineComponent({
             .field('remark', t('inventory.remark'))
             .build();
 
-        return () => props.ctx.uiBuilder.factory.table(
-            submitData.data,
+        return () => props.ctx.uiBuilder.table(
             metaUi,
             {
+                rows: submitData.data,
                 tableId: 'material-r-item-table',
                 fieldCellRenderers: {
                     arrivedQuantity: (_field: any, data: any) => ui.factory.numberInput({

@@ -69,23 +69,18 @@ export function treeSelectParentFieldOf(
 }
 
 function fieldTreeFields(
-  field: MetaUiField,
-  extra: UiProps,
+  field: MetaUiField
 ): UiTreeFields {
-  const extraFields = extra.fields as UiTreeFields | undefined
   const reference = field.reference
   const refFlds = reference?.refFlds ?? []
   const parentId =
-    extraFields?.parentId ??
-    (typeof extra.shapeKey === 'string' ? extra.shapeKey : undefined) ??
-    treeSelectParentFieldOf(reference)
+        treeSelectParentFieldOf(reference)
   return {
-    id: extraFields?.id ?? refFlds[0] ?? 'id',
-    label: extraFields?.label ?? refFlds[1] ?? 'label',
+    id: refFlds[0] ?? 'id',
+    label: refFlds[1] ?? 'label',
     parentId,
-    children: extraFields?.children ?? 'children',
-    childrenCount: extraFields?.childrenCount ?? 'childrenCount',
-    icon: extraFields?.icon,
+    children: 'children',
+    childrenCount: 'childrenCount',
   }
 }
 
@@ -120,11 +115,10 @@ function fieldTreeValue(
 
 function resolveTreeWriteback(
   field: MetaUiField,
-  extra: UiProps,
   value: UiTreeSelectValue,
   fields: UiTreeFields,
 ): unknown {
-  const rows = Array.isArray(extra.data) ? extra.data : []
+  const rows: unknown[] = []
   const find = (id: string | number) =>
     rows.find((row) => treeIdOf(row, fields) === String(id))
   if (Array.isArray(value)) {
@@ -137,34 +131,23 @@ function resolveTreeWriteback(
 
 export function treeSelectPropsFromField(
   field: MetaUiField,
-  context: TreeSelectFieldContext,
-  extra: UiProps = {},
+  context: TreeSelectFieldContext
 ): UiTreeSelectProps {
-  const fields = fieldTreeFields(field, extra)
+  const fields = fieldTreeFields(field)
   const reference = field.reference
   const treeRef = isTreeSelectReference(reference)
   const parentField = fields.parentId
-  const checkbox = extra.selectionMode === 'checkbox'
+  const checkbox = false
   const cachedOptions =
     !reference?.hasOne && Array.isArray(reference?.refOptions)
       ? reference!.refOptions
       : undefined
-  const sourceRows = Array.isArray(extra.data)
-    ? (extra.data as unknown[])
-    : treeRef && cachedOptions?.length
-      ? cachedOptions
-      : undefined
+  const sourceRows = treeRef && cachedOptions?.length ? cachedOptions : undefined
   const hasData = Array.isArray(sourceRows)
-  const lazy =
-    extra.loadMode === 'lazy' ||
-    (treeRef &&
-      Boolean(reference?.hasOne) &&
-      !hasData &&
-      extra.loadMode !== 'full')
+  const lazy = treeRef && Boolean(reference?.hasOne) && !hasData
   const treeShape =
-    (extra.treeShape as string | undefined) ?? (treeRef ? 'TREE' : undefined)
+    (treeRef ? 'TREE' : undefined)
   const shapeKey =
-    (extra.shapeKey as string | undefined) ??
     (treeRef && typeof parentField === 'string' ? parentField : undefined)
   const data = hasData
     ? treeSelectNodesOf({
@@ -180,28 +163,17 @@ export function treeSelectPropsFromField(
     fields,
     value: fieldTreeValue(field, context.getFieldValue(field), checkbox),
     placeholder:
-      (extra.placeholder as string | undefined) ?? field.placeholder,
+      field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    allowFiltering: extra.allowFiltering as boolean | undefined,
+      context.isFieldReadonly(field),
     selectionMode: checkbox ? 'checkbox' : 'single',
-    showClear: extra.showClear as boolean | undefined,
-    selectedDisplay: extra.selectedDisplay as UiTreeSelectDisplay | undefined,
-    delimiter: extra.delimiter as string | undefined,
-    popupHeight: extra.popupHeight as string | number | undefined,
-    popupWidth: extra.popupWidth as string | number | undefined,
-    showSelectAll: extra.showSelectAll as boolean | undefined,
-    selectAllLabel: extra.selectAllLabel as string | undefined,
-    header: extra.header as UiTreeSelectProps['header'],
-    item: extra.item as UiTreeSelectProps['item'],
-    selected: extra.selected as UiTreeSelectProps['selected'],
     loadMode: lazy ? 'lazy' : 'full',
     treeShape,
     shapeKey,
     loadRoots:
       lazy && typeof context.logic?.getRoots === 'function'
         ? () => context.logic!.getRoots!()
-        : extra.loadRoots as UiTreeSelectProps['loadRoots'],
+        : undefined,
     onExpand:
       lazy && typeof context.logic?.getChildren === 'function'
         ? async (node) => {
@@ -211,20 +183,17 @@ export function treeSelectPropsFromField(
             const kids = await context.logic!.getChildren!(id)
             setTreeChildren(node, kids, fields)
           }
-        : (extra.onExpand as UiTreeSelectProps['onExpand']),
+        : undefined,
     onChange: (value) => {
       context.setFieldValue(
         field,
-        resolveTreeWriteback(field, extra, value, fields),
+        resolveTreeWriteback(field, value, fields),
       )
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

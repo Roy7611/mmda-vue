@@ -3,9 +3,9 @@ import {
   EntityLogic,
   SubEntityLogic,
   beforeView,
-  type Entity,
+  type EntityCustomSearchField,
   type EntityLogicInit,
-  type EntitySearchForm,
+  type EntitySearchParam,
   type UiLogicAfterFn,
   type UiLogicBeforeFn,
   type UiLogicFn,
@@ -16,16 +16,15 @@ import {
   type UiLogicFnResultSet,
   type UiViewOptions,
 } from "@mmda/core";
-import { rx } from "../rx";
 import { UiCustomSearchField, UiSearchField } from "../ui/factory/filter";
-import { createDefaultSearchParam } from "../contexts/view";
 
 export {
   EntityLogic,
   SubEntityLogic,
   beforeView,
+  type EntityCustomSearchField,
   type EntityLogicInit,
-  type EntitySearchForm,
+  type EntitySearchParam,
   type UiLogicFnResult,
   type UiLogicFn,
   type UiLogicFnResultSet,
@@ -37,32 +36,15 @@ export {
   type UiViewOptions,
 };
 
-export interface UiSearchForm extends EntitySearchForm {
+/** vui 侧搜索表单：搜索状态由 UI 上下文持有，业务只提供自定义字段声明。 */
+export interface VueUiSearchForm {
+  searchParam?: EntitySearchParam;
+  queryParams?: Record<string, unknown>;
   searchFields: Array<UiSearchField>;
-  customSearchFields: Array<UiCustomSearchField>;
+  customSearchFields: Array<UiCustomSearchField | EntityCustomSearchField>;
 }
 
 export interface WatchFn {
   cb: WatchCallback;
   options?: WatchOptions<false>;
-}
-
-/**
- * vui 壳用的默认可实例化 Logic：搜索表单 `rx`。业务类不要继承本类。
- * 无定制仓库、跨服务 select、分类树走 `new VueEntityLogic(...)`。
- * 路由挂在 VueUiContext / app，不在 Logic 上。
- */
-export class VueEntityLogic<E extends Entity = Entity> extends EntityLogic<E> {
-  protected createSearchForm(): UiSearchForm {
-    return {
-      searchParam: rx(createDefaultSearchParam()),
-      queryParams: rx({}),
-      searchFields: [],
-      customSearchFields: [],
-    };
-  }
-
-  beforeSearch(): UiSearchForm {
-    return super.beforeSearch() as UiSearchForm;
-  }
 }

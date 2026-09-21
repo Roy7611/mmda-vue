@@ -107,7 +107,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 						});
 						ctx.setFieldValue('tracingMode', { value: MaterialTracingMode.NONE, text: MaterialTracingModeEnum.textOf(MaterialTracingMode.NONE) })
 					} else {
-						const productIDFieldOption = ctx.getFieldCurrentOption('productID');
+						const productIDFieldOption = ctx.getFieldSelectedOption('productID');
 						ctx.batchSetFieldValue({
 							productCode: productIDFieldOption.materialCode ?? null,
 							productName: productIDFieldOption.materialFullName ?? null,
@@ -180,7 +180,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 							);
 							// 若存在制品，则过滤掉当前制品
 							if (model.productID) {
-								const productIDFieldOption = context.getFieldCurrentOption('productID');
+								const productIDFieldOption = context.getFieldSelectedOption('productID');
 								toAdd = toAdd.filter((item: any) => item.resourceID !== productIDFieldOption.materialID)
 							}
 							if (toAdd.length) {
@@ -242,7 +242,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 						.join(" AND ");
 				}).setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+				return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 			}),
 			this.field('productPic')
 				.setCustomRenderer(renderBomProductPic)

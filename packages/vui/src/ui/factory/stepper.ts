@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiStepperProps } from '@mmda/core'
+import { type UiStepperProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type {

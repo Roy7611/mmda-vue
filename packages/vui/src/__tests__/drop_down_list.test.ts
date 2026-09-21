@@ -31,9 +31,8 @@ describe('dropDownList helpers', () => {
     expect(nested[0].options.map((o) => o.value)).toEqual([1, 3])
   })
 
-  it('prefers value over modelValue', () => {
-    expect(dropDownListValueOf({ value: 'a', modelValue: 'b' })).toBe('a')
-    expect(dropDownListValueOf({ modelValue: 'b' })).toBe('b')
+  it('reads value', () => {
+    expect(dropDownListValueOf({ value: 'a' })).toBe('a')
     expect(dropDownListValueOf({})).toBeUndefined()
   })
 
@@ -155,7 +154,7 @@ describe('comboBox helpers', () => {
     ).not.toContain('mmda-combobox--custom')
   })
 
-  it('reuses field mapping and passes allowCustom', () => {
+  it('reuses field mapping for options and value', () => {
     const reference = MetaUiFieldRef.parse('0;A;甲|1;B;乙')!
     const props = comboBoxPropsFromField(
       { fieldName: 'k', reference } as any,
@@ -164,10 +163,10 @@ describe('comboBox helpers', () => {
         setFieldValue: vi.fn(),
         isFieldReadonly: () => false,
       },
-      { allowCustom: false },
     )
     expect(props.value).toBe('A')
     expect(props.options?.[0]).toEqual({ value: 'A', label: '甲' })
-    expect(props.allowCustom).toBe(false)
+    // allowCustom 无元数据来源时不预置（由调用方或皮肤决定）
+    expect(props.allowCustom).toBeUndefined()
   })
 })

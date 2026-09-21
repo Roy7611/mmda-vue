@@ -30,7 +30,7 @@ export function beforeDetails(this: BomLogic): UiLogicFnResult<Bom> {
 			}),
 			this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 				const fldVal = ctx.getFieldValue(fld);
-				return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+				return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 			})
 		);
 	}

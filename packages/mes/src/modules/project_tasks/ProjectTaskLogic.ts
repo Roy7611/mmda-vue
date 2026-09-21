@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  * 
  */
-import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined, type UiContext } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, isString, isNullOrUndefined, type UiContext, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProjectTask, defineProjectTask } from '@/models/ProjectTask';
 import { stringify } from 'querystring';
@@ -105,7 +105,7 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 						modelValue: ctx.model.expectedStart ?? '',
 						onUpdatePicker: (value: any) => {
 							if (!isNullOrUndefined(value)) {
-								ctx.model.expectedStart = value.toFormat('yyyy-MM-dd');
+								ctx.model.expectedStart = DateUtils.toFormat(value, 'yyyy-MM-dd');
 								if (ctx.model.expectedStart && ctx.model.expectedFinish) {
 									const days = getDaysBetweenDates(ctx.model.expectedStart, ctx.model.expectedFinish);
 									ctx.model.expectedDuration = Number(days);
@@ -140,7 +140,7 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 						modelValue: ctx.model.expectedFinish ?? '',
 						onUpdatePicker: (value: any) => {
 							if (!isNullOrUndefined(value)) {
-								ctx.model.expectedFinish = value.toFormat('yyyy-MM-dd');
+								ctx.model.expectedFinish = DateUtils.toFormat(value, 'yyyy-MM-dd');
 								if (ctx.model.expectedFinish && ctx.model.expectedFinish) {
 									const days = getDaysBetweenDates(ctx.model.expectedStart, ctx.model.expectedFinish);
 									ctx.model.expectedDuration = Number(days);

@@ -150,7 +150,8 @@ export const TableSettingView = defineComponent({
         },
         [
           h("div", { class: "mmda-list-setting__lead" }, [
-            factory.icon("dnd-vert", {
+            factory.icon({
+              iconClass: "dnd-vert",
               class: "mmda-list-setting__drag-handle",
               title: t("tableSettings.drag"),
               "aria-hidden": "true",
@@ -159,7 +160,8 @@ export const TableSettingView = defineComponent({
             h("span", { class: "mmda-list-setting__title" }, row.displayLabel),
           ]),
           h("div", { class: "mmda-list-setting__tools" }, [
-            factory.selectButtonGroup(row.align, {
+            factory.selectButtonGroup({
+              modelValue: row.align,
               class: "mmda-list-setting__align",
               options: [
                 {
@@ -395,7 +397,6 @@ export async function openTableSettingDialog(
           reload?: boolean,
         ) => Promise<MetaUi>;
       };
-      beforeSearch?: () => any;
     };
     if (!logic?.repository || !logic.metaUiService) return;
     restoring.value = true;
@@ -421,7 +422,7 @@ export async function openTableSettingDialog(
       );
       logic.metaUi = metaUi;
       context.metaUi = metaUi;
-      context.configureSearch(undefined, logic.beforeSearch?.());
+      context.configureSearch(undefined);
       rows.splice(0, rows.length, ...snapshotListLayoutRows(metaUi));
       bumpListLayout(context);
       await (context as any).search?.();

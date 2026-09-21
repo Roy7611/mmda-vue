@@ -57,7 +57,7 @@ export function treeGridSpecFromGroup(group: MetaUiGroup, rows?: unknown[]) {
 
 export function assembleTreeGridRows<T>(
   model: T[],
-  metaUi: MetaUi,
+  metaUi: Pick<MetaUi, 'primaryKey'>,
   props: UiTreeGridPropsType<T> = {},
 ) {
   const treeShape = String(props.treeShape ?? 'TREE')

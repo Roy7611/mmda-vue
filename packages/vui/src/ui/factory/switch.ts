@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiSwitchProps } from '@mmda/core'
+import { type UiSwitchProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiSwitchProps } from '@mmda/core'

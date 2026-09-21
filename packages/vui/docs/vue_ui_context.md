@@ -53,7 +53,7 @@ vui 一屏会话的实现设计。产品分层真源仍是仓库 [ARCHITECTURE.m
 VueUiContextBase     构造、model、i18n、选择态、with / createChild
   WithSubgroup
   WithValidate       用 getFieldValue、subGroupItemContext
-  WithReference      用 logic、getFieldOptions；弹层 createSession
+  WithReference      用 logic、getFieldSearchOptions；弹层 createSession
   WithData           查询态 + CRUD + doAction/print + 文件 IO
   WithNavigate       routeTo / confirmAction / cancel（编排 save/search 后再路由）
 ```

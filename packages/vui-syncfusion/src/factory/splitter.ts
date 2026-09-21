@@ -134,10 +134,10 @@ export const SfSplitter = defineComponent({
   },
 });
 
-export const createSplitterRenderer = () => (panes: any, props: any = {}) =>
+export const createSplitterRenderer = () => (props: any = {}, slots: any = {}) =>
   h(SfSplitter, {
     class: splitterModifierClasses(props).flat(),
-    panes,
+    panes: slots.default?.() ?? [],
     orientation: props.orientation,
     width: props.width,
     height: props.height,

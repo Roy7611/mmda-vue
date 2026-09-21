@@ -132,7 +132,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
         this.field("noticeContent").setCustomRenderer(
           (fld, ctx: UiContext<Notification>) => {
             const content = ctx.model.noticeContent ?? "";
-            return ctx.uiBuilder.factory.textSpan(content || "-", {
+            return ctx.uiBuilder.factory.textSpan({ text: content || "-",
               title: content || undefined,
               tooltipPosition: "top",
               style: {
@@ -152,7 +152,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
             const { model } = ctx;
             const { factory } = ctx.uiBuilder;
             // urgencyIcon(model[fld.fieldName])
-            return factory.icon("pi pi-exclamation-circle", {
+            return factory.icon({ iconClass: "pi pi-exclamation-circle",
               severity: urgencyLevel(model[fld.fieldName]),
               size: "xlarge",
             });
@@ -191,7 +191,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
         group: "selectMany",
         role: "primary",
         onAction: async (context: UiContext<Notification>) => {
-          context.toSelectManyIndex(
+          context.selectMany(
             "readAll",
             async () => await this.readAll(context),
           );
@@ -251,8 +251,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
     return true;
   }
   beforeSearch() {
-    const { searchParam, searchFields, customSearchFields } =
-      super.beforeSearch();
+    const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
     if (customSearchFields.length == 0) {
       customSearchFields.push(
         {
@@ -267,7 +266,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
                 // selectMode: 'moultiple',
                 onChange: async (val: any) => {
                   csf.searchVal.value = val;
-                  ctx.addQueryParam("status", val ?? "");
+                  (ctx.searchParam.queryParams ??= {}).status = val ?? "";
                   // ctx.addQueryParam('status', defaultSearchOps.EnumFieldSearchOps[0].toSQL(val));
                   ctx.refresh(false);
                   // console.log(csf.searchVal.value, ctx.model)
@@ -284,7 +283,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
             return factory.tagSelector(csf.searchVal.value, urgencyList, {
               onChange: async (val: any) => {
                 csf.searchVal.value = val;
-                ctx.addQueryParam("emergency", val ?? "");
+                (ctx.searchParam.queryParams ??= {}).emergency = val ?? "";
                 ctx.refresh(false);
                 // console.log(csf.searchVal.value, ctx.model)
               },
@@ -299,7 +298,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
             return factory.tagSelector(csf.searchVal.value, importanceList, {
               onChange: async (val: any) => {
                 csf.searchVal.value = val;
-                ctx.addQueryParam("importance", val ?? "");
+                (ctx.searchParam.queryParams ??= {}).importance = val ?? "";
                 ctx.refresh(false);
                 // console.log(csf.searchVal.value, ctx.model)
               },
@@ -308,7 +307,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
         },
       );
     }
-    return { searchFields, customSearchFields };
+    return { fields, groups, customActions, customSearchFields };
   }
 
   //设置详情逻辑

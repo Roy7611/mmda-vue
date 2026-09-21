@@ -1,6 +1,6 @@
 import { useRouter } from 'vue-router';
 import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction, UiSearchForm } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, UI_BUILDER_KEY, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction } from '@mmda/vui';
 import { type MaterialUsage, defineMaterialUsage } from '@/models/MaterialUsage';
 /**
  * 用料分析交互逻辑
@@ -43,9 +43,9 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
             service: 'mes',
             action: 'getMaterialWaste',
             queryParams: {
-                ...this.searchParams.queryParams,
-                projectID: this.searchParams.projectID ?? '',
-                workNo: this.searchParams.taskNo ?? '',
+                ...(param.queryParams ?? {}),
+                projectID: param.queryParams?.projectID ?? '',
+                workNo: param.queryParams?.taskNo ?? '',
                 pageNo: param.pager.pageNo,
                 pageSize: param.pager.pageSize
             }
@@ -104,8 +104,8 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
     }
     searchParam: Record<string, any> = {};
 
-    beforeSearch(): UiSearchForm {
-        const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+    beforeSearch() {
+        const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
         if (customSearchFields.length == 0) {
             customSearchFields.push({
                 searchLabel: 'ganttLabel.sProject',
@@ -115,7 +115,7 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
                     if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
                         tableDataProject.value.push(csf.searchVal.value)
                     }
-                    return ctx.uiBuilder.factory.searchForRelative({
+                    return ctx.uiBuilder.factory.searchRelative({
                         modelValue: csf.searchVal.value,
                         dataKey: 'projectID',
                         optionLabel: (v: any) => v.projectName,
@@ -156,7 +156,7 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
                     if (!tableDataTask.value.length && isObject(csf.searchVal.value)) {
                         tableDataTask.value.push(csf.searchVal.value)
                     }
-                    return ctx.uiBuilder.factory.searchForRelative({
+                    return ctx.uiBuilder.factory.searchRelative({
                         modelValue: csf.searchVal.value,
                         dataKey: 'taskID',
                         optionLabel: (v: any) => v.taskNo,
@@ -191,7 +191,7 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
                 }
             })
         }
-        return { searchParam, searchFields, customSearchFields }
+        return { fields, groups, customActions, customSearchFields }
     }
 }
 /**

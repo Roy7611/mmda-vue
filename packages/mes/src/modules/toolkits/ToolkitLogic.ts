@@ -270,7 +270,7 @@ export class ToolLogic extends SubEntityLogic<Tool, Toolkit> {
 				this.field('remainingCycles').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0),
 				this.field('remainingCost').hideIf((model: Tool) => !(((model.lifecycleModes as any) & 4) == 4)),
 				this.field('materialID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan('');
+					if (isRefNone(ctx.model.materialID)) return ctx.uiBuilder.factory.textSpan({ text: '' });
 
 					return ctx.uiBuilder.fieldFactory.hasOneText(fld, ctx)
 				})

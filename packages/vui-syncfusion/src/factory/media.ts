@@ -9,11 +9,16 @@ const imageUploader = (props: any = {}) => createImageUploader(props);
 const imagesUploader = (props: any = {}) => createImagesUploader(props);
 
 export const mediaRenderers = {
-  image: (src: string, props: any) => h("img", { src, ...props }),
-  imageGallery: (items: any, props: any) =>
+  image: (props: any) => h("img", props),
+  imageGallery: (props: any) =>
     h(SfImageGallery, {
-      items,
-      ...props,
+      items: props.items,
+      columns: props.columns,
+      emptyText: props.emptyText,
+      dialogTitle: props.dialogTitle,
+      loop: props.loop,
+      onItemClick: props.onItemClick,
+      onItemDblclick: props.onItemDblclick,
     }),
   fileLink,
   Url: fileLink,

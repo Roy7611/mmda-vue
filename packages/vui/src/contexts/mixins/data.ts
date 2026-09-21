@@ -21,7 +21,7 @@ import {
   quickFiltersToSQL,
   type UiSearchField,
 } from "../../ui/factory/filter";
-import type { UiSearchForm } from "../../logic/logic";
+import type { VueUiSearchForm } from "../../logic/logic";
 import { getFileInfo } from "../../components/FileIcons";
 import { loadLastQuery, saveLastQuery } from "../../ui/builder/list_last_query";
 import {
@@ -131,7 +131,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       this.#captureLastQuery = true;
     }
 
-    configureSearch(filters: MetaUiFilter[] = [], form?: UiSearchForm) {
+    configureSearch(filters: MetaUiFilter[] = [], form?: VueUiSearchForm) {
       this.filters = filters.map((filter) => {
         const uiFilter = new UiFilter(filter);
         uiFilter.selectedConditions.value = filter.filterConditions.filter(
@@ -164,22 +164,22 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
           this.#baseFilter = String(form.queryParams.filter);
         }
       }
-      this.searchFields = form?.searchFields ?? [];
-      // Logic 里 push 的是 plain CustomSearchField；运行时需要带 searchVal 的 UiCustomSearchField
-      this.customSearchFields = (form?.customSearchFields ?? []).map(
-        (field: any, index: number, arr: any[]) => {
-          if (field instanceof UiCustomSearchField) return field;
-          const wrapped = new UiCustomSearchField({
-            searchLabel: field.searchLabel ?? field.label ?? "",
-            searchParam: field.searchParam,
-            renderer: field.renderer,
-            valueFn: field.valueFn,
-            defaultValue: field.defaultValue,
-          });
-          arr[index] = wrapped;
-          return wrapped;
-        },
-      );
+      if (form?.searchFields) this.searchFields = form.searchFields;
+      // Logic 只声明 plain CustomSearchField；运行时包装成带 searchVal 的 UiCustomSearchField
+      if (form?.customSearchFields) {
+        this.customSearchFields = form.customSearchFields.map(
+          (field: any) =>
+            field instanceof UiCustomSearchField
+              ? field
+              : new UiCustomSearchField({
+                  searchLabel: field.searchLabel ?? field.label ?? "",
+                  searchParam: field.searchParam,
+                  renderer: field.renderer,
+                  valueFn: field.valueFn,
+                  defaultValue: field.defaultValue,
+                }),
+        );
+      }
       if (!this.#baseFilter && this.searchParam.queryParams?.filter) {
         this.#baseFilter = String(this.searchParam.queryParams.filter);
       }
@@ -254,9 +254,12 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     async init(params?: EntityUrlParam) {
       if (!this.logic) return;
       await this.logic.initMetadata(false, params);
-      await this.logic.applyTo(this, this.view);
+      const logicResult = await this.logic.applyTo(this, this.view);
       if (this.many) {
-        this.configureSearch(undefined, this.logic.beforeSearch());
+        this.configureSearch(undefined, {
+          searchFields: this.searchFields,
+          customSearchFields: logicResult?.customSearchFields ?? [],
+        });
       }
       if (this.many) return this.search();
       if (this.view === UiViewOne.Create) {
@@ -293,7 +296,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         this.metaUi = this.logic.metaUi;
       }
       if (this.many) {
-        this.configureSearch(undefined, this.logic.beforeSearch());
+        this.configureSearch(undefined);
       }
       return metaUi;
     }
@@ -357,7 +360,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       await this.logic.afterDelete?.(this, this.model, undefined, result);
       if (result !== false && !this.many && id != null && String(id) !== "") {
         getModuleContext(this)?.removeById(String(id));
-        this.index();
+        this.routeToIndex();
       }
       return result;
     }

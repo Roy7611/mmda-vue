@@ -8,9 +8,9 @@ import {
 } from '../ui/factory/speech_to_text'
 
 describe('speech to text chrome helpers', () => {
-  it('reads value then modelValue and defaults interim true', () => {
+  it('reads value and defaults interim true', () => {
     expect(speechToTextValueOf({ value: '你好' })).toBe('你好')
-    expect(speechToTextValueOf({ modelValue: 1 } as any)).toBe('1')
+    expect(speechToTextValueOf({ value: 1 } as any)).toBe('1')
     expect(speechToTextInterimOf({})).toBe(true)
     expect(speechToTextInterimOf({ interim: false })).toBe(false)
   })

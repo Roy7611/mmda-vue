@@ -169,7 +169,7 @@ export async function deleteNamedQuery(
     message: context.t("confirmation.delete", { it: row.queryName ?? row.queryID }),
   });
   if (!ok) return false;
-  await context.apiClient.deleteOne(String(row.queryID), {
+  await context.apiClient?.deleteOne(String(row.queryID), {
     repository: CUSTOMIZED_QUERY_REPO,
   });
   if (context.searchParam.queryID === row.queryID) clearNamedQueryRef(context);
@@ -219,7 +219,7 @@ export async function promptSaveNamedQuery(
     predifined: false,
   };
   if (context.searchParam.queryID) payload.queryID = context.searchParam.queryID;
-  await context.apiClient.saveOne(payload as any, {
+  await context.apiClient?.saveOne(payload as any, {
     repository: CUSTOMIZED_QUERY_REPO,
   });
   context.searchParam.queryName = queryName;

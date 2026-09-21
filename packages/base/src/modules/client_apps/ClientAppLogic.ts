@@ -12,7 +12,7 @@ import {
   type UiContext,
   isRefNone,
   defaultPager,
-  UiValidation,
+  Validation,
 } from "@mmda/core";
 import {
   type EntityLogicInit,
@@ -55,7 +55,7 @@ export class ClientAppLogic extends EntityLogic<ClientApp> {
     this.beforeValidate = (
       context: UiContext,
       model: ClientApp,
-      validation: UiValidation,
+      validation: Validation,
     ) => {
       if (model.monthlyRent < 0)
         return context.uiBuilder.toast(context, {

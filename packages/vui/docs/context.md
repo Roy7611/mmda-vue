@@ -68,10 +68,10 @@ import { VueUiContext, UiViewMany, UiViewOne } from "@mmda/vui";
 context.getFieldValue("whName");
 context.setFieldValue("whName", "主仓");
 context.displayField("partnerID");
-context.getFieldCurrentOption("categoryID");
+context.getFieldSelectedOption("categoryID");
 ```
 
-候选项在 `getFieldOptions(field)`，类型是 core `FieldSearchOptions`。
+候选项在 `getFieldSearchOptions(field)`，类型是 core `FieldSearchOptions`。
 
 ## 主列表单元格
 

@@ -7,7 +7,7 @@
  */
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, MetaUiBuilder, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiSearchForm, setGroupWatermark } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, setGroupWatermark } from '@mmda/vui';
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';
@@ -175,8 +175,8 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 			});
 	}
 	searchParam: Record<string, any> = {};
-	beforeSearch(): UiSearchForm {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+	beforeSearch() {
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: '项目',
@@ -186,7 +186,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 					if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 						tableDataProject.value.push(csf.searchVal.value)
 					}
-					return ctx.uiBuilder.factory.searchForRelative({
+					return ctx.uiBuilder.factory.searchRelative({
 						modelValue: csf.searchVal.value,
 						dataKey: 'projectID',
 						optionLabel: (v: any) => v.projectName,
@@ -221,7 +221,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 				}
 			});
 		}
-		return { searchParam, searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
@@ -304,7 +304,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 						// 普通来源：按品控标准回填品控类型、制程品控类型及检验物
 						if (shouldBackfillFromQcs(model, createRefName)) {
 							if (!isRefNone(newVal)) {
-								let qcPhase = (context.getFieldCurrentOption('qcsID') ?? model.qcStandard)?.qcPhase;
+								let qcPhase = (context.getFieldSelectedOption('qcsID') ?? model.qcStandard)?.qcPhase;
 								if (isRefNone(qcPhase)) qcPhase = (await context.logic!.loadOf<Record<string, unknown>>('QualityControlStandards', newVal, { service: 'mes' }).catch((): null => null) as { qcPhase?: unknown } | null)?.qcPhase;
 								if (!isRefNone(qcPhase)) {
 									context.setFieldValue('qcPhase', { value: qcPhase, text: QcPhaseEnum.textOf(qcPhase) });
@@ -562,7 +562,8 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 			.field('qualifiedText', context.t('qualityInspection.qualified'))
 			.build();
 		context.uiBuilder.dialog(
-			context.uiBuilder.factory.table(rows, metaUi, {
+			context.uiBuilder.table(metaUi, {
+				rows,
 				selectionMode: 'multiple',
 				onSelect: (sel: typeof rows) => { selected = sel ?? []; },
 			}),
@@ -902,7 +903,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 							}
 							return false;
 						};
-						const all = ctx.getFieldOptions(fld)?.selectOptions ?? ref?.refOptions ?? [];
+						const all = ctx.getFieldSearchOptions(fld)?.selectOptions ?? ref?.refOptions ?? [];
 						let options = all;
 						// 根据检验项判定过滤不可选择的质检结果。
 						if (shouldLinkItemAndQcResult(inspection)) {
@@ -992,7 +993,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
-						return ui.factory.searchForRelative({
+						return ui.factory.searchRelative({
 							role: `defectDesc-search-for-relative`,
 							name: 'defectDesc-search-for-relative',
 							id: 'defectDesc-search-for-relative',
@@ -1039,7 +1040,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				this.field('materialCategoryID')
 					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
-						return ctx.globalProps.$ui.factory.textSpan(text || '');
+						return ctx.globalProps.$ui.factory.textSpan({ text: text || '' });
 					})
 					.lockIf(v => !isRefNone(v.refName)),
 				this.field('quantity')
@@ -1095,7 +1096,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				this.field('materialCategoryID')
 					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
-						return ctx.globalProps.$ui.factory.textSpan(text || '');
+						return ctx.globalProps.$ui.factory.textSpan({ text: text || '' });
 					}),
 				this.field('qualifiedQuantity').lock().hideIf(v => isNullOrUndefined(v.qualifiedQuantity)),
 				this.field('unqualifiedQuantity').lock().hideIf(v => isNullOrUndefined(v.unqualifiedQuantity))

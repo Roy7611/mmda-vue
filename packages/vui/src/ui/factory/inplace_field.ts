@@ -55,29 +55,23 @@ export function inplaceFieldContentRenderer(
 export function renderInplaceFieldEditor(
   field: MetaUiField,
   context: Ctx,
-  extra: UiProps = {},
   fieldFactory: UiFieldFactory,
 ): VNode {
   const display = inplaceFieldDisplayRenderer(field, fieldFactory)
   const content = inplaceFieldContentRenderer(field, fieldFactory)
   const disabled =
-    extra.disabled === true || context.isFieldReadonly(field)
+    context.isFieldReadonly(field)
   const chrome = context.uiBuilder?.factory?.inplaceEditor
   if (!chrome || disabled) {
-    return display(field, context as any, extra)
+    return display(field, context)
   }
   return chrome(
     {
       disabled: inplaceEditorDisabledOf({ disabled }),
-      active: extra.active as boolean | undefined,
-      onOpen: extra.onOpen as UiInplaceEditorProps['onOpen'],
-      onClose: extra.onClose as UiInplaceEditorProps['onClose'],
-      class: extra.class,
-      htmlAttributes: extra.htmlAttributes,
     },
     {
-      display: () => display(field, context as any, extra),
-      content: () => content(field, context as any, extra),
+      display: () => display(field, context),
+      content: () => content(field, context),
     },
   )
 }

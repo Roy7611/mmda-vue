@@ -69,9 +69,9 @@ describe('radioButtonGroup helpers', () => {
     ])
   })
 
-  it('prefers value over modelValue', () => {
-    expect(radioButtonGroupValueOf({ value: 'a', modelValue: 'b' })).toBe('a')
-    expect(radioButtonGroupValueOf({ modelValue: 'b' })).toBe('b')
+  it('reads value', () => {
+    expect(radioButtonGroupValueOf({ value: 'a' })).toBe('a')
+    expect(radioButtonGroupValueOf({ value: 'b' })).toBe('b')
     expect(radioButtonGroupValueOf({})).toBeUndefined()
   })
 })

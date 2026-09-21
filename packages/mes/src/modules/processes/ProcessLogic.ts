@@ -183,7 +183,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 				this.field('status'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory?.categoryName ?? '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory?.categoryName ?? '-' });
 				})
 			);
 		}
@@ -1009,7 +1009,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 			fields.push(
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-' });
 				})
 			);
 		}
@@ -1405,7 +1405,7 @@ export class ProcessOperationResourceLogic extends SubEntityLogic<ProcessOperati
 							return;
 						}
 
-						const resource = context.getFieldCurrentOption('resourceID') as Material | undefined;
+						const resource = context.getFieldSelectedOption('resourceID') as Material | undefined;
 						context.setFieldValue('resourceType', (this.parent as ProcessOperationLogic).getResourceTypeValue(resource?.materialType));
 						context.setFieldValue('unit', resource?.unit ?? null);
 					})

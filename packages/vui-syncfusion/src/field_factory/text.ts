@@ -14,7 +14,7 @@ export const textInput = (
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createTextInput(textInputPropsFromField(field, context, props ?? {})),
+    createTextInput(textInputPropsFromField(field, context)),
     invalid &&
       h(
         "span",

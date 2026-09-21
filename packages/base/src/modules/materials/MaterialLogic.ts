@@ -61,7 +61,7 @@ export class MaterialLogic extends EntityLogic<Material> {
     super(defineMaterial, init);
     this.beforeSave = (context: UiContext<Material>, model: Material) => {
       const category =
-        context.getFieldCurrentOption("categoryID") ?? model.category;
+        context.getFieldSelectedOption("categoryID") ?? model.category;
       if (category) {
         (model as Material & { materialX?: string }).materialX =
           category.materialX ?? "";
@@ -176,7 +176,7 @@ export class MaterialLogic extends EntityLogic<Material> {
         ),
         this.field("categoryID").onChange((context, model, newVal) => {
           if (newVal) {
-            const category = context.getFieldCurrentOption("categoryID");
+            const category = context.getFieldSelectedOption("categoryID");
             if (!category) return;
             (model as Material & { materialX?: string }).materialX =
               category.materialX ?? "";
@@ -192,7 +192,7 @@ export class MaterialLogic extends EntityLogic<Material> {
         this.field("customJson")
           .setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
             const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
-            return ctx.uiBuilder.factory.textSpan(drawing ?? "");
+            return ctx.uiBuilder.factory.textSpan({ text: drawing ?? "" });
           })
           .lock(),
       );
@@ -369,7 +369,7 @@ export class MaterialLogic extends EntityLogic<Material> {
           (fld, ctx: UiContext<Material>, props) => {
             const fldVal = ctx.getFieldValue(fld);
             if (!fldVal) return null;
-            return ctx.uiBuilder.factory.image(fldVal, {
+            return ctx.uiBuilder.factory.image({ src: fldVal,
               width: "70",
               height: "70",
               imageStyle: {
@@ -387,7 +387,7 @@ export class MaterialLogic extends EntityLogic<Material> {
         this.field("customJson").setCustomRenderer(
           (fld, ctx: UiContext<Material>, props) => {
             const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
-            return ctx.uiBuilder.factory.textSpan(drawing ?? "");
+            return ctx.uiBuilder.factory.textSpan({ text: drawing ?? "" });
           },
         ),
       );

@@ -49,13 +49,13 @@ export const ColorPalettePicker = defineComponent({
               popupPlacement: "top-end",
               tooltip: translateMessage("palette.choose"),
               "aria-label": translateMessage("palette.choose"),
+              actions: PALETTE_ACTIONS.map((action) => ({
+                name: action.name,
+                label: translateMessage(action.label),
+                icon: action.icon,
+                onAction: () => selectPalette(action.palette),
+              })),
             },
-            PALETTE_ACTIONS.map((action) => ({
-              name: action.name,
-              label: translateMessage(action.label),
-              icon: action.icon,
-              onAction: () => selectPalette(action.palette),
-            })),
           ),
         ],
       );

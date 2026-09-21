@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiTextAreaProps } from '@mmda/core'
+import { type UiTextAreaProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type {

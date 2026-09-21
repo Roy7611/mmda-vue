@@ -6,7 +6,6 @@
  * 不是字段控件：没有 fieldFactory.tabs。
  */
 import type { VNode, VNodeChild } from 'vue'
-import { callUiBagFn } from '@mmda/core'
 import type {
   UiTabHeader,
   UiTabItem,

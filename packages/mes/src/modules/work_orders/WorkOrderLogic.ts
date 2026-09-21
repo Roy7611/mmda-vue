@@ -97,7 +97,7 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 					}
 				}),
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
+					return ctx.globalProps.$ui.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
 				})
 			);
 
@@ -185,7 +185,7 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 		if (fields.length === 0) {
 			fields.push(
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan(ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '')
+					return ctx.globalProps.$ui.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
 				})
 			)
 		}

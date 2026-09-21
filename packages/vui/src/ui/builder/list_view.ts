@@ -21,7 +21,7 @@ import {
   type MetaUiGroup,
 } from "@mmda/core";
 import { readStoredPageSize, writeStoredPageSize, readStoredShowActionsColumn } from "../../app/theme";
-import { schedulePersistListPack } from "./list_layout";
+import { applyTableColumnSettings, schedulePersistListPack } from "./list_layout";
 import { cleanTableCellProps } from "../factory";
 import type {UiProps} from "../layout";
 import type {
@@ -130,8 +130,12 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           })
           .map((field: MetaUiField) => field.fieldName);
     
-      return this.factory.list(rows, metaUi, {
+      return this.factory.list({
         ...tableProps,
+        rows,
+        primaryKey: tableProps.primaryKey ?? metaUi.primaryKey,
+        objName: tableProps.objName ?? metaUi.objName,
+        fields: tableProps.fields ?? listed,
         display: tableProps.display ?? "table",
         templateCellFields,
         renderCell: (field, row) => {
@@ -172,8 +176,16 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           enumerable: false,
         });
       }
-      return this.factory.list(rows, metaUi, {
+      return this.factory.list({
         ...props,
+        rows,
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
+        objName: props.objName ?? metaUi.objName,
+        fields:
+          props.fields ??
+          (typeof (metaUi as any).getListedFields === "function"
+            ? (metaUi as any).getListedFields()
+            : (metaUi as any).listedFields),
         display: "treeGrid",
         isTree: true,
         renderCell: (field, row) => {
@@ -185,6 +197,62 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
           return this.displayCellFor(field, row, rowContext(row), cellProps);
         },
       });
+    }
+
+    list<T = any>(metaUi: MetaUi, props: UiListPropsType<T> = {}): VNode {
+      return this.factory.list({
+        ...props,
+        rows: props.rows ?? [],
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
+      } as any);
+    }
+
+    table<T = any>(metaUi: MetaUi, props: UiListPropsType<T> = {}): VNode {
+      const fields =
+        props.fields ??
+        (typeof (metaUi as any).getListedFields === "function"
+          ? (metaUi as any).getListedFields()
+          : (metaUi as any).listedFields);
+      return this.factory.table({
+        ...props,
+        rows: props.rows ?? [],
+        fields,
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
+        objName: props.objName ?? metaUi.objName,
+      } as any);
+    }
+
+    grid<T = any>(metaUi: MetaUi, props: UiListPropsType<T> = {}): VNode {
+      const fields =
+        props.fields ??
+        (typeof (metaUi as any).getListedFields === "function"
+          ? (metaUi as any).getListedFields()
+          : (metaUi as any).listedFields);
+      return this.factory.grid({
+        ...props,
+        rows: props.rows ?? [],
+        fields,
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
+        objName: props.objName ?? metaUi.objName,
+      } as any);
+    }
+
+    treeGrid<T = any>(
+      metaUi: MetaUi,
+      props: UiTreeGridPropsType<T> = {} as UiTreeGridPropsType<T>,
+    ): VNode {
+      const fields =
+        props.fields ??
+        (typeof (metaUi as any).getListedFields === "function"
+          ? (metaUi as any).getListedFields()
+          : (metaUi as any).listedFields);
+      return this.factory.treeGrid({
+        ...props,
+        rows: props.rows ?? [],
+        fields,
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
+        objName: props.objName ?? metaUi.objName,
+      } as any);
     }
     
     buildTreeGridView<T = any>(
@@ -350,7 +418,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       if (!cellError) return cell;
       return [
         cell,
-        this.factory.icon("pi pi-exclamation-circle", {
+        this.factory.icon({
+          iconClass: "pi pi-exclamation-circle",
           class: "error",
           title: cellError,
         }),
@@ -433,7 +502,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
               });
               if (route?.href) window.open(route.href, "_blank");
             } else if (typeof (context as any).details === "function") {
-              (context as any).details(row);
+              (context as any).routeToDetails(row);
             }
           },
         });
@@ -590,22 +659,22 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       context: UiContext,
       props: UiListViewPropsType<T> = {}
     ): VNode {
-      return this.buildContainer(
-        [
-          props.header ? this.buildHeader(props.header()) : null,
-          this.buildMain(props.content?.() ?? this.buildList(context, props)),
-          props.footer ? this.buildFooter(props.footer()) : null,
-        ].filter(Boolean) as VNode[],
-        { class: "mmda-custom-view" },
-      );
+      return this.layout.layoutPage({
+        toolbar: props.header?.() ?? undefined,
+        primary: props.content?.() ?? this.buildList(context, props),
+        footer: props.footer?.() ?? undefined,
+      });
     }
     
     buildList<T = any>(
       context: UiContext,
       props: UiListPropsType<T> = {}
     ): VNode {
-      return this.factory.list(listRows(context.model), indexTableMetaUi(context as any), {
+      const metaUi = indexTableMetaUi(context as any)
+      return this.factory.list({
         ...props,
+        rows: listRows(context.model),
+        primaryKey: props.primaryKey ?? metaUi.primaryKey,
         display: props.display ?? "list",
       });
     }
@@ -692,7 +761,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             ...props.dateRangeLabels,
           },
           searchRelative: async (field, searchWord) => {
-            const options = runtime.getFieldOptions(field);
+            const options = runtime.getFieldSearchOptions(field);
             options.searchParam.pager.pageNo = 1;
             options.searchParam.pager.pageSize = CHOICE_PAGE_SIZE;
             await runtime.searchRelative(field, searchWord);
@@ -718,6 +787,11 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
             persist: () => schedulePersistListPack(runtime),
             rev: runtime.listLayoutRev,
             open: () => void this.openTableSettings(context),
+          },
+          onLayoutChange: (columns) => {
+            if (runtime.metaUi) {
+              applyTableColumnSettings(runtime.metaUi, columns);
+            }
           },
           onIndexTableHostReady: (host) => {
             runtime.indexTableHost = host ?? undefined;
@@ -893,10 +967,11 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         ...pager,
       };
       const paginatorProps = {
+        pagination,
         onPage: () => undefined,
         ...props,
       } as UiPaginatorPropsType;
-      return this.factory.paginator(pagination, paginatorProps);
+      return this.factory.paginator(paginatorProps);
     }
   }
   return ListBuilder;
@@ -1052,7 +1127,9 @@ const TreeListTreePane = defineComponent({
       const { treeOption } = resolveTreeListOptions(viewProps);
       const spec =
         typeof treeOption === "function" ? treeOption() : treeOption;
-      return self.buildAside(
+      return h(
+        "aside",
+        { class: "mmda-tree-list-aside" },
         self.buildTreeView(props.context, {
           ...spec!,
           reloadTick: props.reloadTick as { value: number },
@@ -1064,7 +1141,6 @@ const TreeListTreePane = defineComponent({
             props.onPicked(node);
           },
         }),
-        { class: "mmda-tree-list-aside" },
       );
     };
   },
@@ -1183,7 +1259,13 @@ const TreeListView = defineComponent({
               },
             );
       const body = self.factory.splitter(
-        [
+        {
+          orientation: "Horizontal",
+          class: "mmda-tree-list-splitter",
+          separatorSize: 8,
+        },
+        {
+          default: () => [
           {
             content: h(TreeListTreePane, {
               builder: self,
@@ -1213,7 +1295,7 @@ const TreeListView = defineComponent({
               },
               [
                 self.buildFilterBar(context),
-                self.buildMain(list, {
+                h("main", {
                   class: uiCssClass("page", "body"),
                   style: {
                     flex: "1 1 auto",
@@ -1221,25 +1303,16 @@ const TreeListView = defineComponent({
                     minHeight: 0,
                     overflow: "hidden",
                   },
-                }),
+                }, list),
               ],
             ),
             min: "16rem",
           },
-        ],
-        {
-          orientation: "Horizontal",
-          class: "mmda-tree-list-splitter",
-          separatorSize: 8,
+          ],
         },
       );
-      return self.buildContainer(
-        [
-          toolbar ? self.buildHeader(toolbar) : null,
-          !toolbar && searchbar ? self.buildHeader(searchbar) : null,
-          body,
-          paginator ? self.buildFooter(paginator) : null,
-        ].filter(Boolean) as VNode[],
+      return h(
+        "section",
         {
           class: "mmda-list-view mmda-tree-list-view",
           role: runtime.view,
@@ -1251,6 +1324,12 @@ const TreeListView = defineComponent({
             overflow: "hidden",
           },
         },
+        [
+          toolbar ? h("header", toolbar) : null,
+          !toolbar && searchbar ? h("header", searchbar) : null,
+          body,
+          paginator ? h("footer", paginator) : null,
+        ].filter(Boolean) as VNode[],
       );
     };
   },

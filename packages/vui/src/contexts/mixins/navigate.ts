@@ -54,7 +54,7 @@ export function WithNavigate<TBase extends Constructor>(
       ) {
         this.selectedItems = [];
         this.selectionMode = null;
-        return this.index();
+        return this.routeToIndex();
       }
       // details → index：写回 currentItem（含 doAction），不 search
       if (this.view === UiViewOne.Details) {
@@ -64,10 +64,10 @@ export function WithNavigate<TBase extends Constructor>(
         } catch {
           // 写回失败仍回列表，避免「返回」无响应
         }
-        return this.index();
+        return this.routeToIndex();
       }
       // create/edit 放弃：回列表，不写 index
-      return this.index();
+      return this.routeToIndex();
     }
 
     routeTo(view: UiViewType, id?: string) {
@@ -92,11 +92,14 @@ export function WithNavigate<TBase extends Constructor>(
       if (view === UiViewOne.Edit) {
         return push(`${root}/Edit/${id}`);
       }
+      if (view === UiViewOne.Search) {
+        return push(`${root}/Search`);
+      }
       return push(`${root}/${id}`);
     }
 
     /** 回列表：优先按当前 URL 剥掉末段（详情/编辑），避免 logic 拼径与路由不一致时 push 空转。 */
-    index() {
+    routeToIndex() {
       const router = this.router as
         | { currentRoute?: { value?: { path?: string } }; push: (t: unknown) => unknown; back?: () => unknown }
         | undefined;
@@ -116,13 +119,13 @@ export function WithNavigate<TBase extends Constructor>(
       return this.routeTo(UiViewMany.Index);
     }
 
-    toSelectManyIndex(selectableKey: string, handleFn: (...args: any[]) => unknown) {
+    selectMany(selectableKey: string, handleFn: (...args: any[]) => unknown) {
       this.setSelectableKey(selectableKey);
       this.setCustomManyActionHandleFn(selectableKey, handleFn);
       this.routeTo(UiViewMany.SelectMany);
     }
 
-    edit(idOrItem?: string | Entity) {
+    routeToEdit(idOrItem?: string | Entity) {
       if (this.isInDialog) {
         const item =
           idOrItem != null && typeof idOrItem === "object"
@@ -150,7 +153,7 @@ export function WithNavigate<TBase extends Constructor>(
       );
     }
 
-    create() {
+    routeToCreate() {
       if (this.isInDialog) {
         void this.uiBuilder?.openNestEntityDialog(this, "create");
         return;
@@ -163,7 +166,11 @@ export function WithNavigate<TBase extends Constructor>(
       this.routeTo(UiViewOne.Create);
     }
 
-    details(idOrItem?: string | Entity) {
+    routeToSearch() {
+      this.routeTo(UiViewOne.Search);
+    }
+
+    routeToDetails(idOrItem?: string | Entity) {
       if (this.isInDialog) {
         const item =
           idOrItem != null && typeof idOrItem === "object"

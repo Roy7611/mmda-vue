@@ -29,16 +29,13 @@ function renderWithAppContext(
 }
 
 export const treeGridRenderers = {
-  treeGrid: <T>(
-    model: T[],
-    metaUi: MetaUi,
-    props: UiTreeGridPropsType<T>,
-  ) => {
+  treeGrid: <T>(props: UiTreeGridPropsType<T>) => {
+    const model = (props.rows ?? []) as T[];
     const appContext = getCurrentInstance()?.appContext ?? null;
-    const fields = listedTableFields(metaUi);
+    const fields = (props.fields ?? []) as MetaUiField[];
     const { idField, childrenKey, assembled } = assembleTreeGridRows(
       model,
-      metaUi,
+      { primaryKey: props.primaryKey } as any,
       props,
     );
     const nested = assembled.sourceShape === "nested";
@@ -78,7 +75,7 @@ export const treeGridRenderers = {
       store: compareFilterStore,
       appContext,
     };
-    const columns = buildSfTreeGridColumns(metaUi, {
+    const columns = buildSfTreeGridColumns(fields, {
       allowSorting: props.sortable !== false,
       allowFiltering,
       editable: inplaceEdit,

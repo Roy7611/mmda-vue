@@ -93,7 +93,7 @@ describe('VueUiContext', () => {
       router: { push } as any,
       app: { name: 'base' } as any,
     })
-    ctx.details('141')
+    ctx.routeToDetails('141')
     expect(push).toHaveBeenCalledWith('/MES/EquipmentChecklists/141')
   })
 

@@ -46,7 +46,7 @@ export function toolkitToolCardNode(
 		}),
 		h('div', { class: 'w-full h-36 flex-shrink-0 flex items-center justify-center rounded-lg relative overflow-hidden bg-gray-50' }, [
 			item.toolPic
-				? uiBuilder.factory.image(item.toolPic, {
+				? uiBuilder.factory.image({ src: item.toolPic,
 					preview: false,
 					draggable: false,
 					class: 'object-cover rounded-md pt-2',

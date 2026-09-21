@@ -11,8 +11,13 @@ import {
   CHART_PLUGIN_NOT_INSTALLED,
   type UiBuilder,
   type UiContext,
+  type UiDiagramProps,
+  type UiGanttProps,
+  type UiKanbanProps,
   type UiPlugin,
   type UiProps,
+  type UiSchedulerProps,
+  type UiTimelineProps,
 } from '@mmda/core'
 
 const NOT_INSTALLED: Record<string, string> = {
@@ -54,27 +59,27 @@ export class VuePluginHost {
     return found
   }
 
-  buildGantt(context: UiContext, props?: UiProps) {
+  buildGantt(context: UiContext, props?: UiGanttProps) {
     return this.requirePlugin('gantt').buildUi(context, props)
   }
 
-  buildGanttChart(context: UiContext, props?: UiProps) {
+  buildGanttChart(context: UiContext, props?: UiGanttProps) {
     return this.buildGantt(context, props)
   }
 
-  buildScheduler(context: UiContext, props?: UiProps) {
+  buildScheduler(context: UiContext, props?: UiSchedulerProps) {
     return this.requirePlugin('scheduler').buildUi(context, props)
   }
 
-  buildKanban(context: UiContext, props?: UiProps) {
+  buildKanban(context: UiContext, props?: UiKanbanProps) {
     return this.requirePlugin('kanban').buildUi(context, props)
   }
 
-  buildDiagram(context: UiContext, props?: UiProps) {
+  buildDiagram(context: UiContext, props?: UiDiagramProps) {
     return this.requirePlugin('diagram').buildUi(context, props)
   }
 
-  buildTimeline(context: UiContext, props?: UiProps) {
+  buildTimeline(context: UiContext, props?: UiTimelineProps) {
     const installed = this.plugin('timeline')
     if (installed) return installed.buildUi(context, props)
     const timeline = (

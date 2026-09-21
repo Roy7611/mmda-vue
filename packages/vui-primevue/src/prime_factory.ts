@@ -1,7 +1,7 @@
 import { h, reactive, type VNode } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField, type Pagination } from "@mmda/core";
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField } from "@mmda/core";
 import type { VueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
-import { assembleTreeGridRows, listedTableFields, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from "@mmda/vui"
+import { assembleTreeGridRows, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -95,15 +95,6 @@ const EMPTY_SELECTION: unknown[] = [];
 const invoke = (value: unknown) =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-const listedFields = (metaUi: MetaUi) => {
-  const fields = metaUi.getListedFields();
-  return fields.length
-    ? fields
-    : metaUi.groups
-        .filter((group) => !group.many)
-        .flatMap((group) => group.fields);
-};
-
 const primeCellEditor = (
   field: MetaUiField,
   data: Record<string, unknown>,
@@ -174,7 +165,8 @@ const normalizeMenuItem = (item: any): any => {
 export function createPrimeVueUiFactory(): VueUiFactory {
   const button = createButton;
 
-  const table = <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) => {
+  const table = <T>(props: UiListPropsType<T> = {}) => {
+    const model = (props.rows ?? []) as T[];
     const bag = props as UiListPropsType<T> & {
       fieldCellRenderers?: Record<
         string,
@@ -187,7 +179,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
       rowStyle?: unknown;
       selectedItems?: T[];
     };
-    const fields = listedFields(metaUi);
+    const fields = (props.fields ?? []) as MetaUiField[];
     const fieldEditors = bag.fieldCellEditors ?? {};
     const inplaceEdit = bag.editable === true;
     const selectionMode =
@@ -455,7 +447,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
       ...dataColumns,
     ];
 
-    const dataKey = metaUi.primaryKey ?? "id";
+    const dataKey = props.primaryKey ?? "id";
     const expandAll = props.rowDetail && props.rowDetail.expandAll !== false;
     const expandedRows = expandAll
       ? Object.fromEntries(
@@ -617,10 +609,14 @@ export function createPrimeVueUiFactory(): VueUiFactory {
       if (/\bfa[srbld]?\b|fa-/.test(icon)) return icon;
       return factory.actionIcons[icon] ?? `pi pi-${icon}`;
     },
-    textSpan: (text, props) => h("span", props, text),
-    label: (text, props) => h("label", props, text),
-    image: (src, props) => h(Image, { src, preview: props?.preview, ...props }),
-    icon: (name, props) => createIconVNode(factory.resolveIcon(name), props),
+    textSpan: (props) => h("span", props, props.text),
+    label: (props) => h("label", props, props.text),
+    image: (props) => h(Image, { ...props, src: props.src, preview: props.preview }),
+    icon: (props) =>
+      createIconVNode(
+        factory.resolveIcon(props.iconClass ?? ""),
+        props as Record<string, unknown>,
+      ),
     badge: (props) => createBadge(props),
     message: (props) => createMessage(props),
     avatar: (props) =>
@@ -677,7 +673,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
       createTimeline(props, (name) => factory.resolveIcon(name)),
     skeleton: (props = {}) => createSkeleton(props),
     loading: (props = {}) => createLoading(props),
-    errorRetry: (props = {}) => createErrorRetry(props),
+    error: (props = {}) => createErrorRetry(props),
     speechToText: (props = {}) => createSpeechToText(props),
     datePicker: (props) => createDatePicker(props),
     monthPicker: (props) =>
@@ -699,8 +695,8 @@ export function createPrimeVueUiFactory(): VueUiFactory {
     treeSelect: createTreeSelect,
     dropDownTree: createTreeSelect,
     comboBox: (props) => createComboBox(props),
-    title: (text, props) => h("h2", props, text),
-    subtitle: (text, props) => h("h3", props, text),
+    title: (props) => h("h2", props, props.text),
+    subtitle: (props) => h("h3", props, props.text),
     link: (props, slots) =>
       h(
         "a",
@@ -718,12 +714,15 @@ export function createPrimeVueUiFactory(): VueUiFactory {
     autoComplete: (props = {}) => createAutoComplete(props),
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
-    buttonGroup: createButtonGroup,
-    selectButtonGroup: (value, props) =>
-      createSelectButtonGroup(value, props, factory.resolveIcon),
+    buttonGroup: (props = {}, slots) =>
+      createButtonGroup(slots?.default ?? (() => []), props),
+    selectButtonGroup: (props) =>
+      createSelectButtonGroup(props.modelValue, props, factory.resolveIcon),
     splitButton: createSplitButton,
-    dropDownButton: createDropDownButton,
-    moreMenuButton: createMoreMenuButton,
+    dropDownButton: (props, slots) =>
+      createDropDownButton(props, props.actions ?? [], slots),
+    moreMenuButton: (props, slots) =>
+      createMoreMenuButton(props, props.actions ?? [], slots),
     floatingActionButton: createFloatingActionButton,
     actionButton: (action, t, _resolve, props) =>
       button({
@@ -737,15 +736,15 @@ export function createPrimeVueUiFactory(): VueUiFactory {
         ),
         onClick: action.onAction,
       }),
-    paginator: (pagination: Pagination, props: UiPaginatorPropsType) =>
+    paginator: (props: UiPaginatorPropsType) =>
       h(Paginator, {
         first: Math.max(
           0,
-          ((pagination.pageNo ?? 1) - 1) *
-            (pagination.pageSize ?? DEFAULT_PAGE_SIZE),
+           ((props.pagination.pageNo ?? 1) - 1) *
+             (props.pagination.pageSize ?? DEFAULT_PAGE_SIZE),
         ),
-        rows: pagination.pageSize ?? DEFAULT_PAGE_SIZE,
-        totalRecords: pagination.recordCount ?? 0,
+        rows: props.pagination.pageSize ?? DEFAULT_PAGE_SIZE,
+        totalRecords: props.pagination.recordCount ?? 0,
         rowsPerPageOptions: props.pageSizeOptions ?? [
           ...DEFAULT_PAGE_SIZE_OPTIONS,
         ],
@@ -759,13 +758,14 @@ export function createPrimeVueUiFactory(): VueUiFactory {
           }),
       }),
     tree: (props) => createTree(props),
-    treeGrid: <T>(model: T[], metaUi: MetaUi, props: UiTreeGridPropsType<T>) => {
+    treeGrid: <T>(props: UiTreeGridPropsType<T>) => {
+      const model = (props.rows ?? []) as T[];
       if (props.rowDetail) {
-        return table(model, metaUi, props as UiListPropsType<T>);
+        return table(props as UiListPropsType<T>);
       }
-      const fields = listedTableFields(metaUi);
+      const fields = (props.fields ?? []) as MetaUiField[];
       const { treeShape, shapeKey, idField, childrenKey, assembled } =
-        assembleTreeGridRows(model, metaUi, {
+        assembleTreeGridRows(model, { primaryKey: props.primaryKey } as MetaUi, {
           ...props,
           bindShape: props.bindShape ?? "nestedChildren",
         });
@@ -810,10 +810,10 @@ export function createPrimeVueUiFactory(): VueUiFactory {
           ),
       });
     },
-    list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T> = {}) =>
+    list: <T>(props: UiListPropsType<T> = {}) =>
       h(
         DataView,
-        { value: model, layout: "list", class: "mmda-list" },
+        { value: props.rows ?? [], layout: "list", class: "mmda-list" },
         {
           empty: () => props.empty?.() ?? "",
           list: ({ items }: { items: T[] }) =>
@@ -827,8 +827,8 @@ export function createPrimeVueUiFactory(): VueUiFactory {
                     key:
                       props.itemKey?.(item) ??
                       String(
-                        metaUi.primaryKey
-                          ? (item as any)[metaUi.primaryKey]
+                        props.primaryKey
+                          ? (item as any)[props.primaryKey]
                           : index,
                       ),
                     class: ["mmda-list__item", props.itemClass?.(item)],
@@ -843,9 +843,14 @@ export function createPrimeVueUiFactory(): VueUiFactory {
         },
       ),
     table,
+    grid: table,
     pagableTable: (loader, metadata, props) =>
-      factory.table(loader.model.list as any[], metadata, {
+      factory.table({
         ...props,
+        rows: loader.model.list as any[],
+        fields: props.fields ?? metadata.getListedFields(),
+        primaryKey: props.primaryKey ?? metadata.primaryKey,
+        objName: props.objName ?? metadata.objName,
         pagination: props.pagination ?? loader.model.pagination,
         onPage: props.onPage,
       }),
@@ -868,8 +873,9 @@ export function createPrimeVueUiFactory(): VueUiFactory {
         { model: items.map((item) => normalizeMenuItem(item)), ...props },
         slots,
       ),
-    splitter: (panes, props) => createSplitter(panes, props),
-    searchForRelative: (props) =>
+    splitter: (props, slots) =>
+      createSplitter(slots?.default?.() ?? [], props),
+    searchRelative: (props) =>
       renderSearchForRelativeField(props as any),
     formField: (props = {}, slots) =>
       h(

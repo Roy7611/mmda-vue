@@ -1,4 +1,4 @@
-import { callUiBagFn, type UiComboBoxProps } from '@mmda/core'
+import { type UiComboBoxProps } from '@mmda/core'
 import { vueUpdateOf } from '../vue_ui_props'
 
 export type { UiComboBoxProps } from '@mmda/core'

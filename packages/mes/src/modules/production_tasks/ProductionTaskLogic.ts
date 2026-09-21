@@ -77,7 +77,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 				this.field('lineID'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-' });
 				})
 			);
 
@@ -101,7 +101,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 		const field = ctx.metaUi.getField('status');
 		const ref = field.reference;
 		if (ref?.isEnum) {
-			ctx.getFieldOptions(field).selectOptions = ref.refOptions.filter(
+			ctx.getFieldSearchOptions(field).selectOptions = ref.refOptions.filter(
 				(o: any) => ref.valueFn(o) !== ProductionTaskStatus.NEW,
 			);
 		}
@@ -109,7 +109,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 	};
 
 	beforeSearch() {
-		const { searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: 'view.planNo',
@@ -120,7 +120,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 					// if (hrefData.value.projectID) {
 					// 	this.getOneProjects(ctx, hrefData.value.projectID, csf.searchVal.value);
 					// }
-					return ui.factory.searchForRelative({
+					return ui.factory.searchRelative({
 						id: 'search_planNo',
 						modelValue: csf.searchVal.value,
 						placeholder: t('action.select'),
@@ -157,7 +157,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 			});
 		}
 
-		return { searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 	/**
 	 * 设置编辑交互逻辑
@@ -226,10 +226,10 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 						style: { color: '#409eff' },
 					});
 				}),
-				this.field('endOpCode').setCustomRenderer((fld, ctx: UiContext<ProductionTask>, props) => ctx.uiBuilder.factory.textSpan(MetaModel.getRefProp(ctx.model, 'endOpCode'))),
+				this.field('endOpCode').setCustomRenderer((fld, ctx: UiContext<ProductionTask>, props) => ctx.uiBuilder.factory.textSpan({ text: MetaModel.getRefProp(ctx.model, 'endOpCode') })),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					return ctx.uiBuilder.factory.textSpan(ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-', {});
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-' });
 				})
 			)
 			/**

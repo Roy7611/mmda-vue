@@ -5,11 +5,12 @@
 ## 壳里的类
 
 - 业务：`XxxLogic extends EntityLogic`（core）。vui 再导出 `EntityLogic` / `SubEntityLogic` / `EntityLogicInit`。
-- 无定制：`new VueEntityLogic(defineEntity, init)`。**不要**再引入已删除的 `GenericUiLogic`。
-- `VueEntityLogic` 只覆盖搜索表单 `rx`。业务不要继承它。
+- 无定制：`GenericEntityLogic.resolve(di, token, defineEntity, init)`（core）。**不要**再引入已删除的 `GenericUiLogic`。
+- 搜索表单状态只在 `VueUiContext`，Logic 不留 `searchForm`。业务不要继承壳类。
 
 ```ts
-import { EntityLogic, VueEntityLogic, type EntityLogicInit } from '@mmda/vui'
+import { EntityLogic, type EntityLogicInit } from '@mmda/vui'
+import { GenericEntityLogic } from '@mmda/core'
 ```
 
 ## 谁 new Logic
@@ -17,11 +18,11 @@ import { EntityLogic, VueEntityLogic, type EntityLogicInit } from '@mmda/vui'
 [`EntityView`](../src/components/EntityView.ts) 打开仓库页：
 
 1. `app.di.injectAsync('${service}:${repository}Logic')` → 业务 `MaterialLogic`
-2. 未注册 → `new VueEntityLogic(defineEntity, init)`
+2. 未注册 → `GenericEntityLogic.resolve(di, token, defineEntity, init)`
 
 `init` 只有 `metaUiService` / `repository` / `module` / `apiService`。`useRouter()` 的结果进 **`VueUiContext({ router })`**，不进 Logic。
 
-跨仓库 `context.select({ repository })`、分类树同样：有 DI 用业务类，否则 `VueEntityLogic`。
+跨仓库 `context.select({ repository })`、分类树同样：有 DI 用业务类，否则 `GenericEntityLogic`。
 
 ## 路由
 
@@ -29,9 +30,9 @@ import { EntityLogic, VueEntityLogic, type EntityLogicInit } from '@mmda/vui'
 
 ## 搜索响应式
 
-列表 `init()`：`configureSearch(filters, logic.beforeSearch())`。
+列表 `init()`：先 `applyTo` 得到 `customSearchFields`，再 `configureSearch(filters, { customSearchFields })`。
 
-界面用的 `searchParam` 在 Context 上已经 `rx`。业务 Logic 的 `beforeSearch` 返回普通对象即可。只有 `VueEntityLogic` 会在 `createSearchForm` 里再 `rx`。
+界面用的 `searchParam` 在 Context 上已经 `rx`。业务 Logic 的 `beforeSearch` 返回 `{ fields, groups, customActions, customSearchFields }`。搜索表单状态只在 `VueUiContext`，Logic 不留 `searchForm`。
 
 ## 国际化
 

@@ -1,5 +1,5 @@
 /*
- * chrome 分隔栏走 factory.splitter(panes, props)。算法在 @mmda/core。
+ * chrome 分隔栏走 factory.splitter(props, slots)。算法在 @mmda/core。
  */
 export type {
   UiSplitterCollapseEventArgs,

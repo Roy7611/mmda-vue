@@ -46,12 +46,12 @@ describe("nested entity dialog", () => {
     ctx.isInDialog = true;
     ctx.routeTo = routeTo as any;
 
-    ctx.create();
+    ctx.routeToCreate();
     expect(openNestEntityDialog).toHaveBeenCalledWith(ctx, "create");
     expect(routeTo).not.toHaveBeenCalled();
 
     openNestEntityDialog.mockClear();
-    ctx.edit({ id: "e1", categoryName: "A" });
+    ctx.routeToEdit({ id: "e1", categoryName: "A" });
     expect(openNestEntityDialog).toHaveBeenCalledWith(ctx, "edit", {
       id: "e1",
       categoryName: "A",
@@ -59,7 +59,7 @@ describe("nested entity dialog", () => {
     expect(routeTo).not.toHaveBeenCalled();
 
     openNestEntityDialog.mockClear();
-    ctx.details({ id: "e1", categoryName: "A" });
+    ctx.routeToDetails({ id: "e1", categoryName: "A" });
     expect(openNestEntityDialog).toHaveBeenCalledWith(ctx, "details", {
       id: "e1",
       categoryName: "A",
@@ -81,7 +81,7 @@ describe("nested entity dialog", () => {
     });
     ctx.isInDialog = false;
     ctx.routeTo = routeTo as any;
-    ctx.create();
+    ctx.routeToCreate();
     expect(routeTo).toHaveBeenCalledWith(UiViewOne.Create);
     expect(openNestEntityDialog).not.toHaveBeenCalled();
   });

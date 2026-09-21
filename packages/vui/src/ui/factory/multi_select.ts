@@ -1,6 +1,5 @@
 import {
   applyMultiSelectSelection,
-  callUiBagFn,
   resolveMultiSelectItems,
   type UiMultiSelectProps,
 } from '@mmda/core'

@@ -21,7 +21,7 @@ import {
 	EntityAction,
 	type Pager,
 } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiSearchForm, UiLogicFnResult } from '@mmda/vui';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, UiLogicFnResult } from '@mmda/vui';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { type LinesideInventory, defineLinesideInventory } from '@/models/LinesideInventory';
 import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/models/LinesideInventoryItem';
@@ -111,7 +111,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 			return false;
 		}
 
-		context.toSelectManyIndex('oneClickStorage', async () => {
+		context.selectMany('oneClickStorage', async () => {
 
 			if (!context.selectedItems.length) {
 				context.uiBuilder
@@ -202,7 +202,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 			return false;
 		}
 
-		context.toSelectManyIndex('oneClickReturn', async () => {
+		context.selectMany('oneClickReturn', async () => {
 
 			if (!context.selectedItems.length) {
 				context.uiBuilder
@@ -294,7 +294,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 		this.selectedWorksite.value = worksite;
 		const siteID = worksite ? worksite.siteID : '';
 		ctx.searchParam.siteID = siteID;
-		ctx.addQueryParam('siteID', siteID);
+		(ctx.searchParam.queryParams ??= {}).siteID = siteID;
 		ctx.refresh();
 	}
 	/**
@@ -432,8 +432,8 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 			});
 	}
 	searchParam: Record<string, any> = {};
-	beforeSearch(): UiSearchForm {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+	beforeSearch() {
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: 'ganttLabel.sProject',
@@ -443,7 +443,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 					if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 						tableDataProject.value.push(csf.searchVal.value);
 					}
-					return ctx.uiBuilder.factory.searchForRelative({
+					return ctx.uiBuilder.factory.searchRelative({
 						modelValue: csf.searchVal.value,
 						dataKey: 'projectID',
 						optionLabel: (v: any) => v.projectName,
@@ -485,7 +485,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 					if (!tableDataOrder.value.length && isObject(csf.searchVal.value)) {
 						tableDataOrder.value.push(csf.searchVal.value);
 					}
-					return ctx.uiBuilder.factory.searchForRelative({
+					return ctx.uiBuilder.factory.searchRelative({
 						modelValue: csf.searchVal.value,
 						dataKey: 'orderID',
 						optionLabel: (v: any) => v.orderNo,
@@ -520,7 +520,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 				},
 			});
 		}
-		return { searchParam, searchFields, customSearchFields };
+		return { fields, groups, customActions, customSearchFields };
 	}
 
 	checkInventory(context: UiContext) {
@@ -597,7 +597,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 					role: 'primary',
 					onAction: (context: UiContext) => {
 						// 切换到多选模式
-						context.toSelectManyIndex('shipTrans', () => this.shipTrans(context));
+						context.selectMany('shipTrans', () => this.shipTrans(context));
 					},
 				}
 			);

@@ -3,9 +3,9 @@ import { checkBoxCheckedOf, checkBoxModifierClasses, checkBoxPropsFromField } fr
 import { emitCheckBoxChange } from '@mmda/vui'
 
 describe('checkBox helpers', () => {
-  it('prefers checked over modelValue', () => {
-    expect(checkBoxCheckedOf({ checked: true, modelValue: false })).toBe(true)
-    expect(checkBoxCheckedOf({ modelValue: true })).toBe(true)
+  it('reads checked, empty means false', () => {
+    expect(checkBoxCheckedOf({ checked: true })).toBe(true)
+    expect(checkBoxCheckedOf({ checked: false })).toBe(false)
     expect(checkBoxCheckedOf({})).toBe(false)
   })
 
@@ -52,7 +52,7 @@ describe('checkBox helpers', () => {
     expect(setFieldValue).toHaveBeenCalledWith(field, false)
   })
 
-  it('treats empty extra label as no caption', () => {
+  it('无入参 label 时用字段 displayLabel', () => {
     const props = checkBoxPropsFromField(
       { fieldName: 'ok', displayLabel: '同意' } as any,
       {
@@ -60,9 +60,8 @@ describe('checkBox helpers', () => {
         setFieldValue: vi.fn(),
         isFieldReadonly: () => true,
       },
-      { label: '' },
     )
-    expect(props.label).toBe('')
+    expect(props.label).toBe('同意')
     expect(props.disabled).toBe(true)
   })
 })

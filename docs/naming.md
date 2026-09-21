@@ -89,7 +89,7 @@
 ```text
 皮肤 Component     SfGrid / AgGrid      一块控件，吃 props，不拼整页
 皮肤 Factory       factory.table        用 MetaUi 生产上面的组件
-vui Builder        buildListView        拼工具栏、搜索、分组、分页、对话框
+vui Builder        buildIndexView        拼工具栏、搜索、分组、分页、对话框
 ```
 
 Builder 继承（设计真源 [ARCHITECTURE.md](../ARCHITECTURE.md)）：
@@ -106,8 +106,8 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | --- | --- | --- | --- |
 | 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳。`components/` 不 import builder / factory；依赖只许 **builder → factory → components** |
 | 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `interface VueUiFactory extends UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
-| 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildView` / `buildListView` | **core** `src/ui/builder.ts`，无 Vue |
-| 拼屏实现 | `VueUiBuilder` | `buildListView`、`buildView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
+| 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildIndexView` / `buildDetailsView` / `buildEditView` | **core** `src/ui/builder.ts`，无 Vue |
+| 拼屏实现 | `VueUiBuilder` | `buildIndexView`、`buildDetailsView`、`buildEditView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
 | 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SyncfusionOverlay` 等。不要 `factory.dialog` |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
@@ -173,12 +173,11 @@ vui **不要**建 `ui/factories/`（会让人以为 vui 在生产表格）。皮
 Entity          Material              实体模型（单数 PascalCase）
 repository      Materials             通常是实体模型的复数（API 路径，不是 Logic 类名）
 EntityLogic     MaterialLogic         该实体的交互逻辑（core：CRUD + 视图钩子；无 Vue）
-VueEntityLogic  （仅 vui）             搜索表单等响应式包装；业务不要继承
 ```
 
 程序员写的是 **实体 Logic**（`XxxLogic extends EntityLogic`），不是「仓库 Logic」。`repository` 只是该实体对应的 API / 元数据包主键。
 
-`EntityLogic` 在 `@mmda/core`：CRUD、视图装配与钩子，无 Vue。面向用户文案用 `context.t()`。vui 的 `VueEntityLogic` 只给壳用（无定制仓库也可 `new VueEntityLogic`）。细则见 [Logic](#logic)。
+`EntityLogic` 在 `@mmda/core`：CRUD、视图装配与钩子，无 Vue。面向用户文案用 `context.t()`。无定制仓库用 core 的 `GenericEntityLogic`。细则见 [Logic](#logic)。
 
 不要叫 **`EntityManager`**（ORM/Data 味道，且与 JPA 同名）。不要叫 **`RepositoryLogic`**（会和 `repository` 字符串、`createRepositoryLogic()` 搅在一起）。
 
@@ -238,7 +237,7 @@ packages/base/src/modules/materials/MaterialLogic.ts
 - 目录：`production_orders`、`quality_inspections`
 - 类：`ProductionOrderLogic`、`QualityInspectionLogic`
 - 子表：`SubEntityLogic`，挂在主表 Logic 上，例如 `MaterialPartnerLogic`
-- 无定制时用 `VueEntityLogic`，不要空类撑场面
+- 无定制时用 core 的 `GenericEntityLogic`，不要空类撑场面
 
 **源文件大小写（vui / 皮肤）：**
 
@@ -276,13 +275,11 @@ packages/base/src/modules/materials/MaterialLogic.ts
 EntityLogic<E>          @mmda/core     CRUD + 视图钩子；无 Vue
     ↑
 MaterialLogic                          业务：该实体的交互逻辑
-VueEntityLogic          @mmda/vui      仅壳：响应式搜索表单；无定制也可 new（业务不继承）
 ```
 
 | 类 | 包 | 命名 | 是什么 |
 |---|---|---|---|
 | `EntityLogic` | core | 业务基类 | CRUD + 视图装配；`context.t()` 做文案 |
-| `VueEntityLogic` | vui | 不要业务继承 | 搜索表单 `rx`；无定制 CRUD / 跨服务 `select` |
 | `SubEntityLogic` | core | `{子实体}Logic` | 子表，挂在主表 Logic 上 |
 | `MetaUiFieldLogic` | core | `this.field('x')` | 单字段 hide / lock / validate / 渲染 |
 | `MetaUiGroupLogic` | core | `this.group('y')` | 子表组行为 |
@@ -308,7 +305,7 @@ VueEntityLogic          @mmda/vui      仅壳：响应式搜索表单；无定�
 | `editMany` | | `beforeEdit` |
 | `selectOne` | | `beforeIndex` |
 | `selectMany` | `beforeSelectMany` | 未覆盖则 `beforeIndex` |
-| `search` | `beforeSearch` | 返回 `UiSearchForm`，不是 fields/groups |
+| `search` | `beforeSearch` | 返回 fields/groups/customActions 与 `customSearchFields`；搜索表单状态由 UI 上下文持有 |
 
 大型 Logic 按视图拆文件，`viewLogicLoaders` 的键必须是 `UiViewType`。`create` 加载 `edit` 那份。调用基类须 `EntityLogic.prototype.beforeIndex.call(this)`，不能 `this.beforeIndex()`（加载后该方法就是当前函数）。
 
@@ -334,7 +331,7 @@ DI token 按**仓库**（实体复数）：`${service}:${repository}Logic`，例
 mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 ```
 
-无定制：`new VueEntityLogic(defineNote, init)`。子表：`addRelativeLogic('partNos', (master) => new MaterialPartnerLogic(this, master))`。
+无定制：`GenericEntityLogic.resolve(di, token, defineNote, init)`。子表：`addRelativeLogic('partNos', (master) => new MaterialPartnerLogic(this, master))`。
 
 ### 不要
 
@@ -342,7 +339,7 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 - 把 Vue/React 类型写进 `@mmda/core` 的 `EntityLogic` 或业务 `*Logic.ts`
 - 使用已删除的 `pickRelative` / `buildSearchForRelativeContent` / `confirmMessage` / `app.context`
 - 用 JS 过滤器代替 `refWhere`
-- 空的 `XxxLogic` 类撑场面（改用 `VueEntityLogic`）
+- 空的 `XxxLogic` 类撑场面（改用 `GenericEntityLogic`）
 
 ---
 
@@ -360,7 +357,7 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 | `details` | `UiViewOne.Details` | 详情   | 只读看一条                           |
 | `edit`    | `UiViewOne.Edit`    | 编辑   | 改已有一条                           |
 | `create`  | `UiViewOne.Create`  | 创建   | 新建一条；Logic **复用 `edit`**        |
-| `search`  | `UiViewOne.Search`  | 查询表单 | 搜索栏字段装配（`beforeSearch`），不是列表页本身 |
+| `search`  | `UiViewOne.Search`  | 查询表单 | 搜索栏字段装配（`beforeSearch`，含 `customSearchFields`），不是列表页本身；表单状态由 UI 上下文持有，跳转用 `routeToSearch` |
 
 
 ### 多对象 `UiViewMany`
@@ -406,10 +403,10 @@ mmda.di.provide('base:MaterialsLogic', () => new MaterialLogic(init))
 三套 **不同 Props**，不要再靠一份 `UiListProps` + `display` 糊三种能力。契约在 core：[`list.ts`](../packages/core/src/ui/factory/list.ts) / [`table.ts`](../packages/core/src/ui/factory/table.ts) / [`grid.ts`](../packages/core/src/ui/factory/grid.ts) / [`tree.ts`](../packages/core/src/ui/factory/tree.ts)。vui 只叠 Vue slots；树装配字段在 [`factory/tree_grid.ts`](../packages/vui/src/ui/factory/tree_grid.ts)。整页（工具栏、搜索、分页）在 [`builder/list_view.ts`](../packages/vui/src/ui/builder/list_view.ts)。
 
 ```text
-UiListProps         buildList / factory.list           移动端卡片、行条；字段少
-UiTableProps        buildTable / factory.table         只读桌面：index + 默认 selector；无 scene
-UiGridProps         buildGrid / factory.grid           子表 edit / details；selector 仅特殊情况
-UiTreeGridProps     buildTreeGrid / factory.treeGrid   可编一族 + 树字段
+UiListProps         builder.list / factory.list           移动端卡片、行条；字段少
+UiTableProps        builder.table / factory.table         只读桌面：index + 默认 selector；无 scene
+UiGridProps         builder.grid / factory.grid           子表 edit / details；selector 仅特殊情况
+UiTreeGridProps     builder.treeGrid / factory.treeGrid   可编一族 + 树字段
 UiTreeProps         buildTree / factory.tree           chrome 导航树
 UiTreeViewProps     buildTreeView                      分类树组合（搜索 + tree + 底栏）
 UiTreeListViewProps buildTreeListView                  左树右表
@@ -417,19 +414,19 @@ UiTreeListViewProps buildTreeListView                  左树右表
 
 | Props | 给谁 | 写法 |
 |---|---|---|
-| **UiListProps** | 移动端 | `buildList`、`factory.list` |
-| **UiTableProps** | 只读桌面 index；选记录弹窗默认也是 table | `buildTable`、`factory.table` |
-| **UiGridProps** | 子表 edit / details；selector 特殊情况才带 `scene` | `buildGrid`、`factory.grid` |
-| **UiTreeGridProps** | 树形表 | `buildTreeGrid`、`factory.treeGrid` |
+| **UiListProps** | 移动端 | `builder.list`、`factory.list` |
+| **UiTableProps** | 只读桌面 index；选记录弹窗默认也是 table | `builder.table`、`factory.table` |
+| **UiGridProps** | 子表 edit / details；selector 特殊情况才带 `scene` | `builder.grid`、`factory.grid` |
+| **UiTreeGridProps** | 树形表 | `builder.treeGrid`、`factory.treeGrid` |
 | **UiTreeProps** | chrome 导航树 | `buildTree`、`factory.tree` |
 | **UiTreeViewProps** | 分类树组合 | `buildTreeView` |
 | **UiTreeListViewProps** | 左树右表 | `buildTreeListView` |
 
-`buildList` **不要**看见 `editable`（表级进格）/ `filterModel` / `fieldCellRenderers`。List **不** extends Table。
+`builder.list` **不要**看见 `editable`（表级进格）/ `filterModel` / `fieldCellRenderers`。List **不** extends Table。
 
 表开关：`sortable` / `pageable` / `filterable` / `groupable`。自定义格：`fieldCellRenderers[fieldName]`，不要表级 `renderCell`。合计有数据就显示。列宽永远可拖。进格：`UiGridProps.editable` + `fieldCellEditors`（关列 `{ canEdit: false }`）；不要 `inplaceEdit` / `editableFields` / `canEditCell` / `onCellSave`。
 
-`index` / `selectOne` / `selectMany` 列出实体：Builder 走 `buildListView`。数据区缺省：`editable === true` 则 `grid`，否则 `table`（selector 默认跟 index 一样走 table）；Logic 也可走 `list` / `treeGrid`。
+`index` / `selectOne` / `selectMany` 列出实体：Builder 走 `buildIndexView`。数据区缺省：`editable === true` 则 `grid`，否则 `table`（selector 默认跟 index 一样走 table）；Logic 也可走 `list` / `treeGrid`。
 
 表单 HAS_MANY：可编走 `grid`（`scene: 'edit'`），详情只读子表也走 `grid`（`scene: 'details'`）；组 `displayShape` 是树则 `treeGrid`。不要把子表画成 `table`。
 
@@ -662,9 +659,9 @@ search.filterModel = {
 | -------- | -------------------------------------- | -------------------------------- |
 | 列表页      | `index`                                | 把视图写成 `list` / `table` / `grid`   |
 | 列出实体的契约 | `UiListProps` / `UiTableProps` / `UiGridProps`（core）+ 整页 `UiListViewProps` | 一份 Props + `display` 糊三种；vui 建 `ui_grid.ts` |
-| 只读桌面 index / 默认 selector | `buildTable` / `factory.table` / `UiTableProps` | 默认 selector 硬改成 grid；子表画成 table |
-| 多场景桌面表 | `buildGrid` / `factory.grid` / `UiGridProps`（带 `scene`） | 把编辑字段塞进 `UiListProps`；`scene` 挂 table |
-| 树形表 | `buildTreeGrid` / `factory.treeGrid`；`UiTreeGridProps` | 把 `treeGrid` 写成 `view` |
+| 只读桌面 index / 默认 selector | `builder.table` / `factory.table` / `UiTableProps` | 默认 selector 硬改成 grid；子表画成 table |
+| 多场景桌面表 | `builder.grid` / `factory.grid` / `UiGridProps`（带 `scene`） | 把编辑字段塞进 `UiListProps`；`scene` 挂 table |
+| 树形表 | `builder.treeGrid` / `factory.treeGrid`；`UiTreeGridProps` | 把 `treeGrid` 写成 `view` |
 | chrome 导航树 | `buildTree` / `factory.tree`；`UiTreeProps` | 写成 `TreeView` / `fieldFactory.tree` |
 | 分类树组合 | `buildTreeView`；`UiTreeViewProps` | 把厂商控件名当 Builder 方法 |
 | 左树右表 | `buildTreeListView`；`UiTreeListViewProps` | 和 treeGrid / treeSelect 混用 |
@@ -685,8 +682,8 @@ search.filterModel = {
 | 小表引用      | `ref`（全量缓存 `refOptions`）           | 当成 `hasOne` 灌缓存                     |
 | 业务一对一    | `hasOne`（按需取整份实体）                 | 当小表 `loadReferenceOptions`            |
 | 关联对象      | relative：`relObjName`、`addRelativeLogic` | `relation`、CSS `relative`、`relativeTime` |
-| 无 Vue 业务 Logic 基类 | `EntityLogic`（core）                 | `UiLogic`、`EntityManager`、`RepositoryLogic`、`VueEntityLogic`（后者仅 vui） |
-| 拼复杂视图    | `buildListView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
+| 无 Vue 业务 Logic 基类 | `EntityLogic`（core）                 | `UiLogic`、`EntityManager`、`RepositoryLogic`、`VueEntityLogic`（已删，无定制用 `GenericEntityLogic`） |
+| 拼复杂视图    | `buildIndexView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
 | 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
 | 落到真实节点的属性 | core `uiRenderProps(props).attributes`（袋键已压平；`class` → `className`、`style` → 对象） | 袋键 `htmlAttributes`（那是输入、只吃字符串）；把两者都叫 `attrs` |
 | 取色         | `factory.colorPicker`（hex）           | `colorRole`、厂商 `modeSwitcher`     |
@@ -724,5 +721,3 @@ search.filterModel = {
 | 角色勾选目录   | `ModuleAction` / `actionCode`          | 直接当工具栏按钮                         |
 | 子表加行     | `add`                                  | `create`（那是新建主表）                 |
 | 批量删      | `deleteAll`                            | `delete`、`remove`                |
-
-

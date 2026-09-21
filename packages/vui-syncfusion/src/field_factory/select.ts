@@ -19,7 +19,7 @@ import {
 } from "../factory/multi_select";
 import { createTagAutoComplete } from "../factory/tag_auto_complete";
 import { createTreeSelect } from "../factory/tree_select";
-import { fallbackDisplay } from "./display";
+import { createSearchRelative } from "../factory/search_relative";
 import {
   control,
   invalidOf,
@@ -35,7 +35,7 @@ export const dropDownList = (
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createDropDownList(
-      dropDownListPropsFromField(field, context, props ?? {}),
+      dropDownListPropsFromField(field, context),
     ),
     invalid &&
       h(
@@ -54,7 +54,7 @@ export const treeSelect = (
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createTreeSelect(
-      treeSelectPropsFromField(field, context, props ?? {}),
+      treeSelectPropsFromField(field, context),
     ),
     invalid &&
       h(
@@ -72,7 +72,7 @@ export const comboBox = (
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createComboBox(comboBoxPropsFromField(field, context, props ?? {})),
+    createComboBox(comboBoxPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -104,7 +104,7 @@ export const radioButtonGroup = (
     field,
     context,
     createRadioButtonGroup(
-      radioButtonGroupPropsFromField(field, context, props ?? {}),
+      radioButtonGroupPropsFromField(field, context),
     ),
   );
 
@@ -117,7 +117,7 @@ export const multiSelect = (
     field,
     context,
     createMultiSelect(
-      multiSelectPropsFromField(field, context, props ?? {}),
+      multiSelectPropsFromField(field, context),
     ),
   );
 
@@ -130,7 +130,7 @@ export const multiItemSelect = (
     field,
     context,
     createMultiItemSelect(
-      multiItemSelectPropsFromField(field, context, props ?? {}),
+      multiItemSelectPropsFromField(field, context),
     ),
   );
 
@@ -143,7 +143,7 @@ export const multiValueSelect = (
     field,
     context,
     createMultiValueSelect(
-      multiValueSelectPropsFromField(field, context, props ?? {}),
+      multiValueSelectPropsFromField(field, context),
     ),
   );
 
@@ -156,7 +156,7 @@ export const multiTextSelect = (
     field,
     context,
     createMultiTextSelect(
-      multiTextSelectPropsFromField(field, context, props ?? {}),
+      multiTextSelectPropsFromField(field, context),
     ),
   );
 
@@ -169,7 +169,7 @@ export const multiBitSelect = (
     field,
     context,
     createMultiBitSelect(
-      multiBitSelectPropsFromField(field, context, props ?? {}),
+      multiBitSelectPropsFromField(field, context),
     ),
   );
 
@@ -182,7 +182,7 @@ export const checkBoxList = (
     field,
     context,
     createCheckBoxList(
-      checkBoxListPropsFromField(field, context, props ?? {}),
+      checkBoxListPropsFromField(field, context),
     ),
   );
 
@@ -195,7 +195,7 @@ export const bitCheckBoxList = (
     field,
     context,
     createBitCheckBoxList(
-      bitCheckBoxListPropsFromField(field, context, props ?? {}),
+      bitCheckBoxListPropsFromField(field, context),
     ),
   );
 
@@ -222,7 +222,7 @@ export const checkbox = (
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createCheckBox(checkBoxPropsFromField(field, context, props ?? {})),
+    createCheckBox(checkBoxPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -239,7 +239,7 @@ export const switchControl = (
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createSwitch(switchPropsFromField(field, context, props ?? {})),
+    createSwitch(switchPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -263,14 +263,10 @@ export const searchBox = (
   if (!reference) {
     return h("span", { class: "warning" }, "不是引用字段");
   }
-  const builder = context.app?.ui;
-  if (!builder?.buildSearchForRelative) {
-    return fallbackDisplay(field, context, props);
-  }
 
   const valueKey = reference.refFlds?.[0] ?? "value";
   const labelKey = reference.refFlds?.[1] ?? valueKey;
-  const fldOptions = context.getFieldOptions(field);
+  const fldOptions = context.getFieldSearchOptions(field);
 
   let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
     ? context.getFieldValue(field)
@@ -299,7 +295,7 @@ export const searchBox = (
       ? fldOptions.currentSelectOption
       : fieldValue;
 
-  return builder.buildSearchForRelative(context, field, {
+  return createSearchRelative(field, context, {
     ...props,
     modelValue: selectedModel,
     showClear: Boolean(selectedModel),
@@ -338,8 +334,8 @@ export const autoComplete = (
   props?: UiProps,
 ): VNode => {
   const route = routeAutoCompleteField(field);
-  if (route === "dropDownList") return dropDownList(field, context, props);
-  if (route === "searchBox") return searchBox(field, context, props);
+  if (route === "dropDownList") return dropDownList(field, context);
+  if (route === "searchBox") return searchBox(field, context);
   const invalid = invalidOf(field, context);
   const reference = field.reference?.isRef ? field.reference : undefined;
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [

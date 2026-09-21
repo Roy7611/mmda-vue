@@ -69,12 +69,11 @@ import {
 
 const wrapMasked = (
   field: MetaUiField,
-  context: UiContext,
-  extra: UiProps = {},
+  context: UiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createMaskedTextBox(maskedTextBoxPropsFromField(field, context, extra)),
+    createMaskedTextBox(maskedTextBoxPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -86,13 +85,12 @@ const wrapMasked = (
 
 const wrapOtp = (
   field: MetaUiField,
-  context: UiContext,
-  extra: UiProps = {},
+  context: UiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     createOneTimePasswordInput(
-      oneTimePasswordPropsFromField(field, context, extra),
+      oneTimePasswordPropsFromField(field, context),
     ),
     invalid &&
       h(
@@ -105,12 +103,11 @@ const wrapOtp = (
 
 const wrapSlider = (
   field: MetaUiField,
-  context: UiContext,
-  extra: UiProps = {},
+  context: UiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createSlider(sliderPropsFromField(field, context, extra)),
+    createSlider(sliderPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -122,12 +119,11 @@ const wrapSlider = (
 
 const wrapRating = (
   field: MetaUiField,
-  context: UiContext,
-  extra: UiProps = {},
+  context: UiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createRating(ratingPropsFromField(field, context, extra)),
+    createRating(ratingPropsFromField(field, context)),
     invalid &&
       h(
         "span",
@@ -147,17 +143,17 @@ const fallbackInput = (
     (field.reference.hasOne ||
       (field.reference.isRef && field.reference.refRepository))
   ) {
-    return searchBox(field, context, props);
+    return searchBox(field, context);
   }
   if (field.reference?.refOptions?.length)
-    return dropDownList(field, context, props);
+    return dropDownList(field, context);
   if (SqlDataType.isBool(field.dataType))
-    return checkbox(field, context, props);
+    return checkbox(field, context);
   if (SqlDataType.isNum(field.dataType))
-    return numberInput(field, context, props);
+    return numberInput(field, context);
   if (SqlDataType.isDate(field.dataType))
-    return datePicker(field, context, props);
-  return textInput(field, context, props);
+    return datePicker(field, context);
+  return textInput(field, context);
 };
 
 const factory: UiFieldFactory = {
@@ -177,9 +173,9 @@ const factory: UiFieldFactory = {
   checkBoxList,
   bitCheckBoxList,
   numberInput,
-  positiveNumberInput: (field, context, props) =>
+  positiveNumberInput: (field, context) =>
     numberInput(field, context, { min: 0, ...props }),
-  negativenumberInput: (field, context, props) =>
+  negativenumberInput: (field, context) =>
     numberInput(field, context, { max: 0, ...props }),
   percentInput,
   checkBox: checkbox,
@@ -191,22 +187,22 @@ const factory: UiFieldFactory = {
   monthPicker,
   timePicker,
   dateRangePicker,
-  mobileInput: (field, context, props) =>
+  mobileInput: (field, context) =>
     wrapMasked(field, context, { ...props, mask: MOBILE_MASK }),
-  zipCodeInput: (field, context, props) =>
+  zipCodeInput: (field, context) =>
     wrapMasked(field, context, { ...props, mask: ZIP_MASK }),
-  maskedTextBox: (field, context, props) =>
-    wrapMasked(field, context, props ?? {}),
-  oneTimePasswordInput: (field, context, props) =>
-    wrapOtp(field, context, props ?? {}),
-  slider: (field, context, props) =>
-    wrapSlider(field, context, props ?? {}),
-  rating: (field, context, props) =>
-    wrapRating(field, context, props ?? {}),
-  colorPicker: (field, context, props) => {
+  maskedTextBox: (field, context) =>
+    wrapMasked(field, context),
+  oneTimePasswordInput: (field, context) =>
+    wrapOtp(field, context),
+  slider: (field, context) =>
+    wrapSlider(field, context),
+  rating: (field, context) =>
+    wrapRating(field, context),
+  colorPicker: (field, context) => {
     const invalid = invalidOf(field, context);
     return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-      createColorPicker(colorPickerPropsFromField(field, context, props ?? {})),
+      createColorPicker(colorPickerPropsFromField(field, context)),
       invalid &&
         h(
           "span",
@@ -242,8 +238,8 @@ const factory: UiFieldFactory = {
   percentage,
   amountText: fallbackDisplay,
   quantityUnit,
-  checkIcon: (field, context, props) => boolIcon(field, context, props),
-  checkedIcon: (field, context, props) => boolIcon(field, context, props),
+  checkIcon: (field, context) => boolIcon(field, context),
+  checkedIcon: (field, context) => boolIcon(field, context),
   searchInput: textInput,
   searchBox,
   comboBox,
@@ -258,7 +254,7 @@ const factory: UiFieldFactory = {
   statusLight: tag,
 };
 
-factory.inplaceFieldEditor = (field, context, props) =>
+factory.inplaceFieldEditor = (field, context) =>
   renderInplaceFieldEditor(field, context as any, props ?? {}, factory);
 
 const aliases: Record<string, string> = {

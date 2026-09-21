@@ -4,7 +4,6 @@
  * chrome 掩码输入走 factory.maskedTextBox。vui mask 用 EJ2 元素，不要写 Prime 的 9。
  * 字段 fieldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
  */
-import { callUiBagFn } from '@mmda/core'
 import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
 import type {UiProps} from '../layout'
 import { vueUpdateOf } from '../vue_ui_props'
@@ -76,10 +75,9 @@ export function primeMaskOf(mask: string): string {
 
 export function maskedTextBoxPropsFromField(
   field: MetaUiField,
-  context: MaskedTextBoxFieldContext,
-  extra: UiProps = {},
+  context: MaskedTextBoxFieldContext
 ): UiMaskedTextBoxProps {
-  const mask = String(extra.mask ?? '')
+  const mask = String('')
   return {
     value: (() => {
       const raw = context.getFieldValue(field)
@@ -87,20 +85,16 @@ export function maskedTextBoxPropsFromField(
     })(),
     mask,
     placeholder:
-      (extra.placeholder as string | undefined) ?? field.placeholder,
+      field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
-    promptChar: extra.promptChar as string | undefined,
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

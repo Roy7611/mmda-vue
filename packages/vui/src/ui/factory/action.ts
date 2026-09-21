@@ -156,7 +156,7 @@ export const UiContextAction = (
     onAction: () => {
       if (context.executing) {
         context.uiBuilder
-          .toast(context, {
+          ?.toast(context, {
             severity: "warning",
             title: context.translate("dialog.title.warning"),
             message: context.translate("failure.executing"),

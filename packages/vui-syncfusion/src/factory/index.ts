@@ -128,10 +128,13 @@ export function createSyncfusionUiFactory(): VueUiFactory {
       }
       return factory.actionIcons[icon] ?? `e-icons e-${icon}`;
     },
-    textSpan: (text: any, props: any) => h("span", props, text),
-    label: (text: any, props: any) => h("label", props, text),
-    icon: (name: string, props: any) =>
-      createIconVNode(factory.resolveIcon(name), props),
+    textSpan: (props: any) => h("span", props, props.text),
+    label: (props: any) => h("label", props, props.text),
+    icon: (props: any) =>
+      createIconVNode(
+        factory.resolveIcon(props.iconClass ?? ""),
+        props as Record<string, unknown>,
+      ),
     badge: (props: any) => createBadge(props),
     message: (props: any) => createMessage(props),
     avatar: (props: any) =>
@@ -174,7 +177,7 @@ export function createSyncfusionUiFactory(): VueUiFactory {
       createTimeline(props, (name: string) => factory.resolveIcon(name)),
     skeleton: (props: any = {}) => createSkeleton(props),
     loading: (props: any = {}) => createLoading(props),
-    errorRetry: (props: any = {}) => createErrorRetry(props),
+    error: (props: any = {}) => createErrorRetry(props),
     speechToText: (props: any = {}) => createSpeechToText(props),
     datePicker: (props: any) => createDatePicker(props),
     monthPicker: (props: any) =>
@@ -196,8 +199,8 @@ export function createSyncfusionUiFactory(): VueUiFactory {
     treeSelect: createTreeSelect,
     dropDownTree: createTreeSelect,
     comboBox: (props: any) => createComboBox(props),
-    title: (text: any, props: any) => h("h2", props, text),
-    subtitle: (text: any, props: any) => h("h3", props, text),
+    title: (props: any) => h("h2", props, props.text),
+    subtitle: (props: any) => h("h3", props, props.text),
     link: (props: any, slots: any) =>
       h(
         "a",
@@ -246,16 +249,20 @@ export function createSyncfusionUiFactory(): VueUiFactory {
     overlayRenderers(),
   );
   factory.splitter = createSplitterRenderer();
-  factory.table = ((model: any, metaUi: any, props: any = {}) =>
+  factory.table = ((props: any = {}) =>
     createTableRenderer({
       button,
       paginator: factory.paginator,
       resolveIcon: (icon: string) => factory.resolveIcon(icon),
-    })(model, metaUi, props)) as typeof factory.table;
+    })(props)) as typeof factory.table;
   wrapListFamilyPaginator(factory, ["list", "treeGrid"], "mmda-pagable");
   factory.pagableTable = (loader: any, metadata: any, props: any) =>
-    factory.table(loader.model.list as any[], metadata, {
+    factory.table({
       ...props,
+      rows: loader.model.list as any[],
+      fields: props.fields ?? metadata.getListedFields(),
+      primaryKey: props.primaryKey ?? metadata.primaryKey,
+      objName: props.objName ?? metadata.objName,
       pagination: props.pagination ?? loader.model.pagination,
       onPage: props.onPage,
     });

@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, EntityAction, type UiContext, isRefNone, ApiClient, isNullOrUndefined, defaultPager, MetaModel, DateUtils } from '@mmda/core';
 import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne } from '@mmda/vui';
 import { type Equipment, defineEquipment } from '@/models/Equipment';
 import { type EquipmentStation, defineEquipmentStation } from '@/models/EquipmentStation';
@@ -135,42 +135,42 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 	}
 	// 计算下次维护日期
 	calculateNextMaintainDate(context: UiContext, maintenancePlan: MaintenancePlan): string {
-		let start: string | Date; // 维护开始计算日期 如 本周第一天 本月第一天等
+		let start: Date; // 维护开始计算日期 如 本周第一天 本月第一天等
 		let nextDate: string;
 		switch (maintenancePlan.frequency) {
 			case MaintainingFrequency.DAILY:
-				nextDate = new Date().plus({ day: 1 }).toSQLDate();
+				nextDate = DateUtils.toSQLDate(DateUtils.plus(new Date(), { day: 1 }));
 				break;
 			case MaintainingFrequency.WEEKLY:
-				start = new Date().weekStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.weekStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ week: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { week: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.MONTHLY:
-				start = new Date().monthStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.monthStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ month: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { month: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.QUARTERLY:
-				start = new Date().quarterStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.quarterStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ quarter: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { quarter: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 			case MaintainingFrequency.YEARLY:
-				start = new Date().monthStart(new Date());
-				if (start.plus({ day: maintenancePlan.onDay - 1 }).isAfter(new Date())) {
-					nextDate = start.plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+				start = DateUtils.monthStart(new Date());
+				if (DateUtils.isAfter(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }), new Date())) {
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(start, { day: maintenancePlan.onDay - 1 }));
 				} else {
-					nextDate = start.plus({ year: 1 }).plus({ day: maintenancePlan.onDay - 1 }).toSQLDate();
+					nextDate = DateUtils.toSQLDate(DateUtils.plus(DateUtils.plus(start, { year: 1 }), { day: maintenancePlan.onDay - 1 }));
 				}
 				break;
 
@@ -235,14 +235,14 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 							}
 						}
 						if (isNullOrUndefined(newVal) === false) {
-							const stationIDFieldOption = ctx.getFieldCurrentOption('stationID')
+							const stationIDFieldOption = ctx.getFieldSelectedOption('stationID')
 							ctx.setFieldValue('lineID', {
 								lineID: stationIDFieldOption.lineID,
 								lineName: stationIDFieldOption.prodLine.lineName
 							})
 							// 如果已开启可移动，自动将工位加入设备站点子表
 							if (model.movable) {
-								const station = ctx.getFieldCurrentOption('stationID');
+								const station = ctx.getFieldSelectedOption('stationID');
 								const stationID = station?.stationID ?? (typeof station === 'string' ? station : null);
 								if (!isNullOrUndefined(stationID) && !isRefNone(stationID)) {
 									const exists = (model.stations ?? []).some(
@@ -262,7 +262,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 													if (m?.lineName) {
 														return { lineID: m.lineID, lineName: m.lineName };
 													}
-													const line = ctx.getFieldCurrentOption('lineID');
+													const line = ctx.getFieldSelectedOption('lineID');
 													return {
 														lineID: line?.lineID ?? model.lineID,
 														lineName: line?.lineName,
@@ -344,9 +344,9 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 				}),
 				this.field('movable').onChange((context, model, newVal) => {
 					if (newVal) {
-						// 开启：自动将当前工位加入设备站点（校验model.stationID防止getFieldCurrentOption返回缓存值）
+						// 开启：自动将当前工位加入设备站点（校验model.stationID防止getFieldSelectedOption返回缓存值）
 						if (isNullOrUndefined(model.stationID) || isRefNone(model.stationID)) return;
-						const station = context.getFieldCurrentOption('stationID');
+						const station = context.getFieldSelectedOption('stationID');
 						const stationID = station?.stationID ?? (typeof station === 'string' ? station : null);
 						if (isNullOrUndefined(stationID) || isRefNone(stationID)) return;
 						const exists = (model.stations ?? []).some(
@@ -366,7 +366,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 									if (m?.lineName) {
 										return { lineID: m.lineID, lineName: m.lineName };
 									}
-									const line = context.getFieldCurrentOption('lineID');
+									const line = context.getFieldSelectedOption('lineID');
 									return {
 										lineID: line?.lineID ?? model.lineID,
 										lineName: line?.lineName,
@@ -395,7 +395,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 					if (isRefNone(newVal)) {
 						ctx.setFieldValue('planToMaintain', '');
 					} else {
-						const currentOption = ctx.getFieldCurrentOption('maintenancePlanID')
+						const currentOption = ctx.getFieldSelectedOption('maintenancePlanID')
 						ctx.setFieldValue('planToMaintain', this.calculateNextMaintainDate(ctx, currentOption));
 					}
 				}),

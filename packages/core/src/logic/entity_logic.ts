@@ -12,8 +12,6 @@ import type { PagedList } from "../models/pagination";
 import { DEFAULT_PAGE_SIZE, NO_PAGINATION } from "../models/pagination";
 import type { EntityAction } from "../models/entity_action";
 import type { MetaUi, MetaUiGroup } from "../metaui/metaui_group";
-import type { MetaUiField } from "../metaui/metaui_field";
-import type { MetaUiFilterOpCode } from "../metaui/metaui_filter";
 import { MetaUiFieldLogic } from "./field_logic";
 import { MetaUiGroupLogic } from "./group_logic";
 import type {
@@ -27,8 +25,8 @@ import type { Validation } from "./validation";
 import type { Predicate } from "./logic_functions";
 import type { UniListViewProps, UiViewType } from "../ui/view";
 import { UiViewMany, UiViewOne } from "../ui/view";
-import { getSqlOperator } from "./sql_operator";
 import { firstLetterUpper } from "../utils/string";
+import { type DependencyContainer, type InjectionTokenLike } from "../di/dependency";
 
 export interface ListSettingsPayload {
   service: string;
@@ -51,14 +49,6 @@ export interface EntityLogicInit {
   apiService?: string;
 }
 
-/** 结构化搜索字段：Logic 只读取字段名、当前操作符和值。 */
-export interface EntitySearchField {
-  field: MetaUiField;
-  currentOp: MetaUiFilterOpCode;
-  hasVal: boolean;
-  searchValue: unknown;
-}
-
 /** 自定义搜索字段的 Logic 层最小视图：业务装配时只需给出渲染与取值契约。 */
 export interface EntityCustomSearchField {
   searchLabel?: string;
@@ -68,14 +58,6 @@ export interface EntityCustomSearchField {
   valueFn?: (value: unknown) => unknown;
   hasVal?: boolean;
   searchValue?: unknown;
-}
-
-/** 搜索栏装配结果；`searchFields` 由 UI 壳提供，`customSearchFields` 由业务装配。 */
-export interface EntitySearchForm {
-  searchParam?: EntitySearchParam;
-  queryParams?: Record<string, unknown>;
-  searchFields: EntitySearchField[];
-  customSearchFields: EntityCustomSearchField[];
 }
 
 /** 各视图类型的额外配置：键为视图类型，值为返回该视图渲染选项的函数。 */
@@ -95,6 +77,8 @@ export type UiLogicFnResult<E extends Entity = Entity> = {
   groups: MetaUiGroupLogic<E, Entity>[];
   /** 页面级自定义操作：例如详情页面上工具栏临时加个按钮 */
   customActions: EntityAction[];
+  /** 仅搜索视图使用：业务声明的自定义搜索字段（渲染与取值契约）。 */
+  customSearchFields?: EntityCustomSearchField[];
 };
 
 /** 视图逻辑钩子：在视图初始化前装配该视图的字段/分组/动作。 */
@@ -165,8 +149,10 @@ export abstract class EntityLogic<E extends Entity> {
     string,
     (master: E) => SubEntityLogic<Entity, E>
   >;
-  #searchForm?: EntitySearchForm;
-
+  #searchFields?: MetaUiFieldLogic<E>[];
+  #searchGroups?: MetaUiGroupLogic<E, Entity>[];
+  #searchActions?: EntityAction[];
+  #searchCustomFields?: EntityCustomSearchField[];
   #editFields?: MetaUiFieldLogic<E>[];
   #editGroups?: MetaUiGroupLogic<E, Entity>[];
   #editActions?: EntityAction[];
@@ -243,24 +229,6 @@ export abstract class EntityLogic<E extends Entity> {
     this.apiService = init.apiService;
     this.apiClient = this.metaUiService.getApiClient(this.repository);
     this.#relativeLogics = {};
-  }
-
-  get searchParams() {
-    const fields = Object.fromEntries(
-      (this.#searchForm?.searchFields ?? []).map((field) => [
-        field.field.fieldName,
-        field.hasVal
-          ? (getSqlOperator(field.currentOp)?.toSQL(field.searchValue) ?? "")
-          : "",
-      ]),
-    );
-    const custom = Object.fromEntries(
-      (this.#searchForm?.customSearchFields ?? []).map((field) => [
-        field.searchParam,
-        field.hasVal ? field.searchValue : "",
-      ]),
-    );
-    return { ...fields, ...custom };
   }
 
   addRelativeLogic<R extends Entity>(
@@ -368,18 +336,17 @@ export abstract class EntityLogic<E extends Entity> {
     return new MetaUiGroupLogic<E, G>(group);
   }
 
-  /** vui 可覆盖以注入响应式包装。 */
-  protected createSearchForm(): EntitySearchForm {
+  beforeSearch(): UiLogicFnResult<E> {
+    this.#searchFields ??= [];
+    this.#searchGroups ??= [];
+    this.#searchActions ??= [];
+    this.#searchCustomFields ??= [];
     return {
-      searchParam: EntitySearchParam.create(),
-      queryParams: {},
-      searchFields: [],
-      customSearchFields: [],
+      fields: this.#searchFields,
+      groups: this.#searchGroups,
+      customActions: this.#searchActions,
+      customSearchFields: this.#searchCustomFields,
     };
-  }
-
-  beforeSearch(): EntitySearchForm {
-    return (this.#searchForm ??= this.createSearchForm());
   }
 
   beforeEdit(): UiLogicFnResult<E> {
@@ -426,12 +393,16 @@ export abstract class EntityLogic<E extends Entity> {
     };
   }
 
-  async applyTo(context: UiContext<E>, view: UiViewType = UiViewOne.Edit) {
+  async applyTo(
+    context: UiContext<E>,
+    view: UiViewType = UiViewOne.Edit,
+  ): Promise<UiLogicFnResult<E> | undefined> {
     const logicView = await this.ensureViewLogic(view);
     const fn = this.getLogicFn(logicView);
-    if (!fn) return;
-    const { fields, groups, customActions } = fn.call(this);
-    context.bindLogics?.(fields, groups, customActions);
+    if (!fn) return undefined;
+    const result = fn.call(this);
+    context.bindLogics?.(result.fields, result.groups, result.customActions);
+    return result;
   }
 
   getSimplifyOptions(): EntitySimplifyOptions {
@@ -895,6 +866,32 @@ export class SubEntityLogic<
       this.metaUi = this.metaUiGroup.groupUi!;
     }
     return this.metaUi;
+  }
+}
+
+/**
+ * 通用实体 Logic：未注册业务 Logic 时的默认实现（无框架依赖）。
+ * 跨框架复用，统一通过 `GenericEntityLogic.resolve(di, token, ...)` 从 DI 获取；
+ * 调用方不要 `new`，也不要再写 Vue/React 专用壳。
+ */
+export class GenericEntityLogic<E extends Entity = Entity> extends EntityLogic<E> {
+  /**
+   * 从 DI 解析实体 Logic：已注册自定义 Logic 时直接返回；
+   * 未注册时按 token 注册默认通用实现（singleton）后返回。
+   * 这是获取通用实体 Logic 的唯一入口，调用方不要 `new GenericEntityLogic(...)`。
+   */
+  static async resolve<E extends Entity>(
+    di: DependencyContainer,
+    token: InjectionTokenLike<EntityLogic<E>>,
+    createEntity: EntityCtor<E>,
+    init: EntityLogicInit,
+  ): Promise<EntityLogic<E>> {
+    try {
+      return await di.injectAsync(token);
+    } catch {
+      di.provide(token, () => new GenericEntityLogic(createEntity, init));
+      return await di.injectAsync(token);
+    }
   }
 }
 

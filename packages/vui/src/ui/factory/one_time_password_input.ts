@@ -4,7 +4,6 @@
  * chrome 一次性口令走 factory.oneTimePasswordInput。长度 / 类型用 EJ2 词，不要写 Prime mask / integerOnly。
  * 字段 fieldFactory.oneTimePasswordInput 译 MetaUiField 后再调本控件。
  */
-import { callUiBagFn } from '@mmda/core'
 import type {
   MetaUiField,
   UiOneTimePasswordInputProps,
@@ -62,13 +61,8 @@ export function emitOneTimePasswordChange(
 export { oneTimePasswordModifierClasses } from '@mmda/core'
 
 function otpLengthFromField(
-  field: MetaUiField,
-  extra: UiProps,
+  field: MetaUiField
 ): number {
-  if (extra.length != null && extra.length !== '') {
-    const n = Number(extra.length)
-    if (Number.isFinite(n) && n >= 1) return Math.floor(n)
-  }
   const max = field.maxLength
   if (typeof max === 'number' && max >= 1 && max <= 12) return max
   return DEFAULT_OTP_LENGTH
@@ -76,10 +70,9 @@ function otpLengthFromField(
 
 export function oneTimePasswordPropsFromField(
   field: MetaUiField,
-  context: OneTimePasswordFieldContext,
-  extra: UiProps = {},
+  context: OneTimePasswordFieldContext
 ): UiOneTimePasswordInputProps {
-  const typeRaw = extra.type
+  const typeRaw: unknown = undefined
   const type: UiOneTimePasswordType =
     typeRaw === 'text' || typeRaw === 'password' || typeRaw === 'number'
       ? typeRaw
@@ -89,23 +82,19 @@ export function oneTimePasswordPropsFromField(
       const raw = context.getFieldValue(field)
       return raw == null ? '' : String(raw)
     })(),
-    length: otpLengthFromField(field, extra),
+    length: otpLengthFromField(field),
     type,
-    separator: extra.separator as string | undefined,
     placeholder:
-      (extra.placeholder as string | undefined) ?? field.placeholder,
+      field.placeholder,
     disabled:
-      (extra.disabled as boolean | undefined) ?? context.isFieldReadonly(field),
+      context.isFieldReadonly(field),
     onChange: (value) => {
       context.setFieldValue(field, value)
-      if (typeof extra.onChange === 'function') extra.onChange(value)
-      if (typeof extra.onUpdate === 'function') extra.onUpdate(value)
     },
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   }
 }

@@ -46,50 +46,16 @@ export function emitTimelineRangeChange(
 
 export function timelinePropsFromField(
   field: MetaUiField,
-  context: TimelineFieldContext,
-  extra: UiProps = {},
+  context: TimelineFieldContext
 ): UiTimelineProps {
   const value = context.getFieldValue(field)
-  const items = Array.isArray(extra.items)
-    ? extra.items
-    : Array.isArray(value)
-      ? value
-      : []
+  const items = Array.isArray(value) ? value : []
   return {
     items,
-    keyField: extra.keyField,
-    labelField: extra.labelField,
-    contentField: extra.contentField,
-    oppositeContentField: extra.oppositeContentField,
-    iconField: extra.iconField,
-    disabledField: extra.disabledField,
-    cssClassField: extra.cssClassField,
-    timeField: extra.timeField,
-    startField: extra.startField,
-    endField: extra.endField,
-    groupingField: extra.groupingField,
-    categoryField: extra.categoryField,
-    progressField: extra.progressField,
-    orientation: extra.orientation,
-    align: extra.align,
-    reverse: extra.reverse,
-    timeDisplay: extra.timeDisplay,
-    timeFormat: extra.timeFormat,
-    locale: extra.locale,
-    rtl: extra.rtl,
-    persist: extra.persist,
-    height: extra.height,
-    range: extra.range,
-    template: extra.template,
-    onItemClick: extra.onItemClick,
-    onSelectionChange: extra.onSelectionChange,
-    onRangeChange: extra.onRangeChange,
-    onReady: extra.onReady,
-    class: extra.class,
     htmlAttributes: {
       name: field.fieldName,
       id: field.fieldName,
-      ...((extra.htmlAttributes as Record<string, string> | undefined) ?? {}),
+      ...({}),
     },
   } as UiTimelineProps
 }

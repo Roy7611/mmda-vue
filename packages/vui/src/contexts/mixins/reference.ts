@@ -2,8 +2,10 @@ import {
   MetaUiFieldLogic,
   defaultChoicePager,
   defineEntity,
+  GenericEntityLogic,
   pagedListIsComplete,
   type Entity,
+  type EntityLogic,
   type MetaUiField,
   type EntitySelectParam,
   type Module,
@@ -53,7 +55,7 @@ export function WithReference<TBase extends Constructor>(
     ) {
       const row =
         model ?? (Array.isArray(this.model) ? undefined : this.model);
-      const options = this.getFieldOptions(field);
+      const options = this.getFieldSearchOptions(field);
       if (options.searching) return options;
       options.searching = true;
       options.searchParam.searchWord = searchWord;
@@ -92,7 +94,7 @@ export function WithReference<TBase extends Constructor>(
       if (!ref) return [];
       if (ref.isEnum) return ref.refOptions;
       if (ref.refOptions.length > 0) {
-        const cached = this.getFieldOptions(field);
+        const cached = this.getFieldSearchOptions(field);
         cached.selectOptions = ref.refOptions;
         cached.refOptionsComplete = ref.refOptionsComplete;
         return ref.refOptions;
@@ -110,7 +112,7 @@ export function WithReference<TBase extends Constructor>(
       if (pending) return pending;
 
       const request = (async () => {
-        const options = this.getFieldOptions(field);
+        const options = this.getFieldSearchOptions(field);
         options.searchParam.pager = defaultChoicePager();
         options.searchParam.searchWord = "";
         const page = await this.logic!.searchRelative(options.searchParam, {
@@ -138,6 +140,10 @@ export function WithReference<TBase extends Constructor>(
       }
     }
 
+    select(field: MetaUiField | string): Promise<Entity | false>
+    select<T extends Entity>(
+      param: EntitySelectParam<T>,
+    ): Promise<boolean | T[]>
     async select<T extends Entity>(
       fieldOrParam: MetaUiField | string | EntitySelectParam<T>,
     ): Promise<Entity | false | boolean | T[]> {
@@ -158,7 +164,7 @@ export function WithReference<TBase extends Constructor>(
           });
           return false;
         }
-        const options = this.getFieldOptions(fld);
+        const options = this.getFieldSearchOptions(fld);
         try {
           const picked = await this.select({
             repository: ref.refRepository,
@@ -212,22 +218,26 @@ export function WithReference<TBase extends Constructor>(
             authority,
           } as Module);
 
-      const { VueEntityLogic } = await import("../../logic/logic");
       const logicToken = `${service}:${param.repository}Logic`;
-      let logic: InstanceType<typeof VueEntityLogic> | undefined;
+      let logic: EntityLogic<any> | undefined;
       try {
         logic = await this.app.di?.injectAsync?.(logicToken);
       } catch {
         // 未注册业务 Logic 时走通用实体 Logic
       }
       if (!logic) {
-        logic = new VueEntityLogic(param.ctor ?? defineEntity, {
-          metaUiService: this.app.meta,
-          repository: param.repository,
-          metaUi,
-          module,
-          apiService: param.service,
-        });
+        logic = await GenericEntityLogic.resolve(
+          this.app.di,
+          logicToken,
+          param.ctor ?? defineEntity,
+          {
+            metaUiService: this.app.meta,
+            repository: param.repository,
+            metaUi,
+            module,
+            apiService: param.service,
+          },
+        );
       } else {
         logic.metaUi = metaUi;
         logic.module = module;

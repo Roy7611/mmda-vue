@@ -340,7 +340,7 @@ export class UserLogic extends EntityLogic<User> {
         this.field("staff"),
         this.field("deptID").setCustomCellRenderer(
           (fld, ctx: UiContext<User>, props) => {
-            if (isRefNone(ctx.model.deptID)) return ctx.uiBuilder.factory.textSpan("");
+            if (isRefNone(ctx.model.deptID)) return ctx.uiBuilder.factory.textSpan({ text: "" });
             const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
@@ -368,7 +368,7 @@ export class UserLogic extends EntityLogic<User> {
             };
             const r = $router.resolve(namedRoute);
             if (!url || !refModule?.authority?.allowRead)
-              return ui.factory.textSpan(ctx.model.customProperties.$deptID);
+              return ui.factory.textSpan({ text: ctx.model.customProperties.$deptID });
             return ctx.uiBuilder.fieldFactory.hasOneText(fld, ctx);
           },
         ),

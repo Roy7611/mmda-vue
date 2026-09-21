@@ -5,8 +5,8 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined } from '@mmda/core';
-import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiSearchForm } from '@mmda/vui';
+import { type MetaUiService, type Module, isRefNone, type UiContext, EntityAction, isNullOrUndefined, DateUtils } from '@mmda/core';
+import { type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult } from '@mmda/vui';
 import { type ProductionOrder, defineProductionOrder } from '@/models/ProductionOrder';
 import { type ProductionOrderMaterial, defineProductionOrderMaterial } from '@/models/ProductionOrderMaterial';
 import { ProductionOrderStatusEnum } from '@/enums/ProductionOrderStatus';
@@ -392,15 +392,15 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 		const res = await super.getAll({
 			...param, queryParams:
 			{
-				...this.searchParams.queryParams,
-				showSubOrders: isNullOrUndefined(this.searchParams.showSubOrders) && !isClick.value ? true : this.searchParams.showSubOrders
+				...(param.queryParams ?? {}),
+				showSubOrders: isNullOrUndefined(param.queryParams?.showSubOrders) && !isClick.value ? true : param.queryParams?.showSubOrders
 				// pageSize: 100
 			}
 		});
 		return res;
 	}
-	beforeSearch(): UiSearchForm {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+	beforeSearch() {
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push({
 				searchLabel: 'productionOrder.showChildOrders',
@@ -408,7 +408,8 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				renderer: (ctx: UiContext & any, csf) => {
 					isClick.value = false
 					const { factory } = ctx.uiBuilder;
-					return factory.selectButtonGroup(showChildOrders.value[0].value, {
+					return factory.selectButtonGroup({
+						modelValue: showChildOrders.value[0].value,
 						optionLabel: 'name',
 						optionValue: 'value',
 						options: showChildOrders.value,
@@ -421,7 +422,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				}
 			})
 		}
-		return { searchFields, customSearchFields }
+		return { fields, groups, customActions, customSearchFields }
 	}
 
 	/**
@@ -433,7 +434,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 			fields.push(
 				// 交货日期
 				this.field('deliveryDate').onValidate((value, model, context) => {
-					if (new Date(value).isBefore(new Date())) {
+					if (DateUtils.isBefore(new Date(value), new Date())) {
 						return context?.t('productionOrder.deliveryDateFuture');
 					}
 				}),
@@ -442,9 +443,9 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				}),
 				this.field('expectedFinish')
 					.onValidate((value, model, context) => {
-						if (value && new Date(value).isBefore(new Date())) {
+						if (value && DateUtils.isBefore(new Date(value), new Date())) {
 							return context?.t('productionOrder.plannedFinishFuture');
-						} else if (value && new Date(value).isAfter(new Date(model.deliveryDate))) {
+						} else if (value && DateUtils.isAfter(new Date(value), new Date(model.deliveryDate))) {
 							return context?.t('productionOrder.plannedFinishBeforeDelivery');
 						}
 					})
@@ -514,7 +515,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				 * 用户明确选择 BOM 后，再回填制品名称、单位、项目等相关字段。
 				 */
 				this.field('productCode').onChange<string>(async (ctx: UiContext<any>, model, newVal, oldVal) => {
-					ctx.getFieldOptions('bomID').searchParam.searchWord = newVal?.trim() || '';
+					ctx.getFieldSearchOptions('bomID').searchParam.searchWord = newVal?.trim() || '';
 					// 旧逻辑保留：debouncedGetBoms(ctx, model, newVal);
 					getOrderSummary(model, ctx);
 				}),
@@ -620,7 +621,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 					.lockIf(model => !isRefNone(model.bomID) || !isNullOrUndefined(model.refName))
 					.setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 				}),
 
 
@@ -704,7 +705,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					return ctx.uiBuilder.factory.textSpan(!isNullOrUndefined(fldVal) ? fldVal.categoryName : '')
+					return ctx.uiBuilder.factory.textSpan({ text: !isNullOrUndefined(fldVal) ? fldVal.categoryName : '' })
 				})
 			);
 		}

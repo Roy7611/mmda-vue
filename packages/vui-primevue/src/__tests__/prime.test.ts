@@ -67,7 +67,10 @@ describe('PrimeVue skin', () => {
         },
       ],
     })
-    const vnode = factory.table([{ id: '1', name: 'a' }], metaUi, {
+    const vnode = factory.table({
+      rows: [{ id: '1', name: 'a' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       editable: true,
     })
     expect(vnode.props?.editMode).toBe('cell')
@@ -364,11 +367,13 @@ describe('PrimeVue skin', () => {
   it('maps factory.splitter orientation to Prime layout', () => {
     const factory = createPrimeVueUiFactory()
     const vnode = factory.splitter(
-      [
-        { content: h('span', 'L'), size: '20%' },
-        { content: h('span', 'R') },
-      ],
       { orientation: 'Vertical', enableReversePanes: true },
+      {
+        default: () => [
+          { content: h('span', 'L'), size: '20%' },
+          { content: h('span', 'R') },
+        ],
+      },
     )
     expect(vnode.props?.layout).toBe('vertical')
     const cls = Array.isArray(vnode.props?.class)
@@ -734,23 +739,29 @@ describe('PrimeVue skin', () => {
 
   it('wraps toolbar actions in PrimeVue ButtonGroup', () => {
     const builder = new PrimeVueUiBuilder()
-    const group = builder.factory.buttonGroup(() => [
-      builder.factory.actionButton(
-        { name: 'refresh', label: 'Refresh', onAction: () => undefined },
-        key => key,
-      ),
-      builder.factory.actionButton(
-        { name: 'create', label: 'Create', onAction: () => undefined },
-        key => key,
-      ),
-    ])
+    const group = builder.factory.buttonGroup(
+      {},
+      {
+        default: () => [
+          builder.factory.actionButton(
+            { name: 'refresh', label: 'Refresh', onAction: () => undefined },
+            key => key,
+          ),
+          builder.factory.actionButton(
+            { name: 'create', label: 'Create', onAction: () => undefined },
+            key => key,
+          ),
+        ],
+      },
+    )
     expect(group.type?.name ?? group.type).toBe('ButtonGroup')
     expect(group.props?.class).toContain('mmda-button-group')
   })
 
   it('renders selectButtonGroup as Prime SelectButton', () => {
     const builder = new PrimeVueUiBuilder()
-    const group = builder.factory.selectButtonGroup('center', {
+    const group = builder.factory.selectButtonGroup({
+      modelValue: 'center',
       options: [
         { label: 'Left', value: 'left' },
         { label: 'Center', value: 'center' },
@@ -760,7 +771,8 @@ describe('PrimeVue skin', () => {
     })
     expect(group.type?.name ?? group.type).toBe('SelectButton')
     expect(group.props?.multiple).not.toBe(true)
-    const multi = builder.factory.selectButtonGroup(['left'], {
+    const multi = builder.factory.selectButtonGroup({
+      modelValue: ['left'],
       selectionMode: 'multiple',
       options: [{ label: 'Left', value: 'left' }],
     })
@@ -1213,12 +1225,18 @@ describe('prime column filter join/multi', () => {
       groups: [],
       primaryKey: 'id',
     } as any
-    const vnode = factory.table([{ id: '1', name: 'a' }], metaUi, {
+    const vnode = factory.table({
+      rows: [{ id: '1', name: 'a' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       rowDetail: { detail: () => h('div') },
     })
     expect(vnode.props?.expandedRows).toEqual({ '1': true })
     expect((vnode.children as any)?.expansion).toBeTypeOf('function')
-    const flat = factory.treeGrid([{ id: '1', name: 'a' }], metaUi, {
+    const flat = factory.treeGrid({
+      rows: [{ id: '1', name: 'a' }],
+      fields: metaUi.getListedFields(),
+      primaryKey: metaUi.primaryKey,
       rowDetail: { detail: () => h('div') },
       treeShape: 'TREE',
       shapeKey: 'parentId',

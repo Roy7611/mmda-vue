@@ -312,7 +312,7 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 					const { $ui: ui, $t: t } = ctx.globalProps;
 					const { model } = ctx; const metaUiService = ctx.logic!.metaUiService
 					const id = !isRefNone(model.refTaskID) ? model.refTaskID : 0
-					return ui.factory.searchForRelative({
+					return ui.factory.searchRelative({
 						role: `reworkTaskID-search-for-relative`,
 						name: 'reworkTaskID-search-for-relative',
 						id: 'reworkTaskID-search-for-relative',
@@ -327,7 +327,8 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaUi.getListedFields()).build()
 							let data: any = null
 							const result = await ctx.uiBuilder.dialog(
-								ctx.uiBuilder.factory.table(tableData.value, pickMeta, {
+								ctx.uiBuilder.table(pickMeta, {
+									rows: tableData.value,
 									selectionMode: 'single',
 									onSelect: (selection: any) => { data = Array.isArray(selection) ? selection[0] : selection },
 								}),
@@ -361,7 +362,7 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
 						const { $ui: ui, $t: t } = ctx.globalProps;
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
-						return ui.factory.searchForRelative({
+						return ui.factory.searchRelative({
 							role: `defectiveDesc-search-for-relative`,
 							name: 'defectiveDesc-search-for-relative',
 							id: 'defectiveDesc-search-for-relative',

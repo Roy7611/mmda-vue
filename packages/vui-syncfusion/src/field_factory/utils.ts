@@ -16,7 +16,6 @@ export const control = (
   field: MetaUiField,
   context: UiContext,
   props: UiProps = {},
-  extra: UiProps = {},
   slots?: Record<string, () => VNode>,
 ) => {
   const invalid = invalidOf(field, context);
@@ -44,7 +43,6 @@ export const control = (
         placeholder: field.placeholder,
         locale: getSyncfusionCulture(),
         cssClass: invalid ? "e-error" : undefined,
-        ...extra,
         ...restProps,
         change: changeProp ?? onChange,
         input: inputProp ?? onChange,

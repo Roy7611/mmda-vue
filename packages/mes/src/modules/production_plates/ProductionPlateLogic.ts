@@ -69,7 +69,7 @@ export class ProductionPlateLogic extends EntityLogic<ProductionPlate> {
 				})
 					.onChange<string>((ctx, model, newVal, oldVal) => {
 						if (newVal) {
-							const task = ctx.getFieldCurrentOption('taskID');
+							const task = ctx.getFieldSelectedOption('taskID');
 							if (task) {
 								ctx.setFieldValue('productCode', task?.productCode ?? null);
 								ctx.setFieldValue('productName', task?.productName ?? null);

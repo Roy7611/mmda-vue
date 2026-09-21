@@ -1,5 +1,5 @@
 import { h } from "vue";
-import { type MetaUi, type Pagination } from "@mmda/core";
+import { type MetaUi } from "@mmda/core";
 import { readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType } from "@mmda/vui"
 import { PagerComponent } from "@syncfusion/ej2-vue-grids";
 import {
@@ -15,7 +15,8 @@ import {
 } from "./utils";
 
 export const navigationRenderers = {
-  paginator: (pagination: Pagination, props: UiPaginatorPropsType) => {
+  paginator: (props: UiPaginatorPropsType) => {
+    const pagination = props.pagination;
     const pageSizeOptions = props.pageSizeOptions
       ? props.pageSizeOptions.map(String)
       : STABLE_PAGE_SIZE_OPTIONS;

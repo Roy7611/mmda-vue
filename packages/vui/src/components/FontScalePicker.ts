@@ -47,13 +47,13 @@ export const FontScalePicker = defineComponent({
               popupPlacement: "top-end",
               tooltip: translateMessage("fontScale.choose"),
               "aria-label": translateMessage("fontScale.choose"),
+              actions: SCALE_ACTIONS.map((action) => ({
+                name: action.name,
+                label: translateMessage(action.label),
+                icon: action.icon,
+                onAction: () => selectScale(action.scale),
+              })),
             },
-            SCALE_ACTIONS.map((action) => ({
-              name: action.name,
-              label: translateMessage(action.label),
-              icon: action.icon,
-              onAction: () => selectScale(action.scale),
-            })),
           ),
         ],
       );

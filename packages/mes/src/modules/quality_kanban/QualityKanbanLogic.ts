@@ -6,7 +6,7 @@
  *
  */
 
-import { isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey, FieldFilter } from '@mmda/core';
+import { isNullOrUndefined, isRefNone, isObject, debounce, triggerEscKey, FieldFilter, DateUtils } from '@mmda/core';
 import type { UiContext, MetaUiService, Module } from '@mmda/core';
 import type { EntityLogicInit } from '@mmda/vui';
 import { EntityLogic } from '@mmda/vui';
@@ -15,7 +15,7 @@ import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
 import type { QualityKPI, QualitySiteKPI, QualityTrend } from '@/models/QualityKPI';
 
-// 生产站点下拉数据缓存（searchForRelative 弹窗内表格数据，模块级共享）
+// 生产站点下拉数据缓存（searchRelative 弹窗内表格数据，模块级共享）
 const tableDataSite = { value: [] }
 const tableDataKeySite = { value: 'id' }
 const searchParamSite = {
@@ -23,7 +23,7 @@ const searchParamSite = {
   searchWord: '',
   searchParams: {},
 };
-// 制品类别下拉数据缓存（searchForRelative 弹窗内表格数据，模块级共享）
+// 制品类别下拉数据缓存（searchRelative 弹窗内表格数据，模块级共享）
 const tableDataCategory = { value: [] }
 const tableDataKeyCategory = { value: 'id' }
 const searchParamCategory = {
@@ -169,8 +169,8 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
         }
 
         return {
-            startTime: begin.toFormat('yyyy-MM-dd 00:00:00'),
-            endTime: end.toFormat('yyyy-MM-dd 23:59:59'),
+            startTime: DateUtils.toFormat(begin, 'yyyy-MM-dd 00:00:00'),
+            endTime: DateUtils.toFormat(end, 'yyyy-MM-dd 23:59:59'),
         }
     }
 
@@ -180,28 +180,29 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
      */
     async home(ctx?: any) {
         const apiClient = this.apiClient
+        const qp = ctx?.searchParam?.queryParams ?? {}
 
         // 解析时间范围：快捷范围优先，其次生产时间段 range 数组，最后回退本周
         let startTime: string
         let endTime: string
-        const dateRange = this.searchParams.date as string
+        const dateRange = qp.date as string
         if (dateRange) {
             const resolved = this.resolveDateRange(dateRange)
             startTime = resolved.startTime
             endTime = resolved.endTime
-        } else if (Array.isArray(this.searchParams.startTime) && this.searchParams.startTime.length === 2) {
+        } else if (Array.isArray(qp.startTime) && qp.startTime.length === 2) {
             // 生产时间段 DatePicker range 选完存的是 [起, 止] 数组，拆成 startTime/endTime
-            startTime = new Date(this.searchParams.startTime[0]).toFormat('yyyy-MM-dd 00:00:00')
-            endTime = new Date(this.searchParams.startTime[1]).toFormat('yyyy-MM-dd 23:59:59')
+            startTime = DateUtils.toFormat(new Date(qp.startTime[0]), 'yyyy-MM-dd 00:00:00')
+            endTime = DateUtils.toFormat(new Date(qp.startTime[1]), 'yyyy-MM-dd 23:59:59')
         } else {
             const resolved = this.resolveDateRange('THIS_WEEK')
             startTime = resolved.startTime
             endTime = resolved.endTime
         }
 
-        const siteID = (this.searchParams.siteID as string) ?? ''
-        const productCategoryID = (this.searchParams.productCategoryID as string) ?? ''
-        const productCode = (this.searchParams.productCode as string) ?? ''
+        const siteID = (qp.siteID as string) ?? ''
+        const productCategoryID = (qp.productCategoryID as string) ?? ''
+        const productCode = (qp.productCode as string) ?? ''
         const params: Record<string, any> = { startTime, endTime }
         if (siteID) params.siteID = siteID
         if (productCategoryID) params.productCategoryID = productCategoryID
@@ -230,7 +231,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
         this.loaded.value = true
     }
 
-    /** 获取全部生产站点（searchForRelative 弹窗内查询），只查已启用站点 */
+    /** 获取全部生产站点（searchRelative 弹窗内查询），只查已启用站点 */
     async getAllSite(context: UiContext, value?: any) {
         await context.logic!.getAllOf<Record<string, unknown>>('Sites', {
             pager: {
@@ -250,7 +251,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
         })
     }
 
-    /** 获取全部制品类别（searchForRelative 弹窗内查询），来源 base 模块 MaterialCats */
+    /** 获取全部制品类别（searchRelative 弹窗内查询），来源 base 模块 MaterialCats */
     async getAllCategory(context: UiContext, value?: any) {
         await this.getAllOf<Record<string, unknown>>('MaterialCats', {
             queryParams: {
@@ -270,10 +271,10 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
      * 生产站点、制品类别、产品编码、生产时间段（range）、时间范围（快捷下拉）
      */
     beforeSearch() {
-        const { searchFields, customSearchFields } = super.beforeSearch()
+        const { fields, groups, customActions, customSearchFields } = super.beforeSearch()
         if (customSearchFields.length === 0) {
             customSearchFields.push(
-                /* 生产站点搜索字段（searchForRelative 弹窗选择，只查已启用站点） */
+                /* 生产站点搜索字段（searchRelative 弹窗选择，只查已启用站点） */
                 {
                     searchLabel: 'qualityKanban.productionSite',
                     searchParam: 'siteID',
@@ -283,7 +284,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                         if (!tableDataSite.value.length && isObject(csf.searchVal.value)) {
                             tableDataSite.value.push(csf.searchVal.value)
                         }
-                        return ctx.uiBuilder.factory.searchForRelative({
+                        return ctx.uiBuilder.factory.searchRelative({
                             modelValue: csf.searchVal.value,
                             dataKey: 'siteID',
                             optionLabel: (v: any) => v.siteName,
@@ -315,7 +316,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                         })
                     },
                 },
-                /* 制品类别搜索字段（searchForRelative 弹窗选择，来源 base.MaterialCat） */
+                /* 制品类别搜索字段（searchRelative 弹窗选择，来源 base.MaterialCat） */
                 {
                     searchLabel: 'qualityKanban.productCategory',
                     searchParam: 'productCategoryID',
@@ -324,7 +325,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                         if (!tableDataCategory.value.length && isObject(csf.searchVal.value)) {
                             tableDataCategory.value.push(csf.searchVal.value)
                         }
-                        return ctx.uiBuilder.factory.searchForRelative({
+                        return ctx.uiBuilder.factory.searchRelative({
                             modelValue: csf.searchVal.value,
                             dataKey: 'categoryID',
                             optionLabel: (v: any) => v.categoryName,
@@ -425,7 +426,7 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                 },
             )
         }
-        return { searchFields, customSearchFields }
+        return { fields, groups, customActions, customSearchFields }
     }
 
     /**

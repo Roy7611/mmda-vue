@@ -16,7 +16,6 @@ export type {
   UiSidebarProps,
   UiSidebarType,
 } from '@mmda/core'
-import { callUiBagFn } from '@mmda/core'
 import type {
   UiDrawerProps,
   UiSidebarPosition,

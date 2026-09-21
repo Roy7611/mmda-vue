@@ -92,11 +92,11 @@ export class MaterialCatLogic extends EntityLogic<MaterialCat> {
           .lockIf((model, ctx) => !!model.parentID)
           .setCustomRenderer((fld, ctx: UiContext<MaterialCat>, props) => {
             const options = this.materialXOptions(ctx);
-            return ctx.uiBuilder.factory.textSpan(
-              ctx.model.materialX
+            return ctx.uiBuilder.factory.textSpan({
+              text: ctx.model.materialX
                 ? options.find((x) => x.value == ctx.model.materialX)?.text
                 : "-",
-            );
+            });
           })
           .setCustomEditor((fld, ctx: UiContext<MaterialCat>, props) => {
             return ctx.uiBuilder.factory.dropDownList({

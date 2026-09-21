@@ -14,12 +14,12 @@ import {
   twoSlotTopbarModifierClasses,
   twoSlotTopbarSlotModifierClasses,
   uiCssClass,
-  type UiDetailsTopbar,
+  type UiDetailsTopbarProps,
   type UiDetailsTopbarSlots,
-  type UiEditTopbar,
+  type UiEditTopbarProps,
   type UiEditTopbarSlots,
   type UiHorzAlign,
-  type UiIndexTopbar,
+  type UiIndexTopbarProps,
   type UiIndexTopbarSlotName,
   type UiIndexTopbarSlots,
   type UiTopbarActionGroups,
@@ -37,11 +37,11 @@ import type { UiContext } from './helpers'
 import { joinListModeMenuItems } from './join_list_mode'
 
 export type {
-  UiDetailsTopbar,
+  UiDetailsTopbarProps,
   UiDetailsTopbarSlots,
-  UiEditTopbar,
+  UiEditTopbarProps,
   UiEditTopbarSlots,
-  UiIndexTopbar,
+  UiIndexTopbarProps,
   UiIndexTopbarLayout,
   UiIndexTopbarSlotName,
   UiIndexTopbarSlots,
@@ -89,7 +89,7 @@ export function indexTopbarRootStyle(
 }
 
 export function indexTopbarSlotStyle(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slot: UiIndexTopbarSlotName,
 ): Record<string, string> {
   return {
@@ -112,7 +112,7 @@ function twoSlotRootStyle(): Record<string, string> {
 }
 
 function twoSlotStyle(
-  props: UiDetailsTopbar,
+  props: UiDetailsTopbarProps,
   slot: UiTwoSlotTopbarSlotName,
 ): Record<string, string> {
   const align = slot === 'end' ? (props.align?.end ?? 'right') : (props.align?.start ?? 'left')
@@ -128,7 +128,7 @@ function twoSlotStyle(
 }
 
 export function renderIndexTopbar(
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slots?: UiIndexTopbarSlots<VNode>,
 ): VNode {
   const {
@@ -173,7 +173,7 @@ export function renderIndexTopbar(
 
 function renderTwoSlotTopbar(
   block: 'details-topbar' | 'edit-topbar',
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
   slots?: UiDetailsTopbarSlots<VNode>,
 ): VNode {
   const {
@@ -208,14 +208,14 @@ function renderTwoSlotTopbar(
 }
 
 export function renderDetailsTopbar(
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
   slots?: UiDetailsTopbarSlots<VNode>,
 ): VNode {
   return renderTwoSlotTopbar('details-topbar', props, slots)
 }
 
 export function renderEditTopbar(
-  props: UiEditTopbar = {},
+  props: UiEditTopbarProps = {},
   slots?: UiEditTopbarSlots<VNode>,
 ): VNode {
   return renderTwoSlotTopbar('edit-topbar', props, slots)
@@ -248,7 +248,7 @@ type TopbarKind = 'index' | 'details' | 'edit'
 type TopbarHostProps = {
   factory: VueUiFactory
   context: { title?: string; t: (message: string) => string }
-  topbarProps: UiIndexTopbar | UiDetailsTopbar | UiEditTopbar
+  topbarProps: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps
   slots?: UiSlots
   parts: TopbarPaintParts
   kind: TopbarKind
@@ -257,7 +257,7 @@ type TopbarHostProps = {
 function paintIndexTopbarTree(
   factory: VueUiFactory,
   context: { title?: string; t: (message: string) => string },
-  props: UiIndexTopbar,
+  props: UiIndexTopbarProps,
   slots: UiSlots | undefined,
   parts: TopbarPaintParts,
   dense: boolean,
@@ -286,8 +286,8 @@ function paintIndexTopbarTree(
         hideCaret: dense,
         buttonType: 'tonal',
         colorRole: 'secondary',
+        actions: parts.moreActions(),
       },
-      parts.moreActions(),
     )
 
   const compactMenu = () =>
@@ -297,8 +297,8 @@ function paintIndexTopbarTree(
         tooltip: t('action.more'),
         buttonType: 'text',
         hideCaret: true,
+        actions: [...parts.navActions(), ...parts.moreActions()],
       },
-      [...parts.navActions(), ...parts.moreActions()],
     )
 
   const magnifier = () =>
@@ -343,7 +343,7 @@ function paintTwoSlotTopbarTree(
   kind: 'details' | 'edit',
   _factory: VueUiFactory,
   _context: { title?: string; t: (message: string) => string },
-  props: UiDetailsTopbar | UiEditTopbar,
+  props: UiDetailsTopbarProps | UiEditTopbarProps,
   slots: UiSlots | undefined,
   parts: TopbarPaintParts,
   dense: boolean,
@@ -391,7 +391,7 @@ const MmdaModuleTopbarHost = defineComponent({
         return paintIndexTopbarTree(
           props.factory,
           props.context,
-          props.topbarProps as UiIndexTopbar,
+          props.topbarProps as UiIndexTopbarProps,
           props.slots,
           props.parts,
           compact.value,
@@ -401,7 +401,7 @@ const MmdaModuleTopbarHost = defineComponent({
         props.kind,
         props.factory,
         props.context,
-        props.topbarProps as UiDetailsTopbar,
+        props.topbarProps as UiDetailsTopbarProps,
         props.slots,
         props.parts,
         compact.value,
@@ -413,7 +413,7 @@ const MmdaModuleTopbarHost = defineComponent({
 export function paintModuleTopbar(
   factory: VueUiFactory,
   context: { title?: string; t: (message: string) => string },
-  props: UiIndexTopbar | UiDetailsTopbar | UiEditTopbar,
+  props: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps,
   slots: UiSlots | undefined,
   parts: TopbarPaintParts,
   kind: TopbarKind = 'index',
@@ -510,19 +510,19 @@ function moreButton(
         hideCaret: dense,
         buttonType: 'tonal',
         colorRole: 'secondary',
+        actions: items.map((item, index) =>
+          item.divider
+            ? { divider: true }
+            : {
+                name: item.name ?? `more-${index}`,
+                label: item.label,
+                icon: item.icon,
+                disabled: item.disabled === true,
+                onAction: item.onAction,
+                items: item.items,
+              },
+        ),
       },
-      items.map((item, index) =>
-        item.divider
-          ? { divider: true }
-          : {
-              name: item.name ?? `more-${index}`,
-              label: item.label,
-              icon: item.icon,
-              disabled: item.disabled === true,
-              onAction: item.onAction,
-              items: item.items,
-            },
-      ),
     ),
   ]
 }
@@ -551,16 +551,16 @@ function batchButtons(
         class: 'mmda-batch-menu-button',
         buttonType: 'tonal',
         colorRole: 'secondary',
+        actions: actions.map((action) => {
+          const wired = wireAction(builder, context, action)
+          return {
+            name: wired.name,
+            label: wired.label,
+            icon: wired.icon,
+            onAction: wired.onAction,
+          }
+        }),
       },
-      actions.map((action) => {
-        const wired = wireAction(builder, context, action)
-        return {
-          name: wired.name,
-          label: wired.label,
-          icon: wired.icon,
-          onAction: wired.onAction,
-        }
-      }),
     ),
   ]
 }
@@ -568,7 +568,7 @@ function batchButtons(
 function paintGroups(
   builder: VueUiBuilder,
   context: UiContext,
-  props: UiIndexTopbar | UiDetailsTopbar | UiEditTopbar,
+  props: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps,
   slots: UiSlots | undefined,
   groups: UiTopbarActionGroups,
   extraMore: UiAction[] = [],
@@ -602,10 +602,13 @@ function paintGroups(
         ...batchButtons(builder, context, groups.batch, dense === true),
         ...moreButton(builder.factory, context, moreItems, dense === true),
       ]
-      return builder.factory.buttonGroup(() => children, {
-        class: uiCssClass('topbar-actions'),
-        role: 'group',
-      })
+      return builder.factory.buttonGroup(
+        {
+          class: uiCssClass('topbar-actions'),
+          role: 'group',
+        },
+        { default: () => children },
+      )
     },
     moreActions: () => defaultTopbarMoreActions(builder.actionFactory, context),
     navActions: () =>
@@ -628,7 +631,7 @@ function paintGroups(
 export function paintIndexTopbar(
   builder: VueUiBuilder,
   context: UiContext,
-  props: UiIndexTopbar = {},
+  props: UiIndexTopbarProps = {},
   slots?: UiSlots,
   extraMore: UiAction[] = [],
 ): VNode {
@@ -661,7 +664,7 @@ export function paintIndexTopbar(
 export function paintDetailsTopbar(
   builder: VueUiBuilder,
   context: UiContext,
-  props: UiDetailsTopbar = {},
+  props: UiDetailsTopbarProps = {},
   slots?: UiSlots,
   extraMore: UiAction[] = [],
 ): VNode {
@@ -679,7 +682,7 @@ export function paintDetailsTopbar(
 export function paintEditTopbar(
   builder: VueUiBuilder,
   context: UiContext,
-  props: UiEditTopbar = {},
+  props: UiEditTopbarProps = {},
   slots?: UiSlots,
   extraMore: UiAction[] = [],
 ): VNode {

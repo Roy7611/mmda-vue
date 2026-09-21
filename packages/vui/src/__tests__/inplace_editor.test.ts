@@ -84,14 +84,13 @@ describe('inplaceFieldEditor helpers', () => {
       uiBuilder: { factory: { inplaceEditor: chrome } },
     }
     expect(
-      renderInplaceFieldEditor({} as any, enabled as any, {}, factory),
+      renderInplaceFieldEditor({} as any, enabled as any, factory),
     ).toBe('chrome')
     expect(chrome).toHaveBeenCalledTimes(1)
     expect(
       renderInplaceFieldEditor(
         {} as any,
-        enabled as any,
-        { disabled: true },
+        { ...enabled, isFieldReadonly: () => true } as any,
         factory,
       ),
     ).toBe('shown')

@@ -5,7 +5,6 @@ import {
   watch,
   type PropType,
   type VNode,
-  type VNodeArrayChildren,
 } from "vue";
 import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
 import { VueUiBuilder } from "../ui/builder";
@@ -762,7 +761,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
       );
     },
     splitter: (panes, props) => renderTestSplitter(panes, props),
-    searchForRelative: () => stub("searchForRelative"),
+    searchRelative: () => stub("searchRelative"),
     formField: (props: any = {}, slots?: UiSlots) =>
       h("div", { class: ["mmda-form-field", props.class], style: props.style }, [
         props.label
@@ -835,26 +834,6 @@ export class TestUiBuilder extends VueUiBuilder {
     super(factory, fieldFactory, layout);
   }
 
-  buildContainer(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("div", { class: "mmda-container", ...props }, content);
-  }
-
-  buildHeader(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("header", props, content);
-  }
-
-  buildAside(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("aside", props, content);
-  }
-
-  buildMain(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("main", props, content);
-  }
-
-  buildFooter(content: VNode | VNodeArrayChildren, props?: UiProps) {
-    return h("footer", props, content);
-  }
-
   buildAppTopBar(_props: AppTopBarProps = { modules: [], logo: () => null }) {
     return stub("buildAppTopBar", { class: "mmda-app-topbar" });
   }
@@ -871,19 +850,13 @@ export class TestUiBuilder extends VueUiBuilder {
     return stub("buildAppMenu");
   }
 
-  buildLoading(_context: UiContext, props?: UiProps) {
-    return this.factory.loading(props);
-  }
-
-  buildError(context: UiContext, props?: UiProps) {
-    return h("div", { class: "mmda-error", ...props }, context.title);
-  }
-
   buildSearchField(_field: UiSearchField) {
     return stub("buildSearchField");
   }
 
-  buildModuleSearchbar(_context: UiContext, props: ModuleSearchbarProps) {
+  buildModuleSearchbar(_context: UiContext, rawProps?: UiProps) {
+    // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
+    const props = (rawProps ?? {}) as ModuleSearchbarProps;
     return h("div", { class: "mmda-searchbar" }, [
       h("input", {
         class: "mmda-searchbar-input",
@@ -898,14 +871,6 @@ export class TestUiBuilder extends VueUiBuilder {
         onClick: () => props.onRefresh?.(),
       }),
     ]);
-  }
-
-  buildSearchForRelative(
-    _context: UiContext,
-    _field: MetaUiField,
-    _props: SearchForRelativeProps,
-  ) {
-    return stub("buildSearchForRelative");
   }
 
   buildSigninForm(_props: SigninFormProps, _slots?: SigninFormSlots) {

@@ -3,9 +3,9 @@ import { switchCheckedOf, switchModifierClasses, switchPropsFromField } from '@m
 import { emitSwitchChange } from '@mmda/vui'
 
 describe('switch chrome helpers', () => {
-  it('prefers checked over modelValue', () => {
-    expect(switchCheckedOf({ checked: true, modelValue: false })).toBe(true)
-    expect(switchCheckedOf({ modelValue: true })).toBe(true)
+  it('prefers checked', () => {
+    expect(switchCheckedOf({ checked: true })).toBe(true)
+    expect(switchCheckedOf({ checked: true })).toBe(true)
     expect(switchCheckedOf({})).toBe(false)
   })
 

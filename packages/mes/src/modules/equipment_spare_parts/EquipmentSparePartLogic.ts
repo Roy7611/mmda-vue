@@ -178,7 +178,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 		}
 	}
 	beforeSearch() {
-		const { searchParam, searchFields, customSearchFields } = super.beforeSearch();
+		const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
 		if (customSearchFields.length == 0) {
 			customSearchFields.push(
 				{
@@ -189,7 +189,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 						if (!tableDataProject.value.length && isObject(csf.searchVal.value)) {
 							tableDataProject.value.push(csf.searchVal.value)
 						}
-						return ctx.uiBuilder.factory.searchForRelative({
+						return ctx.uiBuilder.factory.searchRelative({
 							modelValue: csf.searchVal.value,
 							dataKey: 'equipID',
 							optionLabel: (v: any) => v.equipName,
@@ -222,7 +222,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 				},
 			)
 		}
-		return { searchParam, searchFields, customSearchFields }
+		return { fields, groups, customActions, customSearchFields }
 	}
 	beforeIndex(): UiLogicFnResult<EquipmentSparePart> {
 		const { fields, groups, customActions } = super.beforeIndex();
@@ -235,7 +235,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 				role: 'primary',
 				onAction: async (context: UiContext<EquipmentSparePart>) => {
 					// 切换到多选模式
-					context.toSelectManyIndex('request', () => this.request(context));
+					context.selectMany('request', () => this.request(context));
 				},
 			}, {
 				name: 'withdrawMaterials',
@@ -245,7 +245,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 				role: 'primary',
 				onAction: async (context: UiContext<EquipmentSparePart>) => {
 					// 切换到多选模式
-					context.toSelectManyIndex('withdrawMaterials', () => this.withdrawMaterials(context));
+					context.selectMany('withdrawMaterials', () => this.withdrawMaterials(context));
 				},
 			});
 		}

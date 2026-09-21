@@ -195,7 +195,7 @@ const ChoosePerson = defineComponent({
 							{$t('auth.selectAUser')}:
 						</div> */}
 						<div class="w-full p-1 box-border  flex items-center flex_center ">
-							{ui.factory.searchForRelative(
+							{(ui.factory as any).searchRelative(
 								{
 									labelStyle: { textAlign: 'left' },
 									id: 'ownerName',
@@ -244,7 +244,7 @@ const ChoosePerson = defineComponent({
 										 * Index of the option
 										 */
 										index: number;
-									}) => ui.factory.textSpan(`${scope.option.username ?? ''}`),
+									}) => ui.factory.textSpan({ text: `${scope.option.username ?? ''}` }),
 									//primeVueFactory.textSpan(`姓名：${scope.option.username ?? ''}  部门：${scope.option.customProperties.$deptID ?? ''}  手机：${scope.option.mobile ?? ''}`)
 								}
 							)}
