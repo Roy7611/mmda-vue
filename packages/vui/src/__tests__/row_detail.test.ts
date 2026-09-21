@@ -124,9 +124,10 @@ describe("Grid rowDetail", () => {
     let captured: any;
     const builder = new TestUiBuilder();
     const realList = builder.factory.list.bind(builder.factory);
-    builder.factory.list = (rows, ui, props) => {
-      if ((ui as any).objName === "BomItem") captured = { rows, ui, props };
-      return realList(rows, ui, props);
+    // list 家族内部一律单参 `(props)`：`rows` / `objName` / `fields` 都在 props 上
+    builder.factory.list = (props: any) => {
+      if (props.objName === "BomItem") captured = { rows: props.rows, props };
+      return realList(props);
     };
     const node = builder.buildGroup(items, context);
     expect(captured.props.rowDetail?.expandAll).toBe(true);

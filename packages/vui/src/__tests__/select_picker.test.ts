@@ -134,11 +134,20 @@ describe("select picker build", () => {
           findModule: () => undefined,
         },
         findModule: () => undefined,
-        di: {
-          injectAsync: async () => {
-            throw new Error("not registered");
-          },
-        },
+        di: (() => {
+          // DI 契约：`injectAsync` 取不到时抛错，`provide` 登记后再次 `injectAsync` 返回实例
+          // （`GenericEntityLogic.resolve` 走的就是「取不到 → provide → 再取」）
+          const registry = new Map<unknown, () => unknown>();
+          return {
+            provide: (token: unknown, factory: () => unknown) =>
+              registry.set(token, factory),
+            injectAsync: async (token: unknown) => {
+              const factory = registry.get(token);
+              if (!factory) throw new Error("not registered");
+              return factory();
+            },
+          };
+        })(),
         ui: selectUi,
         i18n: { global: { t: (k: string) => k } },
       } as any,
@@ -304,11 +313,20 @@ describe("select picker build", () => {
           findModule: () => undefined,
         },
         findModule: () => undefined,
-        di: {
-          injectAsync: async () => {
-            throw new Error("not registered");
-          },
-        },
+        di: (() => {
+          // DI 契约：`injectAsync` 取不到时抛错，`provide` 登记后再次 `injectAsync` 返回实例
+          // （`GenericEntityLogic.resolve` 走的就是「取不到 → provide → 再取」）
+          const registry = new Map<unknown, () => unknown>();
+          return {
+            provide: (token: unknown, factory: () => unknown) =>
+              registry.set(token, factory),
+            injectAsync: async (token: unknown) => {
+              const factory = registry.get(token);
+              if (!factory) throw new Error("not registered");
+              return factory();
+            },
+          };
+        })(),
         ui: mockSelectUi(build, dialog),
         i18n: { global: { t: (k: string) => k } },
       } as any,
@@ -376,11 +394,20 @@ describe("select picker build", () => {
           findModule: () => undefined,
         },
         findModule: () => undefined,
-        di: {
-          injectAsync: async () => {
-            throw new Error("not registered");
-          },
-        },
+        di: (() => {
+          // DI 契约：`injectAsync` 取不到时抛错，`provide` 登记后再次 `injectAsync` 返回实例
+          // （`GenericEntityLogic.resolve` 走的就是「取不到 → provide → 再取」）
+          const registry = new Map<unknown, () => unknown>();
+          return {
+            provide: (token: unknown, factory: () => unknown) =>
+              registry.set(token, factory),
+            injectAsync: async (token: unknown) => {
+              const factory = registry.get(token);
+              if (!factory) throw new Error("not registered");
+              return factory();
+            },
+          };
+        })(),
         ui: mockSelectUi(build, dialog),
         i18n: { global: { t: (k: string) => k } },
       } as any,
