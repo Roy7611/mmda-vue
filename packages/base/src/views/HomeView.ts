@@ -89,12 +89,12 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
   const notifyUrl = findNotify(modules)?.moduleUrl
 
   const cardStyle = {
-    background: 'var(--p-surface-card, var(--p-content-background))',
-    border: '1px solid var(--p-content-border-color, var(--p-surface-border))',
-    borderRadius: 'var(--p-border-radius-lg, 8px)',
+    background: 'var(--mmda-surface-card, var(--mmda-surface-group))',
+    border: '1px solid var(--mmda-content-border-color)',
+    borderRadius: 'var(--mmda-border-radius-lg, 8px)',
   }
-  const mutedText = { color: 'var(--p-text-muted-color, #6b7280)' }
-  const normalText = { color: 'var(--p-text-color, #1f2937)' }
+  const mutedText = { color: 'var(--mmda-text-muted-color, #6b7280)' }
+  const normalText = { color: 'var(--mmda-text-color, #1f2937)' }
 
   const statCard = (
     label: string,
@@ -148,7 +148,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
                   fontSize: '20px',
                   fontWeight: 700,
                   margin: '0 0 4px 0',
-                  color: 'var(--p-text-color)',
+                  color: 'var(--mmda-text-color)',
                 },
               },
               [t('home.workbench')],
@@ -160,7 +160,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
                 `${t(greetingKey())}，`,
                 render(
                   'strong',
-                  { style: { color: 'var(--p-text-color)', fontWeight: 600 } },
+                  { style: { color: 'var(--mmda-text-color)', fontWeight: 600 } },
                   [user?.username || t('home.unknownUser')],
                 ),
               ],
@@ -172,12 +172,12 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
         statCard(
           t('home.moduleCount'),
           String(total),
-          'var(--p-primary-color, #3b82f6)',
+          'var(--mmda-primary-color, #3b82f6)',
         ),
         statCard(
           t('home.todos'),
           String(app.state.todoCount ?? 0),
-          'var(--p-yellow-500, #f59e0b)',
+          'var(--mmda-warning-color, #f59e0b)',
           notifyUrl ? router.resolve(notifyUrl) : undefined,
         ),
       ]),
@@ -191,7 +191,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
         fontSize: '14px',
         fontWeight: 600,
         margin: '0 0 12px 24px',
-        color: 'var(--p-text-color)',
+        color: 'var(--mmda-text-color)',
       },
     },
     [t('home.moduleNav')],
@@ -208,7 +208,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              background: 'var(--p-primary-50)',
+              background: 'var(--mmda-primary-soft)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -218,7 +218,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
           [
             factory.icon({
               iconClass: sm.moduleIcon,
-              style: { color: 'var(--p-primary-color)' },
+              style: { color: 'var(--mmda-primary-color)' },
             }),
           ],
         ),
@@ -284,7 +284,7 @@ export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
                 fontSize: '11px',
                 fontWeight: 600,
                 letterSpacing: '0.8px',
-                color: 'var(--p-text-muted-color)',
+                color: 'var(--mmda-text-muted-color)',
                 marginBottom: '8px',
               },
             },
