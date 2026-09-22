@@ -3,8 +3,9 @@ import Textarea from "primevue/textarea";
 import type { UiTextAreaProps } from "@mmda/core"
 import { textAreaAutoResizeOf, textAreaColsOf, textAreaCssResizeOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf, uiRenderProps } from "@mmda/core"
 import { emitTextAreaChange } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createTextArea(props: UiTextAreaProps) {
+export function createTextArea(props: VuiModelProps<UiTextAreaProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

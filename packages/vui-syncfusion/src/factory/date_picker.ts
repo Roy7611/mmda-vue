@@ -2,7 +2,7 @@ import { h } from "vue";
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import type { UiDatePickerProps, UiDateShortcut } from "@mmda/core"
 import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts, uiRenderProps } from "@mmda/core"
-import { emitDateChange } from "@mmda/vui"
+import { emitDateChange, type VuiModelProps } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n"
 
 function shortcutButtons(items: UiDateShortcut[], onPick: (value: unknown) => void) {
@@ -28,7 +28,7 @@ function shortcutButtons(items: UiDateShortcut[], onPick: (value: unknown) => vo
   };
 }
 
-export function createDatePicker(props: UiDatePickerProps) {
+export function createDatePicker(props: VuiModelProps<UiDatePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -56,10 +56,6 @@ export function createDatePicker(props: UiDatePickerProps) {
     htmlAttributes,
     class: _className,
     precision,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
-    selectionMode: _selectionMode,
     ...rest
   } = props;
 

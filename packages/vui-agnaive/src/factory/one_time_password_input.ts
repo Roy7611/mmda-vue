@@ -3,9 +3,10 @@ import { NInput } from 'naive-ui'
 import type { UiOneTimePasswordInputProps } from '@mmda/vui'
 import { emitOneTimePasswordChange, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
+import type { VuiModelProps } from "@mmda/vui"
 
 export function createOneTimePasswordInput(
-  props: UiOneTimePasswordInputProps,
+  props: VuiModelProps<UiOneTimePasswordInputProps>,
 ) {
   const {
     value: _value,

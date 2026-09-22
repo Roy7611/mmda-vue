@@ -5,21 +5,24 @@
  * 不要把 Prime range: boolean 写进 vui。Range Slider 文档就是本控件。
  * 字段 fieldFactory.slider 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
+import type { UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
 import type {UiProps} from '@mmda/core'
 import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
-
-export const DEFAULT_SLIDER_MIN = 0
-export const DEFAULT_SLIDER_MAX = 100
-export const DEFAULT_SLIDER_STEP = 1
+import {
+  DEFAULT_SLIDER_MIN as coreSliderMin,
+  DEFAULT_SLIDER_MAX as coreSliderMax,
+  DEFAULT_SLIDER_STEP as coreSliderStep,
+} from '@mmda/core'
+export {
+  DEFAULT_SLIDER_MIN,
+  DEFAULT_SLIDER_MAX,
+  DEFAULT_SLIDER_STEP,
+  sliderPropsFromField,
+} from '@mmda/core'
 
 export type { UiSliderType, UiSliderValue, UiSliderProps } from '@mmda/core'
 
-export type SliderFieldContext = {
-  getFieldValue: (field: MetaUiField) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
-  isFieldReadonly: (field: MetaUiField | string) => boolean
-}
+export type { UiFieldBindContext as SliderFieldContext } from '@mmda/core'
 
 function finiteNumber(raw: unknown): number | undefined {
   if (raw == null || raw === '') return undefined
@@ -28,17 +31,17 @@ function finiteNumber(raw: unknown): number | undefined {
 }
 
 export function sliderMinOf(props: UiSliderProps): number {
-  return finiteNumber(props.min) ?? DEFAULT_SLIDER_MIN
+  return finiteNumber(props.min) ?? coreSliderMin
 }
 
 export function sliderMaxOf(props: UiSliderProps): number {
-  return finiteNumber(props.max) ?? DEFAULT_SLIDER_MAX
+  return finiteNumber(props.max) ?? coreSliderMax
 }
 
 export function sliderStepOf(props: UiSliderProps): number {
   const n = finiteNumber(props.step)
   if (n != null && n > 0) return n
-  return DEFAULT_SLIDER_STEP
+  return coreSliderStep
 }
 
 export function sliderTypeOf(
@@ -102,29 +105,3 @@ export function emitSliderChange(props: UiSliderProps, value: unknown): void {
 }
 
 export { sliderModifierClasses } from '@mmda/core'
-
-export function sliderPropsFromField(
-  field: MetaUiField,
-  context: SliderFieldContext
-): UiSliderProps {
-  const typeRaw: unknown = undefined
-  const type: UiSliderType | undefined =
-    typeRaw === 'MinRange' || typeRaw === 'Range' || typeRaw === 'Default'
-      ? typeRaw
-      : undefined
-  const raw = context.getFieldValue(field)
-  return {
-    value: (raw ?? null) as UiSliderValue,
-    type,
-    disabled:
-      context.isFieldReadonly(field),
-    onChange: (value) => {
-      context.setFieldValue(field, value)
-    },
-    htmlAttributes: {
-      name: field.fieldName,
-      id: field.fieldName,
-      ...({}),
-    },
-  }
-}

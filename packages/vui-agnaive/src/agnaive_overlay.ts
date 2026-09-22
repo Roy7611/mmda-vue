@@ -1,4 +1,4 @@
-import { reactive, type VNode } from 'vue'
+import { shallowReactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
@@ -8,7 +8,7 @@ import type {
   UiToastProps,
 } from '@mmda/core'
 import { shouldCloseDialog } from '@mmda/core'
-import type { VueUiOverlay } from '@mmda/vui'
+import type { VuiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
@@ -23,7 +23,7 @@ export interface AgNaiveOverlayServices {
   confirm?: (props: UiConfirmProps) => Promise<boolean>
 }
 
-export interface AgNaiveOverlay extends VueUiOverlay {
+export interface AgNaiveOverlay extends VuiOverlay {
   dialogs: DialogRequest[]
   services: AgNaiveOverlayServices
 }
@@ -31,7 +31,7 @@ export interface AgNaiveOverlay extends VueUiOverlay {
 let nextDialogId = 1
 
 export function createAgNaiveOverlay(): AgNaiveOverlay {
-  const dialogs = reactive<DialogRequest[]>([])
+  const dialogs = shallowReactive<DialogRequest[]>([])
   const services: AgNaiveOverlayServices = {}
 
   const overlay: AgNaiveOverlay = {

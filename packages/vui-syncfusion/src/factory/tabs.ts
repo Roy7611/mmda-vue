@@ -16,7 +16,8 @@ import {
   tabsLoadOnOf,
   tabsModifierClasses,
   tabsOverflowModeOf,
-  tabsValueOf
+  tabsValueOf,
+  type VuiModelProps,
 } from "@mmda/vui";
 import { uiRenderProps } from "@mmda/core"
 
@@ -33,7 +34,7 @@ const EJ2_HEADER_STYLE: Record<string, string | undefined> = {
  * Vue 节点走 TabItemDirective 的 content 具名插槽；槽名必须用 item.name，
  * 不能共用 "content"（否则每页都渲染第一页）。
  */
-export function createTabs(props: UiTabsProps): VNode {
+export function createTabs(props: VuiModelProps<UiTabsProps>): VNode {
   const {
     items: _items,
     value: _value,

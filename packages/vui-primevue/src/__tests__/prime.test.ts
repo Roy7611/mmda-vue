@@ -6,7 +6,7 @@ import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersi
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, pageLayoutMenuItems } from '@mmda/vui'
 import { PrimeVuiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
-import { createPrimeVueUiFactory } from '../prime_factory'
+import { createPrimeVuiFactory } from '../prime_factory'
 import { primeLayout } from '../prime_layout'
 import {
   applyPrimeColumnFilter,
@@ -24,7 +24,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('implements the vui factory and layout contracts', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     expect(factory.table).toBeTypeOf('function')
     expect(factory.grid).toBeTypeOf('function')
     expect(factory.dialog).toBeUndefined()
@@ -54,7 +54,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('sets DataTable cell edit when editable', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const metaUi = new MetaUi({
       objName: 'Item',
       displayLabel: '项',
@@ -77,7 +77,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.badge colorRole and circle shape', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.badge({
       value: 10,
       colorRole: 'primary',
@@ -91,7 +91,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.avatar circle large label', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.avatar({
       label: 'GR',
       shape: 'circle',
@@ -130,7 +130,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.card surface, colorRole, image, headerImage, divider', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.card(
       {
         title: 'Summary',
@@ -183,7 +183,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.divider orientation and label', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.divider({
       orientation: 'vertical',
       label: '或',
@@ -200,7 +200,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.colorPicker mode, value, and emits hex', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.colorPicker({
       value: '#035a',
@@ -220,7 +220,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.maskedTextBox EJ2 mask to Prime 9', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.maskedTextBox({
       mask: '000 0000 0000',
       value: '13800138000',
@@ -234,7 +234,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.oneTimePasswordInput to InputOtp', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.oneTimePasswordInput({
       length: 6,
       type: 'number',
@@ -250,7 +250,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.queryBuilder to QueryBuilderHost', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.queryBuilder({
       columns: [{ fieldName: 'age', label: 'Age', valueType: 'number' }],
     })
@@ -261,7 +261,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.slider Range to Prime range', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.slider({
       type: 'Range',
       value: [10, 40],
@@ -277,7 +277,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.rating itemsCount to Prime stars', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.rating({
       value: 2,
       itemsCount: 5,
@@ -293,7 +293,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.sidebar and drawer to Prime Drawer', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const sidebar = factory.sidebar({ isOpen: true, type: 'Push', enableDock: true })
     expect(sidebar.props?.visible).toBe(true)
     expect(sidebar.props?.position).toBe('left')
@@ -312,7 +312,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.tabs value scrollable and headerPlacement class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.tabs({
       items: [
         { header: 'One', content: 'a' },
@@ -335,7 +335,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.toolbar default slot onto Prime Toolbar', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.toolbar(
       { class: 'skin' },
       { default: () => 'S' },
@@ -349,7 +349,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.toolbar start/end onto Prime slots', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.toolbar(
       { disabled: true },
       { start: () => 'L', end: () => 'R' },
@@ -365,7 +365,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.splitter orientation to Prime layout', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.splitter(
       { orientation: 'Vertical', enableReversePanes: true },
       {
@@ -385,7 +385,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.numberInput decimals and modelValue', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.numberInput({
       value: 12.5,
       maxFractionDigits: 3,
@@ -403,7 +403,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.textArea value rows and autoResize', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.textArea({
       value: 'hello',
       rows: 5,
@@ -421,7 +421,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.textInput modelValue placeholder and HTML type', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onFocus = vi.fn()
     const onBlur = vi.fn()
     const vnode = factory.textInput({
@@ -445,7 +445,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.progressBar value; circular stays linear with hook class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.progressBar({
       value: 42,
       kind: 'circular',
@@ -458,7 +458,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.signaturePad host class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.signaturePad({
       value: '',
       readOnly: true,
@@ -473,7 +473,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.stepper host class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.stepper({
       value: 1,
       items: [{ label: '甲' }, { label: '乙' }],
@@ -486,7 +486,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.skeleton circle to Prime rectangle-or-circle shape', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.skeleton({
       shape: 'circle',
       width: 40,
@@ -502,7 +502,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.loading to ProgressSpinner', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.loading({ label: '加载中', size: 'small' })
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -516,7 +516,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.tree to PrimeTree with mmda-tree', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.tree({
       data: [{ id: '1', label: '根' }],
       selectionMode: 'checkbox',
@@ -530,7 +530,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.speechToText lang and interim onto the host', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.speechToText({
       value: '你好',
       lang: 'zh-CN',
@@ -543,7 +543,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.radioButtonGroup RadioButton values', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.radioButtonGroup({
       value: 'b',
       name: 'kind',
@@ -569,7 +569,7 @@ describe('PrimeVue skin', () => {
 
 
   it('maps factory.datePicker format, Monday week, and no typing', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const day = new Date(2026, 8, 7)
     const vnode = factory.datePicker({
@@ -596,7 +596,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.dropDownList options, group, and onChange', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.dropDownList({
       value: 'a',
@@ -622,7 +622,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.multiSelect chip keys', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.multiValueSelect({
       value: ['a'],
@@ -640,7 +640,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.tagAutoComplete multiple AutoComplete', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onUpdate = vi.fn()
     const vnode = factory.tagAutoComplete({ value: 'a', options: ['a', 'b'], onUpdate })
     expect(vnode.props?.multiple).toBe(true)
@@ -649,7 +649,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.treeSelect checkbox keys and hook class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.treeSelect({
       value: ['a'],
@@ -676,7 +676,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.comboBox dropdown and custom class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.comboBox({ value: 't', options: ['a'] })
     expect(vnode.props?.dropdown).toBe(true)
     expect(vnode.props?.forceSelection).toBe(false)
@@ -694,7 +694,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.barcode format class', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.barcode({ value: '123', format: 'code39' })
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -703,7 +703,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('does not draw QR for dataMatrix', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.qrCode({ value: 'SYNC123', format: 'dataMatrix' })
     expect(vnode.type).toBe('span')
     const cls = Array.isArray(vnode.props?.class)
@@ -858,7 +858,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.breadcrumb items', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.breadcrumb({
       items: [
         { label: '组织', to: '/org' },
@@ -874,7 +874,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.calendar to inline DatePicker', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const min = new Date(2017, 4, 9)
     const max = new Date(2017, 4, 15)
     const values = [new Date(2020, 0, 1), new Date(2020, 0, 15)]
@@ -897,7 +897,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.carousel to Prime Carousel', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const items = [
       { src: '/a.jpg', title: 'A' },
       { src: '/b.jpg', title: 'B' },
@@ -923,7 +923,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.checkBox to Prime Checkbox', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.checkBox({
       checked: true,
       label: '同意条款',
@@ -944,7 +944,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.switch to Prime ToggleSwitch', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.switch({
       checked: true,
@@ -984,7 +984,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.chips to Prime Chip list', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const vnode = factory.chips({
       kind: 'choice',
       items: [
@@ -1009,7 +1009,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps factory.contextMenu to Prime ContextMenu', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const onAction = vi.fn()
     const vnode = factory.contextMenu({
       target: '#editor',
@@ -1219,7 +1219,7 @@ describe('prime column filter join/multi', () => {
   })
 
   it('wires DataTable expansion when rowDetail is set', () => {
-    const factory = createPrimeVueUiFactory()
+    const factory = createPrimeVuiFactory()
     const metaUi = {
       getListedFields: () => [{ fieldName: 'name', displayLabel: '名称' }],
       groups: [],

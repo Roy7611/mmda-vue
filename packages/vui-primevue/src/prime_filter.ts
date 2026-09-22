@@ -37,14 +37,14 @@ const COMPARE_OPS = new Set<string>([
 export function splitCurrentFilter(current?: FieldFilter) {
   if (!current) return { compare: undefined as FieldFilter | undefined, setValues: [] as unknown[] };
   if (current.filterType === "multi") {
-    const set = current.filterModels.find((item) => item.filterType === "set") as
+    const set = current.filterModels?.find((item) => item.filterType === "set") as
       | SetFieldFilter
       | undefined;
-    const compare = current.filterModels.find((item) => item.filterType !== "set");
+    const compare = current.filterModels?.find((item) => item.filterType !== "set");
     return { compare, setValues: set?.values ?? [] };
   }
   if (current.filterType === "set") {
-    return { compare: undefined, setValues: current.values };
+    return { compare: undefined, setValues: current.values ?? [] };
   }
   return { compare: current, setValues: [] };
 }
@@ -62,13 +62,13 @@ export function hydratePrimeColumnFilter(
       ? compare
       : undefined;
   const first = join
-    ? join.conditions[0]
+    ? join.conditions?.[0]
     : compare?.filterType === "text" ||
         compare?.filterType === "number" ||
         compare?.filterType === "date"
       ? compare
       : undefined;
-  const second = join?.conditions[1];
+  const second = join?.conditions?.[1];
   const firstValue = first && "value" in first ? first.value : undefined;
   const dateKind =
     first &&
@@ -89,7 +89,7 @@ export function hydratePrimeColumnFilter(
         ? first.valueTo
         : undefined,
     dateKind,
-    joinOperator: join?.operator ?? "AND",
+    joinOperator: (join?.operator ?? "AND") as "AND" | "OR",
     secondOperator: opOf(second),
     secondValue: second && "value" in second ? second.value : undefined,
     setValues: [...setValues],
@@ -133,7 +133,9 @@ export function applyPrimeColumnFilter(
       ? {
           filterType: "join",
           operator: state.joinOperator,
-          conditions: [first, second],
+          conditions: [first, second].filter(
+            (item): item is SimpleFieldFilter => item != null,
+          ),
         }
       : first,
   );

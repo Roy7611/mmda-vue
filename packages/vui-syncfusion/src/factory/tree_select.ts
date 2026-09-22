@@ -2,7 +2,7 @@ import { h, reactive } from "vue";
 import { DropDownTreeComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiTreeSelectProps } from '@mmda/core'
 import { uiRenderProps } from '@mmda/core'
-import { treeSelectNodesOf, type UiTreeFields, vuiUpdateOf } from "@mmda/vui"
+import { treeSelectNodesOf, type UiTreeFields, vuiUpdateOf, type VuiModelProps } from "@mmda/vui"
 
 function idKey(fields?: UiTreeFields) {
   return typeof fields?.id === "string" ? fields.id : "id";
@@ -23,7 +23,7 @@ function sfMode(display?: UiTreeSelectProps["selectedDisplay"]) {
   return "Default";
 }
 
-function sfValue(props: UiTreeSelectProps): string[] {
+function sfValue(props: VuiModelProps<UiTreeSelectProps>): string[] {
   const raw = props.value ?? props.modelValue;
   if (props.selectionMode === "checkbox") {
     const list = Array.isArray(raw) ? raw : raw == null || raw === "" ? [] : [raw];
@@ -40,7 +40,7 @@ function emitValue(props: UiTreeSelectProps, ids: string[]) {
   vuiUpdateOf(props)?.(next)
 }
 
-export function createTreeSelect(props: UiTreeSelectProps) {
+export function createTreeSelect(props: VuiModelProps<UiTreeSelectProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -130,6 +130,6 @@ export function createTreeSelect(props: UiTreeSelectProps) {
   });
 }
 
-export function createDropDownTree(props: UiTreeSelectProps) {
+export function createDropDownTree(props: VuiModelProps<UiTreeSelectProps>) {
   return createTreeSelect(props);
 }

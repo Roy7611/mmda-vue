@@ -3,6 +3,7 @@ import { NTreeSelect } from 'naive-ui'
 import type { UiTreeSelectProps } from '@mmda/core'
 import { uiRenderProps } from '@mmda/core'
 import { treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields, vuiUpdateOf } from '@mmda/vui'
+import type { VuiModelProps } from "@mmda/vui"
 
 type NaiveTreeOption = {
   key: string
@@ -31,7 +32,7 @@ function toNaiveOptions<T>(
   })
 }
 
-function idsOf(props: UiTreeSelectProps): string[] {
+function idsOf(props: VuiModelProps<UiTreeSelectProps>): string[] {
   const raw = props.value ?? props.modelValue
   if (props.selectionMode === 'checkbox') {
     const list = Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]
@@ -48,7 +49,7 @@ function emitValue(props: UiTreeSelectProps, ids: string[]) {
   vuiUpdateOf(props)?.(next)
 }
 
-export function createTreeSelect(props: UiTreeSelectProps) {
+export function createTreeSelect(props: VuiModelProps<UiTreeSelectProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

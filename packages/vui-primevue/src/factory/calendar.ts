@@ -13,6 +13,7 @@ export function calendarPrimeView(
 }
 import { primeVueI18n } from "../prime_i18n";
 import { uiRenderProps } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
 function primeLocaleOf(locale?: string, firstDayOfWeek?: number) {
   if (!locale && firstDayOfWeek == null) return undefined;
@@ -40,7 +41,7 @@ function slotDate(meta: any): Date | undefined {
   return undefined;
 }
 
-export function createCalendar(props: UiCalendarProps) {
+export function createCalendar(props: VuiModelProps<UiCalendarProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

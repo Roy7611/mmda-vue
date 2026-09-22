@@ -12,7 +12,7 @@ import {
 import { SignatureComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFileType, UiSignaturePadProps } from '@mmda/core';
 import { signaturePadActionOf, signaturePadFileTypeFromEj2, signaturePadFileTypeOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf, uiRenderProps, uiClassName } from "@mmda/core"
-import { emitSignaturePadChange } from "@mmda/vui"
+import { emitSignaturePadChange, type VuiEmitProps } from "@mmda/vui"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
@@ -41,9 +41,9 @@ const SfSignaturePad = defineComponent({
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
     onChange: Function as PropType<UiSignaturePadProps["onChange"]>,
-    onUpdate: Function as PropType<UiSignaturePadProps["onUpdate"]>,
+    onUpdate: Function as PropType<VuiEmitProps<UiSignaturePadProps>["onUpdate"]>,
     "onUpdate:modelValue": Function as PropType<
-      UiSignaturePadProps["onUpdate:modelValue"]
+      VuiEmitProps<UiSignaturePadProps>["onUpdate:modelValue"]
     >,
     onBeforeSave: Function as PropType<UiSignaturePadProps["onBeforeSave"]>,
     onReady: Function as PropType<UiSignaturePadProps["onReady"]>,
@@ -52,7 +52,7 @@ const SfSignaturePad = defineComponent({
     const host = ref<any>(null);
     let skipEmit = false;
 
-    const vuiProps = () => props as unknown as UiSignaturePadProps;
+    const vuiProps = () => props as unknown as VuiEmitProps<UiSignaturePadProps>;
 
     const dataUrlOf = (type?: UiSignaturePadFileType) => {
       const inst = ej2Of(host.value);
@@ -176,7 +176,7 @@ const SfSignaturePad = defineComponent({
   },
 });
 
-export function createSignaturePad(props: UiSignaturePadProps) {
+export function createSignaturePad(props: VuiEmitProps<UiSignaturePadProps>) {
   const {
     value,
     modelValue,
@@ -202,7 +202,7 @@ export function createSignaturePad(props: UiSignaturePadProps) {
     onReady,
   } = props;
 
-  return h(SfSignaturePad, {
+  return h(SfSignaturePad as any, {
     value,
     modelValue,
     width,

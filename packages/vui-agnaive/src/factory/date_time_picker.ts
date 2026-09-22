@@ -6,8 +6,9 @@ import { DATE_TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePi
 import { emitDateChange } from '@mmda/vui'
 import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat } from '@mmda/vui'
 import { fromTs, naiveDateShortcuts, toTs } from './date_picker'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createDateTimePicker(props: UiDateTimePickerProps) {
+export function createDateTimePicker(props: VuiModelProps<UiDateTimePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -32,9 +33,6 @@ export function createDateTimePicker(props: UiDateTimePickerProps) {
     onChange: _onChange,
     htmlAttributes,
     class: _className,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
     ...rest
   } = props
 

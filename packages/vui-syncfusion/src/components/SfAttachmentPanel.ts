@@ -145,7 +145,7 @@ export const SfAttachmentPanel = defineComponent({
         const accepted = await props.context.uiBuilder?.confirm(props.context, {
           message: `文件 ${Array.from(replacing).join("、")} 已存在，是否覆盖？`,
         });
-        if (result !== 'ok') return;
+        if (!accepted) return;
       }
 
       const fetchApi = (props.context.app?.api as any)?.fetchApi;
@@ -237,7 +237,7 @@ export const SfAttachmentPanel = defineComponent({
       const accepted = await props.context.uiBuilder?.confirm(props.context, {
         message: `确定删除文件 ${fileName} 吗？`,
       });
-      if (result !== 'ok') return;
+      if (!accepted) return;
       const logic = requireLogic(props.context);
       try {
         await (props.context.uploadAttachments as any)(

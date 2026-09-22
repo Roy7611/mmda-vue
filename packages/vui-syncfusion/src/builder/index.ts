@@ -44,6 +44,15 @@ import {
 } from "./shell";
 import { refreshSyncfusionSkin } from "../syncfusion_skin";
 
+type GroupCardProps = UiProps & {
+  container?: "card" | "fieldset" | "tab" | "none"
+  region?: string
+  many?: boolean
+  direction?: "vertical" | "horizontal" | "row" | "column"
+  cols?: number
+  headerActions?: VNode | VNode[]
+}
+
 export class SfUiBuilder extends VuiBuilder {
   declare readonly factory: VuiFactory;
 
@@ -84,7 +93,7 @@ export class SfUiBuilder extends VuiBuilder {
   override buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props: UiProps = {},
+    props: GroupCardProps = {},
   ) {
     const {
       container: _container,
@@ -103,7 +112,7 @@ export class SfUiBuilder extends VuiBuilder {
         title: group.groupLabel,
         expanded: group.expanded !== false,
         class: [this.groupWrapClass(group, props), "e-card"],
-        headerClass: "e-card-header",
+        headerClass: "e-card-header" as any,
         toggleIcon: "e-icons e-chevron-down",
         ...rest,
       },
@@ -193,13 +202,13 @@ export class SfUiBuilder extends VuiBuilder {
   ) {
     return this.buildAppSideMenu({
       modules: props.modules,
-      logo: props.header,
-      footer: props.footer,
+      logo: props.header as () => VNode,
+      footer: props.footer as (() => VNode) | undefined,
     });
   }
 
   buildAppSideMenu(props: import("@mmda/core").UiAppSideMenuProps<VNode> = {}) {
-    return renderAppMenu(props.modules ?? [], props);
+    return renderAppMenu(props.modules ?? [], props as any);
   }
 
   buildAppMenu(modules: Module[], props?: UiProps) {
@@ -302,7 +311,6 @@ export class SfUiBuilder extends VuiBuilder {
       queryID: runtime.searchParam?.queryID,
       canDeleteQuery: canDeleteNamedQuery({
         predifined: runtime.searchParam?.queryPredifined,
-        queryID: runtime.searchParam?.queryID,
       }),
       onFilterModelChange: (model) => {
         writeListFilterModel(runtime.searchParam, model);

@@ -3,8 +3,9 @@ import { NRate } from 'naive-ui'
 import type { UiRatingProps } from '@mmda/vui'
 import { emitRatingChange, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createRating(props: UiRatingProps) {
+export function createRating(props: VuiModelProps<UiRatingProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

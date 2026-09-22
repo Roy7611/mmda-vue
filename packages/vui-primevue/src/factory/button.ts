@@ -33,7 +33,6 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
     loading,
     onClick,
     onAction,
-    command,
     ...rest
   } = props;
   return h(
@@ -61,7 +60,7 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
       title: tooltip ?? htmlAttributes?.title,
       size,
       class: buttonModifierClasses(props),
-      onClick: onClick ?? onAction ?? command,
+      onClick: onClick ?? onAction,
     },
     slots,
   );

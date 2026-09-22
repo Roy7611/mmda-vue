@@ -53,7 +53,12 @@ export const treeGridRenderers = {
       !field.readOnly &&
       (row as { editable?: boolean })?.editable !== false &&
       resolveFieldCellCanEdit(fieldEditors[field.fieldName], field, row);
-    const saveCellEdit = (
+    const saveCellEdit: (
+      field: MetaUiField,
+      row: T,
+      value: unknown,
+      previousValue: unknown,
+    ) => boolean | void = (
       field: MetaUiField,
       row: T,
       value: unknown,

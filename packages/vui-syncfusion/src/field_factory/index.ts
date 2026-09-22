@@ -1,338 +1,219 @@
 import { h, type VNode } from "vue";
-import { SqlDataType, type MetaUiField } from "@mmda/core";
-import { colorPickerPropsFromField, maskedTextBoxPropsFromField, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, renderInplaceFieldEditor, type UiProps, type UiFieldFactory } from "@mmda/vui"
-import { createColorPicker } from "../factory/color_picker";
-import { createMaskedTextBox } from "../factory/masked_text_box";
-import { createOneTimePasswordInput } from "../factory/one_time_password_input";
-import { createSlider } from "../factory/slider";
-import { createRating } from "../factory/rating";
-import { invalidOf, type SfVuiContext } from "./utils";
-import { numberInput, percentInput } from "./number";
-import { password, textArea, textInput } from "./text";
 import {
-  checkbox,
-  comboBox,
-  dropDownList,
-  radioButtonGroup,
-  treeSelect,
-  multiSelect,
-  multiItemSelect,
-  multiValueSelect,
-  multiTextSelect,
-  multiBitSelect,
-  checkBoxList,
-  bitCheckBoxList,
-  searchBox,
-  switcher,
-  switchControl,
-  autoComplete,
-  tagAutoComplete,
-} from "./select";
+  MetaModel,
+  avatarPropsFromField,
+  type MetaUiField,
+  type UiAvatarProps,
+  type UiContext,
+  type UiFieldFactory,
+  type UiProps,
+} from "@mmda/core";
 import {
-  datePicker,
-  dateTimePicker,
-  monthPicker,
-  timePicker,
-  dateRangePicker,
-} from "./date";
-import {
-  filePicker,
-  fileUpload,
-  fileUploader,
-  filesUploader,
-  imagePicker,
-  imageUploader,
-  imagesUploader,
-  fileLinkField,
-} from "./upload";
-import {
-  boolIcon,
-  colorBox,
-  externalLink,
-  fallbackDisplay,
-  fieldAvatar,
-  fieldImage,
-  multilineText,
-  percentage,
-  progressBar,
-  quantityUnit,
-  relativeTimeField,
-  signaturePad,
-  stepper,
-  tag,
-  tags,
-  chips,
-  bitChipSet,
-  enumChipSet,
-} from "./display";
+  VueUiFieldFactory,
+  type VuiContext,
+  type VuiFactory,
+  type VuiFieldRenderer,
+} from "@mmda/vui";
+import { createSyncfusionUiFactory } from "../factory";
+import { createSearchRelative } from "../factory/search_relative";
 
-const wrapMasked = (
-  field: MetaUiField,
-  context: SfVuiContext
-) => {
-  const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createMaskedTextBox(maskedTextBoxPropsFromField(field, context)),
-    invalid &&
-      h(
-        "span",
-        { class: "e-error" },
-        context.getInvalidMessage?.(field),
-      ),
-  ]);
-};
-
-const wrapOtp = (
-  field: MetaUiField,
-  context: SfVuiContext
-) => {
-  const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createOneTimePasswordInput(
-      oneTimePasswordPropsFromField(field, context),
-    ),
-    invalid &&
-      h(
-        "span",
-        { class: "e-error" },
-        context.getInvalidMessage?.(field),
-      ),
-  ]);
-};
-
-const wrapSlider = (
-  field: MetaUiField,
-  context: SfVuiContext
-) => {
-  const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createSlider(sliderPropsFromField(field, context)),
-    invalid &&
-      h(
-        "span",
-        { class: "e-error" },
-        context.getInvalidMessage?.(field),
-      ),
-  ]);
-};
-
-const wrapRating = (
-  field: MetaUiField,
-  context: SfVuiContext
-) => {
-  const invalid = invalidOf(field, context);
-  return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-    createRating(ratingPropsFromField(field, context)),
-    invalid &&
-      h(
-        "span",
-        { class: "e-error" },
-        context.getInvalidMessage?.(field),
-      ),
-  ]);
-};
-
-const fallbackInput = (
-  field: MetaUiField,
-  context: SfVuiContext,
-  props?: UiProps,
-): VNode => {
-  if (
-    field.reference &&
-    (field.reference.hasOne ||
-      (field.reference.isRef && field.reference.refRepository))
-  ) {
-    return searchBox(field, context);
+/**
+ * Syncfusion EJ2 Vue 字段控件工厂。
+ *
+ * `MetaUiField → UiXxxProps → factory.xxx` 的通用映射已在 @mmda/vui 的
+ * {@link VueUiFieldFactory} 完成；本类只负责绑定 Syncfusion factory 与
+ * Syncfusion 特有的引用选择 / 头像尺寸等 chrome。
+ */
+export class SfVueUiFieldFactory extends VueUiFieldFactory {
+  constructor(factory: VuiFactory = createSyncfusionUiFactory()) {
+    super(factory);
   }
-  if (field.reference?.refOptions?.length)
-    return dropDownList(field, context);
-  if (SqlDataType.isBool(field.dataType))
-    return checkbox(field, context);
-  if (SqlDataType.isNum(field.dataType))
-    return numberInput(field, context);
-  if (SqlDataType.isDate(field.dataType))
-    return datePicker(field, context);
-  return textInput(field, context);
-};
 
-const factory: UiFieldFactory = {
-  fallbackDisplay,
-  fallbackInput,
-  textInput,
-  textArea,
-  password,
-  dropDownList,
-  select: dropDownList,
-  radioButtonGroup,
-  multiSelect,
-  multiItemSelect,
-  multiValueSelect,
-  multiTextSelect,
-  multiBitSelect,
-  checkBoxList,
-  bitCheckBoxList,
-  numberInput,
-  positiveNumberInput: (field, context) =>
-    numberInput(field, context, { min: 0, ...props }),
-  negativenumberInput: (field, context) =>
-    numberInput(field, context, { max: 0, ...props }),
-  percentInput,
-  checkBox: checkbox,
-  switch: switchControl,
-  Switcher: switchControl,
-  switcher,
-  datePicker,
-  dateTimePicker,
-  monthPicker,
-  timePicker,
-  dateRangePicker,
-  mobileInput: (field, context) =>
-    wrapMasked(field, context, { ...props, mask: MOBILE_MASK }),
-  zipCodeInput: (field, context) =>
-    wrapMasked(field, context, { ...props, mask: ZIP_MASK }),
-  maskedTextBox: (field, context) =>
-    wrapMasked(field, context),
-  oneTimePasswordInput: (field, context) =>
-    wrapOtp(field, context),
-  slider: (field, context) =>
-    wrapSlider(field, context),
-  rating: (field, context) =>
-    wrapRating(field, context),
-  colorPicker: (field, context) => {
-    const invalid = invalidOf(field, context);
-    return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
-      createColorPicker(colorPickerPropsFromField(field, context)),
-      invalid &&
-        h(
-          "span",
-          { class: "e-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ]);
-  },
-  filePicker,
-  fileUpload,
-  fileUploader,
-  filesUploader,
-  imagePicker,
-  imageUploader,
-  imagesUploader,
-  image: fieldImage,
-  avatar: fieldAvatar,
-  progressBar,
-  signaturePad,
-  stepper,
-  relativeTime: relativeTimeField,
-  tag,
-  tags,
-  chips,
-  bitChipSet,
-  enumChipSet,
-  fileLink: fileLinkField,
-  externalLink,
-  textSpan: fallbackDisplay,
-  span: fallbackDisplay,
-  multilineText,
-  percentage,
-  amountText: fallbackDisplay,
-  quantityUnit,
-  checkIcon: (field, context) => boolIcon(field, context),
-  checkedIcon: (field, context) => boolIcon(field, context),
-  searchInput: textInput,
-  searchBox,
-  comboBox,
-  autoComplete,
-  tagAutoComplete,
-  treeSelect,
-  enumSetCheckboxGroup: multiBitSelect,
-  toHoursInput: numberInput,
-  toMinutesInput: numberInput,
-  toSecondsInput: numberInput,
-  colorBox,
-  statusLight: tag,
-};
+  /**
+   * HAS_ONE / 远程 REF：对齐老 SearchBox = 可编辑 ComboBox 联想 + 搜索按钮弹窗。
+   */
+  searchRelative: VuiFieldRenderer = (field, context, props) => {
+    const reference = field.reference;
+    if (!reference) {
+      return h("span", { class: "warning" }, "不是引用字段");
+    }
 
-factory.inplaceFieldEditor = (field, context) =>
-  renderInplaceFieldEditor(field, context as any, props ?? {}, factory);
+    const valueKey = reference.refFlds?.[0] ?? "value";
+    const labelKey = reference.refFlds?.[1] ?? valueKey;
+    const fldOptions = context.getFieldSearchOptions(field);
 
-const aliases: Record<string, string> = {
-  TextBox: "textInput",
-  TextField: "textInput",
-  TextArea: "textArea",
-  AutoComplete: "autoComplete",
-  TagAutoComplete: "tagAutoComplete",
-  DropDownList: "dropDownList",
-  RadioButtonGroup: "radioButtonGroup",
-  Combobox: "comboBox",
-  DatePicker: "datePicker",
-  DateTimePicker: "dateTimePicker",
-  MonthPicker: "monthPicker",
-  TimePicker: "timePicker",
-  DateRangePicker: "dateRangePicker",
-  NumberInput: "numberInput",
-  ToHoursInput: "toHoursInput",
-  ToMinutesInput: "toMinutesInput",
-  ToSecondsInput: "toSecondsInput",
-  PositiveNumberInput: "positiveNumberInput",
-  NegativenumberInput: "negativenumberInput",
-  PercentInput: "percentInput",
-  SpinBox: "numberInput",
-  CheckBox: "checkBox",
-  Checkbox: "checkBox",
-  checkbox: "checkBox",
-  Switch: "switch",
-  Switcher: "switch",
-  SearchBox: "searchBox",
-  CheckBoxList: "checkBoxList",
-  BitCheckBoxList: "bitCheckBoxList",
-  MultiSelect: "multiSelect",
-  MultiItemSelect: "multiItemSelect",
-  MultiValueSelect: "multiValueSelect",
-  MultiTextSelect: "multiTextSelect",
-  MultiBitSelect: "multiBitSelect",
-  Slider: "slider",
-  Rating: "rating",
-  ColorPicker: "colorPicker",
-  FilePicker: "filePicker",
-  FileUpload: "fileUpload",
-  FileUploader: "fileUploader",
-  FilesUploader: "filesUploader",
-  ImagePicker: "imagePicker",
-  ImageUploader: "imageUploader",
-  ImagesUploader: "imagesUploader",
-  FileLink: "fileLink",
-  Url: "fileLink",
-  InplaceFieldEditor: "inplaceFieldEditor",
-  MultilineText: "multilineText",
-  Percentage: "percentage",
-  AmountText: "amountText",
-  QuantityUnit: "quantityUnit",
-  Tag: "tag",
-  Tags: "tags",
-  Chips: "chips",
-  BitChipSet: "bitChipSet",
-  EnumChipSet: "enumChipSet",
-  CheckIcon: "checkIcon",
-  CheckedIcon: "checkedIcon",
-  HasOneText: "externalLink",
-  hasOneText: "externalLink",
-  ColorBox: "colorBox",
-  ProgressBar: "progressBar",
-  SignaturePad: "signaturePad",
-  Stepper: "stepper",
-  RelativeTime: "relativeTime",
-  Image: "image",
-  Avatar: "avatar",
-  StatusLight: "statusLight",
-};
+    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
+      ? context.getFieldValue(field)
+      : null;
+    if (
+      fieldValue &&
+      typeof fieldValue === "object" &&
+      (fieldValue as Record<string, unknown>)[valueKey] == 0
+    ) {
+      fieldValue = null;
+    }
 
-for (const [alias, source] of Object.entries(aliases)) {
-  factory[alias] = factory[source];
+    if (fieldValue && typeof fieldValue === "object") {
+      const key = reference.valueOf(fieldValue);
+      if (
+        !fldOptions.selectOptions.some(
+          (item) => reference.valueOf(item) === key,
+        )
+      ) {
+        fldOptions.selectOptions.unshift(fieldValue);
+      }
+      fldOptions.currentSelectOption = fieldValue;
+    }
+
+    const selectedModel =
+      fldOptions.currentSelectOption != null &&
+      typeof fldOptions.currentSelectOption === "object"
+        ? fldOptions.currentSelectOption
+        : fieldValue;
+
+    return createSearchRelative(field, context as VuiContext<any>, {
+      ...props,
+      modelValue: selectedModel,
+      showClear: Boolean(selectedModel),
+      options: fldOptions.selectOptions,
+      title: props?.title ?? field.displayLabel,
+      dataKey: valueKey,
+      optionLabel: labelKey,
+      valueField: valueKey,
+      labelField: labelKey,
+      invalid: Boolean(context.isInvalid?.(field)),
+      onChange: (value: any) => {
+        fldOptions.currentSelectOption = value || null;
+        context.setFieldValue(field, value || null);
+        if (!value) {
+          const model = context.model as Record<string, any>;
+          MetaModel.setRefProp(model, field.fieldName, null);
+          reference.refFlds.forEach((rf, index) => {
+            if (index > 0) MetaModel.delCustomProp(model, rf);
+          });
+          if (reference.hasOne && reference.alias) {
+            model[reference.alias] = null;
+          }
+        }
+      },
+      toSearch: async () => {
+        const picked = await context.select(field);
+        if (picked) fldOptions.currentSelectOption = picked;
+        return true;
+      },
+    });
+  };
+
+  searchBox = this.searchRelative;
+
+  /** 表格单元格里的头像默认 small（表单里不默认，交给字段/调用方）。 */
+  avatar: VuiFieldRenderer = (field, context, props) => {
+    const cell = props as UiAvatarProps | undefined;
+    const avatarProps: UiAvatarProps = {
+      ...avatarPropsFromField(field, context),
+      ...(cell ? { size: cell.size ?? "small" } : {}),
+    };
+    return this.factory.avatar(avatarProps);
+  };
+
+  // —— 别名 / 老 metadata 编辑器名 ——
+
+  select = this.dropDownList;
+  span = this.fallbackDisplay;
+  searchInput = this.textInput;
+  switcher = this.switch;
+  Switcher = this.switch;
+  negativenumberInput = this.negativeNumberInput;
+  enumSetCheckboxGroup = this.multiBitSelect;
+  filePicker = this.fileUploader;
+  fileUpload = this.filesUploader;
+  imagePicker = this.imageUploader;
+  toHoursInput = this.numberInput;
+  toMinutesInput = this.numberInput;
+  toSecondsInput = this.numberInput;
+
+  tag: VuiFieldRenderer = (field, context, props) =>
+    h(
+      "span",
+      { class: "e-badge", ...props },
+      context.displayField(field, props?.row),
+    );
+
+  statusLight = this.tag;
+
+  TextBox = this.textInput;
+  TextField = this.textInput;
+  TextArea = this.textArea;
+  AutoComplete = this.autoComplete;
+  TagAutoComplete = this.tagAutoComplete;
+  DropDownList = this.dropDownList;
+  RadioButtonGroup = this.radioButtonGroup;
+  Combobox = this.comboBox;
+  DatePicker = this.datePicker;
+  DateTimePicker = this.dateTimePicker;
+  MonthPicker = this.monthPicker;
+  TimePicker = this.timePicker;
+  DateRangePicker = this.dateRangePicker;
+  NumberInput = this.numberInput;
+  ToHoursInput = this.toHoursInput;
+  ToMinutesInput = this.toMinutesInput;
+  ToSecondsInput = this.toSecondsInput;
+  PositiveNumberInput = this.positiveNumberInput;
+  NegativenumberInput = this.negativenumberInput;
+  PercentInput = this.percentInput;
+  SpinBox = this.numberInput;
+  CheckBox = this.checkBox;
+  Checkbox = this.checkBox;
+  checkbox = this.checkBox;
+  Switch = this.switch;
+  SearchBox = this.searchBox;
+  CheckBoxList = this.checkBoxList;
+  BitCheckBoxList = this.bitCheckBoxList;
+  MultiSelect = this.multiSelect;
+  MultiItemSelect = this.multiItemSelect;
+  MultiValueSelect = this.multiValueSelect;
+  MultiTextSelect = this.multiTextSelect;
+  MultiBitSelect = this.multiBitSelect;
+  Slider = this.slider;
+  Rating = this.rating;
+  ColorPicker = this.colorPicker;
+  FilePicker = this.filePicker;
+  FileUpload = this.fileUpload;
+  FileUploader = this.fileUploader;
+  FilesUploader = this.filesUploader;
+  ImagePicker = this.imagePicker;
+  ImageUploader = this.imageUploader;
+  ImagesUploader = this.imagesUploader;
+  FileLink = this.fileLink;
+  Url = this.fileLink;
+  InplaceFieldEditor = this.inplaceFieldEditor;
+  MultilineText = this.multilineText;
+  Percentage = this.percentage;
+  AmountText = this.amountText;
+  QuantityUnit = this.quantityUnit;
+  Tag = this.tag;
+  Tags = this.tags;
+  Chips = this.chips;
+  BitChipSet = this.bitChipSet;
+  EnumChipSet = this.enumChipSet;
+  CheckIcon = this.checkIcon;
+  CheckedIcon = this.checkedIcon;
+  HasOneText = this.externalLink;
+  hasOneText = this.externalLink;
+  ColorBox = this.colorBox;
+  ProgressBar = this.progressBar;
+  SignaturePad = this.signaturePad;
+  Stepper = this.stepper;
+  RelativeTime = this.relativeTime;
+  Image = this.image;
+  Avatar = this.avatar;
+  StatusLight = this.statusLight;
 }
 
-export { resolveFieldUnit } from "../factory/utils";
-export const syncfusionFieldFactory = factory;
+export const syncfusionFieldFactory: UiFieldFactory = new SfVueUiFieldFactory();
 
 export function createSyncfusionFieldFactory(): UiFieldFactory {
-  return { ...factory };
+  return new SfVueUiFieldFactory();
 }
+
+export { resolveFieldUnit } from "@mmda/vui";

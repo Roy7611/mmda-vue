@@ -1,4 +1,4 @@
-import { h, reactive, type VNode } from 'vue'
+import { h, shallowReactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
@@ -40,7 +40,7 @@ const severityClass = (severity?: string) => {
 }
 
 export function createSfOverlay(): SfOverlay {
-  const dialogs = reactive<SfDialogRequest[]>([])
+  const dialogs = shallowReactive<SfDialogRequest[]>([])
   const services: SfOverlayServices = {}
 
   const overlay: SfOverlay = {

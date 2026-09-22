@@ -3,6 +3,7 @@ import TreeSelect from 'primevue/treeselect'
 import type { UiTreeSelectProps } from '@mmda/core'
 import { uiRenderProps } from '@mmda/core'
 import { treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields, vuiUpdateOf } from '@mmda/vui'
+import type { VuiModelProps } from "@mmda/vui"
 
 type PrimeTreeNode = {
   key: string
@@ -39,7 +40,7 @@ function toPrimeNodes<T>(rows: T[], fields?: UiTreeFields<T>): PrimeTreeNode[] {
   })
 }
 
-function idsOf(props: UiTreeSelectProps): string[] {
+function idsOf(props: VuiModelProps<UiTreeSelectProps>): string[] {
   const raw = props.value ?? props.modelValue
   if (props.selectionMode === 'checkbox') {
     const list = Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]
@@ -74,7 +75,7 @@ function primeDisplay(display?: UiTreeSelectProps['selectedDisplay']) {
   return 'comma'
 }
 
-export function createTreeSelect(props: UiTreeSelectProps) {
+export function createTreeSelect(props: VuiModelProps<UiTreeSelectProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

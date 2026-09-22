@@ -100,7 +100,7 @@ const asDate = (value: unknown) => {
 const compareFrom = (filter?: FieldFilter) => {
   if (!filter) return undefined
   if (filter.filterType === 'multi') {
-    return filter.filterModels.find(item => item.filterType !== 'set')
+    return filter.filterModels?.find(item => item.filterType !== 'set')
   }
   if (filter.filterType === 'set') return undefined
   return filter
@@ -108,10 +108,10 @@ const compareFrom = (filter?: FieldFilter) => {
 
 const setFrom = (filter?: FieldFilter) => {
   if (!filter) return []
-  if (filter.filterType === 'set') return filter.values
+  if (filter.filterType === 'set') return filter.values ?? []
   if (filter.filterType === 'multi') {
-    const set = filter.filterModels.find(item => item.filterType === 'set')
-    return set && 'values' in set ? set.values : []
+    const set = filter.filterModels?.find(item => item.filterType === 'set')
+    return set && 'values' in set ? set.values ?? [] : []
   }
   return []
 }

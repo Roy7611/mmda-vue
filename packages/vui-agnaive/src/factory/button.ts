@@ -42,7 +42,6 @@ export function createButton(
     id,
     onClick,
     onAction,
-    command,
     // UiAction 袋字段：勿落到 NButton attrs，以免干扰点击
     name: _name,
     canDo: _canDo,
@@ -55,7 +54,7 @@ export function createButton(
   } = props as UiButtonProps & Record<string, unknown>
   const iconName = icon as string | undefined
   const hideLabel = shape === 'circle' && !label
-  const handleClick = onClick ?? onAction ?? command
+  const handleClick = onClick ?? onAction
   return h(
     NButton,
     {

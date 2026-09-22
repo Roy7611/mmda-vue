@@ -2,6 +2,7 @@ import { h } from "vue";
 import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import type { UiProgressBarProps } from "@mmda/core"
 import { progressBarModifierClasses, uiRenderProps } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
 const numberOf = (raw: unknown): number => {
   if (raw == null || raw === "") return 0;
@@ -9,7 +10,7 @@ const numberOf = (raw: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export function createProgressBar(props: UiProgressBarProps) {
+export function createProgressBar(props: VuiModelProps<UiProgressBarProps>) {
   const {
     value,
     modelValue,

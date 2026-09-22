@@ -31,7 +31,7 @@ export function buildImportOrExportAction(
     return this.factory.splitButton({
       label: action.label,
       icon: this.factory.resolveIcon(action.icon ?? role ?? ""),
-      severity: action.colorRole === "danger" ? "danger" : undefined,
+      colorRole: action.colorRole === "danger" ? "danger" : undefined,
       size: "small",
       onClick: action.onAction,
       actions: templates.map((template: any) => ({

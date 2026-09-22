@@ -2,7 +2,7 @@ import { h } from "vue";
 import { DropDownListComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiDropDownListProps, UiSelectOption } from "@mmda/core"
 import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf, uiRenderProps } from "@mmda/core"
-import { emitDropDownListChange } from "@mmda/vui"
+import { emitDropDownListChange, type VuiModelProps } from "@mmda/vui"
 
 export function syncfusionSelectFields(options: UiSelectOption[]) {
   const fields: { value: string; text: string; groupBy?: string } = {
@@ -50,7 +50,7 @@ export function syncfusionSelectItemTemplate(options: UiSelectOption[]) {
     ]);
 }
 
-export function createDropDownList(props: UiDropDownListProps) {
+export function createDropDownList(props: VuiModelProps<UiDropDownListProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

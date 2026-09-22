@@ -3,8 +3,9 @@ import ColorPicker from "primevue/colorpicker";
 import type { UiColorPickerProps } from "@mmda/vui"
 import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createColorPicker(props: UiColorPickerProps) {
+export function createColorPicker(props: VuiModelProps<UiColorPickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

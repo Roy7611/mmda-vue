@@ -62,17 +62,17 @@ let choiceFilterPatched = false;
 export const patchChoiceFilter = () => {
   if (choiceFilterPatched) return;
   choiceFilterPatched = true;
-  const originalCreate = CheckBoxFilterBase.prototype.createCheckbox;
-  CheckBoxFilterBase.prototype.createCheckbox = function (
+  const originalCreate = (CheckBoxFilterBase.prototype as any).createCheckbox;
+  (CheckBoxFilterBase.prototype as any).createCheckbox = function (
     value: unknown,
     checked: boolean,
     data: any,
   ) {
-    const field = this?.options?.field;
+    const field = (this as any)?.options?.field as string | undefined;
     const stored =
       data?.ejValue ??
       (field != null ? data?.[field] : undefined) ??
-      data?.dataObj?.[field] ??
+      (field != null ? data?.dataObj?.[field] : undefined) ??
       value;
     const node = originalCreate.call(this, stored, checked, data);
     const text = data?.text ?? data?.dataObj?.text;
@@ -82,8 +82,8 @@ export const patchChoiceFilter = () => {
     }
     return node;
   };
-  const originalDistinct = CheckBoxFilterBase.getDistinct;
-  CheckBoxFilterBase.getDistinct = function (
+  const originalDistinct = (CheckBoxFilterBase as any).getDistinct;
+  (CheckBoxFilterBase as any).getDistinct = function (
     json: any[],
     field: string,
     column: any,

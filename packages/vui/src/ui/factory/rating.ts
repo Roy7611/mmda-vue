@@ -6,10 +6,12 @@
  * 字段 fieldFactory.rating 译 MetaUiField 后再调本控件。
  */
 import type { VNodeChild } from 'vue'
-import type { MetaUiField } from '@mmda/core'
 import type {UiProps} from '@mmda/core'
-
-export const DEFAULT_RATING_ITEMS_COUNT = 5
+import { DEFAULT_RATING_ITEMS_COUNT as coreRatingItemsCount } from '@mmda/core'
+export {
+  DEFAULT_RATING_ITEMS_COUNT,
+  ratingPropsFromField,
+} from '@mmda/core'
 
 export type {
   UiRatingProps,
@@ -24,11 +26,7 @@ import type {
 import { vuiUpdateOf } from '../vui_props'
 import type { VuiModelProps } from '../vui_props'
 
-export type RatingFieldContext = {
-  getFieldValue: (field: MetaUiField) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
-  isFieldReadonly: (field: MetaUiField | string) => boolean
-}
+export type { UiFieldBindContext as RatingFieldContext } from '@mmda/core'
 
 function finiteNumber(raw: unknown): number | undefined {
   if (raw == null || raw === '') return undefined
@@ -39,7 +37,7 @@ function finiteNumber(raw: unknown): number | undefined {
 export function ratingItemsCountOf(props: UiRatingProps): number {
   const n = finiteNumber(props.itemsCount)
   if (n != null && n >= 1) return Math.floor(n)
-  return DEFAULT_RATING_ITEMS_COUNT
+  return coreRatingItemsCount
 }
 
 export function ratingValueOf(
@@ -81,33 +79,3 @@ export function resolveRatingTemplate(
 }
 
 export { ratingModifierClasses } from '@mmda/core'
-
-function itemsCountFromField(
-  field: MetaUiField
-): number | undefined {
-  const max = field.maxLength
-  if (typeof max === 'number' && max >= 1 && max <= 10) return max
-  return undefined
-}
-
-export function ratingPropsFromField(
-  field: MetaUiField,
-  context: RatingFieldContext
-): UiRatingProps {
-  const raw = context.getFieldValue(field)
-  const n = finiteNumber(raw)
-  return {
-    value: n ?? null,
-    itemsCount: itemsCountFromField(field),
-    readOnly:
-      context.isFieldReadonly(field),
-    onChange: (value) => {
-      context.setFieldValue(field, value)
-    },
-    htmlAttributes: {
-      name: field.fieldName,
-      id: field.fieldName,
-      ...({}),
-    },
-  }
-}

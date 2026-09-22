@@ -124,7 +124,7 @@ export const SfAiAssistantView = defineComponent({
       h(InlineAiAssistImpl as any, {
         ref: host,
         ...props.options,
-        ...uiRenderProps(props).attributes,
+        ...uiRenderProps(props as any).attributes,
         class: aiAssistantHookClass(props.class),
         relateTo: props.relateTo,
         prompt: props.prompt,

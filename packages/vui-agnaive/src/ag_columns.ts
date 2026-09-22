@@ -9,7 +9,7 @@ import type {
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, fieldCellEditorAllowsColumn, DatePeriodToken, MetaUiFilterType, type DateTimeRangeKind, type MetaUi, type MetaUiField } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, simpleFilterTypeOf } from './filter_kind'
 import { gridFreezeOf } from '@mmda/vui'
-import type { UiListPropsType } from '@mmda/vui'
+import type { VuiListPropsType } from '@mmda/vui'
 import {
   listedMetaFields,
   isHasOneFilterField,
@@ -35,7 +35,7 @@ const dateKindOptions = (
 
 const simpleFilterOf = (
   field: MetaUiField,
-  props: UiListPropsType<any> = {} as UiListPropsType<any>,
+  props: VuiListPropsType<any> = {} as VuiListPropsType<any>,
 ) => {
   const type = simpleFilterTypeOf(field)
   const maxNumConditions = hasFilterType(field, MetaUiFilterType.JOIN)
@@ -76,7 +76,7 @@ const simpleFilterOf = (
 
 const dateTreeFilterParamsOf = (
   field: MetaUiField,
-  props: UiListPropsType<any>,
+  props: VuiListPropsType<any>,
 ) => ({
   treeList: true,
   defaultToNothingSelected: true,
@@ -115,7 +115,7 @@ const dateTreeFilterParamsOf = (
 
 const setFilterParamsOf = (
   field: MetaUiField,
-  props: UiListPropsType<any>,
+  props: VuiListPropsType<any>,
 ) => ({
   values: (params: SetFilterValuesFuncParams) => {
     const apply = (options: unknown[]) => {
@@ -145,7 +145,7 @@ const setFilterParamsOf = (
 
 export function buildColumnDefs<T>(
   metaUi: MetaUi,
-  props: UiListPropsType<T> = {} as UiListPropsType<T>,
+  props: VuiListPropsType<T> = {} as VuiListPropsType<T>,
 ): ColDef<T>[] {
   const fields = listedFieldsOf(metaUi)
   const rowNumField = fields.find(field => field.fieldName === 'rowNum')

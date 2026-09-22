@@ -1,7 +1,7 @@
 import { h } from "vue";
 import { QueryBuilderComponent } from "@syncfusion/ej2-vue-querybuilder";
 import type { UiQueryBuilderProps } from '@mmda/core';
-import { emitQueryBuilderChange, queryBuilderColumnsOf, queryBuilderModifierClasses, queryBuilderValueOf } from "@mmda/vui"
+import { emitQueryBuilderChange, queryBuilderColumnsOf, queryBuilderModifierClasses, queryBuilderValueOf, type VuiModelProps } from "@mmda/vui"
 import {
   advancedToQueryBuilderRule,
   queryBuilderColumnsToEj2,
@@ -9,7 +9,7 @@ import {
 } from "./ej2_query";
 import { uiRenderProps } from "@mmda/core"
 
-export function createQueryBuilder(props: UiQueryBuilderProps) {
+export function createQueryBuilder(props: VuiModelProps<UiQueryBuilderProps>) {
   const {
     fields: _fields,
     columns: _columns,

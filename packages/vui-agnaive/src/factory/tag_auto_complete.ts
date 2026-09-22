@@ -3,8 +3,9 @@ import { NSelect } from 'naive-ui'
 import type { UiTagAutoCompleteProps } from '@mmda/core'
 import { TAG_AUTOCOMPLETE_DEBOUNCE_MS, TAG_AUTOCOMPLETE_MIN_LENGTH, tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, uiRenderProps } from '@mmda/core'
 import { tagAutoCompleteUpdateOf } from '@mmda/vui'
+import type { VuiEmitProps } from "@mmda/vui"
 
-export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
+export function createTagAutoComplete(props: VuiEmitProps<UiTagAutoCompleteProps> = {}) {
   const value = props.value
   const {
     options: _options,

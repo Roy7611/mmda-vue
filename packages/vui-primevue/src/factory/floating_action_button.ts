@@ -1,5 +1,5 @@
 import { h } from "vue";
-import type { UiButtonSlots } from "@mmda/core"
+import type { UiButtonSlots, UiClassValue } from "@mmda/core"
 import type { UiFloatingActionButtonProps } from "@mmda/vui"
 import { fabModifierClasses } from "@mmda/vui"
 import { createButton } from "./button";
@@ -18,7 +18,7 @@ export function createFloatingActionButton(
       shape: "circle",
       class: [
         "mmda-fab",
-        fabModifierClasses({ ...props, position: pos }),
+        ...(fabModifierClasses({ ...props, position: pos }) as UiClassValue[]),
       ],
       htmlAttributes: {
         ...buttonProps.htmlAttributes,

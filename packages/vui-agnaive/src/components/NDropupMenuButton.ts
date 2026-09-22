@@ -9,7 +9,7 @@ import {
   type PropType,
   type VNode,
 } from 'vue'
-import type { UiAction, UiDropDownButtonProps, VueUiTileSlots } from '@mmda/vui'
+import type { UiAction, UiDropDownButtonProps, VuiTileSlots } from '@mmda/vui'
 import { createIconVNode } from '@mmda/vui'
 import { createButton } from '../factory/button'
 
@@ -32,7 +32,7 @@ export const NDropupMenuButton = defineComponent({
       default: () => [],
     },
     slots: {
-      type: Object as PropType<VueUiTileSlots>,
+      type: Object as PropType<VuiTileSlots>,
       default: undefined,
     },
     placement: {

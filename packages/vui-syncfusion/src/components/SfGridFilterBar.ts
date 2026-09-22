@@ -66,7 +66,7 @@ export const SfGridFilterBar = defineComponent({
       icon: string,
       title: string,
       onClick: () => void,
-    ) =>
+    ): any =>
       props.button({
         class: className,
         icon: props.resolveIcon(icon),
@@ -157,8 +157,8 @@ export const SfGridFilterBar = defineComponent({
             { class: 'mmda-list-filter-bar__title' },
             props.labels.filter,
           ),
-          chipList,
-          ...extraNodes,
+          chipList as any,
+          ...(extraNodes as any[]),
           actions,
         ],
       )

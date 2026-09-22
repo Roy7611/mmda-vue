@@ -4,7 +4,7 @@ import {
   type VNode,
 } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from "@mmda/core";
-import { VuiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiSearchField, type VueUiTileSlots, type VuiContext, ListSearchField } from "@mmda/vui"
+import { VuiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VuiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiSearchField, type VuiTileSlots, type VuiContext, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -22,7 +22,7 @@ import { createPrimeOverlay } from "./prime_overlay";
 import { BpmnModeler } from "./components/BpmnModeler";
 import { SigninForm } from "./components/SigninForm";
 import { createPrimeVueFieldFactory } from "./prime_field_factory";
-import { createPrimeVueUiFactory } from "./prime_factory";
+import { createPrimeVuiFactory } from "./prime_factory";
 import { primeLayout } from "./prime_layout";
 
 const invoke = (value: unknown): any =>
@@ -30,11 +30,29 @@ const invoke = (value: unknown): any =>
 
 type UiContext = VuiContext<any>;
 
+type GroupCardProps = UiProps & {
+  container?: "card" | "fieldset" | "tab" | "none";
+  region?: string;
+  many?: boolean;
+  direction?: "vertical" | "horizontal" | "row" | "column";
+  cols?: number;
+  headerActions?: VNode | VNode[];
+};
+
+type AppMenuProps = UiProps & { item?: unknown; expand?: boolean };
+
+type BpmnDiagramProps = UiProps & {
+  xml?: string;
+  readonly?: boolean;
+  height?: string | number;
+  onUpdateXml?: (xml: string) => void;
+};
+
 export class PrimeVuiBuilder extends VuiBuilder {
-  declare readonly factory: VueUiFactory;
+  declare readonly factory: VuiFactory;
 
   constructor(
-    factory = createPrimeVueUiFactory(),
+    factory = createPrimeVuiFactory(),
     fieldFactory: VueUiFieldFactory = createPrimeVueFieldFactory(),
   ) {
     super(
@@ -58,7 +76,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
   override buildGroupCard(
     group: MetaUiGroup,
     body: VNode | VNode[],
-    props: UiProps = {},
+    props: GroupCardProps = {},
   ) {
     const {
       container: _container,
@@ -105,8 +123,8 @@ export class PrimeVuiBuilder extends VuiBuilder {
   ) {
     return this.buildAppSideMenu({
       modules: props.modules,
-      logo: props.header,
-      footer: props.footer,
+      logo: props.header as () => VNode,
+      footer: props.footer as (() => VNode) | undefined,
     });
   }
 
@@ -114,7 +132,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
     return h(PrimeAppSideMenu, props as any);
   }
 
-  buildAppMenu(modules: Module[], props?: UiProps) {
+  buildAppMenu(modules: Module[], props?: AppMenuProps) {
     const { item, expand, ...rest } = props ?? {};
     if (expand === false) {
       const menuItems = assembleMenuItems(modules);
@@ -160,7 +178,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
       return this.factory.splitButton({
         label: action.label,
         icon: this.factory.resolveIcon(action.icon ?? role ?? ""),
-        severity: action.colorRole === "danger" ? "danger" : undefined,
+        colorRole: action.colorRole,
         size: "small",
         onClick: action.onAction,
         actions: templates.map((template: any) => ({
@@ -203,7 +221,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
   buildDetailsTopbar(
     context: UiContext,
     props?: Parameters<VuiBuilder["buildDetailsTopbar"]>[1],
-    slots?: VueUiTileSlots,
+    slots?: VuiTileSlots,
   ) {
     return paintDetailsTopbar(
       this,
@@ -222,7 +240,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
     );
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
+  buildSearchField(field: VuiSearchField, _context: UiContext, props: UiProps) {
     const meta = field.field;
     const common = {
       modelValue: field.searchVal.value,
@@ -272,7 +290,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
     } else if (SqlDataType.isNum(meta.dataType)) {
       editor = h(InputNumber, common);
     } else {
-      editor = h(InputText, common);
+      editor = h(InputText as any, common);
     }
     return h("label", { class: "mmda-search-field" }, [
       h("span", meta.displayLabel),
@@ -329,7 +347,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
       },
       [
         ...quickFilters,
-        ...(runtime.searchFields ?? []).map((field: UiSearchField) =>
+        ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
           this.buildSearchField(field, context, {}),
         ),
         ...(runtime.customSearchFields ?? []).map((field: any) =>
@@ -362,7 +380,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
   buildBpmnDiagram(
     flowTrails: any[],
     _context: UiContext,
-    props: UiProps = {},
+    props: BpmnDiagramProps = {},
   ) {
     return h("section", { class: "mmda-flow", ...props }, [
       props.xml

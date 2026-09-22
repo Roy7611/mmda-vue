@@ -3,10 +3,10 @@ import { DateRangePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import type { UiDateRangePickerProps } from "@mmda/core"
 import { dateRangePickerModifierClasses, dateRangePickerSeparatorOf, dateRangePickerValueOf, uiRenderProps } from "@mmda/core"
 import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts } from "@mmda/core"
-import { emitDateChange } from "@mmda/vui"
+import { emitDateChange, type VuiModelProps } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n"
 
-export function createDateRangePicker(props: UiDateRangePickerProps) {
+export function createDateRangePicker(props: VuiModelProps<UiDateRangePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -33,9 +33,6 @@ export function createDateRangePicker(props: UiDateRangePickerProps) {
     onChange: _onChange,
     htmlAttributes,
     class: _className,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
     ...rest
   } = props;
 

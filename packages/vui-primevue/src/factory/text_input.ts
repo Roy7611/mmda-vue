@@ -3,8 +3,9 @@ import InputText from "primevue/inputtext";
 import type { UiTextInputProps } from "@mmda/core"
 import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputHtmlTypeOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputTypeOf, textInputValueOf, uiRenderProps } from "@mmda/core"
 import { emitTextInputChange } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createTextInput(props: UiTextInputProps) {
+export function createTextInput(props: VuiModelProps<UiTextInputProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

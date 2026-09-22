@@ -3,8 +3,9 @@ import { NCheckbox } from 'naive-ui'
 import type { UiCheckBoxProps } from '@mmda/core'
 import { checkBoxCheckedOf, checkBoxModifierClasses, uiRenderProps } from '@mmda/core'
 import { emitCheckBoxChange } from '@mmda/vui'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createCheckBox(props: UiCheckBoxProps) {
+export function createCheckBox(props: VuiModelProps<UiCheckBoxProps>) {
   const {
     checked: _checked,
     modelValue: _modelValue,

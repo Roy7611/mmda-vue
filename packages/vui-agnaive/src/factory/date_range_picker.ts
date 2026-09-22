@@ -6,8 +6,9 @@ import { DATE_RANGE_PICKER_FORMAT, datePickerAllowInput, datePickerFirstDayOfWee
 import { emitDateChange } from '@mmda/vui'
 import { datePickerNaiveFirstDayOfWeek, datePickerNaiveFormat } from '@mmda/vui'
 import { fromTs, naiveDateShortcuts, toTs } from './date_picker'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createDateRangePicker(props: UiDateRangePickerProps) {
+export function createDateRangePicker(props: VuiModelProps<UiDateRangePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -34,9 +35,6 @@ export function createDateRangePicker(props: UiDateRangePickerProps) {
     onChange: _onChange,
     htmlAttributes,
     class: _className,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
     ...rest
   } = props
 

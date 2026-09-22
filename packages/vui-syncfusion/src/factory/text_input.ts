@@ -2,9 +2,9 @@ import { h } from "vue";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiTextInputProps } from "@mmda/core"
 import { emitTextInputBlur, emitTextInputFocus, textInputAutocompleteOf, textInputDisabledOf, textInputMaxLengthOf, textInputModifierClasses, textInputPlaceholderOf, textInputReadonlyOf, textInputShowClearButtonOf, textInputTypeOf, textInputValueOf, uiRenderProps } from "@mmda/core"
-import { emitTextInputChange } from "@mmda/vui"
+import { emitTextInputChange, type VuiModelProps } from "@mmda/vui"
 
-export function createTextInput(props: UiTextInputProps) {
+export function createTextInput(props: VuiModelProps<UiTextInputProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

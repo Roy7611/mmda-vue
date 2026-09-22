@@ -1,6 +1,6 @@
 import { h } from 'vue'
 import { NDropdown } from 'naive-ui'
-import type { UiAction, UiDropDownButtonProps, VueUiTileSlots } from '@mmda/vui'
+import type { UiAction, UiDropDownButtonProps, VuiTileSlots } from '@mmda/vui'
 import { createIconVNode } from '@mmda/vui'
 import { NDropupMenuButton } from '../components/NDropupMenuButton'
 import { createButton } from './button'
@@ -51,7 +51,7 @@ function opensUpward(
 export function createDropDownButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: VueUiTileSlots,
+  slots?: VuiTileSlots,
   button: typeof createButton = createButton,
 ) {
   // 侧栏 footer 在 overflow:hidden 内：向上开用自研 Dropup（Teleport + fixed）
@@ -109,7 +109,7 @@ export function createDropDownButton(
 export function createMoreMenuButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: VueUiTileSlots,
+  slots?: VuiTileSlots,
   button: typeof createButton = createButton,
 ) {
   return createDropDownButton(

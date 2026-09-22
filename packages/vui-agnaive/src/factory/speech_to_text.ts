@@ -1,10 +1,12 @@
 import { h } from 'vue'
 import { type UiSpeechToTextProps } from '@mmda/core'
-import { MmdaSpeechToTextHost, speechToTextInterimOf, speechToTextValueOf } from '@mmda/vui'
+import { MmdaSpeechToTextHost, speechToTextInterimOf, speechToTextValueOf, type VuiSpeechToTextButtonContext } from '@mmda/vui'
 import { createButton } from './button'
+import type { UiClassValue } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
 export function createSpeechToText(
-  props: UiSpeechToTextProps = {},
+  props: VuiModelProps<UiSpeechToTextProps> = {},
   resolveIcon: (icon: string) => string = (icon) => icon,
 ) {
   const {
@@ -15,7 +17,7 @@ export function createSpeechToText(
     ...rest
   } = props
 
-  return h(MmdaSpeechToTextHost, {
+  return h(MmdaSpeechToTextHost as any, {
     ...rest,
     value: speechToTextValueOf(props),
     lang: props.lang,
@@ -24,14 +26,14 @@ export function createSpeechToText(
     listening: props.listening,
     class: props.class,
     htmlAttributes,
-    renderButton: (ctx) =>
+    renderButton: (ctx: VuiSpeechToTextButtonContext) =>
       createButton(
         {
           type: 'button',
           disabled: ctx.disabled,
           colorRole: ctx.listening ? 'danger' : 'primary',
           icon: ctx.listening ? 'stop' : 'mic',
-          class: ctx.class,
+          class: ctx.class as UiClassValue[],
           onClick: ctx.toggle,
         },
         undefined,

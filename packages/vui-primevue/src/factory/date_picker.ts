@@ -4,6 +4,7 @@ import type { UiDatePickerProps, UiDateShortcut } from "@mmda/core"
 import { datePickerAllowInput, datePickerDateOf, datePickerFirstDayOfWeek, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerModifierClasses, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus, resolveDateShortcutValue, resolveDateShortcuts, uiRenderProps } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { datePickerPrimeFormat } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
 export function primeDateShortcutFooter(
   items: UiDateShortcut[],
@@ -31,7 +32,7 @@ export function primeDateShortcutFooter(
   };
 }
 
-export function createDatePicker(props: UiDatePickerProps) {
+export function createDatePicker(props: VuiModelProps<UiDatePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -56,10 +57,6 @@ export function createDatePicker(props: UiDatePickerProps) {
     htmlAttributes,
     class: _className,
     precision,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
-    selectionMode: _selectionMode,
     ...rest
   } = props;
 

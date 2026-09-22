@@ -323,7 +323,7 @@ export function createSfDiagramEditorPlugin(): UiPlugin {
         ...(props as UiDiagramProps),
         readonly: diagramReadonlyOf(
           props as UiDiagramProps,
-          String(context?.view ?? ''),
+          String((context as any)?.view ?? ''),
         ),
       }
       return h(SfDiagramView, next as any)

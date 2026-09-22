@@ -1,6 +1,6 @@
 import { h } from "vue";
 import SplitButton from "primevue/splitbutton";
-import type { UiAction, VueUiTileSlots, UiSplitButtonProps } from "@mmda/vui"
+import type { UiAction, VuiTileSlots, VuiSplitButtonProps } from "@mmda/vui"
 
 const menuModel = (action: UiAction): Record<string, unknown> => {
   if (action.divider) return { separator: true };
@@ -14,8 +14,8 @@ const menuModel = (action: UiAction): Record<string, unknown> => {
 };
 
 export function createSplitButton(
-  props: UiSplitButtonProps,
-  slots?: VueUiTileSlots,
+  props: VuiSplitButtonProps,
+  slots?: VuiTileSlots,
 ) {
   return h(
     SplitButton as any,

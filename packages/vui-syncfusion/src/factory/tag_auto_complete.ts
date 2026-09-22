@@ -2,9 +2,9 @@ import { h } from "vue";
 import { MultiSelectComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiTagAutoCompleteProps } from '@mmda/core';
 import { tagAutoCompleteItemsOf, tagAutoCompleteModifierClasses, tagAutoCompleteSuggestionLabels, tagAutoCompleteTextOf, uiRenderProps } from "@mmda/core"
-import { tagAutoCompleteUpdateOf } from "@mmda/vui"
+import { tagAutoCompleteUpdateOf, type VuiEmitProps } from "@mmda/vui"
 
-export function createTagAutoComplete(props: UiTagAutoCompleteProps = {}) {
+export function createTagAutoComplete(props: VuiEmitProps<UiTagAutoCompleteProps> = {}) {
   const value = props.value
   const {
     options: _options,

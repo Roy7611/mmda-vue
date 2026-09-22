@@ -7,7 +7,7 @@ const listedFields = (metaUi: MetaUi) => {
     ? fields
     : metaUi.groups
         .filter(group => !group.many)
-        .flatMap(group => group.fields)
+        .flatMap(group => group.fields ?? [])
 }
 
 const fieldOf = (metaUi: MetaUi, fieldName: string) =>
@@ -223,12 +223,12 @@ function fieldFilterToAg(filter: FieldFilter, field?: MetaUiField): any {
   if (filter.filterType === 'multi') {
     return {
       filterType: 'multi',
-      filterModels: filter.filterModels.map(item => fieldFilterToAg(item, field)),
+      filterModels: filter.filterModels?.map(item => fieldFilterToAg(item, field)),
     }
   }
   if (filter.filterType === 'join') {
-    const conditions = filter.conditions.map(item => fieldFilterToAg(item, field))
-    const firstType = conditions[0]?.filterType ?? simpleFilterType(field)
+    const conditions = filter.conditions?.map(item => fieldFilterToAg(item, field))
+    const firstType = conditions?.[0]?.filterType ?? simpleFilterType(field)
     return {
       filterType: firstType,
       operator: filter.operator,
@@ -263,7 +263,7 @@ function fieldFilterToAg(filter: FieldFilter, field?: MetaUiField): any {
     filter.operator === 'WITHIN' && isDateRangeKind(filter.value)
       ? filter.value
       : undefined
-  const type = kind ?? OP_TO_AG[filter.operator] ?? 'equals'
+  const type = kind ?? (filter.operator ? OP_TO_AG[filter.operator] : undefined) ?? 'equals'
   if (filter.filterType === 'date') {
     return {
       filterType: 'date',

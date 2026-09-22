@@ -4,22 +4,17 @@
  * chrome 掩码输入走 factory.maskedTextBox。vui mask 用 EJ2 元素，不要写 Prime 的 9。
  * 字段 fieldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
  */
-import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
+import type { UiMaskedTextBoxProps } from '@mmda/core'
 import type {UiProps} from '@mmda/core'
 import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
-
-/** 大陆手机：11 位数字，中间空格。EJ2 `0` = 数字。 */
-export const MOBILE_MASK = '000 0000 0000'
-/** 6 位邮编。 */
-export const ZIP_MASK = '000000'
+export {
+  MOBILE_MASK,
+  ZIP_MASK,
+  maskedTextBoxPropsFromField,
+  type MaskedTextBoxFieldContext,
+} from '@mmda/core'
 
 export type { UiMaskedTextBoxProps } from '@mmda/core'
-
-export type MaskedTextBoxFieldContext = {
-  getFieldValue: (field: MetaUiField) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
-  isFieldReadonly: (field: MetaUiField | string) => boolean
-}
 
 export function maskedTextBoxValueOf(
   props: VuiModelProps<UiMaskedTextBoxProps>,
@@ -73,30 +68,4 @@ export function primeMaskOf(mask: string): string {
     out += ch
   }
   return out
-}
-
-export function maskedTextBoxPropsFromField(
-  field: MetaUiField,
-  context: MaskedTextBoxFieldContext
-): UiMaskedTextBoxProps {
-  const mask = String('')
-  return {
-    value: (() => {
-      const raw = context.getFieldValue(field)
-      return raw == null ? '' : String(raw)
-    })(),
-    mask,
-    placeholder:
-      field.placeholder,
-    disabled:
-      context.isFieldReadonly(field),
-    onChange: (value) => {
-      context.setFieldValue(field, value)
-    },
-    htmlAttributes: {
-      name: field.fieldName,
-      id: field.fieldName,
-      ...({}),
-    },
-  }
 }

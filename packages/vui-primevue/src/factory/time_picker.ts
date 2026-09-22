@@ -5,8 +5,9 @@ import { dateTimePickerStepOf, timePickerModifierClasses, uiRenderProps } from "
 import { TIME_PICKER_FORMAT, datePickerAllowInput, datePickerDateOf, datePickerFormatOf, datePickerMaxOf, datePickerMinOf, datePickerShowClear, emitDateBlur, emitDateClear, emitDateFocus } from "@mmda/core"
 import { emitDateChange } from "@mmda/vui"
 import { datePickerPrimeFormat } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createTimePicker(props: UiTimePickerProps) {
+export function createTimePicker(props: VuiModelProps<UiTimePickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,
@@ -31,9 +32,6 @@ export function createTimePicker(props: UiTimePickerProps) {
     onChange: _onChange,
     htmlAttributes,
     class: _className,
-    enabled: _enabled,
-    strictMode: _strictMode,
-    showTodayButton: _showTodayButton,
     ...rest
   } = props;
 

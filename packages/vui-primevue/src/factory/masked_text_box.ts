@@ -3,8 +3,9 @@ import InputMask from "primevue/inputmask";
 import type { UiMaskedTextBoxProps } from "@mmda/vui"
 import { emitMaskedTextBoxChange, maskedTextBoxModifierClasses, maskedTextBoxValueOf, primeMaskOf } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createMaskedTextBox(props: UiMaskedTextBoxProps) {
+export function createMaskedTextBox(props: VuiModelProps<UiMaskedTextBoxProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

@@ -37,6 +37,8 @@ export interface UiChartProps extends UiProps {
   type?: UiChartType
   stacked?: boolean
   orientation?: UiOrientation
+  width?: string | number
+  height?: string | number
   options?: Record<string, unknown>
 }
 
@@ -54,6 +56,7 @@ export interface UiCircularGaugeProps extends UiProps {
   label?: string
   needle?: boolean
   ranges?: UiChartRange[]
+  options?: Record<string, unknown>
 }
 
 export interface UiLinearGaugeProps extends UiProps {
@@ -64,6 +67,7 @@ export interface UiLinearGaugeProps extends UiProps {
   needle?: boolean
   ranges?: UiChartRange[]
   orientation?: UiOrientation
+  options?: Record<string, unknown>
 }
 
 export interface UiHeatMapProps extends UiProps {

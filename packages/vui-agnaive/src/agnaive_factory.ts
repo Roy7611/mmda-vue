@@ -1,7 +1,7 @@
 import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi } from '@mmda/core'
-import type { UiProps, UiAction, VueUiFactory, UiListPropsType, UiPaginatorPropsType, VueUiTileSlots } from '@mmda/vui'
+import type { UiProps, UiAction, VuiFactory, VuiListPropsType, UiPaginatorProps, VuiTileSlots } from '@mmda/vui'
 import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vuiUpdateOf } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
@@ -22,6 +22,15 @@ import { createContextMenu } from './factory/context_menu'
 import { createCard } from './factory/card'
 import { createDivider } from './factory/divider'
 import { createTooltip } from './factory/tooltip'
+
+type FormFieldProps = UiProps & {
+  label?: string | VNode
+  modelValue?: string
+  value?: string
+  onChange?: (value: string) => void
+}
+
+type IconFieldProps = UiProps & { icon?: string; modelValue?: string; value?: string }
 import { createInplaceEditor } from './factory/inplace_editor'
 import { createColorPicker } from './factory/color_picker'
 import { createMaskedTextBox } from './factory/masked_text_box'
@@ -82,13 +91,13 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
   command: action.onAction,
 })
 
-export function createAgNaiveUiFactory(): VueUiFactory {
+export function createAgNaiveUiFactory(): VuiFactory {
   const button = (props: any, slots?: any) =>
     createButton(props, slots, (name) => factory.resolveIcon(name))
-  const table = <T>(props: UiListPropsType<T> = {}) =>
+  const table = <T>(props: VuiListPropsType<T> = {}) =>
     h(AgGrid, { data: props.rows ?? [], fields: props.fields ?? [], primaryKey: props.primaryKey, ...props } as any)
 
-  const factory: VueUiFactory = {
+  const factory: VuiFactory = {
     nativeInplaceEdit: true,
     actionIcons: {
       create: 'fas fa-plus',
@@ -227,14 +236,16 @@ export function createAgNaiveUiFactory(): VueUiFactory {
         { ...props, class: ['mmda-link', props.class] },
         slots?.default?.() ?? props.text,
       ),
-    iconField: (value, props = {}) =>
-      h('span', { class: 'mmda-icon-field' }, [
-        props.icon && createIconVNode(factory.resolveIcon(props.icon)),
+    iconField: (value, props = {}) => {
+      const p = props as IconFieldProps
+      return h('span', { class: 'mmda-icon-field' }, [
+        p.icon && createIconVNode(factory.resolveIcon(p.icon)),
         createTextInput({
           ...props,
-          value: props.modelValue ?? props.value ?? value,
+          value: p.modelValue ?? p.value ?? value,
         }),
-      ]),
+      ])
+    },
     autoComplete: (props = {}) => createAutoComplete(props),
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
@@ -265,7 +276,7 @@ export function createAgNaiveUiFactory(): VueUiFactory {
         ),
         onClick: action.onAction,
       }),
-    paginator: (props: UiPaginatorPropsType) =>
+    paginator: (props: UiPaginatorProps) =>
       h(NPagination, {
         page: props.pagination.pageNo ?? 1,
         pageSize: props.pagination.pageSize ?? DEFAULT_PAGE_SIZE,
@@ -299,7 +310,7 @@ export function createAgNaiveUiFactory(): VueUiFactory {
         getDataPath: assembled.getDataPath,
       } as any)
     },
-    list: <T>(props: UiListPropsType<T> = {}) =>
+    list: <T>(props: VuiListPropsType<T> = {}) =>
       h(
         'div',
         { class: 'mmda-list' },
@@ -378,22 +389,24 @@ export function createAgNaiveUiFactory(): VueUiFactory {
       createSplitter(slots?.default?.() ?? [], props),
     searchRelative: (props) =>
       renderSearchForRelativeField(props as any),
-    formField: (props: UiProps = {}, slots?: VueUiTileSlots) =>
-      h(
+    formField: (props: UiProps = {}, slots?: VuiTileSlots) => {
+      const p = props as FormFieldProps
+      return h(
         'div',
-        { class: ['mmda-form-field', 'mmda-form-field', props.class], style: props.style },
+        { class: ['mmda-form-field', 'mmda-form-field', p.class], style: p.style },
         [
-          props.label
-            ? h('label', { class: 'mmda-form-field__label' }, String(props.label))
+          p.label
+            ? h('label', { class: 'mmda-form-field__label' }, String(p.label))
             : null,
           slots?.default?.() ??
             createTextInput({
               ...props,
-              value: props.modelValue ?? props.value,
-              onChange: props.onChange ?? vuiUpdateOf(props),
+              value: p.modelValue ?? p.value,
+              onChange: p.onChange ?? vuiUpdateOf(props),
             }),
         ],
-      ),
+      )
+    },
   }
   wrapListFamilyPaginator(factory, ['list'], 'mmda-pagable')
   bindListDisplayRenderers(factory)

@@ -1,978 +1,267 @@
-import { h, type Component, type VNode } from "vue";
-import { MetaModel, SqlDataType, type MetaUiField, type Module, type UiAvatarProps } from "@mmda/core";
-import { autoCompleteBindValue, autoCompletePropsFromField, avatarPropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField } from "@mmda/core"
-import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type VuiContext } from "@mmda/vui"
-import { createAutoComplete } from "./factory/autocomplete";
-import { createCheckBox } from "./factory/checkbox";
-import { createSwitch } from "./factory/switch";
-import { createColorPicker } from "./factory/color_picker";
-import { createMaskedTextBox } from "./factory/masked_text_box";
-import { createOneTimePasswordInput } from "./factory/one_time_password_input";
-import { createSlider } from "./factory/slider";
-import { createRating } from "./factory/rating";
-import { createNumberInput } from "./factory/number_input";
-import { createTextArea } from "./factory/text_area";
-import { createTextInput } from "./factory/text_input";
-import { createProgressBar } from "./factory/progress_bar";
-import { createSignaturePad } from "./factory/signature_pad";
-import { createStepper } from "./factory/stepper";
-import { createDatePicker } from "./factory/date_picker";
-import { createDateTimePicker } from "./factory/date_time_picker";
-import { createTimePicker } from "./factory/time_picker";
-import { createDateRangePicker } from "./factory/date_range_picker";
-import { createComboBox } from "./factory/combo_box";
-import { createDropDownList } from "./factory/drop_down_list";
-import { createRadioButtonGroup } from "./factory/radio_button_group";
+import { h, type VNode } from 'vue'
 import {
-  createMultiBitSelect,
-  createMultiItemSelect,
-  createMultiSelect,
-  createMultiTextSelect,
-  createMultiValueSelect,
-} from "./factory/multi_select";
-import { createBitCheckBoxList, createCheckBoxList } from "./factory/check_box_list";
-import { createTagAutoComplete } from "./factory/tag_auto_complete";
-import { createTreeSelect } from "./factory/tree_select";
-import { createSearchRelative } from "./factory/search_relative";
-import { createAvatar } from "./factory/avatar";
-import { createChips } from "./factory/chips";
-import { NImage, NInput, NTag } from "naive-ui";
-import { renderFileLinkField, renderFileUploaderField, renderFilesUploaderField, renderImageUploaderField, renderImagesUploaderField, renderInplaceFieldEditor } from "@mmda/vui"
+  MetaModel,
+  autoCompleteBindValue,
+  autoCompletePropsFromField,
+  avatarPropsFromField,
+  routeAutoCompleteField,
+  type MetaUiField,
+  type UiAvatarProps,
+  type UiAutoCompleteProps,
+  type UiContext,
+} from '@mmda/core'
+import {
+  VueUiFieldFactory,
+  type VuiContext,
+  type VuiFactory,
+  type VuiFieldCellProps,
+  type VuiFieldRenderer,
+} from '@mmda/vui'
+import { createAgNaiveUiFactory } from './agnaive_factory'
+import { createSearchRelative } from './factory/search_relative'
+import { NImage, NInput, NTag } from 'naive-ui'
 
-type UiContext = VuiContext<any>;
+/**
+ * AG Grid + Naive UI 字段工厂。
+ *
+ * `MetaUiField -> UiXxxProps -> factory.xxx` 的通用映射已在 @mmda/vui 的
+ * {@link VueUiFieldFactory} 完成；本类只绑定 Naive factory，并保留
+ * Naive 特有的错误提示、NInput / NImage / NTag、SearchBox、头像尺寸和图标。
+ */
+export class AgNaiveFieldFactory extends VueUiFieldFactory {
+  constructor(factory: VuiFactory = createAgNaiveUiFactory() as unknown as VuiFactory) {
+    super(factory)
+  }
 
-const update = (field: MetaUiField, context: UiContext) => (value: any) =>
-  context.setFieldValue(field, value);
+  protected control(field: MetaUiField, context: UiContext, node: VNode): VNode {
+    const invalid = Boolean(context.isInvalid?.(field))
+    return h('div', { class: ['mmda-control', invalid && 'is-invalid'] }, [
+      node,
+      invalid
+        ? h('p', { class: 'mmda-error' }, context.getInvalidMessage?.(field))
+        : null,
+    ])
+  }
 
-const invalidOf = (field: MetaUiField, context: UiContext) =>
-  Boolean(context.isInvalid?.(field));
+  searchRelative: VuiFieldRenderer = (field, context, props) => {
+    const reference = field.reference
+    if (!reference) {
+      return h('span', { class: 'warning' }, '不是引用字段')
+    }
 
-const control = (
-  component: Component,
-  field: MetaUiField,
-  context: UiContext,
-  props: UiProps = {},
-  valueKey = "value",
-) => {
-  const invalid = invalidOf(field, context);
-  const onUpdate = update(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      h(component, {
+    const valueKey = reference.refFlds?.[0] ?? 'value'
+    const labelKey = reference.refFlds?.[1] ?? valueKey
+    const fldOptions = context.getFieldSearchOptions(field)
+    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
+      ? context.getFieldValue(field)
+      : null
+
+    if (
+      fieldValue &&
+      typeof fieldValue === 'object' &&
+      (fieldValue as Record<string, unknown>)[valueKey] == 0
+    ) {
+      fieldValue = null
+    }
+
+    if (fieldValue && typeof fieldValue === 'object') {
+      const key = reference.valueOf(fieldValue)
+      if (
+        !fldOptions.selectOptions.some((item) => reference.valueOf(item) === key)
+      ) {
+        fldOptions.selectOptions.unshift(fieldValue)
+      }
+      fldOptions.currentSelectOption = fieldValue
+    }
+
+    return createSearchRelative(field, context as VuiContext<any>, {
+      ...props,
+      modelValue: fldOptions.currentSelectOption ?? fieldValue,
+      showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
+      options: fldOptions.selectOptions,
+      title: props?.title ?? field.displayLabel,
+      dataKey: valueKey,
+      optionLabel:
+        reference.refFlds.length > 2
+          ? (data: any) => reference.labelOf(data)
+          : labelKey,
+      invalid: Boolean(context.isInvalid?.(field)),
+      onChange: (value: any) => {
+        fldOptions.currentSelectOption = value || null
+        context.setFieldValue(field, value || null)
+        if (!value) {
+          const model = context.model as Record<string, any>
+          MetaModel.setRefProp(model, field.fieldName, null)
+          reference.refFlds.forEach((rf, index) => {
+            if (index > 0) MetaModel.delCustomProp(model, rf)
+          })
+          if (reference.hasOne && reference.alias) model[reference.alias] = null
+        }
+      },
+      onInput: (value: string) => {
+        if (fldOptions.isComposing) return
+        void context.searchRelative(field, value)
+      },
+      toSearch: async () => {
+        const picked = await context.select(field)
+        if (picked) fldOptions.currentSelectOption = picked
+        return true
+      },
+    })
+  }
+
+  searchBox = this.searchRelative
+
+  password: VuiFieldRenderer = (field, context) =>
+    this.control(
+      field,
+      context,
+      h(NInput as any, {
         id: field.fieldName,
         name: field.fieldName,
-        [valueKey]: context.getFieldValue(field),
+        value: context.getFieldValue(field),
         disabled: context.isFieldReadonly(field),
-        status: invalid ? "error" : undefined,
+        status: context.isInvalid?.(field) ? 'error' : undefined,
         placeholder: field.placeholder,
         maxlength: field.maxLength,
-        [`onUpdate:${valueKey}`]: onUpdate,
-        ...props,
+        type: 'password',
+        showPasswordOn: 'click',
+        'onUpdate:value': (value: any) => context.setFieldValue(field, value),
       }),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
+    )
 
-const textInput = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  wrapChrome(
-    field,
-    context,
-    createTextInput(textInputPropsFromField(field, context)),
-  );
+  autoComplete: VuiFieldRenderer = (field, context, props) => {
+    const route = routeAutoCompleteField(field)
+    if (route === 'dropDownList') return this.dropDownList(field, context, props)
+    if (route === 'searchBox') return this.searchRelative(field, context, props)
 
-const textArea = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  wrapChrome(
-    field,
-    context,
-    createTextArea(
-      textAreaPropsFromField(field, context, {
-        rows: 3,
-        resizeMode: "Vertical",
-        autoResize: true,
-        ...props,
-      }),
-    ),
-  );
-
-const password = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  control(NInput, field, context, props, {
-    type: "password",
-    showPasswordOn: "click",
-  });
-
-const dropDownList = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createDropDownList(
-        dropDownListPropsFromField(field, context),
-      ),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const radioButtonGroup = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createRadioButtonGroup(
-        radioButtonGroupPropsFromField(field, context),
-      ),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const treeSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createTreeSelect(treeSelectPropsFromField(field, context)),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const comboBox = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createComboBox(comboBoxPropsFromField(field, context)),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const multiSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createMultiSelect(
-      multiSelectPropsFromField(field, context),
-    ),
-  );
-
-const multiItemSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createMultiItemSelect(
-      multiItemSelectPropsFromField(field, context),
-    ),
-  );
-
-const multiValueSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createMultiValueSelect(
-      multiValueSelectPropsFromField(field, context),
-    ),
-  );
-
-const multiTextSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createMultiTextSelect(
-      multiTextSelectPropsFromField(field, context),
-    ),
-  );
-
-const multiBitSelect = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createMultiBitSelect(
-      multiBitSelectPropsFromField(field, context),
-    ),
-  );
-
-const checkBoxList = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createCheckBoxList(
-      checkBoxListPropsFromField(field, context),
-    ),
-  );
-
-const bitCheckBoxListField = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createBitCheckBoxList(
-      bitCheckBoxListPropsFromField(field, context),
-    ),
-  );
-
-const tagAutoComplete = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  return wrapChrome(
-    field,
-    context,
-    createTagAutoComplete(tagAutoCompletePropsFromField(
-      field,
-      context,
-      props ?? {},
-    )),
-  );
-};
-
-const numberInput = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createNumberInput(
-      numberInputPropsFromField(field, context),
-    ),
-  );
-
-const percentInput = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createNumberInput(
-      numberInputPropsFromField(field, context, {
-        kind: "percent",
-        min: 0,
-        max: 100,
-        ...props,
-      }),
-    ),
-  );
-
-const checkbox = (field: MetaUiField, context: UiContext, props?: UiProps) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createCheckBox(checkBoxPropsFromField(field, context)),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const switchControl = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createSwitch(switchPropsFromField(field, context)),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-function wrapChrome(
-  field: MetaUiField,
-  context: UiContext,
-  child: VNode,
-) {
-  const invalid = invalidOf(field, context);
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      child,
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
-
-const datePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  wrapChrome(
-    field,
-    context,
-    createDatePicker(datePickerPropsFromField(field, context)),
-  );
-
-const dateTimePicker = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createDateTimePicker(
-      dateTimePickerPropsFromField(field, context),
-    ),
-  );
-
-const monthPicker = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) =>
-  wrapChrome(
-    field,
-    context,
-    createDatePicker(monthPickerPropsFromField(field, context)),
-  );
-
-const timePicker = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  wrapChrome(
-    field,
-    context,
-    createTimePicker(timePickerPropsFromField(field, context)),
-  );
-
-const fallbackDisplay = (
-  field: MetaUiField,
-  context: UiContext,
-  props: UiProps = {},
-) =>
-  h(
-    "output",
-    { class: "mmda-display", ...props },
-    String(context.displayField(field, props.row) ?? ""),
-  );
-
-const fallbackInput = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-): VNode => {
-  if (
-    field.reference &&
-    (field.reference.hasOne ||
-      (field.reference.isRef && field.reference.refRepository))
-  ) {
-    return searchBox(field, context);
+    const reference = field.reference?.isRef ? field.reference : undefined
+    const autoCompleteProps = {
+      value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
+      ...autoCompletePropsFromField(field),
+      disabled: context.isFieldReadonly(field),
+      onUpdate: (value: any) => context.setFieldValue(field, value),
+    } as UiAutoCompleteProps & { onUpdate?: (value: any) => void }
+    return this.control(field, context, this.factory.autoComplete(autoCompleteProps))
   }
-  if (field.reference?.refOptions?.length)
-    return dropDownList(field, context);
-  if (SqlDataType.isBool(field.dataType))
-    return checkbox(field, context);
-  if (SqlDataType.isNum(field.dataType))
-    return numberInput(field, context);
-  if (SqlDataType.isDate(field.dataType))
-    return datePicker(field, context);
-  return textInput(field, context);
-};
 
-const searchBox = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-): VNode => {
-  const reference = field.reference;
-  if (!reference) {
-    return h("span", { class: "warning" }, "不是引用字段");
-  }
-  const valueKey = reference.refFlds?.[0] ?? "value";
-  const labelKey = reference.refFlds?.[1] ?? valueKey;
-  const fldOptions = context.getFieldSearchOptions(field);
-  let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
-    ? context.getFieldValue(field)
-    : null;
-  if (
-    fieldValue &&
-    typeof fieldValue === "object" &&
-    (fieldValue as Record<string, unknown>)[valueKey] == 0
-  ) {
-    fieldValue = null;
-  }
-  if (fieldValue && typeof fieldValue === "object") {
-    const key = reference.valueOf(fieldValue);
-    if (
-      !fldOptions.selectOptions.some((item) => reference.valueOf(item) === key)
-    ) {
-      fldOptions.selectOptions.unshift(fieldValue);
-    }
-    fldOptions.currentSelectOption = fieldValue;
-  }
-  return createSearchRelative(field, context, {
-    modelValue: fldOptions.currentSelectOption ?? fieldValue,
-    showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
-    options: fldOptions.selectOptions,
-    title: props?.title ?? field.displayLabel,
-    dataKey: valueKey,
-    optionLabel:
-      reference.refFlds.length > 2
-        ? (data: any) => reference.labelOf(data)
-        : labelKey,
-    invalid: invalidOf(field, context),
-    onChange: (value: any) => {
-      fldOptions.currentSelectOption = value || null;
-      context.setFieldValue(field, value || null);
-      if (!value) {
-        const model = context.model as Record<string, any>;
-        MetaModel.setRefProp(model, field.fieldName, null);
-        reference.refFlds.forEach((rf, index) => {
-          if (index > 0) MetaModel.delCustomProp(model, rf);
-        });
-        if (reference.hasOne && reference.alias) model[reference.alias] = null;
-      }
-    },
-    onInput: (value: string) => {
-      if (fldOptions.isComposing) return;
-      void context.searchRelative(field, value);
-    },
-    toSearch: async () => {
-      const picked = await context.select(field);
-      if (picked) fldOptions.currentSelectOption = picked;
-      return true;
-    },
-    ...props,
-  });
-};
+  tag: VuiFieldRenderer = (field, context, props) =>
+    h(NTag as any, { ...props }, { default: () => context.displayField(field, props?.row) })
 
-const autoComplete = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-): VNode => {
-  const route = routeAutoCompleteField(field);
-  if (route === "dropDownList") return dropDownList(field, context);
-  if (route === "searchBox") return searchBox(field, context);
-  const invalid = invalidOf(field, context);
-  const reference = field.reference?.isRef ? field.reference : undefined;
-  return h(
-    "div",
-    { class: ["mmda-control", invalid && "is-invalid"] },
-    [
-      createAutoComplete({
-        value: autoCompleteBindValue(context.getFieldValue(field), { reference }),
-        ...autoCompletePropsFromField(field, props ?? {}),
-        disabled: context.isFieldReadonly(field),
-        onUpdate: update(field, context),
-      }),
-      invalid &&
-        h(
-          "p",
-          { class: "mmda-error" },
-          context.getInvalidMessage?.(field),
-        ),
-    ],
-  );
-};
+  statusLight = this.tag
 
-const tag = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  h(
-    NTag,
-    { ...props },
-    { default: () => context.displayField(field, props?.row) },
-  );
+  image: VuiFieldRenderer = (field, context, props) =>
+    h(NImage as any, { src: context.getFieldValue(field, props?.row), ...props })
 
-const tags = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(chipsPropsFromField(field, context));
-
-const chips = tags;
-
-const bitChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(bitChipSetPropsFromField(field, context));
-
-const enumChipSet = (field: MetaUiField, context: UiContext, props?: UiProps) =>
-  createChips(enumChipSetPropsFromField(field, context));
-
-const cellDomProps = (props?: UiProps) =>
-  cleanProps(TABLE_CELL_PROP_KEYS, props ?? {});
-
-const externalLink = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const app = context.app;
-  if (!app) return fallbackDisplay(field, context);
-  const model = (props?.row ?? context.model) as Record<string, any>;
-  const alias = field.reference?.alias;
-  const fldVal = model[field.fieldName] ?? (alias ? model[alias] : undefined);
-  if (!fldVal) return fallbackDisplay(field, context);
-  const fldText = MetaModel.displayField(model, field);
-  const domProps = cellDomProps(props);
-  if (!fldText) {
-    return h(
-      "span",
-      { class: "warning", name: field.fieldName, ...domProps },
-      "N/A",
-    );
-  }
-  const linkable = props?.isSearch ? false : (props?.linkable ?? true);
-  const reference = field.reference;
-  if (!reference) {
-    return h("span", { name: field.fieldName, ...domProps }, fldText);
-  }
-  const { modules = [] } = app;
-  const systemList: Module[] = app.state.systemList ?? [];
-  const api = context.logic?.apiClient ?? app.api;
-  const isCurrentSystem =
-    !reference.refDbName || reference.refDbName === api?.config.service;
-  const refMainModule = isCurrentSystem
-    ? modules.find((module: Module) =>
-        module?.subModules?.some(
-          (subModule: Module) => subModule.objName === reference.refObjName,
-        ),
-      )
-    : systemList.find((system) => system.service === reference.refDbName);
-  const refModule = refMainModule?.subModules?.find(
-    (subModule: Module) => subModule.objName === reference.refObjName,
-  );
-  const readable = isCurrentSystem
-    ? Boolean(refModule?.authority?.allowRead)
-    : Boolean(refMainModule?.authority?.allowRead);
-  if (!linkable || !readable) {
-    return h("span", { name: field.fieldName, ...domProps }, fldText);
-  }
-  return h(
-    "div",
-    {
-      class: "flex_item_center",
-      role: "mmda-external-link",
-      id: field.fieldName,
-      ...domProps,
-    },
-    [
-      fasIcon("external-link", {
-        style: { marginRight: "5px", cursor: "pointer" },
-        onClick: (event: Event) => {
-          event.stopPropagation();
-          void (async () => {
-            await context.app?.syncAuthState?.();
-            const url = context.routeToRelative?.(field, model);
-            if (url) window.open(url, "_blank", "noopener,noreferrer");
-          })();
-        },
-      }),
-      h("span", fldText),
-    ],
-  );
-};
-
-const factory: UiFieldFactory = {
-  fallbackDisplay,
-  fallbackInput,
-  textInput,
-  textArea,
-  password,
-  dropDownList,
-  select: dropDownList,
-  radioButtonGroup,
-  multiSelect,
-  multiItemSelect,
-  multiValueSelect,
-  multiTextSelect,
-  multiBitSelect,
-  checkBoxList,
-  bitCheckBoxList: bitCheckBoxListField,
-  numberInput,
-  positiveNumberInput: (field, context) =>
-    numberInput(field, context, { min: 0, ...props }),
-  negativenumberInput: (field, context) =>
-    numberInput(field, context, { max: 0, ...props }),
-  percentInput,
-  checkBox: checkbox,
-  switch: switchControl,
-  Switcher: switchControl,
-  switcher: switchControl,
-  datePicker,
-  dateTimePicker,
-  monthPicker,
-  timePicker,
-  dateRangePicker: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createDateRangePicker(
-        dateRangePickerPropsFromField(field, context),
-      ),
-    ),
-  maskedTextBox: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createMaskedTextBox(
-        maskedTextBoxPropsFromField(field, context),
-      ),
-    ),
-  oneTimePasswordInput: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createOneTimePasswordInput(
-        oneTimePasswordPropsFromField(field, context),
-      ),
-    ),
-  mobileInput: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createMaskedTextBox(
-        maskedTextBoxPropsFromField(field, context, {
-          ...props,
-          mask: MOBILE_MASK,
-        }),
-      ),
-    ),
-  zipCodeInput: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createMaskedTextBox(
-        maskedTextBoxPropsFromField(field, context, {
-          ...props,
-          mask: ZIP_MASK,
-        }),
-      ),
-    ),
-  slider: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createSlider(sliderPropsFromField(field, context)),
-    ),
-  rating: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createRating(ratingPropsFromField(field, context)),
-    ),
-  colorPicker: (field, context) => {
-    const invalid = invalidOf(field, context);
-    return h(
-      "div",
-      { class: ["mmda-control", invalid && "is-invalid"] },
-      [
-        createColorPicker(
-          colorPickerPropsFromField(field, context),
-        ),
-        invalid &&
-          h(
-            "p",
-            { class: "mmda-error" },
-            context.getInvalidMessage?.(field),
-          ),
-      ],
-    );
-  },
-  filePicker: (field, context) =>
-    renderFileUploaderField(field, context as any, props ?? {}),
-  fileUpload: (field, context) =>
-    renderFilesUploaderField(field, context as any, props ?? {}),
-  fileUploader: (field, context) =>
-    renderFileUploaderField(field, context as any, props ?? {}),
-  filesUploader: (field, context) =>
-    renderFilesUploaderField(field, context as any, props ?? {}),
-  imagePicker: (field, context) =>
-    renderImageUploaderField(field, context as any, props ?? {}),
-  imageUploader: (field, context) =>
-    renderImageUploaderField(field, context as any, props ?? {}),
-  imagesUploader: (field, context) =>
-    renderImagesUploaderField(field, context as any, props ?? {}),
-  image: (field, context) =>
-    h(NImage, { src: context.getFieldValue(field, props?.row), ...props }),
-  avatar: (field, context, props?: UiProps) => {
-    const cell = props as UiAvatarProps | undefined;
+  avatar: VuiFieldRenderer = (field, context, props) => {
+    const cell = props as UiAvatarProps | undefined
     const avatarProps: UiAvatarProps = {
       ...avatarPropsFromField(field, context),
       ...(cell ? { size: cell.size ?? 'small' } : {}),
-    };
-    const render = (context as any).uiBuilder?.factory?.avatar;
-    if (render) return render(avatarProps);
-    return createAvatar(
-      avatarProps,
-      (name) =>
-        context.uiBuilder?.factory?.resolveIcon?.(name) ?? name,
-    );
-  },
-  progressBar: (field, context) =>
-    createProgressBar(progressBarPropsFromField(field, context)),
-  signaturePad: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createSignaturePad(
-        signaturePadPropsFromField(field, context),
-      ),
-    ),
-  stepper: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      createStepper(stepperPropsFromField(field, context)),
-    ),
-  relativeTime: (field, context) =>
-    relativeTimeView(
-      timelineSqlOf(context.getFieldValue(field, props?.row)) ?? "",
-      { locale: context.locale },
-    ),
-  tag,
-  tags,
-  chips,
-  bitChipSet,
-  enumChipSet,
-  fileLink: (field, context) =>
-    renderFileLinkField(field, context as any, props ?? {}),
-  externalLink,
-  textSpan: fallbackDisplay,
-  span: fallbackDisplay,
-  multilineText: (field, context) =>
-    h(
-      "span",
-      { style: { whiteSpace: "pre-wrap" }, ...props },
-      context.displayField(field, props?.row),
-    ),
-  percentage: (field, context) =>
-    h(
-      "span",
-      props,
-      `${Number(context.getFieldValue(field, props?.row) ?? 0) * 100}%`,
-    ),
-  amountText: fallbackDisplay,
-  quantityUnit: (field, context) => {
-    const value = context.getFieldValue(field, props?.row);
-    const unit = field.suffix?.trim();
-    const text =
-      value == null || value === ""
-        ? (field.nullDisplayText ?? "")
-        : unit
-          ? `${value} ${unit}`
-          : String(value);
-    return h(
-      "span",
-      { ...props, class: ["mmda-quantity-unit", props?.class] },
-      text,
-    );
-  },
-  checkIcon: (field, context) =>
-    h("i", {
-      class: context.getFieldValue(field, props?.row)
-        ? "fas fa-check-circle"
-        : "far fa-circle",
-      style: context.getFieldValue(field, props?.row)
-        ? { color: "var(--mmda-success-color, #18a058)" }
-        : undefined,
-      ...props,
-    }),
-  checkedIcon: (field, context) =>
-    h("i", {
-      class: context.getFieldValue(field, props?.row)
-        ? "fas fa-check-circle"
-        : "far fa-circle",
-      style: context.getFieldValue(field, props?.row)
-        ? { color: "var(--mmda-success-color, #18a058)" }
-        : undefined,
-      ...props,
-    }),
-  searchInput: textInput,
-  searchBox,
-  comboBox,
-  autoComplete,
-  tagAutoComplete,
-  treeSelect,
-  enumSetCheckboxGroup: multiBitSelect,
-  toHoursInput: numberInput,
-  toMinutesInput: numberInput,
-  toSecondsInput: numberInput,
-  colorBox: (field, context) =>
-    h("span", {
-      title: String(context.getFieldValue(field, props?.row) ?? ""),
-      style: {
-        display: "inline-block",
-        width: "1.5rem",
-        height: "1.5rem",
-        backgroundColor: String(
-          context.getFieldValue(field, props?.row) ?? "transparent",
-        ),
-      },
-      ...props,
-    }),
-  statusLight: tag,
-};
+    }
+    return this.factory.avatar(avatarProps)
+  }
 
-factory.inplaceFieldEditor = (field, context) =>
-  renderInplaceFieldEditor(field, context as any, props ?? {}, factory);
+  checkIcon: VuiFieldRenderer = (field, context, props) =>
+    this.agNaiveBooleanIcon(context.getFieldValue(field, props?.row), props)
 
-const aliases: Record<string, string> = {
-  TextBox: "textInput",
-  TextField: "textInput",
-  TextArea: "textArea",
-  AutoComplete: "autoComplete",
-  TagAutoComplete: "tagAutoComplete",
-  DropDownList: "dropDownList",
-  RadioButtonGroup: "radioButtonGroup",
-  Combobox: "comboBox",
-  DatePicker: "datePicker",
-  DateTimePicker: "dateTimePicker",
-  MonthPicker: "monthPicker",
-  TimePicker: "timePicker",
-  DateRangePicker: "dateRangePicker",
-  NumberInput: "numberInput",
-  ToHoursInput: "toHoursInput",
-  ToMinutesInput: "toMinutesInput",
-  ToSecondsInput: "toSecondsInput",
-  PositiveNumberInput: "positiveNumberInput",
-  NegativenumberInput: "negativenumberInput",
-  PercentInput: "percentInput",
-  SpinBox: "numberInput",
-  CheckBox: "checkBox",
-  Checkbox: "checkBox",
-  checkbox: "checkBox",
-  Switch: "switch",
-  Switcher: "switch",
-  SearchBox: "searchBox",
-  CheckBoxList: "checkBoxList",
-  BitCheckBoxList: "bitCheckBoxList",
-  MultiSelect: "multiSelect",
-  MultiItemSelect: "multiItemSelect",
-  MultiValueSelect: "multiValueSelect",
-  MultiTextSelect: "multiTextSelect",
-  MultiBitSelect: "multiBitSelect",
-  Slider: "slider",
-  Rating: "rating",
-  ColorPicker: "colorPicker",
-  FilePicker: "filePicker",
-  FileUpload: "fileUpload",
-  FileUploader: "fileUploader",
-  FilesUploader: "filesUploader",
-  ImagePicker: "imagePicker",
-  ImageUploader: "imageUploader",
-  ImagesUploader: "imagesUploader",
-  FileLink: "fileLink",
-  Url: "fileLink",
-  InplaceFieldEditor: "inplaceFieldEditor",
-  MultilineText: "multilineText",
-  Percentage: "percentage",
-  AmountText: "amountText",
-  QuantityUnit: "quantityUnit",
-  Tag: "tag",
-  Tags: "tags",
-  Chips: "chips",
-  BitChipSet: "bitChipSet",
-  EnumChipSet: "enumChipSet",
-  CheckIcon: "checkIcon",
-  CheckedIcon: "checkedIcon",
-  HasOneText: "externalLink",
-  hasOneText: "externalLink",
-  ColorBox: "colorBox",
-  ProgressBar: "progressBar",
-  SignaturePad: "signaturePad",
-  Stepper: "stepper",
-  RelativeTime: "relativeTime",
-  Image: "image",
-  Avatar: "avatar",
-  StatusLight: "statusLight",
-};
+  checkedIcon: VuiFieldRenderer = (field, context, props) =>
+    this.agNaiveBooleanIcon(context.getFieldValue(field, props?.row), props)
 
-for (const [alias, source] of Object.entries(aliases)) {
-  factory[alias] = factory[source];
+  private agNaiveBooleanIcon(value: unknown, props?: VuiFieldCellProps): VNode {
+    const checked = Boolean(value)
+    return h('i', {
+      ...props,
+      class: checked ? 'fas fa-check-circle' : 'far fa-circle',
+      style: checked ? { color: 'var(--mmda-success-color, #18a058)' } : undefined,
+    })
+  }
+
+  // —— 老 metadata 编辑器名 / 皮肤别名 ——
+
+  select = this.dropDownList
+  span = this.fallbackDisplay
+  searchInput = this.textInput
+  switcher = this.switch
+  Switcher = this.switch
+  checkbox = this.checkBox
+  negativenumberInput = this.negativeNumberInput
+  enumSetCheckboxGroup = this.multiBitSelect
+  filePicker = this.fileUploader
+  fileUpload = this.filesUploader
+  imagePicker = this.imageUploader
+  toHoursInput = this.numberInput
+  toMinutesInput = this.numberInput
+  toSecondsInput = this.numberInput
+
+  TextBox = this.textInput
+  TextField = this.textInput
+  TextArea = this.textArea
+  AutoComplete = this.autoComplete
+  TagAutoComplete = this.tagAutoComplete
+  DropDownList = this.dropDownList
+  RadioButtonGroup = this.radioButtonGroup
+  Combobox = this.comboBox
+  DatePicker = this.datePicker
+  DateTimePicker = this.dateTimePicker
+  MonthPicker = this.monthPicker
+  TimePicker = this.timePicker
+  DateRangePicker = this.dateRangePicker
+  NumberInput = this.numberInput
+  ToHoursInput = this.toHoursInput
+  ToMinutesInput = this.toMinutesInput
+  ToSecondsInput = this.toSecondsInput
+  PositiveNumberInput = this.positiveNumberInput
+  NegativenumberInput = this.negativenumberInput
+  PercentInput = this.percentInput
+  SpinBox = this.numberInput
+  CheckBox = this.checkBox
+  Checkbox = this.checkBox
+  Switch = this.switch
+  SearchBox = this.searchBox
+  CheckBoxList = this.checkBoxList
+  BitCheckBoxList = this.bitCheckBoxList
+  MultiSelect = this.multiSelect
+  MultiItemSelect = this.multiItemSelect
+  MultiValueSelect = this.multiValueSelect
+  MultiTextSelect = this.multiTextSelect
+  MultiBitSelect = this.multiBitSelect
+  Slider = this.slider
+  Rating = this.rating
+  ColorPicker = this.colorPicker
+  FilePicker = this.filePicker
+  FileUpload = this.fileUpload
+  FileUploader = this.fileUploader
+  FilesUploader = this.filesUploader
+  ImagePicker = this.imagePicker
+  ImageUploader = this.imageUploader
+  ImagesUploader = this.imagesUploader
+  FileLink = this.fileLink
+  Url = this.fileLink
+  InplaceFieldEditor = this.inplaceFieldEditor
+  MultilineText = this.multilineText
+  Percentage = this.percentage
+  AmountText = this.amountText
+  QuantityUnit = this.quantityUnit
+  Tag = this.tag
+  Tags = this.tags
+  Chips = this.chips
+  BitChipSet = this.bitChipSet
+  EnumChipSet = this.enumChipSet
+  CheckIcon = this.checkIcon
+  CheckedIcon = this.checkedIcon
+  HasOneText = this.externalLink
+  hasOneText = this.externalLink
+  ColorBox = this.colorBox
+  ProgressBar = this.progressBar
+  SignaturePad = this.signaturePad
+  Stepper = this.stepper
+  RelativeTime = this.relativeTime
+  Image = this.image
+  Avatar = this.avatar
+  StatusLight = this.statusLight
 }
 
-export function createAgNaiveFieldFactory(): UiFieldFactory {
-  return { ...factory };
+export function createAgNaiveFieldFactory(): AgNaiveFieldFactory {
+  return new AgNaiveFieldFactory()
 }

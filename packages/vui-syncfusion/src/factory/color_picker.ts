@@ -1,10 +1,10 @@
 import { h } from "vue";
 import { ColorPickerComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiColorPickerProps } from "@mmda/vui"
-import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange } from "@mmda/vui"
+import { colorPickerHexOf, colorPickerModifierClasses, colorPickerValueOf, emitColorPickerChange, type VuiModelProps } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
-export function createColorPicker(props: UiColorPickerProps) {
+export function createColorPicker(props: VuiModelProps<UiColorPickerProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

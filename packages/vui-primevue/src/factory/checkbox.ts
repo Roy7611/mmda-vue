@@ -3,8 +3,9 @@ import Checkbox from "primevue/checkbox";
 import type { UiCheckBoxProps } from "@mmda/core"
 import { checkBoxCheckedOf, checkBoxModifierClasses, uiRenderProps } from "@mmda/core"
 import { emitCheckBoxChange } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createCheckBox(props: UiCheckBoxProps) {
+export function createCheckBox(props: VuiModelProps<UiCheckBoxProps>) {
   const {
     checked: _checked,
     modelValue: _modelValue,
@@ -26,7 +27,7 @@ export function createCheckBox(props: UiCheckBoxProps) {
       class: [...checkBoxModifierClasses(props)].flat(),
     },
     [
-      h(Checkbox, {
+      h(Checkbox as any, {
         ...attrs,
         inputId,
         binary: true,

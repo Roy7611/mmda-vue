@@ -207,7 +207,7 @@ export function createSyncfusionUiFactory(): VuiFactory {
         { ...props, class: ["e-link", props.class] },
         slots?.default?.() ?? props.text,
       ),
-    iconField: (value: any, props: UiProps = {}) =>
+    iconField: (value: any, props: any = {}) =>
       h("span", { class: "e-input-group" }, [
         props.icon && h("span", { class: factory.resolveIcon(props.icon) }),
         createTextInput({
@@ -217,7 +217,7 @@ export function createSyncfusionUiFactory(): VuiFactory {
       ]),
     autoComplete: (props: UiProps = {}) => createAutoComplete(props),
     tagAutoComplete: (props: UiProps = {}) => createTagAutoComplete(props),
-    formField: (props: UiProps = {}, slots?: VuiTileSlots) =>
+    formField: (props: any = {}, slots?: VuiTileSlots) =>
       h(
         "div",
         { class: ["mmda-form-field", "mmda-form-field", props.class], style: props.style },

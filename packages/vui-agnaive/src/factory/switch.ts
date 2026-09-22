@@ -3,8 +3,9 @@ import { NSwitch } from 'naive-ui'
 import type { UiSwitchProps } from '@mmda/core'
 import { switchCheckedOf, switchModifierClasses, uiRenderProps } from '@mmda/core'
 import { emitSwitchChange } from '@mmda/vui'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createSwitch(props: UiSwitchProps) {
+export function createSwitch(props: VuiModelProps<UiSwitchProps>) {
   const {
     checked: _checked,
     modelValue: _modelValue,

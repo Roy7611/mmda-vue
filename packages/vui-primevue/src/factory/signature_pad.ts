@@ -16,6 +16,7 @@ import type { UiSignaturePadAction, UiSignaturePadController, UiSignaturePadFile
 import { signaturePadBlobOf, signaturePadModifierClasses, signaturePadSizeCss, signaturePadValueOf, uiRenderProps } from '@mmda/core'
 import { emitSignaturePadChange } from '@mmda/vui'
 import { vuiUpdateOf } from '@mmda/vui'
+import type { VuiEmitProps } from "@mmda/vui"
 
 type Stroke = ReturnType<SignaturePad['toData']>[number]
 
@@ -37,9 +38,9 @@ const MmdaSignaturePad = defineComponent({
     class: { type: [String, Array, Object], default: undefined },
     htmlAttributes: { type: Object, default: undefined },
     onChange: Function as PropType<UiSignaturePadProps['onChange']>,
-    onUpdate: Function as PropType<UiSignaturePadProps['onUpdate']>,
+    onUpdate: Function as PropType<VuiEmitProps<UiSignaturePadProps>['onUpdate']>,
     'onUpdate:modelValue': Function as PropType<
-      UiSignaturePadProps['onUpdate:modelValue']
+      VuiEmitProps<UiSignaturePadProps>['onUpdate:modelValue']
     >,
     onReady: Function as PropType<UiSignaturePadProps['onReady']>,
   },
@@ -195,8 +196,8 @@ const MmdaSignaturePad = defineComponent({
   },
 })
 
-export function createSignaturePad(props: UiSignaturePadProps) {
-  return h(MmdaSignaturePad, {
+export function createSignaturePad(props: VuiEmitProps<UiSignaturePadProps>) {
+  return h(MmdaSignaturePad as any, {
     value: props.value,
     modelValue: props.modelValue,
     width: props.width,

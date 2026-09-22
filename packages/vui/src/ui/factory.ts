@@ -34,6 +34,7 @@ import type { Rx } from '../rx'
 import type { ChildSlot } from '../contexts/view'
 
 export * from './field_factory'
+export * from './vue_field_factory'
 export type { VuiTableCellRenderer, UiFieldCellRenderer } from './factory/list'
 export type {
   UiAvatarProps,

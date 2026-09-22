@@ -1,4 +1,5 @@
 import type { UiProps } from '../props'
+import type { MetaUiField } from '../../metaui/metaui_field'
 export type UiFileLinkPreviewKind = 'none' | 'app' | 'browser'
 
 export const FILE_LINK_APP_PREVIEW_EXTS = ['xlsx', 'xls', 'docx', 'doc'] as const
@@ -43,4 +44,29 @@ export function fileLinkPreviewKindOf(
     return 'browser'
   }
   return 'none'
+}
+
+export type FileLinkFieldContext = {
+  getFieldValue: (field: MetaUiField, row?: any) => unknown
+  displayField?: (field: MetaUiField, row?: any) => unknown
+  getModuleAuth?: (
+    entity?: Record<string, any>,
+  ) => { allowDownload?: boolean } | undefined
+}
+
+export function fileLinkPropsFromField(
+  field: MetaUiField,
+  context: FileLinkFieldContext,
+): UiFileLinkProps {
+  const url = String(context.getFieldValue(field) ?? '')
+  const displayed = context.displayField?.(field)
+  const auth = context.getModuleAuth?.()
+  return {
+    url,
+    fileName:
+      displayed != null && String(displayed) !== url
+        ? String(displayed)
+        : undefined,
+    downloadable: auth?.allowDownload !== false,
+  }
 }

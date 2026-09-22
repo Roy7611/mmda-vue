@@ -1,4 +1,4 @@
-import { reactive, type VNode } from 'vue'
+import { shallowReactive, type VNode } from 'vue'
 import type {
   UiContext,
   UiConfirmProps,
@@ -8,7 +8,7 @@ import type {
   UiToastProps,
 } from '@mmda/core'
 import { shouldCloseDialog } from '@mmda/core'
-import type { VueUiOverlay } from '@mmda/vui'
+import type { VuiOverlay } from '@mmda/vui'
 
 export interface DialogRequest {
   id: number
@@ -25,7 +25,7 @@ export interface PrimeOverlayServices {
   }
 }
 
-export interface PrimeOverlay extends VueUiOverlay {
+export interface PrimeOverlay extends VuiOverlay {
   dialogs: DialogRequest[]
   services: PrimeOverlayServices
 }
@@ -33,7 +33,7 @@ export interface PrimeOverlay extends VueUiOverlay {
 let nextDialogId = 1
 
 export function createPrimeOverlay(): PrimeOverlay {
-  const dialogs = reactive<DialogRequest[]>([])
+  const dialogs = shallowReactive<DialogRequest[]>([])
   const services: PrimeOverlayServices = {}
 
   const overlay: PrimeOverlay = {

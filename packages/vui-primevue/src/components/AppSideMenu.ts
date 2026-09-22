@@ -3,6 +3,6 @@ export {
   assembleMenuItems,
   activeAncestorKeys,
   hasSystemModules,
-  type AppMenuItem,
 } from '@mmda/vui'
+export type { UiAppMenuItem as AppMenuItem } from '@mmda/core'
 export { PrimeAppSideMenu } from './PrimeAppSideMenu'

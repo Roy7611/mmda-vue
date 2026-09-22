@@ -17,7 +17,7 @@ export const SfGridHost = defineComponent({
     grid: SF_GRID_MODULES,
   },
   setup(_, { attrs, slots, expose }) {
-    const inner = ref(null);
+    const inner = ref<any>(null);
     expose({
       get ej2Instances() {
         return inner.value?.ej2Instances ?? inner.value;

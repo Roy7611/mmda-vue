@@ -7,17 +7,24 @@ import { SfBpmnDiagram } from "../components/SfBpmnDiagram";
 import { SfSigninForm } from "../components/SfSigninForm";
 import type { SfVuiContext } from "./utils";
 
+type BpmnDiagramProps = UiProps & {
+  nodes?: any[]
+  connectors?: any[]
+  readonly?: boolean
+  height?: string | number
+}
+
 export function buildBpmnDiagram(
   flowTrails: any[],
   _context: SfVuiContext,
-  props: UiProps = {},
+  props: BpmnDiagramProps = {},
 ) {
   return h("section", { class: "mmda-flow", ...props }, [
     h(SfBpmnDiagram, {
-      nodes: props.nodes,
-      connectors: props.connectors,
+      nodes: props.nodes ?? [],
+      connectors: props.connectors ?? [],
       readonly: props.readonly ?? true,
-      height: props.height,
+      height: props.height ?? "400px",
     }),
     flowTrails?.length
       ? h(

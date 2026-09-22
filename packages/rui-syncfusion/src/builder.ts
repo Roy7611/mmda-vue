@@ -7,8 +7,8 @@ import { sfReactUiOverlay } from './overlay'
 
 export class SfReactUiBuilder extends ReactUiBuilder {
   constructor(
-    factory = new SfReactUiFactory(),
-    fieldFactory = new SfReactUiFieldFactory(),
+    factory: SfReactUiFactory = new SfReactUiFactory(),
+    fieldFactory: SfReactUiFieldFactory = new SfReactUiFieldFactory(factory),
   ) {
     super(factory, fieldFactory)
 

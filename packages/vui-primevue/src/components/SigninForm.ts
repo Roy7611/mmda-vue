@@ -161,7 +161,6 @@ export const SigninForm = defineComponent({
               },
               onBlur: requiredUsername,
             } as VNodeProps),
-            message: v.username.message || undefined,
           }),
           layout.layoutFieldVert({
             label: h(
@@ -191,7 +190,6 @@ export const SigninForm = defineComponent({
                 },
               },
             } as VNodeProps),
-            message: v.password.message || undefined,
           }),
           h('label', { class: uiCssClass('signin-form', 'agreed') }, [
             h(Checkbox, {

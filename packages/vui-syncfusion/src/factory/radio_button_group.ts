@@ -2,9 +2,9 @@ import { h } from "vue";
 import { RadioButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import type { UiRadioButtonGroupProps } from "@mmda/core"
 import { radioButtonGroupItemSelected, radioButtonGroupItemsOf, radioButtonGroupModifierClasses, radioButtonGroupNameOf, uiRenderProps } from "@mmda/core"
-import { emitRadioButtonGroupChange } from "@mmda/vui"
+import { emitRadioButtonGroupChange, type VuiModelProps } from "@mmda/vui"
 
-export function createRadioButtonGroup(props: UiRadioButtonGroupProps) {
+export function createRadioButtonGroup(props: VuiModelProps<UiRadioButtonGroupProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

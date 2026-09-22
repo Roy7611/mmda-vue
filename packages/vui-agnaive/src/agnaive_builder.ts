@@ -10,7 +10,7 @@ import {
 
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from '@mmda/core'
 
-import { VuiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type VueUiFieldFactory, type UiSearchField, type VueUiTileSlots, type VuiContext, ListSearchField } from '@mmda/vui'
+import { VuiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiFactory, type VueUiFieldFactory, type VuiSearchField, type VuiTileSlots, type VuiContext, ListSearchField } from '@mmda/vui'
 
 import {
 
@@ -58,11 +58,41 @@ const invoke = (value: unknown): any =>
 
 type UiContext = VuiContext<any>
 
+type GroupCardProps = UiProps & {
+
+  container?: 'card' | 'fieldset' | 'tab' | 'none'
+
+  region?: string
+
+  many?: boolean
+
+  direction?: 'vertical' | 'horizontal' | 'row' | 'column'
+
+  cols?: number
+
+  headerActions?: VNode | VNode[]
+
+}
+
+type AppMenuProps = UiProps & { item?: unknown; expand?: boolean }
+
+type BpmnDiagramProps = UiProps & {
+
+  xml?: string
+
+  readonly?: boolean
+
+  height?: string | number
+
+  onUpdateXml?: (xml: string) => void
+
+}
+
 
 
 export class AgNaiveUiBuilder extends VuiBuilder {
 
-  declare readonly factory: VueUiFactory
+  declare readonly factory: VuiFactory
 
 
 
@@ -144,7 +174,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
     body: VNode | VNode[],
 
-    props: UiProps = {},
+    props: GroupCardProps = {},
 
   ) {
 
@@ -256,9 +286,9 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
       modules: props.modules,
 
-      logo: props.header,
+      logo: props.header as () => VNode,
 
-      footer: props.footer,
+      footer: props.footer as (() => VNode) | undefined,
 
     })
 
@@ -274,7 +304,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
 
 
-  buildAppMenu(modules: Module[], props?: UiProps) {
+  buildAppMenu(modules: Module[], props?: AppMenuProps) {
 
     const { item, expand, ...rest } = props ?? {}
 
@@ -340,7 +370,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
         icon: this.factory.resolveIcon(action.icon ?? role ?? ''),
 
-        severity: action.colorRole === 'danger' ? 'danger' : undefined,
+        colorRole: action.colorRole,
 
         size: 'small',
 
@@ -429,7 +459,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
   buildIndexTopbar(
     context: UiContext,
     props?: Parameters<VuiBuilder['buildIndexTopbar']>[1],
-    slots?: VueUiTileSlots,
+    slots?: VuiTileSlots,
   ) {
     return paintIndexTopbar(
       this,
@@ -443,7 +473,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
   buildDetailsTopbar(
     context: UiContext,
     props?: Parameters<VuiBuilder['buildDetailsTopbar']>[1],
-    slots?: VueUiTileSlots,
+    slots?: VuiTileSlots,
   ) {
     return paintDetailsTopbar(
       this,
@@ -462,7 +492,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
     )
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
+  buildSearchField(field: VuiSearchField, _context: UiContext, props: UiProps) {
 
     const meta = field.field
 
@@ -718,7 +748,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
         ...quickFilters,
 
-        ...(runtime.searchFields ?? []).map((field: UiSearchField) =>
+        ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
 
           this.buildSearchField(field, context, {}),
 
@@ -794,7 +824,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
 
 
-  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
+  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: BpmnDiagramProps = {}) {
 
     return h('section', { class: 'mmda-flow', ...props }, [
 

@@ -363,7 +363,7 @@ export const SfTree = defineComponent({
   },
 })
 
-function treeDataSignature(nodes: { id?: string; parentId?: string; hasChildren?: boolean; label?: string }[]) {
+function treeDataSignature(nodes: { id?: string; parentId?: string | null; hasChildren?: boolean; label?: string }[]) {
   return nodes
     .map(
       (node) =>

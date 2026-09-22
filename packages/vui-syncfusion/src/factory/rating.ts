@@ -1,7 +1,7 @@
 import { h } from "vue";
 import { RatingComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiRatingProps, UiRatingTemplate } from "@mmda/vui"
-import { emitRatingChange, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate } from "@mmda/vui"
+import { emitRatingChange, ratingItemsCountOf, ratingModifierClasses, ratingReadOnlyOf, ratingValueOf, resolveRatingTemplate, type VuiModelProps } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
 function toEj2Template(
@@ -17,7 +17,7 @@ function toEj2Template(
     });
 }
 
-export function createRating(props: UiRatingProps) {
+export function createRating(props: VuiModelProps<UiRatingProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

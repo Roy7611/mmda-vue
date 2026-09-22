@@ -118,7 +118,6 @@ export const SigninForm = defineComponent({
               status: v.username.message ? 'error' : undefined,
               'onUpdate:value': (value: string) => (user.username = value),
             }),
-            message: v.username.message || undefined,
           }),
           layout.layoutFieldVert({
             label: h(
@@ -134,7 +133,6 @@ export const SigninForm = defineComponent({
               status: v.password.message ? 'error' : undefined,
               'onUpdate:value': (value: string) => (user.password = value),
             }),
-            message: v.password.message || undefined,
           }),
           h(
             NCheckbox,

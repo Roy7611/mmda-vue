@@ -3,7 +3,6 @@
  * imagePicker / ImagePicker 别名到 imageUploader。
  * imageGallery 是详情只读，不要混。
  */
-import type { MetaUiField } from '@mmda/core'
 import {
   IMAGE_UPLOADER_EXTENSIONS,
   imageUploaderAcceptOf,
@@ -13,33 +12,10 @@ import {
   type UiImagesUploaderProps,
 } from '@mmda/core'
 import type {UiProps} from '@mmda/core'
-import {
-  fileUploaderPropsFromField,
-  filesUploaderPropsFromField,
-  type FileUploaderFieldContext,
-} from './file_uploader'
 
 export type { UiImageUploaderProps, UiImagesUploaderProps } from '@mmda/core'
 export { IMAGE_UPLOADER_EXTENSIONS, imageUploaderAcceptOf } from '@mmda/core'
-
-export function imageUploaderPropsFromField(
-  field: MetaUiField,
-  context: FileUploaderFieldContext
-): UiImageUploaderProps {
-  const base = fileUploaderPropsFromField(field, context)
-  return {
-    ...base,
-    allowedExtensions: imageUploaderAcceptOf(),
-  }
-}
-
-export function imagesUploaderPropsFromField(
-  field: MetaUiField,
-  context: FileUploaderFieldContext
-): UiImagesUploaderProps {
-  const base = filesUploaderPropsFromField(field, context)
-  return {
-    ...base,
-    allowedExtensions: imageUploaderAcceptOf(),
-  }
-}
+export {
+  imageUploaderPropsFromField,
+  imagesUploaderPropsFromField,
+} from '@mmda/core'

@@ -2,7 +2,7 @@ import { h } from "vue";
 import { NumericTextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiNumberInputProps } from "@mmda/core"
 import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf, uiRenderProps } from "@mmda/core"
-import { emitNumberInputChange } from "@mmda/vui"
+import { emitNumberInputChange, type VuiModelProps } from "@mmda/vui"
 
 const suffixAdornment = (unit: string) =>
   h("span", { class: "mmda-numeric-suffix", "aria-hidden": "true" }, unit);
@@ -25,7 +25,7 @@ const injectNumericUnitSuffix = (id: string | undefined, unit: string) => () => 
   });
 };
 
-export function createNumberInput(props: UiNumberInputProps) {
+export function createNumberInput(props: VuiModelProps<UiNumberInputProps>) {
   const {
     value,
     modelValue,

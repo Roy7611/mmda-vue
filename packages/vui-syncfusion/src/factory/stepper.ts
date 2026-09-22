@@ -7,7 +7,7 @@ import { StepperComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiStepperChanging, UiStepperController, UiStepperItem, UiStepperProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
 import { stepperDisplayOf, stepperDisplayToEj2, stepperItemsOf, stepperLabelPositionOf, stepperLabelPositionToEj2, stepperModifierClasses, stepperOrientationOf, stepperOrientationToEj2, stepperStatusToEj2, stepperValueOf, uiRenderProps } from "@mmda/core"
-import { emitStepperChange } from "@mmda/vui"
+import { emitStepperChange, type VuiModelProps } from "@mmda/vui"
 
 function ej2Of(el: any) {
   return el?.ej2Instances ?? el;
@@ -32,7 +32,7 @@ function stepsOf(items: UiStepperItem[], resolveIcon?: IconResolver) {
 }
 
 export function createStepper(
-  props: UiStepperProps,
+  props: VuiModelProps<UiStepperProps>,
   resolveIcon?: IconResolver,
 ) {
   const {

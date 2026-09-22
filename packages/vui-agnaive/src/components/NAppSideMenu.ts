@@ -10,6 +10,7 @@ import {
   type VNodeChild,
 } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import type { UiAppMenuItem } from '@mmda/core'
 import { NLayout, NLayoutSider, NMenu, type MenuOption } from 'naive-ui'
 import {
   assembleMenuItems,
@@ -20,7 +21,6 @@ import {
   UI_BUILDER_KEY,
   useCompactViewport,
   wrapRailLabel,
-  type AppMenuItem,
   type MmdaApplication,
   type VuiBuilder,
 } from '@mmda/vui'
@@ -52,7 +52,7 @@ export const NAppSideMenu = defineComponent({
       default: (): Module[] => [],
     },
     items: {
-      type: Array as PropType<AppMenuItem[]>,
+      type: Array as PropType<UiAppMenuItem[]>,
       default: undefined,
     },
     compact: { type: Boolean, default: undefined },
@@ -90,7 +90,7 @@ export const NAppSideMenu = defineComponent({
         menuItems.value.some(item => !item.moduleCode.includes('.')),
     )
 
-    const toMenuOptions = (items: AppMenuItem[]): MenuOption[] =>
+    const toMenuOptions = (items: UiAppMenuItem[]): MenuOption[] =>
       items.map(item => {
         const kids = item.items?.length ? toMenuOptions(item.items) : undefined
         const option: MenuOption = {
@@ -125,7 +125,7 @@ export const NAppSideMenu = defineComponent({
       })
 
     const findActiveKey = (
-      items: AppMenuItem[],
+      items: UiAppMenuItem[],
       path: string,
     ): string | undefined => {
       for (const item of items) {
@@ -165,8 +165,8 @@ export const NAppSideMenu = defineComponent({
     })
 
     const renderSystemRail = (
-      systems: AppMenuItem[],
-      selected?: AppMenuItem,
+      systems: UiAppMenuItem[],
+      selected?: UiAppMenuItem,
     ) =>
       h(
         'nav',
@@ -219,7 +219,7 @@ export const NAppSideMenu = defineComponent({
       )
 
     const renderSelectedTitle = (
-      selected?: AppMenuItem,
+      selected?: UiAppMenuItem,
       extraClass?: string,
     ) =>
       h(
@@ -250,7 +250,7 @@ export const NAppSideMenu = defineComponent({
         ],
       )
 
-    const renderNMenu = (items: AppMenuItem[], collapsed = false) =>
+    const renderNMenu = (items: UiAppMenuItem[], collapsed = false) =>
       h(NMenu, {
         class: uiCssClass('app-side-menu', 'n-menu'),
         options: toMenuOptions(items),
@@ -268,7 +268,7 @@ export const NAppSideMenu = defineComponent({
       })
 
     const renderL2Body = (
-      selected: AppMenuItem | undefined,
+      selected: UiAppMenuItem | undefined,
       panelClass?: string,
     ) => [
       renderSelectedTitle(selected, panelClass),
@@ -295,7 +295,7 @@ export const NAppSideMenu = defineComponent({
     ]
 
     const renderModulePanel = (
-      selected: AppMenuItem | undefined,
+      selected: UiAppMenuItem | undefined,
       panelClass?: string,
     ) =>
       h('div', { class: uiCssClass('app-side-menu', 'compact-panel') }, [
@@ -304,7 +304,7 @@ export const NAppSideMenu = defineComponent({
 
     /** Desktop L2: official Naive sider trigger (must live inside NLayout). */
     const renderL2Sider = (
-      selected: AppMenuItem | undefined,
+      selected: UiAppMenuItem | undefined,
       panelClass?: string,
     ) =>
       h(
@@ -358,7 +358,7 @@ export const NAppSideMenu = defineComponent({
         },
       )
 
-    const renderDrawer = (selected?: AppMenuItem) => {
+    const renderDrawer = (selected?: UiAppMenuItem) => {
       const body = () => renderModulePanel(selected)
       const drawerFn = builder?.factory?.drawer
       if (typeof drawerFn === 'function') {

@@ -70,7 +70,7 @@ export const SfLoadingHost = defineComponent({
       const chrome: UiLoadingProps = {
         size: props.size,
         label: props.label,
-        class: props.class,
+        class: props.class as UiLoadingProps["class"],
       }
       return h(
         'div',

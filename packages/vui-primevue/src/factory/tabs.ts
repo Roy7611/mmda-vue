@@ -4,17 +4,18 @@ import TabList from "primevue/tablist";
 import Tab from "primevue/tab";
 import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
-import type { UiNormalizedTabItem, UiTabsProps } from "@mmda/vui"
+import type { VuiNormalizedTabItem, UiTabsProps } from "@mmda/vui"
 import { emitTabsChange, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsScrollableOf, tabsValueOf } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
+import type { VuiModelProps } from "@mmda/vui"
 
-function headerNodes(item: UiNormalizedTabItem) {
+function headerNodes(item: VuiNormalizedTabItem) {
   const text = item.header.text ?? "";
   if (!item.header.iconCss) return text;
   return [h("i", { class: item.header.iconCss }), text];
 }
 
-export function createTabs(props: UiTabsProps) {
+export function createTabs(props: VuiModelProps<UiTabsProps>) {
   const {
     items: _items,
     value: _value,

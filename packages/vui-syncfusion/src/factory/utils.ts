@@ -18,20 +18,7 @@ export const DEFAULT_LIST_COLUMN_WIDTH = 120;
 export const invoke = (value: unknown) =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-/** 单位：优先 metacol.suffix；否则 formatter 若为纯单位文本（天、KG）也可用作后缀。 */
-export const resolveFieldUnit = (field: MetaUiField): string => {
-  const suffix = field.suffix?.trim();
-  if (suffix) return suffix;
-  const formatter = field.formatter?.trim();
-  if (
-    formatter &&
-    formatter.length <= 12 &&
-    !/[#0nNpPcCydDhHmMsSfF*?[\]]/.test(formatter)
-  ) {
-    return formatter;
-  }
-  return "";
-};
+export { resolveFieldUnit } from "@mmda/vui";
 
 export const listedFields = (metaUi: MetaUi) => {
   const fields = metaUi.getListedFields();

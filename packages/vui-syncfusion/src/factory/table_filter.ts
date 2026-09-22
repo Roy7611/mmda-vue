@@ -85,7 +85,7 @@ export const selectedSetValuesOf = (
   }
   if (filter.filterType === 'set') return filter.values ?? []
   if (filter.filterType === 'multi') {
-    const set = filter.filterModels.find(item => item.filterType === 'set')
+    const set = filter.filterModels?.find(item => item.filterType === 'set')
     return set && 'values' in set ? set.values ?? [] : []
   }
   if ('value' in filter && filter.value != null && filter.value !== '') {

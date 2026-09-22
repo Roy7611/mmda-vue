@@ -1,11 +1,11 @@
 import { h } from "vue";
 import { OtpInputComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiOneTimePasswordInputProps } from "@mmda/vui"
-import { emitOneTimePasswordChange, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf } from "@mmda/vui"
+import { emitOneTimePasswordChange, oneTimePasswordLengthOf, oneTimePasswordModifierClasses, oneTimePasswordTypeOf, oneTimePasswordValueOf, type VuiModelProps } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
 export function createOneTimePasswordInput(
-  props: UiOneTimePasswordInputProps,
+  props: VuiModelProps<UiOneTimePasswordInputProps>,
 ) {
   const {
     value: _value,

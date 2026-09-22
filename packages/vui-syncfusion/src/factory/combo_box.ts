@@ -2,14 +2,14 @@ import { h } from "vue";
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiComboBoxProps } from "@mmda/core"
 import { SELECT_DEBOUNCE_MS, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, selectOptionsOf, uiRenderProps } from "@mmda/core"
-import { emitComboBoxChange } from "@mmda/vui"
+import { emitComboBoxChange, type VuiModelProps } from "@mmda/vui"
 import {
   syncfusionSelectFields,
   syncfusionSelectFiltering,
   syncfusionSelectItemTemplate,
 } from "./drop_down_list";
 
-export function createComboBox(props: UiComboBoxProps) {
+export function createComboBox(props: VuiModelProps<UiComboBoxProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

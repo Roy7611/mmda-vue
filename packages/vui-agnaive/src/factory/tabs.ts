@@ -1,14 +1,15 @@
 import { h } from 'vue'
 import { NTabPane, NTabs } from 'naive-ui'
-import type { UiNormalizedTabItem, UiTabsProps } from '@mmda/vui'
+import type { VuiNormalizedTabItem, UiTabsProps } from '@mmda/vui'
 import { emitTabsChange, tabsHostStyle, tabsItemContentOf, tabsItemsOf, tabsModifierClasses, tabsNaivePlacementOf, tabsValueOf } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
+import type { VuiModelProps } from "@mmda/vui"
 
-function tabLabel(item: UiNormalizedTabItem) {
+function tabLabel(item: VuiNormalizedTabItem) {
   return item.header.text ?? ''
 }
 
-export function createTabs(props: UiTabsProps) {
+export function createTabs(props: VuiModelProps<UiTabsProps>) {
   const {
     items: _items,
     value: _value,

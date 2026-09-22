@@ -1,6 +1,6 @@
 import { h, reactive, type VNode } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField } from "@mmda/core";
-import type { VueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, VueUiTileSlots, UiTreeGridPropsType } from "@mmda/vui"
+import type { VuiFactory, UiProps, UiAction, VuiListPropsType, UiPaginatorProps, VuiTileSlots, VuiTreeGridPropsType } from "@mmda/vui"
 import { assembleTreeGridRows, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vuiUpdateOf } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
@@ -28,6 +28,15 @@ import { createRating } from "./factory/rating";
 import { createTabs } from "./factory/tabs";
 import { createToolbar } from "./factory/toolbar";
 import { createDrawer, createSidebar } from "./factory/sidebar";
+
+type FormFieldProps = UiProps & {
+  label?: string | VNode;
+  modelValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+};
+
+type IconFieldProps = UiProps & { icon?: string; modelValue?: string };
 import { createSplitter } from "./factory/splitter";
 import { createNumberInput } from "./factory/number_input";
 import { createTextArea } from "./factory/text_area";
@@ -162,12 +171,12 @@ const normalizeMenuItem = (item: any): any => {
   };
 };
 
-export function createPrimeVueUiFactory(): VueUiFactory {
+export function createPrimeVuiFactory(): VuiFactory {
   const button = createButton;
 
-  const table = <T>(props: UiListPropsType<T> = {}) => {
+  const table = <T>(props: VuiListPropsType<T> = {}) => {
     const model = (props.rows ?? []) as T[];
-    const bag = props as UiListPropsType<T> & {
+    const bag = props as VuiListPropsType<T> & {
       fieldCellRenderers?: Record<
         string,
         (field: MetaUiField, row: T) => unknown
@@ -561,7 +570,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
     });
   };
 
-  const factory: VueUiFactory = {
+  const factory: VuiFactory = {
     nativeInplaceEdit: true,
     actionIcons: {
       create: "pi pi-plus",
@@ -703,14 +712,16 @@ export function createPrimeVueUiFactory(): VueUiFactory {
         { ...props, class: ["p-button p-button-link", props.class] },
         slots?.default?.() ?? props.text,
       ),
-    iconField: (value, props = {}) =>
-      h("span", { class: "p-input-icon-left" }, [
-        props.icon && h("i", { class: factory.resolveIcon(props.icon) }),
+    iconField: (value, props = {}) => {
+      const p = props as IconFieldProps;
+      return h("span", { class: "p-input-icon-left" }, [
+        p.icon && h("i", { class: factory.resolveIcon(p.icon) }),
         createTextInput({
           ...props,
-          value: props.modelValue ?? value,
+          value: p.modelValue ?? value,
         }),
-      ]),
+      ]);
+    },
     autoComplete: (props = {}) => createAutoComplete(props),
     tagAutoComplete: (props = {}) => createTagAutoComplete(props),
     button,
@@ -736,7 +747,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
         ),
         onClick: action.onAction,
       }),
-    paginator: (props: UiPaginatorPropsType) =>
+    paginator: (props: UiPaginatorProps) =>
       h(Paginator, {
         first: Math.max(
           0,
@@ -758,10 +769,10 @@ export function createPrimeVueUiFactory(): VueUiFactory {
           }),
       }),
     tree: (props) => createTree(props),
-    treeGrid: <T>(props: UiTreeGridPropsType<T>) => {
+    treeGrid: <T>(props: VuiTreeGridPropsType<T>) => {
       const model = (props.rows ?? []) as T[];
       if (props.rowDetail) {
-        return table(props as UiListPropsType<T>);
+        return table(props as VuiListPropsType<T>);
       }
       const fields = (props.fields ?? []) as MetaUiField[];
       const { treeShape, shapeKey, idField, childrenKey, assembled } =
@@ -810,7 +821,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
           ),
       });
     },
-    list: <T>(props: UiListPropsType<T> = {}) =>
+    list: <T>(props: VuiListPropsType<T> = {}) =>
       h(
         DataView,
         { value: props.rows ?? [], layout: "list", class: "mmda-list" },
@@ -877,22 +888,24 @@ export function createPrimeVueUiFactory(): VueUiFactory {
       createSplitter(slots?.default?.() ?? [], props),
     searchRelative: (props) =>
       renderSearchForRelativeField(props as any),
-    formField: (props = {}, slots) =>
-      h(
+    formField: (props = {}, slots) => {
+      const p = props as FormFieldProps;
+      return h(
         "div",
-        { class: ["mmda-form-field", "mmda-form-field", props.class], style: props.style },
+        { class: ["mmda-form-field", "mmda-form-field", p.class], style: p.style },
         [
-          props.label
-            ? h("label", { class: "mmda-form-field__label" }, String(props.label))
+          p.label
+            ? h("label", { class: "mmda-form-field__label" }, String(p.label))
             : null,
           slots?.default?.() ??
             createTextInput({
               ...props,
-              value: props.modelValue ?? props.value,
-              onChange: props.onChange ?? vuiUpdateOf(props),
+              value: p.modelValue ?? p.value,
+              onChange: p.onChange ?? vuiUpdateOf(props),
             }),
         ],
-      ),
+      );
+    },
   };
 
   wrapListFamilyPaginator(

@@ -5,12 +5,9 @@
 import { defineComponent, h, provide } from 'vue'
 import type { UiRibbonItem, UiRibbonMenuItem, UiRibbonProps, UiRibbonTab } from '@mmda/vui'
 import { ribbonHookClass, UiPluginName, type UiPlugin } from '@mmda/vui'
-import {
-  RibbonButton,
-  RibbonCheckBox,
-  RibbonDropDown,
-  RibbonSplitButton,
-} from '@syncfusion/ej2-ribbon'
+// @ts-ignore -- optional peer，未安装时由测试跳过
+import { RibbonButton, RibbonCheckBox, RibbonDropDown, RibbonSplitButton } from '@syncfusion/ej2-ribbon'
+// @ts-ignore -- optional peer，未安装时由测试跳过
 import { RibbonComponent } from '@syncfusion/ej2-vue-ribbon'
 import { uiRenderProps } from '@mmda/core'
 

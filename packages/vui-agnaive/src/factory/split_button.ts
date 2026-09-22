@@ -1,11 +1,11 @@
-import type { VueUiTileSlots, UiSplitButtonProps } from "@mmda/vui"
+import type { VuiTileSlots, VuiSplitButtonProps } from "@mmda/vui"
 import { createButton } from "./button";
 import { createDropDownButton } from "./drop_down_button";
 
 /** Naive 无原生 SplitButton，降级为整钮下拉。 */
 export function createSplitButton(
-  props: UiSplitButtonProps,
-  slots?: VueUiTileSlots,
+  props: VuiSplitButtonProps,
+  slots?: VuiTileSlots,
   button: typeof createButton = createButton,
 ) {
   return createDropDownButton(

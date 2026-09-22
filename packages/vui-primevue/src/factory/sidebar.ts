@@ -1,6 +1,6 @@
 import { h } from "vue";
 import Drawer from "primevue/drawer";
-import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui"
+import type { UiSidebarProps, VuiTileSlots } from "@mmda/vui"
 import { applyDrawerDefaults, emitSidebarChange, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarWidthOf } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
@@ -11,13 +11,12 @@ function widthStyle(width: string | number): Record<string, string> {
 
 function renderSidebar(
   props: UiSidebarProps,
-  slots: UiSidebarSlots | undefined,
+  slots: VuiTileSlots | undefined,
   asDrawer: boolean,
 ) {
   const applied = asDrawer ? applyDrawerDefaults(props) : props;
   const {
     isOpen: _isOpen,
-    modelValue: _modelValue,
     position: _position,
     type: _type,
     width: _width,
@@ -29,9 +28,6 @@ function renderSidebar(
     enableGestures: _enableGestures,
     onChange: _onChange,
     htmlAttributes,
-    visible: _visible,
-    show: _show,
-    onUpdateVisible: _onUpdateVisible,
     ...rest
   } = applied;
 
@@ -54,14 +50,14 @@ function renderSidebar(
 
 export function createSidebar(
   props: UiSidebarProps,
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, false);
 }
 
 export function createDrawer(
   props: UiSidebarProps,
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, true);
 }

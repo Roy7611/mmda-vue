@@ -3,8 +3,9 @@ import { NInputNumber } from 'naive-ui'
 import type { UiNumberInputProps } from '@mmda/core'
 import { numberInputDecimalsOf, numberInputFormatOf, numberInputModifierClasses, numberInputStepOf, uiRenderProps } from '@mmda/core'
 import { emitNumberInputChange } from '@mmda/vui'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createNumberInput(props: UiNumberInputProps) {
+export function createNumberInput(props: VuiModelProps<UiNumberInputProps>) {
   const {
     value,
     modelValue,

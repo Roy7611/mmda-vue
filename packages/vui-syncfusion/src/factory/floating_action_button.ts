@@ -38,7 +38,6 @@ export function createFloatingActionButton(
     iconPosition,
     onClick,
     onAction,
-    command,
     size,
     ...rest
   } = props;
@@ -67,7 +66,7 @@ export function createFloatingActionButton(
       disabled: disabled === true,
       title: tooltip ?? htmlAttributes?.title,
       htmlAttributes,
-      onClick: onClick ?? onAction ?? command,
+      onClick: onClick ?? onAction,
     },
     slots,
   );

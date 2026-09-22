@@ -3,6 +3,7 @@ import { NDatePicker } from 'naive-ui'
 import type { UiCalendarProps } from '@mmda/core'
 import { calendarBoundValue, calendarModifierClasses, emitCalendarChange, isCalendarDateDisabled, startOfDay } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
+import type { VuiModelProps } from "@mmda/vui"
 
 function toTimestamp(value: Date | null | undefined): number | null {
   if (!value) return null
@@ -22,7 +23,7 @@ function naiveType(props: UiCalendarProps): 'date' | 'dates' | 'month' | 'year' 
   return 'date'
 }
 
-export function createCalendar(props: UiCalendarProps) {
+export function createCalendar(props: VuiModelProps<UiCalendarProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

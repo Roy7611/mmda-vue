@@ -5,22 +5,20 @@
  * 字段 fieldFactory.oneTimePasswordInput 译 MetaUiField 后再调本控件。
  */
 import type {
-  MetaUiField,
   UiOneTimePasswordInputProps,
   UiOneTimePasswordType,
 } from '@mmda/core'
 import type {UiProps} from '@mmda/core'
 import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
-
-export const DEFAULT_OTP_LENGTH = 4
+import { DEFAULT_OTP_LENGTH as coreDefaultOtpLength } from '@mmda/core'
+export {
+  DEFAULT_OTP_LENGTH,
+  oneTimePasswordPropsFromField,
+} from '@mmda/core'
 
 export type { UiOneTimePasswordType, UiOneTimePasswordInputProps } from '@mmda/core'
 
-export type OneTimePasswordFieldContext = {
-  getFieldValue: (field: MetaUiField) => unknown
-  setFieldValue: (field: MetaUiField, value: unknown) => void
-  isFieldReadonly: (field: MetaUiField | string) => boolean
-}
+export type { UiFieldBindContext as OneTimePasswordFieldContext } from '@mmda/core'
 
 export function oneTimePasswordValueOf(
   props: VuiModelProps<UiOneTimePasswordInputProps>,
@@ -37,7 +35,7 @@ export function oneTimePasswordLengthOf(
 ): number {
   const n = Number(props.length)
   if (Number.isFinite(n) && n >= 1) return Math.floor(n)
-  return DEFAULT_OTP_LENGTH
+  return coreDefaultOtpLength
 }
 
 export function oneTimePasswordTypeOf(
@@ -59,42 +57,3 @@ export function emitOneTimePasswordChange(
 }
 
 export { oneTimePasswordModifierClasses } from '@mmda/core'
-
-function otpLengthFromField(
-  field: MetaUiField
-): number {
-  const max = field.maxLength
-  if (typeof max === 'number' && max >= 1 && max <= 12) return max
-  return DEFAULT_OTP_LENGTH
-}
-
-export function oneTimePasswordPropsFromField(
-  field: MetaUiField,
-  context: OneTimePasswordFieldContext
-): UiOneTimePasswordInputProps {
-  const typeRaw: unknown = undefined
-  const type: UiOneTimePasswordType =
-    typeRaw === 'text' || typeRaw === 'password' || typeRaw === 'number'
-      ? typeRaw
-      : 'number'
-  return {
-    value: (() => {
-      const raw = context.getFieldValue(field)
-      return raw == null ? '' : String(raw)
-    })(),
-    length: otpLengthFromField(field),
-    type,
-    placeholder:
-      field.placeholder,
-    disabled:
-      context.isFieldReadonly(field),
-    onChange: (value) => {
-      context.setFieldValue(field, value)
-    },
-    htmlAttributes: {
-      name: field.fieldName,
-      id: field.fieldName,
-      ...({}),
-    },
-  }
-}

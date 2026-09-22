@@ -1,15 +1,15 @@
 import { h } from "vue";
 import { SidebarComponent } from "@syncfusion/ej2-vue-navigations";
 import type { UiSidebarProps, VuiTileSlots } from "@mmda/vui"
-import { applyDrawerDefaults, emitSidebarChange, sidebarCloseOnDocumentClickOf, sidebarEnableDockOf, sidebarEnableGesturesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarTypeOf, sidebarWidthOf } from "@mmda/vui"
+import { applyDrawerDefaults, emitSidebarChange, sidebarCloseOnDocumentClickOf, sidebarEnableDockOf, sidebarEnableGesturesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarTypeOf, sidebarWidthOf, type VuiModelProps } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
 function renderSidebar(
-  props: UiSidebarProps,
+  props: VuiModelProps<UiSidebarProps>,
   slots: VuiTileSlots | undefined,
   asDrawer: boolean,
 ) {
-  const applied = asDrawer ? applyDrawerDefaults(props) : props;
+  const applied: VuiModelProps<UiSidebarProps> = asDrawer ? applyDrawerDefaults(props) : props;
   const {
     isOpen: _isOpen,
     modelValue: _modelValue,
@@ -26,9 +26,6 @@ function renderSidebar(
     onChange: _onChange,
     htmlAttributes,
     class: _className,
-    visible: _visible,
-    show: _show,
-    onUpdateVisible: _onUpdateVisible,
     ...rest
   } = applied;
 
@@ -62,14 +59,14 @@ function renderSidebar(
 }
 
 export function createSidebar(
-  props: UiSidebarProps,
+  props: VuiModelProps<UiSidebarProps>,
   slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, false);
 }
 
 export function createDrawer(
-  props: UiSidebarProps,
+  props: VuiModelProps<UiSidebarProps>,
   slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, true);

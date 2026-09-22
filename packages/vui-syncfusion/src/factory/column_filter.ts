@@ -101,10 +101,10 @@ export function applyCompareColumnFilters(
 
 export function highlightValueOf(filter: FieldFilter): unknown {
   if (filter.filterType === 'multi') {
-    const first = filter.filterModels[0]
+    const first = filter.filterModels?.[0]
     return first ? highlightValueOf(first) : true
   }
-  if (filter.filterType === 'set') return filter.values?.[0] ?? true
+  if (filter.filterType === 'set') return filter.values ?? []?.[0] ?? true
   if (filter.operator === 'WITHIN') return filter.value ?? true
   if (filter.operator === 'BETWEEN') return filter.value ?? true
   if (
@@ -153,7 +153,7 @@ export function hideEj2MenuChrome(
 const compareFrom = (filter?: FieldFilter) => {
   if (!filter) return undefined
   if (filter.filterType === 'multi') {
-    return filter.filterModels.find(item => item.filterType !== 'set')
+    return filter.filterModels?.find(item => item.filterType !== 'set')
   }
   if (filter.filterType === 'set') return undefined
   return filter
@@ -161,10 +161,10 @@ const compareFrom = (filter?: FieldFilter) => {
 
 const setFrom = (filter?: FieldFilter) => {
   if (!filter) return []
-  if (filter.filterType === 'set') return filter.values
+  if (filter.filterType === 'set') return filter.values ?? []
   if (filter.filterType === 'multi') {
-    const set = filter.filterModels.find(item => item.filterType === 'set')
-    return set && 'values' in set ? set.values : []
+    const set = filter.filterModels?.find(item => item.filterType === 'set')
+    return set && 'values' in set ? set.values ?? [] : []
   }
   return []
 }
@@ -254,7 +254,8 @@ function sfDateMenuFilter(
         const compare = compareFrom(filter)
         setTokens = setFrom(filter)
         if (picker && compare && 'value' in compare) {
-          picker.value = asDate(compare.value)
+          const nextDate = asDate(compare.value)
+          if (nextDate) picker.value = nextDate
         }
       },
       read: (args: any) => {

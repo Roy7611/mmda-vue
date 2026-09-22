@@ -127,7 +127,9 @@ export function buildSfGridColumns(
     allowEditing?: boolean
   } = {},
 ) {
-  return listedFields(metaUi).map(field => sfGridColumnOf(field, options))
+  return listedFields(metaUi)
+    .filter((field): field is MetaUiField => field != null)
+    .map(field => sfGridColumnOf(field, options))
 }
 
 export type SfTreeGridColumnOptions = {
@@ -204,7 +206,9 @@ export function buildSfTreeGridColumns(
   const fields = Array.isArray(fieldsOrMetaUi)
     ? fieldsOrMetaUi
     : listedTableFields(fieldsOrMetaUi)
-  return fields.map((field, index) =>
-    sfTreeGridColumnOf(field, index, options),
-  )
+  return fields
+    .filter((field): field is MetaUiField => field != null)
+    .map((field, index) =>
+      sfTreeGridColumnOf(field, index, options),
+    )
 }

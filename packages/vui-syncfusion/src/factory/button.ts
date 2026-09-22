@@ -23,10 +23,9 @@ export function createButton(props: UiButtonProps = {}, slots?: UiButtonSlots) {
     id,
     onClick,
     onAction,
-    command,
     ...rest
   } = props;
-  const handleClick = onClick ?? onAction ?? command;
+  const handleClick = onClick ?? onAction;
   return h(
     ButtonComponent as any,
     {

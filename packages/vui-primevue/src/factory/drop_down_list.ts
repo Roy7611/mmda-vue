@@ -3,6 +3,7 @@ import Select from "primevue/select";
 import type { UiDropDownListProps, UiSelectOption } from "@mmda/core"
 import { SELECT_MIN_LENGTH, dropDownListModifierClasses, dropDownListValueOf, nestSelectOptionsByGroup, normalizeSelectOption, selectOptionsGrouped, selectOptionsHaveIcon, selectOptionsOf, uiRenderProps } from "@mmda/core"
 import { emitDropDownListChange } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
 export function primeSelectModel(options: UiSelectOption[]) {
   if (!selectOptionsGrouped(options)) return options;
@@ -24,7 +25,7 @@ export function primeOptionSlot(options: UiSelectOption[]) {
   };
 }
 
-export function createDropDownList(props: UiDropDownListProps) {
+export function createDropDownList(props: VuiModelProps<UiDropDownListProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

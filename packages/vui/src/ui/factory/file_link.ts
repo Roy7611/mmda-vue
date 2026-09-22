@@ -3,7 +3,6 @@
  * Url / FileLink 别名到本控件。不要 externalLink（那是关联实体）。
  * 图片走 factory.image / imageGallery，不要塞进 FileLink。
  */
-import type { MetaUiField } from '@mmda/core'
 import {
   fileLinkDownloadableOf,
   fileLinkPreviewKindOf,
@@ -14,6 +13,10 @@ import {
 } from '@mmda/core'
 import { h, type VNode } from 'vue'
 import { getFileInfo } from '../../components/FileIcons'
+export {
+  fileLinkPropsFromField,
+  type FileLinkFieldContext,
+} from '@mmda/core'
 
 export type { UiFileLinkPreviewKind, UiFileLinkProps } from '@mmda/core'
 export {
@@ -24,14 +27,6 @@ export {
   fileLinkPreviewKindOf,
   fileLinkUrlOf,
 } from '@mmda/core'
-
-export type FileLinkFieldContext = {
-  getFieldValue: (field: MetaUiField, row?: unknown) => unknown
-  displayField?: (field: MetaUiField, row?: unknown) => unknown
-  getModuleAuth?: (entity?: Record<string, any>) =>
-    | { allowDownload?: boolean }
-    | undefined
-}
 
 export function fileLinkLabelOf(props: UiFileLinkProps): string {
   if (props.fileName) return props.fileName
@@ -113,23 +108,4 @@ export function renderFileLink(props: UiFileLinkProps = {}): VNode {
     },
     inner,
   )
-}
-
-export function fileLinkPropsFromField(
-  field: MetaUiField,
-  context: FileLinkFieldContext
-): UiFileLinkProps {
-  const url = String(
-    context.getFieldValue(field) ?? '',
-  )
-  const displayed = context.displayField?.(field)
-  const auth = context.getModuleAuth?.()
-  return {
-    url,
-    fileName:
-      (displayed != null && String(displayed) !== url
-        ? String(displayed)
-        : undefined),
-    downloadable: auth?.allowDownload !== false,
-  }
 }

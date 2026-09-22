@@ -8,9 +8,10 @@ import type { UiStepperController, UiStepperProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
 import { noopStepperController, stepperItemsOf, stepperModifierClasses, stepperOrientationOf, stepperValueOf, uiRenderProps } from "@mmda/core"
 import { emitStepperChange } from "@mmda/vui"
+import type { VuiModelProps } from "@mmda/vui"
 
 export function createStepper(
-  props: UiStepperProps,
+  props: VuiModelProps<UiStepperProps>,
   resolveIcon?: IconResolver,
 ) {
   const {

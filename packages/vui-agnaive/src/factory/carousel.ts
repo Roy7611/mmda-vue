@@ -3,8 +3,9 @@ import { NCarousel } from 'naive-ui'
 import type { UiCarouselProps } from '@mmda/core'
 import { carouselBoundIndex, carouselModifierClasses, carouselSlideContent, emitCarouselChange } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createCarousel(props: UiCarouselProps) {
+export function createCarousel(props: VuiModelProps<UiCarouselProps>) {
   const {
     items = [],
     selectedIndex: _selectedIndex,

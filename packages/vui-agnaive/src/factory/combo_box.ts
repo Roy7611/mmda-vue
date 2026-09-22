@@ -4,8 +4,9 @@ import type { UiComboBoxProps, UiSelectOption } from '@mmda/core'
 import { SELECT_DEBOUNCE_MS, SELECT_MIN_LENGTH, comboBoxAllowCustom, comboBoxModifierClasses, comboBoxValueOf, normalizeSelectOption, selectOptionsOf, uiRenderProps } from '@mmda/core'
 import { emitComboBoxChange } from '@mmda/vui'
 import { naiveSelectOptions, naiveSelectRenderLabel } from './drop_down_list'
+import type { VuiModelProps } from "@mmda/vui"
 
-export function createComboBox(props: UiComboBoxProps) {
+export function createComboBox(props: VuiModelProps<UiComboBoxProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

@@ -1,10 +1,10 @@
 import { h } from "vue";
 import { SliderComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiSliderProps } from "@mmda/vui"
-import { emitSliderChange, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf } from "@mmda/vui"
+import { emitSliderChange, sliderMaxOf, sliderMinOf, sliderModifierClasses, sliderStepOf, sliderTypeOf, sliderValueOf, type VuiModelProps } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
-export function createSlider(props: UiSliderProps) {
+export function createSlider(props: VuiModelProps<UiSliderProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

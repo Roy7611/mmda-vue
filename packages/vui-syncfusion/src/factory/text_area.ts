@@ -2,9 +2,9 @@ import { h } from "vue";
 import { TextAreaComponent } from "@syncfusion/ej2-vue-inputs";
 import type { UiTextAreaProps } from "@mmda/core"
 import { textAreaColsOf, textAreaDisabledOf, textAreaMaxLengthOf, textAreaModifierClasses, textAreaReadOnlyOf, textAreaResizeModeOf, textAreaRowsOf, textAreaValueOf, uiRenderProps } from "@mmda/core"
-import { emitTextAreaChange } from "@mmda/vui"
+import { emitTextAreaChange, type VuiModelProps } from "@mmda/vui"
 
-export function createTextArea(props: UiTextAreaProps) {
+export function createTextArea(props: VuiModelProps<UiTextAreaProps>) {
   const {
     value: _value,
     modelValue: _modelValue,

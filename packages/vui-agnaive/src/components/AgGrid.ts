@@ -29,7 +29,7 @@ import {
   NSelect,
 } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SortOrder, SqlDataType, type MetaUi, type MetaUiField, type Pagination } from '@mmda/core'
-import { wrapRowDetail, type UiListPropsType } from '@mmda/vui'
+import { wrapRowDetail, type VuiListPropsType } from '@mmda/vui'
 import {
   agFilterModelToEntity,
   entityFilterToAgModel,
@@ -150,7 +150,7 @@ const AgRowDetail = defineComponent({
   },
   setup(props) {
     return () => {
-      const spec = (props.params.context as { rowDetail?: UiListPropsType['rowDetail'] })
+      const spec = (props.params.context as { rowDetail?: VuiListPropsType['rowDetail'] })
         ?.rowDetail
       const row = props.params.data
       return wrapRowDetail(spec?.detail?.(row))
@@ -168,7 +168,7 @@ export const AgGrid = defineComponent({
     primaryKey: { type: String as PropType<string | undefined>, default: undefined },
   },
   setup(props, { attrs }) {
-    const listProps = attrs as UiListPropsType<any>
+    const listProps = attrs as VuiListPropsType<any>
     const api = ref<GridApi | null>(null)
     const applyingFilter = ref(false)
     const theme = computed(() => buildAgGridTheme())
