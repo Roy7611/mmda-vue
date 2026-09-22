@@ -167,3 +167,27 @@ export interface UiViewProps extends UiProps {
   showAttachments?: boolean
   dialogs?: UiDialogProps[]
 }
+
+import type { MmdaApplication } from '../mmda_app'
+import type { UiRenderer } from './renderer'
+import type { UiRouter } from './router'
+
+/**
+ * 宿主（视图层）交给业务页面视图的依赖。业务页面因此不 import 任何框架：
+ * 数据 / 翻译 / 控件工厂来自 `app`，壳节点走 `render`，跳转走 `router`。
+ */
+export interface UiViewDeps<TNode = unknown> {
+  /** 应用壳：`state` / `modules` / `user` / `ui`（UiBuilder）/ `translate`。 */
+  app: MmdaApplication
+  /** 最底层渲染函数：Vue 是 `h()`，React 是 `createElement`。 */
+  render: UiRenderer<TNode>['render']
+  /** 路由适配：`resolve` 出 href、`push` 跳转（业务不 import vue-router）。 */
+  router: UiRouter
+}
+
+/**
+ * 页面级视图（模块首页、占位页这类非实体屏）：给依赖，返回节点。
+ * 宿主负责把返回值放进自己的响应式渲染函数里跑，业务侧不写响应式代码。
+ * 泛型 `TNode` 由宿主指定（vui 传 `VNode`），所以业务包不需要知道框架类型。
+ */
+export type UiViewFn<TNode = unknown> = (deps: UiViewDeps<TNode>) => TNode

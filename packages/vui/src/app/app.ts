@@ -5,6 +5,8 @@ import {
   type MmdaApplicationOptions,
   type Module,
   type UiContext,
+  type TranslateFn,
+  type Translatable,
   type UiModuleBreadcrumbProps,
   type UiProps,
 } from "@mmda/core";
@@ -120,6 +122,19 @@ export class MmdaVueApp extends MmdaApplication {
       };
     }
   }
+
+  /** 文案翻译：走应用自己的 i18n 实例（core `MmdaApplication.translate` 的 Vue 实现）。 */
+  override translate: TranslateFn = (message) => {
+    const key = typeof message === "string" ? message : message.message;
+    const param =
+      typeof message === "string"
+        ? undefined
+        : (message.param as Record<string, unknown> | undefined);
+    const global = this.i18n.global as unknown as {
+      t: (key: string, param?: Record<string, unknown>) => string;
+    };
+    return String(global.t(key, param));
+  };
 
   override changeLocale(locale: string) {
     setI18nLocale(this.i18n, locale);

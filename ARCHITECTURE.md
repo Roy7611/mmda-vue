@@ -79,6 +79,27 @@ flowchart LR
 
 不要把 `SfGrid` / `AgGrid` 写进 `@mmda/vui`。细则用词见 [naming.md](docs/naming.md)。
 
+### 业务包画页面：框架无关视图（`UiViewFn`）
+
+业务包（`base` / `mes`）**只认 core**：不 import `vue` / `vue-router` / `vue-i18n`，也不 import 皮肤与厂商包。页面（模块首页、占位页这类非实体屏）写成 core 的页面级视图：
+
+```text
+UiViewFn<TNode>  =  (deps: UiViewDeps<TNode>) => TNode
+UiViewDeps       =  { app: MmdaApplication; render: UiRenderer['render']; router: UiRouter }
+```
+
+| 需要什么 | 从哪拿 | 不要 |
+|---|---|---|
+| 状态 / 用户 / 模块 | `app.state` / `app.user` / `app.modules` | `inject(UI_APP_KEY)` |
+| 文案 | `app.translate(key)`（core `TranslateFn`；vui 用 vue-i18n 实现） | `useI18n()` |
+| 控件 | `app.ui.factory.*`（core `UiFactory` / `UiBuilder`） | 直接 import 皮肤控件 |
+| 跳转 | `factory.link({ href: router.resolve(url) }, { default: () => [...] })` | `useRouter()` / 自绑 `onClick` |
+| 壳节点 | `render(tag, props, children)`（Vue 是 `h()`，React 是 `createElement`） | `h()` |
+
+宿主（`@mmda/app` 是 Vue 宿主）在 `packages/app/src/view_adapter.ts` 用 `hostedView(view)` 把它包成自己的组件：壳 / 渲染器 / 路由适配都在这一处装配，返回值在宿主的渲染 effect 里跑 —— 视图里读 `app.state.todoCount` 照样重渲，业务侧不写响应式代码。rui 宿主将来照抄同一契约（`MmdaReactApp` 已实现 `translate`）。
+
+证明口径：`grep -rn "from 'vue'" packages/base/src` 为 **0**；`packages/base/package.json` 只依赖 `@mmda/core`。
+
 ### Builder：契约 → Vue 抽象类 → 皮肤
 
 拼屏走模板方法，不要平行造一份 Host 接口，也不要把 vui 实现 alias 成 core 的 `UiBuilder`。

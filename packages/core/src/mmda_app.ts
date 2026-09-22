@@ -13,6 +13,7 @@ import { isString } from './utils/is'
 import { useMmdaSsoDb, type LocalAsyncDb } from './utils/localdb'
 import type { UiBuilder } from './ui/builder'
 import type { UiContext } from './ui/context'
+import type { TranslateFn } from './metaui/metaui_field'
 
 export interface ClientProps {
   clientId?: string
@@ -134,6 +135,12 @@ export abstract class MmdaApplication {
   get locale() {
     return this.meta.locale
   }
+
+  /**
+   * 文案翻译（框架中立）。视图层把实现注入进来：vui 用 vue-i18n，rui 由 React 侧实现。
+   * 业务在 Logic / 页面视图里用 `app.translate(...)`；实体会话内用 `context.t(...)`（带参数）。
+   */
+  abstract translate: TranslateFn
 
   get localDb() {
     return this.meta.localDb

@@ -6,16 +6,10 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
-    "@mmda/core": "workspace:^",
-    "@mmda/vui": "workspace:^",
-    "vue": "^3.5.25",
-    "vue-i18n": "^11.1.11",
-    "vue-router": "^4.5.1"
+    "@mmda/core": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "@vitejs/plugin-vue-jsx": "^5.1.1",
     "typescript": "~5.9.3",
     "vite": "8.2.2"
   }

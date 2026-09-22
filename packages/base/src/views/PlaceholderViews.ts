@@ -1,14 +1,13 @@
-import { defineComponent, h } from "vue";
-import { useI18n } from "vue-i18n";
+/*
+ * 占位页（未实现的模块页）。与 `HomeView` 同样框架无关：
+ * 文案走 `app.translate`，壳节点走 `render`。
+ */
+import type { UiViewDeps } from '@mmda/core'
 
-export const Custompages = defineComponent({
-  name: "Custompages",
-  setup() {
-    const { t } = useI18n();
-    return () =>
-      h("div", { style: { padding: "32px" } }, [
-        h("h1", t("placeholder.custom")),
-        h("p", t("placeholder.customHint")),
-      ]);
-  },
-});
+export function customPages<TNode>(deps: UiViewDeps<TNode>): TNode {
+  const { app, render } = deps
+  return render('div', { style: { padding: '32px' } }, [
+    render('h1', {}, [app.translate('placeholder.custom')]),
+    render('p', {}, [app.translate('placeholder.customHint')]),
+  ])
+}

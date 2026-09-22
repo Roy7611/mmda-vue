@@ -80,6 +80,8 @@
 | 应用壳 | `MmdaApplication` | core abstract class；鉴权、MetaUi、DI、locale。`context.app` 的类型。业务读 **`app.state`** |
 | Vue 应用壳 | `MmdaVueApp` | vui `extends MmdaApplication`；不是 Vue `createApp()` |
 | 拼屏实现 | `VueUiBuilder` | vui 抽象类，`implements UiBuilder<VNode>`（模板方法）；皮肤 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等再 extends。取代 `AbstractUiBuilder`。注入类型用本类，不要另造 Host，也不要 alias 成 `UiBuilder` |
+| 页面级视图 | `UiViewFn` | core；业务包（base/mes）画模块首页/占位页用它，第二参是 `UiViewDeps`（`app` / `render` / `router`）。宿主包成自己的组件（`hostedView`），业务包不 import 框架 |
+| 翻译 | `app.translate` / `TranslateFn` | core；逻辑与页面统一从这里取文案（实体会话内 `context.t` 带参数）。不要 vue-i18n 的 `useI18n` |
 | 会话实现 | `VueUiContext` | vui 实现 core `UiContext`；对标 Flutter `BuildContext`，给构造 / 拼屏 / 屏级 IO。不要叫 ViewModel / Store。旧名 `UiViewContext` / `UiBuildContext` 已合并，新代码不要写 |
 
 元数据（`MetaUiField` 等）不是会话状态：查询词、选中行、校验结果不要写回去。

@@ -1,4 +1,9 @@
-import { MmdaApplication, type MmdaApplicationOptions } from '@mmda/core'
+import {
+  MmdaApplication,
+  type MmdaApplicationOptions,
+  type TranslateFn,
+  type Translatable,
+} from '@mmda/core'
 import { ReactUiBuilder } from '../ui/builder'
 import { ReactUiContext } from '../contexts/react_ui_context'
 import type { RuiContextOptions } from '../contexts/react_ui_context'
@@ -24,6 +29,13 @@ export class MmdaReactApp extends MmdaApplication {
     const builder = new ReactUiBuilder(stubFactory, stubFieldFactory)
     super(baseUrl, service, builder, options)
   }
+
+  /**
+   * 文案翻译。React 侧还没接 i18n，先原样返回；接上后覆盖这里
+   * （对标 vui 的 `MmdaVueApp.translate`，用的是同一个 core 契约）。
+   */
+  override translate: TranslateFn = (message) =>
+    typeof message === 'string' ? message : message.message
 
   /** 会话工厂。业务层用 `app.createContext(opts)` 创建会话。 */
   createContext<M extends import('@mmda/core').Entity>(opts: Omit<RuiContextOptions<M>, 'logic'> & { logic?: any; navigate?: any }): ReactUiContext<M> {

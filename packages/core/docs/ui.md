@@ -48,7 +48,7 @@ Logic 只认 @mmda/core
 | `field_factory.ts` | `UiFieldFactory`：`render` / `editFor` / `displayFor` + 具名字段 renderer |
 | `layout.ts` | `UiLayout` / `AbstractUiLayout`（含 `scaffold`）。设计 [layout.md](./ui/layout.md) |
 | `props.ts` | `UiProps`；袋工具 `hasProp` / `getProp` / `htmlAttributesOf` |
-| `view.ts` | `UiViewProps`（单对象屏 extras） |
+| `view.ts` | `UiViewProps`（单对象屏 extras）；`UiViewDeps` / `UiViewFn`（**页面级视图**：业务包给 `{ app, render, router }` 返回节点，不 import 框架） |
 | `builder/list_view.ts` | `UiListViewProps`（Index / Select extras）、`UiIndexTableHost` |
 | `builder/explorer.ts` | `UiExplorerProps`（左树右表） |
 | `builder/topbar.ts` | `UiIndexTopbarProps` / `UiDetailsTopbarProps` / `UiEditTopbarProps`、`UiTopbarActionGroups`、`UiModuleBreadcrumbProps` |
@@ -97,5 +97,20 @@ factory.button({ label: '保存' })
 fld.render(field, context)
 await ui.confirm(context, { title: '删除', message: '确定？' })
 ```
+
+非实体屏（模块首页这类）不建会话，直接写页面视图：
+
+```ts
+// 业务包（@mmda/core 之外什么都不 import）
+export function homeView<TNode>(deps: UiViewDeps<TNode>): TNode {
+  const { app, render, router } = deps
+  return render('div', {}, [
+    render('h1', {}, [app.translate('home.workbench')]),
+    app.ui.factory.link({ href: router.resolve('/BASE/Materials') }, { default: () => [] }),
+  ])
+}
+```
+
+宿主把 `UiViewFn` 包成自己的组件（Vue：`packages/app/src/view_adapter.ts` 的 `hostedView`）。翻译统一入口是 `app.translate`（core `MmdaApplication`；实体会话内另有 `context.t`）。
 
 细则：[ui_four_roles_usage.md](./ui/ui_four_roles_usage.md)。命名：[docs/naming.md](../../../docs/naming.md)。继承图：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。
