@@ -1,4 +1,4 @@
-import { defineComponent, inject, type Component, type VNode } from 'vue'
+import { defineComponent, h, inject, type Component, type VNode } from 'vue'
 import { useRouter } from 'vue-router'
 import type { UiNodeProps, UiViewDeps, UiViewFn } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
@@ -32,7 +32,36 @@ export function hostedView(view: UiViewFn<VNode>): Component {
           resolve: (path) => router.resolve(path).href,
         },
       }
-      return () => view(deps)
+
+      /**
+       * 代管锚点点击：业务视图用 `factory.link` 吐真实 `<a href>`（中键 / 右键 / 复制链接都能用），
+       * 但普通左键必须走 SPA，不能整页刷新。拦截放在宿主这一层，业务侧不用知道路由库。
+       */
+      const onHostedClick = (event: MouseEvent): void => {
+        if (event.defaultPrevented || event.button !== 0) return
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        const anchor = (event.target as HTMLElement | null)?.closest?.(
+          'a[href]',
+        ) as HTMLAnchorElement | null
+        if (!anchor || anchor.target === '_blank') return
+        const href = anchor.getAttribute('href') ?? ''
+        // 只接管站内绝对路径（`/BASE/...`）；外链与 `//cdn` 原样交给浏览器。
+        if (!href.startsWith('/') || href.startsWith('//')) return
+        event.preventDefault()
+        void router.push(href)
+      }
+
+      // 壳用 `display: contents`：只做事件委托，不参与布局（视图里的 height:100% 仍按它的父级算）。
+      return () =>
+        h(
+          'div',
+          {
+            class: 'mmda-hosted-view',
+            style: { display: 'contents' },
+            onClick: onHostedClick,
+          },
+          [view(deps)],
+        )
     },
   })
 }

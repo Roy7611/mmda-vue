@@ -98,7 +98,7 @@ async function mountHome() {
   // 键的类型是 InjectionKey<MmdaApplication>；桩只需要 ui/state/modules/user/translate 这几项。
   vueApp.provide(UI_APP_KEY, app as unknown as MmdaApplication)
   vueApp.mount(host)
-  return { host, vueApp, app }
+  return { host, vueApp, app, router }
 }
 
 describe('hostedView(base 首页)', () => {
@@ -112,6 +112,44 @@ describe('hostedView(base 首页)', () => {
     const link = host.querySelector('a.home-card') as HTMLAnchorElement | null
     expect(link).not.toBeNull()
     expect(link?.getAttribute('href')).toBe('/BASE/Materials')
+
+    vueApp.unmount()
+    host.remove()
+  })
+
+  it('卡片是真实 <a href>，但普通左键由宿主接管走 SPA（不整页刷新）', async () => {
+    const { host, vueApp, router } = await mountHome()
+    const link = host.querySelector('a.home-card') as HTMLAnchorElement
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
+    link.dispatchEvent(event)
+    // router.push 是异步导航，等一个宏任务再断言。
+    await new Promise(resolve => setTimeout(resolve, 0))
+    await nextTick()
+
+    // 默认行为被拦下 → 浏览器不会整页跳走；路由自己变。
+    expect(event.defaultPrevented).toBe(true)
+    expect(router.currentRoute.value.path).toBe('/BASE/Materials')
+
+    vueApp.unmount()
+    host.remove()
+  })
+
+  it('带修饰键的点击不拦（照旧交给浏览器新标签打开）', async () => {
+    const { host, vueApp, router } = await mountHome()
+    const link = host.querySelector('a.home-card') as HTMLAnchorElement
+
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      metaKey: true,
+    })
+    link.dispatchEvent(event)
+    await nextTick()
+
+    expect(event.defaultPrevented).toBe(false)
+    expect(router.currentRoute.value.path).toBe('/BASE/')
 
     vueApp.unmount()
     host.remove()
