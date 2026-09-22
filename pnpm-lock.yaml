@@ -96,57 +96,6 @@ importers:
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
-      '@mmda/vui-syncfusion':
-        specifier: workspace:^
-        version: link:../vui-syncfusion
-      '@syncfusion/ej2-vue-barcode-generator':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-buttons':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-calendars':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-charts':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-diagrams':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-dropdowns':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-grids':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-inplace-editor':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-inputs':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-lists':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-navigations':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-notifications':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-popups':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-progressbar':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-querybuilder':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-splitbuttons':
-        specifier: 34.2.2
-        version: 34.2.2
       vue:
         specifier: ^3.5.25
         version: 3.5.41(typescript@5.9.3)
@@ -208,6 +157,9 @@ importers:
 
   packages/mes:
     dependencies:
+      '@mmda/base':
+        specifier: workspace:^
+        version: link:../base
       '@mmda/core':
         specifier: workspace:^
         version: link:../core
@@ -217,63 +169,9 @@ importers:
       '@mmda/vui-syncfusion':
         specifier: workspace:^
         version: link:../vui-syncfusion
-      '@syncfusion/ej2-vue-barcode-generator':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-buttons':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-calendars':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-charts':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-diagrams':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-dropdowns':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-gantt':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-grids':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-inplace-editor':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-inputs':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-lists':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-navigations':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-notifications':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-popups':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-progressbar':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-querybuilder':
-        specifier: 34.2.2
-        version: 34.2.2
-      '@syncfusion/ej2-vue-splitbuttons':
-        specifier: 34.2.2
-        version: 34.2.2
       bpmn-js:
         specifier: ^18.25.1
         version: 18.25.1
-      bpmn-js-properties-panel:
-        specifier: ^5.65.0
-        version: 5.65.0(@bpmn-io/properties-panel@3.51.2(@bpmn-io/cm-theme@0.2.2(@codemirror/state@6.7.1)(@codemirror/view@6.43.9)))(bpmn-js@18.25.1)(camunda-bpmn-js-behaviors@1.18.0(bpmn-js@18.25.1)(camunda-bpmn-moddle@7.0.1)(zeebe-bpmn-moddle@1.18.0(moddle@8.2.1)))(diagram-js@15.24.1)
       camunda-bpmn-moddle:
         specifier: ^7.0.1
         version: 7.0.1
@@ -1328,6 +1226,9 @@ importers:
 
   packages/vuix-vf-diagram:
     dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
@@ -2078,7 +1979,6 @@ packages:
 
   '@syncfusion/ej2-cldr-data@31.1.17':
     resolution: {integrity: sha512-izRU0vHr3lxKUfMtd3a+sNK/oMH1vXWU4ycDn1znwdvJQzL8wWbZPxlZWIKLYxjMH0PSHf4E4lwueXhsnvU2ZQ==}
-    bundledDependencies: []
 
   '@syncfusion/ej2-compression@34.2.6':
     resolution: {integrity: sha512-9NvaiQt2EZPy9GHTm9jRB2hGJlC/Q27EO4UdPO4nz+HBFP4TPeClGGclhXm4UxrNSmrYgofBJv2Ffbui2/5o9g==}
@@ -2187,7 +2087,6 @@ packages:
 
   '@syncfusion/ej2-locale@34.2.2':
     resolution: {integrity: sha512-cnR/0Kx5J2aNALmd2Oq3boK8we2Rs2a0WmzJL3F/DoHHuPra1+YLQeLts1zVOGBhJ4naPk1la8mLtn/BZbHMaw==}
-    bundledDependencies: []
 
   '@syncfusion/ej2-maps@34.2.2':
     resolution: {integrity: sha512-oKBg8jvTc5/QBIIz8AZdP2dFgESQFnNSPXW7MV0IABJBxZ1WH4t0EuklqNMIFhu+01FVvHx3RGChymnLoI+IRA==}

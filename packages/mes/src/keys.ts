@@ -4,4 +4,3 @@ import type {MmdaApplication} from '@mmda/core'
 export const APP_NAME = 'MES'
 
 export const MES_KEY = UI_APP_KEY as InjectionKey<MmdaApplication>
-export const MMDA_MES_KEY = MES_KEY

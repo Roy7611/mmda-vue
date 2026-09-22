@@ -49,7 +49,7 @@ export const HomeView = defineComponent({
     const { t } = useI18n()
     const b = inject<VuiBuilder>(UI_BUILDER_KEY)!
     const { factory } = b
-    const app = (inject(MES_KEY) ?? inject(UI_APP_KEY)) as MmdaApplication
+    const app = inject(MES_KEY) as MmdaApplication
     const { modules, user } = app
     const router = useRouter()
     // 待办数由壳层 AppUserFooter 拉取；此处只读 app.state.todoCount
