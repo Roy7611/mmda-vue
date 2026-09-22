@@ -301,7 +301,7 @@ export interface UiBuilder<TNode = any> {
   /** 甘特。viewKind === gantt。 */
   buildGantt(context: UiContext, props?: UiGanttProps): TNode
 
-  /** 时间轴。嵌在屏里也可用 `factory.timeline`。 */
+  /** 时间轴。通过插件渲染，应用 `builder.use(...)` 安装。 */
   buildTimeline(context: UiContext, props?: UiTimelineProps): TNode
 
   /** 日程。viewKind === scheduler。 */

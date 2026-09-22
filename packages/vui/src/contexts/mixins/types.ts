@@ -20,7 +20,7 @@ export interface ContextHost {
   locale: string;
   logic?: any;
   app?: any;
-  router?: any;
+  vueRouter?: any;
   editing: boolean;
   loading: { value: boolean };
   error: { value: unknown };
@@ -52,7 +52,6 @@ export interface ContextHost {
   cachePath: string;
   fieldLogics: Record<string, any>;
   translateFn: any;
-  referenceOptionLoads: Map<string, Promise<any[]>>;
   baseFilter: string;
 
   t(message: any, param?: Record<string, any>): string;

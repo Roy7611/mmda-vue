@@ -25,6 +25,7 @@ data_layer -down-> logic_layer : data fetch
 logic_layer -down-> ui_layer : data present
 @enduml
 ```
+![layers_architecture_1](../images/diagrams/layers_architecture_1.png)
 
 ## 数据层（Data）
 
@@ -57,6 +58,7 @@ net_api .up.> meta_ui : fetch
 net_api .up.> models : fetch / update
 @enduml
 ```
+![layers_architecture_2](../images/diagrams/layers_architecture_2.png)
 
 ## 逻辑层（Logic）
 
@@ -85,6 +87,7 @@ EntityLogic *-left- "*" MetaUiFieldLogic : fields
 EntityLogic .right.> UiContext : bind
 @enduml
 ```
+![layers_architecture_3](../images/diagrams/layers_architecture_3.png)
 
 ## 展现层（UI）
 
@@ -115,6 +118,7 @@ UiBuilder .down.> UiProps : build with
 UiBuilder .down.> UiSlots : build with
 @enduml
 ```
+![layers_architecture_4](../images/diagrams/layers_architecture_4.png)
 
 构建用户界面（UI）主要接口有：
 
@@ -127,3 +131,11 @@ UiBuilder .down.> UiSlots : build with
 - UiProps 构建一个组件的属性接口，buildXxx函数的第2个参数
 - UiSlots 构建一个组件的插槽（子组件）接口
 - UiEventArgs 一个组件因交互产生的事件（event up）参数
+
+## core 包结构总览（图）
+
+![core_layer](../images/diagrams/core_layer.png)
+
+数据层（`metaui` / `models` / `net`）与辅助（`utils` / `di` / `MmdaApplication`）的包内落点，以及三层之间的四条通道（data fetch / data present / event up / data update）。表现层框只标位置，契约明细见 `docs/design/ui_layer.wsd` 的五张图。
+
+图源：`docs/design/layers_architecture.wsd`（块名 `core_layer`）；重渲：`bash scripts/render-diagrams.sh`。

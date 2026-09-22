@@ -4,7 +4,7 @@
  * 契约在 @mmda/core；v-model 式更新在本文件。
  */
 import type { VNode } from 'vue'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 import {
   type UiDiagramConnector,
   type UiDiagramNode,
@@ -52,8 +52,8 @@ export function emitDiagramUpdate(
   if (props.readonly) return
   props.onNodesChange?.(nodes)
   props.onConnectorsChange?.(connectors)
-  vueUpdateOf<UiDiagramNode[]>(props, 'nodes')?.(nodes)
-  vueUpdateOf<UiDiagramConnector[]>(props, 'connectors')?.(connectors)
+  vuiUpdateOf<UiDiagramNode[]>(props, 'nodes')?.(nodes)
+  vuiUpdateOf<UiDiagramConnector[]>(props, 'connectors')?.(connectors)
 }
 
 /** vui 钉成 VNode。 */

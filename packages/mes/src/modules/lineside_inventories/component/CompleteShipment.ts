@@ -10,7 +10,7 @@ import { defineComponent, type SlotsType, inject, ref, type Ref, watch, reactive
 import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, } from "@mmda/core";
 import { isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, toPrecise, thousandDigitFormat } from '@mmda/core';
 import {type UiSearchField} from '@mmda/core'
-import { VueUiContext, type UiCustomSearchField, type CustomColumn } from '@mmda/vui'
+import { VuiContext, type UiCustomSearchField, type CustomColumn } from '@mmda/vui'
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { useRouter, useRoute } from 'vue-router';
 import { MES_KEY } from '@/keys';
@@ -22,7 +22,7 @@ import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
 const CompleteShipment = defineComponent({
     name: 'CompleteShipment',
     props: {
-        context: { type: Object as PropType<VueUiContext<any>>, default: null },
+        context: { type: Object as PropType<VuiContext<any>>, default: null },
     },
     setup(props, ctx) {
         const { uiBuilder, globalProps, apiClient } = props.context;
@@ -35,7 +35,7 @@ const CompleteShipment = defineComponent({
             ctor: () => BomLogicCtor(metaUiService, router),
             options: { lifetime: 'scoped' }
         })
-        const bomCtx = new VueUiContext<any>({
+        const bomCtx = new VuiContext<any>({
             model: emptyPagedList<Bom>(),
             metaUi: bomLogic.metaUi,
             view: props.context.view,

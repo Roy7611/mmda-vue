@@ -23,7 +23,8 @@ export const UiPluginName = {
   pivotTable: 'pivot-table',
   ribbon: 'ribbon',
   aiAssistant: 'ai-assistant',
-  chart: 'chart',
+  chart: 'charts',
+  office: 'office',
 } as const
 
 export type UiPluginNameType = (typeof UiPluginName)[keyof typeof UiPluginName]

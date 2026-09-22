@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { SyncfusionUiBuilder } from '../syncfusion_builder'
+import { SfUiBuilder } from '../syncfusion_builder'
 import {
   createSfAiAssistantPlugin,
   wrapAiPromptRequest,
@@ -35,7 +35,7 @@ describe('createSfAiAssistantPlugin', () => {
   })
 
   it('skin builder installs ai-assistant by default', () => {
-    const builder = new SyncfusionUiBuilder()
+    const builder = new SfUiBuilder()
     expect(builder.hasPlugin('ai-assistant')).toBe(true)
     const vnode = builder.plugin('ai-assistant')!.buildUi({} as any, {
       relateTo: '#btn',

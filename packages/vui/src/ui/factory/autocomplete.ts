@@ -1,9 +1,9 @@
 import type { UiAutoCompleteProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
-/** Vue v-model 写入回调：`onUpdate` → `onUpdate:modelValue`（归一在 `vueUpdateOf`）。 */
+/** Vue v-model 写入回调：`onUpdate` → `onUpdate:modelValue`（归一在 `vuiUpdateOf`）。 */
 export function autoCompleteUpdateOf(
   props?: UiAutoCompleteProps,
 ): ((value: string) => void) | undefined {
-  return vueUpdateOf<string>(props)
+  return vuiUpdateOf<string>(props)
 }

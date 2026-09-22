@@ -1,16 +1,18 @@
-// @ts-nocheck
 import { h, type VNode, type VNodeChild } from "vue";
 import {
+  AbstractUiBuilder,
   MetaModel,
   SqlDataType,
   auth,
   placeFields,
   type MetaUiField,
   type MetaUiGroup,
+  type UiAction,
+  type UiImageGalleryItem,
   uiCssClass,
   type UiMessageProps,
 } from "@mmda/core";
-import { type UiFieldGroupType, type UiProps } from "../layout";
+import { type UiFieldGroupType, type UiProps } from "@mmda/core";
 import { isImageGalleryShape } from "./tree_data";
 import { treeGridSpecFromGroup } from "../factory/tree_grid";
 import { wrapRowDetail } from "../factory/list";
@@ -18,34 +20,44 @@ import { isActionEnabled } from "../factory/action";
 import { GroupCard } from "../../components/GroupCard";
 import { GroupTab } from "../../components/GroupTab";
 import { translateMessage } from "../../i18n/i18n";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { UiViewPropsType } from "../../contexts/view";
+import type { VuiContext } from "../../contexts/vue_ui_context";
+import type { VuiViewProps } from "../../contexts/view";
 import {
-  groupZone,
-  hiddenDeletedSubRowStyle,
-  sortViewGroups,
   uploadedFileNames,
   type UiContext,
 } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
 
+interface GroupShellProps extends UiProps {
+  container?: 'card' | 'fieldset' | 'tab' | 'none'
+  region?: string
+  many?: boolean
+  orientation?: 'vertical' | 'horizontal'
+  cols?: number
+  headerActions?: VNode | VNode[]
+  footer?: VNode | VNode[]
+  caption?: string | VNode
+}
+
+interface BuildGroupProps extends UiProps {
+  orientation?: 'vertical' | 'horizontal' | 'row' | 'column'
+  direction?: 'vertical' | 'horizontal' | 'row' | 'column'
+  cols?: number
+  container?: 'card' | 'fieldset' | 'tab' | 'none'
+  showGroupActions?: boolean
+  skipRowDetail?: boolean
+  fieldVertical?: boolean
+}
+
 export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
   abstract class FormBuilder extends Base {
-
-    labelFor(field: MetaUiField, props?: UiProps) {
-      return h(
-        "label",
-        { for: field.fieldName, key: field.fieldName, ...props },
-        field.displayLabel,
-      );
-    }
 
     /**
      * 强制编辑行（标签 + 输入）。按 `MetaUiField` 选 `fieldFactory` 里的控件，再套 `layout` 排。
      * 校验文案由皮肤控件自绘。控件：`customEditor` ?? `field.editor` ?? `fallbackInput`。
      */
     editFor(field: MetaUiField, context: UiContext) {
-      return wrapFieldRow(this, field, context, props, true);
+      return this.wrapFieldRow(field, context, {}, true);
     }
 
     fieldDisplayName(field: MetaUiField) {
@@ -59,68 +71,23 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
      * 控件：`customRenderer` ?? `field.renderer`（bool 默认 `checkedIcon`）?? `fallbackDisplay`。
      */
     displayFor(field: MetaUiField, context: UiContext) {
-      return wrapFieldRow(this, field, context, props, false);
+      return this.wrapFieldRow(field, context, {}, false);
     }
 
     /** 按会话状态自动选编辑/显示行并套字段布局。 */
-    buildField(field, context) {
-      return renderFieldRow(this, field, context, props);
+    buildField(field: MetaUiField, context: UiContext) {
+      return this.renderFieldRow(field, context, {});
     }
 
-    buildResponsiveField(field, context) {
-      return renderFieldRow(this, field, context, props);
-    }
-    
-    groupWrapClass(group: MetaUiGroup, props: UiProps = {}) {
-      const raw = String(props.region ?? groupZone(group));
-      // accept legacy region names from callers
-      const zone =
-        raw === "secondary" || raw === "summary" ? "secondary" : "primary";
-      const many = props.many === true || group.many;
-      return [uiCssClass("group"), many ? "sub" : "master", zone, props.class]
-        .filter(Boolean)
-        .join(" ");
-    }
-    
-    /** 组内容容器：字段/表格布局归这里管，Card 只做外壳 */
-    wrapGroupContent(body: VNode | VNode[], props: UiProps = {}) {
-      return h(
-        "div",
-        { class: [uiCssClass("group", "body"), props.class].filter(Boolean) },
-        body,
-      );
-    }
-    
-    /** FieldSet 外壳：骑边 legend（经典） */
-    buildGroupFieldSet(
-      group: MetaUiGroup,
-      body: VNode | VNode[],
-      props: UiProps = {}
-    ) {
-      const {
-        container: _container,
-        region: _region,
-        many: _many,
-        orientation: _orientation,
-        cols: _cols,
-        class: _className,
-        ...rest
-      } = props;
-      return h(
-        "fieldset",
-        { class: this.groupWrapClass(group, props), ...rest },
-        [
-          h("legend", { class: uiCssClass("group", "title") }, group.groupLabel),
-          this.wrapGroupContent(body),
-        ],
-      );
+    buildResponsiveField(field: MetaUiField, context: UiContext) {
+      return this.renderFieldRow(field, context, {});
     }
     
     /** Card 外壳：可折叠 header；内容由 wrapGroupContent 自管布局 */
     buildGroupCard(
       group: MetaUiGroup,
       body: VNode | VNode[],
-      props: UiProps = {}
+      props: GroupShellProps = {}
     ) {
       const {
         container: _container,
@@ -156,7 +123,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     buildGroupTab(
       group: MetaUiGroup,
       body: VNode | VNode[],
-      props: UiProps = {},
+      props: GroupShellProps = {},
     ) {
       const {
         container: _container,
@@ -187,14 +154,14 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
     
     /** 子表 header 工具栏（对齐老代码 Panel icons）— 平面图标，文案进 tooltip */
     buildGroupHeaderActions(group: MetaUiGroup, context: UiContext) {
-      const runtime = context as VueUiContext;
+      const runtime = context as VuiContext;
       const actions = runtime.getGroupActions?.(group) ?? [];
       if (!actions.length) return undefined;
       const t = (message: any) => context.t(message);
       return h(
         "div",
         { class: uiCssClass("group", "action-group") },
-        actions.map((action) => {
+        actions.map((action: UiAction) => {
           const label = action.label
             ? t(action.label)
             : action.name
@@ -214,10 +181,10 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       );
     }
     
-    wrapGroup(group: MetaUiGroup, body: VNode | VNode[], props: UiProps = {}) {
+    wrapGroup(group: MetaUiGroup, body: VNode | VNode[], props: GroupShellProps = {}) {
       const shell = props.container ?? "card";
       if (shell === "none") {
-        return Array.isArray(body) ? h("div", body) : body;
+        return Array.isArray(body) ? this.renderer.render("div", {}, body) : body;
       }
       if (shell === "fieldset") {
         return this.buildGroupFieldSet(group, body, props);
@@ -228,8 +195,14 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       return this.buildGroupCard(group, body, props);
     }
     
-    buildGroup(group, context, children?: any, props = {}) {
-      if (context.isGroupHidden(group)) return h("span", { hidden: true });
+    buildGroup(group: MetaUiGroup, context: UiContext, children?: VNode[] | null, props: BuildGroupProps = {}) {
+      if (context.isGroupHidden(group)) {
+        return this.renderer.render(
+          "span",
+          { attributes: { htmlAttributes: { hidden: true } } },
+          [],
+        )
+      }
         const {
         orientation: orientationProp,
         direction: directionProp,
@@ -245,17 +218,17 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         orientationProp ??
         directionProp ??
         (group.isSecondary() ? "column" : "row");
-      const wrapProps: UiProps = {
+      const wrapProps: GroupShellProps = {
         container,
         class: className,
-        region: groupZone(group),
+        region: AbstractUiBuilder.groupZone(group),
         many: group.many,
       };
       if (group.many && group.groupUi) {
         const rows =
           ((context.model as Record<string, any>)[group.groupName] as any[]) ??
           [];
-        const groupCtx = (context as VueUiContext).subGroupContext(group);
+        const groupCtx = (context as VuiContext).subGroupContext(group);
         const readOnlyRows = !context.editing;
         const groupLogic = context.getGroupLogic(group) as any;
         const customGroupView = context.editing
@@ -379,7 +352,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           const gallery = !context.editing
             ? this.factory.imageGallery({
                 items: galleryItems,
-                onItemDblclick: (item) =>
+                onItemDblclick: (item: UiImageGalleryItem) =>
                   (context as any).subGroupItem?.(group, item.data),
               })
             : undefined;
@@ -425,7 +398,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           ? listedFields
           : group.groupUi.groups
               .filter((childGroup) => !childGroup.many)
-              .flatMap((childGroup) => childGroup.fields);
+              .flatMap((childGroup) => childGroup.fields ?? []);
         const fieldCellEditors: Record<
           string,
           {
@@ -467,7 +440,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
                 }
                 const flags = auth(
                   (item as { allowOps?: number }).allowOps ?? 0,
-                ) as Record<string, boolean>;
+                ) as unknown as Record<string, boolean>;
                 return Boolean(flags[field.fieldName]);
               },
             };
@@ -482,7 +455,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           const rowCtx = groupCtx.with(item);
           if (treeSpec) {
             rowCtx.setFieldValue(field, value);
-            return !rowCtx.getFieldError?.(field);
+            return !rowCtx.getInvalidMessage(field);
           }
           let normalized = value;
           if (
@@ -496,9 +469,9 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           }
           MetaModel.setFieldValue(item, field, normalized);
           rowCtx.setFieldValue(field, normalized);
-          return !rowCtx.getFieldError?.(field);
+          return !rowCtx.getInvalidMessage(field);
         };
-        const gridProps = {
+        const gridProps: Record<string, any> = {
             display: nativeGridEditing ? "grid" : "table",
             sortable: false,
             groupable: false,
@@ -510,7 +483,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             inplaceEditStart: groupLogic?.inplaceEditStart ?? "excel",
             fieldCellEditors,
             defaultCellSave,
-            rowStyle: hiddenDeletedSubRowStyle,
+            rowStyle: (item: unknown) => AbstractUiBuilder.deletedSubRowStyle(item),
             onItemDoubleClick: (item: any) =>
               (context as any).subGroupItem?.(group, item),
             group,
@@ -550,7 +523,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           ? this.buildTreeGrid(
               rows,
               group.groupUi,
-              (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
+              (row: any) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
               {
                 ...gridProps,
                 ...treeSpec,
@@ -560,7 +533,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           : this.tableWithCells(
               rows,
               group.groupUi,
-              (row) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
+              (row: any) => (readOnlyRows ? groupCtx : groupCtx.with(row)),
               gridProps,
             );
         if (showGroupActions !== false) {
@@ -580,19 +553,19 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       const fields =
         children ??
         (() => {
-          const visible = group.fields.filter(
-            (field) => !context.isFieldHidden(field),
+          const visible = (group.fields ?? []).filter(
+            (field: MetaUiField) => !context.isFieldHidden(field),
           )
           const packed = placeFields(
             gridCols,
-            visible.map((field) => ({
+            visible.map((field: MetaUiField) => ({
               colSpan: field.colSpan,
               rowSpan: field.rowSpan,
             })),
           )
-          return visible.map((field, index) => {
+          return visible.map((field: MetaUiField, index: number) => {
             const cell = packed[index]!
-            return renderFieldRow(this, field, context, {
+            return this.renderFieldRow(field, context, {
               ...fieldProps,
               ...(fieldVertical ? { fieldVertical: true } : {}),
               gridColumn: `${cell.column + 1} / span ${cell.colSpan}`,
@@ -650,7 +623,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       );
     }
     
-    buildView(context: any, props: UiViewPropsType = {}): VNode {
+    buildView(context: UiContext, props: VuiViewProps = {}): VNode {
       const groups = context.metaUi.groups.filter(
         (group) => !context.isGroupHidden(group),
       );
@@ -756,12 +729,12 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         if (emphasizedFields.length > 0) {
           emphasis = this.layout.row(
             emphasizedFields.map((field) =>
-              wrapFieldRow(this, field, context, {}, false),
+              this.wrapFieldRow(field, context, {}, false),
             ),
             emphasizedFields.map((field) => Math.max(1, field.colSpan ?? 1)),
           );
         }
-        const tabGroups = sortViewGroups([
+        const tabGroups = AbstractUiBuilder.sortViewGroups([
           ...viewGroups.filter((group) => group.isPrimary()),
           ...(props.showSecondaryGroup !== false
             ? viewGroups.filter((group) => group.isSecondary())
@@ -805,7 +778,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         ];
       } else {
         // cards：主区主表组 → 子表组；右边栏附件 + 概要；尾栏
-        const primary = sortViewGroups(
+        const primary = AbstractUiBuilder.sortViewGroups(
           viewGroups.filter((group) => group.isPrimary()),
         ).map((group) =>
           this.buildGroup(group, context, undefined, {
@@ -824,7 +797,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         }
         if (props.showSecondaryGroup !== false) {
           summary.push(
-            ...sortViewGroups(
+            ...AbstractUiBuilder.sortViewGroups(
               viewGroups.filter((group) => group.isSecondary()),
             ).map((group) =>
               this.buildGroup(group, context, undefined, {
@@ -834,7 +807,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
             ),
           );
         }
-        tails = sortViewGroups(
+        tails = AbstractUiBuilder.sortViewGroups(
           viewGroups.filter((group) => group.isTails()),
         ).map((group) =>
           this.buildGroup(group, context, undefined, {
@@ -860,142 +833,16 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       });
       // 页根即 .mmda-page；内滚由 .mmda-view__one .mmda-page 承担（工作区占用 mmda-view）
       return context.editing
-        ? h(
+        ? this.renderer.render(
             "form",
             {
               class: "mmda-form",
               style: { height: "100%", minHeight: 0, overflow: "hidden" },
             },
-            page,
+            [page],
           )
         : page;
     }
   }
   return FormBuilder;
-}
-
-/**
- * 字段行：选控件 + 套布局。builder 构表单时用（`buildEditView` → field set → field）。
- *
- * 具名 editor/renderer 仍是裸控件，表格单元格不要走这里；
- * 校验文案由皮肤控件自绘，不由布局画。
- */
-type FieldRowHost = {
-  fieldFactory: any;
-  layout: any;
-};
-
-function labelOf(field: MetaUiField, props?: UiProps) {
-  return h(
-    "label",
-    {
-      for: field.fieldName,
-      key: field.fieldName,
-      class: uiCssClass("field-label"),
-      ...props,
-    },
-    field.displayLabel,
-  );
-}
-
-/** 裸编辑控件（不含标签布局）。 */
-function editorFor(
-  host: FieldRowHost,
-  field: MetaUiField,
-  context: any,
-  props: UiProps = {},
-) {
-  const logic = context.getFieldLogic?.(field) as
-    | { customEditor?: (f: MetaUiField, c: any, p?: UiProps) => VNode }
-    | undefined;
-  const renderer =
-    logic?.customEditor ??
-    (field.editor ? host.fieldFactory[field.editor] : undefined) ??
-    host.fieldFactory.fallbackInput;
-  return renderer(field, context);
-}
-
-/** 裸展示控件（不含标签布局）。 */
-function displayRendererFor(
-  host: FieldRowHost,
-  field: MetaUiField,
-  context: any,
-  props: UiProps = {},
-) {
-  const logic = context.getFieldLogic?.(field) as
-    | { customRenderer?: (f: MetaUiField, c: any, p?: UiProps) => VNode }
-    | undefined;
-  const name = field.renderer
-    ? field.renderer
-    : SqlDataType.isBool(field.dataType)
-      ? "checkedIcon"
-      : "textSpan";
-  const renderer =
-    logic?.customRenderer ??
-    host.fieldFactory[name] ??
-    host.fieldFactory.fallbackDisplay;
-  return renderer(field, context);
-}
-
-/** 编辑/只读行共同外壳：剥掉行级 props，按 layout 横向或纵向排。 */
-function wrapFieldRow(
-  host: FieldRowHost,
-  field: MetaUiField,
-  context: any,
-  props: UiProps = {},
-  useEditor: boolean,
-) {
-  const {
-    editing: _e,
-    direction,
-    orientation,
-    isReadonly: _r,
-    fieldVertical,
-    gridColumn,
-    gridRow,
-    ...controlProps
-  } = props as UiProps & {
-    fieldVertical?: boolean;
-    gridColumn?: string;
-    gridRow?: string;
-  };
-  const control = useEditor
-    ? editorFor(host, field, context, controlProps)
-    : displayRendererFor(host, field, context, controlProps);
-  // 单次调用可覆写全局 layout.fieldVertical（cards 页组默认传 true）
-  const useVert =
-    fieldVertical === true ||
-    orientation === "vertical" ||
-    direction === "vertical";
-  const slots = {
-    label: labelOf(field),
-    control,
-    gridColumn,
-    gridRow,
-  };
-  return useVert
-    ? host.layout.layoutFieldVert(slots)
-    : host.layout.layoutField(slots);
-}
-
-/** 按会话状态自动选编辑或显示。 */
-function renderFieldRow(
-  host: FieldRowHost,
-  field: MetaUiField,
-  context: any,
-  props: UiProps = {},
-) {
-  if (context.isFieldHidden?.(field)) {
-    return h("span", { hidden: true });
-  }
-  const editing =
-    (props.editing as boolean | undefined) ?? context.editing;
-  const isReadonly = props.isReadonly as boolean | undefined;
-  const useEditor =
-    Boolean(editing) &&
-    !context.isFieldReadonly?.(field) &&
-    !isReadonly;
-  return useEditor
-    ? wrapFieldRow(host, field, context, props, true)
-    : wrapFieldRow(host, field, context, props, false);
 }

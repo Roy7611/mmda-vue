@@ -1,0 +1,71 @@
+{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@mmda/core": [
+        "../core/dist/index.d.ts"
+      ],
+      "@mmda/rui": [
+        "../rui/dist/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-notifications": [
+        "./node_modules/@syncfusion/ej2-react-notifications/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-popups": [
+        "./node_modules/@syncfusion/ej2-react-popups/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-buttons": [
+        "./node_modules/@syncfusion/ej2-react-buttons/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-splitbuttons": [
+        "./node_modules/@syncfusion/ej2-react-splitbuttons/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-inputs": [
+        "./node_modules/@syncfusion/ej2-react-inputs/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-calendars": [
+        "./node_modules/@syncfusion/ej2-react-calendars/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-dropdowns": [
+        "./node_modules/@syncfusion/ej2-react-dropdowns/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-navigations": [
+        "./node_modules/@syncfusion/ej2-react-navigations/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-lists": [
+        "./node_modules/@syncfusion/ej2-react-lists/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-layouts": [
+        "./node_modules/@syncfusion/ej2-react-layouts/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-progressbar": [
+        "./node_modules/@syncfusion/ej2-react-progressbar/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-grids": [
+        "./node_modules/@syncfusion/ej2-react-grids/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-barcode-generator": [
+        "./node_modules/@syncfusion/ej2-react-barcode-generator/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-inplace-editor": [
+        "./node_modules/@syncfusion/ej2-react-inplace-editor/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-querybuilder": [
+        "./node_modules/@syncfusion/ej2-react-querybuilder/src/index.d.ts"
+      ],
+      "@syncfusion/ej2-react-treegrid": [
+        "./node_modules/@syncfusion/ej2-react-treegrid/src/index.d.ts"
+      ]
+    }
+  }
+}

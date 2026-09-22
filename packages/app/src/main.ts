@@ -1,7 +1,8 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
-import { SyncfusionUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
+import { SfUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
 import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
+import { createOfficePlugin } from "@mmda/vuix-office";
 import baseZh from "@mmda/base/src/locales/zh";
 import baseEn from "@mmda/base/src/locales/en";
 import baseZhHant from "@mmda/base/src/locales/zh-Hant";
@@ -23,8 +24,9 @@ const i18n = setupI18n(
   },
   "zh",
 );
-const builder = new SyncfusionUiBuilder();
+const builder = new SfUiBuilder();
 builder.use(createMarkdownEditorPlugin());
+builder.use(createOfficePlugin());
 const mmda = new MmdaVueApp(
   import.meta.env.VITE_BASE_API || "/api",
   "base",

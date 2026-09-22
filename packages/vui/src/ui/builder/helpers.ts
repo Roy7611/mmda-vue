@@ -1,29 +1,7 @@
-import type { MetaUiGroup, UiContext } from "@mmda/core";
-import { MetaModel } from "@mmda/core";
+import type { UiContext } from "@mmda/core";
 import { translateMessage } from "../../i18n/i18n";
 
 export type { UiContext };
-
-const hiddenDeletedSubRowStyle = (data: any) =>
-  MetaModel.deleted(data) ? { display: "none" } : undefined;
-
-/** Card zone: primary (main column incl. tails) | secondary (summary/aside). */
-export const groupZone = (group: MetaUiGroup) =>
-  group.isSecondary() ? "secondary" : "primary";
-
-/** 同区内：主表组（!many）在前并按 groupName；子表组按 groupIdx。 */
-const compareViewGroups = (a: MetaUiGroup, b: MetaUiGroup) => {
-  if (a.many !== b.many) return a.many ? 1 : -1;
-  if (a.many) {
-    return (a.groupIdx ?? 0) - (b.groupIdx ?? 0);
-  }
-  return a.groupName.localeCompare(b.groupName);
-};
-
-export const sortViewGroups = (groups: MetaUiGroup[]) =>
-  [...groups].sort(compareViewGroups);
-
-export { hiddenDeletedSubRowStyle };
 
 const uploadedFileName = (value: unknown) => {
   if (typeof value === "string") return value;

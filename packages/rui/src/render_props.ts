@@ -13,7 +13,7 @@ import type { UiRenderProps, UiProps } from '@mmda/core'
  *
  * 设计见 {@link ../../docs/rui_plan.md rui_plan.md} 和 `docs/design/vui_architecture.md` §1.4。
  */
-export function ruiRenderProps<TProps extends UiProps = UiProps>(
+export function reactRenderProps<TProps extends UiProps = UiProps>(
   std: UiRenderProps<TProps>,
 ): Record<string, unknown> {
   const { class: className, for: htmlFor, ...restProps } = std.props

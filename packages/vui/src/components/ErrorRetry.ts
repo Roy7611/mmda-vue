@@ -2,11 +2,12 @@ import {
   errorDisplayOf,
   errorModifierClasses,
   uiCssClass,
+  type ApiProblem,
   type UiErrorProps,
   type UiErrorStatus,
   uiRenderProps
 } from '@mmda/core'
-import { defineComponent, h, inject } from 'vue'
+import { defineComponent, h, inject, type PropType } from 'vue'
 import { createIconVNode, MATERIAL_SYMBOL_PREFIX } from '../app/icon'
 import { UI_APP_KEY } from '../app/keys'
 import type { MmdaVueApp } from '../app/app'
@@ -29,7 +30,7 @@ export const ErrorRetry = defineComponent({
   name: 'ErrorRetry',
   inheritAttrs: false,
   props: {
-    error: { default: undefined },
+    error: { type: Object as PropType<ApiProblem | null>, default: undefined },
     title: { type: String, default: undefined },
     description: { type: String, default: undefined },
     retryLabel: { type: String, default: undefined },

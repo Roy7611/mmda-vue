@@ -24,15 +24,15 @@ import {
   speechToTextValueOf,
 } from './speech_to_text'
 
-export type UiSpeechToTextButtonContext = {
+export type VuiSpeechToTextButtonContext = {
   listening: boolean
   disabled?: boolean
   toggle: () => void
   class: unknown[]
 }
 
-export type UiSpeechToTextRenderButton = (
-  ctx: UiSpeechToTextButtonContext,
+export type VuiSpeechToTextRenderButton = (
+  ctx: VuiSpeechToTextButtonContext,
 ) => VNode
 
 /** DOM lib 不一定带 Web Speech；宿主里自管最小形状。 */
@@ -84,7 +84,7 @@ export const MmdaSpeechToTextHost = defineComponent({
     onListening: Function as PropType<UiSpeechToTextProps['onListening']>,
     onError: Function as PropType<UiSpeechToTextProps['onError']>,
     onReady: Function as PropType<UiSpeechToTextProps['onReady']>,
-    renderButton: Function as PropType<UiSpeechToTextRenderButton>,
+    renderButton: Function as PropType<VuiSpeechToTextRenderButton>,
   },
   setup(props) {
     const listening = ref(Boolean(props.listening))

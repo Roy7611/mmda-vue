@@ -1,5 +1,5 @@
 import { type UiTextInputProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
 export type {
   UiTextInputProps,
@@ -33,5 +33,5 @@ export function emitTextInputChange(
   }
   const next = unpacked == null ? '' : String(unpacked)
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }

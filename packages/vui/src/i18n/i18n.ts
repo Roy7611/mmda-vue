@@ -9,10 +9,10 @@
 import { isRef, nextTick } from "vue";
 import { createI18n, type I18n } from "vue-i18n";
 
-import en from "./locales/en";
-import zh from "./locales/zh";
-import zhHant from "./locales/zh-Hant";
-import { numberFormats, datetimeFormats } from "./formats";
+import en from '@mmda/i18n/src/en'
+import zh from '@mmda/i18n/src/zh'
+import zhHant from '@mmda/i18n/src/zh-Hant'
+import { numberFormats, datetimeFormats } from '@mmda/i18n/src/formats'
 
 // export type TranslateFn = (path: string, ...params: any[]) => string
 

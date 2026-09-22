@@ -1,14 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
-import {
-  MetaUi,
+import { MetaUi,
   MetaUiField,
   ModuleVersion,
   SqlDataType,
-  defineEntity,
-} from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
-import { UiViewMany } from "../contexts/view";
+  defineEntity, } from "@mmda/core";
+import { VuiContext } from "../contexts/vue_ui_context";
+import { UiViewMany, UiViewOne } from "../contexts/view";
 
 const hostMeta = new MetaUi({
   objName: "Material",
@@ -65,23 +63,19 @@ const catMeta = new MetaUi({
 function mountDialogContent(content: any) {
   const Comp = content?.type;
   if (Comp && typeof Comp.setup === "function") {
-    const render = Comp.setup(
-      content.props ?? {},
-      {
-        attrs: {},
-        slots: {},
-        emit: () => undefined,
-        expose: () => undefined,
-      } as any,
-    );
+    const render = Comp.setup(content.props ?? {}, {
+      attrs: {},
+      slots: {},
+      emit: () => undefined,
+      expose: () => undefined,
+    } as any);
     if (typeof render === "function") render();
   }
 }
 
-
 function mockSelectUi(
-  build: ReturnType<typeof vi.fn>,
-  dialog: ReturnType<typeof vi.fn> = vi.fn(async () => "cancel" as const),
+  build: any,
+  dialog: any = vi.fn(async () => "cancel" as const),
 ) {
   const buildView = vi.fn();
   const selectDialog = vi.fn(async (ctx: any, props: any) => {
@@ -117,10 +111,10 @@ describe("select picker build", () => {
     });
     const selectUi = mockSelectUi(build, dialog);
 
-    const ctx = new VueUiContext({
-      model: { id: "1" },
+    const ctx = new VuiContext({
+      model: { id: "1" } as any,
       metaUi: hostMeta,
-      view: "edit",
+      view: UiViewOne.Edit,
       app: {
         name: "base",
         meta: {
@@ -161,7 +155,7 @@ describe("select picker build", () => {
     expect(build).toHaveBeenCalledTimes(1);
     expect(selectUi.buildView).not.toHaveBeenCalled();
     expect(selectUi.selectDialog).toHaveBeenCalled();
-    const selectCtx = build.mock.calls[0]![0];
+    const selectCtx = (build.mock.calls[0] as any[])[0];
     expect(selectCtx.view).toBe(UiViewMany.SelectOne);
     expect(selectCtx.logic.createEntity).toBe(defineEntity);
     expect(selectCtx.module?.authority).toEqual(
@@ -172,7 +166,7 @@ describe("select picker build", () => {
         allowDelete: false,
       }),
     );
-    expect(build.mock.calls[0]![1]).toEqual(
+    expect((build.mock.calls[0] as any[])[1]).toEqual(
       expect.objectContaining({
         selectionMode: "single",
         showToolbar: true,
@@ -187,7 +181,9 @@ describe("select picker build", () => {
       expect.anything(),
       expect.objectContaining({
         dlgProps: expect.objectContaining({
-          title: expect.stringMatching(/选择一个|Select one|view\.selectOneEntity/),
+          title: expect.stringMatching(
+            /选择一个|Select one|view\.selectOneEntity/,
+          ),
         }),
         viewProps: expect.objectContaining({
           showSearchbar: true,
@@ -242,10 +238,10 @@ describe("select picker build", () => {
       return "cancel" as const;
     });
 
-    const ctx = new VueUiContext({
-      model: { id: "1" },
+    const ctx = new VuiContext({
+      model: { id: "1" } as any,
       metaUi: hostMeta,
-      view: "edit",
+      view: UiViewOne.Edit,
       app: {
         name: "base",
         meta: {
@@ -278,10 +274,10 @@ describe("select picker build", () => {
     });
 
     expect(build).toHaveBeenCalledTimes(1);
-    const selectCtx = build.mock.calls[0]![0];
+    const selectCtx = (build.mock.calls[0] as any[])[0];
     expect(selectCtx.logic).toBe(injectedLogic);
     expect(selectCtx.logic.createEntity).toBe(createEntity);
-    expect(build.mock.calls[0]![1]).toEqual(
+    expect((build.mock.calls[0] as any[])[1]).toEqual(
       expect.objectContaining({
         showActions: true,
         showActionColumn: true,
@@ -296,10 +292,10 @@ describe("select picker build", () => {
       return "cancel" as const;
     });
 
-    const ctx = new VueUiContext({
-      model: { id: "1" },
+    const ctx = new VuiContext({
+      model: { id: "1" } as any,
       metaUi: hostMeta,
-      view: "edit",
+      view: UiViewOne.Edit,
       app: {
         name: "base",
         meta: {
@@ -338,7 +334,7 @@ describe("select picker build", () => {
       authority: { allowCreate: true },
     });
 
-    const selectCtx = build.mock.calls[0]![0];
+    const selectCtx = (build.mock.calls[0] as any[])[0];
     expect(selectCtx.module?.authority).toEqual(
       expect.objectContaining({
         allowRead: false,
@@ -347,7 +343,7 @@ describe("select picker build", () => {
         allowDelete: false,
       }),
     );
-    expect(build.mock.calls[0]![1]).toEqual(
+    expect((build.mock.calls[0] as any[])[1]).toEqual(
       expect.objectContaining({
         showActions: true,
         showActionColumn: false,
@@ -364,23 +360,20 @@ describe("select picker build", () => {
     let hostRender: (() => unknown) | undefined;
     const dialog = vi.fn(async (content: any) => {
       const Comp = content?.type as ReturnType<typeof defineComponent>;
-      hostRender = Comp.setup!(
-        {},
-        {
-          attrs: {},
-          slots: {},
-          emit: () => undefined,
-          expose: () => undefined,
-        } as any,
-      ) as () => unknown;
+      hostRender = Comp.setup!({}, {
+        attrs: {},
+        slots: {},
+        emit: () => undefined,
+        expose: () => undefined,
+      } as any) as () => unknown;
       hostRender();
       return "cancel" as const;
     });
 
-    const ctx = new VueUiContext({
-      model: { id: "1" },
+    const ctx = new VuiContext({
+      model: { id: "1" } as any,
       metaUi: hostMeta,
-      view: "edit",
+      view: UiViewOne.Edit,
       app: {
         name: "base",
         meta: {
@@ -419,7 +412,7 @@ describe("select picker build", () => {
     });
 
     expect(build).toHaveBeenCalledTimes(1);
-    const selectCtx = build.mock.calls[0]![0];
+    const selectCtx = (build.mock.calls[0] as any[])[0];
     selectCtx.loading.value = true;
     hostRender?.();
     expect(build).toHaveBeenCalledTimes(2);

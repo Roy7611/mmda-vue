@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { MetaUi, MetaUiGroup } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { VuiContext } from "../contexts/vue_ui_context";
 import {
   indexTableMetaUi,
   joinListColumnLabel,
@@ -63,8 +63,8 @@ function metaWithJoin(allow = true, requiredAny = true) {
 describe("joinListMode", () => {
   it("没有 hasJoinList 时不出现菜单", () => {
     const metaUi = metaWithJoin(false, true);
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
       view: UiViewMany.Index,
     });
@@ -87,8 +87,8 @@ describe("joinListMode", () => {
         },
       ],
     });
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
       view: UiViewMany.Index,
       logic: {
@@ -146,8 +146,8 @@ describe("joinListMode", () => {
         },
       ],
     });
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
       view: UiViewMany.Index,
       logic: {

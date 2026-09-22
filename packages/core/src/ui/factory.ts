@@ -1,4 +1,5 @@
 import type { UiProps } from './props'
+import type { UiTimelineProps } from './plugins/timeline'
 import type { UiAutoCompleteProps } from './factory/autocomplete'
 import type { UiTagAutoCompleteProps } from './factory/tag_auto_complete'
 import type { UiBarcodeProps } from './factory/barcode'
@@ -22,7 +23,6 @@ import type { UiQueryBuilderProps } from './factory/query_builder'
 import type { UiSignaturePadProps } from './factory/signature_pad'
 import type { UiSpeechToTextProps } from './factory/speech_to_text'
 import type { UiStepperProps } from './factory/stepper'
-import type { UiTimelineProps } from './plugins/timeline'
 import type { UiTreeSelectProps } from './factory/tree_select'
 import type {
   UiButtonGroupProps,
@@ -185,7 +185,6 @@ export interface UiFactory<TNode = any> {
   queryBuilder(props: UiQueryBuilderProps): TNode
   signaturePad(props: UiSignaturePadProps): TNode
   stepper(props: UiStepperProps): TNode
-  timeline(props: UiTimelineProps): TNode
   speechToText(props: UiSpeechToTextProps): TNode
   barcode(props: UiBarcodeProps): TNode
   qrCode(props: UiQrCodeProps): TNode
@@ -232,6 +231,9 @@ export interface UiFactory<TNode = any> {
   /** 页级异常重试面板（打开失败 / 列表重载失败）；不要用 message 顶栏顶替。 */
   error(props: UiErrorProps): TNode
   skeleton(props: UiSkeletonProps): TNode
+
+  /** 时间轴。chrome 默认 `factory.timeline`，可选引擎用 `builder.use(...)` 插件覆盖。 */
+  timeline?(props: UiTimelineProps): TNode
 
   searchRelative(props: UiSearchRefProps): TNode
 }

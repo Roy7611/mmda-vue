@@ -37,7 +37,7 @@ Data 回新数据 → Logic 更新状态 → UI 重绘
 | **Logic → UI** | `context.uiBuilder` | Overlay（toast / confirm / dialog）；拼屏 `buildIndexView` / `buildSelectView` / `buildDetailsView` / `buildEditView`；原子控件 `factory.*` / 字段行 `fieldFactory.render`。换皮换实现，Logic 只认 core **四职**契约（见 [ui_four_roles_design.md](packages/core/docs/ui/ui_four_roles_design.md)） |
 | **职责** | 处理用户交互 | 钩子、校验、`refWhere`、把业务函数挂到会话。不认 Vue/React 类型，不碰皮肤控件 |
 
-Logic 只认 core **`UiContext`**。不要写成 vui `VueUiContext`。日常不要掏 `globalProps.$ui` / `$api`。
+Logic 只认 core **`UiContext`**。不要写成 vui `VueUiContext` 或 rui `ReactUiContextBase`；不要从 `UiContext` 向下转型到运行时类。日常不要掏 `globalProps.$ui` / `$api`。
 
 ```mermaid
 flowchart LR

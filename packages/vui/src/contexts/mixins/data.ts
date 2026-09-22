@@ -16,12 +16,12 @@ import {
 import { ref } from "vue";
 import type { ImportOrExportParam } from "../../ui/builder";
 import {
-  UiCustomSearchField,
-  UiFilter,
+  VuiCustomSearchField,
+  VuiFilter,
   quickFiltersToSQL,
-  type UiSearchField,
+  type VuiSearchField,
 } from "../../ui/factory/filter";
-import type { VueUiSearchForm } from "../../logic/logic";
+import type { VuiSearchForm } from "../../logic/logic";
 import { getFileInfo } from "../../components/FileIcons";
 import { loadLastQuery, saveLastQuery } from "../../ui/builder/list_last_query";
 import {
@@ -39,13 +39,13 @@ import {
 import { readStoredPageSize } from "../../app/theme";
 import type { Constructor } from "./types";
 
-export interface UiFileTransferOptions extends ImportOrExportParam {
+export interface VuiFileTransferOptions extends ImportOrExportParam {
   file?: File;
   files?: File[];
   body?: any;
 }
 
-export interface UiSessionIo<E extends Entity = Entity> {
+export interface VuiSessionIo<E extends Entity = Entity> {
   search(param?: EntitySearchParam): Promise<unknown>;
   refresh(reloadMetadata?: boolean, setLoading?: boolean): Promise<void>;
   reload(): Promise<unknown> | unknown;
@@ -71,9 +71,9 @@ export function deletableSelectedItems<E extends Entity>(
 
 export function WithData<TBase extends Constructor>(Base: TBase) {
   return class Data extends Base {
-    filters: UiFilter[] = [];
-    searchFields: UiSearchField[] = [];
-    customSearchFields: UiCustomSearchField[] = [];
+    filters: VuiFilter[] = [];
+    searchFields: VuiSearchField[] = [];
+    customSearchFields: VuiCustomSearchField[] = [];
     searchParam = rx(createDefaultSearchParam());
     lastQuery = ref<import("@mmda/core").EntityQuery | null>(null);
     #captureLastQuery = false;
@@ -131,9 +131,9 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       this.#captureLastQuery = true;
     }
 
-    configureSearch(filters: MetaUiFilter[] = [], form?: VueUiSearchForm) {
+    configureSearch(filters: MetaUiFilter[] = [], form?: VuiSearchForm) {
       this.filters = filters.map((filter) => {
-        const uiFilter = new UiFilter(filter);
+        const uiFilter = new VuiFilter(filter);
         uiFilter.selectedConditions.value = filter.filterConditions.filter(
           (condition) => condition.fallback,
         );
@@ -165,13 +165,13 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
         }
       }
       if (form?.searchFields) this.searchFields = form.searchFields;
-      // Logic 只声明 plain CustomSearchField；运行时包装成带 searchVal 的 UiCustomSearchField
+      // Logic 只声明 plain CustomSearchField；运行时包装成带 searchVal 的 VuiCustomSearchField
       if (form?.customSearchFields) {
         this.customSearchFields = form.customSearchFields.map(
           (field: any) =>
-            field instanceof UiCustomSearchField
+            field instanceof VuiCustomSearchField
               ? field
-              : new UiCustomSearchField({
+              : new VuiCustomSearchField({
                   searchLabel: field.searchLabel ?? field.label ?? "",
                   searchParam: field.searchParam,
                   renderer: field.renderer,
@@ -196,7 +196,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
     }
 
     toggleQuickFilter(
-      filter: UiFilter,
+      filter: VuiFilter,
       condition: MetaUiFilterCondition,
       single = false,
     ) {
@@ -270,25 +270,6 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return this.refresh(false);
     }
 
-    async refresh(reloadMetadata = false, setLoading = true) {
-      if (!this.logic) return;
-      if (setLoading) this.loading.value = true;
-      try {
-        if (reloadMetadata) await this.logic.initMetadata(true);
-        if (this.logic.beforeLoad) {
-          await this.logic.beforeLoad(this, this.model);
-        }
-        const id = (this.model as Entity).id;
-        if (id) {
-          const loaded = await this.logic.load(id);
-          if (loaded) this.setModel(loaded);
-        }
-        await this.logic.afterLoad?.(this, this.model);
-      } finally {
-        this.loading.value = false;
-      }
-    }
-
     async initMetadata(reload = false, params?: EntityUrlParam) {
       if (!this.logic) return;
       const metaUi = await this.logic.initMetadata(reload, params);
@@ -301,63 +282,9 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return metaUi;
     }
 
-    async save() {
-      if (!this.logic) return;
-      if (this.logic.beforeSave) {
-        const ok = await this.logic.beforeSave(this, this.model);
-        if (ok === false) return false;
-      }
-      if (this.logic.beforeValidate) {
-        const ok = await this.logic.beforeValidate(this, this.model);
-        if (ok === false) return false;
-      }
-      const valid = await this.validate();
-      if (!valid) {
-        const messages = this.collectInvalidMessages?.() ?? [];
-        await this.uiBuilder?.message?.(this, {
-          severity: "error",
-          content:
-            messages.length > 0
-              ? messages.join("；")
-              : this.translate("invalid.model"),
-        });
-        return false;
-      }
-      const remoteErrors = await this.logic.afterValidate?.(
-        this,
-        this.model,
-        this.$v,
-      );
-      if (remoteErrors && remoteErrors > 0) {
-        const messages = this.collectInvalidMessages?.() ?? [];
-        await this.uiBuilder?.message?.(this, {
-          severity: "error",
-          content:
-            messages.length > 0
-              ? messages.join("；")
-              : this.translate("failure.beforeSave"),
-        });
-        return false;
-      }
-      const result = await this.logic.save(this.model);
-      if (result && typeof result === "object") this.setModel(result);
-      await this.logic.afterSave?.(this, this.model, undefined, result);
-      await this.uiBuilder?.message?.(this, {
-        severity: "success",
-        content: this.translate("success.saved"),
-      });
-      return result;
-    }
-
     async delete() {
-      if (!this.logic) return;
-      if (this.logic.beforeDelete) {
-        const ok = await this.logic.beforeDelete(this, this.model);
-        if (ok === false) return false;
-      }
       const id = (this.model as Entity).id;
-      const result = await this.logic.delete(id);
-      await this.logic.afterDelete?.(this, this.model, undefined, result);
+      const result = await super.delete();
       if (result !== false && !this.many && id != null && String(id) !== "") {
         getModuleContext(this)?.removeById(String(id));
         this.routeToIndex();
@@ -499,7 +426,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return true;
     }
 
-    async uploadFile(file: File, options: UiFileTransferOptions = {}) {
+    async uploadFile(file: File, options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       const ok = await this.logic.beforeUpload?.(this, this.model, file);
       if (ok === false) return false;
@@ -508,7 +435,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    async uploadFiles(files: File[], options: UiFileTransferOptions = {}) {
+    async uploadFiles(files: File[], options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       const ok = await this.logic.beforeUpload?.(this, this.model, files);
       if (ok === false) return false;
@@ -517,7 +444,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    async importFile(options: UiFileTransferOptions = {}) {
+    async importFile(options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       if (!options.file) throw new Error("importFile requires options.file.");
       const ok = await this.logic.beforeImport?.(this, this.model, options.file);
@@ -530,7 +457,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    async importFiles(options: UiFileTransferOptions = {}) {
+    async importFiles(options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       if (!options.files) throw new Error("importFiles requires options.files.");
       const ok = await this.logic.beforeImport?.(
@@ -547,7 +474,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    async exportFile(options: UiFileTransferOptions = {}) {
+    async exportFile(options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       const result = await this.logic.exportFile(
         this.model.id,
@@ -559,7 +486,7 @@ export function WithData<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    async exportFiles(options: UiFileTransferOptions = {}) {
+    async exportFiles(options: VuiFileTransferOptions = {}) {
       if (!this.logic) return;
       const result = this.joinListMode
         ? await this.logic.exportJoinList(

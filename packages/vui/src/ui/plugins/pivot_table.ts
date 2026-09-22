@@ -15,7 +15,7 @@ export type {
 } from '@mmda/core'
 
 export {
-  PIVOT_PLUGIN_NOT_INSTALLED,
+  PIVOT_TABLE_PLUGIN_NOT_INSTALLED,
   unimplementedPivotPlugin,
   pivotHookClass,
   pivotAggregateOf,

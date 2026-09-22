@@ -6,8 +6,8 @@ import {
   type UiFieldFactory,
   type UiFieldRenderer,
 } from "@mmda/core";
-import type {UiProps} from "./layout";
-import type { VueUiContext } from "../contexts/vue_ui_context";
+import type {UiProps} from "@mmda/core";
+import type { VuiContext } from "../contexts/vue_ui_context";
 
 export type { UiFieldRenderer } from "@mmda/core";
 /** 过渡名：皮肤与 vui 内部仍写 `UiFieldFactory`（core 的契约名）。 */
@@ -15,9 +15,9 @@ export type { UiFieldFactory } from "@mmda/core";
 
 type VueFieldRenderer = UiFieldRenderer<VNode>;
 
-export type UiGroupRenderer = (
+export type VuiGroupRenderer = (
   group: MetaUiGroup,
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   children?: VNode[],
   props?: UiProps,
 ) => VNode;
@@ -29,7 +29,7 @@ export type UiGroupRenderer = (
  * 抄错一个名字（曾经有 `negativenumberInput`）编译器还查不出来。
  * 带标签的字段行在 Builder 上（`editFor` / `displayFor` / `buildField`），本表只放裸控件。
  */
-export type VueUiFieldFactory = UiFieldFactory<VNode>;
+export type VuiFieldFactory = UiFieldFactory<VNode>;
 
 export const defineFieldProps = (field: MetaUiField): UiProps =>
   ({

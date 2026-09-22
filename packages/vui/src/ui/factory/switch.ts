@@ -1,5 +1,5 @@
 import { type UiSwitchProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiEmitProps } from '../vui_props'
 
 export type { UiSwitchProps } from '@mmda/core'
 export {
@@ -10,9 +10,9 @@ export {
 
 /** Vue v-model：`onUpdate:modelValue` / `onUpdate`。 */
 export function emitSwitchChange(
-  props: UiSwitchProps,
+  props: VuiEmitProps<UiSwitchProps>,
   checked: boolean,
 ): void {
   props.onChange?.(checked)
-  vueUpdateOf(props)?.(checked)
+  vuiUpdateOf(props)?.(checked)
 }

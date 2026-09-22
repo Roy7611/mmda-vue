@@ -2,23 +2,13 @@ import { defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToastComponent } from '@syncfusion/ej2-vue-notifications'
 import { DialogComponent } from '@syncfusion/ej2-vue-popups'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogButtonLabel, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
-  type SyncfusionOverlay,
+  type SfOverlay,
 } from '../syncfusion_overlay'
 import { dialogHeaderHtml } from '../factory/utils'
-
-const DEFAULT_LABELS: Record<UiDialogAction, string> = {
-  ok: 'OK',
-  cancel: 'Cancel',
-  yes: 'Yes',
-  no: 'No',
-  abort: 'Abort',
-  retry: 'Retry',
-  ignore: 'Ignore',
-}
 
 function sfCssForRole(role?: string): string | undefined {
   if (role === 'primary') return 'e-primary'
@@ -44,7 +34,7 @@ export const SfOverlayHost = defineComponent({
   name: 'SfOverlayHost',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
-    const overlay = (app?.ui as any)?.overlay as SyncfusionOverlay | undefined
+    const overlay = (app?.ui as any)?.overlay as SfOverlay | undefined
     const toastRef = ref<any>()
 
     let translate: ((key: string) => string) | undefined
@@ -58,7 +48,7 @@ export const SfOverlayHost = defineComponent({
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated
-      return DEFAULT_LABELS[button]
+      return dialogButtonLabel(button)
     }
 
     return () => {

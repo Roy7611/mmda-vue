@@ -1017,7 +1017,7 @@ describe('vui-agnaive skin', () => {
     expect(fields.Avatar).toBe(fields.avatar)
   })
 
-  it('constructs the builder against VueUiBuilder', () => {
+  it('constructs the builder against VuiBuilder', () => {
     const builder = new AgNaiveUiBuilder()
     expect(builder.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()

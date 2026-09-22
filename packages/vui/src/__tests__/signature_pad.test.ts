@@ -9,9 +9,9 @@ describe('signaturePad helpers', () => {
       signaturePadValueOf({
         value: 'data:image/png;base64,abc',
         modelValue: 'other',
-      }),
+      } as any),
     ).toBe('data:image/png;base64,abc')
-    expect(signaturePadValueOf({ modelValue: '' })).toBe('')
+    expect(signaturePadValueOf({ modelValue: '' } as any)).toBe('')
   })
 
   it('maps vui file types to EJ2 and back', () => {
@@ -71,7 +71,7 @@ describe('signaturePad helpers', () => {
     expect(props.value).toBe('data:image/png;base64,abc')
     expect(props.readOnly).toBe(true)
     expect(props.htmlAttributes).toMatchObject({ name: 'sign', id: 'sign' })
-    props.onChange?.('', 'clear')
+    props.onChange?.('')
     expect(setFieldValue).toHaveBeenCalledWith(field, '')
   })
 })

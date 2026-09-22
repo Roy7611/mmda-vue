@@ -1,8 +1,8 @@
 import { h, unref, type VNode } from 'vue'
 import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi } from '@mmda/core'
-import type { UiProps, UiAction, VueUiFactory, UiListPropsType, UiPaginatorPropsType, UiSlots } from '@mmda/vui'
-import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from '@mmda/vui'
+import type { UiProps, UiAction, VueUiFactory, UiListPropsType, UiPaginatorPropsType, VueUiTileSlots } from '@mmda/vui'
+import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vuiUpdateOf } from '@mmda/vui'
 import { agNaiveLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
@@ -378,7 +378,7 @@ export function createAgNaiveUiFactory(): VueUiFactory {
       createSplitter(slots?.default?.() ?? [], props),
     searchRelative: (props) =>
       renderSearchForRelativeField(props as any),
-    formField: (props: UiProps = {}, slots?: UiSlots) =>
+    formField: (props: UiProps = {}, slots?: VueUiTileSlots) =>
       h(
         'div',
         { class: ['mmda-form-field', 'mmda-form-field', props.class], style: props.style },
@@ -390,7 +390,7 @@ export function createAgNaiveUiFactory(): VueUiFactory {
             createTextInput({
               ...props,
               value: props.modelValue ?? props.value,
-              onChange: props.onChange ?? vueUpdateOf(props),
+              onChange: props.onChange ?? vuiUpdateOf(props),
             }),
         ],
       ),

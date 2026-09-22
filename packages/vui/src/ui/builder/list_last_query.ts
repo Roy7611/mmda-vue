@@ -1,7 +1,7 @@
 import { EntityQuery, type EntitySearchParam } from "@mmda/core";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
+import type { VuiContext } from "../../contexts/vue_ui_context";
 
-function lastQueryLogic(context: VueUiContext<any>) {
+function lastQueryLogic(context: VuiContext<any>) {
   return context.logic as
     | {
         getLastQuery?: () => Promise<EntityQuery | undefined>;
@@ -11,11 +11,11 @@ function lastQueryLogic(context: VueUiContext<any>) {
     | undefined;
 }
 
-function lastQuerySlot(context: VueUiContext<any>) {
+function lastQuerySlot(context: VuiContext<any>) {
   return context.lastQuery ?? { value: null };
 }
 
-export async function loadLastQuery(context: VueUiContext<any>) {
+export async function loadLastQuery(context: VuiContext<any>) {
   const slot = lastQuerySlot(context);
   const query = (await lastQueryLogic(context)?.getLastQuery?.()) ?? null;
   slot.value = query;
@@ -28,7 +28,7 @@ export async function loadLastQuery(context: VueUiContext<any>) {
   }
 }
 
-export async function saveLastQuery(context: VueUiContext<any>) {
+export async function saveLastQuery(context: VuiContext<any>) {
   const logic = lastQueryLogic(context);
   if (!logic?.putLastQuery) return;
   const query = EntityQuery.copy(context.searchParam as EntitySearchParam);
@@ -36,7 +36,7 @@ export async function saveLastQuery(context: VueUiContext<any>) {
   lastQuerySlot(context).value = query;
 }
 
-export async function applyLastQuery(context: VueUiContext<any>) {
+export async function applyLastQuery(context: VuiContext<any>) {
   const query = lastQuerySlot(context).value;
   if (!query) return;
   EntityQuery.apply(context.searchParam, query);
@@ -44,7 +44,7 @@ export async function applyLastQuery(context: VueUiContext<any>) {
   return context.search?.();
 }
 
-export async function dismissLastQuery(context: VueUiContext<any>) {
+export async function dismissLastQuery(context: VuiContext<any>) {
   const logic = lastQueryLogic(context);
   if (logic?.deleteLastQuery) {
     await logic.deleteLastQuery();

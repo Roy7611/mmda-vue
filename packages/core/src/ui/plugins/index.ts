@@ -1,4 +1,5 @@
 export * from './plugin'
+export * from './plugin_host'
 export * from './gantt'
 export * from './scheduler'
 export * from './kanban'

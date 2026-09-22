@@ -25,7 +25,6 @@ import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
 import type { MmdaApplication } from "../app/app";
 import { useCompactViewport } from "../composables/useCompactViewport";
 
-export type AppMenuItem = UiAppMenuItem;
 
 export {
   assembleMenuItems,

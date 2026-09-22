@@ -6,22 +6,12 @@ import Toast from 'primevue/toast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { usePrimeVue } from 'primevue/config'
-import { dialogAllowDraggingOf, dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
+import { dialogAllowDraggingOf, dialogButtonColorRole, dialogButtonLabel, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogEnableResizeOf, dialogFooterKind, dialogHeaderKind, dialogMaximizableOf, dialogModalOf, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
   type PrimeOverlay,
 } from '../prime_overlay'
-
-const DEFAULT_LABELS: Record<UiDialogAction, string> = {
-  ok: 'OK',
-  cancel: 'Cancel',
-  yes: 'Yes',
-  no: 'No',
-  abort: 'Abort',
-  retry: 'Retry',
-  ignore: 'Ignore',
-}
 
 function primeClassForRole(role?: string, primary = false): string {
   const classes = ['p-button']
@@ -72,7 +62,7 @@ export const PrimeVueOverlayHost = defineComponent({
       if (translated && translated !== key) return translated
       if (button === 'ok' && primeLocale?.accept) return primeLocale.accept
       if (button === 'cancel' && primeLocale?.cancel) return primeLocale.cancel
-      return DEFAULT_LABELS[button]
+      return dialogButtonLabel(button)
     }
 
     return () => {

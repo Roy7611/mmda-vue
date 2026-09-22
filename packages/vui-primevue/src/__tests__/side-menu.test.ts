@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion } from '@mmda/core'
 import { assembleMenuItems } from '../components/AppSideMenu'
-import { PrimeVueUiBuilder } from '../prime_builder'
+import { PrimeVuiBuilder } from '../prime_builder'
 
 const sampleModules = new ModuleFactory([
   {
@@ -65,7 +65,7 @@ describe('AppSideMenu', () => {
   })
 
   it('buildAppSideMenu returns PrimeAppSideMenu', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const vnode = builder.buildAppSideMenu({ modules: sampleModules })
     expect(vnode.type).toMatchObject({ name: 'PrimeAppSideMenu' })
     const bar = builder.buildAppSideBar({
@@ -76,7 +76,7 @@ describe('AppSideMenu', () => {
   })
 
   it('buildAppMenu passes item template as slot, not PanelMenu prop', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const item = () => null
     const vnode = builder.buildAppMenu(sampleModules.slice(0, 1), {
       item,

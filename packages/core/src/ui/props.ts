@@ -78,7 +78,7 @@ export function htmlAttributesOf(props?: UiProps): HtmlAttributes {
  * 袋 → 「渲染前标准形态」：框架无关，`h` / `createElement` / Svelte 都能直接吃。
  *
  * - `props`：具名成员 + `onXxx` + 归一后的 `class`（字符串）与 `style`（对象）。
- *   Vue 专属的 `onUpdate` / `onUpdate:modelValue` 别名被滤掉，取值归口 vui 的 `vueUpdateOf`。
+ *   Vue 专属的 `onUpdate` / `onUpdate:modelValue` 别名被滤掉，取值归口 vui 的 `vuiUpdateOf`。
  * - `attributes`：DOM 属性白名单通道 —— 袋键 `htmlAttributes` 压平 + 顶层 `data-*` / `aria-*`。
  *
  * 判定只写在这里（**控件无关**）：

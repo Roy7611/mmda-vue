@@ -20,7 +20,7 @@ describe('tooltip helpers', () => {
     expect(tooltipContentOf({ content: '说明' })).toBe('说明')
     expect(
       tooltipContentOf({}, {
-        content: () => [{ children: '槽文案' } as any],
+        content: (() => [{ children: '槽文案' }]) as any,
       }),
     ).toBe('槽文案')
   })

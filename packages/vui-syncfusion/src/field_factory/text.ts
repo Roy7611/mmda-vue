@@ -4,12 +4,12 @@ import { textAreaPropsFromField, textInputPropsFromField } from "@mmda/core"
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import { createTextArea } from "../factory/text_area";
 import { createTextInput } from "../factory/text_input";
-import { control, invalidOf, type UiContext } from "./utils";
+import { control, invalidOf, type SfVuiContext } from "./utils";
 import { h } from "vue";
 
 export const textInput = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -26,7 +26,7 @@ export const textInput = (
 
 export const textArea = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -49,7 +49,7 @@ export const textArea = (
 
 export const password = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   control(TextBoxComponent as any, field, context, props, { type: "password" });

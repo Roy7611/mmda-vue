@@ -1,7 +1,7 @@
 import { h, type VNode } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType } from "@mmda/core";
-import type { VueUiBuilder } from "@mmda/vui"
-import type { ModuleSearchbarProps, UiProps, UiSearchField } from "@mmda/vui"
+import type { VuiBuilder } from "@mmda/vui"
+import type { ModuleSearchbarProps, UiProps, VuiSearchField } from "@mmda/vui"
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import {
   DropDownListComponent,
@@ -12,15 +12,15 @@ import {
   TextBoxComponent,
 } from "@syncfusion/ej2-vue-inputs";
 import {
-  type UiContext,
+  type SfVuiContext,
 } from "./utils";
 import { ListSearchField } from "@mmda/vui"
 
 export { SfSearchTextInput, moduleChain } from "./utils";
 
 export function buildSearchField(
-  field: UiSearchField,
-  _context: UiContext,
+  field: VuiSearchField,
+  _context: SfVuiContext,
   props: UiProps,
 ) {
   const meta = field.field;
@@ -85,8 +85,8 @@ export function buildSearchField(
 }
 
 export function buildModuleSearchbar(
-  this: VueUiBuilder,
-  context: UiContext,
+  this: VuiBuilder,
+  context: SfVuiContext,
   props: ModuleSearchbarProps & { onRefresh?: () => void },
 ) {
   const runtime = context as any;
@@ -182,7 +182,7 @@ export function buildModuleSearchbar(
     },
     [
       ...quickFilters,
-      ...(runtime.searchFields ?? []).map((field: UiSearchField) =>
+      ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
         buildSearchField(field, context, {}),
       ),
       ...(runtime.customSearchFields ?? []).map((field: any) =>

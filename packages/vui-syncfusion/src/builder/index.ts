@@ -7,10 +7,10 @@ import {
   type VNode,
 } from "vue";
 import { uiCssClass, type MetaUiGroup, type Module } from "@mmda/core";
-import { VueUiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type VueUiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiSearchField, type UiSlots, type VueUiContext } from "@mmda/vui"
+import { VuiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type VuiFactory, type VuiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type VuiSearchField, type VuiTileSlots, type VuiContext } from "@mmda/vui"
 import { SfGridFilterBar } from "../components/SfGridFilterBar";
 import { SfOverlayHost } from "../components/SfOverlayHost";
-import { createSyncfusionOverlay } from "../syncfusion_overlay";
+import { createSfOverlay } from "../syncfusion_overlay";
 import { SfAttachmentPanel } from "../components/SfAttachmentPanel";
 import { createSyncfusionFieldFactory } from "../syncfusion_field_factory";
 import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "../syncfusion_factory";
@@ -26,7 +26,7 @@ import { createSfChartFactory } from "../plugins/chart";
 
 import {
   invoke,
-  type UiContext,
+  type SfVuiContext,
 } from "./utils";
 import { buildImportOrExportAction as renderImportOrExportAction } from "./import_export";
 import {
@@ -44,18 +44,18 @@ import {
 } from "./shell";
 import { refreshSyncfusionSkin } from "../syncfusion_skin";
 
-export class SyncfusionUiBuilder extends VueUiBuilder {
-  declare readonly factory: VueUiFactory;
+export class SfUiBuilder extends VuiBuilder {
+  declare readonly factory: VuiFactory;
 
   constructor(
     factory = createSyncfusionUiFactory(),
-    fieldFactory: VueUiFieldFactory = createSyncfusionFieldFactory(),
+    fieldFactory: VuiFieldFactory = createSyncfusionFieldFactory(),
   ) {
     super(
       factory,
       fieldFactory,
       syncfusionLayout,
-      createSyncfusionOverlay(),
+      createSfOverlay(),
     );
     this.use(createSfGanttPlugin())
       .use(createSfKanbanPlugin())
@@ -65,10 +65,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
       .use(createSfImageEditorPlugin())
       .use(createSfAiAssistantPlugin())
       .use(chartAsPlugin(createSfChartFactory()));
-    if (typeof factory.timeline === "function") {
-      this.use(timelineAsPlugin((props) => factory.timeline!(props)));
-    }
-  }
+        }
 
   get overlayHost() {
     return SfOverlayHost;
@@ -123,7 +120,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   override buildAttachmentGroup(
-    context: VueUiContext<any>,
+    context: VuiContext<any>,
     props: UiProps = {},
   ): VNode {
     const panel = ref<{ choose: () => void }>();
@@ -176,7 +173,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   /**
-   * 兼容旧调用；真源是 SyncfusionLayout.scaffold（AppShell 直接调 layout）。
+   * 兼容旧调用；真源是 SfLayout.scaffold（AppShell 直接调 layout）。
    * sidebarLeft：nav 与 .mmda-app-page.e-main-content 为兄弟（EJ2 Push / Pad compact）。
    */
   override buildAppScaffold(props: AppScaffoldProps = {}) {
@@ -210,13 +207,13 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildImportOrExportAction(
-    context: UiContext,
+    context: SfVuiContext,
     props: ImportAndExportActionProps,
   ): VNode {
     return renderImportOrExportAction.call(this as any, context, props);
   }
 
-  private listLayoutMenuItems(context: UiContext) {
+  private listLayoutMenuItems(context: SfVuiContext) {
     return [
       {
         name: "autoFitColumns",
@@ -234,9 +231,9 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildIndexTopbar(
-    context: UiContext,
-    props?: Parameters<VueUiBuilder["buildIndexTopbar"]>[1],
-    slots?: UiSlots,
+    context: SfVuiContext,
+    props?: Parameters<VuiBuilder["buildIndexTopbar"]>[1],
+    slots?: VuiTileSlots,
   ) {
     return paintIndexTopbar(
       this,
@@ -248,9 +245,9 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
   }
 
   buildDetailsTopbar(
-    context: UiContext,
-    props?: Parameters<VueUiBuilder["buildDetailsTopbar"]>[1],
-    slots?: UiSlots,
+    context: SfVuiContext,
+    props?: Parameters<VuiBuilder["buildDetailsTopbar"]>[1],
+    slots?: VuiTileSlots,
   ) {
     return paintDetailsTopbar(
       this,
@@ -269,17 +266,17 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     );
   }
 
-  buildSearchField(field: UiSearchField, _context: UiContext, props: UiProps) {
+  buildSearchField(field: VuiSearchField, _context: SfVuiContext, props: UiProps) {
     return renderSearchField(field, _context, props);
   }
 
-  buildModuleSearchbar(context: UiContext, rawProps?: UiProps) {
+  buildModuleSearchbar(context: SfVuiContext, rawProps?: UiProps) {
     // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
     const props = (rawProps ?? {}) as ModuleSearchbarProps;
     return renderModuleSearchbar.call(this, context, props);
   }
 
-  override buildFilterBar(context: UiContext, props?: Record<string, unknown>) {
+  override buildFilterBar(context: SfVuiContext, props?: Record<string, unknown>) {
     const extra = (props as { chips?: () => unknown })?.chips?.();
     const extraNodes =
       extra == null ? [] : Array.isArray(extra) ? extra : [extra];
@@ -323,7 +320,7 @@ export class SyncfusionUiBuilder extends VueUiBuilder {
     });
   }
 
-  buildBpmnDiagram(flowTrails: any[], _context: UiContext, props: UiProps = {}) {
+  buildBpmnDiagram(flowTrails: any[], _context: SfVuiContext, props: UiProps = {}) {
     return renderBpmnDiagram(flowTrails, _context, props);
   }
 

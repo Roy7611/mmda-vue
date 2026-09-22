@@ -1,6 +1,6 @@
 import type { Entity } from "@mmda/core";
 import { getModuleContext } from "../vue_module_context";
-import { UiViewMany, UiViewOne, type UiViewType } from "../view";
+import { UiViewMany, UiViewOne } from "../view";
 import type { Constructor } from "./types";
 
 function listIndexOf(context: any, row: Entity): number {
@@ -70,37 +70,9 @@ export function WithNavigate<TBase extends Constructor>(
       return this.routeToIndex();
     }
 
-    routeTo(view: UiViewType, id?: string) {
-      const router = this.router;
-      if (!router || !this.logic) return;
-      const service = (this.logic.serviceName ?? "base").toUpperCase();
-      const repo = this.logic.repository;
-      const root = `/${service}/${repo}`;
-      const push = (target: string | { path: string; query?: Record<string, string> }) =>
-        Promise.resolve(router.push(target)).catch(() => {
-          if (typeof router.back === "function") return router.back();
-        });
-      if (view === UiViewMany.Index || view === UiViewMany.SelectMany) {
-        return push({
-          path: root,
-          query: view === UiViewMany.SelectMany ? { view: "selectMany" } : {},
-        });
-      }
-      if (view === UiViewOne.Create) {
-        return push(`${root}/Create`);
-      }
-      if (view === UiViewOne.Edit) {
-        return push(`${root}/Edit/${id}`);
-      }
-      if (view === UiViewOne.Search) {
-        return push(`${root}/Search`);
-      }
-      return push(`${root}/${id}`);
-    }
-
     /** 回列表：优先按当前 URL 剥掉末段（详情/编辑），避免 logic 拼径与路由不一致时 push 空转。 */
     routeToIndex() {
-      const router = this.router as
+      const router = this.vueRouter as
         | { currentRoute?: { value?: { path?: string } }; push: (t: unknown) => unknown; back?: () => unknown }
         | undefined;
       const path = router?.currentRoute?.value?.path;
@@ -116,13 +88,13 @@ export function WithNavigate<TBase extends Constructor>(
           }
         }
       }
-      return this.routeTo(UiViewMany.Index);
+      return super.routeToIndex();
     }
 
     selectMany(selectableKey: string, handleFn: (...args: any[]) => unknown) {
       this.setSelectableKey(selectableKey);
       this.setCustomManyActionHandleFn(selectableKey, handleFn);
-      this.routeTo(UiViewMany.SelectMany);
+      this.navigate(this.routePath(UiViewMany.SelectMany));
     }
 
     routeToEdit(idOrItem?: string | Entity) {
@@ -144,11 +116,10 @@ export function WithNavigate<TBase extends Constructor>(
           this.currentIndex = listIndexOf(this, entity);
           getModuleContext(this)?.setCurrent(entity, this.currentIndex);
         }
-        this.routeTo(UiViewOne.Edit, String(id ?? ""));
+        super.routeToEdit(String(id ?? ""));
         return;
       }
-      this.routeTo(
-        UiViewOne.Edit,
+      super.routeToEdit(
         (idOrItem as string | undefined) ?? (this.model as Entity).id,
       );
     }
@@ -163,11 +134,11 @@ export function WithNavigate<TBase extends Constructor>(
         this.currentIndex = -1;
         getModuleContext(this)?.beginCreate();
       }
-      this.routeTo(UiViewOne.Create);
+      super.routeToCreate();
     }
 
     routeToSearch() {
-      this.routeTo(UiViewOne.Search);
+      super.routeToSearch();
     }
 
     routeToDetails(idOrItem?: string | Entity) {
@@ -189,11 +160,10 @@ export function WithNavigate<TBase extends Constructor>(
           this.currentIndex = listIndexOf(this, entity);
           getModuleContext(this)?.setCurrent(entity, this.currentIndex);
         }
-        this.routeTo(UiViewOne.Details, String(id ?? ""));
+        super.routeToDetails(String(id ?? ""));
         return;
       }
-      this.routeTo(
-        UiViewOne.Details,
+      super.routeToDetails(
         (idOrItem as string | undefined) ?? (this.model as Entity).id,
       );
     }

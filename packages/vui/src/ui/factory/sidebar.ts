@@ -6,7 +6,7 @@
  * 不要 vui 主名 visible / show（只在 drawer 入口翻译旧词）。
  */
 import type { VNode } from 'vue'
-import type { UiSlots } from '../layout'
+import type { VuiTileSlots } from '../layout'
 
 export const DEFAULT_SIDEBAR_WIDTH = 280
 
@@ -22,9 +22,8 @@ import type {
   UiSidebarProps,
   UiSidebarType,
 } from '@mmda/core'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
 
-export type UiSidebarSlots = UiSlots
 
 function isTrue(raw: unknown): boolean {
   return raw === true || raw === 'true'
@@ -35,7 +34,7 @@ function isFalse(raw: unknown): boolean {
 }
 
 export function sidebarIsOpenOf(
-  props: VueModelProps<UiSidebarProps>,
+  props: VuiModelProps<UiSidebarProps>,
 ): boolean {
   if (props.isOpen !== undefined) return isTrue(props.isOpen)
   if (props.modelValue !== undefined) return isTrue(props.modelValue)
@@ -123,13 +122,13 @@ export function emitSidebarChange(
 ): void {
   const next = isTrue(isOpen)
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export { sidebarModifierClasses } from '@mmda/core'
 
 export function sidebarSlotsOf(
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ): Record<string, unknown> | undefined {
   if (!slots) return undefined
   const next: Record<string, unknown> = {}
@@ -140,5 +139,5 @@ export function sidebarSlotsOf(
 
 export type SidebarFactoryFn = (
   props: UiSidebarProps,
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ) => VNode

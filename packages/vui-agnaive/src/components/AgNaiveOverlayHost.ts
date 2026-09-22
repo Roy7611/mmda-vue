@@ -22,6 +22,7 @@ import {
 import {
   dialogAllowDraggingOf,
   dialogButtonColorRole,
+  dialogButtonLabel,
   dialogCloseOnEscapeOf,
   dialogCloseOnOverlayOf,
   dialogEnableResizeOf,
@@ -50,16 +51,6 @@ import {
   detachDialogResize,
   findTopNaiveDialog,
 } from '../dialog_resize'
-
-const DEFAULT_LABELS: Record<UiDialogAction, string> = {
-  ok: 'OK',
-  cancel: 'Cancel',
-  yes: 'Yes',
-  no: 'No',
-  abort: 'Abort',
-  retry: 'Retry',
-  ignore: 'Ignore',
-}
 
 /** Dialog shell size: number → px string. */
 export function cssSizeOf(
@@ -222,7 +213,7 @@ const OverlayInner = defineComponent({
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated
-      return DEFAULT_LABELS[button]
+      return dialogButtonLabel(button)
     }
 
     return () => {

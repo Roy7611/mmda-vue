@@ -2,7 +2,7 @@ import {
   type UiSignaturePadAction,
   type UiSignaturePadProps,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiEmitProps } from '../vui_props'
 
 export type {
   UiSignaturePadAction,
@@ -23,11 +23,11 @@ export {
 
 /** Vue v-model：`onUpdate:modelValue` / `onUpdate`。 */
 export function emitSignaturePadChange(
-  props: UiSignaturePadProps,
+  props: VuiEmitProps<UiSignaturePadProps>,
   value: string,
   action?: UiSignaturePadAction,
 ): void {
   props.onChange?.(value)
   if (action) props.onAction?.(action)
-  vueUpdateOf(props)?.(value)
+  vuiUpdateOf(props)?.(value)
 }

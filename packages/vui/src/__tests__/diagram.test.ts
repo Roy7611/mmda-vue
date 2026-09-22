@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { h } from 'vue'
 import { UiViewOne } from '../contexts/view'
-import {
-  DIAGRAM_PLUGIN_NOT_INSTALLED,
+import { DIAGRAM_PLUGIN_NOT_INSTALLED,
   UI_DIAGRAM_TYPES,
   diagramNodeDataOf,
   diagramPaletteOf,
   diagramReadonlyOf,
   unimplementedDiagramPlugin,
   UiPluginName,
-  type UiPlugin,
-} from '@mmda/core'
+  type UiPlugin, } from '@mmda/core'
 import { TestUiBuilder } from './test_builder'
 
 describe('diagramPlugin', () => {

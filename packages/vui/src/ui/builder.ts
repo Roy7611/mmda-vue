@@ -1,7 +1,9 @@
 import { defineComponent, h, type Component, type VNode, type VNodeChild } from "vue";
 import {
+  AbstractUiBuilder,
   moduleChain,
   uiCssClass,
+  UiPluginName,
   type Entity,
   type EntityUrlParam,
   type MetaUi,
@@ -24,18 +26,19 @@ import {
 import { VueAppSideMenu } from "../components/AppSideMenu";
 import { openTableSettingDialog } from "../components/TableSettingView";
 import { logListPaint } from "./builder/list_query";
-import {VueUiLayout, type UiProps, type UiSlots} from "./layout";
+import {VuiLayout, type VuiTileSlots} from "./layout";
+import type { UiProps } from "@mmda/core";
 import type {
-  VueUiFactory,
-  VueUiFieldFactory,
+  VuiFactory,
+  VuiFieldFactory,
 } from "./factory";
-import { mixPluginHost, VuePluginHost } from "./plugins/host";
+import { mixPluginHost } from "./plugins/host";
 import {
   isViewMany,
   UiViewMany,
   UiViewManyKind,
   UiViewOne,
-  type UiViewPropsType,
+  type VuiViewProps,
   type UiViewType,
 } from "../contexts/view";
 import type {
@@ -58,13 +61,11 @@ import type {
 } from "./factory/auth";
 import type {
   SearchForRelativeContentProps,
-  UiSearchField,
+  VuiSearchField,
 } from "./factory/filter";
 import type { UiAction } from "./factory/action";
-import { VueUiContext } from "../contexts/vue_ui_context";
-import { createHtmlOverlay, type VueUiOverlay } from "./overlay";
-import { DocxFilePreview } from "../components/DocxFilePreview";
-import { XlsxFilePreview } from "../components/XlsxFilePreview";
+import { VuiContext } from "../contexts/vue_ui_context";
+import type { VuiOverlay } from "./overlay";
 import type {
   UiConfirmProps,
   UiDialogProps,
@@ -74,7 +75,7 @@ import type {
   UiToastProps,
   UiViewProps,
 } from "@mmda/core";
-import { UiActionFactory } from "./builder/actions";
+import { VuiActionFactory } from "./builder/actions";
 import { WithForm } from "./builder/form";
 import { WithList } from "./builder/list_view";
 import { ListFilterBarView } from "./builder/list_filter_bar";
@@ -85,15 +86,13 @@ import {
   paintIndexTopbar,
 } from "./builder/topbar";
 
-export { UiActionFactory };
+export { VuiActionFactory };
 
-/** 拼屏方法参数用 core UiContext；需要 Vue 会话时再 as VueUiContext。 */
-type UiContext = CoreUiContext;
 
 export interface ImportOrExportParam extends EntityUrlParam {
-  handlerFn?: (context: UiContext, response: any) => void;
-  importFn?: (context: UiContext, model: any) => void;
-  exportFn?: (context: UiContext, model: any) => void;
+  handlerFn?: (context: CoreUiContext, response: any) => void;
+  importFn?: (context: CoreUiContext, model: any) => void;
+  exportFn?: (context: CoreUiContext, model: any) => void;
 }
 
 const unimplemented = (name: string) => {
@@ -102,23 +101,32 @@ const unimplemented = (name: string) => {
   );
 };
 
+/** 无皮肤时的弹层兜底：不弹、确认取消、对话框返回 cancel。 */
+const noopOverlay: VuiOverlay = {
+  toast: (): void => undefined,
+  message: (): void => undefined,
+  confirm: async (): Promise<boolean> => false,
+  dialog: async (): Promise<UiDialogAction> => 'cancel',
+  closeTopDialog: async (): Promise<void> => undefined,
+};
+
 /**
  * Vue 拼屏抽象实现：实现 core `UiBuilder`，模板方法填好共用拼屏。
- * 皮肤再 `extends VueUiBuilder`（SyncfusionUiBuilder / PrimeVueUiBuilder / …）。
- * form / list / tree 用 Handbook mixin 叠在 `VueUiBuilderBase` 上。
+ * 皮肤再 `extends VuiBuilder`（SfUiBuilder / PrimeUiBuilder / …）。
+ * form / list / tree 用 Handbook mixin 叠在 `VuiBuilderBase` 上。
  */
-export abstract class VueUiBuilderBase extends VuePluginHost {
-  readonly actionFactory: UiActionFactory;
+export abstract class VuiBuilderBase extends AbstractUiBuilder<VNode> {
+  readonly actionFactory: VuiActionFactory;
 
   constructor(
-    public readonly factory: VueUiFactory,
-    public readonly fieldFactory: VueUiFieldFactory,
-    public readonly layout: VueUiLayout,
-    public overlay: VueUiOverlay = createHtmlOverlay(),
+    public readonly factory: VuiFactory,
+    public readonly fieldFactory: VuiFieldFactory,
+    public readonly layout: VuiLayout,
+    public overlay: VuiOverlay = noopOverlay,
   ) {
-    super();
-    this.actionFactory = new UiActionFactory(
-      this as unknown as VueUiBuilder,
+    super(factory, fieldFactory, layout, layout);
+    this.actionFactory = new VuiActionFactory(
+      this as unknown as VuiBuilder,
       factory.resolveIcon,
     );
   }
@@ -133,6 +141,11 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
 
   get overlayHost(): Component | undefined {
     return undefined;
+  }
+
+  /** {@link buildGantt} 的别名，兼容旧调用。 */
+  buildGanttChart(context: CoreUiContext, props?: UiGanttProps): VNode {
+    return this.buildGantt(context, props);
   }
 
   setColorScheme(dark: boolean) {
@@ -196,7 +209,7 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     return unimplemented("buildAppMenu") as VNode;
   }
   buildModuleBreadcrumb(
-    context: UiContext,
+    context: CoreUiContext,
     props: UiModuleBreadcrumbProps = {},
   ): VNode {
     const { module, label } = props;
@@ -230,47 +243,47 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
     });
   }
   buildIndexTopbar(
-    context: UiContext,
+    context: CoreUiContext,
     props?: UiIndexTopbarProps,
-    slots?: UiSlots,
+    slots?: VuiTileSlots,
   ): VNode {
-    return paintIndexTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
+    return paintIndexTopbar(this as unknown as VuiBuilder, context, props ?? {}, slots);
   }
   buildDetailsTopbar(
-    context: UiContext,
+    context: CoreUiContext,
     props?: UiDetailsTopbarProps,
-    slots?: UiSlots,
+    slots?: VuiTileSlots,
   ): VNode {
-    return paintDetailsTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
+    return paintDetailsTopbar(this as unknown as VuiBuilder, context, props ?? {}, slots);
   }
   buildEditTopbar(
-    context: UiContext,
+    context: CoreUiContext,
     props?: UiEditTopbarProps,
-    slots?: UiSlots,
+    slots?: VuiTileSlots,
   ): VNode {
-    return paintEditTopbar(this as unknown as VueUiBuilder, context, props ?? {}, slots);
+    return paintEditTopbar(this as unknown as VuiBuilder, context, props ?? {}, slots);
   }
   buildSearchField(
-    field: UiSearchField,
-    context: UiContext,
+    field: VuiSearchField,
+    context: CoreUiContext,
     props: UiProps,
   ): VNode {
     return unimplemented("buildSearchField") as VNode;
   }
   buildModuleSearchbar(
-    context: UiContext,
+    context: CoreUiContext,
     props?: UiProps,
   ): VNode {
     return unimplemented("buildModuleSearchbar") as VNode;
   }
-  buildFilterBar(context: UiContext, props?: Record<string, unknown>): VNode {
+  buildFilterBar(context: CoreUiContext, props?: Record<string, unknown>): VNode {
     return h(ListFilterBarView, {
       factory: this.factory,
       context: context as any,
       extra: props ?? {},
     });
   }
-  // buildSearchView(context: UiContext, props: ModuleSearchbarProps) {
+  // buildSearchView(context: CoreUiContext, props: ModuleSearchbarProps) {
   //   const content = this.buildModuleSearchbar(context, props ?? {});
   //   return this.dialog(content, context, {
   //     title: context.t("action.search"),
@@ -293,7 +306,7 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
 
   message(context: CoreUiContext, props: UiMessageProps) {
-    const runtime = context as VueUiContext & {
+    const runtime = context as VuiContext & {
       many?: boolean;
       pageNotice?: { value: UiMessageProps | null };
     };
@@ -472,7 +485,7 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
           ) || undefined
         : undefined;
 
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: (id ? { id } : {}) as any,
       metaUi,
       view: viewOne,
@@ -565,11 +578,35 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
 
   buildDocxFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
-    return h(DocxFilePreview, { source, ...props });
+    const plugin = this.plugin(UiPluginName.office);
+    if (plugin) {
+      return plugin.buildUi(undefined as any, {
+        source,
+        extension: "docx",
+        ...props,
+      } as any);
+    }
+    return h(
+      "p",
+      { class: "mmda-file-preview-missing" },
+      "DOCX preview requires @mmda/vuix-office",
+    );
   }
 
   buildXlsxFilePreview(source: string | ArrayBuffer, props: UiProps = {}) {
-    return h(XlsxFilePreview, { source, ...props });
+    const plugin = this.plugin(UiPluginName.office);
+    if (plugin) {
+      return plugin.buildUi(undefined as any, {
+        source,
+        extension: "xlsx",
+        ...props,
+      } as any);
+    }
+    return h(
+      "p",
+      { class: "mmda-file-preview-missing" },
+      "XLSX preview requires @mmda/vuix-office",
+    );
   }
 
   buildFilePreview(
@@ -620,41 +657,8 @@ export abstract class VueUiBuilderBase extends VuePluginHost {
   }
 }
 
-/**
- * Vue 拼屏入口：本体 + WithForm / WithList / WithTree。
- * 皮肤继续 `extends VueUiBuilder`。
- * mixin 推断成员为属性，这里用 interface 合成方法签名，皮肤才能 `override`。
- */
-export interface VueUiBuilder {
-  buildGroupCard(
-    group: MetaUiGroup,
-    body: VNode | VNode[],
-    props?: UiProps,
-  ): VNode;
-  buildAttachmentGroup(context: any, props?: UiProps): VNode;
-  buildGantt(context: any, props?: UiGanttProps): VNode;
-  buildGanttChart(context: any, props?: UiGanttProps): VNode;
-  buildScheduler(context: any, props?: UiSchedulerProps<VNode>): VNode;
-  buildBpmnDiagram(
-    flowTrails: any[],
-    context: any,
-    props?: UiProps,
-  ): VNode;
-  buildDiagram(context: any, props?: UiDiagramProps<VNode>): VNode;
-  buildKanban(context: any, props?: UiKanbanProps): VNode;
-  buildTimeline(context: any, props?: UiTimelineProps): VNode;
-  buildListView(context: any, props?: any): VNode;
-  list(metaUi: MetaUi, props?: any): VNode;
-  table(metaUi: MetaUi, props?: any): VNode;
-  grid(metaUi: MetaUi, props?: any): VNode;
-  treeGrid(metaUi: MetaUi, props?: any): VNode;
-  buildFilterBar(context: any, props?: any): VNode;
-  buildView(context: any, props?: UiViewPropsType): VNode;
-  groupWrapClass(group: MetaUiGroup, props?: UiProps): string;
-}
-
-export abstract class VueUiBuilder
-  extends WithTree(WithList(WithForm(VueUiBuilderBase)))
+export abstract class VuiBuilder
+  extends WithTree(WithList(WithForm(VuiBuilderBase)))
   implements CoreUiBuilder
 {
   build(context: CoreUiContext, props: Record<string, unknown> = {}): VNode {
@@ -692,7 +696,7 @@ export abstract class VueUiBuilder
     if (gated) return gated;
     return this.buildView(
       context,
-      mergeNamedViewProps(context, props) as UiViewPropsType,
+      mergeNamedViewProps(context, props) as VuiViewProps,
     );
   }
 
@@ -701,7 +705,7 @@ export abstract class VueUiBuilder
     if (gated) return gated;
     return this.buildView(
       context,
-      mergeNamedViewProps(context, props) as UiViewPropsType,
+      mergeNamedViewProps(context, props) as VuiViewProps,
     );
   }
 
@@ -745,7 +749,7 @@ function mergeNamedViewProps(
  * 不能拆掉表格，否则分页器卸载后会回到第 1 页。
  */
 function entityPageGate(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: CoreUiContext,
 ): VNode | null {
   const runtime = context as any;
@@ -775,7 +779,7 @@ const IndexPage = defineComponent({
   setup(props) {
     let assembled = false;
     return () => {
-      const builder = props.builder as VueUiBuilder;
+      const builder = props.builder as VuiBuilder;
       const context = props.context as CoreUiContext;
       const reason = assembled ? "rerender" : "mount";
       assembled = true;
@@ -789,7 +793,7 @@ const IndexPage = defineComponent({
 });
 
 function assembleIndexScreen(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: CoreUiContext,
   merged: Record<string, any>,
 ): VNode {
@@ -817,15 +821,15 @@ function assembleIndexScreen(
 const emptyNode = () => h("div");
 
 /** 无皮肤时的占位 Builder，弹层一律取消。 */
-export function createStubUiBuilder(): VueUiBuilder {
+export function createStubUiBuilder(): VuiBuilder {
   const factory = {
-    layout: new VueUiLayout(),
+    layout: new VuiLayout(),
     resolveIcon: (icon: string) => icon,
-  } as unknown as VueUiFactory;
+  } as unknown as VuiFactory;
   const stub: any = {
     factory,
     layout: factory.layout,
-    fieldFactory: {} as VueUiFieldFactory,
+    fieldFactory: {} as VuiFieldFactory,
     labelFor: (field: { displayLabel?: string }) => h("label", field.displayLabel),
     editFor: emptyNode,
     displayFor: emptyNode,
@@ -882,7 +886,7 @@ export function createStubUiBuilder(): VueUiBuilder {
     buildSignupForm: emptyNode,
     buildFieldGroup: emptyNode,
     buildSubGroup: emptyNode,
-    overlay: createHtmlOverlay(),
+    overlay: noopOverlay,
     overlayHost: undefined,
     toast: async (): Promise<void> => undefined,
     message: (): void => undefined,
@@ -894,7 +898,7 @@ export function createStubUiBuilder(): VueUiBuilder {
   };
     mixPluginHost(stub);
     // 字段行入口在 WithForm（builder 构造表单时按 MetaUiField 选 factory 函数）
-  return stub as VueUiBuilder;
+  return stub as VuiBuilder;
 }
 
 export { unimplemented };

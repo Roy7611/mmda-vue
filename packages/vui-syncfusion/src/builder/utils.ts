@@ -6,10 +6,10 @@ import {
   watch,
 } from "vue";
 import type { Module, ModuleAuth } from "@mmda/core";
-import { isActionVisible, type UiAction, type VueUiContext } from "@mmda/vui"
+import { isActionVisible, type UiAction, type VuiContext } from "@mmda/vui"
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 
-export type UiContext = VueUiContext<any>;
+export type SfVuiContext = VuiContext<any>;
 
 const SfSearchTextInput = defineComponent({
   name: "SfSearchTextInput",
@@ -75,12 +75,12 @@ const moduleChain = (module: Module): Module[] => {
   return withoutSystem.length ? withoutSystem : chain;
 };
 
-const moduleOf = (context: UiContext): Module | undefined => {
+const moduleOf = (context: SfVuiContext): Module | undefined => {
   const runtime = context as any;
   return (runtime.module ?? runtime.logic?.module) as Module | undefined;
 };
 
-const moduleAuth = (context: UiContext): ModuleAuth | undefined =>
+const moduleAuth = (context: SfVuiContext): ModuleAuth | undefined =>
   moduleOf(context)?.authority;
 
 const visibleActions = (actions: UiAction[]) =>

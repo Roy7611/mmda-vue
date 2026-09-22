@@ -5,15 +5,15 @@ import {
   UiContextAction,
   type IconResolver,
 } from "../factory/action";
-import type { VueUiBuilder, ImportOrExportParam } from "../builder";
+import type { VuiBuilder, ImportOrExportParam } from "../builder";
 import { deletableSelectedItems } from "../../contexts/vue_ui_context";
 import { getModuleContext } from "../../contexts/vue_module_context";
 import { UiViewOne } from "../../contexts/view";
 import type { UiContext } from "./helpers";
 
-export class UiActionFactory {
+export class VuiActionFactory {
   constructor(
-    public readonly builder: VueUiBuilder,
+    public readonly builder: VuiBuilder,
     public readonly resolveIcon: IconResolver,
   ) {}
 
@@ -36,13 +36,13 @@ export class UiActionFactory {
         if (typeof runtime.cancel === "function") {
           return runtime.cancel();
         }
-        if (typeof runtime.index === "function") {
+        if (typeof runtime.routeToIndex === "function") {
           return runtime.routeToIndex();
         }
       } catch {
         // fall through to history back
       }
-      const router = runtime.router ?? runtime.globalProps?.$router;
+      const router = runtime.vueRouter ?? runtime.globalProps?.$router;
       if (typeof router?.back === "function") return router.back();
       if (typeof history !== "undefined") history.back();
     });
@@ -50,7 +50,7 @@ export class UiActionFactory {
 
   create(context: UiContext) {
     return this.createAction(context, "create", () =>
-      (context as any).create?.(),
+      (context as any).routeToCreate?.(),
     );
   }
 
@@ -67,7 +67,9 @@ export class UiActionFactory {
   }
 
   edit(context: UiContext) {
-    return this.createAction(context, "edit", () => (context as any).edit?.());
+    return this.createAction(context, "edit", () =>
+      (context as any).routeToEdit?.(),
+    );
   }
 
   save(context: UiContext) {
@@ -93,7 +95,7 @@ export class UiActionFactory {
           entity?.id ??
           runtime.model?.id ??
           (key ? (entity?.[key] ?? runtime.model?.[key]) : undefined);
-        if (id != null && id !== "") runtime.details?.(String(id));
+        if (id != null && id !== "") runtime.routeToDetails?.(String(id));
       }
       return result;
     });
@@ -202,9 +204,10 @@ export class UiActionFactory {
       (action.param as { hint?: string | number } | undefined)?.hint ??
       (action as { displayHint?: string | number }).displayHint;
     // 元数据 colorRole / displayHint；未配置时默认 warning（工具栏业务动作）
-    action.role = normalizeActionColorRole(
-      raw == null || raw === "" ? undefined : String(raw),
-    ) ?? "warning";
+    action.role =
+      normalizeActionColorRole(
+        raw == null || raw === "" ? undefined : String(raw),
+      ) ?? "warning";
     return this.fromEntity(context, action);
   }
 }

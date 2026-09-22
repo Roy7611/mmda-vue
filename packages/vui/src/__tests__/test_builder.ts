@@ -1,55 +1,64 @@
-import {
-  defineComponent,
-  h,
-  ref,
-  watch,
-  type PropType,
-  type VNode,
-} from "vue";
-import { SqlDataType, type MetaUi, type MetaUiField } from "@mmda/core";
-import { VueUiBuilder } from "../ui/builder";
-import type { VueUiContext } from "../contexts/vue_ui_context";
-import type { SigninFormProps, SigninFormSlots, SignupFormProps } from "../ui/factory/auth";
+import { defineComponent, h, ref, watch, type PropType, type VNode } from "vue";
+import { SqlDataType, type MetaUi, type MetaUiField, type UiContext, type UiLayout, type UiListTileSlots, type UiProps } from "@mmda/core";
+import { VuiBuilder } from "../ui/builder";
+import type { VuiContext } from "../contexts/vue_ui_context";
+import type {
+  SigninFormProps,
+  SigninFormSlots,
+  SignupFormProps,
+} from "../ui/factory/auth";
 import type {
   AppSideBarProps,
   AppTopBarProps,
   ModuleSearchbarProps,
 } from "../app/app";
-import type { VueUiFactory, UiFieldFactory } from "../ui/factory";
-import { VueUiLayout, type UiProps, type UiLayout, type UiSlots } from "../ui/layout";
-import type { UiListPropsType } from "../ui/factory/list";
+import type { VuiFactory, UiFieldFactory } from "../ui/factory";
+import { VuiLayout, type VuiTileSlots } from "../ui/layout";
+import type { VuiListPropsType } from "../ui/factory/list";
+import type { VuiSearchField } from "../ui/factory/filter";
 import { bindListDisplayRenderers } from "../ui/factory/list";
 import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
-import { treeIdOf, treeLabelOf, treeModifierClasses, type UiTreeProps } from "../ui/factory/tree";
+import {
+  treeIdOf,
+  treeLabelOf,
+  treeModifierClasses,
+  type UiTreeProps,
+} from "../ui/factory/tree";
 
-type UiContext = VueUiContext<any>;
 
 const stub = (name: string, extra?: UiProps): VNode =>
-  h("span", { class: "mmda-html-stub", "data-unimplemented": name, ...extra }, "not implemented");
+  h(
+    "span",
+    { class: "mmda-html-stub", "data-unimplemented": name, ...extra },
+    "not implemented",
+  );
 
-class TestLayout extends VueUiLayout {
-  fieldVertical = true
-  maxCols = 12
-  listTile(slots) {
+class TestLayout extends VuiLayout {
+  override get fieldVertical(): boolean {
+    return true;
+  }
+  override set fieldVertical(_value: boolean) {}
+  maxCols = 12;
+  listTile(slots: UiListTileSlots<VNode>) {
     return h("div", { class: "mmda-list-tile" }, [
       slots.leading?.(),
       h("div", [slots.title(), slots.subtitle?.()]),
       slots.trailing?.(),
-    ])
+    ]);
   }
 }
 
-const testLayout = new TestLayout()
+const testLayout = new TestLayout();
 
 const listedFields = (metaUi?: MetaUi | null): MetaUiField[] => {
   if (!metaUi) return [];
   const listed = metaUi.getListedFields();
   return listed.length
     ? listed
-    : metaUi.groups.filter((g) => !g.many).flatMap((g) => g.fields);
+    : metaUi.groups.filter((g) => !g.many).flatMap((g) => g.fields ?? []);
 };
 
-function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
+function createTestUiFactory(layout: UiLayout = testLayout): VuiFactory {
   const button = (props: any, slots?: any) =>
     h(
       "button",
@@ -59,7 +68,11 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         title: props.tooltip,
         "aria-label": props["aria-label"] ?? props.tooltip,
         disabled: props.disabled === true || props.loading,
-        class: ["mmda-button", props.colorRole && `is-${props.colorRole}`, props.class]
+        class: [
+          "mmda-button",
+          props.colorRole && `is-${props.colorRole}`,
+          props.class,
+        ]
           .filter(Boolean)
           .join(" "),
         onClick: props.onClick ?? props.onAction ?? props.command,
@@ -75,13 +88,18 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
    * `bindListDisplayRenderers` 负责把三参旧形态归一成 `props.rows` / `props.fields` /
    * `props.objName` 再调它（见 `src/ui/factory/list.ts` 的 `propsOf`）。
    */
-  const table = <T>(props: UiListPropsType<T> = {} as UiListPropsType<T>) => {
+  const table = <T>(props: VuiListPropsType<T> = {} as VuiListPropsType<T>) => {
     const bag = props as any;
     const model = (bag.rows ?? bag.model ?? []) as T[];
     const fields = (props.fields ?? listedFields(bag.metaUi)) as MetaUiField[];
     const detail = props.rowDetail;
     return h("table", { class: "mmda-table" }, [
-      h("thead", [h("tr", fields.map((field) => h("th", field.displayLabel)))]),
+      h("thead", [
+        h(
+          "tr",
+          fields.map((field) => h("th", field.displayLabel)),
+        ),
+      ]),
       h(
         "tbody",
         model.length
@@ -105,16 +123,22 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
               if (!detail) return [dataRow];
               return [
                 dataRow,
-                h("tr", { key: `detail-${props.itemKey?.(row) ?? row.id ?? index}` }, [
-                  h(
-                    "td",
-                    { colspan: Math.max(fields.length, 1) },
-                    [detail.detail(row) as any],
-                  ),
-                ]),
+                h(
+                  "tr",
+                  { key: `detail-${props.itemKey?.(row) ?? row.id ?? index}` },
+                  [
+                    h("td", { colspan: Math.max(fields.length, 1) }, [
+                      detail.detail(row) as any,
+                    ]),
+                  ],
+                ),
               ];
             })
-          : [h("tr", [h("td", { colspan: Math.max(fields.length, 1) }, "No data")])],
+          : [
+              h("tr", [
+                h("td", { colspan: Math.max(fields.length, 1) }, "No data"),
+              ]),
+            ],
       ),
     ]);
   };
@@ -125,11 +149,19 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
     viewIcons: {},
     dialogIcons: {},
     resolveIcon: (icon) => icon,
-    textSpan: (text, props) => h("span", props, text),
-    label: (text, props) => h("label", props, text),
-    image: (src, props) => h("img", { src, ...props }),
-    icon: (icon, props) => h("span", { class: ["mmda-icon", icon], ...props }),
-    badge: ({ value, class: className, shape, overlay, position, colorRole, ...props }) =>
+    textSpan: (props: any) => h("span", props, props.text),
+    label: (props: any) => h("label", props, props.text),
+    image: (props: any) => h("img", props),
+    icon: (props: any) => h("span", { class: ["mmda-icon", props.iconClass], ...props }),
+    badge: ({
+      value,
+      class: className,
+      shape,
+      overlay,
+      position,
+      colorRole,
+      ...props
+    }) =>
       h(
         "span",
         {
@@ -142,7 +174,16 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         },
         value == null ? undefined : String(value),
       ),
-    avatar: ({ src, icon, label, class: className, shape, size, colorRole, ...props }) =>
+    avatar: ({
+      src,
+      icon,
+      label,
+      class: className,
+      shape,
+      size,
+      colorRole,
+      ...props
+    }) =>
       h(
         "span",
         {
@@ -172,18 +213,21 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
             (props.image
               ? h("img", { src: props.image, alt: props.imageAlt })
               : null),
-          slots?.header?.() ??
-            (props.title ? h("header", props.title) : null),
+          slots?.header?.() ?? (props.title ? h("header", props.title) : null),
           props.divider ? h("hr", { class: "mmda-divider" }) : null,
           slots?.default?.(),
           slots?.footer?.(),
         ],
       ),
     divider: (props = {}) =>
-      h("hr", {
-        class: ["mmda-divider", props.class],
-        "data-orientation": props.orientation,
-      }, props.label),
+      h(
+        "hr",
+        {
+          class: ["mmda-divider", props.class],
+          "data-orientation": props.orientation,
+        },
+        props.label,
+      ),
     tooltip: (props: any = {}, slots?: any) =>
       h(
         "span",
@@ -242,7 +286,9 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
           "data-format": format,
           class: ["mmda-barcode", className],
         },
-        typeof displayText === "function" ? displayText(value) : (displayText ?? value),
+        typeof displayText === "function"
+          ? displayText(value)
+          : (displayText ?? value),
       ),
     qrCode: ({ value, class: className, format, displayText, ...props }) =>
       h(
@@ -252,14 +298,24 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
           "data-format": format,
           class: ["mmda-qrcode", className],
         },
-        typeof displayText === "function" ? displayText(value) : (displayText ?? value),
+        typeof displayText === "function"
+          ? displayText(value)
+          : (displayText ?? value),
       ),
     breadcrumb: ({ items, class: className, separator, ...props }) =>
       h(
         "nav",
-        { ...props, class: ["mmda-breadcrumb", className], "data-separator": separator },
+        {
+          ...props,
+          class: ["mmda-breadcrumb", className],
+          "data-separator": separator,
+        },
         (items ?? []).map((item: any) =>
-          h("span", { key: item.key ?? item.label, "data-to": item.to }, item.label),
+          h(
+            "span",
+            { key: item.key ?? item.label, "data-to": item.to },
+            item.label,
+          ),
         ),
       ),
     calendar: ({
@@ -273,7 +329,11 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
     }) =>
       h("div", {
         ...props,
-        class: ["mmda-calendar", selectionMode === "multiple" ? "mmda-calendar--multiple" : undefined, className],
+        class: [
+          "mmda-calendar",
+          selectionMode === "multiple" ? "mmda-calendar--multiple" : undefined,
+          className,
+        ],
         "data-mode": selectionMode ?? "single",
         "data-min": min,
         "data-max": max,
@@ -296,7 +356,11 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
     }) =>
       h("div", {
         ...props,
-        class: ["mmda-carousel", animation ? `mmda-carousel--${animation}` : undefined, className],
+        class: [
+          "mmda-carousel",
+          animation ? `mmda-carousel--${animation}` : undefined,
+          className,
+        ],
         "data-mode": animation,
         "data-index": selectedIndex,
         "data-autoplay": autoPlay,
@@ -311,7 +375,9 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
           ...props,
           class: [
             "mmda-checkbox",
-            props.indeterminate === true ? "mmda-checkbox--indeterminate" : undefined,
+            props.indeterminate === true
+              ? "mmda-checkbox--indeterminate"
+              : undefined,
             props.class,
           ],
           "data-checked": props.checked ?? props.modelValue,
@@ -529,13 +595,19 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
           ...props,
           class: [
             "mmda-chips",
-            props.kind && props.kind !== "action" ? `mmda-chips--${props.kind}` : undefined,
+            props.kind && props.kind !== "action"
+              ? `mmda-chips--${props.kind}`
+              : undefined,
             props.class,
           ],
           "data-kind": props.kind,
         },
         (props.items ?? []).map((item: any) =>
-          h("span", { class: "mmda-chip" }, typeof item === "string" ? item : item.label),
+          h(
+            "span",
+            { class: "mmda-chip" },
+            typeof item === "string" ? item : item.label,
+          ),
         ),
       ),
     contextMenu: (props: any = {}) =>
@@ -545,10 +617,14 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         "data-target": props.target,
         "data-count": (props.items ?? []).length,
       }),
-    title: (text, props) => h("h1", props, text),
-    subtitle: (text, props) => h("h2", props, text),
+    title: (props: any) => h("h1", props, props.text),
+    subtitle: (props: any) => h("h2", props, props.text),
     link: (props, slots) =>
-      h("a", props, slots?.default?.() ?? props.text ?? String(props.href ?? "")),
+      h(
+        "a",
+        props,
+        slots?.default?.() ?? props.text ?? String(props.href ?? ""),
+      ),
     textInput: (props: any = {}) =>
       h("input", {
         class: ["mmda-textinput", props.class],
@@ -623,7 +699,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         "data-value": props.value ?? props.modelValue,
         "data-custom": props.allowCustom,
       }),
-    autoComplete: (value, props = {}) =>
+    autoComplete: (value: any, props: any = {}) =>
       h("input", {
         class: ["mmda-autocomplete", props.class],
         value: props.modelValue ?? value,
@@ -635,19 +711,19 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
           props.onUpdate?.(next);
         },
       }),
-    tagAutoComplete: (value, props = {}) =>
+    tagAutoComplete: (value: any, props: any = {}) =>
       h("div", {
         class: ["mmda-tag-autocomplete", props.class],
         "data-value": props.modelValue ?? value,
       }),
     button,
-    buttonGroup: (props: any = {}, slots?: UiSlots) =>
-      h("div", props, slots?.default?.()),
+    buttonGroup: (props: any = {}, slots?: VuiTileSlots) =>
+      h("div", props, slots?.default?.() ?? undefined),
     splitButton: (props) => button(props),
     dropDownButton: (buttonProps) => button(buttonProps),
     moreMenuButton: (buttonProps) => button(buttonProps),
     floatingActionButton: (props) => button(props),
-    selectButtonGroup: (value, props = {}) =>
+    selectButtonGroup: (value: any, props: any = {}) =>
       h("div", {
         class: "mmda-select-button-group",
         "data-value": String(props.modelValue ?? value ?? ""),
@@ -655,48 +731,48 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
     actionButton: (action, _t, _resolve, props) =>
       button({ ...action, ...props, onClick: action.onAction }),
     paginator: () => stub("paginator"),
-    list: <T>(props: UiListPropsType<T> = {} as UiListPropsType<T>) => {
-          const bag = props as any;
-          const model = (bag.rows ?? bag.model ?? []) as T[];
-          return h(
-            "ul",
-            { class: "mmda-list" },
-            model.map((item, index) =>
-              h(
-                "li",
-                {
-                  onClick: () => props.onItemClick?.(item),
-                  onDblclick: () => props.onItemDoubleClick?.(item),
-                },
-                (props.item?.(item, index) ??
-                  String(
-                    (item as any)[bag.labelField ?? bag.primaryKey ?? "id"] ?? "",
-                  )) as any,
-              ),
-            ),
-          );
-        },
-        tree: <T>(props: UiTreeProps<T>) => h(TestTree, props as any),
-        table,
-        treeGrid: <T>(props: any = {}) =>
+    list: <T>(props: VuiListPropsType<T> = {} as VuiListPropsType<T>) => {
+      const bag = props as any;
+      const model = (bag.rows ?? bag.model ?? []) as T[];
+      return h(
+        "ul",
+        { class: "mmda-list" },
+        model.map((item, index) =>
           h(
-            "div",
+            "li",
             {
-              class: "mmda-tree-grid",
-              "data-tree-shape": props.treeShape,
-              "data-shape-key": props.shapeKey,
-              "data-load-mode": props.loadMode,
+              onClick: () => props.onItemClick?.(item),
+              onDblclick: () => props.onItemDoubleClick?.(item),
             },
-            [table(props)],
+            (props.item?.(item, index) ??
+              String(
+                (item as any)[bag.labelField ?? bag.primaryKey ?? "id"] ?? "",
+              )) as any,
           ),
-        pagableTable: (loader: any, metadata: MetaUi, props: any = {}) =>
-          table({
-            ...props,
-            rows: loader.model.list,
-            primaryKey: props.primaryKey ?? metadata?.primaryKey,
-            objName: props.objName ?? metadata?.objName,
-            fields: props.fields ?? listedFields(metadata),
-          } as any),
+        ),
+      );
+    },
+    tree: <T>(props: UiTreeProps<T>) => h(TestTree, props as any),
+    table,
+    treeGrid: <T>(props: any = {}) =>
+      h(
+        "div",
+        {
+          class: "mmda-tree-grid",
+          "data-tree-shape": props.treeShape,
+          "data-shape-key": props.shapeKey,
+          "data-load-mode": props.loadMode,
+        },
+        [table(props)],
+      ),
+    pagableTable: (loader: any, metadata: MetaUi, props: any = {}) =>
+      table({
+        ...props,
+        rows: loader.model.list,
+        primaryKey: props.primaryKey ?? metadata?.primaryKey,
+        objName: props.objName ?? metadata?.objName,
+        fields: props.fields ?? listedFields(metadata),
+      } as any),
     loading: (props: any = {}) =>
       h(
         "div",
@@ -754,7 +830,11 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
               "data-tab-name": name,
             },
             [
-              h("div", { class: "mmda-tab-pane__header" }, item.header?.text ?? item.header),
+              h(
+                "div",
+                { class: "mmda-tab-pane__header" },
+                item.header?.text ?? item.header,
+              ),
               content,
             ],
           );
@@ -769,9 +849,7 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         ? (["start", "center", "end"] as const).flatMap((name) => {
             const content = slots?.[name];
             if (typeof content !== "function") return [];
-            return [
-              h("div", { class: `mmda-toolbar__${name}` }, content()),
-            ];
+            return [h("div", { class: `mmda-toolbar__${name}` }, content())];
           })
         : slots?.default?.();
       return h(
@@ -784,22 +862,33 @@ function createTestUiFactory(layout: UiLayout = testLayout): VueUiFactory {
         kids,
       );
     },
-    splitter: (props: UiSplitterProps = {}, slots?: UiSlots) =>
+    splitter: (props: UiSplitterProps = {}, slots?: VuiTileSlots) =>
       renderTestSplitter(splitterPanesOf(props, slots), props),
     searchRelative: () => stub("searchRelative"),
-    formField: (props: any = {}, slots?: UiSlots) =>
-      h("div", { class: ["mmda-form-field", props.class], style: props.style }, [
-        props.label
-          ? h("label", { class: "mmda-form-field__label" }, String(props.label))
-          : null,
-        slots?.default?.(),
-      ]),
-  } as VueUiFactory;
+    message: (props: any = {}) => stub("message"),
+    error: (props: any = {}) => stub("error"),
+    grid: (props: any = {}) => stub("grid"),
+    formField: (props: any = {}, slots?: VuiTileSlots) =>
+      h(
+        "div",
+        { class: ["mmda-form-field", props.class], style: props.style },
+        [
+          props.label
+            ? h(
+                "label",
+                { class: "mmda-form-field__label" },
+                String(props.label),
+              )
+            : null,
+          slots?.default?.(),
+        ],
+      ),
+  } as VuiFactory;
   bindListDisplayRenderers(factory);
   return factory;
 }
 
-function createTestFieldFactory(): UiFieldFactory {
+function createTestFieldFactory(): any {
   const fallbackDisplay = (
     field: MetaUiField,
     context: UiContext,
@@ -808,10 +897,14 @@ function createTestFieldFactory(): UiFieldFactory {
     h(
       "output",
       { class: "mmda-field-display", ...props },
-      String(context.displayField(field, props.row) ?? ""),
+      String(context.displayField(field, (props as any).row) ?? ""),
     );
 
-  const fallbackInput = (field: MetaUiField, context: UiContext, props = {}) => {
+  const fallbackInput = (
+    field: MetaUiField,
+    context: UiContext,
+    props = {},
+  ) => {
     const value = context.getFieldValue(field);
     const isBool = SqlDataType.isBool(field.dataType);
     const isNumber = SqlDataType.isNum(field.dataType);
@@ -827,13 +920,16 @@ function createTestFieldFactory(): UiFieldFactory {
         const element = event.target as HTMLInputElement;
         context.setFieldValue(
           field,
-          isBool ? element.checked : isNumber ? element.valueAsNumber : element.value,
+          isBool
+            ? element.checked
+            : isNumber
+              ? element.valueAsNumber
+              : element.value,
         );
       },
     });
     const invalidMessage = (context as any).getInvalidMessage?.(field) as
-      | string
-      | undefined;
+      string | undefined;
     return h(
       "div",
       { class: ["mmda-field-input", invalidMessage && "is-invalid"], ...props },
@@ -850,7 +946,7 @@ function createTestFieldFactory(): UiFieldFactory {
 }
 
 /** Test-only builder. Not a public vui skin. */
-export class TestUiBuilder extends VueUiBuilder {
+export class TestUiBuilder extends VuiBuilder {
   constructor(
     factory = createTestUiFactory(),
     fieldFactory = createTestFieldFactory(),
@@ -875,11 +971,11 @@ export class TestUiBuilder extends VueUiBuilder {
     return stub("buildAppMenu");
   }
 
-  buildSearchField(_field: UiSearchField) {
+  buildSearchField(_field: VuiSearchField) {
     return stub("buildSearchField");
   }
 
-  buildModuleSearchbar(_context: UiContext, rawProps?: UiProps) {
+  buildModuleSearchbar(_context: VuiContext, rawProps?: UiProps) {
     // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
     const props = (rawProps ?? {}) as ModuleSearchbarProps;
     return h("div", { class: "mmda-searchbar" }, [
@@ -913,11 +1009,14 @@ export class TestUiBuilder extends VueUiBuilder {
  */
 const splitterPanesOf = (
   props: UiSplitterProps & { panes?: UiSplitterPane[] } = {},
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
 ): UiSplitterPane[] =>
   props.panes ?? ((slots?.default?.() ?? []) as unknown as UiSplitterPane[]);
 
-function renderTestSplitter(panes: UiSplitterPane[], props: UiSplitterProps = {}) {
+function renderTestSplitter(
+  panes: UiSplitterPane[],
+  props: UiSplitterProps = {},
+) {
   return h(TestSplitter, {
     panes,
     orientation: props.orientation,
@@ -1063,7 +1162,9 @@ const TestTree = defineComponent({
                   const items = props.contextMenu(node) ?? [];
                   menu.value = {
                     items: items.map((item) => ({
-                      label: item.divider ? "" : (item.label ?? item.name ?? ""),
+                      label: item.divider
+                        ? ""
+                        : (item.label ?? item.name ?? ""),
                       divider: Boolean(item.divider),
                     })),
                   };

@@ -2,7 +2,7 @@ import {
   AdvancedFilterModel,
   type UiQueryBuilderProps,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
 export type {
   UiQueryBuilderChoice,
@@ -28,5 +28,5 @@ export function emitQueryBuilderChange(
 ): void {
   const next = AdvancedFilterModel.compact(model)
   props.onChange?.(next)
-  vueUpdateOf<AdvancedFilterModel | undefined>(props)?.(next)
+  vuiUpdateOf<AdvancedFilterModel | undefined>(props)?.(next)
 }

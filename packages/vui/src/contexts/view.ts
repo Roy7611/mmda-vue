@@ -96,15 +96,16 @@ export function createDefaultSearchParam(searchWord = ''): EntitySearchParam {
   return param
 }
 
-export interface UiViewSlot {
+export interface VuiViewSlot {
   sort?: number
   node: VNode
 }
-export interface UiViewSlots {
+export interface VuiViewSlots {
   toolbar?: () => VNodeChild
   header?: () => VNodeChild
+  content?: () => VNodeChild
   footer?: () => VNodeChild
   qrCode?: () => VNode
-  slots?: Array<UiViewSlot>
+  slots?: Array<VuiViewSlot>
 }
-export type UiViewPropsType = UiViewProps & UiViewSlots & UiProps
+export type VuiViewProps = UiViewProps & VuiViewSlots & UiProps

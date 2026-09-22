@@ -5,7 +5,7 @@ import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
 import { useRouter, useRoute } from 'vue-router';
 import {type UiContext, UiViewOne} from '@mmda/core'
-import { loading, VueUiContext } from '@mmda/vui'
+import { loading, VuiContext } from '@mmda/vui'
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
@@ -314,7 +314,7 @@ export default defineComponent({
 		const logic =
 			di.tryInject<ProjectScheduleLogic>('productionScheduleLogic') ??
 			ProjectScheduleLogicCtor(metaUiService, router, module as Module | undefined);
-		let ctx: VueUiContext<any>;
+		let ctx: VuiContext<any>;
 
 		const showLoading = ref(false);
 		const selectgProject = ref();
@@ -578,7 +578,7 @@ export default defineComponent({
 				throw new Error($t('invalid.repositoryMissing', { repository: logic.repository }));
 			}
 			logic.metaUi = metaUi;
-			ctx = new VueUiContext({
+			ctx = new VuiContext({
 				model: defineEntity(),
 				metaUi,
 				view: viewProps.view,

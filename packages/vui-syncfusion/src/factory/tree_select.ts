@@ -2,7 +2,7 @@ import { h, reactive } from "vue";
 import { DropDownTreeComponent } from "@syncfusion/ej2-vue-dropdowns";
 import type { UiTreeSelectProps } from '@mmda/core'
 import { uiRenderProps } from '@mmda/core'
-import { treeSelectNodesOf, type UiTreeFields, vueUpdateOf } from "@mmda/vui"
+import { treeSelectNodesOf, type UiTreeFields, vuiUpdateOf } from "@mmda/vui"
 
 function idKey(fields?: UiTreeFields) {
   return typeof fields?.id === "string" ? fields.id : "id";
@@ -37,7 +37,7 @@ function emitValue(props: UiTreeSelectProps, ids: string[]) {
   const next =
     props.selectionMode === "checkbox" ? ids : (ids[0] ?? null);
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export function createTreeSelect(props: UiTreeSelectProps) {

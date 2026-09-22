@@ -1,5 +1,5 @@
 import { GenericEntityLogic, defineEntity, type EntityLogic } from "@mmda/core";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
+import type { VuiContext } from "../../contexts/vue_ui_context";
 import { resolveRepositoryModule } from "../../components/EntityView";
 import { categoryMoveParams } from "./tree_category";
 import {
@@ -11,11 +11,9 @@ import {
   type UiTreeViewProps,
 } from "../factory/tree";
 
-type UiContext = VueUiContext<any>;
-
 /** 分类树 CRUD 走 Logic，Builder 只负责确认框 / 打开视图。 */
 export async function resolveCategoryTreeLogic(
-  context: UiContext,
+  context: VuiContext,
   repository: string,
 ) {
   const app = context.app;
@@ -66,7 +64,7 @@ export async function refreshCategoryTree<T>(
 }
 
 export async function deleteCategoryTreeNodeData<T>(
-  context: UiContext,
+  context: VuiContext,
   props: UiTreeViewProps<T>,
   node: T,
 ) {
@@ -98,7 +96,7 @@ export async function deleteCategoryTreeNodeData<T>(
 }
 
 export async function renameCategoryTreeNodeData<T>(
-  context: UiContext,
+  context: VuiContext,
   props: UiTreeViewProps<T>,
   node: T,
   text: string,
@@ -116,7 +114,7 @@ export async function renameCategoryTreeNodeData<T>(
 }
 
 export async function moveCategoryTreeNodeData<T>(
-  context: UiContext,
+  context: VuiContext,
   props: UiTreeViewProps<T>,
   node: T,
   parent: T | undefined,

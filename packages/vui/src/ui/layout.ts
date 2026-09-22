@@ -1,335 +1,65 @@
 import { h, type VNode } from 'vue'
 import {
   AbstractUiLayout,
-  uiCssClass,
-  uiClassModifiers,
-  type UiAppLayoutVariant,
-  type UiAppScaffoldSlots,
-  type UiFieldGroupLayout,
+  uiRenderProps,
   type UiPageLayout,
   type UiPageSlots,
-  type UiIndexPageSlots,
-  type UiProps,
-  type UiWrapProps,
+  type UiNodeProps,
 } from '@mmda/core'
 import type { ChildSlot } from '../contexts/view'
 import { PageBody } from '../components/PageBody'
 import { readStoredPageLayout } from '../app/theme'
 
-export type {
-  UiOrientation,
-  UiFieldGroupLayout,
-  UiFieldGroupType,
-  UiHorzAlign,
-  UiVertAlign,
-  UiFieldSlots,
-  UiFieldSpan,
-  UiFieldCell,
-  UiFieldGroupProps,
-  UiWrapProps,
-  UiPageSlots,
-  UiIndexPageSlots,
-  UiPageLayout,
-  UiLayout,
-  AbstractUiLayout,
-  UiListTileSlots,
-  UiProps,
-  HtmlAttributes,
-  UiAppLayoutVariant,
-  UiAppScaffoldSlots,
-} from '@mmda/core'
-
-export type UiSlots = {
+export type VuiTileSlots = {
   [index: string]: any
   default?: ChildSlot
   header?: ChildSlot
   footer?: ChildSlot
 }
 
-function layoutDomProps(
-  className: string,
-  style: Record<string, unknown>,
-  props: UiProps = {},
-) {
-  const { class: extraClass, style: extraStyle, ...rest } = props
-  return {
-    ...rest,
-    class: [className, extraClass],
-    style: { ...style, ...(extraStyle as Record<string, unknown> | undefined) },
-  }
-}
-
-export class VueUiLayout extends AbstractUiLayout<VNode> {
+export class VuiLayout extends AbstractUiLayout<VNode> {
   override pageLayout: UiPageLayout = readStoredPageLayout()
 
-  fieldGroupLayout: UiFieldGroupLayout = {
-    type: 'grid',
-    gridCols: 2,
-  }
-  maxCols = 12
-
-  protected wrap(tag: string, props: UiWrapProps, children: VNode[]): VNode {
+  render(tag: string, props: UiNodeProps, children: VNode[]): VNode {
+    const bag = props.attributes ? uiRenderProps(props.attributes) : undefined
+    const bagProps = (bag?.props ?? {}) as {
+      class?: string
+      style?: Record<string, unknown>
+      [key: string]: unknown
+    }
     return h(
       tag,
-      layoutDomProps(
-        props.className ?? '',
-        props.style ?? {},
-        props.attributes ?? {},
-      ),
+      {
+        ...(bag?.attributes ?? {}),
+        ...bagProps,
+        class: [props.class ?? '', bagProps.class],
+        style: { ...(props.style ?? {}), ...(bagProps.style ?? {}) },
+      },
       children,
     )
   }
 
   /**
-   * cards：sticky 工具栏 + PageBody（banner / content 包 main+summary）+ footer。
-   * tabs：sticky 工具栏 + body 纵向 banner → emphasis → primary + footer。
+   * cards 主体：PageBody 提供 main|summary 双栏、摘要折叠与紧凑视口自动收起。
+   * 页壳（工具栏 / banner / 页脚）由 core {@link AbstractUiLayout.layoutPage} 组装。
    */
-  layoutPage(slots: UiPageSlots<VNode>): VNode {
-    const toolbarNode =
-      slots.toolbar == null
-        ? null
-        : h(
-            'header',
-            {
-              class: [
-                uiCssClass('page', 'header'),
-                uiCssClass('page', 'header', 'sticky'),
-              ],
-              style: { position: 'sticky', top: 0, zIndex: 2 },
-            },
-            slots.toolbar,
-          )
-
-    const footerNode =
-      slots.footer == null
-        ? null
-        : h('footer', { class: uiCssClass('page', 'footer') }, slots.footer)
-
-    if (slots.pageLayout === 'tabs') {
-      const banner =
-        slots.banner == null ||
-        (Array.isArray(slots.banner) && slots.banner.length === 0)
-          ? null
-          : h('div', { class: uiCssClass('page', 'banner') }, slots.banner)
-      const emphasis =
-        slots.emphasis == null
-          ? null
-          : h('div', { class: uiCssClass('page', 'emphasis') }, slots.emphasis)
-      const primary = h(
-        'div',
-        {
-          class: [
-            uiCssClass('section'),
-            uiCssClass('section', undefined, 'main'),
-            uiCssClass('page', 'tabs'),
-          ],
-          style: { flex: '1 1 0', minHeight: 0, minWidth: 0 },
-        },
-        slots.primary,
-      )
-      return h(
-        'section',
-        {
-          class: uiClassModifiers('page', 'tabs'),
-          style: {
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            minHeight: 0,
-            overflow: 'hidden',
-          },
-        },
-        [
-          toolbarNode,
-          h(
-            'div',
-            {
-              class: uiCssClass('page', 'body'),
-              style: {
-                display: 'flex',
-                flexDirection: 'column',
-                flex: '1 1 0',
-                minHeight: 0,
-                minWidth: 0,
-                overflow: 'hidden',
-              },
-            },
-            [banner, emphasis, primary],
-          ),
-          footerNode,
-        ],
-      )
-    }
-
+  protected override layoutBodyCards(slots: UiPageSlots<VNode>): VNode {
     const summary = slots.summary ?? []
     const tails = slots.tails ?? []
     const hasSummary = summary.length > 0
     const hasTails = tails.length > 0
     return h(
-      'section',
+      PageBody,
       {
-        class: uiCssClass('page'),
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          minHeight: 0,
-          overflow: 'auto',
-        },
+        hasSummary,
+        summaryExpanded: slots.summaryExpanded !== false,
       },
-      [
-        toolbarNode,
-        h(
-          PageBody,
-          {
-            hasSummary,
-            summaryExpanded: slots.summaryExpanded !== false,
-          },
-          {
-            banner:
-              slots.banner == null ||
-              (Array.isArray(slots.banner) && slots.banner.length === 0)
-                ? undefined
-                : () => slots.banner,
-            primary: () => slots.primary,
-            tails: hasTails ? () => tails : undefined,
-            summary: hasSummary ? () => summary : undefined,
-          },
-        ),
-        footerNode,
-      ],
+      {
+        primary: () => slots.primary,
+        tails: hasTails ? () => tails : undefined,
+        summary: hasSummary ? () => summary : undefined,
+      },
     )
   }
 
-  layoutIndexPage(slots: UiIndexPageSlots<VNode>): VNode {
-    return h(
-      'section',
-      {
-        class: [uiCssClass('list-view'), uiCssClass('index-page')],
-        role: 'main',
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          minHeight: 0,
-          overflow: 'hidden',
-        },
-      },
-      [
-        slots.toolbar == null
-          ? null
-          : h(
-              'header',
-              {
-                class: [
-                  uiCssClass('page', 'header'),
-                  uiCssClass('page', 'header', 'sticky'),
-                ],
-                style: { position: 'sticky', top: 0, zIndex: 2 },
-              },
-              slots.toolbar,
-            ),
-        slots.filterBar ?? null,
-        slots.default == null
-          ? null
-          : h(
-              'div',
-              {
-                class: uiCssClass('page', 'body'),
-                style: {
-                  flex: '1 1 auto',
-                  minWidth: 0,
-                  minHeight: 0,
-                  overflow: 'auto',
-                },
-              },
-              slots.default,
-            ),
-        slots.footer == null
-          ? null
-          : h('footer', { class: uiCssClass('page', 'footer') }, slots.footer),
-      ],
-    )
-  }
-
-  scaffold(slots: UiAppScaffoldSlots<VNode>): VNode {
-    const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
-    const grid =
-      variant === 'topBarFull'
-        ? {
-            gridTemplateAreas: '"top top" "nav page" "bottom bottom"',
-            gridTemplateColumns: 'auto minmax(0, 1fr)',
-            gridTemplateRows: 'auto minmax(0, 1fr) auto',
-          }
-        : slots.topBar != null
-          ? {
-              gridTemplateAreas: '"nav top" "nav page" "nav bottom"',
-              gridTemplateColumns: 'auto minmax(0, 1fr)',
-              gridTemplateRows: 'auto minmax(0, 1fr) auto',
-            }
-          : {
-              gridTemplateAreas: '"nav page" "nav bottom"',
-              gridTemplateColumns: 'auto minmax(0, 1fr)',
-              gridTemplateRows: 'minmax(0, 1fr) auto',
-            }
-    return h(
-      'div',
-      layoutDomProps(
-        uiCssClass('app-layout'),
-        {
-          display: 'grid',
-          ...grid,
-          width: '100%',
-          height: '100%',
-          minWidth: 0,
-          minHeight: 0,
-          overflow: 'hidden',
-        },
-        { 'data-layout': variant },
-      ),
-      [
-        slots.topBar == null
-          ? null
-          : h(
-              'header',
-              {
-                class: uiCssClass('app-topbar'),
-                style: { gridArea: 'top', minWidth: 0 },
-              },
-              slots.topBar,
-            ),
-        h(
-          'nav',
-          {
-            class: uiCssClass('app-nav'),
-            style: { gridArea: 'nav', minHeight: 0, overflow: 'auto' },
-          },
-          slots.nav,
-        ),
-        h(
-          'main',
-          {
-            class: uiCssClass('app-page'),
-            style: {
-              gridArea: 'page',
-              minWidth: 0,
-              minHeight: 0,
-              overflow: 'hidden',
-            },
-          },
-          slots.page,
-        ),
-        slots.bottomBar == null
-          ? null
-          : h(
-              'footer',
-              {
-                class: uiCssClass('app-bottom'),
-                style: { gridArea: 'bottom' },
-              },
-              slots.bottomBar,
-            ),
-      ],
-    )
-  }
 }

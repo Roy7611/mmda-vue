@@ -48,7 +48,7 @@ describe('ui ribbon contract', () => {
     ui.use(plugin)
     const node = ui.plugin(UiPluginName.ribbon)!.buildUi({} as any, {
       tabs: sampleTabs,
-    })
+    } as any)
     expect(node.props?.['data-tabs']).toBe(1)
   })
 
@@ -62,7 +62,7 @@ describe('ui ribbon contract', () => {
       buildUi: () => h('div', { class: 'mmda-ribbon' }),
     })
     expect(
-      stub.plugin(UiPluginName.ribbon)!.buildUi({} as any, { tabs: sampleTabs })
+      stub.plugin(UiPluginName.ribbon)!.buildUi({} as any, { tabs: sampleTabs } as any)
         .props?.class,
     ).toBe('mmda-ribbon')
     expect(ribbonHookClass()).toEqual(['mmda-ribbon', undefined])

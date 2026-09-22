@@ -1,6 +1,6 @@
 import { h, type VNode } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import type { SearchForRelativeProps, VueUiContext } from "@mmda/vui";
+import type { SearchForRelativeProps, VuiContext } from "@mmda/vui";
 import { NSelect } from "naive-ui";
 
 type SearchComboProps = SearchForRelativeProps & {
@@ -18,7 +18,7 @@ type SearchComboProps = SearchForRelativeProps & {
  */
 export function createSearchRelative(
   field: MetaUiField,
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   props: SearchComboProps,
 ): VNode {
   const reference = field.reference;

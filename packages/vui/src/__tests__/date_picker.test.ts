@@ -24,7 +24,7 @@ describe('datePicker helpers', () => {
     const day = new Date(2026, 8, 7)
     expect(dateOf(day)?.getTime()).toBe(day.getTime())
     expect(datePickerDateOf({ value: day })?.getTime()).toBe(day.getTime())
-    expect(datePickerDateOf({ value: '2026-09-07' })?.getFullYear()).toBe(2026)
+    expect(datePickerDateOf({ value: '2026-09-07' as any })?.getFullYear()).toBe(2026)
     expect(datePickerDateOf({})).toBeUndefined()
   })
 

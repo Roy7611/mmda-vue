@@ -13,7 +13,7 @@ import type {
   UiTabsHeightAdjustMode,
   UiTabsProps,
 } from '@mmda/core'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
 
 export type {
   UiTabHeader,
@@ -25,7 +25,7 @@ export type {
   UiTabsProps,
 } from '@mmda/core'
 
-export interface UiNormalizedTabItem {
+export interface VuiNormalizedTabItem {
   name?: string
   header: UiTabHeader
   content?: UiTabItem['content']
@@ -43,12 +43,12 @@ function finiteIndex(raw: unknown): number | undefined {
   return Math.floor(n)
 }
 
-export function tabsValueOf(props: VueModelProps<UiTabsProps>): number {
+export function tabsValueOf(props: VuiModelProps<UiTabsProps>): number {
   const raw = props.value !== undefined ? props.value : props.modelValue
   return finiteIndex(raw) ?? 0
 }
 
-export function tabsItemsOf(props: UiTabsProps): UiNormalizedTabItem[] {
+export function tabsItemsOf(props: UiTabsProps): VuiNormalizedTabItem[] {
   const items = props.items
   if (!Array.isArray(items)) return []
   return items.map((item, index) => ({
@@ -62,7 +62,7 @@ export function tabsItemsOf(props: UiTabsProps): UiNormalizedTabItem[] {
   }))
 }
 
-export function tabsItemContentOf(item: UiNormalizedTabItem): VNodeChild {
+export function tabsItemContentOf(item: VuiNormalizedTabItem): VNodeChild {
   const content = item.content
   if (typeof content === 'function') return content()
   return content
@@ -122,7 +122,7 @@ export function emitTabsChange(props: UiTabsProps, raw: unknown): void {
   const next = finiteIndex(unpacked)
   if (next == null) return
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export {

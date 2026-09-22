@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   dialogAllowDraggingOf,
   dialogButtonColorRole,
+  dialogButtonLabel,
   dialogCloseOnEscapeOf,
   dialogCloseOnOverlayOf,
   dialogEnableResizeOf,
@@ -42,6 +43,8 @@ describe('dialog buttons', () => {
     expect(dialogButtonColorRole('ok')).toBe('primary')
     expect(dialogButtonColorRole('abort')).toBe('danger')
     expect(dialogButtonColorRole('cancel')).toBeUndefined()
+    expect(dialogButtonLabel('ok')).toBe('OK')
+    expect(dialogButtonLabel('cancel')).toBe('Cancel')
   })
 
   it('shouldCloseDialog 主按钮走 onAccept，其余走 onReject', async () => {

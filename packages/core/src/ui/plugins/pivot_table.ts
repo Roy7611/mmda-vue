@@ -3,7 +3,7 @@
  * 不进 chrome UiFactory。契约跟 AG 轴（rowGroup / pivot / value）。
  */
 import type { UiProps } from '../props'
-export const PIVOT_PLUGIN_NOT_INSTALLED = 'pivot plugin not installed'
+export const PIVOT_TABLE_PLUGIN_NOT_INSTALLED = 'pivot plugin not installed'
 
 export type UiPivotAggregate =
   | 'sum'
@@ -42,7 +42,7 @@ export interface UiPivotPlugin<TNode = any> {
 }
 
 function notInstalled(): never {
-  throw new Error(PIVOT_PLUGIN_NOT_INSTALLED)
+  throw new Error(PIVOT_TABLE_PLUGIN_NOT_INSTALLED)
 }
 
 export function unimplementedPivotPlugin<TNode = any>(): UiPivotPlugin<TNode> {

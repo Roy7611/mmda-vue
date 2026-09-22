@@ -4,8 +4,8 @@ import type {
   UiTreeGridProps as CoreUiTreeGridProps,
 } from '@mmda/core'
 import type { VNode } from 'vue'
-import type { UiListViewPropsType } from "../builder/list_view";
-import type { UiGridPropsType, UiTableSkinExtras } from "./list";
+import type { VuiListViewPropsType } from "../builder/list_view";
+import type { VuiGridPropsType, VuiTableSkinExtras } from "./list";
 import type { TreeBindShape, TreeSourceShape } from '../builder/tree_data'
 import {
   detectChildrenKey,
@@ -16,18 +16,18 @@ import {
 } from '../builder/tree_data'
 
 /** 树形表：core 可编一族 + 树装配字段。 */
-export interface UiTreeGridProps<T = any>
+export interface VuiTreeGridProps<T = any>
   extends CoreUiTreeGridProps<T, VNode> {
   sourceShape?: TreeSourceShape
   bindShape?: TreeBindShape
 }
 
-export type UiTreeGridPropsType<T = any> = UiGridPropsType<T> &
-  UiTreeGridProps<T> &
-  UiTableSkinExtras<T>
+export type VuiTreeGridPropsType<T = any> = VuiGridPropsType<T> &
+  VuiTreeGridProps<T> &
+  VuiTableSkinExtras<T>
 
-export type UiTreeGridViewPropsType<T = any> = UiListViewPropsType<T> &
-  UiTreeGridProps<T>
+export type VuiTreeGridViewPropsType<T = any> = VuiListViewPropsType<T> &
+  VuiTreeGridProps<T>
 
 export function treeGridSpecFromGroup(group: MetaUiGroup, rows?: unknown[]) {
   const childrenKey = rows ? detectChildrenKey(rows) : undefined
@@ -58,7 +58,7 @@ export function treeGridSpecFromGroup(group: MetaUiGroup, rows?: unknown[]) {
 export function assembleTreeGridRows<T>(
   model: T[],
   metaUi: Pick<MetaUi, 'primaryKey'>,
-  props: UiTreeGridPropsType<T> = {},
+  props: VuiTreeGridPropsType<T> = {},
 ) {
   const treeShape = String(props.treeShape ?? 'TREE')
   const shapeKey = props.shapeKey ?? ''

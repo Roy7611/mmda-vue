@@ -10,8 +10,8 @@ import {
   type UiColorRole,
   type UiFilterBarProps,
 } from "@mmda/core";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { VueUiFactory } from "../factory";
+import type { VuiContext } from "../../contexts/vue_ui_context";
+import type { VuiFactory } from "../factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
 import {
@@ -31,11 +31,11 @@ export type ListFilterBarChip = {
   label: string;
 };
 
-function tOf(context: VueUiContext<any>, key: string) {
+function tOf(context: VuiContext<any>, key: string) {
   return context.t(key);
 }
 
-function operatorText(context: VueUiContext<any>, operator?: string) {
+function operatorText(context: VuiContext<any>, operator?: string) {
   if (!operator) return "";
   const key = `matcher.${operator}`;
   const text = tOf(context, key);
@@ -58,7 +58,7 @@ function optionLabel(field: MetaUiField | undefined, value: unknown) {
 }
 
 function displayValue(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   field: MetaUiField | undefined,
   value: unknown,
 ): string {
@@ -75,7 +75,7 @@ function displayValue(
 }
 
 function formatLeaf(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   field: MetaUiField | undefined,
   filter: FieldFilter,
 ): string {
@@ -128,7 +128,7 @@ export function filterModelChips(
   skip: Set<string> = new Set(),
 ): ListFilterBarChip[] {
   if (!model) return [];
-  const context = { t } as VueUiContext<any>;
+  const context = { t } as VuiContext<any>;
   const chips: ListFilterBarChip[] = [];
   for (const [fieldName, filter] of Object.entries(model)) {
     if (skip.has(fieldName)) continue;
@@ -145,7 +145,7 @@ export function filterModelChips(
 }
 
 export function listFilterBarChips(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
 ): ListFilterBarChip[] {
   return filterModelChips(
     context.searchParam?.filterModel as FilterModel | undefined,
@@ -155,7 +155,7 @@ export function listFilterBarChips(
   );
 }
 
-function clearSearchField(context: VueUiContext<any>, fieldName: string) {
+function clearSearchField(context: VuiContext<any>, fieldName: string) {
   for (const searchField of context.searchFields ?? []) {
     if (searchField.field?.fieldName !== fieldName) continue;
     searchField.searchWord = null;
@@ -163,7 +163,7 @@ function clearSearchField(context: VueUiContext<any>, fieldName: string) {
   }
 }
 
-function deleteFilterKey(context: VueUiContext<any>, fieldName: string) {
+function deleteFilterKey(context: VuiContext<any>, fieldName: string) {
   const model = context.searchParam.filterModel;
   if (!model) return;
   delete model[fieldName];
@@ -171,7 +171,7 @@ function deleteFilterKey(context: VueUiContext<any>, fieldName: string) {
 }
 
 export function removeListFilterBarChip(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   fieldName: string,
 ) {
   deleteFilterKey(context, fieldName);
@@ -180,7 +180,7 @@ export function removeListFilterBarChip(
   return context.search?.();
 }
 
-export function clearListFilterBar(context: VueUiContext<any>) {
+export function clearListFilterBar(context: VuiContext<any>) {
   const model = { ...(context.searchParam.filterModel ?? {}) };
   for (const fieldName of Object.keys(model)) {
     if (FieldFilter.isEmpty(model[fieldName])) continue;
@@ -191,7 +191,7 @@ export function clearListFilterBar(context: VueUiContext<any>) {
   return context.search?.();
 }
 
-export function listFixedFilterChipGroups(context: VueUiContext<any>) {
+export function listFixedFilterChipGroups(context: VuiContext<any>) {
   const metaUi = indexTableMetaUi(context);
   const allLabel = tOf(context, "action.all");
   const groups: Array<{
@@ -258,7 +258,7 @@ export function listFixedFilterChipGroups(context: VueUiContext<any>) {
 }
 
 function iconButton(
-  factory: VueUiFactory,
+  factory: VuiFactory,
   className: string,
   icon: string,
   title: string,
@@ -279,8 +279,8 @@ function iconButton(
 export const ListFilterBarView = defineComponent({
   name: "ListFilterBarView",
   props: {
-    factory: { type: Object as PropType<VueUiFactory>, required: true },
-    context: { type: Object as PropType<VueUiContext<any>>, required: true },
+    factory: { type: Object as PropType<VuiFactory>, required: true },
+    context: { type: Object as PropType<VuiContext<any>>, required: true },
     extra: { type: Object as PropType<UiFilterBarProps>, default: () => ({}) },
   },
   setup(props) {
@@ -294,8 +294,8 @@ export const ListFilterBarView = defineComponent({
 });
 
 export function createListFilterBar(
-  factory: VueUiFactory,
-  context: VueUiContext<any>,
+  factory: VuiFactory,
+  context: VuiContext<any>,
   props: UiFilterBarProps = {},
 ): VNode {
   const fixedGroups = listFixedFilterChipGroups(context);

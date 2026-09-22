@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { h } from 'vue'
 import {
-  CHART_PLUGIN_NOT_INSTALLED,
+  CHARTS_PLUGIN_NOT_INSTALLED,
   chartNotSupportedMessage,
   chartShortcuts,
   sankeyLabelOf,
@@ -55,13 +55,13 @@ describe('UiChartFactory', () => {
   it('throws chart plugin not installed until use()', () => {
     const ui = new TestUiBuilder()
     expect(() => ui.requirePlugin(UiPluginName.chart)).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
+      CHARTS_PLUGIN_NOT_INSTALLED,
     )
     expect(() => unimplementedChartFactory().barChart(sample)).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
+      CHARTS_PLUGIN_NOT_INSTALLED,
     )
     expect(() => unimplementedChartFactory().circularGauge({ value: 1 })).toThrow(
-      CHART_PLUGIN_NOT_INSTALLED,
+      CHARTS_PLUGIN_NOT_INSTALLED,
     )
   })
 
@@ -73,7 +73,7 @@ describe('UiChartFactory', () => {
         chartKind: kind,
         data: sample,
         ...extra,
-      })
+      } as any)
     expect(build('bar').props?.['data-type']).toBe('bar')
     expect(build('circularGauge', { value: 10 }).props?.class).toBe(
       'mmda-circular-gauge',

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
-import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType, UiViewOne, UiViewMany } from "@mmda/core";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { treeGridSpecFromGroup } from "../ui/factory/tree_grid";
 import { wrapWithPaginator } from "../ui/factory/list";
@@ -50,15 +50,15 @@ function itemsMetaui(shape: string, shapeKey: string) {
 describe("TreeGrid builder", () => {
   it("子表 TREE + shapeKey 走 factory.treeGrid，全量不分页", () => {
     const metaUi = itemsMetaui("TREE", "parentId");
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         items: [
           { id: "1", name: "根", parentId: "" },
           { id: "2", name: "子", parentId: "1" },
         ],
-      },
+      } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     let captured: any;
     const builder = new TestUiBuilder();
@@ -89,10 +89,10 @@ describe("TreeGrid builder", () => {
     const metaUi = itemsMetaui("TREE", "");
     const group = metaUi.getGroup("items")!;
     Object.defineProperty(group, "shapeKey", { value: undefined });
-    const context = new VueUiContext({
-      model: { items: [] },
+    const context = new VuiContext({
+      model: { items: [] } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     let used = "none";
     const builder = new TestUiBuilder();
@@ -107,7 +107,7 @@ describe("TreeGrid builder", () => {
   it("服务端已组装嵌套行即使 LIST 也走 treeGrid", () => {
     const metaUi = itemsMetaui("LIST", "");
     const group = metaUi.getGroup("items")!;
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         items: [
           {
@@ -116,9 +116,9 @@ describe("TreeGrid builder", () => {
             subModuleAuths: [{ id: "2", name: "子" }],
           },
         ],
-      },
+      } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     let used = "none";
     let captured: any;
@@ -136,13 +136,14 @@ describe("TreeGrid builder", () => {
 
   it("组 customRenderer 优先于表格", () => {
     const metaUi = itemsMetaui("LIST", "");
-    const context = new VueUiContext({
-      model: { items: [] },
+    const context = new VuiContext({
+      model: { items: [] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const logic = new MetaUiGroupLogic(metaUi.getGroup("items")!);
-    logic.customRenderer = () => h("div", { class: "mmda-custom-group" }, "bpmn");
+    logic.customRenderer = () =>
+      h("div", { class: "mmda-custom-group" }, "bpmn");
     context.setupGroupLogic(logic);
     const host = document.createElement("div");
     render(
@@ -166,10 +167,10 @@ describe("TreeGrid builder", () => {
         },
       ],
     });
-    const context = new VueUiContext({
-      model: [{ categoryID: "1", categoryName: "根" }],
+    const context = new VuiContext({
+      model: [{ categoryID: "1", categoryName: "根" }] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     (context as any).logic = {
       viewOptions: {
@@ -216,13 +217,13 @@ describe("index pagination wiring", () => {
         },
       ],
     });
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ id: "1", name: "a" }],
         pagination: { pageNo: 2, pageSize: 20, recordCount: 40 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     let captured: any;
     const builder = new TestUiBuilder();

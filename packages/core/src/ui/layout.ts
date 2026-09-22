@@ -5,6 +5,7 @@
  */
 import { uiCssClass, uiClassModifiers } from './css'
 import type { UiProps } from './props'
+import type { UiRenderer } from './renderer'
 /** 界面定位方向，横竖两种。控件和域布局都用这个名。 */
 export type UiOrientation = 'vertical' | 'horizontal'
 
@@ -123,9 +124,9 @@ export function placeFields(
   return results
 }
 
-/** {@link AbstractUiLayout.wrap} 第二参，对标 `h(tag, props, children)`。 */
-export interface UiWrapProps {
-  className?: string
+/** {@link AbstractUiLayout.render} 第二参，对标 `h(tag, props, children)`。 */
+export interface UiNodeProps {
+  class?: string
   style?: Record<string, unknown>
   attributes?: UiProps
 }
@@ -267,10 +268,12 @@ export interface UiLayout<TNode = any> {
 }
 
 /**
- * 界面布局抽象类，实现能上移的骨架：cell / row / column / grid / field / group / page / listTile。
- * 造节点走 wrap；scaffold 由实现类提供。
+ * 界面布局抽象类，实现能上移的骨架：cell / row / column / grid / field / group / page / listTile / scaffold。
+ * 造节点走 render；scaffold 提供默认壳，皮肤可按需覆写。
  */
-export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
+export abstract class AbstractUiLayout<TNode>
+  implements UiLayout<TNode>, UiRenderer<TNode, UiNodeProps>
+{
   #fieldVertical = false
   /** 详情页壳偏好。默认 cards；皮肤可覆写 getter/setter 做本地持久化。 */
   pageLayout: UiPageLayout = 'cards'
@@ -291,24 +294,117 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
       : (slots) => this.layoutFieldHorz(slots)
   }
 
-  abstract fieldGroupLayout: UiFieldGroupLayout
-  abstract maxCols: number
+  /** 字段组布局默认。缺省 grid 排法，2 列。 */
+  fieldGroupLayout: UiFieldGroupLayout = { type: 'grid', gridCols: 2 }
+  /** 屏幕宽度最大列数，厂商可覆写 12/24/36 等。 */
+  maxCols = 12
 
-  abstract scaffold(slots: UiAppScaffoldSlots<TNode>): TNode
+  /**
+   * 应用脚手架：外壳不滚动；nav / page 各自管滚动。
+   * Syncfusion 等皮肤可覆写 sidebarLeft 的 nav 兄弟结构。
+   */
+  scaffold(slots: UiAppScaffoldSlots<TNode>): TNode {
+    const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
+    const grid =
+      variant === 'topBarFull'
+        ? {
+            gridTemplateAreas: '"top top" "nav page" "bottom bottom"',
+            gridTemplateColumns: 'auto minmax(0, 1fr)',
+            gridTemplateRows: 'auto minmax(0, 1fr) auto',
+          }
+        : slots.topBar != null
+          ? {
+              gridTemplateAreas: '"nav top" "nav page" "nav bottom"',
+              gridTemplateColumns: 'auto minmax(0, 1fr)',
+              gridTemplateRows: 'auto minmax(0, 1fr) auto',
+            }
+          : {
+              gridTemplateAreas: '"nav page" "nav bottom"',
+              gridTemplateColumns: 'auto minmax(0, 1fr)',
+              gridTemplateRows: 'minmax(0, 1fr) auto',
+            }
+    const children: TNode[] = []
+    if (slots.topBar != null) {
+      children.push(
+        this.render(
+          'header',
+          {
+            class: uiCssClass('app-topbar'),
+            style: { gridArea: 'top', minWidth: 0 },
+          },
+          [slots.topBar],
+        ),
+      )
+    }
+    children.push(
+      this.render(
+        'nav',
+        {
+          class: uiCssClass('app-nav'),
+          style: { gridArea: 'nav', minHeight: 0, overflow: 'auto' },
+        },
+        slots.nav == null ? [] : [slots.nav],
+      ),
+    )
+    children.push(
+      this.render(
+        'main',
+        {
+          class: uiCssClass('app-page'),
+          style: {
+            gridArea: 'page',
+            minWidth: 0,
+            minHeight: 0,
+            overflow: 'hidden',
+          },
+        },
+        slots.page == null ? [] : [slots.page],
+      ),
+    )
+    if (slots.bottomBar != null) {
+      children.push(
+        this.render(
+          'footer',
+          {
+            class: uiCssClass('app-bottom'),
+            style: { gridArea: 'bottom' },
+          },
+          [slots.bottomBar],
+        ),
+      )
+    }
+    return this.render(
+      'div',
+      {
+        class: uiCssClass('app-layout'),
+        style: {
+          display: 'grid',
+          ...grid,
+          width: '100%',
+          height: '100%',
+          minWidth: 0,
+          minHeight: 0,
+          overflow: 'hidden',
+        },
+        attributes: { 'data-layout': variant },
+      },
+      children,
+    )
+  }
 
-  /** 包装器，vui使用h()实现。 */
-  protected abstract wrap(
+  /** {@link UiRenderer.render}：最底层渲染器，vui 用 h() 实现。 */
+  abstract render(
     tag: string,
-    props: UiWrapProps,
+    props: UiNodeProps,
     children: TNode[],
   ): TNode
 
   cell(child: TNode, nCol = 1): TNode {
     const n = Math.max(1, nCol)
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('cell'),
+        class: uiCssClass('cell'),
         style: { flexGrow: n, flexShrink: 1, flexBasis: 0, minWidth: 0 },
       },
       [child],
@@ -323,19 +419,19 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   row(children: TNode[], nCols: number[], props?: UiProps): TNode {
     const cells = children.map((child, i) => {
       const n = Math.max(1, nCols[i] ?? 1)
-      return this.wrap(
+      return this.render(
         'div',
         {
-          className: uiCssClass('cell'),
+          class: uiCssClass('cell'),
           style: { flexGrow: n, flexShrink: 1, flexBasis: 0, minWidth: 0 },
         },
         [child],
       )
     })
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('row'),
+        class: uiCssClass('row'),
         style: {
           display: 'flex',
           flexWrap: 'wrap',
@@ -349,10 +445,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   column(children: TNode[], props?: UiProps): TNode {
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('column'),
+        class: uiCssClass('column'),
         style: {
           display: 'flex',
           flexDirection: 'column',
@@ -365,10 +461,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   grid(children: TNode[], nCols: number[], props?: UiProps): TNode {
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('grid'),
+        class: uiCssClass('grid'),
         style: {
           display: 'grid',
           gridTemplateColumns:
@@ -395,10 +491,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
 
   /** 包一层控件节点，便于测控选中。 */
   protected fieldControl(slots: UiFieldSlots<TNode>): TNode {
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('field-control'),
+        class: uiCssClass('field-control'),
         style: { minWidth: 0 },
       },
       [slots.control],
@@ -406,10 +502,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   layoutFieldHorz(slots: UiFieldSlots<TNode>): TNode {
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiClassModifiers('field', 'horizontal'),
+        class: uiClassModifiers('field', 'horizontal'),
         style: {
           minWidth: 0,
           ...this.fieldCellStyle(slots),
@@ -420,10 +516,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   layoutFieldVert(slots: UiFieldSlots<TNode>): TNode {
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiClassModifiers('field', 'vertical'),
+        class: uiClassModifiers('field', 'vertical'),
         style: {
           minWidth: 0,
           ...this.fieldCellStyle(slots),
@@ -436,10 +532,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   layoutFieldGroup(options: UiFieldGroupProps<TNode>): TNode {
     const type = this.fieldGroupLayout.type
     const gridCols = this.fieldGroupLayout.gridCols ?? 2
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiClassModifiers('field-group', type),
+        class: uiClassModifiers('field-group', type),
         attributes: {
           role: 'group',
           'data-grid-cols': gridCols,
@@ -450,16 +546,18 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   /**
-   * 缺省铺平槽位（测试 / 无壳后端）。折叠摘要、左右栏、tabs 壳由 vui 等覆写本方法。
+   * 实体详情/编辑页壳：sticky 工具栏 → banner（消息）→ body → 页脚。
+   * body 按 {@link UiPageLayout} 分发：tabs → {@link layoutBodyTabs}，cards → {@link layoutBodyCards}。
    */
   layoutPage(slots: UiPageSlots<TNode>): TNode {
+    const isTabs = slots.pageLayout === 'tabs'
     const toolbarNode =
       slots.toolbar == null
         ? undefined
-        : this.wrap(
+        : this.render(
             'header',
             {
-              className: [
+              class: [
                 uiCssClass('page', 'header'),
                 uiCssClass('page', 'header', 'sticky'),
               ].join(' '),
@@ -467,33 +565,43 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
             },
             [slots.toolbar],
           )
-    const body = [
-      ...(slots.banner == null ? [] : [slots.banner]),
-      ...(slots.emphasis == null ? [] : [slots.emphasis]),
-      ...slots.primary,
-      ...(slots.tails ?? []),
-      ...(slots.summary ?? []),
-      ...(slots.footer == null ? [] : [slots.footer]),
-    ]
-    const children = toolbarNode == null ? body : [toolbarNode, ...body]
-    const rows = [
-      slots.toolbar == null ? null : 'auto',
-      'minmax(0, 1fr)',
-      slots.footer == null ? null : 'auto',
-    ].filter(Boolean)
-    const pageLayout = slots.pageLayout === 'tabs' ? 'tabs' : undefined
-    return this.wrap(
+    const bannerNode =
+      slots.banner == null ||
+      (Array.isArray(slots.banner) && slots.banner.length === 0)
+        ? undefined
+        : this.render(
+            'div',
+            { class: uiCssClass('page', 'banner') },
+            [slots.banner],
+          )
+    const footerNode =
+      slots.footer == null
+        ? undefined
+        : this.render(
+            'footer',
+            { class: uiCssClass('page', 'footer') },
+            [slots.footer],
+          )
+    const body = isTabs
+      ? this.layoutBodyTabs(slots)
+      : this.layoutBodyCards(slots)
+    const children: TNode[] = []
+    if (toolbarNode != null) children.push(toolbarNode)
+    if (bannerNode != null) children.push(bannerNode)
+    children.push(body)
+    if (footerNode != null) children.push(footerNode)
+    return this.render(
       'section',
       {
-        className: pageLayout
-          ? uiClassModifiers('page', pageLayout)
+        class: isTabs
+          ? uiClassModifiers('page', 'tabs')
           : uiCssClass('page'),
         style: {
-          display: 'grid',
-          gridTemplateRows: rows.join(' '),
+          display: 'flex',
+          flexDirection: 'column',
           height: '100%',
           minHeight: 0,
-          overflow: 'auto',
+          overflow: isTabs ? 'hidden' : 'auto',
         },
       },
       children,
@@ -501,15 +609,87 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
   }
 
   /**
-   * 缺省铺平：toolbar → filterBar → default → footer。vui 覆写加 list-view 壳。
+   * cards 主体：纵向铺平 primary/tails/summary。默认不可折叠；
+   * vui 覆写本方法用 PageBody 提供 main|summary 双栏、摘要折叠与紧凑视口响应。
+   */
+  protected layoutBodyCards(slots: UiPageSlots<TNode>): TNode {
+    const children: TNode[] = []
+    children.push(...slots.primary)
+    children.push(...(slots.tails ?? []))
+    children.push(...(slots.summary ?? []))
+    return this.render(
+      'div',
+      {
+        class: uiCssClass('page', 'body'),
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          minHeight: 0,
+        },
+      },
+      children,
+    )
+  }
+
+  /** tabs 主体：纵向 emphasis → primary（通常是 factory.tabs）。 */
+  private layoutBodyTabs(slots: UiPageSlots<TNode>): TNode {
+    const emphasis =
+      slots.emphasis == null
+        ? undefined
+        : this.render(
+            'div',
+            { class: uiCssClass('page', 'emphasis') },
+            [slots.emphasis],
+          )
+    const primary = this.render(
+      'div',
+      {
+        class: [
+          uiCssClass('section'),
+          uiCssClass('section', undefined, 'main'),
+          uiCssClass('page', 'tabs'),
+        ].join(' '),
+        style: { flex: '1 1 0', minHeight: 0, minWidth: 0 },
+      },
+      slots.primary,
+    )
+    const bodyChildren: TNode[] = []
+    if (emphasis != null) bodyChildren.push(emphasis)
+    bodyChildren.push(primary)
+    return this.render(
+      'div',
+      {
+        class: uiCssClass('page', 'body'),
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: '1 1 0',
+          minHeight: 0,
+          minWidth: 0,
+          overflow: 'hidden',
+        },
+      },
+      bodyChildren,
+    )
+  }
+
+  /**
+   * 索引/选择列表页：sticky 工具栏 → 过滤条 → 数据区 → 底部分页。
    */
   layoutIndexPage(slots: UiIndexPageSlots<TNode>): TNode {
     const children: TNode[] = []
     if (slots.toolbar != null) {
       children.push(
-        this.wrap(
+        this.render(
           'header',
-          { className: uiCssClass('page', 'header') },
+          {
+            class: [
+              uiCssClass('page', 'header'),
+              uiCssClass('page', 'header', 'sticky'),
+            ].join(' '),
+            style: { position: 'sticky', top: 0, zIndex: 2 },
+          },
           [slots.toolbar],
         ),
       )
@@ -517,10 +697,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     if (slots.filterBar != null) children.push(slots.filterBar)
     if (slots.default != null) {
       children.push(
-        this.wrap(
+        this.render(
           'div',
           {
-            className: uiCssClass('page', 'body'),
+            class: uiCssClass('page', 'body'),
             style: { flex: '1 1 auto', minWidth: 0, minHeight: 0, overflow: 'auto' },
           },
           [slots.default],
@@ -529,17 +709,18 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     }
     if (slots.footer != null) {
       children.push(
-        this.wrap(
+        this.render(
           'footer',
-          { className: uiCssClass('page', 'footer') },
+          { class: uiCssClass('page', 'footer') },
           [slots.footer],
         ),
       )
     }
-    return this.wrap(
+    return this.render(
       'section',
       {
-        className: uiCssClass('index-page'),
+        class: [uiCssClass('list-view'), uiCssClass('index-page')].join(' '),
+        attributes: { role: 'main' },
         style: {
           display: 'flex',
           flexDirection: 'column',
@@ -563,10 +744,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     const children: TNode[] = []
     if (slots.leading) {
       children.push(
-        this.wrap(
+        this.render(
           'div',
           {
-            className: uiCssClass('list-tile', 'leading'),
+            class: uiCssClass('list-tile', 'leading'),
             style: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
           },
           [slots.leading()],
@@ -574,10 +755,10 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
       )
     }
     children.push(
-      this.wrap(
+      this.render(
         'div',
         {
-          className: uiCssClass('list-tile', 'body'),
+          class: uiCssClass('list-tile', 'body'),
           style: {
             flexGrow: 1,
             flexShrink: 1,
@@ -590,20 +771,20 @@ export abstract class AbstractUiLayout<TNode> implements UiLayout<TNode> {
     )
     if (slots.trailing) {
       children.push(
-        this.wrap(
+        this.render(
           'div',
           {
-            className: uiCssClass('list-tile', 'trailing'),
+            class: uiCssClass('list-tile', 'trailing'),
             style: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
           },
           [slots.trailing()],
         ),
       )
     }
-    return this.wrap(
+    return this.render(
       'div',
       {
-        className: uiCssClass('list-tile'),
+        class: uiCssClass('list-tile'),
         style: {
           display: 'flex',
           flexWrap: 'nowrap',

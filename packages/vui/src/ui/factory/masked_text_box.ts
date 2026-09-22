@@ -5,8 +5,8 @@
  * 字段 fieldFactory.maskedTextBox / mobileInput / zipCodeInput 译 MetaUiField 后再调本控件。
  */
 import type { MetaUiField, UiMaskedTextBoxProps } from '@mmda/core'
-import type {UiProps} from '../layout'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import type {UiProps} from '@mmda/core'
+import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
 
 /** 大陆手机：11 位数字，中间空格。EJ2 `0` = 数字。 */
 export const MOBILE_MASK = '000 0000 0000'
@@ -22,7 +22,7 @@ export type MaskedTextBoxFieldContext = {
 }
 
 export function maskedTextBoxValueOf(
-  props: VueModelProps<UiMaskedTextBoxProps>,
+  props: VuiModelProps<UiMaskedTextBoxProps>,
 ): string {
   if (props.value !== undefined && props.value != null) return String(props.value)
   if (props.modelValue !== undefined && props.modelValue != null) {
@@ -37,7 +37,7 @@ export function emitMaskedTextBoxChange(
 ): void {
   const next = value == null ? '' : String(value)
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export { maskedTextBoxModifierClasses } from '@mmda/core'

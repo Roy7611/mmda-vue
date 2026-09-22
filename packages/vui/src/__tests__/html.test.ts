@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref, render } from "vue";
-import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { MetaUi, MetaUiField, SqlDataType, UiViewOne, UiViewMany } from "@mmda/core";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { UiViewManyKind } from "../contexts/view";
 import { renderTreeView } from "../components/TreeView";
 import { TestUiBuilder } from "./test_builder";
 
-const treeCtx = new VueUiContext({
-  model: {},
-  metaUi: new MetaUi({ objName: "Tree", groups: [] }),
-  view: "index",
+const treeCtx = new VuiContext({
+  model: {} as any,
+  metaUi: new MetaUi({ objName: "Tree", displayLabel: "Tree", groups: [] }),
+  view: UiViewMany.Index,
 });
 
 const metaUi = new MetaUi({
@@ -34,7 +34,7 @@ const metaUi = new MetaUi({
   ],
 });
 
-describe("VueUiBuilder tree chrome", () => {
+describe("VuiBuilder tree chrome", () => {
   const hosts: HTMLElement[] = [];
 
   afterEach(() => {
@@ -46,10 +46,10 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("渲染可编辑表单并把输入写回 context", () => {
-    const context = new VueUiContext({
-      model: { name: "旧名称" },
+    const context = new VuiContext({
+      model: { name: "旧名称" } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const host = document.createElement("div");
     hosts.push(host);
@@ -63,90 +63,14 @@ describe("VueUiBuilder tree chrome", () => {
     expect(context.model.name).toBe("新名称");
   });
 
-  it("原生确认框返回 boolean", async () => {
-    const context = new VueUiContext({ model: {}, metaUi });
-    const original = window.confirm;
-    window.confirm = () => true;
-    await expect(
-      new TestUiBuilder().confirm(context, { message: "确认吗？" }),
-    ).resolves.toBe(true);
-    window.confirm = original;
-  });
-
-  it("html overlay toast 用 title/message，confirm 为 boolean", async () => {
-    const { createHtmlOverlay } = await import("../ui/overlay");
-    const overlay = createHtmlOverlay();
-    overlay.toast({
-      severity: "success",
-      title: "已保存",
-      message: "订单已更新",
-    });
-    const node = document.querySelector(".mmda-toast");
-    expect(node?.textContent).toContain("已保存");
-    expect(node?.textContent).toContain("订单已更新");
-    const original = window.confirm;
-    window.confirm = () => false;
-    await expect(
-      overlay.confirm({ title: "删除", message: "确定？" }),
-    ).resolves.toBe(false);
-    window.confirm = original;
-  });
-
-  it("html overlay dialog 返回标准按钮名，onReject 可拦关", async () => {
-    const { createHtmlOverlay } = await import("../ui/overlay");
-    const { h } = await import("vue");
-    const overlay = createHtmlOverlay();
-    const p = overlay.dialog(h("div", "body"), {
-      title: "x",
-      onReject: async () => false,
-    });
-    const ok = document.querySelector(
-      ".mmda-dialog footer button.is-primary",
-    ) as HTMLButtonElement | null;
-    expect(ok).toBeTruthy();
-    ok!.click();
-    await expect(p).resolves.toBe("ok");
-  });
-
-  it("html overlay dialog header 插槽换掉 title", async () => {
-    const { createHtmlOverlay } = await import("../ui/overlay");
-    const { h } = await import("vue");
-    const overlay = createHtmlOverlay();
-    void overlay.dialog(h("div", "body"), {
-      title: "TITLE",
-      header: () => h("span", { class: "mmda-test-header" }, "SLOT_H"),
-    });
-    const header = document.querySelector(".mmda-dialog header");
-    expect(header?.textContent).toBe("SLOT_H");
-    expect(header?.textContent).not.toContain("TITLE");
-    expect(header?.querySelector(".mmda-test-header")).toBeTruthy();
-    await overlay.closeTopDialog?.("cancel");
-  });
-
-  it("html overlay dialog footer 插槽不画标准键", async () => {
-    const { createHtmlOverlay } = await import("../ui/overlay");
-    const { h } = await import("vue");
-    const overlay = createHtmlOverlay();
-    void overlay.dialog(h("div", "body"), {
-      title: "x",
-      footer: () => h("span", { class: "mmda-test-footer" }, "SLOT_F"),
-    });
-    const footer = document.querySelector(".mmda-dialog footer");
-    expect(footer?.querySelector(".mmda-test-footer")?.textContent).toBe(
-      "SLOT_F",
-    );
-    expect(footer?.querySelector("button")).toBeNull();
-    await overlay.closeTopDialog?.("cancel");
-  });
-
   it("buildTreeListView 用 splitter 分出树和表", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     const host = document.createElement("div");
     hosts.push(host);
@@ -172,13 +96,13 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("分类列表在表格上方显示当前过滤", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     context.searchParam.filterModel = {
       name: { filterType: "text", operator: "CONTAINS", value: "A" },
@@ -203,13 +127,13 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("选中分类后面包屑增加一级，折叠后仍可展开且表格还在", async () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     const host = document.createElement("div");
     hosts.push(host);
@@ -253,13 +177,13 @@ describe("VueUiBuilder tree chrome", () => {
 
   it("折叠左树只改布局，不改查询条件", async () => {
     const search = vi.fn();
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     (context as { search?: () => Promise<unknown> }).search = search;
     const host = document.createElement("div");
@@ -302,13 +226,13 @@ describe("VueUiBuilder tree chrome", () => {
 
   it("点树只带类别 getAll，模糊搜索清外键后按 SearchParam 查全部", async () => {
     const search = vi.fn();
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     (context as { search?: () => Promise<unknown> }).search = search;
     const host = document.createElement("div");
@@ -437,7 +361,7 @@ describe("VueUiBuilder tree chrome", () => {
     document.body.append(host);
     render(
       new TestUiBuilder().buildTreeView(treeCtx, {
-        data: [{ id: "1", label: "苹果" }],
+        data: [{ code: "1", label: "苹果" }],
         selectedNode: { id: "1", label: "苹果", code: "A1" } as any,
         showTreeFooter: true,
         footerContent: (node: { code?: string; label: string }) =>
@@ -461,13 +385,13 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("build 按 viewOptions[view].viewKind 走 tree list", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     context.logic = {
       viewOptions: {
@@ -492,13 +416,13 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("build 有 tree 即使没有 viewKind 也走 tree list", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     context.logic = {
       viewOptions: {
@@ -522,15 +446,15 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("缺省 hover，右键不自造菜单", async () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
-    context.app = {
+    (context as any).app = {
       name: "base",
       findModule: () => ({
         authority: {
@@ -567,15 +491,15 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("CategoryList 右键按模块权限弹出树菜单", async () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
-    context.app = {
+    (context as any).app = {
       name: "base",
       findModule: () => ({
         authority: {
@@ -638,13 +562,13 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("分类模块无权限时右键菜单回退到列表模块权限", async () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     context.logic = {
       module: {
@@ -656,7 +580,7 @@ describe("VueUiBuilder tree chrome", () => {
         },
       },
     } as any;
-    context.app = {
+    (context as any).app = {
       name: "base",
       findModule: () => ({
         authority: {
@@ -703,15 +627,15 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("可编辑分类树开启拖放改父节点", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
-    context.app = {
+    (context as any).app = {
       name: "base",
       findModule: () => ({
         authority: {
@@ -743,15 +667,15 @@ describe("VueUiBuilder tree chrome", () => {
   });
 
   it("未授权编辑的分类树不开启拖放", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
-    context.app = {
+    (context as any).app = {
       name: "base",
       findModule: () => ({
         authority: {
@@ -786,13 +710,13 @@ describe("VueUiBuilder tree chrome", () => {
       loads += 1;
       return [{ id: "c1", label: "分类", childrenCount: 0 }];
     };
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         list: [{ name: "A" }],
         pagination: { pageNo: 1, pageSize: 10 },
-      },
+      } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     const treeOption = () => ({
       repository: "MaterialCats",

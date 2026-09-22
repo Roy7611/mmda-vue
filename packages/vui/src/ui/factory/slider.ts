@@ -6,8 +6,8 @@
  * 字段 fieldFactory.slider 译 MetaUiField 后再调本控件。
  */
 import type { MetaUiField, UiSliderProps, UiSliderType, UiSliderValue } from '@mmda/core'
-import type {UiProps} from '../layout'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import type {UiProps} from '@mmda/core'
+import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
 
 export const DEFAULT_SLIDER_MIN = 0
 export const DEFAULT_SLIDER_MAX = 100
@@ -42,7 +42,7 @@ export function sliderStepOf(props: UiSliderProps): number {
 }
 
 export function sliderTypeOf(
-  props: VueModelProps<UiSliderProps>,
+  props: VuiModelProps<UiSliderProps>,
 ): UiSliderType {
   if (props.type === 'MinRange' || props.type === 'Range' || props.type === 'Default') {
     return props.type
@@ -52,7 +52,7 @@ export function sliderTypeOf(
   return 'Default'
 }
 
-function sliderRawValue(props: VueModelProps<UiSliderProps>): unknown {
+function sliderRawValue(props: VuiModelProps<UiSliderProps>): unknown {
   if (props.value !== undefined) return props.value
   if (props.modelValue !== undefined) return props.modelValue
   return undefined
@@ -70,7 +70,7 @@ function pairOf(raw: unknown, min: number, max: number): number[] {
 }
 
 export function sliderValueOf(
-  props: VueModelProps<UiSliderProps>,
+  props: VuiModelProps<UiSliderProps>,
 ): number | number[] {
   const type = sliderTypeOf(props)
   const min = sliderMinOf(props)
@@ -98,7 +98,7 @@ export function emitSliderChange(props: UiSliderProps, value: unknown): void {
     next = n ?? null
   }
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export { sliderModifierClasses } from '@mmda/core'

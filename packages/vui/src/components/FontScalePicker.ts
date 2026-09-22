@@ -6,7 +6,7 @@ import {
 } from "../app/theme";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
 import type { MmdaApplication } from "../app/app";
-import type { VueUiBuilder } from "../ui/builder";
+import type { VuiBuilder } from "../ui/builder";
 import { translateMessage } from "../i18n/i18n";
 
 const SCALE_ACTIONS = MMDA_FONT_SCALES.map((option) => ({
@@ -20,7 +20,7 @@ export const FontScalePicker = defineComponent({
   name: "FontScalePicker",
   setup() {
     const app = inject(UI_APP_KEY)! as MmdaApplication;
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder;
+    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder;
 
     const selectScale = (scale: MmdaFontScale) => {
       app.state.fontScale = scale;

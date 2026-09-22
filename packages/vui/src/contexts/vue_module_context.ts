@@ -1,14 +1,14 @@
 import type { Entity, Pager, Pagination, UiMessageProps } from "@mmda/core";
 import type { InjectionKey } from "vue";
-import type { VueUiContext } from "./vue_ui_context";
+import type { VuiContext } from "./vue_ui_context";
 import type { UiIndexTableHost } from "../ui/factory/list";
 
 /** 模块工作区：保活 Index 与 One 视图之间的列表同步。 */
 export interface VueModuleContext {
   /** 换 repository 时清空（父组件可能被路由复用）。 */
   reset(): void;
-  registerIndex(context: VueUiContext): void;
-  unregisterIndex(context: VueUiContext): void;
+  registerIndex(context: VuiContext): void;
+  unregisterIndex(context: VuiContext): void;
   /** 进 Create：currentIndex=-1，currentItem=null。 */
   beginCreate(): void;
   /** 进 details/edit：记住当前行。 */
@@ -29,15 +29,15 @@ export const MODULE_CONTEXT_KEY = Symbol(
   "VueModuleContext",
 ) as InjectionKey<VueModuleContext>;
 
-function primaryKeyOf(context: VueUiContext): string {
+function primaryKeyOf(context: VuiContext): string {
   return context.metaUi?.primaryKey ?? "id";
 }
 
-function listRows(context: VueUiContext): Entity[] | null {
+function listRows(context: VuiContext): Entity[] | null {
   return Array.isArray(context.model) ? (context.model as Entity[]) : null;
 }
 
-function listPager(context: VueUiContext): (Pager & Pagination) | undefined {
+function listPager(context: VuiContext): (Pager & Pagination) | undefined {
   return context.searchParam?.pager as (Pager & Pagination) | undefined;
 }
 
@@ -54,7 +54,7 @@ function applyToHost(
 }
 
 export function createModuleContext(): VueModuleContext {
-  let indexContext: VueUiContext | null = null;
+  let indexContext: VuiContext | null = null;
   let needsSearch = false;
   let pendingPageNotice: UiMessageProps | null = null;
 

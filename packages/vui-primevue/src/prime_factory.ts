@@ -1,7 +1,7 @@
 import { h, reactive, type VNode } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, SortOrder, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, getFieldFilterOps, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, unboxed, type FieldFilter, type FilterModel, type MetaUi, type MetaUiField } from "@mmda/core";
-import type { VueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, UiSlots, UiTreeGridPropsType } from "@mmda/vui"
-import { assembleTreeGridRows, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vueUpdateOf } from "@mmda/vui"
+import type { VueUiFactory, UiProps, UiAction, UiListPropsType, UiPaginatorPropsType, VueUiTileSlots, UiTreeGridPropsType } from "@mmda/vui"
+import { assembleTreeGridRows, treeRowId, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, wrapRowDetail, resolveActionButtonIcon, createErrorRetry, vuiUpdateOf } from "@mmda/vui"
 import { createBadge } from "./factory/badge";
 import { createMessage } from "./factory/message";
 import { createAvatar } from "./factory/avatar";
@@ -889,7 +889,7 @@ export function createPrimeVueUiFactory(): VueUiFactory {
             createTextInput({
               ...props,
               value: props.modelValue ?? props.value,
-              onChange: props.onChange ?? vueUpdateOf(props),
+              onChange: props.onChange ?? vuiUpdateOf(props),
             }),
         ],
       ),

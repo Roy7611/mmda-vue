@@ -1,6 +1,6 @@
 import { getCurrentInstance, h, render, type VNode } from "vue";
 import { SqlDataType, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, type MetaUi, type MetaUiField } from "@mmda/core";
-import { TREE_PARENT_KEY, assembleTreeGridRows, listedTableFields, type UiTreeGridPropsType } from "@mmda/vui"
+import { TREE_PARENT_KEY, assembleTreeGridRows, listedTableFields, type VuiTreeGridPropsType } from "@mmda/vui"
 import { SfTreeGrid } from "../components/SfTreeGrid";
 import { buildSfTreeGridColumns } from "../sf_grid_column";
 import {
@@ -29,7 +29,7 @@ function renderWithAppContext(
 }
 
 export const treeGridRenderers = {
-  treeGrid: <T>(props: UiTreeGridPropsType<T>) => {
+  treeGrid: <T>(props: VuiTreeGridPropsType<T>) => {
     const model = (props.rows ?? []) as T[];
     const appContext = getCurrentInstance()?.appContext ?? null;
     const fields = (props.fields ?? []) as MetaUiField[];

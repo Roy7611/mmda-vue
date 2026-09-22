@@ -130,7 +130,7 @@ describe('dropDownList helpers', () => {
         getFieldValue: () => null,
         setFieldValue: vi.fn(),
         isFieldReadonly: () => false,
-        searchRelative,
+        searchRelative: searchRelative as any,
       },
     )
     expect(props.options).toEqual([])

@@ -6,7 +6,7 @@ import { createMaskedTextBox } from "../factory/masked_text_box";
 import { createOneTimePasswordInput } from "../factory/one_time_password_input";
 import { createSlider } from "../factory/slider";
 import { createRating } from "../factory/rating";
-import { invalidOf, type UiContext } from "./utils";
+import { invalidOf, type SfVuiContext } from "./utils";
 import { numberInput, percentInput } from "./number";
 import { password, textArea, textInput } from "./text";
 import {
@@ -59,7 +59,6 @@ import {
   relativeTimeField,
   signaturePad,
   stepper,
-  timeline,
   tag,
   tags,
   chips,
@@ -69,7 +68,7 @@ import {
 
 const wrapMasked = (
   field: MetaUiField,
-  context: UiContext
+  context: SfVuiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
@@ -85,7 +84,7 @@ const wrapMasked = (
 
 const wrapOtp = (
   field: MetaUiField,
-  context: UiContext
+  context: SfVuiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
@@ -103,7 +102,7 @@ const wrapOtp = (
 
 const wrapSlider = (
   field: MetaUiField,
-  context: UiContext
+  context: SfVuiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
@@ -119,7 +118,7 @@ const wrapSlider = (
 
 const wrapRating = (
   field: MetaUiField,
-  context: UiContext
+  context: SfVuiContext
 ) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
@@ -135,7 +134,7 @@ const wrapRating = (
 
 const fallbackInput = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ): VNode => {
   if (
@@ -223,7 +222,6 @@ const factory: UiFieldFactory = {
   progressBar,
   signaturePad,
   stepper,
-  timeline,
   relativeTime: relativeTimeField,
   tag,
   tags,
@@ -322,7 +320,6 @@ const aliases: Record<string, string> = {
   ProgressBar: "progressBar",
   SignaturePad: "signaturePad",
   Stepper: "stepper",
-  Timeline: "timeline",
   RelativeTime: "relativeTime",
   Image: "image",
   Avatar: "avatar",

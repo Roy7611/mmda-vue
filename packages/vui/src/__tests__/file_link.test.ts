@@ -52,6 +52,6 @@ describe('fileLink helpers', () => {
     expect(node.type).toBe('span')
     const ok = renderFileLink({ url: '/f/a.pdf' })
     expect(ok.type).toBe('a')
-    expect(ok.props.href).toBe('/f/a.pdf')
+    expect(ok.props?.href).toBe('/f/a.pdf')
   })
 })

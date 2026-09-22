@@ -24,12 +24,12 @@ import {
   control,
   invalidOf,
   update,
-  type UiContext,
+  type SfVuiContext,
 } from "./utils";
 
 export const dropDownList = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -48,7 +48,7 @@ export const dropDownList = (
 
 export const treeSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -67,7 +67,7 @@ export const treeSelect = (
 
 export const comboBox = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -82,7 +82,7 @@ export const comboBox = (
   ]);
 };
 
-function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
+function wrapSf(field: MetaUiField, context: SfVuiContext, child: VNode) {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     child,
@@ -97,7 +97,7 @@ function wrapSf(field: MetaUiField, context: UiContext, child: VNode) {
 
 export const radioButtonGroup = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -110,7 +110,7 @@ export const radioButtonGroup = (
 
 export const multiSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -123,7 +123,7 @@ export const multiSelect = (
 
 export const multiItemSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -136,7 +136,7 @@ export const multiItemSelect = (
 
 export const multiValueSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -149,7 +149,7 @@ export const multiValueSelect = (
 
 export const multiTextSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -162,7 +162,7 @@ export const multiTextSelect = (
 
 export const multiBitSelect = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -175,7 +175,7 @@ export const multiBitSelect = (
 
 export const checkBoxList = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -188,7 +188,7 @@ export const checkBoxList = (
 
 export const bitCheckBoxList = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrapSf(
@@ -201,7 +201,7 @@ export const bitCheckBoxList = (
 
 export const tagAutoComplete = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   return wrapSf(
@@ -217,7 +217,7 @@ export const tagAutoComplete = (
 
 export const checkbox = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -234,7 +234,7 @@ export const checkbox = (
 
 export const switchControl = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const invalid = invalidOf(field, context);
@@ -256,7 +256,7 @@ export const switcher = switchControl;
  */
 export const searchBox = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ): VNode => {
   const reference = field.reference;
@@ -330,7 +330,7 @@ export const searchBox = (
 
 export const autoComplete = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ): VNode => {
   const route = routeAutoCompleteField(field);

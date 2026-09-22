@@ -1,10 +1,10 @@
 import { defineComponent, h, type PropType } from "vue";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
+import type { VuiContext } from "../../contexts/vue_ui_context";
 
 export const ListSearchField = defineComponent({
   name: "ListSearchField",
   props: {
-    context: { type: Object as PropType<VueUiContext<any>>, required: true },
+    context: { type: Object as PropType<VuiContext<any>>, required: true },
     onFuzzySearch: { type: Function as PropType<() => void>, required: true },
     inputClass: { type: String, default: "mmda-searchbar__input" },
   },

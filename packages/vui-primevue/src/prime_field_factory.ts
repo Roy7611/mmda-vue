@@ -1,6 +1,6 @@
 import { h, mergeProps, type Component, type VNode } from 'vue'
 import { SqlDataType, MetaModel, type MetaUiField, type Module, autoCompleteBindValue, autoCompletePropsFromField, avatarPropsFromField, checkBoxPropsFromField, switchPropsFromField, numberInputPropsFromField, textAreaPropsFromField, textInputPropsFromField, progressBarPropsFromField, signaturePadPropsFromField, stepperPropsFromField, datePickerPropsFromField, dateRangePickerPropsFromField, dateTimePickerPropsFromField, monthPickerPropsFromField, timePickerPropsFromField, comboBoxPropsFromField, dropDownListPropsFromField, radioButtonGroupPropsFromField, multiSelectPropsFromField, multiItemSelectPropsFromField, multiValueSelectPropsFromField, multiTextSelectPropsFromField, multiBitSelectPropsFromField, checkBoxListPropsFromField, bitCheckBoxListPropsFromField, tagAutoCompletePropsFromField, routeAutoCompleteField, type UiAvatarProps } from '@mmda/core'
-import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type VueUiContext } from '@mmda/vui'
+import { colorPickerPropsFromField, maskedTextBoxPropsFromField, timelinePropsFromField, timelineSqlOf, relativeTime as relativeTimeView, oneTimePasswordPropsFromField, sliderPropsFromField, ratingPropsFromField, MOBILE_MASK, ZIP_MASK, treeSelectPropsFromField, chipsPropsFromField, bitChipSetPropsFromField, enumChipSetPropsFromField, cleanProps, fasIcon, TABLE_CELL_PROP_KEYS, type UiProps, type UiFieldFactory, type VuiContext } from '@mmda/vui'
 import { createAutoComplete } from './factory/autocomplete'
 import { createCheckBox } from './factory/checkbox'
 import { createSwitch } from './factory/switch'
@@ -15,7 +15,6 @@ import { createTextInput } from './factory/text_input'
 import { createProgressBar } from './factory/progress_bar'
 import { createSignaturePad } from './factory/signature_pad'
 import { createStepper } from './factory/stepper'
-import { createTimeline } from './factory/timeline'
 import { createDatePicker } from './factory/date_picker'
 import { createDateTimePicker } from './factory/date_time_picker'
 import { createTimePicker } from './factory/time_picker'
@@ -42,7 +41,7 @@ import Message from 'primevue/message'
 import Password from 'primevue/password'
 import Tag from 'primevue/tag'
 
-type UiContext = VueUiContext<any>
+type UiContext = VuiContext<any>
 
 const update = (field: MetaUiField, context: UiContext) => (value: any) =>
   context.setFieldValue(field, value)
@@ -752,14 +751,6 @@ const factory: UiFieldFactory = {
       context,
       createStepper(stepperPropsFromField(field, context)),
     ),
-  timeline: (field, context) =>
-    wrapChrome(
-      field,
-      context,
-      (context.uiBuilder?.factory?.timeline ?? createTimeline)(
-        timelinePropsFromField(field, context),
-      ),
-    ),
   relativeTime: (field, context) =>
     relativeTimeView(timelineSqlOf(context.getFieldValue(field, props?.row)) ?? '', {
       locale: context.locale,
@@ -906,7 +897,6 @@ const aliases: Record<string, string> = {
   ProgressBar: 'progressBar',
   SignaturePad: 'signaturePad',
   Stepper: 'stepper',
-  Timeline: 'timeline',
   RelativeTime: 'relativeTime',
   Image: 'image',
   Avatar: 'avatar',

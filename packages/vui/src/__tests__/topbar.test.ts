@@ -86,7 +86,7 @@ describe('index topbar chrome helpers', () => {
         end: () => 'E' as any,
       },
     )
-    expect(vnode.props.class).toContain('mmda-index-topbar')
+    expect(vnode.props?.class).toContain('mmda-index-topbar')
     const kids = vnode.children as any[]
     expect(kids).toHaveLength(3)
     expect(kids[0].children).toBe('S')

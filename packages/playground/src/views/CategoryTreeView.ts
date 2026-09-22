@@ -1,11 +1,11 @@
 import { defineComponent, h, ref, type PropType } from "vue";
-import type { VueUiContext } from "@mmda/vui";
+import type { VuiContext } from "@mmda/vui";
 import { categoryRows, nextId, type Category } from "../catalog";
 
 export const CategoryTreeView = defineComponent({
   name: "CategoryTreeView",
   props: {
-    ctx: { type: Object as PropType<VueUiContext>, required: true },
+    ctx: { type: Object as PropType<VuiContext>, required: true },
   },
   setup(props) {
     const selected = ref("");

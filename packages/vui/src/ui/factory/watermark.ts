@@ -7,17 +7,17 @@ export interface Watermark {
   label?: string
 }
 
-export type UiGroupWatermark = (
+export type VuiGroupWatermark = (
   grp: MetaUiGroup,
   ctx: UiContext<any>,
   props: Record<string, any>,
 ) => Watermark | void
 
-const groupWatermarks = new WeakMap<object, UiGroupWatermark>()
+const groupWatermarks = new WeakMap<object, VuiGroupWatermark>()
 
 export function setGroupWatermark(
   logic: MetaUiGroupLogic<any, any>,
-  watermark: UiGroupWatermark,
+  watermark: VuiGroupWatermark,
 ) {
   groupWatermarks.set(logic, watermark)
   return logic
@@ -25,6 +25,6 @@ export function setGroupWatermark(
 
 export function getGroupWatermark(
   logic: MetaUiGroupLogic<any, any>,
-): UiGroupWatermark | undefined {
+): VuiGroupWatermark | undefined {
   return groupWatermarks.get(logic)
 }

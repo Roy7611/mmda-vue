@@ -24,8 +24,8 @@ flowchart TB
 | 层 | 做什么 |
 |---|---|
 | core `interface UiLayout<TNode>` | 契约：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`listTile` |
-| core `abstract AbstractUiLayout<TNode>` | 上移的算法骨架，只调 `wrap`：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`（缺省铺平槽位）、`listTile` |
-| vui `class VueUiLayout` | `h()` 实现 `wrap`；**覆写 `layoutPage`**（cards → `PageBody`；tabs → emphasis + 页签） |
+| core `abstract AbstractUiLayout<TNode>` | 上移的算法骨架，只调 `render`：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`layoutBodyCards`（cards 可覆写钩子）、`listTile` |
+| vui `class VueUiLayout` | `h()` 实现 `render`；**覆写 `layoutBodyCards`**（cards → `PageBody` 可折叠双栏） |
 | 皮肤 `extends VueUiLayout` | 可选覆盖 `listTile`；栅格用基类 `mmda-row` 等，不要为换厂商前缀覆写 `cell`/`row`/`column`/`grid` |
 
 不要在 vui 再写一份同名 `interface UiLayout`。不要把 Vue 的 `VNodeChild` / `VNodeChildAtom` 写进 core。子节点就是 **`TNode` / `TNode[]`**。文本先 `factory.textSpan` 再进布局。
@@ -97,12 +97,13 @@ export interface UiLayout<TNode = any> {
 
 ## 抽象钩子
 
-`layoutPage` 由各端实现完整页壳。core 缺省只铺平槽位；vui **覆写 `layoutPage`**（不再有 `pageBody` 钩子）。
+`layoutPage` 在 core 组装完整页壳：sticky 工具栏 → `banner`（消息）→ body → 页脚。body 在 `layoutPage` 内分发：tabs → `layoutBodyTabs`，cards → `layoutBodyCards`。`layoutBodyCards` 默认纵向铺平（不可折叠），vui 覆写为 `PageBody`（可折叠双栏）。
 
 | 钩子 | 谁实现 |
 |---|---|
-| `wrap(tag, props, children)` | vui：`h(tag, …)`；`props` 为 `UiWrapProps`（className / style / attributes） |
-| `layoutPage(slots)` | core：toolbar + 槽位铺平；vui：cards→`PageBody`，tabs→banner/emphasis/primary |
+| `render(tag, props, children)` | vui：`h(tag, …)`；`props` 为 `UiNodeProps`（class / style / attributes） |
+| `layoutPage(slots)` | core：toolbar + banner + body + footer；body 在 `layoutPage` 内分发到 `layoutBodyTabs` / `layoutBodyCards` |
+| `layoutBodyCards(slots)` | core：cards 纵向铺平；vui：cards → `PageBody`（main|summary 双栏、可折叠） |
 | `cell` / `row` / `column` / `grid` | `AbstractUiLayout` 默认实现；皮肤一般不覆写 |
 
 `layoutField` / `layoutFieldGroup` / `listTile` 的结构（class、orientation、label+control）在 `AbstractUiLayout`，无 `h()`。
@@ -169,14 +170,14 @@ Index 铺底常驻；Create / Edit / Details 进 `__one` **盖住**（绝对定�
 
 ## Vue
 
-`class VueUiLayout extends AbstractUiLayout<VNode>`。**覆写 `layoutPage`**：
+`class VueUiLayout extends AbstractUiLayout<VNode>`。**覆写 `layoutBodyCards`**，页壳由 core `layoutPage` 组装：
 
-- `pageLayout: 'cards'`（缺省）：sticky header + `PageBody`（banner → content 包 main+summary，摘要可折叠）+ footer
-- `pageLayout: 'tabs'`：sticky header + body 纵向 banner → emphasis → primary（`factory.tabs` Fill）+ footer
+- `pageLayout: 'cards'`（缺省）：core 出 sticky header + banner + footer；主体 `PageBody`（content 包 main+summary，摘要可折叠）
+- `pageLayout: 'tabs'`：core 出 sticky header + banner + footer；主体纵向 emphasis → primary（`factory.tabs` Fill）
 
 FormBuilder：`cards` / `tabs` 组内字段默认横排；`tabs` 强调条用字段 `colSpan` 作 `row` flex 权重，条内字段仍横排。需要竖排时再显式传 `fieldVertical: true`。
 
-`PageBody` 留在 vui `components/`，只服务 cards。rui / 其他端各自覆写 `layoutPage`，不要指望 core `pageBody` 钩子（已删除）。
+`PageBody` 留在 vui `components/`，只服务 cards。rui / 其他端直接用 core 默认 `layoutBodyCards`（纵向铺平），或各自覆写 `layoutBodyCards`。
 
 应用壳走 `layout.scaffold`（`sidebarLeft` / `topBarFull`），与 `layoutPage` 不是一回事。`scaffold` 的根是 `.mmda-app-layout`，`page` 槽是 `.mmda-app-page`。AppShell 只做挂载根和登录门禁，不要再包一层 `.mmda-app`。
 

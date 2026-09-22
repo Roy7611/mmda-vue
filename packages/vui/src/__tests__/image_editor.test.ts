@@ -31,7 +31,7 @@ describe('imageEditorPlugin', () => {
     ui.use(plugin)
     const node = ui.plugin(UiPluginName.imageEditor)!.buildUi({} as any, {
       src: '/photo.png',
-    })
+    } as any)
     expect(node.props?.class).toBe('mmda-image-editor')
     expect(node.props?.['data-src']).toBe('/photo.png')
   })

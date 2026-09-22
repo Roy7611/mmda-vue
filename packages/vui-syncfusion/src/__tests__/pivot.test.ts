@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SyncfusionUiBuilder } from '../syncfusion_builder'
+import { SfUiBuilder } from '../syncfusion_builder'
 import {
   createSfPivotPlugin,
   toEj2DataSourceSettings,
@@ -35,7 +35,7 @@ describe('createSfPivotPlugin', () => {
   })
 
   it('skin builder installs pivot-table by default', () => {
-    const builder = new SyncfusionUiBuilder()
+    const builder = new SfUiBuilder()
     expect(builder.hasPlugin('pivot-table')).toBe(true)
     const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],

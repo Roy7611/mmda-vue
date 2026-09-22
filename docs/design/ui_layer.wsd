@@ -168,27 +168,31 @@ builder --> user : 节点树（事件向上）
 skinparam defaultFontName "Microsoft YaHei"
 title UI 层 · 控件入参通道
 
-class "UiProps\n（袋：索引签名）" as UiProps
-class "Ui*Props\n每控件一个具名入参" as NamedProps
+class "UiProps\nclass · style · for\nhtmlAttributes\n（无通用索引签名）" as UiProps
+class "Ui*Props extends UiProps\n每控件一个具名入参\n值 / 事件 / 壳样式" as NamedProps
 class "HtmlAttributes\nRecord<string, string>" as HtmlAttributes
-class "UiRenderProps\nprops · attributes · className · style" as UiRenderProps
+class "UiRenderProps<TProps>\nprops · attributes" as UiRenderProps
+class "UiSlot<TNode> / Ui*Slots\n区域：不带参数，走第二参" as UiSlot
 class "UiAction / UiMenuItem\n工具栏 · 菜单 · 行操作" as UiAction
 class "UiEventArgs\n领域事件基座（空）" as UiEventArgs
 class "皮肤事件子类型\n如 UiGanttChangeEventArgs" as SkinEvent
 
 NamedProps --|> UiProps
 UiProps ..> UiRenderProps : uiRenderProps()
-UiProps ..> HtmlAttributes : htmlAttributesOf()\n读袋键 htmlAttributes
+UiProps ..> HtmlAttributes : htmlAttributesOf()
 UiProps ..> UiAction : onAction / 动作表
+NamedProps ..> UiSlot : 区域不进 props
 SkinEvent --|> UiEventArgs
 
 note bottom of UiProps
-  通道约定（packages/core/docs/ui/ui_prop_channels_design.md）：
-  · onXxx          → emits，袋键由 callUiBagFn() 触发
-  · class / style  → attrs（uiClassName / styleObjectOf）
-  · htmlAttributes → 原生 id / data-* / aria-*，皮肤各自透传
-  · slots          → 方法第二参，不是 props 里的键
-  · 其余具名键     → 落 attrs（placeholder / disabled 是控件具名）
+  判定只有一份（真源 docs/design/vui_architecture.md §1）：
+  · 值 / 事件 / 壳样式 → props 具名成员（onXxx 事件、class / style / for）
+  · 区域（不带参数）   → slots 第二参（UiSlot<TNode>），不是 props 键
+  · 逐项渲染（带参数） → 配置对象（列 / 项定义）；控件级函数留 props
+  · 剩余未知键         → 只放行标量进 attributes；函数 / 对象留在 props、永不进 attributes
+                        （Vue 会把未被消费的函数键静默写成 DOM 属性）
+  · 键名用 HTML 原名    → vui 零翻译；React 适配层只译 class→className、for→htmlFor
+  · v-model 出向        → onUpdate 与 onUpdate:modelValue 两键由同一出口写
   厂商原始 args（EJ2 args / svar ev）不进契约，由皮肤子类型自加字段。
 end note
 @enduml

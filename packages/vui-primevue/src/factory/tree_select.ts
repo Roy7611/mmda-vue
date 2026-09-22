@@ -2,7 +2,7 @@ import { h, reactive } from 'vue'
 import TreeSelect from 'primevue/treeselect'
 import type { UiTreeSelectProps } from '@mmda/core'
 import { uiRenderProps } from '@mmda/core'
-import { treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields, vueUpdateOf } from '@mmda/vui'
+import { treeChildrenOf, treeHasExpandableChildren, treeIdOf, treeLabelOf, treeSelectNodesOf, type UiTreeFields, vuiUpdateOf } from '@mmda/vui'
 
 type PrimeTreeNode = {
   key: string
@@ -66,7 +66,7 @@ function emitValue(props: UiTreeSelectProps, ids: string[]) {
   const next =
     props.selectionMode === 'checkbox' ? ids : (ids[0] ?? null)
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 function primeDisplay(display?: UiTreeSelectProps['selectedDisplay']) {

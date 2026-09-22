@@ -30,7 +30,7 @@ describe('aiAssistantPlugin', () => {
     ui.use(plugin)
     const node = ui.plugin(UiPluginName.aiAssistant)!.buildUi({} as any, {
       relateTo: '#summarizeBtn',
-    })
+    } as any)
     expect(node.props?.class).toBe('mmda-ai-assistant')
     expect(node.props?.['data-relate']).toBe('#summarizeBtn')
   })

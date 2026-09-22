@@ -120,7 +120,7 @@ function absDecimal(n: number): string {
   return Math.abs(n).toFixed(16).replace(/\.?0+$/, '')
 }
 
-export const requiredValidate = (value: any, _model?: any) =>
+export const requiredValidate = (value: unknown, _model?: unknown) =>
   value === '' ||
   value === null ||
   value === undefined ||
@@ -128,10 +128,10 @@ export const requiredValidate = (value: any, _model?: any) =>
     ? 'invalid.required'
     : ''
 
-export const requiredNonZeroValidate = (val: any, model?: any) => {
-  if (val === '0' || (+val) === 0) return 'invalid.required'
+export const requiredNonZeroValidate = (val: unknown, model?: unknown) => {
+  if (val === '0' || Number(val) === 0) return 'invalid.required'
   return requiredValidate(val, model)
 }
 
-export const requiredAnyValidate = (value: any[]) =>
+export const requiredAnyValidate = (value: unknown[]) =>
   value && value.length > 0 ? '' : 'invalid.requiredAny'

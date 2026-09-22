@@ -8,7 +8,7 @@ export type {
 } from '@mmda/core'
 export { fabModifierClasses } from '@mmda/core'
 
-export type UiFloatingActionButtonRenderer = (
+export type VuiFloatingActionButtonRenderer = (
   props: UiFloatingActionButtonProps,
   slots?: UiButtonSlots<VNode>,
 ) => VNode

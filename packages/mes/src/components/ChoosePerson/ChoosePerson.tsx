@@ -20,7 +20,7 @@ import {
 } from 'vue';
 import { isRefNone, Pagination } from '@mmda/core';
 import { useRouter } from 'vue-router';
-import { label, type VueUiContext } from '@mmda/vui';
+import { label, type VuiContext } from '@mmda/vui';
 import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
@@ -41,7 +41,7 @@ const ChoosePerson = defineComponent({
 	name: 'ChoosePerson',
 	emits: ['changeData'],
 	props: {
-		context: { type: Object as PropType<VueUiContext<any>>, default: null },
+		context: { type: Object as PropType<VuiContext<any>>, default: null },
 		ownerData: { type: Object as PropType<OwnerData>, default: null },
 	},
 	// props: {

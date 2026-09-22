@@ -3,7 +3,7 @@ import {
   resolveMultiSelectItems,
   type UiMultiSelectProps,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
 export type {
   UiMultiSelectBindMode,
@@ -39,7 +39,7 @@ export function emitMultiSelectChange(
   bound: unknown,
 ): void {
   props.onChange?.(bound)
-  vueUpdateOf(props)?.(bound)
+  vuiUpdateOf(props)?.(bound)
 }
 
 export function applyAndEmitMultiSelectKeys(

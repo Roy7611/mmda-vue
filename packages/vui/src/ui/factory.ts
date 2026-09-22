@@ -17,23 +17,24 @@ import {
   type UiMultiSelectProps,
   type UiSearchRefProps,
   type UiTextProps,
+  type UiPaginatorProps,
 } from '@mmda/core'
-import type {UiProps, UiLayout, UiSlots} from './layout'
+import type {VuiTileSlots} from './layout'
+import type { UiProps, UiLayout } from '@mmda/core'
 import type { IconResolver, UiAction } from './factory/action'
 import type {
-  UiListColumnProps,
-  UiListColumnSlots,
-  UiListPropsType,
-  UiPagableListPropsType,
-  UiPaginatorPropsType,
+  VuiListColumnProps,
+  VuiListColumnSlots,
+  VuiListPropsType,
+  VuiPagableListPropsType,
 } from './factory/list'
 import type { UiTreeProps } from './factory/tree'
-import type { UiTreeGridPropsType } from './factory/tree_grid'
+import type { VuiTreeGridPropsType } from './factory/tree_grid'
 import type { Rx } from '../rx'
 import type { ChildSlot } from '../contexts/view'
 
 export * from './field_factory'
-export type { UiTableCellRenderer, UiFieldCellRenderer } from './factory/list'
+export type { VuiTableCellRenderer, UiFieldCellRenderer } from './factory/list'
 export type {
   UiAvatarProps,
   UiAvatarShape,
@@ -104,11 +105,10 @@ export type {
   UiDrawerProps,
   UiSidebarPosition,
   UiSidebarProps,
-  UiSidebarSlots,
   UiSidebarType,
 } from './factory/sidebar'
 export type {
-  UiNormalizedTabItem,
+  VuiNormalizedTabItem,
   UiTabHeader,
   UiTabItem,
   UiTabsHeaderPlacement,
@@ -150,19 +150,19 @@ export type {
   UiDropDownButtonPlacement,
   UiDropDownButtonProps,
 } from '@mmda/core'
-export type { UiSplitButtonProps } from './factory/split_button'
+export type { VuiSplitButtonProps } from './factory/split_button'
 export type {
   UiFabPosition,
   UiFloatingActionButtonProps,
 } from './factory/floating_action_button'
 
-export type UiRenderer<T = any> = (
+export type VuiRenderer<T = any> = (
   model: T,
   props?: UiProps,
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
 ) => VNode
 
-export type UiButtonRenderer = (
+export type VuiButtonRenderer = (
   props: UiButtonProps,
   slots?: UiButtonSlots<VNode>,
 ) => VNode
@@ -178,7 +178,7 @@ export interface CustomColumn {
   frozen?: 'left' | 'right'
 }
 
-export interface UiPagableDataLoader<T = any> {
+export interface VuiPagableDataLoader<T = any> {
   searchParam: Rx<EntitySearchParam>
   model: Rx<PagedList<T>>
   loading: Ref<boolean>
@@ -197,7 +197,7 @@ export interface UploadFile {
 
 export const previewList = ['xlsx', 'docx', 'xls', 'doc']
 
-export interface VueUiFactory extends UiFactory<VNode> {
+export interface VuiFactory extends UiFactory<VNode> {
   [index: string]: any
   actionIcons: Record<string, string>
   viewIcons: Record<string, string>
@@ -209,7 +209,7 @@ export interface VueUiFactory extends UiFactory<VNode> {
   icon: (props: UiIconProps) => VNode
   title: (props: UiTextProps) => VNode
   subtitle: (props: UiTextProps) => VNode
-  iconField: UiRenderer<string>
+  iconField: VuiRenderer<string>
   multiItemSelect: (props: UiMultiSelectProps) => VNode
   multiValueSelect: (props: UiMultiSelectProps) => VNode
   multiTextSelect: (props: UiMultiSelectProps) => VNode
@@ -220,42 +220,42 @@ export interface VueUiFactory extends UiFactory<VNode> {
     resolve?: boolean,
     props?: UiButtonProps,
   ) => VNode
-  paginator: (props: UiPaginatorPropsType, slots?: UiSlots) => VNode
-  list: <T>(props: UiListPropsType<T>) => VNode
+  paginator: (props: UiPaginatorProps, slots?: VuiTileSlots) => VNode
+  list: <T>(props: VuiListPropsType<T>) => VNode
   tree: <T>(props: UiTreeProps<T>) => VNode
-  table: <T>(props: UiListPropsType<T>) => VNode
-  grid: <T>(props: UiListPropsType<T>) => VNode
-  treeGrid: <T>(props: UiTreeGridPropsType<T>) => VNode
+  table: <T>(props: VuiListPropsType<T>) => VNode
+  grid: <T>(props: VuiListPropsType<T>) => VNode
+  treeGrid: <T>(props: VuiTreeGridPropsType<T>) => VNode
   pagableTable: <T>(
-    dataLoader: UiPagableDataLoader<T>,
+    dataLoader: VuiPagableDataLoader<T>,
     metadata: MetaUi,
-    props: UiPagableListPropsType<T>,
+    props: VuiPagableListPropsType<T>,
   ) => VNode
-  scrollbar: UiRenderer<VNodeChild>
-  menu: UiRenderer<UiMenuItem[] | any[]>
-  panelMenu: UiRenderer<UiMenuItem[] | any[]>
-  menubar: UiRenderer<UiMenuItem[] | any[]>
-  searchRelative: (props: UiSearchRefProps, slots?: UiSlots) => VNode
-  formField: (props: UiProps, slots?: UiSlots) => VNode
+  scrollbar: VuiRenderer<VNodeChild>
+  menu: VuiRenderer<UiMenuItem[] | any[]>
+  panelMenu: VuiRenderer<UiMenuItem[] | any[]>
+  menubar: VuiRenderer<UiMenuItem[] | any[]>
+  searchRelative: (props: UiSearchRefProps, slots?: VuiTileSlots) => VNode
+  formField: (props: UiProps, slots?: VuiTileSlots) => VNode
 }
 
-export const durationOfSeconds: UiRenderer<number> = (seconds, props) =>
+export const durationOfSeconds: VuiRenderer<number> = (seconds, props) =>
   h('span', props, () => friendlySeconds(seconds, (props as { locale?: string } | undefined)?.locale))
-export const durationOfDays: UiRenderer<string[]> = (dates, props) =>
+export const durationOfDays: VuiRenderer<string[]> = (dates, props) =>
   h('span', props, () => daysBetween(dates[0], dates[1], (props as { locale?: string } | undefined)?.locale))
-export const relativeTime: UiRenderer<string> = (sqlDateTime, props) =>
+export const relativeTime: VuiRenderer<string> = (sqlDateTime, props) =>
   h('span', props, () => formatRelativeTime(sqlDateTime, (props as { locale?: string } | undefined)?.locale))
-export const label: UiRenderer<string> = (text, props) =>
+export const label: VuiRenderer<string> = (text, props) =>
   h('label', props, text)
-export const faIcon: UiRenderer<string> = (iconClass, props) =>
+export const faIcon: VuiRenderer<string> = (iconClass, props) =>
   h('i', { class: iconClass, ...props })
-export const fasIcon: UiRenderer<string> = (name, props) =>
+export const fasIcon: VuiRenderer<string> = (name, props) =>
   h('i', { class: `fas fa-${name}`, ...props })
-export const farIcon: UiRenderer<string> = (name, props) =>
+export const farIcon: VuiRenderer<string> = (name, props) =>
   h('i', { class: `far fa-${name}`, ...props })
-export const fabIcon: UiRenderer<string> = (name, props) =>
+export const fabIcon: VuiRenderer<string> = (name, props) =>
   h('i', { class: `fab fa-${name}`, ...props })
-export const fadIcon: UiRenderer<string> = (name, props) =>
+export const fadIcon: VuiRenderer<string> = (name, props) =>
   h('i', { class: `fad fa-${name}`, ...props })
 
 export type { Module, ChildSlot }

@@ -1,4 +1,4 @@
-import { type Module, uiCssClass, uiClassModifiers } from '@mmda/core'
+import { type Module, type UiAppMenuItem, uiCssClass, uiClassModifiers } from '@mmda/core'
 import {
   computed,
   defineComponent,
@@ -13,7 +13,7 @@ import {
 } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { SidebarComponent } from '@syncfusion/ej2-vue-navigations'
-import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, useCompactViewport, wrapRailLabel, type AppMenuItem, type MmdaApplication } from '@mmda/vui'
+import { assembleMenuItems, activeAncestorKeys, hasSystemModules, isLocalAppModuleUrl, UI_APP_KEY, useCompactViewport, wrapRailLabel, type MmdaApplication } from '@mmda/vui'
 import { dockExpandedPx, dockPanelPx, dockRailPx, syncfusionSkinState } from '../syncfusion_skin'
 
 type SlotFn = () => VNodeChild
@@ -27,7 +27,7 @@ type SlotFn = () => VNodeChild
  * @see https://ej2.syncfusion.com/documentation/sidebar/custom-context
  */
 /** compact 二级抽屉宽由 dockPanelPx() 按字号档计算 */
-/** 与 VueUiLayout.scaffold / buildAppScaffold 根节点一致。 */
+/** 与 VuiLayout.scaffold / buildAppScaffold 根节点一致。 */
 const SHELL_TARGET = `.${uiCssClass('app-layout')}`
 const DOCK_SIDEBAR_ID = 'mmda-app-sidebar'
 
@@ -44,7 +44,7 @@ function moduleHref(
 }
 
 function renderFeatureLink(
-  item: AppMenuItem,
+  item: UiAppMenuItem,
   active: boolean,
   appName: string | string[],
 ): VNode {
@@ -150,12 +150,12 @@ function applyDockMetrics(
 /**
  * Syncfusion module menu (systems layout = official Sidebar enableDock).
  *
- * Shell contract (see SyncfusionUiBuilder.buildAppScaffold):
+ * Shell contract (see SfUiBuilder.buildAppScaffold):
  *   .mmda-app-layout
  *     #mmda-app-sidebar | .mmda-app-side-menu--compact
  *     .mmda-app-page.e-main-content   (EJ2 Push 认 e-main-content)
  *
- * AppShell → SyncfusionLayout.scaffold：扁平兄弟，无 .mmda-app-nav 包裹。
+ * AppShell → SfLayout.scaffold：扁平兄弟，无 .mmda-app-nav 包裹。
  */
 export const SfAppSideMenu = defineComponent({
   name: 'SfAppSideMenu',
@@ -291,7 +291,7 @@ export const SfAppSideMenu = defineComponent({
       }
     }
 
-    const renderFeatureList = (items: AppMenuItem[] = []): VNode => {
+    const renderFeatureList = (items: UiAppMenuItem[] = []): VNode => {
       if (!items.length) {
         return h('div', { class: uiCssClass('app-side-menu', 'acc-empty') }, '暂无功能')
       }
@@ -308,7 +308,7 @@ export const SfAppSideMenu = defineComponent({
       )
     }
 
-    const renderModuleTree = (items: AppMenuItem[], className: string) => {
+    const renderModuleTree = (items: UiAppMenuItem[], className: string) => {
       const groups = items.filter(item => item.items?.length)
       const leaves = items.filter(item => !item.items?.length)
       if (!groups.length && !leaves.length) {
@@ -374,7 +374,7 @@ export const SfAppSideMenu = defineComponent({
       ])
     }
 
-    const renderSystemRail = (systems: AppMenuItem[], selected?: AppMenuItem) =>
+    const renderSystemRail = (systems: UiAppMenuItem[], selected?: UiAppMenuItem) =>
       h(
         'nav',
         {
@@ -426,7 +426,7 @@ export const SfAppSideMenu = defineComponent({
         ),
       )
 
-    const renderSelectedTitle = (selected?: AppMenuItem, extraClass?: string) =>
+    const renderSelectedTitle = (selected?: UiAppMenuItem, extraClass?: string) =>
       h(
         'div',
         {
@@ -459,7 +459,7 @@ export const SfAppSideMenu = defineComponent({
       )
 
     const renderExpandedPanel = (
-      selected: AppMenuItem | undefined,
+      selected: UiAppMenuItem | undefined,
       panelClass?: string,
     ) =>
       h('div', { class: uiCssClass('app-side-menu', 'compact-panel') }, [

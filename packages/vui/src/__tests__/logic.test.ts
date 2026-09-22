@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { EntityLogic, MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType } from '@mmda/core'
-import { VueUiContext } from '../contexts/vue_ui_context'
+import { EntityLogic, MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, UiViewOne, UiViewMany } from '@mmda/core'
+import { VuiContext } from '../contexts/vue_ui_context'
 
 const field = (fieldName: string, fieldIdx = 0) =>
   new MetaUiField({
@@ -72,12 +72,12 @@ describe('EntityLogic', () => {
     fields.push(logic.field('orderNo').lock())
     groups.push(logic.group('items'))
 
-    const ctx = new VueUiContext({
-      model: { id: '1', orderNo: 'A', items: [] },
+    const ctx = new VuiContext({
+      model: { id: '1', orderNo: 'A', items: [] } as any,
       metaUi,
-      view: 'edit',
+      view: UiViewOne.Edit,
     })
-    await logic.applyTo(ctx, 'edit')
+    await logic.applyTo(ctx, UiViewOne.Edit)
 
     expect(ctx.getFieldLogic('orderNo')?.readonlyFn).toBeTypeOf('function')
     expect(ctx.getGroupLogic('items')).toBeInstanceOf(MetaUiGroupLogic)
@@ -108,19 +108,19 @@ describe('EntityLogic', () => {
       },
     }
 
-    const first = new VueUiContext({
-      model: [],
+    const first = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: 'index',
+      view: UiViewMany.Index,
     })
-    await logic.applyTo(first, 'index')
-    await logic.applyTo(first, 'index')
-    const create = new VueUiContext({
-      model: { id: '2' },
+    await logic.applyTo(first, UiViewMany.Index)
+    await logic.applyTo(first, UiViewMany.Index)
+    const create = new VuiContext({
+      model: { id: '2' } as any,
       metaUi,
-      view: 'create',
+      view: UiViewOne.Create,
     })
-    await logic.applyTo(create, 'create')
+    await logic.applyTo(create, UiViewOne.Create)
 
     expect(indexLoads).toBe(1)
     expect(editLoads).toBe(1)
@@ -130,8 +130,8 @@ describe('EntityLogic', () => {
 
 describe('_setupGroupLogic 隔离性', () => {
   it('不会将子表字段写入父级 fieldLogics', () => {
-    const ctx = new VueUiContext({
-      model: { id: '1', items: [] },
+    const ctx = new VuiContext({
+      model: { id: '1', items: [] } as any,
       metaUi,
     })
     const childField = new MetaUiFieldLogic(field('childField'))

@@ -13,3 +13,7 @@ dist-ssr
 # 工作区临时产物（搜索 / 错误转储），不要提交
 .tmp_*
 *_errors.txt
+
+# tsc -b 声明产物（composite 强制生成，勿提交）
+src/**/*.d.ts
+src/**/*.d.ts.map

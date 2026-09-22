@@ -2,7 +2,7 @@
  * chrome 带输入框选日走 factory.datePicker。算法在 @mmda/core。
  * Vue v-model emit 与厂商格式映射留在本文件。
  */
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiEmitProps } from '../vui_props'
 
 export type {
   UiDateEmitProps,
@@ -46,9 +46,12 @@ export {
 } from '@mmda/core'
 
 /** Vue v-model + 产品 onChange / onUpdatePicker（成员具名在 core `UiDateEmitProps`）。 */
-export function emitDateChange(props: UiDateEmitProps, value: unknown): void {
+export function emitDateChange(
+  props: VuiEmitProps<UiDateEmitProps>,
+  value: unknown,
+): void {
   props.onChange?.(value)
-  vueUpdateOf(props)?.(value)
+  vuiUpdateOf(props)?.(value)
   props.onUpdatePicker?.(value)
 }
 

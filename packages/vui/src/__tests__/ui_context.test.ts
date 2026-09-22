@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { isReactive, isShallow, toRaw } from "vue";
-import { MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, type UiContext } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { isActionEnabled, MetaUi, MetaUiField, MetaUiFieldLogic, MetaUiGroupLogic, SqlDataType, type UiContext, UiViewOne, UiViewMany } from "@mmda/core";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
 const field = (fieldName: string, nullable = true, fieldIdx = 0) =>
@@ -55,13 +55,13 @@ const createOrderMetaUi = () => {
   return { metaUi, itemName, quantity };
 };
 
-describe("VueUiContext", () => {
+describe("VuiContext", () => {
   it("实现 core UiContext", () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx: UiContext = new VueUiContext({
-      model: { id: "o1", orderNo: "SO-1", items: [] },
+    const ctx: UiContext = new VuiContext({
+      model: { id: "o1", orderNo: "SO-1", items: [] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     expect(ctx.model).toEqual({ id: "o1", orderNo: "SO-1", items: [] });
     expect(ctx.displayField("orderNo")).toBe("SO-1");
@@ -69,15 +69,15 @@ describe("VueUiContext", () => {
 
   it("索引和详情使用浅响应，编辑页保留深层双向绑定", () => {
     const { metaUi } = createOrderMetaUi();
-    const details = new VueUiContext({
-      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
+    const details = new VuiContext({
+      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
-    const edit = new VueUiContext({
-      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] },
+    const edit = new VuiContext({
+      model: { id: "o1", orderNo: "SO-1", items: [{ itemName: "A" }] } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
 
     expect(isReactive(details.model)).toBe(true);
@@ -129,15 +129,15 @@ describe("VueUiContext", () => {
         },
       ],
     });
-    const hidden = new VueUiContext({
-      model: { id: "1", featuredSku: false, skus: [], features: [] },
+    const hidden = new VuiContext({
+      model: { id: "1", featuredSku: false, skus: [], features: [] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
-    const shown = new VueUiContext({
-      model: { id: "1", featuredSku: true, skus: [], features: [] },
+    const shown = new VuiContext({
+      model: { id: "1", featuredSku: true, skus: [], features: [] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
 
     expect(hidden.isGroupHidden("skus")).toBe(true);
@@ -153,10 +153,10 @@ describe("VueUiContext", () => {
       orderNo: "SO-1",
       items: [{ itemName: "A" }],
     };
-    const ctx = new VueUiContext<any>({
+    const ctx = new VuiContext<any>({
       model,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
 
     ctx.setFieldValue("orderNo", "SO-2");
@@ -169,10 +169,10 @@ describe("VueUiContext", () => {
   it("详情 in-place setFieldValue 触发 onChange", () => {
     const { metaUi } = createOrderMetaUi();
     let changed = 0;
-    const ctx = new VueUiContext<any>({
-      model: { id: "o1", orderNo: "SO-1", items: [] },
+    const ctx = new VuiContext<any>({
+      model: { id: "o1", orderNo: "SO-1", items: [] } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     ctx.setupFieldLogic(
       new MetaUiFieldLogic(metaUi.getField("orderNo")!).onChange(() => {
@@ -187,10 +187,10 @@ describe("VueUiContext", () => {
   it("索引单元格渲染不创建行上下文", () => {
     const { metaUi } = createOrderMetaUi();
     const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new VueUiContext({
-      model: [row],
+    const ctx = new VuiContext({
+      model: [row] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
     });
     const builder = new TestUiBuilder();
 
@@ -201,7 +201,7 @@ describe("VueUiContext", () => {
 
   it("详情子表只创建集合上下文，不创建只读行上下文", () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
@@ -209,9 +209,9 @@ describe("VueUiContext", () => {
           { id: "i1", itemName: "A" },
           { id: "i2", itemName: "B" },
         ],
-      },
+      } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
 
     new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, ctx, []);
@@ -221,7 +221,7 @@ describe("VueUiContext", () => {
 
   it("编辑子表复用既有行上下文，不产生嵌套行上下文", () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
@@ -229,9 +229,9 @@ describe("VueUiContext", () => {
           { id: "i1", itemName: "A" },
           { id: "i2", itemName: "B" },
         ],
-      },
+      } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
 
     new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, ctx, []);
@@ -242,10 +242,10 @@ describe("VueUiContext", () => {
   it("表格编辑只为 beginEdit 的行创建上下文并可释放", () => {
     const { metaUi } = createOrderMetaUi();
     const row = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new VueUiContext<any>({
-      model: [row],
+    const ctx = new VuiContext<any>({
+      model: [row] as any,
       metaUi,
-      view: "editMany",
+      view: UiViewMany.EditMany,
     });
 
     const rowContext = ctx.beginEditRow(row);
@@ -259,7 +259,7 @@ describe("VueUiContext", () => {
   it("双向绑定当前实体，并执行该实体的字段逻辑", () => {
     const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new VueUiContext({ model, metaUi, view: "edit" });
+    const ctx = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
 
     ctx.setFieldValue("orderNo", "SO-2");
 
@@ -273,7 +273,7 @@ describe("VueUiContext", () => {
     const first = { id: "i1", itemName: "A", quantity: 1 };
     const second = { id: "i2", itemName: "B", quantity: 2 };
     const model = { id: "o1", orderNo: "SO-1", items: [first, second] };
-    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const root = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
 
     const group = root.subGroupContext("items");
     const firstCtx = root.subGroupItemContext("items", first as any);
@@ -282,7 +282,7 @@ describe("VueUiContext", () => {
     expect(group.model).toEqual(model.items);
     expect(firstCtx).toBe(root.subGroupItemContext("items", first as any));
     expect(firstCtx).not.toBe(secondCtx);
-    expect(firstCtx.prev).toBe(root);
+    expect(firstCtx.parent).toBe(root);
     expect(secondCtx.root).toBe(root);
   });
 
@@ -293,10 +293,10 @@ describe("VueUiContext", () => {
     const quantityLogic = new MetaUiFieldLogic<any>(quantity).lockIf(
       (row) => row.quantity === 0,
     );
-    const root = new VueUiContext({
-      model: { id: "o1", orderNo: "SO-1", items: [first, second] },
+    const root = new VuiContext({
+      model: { id: "o1", orderNo: "SO-1", items: [first, second] } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
       fieldLogics: { quantity: quantityLogic },
     });
     const firstCtx = root.subGroupItemContext("items", first as any);
@@ -321,10 +321,10 @@ describe("VueUiContext", () => {
     const { metaUi } = createOrderMetaUi();
     const first = { itemName: "A" };
     const second = { itemName: "B" };
-    const root = new VueUiContext({
-      model: { id: "o1", orderNo: "SO-1", items: [first, second] },
+    const root = new VuiContext({
+      model: { id: "o1", orderNo: "SO-1", items: [first, second] } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
 
     expect(root.subGroupItemContext("items", first as any)).toBe(
@@ -338,7 +338,7 @@ describe("VueUiContext", () => {
   it("子表增删走 MetaModel 并触发组 onChange", () => {
     const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const root = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
     const row = { id: "i1", itemName: "A", quantity: 1, rowNum: "1" } as any;
     root.addSubGroupItem("items", row);
     expect(model.items).toHaveLength(1);
@@ -353,28 +353,28 @@ describe("VueUiContext", () => {
   it("子表标准 add/clear 的 canDo 响应 lockIf 与 canDo 叠加", () => {
     const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", locked: false, items: [] };
-    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const root = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
     const grp = metaUi.getGroup("items")!;
     const logic = new MetaUiGroupLogic(grp);
-    logic.canDo("clear", (m: { locked?: boolean }) => !m.locked);
+    logic.canDo("clear", (m: any) => !m.locked);
     root.setupGroupLogic(logic);
     const actions = root.getGroupActions(grp);
     const add = actions.find((a) => a.name === "add")!;
     const clear = actions.find((a) => a.name === "clear")!;
-    expect(add.canDo?.(model, root)).not.toBe(false);
-    expect(clear.canDo?.(model, root)).not.toBe(false);
+    expect(isActionEnabled(add, model, root)).not.toBe(false);
+    expect(isActionEnabled(clear, model, root)).not.toBe(false);
     model.locked = true;
-    expect(clear.canDo?.(model, root)).toBe(false);
+    expect(isActionEnabled(clear, model, root)).toBe(false);
     logic.lock();
-    expect(add.canDo?.(model, root)).toBe(false);
+    expect(isActionEnabled(add, model, root)).toBe(false);
   });
 
   it("行删：row.deletable 与 itemDeletableFunc AND；beforeItemRemove 可取消", async () => {
     const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", status: "NEW", items: [] as object[] };
-    const root = new VueUiContext({ model, metaUi, view: "edit" });
+    const root = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
     const grp = metaUi.getGroup("items")!;
-    const logic = new MetaUiGroupLogic<{ status: string }, { locked?: boolean }>(grp);
+    const logic = new MetaUiGroupLogic<any, any>(grp);
     logic.itemDeletable((row, master) => !row.locked && master.status === "NEW");
     let blocked = true;
     logic.beforeItemRemove(() => !blocked);
@@ -404,10 +404,10 @@ describe("VueUiContext", () => {
       .fn()
       .mockResolvedValueOnce("cancel")
       .mockResolvedValueOnce("ok");
-    const root = new VueUiContext({
+    const root = new VuiContext<any>({
       model,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
       app: {
         ui: { buildView: () => ({}), dialog, editDialog: dialog },
       } as any,
@@ -439,7 +439,7 @@ describe("VueUiContext", () => {
   it("批量字段赋值会校验，重置筛选保留固定 GET 查询参数", () => {
     const { metaUi } = createOrderMetaUi();
     const model = { id: "o1", orderNo: "SO-1", items: [] as object[] };
-    const ctx = new VueUiContext({ model, metaUi, view: "edit" });
+    const ctx = new VuiContext<any>({ model, metaUi, view: UiViewOne.Edit });
 
     ctx.batchSetFieldValue({ orderNo: "  SO-2  " });
     ctx.addQueryParam("ownerID", "u1");
@@ -485,10 +485,10 @@ describe("VueUiContext", () => {
         { path: "/BASE/:repository/:id", component: { template: "<div/>" } },
       ],
     });
-    const ctx = new VueUiContext({
-      model: { packID: "25", pack: { packID: "25", packFullName: "塑料" } },
+    const ctx = new VuiContext({
+      model: { packID: "25", pack: { packID: "25", packFullName: "塑料" } } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
       app: {
         name: "base",
         api: { config: { service: "base" }, http: { baseUrl: "/api" } },
@@ -528,13 +528,13 @@ describe("VueUiContext", () => {
         { path: "/BASE/:repository/:id", component: { template: "<div/>" } },
       ],
     });
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: {
         orderID: "9",
         workOrder: { orderID: "9", orderNo: "WO-9" },
-      },
+      } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
       app: {
         name: "base",
         api: { config: { service: "base" }, http: { baseUrl: "/api" } },
@@ -576,10 +576,10 @@ describe("VueUiContext", () => {
       pagination: { pageSize: 50, pageNo: 1, recordCount: 2 },
     }));
     const getPivotValues = vi.fn();
-    const ctx = new VueUiContext({
-      model: { id: "m1" },
+    const ctx = new VuiContext({
+      model: { id: "m1" } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: { searchRelative } as any,
       app: {
         api: {
@@ -599,8 +599,8 @@ describe("VueUiContext", () => {
       packField.reference?.refOptions,
     );
     expect(searchRelative).toHaveBeenCalledOnce();
-    expect(searchRelative.mock.calls[0][0].pager.pageSize).toBe(50);
-    expect(searchRelative.mock.calls[0][1]).toEqual({
+    expect((searchRelative.mock.calls[0] as any[])[0].pager.pageSize).toBe(50);
+    expect((searchRelative.mock.calls[0] as any[])[1]).toEqual({
       repository: packField.reference?.refRepository,
       service: packField.reference?.service,
     });
@@ -637,10 +637,10 @@ describe("VueUiContext", () => {
       list,
       pagination: { pageSize: 50, pageNo: 1, recordCount: 80 },
     }));
-    const ctx = new VueUiContext({
-      model: { id: "m1" },
+    const ctx = new VuiContext({
+      model: { id: "m1" } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: { searchRelative } as any,
     });
     await ctx.loadReferenceOptions(packField);
@@ -675,10 +675,10 @@ describe("VueUiContext", () => {
     });
     const searchRelative = vi.fn();
     const getPivotValues = vi.fn();
-    const ctx = new VueUiContext({
-      model: { id: "m1" },
+    const ctx = new VuiContext({
+      model: { id: "m1" } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: { searchRelative } as any,
       app: { api: { getPivotValues, searchAll: vi.fn() } } as any,
     });
@@ -717,17 +717,17 @@ describe("VueUiContext", () => {
       pagination: { pageSize: 50, pageNo: 1, recordCount: 1 },
     }));
     const getPivotValues = vi.fn();
-    const ctx = new VueUiContext({
-      model: { id: "o1" },
+    const ctx = new VuiContext({
+      model: { id: "o1" } as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: { searchRelative } as any,
       app: { api: { getPivotValues } } as any,
     });
     await expect(ctx.loadReferenceOptions(material)).resolves.toEqual(rows);
     expect(material.reference?.refOptionsComplete).toBe(true);
-    expect(searchRelative.mock.calls[0][0].pager.pageSize).toBe(50);
-    expect(searchRelative.mock.calls[0][1].repository).toBe(
+    expect((searchRelative.mock.calls[0] as any[])[0].pager.pageSize).toBe(50);
+    expect((searchRelative.mock.calls[0] as any[])[1].repository).toBe(
       material.reference?.refRepository,
     );
     expect(getPivotValues).not.toHaveBeenCalled();
@@ -735,14 +735,14 @@ describe("VueUiContext", () => {
 
   it("根 context 校验子表每一行并暴露组错误", async () => {
     const { metaUi } = createOrderMetaUi();
-    const root = new VueUiContext({
+    const root = new VuiContext({
       model: {
         id: "o1",
         orderNo: "SO-1",
         items: [{ id: "i1", rowNum: "1", itemName: "", quantity: 1 }],
-      },
+      } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
 
     await expect(root.validate()).resolves.toBe(false);
@@ -752,10 +752,10 @@ describe("VueUiContext", () => {
 
   it("打开列表时勾选 fallback 过滤，不从元数据拉排序", () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: {},
     } as any);
     ctx.configureSearch([
@@ -778,10 +778,10 @@ describe("VueUiContext", () => {
   it("列表 pageSize 用全局 mmda/pageSize，不被 lastQuery 覆盖", async () => {
     localStorage.setItem("mmda/pageSize", "200");
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: {
         getLastQuery: async () => ({
           pager: { pageNo: 3, pageSize: 1000 },
@@ -800,10 +800,10 @@ describe("VueUiContext", () => {
 
   it("lastQuery 没有 queryID 时不带回列头 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: {
         getLastQuery: async () => ({
           pager: { pageNo: 1, pageSize: 20 },
@@ -821,10 +821,10 @@ describe("VueUiContext", () => {
 
   it("保存过的命名查询 lastQuery 才带回 filterModel", async () => {
     const { metaUi } = createOrderMetaUi();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: "index",
+      view: UiViewMany.Index,
       logic: {
         getLastQuery: async () => ({
           queryID: "q1",

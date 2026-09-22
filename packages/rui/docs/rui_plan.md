@@ -3,6 +3,7 @@
 > **定位**：`@mmda/rui` 是 MMDA 的 React UI 运行时，对标 `@mmda/vui`（Vue）。
 > **分层真源**仍是 [ARCHITECTURE.md](../../ARCHITECTURE.md)——产品横向分层只在那一处写全。
 > **与 vui 的关系**：共用 `@mmda/core` 的 `UiProps` / `UiRenderProps` / `UiSlot` / `UiBuilder` / `UiContext` / `MmdaApplication` 契约，不共享一行实现代码（「不要从 vui 抄组件」—— [naming.md](../naming.md)）。
+> **面向接口编程**：程序员只认 core 的 `UiContext` 接口，不依赖也不转换 `ReactUiContextBase` / `VueUiContextBase` 等运行时类型。`ctx.with()` 返回的就是 `UiContext`，直接调 `getFieldValue` / `setFieldValue` / `validate` 等——不需要知道下面是 Vue 还是 React。
 > **状态**：规划期（尚无代码）。本文记录实测数字、决策与分阶段路线。
 > **跨框架判定**见 [`cross-framework-render-compat`](../../../skills/cross-framework-render-compat/SKILL.md)（Vue `h` / React `createElement` 对照探针）。
 

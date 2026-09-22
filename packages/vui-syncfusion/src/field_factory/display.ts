@@ -7,16 +7,15 @@ import { createChips } from "../factory/chips";
 import { createProgressBar } from "../factory/progress_bar";
 import { createSignaturePad } from "../factory/signature_pad";
 import { createStepper } from "../factory/stepper";
-import { createTimeline } from "../factory/timeline";
 import { createAvatar } from "../factory/avatar";
-import type { UiContext } from "./utils";
+import type { SfVuiContext } from "./utils";
 
 const cellDomProps = (props?: UiProps) =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {});
 
 export const fallbackDisplay = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props: UiProps = {},
 ) =>
   h(
@@ -27,7 +26,7 @@ export const fallbackDisplay = (
 
 export const tag = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   h(
@@ -38,7 +37,7 @@ export const tag = (
 
 export const tags = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createChips(chipsPropsFromField(field, context));
 
@@ -46,19 +45,19 @@ export const chips = tags;
 
 export const bitChipSet = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createChips(bitChipSetPropsFromField(field, context));
 
 export const enumChipSet = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createChips(enumChipSetPropsFromField(field, context));
 
 export const externalLink = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const app = context.app;
@@ -146,7 +145,7 @@ export const externalLink = (
 
 export const fileLink = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const value = context.getFieldValue(field, props?.row);
@@ -164,7 +163,7 @@ export const fileLink = (
 
 export const boolIcon = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const checked = Boolean(context.getFieldValue(field, props?.row));
@@ -182,35 +181,25 @@ export const boolIcon = (
 
 export const progressBar = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createProgressBar(progressBarPropsFromField(field, context));
 
 export const signaturePad = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createSignaturePad(signaturePadPropsFromField(field, context));
 
 export const stepper = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => createStepper(stepperPropsFromField(field, context));
 
-export const timeline = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: UiProps,
-) => {
-  const render =
-    context.uiBuilder?.factory?.timeline ?? createTimeline;
-  return render(timelinePropsFromField(field, context));
-};
-
 export const relativeTimeField = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   relativeTime(
@@ -220,7 +209,7 @@ export const relativeTimeField = (
 
 export const quantityUnit = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   const value = context.getFieldValue(field, props?.row);
@@ -240,7 +229,7 @@ export const quantityUnit = (
 
 export const percentage = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   h(
@@ -251,7 +240,7 @@ export const percentage = (
 
 export const multilineText = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   h(
@@ -262,7 +251,7 @@ export const multilineText = (
 
 export const colorBox = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   h("span", {
@@ -280,7 +269,7 @@ export const colorBox = (
 
 export const fieldImage = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   h("img", {
@@ -290,7 +279,7 @@ export const fieldImage = (
 
 export const fieldAvatar = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) => {
   // 表格单元格里的头像默认 small（表单里不默认，交给字段/调用方）

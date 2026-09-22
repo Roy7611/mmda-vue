@@ -6,7 +6,7 @@
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
 import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
-import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, logListPaint, readStoredPageSize, translateMessage, type UiListPropsType, type UiPaginatorPropsType, settleRemoteListQuery } from '@mmda/vui'
+import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, logListPaint, readStoredPageSize, translateMessage, type VuiListPropsType, type UiPaginatorProps, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
 import { DatePicker, DateTimePicker } from '@syncfusion/ej2-calendars'
 import { MultiSelect, CheckBoxSelection } from '@syncfusion/ej2-dropdowns'
@@ -61,7 +61,7 @@ import {
 
 export type TableFactoryDeps = {
   button: (props: any, slots?: any) => any
-  paginator: (props: UiPaginatorPropsType) => any
+  paginator: (props: UiPaginatorProps) => any
   resolveIcon: (icon: string) => string
 }
 
@@ -71,7 +71,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
     paginator,
     resolveIcon: deps.resolveIcon,
   }
-  return <T>(props: UiListPropsType<T>) => {
+  return <T>(props: VuiListPropsType<T>) => {
     const model = (props.rows ?? []) as T[]
     const fields = (props.fields ?? []) as MetaUiField[]
     const rowNumField = fields.find(field => field.fieldName === 'rowNum')

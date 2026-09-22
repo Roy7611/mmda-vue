@@ -1,6 +1,10 @@
 import { h } from "vue";
 import { type MetaUi } from "@mmda/core";
-import { readStoredPageSize, type UiListPropsType, type UiPaginatorPropsType } from "@mmda/vui"
+import {
+  readStoredPageSize,
+  type VuiListPropsType,
+  type UiPaginatorProps,
+} from "@mmda/vui";
 import { PagerComponent } from "@syncfusion/ej2-vue-grids";
 import {
   AppBarComponent,
@@ -8,14 +12,10 @@ import {
 } from "@syncfusion/ej2-vue-navigations";
 import { getSyncfusionCulture } from "../syncfusion_i18n";
 import { createTree } from "./tree";
-import {
-  STABLE_PAGE_SIZE_OPTIONS,
-  invoke,
-  normalizeMenuItem,
-} from "./utils";
+import { STABLE_PAGE_SIZE_OPTIONS, invoke, normalizeMenuItem } from "./utils";
 
 export const navigationRenderers = {
-  paginator: (props: UiPaginatorPropsType) => {
+  paginator: (props: UiPaginatorProps) => {
     const pagination = props.pagination;
     const pageSizeOptions = props.pageSizeOptions
       ? props.pageSizeOptions.map(String)
@@ -44,7 +44,8 @@ export const navigationRenderers = {
         );
       },
       dropDownChanged: (args: any) => {
-        const nextSize = args?.pageSize ?? args?.value ?? pagination.pageSize ?? currentSize;
+        const nextSize =
+          args?.pageSize ?? args?.value ?? pagination.pageSize ?? currentSize;
         notifyPage(1, nextSize);
       },
     });
@@ -52,8 +53,13 @@ export const navigationRenderers = {
 
   tree: (props: any) => createTree(props),
 
-  list: <T>(model: T[], metaUi: MetaUi, props: UiListPropsType<T>) =>
-    h("div", { class: "mmda-list" }, [
+  list: <T>(props: VuiListPropsType<T> = {} as VuiListPropsType<T>) => {
+    // list 家族内部一律单参 `(props)`：`rows` / `primaryKey` / `fields` 由 vui
+    // `factory/list.ts` 的 propsOf 归一（旧三参形态只在那一层兼容）
+    const bag = props as any;
+    const model = (bag.rows ?? bag.model ?? []) as T[];
+    const primaryKey = bag.primaryKey as string | undefined;
+    return h("div", { class: "mmda-list" }, [
       model.length
         ? model.map((item, index) =>
             h(
@@ -61,11 +67,7 @@ export const navigationRenderers = {
               {
                 key:
                   props.itemKey?.(item) ??
-                  String(
-                    metaUi.primaryKey
-                      ? (item as any)[metaUi.primaryKey]
-                      : index,
-                  ),
+                  String(primaryKey ? (item as any)[primaryKey] : index),
                 class: ["mmda-list__item", props.itemClass?.(item)],
                 style: props.itemStyle?.(item),
                 onClick: () => props.onItemClick?.(item),
@@ -75,7 +77,8 @@ export const navigationRenderers = {
             ),
           )
         : (props.empty?.() ?? ""),
-    ]),
+    ]);
+  },
 
   menubar: (items: any[], props: any, slots: any) =>
     h(

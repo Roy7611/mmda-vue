@@ -219,3 +219,18 @@ export function dialogButtonColorRole(
   if (button === 'abort') return 'danger'
   return undefined
 }
+
+const DIALOG_BUTTON_LABELS: Record<UiDialogAction, string> = {
+  ok: 'OK',
+  cancel: 'Cancel',
+  yes: 'Yes',
+  no: 'No',
+  abort: 'Abort',
+  retry: 'Retry',
+  ignore: 'Ignore',
+}
+
+/** 标准键英文兜底文案。厂商 / i18n 有翻译时优先用翻译，这里只做兜底。 */
+export function dialogButtonLabel(button: UiDialogAction): string {
+  return DIALOG_BUTTON_LABELS[button]
+}

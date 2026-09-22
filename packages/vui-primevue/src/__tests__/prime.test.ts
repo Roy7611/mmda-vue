@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, pageLayoutMenuItems } from '@mmda/vui'
-import { PrimeVueUiBuilder } from '../prime_builder'
+import { PrimeVuiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
 import { createPrimeVueUiFactory } from '../prime_factory'
 import { primeLayout } from '../prime_layout'
@@ -731,14 +731,14 @@ describe('PrimeVue skin', () => {
     expect(fields.Avatar).toBe(fields.avatar)
   })
 
-  it('constructs the builder against the new VueUiBuilder contract', () => {
-    const builder = new PrimeVueUiBuilder()
+  it('constructs the builder against the new VuiBuilder contract', () => {
+    const builder = new PrimeVuiBuilder()
     expect(builder.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
   it('wraps toolbar actions in PrimeVue ButtonGroup', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const group = builder.factory.buttonGroup(
       {},
       {
@@ -759,7 +759,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('renders selectButtonGroup as Prime SelectButton', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const group = builder.factory.selectButtonGroup({
       modelValue: 'center',
       options: [
@@ -780,7 +780,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('defaults to Card, uses fieldset when container is fieldset', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const group = new MetaUiGroup({
       groupName: 's1',
       groupLabel: '概要',
@@ -841,7 +841,7 @@ describe('PrimeVue skin', () => {
       },
     ])
     const dept = factory.findModuleByName('Department')!
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const vnode = builder.buildModuleBreadcrumb(
       { title: '部门' } as any,
       { module: dept },
@@ -1065,7 +1065,7 @@ describe('PrimeVue skin', () => {
       },
     ])
     const module = factory.findModuleByName('Department')!
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const context = {
       view: UiViewMany.Index,
       many: true,
@@ -1096,7 +1096,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('orders details actions, applies entity roles, and groups file actions', () => {
-    const builder = new PrimeVueUiBuilder()
+    const builder = new PrimeVuiBuilder()
     const module = {
       authority: auth(
         ModuleOp.READ |

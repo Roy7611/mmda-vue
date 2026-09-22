@@ -16,7 +16,7 @@ export function createSession(
   child?: ChildContextOptions,
 ) {
   if (!factory) {
-    throw new Error("VueUiContext session factory is not set.");
+    throw new Error("VuiContext session factory is not set.");
   }
   return factory(options, child);
 }

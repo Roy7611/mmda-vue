@@ -1,7 +1,7 @@
 import { isFunction } from '../utils/is'
 
 import { MetaUi, type MetaUiGroup } from '../metaui/metaui_group'
-import { MetaUiField } from '../metaui/metaui_field'
+import { MetaUiField, type Translatable } from '../metaui/metaui_field'
 import type { OnValidateFn } from './logic_functions'
 import { Entity } from '../models/entity'
 import type { UiContext } from '../ui/context'
@@ -19,7 +19,7 @@ export type { FieldValidationResult, FieldValidator } from './validators'
 
 export const required: OnValidateFn = requiredValidate
 export const requiredNonZero: OnValidateFn = requiredNonZeroValidate
-export const requiredAny: OnValidateFn<any[]> = requiredAnyValidate
+export const requiredAny: OnValidateFn<unknown[]> = requiredAnyValidate
 
 /**
  * 域校验
@@ -125,8 +125,8 @@ export const defineValidation = <E extends Entity>(
 const JOIN = '；'
 
 function translateMsg(
-  ctx: UiContext<any> | undefined,
-  msg: string | { message: string; param?: any } | undefined,
+  ctx: UiContext | undefined,
+  msg: string | Translatable | undefined,
 ): string {
   if (!msg) return ''
   if (ctx?.t) {
@@ -136,7 +136,10 @@ function translateMsg(
   if (typeof msg === 'string') {
     return ctx?.translate?.(msg) ?? msg
   }
-  return ctx?.translate?.(msg.message, msg.param) ?? msg.message
+  return (
+    ctx?.translate?.(msg.message, msg.param as Record<string, unknown>) ??
+    msg.message
+  )
 }
 
 function isFieldRequired(
@@ -164,7 +167,7 @@ function collectValidators(
   return list
 }
 
-export const validateFieldResult = <P = any, E = any>(
+export const validateFieldResult = <P = unknown, E = unknown>(
   fld: MetaUiField,
   value: P,
   model: E,
@@ -193,7 +196,7 @@ export const validateFieldResult = <P = any, E = any>(
  * 校验域的值是否合法
  * @returns 返回非法消息（仅 error），客户端可通过`t`函数本地化翻译
  */
-export const validateField = <P = any, E = any>(
+export const validateField = <P = unknown, E = unknown>(
   fld: MetaUiField,
   value: P,
   model: E,

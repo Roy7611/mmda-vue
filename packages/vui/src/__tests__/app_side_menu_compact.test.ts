@@ -12,6 +12,7 @@ import { PageBody } from '../components/PageBody'
 import { COMPACT_VIEWPORT_MEDIA } from '../composables/useCompactViewport'
 import { UI_BUILDER_KEY } from '../app/keys'
 import { TestUiBuilder } from './test_builder'
+import type { VuiBuilder } from '../ui/builder'
 
 const sampleModules = new ModuleFactory([
   {
@@ -78,7 +79,7 @@ function mockMatchMedia(matches: boolean) {
   return listeners
 }
 
-async function mount(vnode: ReturnType<typeof h>, builder?: VueUiBuilder) {
+async function mount(vnode: ReturnType<typeof h>, builder?: VuiBuilder) {
   const host = document.createElement('div')
   hosts.push(host)
   document.body.append(host)

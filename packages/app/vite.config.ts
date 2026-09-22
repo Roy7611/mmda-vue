@@ -58,6 +58,7 @@ export default defineConfig({
       },
       { find: '@mmda/core', replacement: pkg('core') },
       { find: '@mmda/vuix-vditor-markdown', replacement: pkg('vuix-vditor-markdown') },
+      { find: '@mmda/vuix-office', replacement: pkg('vuix-office') },
       { find: '@mmda/vui-syncfusion/gantt', replacement: root('../vui-syncfusion/src/plugins/gantt.ts') },
       { find: '@mmda/vui-syncfusion/kanban', replacement: root('../vui-syncfusion/src/plugins/kanban.ts') },
       { find: '@mmda/vui-syncfusion/scheduler', replacement: root('../vui-syncfusion/src/plugins/scheduler.ts') },

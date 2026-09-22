@@ -1,6 +1,6 @@
 import { h, type VNode } from "vue";
 import { debounce, type MetaUiField } from "@mmda/core";
-import type { SearchForRelativeProps, VueUiContext } from "@mmda/vui";
+import type { SearchForRelativeProps, VuiContext } from "@mmda/vui";
 import { ComboBoxComponent } from "@syncfusion/ej2-vue-dropdowns";
 
 type SearchComboProps = SearchForRelativeProps & {
@@ -20,7 +20,7 @@ type SearchComboProps = SearchForRelativeProps & {
  */
 export function createSearchRelative(
   field: MetaUiField,
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   props: SearchComboProps,
 ): VNode {
   const p = props as SearchComboProps;

@@ -6,7 +6,7 @@ import {
   signinFormEmits,
   signinFormProps,
   type SigninUser,
-  type VueUiBuilder,
+  type VuiBuilder,
 } from '@mmda/vui'
 import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
@@ -28,7 +28,7 @@ export const SigninForm = defineComponent({
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
+    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',

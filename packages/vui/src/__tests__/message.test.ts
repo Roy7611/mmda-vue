@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { UiViewMany, UiViewOne } from "../contexts/view";
 import { TestUiBuilder } from "./test_builder";
 
@@ -8,10 +8,11 @@ describe("uiBuilder.message", () => {
   it("writes pageNotice on one views and does not toast", () => {
     const builder = new TestUiBuilder();
     const toast = vi.spyOn(builder.overlay, "toast");
-    const ctx = new VueUiContext({
-      model: { id: "1" },
+    const ctx = new VuiContext({
+      model: { id: "1" } as any,
       metaUi: new MetaUi({
         objName: "Item",
+        displayLabel: "Item",
         groups: [
           {
             groupName: "base",
@@ -49,9 +50,9 @@ describe("uiBuilder.message", () => {
   it("falls back to overlay toast on many views", () => {
     const builder = new TestUiBuilder();
     const toast = vi.spyOn(builder.overlay, "toast");
-    const ctx = new VueUiContext({
-      model: [],
-      metaUi: new MetaUi({ objName: "Item", groups: [] }),
+    const ctx = new VuiContext({
+      model: [] as any,
+      metaUi: new MetaUi({ objName: "Item", displayLabel: "Item", groups: [] }),
       view: UiViewMany.Index,
     });
 

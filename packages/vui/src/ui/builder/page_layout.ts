@@ -1,8 +1,8 @@
 import type { UiPageLayout } from '@mmda/core'
 import { writeStoredPageLayout } from '../../app/theme'
-import type { VueUiContext } from '../../contexts/vue_ui_context'
+import type { VuiContext } from '../../contexts/vue_ui_context'
 
-function resolveLayout(context: VueUiContext<any>) {
+function resolveLayout(context: VuiContext<any>) {
   return (
     (context.uiBuilder as { layout?: { pageLayout: UiPageLayout } } | undefined)
       ?.layout ??
@@ -11,13 +11,13 @@ function resolveLayout(context: VueUiContext<any>) {
   )
 }
 
-function currentPageLayout(context: VueUiContext<any>): UiPageLayout {
+function currentPageLayout(context: VuiContext<any>): UiPageLayout {
   return resolveLayout(context)?.pageLayout === 'tabs' ? 'tabs' : 'cards'
 }
 
 /** 切换详情页壳并触发 EntityView 重绘。 */
 export function applyPageLayout(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   next: UiPageLayout,
 ) {
   const layout = resolveLayout(context)
@@ -34,7 +34,7 @@ export function applyPageLayout(
  * `icon` 为逻辑名 `page-layout`，由皮肤 `factory.resolveIcon` 映射。
  * 当前布局项 `disabled`，避免重复点选。
  */
-export function pageLayoutMenuItems(context: VueUiContext<any>) {
+export function pageLayoutMenuItems(context: VuiContext<any>) {
   const current = currentPageLayout(context)
   return [
     { divider: true },

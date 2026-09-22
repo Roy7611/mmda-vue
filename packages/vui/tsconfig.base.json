@@ -11,12 +11,29 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "preserveConstEnums": true,
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@mmda/core": [
+        "../core/src/index.ts"
+      ],
+      "@mmda/i18n": [
+        "../i18n/src/index.ts"
+      ],
+      "@mmda/i18n/src/*": [
+        "../i18n/src/*"
+      ],
+      "@mmda/vui": [
+        "./src/index.ts"
+      ],
+      "@mmda/vui/src/*": [
+        "./src/*"
+      ]
     }
   }
 }

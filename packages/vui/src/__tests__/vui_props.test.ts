@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createApp, h } from 'vue'
 import { uiRenderProps } from '@mmda/core'
-import { vueUpdateOf } from '../ui/vue_ui_props'
+import { vuiUpdateOf } from '../ui/vui_props'
 
 /** vui 适配层的唯一两行：`{...std.props, ...std.attributes}`（标准形态已用平台原名）。 */
-function vueProps(props: Parameters<typeof uiRenderProps>[0]) {
+function vueProps(props: any): any {
   const std = uiRenderProps(props)
   return { ...std.props, ...std.attributes }
 }
@@ -82,10 +82,10 @@ describe('vui 适配：标准形态 → h 能直接吃的 props', () => {
   })
 })
 
-describe('vueUpdateOf：v-model 写入回调的唯一出口', () => {
+describe('vuiUpdateOf：v-model 写入回调的唯一出口', () => {
   it('两个通道都给时都写；只给一个就给那一个', () => {
     const updates: string[] = []
-    const both = vueUpdateOf({
+    const both = vuiUpdateOf({
       onUpdate: () => updates.push('onUpdate'),
       'onUpdate:modelValue': () => updates.push('modelValue'),
     })
@@ -93,20 +93,20 @@ describe('vueUpdateOf：v-model 写入回调的唯一出口', () => {
     expect(updates).toEqual(['onUpdate', 'modelValue'])
 
     const only = () => undefined
-    expect(vueUpdateOf({ 'onUpdate:modelValue': only })).toBe(only)
-    expect(vueUpdateOf({})).toBeUndefined()
-    expect(vueUpdateOf(undefined)).toBeUndefined()
+    expect(vuiUpdateOf({ 'onUpdate:modelValue': only })).toBe(only)
+    expect(vuiUpdateOf({})).toBeUndefined()
+    expect(vuiUpdateOf(undefined)).toBeUndefined()
   })
 
-  it('具名多 v-model：vueUpdateOf(props, name) 读 onUpdate:<name>', () => {
+  it('具名多 v-model：vuiUpdateOf(props, name) 读 onUpdate:<name>', () => {
     const nodes = vi.fn()
-    expect(vueUpdateOf({ 'onUpdate:nodes': nodes }, 'nodes')).toBe(nodes)
-    expect(vueUpdateOf({ 'onUpdate:nodes': nodes })).toBeUndefined()
+    expect(vuiUpdateOf({ 'onUpdate:nodes': nodes }, 'nodes')).toBe(nodes)
+    expect(vuiUpdateOf({ 'onUpdate:nodes': nodes })).toBeUndefined()
   })
 
   it('写回时把值交给回调', () => {
     const write = vi.fn()
-    vueUpdateOf<string>({ onUpdate: write })?.('next')
+    vuiUpdateOf<string>({ onUpdate: write })?.('next')
     expect(write).toHaveBeenCalledWith('next')
   })
 })

@@ -29,8 +29,8 @@ const mountView = () => {
   hosts.push(host);
   const factory = {
     resolveIcon: (name: string) => `icon-${name}`,
-    icon: (name: string, props: Record<string, unknown>) =>
-      h("i", { ...props, "data-icon": name }),
+    icon: (props: Record<string, any>) =>
+      h("i", { ...props, "data-icon": props.iconClass ?? props.icon }),
     button: (props: Record<string, any>) =>
       h(
         "button",
@@ -43,19 +43,20 @@ const mountView = () => {
         },
         props.label,
       ),
-    selectButtonGroup: (value: unknown, props: Record<string, any>) =>
+    selectButtonGroup: (props: Record<string, any> = {}) =>
       h(
         "div",
         {
           class: ["mmda-select-button-group", props.class],
-          "data-align": String(value ?? ""),
+          "data-align": String(props.modelValue ?? ""),
         },
         (props.options ?? []).map((option: Record<string, any>) =>
           h(
             "button",
             {
               "data-icon": option.icon,
-              "data-selected": option.value === value ? "true" : undefined,
+              "data-selected":
+                option.value === props.modelValue ? "true" : undefined,
               onClick: () => props.onUpdate?.(option.value),
             },
             option.label,
@@ -127,13 +128,15 @@ describe("TableSettingView", () => {
     expect(rows.every((row) => row.getAttribute("draggable") === "true")).toBe(
       true,
     );
-    expect(host.querySelectorAll(".mmda-list-setting__drag-handle")).toHaveLength(3);
     expect(
-      host.querySelector('[data-icon="icon-eye-slash"]'),
-    ).not.toBeNull();
+      host.querySelectorAll(".mmda-list-setting__drag-handle"),
+    ).toHaveLength(3);
+    expect(host.querySelector('[data-icon="icon-eye-slash"]')).not.toBeNull();
     expect(
       rows.every(
-        (row) => row.querySelectorAll(".mmda-list-setting__actions button").length === 3,
+        (row) =>
+          row.querySelectorAll(".mmda-list-setting__actions button").length ===
+          3,
       ),
     ).toBe(true);
     expect(host.textContent).not.toContain("tableSettings.moveUp");
@@ -171,16 +174,26 @@ describe("TableSettingView", () => {
     expect(end.textContent).toContain("dialog.cancel");
     expect(end.textContent).toContain("dialog.ok");
     expect(
-      end.querySelector('[data-button-type="filled"][data-color-role="primary"]'),
+      end.querySelector(
+        '[data-button-type="filled"][data-color-role="primary"]',
+      ),
     ).not.toBeNull();
   });
 
   it("grays out hidden rows and splits frozen bands from the scroll area", () => {
     const { host } = mountView();
-    expect(host.querySelector(".mmda-list-setting__row.is-hidden")).not.toBeNull();
-    expect(host.querySelector(".mmda-list-setting__band--frozen-left")).not.toBeNull();
-    expect(host.querySelector(".mmda-list-setting__band--scroll")).not.toBeNull();
-    expect(host.querySelector(".mmda-list-setting__band--frozen-right")).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-list-setting__row.is-hidden"),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-list-setting__band--frozen-left"),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-list-setting__band--scroll"),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-list-setting__band--frozen-right"),
+    ).not.toBeNull();
   });
 });
 
@@ -226,8 +239,9 @@ describe("list settings align", () => {
     ]);
     expect(metaUi.getField("qty")?.align).toBe(MetaUiFieldAlignment.LEFT);
     expect(
-      collectTableColumnSettings(metaUi).find((item) => item.fieldName === "qty")
-        ?.align,
+      collectTableColumnSettings(metaUi).find(
+        (item) => item.fieldName === "qty",
+      )?.align,
     ).toBe(MetaUiFieldAlignment.LEFT);
   });
 });

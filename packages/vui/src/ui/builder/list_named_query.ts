@@ -6,8 +6,8 @@ import {
   FieldFilter,
   type FilterModel,
 } from "@mmda/core";
-import type { VueUiContext } from "../../contexts/vue_ui_context";
-import type { VueUiFactory } from "../factory";
+import type { VuiContext } from "../../contexts/vue_ui_context";
+import type { VuiFactory } from "../factory";
 import { writeListFilterModel } from "./list_query";
 import { indexTableMetaUi } from "./join_list_mode";
 
@@ -18,14 +18,14 @@ export type ListSearchMode = "fuzzy" | "named";
 export const ALL_FILTER_CHIP = "__all__";
 export const CUSTOMIZED_QUERY_REPO = "CustomizedQueries";
 
-export function listSearchModeOf(context: VueUiContext<any>): ListSearchMode {
+export function listSearchModeOf(context: VuiContext<any>): ListSearchMode {
   return context.searchMode === LIST_SEARCH_MODE_NAMED
     ? LIST_SEARCH_MODE_NAMED
     : LIST_SEARCH_MODE_FUZZY;
 }
 
 export function setListSearchMode(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   mode: ListSearchMode,
 ) {
   context.searchMode = mode;
@@ -33,13 +33,13 @@ export function setListSearchMode(
 }
 
 export function listDefaultFieldFilters(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
 ): DefaultFieldFilter[] {
   return DefaultFieldFilter.parse(context.logic?.module?.defaultFilter);
 }
 
 export function listSelfDefaultFilters(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
 ): DefaultFieldFilter[] {
   return listDefaultFieldFilters(context).filter((item) =>
     DefaultFieldFilter.isSelf(item),
@@ -47,7 +47,7 @@ export function listSelfDefaultFilters(
 }
 
 export function listFixedFilterFieldNames(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
 ): Set<string> {
   const metaUi = indexTableMetaUi(context);
   const names = new Set<string>();
@@ -59,7 +59,7 @@ export function listFixedFilterFieldNames(
 }
 
 export function setFieldFilterValues(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   fieldName: string,
   values: unknown[],
 ) {
@@ -112,14 +112,14 @@ export function canDeleteNamedQuery(row: {
   return row != null && row.predifined !== true;
 }
 
-export function clearNamedQueryRef(context: VueUiContext<any>) {
+export function clearNamedQueryRef(context: VuiContext<any>) {
   delete context.searchParam.queryID;
   delete context.searchParam.queryName;
   delete context.searchParam.queryPredifined;
 }
 
 export function applyNamedQuery(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   row: {
     queryID?: string;
     queryName?: string;
@@ -140,7 +140,7 @@ export function applyNamedQuery(
 }
 
 export async function searchNamedQueries(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   word: string,
 ): Promise<any[]> {
   const objName = context.metaUi?.objName;
@@ -160,7 +160,7 @@ export async function searchNamedQueries(
 }
 
 export async function deleteNamedQuery(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   row: { queryID?: string; queryName?: string; predifined?: boolean },
 ): Promise<boolean> {
   if (!canDeleteNamedQuery(row) || !row.queryID) return false;
@@ -177,8 +177,8 @@ export async function deleteNamedQuery(
 }
 
 export async function promptSaveNamedQuery(
-  context: VueUiContext<any>,
-  factory: VueUiFactory,
+  context: VuiContext<any>,
+  factory: VuiFactory,
 ): Promise<boolean> {
   const builder = context.uiBuilder ?? context.app?.ui;
   if (!builder?.dialog || !factory.textInput) return false;
@@ -227,7 +227,7 @@ export async function promptSaveNamedQuery(
 }
 
 export function listSearchModeAddon(
-  context: VueUiContext<any>,
+  context: VuiContext<any>,
   onChange?: () => void,
 ) {
   const mode = listSearchModeOf(context);

@@ -10,8 +10,8 @@ import {
 } from "@mmda/core";
 import { setI18nLocale } from "../i18n/i18n";
 import type { ChildSlot } from "../contexts/view";
-import type { UiAppLayoutVariant } from "../ui/layout";
-import type { VueUiBuilder } from "../ui/builder";
+import type { UiAppLayoutVariant } from "@mmda/core";
+import type { VuiBuilder } from "../ui/builder";
 import type { UiAction } from "../ui/factory/action";
 import type { CustomFilter } from "../ui/factory/filter";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "./keys";
@@ -50,7 +50,6 @@ export interface AppScaffoldProps {
   floatingActionBar?: ChildSlot | VNode;
 }
 
-export type ModuleBreadcrumbProps = UiModuleBreadcrumbProps
 
 export interface ImportAndExportActionProps {
   [index: string]: any;
@@ -75,11 +74,11 @@ export interface ModuleSearchbarProps extends UiProps {
  * Vue 应用壳：install / i18n / overlay / 需要追踪的 state 字段。
  */
 export class MmdaVueApp extends MmdaApplication {
-  declare readonly ui: VueUiBuilder;
+  declare readonly ui: VuiBuilder;
   constructor(
     baseUrl: string,
     service: string,
-    ui: VueUiBuilder,
+    ui: VuiBuilder,
     public readonly i18n: I18n,
     options?: string | MmdaApplicationOptions,
   ) {
@@ -104,9 +103,9 @@ export class MmdaVueApp extends MmdaApplication {
     app.config.globalProperties.$meta = this.meta;
     app.config.globalProperties.$ui = this.ui;
     app.provide(UI_APP_KEY, this);
-    app.provide(UI_BUILDER_KEY, this.ui as VueUiBuilder);
+    app.provide(UI_BUILDER_KEY, this.ui as VuiBuilder);
 
-    const Host = (this.ui as VueUiBuilder).overlayHost;
+    const Host = (this.ui as VuiBuilder).overlayHost;
     if (Host && typeof document !== "undefined") {
       const el = document.createElement("div");
       el.className = "mmda-overlay-root";

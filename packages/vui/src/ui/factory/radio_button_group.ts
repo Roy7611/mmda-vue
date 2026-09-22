@@ -1,5 +1,5 @@
 import { type UiRadioButtonGroupProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
 export type { UiRadioButtonGroupProps } from '@mmda/core'
 export {
@@ -17,5 +17,5 @@ export function emitRadioButtonGroupChange(
   value: unknown,
 ): void {
   props.onChange?.(value)
-  vueUpdateOf(props)?.(value)
+  vuiUpdateOf(props)?.(value)
 }

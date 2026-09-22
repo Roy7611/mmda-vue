@@ -7,7 +7,7 @@
  */
 import type { VNodeChild } from 'vue'
 import type { MetaUiField } from '@mmda/core'
-import type {UiProps} from '../layout'
+import type {UiProps} from '@mmda/core'
 
 export const DEFAULT_RATING_ITEMS_COUNT = 5
 
@@ -21,8 +21,8 @@ import type {
   UiRatingTemplate,
   UiRatingTemplateContext,
 } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
-import type { VueModelProps } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
+import type { VuiModelProps } from '../vui_props'
 
 export type RatingFieldContext = {
   getFieldValue: (field: MetaUiField) => unknown
@@ -43,7 +43,7 @@ export function ratingItemsCountOf(props: UiRatingProps): number {
 }
 
 export function ratingValueOf(
-  props: VueModelProps<UiRatingProps>,
+  props: VuiModelProps<UiRatingProps>,
 ): number | null {
   const raw =
     props.value !== undefined ? props.value : props.modelValue
@@ -68,7 +68,7 @@ export function emitRatingChange(
       : value
   const next = finiteNumber(unpacked) ?? null
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export function resolveRatingTemplate(

@@ -11,7 +11,7 @@ describe("cleanTableCellProps", () => {
       tableMetaui: { objName: "MaterialPartner" },
       class: "mmda-table",
       title: "cell title",
-    });
+    } as any);
 
     expect(cleaned).toEqual({ title: "cell title" });
     expect(cleaned).not.toHaveProperty("rowStyle");

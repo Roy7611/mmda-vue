@@ -23,6 +23,7 @@ export {
   type UiSkeletonShimmer,
   type UiDividerProps,
   type UiDividerOrientation,
+  type UiProps,
   barcodeFormatClass,
   codeSizeCss,
   codeSizePx,
@@ -381,7 +382,7 @@ export * from './ui/factory/tree_grid'
 export * from './ui/builder/tree_category'
 export * from './ui/factory/tree_category_list'
 export * from './ui/factory/auth'
-export * from './ui/vue_ui_props'
+export * from './ui/vui_props'
 export * from './ui/factory'
 export * from './ui/field_factory'
 export * from './ui/builder'
@@ -401,8 +402,6 @@ export * from './components/ColorPalettePicker'
 export * from './components/FontScalePicker'
 export * from './components/FileIcons'
 export * from './components/FileUploaderHost'
-export * from './components/DocxFilePreview'
-export * from './components/XlsxFilePreview'
 export * from './ui/builder/list_layout'
 export * from './ui/builder/page_layout'
 export * from './ui/builder/join_list_mode'

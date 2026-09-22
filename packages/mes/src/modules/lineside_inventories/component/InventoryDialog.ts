@@ -1,7 +1,7 @@
 import { defineComponent, type SlotsType, ref, type Ref, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode } from 'vue';
 import type { Entity, EntitySearchParam, Pager, Pagination, PagedList, UiContext } from "@mmda/core";
 import { isRefNone, isFunction, isArray, isObject, MetaUiFieldAlignment, MetaModel, toPrecise, thousandDigitFormat } from '@mmda/core';
-import { CustomColumn, type VueUiContext } from "@mmda/vui";
+import { CustomColumn, type VuiContext } from "@mmda/vui";
 import { useRouter } from 'vue-router';
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { plainTableColumn, renderPlainTable } from '@/components/plain_table'
@@ -10,7 +10,7 @@ import { plainTableColumn, renderPlainTable } from '@/components/plain_table'
 const InventoryDialog = defineComponent({
     name: 'InventoryDialog',
     props: {
-        context: { type: Object as PropType<VueUiContext<any>>, default: null },
+        context: { type: Object as PropType<VuiContext<any>>, default: null },
     },
     setup(props, ctx) {
         const { uiBuilder, globalProps } = props.context;

@@ -1,6 +1,6 @@
 import { h } from "vue";
 import { SplitButtonComponent } from "@syncfusion/ej2-vue-splitbuttons";
-import type { UiSlots, UiSplitButtonProps } from "@mmda/vui"
+import type { VuiTileSlots, VuiSplitButtonProps } from "@mmda/vui"
 import {
   findAction,
   normalizeAction,
@@ -9,8 +9,8 @@ import {
 } from "./utils";
 
 export function createSplitButton(
-  props: UiSplitButtonProps,
-  slots?: UiSlots,
+  props: VuiSplitButtonProps,
+  slots?: VuiTileSlots,
 ) {
   return h(
     SplitButtonComponent as any,

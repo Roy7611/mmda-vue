@@ -64,7 +64,7 @@ export {
   stockChartHasVolume,
   treeMapLabelOf,
   treeMapWeightedOf,
-  CHART_PLUGIN_NOT_INSTALLED,
+  CHARTS_PLUGIN_NOT_INSTALLED,
   chartNotSupportedMessage,
   unsupportedChartMethod,
   unimplementedChartFactory,

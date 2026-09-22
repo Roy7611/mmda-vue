@@ -29,11 +29,11 @@ import {
 } from '@mmda/core'
 import { defineComponent, h, type VNode, type VNodeChild } from 'vue'
 import { useCompactViewport } from '../../composables/useCompactViewport'
-import type { VueUiBuilder } from '../builder'
+import type { VuiBuilder } from '../builder'
 import type { UiAction } from '../factory/action'
-import type { VueUiFactory } from '../factory'
-import type { UiSlots } from '../layout'
-import type { UiActionFactory } from './actions'
+import type { VuiFactory } from '../factory'
+import type { VuiTileSlots } from '../layout'
+import type { VuiActionFactory } from './actions'
 import type { UiContext } from './helpers'
 import { joinListModeMenuItems } from './join_list_mode'
 
@@ -223,7 +223,7 @@ export function renderEditTopbar(
 }
 
 export function defaultTopbarMoreActions(
-  actionFactory: UiActionFactory,
+  actionFactory: VuiActionFactory,
   context: any,
 ): UiAction[] {
   if (context?.editing) {
@@ -247,19 +247,19 @@ export type TopbarPaintParts = {
 type TopbarKind = 'index' | 'details' | 'edit'
 
 type TopbarHostProps = {
-  factory: VueUiFactory
+  factory: VuiFactory
   context: { title?: string; t: (message: string) => string }
   topbarProps: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps
-  slots?: UiSlots
+  slots?: VuiTileSlots
   parts: TopbarPaintParts
   kind: TopbarKind
 }
 
 function paintIndexTopbarTree(
-  factory: VueUiFactory,
+  factory: VuiFactory,
   context: { title?: string; t: (message: string) => string },
   props: UiIndexTopbarProps,
-  slots: UiSlots | undefined,
+  slots: VuiTileSlots | undefined,
   parts: TopbarPaintParts,
   dense: boolean,
 ): VNode {
@@ -342,10 +342,10 @@ function paintIndexTopbarTree(
 
 function paintTwoSlotTopbarTree(
   kind: 'details' | 'edit',
-  _factory: VueUiFactory,
+  _factory: VuiFactory,
   _context: { title?: string; t: (message: string) => string },
   props: UiDetailsTopbarProps | UiEditTopbarProps,
-  slots: UiSlots | undefined,
+  slots: VuiTileSlots | undefined,
   parts: TopbarPaintParts,
   dense: boolean,
 ): VNode {
@@ -412,10 +412,10 @@ const MmdaModuleTopbarHost = defineComponent({
 })
 
 export function paintModuleTopbar(
-  factory: VueUiFactory,
+  factory: VuiFactory,
   context: { title?: string; t: (message: string) => string },
   props: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps,
-  slots: UiSlots | undefined,
+  slots: VuiTileSlots | undefined,
   parts: TopbarPaintParts,
   kind: TopbarKind = 'index',
 ): VNode {
@@ -443,7 +443,7 @@ const STANDARD = new Set([
   'export',
 ])
 
-function wireAction(builder: VueUiBuilder, context: UiContext, action: UiAction): UiAction {
+function wireAction(builder: VuiBuilder, context: UiContext, action: UiAction): UiAction {
   const name = action.name
   if (name && STANDARD.has(name)) {
     const make = (builder.actionFactory as unknown as Record<string, (ctx: UiContext) => UiAction>)[name]
@@ -467,7 +467,7 @@ function pickPresent(action: UiAction): Partial<UiAction> {
 }
 
 function topbarButton(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   action: UiAction,
   dense: boolean,
@@ -494,7 +494,7 @@ function topbarButton(
 }
 
 function moreButton(
-  factory: VueUiFactory,
+  factory: VuiFactory,
   context: UiContext,
   items: Array<UiAction & { divider?: boolean }>,
   dense: boolean,
@@ -529,7 +529,7 @@ function moreButton(
 }
 
 function batchButtons(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   actions: UiAction[],
   dense: boolean,
@@ -567,10 +567,10 @@ function batchButtons(
 }
 
 function paintGroups(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   props: UiIndexTopbarProps | UiDetailsTopbarProps | UiEditTopbarProps,
-  slots: UiSlots | undefined,
+  slots: VuiTileSlots | undefined,
   groups: UiTopbarActionGroups,
   extraMore: UiAction[] = [],
   kind: TopbarKind = 'index',
@@ -630,10 +630,10 @@ function paintGroups(
 }
 
 export function paintIndexTopbar(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   props: UiIndexTopbarProps = {},
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
   extraMore: UiAction[] = [],
 ): VNode {
   const joinItems = joinListModeMenuItems(context as never).map((item) => ({
@@ -663,10 +663,10 @@ export function paintIndexTopbar(
 }
 
 export function paintDetailsTopbar(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   props: UiDetailsTopbarProps = {},
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
   extraMore: UiAction[] = [],
 ): VNode {
   return paintGroups(
@@ -681,10 +681,10 @@ export function paintDetailsTopbar(
 }
 
 export function paintEditTopbar(
-  builder: VueUiBuilder,
+  builder: VuiBuilder,
   context: UiContext,
   props: UiEditTopbarProps = {},
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
   extraMore: UiAction[] = [],
 ): VNode {
   const groups = resolveEditTopbarActions(context)

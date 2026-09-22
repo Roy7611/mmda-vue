@@ -9,7 +9,7 @@ import {
 } from 'vue'
 import type { ApiClient } from '@mmda/core'
 import {type MmdaApplication, type UiGanttController, type UiGanttTimeScale} from '@mmda/core'
-import { UI_APP_KEY, type VueUiContext } from '@mmda/vui'
+import { UI_APP_KEY, type VuiContext } from '@mmda/vui'
 import {
   ganttLinkToSavePayload,
   ganttTaskToSavePayload,
@@ -22,7 +22,7 @@ import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: 'GanntView',
   props: {
-    ctx: Object as PropType<VueUiContext<any>>,
+    ctx: Object as PropType<VuiContext<any>>,
   },
   setup(props) {
     const { t } = useI18n()

@@ -21,7 +21,7 @@ import type {
 } from "@mmda/core";
 import { h, ref, unref, type Ref, type VNode } from "vue";
 
-import type { UiProps } from "../layout";
+import type { UiProps } from "@mmda/core";
 
 export interface SearchForRelativeProps extends UiSearchRefProps {
   contentProps?: Record<string, any>;
@@ -72,7 +72,7 @@ export interface CustomFilter {
   selectIndex?: number;
 }
 
-export class UiFilter {
+export class VuiFilter {
   selectedConditions: Ref<Array<MetaUiFilterCondition>>;
 
   constructor(readonly metaUiFilter: MetaUiFilter) {
@@ -110,15 +110,15 @@ export class UiFilter {
   }
 }
 
-export function quickFiltersToSQL(filters: UiFilter[]) {
+export function quickFiltersToSQL(filters: VuiFilter[]) {
   const groups = filters
     .filter((filter) => filter.filtered)
     .map((filter) => filter.toQuerySQL());
   return groups.length ? groups.map((group) => `(${group})`).join(" AND ") : "";
 }
-export type UiCustomSearchRenderer = (
+export type VuiCustomSearchRenderer = (
   context: UiContext,
-  CustomSearchField: UiCustomSearchField,
+  CustomSearchField: VuiCustomSearchField,
   ...args: any[]
 ) => VNode;
 
@@ -126,13 +126,13 @@ export interface CustomSearchField {
   defaultValue?: any;
   searchLabel: string;
   searchParam: string;
-  renderer: UiCustomSearchRenderer; // 渲染器
+  renderer: VuiCustomSearchRenderer; // 渲染器
   valueFn?: (v: any | any[]) => any; // 取值函数
 }
-export class UiCustomSearchField {
+export class VuiCustomSearchField {
   searchLabel: string;
   searchParam: string;
-  renderer: UiCustomSearchRenderer; // 渲染器
+  renderer: VuiCustomSearchRenderer; // 渲染器
   searchVal: Ref<any>;
   searchWord?: Ref<string | any>; // 远程搜索框的模糊搜索
   isComposing?: boolean; // 远程搜索是否开启输入法选词
@@ -158,7 +158,7 @@ export class UiCustomSearchField {
   }
 }
 
-export class UiSearchField {
+export class VuiSearchField {
   readonly availableOps: Array<MetaUiFilterOpCode>;
   currentOp: MetaUiFilterOpCode;
   currentOpLabel: Ref<string>;

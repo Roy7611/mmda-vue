@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { h, render } from "vue";
-import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType, UiViewOne } from "@mmda/core";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
 const hosts: HTMLElement[] = [];
@@ -106,7 +106,7 @@ describe("Grid rowDetail", () => {
   it("buildGroup 把 operations 接到 items.rowDetail，内层不再嵌套", () => {
     const metaUi = bomLikeMetaUi();
     const items = metaUi.getGroup("items")!;
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         items: [
           {
@@ -116,11 +116,13 @@ describe("Grid rowDetail", () => {
           },
         ],
         operations: [{ id: "orphan", opCode: "SHOULD-SKIP" }],
-      },
+      } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
-    context.setupGroupLogic(new MetaUiGroupLogic(items).rowDetail("operations"));
+    context.setupGroupLogic(
+      new MetaUiGroupLogic(items).rowDetail("operations"),
+    );
     let captured: any;
     const builder = new TestUiBuilder();
     const realList = builder.factory.list.bind(builder.factory);
@@ -140,15 +142,17 @@ describe("Grid rowDetail", () => {
   it("同屏不要再画被 rowDetail 占用的并列 many 组", () => {
     const metaUi = bomLikeMetaUi();
     const items = metaUi.getGroup("items")!;
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         items: [{ id: "i1", name: "件", operations: [] }],
         operations: [{ id: "orphan", opCode: "SHOULD-SKIP" }],
-      },
+      } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
-    context.setupGroupLogic(new MetaUiGroupLogic(items).rowDetail("operations"));
+    context.setupGroupLogic(
+      new MetaUiGroupLogic(items).rowDetail("operations"),
+    );
     const host = mount(new TestUiBuilder().buildView(context));
     expect(host.textContent).not.toContain("SHOULD-SKIP");
     expect(host.textContent).not.toContain("整表工序");

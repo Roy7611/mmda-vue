@@ -1,7 +1,7 @@
 import { h } from "vue";
 import SplitButton from "primevue/splitbutton";
 import { buttonModifierClasses } from "@mmda/core"
-import type { UiAction, UiDropDownButtonProps, UiSlots } from "@mmda/vui"
+import type { UiAction, UiDropDownButtonProps, VueUiTileSlots } from "@mmda/vui"
 
 const severity = (role?: string) => {
   const roles: Record<string, string> = {
@@ -32,7 +32,7 @@ const menuModel = (action: UiAction): Record<string, unknown> => {
 export function createDropDownButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: UiSlots,
+  slots?: VueUiTileSlots,
 ) {
   const hideCaret =
     props.hideCaret === true ||
@@ -72,7 +72,7 @@ export function createDropDownButton(
 export function createMoreMenuButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: UiSlots,
+  slots?: VueUiTileSlots,
 ) {
   return createDropDownButton(
     {

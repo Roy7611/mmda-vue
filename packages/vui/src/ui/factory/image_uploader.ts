@@ -12,7 +12,7 @@ import {
   type UiImageUploaderProps,
   type UiImagesUploaderProps,
 } from '@mmda/core'
-import type {UiProps} from '../layout'
+import type {UiProps} from '@mmda/core'
 import {
   fileUploaderPropsFromField,
   filesUploaderPropsFromField,

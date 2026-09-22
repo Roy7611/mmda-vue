@@ -1,6 +1,6 @@
 /**
  * 时间轴插件契约。无 Vue。
- * chrome 默认仍走 UiFactory.timeline；Tempis 等用 builder.use 覆盖。
+ * 时间轴通过插件渲染（`builder.use(...)`），不进 UiFactory。
  */
 import { DateTime } from 'luxon'
 import { relativeTime as formatRelativeTime } from '../../utils/formatter'

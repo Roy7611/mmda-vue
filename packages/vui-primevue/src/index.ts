@@ -19,7 +19,6 @@ export * from './prime_field_factory'
 export * from './prime_builder'
 export * from './components/PrimeVueOverlayHost'
 export * from './components/BpmnModeler'
-export * from './components/FilePreview'
 export * from './components/HelpPanel'
 export * from './components/SigninForm'
 export * from './components/AppSideMenu'
@@ -38,7 +37,7 @@ export interface MmdaPrimeVueOptions {
   ripple?: boolean
 }
 
-/** Installs PrimeVue and the overlay services required by PrimeVueUiBuilder. */
+/** Installs PrimeVue and the overlay services required by PrimeVuiBuilder. */
 export const mmdaPrimeVue: Plugin = {
   install(app: App, options: MmdaPrimeVueOptions = {}) {
     const locale =

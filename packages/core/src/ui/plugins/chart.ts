@@ -421,7 +421,7 @@ export interface UiChartFactory<TNode = any> {
   comboChart: UiChartRenderer<TNode>
 }
 
-export const CHART_PLUGIN_NOT_INSTALLED = 'chart plugin not installed'
+export const CHARTS_PLUGIN_NOT_INSTALLED = 'charts plugin not installed'
 
 export function chartNotSupportedMessage(name: string): string {
   return `not supported: ${name}`
@@ -436,7 +436,7 @@ export function unsupportedChartMethod(
 }
 
 function notInstalled(): never {
-  throw new Error(CHART_PLUGIN_NOT_INSTALLED)
+  throw new Error(CHARTS_PLUGIN_NOT_INSTALLED)
 }
 
 export function unimplementedChartFactory<TNode = any>(): UiChartFactory<TNode> {

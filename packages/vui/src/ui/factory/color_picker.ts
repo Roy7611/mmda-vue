@@ -5,8 +5,8 @@
  * 字段 fieldFactory.colorPicker 译 MetaUiField 后再调本控件。
  */
 import type { MetaUiField, UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
-import type {UiProps} from '../layout'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import type {UiProps} from '@mmda/core'
+import { vuiUpdateOf, type VuiEmitProps, type VuiModelProps } from '../vui_props'
 
 export type { UiColorPickerMode, UiColorPickerProps } from '@mmda/core'
 
@@ -83,7 +83,7 @@ export function colorPickerHexOf(raw: unknown): string {
 }
 
 export function colorPickerValueOf(
-  props: VueModelProps<UiColorPickerProps>,
+  props: VuiModelProps<UiColorPickerProps>,
 ): string | undefined {
   if (props.value !== undefined) {
     const hex = colorPickerHexOf(props.value)
@@ -97,12 +97,12 @@ export function colorPickerValueOf(
 }
 
 export function emitColorPickerChange(
-  props: UiColorPickerProps,
+  props: VuiEmitProps<UiColorPickerProps>,
   value: string,
 ): void {
   const hex = colorPickerHexOf(value)
   props.onChange?.(hex)
-  vueUpdateOf(props)?.(hex)
+  vuiUpdateOf(props)?.(hex)
 }
 
 export { colorPickerModifierClasses } from '@mmda/core'

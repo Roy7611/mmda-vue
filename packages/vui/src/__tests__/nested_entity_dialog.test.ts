@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { h } from "vue";
 import { MetaUi, MetaUiField, SqlDataType } from "@mmda/core";
-import { VueUiContext } from "../contexts/vue_ui_context";
-import { UiViewMany, UiViewOne } from "../contexts/view";
+import { VuiContext } from "../contexts/vue_ui_context";
+import { UiViewMany } from "../contexts/view";
 import { TestUiBuilder } from "./test_builder";
 
 const listMeta = new MetaUi({
@@ -34,8 +34,8 @@ describe("nested entity dialog", () => {
       action: "cancel" as const,
     }));
     const routeTo = vi.fn();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {
@@ -44,14 +44,14 @@ describe("nested entity dialog", () => {
       } as any,
     });
     ctx.isInDialog = true;
-    ctx.routeTo = routeTo as any;
+    ctx.navigate = routeTo as any;
 
     ctx.routeToCreate();
     expect(openNestEntityDialog).toHaveBeenCalledWith(ctx, "create");
     expect(routeTo).not.toHaveBeenCalled();
 
     openNestEntityDialog.mockClear();
-    ctx.routeToEdit({ id: "e1", categoryName: "A" });
+    ctx.routeToEdit({ id: "e1", categoryName: "A" } as any);
     expect(openNestEntityDialog).toHaveBeenCalledWith(ctx, "edit", {
       id: "e1",
       categoryName: "A",
@@ -70,8 +70,8 @@ describe("nested entity dialog", () => {
   it("非对话框 create 仍 routeTo", () => {
     const routeTo = vi.fn();
     const openNestEntityDialog = vi.fn();
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi: listMeta,
       view: UiViewMany.Index,
       app: {
@@ -80,9 +80,9 @@ describe("nested entity dialog", () => {
       } as any,
     });
     ctx.isInDialog = false;
-    ctx.routeTo = routeTo as any;
+    ctx.navigate = routeTo as any;
     ctx.routeToCreate();
-    expect(routeTo).toHaveBeenCalledWith(UiViewOne.Create);
+    expect(routeTo).toHaveBeenCalledWith(expect.stringContaining("/Create"));
     expect(openNestEntityDialog).not.toHaveBeenCalled();
   });
 
@@ -93,8 +93,8 @@ describe("nested entity dialog", () => {
     const dialog = vi.fn(async () => "cancel" as const);
     builder.dialog = dialog as any;
 
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {
@@ -116,7 +116,7 @@ describe("nested entity dialog", () => {
     });
 
     expect(dialog).toHaveBeenCalled();
-    const dlgProps = dialog.mock.calls[0]![2] as any;
+    const dlgProps = (dialog.mock.calls[0] as any[])[2] as any;
     expect(dlgProps.header).toBeUndefined();
     expect(String(dlgProps.title)).toMatch(/选择一个/);
     expect(searchbar).not.toHaveBeenCalled();
@@ -125,8 +125,8 @@ describe("nested entity dialog", () => {
   it("openNestEntityDialog ok 后刷新 parent 并勾选该行", async () => {
     const saved = { id: "n1", categoryName: "新建" };
     const builder = new TestUiBuilder();
-    const parent = new VueUiContext({
-      model: [],
+    const parent = new VuiContext({
+      model: [] as any,
       metaUi: listMeta,
       view: UiViewMany.SelectOne,
       app: {
@@ -159,7 +159,7 @@ describe("nested entity dialog", () => {
 
     // create 会走 init；stub 掉避免缺 API
     const initSpy = vi
-      .spyOn(VueUiContext.prototype, "init")
+      .spyOn(VuiContext.prototype, "init")
       .mockResolvedValue(undefined as any);
 
     try {

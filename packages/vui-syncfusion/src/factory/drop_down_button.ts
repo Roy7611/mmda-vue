@@ -1,7 +1,7 @@
 import { h } from "vue";
 import { DropDownButtonComponent } from "@syncfusion/ej2-vue-splitbuttons";
 import { buttonModifierClasses } from "@mmda/core"
-import type { UiAction, UiDropDownButtonProps, UiSlots } from "@mmda/vui"
+import type { UiAction, UiDropDownButtonProps, VuiTileSlots } from "@mmda/vui"
 import { SfDropupMenuButton } from "../components/SfDropupMenuButton";
 import {
   buttonRoleClass,
@@ -13,7 +13,7 @@ import {
 export function createDropDownButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
 ) {
   const hideCaret =
     props.hideCaret === true ||
@@ -79,7 +79,7 @@ export function createDropDownButton(
 export function createMoreMenuButton(
   props: UiDropDownButtonProps,
   actions: UiAction[],
-  slots?: UiSlots,
+  slots?: VuiTileSlots,
 ) {
   return createDropDownButton(
     {

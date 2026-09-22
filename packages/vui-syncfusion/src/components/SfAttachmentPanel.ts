@@ -8,7 +8,7 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { ProgressBarComponent } from "@syncfusion/ej2-vue-progressbar";
 import { encodeUriAndFix } from "@mmda/core";
-import { getFileInfo, type VueUiContext } from "@mmda/vui"
+import { getFileInfo, type VuiContext } from "@mmda/vui"
 
 type AttachmentItem = {
   fileName: string;
@@ -28,7 +28,7 @@ function formatSize(value?: string | number) {
   return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 }
 
-function requireLogic(context: VueUiContext) {
+function requireLogic(context: VuiContext) {
   const logic = context.logic;
   if (!logic) throw new Error("attachment panel requires context.logic");
   return logic;
@@ -62,7 +62,7 @@ export const SfAttachmentPanel = defineComponent({
   name: "SfAttachmentPanel",
   props: {
     context: {
-      type: Object as PropType<VueUiContext<any>>,
+      type: Object as PropType<VuiContext<any>>,
       required: true,
     },
   },

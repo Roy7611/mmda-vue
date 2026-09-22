@@ -6,9 +6,9 @@ import { createDatePicker } from "../factory/date_picker";
 import { createDateTimePicker } from "../factory/date_time_picker";
 import { createTimePicker } from "../factory/time_picker";
 import { createDateRangePicker } from "../factory/date_range_picker";
-import { invalidOf, type UiContext } from "./utils";
+import { invalidOf, type SfVuiContext } from "./utils";
 
-const wrap = (field: MetaUiField, context: UiContext, child: ReturnType<typeof h>) => {
+const wrap = (field: MetaUiField, context: SfVuiContext, child: ReturnType<typeof h>) => {
   const invalid = invalidOf(field, context);
   return h("div", { class: ["mmda-control", invalid && "is-invalid"] }, [
     child,
@@ -23,7 +23,7 @@ const wrap = (field: MetaUiField, context: UiContext, child: ReturnType<typeof h
 
 export const datePicker = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrap(
@@ -34,7 +34,7 @@ export const datePicker = (
 
 export const dateTimePicker = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrap(
@@ -47,7 +47,7 @@ export const dateTimePicker = (
 
 export const monthPicker = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrap(
@@ -58,7 +58,7 @@ export const monthPicker = (
 
 export const timePicker = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrap(
@@ -69,7 +69,7 @@ export const timePicker = (
 
 export const dateRangePicker = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props?: UiProps,
 ) =>
   wrap(

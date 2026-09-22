@@ -1,12 +1,12 @@
 import { h } from "vue";
 import { SidebarComponent } from "@syncfusion/ej2-vue-navigations";
-import type { UiSidebarProps, UiSidebarSlots } from "@mmda/vui"
+import type { UiSidebarProps, VuiTileSlots } from "@mmda/vui"
 import { applyDrawerDefaults, emitSidebarChange, sidebarCloseOnDocumentClickOf, sidebarEnableDockOf, sidebarEnableGesturesOf, sidebarIsOpenOf, sidebarModifierClasses, sidebarPositionOf, sidebarShowBackdropOf, sidebarSlotsOf, sidebarTypeOf, sidebarWidthOf } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
 function renderSidebar(
   props: UiSidebarProps,
-  slots: UiSidebarSlots | undefined,
+  slots: VuiTileSlots | undefined,
   asDrawer: boolean,
 ) {
   const applied = asDrawer ? applyDrawerDefaults(props) : props;
@@ -63,14 +63,14 @@ function renderSidebar(
 
 export function createSidebar(
   props: UiSidebarProps,
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, false);
 }
 
 export function createDrawer(
   props: UiSidebarProps,
-  slots?: UiSidebarSlots,
+  slots?: VuiTileSlots,
 ) {
   return renderSidebar(props, slots, true);
 }

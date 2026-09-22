@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { h } from 'vue'
 import {
-  PIVOT_PLUGIN_NOT_INSTALLED,
+  PIVOT_TABLE_PLUGIN_NOT_INSTALLED,
   ej2PivotTypeOf,
   pivotAggregateOf,
   pivotHookClass,
@@ -23,7 +23,7 @@ describe('ui pivot table contract', () => {
   it('throws until pivot-table plugin is used', () => {
     const ui = new TestUiBuilder()
     expect(() => ui.requirePlugin(UiPluginName.pivotTable)).toThrow(
-      PIVOT_PLUGIN_NOT_INSTALLED,
+      PIVOT_TABLE_PLUGIN_NOT_INSTALLED,
     )
     expect(unimplementedPivotPlugin().pivotTable).toBeTypeOf('function')
   })
@@ -42,14 +42,14 @@ describe('ui pivot table contract', () => {
     const node = ui.plugin(UiPluginName.pivotTable)!.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
-    })
+    } as any)
     expect(node.props?.['data-rows']).toBe(1)
   })
 
   it('stub builder throws until a plugin is used', () => {
     const stub = createStubUiBuilder()
     expect(() => stub.requirePlugin(UiPluginName.pivotTable)).toThrow(
-      PIVOT_PLUGIN_NOT_INSTALLED,
+      PIVOT_TABLE_PLUGIN_NOT_INSTALLED,
     )
     stub.use({
       name: UiPluginName.pivotTable,

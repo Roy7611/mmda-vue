@@ -23,7 +23,7 @@ import {
 import { resolveRepositoryModule } from "../../components/EntityView";
 import { renderTreeView } from "../../components/TreeView";
 import { UiViewOne } from "../../contexts/view";
-import { VueUiContext } from "../../contexts/vue_ui_context";
+import { VuiContext } from "../../contexts/vue_ui_context";
 import type { UiContext } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
 
@@ -272,7 +272,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
         view === UiViewOne.Create
           ? categoryCreateParams(createKind ?? "root", node, props.fields)
           : undefined;
-      const ctx = new VueUiContext({
+      const ctx = new VuiContext({
         model: (id ? { id } : {}) as any,
         metaUi,
         view,

@@ -4,7 +4,7 @@ import {
   type VNode,
 } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from "@mmda/core";
-import { VueUiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from "@mmda/vui"
+import { VuiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VueUiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type UiSearchField, type VueUiTileSlots, type VuiContext, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -28,9 +28,9 @@ import { primeLayout } from "./prime_layout";
 const invoke = (value: unknown): any =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-type UiContext = VueUiContext<any>;
+type UiContext = VuiContext<any>;
 
-export class PrimeVueUiBuilder extends VueUiBuilder {
+export class PrimeVuiBuilder extends VuiBuilder {
   declare readonly factory: VueUiFactory;
 
   constructor(
@@ -202,8 +202,8 @@ export class PrimeVueUiBuilder extends VueUiBuilder {
 
   buildDetailsTopbar(
     context: UiContext,
-    props?: Parameters<VueUiBuilder["buildDetailsTopbar"]>[1],
-    slots?: UiSlots,
+    props?: Parameters<VuiBuilder["buildDetailsTopbar"]>[1],
+    slots?: VueUiTileSlots,
   ) {
     return paintDetailsTopbar(
       this,

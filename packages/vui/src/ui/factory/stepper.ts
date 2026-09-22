@@ -1,5 +1,5 @@
 import { type UiStepperProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf, type VuiEmitProps } from '../vui_props'
 
 export type {
   UiStepperDisplay,
@@ -20,7 +20,10 @@ export {
 } from '@mmda/core'
 
 /** Vue v-model：`onUpdate:modelValue` / `onUpdate`。 */
-export function emitStepperChange(props: UiStepperProps, value: number): void {
+export function emitStepperChange(
+  props: VuiEmitProps<UiStepperProps>,
+  value: number,
+): void {
   props.onChange?.(value)
-  vueUpdateOf(props)?.(value)
+  vuiUpdateOf(props)?.(value)
 }

@@ -104,12 +104,7 @@ describe("MMDA color palettes", () => {
     const setColorPalette = vi.spyOn(ui, "setColorPalette");
     const setFontScale = vi.spyOn(ui, "setFontScale");
 
-    const app = new MmdaVueApp(
-      "/api",
-      "test",
-      ui,
-      setupI18n({}, "zh"),
-    );
+    const app = new MmdaVueApp("/api", "test", ui, setupI18n({}, "zh"));
 
     expect(app.state.isDark).toBe(true);
     expect(app.state.colorPalette).toBe("orange");
@@ -122,10 +117,10 @@ describe("MMDA color palettes", () => {
   it("renders ten choices and persists the selected palette", async () => {
     const ui = createStubUiBuilder();
     ui.factory.resolveIcon = (icon: string) => icon;
-    ui.factory.dropDownButton = (_props, actions) =>
+    ui.factory.dropDownButton = (props: any) =>
       h(
         "div",
-        actions.map((action) =>
+        (props.actions ?? []).map((action: any) =>
           h(
             "button",
             {
@@ -138,12 +133,7 @@ describe("MMDA color palettes", () => {
         ),
       );
     const setColorPalette = vi.spyOn(ui, "setColorPalette");
-    const mmda = new MmdaVueApp(
-      "/api",
-      "test",
-      ui,
-      setupI18n({}, "zh"),
-    );
+    const mmda = new MmdaVueApp("/api", "test", ui, setupI18n({}, "zh"));
     const host = document.createElement("div");
     document.body.append(host);
     const root = defineComponent(() => () => h(ColorPalettePicker));
@@ -153,9 +143,11 @@ describe("MMDA color palettes", () => {
 
     const choices = host.querySelectorAll("[data-palette-action]");
     expect(choices).toHaveLength(10);
-    (host.querySelector(
-      '[data-palette-action="color-palette-blue"]',
-    ) as HTMLButtonElement).click();
+    (
+      host.querySelector(
+        '[data-palette-action="color-palette-blue"]',
+      ) as HTMLButtonElement
+    ).click();
     await Promise.resolve();
 
     expect(mmda.state.colorPalette).toBe("blue");
@@ -206,10 +198,10 @@ describe("MMDA font scale", () => {
   it("renders three choices and persists the selected scale", async () => {
     const ui = createStubUiBuilder();
     ui.factory.resolveIcon = (icon: string) => icon;
-    ui.factory.dropDownButton = (_props, actions) =>
+    ui.factory.dropDownButton = (props: any) =>
       h(
         "div",
-        actions.map((action) =>
+        (props.actions ?? []).map((action: any) =>
           h(
             "button",
             {

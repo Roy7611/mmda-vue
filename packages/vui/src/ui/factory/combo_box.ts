@@ -1,5 +1,5 @@
 import { type UiComboBoxProps } from '@mmda/core'
-import { vueUpdateOf } from '../vue_ui_props'
+import { vuiUpdateOf } from '../vui_props'
 
 export type { UiComboBoxProps } from '@mmda/core'
 export {
@@ -15,5 +15,5 @@ export function emitComboBoxChange(
   value: string | number | null,
 ): void {
   props.onChange?.(value)
-  vueUpdateOf(props)?.(value)
+  vuiUpdateOf(props)?.(value)
 }

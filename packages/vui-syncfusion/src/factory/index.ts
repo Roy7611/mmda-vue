@@ -1,6 +1,6 @@
 import { h } from "vue";
-import type { UiProps, VueUiFactory, UiSlots } from "@mmda/vui"
-import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry, vueUpdateOf } from "@mmda/vui"
+import type { UiProps, VuiFactory, VuiTileSlots } from "@mmda/vui"
+import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry, vuiUpdateOf } from "@mmda/vui"
 import { syncfusionLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid_inject";
 import { createTableRenderer } from "./table";
@@ -65,7 +65,7 @@ export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid_inject";
-export function createSyncfusionUiFactory(): VueUiFactory {
+export function createSyncfusionUiFactory(): VuiFactory {
   patchChoiceFilter();
   const button = createButton;
 
@@ -217,7 +217,7 @@ export function createSyncfusionUiFactory(): VueUiFactory {
       ]),
     autoComplete: (props: UiProps = {}) => createAutoComplete(props),
     tagAutoComplete: (props: UiProps = {}) => createTagAutoComplete(props),
-    formField: (props: UiProps = {}, slots?: UiSlots) =>
+    formField: (props: UiProps = {}, slots?: VuiTileSlots) =>
       h(
         "div",
         { class: ["mmda-form-field", "mmda-form-field", props.class], style: props.style },
@@ -233,7 +233,7 @@ export function createSyncfusionUiFactory(): VueUiFactory {
             createTextInput({
               ...props,
               value: props.modelValue,
-              onChange: props.onChange ?? vueUpdateOf(props),
+              onChange: props.onChange ?? vuiUpdateOf(props),
             }),
         ],
       ),
@@ -268,5 +268,5 @@ export function createSyncfusionUiFactory(): VueUiFactory {
     });
   bindListDisplayRenderers(factory);
 
-  return factory as VueUiFactory;
+  return factory as VuiFactory;
 }

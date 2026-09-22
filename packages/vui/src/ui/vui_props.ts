@@ -13,7 +13,7 @@
  * 参数收 `object` 而不是 `UiProps`：这正是**读契约外键**的地方（reader 必须能看索引），
  * 调用方传具体 `UiXxxProps` 也能直接进。
  */
-export function vueUpdateOf<T = unknown>(
+export function vuiUpdateOf<T = unknown>(
   props?: object | null,
   name?: string,
 ): ((value: T) => void) | undefined {
@@ -42,6 +42,18 @@ export function vueUpdateOf<T = unknown>(
  * vui 皮肤用 v-model 时，读入口除了 core 的 `value` 还要兼容 `modelValue`；
  * 该键不进 core 契约，所以只在这里用交叉类型补上，不扩散到各控件 props。
  */
-export type VueModelProps<TProps extends object> = TProps & {
+export type VuiModelProps<TProps extends object> = TProps & {
   modelValue?: unknown
+}
+
+/**
+ * core 契约 + Vue v-model 的 emit 形状。
+ *
+ * `emit*Change` 的 props 参数用这个：core `onChange` 之外还要收 v-model 编译出的
+ * `onUpdate` / `onUpdate:modelValue`，以及读入口 `modelValue`。
+ * 这些键都不进 core 契约，所以只在这里补上。
+ */
+export type VuiEmitProps<TProps extends object = object> = VuiModelProps<TProps> & {
+  onUpdate?: (value: unknown) => void
+  'onUpdate:modelValue'?: (value: unknown) => void
 }

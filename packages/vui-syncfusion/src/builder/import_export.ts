@@ -1,12 +1,12 @@
 import { h, type VNode } from "vue";
 import { pluralize } from "@mmda/core";
 import type { ImportAndExportActionProps } from "@mmda/vui"
-import type { VueUiBuilder } from "@mmda/vui"
-import type { UiContext } from "./utils";
+import type { VuiBuilder } from "@mmda/vui"
+import type { SfVuiContext } from "./utils";
 
 export function buildImportOrExportAction(
-  this: VueUiBuilder & { toolbarActionButton?: Function },
-  context: UiContext,
+  this: VuiBuilder & { toolbarActionButton?: Function },
+  context: SfVuiContext,
   props: ImportAndExportActionProps,
 ): VNode {
   const runtime = context as any;

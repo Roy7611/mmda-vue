@@ -7,6 +7,33 @@
 
 ---
 
+## 图集（UI 层全貌）
+
+> 图源 `docs/design/ui_layer.wsd`（`@startuml <name>` → `docs/images/diagrams/<name>.png`）。
+> 改了图源后重渲：`bash scripts/render-diagrams.sh`；判断是否过期：`bash scripts/render-diagrams.sh --check`。
+
+**UI 层 · 四职与邻居**（`ui_layer_roles`）
+
+![ui_layer_roles](../images/diagrams/ui_layer_roles.png)
+
+**UI 层 · 契约 → vui → 皮肤**（`ui_layer_impl`）
+
+![ui_layer_impl](../images/diagrams/ui_layer_impl.png)
+
+**UI 层 · 一屏怎么拼出来（列表 / 表单）**（`ui_layer_flow`）
+
+![ui_layer_flow](../images/diagrams/ui_layer_flow.png)
+
+**UI 层 · 控件入参通道**（`ui_layer_props`，对应 [§1](#1-契约与通道) 的判定）
+
+![ui_layer_props](../images/diagrams/ui_layer_props.png)
+
+**UI 层 · 插件宿主（复杂视图）**（`ui_layer_plugins`）
+
+![ui_layer_plugins](../images/diagrams/ui_layer_plugins.png)
+
+---
+
 ## 0. 总则
 
 ### 0.1 判定规则（地基）
@@ -288,8 +315,35 @@ sui:  { ...std.props, ...std.attributes }                              // Svelte
 |---|---|
 | `packages/vui/src/ui/factory.ts:201` 的 `[index: string]: any` | 仍在（§1.8 第 2 条未收），皮肤新增控件靠它兜 |
 | `packages/vui/src/utils/resolve_slots.ts` | 5 个导出函数（`resolveSlot` / `resolveSlotWithProps` / `resolveWrappedSlot` / `resolveWrappedSlotWithProps` / `isSlotEmpty`）**0 个调用点**，只被 barrel 再导出 |
-| 测试脚手架漂移 | `packages/vui/src/__tests__/test_builder.ts` 仍是旧形态（`buttonGroup(buttons, props)` / `table(model, metaUi, props)`）→ vui 测试 33 红 |
 | 四支数组工具 | `skipUndefined` / `skipNullAndUndefined` 与其等价别名 `nonUndefinedArray` / `nonNullArray` 生产代码 0 调用（只有单测），且成对重复 |
+| ~~`vui-syncfusion` 表格右键菜单两条测试~~ | **已修（本轮）**：`createTableRenderer` 本身就是单参渲染器（`factory/table.ts:74`），夹具仍按旧三参 `(rows, metaUi, props)` 调用 → 第一参 `props` 拿到的是**行数组**，于是既没有 `columns` 也没有 `contextMenuItems`。夹具改为单参 + `propsOf` 等价键（`rows` / `primaryKey` / `objName` / `fields`）后两条转绿。 |
+| `UiFactory.timeline` 连带（**并发会话在途**） | core 侧删掉 `UiFactory.timeline` 后：`packages/vui/src/ui/plugins/timeline.ts:70` 2 条 tsc 错 + `timeline.test.ts` 1 条红；皮肤 `factory/timeline.ts` 已删、`field_factory/display.ts` 里残留的 `timeline` 导出（孤儿块）本轮已顺手删除以解开语法错。**剩下的等该会话收口，不在本会话范围。** |
+
+### 1.11 本轮（vui 收口）已落地的契约（写代码按这个）
+
+- **`(props, slots)` 两参形态覆盖全族**：`factory.buttonGroup` / `splitter` / `icon` / `selectButtonGroup` / `formField` / `dropDownButton` …；`icon` 的图标名在 `props.iconClass`，`selectButtonGroup` 的值在 `props.modelValue`。
+- **list 家族（`list` / `table` / `grid` / `treeGrid` / `pagableTable`）内部实现一律单参 `(props)`**：`props.rows` / `props.fields` / `props.primaryKey` / `props.objName`（旧三参 `(rows, metaUi, props)` 只在 `factory/list.ts` 的 `propsOf` 兼容，且**不携带 `metaUi`**）。
+- **`splitter` 的 panes 走 slots**：`factory.splitter(props, { default: () => [pane…] })`（兼容 `props.panes`）。
+- **导航方法名一律 `routeTo*`**：`routeTo(view, id?)` / `routeToIndex` / `routeToEdit` / `routeToCreate` / `routeToDetails` / `routeToSearch`。**旧的 `details` / `edit` / `create` / `index` 已不存在**——`x?.()` 的写法会把漏改静默吞掉（本轮在 `ui/builder/actions.ts` 与 `ui/builder/list_view.ts` 共修掉 5 处）。
+- **DI 契约**：`GenericEntityLogic.resolve(di, token, …)` 走「`injectAsync` 取不到 → `provide` 登记 → 再取」，所以任何 DI 打桩都要成对提供 `injectAsync` + `provide`。
+
+### 1.12 测试脚手架与 typecheck 的关系（本轮教训）
+
+`__tests__` 不在 `tsconfig.typecheck.json` 的 program 里（`tsconfig.lib.json` 已 exclude），所以**契约一变，只有 vitest 会红、tsc 依然 0 错**。本轮 vui 33 条红全部来自这个盲区（`test_builder.ts` 与各测试自建的 factory 桩仍是旧形态）。改契约后的验收必须两件都跑：逐包 `tsc -p tsconfig.typecheck.json` **和** 逐包 `vitest run`。
+
+**33 条红已修（本轮）**，三类根因与判据：
+
+| 根因 | 判据 | 修法 |
+|---|---|---|
+| ① 测试脚手架/夹具仍是旧契约 | `test_builder.ts` 的 `listedFields()` 未容忍 undefined；list 家族桩还传三参 | 桩一律改成写代码按的形态（见下） |
+| ② **生产真 bug**：改名漏改被 `x?.()` 静默吞掉 | `ui/builder/actions.ts` / `list_view.ts` 里 `index`\|`create`\|`edit`\|`details` → `routeTo*` | 同名化 + 测试断言**副作用**（不是断言"没报错"） |
+| ③ 皮肤侧旧三参 | `vui-syncfusion/src/factory/navigation.ts` 的 `list`、`createTableRenderer` 的调用点 | 单参 `(props)`，行键用 `props.primaryKey`（`propsOf` 只归一 `rows`/`primaryKey`/`objName`/`fields`，**不携带 `metaUi`**） |
+
+**测试里写工厂必须按的形态（旧三参已不可用）**：
+
+- list 家族（`list` / `table` / `grid` / `treeGrid` / `pagableTable`）内部实现一律**单参 `(props)`**；测试要构造 list 桩就写 `table({ rows, primaryKey, objName, fields, …其余具名 props })`，需要 `metaUi` 派生的东西时自己展开（`metaUi.getListedFields()`），别再传 `metaUi` 对象。
+- 有区域插槽的控件一律**两参**：`buttonGroup(props, slots)` / `splitter(props, slots)`（panes 从 slots 取，`splitterPanesOf()` 就是为此加的）。
+- DI 打桩**成对**：`injectAsync` + `provide`（`GenericEntityLogic.resolve` 走「取不到 → provide → 再取」）。
 
 ---
 

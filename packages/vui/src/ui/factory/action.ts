@@ -1,6 +1,7 @@
 import { computed, unref } from "vue";
-import type { UiColorRole, UiAction, Predicate } from "@mmda/core";
+import type { UiAction, Predicate } from "@mmda/core";
 import {
+  normalizeActionColorRole,
   parseEntityBoolExpression,
   isPromise,
   type EntityAction,
@@ -9,6 +10,12 @@ import {
   type UiContext,
 } from "@mmda/core";
 
+export {
+  normalizeActionColorRole,
+  isActionVisible,
+  isActionEnabled,
+  UiActionDivider,
+} from "@mmda/core";
 export type { UiColorRole, UiAction } from "@mmda/core";
 export type IconResolver = (icon: string) => string;
 
@@ -42,40 +49,9 @@ export function resolveActionButtonIcon(
   return execute
 }
 
-export interface UiActionContext extends UiContext {
+export interface VuiActionContext extends UiContext {
   actionLoadings: Record<string, boolean>
   readonly executing: boolean
-}
-
-/** Normalize backend action roles before passing them to a UI skin. */
-export const normalizeActionColorRole = (
-  role?: string | number | null,
-): UiColorRole | undefined => {
-  if (role == null || role === '') return undefined
-  // MetaDisplayHint numeric wire form: 0;INFO|1;SUCCESS|2;WARNING|4;DANGER
-  const numeric: Record<string, UiColorRole> = {
-    '0': 'info',
-    '1': 'success',
-    '2': 'warning',
-    '4': 'danger',
-  }
-  const raw = String(role).trim()
-  if (!raw) return undefined
-  if (numeric[raw] != null) return numeric[raw]
-  const normalized = raw.toLowerCase()
-  if (normalized === 'warn') return 'warning'
-  if (normalized === 'error') return 'danger'
-  if (
-    normalized === 'primary' ||
-    normalized === 'secondary' ||
-    normalized === 'success' ||
-    normalized === 'info' ||
-    normalized === 'warning' ||
-    normalized === 'danger'
-  ) {
-    return normalized
-  }
-  return undefined
 }
 
 /**
@@ -114,7 +90,7 @@ export const UiActionCtor = (
 
 /** EntityAction.executableExpression → UiAction.canDo（字符串或函数）。 */
 export function canDoFromExecutableExpression(
-  _context: UiActionContext,
+  _context: VuiActionContext,
   action: EntityAction,
 ): Predicate | undefined {
   const expr = action.executableExpression;
@@ -126,7 +102,7 @@ export function canDoFromExecutableExpression(
 }
 
 export const UiContextAction = (
-  context: UiActionContext,
+  context: VuiActionContext,
   action: EntityAction,
   i: IconResolver,
 ): UiAction => {
@@ -209,41 +185,3 @@ export const UiContextAction = (
     view,
   };
 };
-/**
- * 界面动作分隔符
- * @returns
- */
-export const UiActionDivider = (): UiAction => {
-  return {
-    divider: true,
-  };
-};
-
-/** 是否渲染此项。`target` 为行或页 model；Predicate 时传入。 */
-export function isActionVisible(
-  action: UiAction,
-  target?: unknown,
-  ctx?: UiContext,
-): boolean {
-  const visible = action.visible;
-  if (visible == null) return true;
-  if (typeof visible === "boolean") return visible;
-  if (typeof visible === "function") return visible(target, ctx) !== false;
-  if (typeof visible === "object" && visible !== null && "value" in visible) {
-    return (visible as { value: boolean }).value !== false;
-  }
-  return true;
-}
-
-/** 是否可点。先看静态 `disabled`，再看 `canDo`。 */
-export function isActionEnabled(
-  action: UiAction,
-  target?: unknown,
-  ctx?: UiContext,
-): boolean {
-  if (action.disabled === true) return false;
-  const canDo = action.canDo;
-  if (canDo == null) return true;
-  if (typeof canDo === "boolean") return canDo;
-  return canDo(target, ctx) !== false;
-}

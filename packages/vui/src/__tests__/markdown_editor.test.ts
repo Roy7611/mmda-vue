@@ -33,7 +33,7 @@ describe('markdownEditorPlugin', () => {
     const node = ui.plugin(UiPluginName.markdownEditor)!.buildUi({} as any, {
       value: 'x',
       readonly: true,
-    })
+    } as any)
     expect(node.props?.class).toBe('mmda-markdown-editor')
     expect(node.props?.['data-readonly']).toBe('1')
   })

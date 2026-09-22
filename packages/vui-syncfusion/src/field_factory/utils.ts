@@ -1,20 +1,20 @@
 import { h, type Component, type VNode } from "vue";
 import type { MetaUiField } from "@mmda/core";
-import type { UiProps, VueUiContext } from "@mmda/vui"
+import type { UiProps, VuiContext } from "@mmda/vui"
 import { getSyncfusionCulture } from "../syncfusion_i18n";
 
-export type UiContext = VueUiContext<any>;
+export type SfVuiContext = VuiContext<any>;
 
-export const update = (field: MetaUiField, context: UiContext) => (value: any) =>
+export const update = (field: MetaUiField, context: SfVuiContext) => (value: any) =>
   context.setFieldValue(field, value);
 
-export const invalidOf = (field: MetaUiField, context: UiContext) =>
+export const invalidOf = (field: MetaUiField, context: SfVuiContext) =>
   Boolean(context.isInvalid?.(field));
 
 export const control = (
   component: Component,
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   props: UiProps = {},
   slots?: Record<string, () => VNode>,
 ) => {
@@ -71,7 +71,7 @@ export const referenceFieldKeys = (
 
 export const referenceSelectedValue = (
   field: MetaUiField,
-  context: UiContext,
+  context: SfVuiContext,
   reference: NonNullable<MetaUiField["reference"]>,
 ) => {
   const current = context.getFieldValue(field);

@@ -1,9 +1,7 @@
 import {
   MetaUiFieldLogic,
-  defaultChoicePager,
   defineEntity,
   GenericEntityLogic,
-  pagedListIsComplete,
   type Entity,
   type EntityLogic,
   type MetaUiField,
@@ -48,98 +46,6 @@ export function WithReference<TBase extends Constructor>(
   Base: TBase,
 ) {
   return class Reference extends Base {
-    async searchRelative(
-      field: MetaUiField,
-      searchWord = "",
-      model?: Entity,
-    ) {
-      const row =
-        model ?? (Array.isArray(this.model) ? undefined : this.model);
-      const options = this.getFieldSearchOptions(field);
-      if (options.searching) return options;
-      options.searching = true;
-      options.searchParam.searchWord = searchWord;
-      try {
-        if (field.reference?.isEnum) {
-          options.selectOptions = field.reference.refOptions ?? [];
-          return options;
-        }
-        const ref = field.reference;
-        if (!ref || !this.logic || !ref.refRepository) return options;
-        const where = (
-          this.getFieldLogic(field) ?? new MetaUiFieldLogic(field)
-        ).buildRefWhere(row as Entity, this as any);
-        const queryParams = { ...(options.searchParam.queryParams ?? {}) };
-        if (where) queryParams.filter = where;
-        else delete queryParams.filter;
-        options.searchParam.queryParams = queryParams;
-        const page = await this.logic.searchRelative(options.searchParam, {
-          repository: ref.refRepository,
-          service: ref.service,
-        });
-        options.selectOptions = page?.list ?? [];
-        options.pagination = page?.pagination;
-        return options;
-      } finally {
-        options.searching = false;
-      }
-    }
-
-    /**
-     * 首页 50 写入 refOptions。enum / 已有缓存直接返回；
-     * ref 与 hasOne 同一套；搜索页不要走这里。
-     */
-    async loadReferenceOptions(field: MetaUiField): Promise<any[]> {
-      const ref = field.reference;
-      if (!ref) return [];
-      if (ref.isEnum) return ref.refOptions;
-      if (ref.refOptions.length > 0) {
-        const cached = this.getFieldSearchOptions(field);
-        cached.selectOptions = ref.refOptions;
-        cached.refOptionsComplete = ref.refOptionsComplete;
-        return ref.refOptions;
-      }
-      if (
-        !(ref.isRef || ref.hasOne) ||
-        !this.logic ||
-        !ref.refRepository
-      ) {
-        return ref.refOptions;
-      }
-
-      const cacheKey = `${ref.service ?? ""}:${ref.refRepository}:${field.fieldName}`;
-      const pending = this.referenceOptionLoads.get(cacheKey);
-      if (pending) return pending;
-
-      const request = (async () => {
-        const options = this.getFieldSearchOptions(field);
-        options.searchParam.pager = defaultChoicePager();
-        options.searchParam.searchWord = "";
-        const page = await this.logic!.searchRelative(options.searchParam, {
-          repository: ref.refRepository!,
-          service: ref.service,
-        });
-        const list = page?.list ?? [];
-        ref.refOptions.splice(0, ref.refOptions.length, ...list);
-        const complete = pagedListIsComplete({
-          list,
-          pagination: page?.pagination ?? defaultChoicePager(),
-        });
-        ref.refOptionsComplete = complete;
-        options.refOptionsComplete = complete;
-        options.selectOptions = ref.refOptions;
-        if (page?.pagination) options.pagination = page.pagination;
-        return ref.refOptions;
-      })();
-
-      this.referenceOptionLoads.set(cacheKey, request);
-      try {
-        return await request;
-      } finally {
-        this.referenceOptionLoads.delete(cacheKey);
-      }
-    }
-
     select(field: MetaUiField | string): Promise<Entity | false>
     select<T extends Entity>(
       param: EntitySelectParam<T>,
@@ -147,52 +53,8 @@ export function WithReference<TBase extends Constructor>(
     async select<T extends Entity>(
       fieldOrParam: MetaUiField | string | EntitySelectParam<T>,
     ): Promise<Entity | false | boolean | T[]> {
-      if (
-        typeof fieldOrParam === "string" ||
-        (fieldOrParam &&
-          typeof (fieldOrParam as MetaUiField).fieldName === "string" &&
-          !("repository" in (fieldOrParam as object)))
-      ) {
-        const fld = this.resolveField(fieldOrParam as MetaUiField | string);
-        const ref = fld.reference;
-        if (!ref?.refRepository || !this.app) {
-          void this.uiBuilder?.toast?.(this, {
-            severity: "error",
-            title: this.t("dialog.title.error"),
-            message: this.t("invalid.fieldNoRef", { field: fld.fieldName }),
-            life: 3000,
-          });
-          return false;
-        }
-        const options = this.getFieldSearchOptions(fld);
-        try {
-          const picked = await this.select({
-            repository: ref.refRepository,
-            service: ref.service,
-            searchParam: options.searchParam,
-            selectionMode: "single",
-          });
-          if (!Array.isArray(picked) || !picked[0]) return false;
-          this.setFieldValue(fld, picked[0]);
-          options.currentSelectOption = picked[0];
-          if (
-            !options.selectOptions.some(
-              (item: any) => ref.valueOf(item) === ref.valueOf(picked[0]),
-            )
-          ) {
-            options.selectOptions.unshift(picked[0]);
-          }
-          return picked[0];
-        } catch (error) {
-          console.error(error);
-          void this.uiBuilder?.toast?.(this, {
-            severity: "error",
-            title: this.t("dialog.title.error"),
-            message: error instanceof Error ? error.message : String(error),
-            life: 3000,
-          });
-          return false;
-        }
+      if (this.isFieldSelect(fieldOrParam)) {
+        return this.selectByField(fieldOrParam)
       }
       const param = fieldOrParam as EntitySelectParam<T>;
       if (!this.app || !this.uiBuilder) return false;
@@ -255,7 +117,7 @@ export function WithReference<TBase extends Constructor>(
         translate: this.translateFn,
         app: this.app,
         logic,
-        router: this.router,
+        router: this.vueRouter,
       });
       if (param.searchParam) {
         EntitySearchParam.assign(selectCtx.searchParam, param.searchParam);

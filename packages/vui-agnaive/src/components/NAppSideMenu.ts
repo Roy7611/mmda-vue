@@ -22,7 +22,7 @@ import {
   wrapRailLabel,
   type AppMenuItem,
   type MmdaApplication,
-  type VueUiBuilder,
+  type VuiBuilder,
 } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
@@ -67,7 +67,7 @@ export const NAppSideMenu = defineComponent({
   },
   setup(props, { attrs }) {
     const app = inject(UI_APP_KEY, null as MmdaApplication | null)
-    const builder = inject(UI_BUILDER_KEY, null as VueUiBuilder | null)
+    const builder = inject(UI_BUILDER_KEY, null as VuiBuilder | null)
     const appName = computed(
       () => app?.state.localAppPrefixes ?? app?.name ?? '',
     )

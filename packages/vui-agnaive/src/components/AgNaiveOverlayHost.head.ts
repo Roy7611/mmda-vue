@@ -10,7 +10,7 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { dialogButtonColorRole, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
+import { dialogButtonColorRole, dialogButtonLabel, dialogCloseOnEscapeOf, dialogCloseOnOverlayOf, dialogFooterKind, dialogHeaderKind, dialogShowCloseIconOf, isDialogPrimaryButton, resolveDialogButtons, uiCssClass, type UiDialogAction } from '@mmda/core'
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
@@ -22,16 +22,6 @@ import {
   naiveSkinState,
   naiveThemeRef,
 } from '../agnaive_theme'
-
-const DEFAULT_LABELS: Record<UiDialogAction, string> = {
-  ok: 'OK',
-  cancel: 'Cancel',
-  yes: 'Yes',
-  no: 'No',
-  abort: 'Abort',
-  retry: 'Retry',
-  ignore: 'Ignore',
-}
 
 function naiveTypeForRole(
   role?: string,
@@ -86,7 +76,7 @@ const OverlayInner = defineComponent({
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated
-      return DEFAULT_LABELS[button]
+      return dialogButtonLabel(button)
     }
 
     return () => {

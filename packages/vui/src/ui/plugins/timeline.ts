@@ -5,7 +5,7 @@
 import type { MetaUiField, UiPlugin, UiTimelineProps } from '@mmda/core'
 import { UiPluginName, uiPlugin } from '@mmda/core'
 import type { VNode } from 'vue'
-import type { UiProps } from '../layout'
+import type { UiProps } from '@mmda/core'
 
 export type {
   UiTimelineAlign,

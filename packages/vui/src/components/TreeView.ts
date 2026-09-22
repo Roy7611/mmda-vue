@@ -9,7 +9,7 @@ import {
   type VNode,
 } from "vue";
 import { translateMessage } from "../i18n/i18n";
-import type { VueUiFactory } from "../ui/factory";
+import type { VuiFactory } from "../ui/factory";
 import {
   detachTreeNode,
   filterMappedTree,
@@ -48,7 +48,7 @@ export const TreeView = defineComponent({
   name: "TreeView",
   props: {
     spec: { type: Object as PropType<UiTreeViewProps>, required: true },
-    factory: { type: Object as PropType<VueUiFactory>, required: true },
+    factory: { type: Object as PropType<VuiFactory>, required: true },
     loadChildren: {
       type: Function as PropType<TreeChildrenLoader>,
       default: undefined,
@@ -218,7 +218,7 @@ export const TreeView = defineComponent({
 const TreeViewBody = defineComponent({
   name: "TreeViewBody",
   props: {
-    factory: { type: Object as PropType<VueUiFactory>, required: true },
+    factory: { type: Object as PropType<VuiFactory>, required: true },
     spec: { type: Object as PropType<UiTreeViewProps>, required: true },
     treeData: { type: Array, required: true },
     editing: { type: String, default: "" },
@@ -319,7 +319,7 @@ const TreeViewFooter = defineComponent({
 });
 
 export function renderTreeView(
-  factory: VueUiFactory,
+  factory: VuiFactory,
   spec: UiTreeViewProps,
   loadChildren?: TreeChildrenLoader,
 ): VNode {

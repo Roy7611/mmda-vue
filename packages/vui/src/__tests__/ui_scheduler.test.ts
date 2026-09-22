@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createApp, h } from 'vue'
-import { MetaUi, MetaUiField, SqlDataType, UiPluginName, type UiPlugin } from '@mmda/core'
-import { VueUiContext } from '../contexts/vue_ui_context'
+import { MetaUi, MetaUiField, SqlDataType, UiPluginName, type UiPlugin, UiViewMany } from '@mmda/core'
+import { VuiContext } from '../contexts/vue_ui_context'
 import { UiViewManyKind } from '../contexts/view'
 import {
   SCHEDULER_PLUGIN_NOT_INSTALLED,
@@ -65,15 +65,16 @@ describe('ui scheduler contract', () => {
               fieldIdx: 0,
               dataType: SqlDataType.NVARCHAR,
               listed: true,
+              nullable: true,
             }),
           ],
         },
       ],
     })
-    const context = new VueUiContext({
-      model: [],
+    const context = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: 'index',
+      view: UiViewMany.Index,
     })
     ;(context as any).logic = {
       viewOptions: {

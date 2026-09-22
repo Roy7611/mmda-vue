@@ -1,6 +1,6 @@
 import { MES_KEY } from '../keys'
 import {type MmdaApplication} from '@mmda/core'
-import { UI_APP_KEY, UI_BUILDER_KEY, type VueUiBuilder } from '@mmda/vui'
+import { UI_APP_KEY, UI_BUILDER_KEY, type VuiBuilder } from '@mmda/vui'
 import { defineComponent, h, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Module } from '@mmda/core'
@@ -47,7 +47,7 @@ export const HomeView = defineComponent({
   name: 'HomeView',
   setup: () => {
     const { t } = useI18n()
-    const b = inject<VueUiBuilder>(UI_BUILDER_KEY)!
+    const b = inject<VuiBuilder>(UI_BUILDER_KEY)!
     const { factory } = b
     const app = (inject(MES_KEY) ?? inject(UI_APP_KEY)) as MmdaApplication
     const { modules, user } = app

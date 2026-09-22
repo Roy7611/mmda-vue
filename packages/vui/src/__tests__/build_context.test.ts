@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { MetaUi, MetaUiField, SqlDataType } from '@mmda/core'
+import { MetaUi, MetaUiField, SqlDataType, UiViewOne, UiViewMany } from '@mmda/core'
 import { EntityLogic } from '../logic/logic'
-import { VueUiContext } from '../contexts/vue_ui_context'
+import { VuiContext } from '../contexts/vue_ui_context'
 
 const metaUi = new MetaUi({
   objName: 'Order',
@@ -26,7 +26,7 @@ const metaUi = new MetaUi({
 
 class OrderLogic extends EntityLogic<any> {}
 
-describe('VueUiContext', () => {
+describe('VuiContext', () => {
   it('save 走 EntityLogic 并在校验通过后提交', async () => {
     const save = vi.fn(async (model: any) => model)
     const logic = new OrderLogic(o => o as any, {
@@ -35,10 +35,10 @@ describe('VueUiContext', () => {
       metaUi,
     })
     logic.save = save
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: { id: '1', orderNo: 'SO-1' } as any,
       metaUi,
-      view: 'edit',
+      view: UiViewOne.Edit,
       logic,
     })
     await ctx.save()
@@ -46,7 +46,7 @@ describe('VueUiContext', () => {
   })
 
   it('工具栏 save 动作在编辑页成功后跳转详情', async () => {
-    const { UiActionFactory } = await import('../ui/builder')
+    const { VuiActionFactory } = await import('../ui/builder')
     const push = vi.fn()
     const save = vi.fn(async (model: any) => ({ ...model, id: '42' }))
     const logic = new OrderLogic(o => o as any, {
@@ -55,10 +55,10 @@ describe('VueUiContext', () => {
       metaUi,
     })
     logic.save = save
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: { id: '42', orderNo: 'SO-1' } as any,
       metaUi,
-      view: 'edit',
+      view: UiViewOne.Edit,
       logic,
       router: { push } as any,
       app: {
@@ -67,7 +67,7 @@ describe('VueUiContext', () => {
         i18n: { global: { t: (k: string) => k } },
       } as any,
     })
-    const factory = new UiActionFactory(
+    const factory = new VuiActionFactory(
       { toast: async () => undefined } as any,
       (icon: string) => icon,
     )
@@ -85,10 +85,10 @@ describe('VueUiContext', () => {
       metaUi,
       apiService: 'mes',
     })
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: { id: '141' } as any,
       metaUi,
-      view: 'index',
+      view: UiViewMany.Index,
       logic,
       router: { push } as any,
       app: { name: 'base' } as any,
@@ -115,10 +115,10 @@ describe('VueUiContext', () => {
       metaUi,
     })
     logic.getReportTemplates = getReportTemplates
-    const ctx = new VueUiContext({
+    const ctx = new VuiContext({
       model: { id: '1', orderNo: 'SO-1' } as any,
       metaUi,
-      view: 'edit',
+      view: UiViewOne.Edit,
       logic,
     })
 
@@ -149,10 +149,10 @@ describe('VueUiContext', () => {
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: 'index',
+      view: UiViewMany.Index,
       logic,
     })
     ctx.search = vi.fn(async () => undefined) as any
@@ -160,7 +160,7 @@ describe('VueUiContext', () => {
     ctx.selectedItems = [
       { id: '1', deletable: true },
       { id: '2', deletable: false },
-    ]
+    ] as any
     await ctx.deleteAll(['1', '2'])
     expect(deleteOne).toHaveBeenCalledWith('1')
     expect(deleteMany).not.toHaveBeenCalled()
@@ -170,7 +170,7 @@ describe('VueUiContext', () => {
       { id: '1', deletable: true },
       { id: '2' },
       { id: '3', deletable: false },
-    ]
+    ] as any
     await ctx.deleteAll(['1', '2', '3'])
     expect(deleteMany).toHaveBeenCalledWith(['1', '2'])
     expect(deleteOne).not.toHaveBeenCalled()
@@ -186,14 +186,14 @@ describe('VueUiContext', () => {
     })
     logic.delete = deleteOne
     logic.deleteAll = deleteMany
-    const ctx = new VueUiContext({
-      model: [],
+    const ctx = new VuiContext({
+      model: [] as any,
       metaUi,
-      view: 'index',
+      view: UiViewMany.Index,
       logic,
     })
     ctx.search = vi.fn(async () => undefined) as any
-    ctx.selectedItems = [{ id: '9', deletable: false }]
+    ctx.selectedItems = [{ id: '9', deletable: false }] as any
     await expect(ctx.deleteAll(['9'])).resolves.toBe(false)
     expect(deleteOne).not.toHaveBeenCalled()
     expect(deleteMany).not.toHaveBeenCalled()
@@ -203,8 +203,8 @@ describe('VueUiContext', () => {
     const toast = vi.fn()
     const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn(async () => true)
-    const { UiActionFactory } = await import('../ui/builder')
-    const factory = new UiActionFactory(
+    const { VuiActionFactory } = await import('../ui/builder')
+    const factory = new VuiActionFactory(
       { toast, confirm } as any,
       (icon: string) => icon,
     )
@@ -231,8 +231,8 @@ describe('VueUiContext', () => {
     const toast = vi.fn()
     const confirm = vi.fn(async () => true)
     const deleteAll = vi.fn()
-    const { UiActionFactory } = await import('../ui/builder')
-    const factory = new UiActionFactory(
+    const { VuiActionFactory } = await import('../ui/builder')
+    const factory = new VuiActionFactory(
       { toast, confirm } as any,
       (icon: string) => icon,
     )
@@ -255,8 +255,8 @@ describe('VueUiContext', () => {
   })
 
   it('模块动作未配置 displayHint 时默认 warning', async () => {
-    const { UiActionFactory } = await import('../ui/builder')
-    const factory = new UiActionFactory(
+    const { VuiActionFactory } = await import('../ui/builder')
+    const factory = new VuiActionFactory(
       { toast: async () => undefined } as any,
       (icon: string) => icon,
     )

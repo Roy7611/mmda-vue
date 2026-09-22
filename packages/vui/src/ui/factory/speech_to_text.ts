@@ -3,6 +3,7 @@
  * 契约在 @mmda/core ui/speech_to_text.ts。
  */
 import type { UiSpeechToTextProps } from '@mmda/core'
+import type { VuiEmitProps } from '../vui_props'
 
 export type { UiSpeechToTextController, UiSpeechToTextProps } from '@mmda/core'
 export {
@@ -13,7 +14,7 @@ export {
 } from '@mmda/core'
 
 export function emitSpeechToTextChange(
-  props: UiSpeechToTextProps,
+  props: VuiEmitProps<UiSpeechToTextProps>,
   value: unknown,
 ): void {
   const next = value == null ? '' : String(value)

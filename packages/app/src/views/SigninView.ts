@@ -4,7 +4,7 @@ import {
   UI_BUILDER_KEY,
   type MmdaApplication,
   type SigninUser,
-  type VueUiBuilder,
+  type VuiBuilder,
 } from '@mmda/vui'
 import { defineComponent, h, inject, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -75,7 +75,7 @@ function authErrorMessage(error: unknown): string {
 export const SigninView = defineComponent({
   name: 'SigninView',
   setup() {
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder
+    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder
     const app = inject(UI_APP_KEY)! as MmdaApplication
     const router = useRouter()
     const route = useRoute()

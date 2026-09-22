@@ -4,14 +4,14 @@ import {
   type UiAppLayoutVariant,
   type UiAppScaffoldSlots,
 } from '@mmda/core'
-import { VueUiLayout } from '@mmda/vui'
+import { VuiLayout } from '@mmda/vui'
 
 /**
  * Syncfusion 壳：sidebarLeft 下 nav 与主区须为 `.mmda-app-layout` 的兄弟节点，
  * 主区叠 `e-main-content`（EJ2 Sidebar Push）。不要再包一层 `.mmda-app-nav`，
  * 否则 Dock 挪 DOM / Pad compact 会掉出 grid，侧栏被顶到主区下面。
  */
-export class SyncfusionLayout extends VueUiLayout {
+export class SfLayout extends VuiLayout {
   override scaffold(slots: UiAppScaffoldSlots<VNode>): VNode {
     const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
     if (variant !== 'sidebarLeft') {
@@ -53,4 +53,4 @@ export class SyncfusionLayout extends VueUiLayout {
   }
 }
 
-export const syncfusionLayout = new SyncfusionLayout()
+export const syncfusionLayout = new SfLayout()

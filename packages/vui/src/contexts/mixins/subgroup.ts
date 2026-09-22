@@ -1,175 +1,27 @@
 import {
-  MetaModel,
-  isPromise,
   type Entity,
-  type MetaUi,
-  type MetaUiFieldLogic,
   type MetaUiGroup,
   type MetaUiGroupLogic,
-  type SubGroupItemTransformParam,
-  type UiSubGroupView,
 } from "@mmda/core";
-import { computed, unref } from "vue";
+import { computed } from "vue";
 import { canDoFromExecutableExpression, type UiAction } from "../../ui/factory/action";
 import type { UiColorRole } from "../../app/material";
-import { UiViewOne, type UiViewType } from "../view";
+import { UiViewOne } from "../view";
 import type { Constructor } from "./types";
-
-type FieldLogicMap = Record<string, MetaUiFieldLogic<any>>;
 
 export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
   return class Subgroup extends Base {
-    getSelectedGroupItems(group: MetaUiGroup | string) {
-      return this.subGroupContext(group).selectedItems;
+    /** 组动作缓存；重注册组逻辑时失效。 */
+    private _groupActions: Record<string, UiAction[]> = {};
+
+    setupGroupLogic(logic: MetaUiGroupLogic<any, any>) {
+      delete this._groupActions[logic.group.groupName];
+      super.setupGroupLogic(logic);
     }
 
-    subGroupContext(group: MetaUiGroup | string) {
-      const grp = this.resolveGroup(group);
-      if (!grp.groupUi)
-        throw new Error(`Group "${grp.groupName}" has no groupUi.`);
-      const path = `${this.cachePath}/${grp.groupName}`;
-      const cached = this.cache.get(path);
-      if (cached) return cached;
-      const rows =
-        ((this.model as Record<string, any>)[grp.groupName] as
-          | object[]
-          | undefined) ?? [];
-      const fieldLogics: FieldLogicMap = {};
-      const groupLogic = this.getGroupLogic(grp);
-      for (const fieldLogic of groupLogic?.fields ?? []) {
-        fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
-      }
-      return this.createChild(rows, grp.groupUi, path, this.view, fieldLogics);
-    }
-
-    subGroupItemContext<G extends Entity>(
-      group: MetaUiGroup | string,
-      item: G,
-      groupMode: UiSubGroupView = this.editing ? "edit" : "details",
-      cacheKey = "id",
-    ) {
-      const grp = this.resolveGroup(group);
-      if (!grp.groupUi)
-        throw new Error(`Group "${grp.groupName}" has no groupUi.`);
-      const rowKey = this.rowCacheKey(item, cacheKey, grp.groupUi.primaryKey);
-      const path = `${this.cachePath}/${grp.groupName}/${rowKey}`;
-      const cached = this.cache.get(path);
-      if (cached) return cached as typeof this & { model: G };
-      const fieldLogics: FieldLogicMap = {};
-      const groupLogic = this.getGroupLogic(grp);
-      for (const fieldLogic of groupLogic?.fields ?? []) {
-        fieldLogics[fieldLogic.field.fieldName] = fieldLogic;
-      }
-      return this.createChild(
-        item,
-        grp.groupUi,
-        path,
-        groupMode as UiViewType,
-        fieldLogics,
-        this.logic?.createRelativeLogic?.(grp.groupName, this.model as Entity) ??
-          this.logic,
-      ) as typeof this & { model: G };
-    }
-
-    addSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
-      const grp = this.resolveGroup(group);
-      const items = ((this.model as Record<string, any>)[grp.groupName] ??= []);
-      if (items.includes(item)) return;
-      items.push(item);
-      MetaModel.modify(this.model as Entity);
-      this.getGroupLogic(grp)?.onChangeFn?.(this as any, this.model, items);
-    }
-
-    addSubGroupItems<G extends Entity>(param: SubGroupItemTransformParam<G>) {
-      MetaModel.addSubGroupItems(this.resolveSubGroupTransform(param));
-      MetaModel.modify(this.model as Entity);
-      const group = this.resolveGroup(param.group);
-      this.getGroupLogic(group)?.onChangeFn?.(
-        this as any,
-        this.model,
-        (this.model as Record<string, any>)[group.groupName],
-      );
-    }
-
-    createSubGroupItems<G extends Entity>(
-      param: SubGroupItemTransformParam<G>,
-    ): Promise<G | G[]> {
-      return Promise.resolve(
-        MetaModel.createSubGroupItems(this.resolveSubGroupTransform(param)),
-      );
-    }
-
-    removeSubGroupItem<G extends Entity>(group: MetaUiGroup | string, item: G) {
-      const grp = this.resolveGroup(group);
-      const logic = this.getGroupLogic(grp);
-      const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
-      const commit = () => {
-        MetaModel.deleteItem(items, item);
-        logic?.onChangeFn?.(this as any, this.model, items);
-      };
-      const intercept = logic?.beforeItemRemoveFunc;
-      if (!intercept) {
-        commit();
-        return;
-      }
-      const master = ((this.root ?? this).model ?? {}) as Record<string, any>;
-      const result = intercept(item, master, this as any);
-      if (isPromise(result)) {
-        return result.then((ok) => {
-          if (ok !== false) commit();
-        });
-      }
-      if (result !== false) commit();
-    }
-
-    removeSubGroupItems(group: MetaUiGroup | string) {
-      const grp = this.resolveGroup(group);
-      const items = (this.model as Record<string, any>)[grp.groupName] ?? [];
-      MetaModel.clearItems(items);
-      this.getGroupLogic(grp)?.onChangeFn?.(this as any, this.model, items);
-    }
-
-    async subGroupItem<G>(
-      group: MetaUiGroup | string,
-      item: G,
-      props: { groupMode?: UiSubGroupView } = {},
-    ): Promise<false | G> {
-      const ctx = this.subGroupItemContext(
-        group,
-        item as Entity,
-        props.groupMode,
-      );
-      if (!this.app) return item;
-      this.root.showDialog = true;
-      try {
-        // 子表行：只认内存，不传 onAccept（不 save）
-        const result = await this.uiBuilder.editDialog(ctx, {
-          dlgProps: { name: this.resolveGroup(group).groupName },
-        });
-        return result === "ok" ? (ctx.model as G) : false;
-      } finally {
-        this.root.showDialog = false;
-      }
-    }
-
-    async newSubGroupItem<G extends Entity>(
-      param: SubGroupItemTransformParam<G>,
-    ) {
-      const created = (await this.createSubGroupItems(param)) as G;
-      this.addSubGroupItem(param.group, created);
-      const accepted = await this.subGroupItem(param.group, created, {
-        groupMode: "create",
-      });
-      if (!accepted) {
-        this.removeSubGroupItem(param.group, created);
-        return false;
-      }
-      return accepted;
-    }
-
-    getGroupActions(grp: MetaUiGroup) {
+    getGroupActions(grp: MetaUiGroup): UiAction[] {
       this.setupGroupActions(grp);
-      return ((this as any)._groupActions[grp.groupName] ?? []).filter(
+      return (this._groupActions[grp.groupName] ?? []).filter(
         (a: UiAction) => {
           if (
             a.view &&
@@ -195,7 +47,7 @@ export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
 
     setupGroupActions(grp: MetaUiGroup) {
       const name = grp.groupName;
-      const actionsMap = (this as any)._groupActions as Record<string, UiAction[]>;
+      const actionsMap = this._groupActions;
       if (actionsMap[name]) return;
 
       const actions: UiAction[] = [];

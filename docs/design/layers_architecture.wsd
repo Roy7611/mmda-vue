@@ -24,10 +24,10 @@
 '
 ' 【Data 层 · 数据】
 '   包与目录：@mmda/core 的 metaui（界面元数据）· models（实体框架 MetaModel）·
-'             net（HTTP / ApiClient）· di（DependencyContainer）· utils · extensions。
+'             net（HTTP / ApiClient）· di（DependencyContainer）· utils（原 extensions 已并入）。
 '   做什么：元数据、实体操纵、HTTP 读写；单一事实来源（SSOT）。
 '   不做什么：界面组件、会话状态写回 MetaUiField（元数据是只读事实）。
-'   内部依赖：utils / extensions → metaui → models → net；di 只依赖 utils；
+'   内部依赖：utils → metaui → models → net；di 只依赖 utils；
 '             metaui / models / utils 不 import logic/；MetaUiService 可依赖 net。
 '   引用：元数据 reference.where 是 SQL 硬限制、不可改写；业务加码用 Logic refWhere，
 '         与 where 取 AND。不要把 JS 过滤器塞进 MetaUiField。
@@ -56,8 +56,8 @@ package "辅助" as helpers {
     [local db]
     [platform]
     [pluralize]
-  }
-  package "extensions" {
+    [formatter]
+    [tools]
     [datetime]
     [number]
     [string]
@@ -87,21 +87,7 @@ package "逻辑层（logic）" <<layer>> as logic_layer {
 }
 
 package "表现层（ui）" <<layer>> as ui_layer {
-    interface UiBuilder
-    interface UiContext
-    interface UiPlugin
-    interface UiLayout
-    interface UiOverlay
-    interface UiFieldFactory
-    interface UiFactory
-
-    UiBuilder .left.> UiContext : build on
-    UiBuilder .right.> "*" UiPlugin : extend
-    UiBuilder -down-> "1" UiLayout : 持有
-    UiBuilder -down-> "1" UiOverlay : 持有
-    UiBuilder -down-> "1" UiFieldFactory : 持有
-    UiBuilder -down-> "1" UiFactory : 持有
-    UiFieldFactory .right.> UiFactory : Invoke
+    note "契约明细见 ui_layer.wsd（5 张图）" as N1
 }
 
 data_layer .down.> logic_layer : data fetch

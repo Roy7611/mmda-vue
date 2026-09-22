@@ -10,7 +10,7 @@ import {
 
 import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from '@mmda/core'
 
-import { VueUiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, timelineAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type VueUiFieldFactory, type UiSearchField, type UiSlots, type VueUiContext, ListSearchField } from '@mmda/vui'
+import { VuiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VueUiFactory, type VueUiFieldFactory, type UiSearchField, type VueUiTileSlots, type VuiContext, ListSearchField } from '@mmda/vui'
 
 import {
 
@@ -56,11 +56,11 @@ const invoke = (value: unknown): any =>
 
 
 
-type UiContext = VueUiContext<any>
+type UiContext = VuiContext<any>
 
 
 
-export class AgNaiveUiBuilder extends VueUiBuilder {
+export class AgNaiveUiBuilder extends VuiBuilder {
 
   declare readonly factory: VueUiFactory
 
@@ -87,9 +87,6 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
     )
     this.use(createAgPivotPlugin())
     this.use(chartAsPlugin(createAgChartFactory()))
-    if (typeof factory.timeline === 'function') {
-      this.use(timelineAsPlugin((props) => factory.timeline!(props)))
-    }
 
   }
 
@@ -431,8 +428,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
   buildIndexTopbar(
     context: UiContext,
-    props?: Parameters<VueUiBuilder['buildIndexTopbar']>[1],
-    slots?: UiSlots,
+    props?: Parameters<VuiBuilder['buildIndexTopbar']>[1],
+    slots?: VueUiTileSlots,
   ) {
     return paintIndexTopbar(
       this,
@@ -445,8 +442,8 @@ export class AgNaiveUiBuilder extends VueUiBuilder {
 
   buildDetailsTopbar(
     context: UiContext,
-    props?: Parameters<VueUiBuilder['buildDetailsTopbar']>[1],
-    slots?: UiSlots,
+    props?: Parameters<VuiBuilder['buildDetailsTopbar']>[1],
+    slots?: VueUiTileSlots,
   ) {
     return paintDetailsTopbar(
       this,

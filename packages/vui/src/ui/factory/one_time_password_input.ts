@@ -9,8 +9,8 @@ import type {
   UiOneTimePasswordInputProps,
   UiOneTimePasswordType,
 } from '@mmda/core'
-import type {UiProps} from '../layout'
-import { vueUpdateOf, type VueModelProps } from '../vue_ui_props'
+import type {UiProps} from '@mmda/core'
+import { vuiUpdateOf, type VuiModelProps } from '../vui_props'
 
 export const DEFAULT_OTP_LENGTH = 4
 
@@ -23,7 +23,7 @@ export type OneTimePasswordFieldContext = {
 }
 
 export function oneTimePasswordValueOf(
-  props: VueModelProps<UiOneTimePasswordInputProps>,
+  props: VuiModelProps<UiOneTimePasswordInputProps>,
 ): string {
   if (props.value !== undefined && props.value != null) return String(props.value)
   if (props.modelValue !== undefined && props.modelValue != null) {
@@ -55,7 +55,7 @@ export function emitOneTimePasswordChange(
 ): void {
   const next = value == null ? '' : String(value)
   props.onChange?.(next)
-  vueUpdateOf(props)?.(next)
+  vuiUpdateOf(props)?.(next)
 }
 
 export { oneTimePasswordModifierClasses } from '@mmda/core'

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createModuleContext } from "../contexts/vue_module_context";
-import type { VueUiContext } from "../contexts/vue_ui_context";
+import type { VuiContext } from "../contexts/vue_ui_context";
 
 describe("createModuleContext", () => {
   it("does not expose revealCurrent; applyCurrentRow only patches the host row", () => {
@@ -15,10 +15,10 @@ describe("createModuleContext", () => {
       metaUi: { primaryKey: "id" },
       currentItem: current,
       currentIndex: 6,
-      model: [current],
+      model: [current] as any,
       searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
       indexTableHost: { applyRow, insertAtZero, applyRemove },
-    } as unknown as VueUiContext;
+    } as unknown as VuiContext;
     sync.registerIndex(context);
     sync.applyCurrentRow({ id: "d1", shortName: "新简称" });
     expect(current.shortName).toBe("新简称");
@@ -38,10 +38,10 @@ describe("createModuleContext", () => {
       metaUi: { primaryKey: "id" },
       currentItem: current,
       currentIndex: 0,
-      model: [current],
+      model: [current] as any,
       searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
       indexTableHost: { applyRow, insertAtZero, applyRemove },
-    } as unknown as VueUiContext;
+    } as unknown as VuiContext;
     sync.registerIndex(context);
     context.indexTableHost = undefined;
     sync.applyCurrentRow({ id: "d1", shortName: "离页" });

@@ -5,11 +5,11 @@ import { ButtonComponent } from "@syncfusion/ej2-vue-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-vue-inputs";
 import { SfBpmnDiagram } from "../components/SfBpmnDiagram";
 import { SfSigninForm } from "../components/SfSigninForm";
-import type { UiContext } from "./utils";
+import type { SfVuiContext } from "./utils";
 
 export function buildBpmnDiagram(
   flowTrails: any[],
-  _context: UiContext,
+  _context: SfVuiContext,
   props: UiProps = {},
 ) {
   return h("section", { class: "mmda-flow", ...props }, [

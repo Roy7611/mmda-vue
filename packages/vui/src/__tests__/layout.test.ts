@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, render } from "vue";
-import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType } from "@mmda/core";
-import { VueUiLayout } from "../ui/layout";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import { MetaUi, MetaUiField, MetaUiGroupLogic, SqlDataType, UiViewOne } from "@mmda/core";
+import { VuiLayout } from "../ui/layout";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { TestUiBuilder } from "./test_builder";
 
 const hosts: HTMLElement[] = [];
@@ -24,11 +24,11 @@ afterEach(() => {
 });
 
 describe("default VUI layouts", () => {
-  const layout = new VueUiLayout();
+  const layout = new VuiLayout();
 
   it("supports horizontal/vertical field layout; layoutField has no message slot", () => {
-    const horizontal = new VueUiLayout();
-    const vertical = new VueUiLayout();
+    const horizontal = new VuiLayout();
+    const vertical = new VuiLayout();
     vertical.fieldVertical = true;
     const host = mount(
       h("div", [
@@ -53,7 +53,7 @@ describe("default VUI layouts", () => {
     expect(fields[1].querySelector(".mmda-field-message")).toBeNull();
   });
   it("占格跨列跨行不重叠", () => {
-    const horizontal = new VueUiLayout();
+    const horizontal = new VuiLayout();
     const remark = horizontal.layoutField({
       label: h("label", { class: "mmda-field-label" }, "备注"),
       control: h("textarea"),
@@ -85,9 +85,7 @@ describe("default VUI layouts", () => {
     });
     const host = mount(h("div", [threeCol, oneCol]));
 
-    const groups = host.querySelectorAll<HTMLElement>(
-      ".mmda-field-group",
-    );
+    const groups = host.querySelectorAll<HTMLElement>(".mmda-field-group");
     expect(groups[0].dataset.gridCols).toBe("3");
     expect(groups[0].className).toContain("mmda-field-group--grid");
     expect(groups[1].dataset.gridCols).toBe("1");
@@ -108,32 +106,26 @@ describe("default VUI layouts", () => {
     const page = host.querySelector<HTMLElement>("section.mmda-page")!;
     const toolbar = host.querySelector<HTMLElement>(".mmda-page__header")!;
     const body = host.querySelector<HTMLElement>(".mmda-page__body")!;
-    const main = host.querySelector<HTMLElement>(".mmda-section.mmda-section--main")!;
+    const main = host.querySelector<HTMLElement>(
+      ".mmda-section.mmda-section--main",
+    )!;
     expect(page.style.overflow).toBe("auto");
     expect(toolbar.style.position).toBe("sticky");
-    expect(body.classList.contains("mmda-page__body--with-summary")).toBe(
-      true,
-    );
+    expect(body.classList.contains("mmda-page__body--with-summary")).toBe(true);
     expect(body.classList.contains("mmda-page__body--collapsed")).toBe(false);
     expect(host.querySelector(".mmda-page-scroll")).toBeNull();
     expect(host.querySelector(".mmda-page-primary")).toBeNull();
     expect(host.querySelector(".mmda-page-tails")).toBeNull();
     expect(main.textContent).toContain("主信息");
     expect(main.textContent).toContain("明细");
-    expect(host.querySelector(".mmda-section__body")?.textContent).toBe(
-      "概要",
-    );
+    expect(host.querySelector(".mmda-section__body")?.textContent).toBe("概要");
     expect(host.querySelector(".mmda-page__footer")?.textContent).toBe("页脚");
-    expect(page.contains(host.querySelector(".mmda-page__footer")!)).toBe(
-      true,
-    );
+    expect(page.contains(host.querySelector(".mmda-page__footer")!)).toBe(true);
     expect(body.contains(host.querySelector(".mmda-page__footer")!)).toBe(
       false,
     );
 
-    const toggle = host.querySelector(
-      ".mmda-section__toggle",
-    ) as HTMLElement;
+    const toggle = host.querySelector(".mmda-section__toggle") as HTMLElement;
     toggle.click();
     await Promise.resolve();
     expect(body.classList.contains("mmda-page__body--collapsed")).toBe(true);
@@ -172,16 +164,16 @@ describe("default VUI layouts", () => {
     expect(tile.querySelector(".mmda-list-tile__trailing")).not.toBeNull();
   });
 
-  it("VueUiLayout.scaffold 提供侧栏通高和顶栏通栏两种 grid", () => {
+  it("VuiLayout.scaffold 提供侧栏通高和顶栏通栏两种 grid", () => {
     const left = mount(
-      new VueUiLayout().scaffold({
+      new VuiLayout().scaffold({
         topBar: h("span", "Top"),
         nav: h("span", "Nav"),
         page: h("span", "Page"),
       }),
     );
     const full = mount(
-      new VueUiLayout().scaffold({
+      new VuiLayout().scaffold({
         variant: "topBarFull",
         topBar: h("span", "Top"),
         nav: h("span", "Nav"),
@@ -202,7 +194,7 @@ describe("default VUI layouts", () => {
   });
 });
 
-describe("VueUiBuilder layout wiring", () => {
+describe("VuiBuilder layout wiring", () => {
   const field = (name: string, label: string) =>
     new MetaUiField({
       fieldName: name,
@@ -363,10 +355,10 @@ describe("VueUiBuilder layout wiring", () => {
         },
       ],
     });
-    const context = new VueUiContext({
-      model: { name: "N", code: "C" },
+    const context = new VuiContext({
+      model: { name: "N", code: "C" } as any,
       metaUi: tabsMeta,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, {
@@ -385,10 +377,10 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("按 primary / summary / tails 分区并应用组内列数", () => {
-    const context = new VueUiContext({
-      model: { name: "N", code: "C", state: "启用", remark: "R" },
+    const context = new VuiContext({
+      model: { name: "N", code: "C", state: "启用", remark: "R" } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, {
@@ -408,15 +400,15 @@ describe("VueUiBuilder layout wiring", () => {
       ),
     ).not.toBeNull();
 
-    expect(host.querySelector(".mmda-section.mmda-section--main")?.textContent).toContain(
-      "基本信息",
-    );
-    expect(host.querySelector(".mmda-section.mmda-section--main")?.textContent).toContain(
-      "明细",
-    );
-    expect(host.querySelector(".mmda-section.mmda-section--summary")?.textContent).toContain(
-      "概要",
-    );
+    expect(
+      host.querySelector(".mmda-section.mmda-section--main")?.textContent,
+    ).toContain("基本信息");
+    expect(
+      host.querySelector(".mmda-section.mmda-section--main")?.textContent,
+    ).toContain("明细");
+    expect(
+      host.querySelector(".mmda-section.mmda-section--summary")?.textContent,
+    ).toContain("概要");
     expect(
       host.querySelector<HTMLElement>(
         ".mmda-section.mmda-section--main .mmda-field-group",
@@ -427,16 +419,32 @@ describe("VueUiBuilder layout wiring", () => {
         ".mmda-section.mmda-section--summary .mmda-field-group",
       )?.dataset.gridCols,
     ).toBe("1");
-    expect(host.querySelector(".mmda-section.mmda-section--main .mmda-group.primary")).not.toBeNull();
-    expect(host.querySelector(".mmda-section.mmda-section--main .mmda-group.master")).not.toBeNull();
-    expect(host.querySelector(".mmda-section.mmda-section--main > .mmda-group")).not.toBeNull();
-    expect(host.querySelector(".mmda-section.mmda-section--main fieldset.mmda-group")).toBeNull();
-    expect(host.querySelector(".mmda-section.mmda-section--summary .mmda-group.secondary")).not.toBeNull();
+    expect(
+      host.querySelector(
+        ".mmda-section.mmda-section--main .mmda-group.primary",
+      ),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-section.mmda-section--main .mmda-group.master"),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(".mmda-section.mmda-section--main > .mmda-group"),
+    ).not.toBeNull();
+    expect(
+      host.querySelector(
+        ".mmda-section.mmda-section--main fieldset.mmda-group",
+      ),
+    ).toBeNull();
+    expect(
+      host.querySelector(
+        ".mmda-section.mmda-section--summary .mmda-group.secondary",
+      ),
+    ).not.toBeNull();
     expect(host.querySelector("form")).toBeNull();
   });
 
   it("主区主表按 groupName、子表按 groupIdx", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         materialCode: "M1",
         qcRatio: 1,
@@ -444,15 +452,17 @@ describe("VueUiBuilder layout wiring", () => {
         features: [],
         medias: [],
         skus: [],
-      },
+      } as any,
       metaUi: interleavedMetaui,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, { showToolbar: false }),
     );
     const labels = [
-      ...host.querySelectorAll(".mmda-section.mmda-section--main .mmda-group__title"),
+      ...host.querySelectorAll(
+        ".mmda-section.mmda-section--main .mmda-group__title",
+      ),
     ].map((el) => el.textContent);
     expect(labels).toEqual([
       "基本信息",
@@ -503,10 +513,10 @@ describe("VueUiBuilder layout wiring", () => {
         },
       ],
     });
-    const context = new VueUiContext({
-      model: { name: "N", code: "C", state: "启用", lines: [{ qty: 1 }] },
+    const context = new VuiContext({
+      model: { name: "N", code: "C", state: "启用", lines: [{ qty: 1 }] } as any,
       metaUi: tabsMeta,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, {
@@ -522,8 +532,12 @@ describe("VueUiBuilder layout wiring", () => {
     expect(host.querySelector('[data-tab-name="lines"]')).not.toBeNull();
 
     // 页签头已显示组名；页内不要再镜像 GroupCard 标题
-    expect(host.querySelector(".mmda-group--tab .mmda-group__title")).toBeNull();
-    expect(host.querySelector(".mmda-group--tab .mmda-group__toggle")).toBeNull();
+    expect(
+      host.querySelector(".mmda-group--tab .mmda-group__title"),
+    ).toBeNull();
+    expect(
+      host.querySelector(".mmda-group--tab .mmda-group__toggle"),
+    ).toBeNull();
 
     const panes = [...host.querySelectorAll(".mmda-tab-pane")];
     expect(panes.map((el) => el.getAttribute("data-tab-name"))).toEqual([
@@ -549,10 +563,10 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("默认用 card；props.container 为 fieldset 时用 legend", async () => {
-    const context = new VueUiContext({
-      model: { name: "N", code: "C", state: "启用", remark: "R" },
+    const context = new VuiContext({
+      model: { name: "N", code: "C", state: "启用", remark: "R" } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const cardHost = mount(
       new TestUiBuilder().buildGroup(metaUi.getGroup("base")!, context),
@@ -580,9 +594,14 @@ describe("VueUiBuilder layout wiring", () => {
     expect(cardHost.querySelector(".mmda-group__body")).not.toBeNull();
 
     const fieldsetHost = mount(
-      new TestUiBuilder().buildGroup(metaUi.getGroup("base")!, context, undefined, {
-        container: "fieldset",
-      }),
+      new TestUiBuilder().buildGroup(
+        metaUi.getGroup("base")!,
+        context,
+        undefined,
+        {
+          container: "fieldset",
+        },
+      ),
     );
     expect(fieldsetHost.querySelector("fieldset.mmda-group")).not.toBeNull();
     expect(fieldsetHost.querySelector("article.mmda-group")).toBeNull();
@@ -590,16 +609,16 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("右边栏概要分组排在附件之后", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         name: "N",
         code: "C",
         state: "启用",
         remark: "R",
         attachments: [],
-      },
+      } as any,
       metaUi,
-      view: "details",
+      view: UiViewOne.Details,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, { showToolbar: false }),
@@ -615,10 +634,10 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("FieldLayout 显示校验消息且不重复标签", () => {
-    const context = new VueUiContext({
-      model: { name: "", code: "", state: "", remark: "" },
+    const context = new VuiContext({
+      model: { name: "", code: "", state: "", remark: "" } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     context.setFieldError("name", "名称必填");
     const host = mount(
@@ -637,7 +656,7 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("编辑页子表 header 渲染 actions 工具栏", () => {
-    const context = new VueUiContext({
+    const context = new VuiContext({
       model: {
         materialCode: "M1",
         qcRatio: 1,
@@ -645,13 +664,13 @@ describe("VueUiBuilder layout wiring", () => {
         features: [],
         medias: [],
         skus: [],
-      },
+      } as any,
       metaUi: interleavedMetaui,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const skus = interleavedMetaui.getGroup("skus")!;
     const grpLogic = new MetaUiGroupLogic(skus);
-    const add = vi.fn((ctx: VueUiContext) => {
+    const add = vi.fn((ctx: VuiContext) => {
       ctx.addSubGroupItem("skus", {
         skuCode: "S1",
         editable: true,
@@ -693,21 +712,17 @@ describe("VueUiBuilder layout wiring", () => {
       const builder = new TestUiBuilder();
       let tableProps: any;
       (builder.factory as any).nativeInplaceEdit = true;
-      (builder.factory as any).list = (
-        _rows: any[],
-        _metaUi: MetaUi,
-        props: any,
-      ) => {
+      (builder.factory as any).list = (props: any) => {
         tableProps = props;
         return h("div");
       };
       return { builder, getTableProps: () => tableProps };
     };
 
-    const enabledContext = new VueUiContext({
-      model: { medias: [] },
+    const enabledContext = new VuiContext({
+      model: { medias: [] } as any,
       metaUi: interleavedMetaui,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const enabled = createBuilder();
     enabled.builder.buildGroup(medias, enabledContext);
@@ -716,10 +731,10 @@ describe("VueUiBuilder layout wiring", () => {
     expect(enabled.getTableProps().inplaceEditStart).toBe("excel");
 
     const features = interleavedMetaui.getGroup("features")!;
-    const featureContext = new VueUiContext({
-      model: { features: [{ featureCode: "Color-1", editable: true }] },
+    const featureContext = new VuiContext({
+      model: { features: [{ featureCode: "Color-1", editable: true }] } as any,
       metaUi: interleavedMetaui,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const featureBuilder = createBuilder();
     featureBuilder.builder.buildGroup(features, featureContext);
@@ -732,10 +747,10 @@ describe("VueUiBuilder layout wiring", () => {
       featureBuilder.getTableProps().fieldCellEditors?.featureName,
     ).toBeUndefined();
 
-    const disabledContext = new VueUiContext({
-      model: { medias: [] },
+    const disabledContext = new VuiContext({
+      model: { medias: [] } as any,
       metaUi: interleavedMetaui,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const groupLogic = new MetaUiGroupLogic(medias);
     groupLogic.field("mediaUrl").inplaceEdit(false);
@@ -747,10 +762,10 @@ describe("VueUiBuilder layout wiring", () => {
       canEdit: false,
     });
 
-    const groupDisabledContext = new VueUiContext({
-      model: { medias: [] },
+    const groupDisabledContext = new VuiContext({
+      model: { medias: [] } as any,
       metaUi: interleavedMetaui,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const disabledGroupLogic = new MetaUiGroupLogic(medias).inplaceEdit(false);
     groupDisabledContext.setupGroupLogic(disabledGroupLogic);
@@ -782,10 +797,10 @@ describe("VueUiBuilder layout wiring", () => {
         },
       ],
     });
-    const context = new VueUiContext({
-      model: { createdAt: "2026-08-31 10:00:00" },
+    const context = new VuiContext({
+      model: { createdAt: "2026-08-31 10:00:00" } as any,
       metaUi: meta,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     const host = mount(
       new TestUiBuilder().buildView(context, { showToolbar: false }),
@@ -797,10 +812,10 @@ describe("VueUiBuilder layout wiring", () => {
   });
 
   it("实体对话框 isInDialog 默认隐藏工具栏，显式 showToolbar 可恢复", () => {
-    const context = new VueUiContext({
-      model: { name: "N", code: "C", state: "启用", remark: "R" },
+    const context = new VuiContext({
+      model: { name: "N", code: "C", state: "启用", remark: "R" } as any,
       metaUi,
-      view: "edit",
+      view: UiViewOne.Edit,
     });
     context.isInDialog = true;
     const hidden = mount(new TestUiBuilder().buildView(context));

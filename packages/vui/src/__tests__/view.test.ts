@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PagerCtor, type TranslateFn } from "@mmda/core";
+import { PagerCtor, type TranslateFn, UiViewOne, UiViewMany } from "@mmda/core";
 import {
-  UiViewMany,
-  UiViewOne,
   isViewMany,
   isViewOne,
   resolveSearchParam,
@@ -11,7 +9,7 @@ import {
 } from "../contexts/view";
 import { UiActionDivider, UiActionCtor } from "../ui/factory/action";
 import { loading, UiDataState } from "../app/state";
-import { quickFiltersToSQL, UiFilter, UiSearchField } from "../ui/factory/filter";
+import { quickFiltersToSQL, VuiFilter, VuiSearchField } from "../ui/factory/filter";
 import { SqlDataType, MetaUiField } from "@mmda/core";
 
 const t: TranslateFn = (message) =>
@@ -68,12 +66,12 @@ describe("actions and loading", () => {
     expect(action.icon).toBe("icon:save");
   });
 
-  it("loading() 不依赖 VueUiContext", () => {
+  it("loading() 不依赖 VuiContext", () => {
     expect(loading("wait").state).toBe(UiDataState.LOADING);
   });
 });
 
-describe("UiSearchField", () => {
+describe("VuiSearchField", () => {
   it("按字段类型给出搜索算子", () => {
     const field = new MetaUiField({
       fieldIdx: 0,
@@ -82,7 +80,7 @@ describe("UiSearchField", () => {
       dataType: SqlDataType.NVARCHAR,
       nullable: true,
     });
-    const search = new UiSearchField(field, t);
+    const search = new VuiSearchField(field, t);
     expect(search.availableOps.length).toBeGreaterThan(0);
     expect(search.hasVal).toBe(false);
   });
@@ -95,7 +93,7 @@ describe("UiSearchField", () => {
       dataType: SqlDataType.TIMESTAMP,
       nullable: true,
     });
-    const search = new UiSearchField(field, t);
+    const search = new VuiSearchField(field, t);
     expect(search.availableOps).toContain("WITHIN");
     search.changeCurrentOp("WITHIN", t);
     search.searchVal.value = "TODAY";
@@ -106,8 +104,8 @@ describe("UiSearchField", () => {
     });
   });
 
-  it("UiFilter 把选中条件拼成 OR", () => {
-    const filter = new UiFilter({
+  it("VuiFilter 把选中条件拼成 OR", () => {
+    const filter = new VuiFilter({
       filterName: "status",
       filterTitle: "状态",
       fixed: false,
@@ -122,7 +120,7 @@ describe("UiSearchField", () => {
   });
 
   it("快捷过滤组内 OR、组间 AND", () => {
-    const status = new UiFilter({
+    const status = new VuiFilter({
       filterName: "status",
       filterTitle: "状态",
       fixed: false,
@@ -131,7 +129,7 @@ describe("UiSearchField", () => {
         { condition: "status='DONE'", displayLabel: "完成", fallback: false },
       ],
     });
-    const site = new UiFilter({
+    const site = new VuiFilter({
       filterName: "site",
       filterTitle: "站点",
       fixed: false,

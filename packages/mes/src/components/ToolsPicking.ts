@@ -4,7 +4,7 @@
  * @Description: 指定器具弹窗 �?支持多物流单批量指定器具
  */
 import { computed, defineComponent, h, onMounted, reactive, ref, watch, type PropType } from 'vue';
-import type { VueUiContext } from '@mmda/vui';
+import type { VuiContext } from '@mmda/vui';
 import { ToolStatusEnum } from '@/enums/ToolStatus';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
@@ -102,7 +102,7 @@ const syncOriginalSelection = (state: TransState) => {
 export const ToolsPicking = defineComponent({
 	name: 'ToolsPicking',
 	props: {
-		ctx: { type: Object as PropType<VueUiContext<any>>, default: null },
+		ctx: { type: Object as PropType<VuiContext<any>>, default: null },
 		onReady: { type: Function as any, default: null },
 	},
 	setup: (props) => {

@@ -23,8 +23,8 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaVueApp } from "../app/app";
-import type { VueUiBuilder } from "../ui/builder";
-import { VueUiContext } from "../contexts/vue_ui_context";
+import type { VuiBuilder } from "../ui/builder";
+import { VuiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
 import type { EntityLogic } from "@mmda/core";
 import {
@@ -96,7 +96,7 @@ function isIndexView(path: string, queryView?: unknown): boolean {
 
 function renderEntityPage(
   app: MmdaVueApp,
-  context: VueUiContext,
+  context: VuiContext,
   options: EntityViewOptions,
   route: ReturnType<typeof useRoute>,
 ) {
@@ -121,7 +121,7 @@ function renderEntityPage(
   if (CustomView && context.many) {
     return h(CustomView, { ctx: context });
   }
-  const ui = app.ui as VueUiBuilder;
+  const ui = app.ui as VuiBuilder;
   const view = String(context.view ?? "");
   if (
     view === UiViewMany.SelectOne ||
@@ -155,13 +155,13 @@ function loadingNode(app: MmdaVueApp) {
       "aria-busy": "true",
       "aria-label": translateMessage("state.loading"),
     },
-    [(app.ui as VueUiBuilder).factory.loading()],
+    [(app.ui as VuiBuilder).factory.loading()],
   );
 }
 
 function errorRetryNode(app: MmdaVueApp, props: UiErrorProps) {
   return (
-    (app.ui as VueUiBuilder).factory.error?.(props) ??
+    (app.ui as VuiBuilder).factory.error?.(props) ??
     h(ErrorRetry, props as Record<string, unknown>)
   );
 }
@@ -172,7 +172,7 @@ async function openEntityContext(
   route: ReturnType<typeof useRoute>,
   router: ReturnType<typeof useRouter>,
   viewOverride?: UiViewType,
-): Promise<VueUiContext> {
+): Promise<VuiContext> {
   const repository = String(route.params.repository ?? "");
   const service = options.resolveService?.(route.path) ?? app.name;
   const module =
@@ -213,7 +213,7 @@ async function openEntityContext(
     view === UiViewMany.Index ||
     view === UiViewMany.SelectMany ||
     view === UiViewMany.SelectOne;
-  const context = new VueUiContext({
+  const context = new VuiContext({
     model: many ? [] : ({ id: route.params.id } as any),
     metaUi,
     view,
@@ -252,7 +252,7 @@ export function createEntityView(options: EntityViewOptions) {
       const route = useRoute();
       const router = useRouter();
       const sync = inject(MODULE_CONTEXT_KEY, null);
-      const current = shallowRef<VueUiContext>();
+      const current = shallowRef<VuiContext>();
       const error = shallowRef<unknown>(null);
       const pageLoading = ref(false);
       let openGeneration = 0;
@@ -339,7 +339,7 @@ export function createEntityView(options: EntityViewOptions) {
       const route = useRoute();
       const router = useRouter();
       const sync = inject(MODULE_CONTEXT_KEY, null);
-      const current = shallowRef<VueUiContext>();
+      const current = shallowRef<VuiContext>();
       const error = shallowRef<unknown>(null);
       const pageLoading = ref(false);
       let openGeneration = 0;

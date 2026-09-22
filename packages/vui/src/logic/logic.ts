@@ -16,7 +16,7 @@ import {
   type UiLogicFnResultSet,
   type UiViewOptions,
 } from "@mmda/core";
-import { UiCustomSearchField, UiSearchField } from "../ui/factory/filter";
+import { VuiCustomSearchField, VuiSearchField } from "../ui/factory/filter";
 
 export {
   EntityLogic,
@@ -37,11 +37,11 @@ export {
 };
 
 /** vui 侧搜索表单：搜索状态由 UI 上下文持有，业务只提供自定义字段声明。 */
-export interface VueUiSearchForm {
+export interface VuiSearchForm {
   searchParam?: EntitySearchParam;
   queryParams?: Record<string, unknown>;
-  searchFields: Array<UiSearchField>;
-  customSearchFields: Array<UiCustomSearchField | EntityCustomSearchField>;
+  searchFields: Array<VuiSearchField>;
+  customSearchFields: Array<VuiCustomSearchField | EntityCustomSearchField>;
 }
 
 export interface WatchFn {

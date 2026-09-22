@@ -6,7 +6,7 @@ import {
 } from "../app/theme";
 import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
 import type { MmdaApplication } from "../app/app";
-import type { VueUiBuilder } from "../ui/builder";
+import type { VuiBuilder } from "../ui/builder";
 import { translateMessage } from "../i18n/i18n";
 
 /** Stable menu items — selection state is shown via CSS on [data-mmda-palette]. */
@@ -21,7 +21,7 @@ export const ColorPalettePicker = defineComponent({
   name: "ColorPalettePicker",
   setup() {
     const app = inject(UI_APP_KEY)! as MmdaApplication;
-    const builder = inject(UI_BUILDER_KEY)! as VueUiBuilder;
+    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder;
 
     const selectPalette = (palette: MmdaColorPalette) => {
       app.state.colorPalette = palette;

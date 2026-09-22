@@ -15,10 +15,10 @@ import type {
   UiTreeGridProps as CoreUiTreeGridProps,
 } from "@mmda/core";
 import type { ChildSlot } from "../../contexts/view";
-import type { UiSlots } from "../layout";
+import type { VuiTileSlots } from "../layout";
 import { uiCssClass } from '@mmda/core'
 
-export type { UiSlots } from "../layout";
+export type { VuiTileSlots } from "../layout";
 
 export type {
   UiGridScene,
@@ -28,22 +28,20 @@ export type {
 } from "@mmda/core";
 
 /** @deprecated 用 UiFieldCellRenderer；两参 (field, row)，不要第三袋。 */
-export type UiTableCellRenderer<T = any> = CoreUiFieldCellRenderer<T, VNode>;
+export type VuiTableCellRenderer<T = any> = CoreUiFieldCellRenderer<T, VNode>;
 
-/** 移动端简单列表。不要列过滤 / 原位进格。 */
-export type UiListProps<T = any> = CoreUiListProps<T>;
 
 /** 只读桌面表。 */
-export type UiTableProps<T = any> = CoreUiTableProps<T, VNode>;
+export type VuiTableProps<T = any> = CoreUiTableProps<T, VNode>;
 
 /** 可编桌面表。 */
-export type UiGridProps<T = any> = CoreUiGridProps<T, VNode>;
+export type VuiGridProps<T = any> = CoreUiGridProps<T, VNode>;
 
 /** 树形可编表（core 可编 + vui 树装配字段由 tree_grid 扩）。 */
-export type UiTreeGridBaseProps<T = any> = CoreUiTreeGridProps<T, VNode>;
+export type VuiTreeGridBaseProps<T = any> = CoreUiTreeGridProps<T, VNode>;
 
-/** @deprecated 用 UiTableProps / UiGridProps；保留别名兼容旧 import。 */
-export type UiRowDetail<T = any> = CoreUiRowDetail<T, VNodeChild>;
+/** @deprecated 用 VuiTableProps / VuiGridProps；保留别名兼容旧 import。 */
+export type VuiRowDetail<T = any> = CoreUiRowDetail<T, VNodeChild>;
 
 export function wrapRowDetail(content: VNodeChild): VNode {
   return h(
@@ -53,7 +51,7 @@ export function wrapRowDetail(content: VNodeChild): VNode {
   );
 }
 
-export interface UiListEmits<T = any> {
+export interface VuiListEmits<T = any> {
   onItemClick?: (item: T) => void;
   onItemDoubleClick?: (item: T) => void;
   onItemSelect?: (item: T) => void;
@@ -66,7 +64,7 @@ export interface UiListEmits<T = any> {
   onRefresh?: () => void;
 }
 
-export interface UiListSlots<T = any> {
+export interface VuiListSlots<T = any> {
   header?: ChildSlot;
   footer?: ChildSlot;
   item?: (item: T, index: number) => VNodeChild;
@@ -79,27 +77,27 @@ export interface UiListSlots<T = any> {
   grid?: ChildSlot;
 }
 
-export type UiTablePropsType<T = any> = UiTableProps<T> &
-  UiListEmits<T> &
-  UiListSlots<T> & {
+export type VuiTablePropsType<T = any> = VuiTableProps<T> &
+  VuiListEmits<T> &
+  VuiListSlots<T> & {
     display?: UiListDisplay;
   };
 
-export type UiGridPropsType<T = any> = UiGridProps<T> &
-  UiListEmits<T> &
-  UiListSlots<T> & {
+export type VuiGridPropsType<T = any> = VuiGridProps<T> &
+  VuiListEmits<T> &
+  VuiListSlots<T> & {
     display?: UiListDisplay;
   };
 
 /** 整页/工厂管道用最宽 Props（Grid ⊇ Table ⊇ List）。程序员 `buildList` 请用 `UiListProps`。 */
 /** index 列布局：拖列宽/换列序后写回 MetaUi。子表不要传。 */
-export type UiTableSettings = {
+export type VuiTableSettings = {
   persist: () => void;
   rev: { value: number };
   open?: () => void;
 };
 
-export type UiTableSkinExtras<T = any> = {
+export type VuiTableSkinExtras<T = any> = {
   /** Builder 合成的默认格调度。Logic 请用 fieldCellRenderers。 */
   renderCell?: CoreUiFieldCellRenderer<T, VNode>;
   /** Builder 推算：哪些列需要 Vue 模板。不要手写。 */
@@ -121,9 +119,13 @@ export type UiTableSkinExtras<T = any> = {
     searchWord: string,
   ) => Promise<unknown[]>;
   /** index 列布局能力。有则允许拖列并持久化。 */
-  tableSettings?: UiTableSettings;
+  tableSettings?: VuiTableSettings;
   /** index 工作区保活宿主。Builder 注入；销毁传 null。 */
   onIndexTableHostReady?: (host: UiIndexTableHost | null) => void;
+  /** 已勾选主键行。虚拟化按下主键累计；Builder 从会话注入。 */
+  selectedItems?: T[];
+  /** 联查模式开关：index 表宿主按此切换列表来源。 */
+  joinListMode?: boolean;
   /** 就地 rebind 后读现在的 searchParam.filterModel，不要建表快照。 */
   filterModelOf?: () => FilterModel | undefined;
   /**
@@ -137,34 +139,33 @@ export type UiTableSkinExtras<T = any> = {
   ) => boolean | void;
 };
 
-export type UiListPropsType<T = any> = UiGridPropsType<T> & UiTableSkinExtras<T>;
+export type VuiListPropsType<T = any> = VuiGridPropsType<T> & VuiTableSkinExtras<T>;
 
-export type UiCustomSlots<T> = T | UiSlots;
+export type VuiCustomSlots<T> = T | VuiTileSlots;
 
-export interface UiListColumnSlots extends UiSlots {
+export interface VuiListColumnSlots extends VuiTileSlots {
   body?: ChildSlot;
   editor?: ChildSlot;
   filter?: ChildSlot;
 }
 
-export interface UiListColumnProps {
+export interface VuiListColumnProps {
   header?: string;
   field?: string | ((item: any) => any);
   columnKey?: string;
   footer?: string;
   frozen?: boolean;
   alignFrozen?: string;
-  slots?: UiListColumnSlots;
+  slots?: VuiListColumnSlots;
 }
 
-export interface UiPaginatorEmits {
+export interface VuiPaginatorEmits {
   onPage: (pager: { pageSize?: number; pageNo?: number }) => void;
 }
 
 export type { UiPaginatorProps } from '@mmda/core'
-export type UiPaginatorPropsType = UiPaginatorProps;
-export type UiPagableListPropsType<T> = UiPaginatorPropsType &
-  UiListPropsType<T>;
+export type VuiPagableListPropsType<T> = UiPaginatorProps &
+  VuiListPropsType<T>;
 
 export type { Pager };
 
@@ -181,7 +182,7 @@ export function bindListDisplayRenderers(factory: ListFamily) {
   const table = factory.table.bind(factory);
   const treeGrid = factory.treeGrid.bind(factory);
   const propsOf = (...args: any[]) => {
-    if (args.length === 1) return (args[0] ?? {}) as UiListPropsType<any>;
+    if (args.length === 1) return (args[0] ?? {}) as VuiListPropsType<any>;
     const [rows, metaUi, props = {}] = args;
     const meta = metaUi as {
       primaryKey?: string;
@@ -198,26 +199,26 @@ export function bindListDisplayRenderers(factory: ListFamily) {
         (typeof meta?.getListedFields === "function"
           ? meta.getListedFields()
           : undefined),
-    } as UiListPropsType<any>;
+    } as VuiListPropsType<any>;
   };
-  const dispatch = (props: UiListPropsType<any> = {}) => {
+  const dispatch = (props: VuiListPropsType<any> = {}) => {
     const display = props.display ?? "list";
     if (display === "treeGrid") return treeGrid(props);
     if (display === "list") return list(props);
     return table(props);
   };
   factory.list = ((...args: any[]) =>
-    dispatch(propsOf(...args) as UiListPropsType<any>) as unknown) as typeof factory.list;
+    dispatch(propsOf(...args) as VuiListPropsType<any>) as unknown) as typeof factory.list;
   factory.table = ((...args: any[]) => {
-    const props = propsOf(...args) as UiListPropsType<any>;
+    const props = propsOf(...args) as VuiListPropsType<any>;
     return dispatch({ ...props, display: props.display ?? "table" });
   }) as typeof factory.table;
   factory.grid = ((...args: any[]) => {
-    const props = propsOf(...args) as UiListPropsType<any>;
+    const props = propsOf(...args) as VuiListPropsType<any>;
     return dispatch({ ...props, display: props.display ?? "grid" });
   }) as typeof factory.grid;
   factory.treeGrid = ((...args: any[]) => {
-    const props = propsOf(...args) as UiListPropsType<any>;
+    const props = propsOf(...args) as VuiListPropsType<any>;
     return dispatch({
       ...props,
       display: props.display ?? "treeGrid",
@@ -228,12 +229,12 @@ export function bindListDisplayRenderers(factory: ListFamily) {
 /** 有 `pagination` 且 `pageable !== false` 时在内容下方接 `factory.paginator`。 */
 export function wrapWithPaginator(
   factory: {
-    paginator: (props: UiPaginatorPropsType) => VNode;
+    paginator: (props: UiPaginatorProps) => VNode;
   },
   node: VNode,
   pagination: Pagination | undefined,
   props: {
-    onPage?: UiListProps["onPage"];
+    onPage?: CoreUiListProps["onPage"];
     pageSizeOptions?: number[];
     pageable?: boolean;
   },
@@ -254,7 +255,7 @@ export function wrapWithPaginator(
 
 export function wrapListFamilyPaginator(
   factory: {
-    paginator: (props: UiPaginatorPropsType) => VNode;
+    paginator: (props: UiPaginatorProps) => VNode;
     list: (...args: any[]) => VNode;
     table?: (...args: any[]) => VNode;
     treeGrid?: (...args: any[]) => VNode;
@@ -268,7 +269,7 @@ export function wrapListFamilyPaginator(
     (factory as any)[name] = (...args: any[]) => {
       const props =
         args.length === 1
-          ? ((args[0] ?? {}) as UiListPropsType<any>)
+          ? ((args[0] ?? {}) as VuiListPropsType<any>)
           : {
               ...(args[2] ?? {}),
               rows: args[0],

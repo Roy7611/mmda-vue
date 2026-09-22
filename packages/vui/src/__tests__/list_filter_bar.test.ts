@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { h, nextTick, reactive, ref, render } from "vue";
 import {
+  DateRangeKind,
   FieldFilter,
   MetaUi,
   MetaUiField,
@@ -97,7 +98,7 @@ describe("listFilterBarChips", () => {
       contextOf({
         name: { filterType: "text", operator: "CONTAINS", value: "钢" },
         status: FieldFilter.in(["OPEN", "USED"]),
-        createdAt: FieldFilter.dateKind("THIS_MONTH"),
+        createdAt: FieldFilter.dateKind(DateRangeKind.THIS_MONTH),
         blank: { filterType: "text", operator: "CONTAINS", value: "" },
       }),
     );
@@ -159,7 +160,7 @@ describe("list filter bar actions", () => {
     expect(empty.props?.class).toBe(
       "mmda-list-filter-bar mmda-list-filter-bar--empty",
     );
-    expect(empty.children?.[0]).toMatchObject({
+    expect((empty.children as any[])?.[0]).toMatchObject({
       props: { class: "mmda-list-filter-bar__title" },
       children: "过滤",
     });

@@ -1,13 +1,13 @@
-import { Comment, defineComponent, h, ref, watch } from "vue";
+import { defineComponent, h, ref, watch } from "vue";
 import { uiCssClass } from "@mmda/core";
 import { translateMessage } from "../i18n/i18n";
 import { useCompactViewport } from "../composables/useCompactViewport";
 
 /**
- * Detail page body (cards): column flex — optional banner, then content row.
- * Content wraps main | summary (2:1); summary collapses to free width.
- * Toggle is fixed on the viewport right edge at mid-height.
- * Footer is a sibling under `.mmda-page`, not inside this body.
+ * Detail page body (cards): content row wraps main | summary (2:1);
+ * summary collapses to free width. Toggle is fixed on the viewport right
+ * edge at mid-height. Banner / footer are siblings under `.mmda-page`,
+ * assembled by core `AbstractUiLayout.layoutPage`.
  */
 export const PageBody = defineComponent({
   name: "PageBody",
@@ -33,16 +33,6 @@ export const PageBody = defineComponent({
     };
 
     return () => {
-      const banner = slots.banner?.();
-      // 空 / Comment / 纯空白 vnode 都不占 banner 行，避免无消息也留一条空隙
-      const bannerNodes = (Array.isArray(banner) ? banner : [banner]).filter(
-        (node) =>
-          node != null &&
-          typeof node === "object" &&
-          (node as { type?: unknown }).type !== Comment &&
-          (node as { children?: unknown }).children !== "",
-      );
-      const hasBanner = bannerNodes.length > 0;
       return h(
         "div",
         {
@@ -50,7 +40,6 @@ export const PageBody = defineComponent({
             uiCssClass("page", "body"),
             props.hasSummary &&
               uiCssClass("page", "body", "with-summary"),
-            hasBanner && uiCssClass("page", "body", "with-banner"),
             compact.value && uiCssClass("page", "body", "compact"),
             props.hasSummary &&
               !summaryOpen.value &&
@@ -58,9 +47,6 @@ export const PageBody = defineComponent({
           ],
         },
         [
-          hasBanner
-            ? h("div", { class: uiCssClass("page", "banner") }, bannerNodes)
-            : null,
           h("div", { class: uiCssClass("page", "content") }, [
             h(
               "main",

@@ -127,7 +127,7 @@ export type UiManyLogicAfterFn<E> = (
  * Data 通道：
  * - 实体 CRUD / 动作：用本类方法或 `this.apiClient`。
  * - `context.apiClient` 与 `this.apiClient` 同一实例。
- * - 面向用户文案用 `context.t()`（vui 由 VueUiContext 实现）。
+ * - 面向用户文案用 `context.t()`（vui 由 VuiContext 实现）。
  */
 export abstract class EntityLogic<E extends Entity> {
   metaUi?: MetaUi;

@@ -111,19 +111,61 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SyncfusionOverlay` 等。不要 `factory.dialog` |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
+### 渲染器三层
+
+渲染器按“粒度”分三层，不要混用：
+
+```text
+UiRenderer        core  最底层渲染：render(tag, props, children)，只拼 HTML 壳（div/span/section）
+UiFieldRenderer   core  字段级渲染：一个 MetaUiField 的裸控件渲染函数
+UiGroupRenderer   core  组级渲染：字段组合 / 子表（一个 MetaUiGroup）
+```
+
+- `UiFieldRenderer<TNode> = (field, context) => TNode`；`UiFieldFactory` 是它的具名表（core `src/ui/field_factory.ts`）。
+- `UiGroupRenderer` 是组/子表渲染器，目标契约在 core（泛型 `TNode`）；当前实现仍在 vui，迁移时用 `UiContext` 替换 `VueUiContext`。
+- vui 只钉 `VNode`：`VueUiRenderer` / `VueFieldRenderer` / `VueGroupRenderer`。vui 现有那个“值渲染器” `UiRenderer<T>` 改名 `VueUiRenderer`，不要与 core 的 `UiRenderer` 撞名。
+
 ### UI 契约三层
 
 ```text
 @mmda/core     UiFactory / UiFieldFactory / UiBuilder / UiLayout / UiOverlay + Ui*Props
-@mmda/vui      VueUi*（type 别名或 abstract class，按是否有实现选型）
+@mmda/vui      Vui* / Vue*（type 别名或 abstract class，按是否有实现选型）
 皮肤           SyncfusionUiFactory / PrimeUiFactory / AgNaiveUiFactory …
 ```
 
 - Logic 只 import `@mmda/core`；`UiButtonProps` 等参数类型也在 core。
-- vui：只钉 `VNode` → `type VueUiX = UiX<VNode>`；有 mixin/共用代码 → `abstract class`；多方法 → `interface extends`。
+- vui：只钉 `VNode` → `type VuiX = UiX<VNode>`；有 mixin/共用代码 → `abstract class`；多方法 → `interface extends`。
 - **袋 → 渲染前标准形态归 core**：`uiRenderProps(props)`（`core/src/ui/props.ts`）把袋拆成 `props` / `attributes`，框架无关；`class` 已收成字符串（`uiClassName`）、`style` 已收成对象、袋键 `htmlAttributes` 已压平、`for` 用平台原名、Vue 的 `onUpdate*` 别名不进标准形态。vui **零键名翻译**直传 `h`（标准形态即 `class` / `for`）；rui 做两处映射（`className` / `htmlFor`）。设计与迁移见 [vui_architecture.md](design/vui_architecture.md) §1。
 - **不要** core 写 `Ref` / `VNode`；`loading` / `layoutRev` 用 `UiBoxed`（`boolean | { value: boolean }`）。
 - 厂商类名用短前缀：`PrimeUiBuilder`（不要 `PrimeVueUiBuilder` 与 Vue 层混）。
+
+### Vue 运行时命名（vui / vui-*）
+
+`@mmda/vui` 自己定义的 `type` / `interface` 按名字是否以 `Ui` 开头分两套：
+
+```text
+Ui 开头（core 契约的 Vue 特化） → VuiXxx
+非 Ui（Vue 专有辅助）          → VueXxx
+```
+
+- 只约束 vui 包内**新定义**的 `type` / `interface`；core 的 `Ui*Props` / `UiRenderer` 是导入的 core 名，原样使用，不要重命名。
+- `type` / `interface` 名不再拼 `VueUi*` 这种中间态：Ui 概念归 `Vui*`，Vue 专有概念归 `Vue*`。
+- vui 皮肤（`@mmda/vui-*`）再补厂商前缀；Syncfusion 用 `Sf`：`SfVuiXxx` / `SfVueXxx`。
+- 例：`VuiContextOptions`、`VueSchedulerPlugin`；vui-syncfusion 用 `SfVuiGridProps`、`SfVueOverlay`。
+
+### React 运行时命名（rui / rui-*）
+
+`@mmda/rui` 自己定义的 `type` / `interface` 按名字是否以 `Ui` 开头分两套：
+
+```text
+Ui 开头（core 契约的 React 特化） → RuiXxx
+非 Ui（React 专有辅助）          → ReactXxx
+```
+
+- 只约束 rui 包内**新定义**的 `type` / `interface`；core 的 `Ui*Props` / `UiRenderer` 是导入的 core 名，原样使用，不要重命名。
+- `type` / `interface` 名不再拼 `ReactUi*` 这种中间态：Ui 概念归 `Rui*`，React 专有概念归 `React*`。
+- rui 皮肤（`@mmda/rui-*`）再补厂商前缀；Syncfusion 用 `Sf`：`SfRuiXxx` / `SfReactXxx`。
+- 例：`RuiContextOptions`、`ReactNavigator`；rui-syncfusion 用 `SfReactDialogRequest`、`SfRuiGridProps`。
 
 ### UI 插件
 

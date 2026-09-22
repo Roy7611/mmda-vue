@@ -15,6 +15,7 @@ import type { UiBuilder } from './builder'
 import type { MmdaApplication } from '../mmda_app'
 import type { EntityAction } from '../models/entity_action'
 import type { EntityLogic } from '../logic/entity_logic'
+import type { Module, ModuleAuth } from '../metaui/module'
 
 /** 列表选择模式：单选、多选、不可选或未指定。 */
 export type UiSelectionMode = 'single' | 'multiple' | 'none' | undefined | ''
@@ -93,6 +94,10 @@ export interface UiContext<M extends Entity = Entity> {
   searchParam: EntitySearchParam | undefined
   /** 当前实体的业务逻辑。 */
   logic: EntityLogic<M> | undefined
+  /** 当前实体所属功能模块，等价于 `logic?.module`。 */
+  readonly module?: Module
+  /** 当前模块权限，并结合当前行的 `editable` / `deletable` 折叠编辑/删除权限。 */
+  getModuleAuth(entity?: Record<string, any>): ModuleAuth | undefined
   /** 多选/勾选的行。 */
   selectedItems: M[] | undefined
   /** 列表进详情/编辑记住的当前行（与勾选 selectedItems 分开）。 */

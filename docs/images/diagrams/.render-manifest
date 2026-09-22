@@ -1,0 +1,12 @@
+# 源内容 hash | 图名 | 真源位置 —— 由 scripts/render-diagrams.sh 维护，--check 用它判过期
+12b2ccad64674cee	layers_architecture_2	docs/design/layers_architecture.md#2
+160a5cbc67dc28c5	layers_1	docs/layers.md#1
+22e3f7f9b4a3e330	layers_architecture_4	docs/design/layers_architecture.md#4
+81eff5441611647a	core_layer	docs/design/layers_architecture.wsd
+8f8bda5df51b146c	layers_architecture_1	docs/design/layers_architecture.md#1
+a018b9e86d4757df	layers_architecture_3	docs/design/layers_architecture.md#3
+bc6aaf825fc60ed9	ui_layer_flow	docs/design/ui_layer.wsd
+bc6aaf825fc60ed9	ui_layer_impl	docs/design/ui_layer.wsd
+bc6aaf825fc60ed9	ui_layer_plugins	docs/design/ui_layer.wsd
+bc6aaf825fc60ed9	ui_layer_props	docs/design/ui_layer.wsd
+bc6aaf825fc60ed9	ui_layer_roles	docs/design/ui_layer.wsd

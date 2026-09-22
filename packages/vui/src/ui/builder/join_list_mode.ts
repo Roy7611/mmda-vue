@@ -1,12 +1,12 @@
 import type { MetaUi } from '@mmda/core'
 import { UiViewMany } from '@mmda/core'
-import type { VueUiContext } from '../../contexts/vue_ui_context'
+import type { VuiContext } from '../../contexts/vue_ui_context'
 
-function joinListMetaUi(context: VueUiContext<any>): MetaUi | undefined {
+function joinListMetaUi(context: VuiContext<any>): MetaUi | undefined {
   return context.logic?.metaUi ?? context.metaUi
 }
 
-export function indexTableMetaUi(context: VueUiContext<any>): MetaUi {
+export function indexTableMetaUi(context: VuiContext<any>): MetaUi {
   if (context.joinListMode && context.logic?.viewUi) return context.logic.viewUi
   return context.metaUi
 }
@@ -22,7 +22,7 @@ export function joinListColumnLabel(
   return dot >= 0 ? label.slice(dot) : label
 }
 
-export async function toggleJoinListMode(context: VueUiContext<any>) {
+export async function toggleJoinListMode(context: VuiContext<any>) {
   if (context.joinListMode) {
     context.joinListMode = false
     context.listLayoutRev.value += 1
@@ -51,7 +51,7 @@ export async function toggleJoinListMode(context: VueUiContext<any>) {
 }
 
 /** Index more：仅 hasJoinList 时出现；勾选看 context.joinListMode。 */
-export function joinListModeMenuItems(context: VueUiContext<any>) {
+export function joinListModeMenuItems(context: VuiContext<any>) {
   if (context.view !== UiViewMany.Index) return []
   const metaUi = joinListMetaUi(context)
   if (!metaUi?.hasJoinList?.()) return []

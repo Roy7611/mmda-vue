@@ -3,7 +3,7 @@ import { uiCssClass, type Module } from "@mmda/core";
 import { type AppScaffoldProps, type UiProps } from "@mmda/vui"
 import { SfAppSideMenu } from "../components/SfAppMenu";
 import { createLoading } from "../factory/loading";
-import { invoke, type UiContext } from "./utils";
+import { invoke, type SfVuiContext } from "./utils";
 import { syncfusionLayout } from "../syncfusion_layout";
 
 export function applyColorScheme(dark: boolean) {
@@ -55,7 +55,7 @@ export function renderLoading(props?: UiProps) {
   return createLoading(props);
 }
 
-export function renderError(context: UiContext, props?: UiProps) {
+export function renderError(context: SfVuiContext, props?: UiProps) {
   return h("div", { class: "mmda-error e-error", ...props }, context.title);
 }
 
