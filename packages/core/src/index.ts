@@ -5,6 +5,7 @@
 export { DateTime, Duration, Interval } from 'luxon'
 
 // Data：utils
+export * from './utils/file_info'
 export * from './utils/is'
 export * from './utils/platform'
 export * from './utils/formatter'
@@ -60,6 +61,7 @@ export * from './ui/tree_data'
 export * from './ui/rx'
 export * from './ui/router'
 export * from './ui/app_keys'
+export * from './ui/group_watermark'
 
 export * from './ui/builder/dialog'
 export * from './ui/builder/list_view'

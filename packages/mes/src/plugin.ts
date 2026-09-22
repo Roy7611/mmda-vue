@@ -1,5 +1,5 @@
-import { HomeView } from './views/HomeView'
-import { Custompages } from './views/PlaceholderViews'
+import { homeView } from './views/HomeView'
+import { customPages } from './views/PlaceholderViews'
 import { LOGIC_LOADERS } from './logics'
 import GanntView from './components/GanntView/GanntView'
 import ProjectGanttView from './components/ProjectGanntView/ProjectGanttView'
@@ -20,8 +20,9 @@ export const mesPlugin = {
   name: 'mes',
   service: 'mes',
   routePrefix: '/MES',
-  home: HomeView,
-  placeholderView: Custompages,
+  // 页面是框架无关的 `UiViewFn`（core 契约）：宿主用 `hostedView(...)` 包成 Vue 组件。
+  home: homeView,
+  placeholderView: customPages,
   placeholders: [
     'DocCategory',
     'WorkerPerformance',

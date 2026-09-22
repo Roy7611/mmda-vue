@@ -8,7 +8,7 @@
 
 import { type MetaUiService, type Module, type MetaUiField, type UiContext, type EntityAction, MetaModel, MetaUiBuilder, isRefNone, SortOrder, debounce, isNullOrUndefined, triggerEscKey, isObject, getSqlOperator } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
-import { setGroupWatermark } from '@mmda/vui'
+import { setGroupWatermark } from '@mmda/core'
 import { type QualityInspection, defineQualityInspection } from '@/models/QualityInspection';
 import { type QualityInspectionItem, defineQualityInspectionItem } from '@/models/QualityInspectionItem';
 import { type QualityInspectionMaterial, defineQualityInspectionMaterial } from '@/models/QualityInspectionMaterial';

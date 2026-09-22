@@ -22,7 +22,7 @@ import {
 	isNullOrUndefined,
 } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
-import { getFileInfo } from '@mmda/vui'
+import { getFileInfo } from '@mmda/core'
 import { type Doc, defineDoc } from '@/models/Doc';
 import { type DocAudit, defineDocAudit } from '@/models/DocAudit';
 import { type DocShare, defineDocShare } from '@/models/DocShare';

@@ -76,8 +76,9 @@ describe('architecture gate', () => {
           }
         }
       }
-      // 当前残余 4 处（defineInputProps / getFileInfo / setGroupWatermark / Rx 或 rx）
-      // 每消一处就把此数字减一，最终归零。
-      expect(offenders.length).toBeLessThanOrEqual(4)
+      // 残余 1 处：`tools/ToolLogic.ts` 的 `rx` —— core 没有框架中立的「值响应式化」入口
+      // （`UiContext` 契约明确不收 rx/computed/watch，见 ui/context_base.ts 的注释），
+      // 待契约拍板后再归零。
+      expect(offenders.length).toBeLessThanOrEqual(1)
     })
 })
