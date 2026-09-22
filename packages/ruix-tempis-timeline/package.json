@@ -1,0 +1,51 @@
+{
+  "name": "@mmda/ruix-tempis-timeline",
+  "description": "Tempis canvas timeline plugin for the MMDA React UI runtime (UiBuilder.buildTempisTimeline)",
+  "author": "www.mmda.cloud",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/mmda-ruix-tempis-timeline.es.js",
+  "module": "./dist/mmda-ruix-tempis-timeline.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build --mode lib && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "@mmda/core": "workspace:^",
+    "@mmda/rui": "workspace:^"
+  },
+  "peerDependencies": {
+    "@tempis/timeline": "*",
+    "react": "^19.0.0 || ^18.3.0",
+    "react-dom": "^19.0.0 || ^18.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@tempis/timeline": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^30.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "~5.9.3",
+    "vite": "8.2.2",
+    "vitest": "^4.1.11"
+  }
+}

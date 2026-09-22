@@ -109,8 +109,8 @@
 | [SignaturePad：怎么写](./signature_pad_usage.md) | onReady / 字段翻译；非 SF 部分 no-op |
 | [Stepper 设计](./stepper.md) | `factory.stepper`；当前步索引 |
 | [Stepper：怎么写](./stepper_usage.md) | `orientation` / 子表 `*Field` |
-| [Timeline 设计](./timeline.md) | `factory.timeline`；默认列表，插件 Tempis |
-| [Timeline：怎么写](./timeline_usage.md) | `builder.use(createTempisTimelinePlugin())`；`timeField` / `relativeTime` |
+| [Timeline 设计](./timeline.md) | `factory.timeline`；事件列表；二维画布轴见插件包 |
+| [Timeline：怎么写](./timeline_usage.md) | `timeField` / `relativeTime`；画布轴 `builder.buildTempisTimeline` |
 | [Skeleton 设计](./skeleton.md) | `factory.skeleton`；内容占位；**不是** `loading` |
 | [Skeleton：怎么写](./skeleton_usage.md) | 首次水合用 skeleton；后续忙碌仍用 loading |
 | [Loading 设计](./loading.md) | `factory.loading`；整页/区域转圈；不要 spinner |

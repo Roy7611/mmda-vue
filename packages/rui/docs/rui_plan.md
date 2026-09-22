@@ -128,6 +128,7 @@ createElement(Comp, {
 ### P4 插件 + 业务迁移
 
 - `@mmda/ruix-*`（echarts-for-react、gantt/kanban/scheduler 各自的 React 版插件）
+- **首个已落地：`@mmda/ruix-tempis-timeline`**（Tempis 二维画布轴，`builder.buildTempisTimeline`，2026-09-22）
 - mes 的 40 个 import vue 文件 + 8 个 Vue JSX 组件迁移为 React 组件
 
 ### 命名家族

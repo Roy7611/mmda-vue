@@ -39,14 +39,16 @@ type Harness = {
 function mount(input: UiTempisTimelineProps): Harness {
   let controller: UiTempisTimelineController | undefined
   let count = 0
+  // 先把契约袋摊成 Record 再 reactive：`reactive<UiTempisTimelineProps>` 的深层 Unwrap 会撞
+  // TS2589（Type instantiation is excessively deep），摊平后即时类型很浅。
   const source = reactive({
-    ...input,
+    ...(input as Record<string, unknown>),
     onReady: (next: UiTempisTimelineController) => {
       controller = next
       count += 1
       input.onReady?.(next)
     },
-  }) as UiTempisTimelineProps
+  }) as unknown as UiTempisTimelineProps
   const root = document.createElement('div')
   document.body.appendChild(root)
   const app: App = createApp({

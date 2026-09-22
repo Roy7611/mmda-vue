@@ -107,7 +107,7 @@ mmda-* class（mmda-avatar--primary）→ 空钩子，应用/主题可定制
 | [`factory.ts`](../src/ui/factory.ts) | `UiFactory` 方法表 |
 | [`field_factory.ts`](../src/ui/field_factory.ts) | `UiFieldFactory` 字段生产 |
 
-新 chrome 控件：先在 vui 定 props（沿用上表），再在三套皮肤实现 `factory.xxx()`。图表、图、Markdown、图片编辑、看板、甘特、Ribbon、排程、透视表、AI 助手走 `builder.use(plugin)` / `plugin(name).buildUi`，不进 chrome factory。时间轴默认是 chrome `factory.timeline`，`builder.use(createTempisTimelinePlugin())` 可换成 Tempis，不要把 Tempis 写进皮肤。Query Builder 是 chrome `factory.queryBuilder`，不是插件。
+新 chrome 控件：先在 vui 定 props（沿用上表），再在三套皮肤实现 `factory.xxx()`。图表、图、Markdown、图片编辑、看板、甘特、Ribbon、排程、透视表、AI 助手走 `builder.use(plugin)` / `plugin(name).buildUi`，不进 chrome factory。时间轴默认是 chrome `factory.timeline`（事件列表）；二维画布轴是插件 `builder.buildTempisTimeline`（`@mmda/vuix-tempis-timeline`），不要把 Tempis 写进皮肤。Query Builder 是 chrome `factory.queryBuilder`，不是插件。
 
 ## 皮肤 factory 怎么组装
 

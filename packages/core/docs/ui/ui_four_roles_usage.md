@@ -177,13 +177,13 @@ ui.buildExplorer(context, {
 
 ```ts
 ui.buildGantt?.(context, props)
-ui.buildTimeline?.(context, props)
+ui.buildTempisTimeline?.(context, props)
 ui.buildScheduler?.(context, props)
 ui.buildKanban?.(context, props)
 ui.buildDiagram?.(context, props)
 ```
 
-未安装对应 plugin 时会 **throw**。嵌在普通屏里的时间轴仍用 `factory.timeline`，不要 `fieldFactory.timeline`。
+未安装对应 plugin 时会 **throw**。嵌在普通屏里的**列表**时间轴仍用 `factory.timeline`，不要 `fieldFactory.timeline`。
 
 ## 登录页
 

@@ -307,9 +307,9 @@ cd packages/ruix-tempis-timeline && ./node_modules/.bin/vitest run --reporter=do
 | **P0** 皮肤可靠性 ✅ 2026-09-22 | 三个皮肤 `...rest` 收紧为显式白名单 + 防漏测试（对象键 / 函数键） | 3 工厂文件 + 3 测试 | **已完成**：三包全量 vitest 绿（200 / 70 / 106），`tsc -p tsconfig.typecheck.json` 与 `node.json` 零错误。详见 §9 |
 | **P1** 契约 | 新建 `core/src/ui/plugins/tempis_timeline.ts`；收窄 `timeline.ts`；**摘掉标准时间轴的插件外壳**（删 `UiBuilder.buildTimeline` / `PluginHost.buildTimeline` / `PLUGIN_HOST_METHODS` 里的 `'buildTimeline'` / `NOT_INSTALLED['timeline']` / `UiPluginName.timeline` / `timelineAsPlugin` / `tempisItemsOf`）；**增** `buildTempisTimeline`（`plugin.ts` / `plugin_host.ts` / `builder.ts`）；vui re-export 同步；改 2 个测试 | core 2 文件 + vui 1 文件 + 2 测试 | core 门禁 + 单测；vui tsc；`grep -rn "buildTimeline"` 只剩 `buildTempisTimeline` |
 | **P2** vuix v2 ✅ 2026-09-22 | §4.1 文件清单；`source` 单参宿主；结构选项重建 vs 数据 setter；tooltip 模板转换；`vitest.setup.ts` 的 ctx stub | 插件包 5 源文件 + 4 测试 + 1 conformance + `tsconfig.typecheck.json` | **已完成**：jsdom 挂载真引擎 17/17 通过，typecheck/node 各 0 错误，真浏览器跑通命中/缩放/导出/重建/tooltip。详见 §9 |
-| **P3** ruix | 新建 `packages/ruix-tempis-timeline`（骨架抄 `rui-syncfusion`）；React 宿主（StrictMode 幂等）；映射逻辑独立一份 | 新包 9 文件 | 该包 vitest + `tsc -p tsconfig.typecheck.json` |
-| **P4** 入口 | 根 `package.json` 的 `build` / `test` / `typecheck` 过滤器加 `@mmda/ruix-tempis-timeline` | 1 文件 | `pnpm.cmd test` |
-| **P5** 文档 | §8 的影响面逐条 | 8 处文档 | 人工核对链接 |
+| **P3** ruix ✅ 2026-09-22 | 新建 `packages/ruix-tempis-timeline`（骨架抄 `rui-syncfusion`）；React 宿主（StrictMode 幂等）；映射逻辑独立一份 | 新包 9 文件 | **已完成**：18/18 通过（含 StrictMode 双跑幂等），三份 tsc 全 0；vuix 侧回归全绿。详见 §9 |
+| **P4** 入口 ✅ 2026-09-22 | 根 `package.json` 的 `build` / `test` / `typecheck` 过滤器加 `@mmda/ruix-tempis-timeline` | 1 文件 | **已完成**：`pnpm.cmd --filter @mmda/ruix-tempis-timeline test` → 18 通过；`typecheck` → exit 0。详见 §9 |
+| **P5** 文档 ✅ 2026-09-22 | §8 的影响面逐条 | 9 处文档 | **已完成**：`grep -rn "buildTimeline\|timelineAsPlugin\|tempisItemsOf" docs packages` **零命中**。详见 §9 |
 
 **顺序**：P0 与 P1 互不依赖，建议 P0 先做（改动面独立、便于单独回滚）；P1 一落地，`UiTimelineProps` 的破坏性收窄会带着三个皮肤一起改，所以 P0 的测试要在 P1 之前先把「DOM 干净」这条底线钉住。
 
@@ -502,6 +502,73 @@ package.json               typecheck 脚本改为 typecheck + vitest + node 三�
 3. **块注释里不能写「两个星号紧跟斜杠」那种通配路径**（`src` 下的 `**` + `/` 会提前闭合注释 → 整个文件变成语法错误）。
 4. 往 `tsconfig.base.json` 加 `@mmda/*` 的 paths 会让 **composite 的 lib/vitest 配置爆 281 条 TS6307**；正确做法是新开 `tsconfig.typecheck.json`（`composite:false` + paths）。
 5. 宿主构造期异常的诊断留在 **DOM class（`mmda-timeline--failed`）+ console.error**：预览窗格里没有 devtools 时，这是唯一能看到失败的入口。
+
+### P3 ruix（2026-09-22 完成，未提交）
+
+**新包 `packages/ruix-tempis-timeline`**（仓库第一个 `ruix-*`，`pnpm.cmd install` 已登记进 lockfile）
+
+```
+package.json            @mmda/core + @mmda/rui 依赖；react/react-dom peer；@tempis/timeline optional peer
+tsconfig.{base,lib,typecheck,vitest,node,build}.json   ← 抄 rui 家族；typecheck 那份 composite:false + paths 是真源
+vite.config.ts          lib 构建，external react / react-dom(+子路径) / @mmda/core / @mmda/rui / @tempis/*
+vitest.config.ts        jsdom + alias + setupFiles
+vitest.setup.ts         装 canvas_stub + 声明 IS_REACT_ACT_ENVIRONMENT（React 19 的 act 要求）
+src/tempis_items.ts / tempis_options.ts / __tests__/canvas_stub.ts
+                        与 vuix 同源但**独立一份**（rui/ruix 不 import vui/vuix），只把 `@mmda/vui` 换成 `@mmda/core`
+src/TempisTimelineView.tsx   React 宿主
+src/tempis_plugin.ts | index.ts
+src/__tests__/{conformance.ts, tempis_options.test.ts, tempis_view.test.tsx, tempis_missing.test.tsx, tempis_plugin.test.ts}
+README.md
+```
+
+**与 Vue 宿主只有三处差异**
+
+| 点 | Vue | React |
+|---|---|---|
+| 壳键名 | `class` 原样 | `reactRenderProps` 折成 `className`（唯一一处翻译）；**只取 `attributes` + `className` 落 DOM**，具名键/回调绝不落原生 div |
+| tooltip 节点 | `createApp(...).mount(detachedDiv)` | `createRoot(detachedDiv)` + **`flushSync`**（render 默认批处理，不 flush 拿不到挂载好的 DOM） |
+| 控制器引用 | 每次重建换新对象 | **引用稳定**（业务拿一次就够），内部永远指向当前实例；重建靠 `onReady` 再触发来体现 |
+
+其余对齐：单 prop `source`；数据走 setter 不重建；构造期选项变了 `destroy()` + 重建；回调每次读最新 props。
+React 的 props 是不可变快照，所以「变了没」用签名（`JSON.stringify`）跟 `appliedRef` 比 —— Vue 侧同一逻辑用 deep watch。
+
+**React 19 StrictMode 双跑**（挂载 → 清理 → 再挂载）：`createEngine` 先到先建、后到的让位；清理只销毁已存在的实例；
+异步 `import()` 在飞时被清理也不会造出两个引擎（有测试守着）。
+
+**验证（实测）**
+
+| 项 | 结果 |
+|---|---|
+| `vitest run` | 4 文件 / 18 通过（构造 + 控制器、数据 setter 不重建、结构变化重建、卸载 destroy、受控选中、缺引擎、**StrictMode 双跑后引擎仍活**） |
+| `tsc -p tsconfig.typecheck.json` / `vitest.json` / `node.json` | **0 / 0 / 0** |
+| vuix 侧回归 | 17/17 通过 + 三份 tsc 全 0（P2 遗留的 `vitest.json` 8 条 stale-dist 错误一并清零） |
+| jsdom 噪音 | canvas_stub 改成「2d 只探一次真 ctx」，不再每次渲染刷 `Not implemented` |
+
+**踩到的坑**
+
+1. `flushSync` 从 **`react-dom`** 导出，`react-dom/client` 只有 `createRoot`。
+2. StrictMode 双跑 + 异步 import：create 必须幂等，否则会造出两个引擎、或把唯一那个清理掉。
+3. `reactive<UiTempisTimelineProps>` 撞 **TS2589**（深层 Unwrap 爆炸）：测试里先把袋摊成 `Record<string, unknown>` 再 reactive。
+4. 新包的 lib/vitest 配置**不要**带 `@mmda/*` 的 paths（见 P2 坑 4）——ruix 三份 tsc 因此全 0。
+
+### P4 入口 + P5 文档（2026-09-22 完成，未提交）
+
+**P4**：根 `package.json` 的 `build` / `test` / `typecheck` 三条过滤器在 `@mmda/vuix-tempis-timeline` 后插入 `@mmda/ruix-tempis-timeline`。验证走 pnpm 真实路径：
+`pnpm.cmd --filter @mmda/ruix-tempis-timeline test` → **18 通过**；`... typecheck` → **exit 0**。
+
+**P5**（§8 的影响面逐条改完，共 9 个文件）
+
+| 文件 | 改成 |
+|---|---|
+| `docs/naming.md`（56 / 61 / 185 / 202） | 包表补 `rui` / `rui-*` / `ruix-*` 行；`vuix-tempis-timeline` 说明改 `buildTempisTimeline`；画布轴条目补 `ruix` 同族包 |
+| `packages/vui/docs/timeline.md` | **重写为列表单主题**（`factory.timeline` = 一维事件列表），开头加「列表 vs 二维画布轴」对照表并给插件 README 链接；分层表、属性表去掉 Tempis 列 |
+| `packages/vui/docs/timeline_usage.md` | 「同一调用换成 Tempis」→ 独立入口示例（`ui.use(...)` + `ui.buildTempisTimeline(context, {...})`），删 `timelineAsPlugin` |
+| `packages/vui/docs/vui.md` / `factory.md` | 两行索引与「不要把 Tempis 写进皮肤」那句改成 `buildTempisTimeline` 口径 |
+| `packages/core/docs/ui/ui_four_roles_design.md` | `buildGantt · … · buildTimeline` → 末位换 `buildTempisTimeline`；`gantt/timeline/…` 改「gantt / 排程 / 看板 / 图 / 二维画布轴」；`factory.timeline` / `buildTimeline` 那句拆成列表 / 画布两句 |
+| `packages/core/docs/ui/ui_four_roles_usage.md` | 代码块 `ui.buildTimeline?.(...)` → `ui.buildTempisTimeline?.(...)` + 尾注区分列表与画布 |
+| `packages/rui/docs/rui_plan.md` | `ruix-*` 清单补「首个已落地：`@mmda/ruix-tempis-timeline`」 |
+
+**收口判据**：`grep -rn "buildTimeline\|timelineAsPlugin\|tempisItemsOf" docs packages --include='*.md' --include='*.ts' --include='*.tsx'`（排除本计划文档）→ **零命中**。
 
 ---
 

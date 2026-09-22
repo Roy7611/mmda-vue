@@ -11,7 +11,7 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/playground --filter @mmda/app build",
+    "build": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/ruix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/playground --filter @mmda/app build",
     "dev:vui": "pnpm --filter @mmda/playground dev",
     "dev:vui:agnaive": "pnpm --filter @mmda/playground dev",
     "dev:app": "pnpm --filter @mmda/app dev",
@@ -19,8 +19,8 @@
     "dev:gateway": "node scripts/dev-gateway.mjs",
     "diagrams": "bash scripts/render-diagrams.sh",
     "diagrams:check": "bash scripts/render-diagrams.sh --check",
-    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app test",
-    "typecheck": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app typecheck",
+    "test": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/ruix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app test",
+    "typecheck": "pnpm --filter @mmda/core --filter @mmda/vui --filter @mmda/vuix-echarts --filter @mmda/vuix-vf-diagram --filter @mmda/vuix-hyper-gantt --filter @mmda/vuix-tempis-timeline --filter @mmda/ruix-tempis-timeline --filter @mmda/vuix-fc-scheduler --filter @mmda/vuix-vditor-markdown --filter @mmda/vuix-office --filter @mmda/vuix-svar-kanban --filter @mmda/vui-primevue --filter @mmda/vui-syncfusion --filter @mmda/vui-agnaive --filter @mmda/app typecheck",
     "lint": "prettier -c \"packages/*/src/**/*.{ts,tsx}\"",
     "lint:fix": "prettier -w \"packages/*/src/**/*.{ts,tsx}\""
   },

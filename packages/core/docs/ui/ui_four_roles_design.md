@@ -63,7 +63,7 @@ Entity 路由 / context.select
     → entity page
          many → layoutIndexPage(topbar=buildIndexTopbar, filterBar, default=factory.table|grid|list|treeGrid, footer=factory.paginator)
                  （categoryList → buildExplorer）
-                 （gantt/timeline/… → buildXxxView，插件未装则 throw）
+                 （gantt / 排程 / 看板 / 图 / 二维画布轴 → buildXxxView，插件未装则 throw）
          one  → 扫 metaUi.groups
                   many ? buildSubGroup → factory.grid|treeGrid
                        : buildFieldGroup → builder.editFor / builder.displayFor（内含 layoutField）
@@ -89,7 +89,7 @@ Entity 路由 / context.select
 
 ### Module / 插件页（可选）
 
-`buildGantt` · `buildTimeline` · `buildScheduler` · `buildKanban` · `buildDiagram`
+`buildGantt` · `buildScheduler` · `buildKanban` · `buildDiagram` · `buildTempisTimeline`
 
 - **进 Builder、不进 UiFactory**
 - 未 `setXxxPlugin` 时方法 **throw**（与现有 `GANTT_PLUGIN_NOT_INSTALLED` 同款），不要 silently 空 `div`
@@ -121,7 +121,7 @@ Entity 路由 / context.select
 
 - `buildFieldGroup` 与自定义屏默认 **`render`**
 - **具名 renderer 仍是裸控件**；表格单元格用具名方法，**不要**走这三条（会带标签）
-- **没有** `fieldFactory.timeline`：时间轴走 `factory.timeline` / `buildTimeline`
+- **没有** `fieldFactory.timeline`：列表时间轴走 `factory.timeline`，二维画布轴走 `buildTempisTimeline`
 
 vui 构造 Builder 时 `字段行入口在 Builder（`WithForm` mixin）。
 

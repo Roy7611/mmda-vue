@@ -1,4 +1,5 @@
 /*
+ * React 侧独立一份：rui / ruix 不 import vui / vuix。
  * jsdom 下的 canvas 兜底（**只给测试用**：`vitest.setup.ts` 会装上）。
  *
  * 本机实测的事实：jsdom 里 `canvas.getContext('2d')` 返回 `null`，而

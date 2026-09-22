@@ -15,15 +15,24 @@ factory.timeline({
 })
 ```
 
-换成 Tempis 轴（同一调用）：
+二维画布轴（时间 × 泳道 + 依赖箭头）是**另一个控件**，走 Builder 具名入口，不碰上面的列表调用：
 
 ```ts
 import { createTempisTimelinePlugin } from '@mmda/vuix-tempis-timeline'
 
-ui.use(createTempisTimelinePlugin())
+ui.use(createTempisTimelinePlugin())        // 装插件；未装时 buildTempisTimeline 会 throw
+ui.buildTempisTimeline(context, {           // 契约 UiTempisTimelineProps extends UiTimelineProps
+  items: model.tasks,
+  keyField: 'id',
+  labelField: 'title',
+  startField: 'start',
+  endField: 'end',
+  groupingField: 'team',
+  categories: [{ name: 'plan', label: '计划' }],
+  range: { start: '2026-01-01', end: '2026-02-10' },
+  onReady: (controller) => controller.focus({ id: 'launch' }),
+})
 ```
-
-区间条用 `startField` / `endField`。后装覆盖：再 `ui.use(timelineAsPlugin(skinTimeline))`。
 
 字段：
 

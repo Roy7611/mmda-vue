@@ -597,6 +597,46 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
 
+  packages/ruix-tempis-timeline:
+    dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
+      '@mmda/rui':
+        specifier: workspace:^
+        version: link:../rui
+      '@tempis/timeline':
+        specifier: '*'
+        version: 1.3.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.3.0(@types/react@19.3.0)
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(@noble/hashes@2.2.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@30.0.1(@noble/hashes@2.2.0))(vite@8.2.2(@types/node@20.19.43)(less@4.9.0)(sass@1.103.1))
+
   packages/vui:
     dependencies:
       '@mmda/core':
@@ -2035,7 +2075,6 @@ packages:
 
   '@syncfusion/ej2-cldr-data@31.1.17':
     resolution: {integrity: sha512-izRU0vHr3lxKUfMtd3a+sNK/oMH1vXWU4ycDn1znwdvJQzL8wWbZPxlZWIKLYxjMH0PSHf4E4lwueXhsnvU2ZQ==}
-    bundledDependencies: []
 
   '@syncfusion/ej2-compression@34.2.6':
     resolution: {integrity: sha512-9NvaiQt2EZPy9GHTm9jRB2hGJlC/Q27EO4UdPO4nz+HBFP4TPeClGGclhXm4UxrNSmrYgofBJv2Ffbui2/5o9g==}
