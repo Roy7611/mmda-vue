@@ -779,18 +779,12 @@ export class QualityInspectionItemLogic extends SubEntityLogic<QualityInspection
 				setGroupWatermark(this.group<QualityInspectionItem>('a1'), (grp,
 					ctx,
 					props) => {
-					if (isNullOrUndefined(ctx.model.qualified)) return
-					if (ctx.model.qualified) {
-						return {
-							color: 'success',
-							label: ctx.t('auth.qualified')
-						}
-					} else {
-						return {
-							color: 'danger',
-							label: ctx.t('auth.unqualified')
-						}
-					}
+					// 会话的 model 可能是单条或列表（UiContext.model 是 M | M[]）；这里只关心单条。
+					const item = Array.isArray(ctx.model) ? ctx.model[0] : ctx.model
+					if (!item || isNullOrUndefined(item.qualified)) return
+					return item.qualified
+						? { color: 'success', label: ctx.t('auth.qualified') }
+						: { color: 'danger', label: ctx.t('auth.unqualified') }
 				})
 			)
 		}
@@ -803,18 +797,12 @@ export class QualityInspectionItemLogic extends SubEntityLogic<QualityInspection
 				setGroupWatermark(this.group<QualityInspectionItem>('a1'), (grp,
 					ctx,
 					props) => {
-					if (isNullOrUndefined(ctx.model.qualified)) return
-					if (ctx.model.qualified) {
-						return {
-							color: 'success',
-							label: ctx.t('auth.qualified')
-						}
-					} else {
-						return {
-							color: 'danger',
-							label: ctx.t('auth.unqualified')
-						}
-					}
+					// 会话的 model 可能是单条或列表（UiContext.model 是 M | M[]）；这里只关心单条。
+					const item = Array.isArray(ctx.model) ? ctx.model[0] : ctx.model
+					if (!item || isNullOrUndefined(item.qualified)) return
+					return item.qualified
+						? { color: 'success', label: ctx.t('auth.qualified') }
+						: { color: 'danger', label: ctx.t('auth.unqualified') }
 				})
 			)
 		}

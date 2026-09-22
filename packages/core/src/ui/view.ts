@@ -171,6 +171,7 @@ export interface UiViewProps extends UiProps {
 import type { MmdaApplication } from '../mmda_app'
 import type { UiRenderer } from './renderer'
 import type { UiRouter } from './router'
+import type { UiContext } from './context'
 
 /**
  * 宿主（视图层）交给业务页面视图的依赖。业务页面因此不 import 任何框架：
@@ -191,3 +192,17 @@ export interface UiViewDeps<TNode = unknown> {
  * 泛型 `TNode` 由宿主指定（vui 传 `VNode`），所以业务包不需要知道框架类型。
  */
 export type UiViewFn<TNode = unknown> = (deps: UiViewDeps<TNode>) => TNode
+
+/**
+ * 实体屏（列表 / 详情）自定义页的依赖：在 {@link UiViewDeps} 基础上多一个**该屏的会话** ——
+ * 因为重页面都走 Builder 的会话接口（`builder.buildGantt(context, props)` / `buildScheduler` …）。
+ * 业务包因此不 import 任何框架，也不自己 new 会话。
+ */
+export interface UiScreenViewDeps<TNode = unknown> extends UiViewDeps<TNode> {
+  context: UiContext
+}
+
+/** 实体屏自定义页：给依赖，返回节点。宿主（vui / rui）负责包成自己的组件。 */
+export type UiScreenViewFn<TNode = unknown> = (
+  deps: UiScreenViewDeps<TNode>,
+) => TNode
