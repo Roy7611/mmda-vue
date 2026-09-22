@@ -55,7 +55,7 @@ describe('createVueKanbanPlugin', () => {
       cards: [{ id: 1, title: 'Cut', status: 'todo' }],
       columns: [{ key: 'todo', header: 'To Do' }],
       readonly: true,
-    })
+    } as any)
     expect(vnode.props?.readonly).toBe(true)
     expect(kanbanHookClass(undefined, true)).toContain('mmda-kanban--readonly')
   })

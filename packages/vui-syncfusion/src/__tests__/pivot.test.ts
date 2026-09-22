@@ -26,7 +26,7 @@ describe('createSfPivotPlugin', () => {
     const vnode = plugin.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
-    })
+    } as any)
     expect(
       vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type),
     ).toMatch(/Pivot/i)
@@ -39,7 +39,7 @@ describe('createSfPivotPlugin', () => {
     expect(builder.hasPlugin('pivot-table')).toBe(true)
     const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],
-    })
+    } as any)
     expect(vnode.props?.dataSourceSettings?.values?.[0]?.type).toBe('Sum')
   })
 })

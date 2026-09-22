@@ -11,8 +11,8 @@ import type { Constructor } from "./types";
 
 export function WithSubgroup<TBase extends Constructor>(Base: TBase) {
   return class Subgroup extends Base {
-    /** 组动作缓存；重注册组逻辑时失效。 */
-    private _groupActions: Record<string, UiAction[]> = {};
+    /** 组动作缓存；重注册组逻辑时失效。内部字段（匿名混入类不能 private，否则声明无法发射）。 */
+    _groupActions: Record<string, UiAction[]> = {};
 
     setupGroupLogic(logic: MetaUiGroupLogic<any, any>) {
       delete this._groupActions[logic.group.groupName];

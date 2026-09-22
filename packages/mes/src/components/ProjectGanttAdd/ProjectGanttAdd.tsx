@@ -2,7 +2,8 @@ import { defineComponent, defineProps, ref, Ref, nextTick, reactive, h, onMounte
 import { isRefNone } from '@mmda/core';
 import { useRouter } from 'vue-router';
 import {UiViewOne} from '@mmda/core'
-import { label } from '@mmda/vui'import { get } from 'http';
+import { label } from '@mmda/vui';
+import { get } from 'http';
 import { build } from 'vite';
 import '@/compat/animate.min.css';
 import { emit } from 'process';

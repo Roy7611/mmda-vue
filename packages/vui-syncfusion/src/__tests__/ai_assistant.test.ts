@@ -13,7 +13,7 @@ describe('createSfAiAssistantPlugin', () => {
       prompt: '总结',
       responseMode: 'popup',
       popupWidth: 500,
-    })
+    } as any)
     expect(vnode.props?.relateTo).toBe('#summarizeBtn')
     expect(vnode.props?.prompt).toBe('总结')
     expect(vnode.props?.responseMode).toBe('popup')
@@ -40,7 +40,7 @@ describe('createSfAiAssistantPlugin', () => {
     const vnode = builder.plugin('ai-assistant')!.buildUi({} as any, {
       relateTo: '#btn',
       prompt: 'hi',
-    })
+    } as any)
     expect(vnode.props?.relateTo).toBe('#btn')
   })
 })

@@ -33,7 +33,7 @@ describe.skip('createSfRibbonPlugin', () => {
           groups: [{ collections: [{ items: [] }] }],
         },
       ],
-    })
+    } as any)
     expect(vnode.props?.tabs?.[0]?.header).toBe('Home')
     expect(
       vnode.props?.tabs?.[0]?.groups?.[0]?.collections?.[0]?.items?.[0]?.type,

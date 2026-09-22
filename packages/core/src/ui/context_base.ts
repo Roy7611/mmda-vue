@@ -6,46 +6,48 @@
  *
  * 桥接方法（protected abstract）：子类告诉基类怎么"通知 UI 重绘"和"取原始对象"。
  */
+// core 内部用相对路径；自引用 @mmda/core 会让库构建无法解析。
 import {
-  defaultFieldSearchOptions,
-  defaultChoicePager,
-  pagedListIsComplete,
   defineGroupValidation,
   defineValidation,
-  isPagedList,
-  isPromise,
-  MetaModel,
   validateFieldResult,
-  type Entity,
-  type EntityAction,
-  type EntityLogic,
-  type EntitySearchParam,
-  type EntitySelectParam,
-  type FieldSearchOptions,
   type FieldValidation,
-  type MetaUi,
-  type MetaUiField,
-  MetaUiFieldLogic,
-  type MetaUiGroup,
-  type MetaUiGroupLogic,
-  type SubGroupItemTransformParam,
-  type UiSubGroupView,
-  type Translatable,
-  type TranslateFn,
-  type UiContext,
-  UiViewMany,
-  UiViewOne,
-  type UiViewType,
   type Validation,
-  type RxFactory,
-  type Ref,
-  type RxWatchSource,
-  type UiRouter,
-  type Module,
-  type ModuleAuth,
-} from '@mmda/core'
-
-import type { PagedList, Pager, Pagination } from '@mmda/core'
+} from '../logic/validation'
+import { isPromise } from '../utils/is'
+import { MetaModel, type SubGroupItemTransformParam } from '../models/metamodel'
+import {
+  defaultFieldSearchOptions,
+  type FieldSearchOptions,
+} from '../logic/field_search_options'
+import { MetaUiFieldLogic } from '../logic/field_logic'
+import { MetaUiGroupLogic } from '../logic/group_logic'
+import type { EntityLogic } from '../logic/entity_logic'
+import {
+  defaultChoicePager,
+  isPagedList,
+  pagedListIsComplete,
+  type PagedList,
+  type Pager,
+  type Pagination,
+} from '../models/pagination'
+import type { Entity } from '../models/entity'
+import type { EntityAction } from '../models/entity_action'
+import type {
+  EntitySearchParam,
+  EntitySelectParam,
+} from '../models/entity_search'
+import type {
+  MetaUiField,
+  Translatable,
+  TranslateFn,
+} from '../metaui/metaui_field'
+import type { MetaUi, MetaUiGroup } from '../metaui/metaui_group'
+import type { Module, ModuleAuth } from '../metaui/module'
+import type { UiContext, UiSubGroupView } from './context'
+import { UiViewMany, UiViewOne, type UiViewType } from './view'
+import type { Ref, RxFactory, RxWatchSource } from './rx'
+import type { UiRouter } from './router'
 
 // ——— helpers ——————————————————————————————————>
 

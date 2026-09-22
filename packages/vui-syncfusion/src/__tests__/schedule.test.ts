@@ -46,7 +46,7 @@ describe('createSfSchedulerPlugin', () => {
       showNowIndicator: true,
       minDate: '2026-01-01',
       allowOverlap: false,
-    })
+    } as any)
     expect(vnode.props?.events?.[0].title).toBe('Cut')
     expect(vnode.props?.view).toBe('week')
     expect(vnode.props?.readonly).toBe(true)

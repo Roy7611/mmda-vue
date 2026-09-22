@@ -48,7 +48,7 @@ import {
   echartsSunburstOptionOf,
   echartsTreeMapOptionOf,
 } from './echarts_option'
-import { uiRenderProps } from '@mmda/core'
+import { uiRenderProps, type UiProps } from '@mmda/core'
 
 const EchartsHost = defineComponent({
   name: 'MmdaEcharts',
@@ -126,7 +126,7 @@ function renderGauge(props: UiCircularGaugeProps) {
   })
 }
 
-function restOf(props: Record<string, unknown>) {
+function restOf(props: object) {
   const {
     htmlAttributes: _h,
     class: className,
@@ -163,17 +163,18 @@ function restOf(props: Record<string, unknown>) {
     ranges: _ranges,
     value: _value,
     ...rest
-  } = props
+  } = props as Record<string, unknown>
   return { className, rest }
 }
 
 function renderHost(
   kind: UiChartHookKind,
   option: Record<string, unknown>,
-  props: { width?: string | number; height?: string | number } & Record<
-    string,
-    unknown
-  >,
+  props: UiProps & {
+    width?: string | number
+    height?: string | number
+    data?: unknown
+  },
 ) {
   const { className, rest } = restOf(props)
   return h(EchartsHost, {
@@ -187,7 +188,7 @@ function renderHost(
 }
 
 function renderHeatMap(props: UiHeatMapProps) {
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,
@@ -199,7 +200,7 @@ function renderHeatMap(props: UiHeatMapProps) {
 
 function renderGeoHeatMap(props: UiGeoHeatMapProps) {
   const { option, registerMap } = echartsGeoHeatMapOptionOf(props)
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,
@@ -211,7 +212,7 @@ function renderGeoHeatMap(props: UiGeoHeatMapProps) {
 }
 
 function renderCalendarHeatMap(props: UiCalendarHeatMapProps) {
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,
@@ -222,7 +223,7 @@ function renderCalendarHeatMap(props: UiCalendarHeatMapProps) {
 }
 
 function renderSankey(props: UiSankeyProps) {
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,
@@ -234,7 +235,7 @@ function renderSankey(props: UiSankeyProps) {
 }
 
 function renderStockChart(props: UiStockChartProps) {
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,
@@ -246,7 +247,7 @@ function renderStockChart(props: UiStockChartProps) {
 }
 
 function renderTreeMap(props: UiTreeMapProps) {
-  const { className, rest } = restOf(props as Record<string, unknown>)
+  const { className, rest } = restOf(props)
   return h(EchartsHost, {
     ...rest,
     ...uiRenderProps(props).attributes,

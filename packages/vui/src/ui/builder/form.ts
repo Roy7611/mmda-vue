@@ -28,7 +28,7 @@ import {
 } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
 
-interface GroupShellProps extends UiProps {
+export interface GroupShellProps extends UiProps {
   container?: 'card' | 'fieldset' | 'tab' | 'none'
   region?: string
   many?: boolean
@@ -39,7 +39,7 @@ interface GroupShellProps extends UiProps {
   caption?: string | VNode
 }
 
-interface BuildGroupProps extends UiProps {
+export interface BuildGroupProps extends UiProps {
   orientation?: 'vertical' | 'horizontal' | 'row' | 'column'
   direction?: 'vertical' | 'horizontal' | 'row' | 'column'
   cols?: number

@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@mmda/vuix-vditor-markdown",
   "description": "Vditor plugin for MMDA Vue UiMarkdownEditorPlugin",
   "author": "www.mmda.cloud",
@@ -24,6 +24,7 @@
     "typecheck": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.vitest.json --noEmit && tsc -p tsconfig.node.json --noEmit"
   },
   "dependencies": {
+    "@mmda/core": "workspace:^",
     "@mmda/vui": "workspace:^",
     "vditor": "^3.11.2"
   },

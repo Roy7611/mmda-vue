@@ -101,7 +101,7 @@ describe('vui-agnaive skin', () => {
         colorRole: 'warning',
         onAction: () => undefined,
       },
-      (k: string) => k,
+      (k) => String(k),
       false,
       { size: 'small' },
     )
@@ -376,7 +376,7 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.toolbar(
       { class: 'skin' },
-      { default: () => 'S' },
+      { default: () => 'S' } as any,
     )
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -390,7 +390,7 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     const vnode = factory.toolbar(
       { disabled: true },
-      { start: () => 'L', end: () => 'R' },
+      { start: () => 'L', end: () => 'R' } as any,
     )
     expect(vnode.props?.['aria-disabled']).toBe('true')
     const cls = Array.isArray(vnode.props?.class)
@@ -505,7 +505,7 @@ describe('vui-agnaive skin', () => {
     const vnode = factory.signaturePad({
       value: '',
     })
-    expect(vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type)).toMatch(
+    expect((vnode.type as any)?.name ?? (vnode.type as any)?.__name ?? String(vnode.type)).toMatch(
       /Signature/,
     )
     const cls = Array.isArray(vnode.props?.class)
@@ -548,7 +548,7 @@ describe('vui-agnaive skin', () => {
     const vnode = factory.loading({ label: '加载中', size: 'small' })
     expect(vnode.props?.size).toBe('small')
     expect(vnode.props?.description).toBe('加载中')
-    expect(String(vnode.type?.name ?? vnode.type?.__name ?? vnode.type)).toMatch(
+    expect(String((vnode.type as any)?.name ?? (vnode.type as any)?.__name ?? vnode.type)).toMatch(
       /Spin/i,
     )
     const cls = Array.isArray(vnode.props?.class)
@@ -561,7 +561,7 @@ describe('vui-agnaive skin', () => {
     const factory = createAgNaiveUiFactory()
     expect(factory.error).toBeTypeOf('function')
     const vnode = factory.error!({ description: 'down' })
-    expect(String(vnode.type?.name ?? vnode.type?.__name ?? vnode.type)).toMatch(
+    expect(String((vnode.type as any)?.name ?? (vnode.type as any)?.__name ?? vnode.type)).toMatch(
       /ErrorRetry/,
     )
   })
@@ -572,7 +572,7 @@ describe('vui-agnaive skin', () => {
       data: [{ id: '1', label: '根' }],
       selectionMode: 'checkbox',
     })
-    expect(vnode.type?.name ?? vnode.type?.__name).toBe('NaiveTree')
+    expect((vnode.type as any)?.name ?? (vnode.type as any)?.__name).toBe('NaiveTree')
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
@@ -686,7 +686,7 @@ describe('vui-agnaive skin', () => {
   it('maps factory.tagAutoComplete tag select', () => {
     const factory = createAgNaiveUiFactory()
     const onUpdate = vi.fn()
-    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a'], onUpdate })
+    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a'], onUpdate } as any)
     expect(vnode.props?.tag).toBe(true)
     expect(vnode.props?.multiple).toBe(true)
     vnode.props?.['onUpdate:value']?.(['a', 'b'])
@@ -970,7 +970,7 @@ describe('vui-agnaive skin', () => {
     })
     expect(vnode.props?.menuProps?.target).toBe('#editor')
     expect(vnode.props?.menuProps?.items?.[0]?.label).toBe('剪切')
-    expect(String(vnode.type?.name ?? vnode.type)).toMatch(/ContextMenu/)
+    expect(String((vnode.type as any)?.name ?? vnode.type)).toMatch(/ContextMenu/)
   })
 
   it('renders fields.tags from comma-separated text', () => {
@@ -1034,7 +1034,7 @@ describe('vui-agnaive skin', () => {
         ],
       },
     )
-    expect(String(group.type?.name ?? group.type)).toMatch(/ButtonGroup/)
+    expect(String((group.type as any)?.name ?? group.type)).toMatch(/ButtonGroup/)
     const select = factory.selectButtonGroup({
       modelValue: 'a',
       options: [
@@ -1042,7 +1042,7 @@ describe('vui-agnaive skin', () => {
         { label: 'B', value: 'b' },
       ],
     })
-    expect(String(select.type?.name ?? select.type)).toMatch(/ButtonGroup/)
+    expect(String((select.type as any)?.name ?? select.type)).toMatch(/ButtonGroup/)
     expect(select.type).not.toBeUndefined()
   })
 

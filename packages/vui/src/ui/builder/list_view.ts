@@ -89,7 +89,7 @@ export type VuiListViewPropsType<T> = VuiListViewProps<T> &
   VuiListViewEmits<T> &
   VuiListViewSlots<T>;
 
-interface TableCellProps extends UiProps {
+export interface TableCellProps extends UiProps {
   row?: any
   isTree?: boolean
   isSearch?: boolean

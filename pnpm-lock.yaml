@@ -268,12 +268,6 @@ importers:
       '@syncfusion/ej2-vue-splitbuttons':
         specifier: 34.2.2
         version: 34.2.2
-      '@vue-office/docx':
-        specifier: ^1.6.3
-        version: 1.6.3(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
-      '@vue-office/excel':
-        specifier: ^1.7.14
-        version: 1.7.14(vue-demi@0.14.10(vue@3.5.41(typescript@5.9.3)))(vue@3.5.41(typescript@5.9.3))
       bpmn-js:
         specifier: ^18.25.1
         version: 18.25.1
@@ -1060,6 +1054,9 @@ importers:
 
   packages/vuix-echarts:
     dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
@@ -1223,6 +1220,9 @@ importers:
 
   packages/vuix-svar-kanban:
     dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
@@ -1291,6 +1291,9 @@ importers:
 
   packages/vuix-vditor-markdown:
     dependencies:
+      '@mmda/core':
+        specifier: workspace:^
+        version: link:../core
       '@mmda/vui':
         specifier: workspace:^
         version: link:../vui
@@ -2075,6 +2078,7 @@ packages:
 
   '@syncfusion/ej2-cldr-data@31.1.17':
     resolution: {integrity: sha512-izRU0vHr3lxKUfMtd3a+sNK/oMH1vXWU4ycDn1znwdvJQzL8wWbZPxlZWIKLYxjMH0PSHf4E4lwueXhsnvU2ZQ==}
+    bundledDependencies: []
 
   '@syncfusion/ej2-compression@34.2.6':
     resolution: {integrity: sha512-9NvaiQt2EZPy9GHTm9jRB2hGJlC/Q27EO4UdPO4nz+HBFP4TPeClGGclhXm4UxrNSmrYgofBJv2Ffbui2/5o9g==}
@@ -2183,6 +2187,7 @@ packages:
 
   '@syncfusion/ej2-locale@34.2.2':
     resolution: {integrity: sha512-cnR/0Kx5J2aNALmd2Oq3boK8we2Rs2a0WmzJL3F/DoHHuPra1+YLQeLts1zVOGBhJ4naPk1la8mLtn/BZbHMaw==}
+    bundledDependencies: []
 
   '@syncfusion/ej2-maps@34.2.2':
     resolution: {integrity: sha512-oKBg8jvTc5/QBIIz8AZdP2dFgESQFnNSPXW7MV0IABJBxZ1WH4t0EuklqNMIFhu+01FVvHx3RGChymnLoI+IRA==}

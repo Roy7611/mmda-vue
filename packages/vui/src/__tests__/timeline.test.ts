@@ -40,8 +40,8 @@ describe('timeline helpers', () => {
     expect(items[0].timeText).toMatch(/day/i)
     expect(items[0].time).toBe(rows[0].occurredAt)
     // 起止归 Tempis 契约：列表行不再解析 start / end。
-    expect(items[0].start).toBeUndefined()
-    expect(items[0].end).toBeUndefined()
+    expect((items[0] as Record<string, unknown>).start).toBeUndefined()
+    expect((items[0] as Record<string, unknown>).end).toBeUndefined()
   })
 
   it('uses field array as items', () => {

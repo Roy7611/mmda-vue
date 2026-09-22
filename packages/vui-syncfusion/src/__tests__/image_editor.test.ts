@@ -7,7 +7,7 @@ describe('createSfImageEditorPlugin', () => {
     const vnode = plugin.buildUi({} as any, {
       src: '/photo.png',
       readonly: true,
-    })
+    } as any)
     expect(vnode.props?.src).toBe('/photo.png')
     expect(vnode.props?.readonly).toBe(true)
   })

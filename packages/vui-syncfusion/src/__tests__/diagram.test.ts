@@ -33,7 +33,7 @@ describe('createSfDiagramEditorPlugin', () => {
       diagramType: 'workflow',
       readonly: true,
       nodes: [{ id: 'a', text: 'A' }],
-    })
+    } as any)
     expect(vnode.props?.diagramType).toBe('workflow')
     expect(vnode.props?.readonly).toBe(true)
   })

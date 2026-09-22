@@ -169,7 +169,7 @@ export function createVueDiagramPlugin(): UiPlugin {
         ...(props as UiDiagramProps),
         readonly: diagramReadonlyOf(
           props as UiDiagramProps,
-          String(context?.view ?? ''),
+          String((context as any)?.view ?? ''),
         ),
       }
       return h(VueFlowDiagramView, next as any)

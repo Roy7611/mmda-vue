@@ -26,7 +26,7 @@ describe('createSfGanttPlugin', () => {
     const vnode = plugin.buildUi({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],
       readonly: true,
-    })
+    } as any)
     expect(vnode.props?.tasks).toEqual([{ id: 1, name: 'Cut' }])
     expect(vnode.props?.readonly).toBe(true)
   })

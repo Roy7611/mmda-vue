@@ -17,7 +17,7 @@ export interface UiTabItem<TNode = any> {
   /** 稳定唯一名（组页签用 groupName）；作 SF content 槽名与 Vue key */
   name?: string
   header: string | UiTabHeader
-  content?: TNode | (() => TNode)
+  content?: TNode | string | (() => TNode)
   disabled?: boolean
 }
 

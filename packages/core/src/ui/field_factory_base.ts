@@ -1,47 +1,58 @@
+// core 内部用相对路径；自引用 @mmda/core 会让库构建无法解析。
+import { SqlDataType } from '../metaui/datatype'
+import type { MetaUiField } from '../metaui/metaui_field'
+import type { UiContext } from './context'
+import type { UiFieldRenderer } from './field_factory'
+import type { UiFactory } from './factory'
 import {
-  SqlDataType,
   autoCompleteBindValue,
   autoCompletePropsFromField,
-  avatarPropsFromField,
+  routeAutoCompleteField,
+} from './factory/autocomplete'
+import { avatarPropsFromField } from './factory/avatar'
+import {
   bitCheckBoxListPropsFromField,
-  bitChipSetPropsFromField,
   checkBoxListPropsFromField,
-  checkBoxPropsFromField,
+} from './factory/check_box_list'
+import { checkBoxPropsFromField } from './factory/checkbox'
+import {
+  bitChipSetPropsFromField,
   chipsPropsFromField,
-  colorPickerPropsFromField,
-  comboBoxPropsFromField,
-  datePickerPropsFromField,
-  dateRangePickerPropsFromField,
-  dateTimePickerPropsFromField,
-  dropDownListPropsFromField,
   enumChipSetPropsFromField,
-  maskedTextBoxPropsFromField,
+} from './factory/chips'
+import { colorPickerPropsFromField } from './factory/color_picker'
+import { comboBoxPropsFromField } from './factory/combo_box'
+import {
+  datePickerPropsFromField,
   monthPickerPropsFromField,
+} from './factory/date_picker'
+import { dateRangePickerPropsFromField } from './factory/date_range_picker'
+import { dateTimePickerPropsFromField } from './factory/date_time_picker'
+import { dropDownListPropsFromField } from './factory/drop_down_list'
+import {
+  MOBILE_MASK,
+  ZIP_MASK,
+  maskedTextBoxPropsFromField,
+} from './factory/masked_text_box'
+import {
   multiBitSelectPropsFromField,
   multiItemSelectPropsFromField,
   multiSelectPropsFromField,
   multiTextSelectPropsFromField,
   multiValueSelectPropsFromField,
-  numberInputPropsFromField,
-  oneTimePasswordPropsFromField,
-  progressBarPropsFromField,
-  radioButtonGroupPropsFromField,
-  ratingPropsFromField,
-  routeAutoCompleteField,
-  sliderPropsFromField,
-  switchPropsFromField,
-  tagAutoCompletePropsFromField,
-  textAreaPropsFromField,
-  textInputPropsFromField,
-  timePickerPropsFromField,
-  treeSelectPropsFromField,
-  MOBILE_MASK,
-  ZIP_MASK,
-  type MetaUiField,
-  type UiContext,
-  type UiFieldRenderer,
-} from '@mmda/core'
-import type { UiFactory } from './factory'
+} from './factory/multi_select'
+import { numberInputPropsFromField } from './factory/number_input'
+import { oneTimePasswordPropsFromField } from './factory/one_time_password_input'
+import { progressBarPropsFromField } from './factory/progress_bar'
+import { radioButtonGroupPropsFromField } from './factory/radio_button_group'
+import { ratingPropsFromField } from './factory/rating'
+import { sliderPropsFromField } from './factory/slider'
+import { switchPropsFromField } from './factory/switch'
+import { tagAutoCompletePropsFromField } from './factory/tag_auto_complete'
+import { textAreaPropsFromField } from './factory/text_area'
+import { textInputPropsFromField } from './factory/text_input'
+import { timePickerPropsFromField } from './factory/time_picker'
+import { treeSelectPropsFromField } from './factory/tree_select'
 
 /**
  * 字段工厂抽象基类：字段名 → 控件工厂的映射表。

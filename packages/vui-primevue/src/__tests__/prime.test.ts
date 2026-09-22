@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
+import { DateRangeKind, MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, pageLayoutMenuItems } from '@mmda/vui'
 import { PrimeVuiBuilder } from '../prime_builder'
 import { createPrimeVueFieldFactory } from '../prime_field_factory'
@@ -40,9 +40,9 @@ describe('PrimeVue skin', () => {
       showIcon: true,
       allowDragDrop: true,
     })
-    expect(tree.props.selectionMode).toBe('checkbox')
-    expect(tree.props.showIcon).toBe(true)
-    expect(tree.props.allowDragDrop).toBe(true)
+    expect(tree.props!.selectionMode).toBe('checkbox')
+    expect(tree.props!.showIcon).toBe(true)
+    expect(tree.props!.allowDragDrop).toBe(true)
     expect(factory.resolveIcon('save')).toBe('pi pi-check')
     expect(factory.inplaceEditor).toBeTypeOf('function')
     expect(factory.nativeInplaceEdit).toBe(true)
@@ -338,30 +338,30 @@ describe('PrimeVue skin', () => {
     const factory = createPrimeVuiFactory()
     const vnode = factory.toolbar(
       { class: 'skin' },
-      { default: () => 'S' },
+      { default: () => 'S' } as any,
     )
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-toolbar')
-    expect(vnode.children.start()).toBe('S')
-    expect(vnode.children.center).toBeUndefined()
+    expect((vnode.children as any).start()).toBe('S')
+    expect((vnode.children as any).center).toBeUndefined()
   })
 
   it('maps factory.toolbar start/end onto Prime slots', () => {
     const factory = createPrimeVuiFactory()
     const vnode = factory.toolbar(
       { disabled: true },
-      { start: () => 'L', end: () => 'R' },
+      { start: () => 'L', end: () => 'R' } as any,
     )
     expect(vnode.props?.['aria-disabled']).toBe('true')
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-toolbar--disabled')
-    expect(vnode.children.start()).toBe('L')
-    expect(vnode.children.end()).toBe('R')
-    expect(vnode.children.center).toBeUndefined()
+    expect((vnode.children as any).start()).toBe('L')
+    expect((vnode.children as any).end()).toBe('R')
+    expect((vnode.children as any).center).toBeUndefined()
   })
 
   it('maps factory.splitter orientation to Prime layout', () => {
@@ -463,7 +463,7 @@ describe('PrimeVue skin', () => {
       value: '',
       readOnly: true,
     })
-    expect(vnode.type?.name ?? vnode.type?.__name ?? String(vnode.type)).toMatch(
+    expect((vnode.type as any)?.name ?? (vnode.type as any)?.__name ?? String(vnode.type)).toMatch(
       /Signature/,
     )
     const cls = Array.isArray(vnode.props?.class)
@@ -509,7 +509,7 @@ describe('PrimeVue skin', () => {
       : String(vnode.props?.class ?? '')
     expect(cls).toContain('mmda-loading')
     expect(vnode.props?.['aria-busy']).toBe('true')
-    const child = vnode.children?.[0] as any
+    const child = (vnode.children as any)?.[0]
     expect(
       String(child?.type?.name ?? child?.type?.__name ?? child?.type),
     ).toMatch(/ProgressSpinner/i)
@@ -521,7 +521,7 @@ describe('PrimeVue skin', () => {
       data: [{ id: '1', label: '根' }],
       selectionMode: 'checkbox',
     })
-    expect(vnode.type?.name ?? vnode.type?.__name).toBe('PrimeTree')
+    expect((vnode.type as any)?.name ?? (vnode.type as any)?.__name).toBe('PrimeTree')
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
       : String(vnode.props?.class ?? '')
@@ -558,8 +558,8 @@ describe('PrimeVue skin', () => {
     expect(cls).toContain('mmda-radiobuttongroup')
     const labels = Array.isArray(vnode.children) ? vnode.children : []
     expect(labels.length).toBe(2)
-    const radios = labels.map((label) =>
-      Array.isArray(label.children) ? label.children[0] : label.children,
+    const radios = labels.map((label: any) =>
+      Array.isArray(label?.children) ? label.children[0] : label?.children,
     )
     expect(radios[0].props?.name).toBe('kind')
     expect(radios[0].props?.value).toBe('a')
@@ -642,7 +642,7 @@ describe('PrimeVue skin', () => {
   it('maps factory.tagAutoComplete multiple AutoComplete', () => {
     const factory = createPrimeVuiFactory()
     const onUpdate = vi.fn()
-    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a', 'b'], onUpdate })
+    const vnode = factory.tagAutoComplete({ value: 'a', options: ['a', 'b'], onUpdate } as any)
     expect(vnode.props?.multiple).toBe(true)
     vnode.props?.['onUpdate:modelValue']?.(['a', 'b'])
     expect(onUpdate).toHaveBeenCalledWith('a,b')
@@ -745,16 +745,16 @@ describe('PrimeVue skin', () => {
         default: () => [
           builder.factory.actionButton(
             { name: 'refresh', label: 'Refresh', onAction: () => undefined },
-            key => key,
+            (key) => String(key),
           ),
           builder.factory.actionButton(
             { name: 'create', label: 'Create', onAction: () => undefined },
-            key => key,
+            (key) => String(key),
           ),
         ],
       },
     )
-    expect(group.type?.name ?? group.type).toBe('ButtonGroup')
+    expect((group.type as any)?.name ?? group.type).toBe('ButtonGroup')
     expect(group.props?.class).toContain('mmda-button-group')
   })
 
@@ -769,7 +769,7 @@ describe('PrimeVue skin', () => {
       optionLabel: 'label',
       optionValue: 'value',
     })
-    expect(group.type?.name ?? group.type).toBe('SelectButton')
+    expect((group.type as any)?.name ?? group.type).toBe('SelectButton')
     expect(group.props?.multiple).not.toBe(true)
     const multi = builder.factory.selectButtonGroup({
       modelValue: ['left'],
@@ -828,7 +828,7 @@ describe('PrimeVue skin', () => {
                 moduleLabel: '部门',
                 moduleType: 'FEATURE',
                 moduleVersion: ModuleVersion.TEAM,
-                allowOps: 7,
+                allowOps: 7 as ModuleOp,
                 moduleUrl: '/BASE/Departments',
                 requiredCreateParam: false,
                 status: ModuleStatus.RELEASED,
@@ -1199,7 +1199,7 @@ describe('prime column filter join/multi', () => {
       operator: 'WITHIN',
       value: 'TODAY',
     })
-    state.dateKind = 'YESTERDAY'
+    state.dateKind = DateRangeKind.YESTERDAY
     expect(applyPrimeColumnFilter(field, state)).toEqual({
       filterType: 'date',
       operator: 'WITHIN',

@@ -25,7 +25,7 @@ describe('createAgPivotPlugin', () => {
     const vnode = plugin.buildUi({} as any, {
       rows: [{ name: 'country' }],
       values: [{ name: 'amount', aggregate: 'sum' }],
-    })
+    } as any)
     expect(vnode.props?.pivotMode).toBe(true)
     expect(vnode.props?.columnDefs?.find((col: any) => col.field === 'amount')?.aggFunc).toBe(
       'sum',
@@ -41,7 +41,7 @@ describe('createAgPivotPlugin', () => {
     expect(builder.hasPlugin('pivot-table')).toBe(true)
     const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],
-    })
+    } as any)
     expect(vnode.props?.pivotMode).toBe(true)
   })
 })

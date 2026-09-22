@@ -83,6 +83,6 @@ describe('AppSideMenu', () => {
       expand: false,
     })
     expect(vnode.props?.item).toBeUndefined()
-    expect(vnode.children?.item).toBe(item)
+    expect((vnode.children as any)?.item).toBe(item)
   })
 })
