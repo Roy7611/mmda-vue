@@ -1,5 +1,5 @@
 import type { Component, InjectionKey, VNode } from 'vue'
-import type { UiScreenViewFn } from '@mmda/core'
+import type { UiEntityViewFn } from '@mmda/core'
 import type { RouteRecordRaw } from 'vue-router'
 import type { MmdaApplication, EntityLogic } from '@mmda/vui'
 
@@ -14,8 +14,8 @@ export interface AppPlugin {
   routes?: RouteRecordRaw[]
   /** 老的实体屏自定义页（Vue 组件，待搬迁）。 */
   resolveCustomView?: (repository: string) => Component | undefined
-  /** 实体屏自定义页（**框架无关**）：业务包给 `UiScreenViewFn`，宿主包成组件。优先于上面那个。 */
-  resolveScreenView?: (repository: string) => UiScreenViewFn<VNode> | undefined
+  /** 实体屏自定义页（**框架无关**）：业务包给 `UiEntityViewFn`，宿主包成组件。优先于上面那个。 */
+  resolveEntityView?: (repository: string) => UiEntityViewFn<VNode> | undefined
 }
 
 export class AppPluginRegistry {
@@ -64,8 +64,8 @@ export class AppPluginRegistry {
   }
 
   /** 插件声明的框架无关自定义页（优先于 `customView`）。 */
-  screenView(path: string, repository: string) {
-    return this.resolve(path)?.resolveScreenView?.(repository)
+  entityView(path: string, repository: string) {
+    return this.resolve(path)?.resolveEntityView?.(repository)
   }
 }
 

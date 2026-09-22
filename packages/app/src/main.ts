@@ -3,7 +3,6 @@ import { MmdaVueApp, setupI18n } from "@mmda/vui";
 import { SfUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
 import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
 import { createOfficePlugin } from "@mmda/vuix-office";
-import { createHyperGanttPlugin } from "@mmda/vuix-hyper-gantt";
 import baseZh from "@mmda/base/src/locales/zh";
 import baseEn from "@mmda/base/src/locales/en";
 import baseZhHant from "@mmda/base/src/locales/zh-Hant";
@@ -29,7 +28,6 @@ const builder = new SfUiBuilder();
 builder.use(createMarkdownEditorPlugin());
 builder.use(createOfficePlugin());
 // 框架的甘特接口（builder.buildGantt）由这个插件提供；MES 的排产屏走它。
-builder.use(createHyperGanttPlugin());
 const mmda = new MmdaVueApp(
   import.meta.env.VITE_BASE_API || "/api",
   "base",

@@ -2,15 +2,15 @@
  * 「业务中性视图 → Vue 组件」的适配层（vui = Vue 运行时，所以放这里）。
  *
  * 业务包（base / mes / 其它插件包）只 import `@mmda/core`：页面写成 `UiViewFn` /
- * `UiScreenViewFn`，由这里一次性把依赖装配好（壳 / 渲染器 / 路由 / 该屏会话），
- * 业务侧不写响应式代码、也不 import 路由库。
+ * `UiEntityViewFn`，由这里一次性把宿主能力装配好（壳渲染 / 路由），业务侧不写响应式
+ * 代码、也不 import 路由库。
  */
 import { defineComponent, h, inject, type Component, type VNode } from 'vue'
 import { useRouter } from 'vue-router'
 import type {
+  UiContext,
+  UiEntityViewFn,
   UiNodeProps,
-  UiScreenViewDeps,
-  UiScreenViewFn,
   UiViewDeps,
   UiViewFn,
 } from '@mmda/core'
@@ -45,6 +45,23 @@ function shell(rendered: VNode, push: (path: string) => void): VNode {
   )
 }
 
+/** 视图要的宿主能力：壳渲染 + 路由（业务不 import vue-router，也不自己造节点）。 */
+function viewDeps(app: MmdaVueApp, router: ReturnType<typeof useRouter>): UiViewDeps<VNode> {
+  return {
+    app,
+    render: (tag, props, children) =>
+      app.ui.layout.render(
+        tag,
+        (props ?? {}) as UiNodeProps,
+        (children ?? []) as VNode[],
+      ),
+    router: {
+      push: (path) => void router.push(path),
+      resolve: (path) => router.resolve(path).href,
+    },
+  }
+}
+
 /**
  * 页面级视图（模块首页 / 占位页这类非实体屏）→ Vue 组件。
  * 返回值在 Vue 的渲染 effect 里跑，所以视图里读 `app.state.*` 一样会被追踪。
@@ -55,55 +72,27 @@ export function hostedView(view: UiViewFn<VNode>): Component {
     setup() {
       const app = inject(UI_APP_KEY) as MmdaVueApp
       const router = useRouter()
-      const deps: UiViewDeps<VNode> = {
-        app,
-        render: (tag, props, children) =>
-          app.ui.layout.render(
-            tag,
-            (props ?? {}) as UiNodeProps,
-            (children ?? []) as VNode[],
-          ),
-        router: {
-          push: (path) => void router.push(path),
-          resolve: (path) => router.resolve(path).href,
-        },
-      }
-      return () => shell(view(deps), (path) => void router.push(path))
+      const deps = viewDeps(app, router)
+      return () => shell(view(deps), deps.router.push)
     },
   })
 }
 
 /**
  * 实体屏自定义页（列表 / 详情）→ Vue 组件。
- * 比 {@link hostedView} 多一个 `ctx` prop：该屏的会话由宿主传进来（重页面都走
- * `builder.buildGantt(context, props)` 这类会话接口）。
+ * 比 {@link hostedView} 多一个 `ctx` prop：该屏会话由宿主传进来，重页面靠它调
+ * `context.uiBuilder.buildGantt(context, props)` 这类会话接口。
  */
-export function hostedScreenView(
-  view: UiScreenViewFn<VNode>,
-): Component {
+export function hostedEntityView(view: UiEntityViewFn<VNode>): Component {
   return defineComponent({
-    name: 'MmdaHostedScreenView',
+    name: 'MmdaHostedEntityView',
     props: { ctx: { type: Object, required: true } },
     setup(props) {
       const app = inject(UI_APP_KEY) as MmdaVueApp
       const router = useRouter()
-      return () => {
-        const deps: UiScreenViewDeps<VNode> = {
-          app,
-          context: props.ctx as UiScreenViewDeps<VNode>['context'],
-          render: (tag, props2, children) =>
-            app.ui.layout.render(
-              tag,
-              (props2 ?? {}) as UiNodeProps,
-              (children ?? []) as VNode[],
-            ),
-          router: {
-            push: (path) => void router.push(path),
-            resolve: (path) => router.resolve(path).href,
-          },
-        }
-        return shell(view(deps), (path) => void router.push(path))
-      }
+      const deps = viewDeps(app, router)
+      return () =>
+        shell(view(props.ctx as UiContext, deps), deps.router.push)
     },
   })
 }

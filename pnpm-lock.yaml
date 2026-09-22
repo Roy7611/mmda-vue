@@ -47,9 +47,6 @@ importers:
       '@mmda/vui-syncfusion':
         specifier: workspace:^
         version: link:../vui-syncfusion
-      '@mmda/vuix-hyper-gantt':
-        specifier: workspace:^
-        version: link:../vuix-hyper-gantt
       '@mmda/vuix-office':
         specifier: workspace:^
         version: link:../vuix-office

@@ -11,8 +11,8 @@ export const EntityView = createEntityView({
   resolveCustomView: (repository, service) =>
     appPluginRegistry.get(service)?.resolveCustomView?.(repository),
   // 框架无关的自定义页优先（业务包只 import core）。
-  resolveScreenView: (repository, service) =>
-    appPluginRegistry.get(service)?.resolveScreenView?.(repository),
+  resolveEntityView: (repository, service) =>
+    appPluginRegistry.get(service)?.resolveEntityView?.(repository),
   // Registered plugin logic is resolved from the host DI before this fallback.
   createLogic: () => undefined,
 })

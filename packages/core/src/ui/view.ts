@@ -192,17 +192,14 @@ export interface UiViewDeps<TNode = unknown> {
  * 泛型 `TNode` 由宿主指定（vui 传 `VNode`），所以业务包不需要知道框架类型。
  */
 export type UiViewFn<TNode = unknown> = (deps: UiViewDeps<TNode>) => TNode
-
 /**
- * 实体屏（列表 / 详情）自定义页的依赖：在 {@link UiViewDeps} 基础上多一个**该屏的会话** ——
- * 因为重页面都走 Builder 的会话接口（`builder.buildGantt(context, props)` / `buildScheduler` …）。
- * 业务包因此不 import 任何框架，也不自己 new 会话。
+ * 实体屏（列表 / 详情）的自定义页写法：第一个参数是该屏**会话**，第二个是壳渲染与跳转。
+ *
+ * 会话里已经带着 `app`（含 `ui` = UiBuilder）、`uiBuilder`、`apiClient`、`t` / `translate`，
+ * 重页面直接 `context.uiBuilder.buildGantt(context, props)` —— 业务包不 import 任何框架。
+ * 名字对齐既有的 `EntityView` / `EntityLogic`；「Fn」与既有的 `TranslateFn` 同构。
  */
-export interface UiScreenViewDeps<TNode = unknown> extends UiViewDeps<TNode> {
-  context: UiContext
-}
-
-/** 实体屏自定义页：给依赖，返回节点。宿主（vui / rui）负责包成自己的组件。 */
-export type UiScreenViewFn<TNode = unknown> = (
-  deps: UiScreenViewDeps<TNode>,
+export type UiEntityViewFn<TNode = unknown> = (
+  context: UiContext,
+  deps: UiViewDeps<TNode>,
 ) => TNode

@@ -1,10 +1,10 @@
 import type { VNode } from 'vue'
-import type { UiScreenViewFn, UiViewFn } from '@mmda/core'
-import { hostedScreenView, hostedView } from '@mmda/vui'
+import type { UiEntityViewFn, UiViewFn } from '@mmda/core'
+import { hostedEntityView, hostedView } from '@mmda/vui'
 import type { AppPlugin } from './host'
 
 // 适配层住 vui（Vue 运行时），这里只再导出，方便宿主侧引用。
-export { hostedScreenView, hostedView }
+export { hostedEntityView, hostedView }
 
 type HostedPluginSource = Omit<AppPlugin, 'home' | 'placeholderView'> & {
   /** 页面视图：框架无关的 `UiViewFn`（core 契约）。 */
@@ -15,7 +15,7 @@ type HostedPluginSource = Omit<AppPlugin, 'home' | 'placeholderView'> & {
 /**
  * 业务插件（页面是框架无关视图）→ 宿主插件（页面是 Vue 组件）。
  * 插件自己的 `resolveCustomView`（老，Vue 组件）原样带过去；宿主渲染实体屏时会优先认
- * `resolveScreenView`（框架无关）。
+ * `resolveEntityView`（框架无关）。
  */
 export function hostedPlugin(plugin: HostedPluginSource): AppPlugin {
   return {
@@ -27,4 +27,4 @@ export function hostedPlugin(plugin: HostedPluginSource): AppPlugin {
   }
 }
 
-export type { HostedPluginSource, UiScreenViewFn, UiViewFn }
+export type { HostedPluginSource, UiEntityViewFn, UiViewFn }

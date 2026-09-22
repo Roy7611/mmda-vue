@@ -16,7 +16,6 @@
     "@mmda/mes": "workspace:^",
     "@mmda/vui": "workspace:^",
     "@mmda/vui-syncfusion": "workspace:^",
-    "@mmda/vuix-hyper-gantt": "workspace:^",
     "@mmda/vuix-office": "workspace:^",
     "@mmda/vuix-vditor-markdown": "workspace:^",
     "@vue-office/docx": "^1.6.3",
