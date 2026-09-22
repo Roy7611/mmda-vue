@@ -5,10 +5,8 @@ import {
   ColorPalettePicker,
   FontScalePicker,
   UI_APP_KEY,
-  UI_BUILDER_KEY,
   writeMmdaPref,
-  type MmdaApplication,
-  type VuiBuilder,
+  type MmdaVueApp,
 } from '@mmda/vui'
 import { ChangePasswordForm } from './ChangePasswordForm'
 import { appPluginRegistry } from '../registry'
@@ -16,8 +14,8 @@ import { appPluginRegistry } from '../registry'
 export const AppUserFooter = defineComponent({
   name: 'AppUserFooter',
   setup() {
-    const app = inject(UI_APP_KEY)! as MmdaApplication
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder
+    const app = inject(UI_APP_KEY)! as MmdaVueApp
+    const builder = app.ui
     const router = useRouter()
     const route = useRoute()
     const password = reactive({ newPwd: '', newPwdAgain: '' })

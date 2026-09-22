@@ -1,10 +1,8 @@
 import { uiCssClass } from "@mmda/core";
 import {
   UI_APP_KEY,
-  UI_BUILDER_KEY,
-  type MmdaApplication,
+  type MmdaVueApp,
   type SigninUser,
-  type VuiBuilder,
 } from "@mmda/vui";
 import { defineComponent, h, inject } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -14,8 +12,8 @@ import { installGuestSession } from "../host";
 export const SigninView = defineComponent({
   name: "SigninView",
   setup() {
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder;
-    const app = inject(UI_APP_KEY)! as MmdaApplication;
+    const app = inject(UI_APP_KEY)! as MmdaVueApp;
+    const builder = app.ui;
     const router = useRouter();
     const route = useRoute();
     const signinForm = builder.buildSigninForm(

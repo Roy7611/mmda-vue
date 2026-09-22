@@ -4,9 +4,8 @@ import {
   writeMmdaPref,
   type MmdaColorPalette,
 } from "../app/theme";
-import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
-import type { MmdaApplication } from "../app/app";
-import type { VuiBuilder } from "../ui/builder";
+import { UI_APP_KEY } from "../app/keys";
+import type { MmdaVueApp } from "../app/app";
 import { translateMessage } from "../i18n/i18n";
 
 /** Stable menu items — selection state is shown via CSS on [data-mmda-palette]. */
@@ -20,8 +19,8 @@ const PALETTE_ACTIONS = MMDA_COLOR_PALETTES.map((option) => ({
 export const ColorPalettePicker = defineComponent({
   name: "ColorPalettePicker",
   setup() {
-    const app = inject(UI_APP_KEY)! as MmdaApplication;
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder;
+    const app = inject(UI_APP_KEY)! as MmdaVueApp;
+    const builder = app.ui;
 
     const selectPalette = (palette: MmdaColorPalette) => {
       app.state.colorPalette = palette;

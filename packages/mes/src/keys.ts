@@ -1,4 +1,4 @@
-import { UI_APP_KEY } from '@mmda/vui'
+import { UI_APP_KEY } from '@mmda/core'
 import type { InjectionKey } from 'vue'
 import type {MmdaApplication} from '@mmda/core'
 export const APP_NAME = 'MES'

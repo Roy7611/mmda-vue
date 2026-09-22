@@ -4,9 +4,8 @@ import {
   writeStoredFontScale,
   type MmdaFontScale,
 } from "../app/theme";
-import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
-import type { MmdaApplication } from "../app/app";
-import type { VuiBuilder } from "../ui/builder";
+import { UI_APP_KEY } from "../app/keys";
+import type { MmdaVueApp } from "../app/app";
 import { translateMessage } from "../i18n/i18n";
 
 const SCALE_ACTIONS = MMDA_FONT_SCALES.map((option) => ({
@@ -19,8 +18,8 @@ const SCALE_ACTIONS = MMDA_FONT_SCALES.map((option) => ({
 export const FontScalePicker = defineComponent({
   name: "FontScalePicker",
   setup() {
-    const app = inject(UI_APP_KEY)! as MmdaApplication;
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder;
+    const app = inject(UI_APP_KEY)! as MmdaVueApp;
+    const builder = app.ui;
 
     const selectScale = (scale: MmdaFontScale) => {
       app.state.fontScale = scale;

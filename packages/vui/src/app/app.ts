@@ -14,7 +14,7 @@ import type { UiAppLayoutVariant } from "@mmda/core";
 import type { VuiBuilder } from "../ui/builder";
 import type { UiAction } from "../ui/factory/action";
 import type { CustomFilter } from "../ui/factory/filter";
-import { UI_APP_KEY, UI_BUILDER_KEY } from "./keys";
+import { UI_APP_KEY } from "./keys";
 import {
   readStoredColorPalette,
   readStoredFontScale,
@@ -103,7 +103,6 @@ export class MmdaVueApp extends MmdaApplication {
     app.config.globalProperties.$meta = this.meta;
     app.config.globalProperties.$ui = this.ui;
     app.provide(UI_APP_KEY, this);
-    app.provide(UI_BUILDER_KEY, this.ui as VuiBuilder);
 
     const Host = (this.ui as VuiBuilder).overlayHost;
     if (Host && typeof document !== "undefined") {

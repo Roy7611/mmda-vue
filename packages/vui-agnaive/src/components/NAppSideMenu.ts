@@ -18,11 +18,10 @@ import {
   hasSystemModules,
   isLocalAppModuleUrl,
   UI_APP_KEY,
-  UI_BUILDER_KEY,
   useCompactViewport,
   wrapRailLabel,
   type MmdaApplication,
-  type VuiBuilder,
+  type MmdaVueApp,
 } from '@mmda/vui'
 
 type SlotFn = () => VNodeChild
@@ -66,8 +65,8 @@ export const NAppSideMenu = defineComponent({
     },
   },
   setup(props, { attrs }) {
-    const app = inject(UI_APP_KEY, null as MmdaApplication | null)
-    const builder = inject(UI_BUILDER_KEY, null as VuiBuilder | null)
+    const app = inject(UI_APP_KEY, null as MmdaVueApp | null)
+    const builder = app?.ui
     const appName = computed(
       () => app?.state.localAppPrefixes ?? app?.name ?? '',
     )

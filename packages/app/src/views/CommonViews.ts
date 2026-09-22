@@ -1,6 +1,6 @@
 import { defineComponent, h, inject } from 'vue'
 import { useRoute } from 'vue-router'
-import { UI_BUILDER_KEY, type VuiBuilder } from '@mmda/vui'
+import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 
 export const NoAuthorityView = defineComponent({
   name: 'NoAuthorityView',
@@ -24,7 +24,8 @@ export const FileView = defineComponent({
   name: 'FileView',
   setup() {
     const route = useRoute()
-    const builder = inject(UI_BUILDER_KEY) as VuiBuilder | undefined
+    const app = inject(UI_APP_KEY, null) as MmdaVueApp | null
+    const builder = app?.ui
     return () => {
       const fileUrl =
         (route.query.fileUrl as string) ||

@@ -1,7 +1,12 @@
-import type { ApiClient, LocalAsyncDb, MetaUiService, MmdaApplication } from '@mmda/core'
+import {
+  UI_APP_KEY as CORE_UI_APP_KEY,
+  type ApiClient,
+  type LocalAsyncDb,
+  type MetaUiService,
+  type MmdaApplication,
+} from '@mmda/core'
 import type { InjectionKey } from 'vue'
 import type { VuiContext } from '../contexts/vue_ui_context'
-import type { VuiBuilder } from '../ui/builder'
 
 export type ApiClientConstrutor = (repository?: string) => ApiClient
 
@@ -14,6 +19,5 @@ export const META_UI_SERVICE_KEY = Symbol(
 export const UI_CONTEXT_KEY = Symbol(
   'VuiContext',
 ) as InjectionKey<VuiContext>
-/** 注入 VuiBuilder；皮肤包提供具体子类。 */
-export const UI_BUILDER_KEY = Symbol('UiBuilder') as InjectionKey<VuiBuilder>
-export const UI_APP_KEY = Symbol('MmdaApplication') as InjectionKey<MmdaApplication>
+/** 注入应用壳。符号本体在 core（`ui/app_keys.ts`），这里只做 Vue 的 InjectionKey 包装。 */
+export const UI_APP_KEY = CORE_UI_APP_KEY as InjectionKey<MmdaApplication>

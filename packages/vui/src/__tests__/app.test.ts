@@ -3,7 +3,8 @@ import { createApp, defineComponent, h, inject } from 'vue'
 import { setupI18n } from '../i18n/i18n'
 import { MmdaVueApp } from '../app/app'
 import { createStubUiBuilder } from '../ui/builder'
-import { UI_APP_KEY, UI_BUILDER_KEY } from '../app/keys'
+import { UI_APP_KEY, UI_APP_KEY as VUI_UI_APP_KEY } from '../app/keys'
+import { UI_APP_KEY as CORE_UI_APP_KEY } from '@mmda/core'
 import { getFileInfo } from '../components/FileIcons'
 
 describe('MmdaVueApp', () => {
@@ -38,8 +39,8 @@ describe('MmdaVueApp', () => {
     const mmda = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
     const Root = defineComponent({
       setup() {
-        const app = inject(UI_APP_KEY)!
-        const builder = inject(UI_BUILDER_KEY)!
+        const app = inject(UI_APP_KEY)! as MmdaVueApp
+        const builder = app.ui
         return () =>
           builder.layout.scaffold({
             variant: 'sidebarLeft',
@@ -67,6 +68,30 @@ describe('MmdaVueApp', () => {
     host.remove()
   })
 
+
+  it('业务包从 core 拿的键，能取到 vui 提供的壳（同一 symbol）', () => {
+    const i18n = setupI18n({}, 'zh')
+    const ui = createStubUiBuilder()
+    const mmda = new MmdaVueApp('https://example.test/api', 'wms', ui, i18n)
+    // 符号本体在 core（ui/app_keys.ts），vui 只是包成 InjectionKey；两边必须同一个对象，
+    // 否则 base / mes 用 core 的键 inject 会拿到 undefined。
+    expect(VUI_UI_APP_KEY).toBe(CORE_UI_APP_KEY)
+    let seen: unknown
+    const Root = defineComponent({
+      setup() {
+        seen = inject(CORE_UI_APP_KEY)
+        return () => h('div')
+      },
+    })
+    const host = document.createElement('div')
+    document.body.append(host)
+    const vueApp = createApp(Root)
+    vueApp.use(mmda)
+    vueApp.mount(host)
+    expect(seen).toBe(mmda)
+    vueApp.unmount()
+    host.remove()
+  })
   it('signin 使用应用级 OAuth client 配置', async () => {
     const i18n = setupI18n({}, 'zh')
     const ui = createStubUiBuilder()

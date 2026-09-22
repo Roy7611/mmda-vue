@@ -2,9 +2,7 @@ import { defineComponent, h, inject, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import {
   UI_APP_KEY,
-  UI_BUILDER_KEY,
-  type MmdaApplication,
-  type VuiBuilder,
+  type MmdaVueApp,
 } from '@mmda/vui'
 import { AppLogo } from './components/AppLogo'
 import { AppUserFooter } from './components/AppUserFooter'
@@ -17,8 +15,8 @@ import { AppUserFooter } from './components/AppUserFooter'
 export const AppShell = defineComponent({
   name: 'AppShell',
   setup() {
-    const app = inject(UI_APP_KEY)! as MmdaApplication
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder
+    const app = inject(UI_APP_KEY)! as MmdaVueApp
+    const builder = app.ui
     const route = useRoute()
     const router = useRouter()
 

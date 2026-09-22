@@ -76,8 +76,8 @@ describe('architecture gate', () => {
           }
         }
       }
-      // 当前残余 6 处（defineInputProps / getFileInfo / UI_BUILDER_KEY / setGroupWatermark / Rx / rx）
+      // 当前残余 4 处（defineInputProps / getFileInfo / setGroupWatermark / Rx 或 rx）
       // 每消一处就把此数字减一，最终归零。
-      expect(offenders.length).toBeLessThanOrEqual(6)
+      expect(offenders.length).toBeLessThanOrEqual(4)
     })
 })

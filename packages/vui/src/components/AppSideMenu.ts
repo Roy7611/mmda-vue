@@ -21,8 +21,8 @@ import {
 } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { translateMessage } from "../i18n/i18n";
-import { UI_APP_KEY, UI_BUILDER_KEY } from "../app/keys";
-import type { MmdaApplication } from "../app/app";
+import { UI_APP_KEY } from "../app/keys";
+import type { MmdaVueApp } from "../app/app";
 import { useCompactViewport } from "../composables/useCompactViewport";
 
 
@@ -93,8 +93,8 @@ export const VueAppSideMenu = defineComponent({
   },
   emits: ["select-l1", "open-drawer", "close-drawer", "select-leaf"],
   setup(props, { emit, attrs }) {
-    const app = inject(UI_APP_KEY, null as MmdaApplication | null);
-    const builder = inject(UI_BUILDER_KEY, null);
+    const app = inject(UI_APP_KEY, null as MmdaVueApp | null);
+    const builder = app?.ui;
     const route = useRoute();
     const expandedKeys = ref<Record<string, boolean>>({});
     const selectedL1 = ref("");

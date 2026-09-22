@@ -1,12 +1,12 @@
 import { required, uiCssClass } from '@mmda/core'
 import {
-  UI_BUILDER_KEY,
+  UI_APP_KEY,
   invokeSignin,
   resolveSigninHandlers,
   signinFormEmits,
   signinFormProps,
+  type MmdaVueApp,
   type SigninUser,
-  type VuiBuilder,
 } from '@mmda/vui'
 import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
@@ -28,7 +28,7 @@ export const SigninForm = defineComponent({
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {
-    const builder = inject(UI_BUILDER_KEY)! as VuiBuilder
+    const builder = (inject(UI_APP_KEY)! as MmdaVueApp).ui
     const { t } = useI18n()
     const user = reactive<SigninUser>({
       signinMode: props.mode ?? 'password',

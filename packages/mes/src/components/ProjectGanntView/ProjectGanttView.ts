@@ -9,7 +9,8 @@ import {
 } from 'vue'
 import type { ApiClient } from '@mmda/core'
 import {type MmdaApplication, type UiGanttController, type UiGanttTimeScale} from '@mmda/core'
-import { UI_APP_KEY, type VuiContext } from '@mmda/vui'
+import { UI_APP_KEY } from '@mmda/core'
+import type { VuiContext } from '@mmda/vui'
 import { isProjectScheduleTaskLocked } from '../GanntView/ganttProjectScheduleLockHelpers'
 import {
   ganttLinkToSavePayload,

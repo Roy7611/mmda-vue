@@ -10,8 +10,9 @@ import {
 import { VueAppSideMenu } from '../components/AppSideMenu'
 import { PageBody } from '../components/PageBody'
 import { COMPACT_VIEWPORT_MEDIA } from '../composables/useCompactViewport'
-import { UI_BUILDER_KEY } from '../app/keys'
+import { UI_APP_KEY } from '../app/keys'
 import { TestUiBuilder } from './test_builder'
+import type { MmdaApplication } from '@mmda/core'
 import type { VuiBuilder } from '../ui/builder'
 
 const sampleModules = new ModuleFactory([
@@ -94,7 +95,13 @@ async function mount(vnode: ReturnType<typeof h>, builder?: VuiBuilder) {
     },
   })
   app.use(router)
-  if (builder) app.provide(UI_BUILDER_KEY, builder)
+  // 桩壳：原先只 provide builder，现在键统一成壳（`app.ui` 就是那个 builder）。
+  // AppSideMenu 还会读 `state.localAppPrefixes` / `name`，桩里给空对象即可。
+  if (builder)
+    app.provide(
+      UI_APP_KEY,
+      { ui: builder, state: {}, name: 'vui-test' } as unknown as MmdaApplication,
+    )
   app.mount(host)
   return { host, app }
 }
