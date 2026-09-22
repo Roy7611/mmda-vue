@@ -433,7 +433,7 @@ export function chartNotSupportedMessage(name: string): string {
 
 export function unsupportedChartMethod(
   name: string,
-): (...args: any[]) => never {
+): (...args: unknown[]) => never {
   return () => {
     throw new Error(chartNotSupportedMessage(name))
   }

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "composite": false,
+    "paths": {
+      "@mmda/core": ["../core/src/index.ts"],
+      "@mmda/vui": ["../vui/src/index.ts"]
+    }
+  }
+}

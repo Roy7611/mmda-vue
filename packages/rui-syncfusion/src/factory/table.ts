@@ -87,11 +87,26 @@ function columnEditType(field: MetaUiField): string {
   return "defaultedit";
 }
 
+/** 标量（enum code / 引用 id）先按 valueOf 找回选项，再取 labelOf。 */
+function referenceLabelOf(field: MetaUiField, raw: unknown): unknown {
+  const ref = field.reference;
+  if (!ref) return undefined;
+  if (raw != null && typeof raw !== "object") {
+    const option = (ref.refOptions ?? []).find(
+      (item) =>
+        ref.valueOf?.(item) === raw ||
+        String(ref.valueOf?.(item)) === String(raw),
+    );
+    if (option != null) return ref.labelOf?.(option);
+  }
+  return ref.labelOf?.(raw);
+}
+
 function displayCellValue(field: MetaUiField, row: unknown): ReactNode {
   const raw = (row as Record<string, unknown> | undefined)?.[field.fieldName];
   if (raw == null || raw === "") return field.nullDisplayText ?? "";
   if (field.reference) {
-    const label = field.reference.labelOf?.(raw);
+    const label = referenceLabelOf(field, raw);
     if (label != null && label !== "") return String(label);
   }
   if (typeof raw === "boolean") return raw ? "是" : "否";

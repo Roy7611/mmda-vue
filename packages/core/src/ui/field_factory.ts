@@ -95,7 +95,7 @@ export interface UiFieldFactory<TNode = any>
   progressBar: UiFieldRenderer<TNode>
   signaturePad: UiFieldRenderer<TNode>
   stepper: UiFieldRenderer<TNode>
-  inPlaceFieldEditor: UiFieldRenderer<TNode>
+  inplaceFieldEditor: UiFieldRenderer<TNode>
   chips: UiFieldRenderer<TNode>
   tags: UiFieldRenderer<TNode>
   enumChipSet: UiFieldRenderer<TNode>

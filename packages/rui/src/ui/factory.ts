@@ -3,7 +3,7 @@
  *
  * 继承 core 的 {@link AbstractUiFactory}（提供 `textSpan / label / title /
  * subtitle / icon` 5 个纯 HTML 壳方法），本类补齐：
- * - React 通用默认实现：`image` / `iconField` / `multi*Select`
+ * - React 通用默认实现：`image` / `iconField`
  * - core {@link UiFactory} 的全部控件存根（返回 null，皮肤逐个覆盖）
  * - React 特有的抽象契约：图标表 / `actionButton` / `toast` / `confirm` / `dialog`
  *
@@ -140,22 +140,6 @@ export abstract class ReactUiFactory
 
   iconField(props: UiIconProps): ReactElement {
     return this.icon(props) as ReactElement
-  }
-
-  multiItemSelect(props: UiMultiSelectProps): ReactNode {
-    return this.stub(props)
-  }
-
-  multiValueSelect(props: UiMultiSelectProps): ReactNode {
-    return this.stub(props)
-  }
-
-  multiTextSelect(props: UiMultiSelectProps): ReactNode {
-    return this.stub(props)
-  }
-
-  multiBitSelect(props: UiMultiSelectProps): ReactNode {
-    return this.stub(props)
   }
 
   // —— core UiFactory 控件存根：皮肤逐个覆盖 ——

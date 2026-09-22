@@ -200,7 +200,9 @@ export function schedulerHourHms(hour?: string, fallback = '00:00:00'): string {
 export function isSchedulerTimelineView(
   view?: string | null,
 ): view is (typeof UI_SCHEDULER_TIMELINE_VIEWS)[number] {
-  return UI_SCHEDULER_TIMELINE_VIEWS.includes(view as any)
+  return UI_SCHEDULER_TIMELINE_VIEWS.includes(
+    view as (typeof UI_SCHEDULER_TIMELINE_VIEWS)[number],
+  )
 }
 
 export function schedulerHiddenDaysOf(props: {

@@ -31,9 +31,18 @@ describe('ReactPluginHost', () => {
     expect(result).toBe('node-gantt')
   })
 
-  it('buildTimeline 无插件时抛出', () => {
+  it('buildTempisTimeline 委托已注册插件', () => {
     const host = new ReactPluginHost()
-    expect(() => host.buildTimeline({} as UiContext)).toThrow('not installed')
+    host.use(stubPlugin('tempis-timeline'))
+    const result = host.buildTempisTimeline({} as UiContext)
+    expect(result).toBe('node-tempis-timeline')
+  })
+
+  it('buildTempisTimeline 无插件时抛出（不回落列表时间轴）', () => {
+    const host = new ReactPluginHost()
+    expect(() => host.buildTempisTimeline({} as UiContext)).toThrow(
+      'tempis-timeline plugin not installed',
+    )
   })
 
   it('mixPluginHost 给裸对象挂上 use / build', () => {

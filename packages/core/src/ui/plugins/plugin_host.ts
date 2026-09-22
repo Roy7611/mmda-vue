@@ -2,6 +2,7 @@ import { GANTT_PLUGIN_NOT_INSTALLED } from './gantt'
 import { SCHEDULER_PLUGIN_NOT_INSTALLED } from './scheduler'
 import { KANBAN_PLUGIN_NOT_INSTALLED } from './kanban'
 import { DIAGRAM_PLUGIN_NOT_INSTALLED } from './diagram'
+import { TEMPIS_TIMELINE_PLUGIN_NOT_INSTALLED } from './tempis_timeline'
 import { MARKDOWN_EDITOR_PLUGIN_NOT_INSTALLED } from './markdown_editor'
 import { IMAGE_EDITOR_PLUGIN_NOT_INSTALLED } from './image_editor'
 import { PIVOT_TABLE_PLUGIN_NOT_INSTALLED } from './pivot_table'
@@ -16,14 +17,14 @@ import type { UiDiagramProps } from './diagram'
 import type { UiGanttProps } from './gantt'
 import type { UiKanbanProps } from './kanban'
 import type { UiSchedulerProps } from './scheduler'
-import type { UiTimelineProps } from './timeline'
+import type { UiTempisTimelineProps } from './tempis_timeline'
 
 const NOT_INSTALLED: Record<string, string> = {
   gantt: GANTT_PLUGIN_NOT_INSTALLED,
   scheduler: SCHEDULER_PLUGIN_NOT_INSTALLED,
   kanban: KANBAN_PLUGIN_NOT_INSTALLED,
   diagram: DIAGRAM_PLUGIN_NOT_INSTALLED,
-  timeline: 'timeline plugin not installed',
+  'tempis-timeline': TEMPIS_TIMELINE_PLUGIN_NOT_INSTALLED,
   'markdown-editor': MARKDOWN_EDITOR_PLUGIN_NOT_INSTALLED,
   'image-editor': IMAGE_EDITOR_PLUGIN_NOT_INSTALLED,
   'pivot-table': PIVOT_TABLE_PLUGIN_NOT_INSTALLED,
@@ -41,7 +42,7 @@ const PLUGIN_HOST_METHODS = [
   'buildScheduler',
   'buildKanban',
   'buildDiagram',
-  'buildTimeline',
+  'buildTempisTimeline',
 ] as const
 
 /** 插件宿主基类。无 Vue / React。 */
@@ -86,13 +87,16 @@ export class PluginHost<TNode = any> {
     return this.requirePlugin('diagram').buildUi(context, props)
   }
 
-  buildTimeline(context: UiContext, props?: UiTimelineProps): TNode {
-    const found = this.plugin('timeline')
-    if (found) return found.buildUi(context, props)
-    // timeline 是标准控件：未装插件时回退皮肤 factory.timeline
-    const factory = (this as unknown as UiBuilder).factory
-    if (factory?.timeline) return factory.timeline(props ?? {})
-    return this.requirePlugin('timeline').buildUi(context, props)
+  /**
+   * Tempis 二维时间轴画布（时间 × 泳道 + 依赖）。
+   * **不回落**列表时间轴：调用点要的就是二维画布，回落成事件列表是语义错误；
+   * 未装插件 → 抛 {@link TEMPIS_TIMELINE_PLUGIN_NOT_INSTALLED}。
+   */
+  buildTempisTimeline(
+    context: UiContext,
+    props?: UiTempisTimelineProps,
+  ): TNode {
+    return this.requirePlugin('tempis-timeline').buildUi(context, props)
   }
 
   /** 把本宿主的 use / plugin / build 方法绑定到裸对象上（插件混入）。 */

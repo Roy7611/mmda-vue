@@ -13,9 +13,64 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/mmda-rui-syncfusion.es.js"
+    },
+    "./charts": {
+      "types": "./dist/plugins/chart.d.ts",
+      "import": "./src/plugins/chart.ts"
+    },
+    "./gantt": {
+      "types": "./dist/plugins/gantt.d.ts",
+      "import": "./src/plugins/gantt.ts"
+    },
+    "./kanban": {
+      "types": "./dist/plugins/kanban.d.ts",
+      "import": "./src/plugins/kanban.ts"
+    },
+    "./scheduler": {
+      "types": "./dist/plugins/scheduler.d.ts",
+      "import": "./src/plugins/scheduler.ts"
+    },
+    "./schedule": {
+      "types": "./dist/plugins/scheduler.d.ts",
+      "import": "./src/plugins/scheduler.ts"
+    },
+    "./pivot": {
+      "types": "./dist/plugins/pivot_table.d.ts",
+      "import": "./src/plugins/pivot_table.ts"
+    },
+    "./ribbon": {
+      "types": "./dist/plugins/ribbon.d.ts",
+      "import": "./src/plugins/ribbon.ts"
+    },
+    "./ai-assistant": {
+      "types": "./dist/plugins/ai_assistant.d.ts",
+      "import": "./src/plugins/ai_assistant.ts"
+    },
+    "./image-editor": {
+      "types": "./dist/plugins/image_editor.d.ts",
+      "import": "./src/plugins/image_editor.ts"
+    },
+    "./diagrams": {
+      "types": "./dist/plugins/diagram_editor.d.ts",
+      "import": "./src/plugins/diagram_editor.ts"
+    },
+    "./diagram-editor": {
+      "types": "./dist/plugins/diagram_editor.d.ts",
+      "import": "./src/plugins/diagram_editor.ts"
+    },
+    "./style.css": "./dist/style.css",
+    "./fontawesome.css": {
+      "import": "./src/fontawesome.css",
+      "default": "./src/fontawesome.css"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "src/assets/fa"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "build": "vite build --mode lib && tsc -p tsconfig.build.json",
     "test": "vitest run",
@@ -26,10 +81,28 @@
     "@mmda/core": "workspace:^",
     "@mmda/rui": "workspace:^",
     "@syncfusion/ej2-base": "^34.2.2",
+    "@syncfusion/ej2-buttons": "^34.2.2",
+    "@syncfusion/ej2-calendars": "^34.2.2",
+    "@syncfusion/ej2-cldr-data": "31.1.17",
+    "@syncfusion/ej2-diagrams": "^34.2.2",
+    "@syncfusion/ej2-dropdowns": "^34.2.2",
+    "@syncfusion/ej2-grids": "^34.2.2",
+    "@syncfusion/ej2-inplace-editor": "^34.2.2",
+    "@syncfusion/ej2-inputs": "^34.2.2",
+    "@syncfusion/ej2-layouts": "^34.2.2",
+    "@syncfusion/ej2-lists": "^34.2.2",
+    "@syncfusion/ej2-locale": "^34.2.2",
+    "@syncfusion/ej2-navigations": "^34.2.2",
+    "@syncfusion/ej2-notifications": "^34.2.2",
+    "@syncfusion/ej2-popups": "^34.2.2",
+    "@syncfusion/ej2-querybuilder": "^34.2.2",
+    "@syncfusion/ej2-splitbuttons": "^34.2.2",
     "@syncfusion/ej2-react-barcode-generator": "^34.2.2",
     "@syncfusion/ej2-react-buttons": "^34.2.2",
     "@syncfusion/ej2-react-calendars": "^34.2.2",
+    "@syncfusion/ej2-react-charts": "^34.2.2",
     "@syncfusion/ej2-react-dropdowns": "^34.2.2",
+    "@syncfusion/ej2-react-gantt": "^34.2.2",
     "@syncfusion/ej2-react-grids": "^34.2.2",
     "@syncfusion/ej2-react-inplace-editor": "^34.2.2",
     "@syncfusion/ej2-react-inputs": "^34.2.2",
@@ -45,11 +118,39 @@
   },
   "peerDependencies": {
     "react": "^19.0.0 || ^18.3.0",
-    "react-dom": "^19.0.0 || ^18.3.0"
+    "react-dom": "^19.0.0 || ^18.3.0",
+    "@syncfusion/ej2-react-diagrams": "^34.2.2",
+    "@syncfusion/ej2-react-image-editor": "^34.2.2",
+    "@syncfusion/ej2-react-interactive-chat": "^34.2.2",
+    "@syncfusion/ej2-react-kanban": "^34.2.2",
+    "@syncfusion/ej2-react-pivotview": "^34.2.2",
+    "@syncfusion/ej2-react-ribbon": "^34.2.2",
+    "@syncfusion/ej2-react-schedule": "^34.2.2"
+  },
+  "peerDependenciesMeta": {
+    "@syncfusion/ej2-react-diagrams": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-image-editor": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-interactive-chat": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-kanban": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-pivotview": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-ribbon": {
+      "optional": true
+    },
+    "@syncfusion/ej2-react-schedule": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@syncfusion/ej2-react-charts": "^34.2.2",
-    "@syncfusion/ej2-react-gantt": "^34.2.2",
     "@types/node": "^20.19.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

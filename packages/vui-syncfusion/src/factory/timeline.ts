@@ -1,12 +1,15 @@
 /*
  * chrome 时间轴走 factory.timeline。vui 名是 timeline。
  * https://ej2.syncfusion.com/vue/documentation/timeline/vue3-getting-started
+ *
+ * 本工厂只消费列表侧入参（core `UiTimelineProps`）；事件、控制器、可见范围
+ * 归 Tempis 契约（`buildTempisTimeline`），这里一个都不透传。
  */
 import { h } from "vue";
 import { TimelineComponent } from "@syncfusion/ej2-vue-layouts";
 import type { UiTimelineItem, UiTimelineProps } from '@mmda/core'
 import type { IconResolver } from '@mmda/vui'
-import { noopTimelineController, timelineAlignOf, timelineAlignToEj2, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf, timelineOrientationToEj2 } from "@mmda/vui"
+import { timelineAlignOf, timelineAlignToEj2, timelineItemsOf, timelineListContentOf, timelineListOppositeOf, timelineModifierClasses, timelineOrientationOf, timelineOrientationToEj2 } from "@mmda/vui"
 import { uiRenderProps } from "@mmda/core"
 
 function itemsOf(items: UiTimelineItem[], resolveIcon?: IconResolver) {
@@ -27,59 +30,21 @@ export function createTimeline(
   props: UiTimelineProps,
   resolveIcon?: IconResolver,
 ) {
-  const {
-    items: _items,
-    keyField: _keyField,
-    labelField: _labelField,
-    contentField: _contentField,
-    oppositeContentField: _oppositeContentField,
-    iconField: _iconField,
-    disabledField: _disabledField,
-    cssClassField: _cssClassField,
-    timeField: _timeField,
-    startField: _startField,
-    endField: _endField,
-    groupingField: _groupingField,
-    categoryField: _categoryField,
-    progressField: _progressField,
-    orientation: _orientation,
-    align: _align,
-    reverse,
-    timeDisplay: _timeDisplay,
-    timeFormat: _timeFormat,
-    locale,
-    rtl,
-    persist,
-    height: _height,
-    range: _range,
-    template,
-    onItemClick: _onItemClick,
-    onSelectionChange: _onSelectionChange,
-    onRangeChange: _onRangeChange,
-    onReady,
-    class: _className,
-    htmlAttributes,
-    ...rest
-  } = props;
-
-  onReady?.(noopTimelineController);
-
   const cssClass = timelineModifierClasses(props)
     .flat()
     .filter(Boolean)
     .join(" ");
 
   return h(TimelineComponent as any, {
-    ...rest,
     ...uiRenderProps(props).attributes,
     items: itemsOf(timelineItemsOf(props), resolveIcon),
     orientation: timelineOrientationToEj2(timelineOrientationOf(props)),
     align: timelineAlignToEj2(timelineAlignOf(props)),
-    reverse: Boolean(reverse),
-    locale,
-    enableRtl: Boolean(rtl),
-    enablePersistence: Boolean(persist),
-    template,
+    reverse: Boolean(props.reverse),
+    locale: props.locale,
+    enableRtl: Boolean(props.rtl),
+    enablePersistence: Boolean(props.persist),
+    template: props.template,
     cssClass,
   });
 }

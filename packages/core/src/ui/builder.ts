@@ -37,7 +37,7 @@ import type {
 import type { UiExplorerProps } from './builder/explorer'
 import type { UiPlugin } from './plugins/plugin'
 import type { UiGanttProps } from './plugins/gantt'
-import type { UiTimelineProps } from './plugins/timeline'
+import type { UiTempisTimelineProps } from './plugins/tempis_timeline'
 import type { UiSchedulerProps } from './plugins/scheduler'
 import type { UiKanbanProps } from './plugins/kanban'
 import type { UiDiagramProps } from './plugins/diagram'
@@ -301,8 +301,11 @@ export interface UiBuilder<TNode = any> {
   /** 甘特。viewKind === gantt。 */
   buildGantt(context: UiContext, props?: UiGanttProps): TNode
 
-  /** 时间轴。通过插件渲染，应用 `builder.use(...)` 安装。 */
-  buildTimeline(context: UiContext, props?: UiTimelineProps): TNode
+  /**
+   * Tempis 二维时间轴画布（时间 × 泳道 + 依赖）。应用 `builder.use(createTempisTimelinePlugin())` 安装。
+   * 未装插件**抛错**；列表时间轴是 chrome 控件，走 `factory.timeline`，不在这里。
+   */
+  buildTempisTimeline(context: UiContext, props?: UiTempisTimelineProps): TNode
 
   /** 日程。viewKind === scheduler。 */
   buildScheduler(context: UiContext, props?: UiSchedulerProps<TNode>): TNode

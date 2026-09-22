@@ -1,14 +1,13 @@
-import { DateTime } from '@mmda/core'
-import { describe, expect, it, vi } from 'vitest'
+import { DateTime, UiPluginName, uiPlugin } from '@mmda/core'
+import { describe, expect, it } from 'vitest'
 import { h } from 'vue'
 import {
-  tempisItemsOf,
+  tempisTimelineItemsOf,
   timelineAlignToEj2,
   timelineItemsOf,
   timelineOrientationOf,
   timelinePropsFromField,
   timelineTimeTextOf,
-  timelineAsPlugin,
 } from '../ui/plugins/timeline'
 import { TestUiBuilder } from './test_builder'
 
@@ -39,31 +38,10 @@ describe('timeline helpers', () => {
     })
     expect(items[0].label).toBe('发运')
     expect(items[0].timeText).toMatch(/day/i)
-    expect(items[0].start).toBe(rows[0].occurredAt)
-  })
-
-  it('maps tempis items from start/end', () => {
-    expect(
-      tempisItemsOf({
-        items: [
-          { id: 'a', label: '设计', start: '2026-01-05', end: '2026-01-15' },
-        ],
-        keyField: 'id',
-        startField: 'start',
-        endField: 'end',
-        labelField: 'label',
-      }),
-    ).toEqual([
-      {
-        id: 'a',
-        label: '设计',
-        start: '2026-01-05',
-        end: '2026-01-15',
-        grouping: undefined,
-        category: undefined,
-        progress: undefined,
-      },
-    ])
+    expect(items[0].time).toBe(rows[0].occurredAt)
+    // 起止归 Tempis 契约：列表行不再解析 start / end。
+    expect(items[0].start).toBeUndefined()
+    expect(items[0].end).toBeUndefined()
   })
 
   it('uses field array as items', () => {
@@ -74,34 +52,93 @@ describe('timeline helpers', () => {
   })
 })
 
-describe('timeline plugin', () => {
-  it('keeps the skin timeline until a plugin is used', () => {
+describe('tempis timeline items', () => {
+  it('maps rows to the canvas shape and drops rows without start', () => {
+    expect(
+      tempisTimelineItemsOf({
+        items: [
+          {
+            id: 'a',
+            title: '设计',
+            start: '2026-01-05',
+            end: '2026-01-15',
+            lane: 'Frontend',
+            kind: 'work',
+            done: 0.4,
+          },
+          { id: 'b', title: '无时间' },
+        ],
+        keyField: 'id',
+        labelField: 'title',
+        startField: 'start',
+        endField: 'end',
+        groupingField: 'lane',
+        categoryField: 'kind',
+        progressField: 'done',
+      }),
+    ).toEqual([
+      {
+        key: 'a',
+        label: '设计',
+        start: '2026-01-05',
+        end: '2026-01-15',
+        grouping: 'Frontend',
+        category: 'work',
+        progress: 0.4,
+        style: undefined,
+        selected: undefined,
+      },
+    ])
+  })
+
+  it('falls back to timeField when startField is not given', () => {
+    const items = tempisTimelineItemsOf({
+      items: [{ id: 1, at: '2026-02-01' }],
+      keyField: 'id',
+      timeField: 'at',
+    })
+    expect(items[0].start).toBe('2026-02-01')
+  })
+
+  it('selectedIds 给了就以它为准（受控覆盖行级 selectedField）', () => {
+    const items = tempisTimelineItemsOf({
+      items: [
+        { id: 1, at: '2026-02-01', picked: true },
+        { id: 2, at: '2026-02-02', picked: true },
+      ],
+      keyField: 'id',
+      startField: 'at',
+      selectedField: 'picked',
+      selectedIds: [1],
+    })
+    expect(items.map((item) => item.selected)).toEqual([true, false])
+  })
+})
+
+describe('tempis timeline plugin', () => {
+  it('未装插件时 buildTempisTimeline 抛出（不回落列表时间轴）', () => {
     const ui = new TestUiBuilder()
-    const node = ui.factory.timeline!({ items: [{ label: '甲' }] })
-    expect(node.props?.class).toContain('mmda-timeline')
-    expect(node.props?.['data-items']).toBe(1)
-    expect(ui.buildTimeline({} as any, { items: [{ label: '甲' }] }).props?.class).toContain(
-      'mmda-timeline',
+    expect(() => ui.buildTempisTimeline({} as any)).toThrow(
+      'tempis-timeline plugin not installed',
     )
   })
 
-  it('routes factory.timeline to the plugin; later use restores the skin', () => {
+  it('装插件后走插件，factory.timeline 仍是皮肤默认', () => {
     const ui = new TestUiBuilder()
-    const skin = ui.factory.timeline!.bind(ui.factory)
     ui.use(
-      timelineAsPlugin((props) =>
-        h('div', { class: 'mmda-tempis', 'data-count': props.items?.length }),
+      uiPlugin(UiPluginName.tempisTimeline, (_context, props) =>
+        h('div', {
+          class: 'mmda-tempis',
+          'data-count': (props as { items?: unknown[] })?.items?.length,
+        }),
       ),
     )
-    expect(ui.factory.timeline!({ items: [1, 2] }).props?.class).toBe(
-      'mmda-tempis',
-    )
-    expect(ui.buildTimeline({} as any, { items: [1, 2] }).props?.class).toBe(
-      'mmda-tempis',
-    )
-    ui.use(timelineAsPlugin(skin))
-    expect(ui.factory.timeline!({ items: [] }).props?.class).toContain(
-      'mmda-timeline',
-    )
+    expect(
+      ui.buildTempisTimeline({} as any, { items: [1, 2] }).props?.class,
+    ).toBe('mmda-tempis')
+    // 插件不再抢 factory.timeline：皮肤默认路径原样保留
+    const node = ui.factory.timeline!({ items: [{ label: '甲' }] })
+    expect(node.props?.class).toContain('mmda-timeline')
+    expect(node.props?.['data-items']).toBe(1)
   })
 })

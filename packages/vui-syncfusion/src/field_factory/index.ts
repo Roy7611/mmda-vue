@@ -1,6 +1,5 @@
 import { h, type VNode } from "vue";
 import {
-  MetaModel,
   avatarPropsFromField,
   type MetaUiField,
   type UiAvatarProps,
@@ -13,9 +12,10 @@ import {
   type VuiContext,
   type VuiFactory,
   type VuiFieldRenderer,
+  type VuiSearchRelativeProps,
 } from "@mmda/vui";
 import { createSyncfusionUiFactory } from "../factory";
-import { createSearchRelative } from "../factory/search_relative";
+import { createSearchRelative as renderSearchRelative } from "../factory/search_relative";
 
 /**
  * Syncfusion EJ2 Vue 字段控件工厂。
@@ -29,82 +29,13 @@ export class SfVueUiFieldFactory extends VueUiFieldFactory {
     super(factory);
   }
 
-  /**
-   * HAS_ONE / 远程 REF：对齐老 SearchBox = 可编辑 ComboBox 联想 + 搜索按钮弹窗。
-   */
-  searchRelative: VuiFieldRenderer = (field, context, props) => {
-    const reference = field.reference;
-    if (!reference) {
-      return h("span", { class: "warning" }, "不是引用字段");
-    }
-
-    const valueKey = reference.refFlds?.[0] ?? "value";
-    const labelKey = reference.refFlds?.[1] ?? valueKey;
-    const fldOptions = context.getFieldSearchOptions(field);
-
-    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
-      ? context.getFieldValue(field)
-      : null;
-    if (
-      fieldValue &&
-      typeof fieldValue === "object" &&
-      (fieldValue as Record<string, unknown>)[valueKey] == 0
-    ) {
-      fieldValue = null;
-    }
-
-    if (fieldValue && typeof fieldValue === "object") {
-      const key = reference.valueOf(fieldValue);
-      if (
-        !fldOptions.selectOptions.some(
-          (item) => reference.valueOf(item) === key,
-        )
-      ) {
-        fldOptions.selectOptions.unshift(fieldValue);
-      }
-      fldOptions.currentSelectOption = fieldValue;
-    }
-
-    const selectedModel =
-      fldOptions.currentSelectOption != null &&
-      typeof fldOptions.currentSelectOption === "object"
-        ? fldOptions.currentSelectOption
-        : fieldValue;
-
-    return createSearchRelative(field, context as VuiContext<any>, {
-      ...props,
-      modelValue: selectedModel,
-      showClear: Boolean(selectedModel),
-      options: fldOptions.selectOptions,
-      title: props?.title ?? field.displayLabel,
-      dataKey: valueKey,
-      optionLabel: labelKey,
-      valueField: valueKey,
-      labelField: labelKey,
-      invalid: Boolean(context.isInvalid?.(field)),
-      onChange: (value: any) => {
-        fldOptions.currentSelectOption = value || null;
-        context.setFieldValue(field, value || null);
-        if (!value) {
-          const model = context.model as Record<string, any>;
-          MetaModel.setRefProp(model, field.fieldName, null);
-          reference.refFlds.forEach((rf, index) => {
-            if (index > 0) MetaModel.delCustomProp(model, rf);
-          });
-          if (reference.hasOne && reference.alias) {
-            model[reference.alias] = null;
-          }
-        }
-      },
-      toSearch: async () => {
-        const picked = await context.select(field);
-        if (picked) fldOptions.currentSelectOption = picked;
-        return true;
-      },
-    });
-  };
-
-  searchBox = this.searchRelative;
+  protected createSearchRelative(
+    field: MetaUiField,
+    context: VuiContext<any>,
+    props: VuiSearchRelativeProps,
+  ): VNode {
+    return renderSearchRelative(field, context, props);
+  }
 
   /** 表格单元格里的头像默认 small（表单里不默认，交给字段/调用方）。 */
   avatar: VuiFieldRenderer = (field, context, props) => {

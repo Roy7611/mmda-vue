@@ -173,9 +173,13 @@ export abstract class AbstractUiFactory<TNode = unknown>
   abstract dropDownList(props: UiDropDownListProps): TNode
   abstract comboBox(props: UiComboBoxProps): TNode
   abstract multiSelect(props: UiMultiSelectProps): TNode
+  abstract multiItemSelect(props: UiMultiSelectProps): TNode
+  abstract multiValueSelect(props: UiMultiSelectProps): TNode
+  abstract multiTextSelect(props: UiMultiSelectProps): TNode
+  abstract multiBitSelect(props: UiMultiSelectProps): TNode
   abstract radioButtonGroup(props: UiRadioButtonGroupProps): TNode
-  abstract treeSelect(props: UiTreeSelectProps<any, TNode>): TNode
-  abstract dropDownTree(props: UiTreeSelectProps<any, TNode>): TNode
+  abstract treeSelect(props: UiTreeSelectProps<unknown, TNode>): TNode
+  abstract dropDownTree(props: UiTreeSelectProps<unknown, TNode>): TNode
   abstract autoComplete(props: UiAutoCompleteProps): TNode
   abstract tagAutoComplete(props: UiTagAutoCompleteProps): TNode
   abstract checkBoxList(props: UiCheckBoxListProps): TNode

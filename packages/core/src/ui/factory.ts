@@ -88,10 +88,6 @@ import type { UiTextProps } from './factory/text'
 import type { UiIconProps } from './factory/icon'
 import type { UiImageProps } from './factory/image'
 
-// export type UiRenderer<T = any, TNode = any> = (
-//   model: T,
-//   props?: UiProps,
-// ) => TNode
 
 /**
  * 原子 chrome 控件工厂。皮肤在 vui-* 实现。
@@ -167,10 +163,18 @@ export interface UiFactory<TNode = any> {
   dropDownList(props: UiDropDownListProps): TNode
   comboBox(props: UiComboBoxProps): TNode
   multiSelect(props: UiMultiSelectProps): TNode
+  /** 多选：显示实体项（labelFn 取对象）。 */ 
+  multiItemSelect(props: UiMultiSelectProps): TNode
+  /** 多选：显示值本身。 */
+  multiValueSelect(props: UiMultiSelectProps): TNode
+  /** 多选：显示文本。 */
+  multiTextSelect(props: UiMultiSelectProps): TNode
+  /** 多选：位标志勾选。 */
+  multiBitSelect(props: UiMultiSelectProps): TNode
   radioButtonGroup(props: UiRadioButtonGroupProps): TNode
-  treeSelect(props: UiTreeSelectProps<any, TNode>): TNode
+  treeSelect(props: UiTreeSelectProps<unknown, TNode>): TNode
   /** {@link treeSelect} 的别名（服务端老配置沿用这个名字）。 */
-  dropDownTree(props: UiTreeSelectProps<any, TNode>): TNode
+  dropDownTree(props: UiTreeSelectProps<unknown, TNode>): TNode
   autoComplete(props: UiAutoCompleteProps): TNode
   tagAutoComplete(props: UiTagAutoCompleteProps): TNode
   checkBoxList(props: UiCheckBoxListProps): TNode

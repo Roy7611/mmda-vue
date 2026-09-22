@@ -1,6 +1,5 @@
 import { h, type VNode } from 'vue'
 import {
-  MetaModel,
   autoCompleteBindValue,
   autoCompletePropsFromField,
   avatarPropsFromField,
@@ -17,9 +16,10 @@ import {
   type VuiFactory,
   type VuiFieldCellProps,
   type VuiFieldRenderer,
+  type VuiSearchRelativeProps,
 } from '@mmda/vui'
 import { createPrimeVuiFactory } from './prime_factory'
-import { createSearchRelative } from './factory/search_relative'
+import { createSearchRelative as renderSearchRelative } from './factory/search_relative'
 import Image from 'primevue/image'
 import Message from 'primevue/message'
 import Password from 'primevue/password'
@@ -49,74 +49,13 @@ export class PrimeVueFieldFactory extends VueUiFieldFactory {
     ])
   }
 
-  searchRelative: VuiFieldRenderer = (field, context, props) => {
-    const reference = field.reference
-    if (!reference) {
-      return h('span', { class: 'warning' }, '不是引用字段')
-    }
-
-    const valueKey = reference.refFlds?.[0] ?? 'value'
-    const labelKey = reference.refFlds?.[1] ?? valueKey
-    const fldOptions = context.getFieldSearchOptions(field)
-    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
-      ? context.getFieldValue(field)
-      : null
-
-    if (
-      fieldValue &&
-      typeof fieldValue === 'object' &&
-      (fieldValue as Record<string, unknown>)[valueKey] == 0
-    ) {
-      fieldValue = null
-    }
-
-    if (fieldValue && typeof fieldValue === 'object') {
-      const key = reference.valueOf(fieldValue)
-      if (
-        !fldOptions.selectOptions.some((item) => reference.valueOf(item) === key)
-      ) {
-        fldOptions.selectOptions.unshift(fieldValue)
-      }
-      fldOptions.currentSelectOption = fieldValue
-    }
-
-    return createSearchRelative(field, context as VuiContext<any>, {
-      ...props,
-      modelValue: fldOptions.currentSelectOption ?? fieldValue,
-      showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
-      options: fldOptions.selectOptions,
-      title: props?.title ?? field.displayLabel,
-      dataKey: valueKey,
-      optionLabel:
-        reference.refFlds.length > 2
-          ? (data: any) => reference.labelOf(data)
-          : labelKey,
-      invalid: Boolean(context.isInvalid?.(field)),
-      onChange: (value: any) => {
-        fldOptions.currentSelectOption = value || null
-        context.setFieldValue(field, value || null)
-        if (!value) {
-          const model = context.model as Record<string, any>
-          MetaModel.setRefProp(model, field.fieldName, null)
-          reference.refFlds.forEach((rf, index) => {
-            if (index > 0) MetaModel.delCustomProp(model, rf)
-          })
-          if (reference.hasOne && reference.alias) model[reference.alias] = null
-        }
-      },
-      onInput: (value: string) => {
-        if (fldOptions.isComposing) return
-        void context.searchRelative(field, value)
-      },
-      toSearch: async () => {
-        const picked = await context.select(field)
-        if (picked) fldOptions.currentSelectOption = picked
-        return true
-      },
-    })
+  protected createSearchRelative(
+    field: MetaUiField,
+    context: VuiContext<any>,
+    props: VuiSearchRelativeProps,
+  ): VNode {
+    return renderSearchRelative(field, context, props)
   }
-
-  searchBox = this.searchRelative
 
   password: VuiFieldRenderer = (field, context) =>
     this.control(
@@ -142,7 +81,7 @@ export class PrimeVueFieldFactory extends VueUiFieldFactory {
 
   autoComplete: VuiFieldRenderer = (field, context, props) => {
     const route = routeAutoCompleteField(field)
-    if (route === 'dropDownList') return this.dropDownList(field, context, props)
+    if (route === 'dropDownList') return this.dropDownList(field, context)
     if (route === 'searchBox') return this.searchRelative(field, context, props)
 
     const reference = field.reference?.isRef ? field.reference : undefined

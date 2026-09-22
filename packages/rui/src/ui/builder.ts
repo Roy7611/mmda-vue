@@ -1,4 +1,5 @@
 import { createElement, type ReactNode } from 'react'
+import { AbstractUiBuilder } from '@mmda/core'
 import type {
   UiBuilder,
   UiContext,
@@ -38,7 +39,7 @@ import type {
   MetaUiField,
   MetaUiGroup,
 } from '@mmda/core'
-import { ReactPluginHost } from './plugins/host'
+import { ReactUiLayout } from './layout'
 import { reactRenderProps } from '../render_props'
 import { uiRenderProps, type UiRenderProps } from '@mmda/core'
 import { ReactUiContext } from '../contexts/react_ui_context'
@@ -65,28 +66,23 @@ const UNIMPLEMENTED = (name: string) => () => {
  * React 拼屏骨架：实现 core `UiBuilder<ReactNode>`。
  * 皮肤 `extends ReactUiBuilder` 并覆盖抽象方法。
  */
-export class ReactUiBuilder extends ReactPluginHost implements UiBuilder<ReactNode> {
+export class ReactUiBuilder extends AbstractUiBuilder<ReactNode> implements UiBuilder<ReactNode> {
 
   constructor(
     public readonly factory: UiFactory<ReactNode>,
     public readonly fieldFactory: UiFieldFactory<ReactNode>,
+    layout: ReactUiLayout = new ReactUiLayout(),
   ) {
-    super()
+    super(factory, fieldFactory, layout, layout)
   }
 
-  // —— 列表 / 表族（元数据驱动） ————
-
-  list = UNIMPLEMENTED('list') as UiBuilder['list']
-  table = UNIMPLEMENTED('table') as UiBuilder['table']
-  grid = UNIMPLEMENTED('grid') as UiBuilder['grid']
-  treeGrid = UNIMPLEMENTED('treeGrid') as UiBuilder['treeGrid']
-
-  editFor(_field: MetaUiField, _context: UiContext): ReactNode {
-    throw new Error('editFor requires fieldFactory + skin')
+  // —— MetaUi 字段行（AbstractUiBuilder 提供标签 + 布局壳）——
+  editFor(field: MetaUiField, context: UiContext): ReactNode {
+    return this.wrapFieldRow(field, context, {}, true)
   }
 
-  displayFor(_field: MetaUiField, _context: UiContext): ReactNode {
-    throw new Error('displayFor requires fieldFactory + skin')
+  displayFor(field: MetaUiField, context: UiContext): ReactNode {
+    return this.wrapFieldRow(field, context, {}, false)
   }
 
   // —— Overlay ————————————————
@@ -95,31 +91,142 @@ export class ReactUiBuilder extends ReactPluginHost implements UiBuilder<ReactNo
   message = noMessage as UiBuilder['message']
   confirm = noConfirm as UiBuilder['confirm']
   dialog = noDialog as UiBuilder['dialog']
-  editDialog = UNIMPLEMENTED('editDialog') as UiBuilder['editDialog']
-  detailsDialog = UNIMPLEMENTED('detailsDialog') as UiBuilder['detailsDialog']
-  selectDialog = UNIMPLEMENTED('selectDialog') as UiBuilder['selectDialog']
-  openNestEntityDialog = UNIMPLEMENTED('openNestEntityDialog') as UiBuilder['openNestEntityDialog']
+  editDialog(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['editDialog']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['editDialog']> {
+    throw new Error('UiBuilder.editDialog requires a skin package (@mmda/rui-*).')
+  }
+  detailsDialog(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['detailsDialog']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['detailsDialog']> {
+    throw new Error('UiBuilder.detailsDialog requires a skin package (@mmda/rui-*).')
+  }
+  selectDialog(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['selectDialog']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['selectDialog']> {
+    throw new Error('UiBuilder.selectDialog requires a skin package (@mmda/rui-*).')
+  }
+  openNestEntityDialog<E extends object = object>(
+    _parent: UiContext,
+    _view: 'create' | 'edit' | 'details',
+    _item?: E,
+  ): Promise<{ action: UiDialogAction; entity?: E }> {
+    throw new Error('UiBuilder.openNestEntityDialog requires a skin package (@mmda/rui-*).')
+  }
 
   // —— 拼屏 ————————————————
 
-  buildAppSideMenu = UNIMPLEMENTED('buildAppSideMenu') as UiBuilder['buildAppSideMenu']
-  buildSigninForm = UNIMPLEMENTED('buildSigninForm') as UiBuilder['buildSigninForm']
-  buildSignupForm = UNIMPLEMENTED('buildSignupForm') as UiBuilder['buildSignupForm']
-  buildIndexView = UNIMPLEMENTED('buildIndexView') as UiBuilder['buildIndexView']
-  buildSelectView = UNIMPLEMENTED('buildSelectView') as UiBuilder['buildSelectView']
-  buildDetailsView = UNIMPLEMENTED('buildDetailsView') as UiBuilder['buildDetailsView']
-  buildEditView = UNIMPLEMENTED('buildEditView') as UiBuilder['buildEditView']
-  buildSearchField = UNIMPLEMENTED('buildSearchField') as UiBuilder['buildSearchField']
-  buildIndexTopbar = UNIMPLEMENTED('buildIndexTopbar') as UiBuilder['buildIndexTopbar']
-  buildDetailsTopbar = UNIMPLEMENTED('buildDetailsTopbar') as UiBuilder['buildDetailsTopbar']
-  buildEditTopbar = UNIMPLEMENTED('buildEditTopbar') as UiBuilder['buildEditTopbar']
-  buildModuleBreadcrumb = UNIMPLEMENTED('buildModuleBreadcrumb') as UiBuilder['buildModuleBreadcrumb']
-  buildModuleSearchbar = UNIMPLEMENTED('buildModuleSearchbar') as UiBuilder['buildModuleSearchbar']
-  buildFilterBar = UNIMPLEMENTED('buildFilterBar') as UiBuilder['buildFilterBar']
-  buildFieldGroup = UNIMPLEMENTED('buildFieldGroup') as UiBuilder['buildFieldGroup']
-  buildSubGroup = UNIMPLEMENTED('buildSubGroup') as UiBuilder['buildSubGroup']
+  buildAppSideMenu(
+    props: Parameters<UiBuilder<ReactNode>['buildAppSideMenu']>[0],
+  ): ReturnType<UiBuilder<ReactNode>['buildAppSideMenu']> {
+    throw new Error('UiBuilder.buildAppSideMenu requires a skin package (@mmda/rui-*).')
+  }
+  buildSigninForm(
+    props?: Parameters<UiBuilder<ReactNode>['buildSigninForm']>[0],
+    slots?: Parameters<UiBuilder<ReactNode>['buildSigninForm']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildSigninForm']> {
+    throw new Error('UiBuilder.buildSigninForm requires a skin package (@mmda/rui-*).')
+  }
+  buildSignupForm(
+    props?: Parameters<NonNullable<UiBuilder<ReactNode>['buildSignupForm']>>[0],
+    slots?: Parameters<NonNullable<UiBuilder<ReactNode>['buildSignupForm']>>[1],
+  ): ReturnType<NonNullable<UiBuilder<ReactNode>['buildSignupForm']>> {
+    throw new Error('UiBuilder.buildSignupForm requires a skin package (@mmda/rui-*).')
+  }
+  buildIndexView(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildIndexView']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildIndexView']> {
+    throw new Error('UiBuilder.buildIndexView requires a skin package (@mmda/rui-*).')
+  }
+  buildSelectView(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildSelectView']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildSelectView']> {
+    throw new Error('UiBuilder.buildSelectView requires a skin package (@mmda/rui-*).')
+  }
+  buildDetailsView(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildDetailsView']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildDetailsView']> {
+    throw new Error('UiBuilder.buildDetailsView requires a skin package (@mmda/rui-*).')
+  }
+  buildEditView(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildEditView']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildEditView']> {
+    throw new Error('UiBuilder.buildEditView requires a skin package (@mmda/rui-*).')
+  }
+  buildSearchField(
+    field: Parameters<UiBuilder<ReactNode>['buildSearchField']>[0],
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildSearchField']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildSearchField']> {
+    throw new Error('UiBuilder.buildSearchField requires a skin package (@mmda/rui-*).')
+  }
+  buildIndexTopbar(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildIndexTopbar']>[1],
+    slots?: Parameters<UiBuilder<ReactNode>['buildIndexTopbar']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildIndexTopbar']> {
+    throw new Error('UiBuilder.buildIndexTopbar requires a skin package (@mmda/rui-*).')
+  }
+  buildDetailsTopbar(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildDetailsTopbar']>[1],
+    slots?: Parameters<UiBuilder<ReactNode>['buildDetailsTopbar']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildDetailsTopbar']> {
+    throw new Error('UiBuilder.buildDetailsTopbar requires a skin package (@mmda/rui-*).')
+  }
+  buildEditTopbar(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildEditTopbar']>[1],
+    slots?: Parameters<UiBuilder<ReactNode>['buildEditTopbar']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildEditTopbar']> {
+    throw new Error('UiBuilder.buildEditTopbar requires a skin package (@mmda/rui-*).')
+  }
+  buildModuleBreadcrumb(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildModuleBreadcrumb']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildModuleBreadcrumb']> {
+    throw new Error('UiBuilder.buildModuleBreadcrumb requires a skin package (@mmda/rui-*).')
+  }
+  buildModuleSearchbar(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildModuleSearchbar']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildModuleSearchbar']> {
+    throw new Error('UiBuilder.buildModuleSearchbar requires a skin package (@mmda/rui-*).')
+  }
+  buildFilterBar(
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildFilterBar']>[1],
+  ): ReturnType<UiBuilder<ReactNode>['buildFilterBar']> {
+    throw new Error('UiBuilder.buildFilterBar requires a skin package (@mmda/rui-*).')
+  }
+  buildFieldGroup(
+    group: Parameters<UiBuilder<ReactNode>['buildFieldGroup']>[0],
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildFieldGroup']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildFieldGroup']> {
+    throw new Error('UiBuilder.buildFieldGroup requires a skin package (@mmda/rui-*).')
+  }
+  buildSubGroup(
+    group: Parameters<UiBuilder<ReactNode>['buildSubGroup']>[0],
+    context: UiContext,
+    props?: Parameters<UiBuilder<ReactNode>['buildSubGroup']>[2],
+  ): ReturnType<UiBuilder<ReactNode>['buildSubGroup']> {
+    throw new Error('UiBuilder.buildSubGroup requires a skin package (@mmda/rui-*).')
+  }
 
   // —— 插件视图 ——————————————
 
-  buildExplorer = UNIMPLEMENTED('buildExplorer') as UiBuilder['buildExplorer']
+  buildExplorer<T>(
+    _context: UiContext,
+    _props?: UiExplorerProps<T, ReactNode>,
+  ): ReactNode {
+    throw new Error('UiBuilder.buildExplorer requires a skin package (@mmda/rui-*).')
+  }
 }

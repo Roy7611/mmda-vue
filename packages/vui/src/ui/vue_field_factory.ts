@@ -1,57 +1,22 @@
 import { h, type VNode } from 'vue'
 import {
   MetaModel,
-  SqlDataType,
-  autoCompleteBindValue,
-  autoCompletePropsFromField,
-  avatarPropsFromField,
-  bitCheckBoxListPropsFromField,
-  bitChipSetPropsFromField,
-  checkBoxListPropsFromField,
-  checkBoxPropsFromField,
-  chipsPropsFromField,
-  colorPickerPropsFromField,
-  comboBoxPropsFromField,
-  datePickerPropsFromField,
-  dateRangePickerPropsFromField,
-  dateTimePickerPropsFromField,
-  dropDownListPropsFromField,
-  enumChipSetPropsFromField,
-  maskedTextBoxPropsFromField,
-  monthPickerPropsFromField,
-  multiBitSelectPropsFromField,
-  multiItemSelectPropsFromField,
-  multiSelectPropsFromField,
-  multiTextSelectPropsFromField,
-  multiValueSelectPropsFromField,
-  numberInputPropsFromField,
-  oneTimePasswordPropsFromField,
-  progressBarPropsFromField,
-  radioButtonGroupPropsFromField,
-  ratingPropsFromField,
+  AbstractUiFieldFactory,
   relativeTime as formatRelativeTime,
-  routeAutoCompleteField,
+  numberInputPropsFromField,
   signaturePadPropsFromField,
-  sliderPropsFromField,
   stepperPropsFromField,
-  switchPropsFromField,
-  tagAutoCompletePropsFromField,
-  textAreaPropsFromField,
-  textInputPropsFromField,
-  timePickerPropsFromField,
   timelineSqlOf,
-  treeSelectPropsFromField,
-  MOBILE_MASK,
-  ZIP_MASK,
   type MetaUiField,
   type Module,
   type UiContext,
   type UiFieldFactory,
-  type UiFieldRenderer,
   type UiProps,
 } from '@mmda/core'
 import type { VuiFactory } from './factory'
 import { cleanProps, TABLE_CELL_PROP_KEYS } from './field_factory'
+import type { VuiContext } from '../contexts/vue_ui_context'
+import type { SearchForRelativeProps } from './factory/filter'
 import {
   inplaceFieldContentRenderer,
   inplaceFieldDisplayRenderer,
@@ -85,6 +50,17 @@ export type VuiFieldRenderer = (
   props?: VuiFieldCellProps,
 ) => VNode
 
+/**
+ * 皮肤 `createSearchRelative` 组件的入参：字段工厂对账后的选择态与回写回调。
+ * 皮肤组件负责把它渲染成厂商 Select / ComboBox。
+ */
+export interface VuiSearchRelativeProps extends SearchForRelativeProps {
+  showClear?: boolean
+  invalid?: boolean
+  onChange?: (value: unknown) => void
+  title?: string
+}
+
 /** 单位：优先 metacol.suffix；否则 formatter 若为纯单位文本（天、KG）也可用作后缀。 */
 export const resolveFieldUnit = (field: MetaUiField): string => {
   const suffix = field.suffix?.trim()
@@ -104,16 +80,16 @@ const cellDomProps = (props?: UiProps): UiProps =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
 
 /**
- * Vue 字段工厂基类。
- *
- * 每个字段成员只做两件事：用 core 的 `*PropsFromField` 把 `MetaUiField`
- * 译成 `UiXxxProps`，然后交给皮肤 `factory.xxx` 渲染。因此 Vue 皮肤只需要
- * 提供 factory，不再重复写字段到控件的映射。
+ * Vue 字段工厂。输入控件映射表在 core {@link AbstractUiFieldFactory}；
+ * 这里只实现 `control` 的 `h` 版本与框架专属的只读展示 / 上传 / 外部链接。
  */
-export class VueUiFieldFactory implements UiFieldFactory<VNode> {
-  [key: string]: any
-
-  constructor(protected readonly factory: VuiFactory) {}
+export abstract class VueUiFieldFactory
+  extends AbstractUiFieldFactory<VNode, VuiFactory>
+  implements UiFieldFactory<VNode>
+{
+  constructor(factory: VuiFactory) {
+    super(factory)
+  }
 
   protected control(field: MetaUiField, context: UiContext, node: VNode): VNode {
     const invalid = Boolean(context.isInvalid?.(field))
@@ -125,6 +101,88 @@ export class VueUiFieldFactory implements UiFieldFactory<VNode> {
     ])
   }
 
+  /**
+   * HAS_ONE / 远程 REF 的可编辑联想控件。
+   *
+   * 选项对账（当前值不在选项里时补一条）、clear 时清 refProps / alias 的统一逻辑在此；
+   * 皮肤只需实现 {@link createSearchRelative} 绑定厂商 Select / ComboBox。
+   */
+  searchRelative: VuiFieldRenderer = (field, context, props) => {
+    const reference = field.reference
+    if (!reference) {
+      return h('span', { class: 'warning' }, '不是引用字段')
+    }
+
+    const valueKey = reference.refFlds?.[0] ?? 'value'
+    const labelKey = reference.refFlds?.[1] ?? valueKey
+    const fldOptions = context.getFieldSearchOptions(field)
+    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
+      ? context.getFieldValue(field)
+      : null
+
+    if (
+      fieldValue &&
+      typeof fieldValue === 'object' &&
+      (fieldValue as Record<string, unknown>)[valueKey] == 0
+    ) {
+      fieldValue = null
+    }
+
+    if (fieldValue && typeof fieldValue === 'object') {
+      const key = reference.valueOf(fieldValue)
+      if (
+        !fldOptions.selectOptions.some((item) => reference.valueOf(item) === key)
+      ) {
+        fldOptions.selectOptions.unshift(fieldValue)
+      }
+      fldOptions.currentSelectOption = fieldValue
+    }
+
+    return this.createSearchRelative(field, context as VuiContext<any>, {
+      ...props,
+      modelValue: fldOptions.currentSelectOption ?? fieldValue,
+      showClear: Boolean(fldOptions.currentSelectOption ?? fieldValue),
+      options: fldOptions.selectOptions,
+      title: props?.title ?? field.displayLabel,
+      dataKey: valueKey,
+      optionLabel:
+        reference.refFlds.length > 2
+          ? (data: any) => reference.labelOf(data)
+          : labelKey,
+      invalid: Boolean(context.isInvalid?.(field)),
+      onChange: (value: any) => {
+        fldOptions.currentSelectOption = value || null
+        context.setFieldValue(field, value || null)
+        if (!value) {
+          const model = context.model as Record<string, any>
+          MetaModel.setRefProp(model, field.fieldName, null)
+          reference.refFlds.forEach((rf, index) => {
+            if (index > 0) MetaModel.delCustomProp(model, rf)
+          })
+          if (reference.hasOne && reference.alias) model[reference.alias] = null
+        }
+      },
+      onInput: (value: string) => {
+        if (fldOptions.isComposing) return
+        void context.searchRelative(field, value)
+      },
+      toSearch: async () => {
+        const picked = await context.select(field)
+        if (picked) fldOptions.currentSelectOption = picked
+        return true
+      },
+    })
+  }
+
+  searchBox = this.searchRelative
+
+  /** 皮肤专属：把 {@link searchRelative} 对账后的 props 渲染成厂商控件。 */
+  protected abstract createSearchRelative(
+    field: MetaUiField,
+    context: VuiContext<any>,
+    props: VuiSearchRelativeProps,
+  ): VNode
+
   protected fieldDisplayText(
     field: MetaUiField,
     context: UiContext,
@@ -133,66 +191,6 @@ export class VueUiFieldFactory implements UiFieldFactory<VNode> {
     const value = context.displayField(field, props?.row)
     return value == null ? '' : String(value)
   }
-
-  searchRelative: VuiFieldRenderer = (field, context, props) =>
-    this.factory.searchRelative({
-      modelValue: context.getFieldValue(field, props?.row),
-      toSearch: () => context.select(field),
-      optionLabel: undefined,
-      dataKey: field.reference?.refFlds?.[0] ?? 'value',
-      placeholder: field.placeholder,
-      onUpdate: (value) => context.setFieldValue(field, value),
-    })
-
-  fallbackInput: VuiFieldRenderer = (field, context) => {
-    if (
-      field.reference &&
-      (field.reference.hasOne ||
-        (field.reference.isRef && field.reference.refRepository))
-    ) {
-      return this.searchRelative(field, context)
-    }
-    if (field.reference?.refOptions?.length) {
-      return this.dropDownList(field, context)
-    }
-    if (SqlDataType.isBool(field.dataType)) return this.checkBox(field, context)
-    if (SqlDataType.isNum(field.dataType)) return this.numberInput(field, context)
-    if (SqlDataType.isDate(field.dataType)) return this.datePicker(field, context)
-    return this.textInput(field, context)
-  }
-
-  fallbackDisplay: VuiFieldRenderer = (field, context, props) =>
-    h(
-      'output',
-      { class: 'mmda-display', ...props },
-      this.fieldDisplayText(field, context, props),
-    )
-
-  textSpan = this.fallbackDisplay
-
-  textInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.textInput(textInputPropsFromField(field, context)),
-    )
-
-  textArea: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.textArea(textAreaPropsFromField(field, context)),
-    )
-
-  password: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.textInput({
-        ...textInputPropsFromField(field, context),
-        type: 'Password',
-      }),
-    )
 
   numberInput: VuiFieldRenderer = (field, context) => {
     const unit = resolveFieldUnit(field)
@@ -206,252 +204,14 @@ export class VueUiFieldFactory implements UiFieldFactory<VNode> {
     )
   }
 
-  percentInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.numberInput({
-        ...numberInputPropsFromField(field, context),
-        kind: 'percent',
-      }),
+  fallbackDisplay: VuiFieldRenderer = (field, context, props) =>
+    h(
+      'output',
+      { class: 'mmda-display', ...props },
+      this.fieldDisplayText(field, context, props),
     )
 
-  positiveNumberInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.numberInput({
-        ...numberInputPropsFromField(field, context),
-        min: 0,
-      }),
-    )
-
-  negativeNumberInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.numberInput({
-        ...numberInputPropsFromField(field, context),
-        max: 0,
-      }),
-    )
-
-  maskedTextBox: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.maskedTextBox(maskedTextBoxPropsFromField(field, context)),
-    )
-
-  oneTimePasswordInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.oneTimePasswordInput(
-        oneTimePasswordPropsFromField(field, context),
-      ),
-    )
-
-  mobileInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.maskedTextBox(
-        maskedTextBoxPropsFromField(field, context, { mask: MOBILE_MASK }),
-      ),
-    )
-
-  zipCodeInput: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.maskedTextBox(
-        maskedTextBoxPropsFromField(field, context, { mask: ZIP_MASK }),
-      ),
-    )
-
-  datePicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.datePicker(datePickerPropsFromField(field, context)),
-    )
-
-  dateTimePicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.dateTimePicker(dateTimePickerPropsFromField(field, context)),
-    )
-
-  monthPicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.monthPicker(monthPickerPropsFromField(field, context)),
-    )
-
-  timePicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.timePicker(timePickerPropsFromField(field, context)),
-    )
-
-  dateRangePicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.dateRangePicker(dateRangePickerPropsFromField(field, context)),
-    )
-
-  dropDownList: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.dropDownList(dropDownListPropsFromField(field, context)),
-    )
-
-  comboBox: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.comboBox(comboBoxPropsFromField(field, context)),
-    )
-
-  autoComplete: VuiFieldRenderer = (field, context) => {
-    const route = routeAutoCompleteField(field)
-    if (route === 'dropDownList') return this.dropDownList(field, context)
-    if (route === 'searchBox') return this.searchRelative(field, context)
-    const reference = field.reference?.isRef ? field.reference : undefined
-    return this.control(
-      field,
-      context,
-      this.factory.autoComplete({
-        value: autoCompleteBindValue(context.getFieldValue(field), {
-          reference,
-        }),
-        ...autoCompletePropsFromField(field),
-        disabled: context.isFieldReadonly(field),
-        onChange: (value) => context.setFieldValue(field, value),
-      }),
-    )
-  }
-
-  tagAutoComplete: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.tagAutoComplete(tagAutoCompletePropsFromField(field, context)),
-    )
-
-  treeSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.treeSelect(treeSelectPropsFromField(field, context)),
-    )
-
-  radioButtonGroup: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.radioButtonGroup(
-        radioButtonGroupPropsFromField(field, context),
-      ),
-    )
-
-  multiSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.multiSelect(multiSelectPropsFromField(field, context)),
-    )
-
-  multiItemSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.multiItemSelect(
-        multiItemSelectPropsFromField(field, context),
-      ),
-    )
-
-  multiValueSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.multiValueSelect(
-        multiValueSelectPropsFromField(field, context),
-      ),
-    )
-
-  multiTextSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.multiTextSelect(
-        multiTextSelectPropsFromField(field, context),
-      ),
-    )
-
-  multiBitSelect: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.multiBitSelect(multiBitSelectPropsFromField(field, context)),
-    )
-
-  checkBoxList: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.checkBoxList(checkBoxListPropsFromField(field, context)),
-    )
-
-  bitCheckBoxList: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.bitCheckBoxList(
-        bitCheckBoxListPropsFromField(field, context),
-      ),
-    )
-
-  checkBox: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.checkBox(checkBoxPropsFromField(field, context)),
-    )
-
-  switch: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.switch(switchPropsFromField(field, context)),
-    )
-
-  slider: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.slider(sliderPropsFromField(field, context)),
-    )
-
-  rating: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.rating(ratingPropsFromField(field, context)),
-    )
-
-  colorPicker: VuiFieldRenderer = (field, context) =>
-    this.control(
-      field,
-      context,
-      this.factory.colorPicker(colorPickerPropsFromField(field, context)),
-    )
+  textSpan = this.fallbackDisplay
 
   quantityUnit: VuiFieldRenderer = (field, context, props) => {
     const value = context.getFieldValue(field, props?.row)
@@ -597,19 +357,13 @@ export class VueUiFieldFactory implements UiFieldFactory<VNode> {
       ...props,
     })
 
-  avatar: VuiFieldRenderer = (field, context) =>
-    this.factory.avatar(avatarPropsFromField(field, context))
-
-  progressBar: VuiFieldRenderer = (field, context) =>
-    this.factory.progressBar(progressBarPropsFromField(field, context))
-
   signaturePad: VuiFieldRenderer = (field, context) =>
     this.factory.signaturePad(signaturePadPropsFromField(field, context))
 
   stepper: VuiFieldRenderer = (field, context) =>
     this.factory.stepper(stepperPropsFromField(field, context))
 
-  inPlaceFieldEditor: VuiFieldRenderer = (field, context) => {
+  inplaceFieldEditor: VuiFieldRenderer = (field, context) => {
     const display = inplaceFieldDisplayRenderer(field, this)
     const content = inplaceFieldContentRenderer(field, this)
     if (context.isFieldReadonly(field)) return display(field, context)
@@ -621,17 +375,6 @@ export class VueUiFieldFactory implements UiFieldFactory<VNode> {
       },
     )
   }
-
-  chips: VuiFieldRenderer = (field, context) =>
-    this.factory.chips(chipsPropsFromField(field, context))
-
-  tags = this.chips
-
-  enumChipSet: VuiFieldRenderer = (field, context) =>
-    this.factory.chips(enumChipSetPropsFromField(field, context))
-
-  bitChipSet: VuiFieldRenderer = (field, context) =>
-    this.factory.chips(bitChipSetPropsFromField(field, context))
 
   colorBox: VuiFieldRenderer = (field, context, props) =>
     h('span', {

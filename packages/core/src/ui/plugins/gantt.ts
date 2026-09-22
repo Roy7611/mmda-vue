@@ -156,7 +156,10 @@ export const UI_GANTT_LINK_TYPES = ['FS', 'SS', 'FF', 'SF'] as const
 
 export function ganttLinkTypeCode(type?: string | number): string {
   if (type == null || type === '') return 'FS'
-  if (typeof type === 'string' && UI_GANTT_LINK_TYPES.includes(type as any)) {
+  if (
+    typeof type === 'string' &&
+    UI_GANTT_LINK_TYPES.includes(type as (typeof UI_GANTT_LINK_TYPES)[number])
+  ) {
     return type
   }
   const index = Number(type)

@@ -17,7 +17,8 @@ export const UiPluginName = {
   scheduler: 'scheduler',
   kanban: 'kanban',
   diagram: 'diagram',
-  timeline: 'timeline',
+  /** Tempis 二维时间轴画布（列表时间轴走 chrome `factory.timeline`，不是插件）。 */
+  tempisTimeline: 'tempis-timeline',
   markdownEditor: 'markdown-editor',
   imageEditor: 'image-editor',
   pivotTable: 'pivot-table',

@@ -1,6 +1,13 @@
 /**
- * 时间轴插件契约。无 Vue。
- * 时间轴通过插件渲染（`builder.use(...)`），不进 UiFactory。
+ * 列表时间轴（chrome 控件 `factory.timeline`）契约：一维事件序列。无 Vue。
+ *
+ * 二维时间轴画布（Tempis）是**另一档控件**，契约在 `tempis_timeline.ts`
+ * （`UiTempisTimelineProps extends UiTimelineProps`）。本文件只放两档都能用的
+ * 行绑定 / 文案工具与列表侧入参。
+ *
+ * 判定（拍定 D2 / D4 / D5）：**普通 timeline 不支持的，共享契约里不放**。
+ * 因此本层是**纯数据入参** —— 三套皮肤（Syncfusion / PrimeVue / AgNaive）既不派发
+ * 事件，也没有命令式 API；控制器、可见范围、选择、tooltip 模板全部归 Tempis 层。
  */
 import { DateTime } from 'luxon'
 import { relativeTime as formatRelativeTime } from '../../utils/formatter'
@@ -18,10 +25,10 @@ export type UiTimelineAlign =
 
 export type UiTimelineTimeDisplay = 'relative' | 'absolute'
 
-export type UiTimelineFieldOf<T, R> =
-  | string
-  | ((item: T, index: number) => R)
+/** 行 → 值 的绑定：给函数直接调用；给字符串（或用例的缺省键）按属性名读。 */
+export type UiTimelineFieldOf<T, R> = string | ((item: T, index: number) => R)
 
+/** 解析后的列表行。字段绑定在 {@link timelineItemsOf} 里只解析一次。 */
 export interface UiTimelineItem {
   key?: string | number
   label?: string
@@ -31,25 +38,8 @@ export interface UiTimelineItem {
   disabled?: boolean
   cssClass?: string
   time?: Date | string | number
+  /** `time` 的展示文案（`timeDisplay: 'relative'` 时为「3天前」）。 */
   timeText?: string
-  start?: Date | string | number
-  end?: Date | string | number
-  grouping?: string
-  category?: string
-  progress?: number
-}
-
-export interface UiTimelineRange {
-  start?: Date | string | number
-  end?: Date | string | number
-}
-
-export interface UiTimelineController {
-  focus: (target?: unknown) => void
-  getRange: () => UiTimelineRange | undefined
-  setSelection: (ids: Array<string | number>) => void
-  toImage: () => Promise<Blob | undefined>
-  redraw: () => void
 }
 
 export interface UiTimelineProps<T = any> extends UiProps {
@@ -61,12 +51,8 @@ export interface UiTimelineProps<T = any> extends UiProps {
   iconField?: UiTimelineFieldOf<T, string>
   disabledField?: UiTimelineFieldOf<T, boolean>
   cssClassField?: UiTimelineFieldOf<T, string>
+  /** 对侧时间取值字段。只认这一处；`start` / `end` 归 Tempis 契约。 */
   timeField?: UiTimelineFieldOf<T, Date | string | number>
-  startField?: UiTimelineFieldOf<T, Date | string | number>
-  endField?: UiTimelineFieldOf<T, Date | string | number>
-  groupingField?: UiTimelineFieldOf<T, string>
-  categoryField?: UiTimelineFieldOf<T, string>
-  progressField?: UiTimelineFieldOf<T, number>
   orientation?: UiOrientation
   align?: UiTimelineAlign
   reverse?: boolean
@@ -76,12 +62,8 @@ export interface UiTimelineProps<T = any> extends UiProps {
   rtl?: boolean
   persist?: boolean
   height?: string | number
-  range?: UiTimelineRange
+  /** 逐项内容模板（皮肤透传给厂商组件）。Tempis 的 tooltip 模板是另一回事。 */
   template?: unknown
-  onItemClick?: (id: string | number) => void
-  onSelectionChange?: (ids: Array<string | number>) => void
-  onRangeChange?: (start: Date, end: Date) => void
-  onReady?: (controller: UiTimelineController) => void
 }
 
 function jsDateOf(raw: unknown): Date | null {
@@ -100,7 +82,11 @@ function jsDateOf(raw: unknown): Date | null {
   return null
 }
 
-function readBoundField<T, R>(
+/**
+ * 读一个 `*Field` 绑定：函数按 `(item, index)` 调用，字符串按属性名读，
+ * 都没给时用 `fallbackKey` 当属性名。列表档与 Tempis 档共用。
+ */
+export function timelineFieldValueOf<T, R>(
   item: T,
   index: number,
   binder: UiTimelineFieldOf<T, R> | undefined,
@@ -112,39 +98,43 @@ function readBoundField<T, R>(
   return (item as Record<string, unknown>)[key] as R | undefined
 }
 
-function keyBound<T>(
+/** 行标识：数字原样，其余转字符串；空值当没给。 */
+export function timelineKeyOf<T>(
   item: T,
   index: number,
   binder: UiTimelineFieldOf<T, string | number> | undefined,
 ): string | number | undefined {
-  const raw = readBoundField(item, index, binder, 'key')
+  const raw = timelineFieldValueOf(item, index, binder, 'key')
   if (raw == null || raw === '') return undefined
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw
   return String(raw)
 }
 
-function stringBound<T>(
+/** 字符串字段：空值/空串当没给。 */
+export function timelineStringOf<T>(
   item: T,
   index: number,
   binder: UiTimelineFieldOf<T, string> | undefined,
   fallbackKey: string,
 ): string | undefined {
-  const raw = readBoundField(item, index, binder, fallbackKey)
+  const raw = timelineFieldValueOf(item, index, binder, fallbackKey)
   if (raw == null || raw === '') return undefined
   return String(raw)
 }
 
-function boolBound<T>(
+/** 布尔字段：只看给没给，不判真假值本身。 */
+export function timelineBoolOf<T>(
   item: T,
   index: number,
   binder: UiTimelineFieldOf<T, boolean> | undefined,
   fallbackKey: string,
 ): boolean | undefined {
-  const raw = readBoundField(item, index, binder, fallbackKey)
+  const raw = timelineFieldValueOf(item, index, binder, fallbackKey)
   if (raw == null) return undefined
   return Boolean(raw)
 }
 
+/** 任意时间值 → SQL 形态（`yyyy-MM-dd HH:mm:ss`），供相对时间与后端对齐。 */
 export function timelineSqlOf(raw: unknown): string | undefined {
   if (raw == null || raw === '') return undefined
   const date = jsDateOf(raw)
@@ -160,6 +150,7 @@ export function timelineSqlOf(raw: unknown): string | undefined {
   return undefined
 }
 
+/** 对侧时间文案：`relative`（默认，「3天前」）或 `absolute`（按 `timeFormat`）。 */
 export function timelineTimeTextOf(
   raw: unknown,
   locale = 'zh',
@@ -221,81 +212,34 @@ export function timelineListContentOf(
   return item.content ?? item.label ?? item.timeText ?? String(index + 1)
 }
 
+/** 列表侧行解析：字段绑定只在这里解析一次，皮肤直接吃 {@link UiTimelineItem}。 */
 export function timelineItemsOf(props: UiTimelineProps): UiTimelineItem[] {
   const rows = Array.isArray(props.items) ? props.items : []
   const locale = props.locale ?? 'zh'
   const display = props.timeDisplay === 'absolute' ? 'absolute' : 'relative'
   const format = props.timeFormat ?? TIMELINE_TIME_FORMAT
   return rows.map((item, index) => {
-    const label = stringBound(item, index, props.labelField, 'label')
+    const label = timelineStringOf(item, index, props.labelField, 'label')
     const content =
-      stringBound(item, index, props.contentField, 'content') ?? label
-    const timeRaw =
-      readBoundField(item, index, props.timeField, 'time') ??
-      readBoundField(item, index, props.startField, 'start')
-    const startRaw =
-      readBoundField(item, index, props.startField, 'start') ?? timeRaw
-    const endRaw = readBoundField(item, index, props.endField, 'end')
-    const progressRaw = readBoundField(item, index, props.progressField, 'progress')
+      timelineStringOf(item, index, props.contentField, 'content') ?? label
+    const timeRaw = timelineFieldValueOf(item, index, props.timeField, 'time')
     return {
-      key: keyBound(item, index, props.keyField),
+      key: timelineKeyOf(item, index, props.keyField),
       label,
       content,
-      oppositeContent: stringBound(
+      oppositeContent: timelineStringOf(
         item,
         index,
         props.oppositeContentField,
         'oppositeContent',
       ),
-      icon: stringBound(item, index, props.iconField, 'icon'),
-      disabled: boolBound(item, index, props.disabledField, 'disabled'),
-      cssClass: stringBound(item, index, props.cssClassField, 'cssClass'),
+      icon: timelineStringOf(item, index, props.iconField, 'icon'),
+      disabled: timelineBoolOf(item, index, props.disabledField, 'disabled'),
+      cssClass: timelineStringOf(item, index, props.cssClassField, 'cssClass'),
       time: timeRaw as Date | string | number | undefined,
       timeText: timelineTimeTextOf(timeRaw, locale, display, format),
-      start: startRaw as Date | string | number | undefined,
-      end: endRaw as Date | string | number | undefined,
-      grouping: stringBound(item, index, props.groupingField, 'grouping'),
-      category: stringBound(item, index, props.categoryField, 'category'),
-      progress:
-        progressRaw == null || String(progressRaw) === ''
-          ? undefined
-          : Number(progressRaw),
     }
   })
-}
-
-export function tempisItemsOf(props: UiTimelineProps): Array<{
-  id: string | number
-  label: string
-  start: Date | string | number
-  end?: Date | string | number
-  grouping?: string
-  category?: string
-  progress?: number
-}> {
-  return timelineItemsOf(props)
-    .map((item, index) => {
-      const start = item.start ?? item.time
-      if (start == null || start === '') return undefined
-      return {
-        id: item.key ?? index,
-        label: item.label ?? item.content ?? String(index + 1),
-        start,
-        end: item.end,
-        grouping: item.grouping,
-        category: item.category,
-        progress: item.progress,
-      }
-    })
-    .filter((row): row is NonNullable<typeof row> => row != null)
-}
-
-export const noopTimelineController: UiTimelineController = {
-  focus: () => undefined,
-  getRange: () => undefined,
-  setSelection: () => undefined,
-  toImage: async () => undefined,
-  redraw: () => undefined,
 }
 
 export function timelineModifierClasses(props: UiTimelineProps): unknown[] {
