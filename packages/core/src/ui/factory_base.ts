@@ -1,4 +1,4 @@
-import type { UiFactory } from './factory'
+import type { UiFactory, UiFormFieldProps } from './factory'
 import type { UiProps } from './props'
 import type { UiNodeProps } from './layout'
 import type { UiRenderer } from './renderer'
@@ -149,7 +149,7 @@ export abstract class AbstractUiFactory<TNode = unknown>
     slots?: UiButtonSlots<TNode>,
   ): TNode
   abstract formField(
-    props: UiProps,
+    props: UiFormFieldProps,
     slots?: { default?: () => TNode },
   ): TNode
 

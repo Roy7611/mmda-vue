@@ -97,6 +97,14 @@ import type { UiImageProps } from './factory/image'
  * 不要 `factory.dialog` / selector（弹层走 Builder Overlay）。
  * 参数用具名 Ui*Props（本包），不要 Record 糊弄。
  */
+/**
+ * 表单字段壳（标签 + 控件）的具名入参：皮肤实现读的键在下面显式列出。
+ */
+export interface UiFormFieldProps extends UiProps {
+  /** 字段标签（调用方已翻译）。Syncfusion Vue 皮肤据此画 `<label>`。 */
+  label?: string
+}
+
 export interface UiFactory<TNode = any> {
   /** 表格组件是否原生支持单元格编辑。 */
   nativeInplaceEdit?: boolean
@@ -136,7 +144,7 @@ export interface UiFactory<TNode = any> {
   ): TNode
 
   formField(
-    props: UiProps,
+    props: UiFormFieldProps,
     slots?: { default?: () => TNode },
   ): TNode
 

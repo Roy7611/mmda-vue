@@ -20,7 +20,7 @@ import {
   type UiPaginatorProps,
 } from '@mmda/core'
 import type {VuiTileSlots} from './layout'
-import type { UiProps, UiLayout } from '@mmda/core'
+import type { UiFormFieldProps, UiProps, UiLayout } from '@mmda/core'
 import type { IconResolver, UiAction } from './factory/action'
 import type {
   VuiListColumnProps,
@@ -237,7 +237,7 @@ export interface VuiFactory extends UiFactory<VNode> {
   panelMenu: VuiRenderer<UiMenuItem[] | any[]>
   menubar: VuiRenderer<UiMenuItem[] | any[]>
   searchRelative: (props: UiSearchRefProps, slots?: VuiTileSlots) => VNode
-  formField: (props: UiProps, slots?: VuiTileSlots) => VNode
+  formField: (props: UiFormFieldProps, slots?: VuiTileSlots) => VNode
 }
 
 export const durationOfSeconds: VuiRenderer<number> = (seconds, props) =>

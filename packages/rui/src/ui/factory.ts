@@ -16,6 +16,7 @@ import {
   type UiRenderer,
   type UiNodeProps,
   type TranslateFn,
+  type UiFormFieldProps,
   type UiProps,
   type UiAutoCompleteProps,
   type UiTagAutoCompleteProps,
@@ -183,7 +184,7 @@ export abstract class ReactUiFactory
     return this.stub(props)
   }
   formField(
-    props: UiProps,
+    props: UiFormFieldProps,
     slots?: { default?: () => ReactNode },
   ): ReactNode {
     return this.stub(props)

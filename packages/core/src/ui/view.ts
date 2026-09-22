@@ -184,6 +184,11 @@ export interface UiViewDeps<TNode = unknown> {
   render: UiRenderer<TNode>['render']
   /** 路由适配：`resolve` 出 href、`push` 跳转（业务不 import vue-router）。 */
   router: UiRouter
+  /**
+   * 告诉宿主「视图数据变了，重跑视图函数」。异步取数 / 保存完成、状态变了之后调它；
+   * 宿主用自己那套响应式重跑视图（业务侧因此不写响应式代码）。
+   */
+  invalidate: () => void
 }
 
 /**

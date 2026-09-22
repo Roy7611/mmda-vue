@@ -5,7 +5,7 @@
  * `UiEntityViewFn`，由这里一次性把宿主能力装配好（壳渲染 / 路由），业务侧不写响应式
  * 代码、也不 import 路由库。
  */
-import { defineComponent, h, inject, type Component, type VNode } from 'vue'
+import { defineComponent, h, inject, ref, type Component, type VNode } from 'vue'
 import { useRouter } from 'vue-router'
 import type {
   UiContext,
@@ -45,10 +45,15 @@ function shell(rendered: VNode, push: (path: string) => void): VNode {
   )
 }
 
-/** 视图要的宿主能力：壳渲染 + 路由（业务不 import vue-router，也不自己造节点）。 */
-function viewDeps(app: MmdaVueApp, router: ReturnType<typeof useRouter>): UiViewDeps<VNode> {
+/** 视图要的宿主能力：壳渲染 + 路由 + 「重跑视图」（业务不 import vue-router，也不自己造节点）。 */
+function viewDeps(
+  app: MmdaVueApp,
+  router: ReturnType<typeof useRouter>,
+  invalidate: () => void,
+): UiViewDeps<VNode> {
   return {
     app,
+    invalidate,
     render: (tag, props, children) =>
       app.ui.layout.render(
         tag,
@@ -72,8 +77,15 @@ export function hostedView(view: UiViewFn<VNode>): Component {
     setup() {
       const app = inject(UI_APP_KEY) as MmdaVueApp
       const router = useRouter()
-      const deps = viewDeps(app, router)
-      return () => shell(view(deps), deps.router.push)
+      const tick = ref(0)
+      const deps = viewDeps(app, router, () => {
+        tick.value += 1
+      })
+      return () => {
+        // 读一下 tick：业务调 `deps.invalidate()` 就让视图重跑。
+        void tick.value
+        return shell(view(deps), deps.router.push)
+      }
     },
   })
 }
@@ -90,9 +102,14 @@ export function hostedEntityView(view: UiEntityViewFn<VNode>): Component {
     setup(props) {
       const app = inject(UI_APP_KEY) as MmdaVueApp
       const router = useRouter()
-      const deps = viewDeps(app, router)
-      return () =>
-        shell(view(props.ctx as UiContext, deps), deps.router.push)
+      const tick = ref(0)
+      const deps = viewDeps(app, router, () => {
+        tick.value += 1
+      })
+      return () => {
+        void tick.value
+        return shell(view(props.ctx as UiContext, deps), deps.router.push)
+      }
     },
   })
 }
