@@ -18,7 +18,6 @@ import { TaskConstraintTypeEnum } from '@mmda/base/src/enums/TaskConstraintType'
 import { projectGanttPlanningNode } from '@/components/ProjectGanntView/ProjectGanttPlanning';
 import { choosePersonNode } from '@/components/ChoosePerson/ChoosePerson';
 //生产工作包
-import { ProjectWorkPackageEditor } from '@/modules/project_work_packages/ProjectWorkPackageEditor';
 
 //负责人
 const chargePerson = {

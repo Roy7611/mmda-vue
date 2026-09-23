@@ -19,7 +19,7 @@ const logicImport =
   /from\s+['"](?:@mmda\/core\/src\/logic|(?:\.\.\/)+logic\/|\.\/logic\/)/
 const declareGlobal = /\bdeclare\s+global\b/
 const frameworkImport =
-  /from\s+['"](?:vue|react|@vue[^'"]*|@react[^'"]*)['"]/
+  /from\s+['"](?:(?:vue|react)(?:-[a-z]+)?|@vue[^'"]*|@react[^'"]*)['"]/
 
 describe('architecture gate', () => {
   it('Data 不得反向 import logic', () => {
@@ -61,6 +61,22 @@ describe('architecture gate', () => {
         0,
       )
       expect(count).toBeLessThanOrEqual(265)
+    })
+
+    it('业务包 *Logic.ts 不得 import UI 框架（vue / vue-router / vue-i18n / react）', () => {
+      const monorepoRoot = join(process.cwd(), '..')
+      const framework = /from\s+['"](?:(?:vue|react)(?:-[a-z]+)?|@vue[^'"]*|@react[^'"]*)['"]/
+      const offenders: string[] = []
+      for (const pkg of ['base', 'mes']) {
+        const modDir = join(monorepoRoot, pkg, 'src', 'modules')
+        for (const file of collectTsFiles(modDir)) {
+          if (!file.endsWith('Logic.ts')) continue
+          if (framework.test(readFileSync(file, 'utf8'))) {
+            offenders.push(file.replace(/\\/g, '/'))
+          }
+        }
+      }
+      expect(offenders).toEqual([])
     })
 
     it('业务 Logic 不得新增 import vui/rui（残余 ≤ 6）', () => {

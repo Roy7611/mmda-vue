@@ -1,4 +1,5 @@
 import { defineComponent, reactive, toRaw, toRef, h, onMounted, computed, ref, onBeforeMount, getCurrentInstance, inject } from 'vue';
+import { editorPlaceholder } from '@/components/editor_placeholder';
 import { defineEntity, type MetaUiService, type Module, type ModuleAction, type MetaUiField, MetaModel, toPrecise } from '@mmda/core';
 import '../GanntView/GanntView.less';
 import { MES_KEY } from '@/keys';
@@ -8,7 +9,6 @@ import {type UiContext, UiViewOne} from '@mmda/core'
 import { loading, VuiContext } from '@mmda/vui'
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
-import { MaterialTransEditor } from '@/modules/material_transes/MaterialTransEditor';
 import { reject } from 'lodash';
 import { plainTableColumn } from '@/components/plain_table';
 
@@ -469,58 +469,7 @@ export default defineComponent({
 					)
 				if (res) {
 					ui.dialog(
-						h(MaterialTransEditor, {
-							id: '_',
-							view: UiViewOne.Create,
-							name: 'CompleteInspectionMaterialTrans',
-
-							createFn: async (logic) => {
-								return await apiClient
-									.doAction(
-										{
-											action: 'kitCheckIssue',
-											repository: 'MaterialTranses',
-										},
-										params
-									)
-									.then((res: any) => {
-										console.log(res, "领料");
-										res.orderID = filterData.value[0].orderID;
-										return logic.createEntity(res);
-									}).catch((error: any) => {
-										ctx.uiBuilder.toast(ctx, {
-											severity: 'error',
-											title: t('dialog.title.error'),
-											message: error.message ?? t('auth.operationFailed'),
-											life: 3000
-										})
-									});
-							},
-							params: {
-								refName: 'CompleteInspection',
-								orderID: firstItem?.orderID,
-								projectID: firstItem?.projectID ?? reloadParam.projectID ?? undefined,
-								refItemKeys: filterData.value.map((i: any) =>
-									Object.assign(
-										{},
-										{
-											refName: i.kittingQty,
-											refID: i.materialID,
-											// 生产订单
-											orderID: i.orderID,
-											// 工程项目
-											projectID: i.projectID,
-										}
-									)
-								),
-							},
-							onInit: (ctx: UiContext<MaterialTrans>) => {
-								materialTransCtx = ctx;
-								materialTransCtx.isInDialog = true;
-							},
-
-
-						}),
+						editorPlaceholder(ctx, 'view.materialTransEditorHint'),
 						ctx,
 						{
 							name: 'createKittingMaterialTrans',

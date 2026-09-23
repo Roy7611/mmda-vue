@@ -5,7 +5,6 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { useRouter } from 'vue-router';
 import { ApiProblem, EntityState, defaultPager, isNullOrUndefined, isRefNone, isApiProblemPayload, MetaModel, MetaUiBuilder, pluralize, encodeUriAndFix, toApiProblem, getSqlOperator, FieldFilter } from '@mmda/core';
 import type { MetaUiService, Module, MetaUiField, UiContext, EntityAction, Validation, EntitySearchParam, PagedList, EntityUrlParam } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne, UiLogicBeforeFn} from '@mmda/core'

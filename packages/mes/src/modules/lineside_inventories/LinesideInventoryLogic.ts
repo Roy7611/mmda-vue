@@ -28,7 +28,7 @@ import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/model
 import { type Worksite, defineWorksite } from '@/models/Worksite';
 import { inventoryDialogNode } from './component/InventoryDialog';
 import { completeShipmentNode } from './component/CompleteShipment';
-import { materialTransEditorNode } from '@/modules/material_transes/MaterialTransEditor';
+import { editorPlaceholder } from '@/components/editor_placeholder';
 
 /**
  * 线边库存交互逻辑
@@ -134,25 +134,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 					Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
 				)
 				return await context.uiBuilder.dialog(
-					materialTransEditorNode({
-						name: 'WarehousingMaterialTrans',
-						createFn: async (logic) => {
-							// /api/mes/MaterialTranses/oneClickStorage
-							return await this.apiClient.doAction(
-								{
-									action: 'oneClickStorage',
-									repository: 'MaterialTranses',
-								},
-								Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
-							).then((res: any) => {
-								return logic.createEntity(res);
-							})
-						},
-						onInit: (ctx: UiContext) => {
-							materialTransCtx = ctx;
-							materialTransCtx.isInDialog = true;
-						},
-					}),
+					editorPlaceholder(context, 'view.materialTransEditorHint'),
 					context,
 					{
 						title: context.t('linesideInventory.oneClickStorage'),
@@ -225,25 +207,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 					Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
 				)
 				return await context.uiBuilder.dialog(
-					materialTransEditorNode({
-						name: 'WarehousingMaterialTrans',
-						createFn: async (logic) => {
-							// /api/mes/MaterialTranses/oneClickStorage
-							return await this.apiClient.doAction(
-								{
-									action: 'oneClickReturn',
-									repository: 'MaterialTranses',
-								},
-								Object.assign({}, ...context.selectedItems.map((item: any) => ({ [item.id]: item.leftOverQuantity })))
-							).then((res: any) => {
-								return logic.createEntity(res);
-							});
-						},
-						onInit: (ctx: UiContext) => {
-							materialTransCtx = ctx;
-							materialTransCtx.isInDialog = true;
-						},
-					}),
+					editorPlaceholder(context, 'view.materialTransEditorHint'),
 					context,
 					{
 						title: context.t('linesideInventory.oneClickReturn'),

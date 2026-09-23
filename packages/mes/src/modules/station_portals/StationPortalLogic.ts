@@ -9,10 +9,9 @@ import { MetaUiService, Module, EntityAction, type UiContext, MetaModel, debounc
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction} from '@mmda/core'
 import { type StationPortal, defineStationPortal } from '@/models/StationPortal';
 import { isObject } from 'lodash';
-import { productionEventEditorNode } from '@/modules/production_events/ProductionEventEditor';
-import { ProductionItemEditor } from '@/modules/production_items/ProductionItemEditor';
 import { productionLotReportNode, productionPlateReportNode, stationPortalFormWrap } from './station_portal_nodes';
 import { ProductionEventLogic, ProductionEventLogicCtor } from '@/modules/production_events/ProductionEventLogic';
+import { editorPlaceholder } from '@/components/editor_placeholder';
 
 
 const tableDataplan = { value: [] };
@@ -107,20 +106,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 			prepareFn(action: EntityAction): Promise<any>;
 		}) | null = null;
 		return uiBuilder.dialog(
-			productionEventEditorNode({
-							id: '_',
-							view: UiViewOne.Create,
-							editing: true,
-							isInDialog: true,
-							params: reporteventparams,
-							showToolbar: false,
-							attachmentsCollapsed: true,
-							onMountedSuccess: (ctx: UiContext) => {
-								eventCtx = ctx as UiContext<any> & {
-									prepareFn(action: EntityAction): Promise<any>;
-								};
-							},
-			}),
+			editorPlaceholder(context, 'view.productionEventEditorHint'),
 			context,
 			{
 				title: context.t('stationlabel.productionEvent'),

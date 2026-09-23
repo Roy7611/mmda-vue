@@ -6,7 +6,7 @@
  *
  */
 
-import { type MetaUiService, Module, MetaUiField, MetaModel, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter, DateUtils } from '@mmda/core';
+import { type MetaUiService, Module, MetaUiField, MetaModel, type UiBuilder, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter, DateUtils } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany} from '@mmda/core'
 import { type Rx, rx } from '@mmda/vui'
 import { type Tool, defineTool } from '@/models/Tool';
@@ -19,8 +19,8 @@ import { toolsLendNode } from '@/components/ToolsLend';
 import { toolsMoveNode } from '@/components/ToolsMove';
 import { toolsPickingNode } from '@/components/ToolsPicking';
 import { ToolCategory } from "@/models/ToolCategory";
-import { toolCategoryEditorNode } from "@/modules/ToolCategories/ToolCategoryEditor";
 import { MaterialType } from '@mmda/base/src/enums/MaterialType';
+import { editorPlaceholder } from '@/components/editor_placeholder';
 
 
 /**
@@ -1567,7 +1567,7 @@ try {
 	 * @param {UiDialogProps & {toolCategory?: ToolCategory,}} props - 对话框props
 	 * @returns dialog 按钮名
 	 */
-	async categoryConfirmDialog(ctx: UiContext, content: VNode, props: UiDialogProps & {
+	async categoryConfirmDialog(ctx: UiContext, content: Parameters<UiBuilder['dialog']>[0], props: UiDialogProps & {
 		toolCategory?: ToolCategory,
 	}) {
 
@@ -1610,15 +1610,7 @@ try {
 		}
 		console.log(node, 'node');
 		
-		return this.categoryConfirmDialog(ctx, toolCategoryEditorNode({
-			depth,
-			parentCatID,
-			materialX: node?.materialX,
-			onFormChange: (model: ToolCategory) => {
-				toolCategory = model;
-				console.log(model);
-			}
-		}), {
+		return this.categoryConfirmDialog(ctx, editorPlaceholder(ctx, 'view.toolCategoryEditorHint'), {
 			title: title,
 			name: 'addDirectory',
 			onAccept: async (button) => {
