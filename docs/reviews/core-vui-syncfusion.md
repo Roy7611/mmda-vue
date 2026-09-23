@@ -42,7 +42,7 @@
 | 层只碰相邻层 | Data 不 import logic；ui 无 Vue | 只依赖 core + Vue peers | 仍碰 MetaModel、fetchApi、api.config.service |
 | 皮肤不感知 Data | 合约在 `src/ui/` | 拼屏走 `factory.table` / `buildView` | 表格、附件、外链单元格直接读 Data |
 | Logic 无 Vue | 通过；EntityLogic 仍包一层 HTTP | 业务钩子应认 `UiContext`；实现类是 `UiBuildContext` | Builder 里拼鉴权工具栏（产品策略） |
-| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VueUiBuilder` 另有约 150 个方法 | `SyncfusionUiBuilder` 不重写列表查询，这点对 |
+| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VuiBuilder` 另有约 150 个方法 | `SfVuiBuilder` 不重写列表查询，这点对 |
 
 **已经立住：** core 运行时依赖只有 luxon / pluralize。vui 源码不 import Syncfusion / PrimeVue / ag-grid。列表查询拼装在 vui（`searchParam` / `filterModel`），皮肤表格只回写 filter/sort。`MmdaApplication`（abstract）与 `MmdaVueApp` 的壳分层与文档一致。
 
@@ -54,7 +54,7 @@
 
 | 概念 | 当时怎么叫 | 当时的问题 |
 |---|---|---|
-| 拼屏契约 vs 实现 | core `UiBuilder` / vui `VueUiBuilder` | vui 再 `export type UiBuilder = VueUiBuilderHost`，把核心接口盖掉 |
+| 拼屏契约 vs 实现 | core `UiBuilder` / vui `VuiBuilder` | vui 再 `export type UiBuilder = VuiBuilderHost`，把核心接口盖掉 |
 | 是/否 vs 弹层 | `confirm` / `dialog` | 旧名已删；list/tree 仍按 overlay 的 `"yes"` 字符串判断 |
 | 选记录 | `searchRelative` / `select(field)` / `select(repo)` | 三条语义清楚；皮肤相对搜索仍猜 `categoryName` / `name` / `label` |
 | 列表控件 | list / table / grid | 文档对；现网仍是 `factory.table`，`components/SfGrid` 是另一套 |
@@ -88,7 +88,7 @@
 | 契约缺口 | vui `ui_context.ts` | 实现 core `UiContext`，但不提供 `apiClient` |
 | 架构违规 | core `field_logic.ts` | `refLabelFn` 写回 `field.reference.labelFn`（共享元数据） |
 | 边界 | vui-syncfusion `SfAttachmentPanel` | 组件内拼 files URL、调 `fetchApi.uploadFiles` |
-| 命名 | vui `ui_builder.ts` | `export type UiBuilder = VueUiBuilderHost` 盖掉 core 接口 |
+| 命名 | vui `ui_builder.ts` | `export type UiBuilder = VuiBuilderHost` 盖掉 core 接口 |
 
 #### 测试（当时）
 
@@ -96,7 +96,7 @@ core 约 29 个测试文件，搜索 / MetaModel / FieldLogic 较实；`mmda_app
 
 #### 公开 API 卫生（当时）
 
-core 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`。`logic/ui_builder.ts` 与 `ui_types.ts` 已无引用。vui 仍导出 `PrimeVueUiFactory`、`primeVueTable`。皮肤保留 PascalCase 字段别名、`negativenumberInput`、`pagableTable`。兼容有成本，应标弃用期限。
+core 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`。`logic/ui_builder.ts` 与 `ui_types.ts` 已无引用。vui 仍导出 `PrimeVuiFactory`、`primeVueTable`。皮肤保留 PascalCase 字段别名、`negativenumberInput`、`pagableTable`。兼容有成本，应标弃用期限。
 
 ### 当时建议顺序
 
@@ -119,7 +119,7 @@ core 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`。`logic/ui_builder
 | confirm `!== "yes"` | `list.ts` / `tree.ts` 已改 `if (!result) return` |
 | Data 通道两边说 | `UiViewContext.apiClient` → `logic.apiClient`；`EntityLogic` 与 ARCHITECTURE 写明同一实例、CRUD 走 Logic 方法 |
 | vui `export type UiBuilder = …` | 已删 |
-| `VueUiBuilderHost` | 已删；注入类型是 `VueUiBuilder` |
+| `VuiBuilderHost` | 已删；注入类型是 `VuiBuilder` |
 | `logic/ui_*.ts` 死 shim | 已删 |
 | 表格双写功能 | 文档约定：现网只在 `factory.table` 加功能；`SfGrid` 是目标 |
 | Builder 继承图 | 已写入 ARCHITECTURE / vui `docs/builder.md` |
@@ -129,9 +129,9 @@ core 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`。`logic/ui_builder
 ```text
 UiBuilder              core 契约（框架无关）
     ↑ implements
-VueUiBuilder           vui 抽象类：模板方法填共用拼屏（取代 AbstractUiBuilder）
+VuiBuilder           vui 抽象类：模板方法填共用拼屏（共享壳在 core AbstractUiBuilder）
     ↑ extends
-SyncfusionUiBuilder / PrimeVueUiBuilder / …
+SfVuiBuilder / PrimeVuiBuilder / …
                        皮肤：控件与壳的具体落地
 ```
 
@@ -173,9 +173,9 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 | 层只碰相邻层 | Data 不 import logic；ui 无 Vue | 只依赖 core + Vue peers | 仍碰 `MetaModel`、`fetchApi`、`api.config.service` |
 | 皮肤不感知 Data | 合约在 `src/ui/` | 拼屏走 `factory.table` / `buildView`；列表查询在 vui | 表格显示、附件、外链、ref 清空仍读 Data |
 | Logic 无 Vue | 通过；CRUD 走 Logic 方法 / 同一 `ApiClient` | 业务钩子认 core `UiContext`；Builder 用 `UiBuildContext` | Builder 里仍拼鉴权工具栏（产品策略） |
-| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VueUiBuilder` 约 81 个方法（不是 150）；list 仍管单元格 | `SyncfusionUiBuilder extends VueUiBuilder`，不重写列表查询 |
+| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VuiBuilder` 约 81 个方法（不是 150）；list 仍管单元格 | `SfVuiBuilder extends VuiBuilder`，不重写列表查询 |
 
-**已经立住（含同日已落地，本快照不再扣分）：** core 运行时 luxon / pluralize；vui 不 import EJ2；`UiViewContext.apiClient` → `logic.apiClient`；confirm 调用方 `if (!result)`；无 `VueUiBuilderHost` / `export type UiBuilder`；死 shim 已删；列表查询在 vui；壳 `MmdaApplication` / `MmdaVueApp`。
+**已经立住（含同日已落地，本快照不再扣分）：** core 运行时 luxon / pluralize；vui 不 import EJ2；`UiViewContext.apiClient` → `logic.apiClient`；confirm 调用方 `if (!result)`；无 `VuiBuilderHost` / `export type UiBuilder`；死 shim 已删；列表查询在 vui；壳 `MmdaApplication` / `MmdaVueApp`。
 
 **仍开的裂缝：** `UiContext` 上 `app` / `apiClient` / `uiBuilder` 仍可选；ui → logic 类型环仍在。皮肤 `SfAttachmentPanel` 仍 `(app.api as any).fetchApi.uploadFiles`。`refLabelFn` 仍写 `field.reference.labelFn`。
 
@@ -183,7 +183,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 | 概念 | 现在怎么叫 | 问题 |
 |---|---|---|
-| 拼屏契约 vs 实现 | core `UiBuilder` / vui `VueUiBuilder` | 别名已删；对齐 ARCHITECTURE 继承图 |
+| 拼屏契约 vs 实现 | core `UiBuilder` / vui `VuiBuilder` | 别名已删；对齐 ARCHITECTURE 继承图 |
 | 是/否 vs 弹层 | `confirm` / `dialog` | Builder 内部 overlay `"yes"` → boolean；调用方已按 boolean |
 | 选记录 | `searchRelative` / `select(field)` / `select(repo)` | 皮肤相对搜索仍猜 `categoryName` / `name` / `label` / `text` |
 | 列表控件 | list / table / grid | 现网 `factory.table`（~1436 行）；`components/SfGrid` 目标未接线 |
@@ -221,7 +221,7 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 
 #### 公开 API 卫生
 
-core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@deprecated`）。vui 仍导出 `PrimeVueUiFactory`、`primeVueTable`。皮肤仍有 PascalCase 字段别名、`negativenumberInput`、`pagableTable`。
+core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@deprecated`）。vui 仍导出 `PrimeVuiFactory`、`primeVueTable`。皮肤仍有 PascalCase 字段别名、`negativenumberInput`、`pagableTable`。
 
 ### 本快照建议顺序
 
@@ -252,7 +252,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 
 ## 快照 2026-09-08（重评）
 
-当时总评：vui **会话侧**收口了一截（Handbook class mixin、context 去掉 `@ts-nocheck`、`VueUiContext` 正名）；**拼屏与皮肤**没有跟着走。core 热点文件和 `any` 还涨了。换皮最大的洞仍是皮肤鉴权工具栏 + `factory.table`。
+当时总评：vui **会话侧**收口了一截（Handbook class mixin、context 去掉 `@ts-nocheck`、`VuiContext` 正名）；**拼屏与皮肤**没有跟着走。core 热点文件和 `any` 还涨了。换皮最大的洞仍是皮肤鉴权工具栏 + `factory.table`。
 
 相对 09-06 晚：vui 设计/质量各 +0.5；core 质量 −0.5；皮肤质量 +0.5（插件测试铺开，主表格债未减）。
 
@@ -270,10 +270,10 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 |---|---|---|---|
 | 层只碰相邻层 | Data 不 import logic；ui 无 Vue | 只依赖 core + Vue peers；`ui/factory/` 是 props 契约不是 EJ2 | 仍碰 `MetaModel`、`fetchApi` |
 | 皮肤不感知 Data | 合约在 `src/ui/` | 列表查询在 vui；Builder 仍管单元格 | `factory.table` 显示、附件、ref 清空仍读 Data |
-| Logic 无 Vue | 通过 | 钩子认 core `UiContext`；实现类 `VueUiContext`（旧名 alias 已 deprecated） | Builder 仍拼鉴权工具栏 |
-| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VueUiBuilder = WithTree(WithList(WithForm(Base)))`；`buildModuleToolbar` 仍 unimplemented | 不重写列表查询 |
+| Logic 无 Vue | 通过 | 钩子认 core `UiContext`；实现类 `VuiContext`（旧名 alias 已 deprecated） | Builder 仍拼鉴权工具栏 |
+| 换皮只换皮肤 | `UiBuilder<TNode>` 够用 | `VuiBuilder = WithTree(WithList(WithForm(Base)))`；`buildModuleToolbar` 仍 unimplemented | 不重写列表查询 |
 
-**本快照新立住（下次不扣）：** vui context 从 `Object.assign(prototype)` 改为 Handbook mixin；`validate` / `reference` / `subgroup`（及 `data` / `navigate`）生产代码无 `@ts-nocheck`。`UiViewContext` / `UiBuildContext` 标成 `VueUiContext` 的 deprecated 别名。vui 工厂契约一控件一文件，皮肤实现。vui 测试文件约 69 个（控件契约变厚）。皮肤插件测试（gantt / kanban / chart 等）从「几乎一份大文件」扩到 11 个测试文件。
+**本快照新立住（下次不扣）：** vui context 从 `Object.assign(prototype)` 改为 Handbook mixin；`validate` / `reference` / `subgroup`（及 `data` / `navigate`）生产代码无 `@ts-nocheck`。`UiViewContext` / `UiBuildContext` 标成 `VuiContext` 的 deprecated 别名。vui 工厂契约一控件一文件，皮肤实现。vui 测试文件约 69 个（控件契约变厚）。皮肤插件测试（gantt / kanban / chart 等）从「几乎一份大文件」扩到 11 个测试文件。
 
 **仍开的裂缝：** 与 09-06 晚同一张 10 条清单；第 2 条部分关闭（只剩 form / list / tree）。
 
@@ -281,8 +281,8 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 
 | 概念 | 现在怎么叫 | 问题 |
 |---|---|---|
-| 会话 | `VueUiContext` | 旧 `UiViewContext` / `UiBuildContext` 仍 re-export |
-| 拼屏 | `VueUiBuilder` + `WithForm/List/Tree` | 三个 mixin 文件仍 `@ts-nocheck` |
+| 会话 | `VuiContext` | 旧 `UiViewContext` / `UiBuildContext` 仍 re-export |
+| 拼屏 | `VuiBuilder` + `WithForm/List/Tree` | 三个 mixin 文件仍 `@ts-nocheck` |
 | 列表控件 | `factory.table` 现网 / `components/SfGrid` 目标 | 未接线；table ~1472 行 |
 | 选记录 | 三条语义清楚 | 皮肤相对搜索仍猜 `categoryName` / `name` / `label` / `text` |
 | 应用状态 | `app.state` | `$api` / `$ui` / `$v` 仍在 |
@@ -355,7 +355,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 | 包 | 架构 | 设计 | 代码质量 | Δ | 一句话 |
 |---|---|---|---|---|---|
 | `@mmda/core` | 8.0 | 7.0 | 6.5 | 架构 +0.5 / 质量 +0.5 | 插件与三视图契约收进 core；三包唯一 tsc 干净；但权限挑按钮的产品策略落在了 UI 契约目录 |
-| `@mmda/vui` | 7.0 | 7.0 | 5.5 | 质量 −0.5 | 首次量化：66 条 tsc 错误，主体是 `VueUiContext`/`MmdaVueApp`/`VueUiBuilder` **不满足** core 契约；自家边界守卫测试红 |
+| `@mmda/vui` | 7.0 | 7.0 | 5.5 | 质量 −0.5 | 首次量化：66 条 tsc 错误，主体是 `VuiContext`/`MmdaVueApp`/`VuiBuilder` **不满足** core 契约；自家边界守卫测试红 |
 | `@mmda/vui-syncfusion` | 6.0 | 5.5 | 4.5 | 架构 +0.5 / 质量 −0.5 | 工具栏没了（好事）；137/199 测试、183 条源码级 tsc 错误、`table.ts` 1942 行仍 nocheck |
 
 ### 架构：分层与依赖
@@ -364,8 +364,8 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 |---|---|---|---|
 | 层只碰相邻层 | 0 处 import `vue`；`ui/` 仍是纯契约 | 0 处 import EJ2 / PrimeVue / ag-grid | 仍碰 `MetaModel`、`fetchApi`、`api.config.service` |
 | 皮肤不感知 Data | 契约在 `src/ui/` | 列表查询在 vui；三视图渲染在 `ui/builder/topbar.ts` | 收敛到 2 处：`SfAttachmentPanel`（HTTP + 上传 URL）、`field_factory/display.ts`（读 `api.config.service`） |
-| Logic 无 Vue | 通过 | 钩子认 core `UiContext`；实现类仍是 vui `VueUiContext` | 不再拼鉴权工具栏 |
-| 换皮只换皮肤 | `UiBuilder<TNode>` 34 个方法 | `VueUiBuilder = WithTree(WithList(WithForm(Base)))` | `SyncfusionUiBuilder extends VueUiBuilder` |
+| Logic 无 Vue | 通过 | 钩子认 core `UiContext`；实现类仍是 vui `VuiContext` | 不再拼鉴权工具栏 |
+| 换皮只换皮肤 | `UiBuilder<TNode>` 34 个方法 | `VuiBuilder = WithTree(WithList(WithForm(Base)))` | `SfVuiBuilder extends VuiBuilder` |
 
 **本轮新立住（下次不扣）：**
 
@@ -382,11 +382,11 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 
 | 概念 | 现在怎么叫 | 问题 |
 |---|---|---|
-| 拼屏三视图 | `buildIndexView` / `buildDetailsView` / `buildEditView` / `buildSelectView` | 名字对；但 vui 实现类上 tsc 报 `buildSelectView` / `buildDetailsView` / `buildEditView` **不存在于** `VueUiBuilderBase`（TS2551 / TS2339），`VueUiBuilder incorrectly implements UiBuilder`（TS2420） |
+| 拼屏三视图 | `buildIndexView` / `buildDetailsView` / `buildEditView` / `buildSelectView` | 名字对；但 vui 实现类上 tsc 报 `buildSelectView` / `buildDetailsView` / `buildEditView` **不存在于** `VuiBuilderBase`（TS2551 / TS2339），`VuiBuilder incorrectly implements UiBuilder`（TS2420） |
 | 三视图顶栏 | `UiIndexTopbarProps` / `UiDetailsTopbarProps` / `UiEditTopbarProps` | 新；命名与皮肤落地一致，`paintIndexTopbar` / `paintDetailsTopbar` / `paintModuleTopbar` 一组 |
 | 插件 | `UiPlugin` / `uiPlugin` / `UiPluginName` / `chartAsPlugin` | 新；把「图表是控件还是插件」讲清了 |
 | 列表控件 | `factory.table` 现网 / `components/SfGrid` 目标 | 层次这次讲清了：`factory/grid.ts` = EJ2 壳（`SfGridHost`）、`components/SfGrid.ts` = 契约控件、`factory/table.ts` = 现网拼装。**但没有合并** |
-| 会话 | `VueUiContext` | 旧名别名已清；但 vui 实现类与 core 接口的赋值关系 tsc 不认 |
+| 会话 | `VuiContext` | 旧名别名已清；但 vui 实现类与 core 接口的赋值关系 tsc 不认 |
 | 应用壳 | `app.state`；`MmdaVueApp extends MmdaApplication` | `MmdaVueApp` **不是** `MmdaApplication`（TS2345，2 处） |
 | 弹层 | `toast` / `confirm` / `dialog` | `confirm` 返 boolean 已统一，但皮肤有调用点没跟（见下） |
 
@@ -434,8 +434,8 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 |---|---|---|---|
 | **阻断开卡** | `vui/src/index.ts` | `htmlAttributesOf`（定义在 core `src/ui/props.ts:43`）**没有从 vui barrel 再导出**，而皮肤 15+ 处按 `import { htmlAttributesOf } from '@mmda/vui'` 用它 | `vitest run`：61 failed / 137 passed；61 条的报错文本全是 `TypeError: htmlAttributesOf is not a function`。一行即修 |
 | **行为缺陷** | `vui-syncfusion/src/components/SfAttachmentPanel.ts:148`、`:240` | `const accepted = await uiBuilder.confirm(...)` 之后判的是 `if (result !== 'ok') return` —— `result` 在本文件根本不存在，`accepted` 声明后未使用 | `tsc`：`TS2304: Cannot find name 'result'`。**覆盖同名附件**与**删除附件**两条路径运行时会抛 `ReferenceError`。这是 confirm 由字符串改 boolean 时漏掉的两个调用点（09-06 同类问题的复发） |
-| **契约不一致（已量化）** | `vui` | `VueUiContext<Entity>` 不可赋给 `UiContext<Entity>`（7 条）；`MmdaVueApp` 不可赋给 `MmdaApplication`（2 条）；`VueUiBuilder incorrectly implements UiBuilder`（TS2420）且 `buildSelectView`/`buildDetailsView`/`buildEditView` 在基类上找不到（TS2551/2339）；`UiActionContext incorrectly extends UiContext`（TS2430）；`VueUiOverlay` 缺 `message`（TS2741）；`VueUiLayout.pageLayout` 属性/访问器冲突（TS2611） | 66 条 tsc，换用 core 源码解析后**仍是 66 条**，不是 dist 假象 |
-| **皮肤覆写签名不兼容** | `vui-syncfusion/src/builder/index.ts` | `buildIndexTopbar` / `buildDetailsTopbar` / `buildEditTopbar` / `buildSearchField` / `buildSearchForRelative` / `buildModuleSearchbar` / `buildLoading` / `buildError` 共 7 条 `TS2416`：覆写属性与 `VueUiBuilder` 基类不同 | 接源码后 183 条中的一部分；这正是 typecheck 本该拦住、而因为解析到旧 dist 一直没拦住的东西 |
+| **契约不一致（已量化）** | `vui` | `VuiContext<Entity>` 不可赋给 `UiContext<Entity>`（7 条）；`MmdaVueApp` 不可赋给 `MmdaApplication`（2 条）；`VuiBuilder incorrectly implements UiBuilder`（TS2420）且 `buildSelectView`/`buildDetailsView`/`buildEditView` 在基类上找不到（TS2551/2339）；`UiActionContext incorrectly extends UiContext`（TS2430）；`VuiOverlay` 缺 `message`（TS2741）；`VuiLayout.pageLayout` 属性/访问器冲突（TS2611） | 66 条 tsc，换用 core 源码解析后**仍是 66 条**，不是 dist 假象 |
+| **皮肤覆写签名不兼容** | `vui-syncfusion/src/builder/index.ts` | `buildIndexTopbar` / `buildDetailsTopbar` / `buildEditTopbar` / `buildSearchField` / `buildSearchForRelative` / `buildModuleSearchbar` / `buildLoading` / `buildError` 共 7 条 `TS2416`：覆写属性与 `VuiBuilder` 基类不同 | 接源码后 183 条中的一部分；这正是 typecheck 本该拦住、而因为解析到旧 dist 一直没拦住的东西 |
 | **架构守卫测试红** | `vui/src/ui/builder/list_named_query.ts` | 仓库**自己写了**边界守卫 `vui/src/__tests__/layer_boundary.test.ts`（禁止 builder 目录 import net、禁止碰 `.apiClient`），它现在是红的 | `AssertionError: expected [ Array(1) ] to deeply equal []` |
 | **测试未跟随重构** | `core` | `EntityQuery.lastCache` 已从源码删除（缓存挪到 vui `list_last_query.ts` + `context.lastQuery`），`entity_search.test.ts` 仍在打它 | 3 条 `TypeError: EntityQuery.lastCache is not a function` |
 
@@ -445,7 +445,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 
 - `packages/tsconfig.base.json` **没有 `paths` 映射**，`@mmda/*` 经 pnpm workspace 软链解析到各包 `package.json` 的 `"types": "./dist/index.d.ts"`。
 - 现状是 dist 陈旧：`core/dist` 09-16 21:46、**`vui/dist` 09-10 13:17、`vui-syncfusion/dist` 09-09 19:27**——而源码改到 09-18。
-- 后果：`pnpm --filter @mmda/vui-syncfusion typecheck` 报 289 条，**接上 vui/core 源码后是 183 条**——约 106 条是假的（`VueUiLayout` / `VueUiOverlay` / `UiPlugin` / `htmlAttributesOf` 在旧 dist 里压根没有）。反向验证：vui 自己的 66 条，换成 core 源码解析后**仍是 66 条**，说明 vui 这 66 条是真的。
+- 后果：`pnpm --filter @mmda/vui-syncfusion typecheck` 报 289 条，**接上 vui/core 源码后是 183 条**——约 106 条是假的（`VuiLayout` / `VuiOverlay` / `UiPlugin` / `htmlAttributesOf` 在旧 dist 里压根没有）。反向验证：vui 自己的 66 条，换成 core 源码解析后**仍是 66 条**，说明 vui 这 66 条是真的。
 - 根 `package.json` 的 `scripts` 只有 `build` / `test` / `lint`，**没有 `typecheck`**；仓库**没有 CI**（无 `.github`）。各包 `typecheck` 脚本靠人记得手敲，且敲出来还是假的。
 - `vitest.config.ts` **反而是对的**——每个包都把 `@mmda/core` / `@mmda/vui` alias 到 `../core/src/index.ts` / `../vui/src/index.ts`。所以**测试量的是源码，typecheck 量的是 dist**，两者的信任度正好反过来。这也解释了为什么 61 条红能一直挂在工作区里没人发现：`pnpm test` 会红，但 `typecheck` 给了虚假的绿。
 
@@ -455,7 +455,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 |---|---|---|
 | 1 | vui barrel 补 `htmlAttributesOf` 再导出；`SfAttachmentPanel` 两处 `result !== 'ok'` 改 `!accepted` | 一行 + 两行，立刻消掉 61 条红测试和 2 个运行时会抛的路径。行为缺陷优先于分数 |
 | 2 | **给 typecheck 接线**：`tsconfig.base.json` 加 `paths` 指向各包 `src/index.ts`（或改 project references），根加 `typecheck` 脚本 | 不修这条，下面每一条都看不见——本轮 183 条皮肤错误、7 条覆写不兼容，全是这条缺失的产物 |
-| 3 | 按 tsc 输出收三条契约：`VueUiContext` → `UiContext`、`MmdaVueApp` → `MmdaApplication`、`VueUiBuilder` → `UiBuilder` | 对象就是 66 条错误的主体，也是「三通道可选 + ui↔logic 类型环」的可执行清单。收完 `UiContext` 的三通道就可以顺势改必填 |
+| 3 | 按 tsc 输出收三条契约：`VuiContext` → `UiContext`、`MmdaVueApp` → `MmdaApplication`、`VuiBuilder` → `UiBuilder` | 对象就是 66 条错误的主体，也是「三通道可选 + ui↔logic 类型环」的可执行清单。收完 `UiContext` 的三通道就可以顺势改必填 |
 | 4 | 附件改走 `context.apiClient`（去掉 `fetchApi.uploadFiles` 与组件内拼 URL）；`field_factory/display.ts` 别读 `api.config.service` | 皮肤感知 Data 只剩这 2 处，改动面小于并表 |
 | 5 | `form` / `list_view` / `tree_view`（vui）+ `factory/table.ts`（皮肤）逐个去 `@ts-nocheck` | 拼屏与现网表格的主体才进类型检查；等第 2 条接通后再排 |
 | 6 | `resolveIndexTopbarActions` 这类权限策略从 `core/src/ui/builder/` 挪 Logic 或交 vui；顺带补 `mmda_app` 测试 | 分层收尾 + 质量债，可分 PR |
@@ -465,7 +465,7 @@ core barrel 仍导出 `FetchClient` / `OAuthApiClient` / `ApiError`（已 `@depr
 1. `vui` barrel 缺 `htmlAttributesOf` 再导出 → 皮肤 61 条测试红（一行可修）
 2. **跨包 typecheck 未接线**：无 `paths` / 无 root `typecheck` / 无 CI，皮肤 typecheck 量的是 8 天前的 dist（289 假 vs 183 真）
 3. `SfAttachmentPanel` 两处 `result !== 'ok'`（运行时 ReferenceError）；附件仍 `fetchApi.uploadFiles`
-4. `UiContext` 三通道仍可选；ui ↔ logic 类型环仍在；vui `VueUiContext` / `MmdaVueApp` / `VueUiBuilder` 均不满足 core 契约（66 条 tsc）
+4. `UiContext` 三通道仍可选；ui ↔ logic 类型环仍在；vui `VuiContext` / `MmdaVueApp` / `VuiBuilder` 均不满足 core 契约（66 条 tsc）
 5. `form` / `list_view` / `tree_view`（vui）与 `factory/table.ts`（皮肤）仍 `@ts-nocheck`
 6. `refLabelFn` 仍写回共享元数据 `field.reference.labelFn`
 7. HTTP 旧栈仍从 core barrel 导出（`core/src/index.ts:137` → `./net/http`，594 行，已弃用）

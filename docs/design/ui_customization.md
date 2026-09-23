@@ -159,7 +159,7 @@ export function productionScheduleView<TNode>(
 ## 4. 三个坑
 
 1. **组件要包一层**：`customEditor` / `customRenderer` 是渲染函数（直接被调用），不是组件。React 用 `createElement(Comp, { field, context })`，Vue 用 `h(Comp, { field, context })`。
-2. **不要往下转型**：拿到的 `context` 是 `UiContext` 接口。不要 `as ReactUiContext` / `as VuiContext` 去摸运行时类的私有状态（`AGENTS.md` 的面向接口原则）。
+2. **不要往下转型**：拿到的 `context` 是 `UiContext` 接口。不要 `as RuiContext` / `as VuiContext` 去摸运行时类的私有状态（`AGENTS.md` 的面向接口原则）。
 3. **刷新由宿主驱动**：宿主重渲染时会重新执行你的渲染函数，你会拿到新的 `props` / 新的 `context` 读值。所以别把瞬时值钉在 `useState(...)` 初值里（React 不自动追踪）；要「主动刷新」就调 `deps.invalidate()`（屏级）。
 
 ---
@@ -181,7 +181,7 @@ export function productionScheduleView<TNode>(
 
 | 层 | Vue（vui） | React（rui） |
 | --- | --- | --- |
-| 字段级（表单） | ✅ 已通 | 部分：`ReactUiBuilder.editFor` / `displayFor` 已实装，整屏拼屏（`buildIndexView` / `buildEditView`）未实装 |
+| 字段级（表单） | ✅ 已通 | 部分：`RuiBuilder.editFor` / `displayFor` 已实装，整屏拼屏（`buildIndexView` / `buildEditView`）未实装 |
 | 字段级（表格单元格） | ✅ 已通 | ✗ 待实装（`buildIndexView`） |
 | 组级 | ✅ 已通 | ✅ 已通（`buildFieldGroup` / `buildSubGroup`，含插片与 `customRenderer` 换中间） |
 | 屏级（详情 / 编辑） | ✅ 已通（`hostedView` / `hostedEntityView`） | ✅ 已通（`buildDetailsView` / `buildEditView`：primary / secondary / tails 分区） |

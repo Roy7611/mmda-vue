@@ -46,7 +46,7 @@ UiContext ..> MmdaApplication : app
 
 note bottom of UiBuilder
   core UiBuilder 只声明 factory / fieldFactory，不声明 layout。
-  layout 由实现侧持有：vui 的 VueUiBuilderBase.layout（皮肤构造时注入）。
+  layout 由实现侧持有：vui 的 VuiBuilderBase.layout（皮肤构造时注入）。
   toast / message / confirm / dialog 四个方法直接长在 UiBuilder 上；
   UiOverlay 是皮肤宿主契约，vui 默认 createHtmlOverlay()。
   薄包单个 factory 的方法（buildTable / buildPaginator / buildContainer）
@@ -72,22 +72,22 @@ package "core（框架无关契约）" as core {
 
 package "vui（Vue 落地）" as vui {
   abstract "VuePluginHost" as V_Host
-  abstract "VueUiBuilderBase\nfactory · fieldFactory · layout · overlay" as V_Base
-  abstract "VueUiBuilder\nWithForm / WithList / WithTree" as V_Builder
-  class "VueUiLayout\nextends AbstractUiLayout<VNode>" as V_Layout
-  interface "VueUiFactory\nextends UiFactory<VNode>" as V_Factory
-  class "VueUiFieldFactory\n= UiFieldFactory<VNode>" as V_FieldFactory
-  class "VueUiOverlay\n= UiOverlay<VNode>" as V_Overlay
-  class "VueUiContext<M>\nimplements UiContext<M>" as V_Context
+  abstract "VuiBuilderBase\nfactory · fieldFactory · layout · overlay" as V_Base
+  abstract "VuiBuilder\nWithForm / WithList / WithTree" as V_Builder
+  class "VuiLayout\nextends AbstractUiLayout<VNode>" as V_Layout
+  interface "VuiFactory\nextends UiFactory<VNode>" as V_Factory
+  class "VuiFieldFactory\n= UiFieldFactory<VNode>" as V_FieldFactory
+  class "VuiOverlay\n= UiOverlay<VNode>" as V_Overlay
+  class "VuiContext<M>\nimplements UiContext<M>" as V_Context
   class "MmdaVueApp\nextends MmdaApplication" as V_App
 }
 
 package "皮肤 vui-syncfusion / vui-primevue / vui-agnaive" as skin {
-  class "SyncfusionUiBuilder\nPrimeVueUiBuilder\nAgNaiveUiBuilder" as S_Builder
-  class "SyncfusionLayout\nPrimeLayout / AgNaiveLayout" as S_Layout
-  class "createSyncfusionUiFactory()\ncreatePrimeVueUiFactory() …" as S_Factory
-  class "createSyncfusionFieldFactory()\ncreatePrimeVueFieldFactory() …" as S_FieldFactory
-  class "createSyncfusionOverlay()\ncreatePrimeOverlay() …" as S_Overlay
+  class "SfVuiBuilder\nPrimeVuiBuilder\nAgNaiveVuiBuilder" as S_Builder
+  class "SfVuiLayout\nPrimeVuiLayout / AgNaiveVuiLayout" as S_Layout
+  class "createSfVuiFactory()\ncreatePrimeVuiFactory() …" as S_Factory
+  class "createSfVuiFieldFactory()\ncreatePrimeVuiFieldFactory() …" as S_FieldFactory
+  class "createSfVuiOverlay()\ncreatePrimeVuiOverlay() …" as S_Overlay
 }
 
 V_Host <|-- V_Base
@@ -110,7 +110,7 @@ S_Builder ..> S_Overlay : 构造注入 overlay
 note bottom of V_Builder
   Logic 只认 core UiBuilder<VNode>；皮肤不要再 alias 成 core 的 UiBuilder，
   也不要在 vui 重声明同名的 interface UiFactory。
-  换 rui 另写 ReactUiBuilder，不从 vui 抄。
+  换 rui 另写 RuiBuilder，不从 vui 抄。
 end note
 @enduml
 
@@ -209,8 +209,8 @@ interface "UiPlugin<TNode>" as UiPlugin {
 }
 
 class "VuePluginHost\nuse · plugin · hasPlugin · requirePlugin" as VuePluginHost
-class "VueUiBuilderBase" as VueUiBuilderBase
-VueUiBuilderBase --|> VuePluginHost
+class "VuiBuilderBase" as VuiBuilderBase
+VuiBuilderBase --|> VuePluginHost
 
 package "core 插件面（packages/core/src/ui/plugins/）" {
   class "UiPluginName\ngantt · scheduler · kanban · diagram · timeline\nmarkdown-editor · image-editor · pivot-table\nribbon · ai-assistant · chart" as UiPluginName

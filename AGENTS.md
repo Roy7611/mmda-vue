@@ -11,9 +11,9 @@
 
 ## 目的
 
-- **Logic（交互逻辑）**：显示、锁定、校验、引用加码、`onChange`、业务动作。纯 TypeScript，无 Vue/React 类型。只认 core **`UiContext` 接口**，不要写成 vui `VueUiContext` 类。
+- **Logic（交互逻辑）**：显示、锁定、校验、引用加码、`onChange`、业务动作。纯 TypeScript，无 Vue/React 类型。只认 core **`UiContext` 接口**，不要写成 vui `VuiContext` 类。
 - **Data**：元数据、`MetaModel`、`ApiClient`。不要自己拼 HTTP，不要改写共享元数据。
-- **UI**：vui + 皮肤配置与展现，挂上 Logic。不写业务计算。控件在皮肤 `components/`，`factory/` 用元数据生产，vui Builder 只拼复杂视图。不要把厂商表格写进 `@mmda/vui`。`VueUiContext` 对标 Flutter `BuildContext`，给渲染 / 拼屏用。
+- **UI**：vui + 皮肤配置与展现，挂上 Logic。不写业务计算。控件在皮肤 `components/`，`factory/` 用元数据生产，vui Builder 只拼复杂视图。不要把厂商表格写进 `@mmda/vui`。`VuiContext` 对标 Flutter `BuildContext`，给渲染 / 拼屏用。
 
 ## 会话上怎么走
 
@@ -41,7 +41,7 @@
 
 - **先找主人，再写形态。** 行为跟主题走（过滤在 `metaui_filter`，字段声明在 `MetaUiField`）。跟类相关的（含静态方法，像 `Math`）归到抽象类 / 实现类，不要旁路 `export`。
 - **文件内局部函数可以。** 与类无关、不 `export`、只在本文件用的辅助可以。一 `export` 就要有主人，除了utils工具类通用函数。
-- **`interface` 是契约，`class` 是实现。** 有身份、生命周期、继承或一组相关问句，用 class。不要「没状态就独立函数」。习惯上使用接口编程，隐藏实现细节。**面向 core 的 `UiContext` / `UiBuilder` 等接口编程，不对运行时类型（`VueUiContextBase` / `ReactUiContextBase`）做向下转型。** 可以用模板方法的时候用抽象类增加代码复用，原则是不要出现大段重复代码。
+- **`interface` 是契约，`class` 是实现。** 有身份、生命周期、继承或一组相关问句，用 class。不要「没状态就独立函数」。习惯上使用接口编程，隐藏实现细节。**面向 core 的 `UiContext` / `UiBuilder` 等接口编程，不对运行时类型（`VuiContextBase` / `RuiContext`）做向下转型。** 可以用模板方法的时候用抽象类增加代码复用，原则是不要出现大段重复代码。
 - **对外只留问句。** 推导步骤留在内部，不要为每一步导出 `*Of` / `is*`。
 - **禁止函数爆发。** 同一件事出现第二次，回到主人上改，不要再写姐妹函数。
 - **枚举 / 类型：共用才定义并 export。** 业务代码用成员，不要写字符串字面量。三元组（序号 / code / 文案）走已有 `Xxx` + `XxxEnum`（`valueOf` / `textOf`），见 [docs/naming.md](docs/naming.md) 业务枚举成员。

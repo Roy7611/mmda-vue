@@ -7,7 +7,7 @@
 ' 【UI 层 · 表现层】
 '   包与目录：@mmda/vui（拼屏、会话）、@mmda/vui-*（皮肤控件与 factory）
 '   做什么：拼屏（模块页、侧栏菜单、登录/注册、字段组、Explorer）、控件与外壳、
-'           路由与会话落地（vui VueUiContext ≈ Flutter BuildContext、MmdaVueApp）。
+'           路由与会话落地（vui VuiContext ≈ Flutter BuildContext、MmdaVueApp）。
 '   不做什么：业务计算、校验规则、改共享元数据（MetaUiField）；皮肤不感知 Data。
 '   契约：core src/ui/ —— UiBuilder（组装）· UiFactory（chrome 控件）·
 '         UiFieldFactory（字段控件）· UiLayout（排法）· UiOverlay（弹层宿主）· UiContext（会话）。

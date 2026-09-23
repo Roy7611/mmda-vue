@@ -79,10 +79,10 @@
 | 会话接口 | `UiContext` | core；业务 Logic 只认这个。声明 `uiBuilder` / `apiClient` / `app` |
 | 应用壳 | `MmdaApplication` | core abstract class；鉴权、MetaUi、DI、locale。`context.app` 的类型。业务读 **`app.state`** |
 | Vue 应用壳 | `MmdaVueApp` | vui `extends MmdaApplication`；不是 Vue `createApp()` |
-| 拼屏实现 | `VueUiBuilder` | vui 抽象类，`implements UiBuilder<VNode>`（模板方法）；皮肤 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` 等再 extends。取代 `AbstractUiBuilder`。注入类型用本类，不要另造 Host，也不要 alias 成 `UiBuilder` |
+| 拼屏实现 | `VuiBuilder` | vui 抽象类，`extends` core `AbstractUiBuilder` + `implements UiBuilder<VNode>`（模板方法）；皮肤 `SfVuiBuilder` / `PrimeVuiBuilder` / `AgNaiveVuiBuilder` 再 extends。React 侧对等 `RuiBuilder` → `SfRuiBuilder`。注入类型用本类，不要另造 Host，也不要 alias 成 `UiBuilder` |
 | 页面级视图 | `UiViewFn` | core；业务包（base/mes）画模块首页/占位页用它，第二参是 `UiViewDeps`（`app` / `render` / `router`）。宿主包成自己的组件（`hostedView`），业务包不 import 框架 |
 | 翻译 | `app.translate` / `TranslateFn` | core；逻辑与页面统一从这里取文案（实体会话内 `context.t` 带参数）。不要 vue-i18n 的 `useI18n` |
-| 会话实现 | `VueUiContext` | vui 实现 core `UiContext`；对标 Flutter `BuildContext`，给构造 / 拼屏 / 屏级 IO。不要叫 ViewModel / Store。旧名 `UiViewContext` / `UiBuildContext` 已合并，新代码不要写 |
+| 会话实现 | `VuiContext` | vui `extends` core `AbstractUiContext` 并实现 `UiContext`；对标 Flutter `BuildContext`，给构造 / 拼屏 / 屏级 IO。不要叫 ViewModel / Store。旧名 `UiViewContext` / `UiBuildContext` 已删除，新代码不要写 |
 
 元数据（`MetaUiField` 等）不是会话状态：查询词、选中行、校验结果不要写回去。
 
@@ -101,20 +101,22 @@ vui Builder        buildIndexView        拼工具栏、搜索、分组、分页
 Builder 继承（设计真源 [ARCHITECTURE.md](../ARCHITECTURE.md)）：
 
 ```text
-UiBuilder              core 契约
+UiBuilder                                core 契约（interface）
+    ↑
+AbstractUiBuilder                        core 共享实现（能上移的壳都在 core）
     ↑ implements
-VueUiBuilder           vui 抽象类（模板方法；取代 AbstractUiBuilder）
+VuiBuilder / RuiBuilder                  运行时抽象类（模板方法；vui 钉 VNode，rui 钉 ReactNode）
     ↑ extends
-SyncfusionUiBuilder / PrimeVueUiBuilder / …
+SfVuiBuilder / PrimeVuiBuilder / AgNaiveVuiBuilder / SfRuiBuilder / …
 ```
 
 | 词 | 英文 | 典型写法 | 是什么 |
 | --- | --- | --- | --- |
 | 组件 | Component | `SfGrid`、`AgGrid`、`NaiveTree` | 皮肤 `components/`；vui `src/components/` 只有无厂商壳。`components/` 不 import builder / factory；依赖只许 **builder → factory → components** |
-| 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `interface VueUiFactory extends UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
+| 工厂 | Factory / `UiFactory` | `factory.table`、`fieldFactory.dropDownList` | **core** 契约；皮肤实现。vui 用 `interface VuiFactory extends UiFactory<VNode>`，不要再声明同名 `interface UiFactory` |
 | 构建器契约 | `UiBuilder` | `toast` / `confirm` / `dialog` / `buildIndexView` / `buildDetailsView` / `buildEditView` | **core** `src/ui/builder.ts`，无 Vue |
-| 拼屏实现 | `VueUiBuilder` | `buildIndexView`、`buildDetailsView`、`buildEditView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
-| 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SyncfusionOverlay` 等。不要 `factory.dialog` |
+| 拼屏实现 | `VuiBuilder` | `buildIndexView`、`buildDetailsView`、`buildEditView` | vui 抽象类（模板方法）；`ui/builder/` 挂共用部分；皮肤只补壳 / 控件 |
+| 弹层宿主 | `UiOverlay` | toast / confirm / dialog | **core**；皮肤 `SfVuiOverlay` / `PrimeVuiOverlay` / `AgNaiveVuiOverlay`（React 侧 `SfRuiOverlay`）。不要 `factory.dialog` |
 | 动作工厂 | `UiActionFactory` | `create` / `save` / `delete` | **Builder 的标准按钮接线**，不是生产 SfGrid 的 Factory |
 
 ### 渲染器三层
@@ -138,21 +140,35 @@ UiGroupRenderer      core  组级渲染：字段组合 / 子表（一个 MetaUiG
 - `UiGroupRenderer<TNode> = (group, context, props?: UiProps) => TNode` —— **组级渲染器**（core `src/ui/group_factory.ts`）：挂 `MetaUiGroupLogic` 的六个位置，vui 消费在 `builder.buildGroup`（`packages/vui/src/ui/builder/form.ts` 的 `wrapGroupSlots`）。vui 的 `VuiGroupRenderer` 是它的 `VNode` 收窄别名。组级没有「第三参给当前行」那一形态 —— 行由子表会话（`context`）给。
 - 六个位置**按位置分工、可同时生效**（不是三个插槽对象）：`customPrepend` / `customAppend` 是标准内容前 / 后的插片（详情态），`customEditPrepend` / `customEditAppend` 是编辑态的插片，`customEditor` / `customRenderer` 换**中间那块**（编辑态取前者、只读态取后者）；前两者 + 中间是正交的，只写插片也能生效（不必写 customRenderer）。
 - `customAggregator` / `aggregateWith(fn)` **不是渲染器** —— 它是**子表合计计算**：`AggregateGroupFn<E, G> = (context, model, items) => void`（core `logic/logic_functions.ts`），在子表行集合变化时于 `onChange` **之后**调用（`AbstractUiContext.notifySubGroupChanged`，`addSubGroupItem` / `addSubGroupItems` / `removeSubGroupItem` / `removeSubGroupItems` 四处都过它）。只算不渲染，程序员在这里改主表合计字段，所以不进 `UiGroupRenderer`。
-- vui 只钉 `VNode`：`VueUiRenderer` / `VueFieldRenderer` / `VueGroupRenderer`。vui 现有那个“值渲染器” `UiRenderer<T>` 改名 `VueUiRenderer`，不要与 core 的 `UiRenderer` 撞名。
+- vui 只钉 `VNode`：`VuiRenderer` / `VuiFieldRenderer` / `VuiGroupRenderer`。vui 现有那个“值渲染器” `UiRenderer<T>` 改名 `VuiRenderer`，不要与 core 的 `UiRenderer` 撞名。
 
 ### UI 契约三层
 
 ```text
-@mmda/core     UiFactory / UiFieldFactory / UiBuilder / UiLayout / UiOverlay + Ui*Props
+@mmda/core     UiFactory / UiFieldFactory / UiBuilder / UiOverlay / UiLayout / UiContext / UiRenderer + Ui*Props
 @mmda/vui      Vui* / Vue*（type 别名或 abstract class，按是否有实现选型）
-皮肤           SyncfusionUiFactory / PrimeUiFactory / AgNaiveUiFactory …
+@mmda/rui      Rui* / React*（同上）
+皮肤           SfVuiFactory / PrimeVuiFactory / AgNaiveVuiFactory / SfRuiFactory …
 ```
+
+**三级命名链（整个 core 契约家族，不只是 Builder）**：
+
+```text
+vue:   UiBuilder → VuiBuilder → SfVuiBuilder | PrimeVuiBuilder | AgNaiveVuiBuilder
+react: UiBuilder → RuiBuilder → SfRuiBuilder | PrimeRuiBuilder | AgNaiveRuiBuilder
+```
+
+core 用 `UiXxx`；运行时把 `Ui` 换成 `Vui` / `Rui`；皮肤 = **厂商前缀 + 运行时名字**。Builder / Factory / FieldFactory / Overlay / Layout / Context / Renderer 全族一律如此，皮肤里这些契约的**宿主组件**也带运行时前缀（`SfVuiOverlayHost` / `SfRuiOverlayHost`）—— 两个运行时同名会让人分不清 import 的是谁。
 
 - Logic 只 import `@mmda/core`；`UiButtonProps` 等参数类型也在 core。
 - vui：只钉 `VNode` → `type VuiX = UiX<VNode>`；有 mixin/共用代码 → `abstract class`；多方法 → `interface extends`。
 - **袋 → 渲染前标准形态归 core**：`uiRenderProps(props)`（`core/src/ui/props.ts`）把袋拆成 `props` / `attributes`，框架无关；`class` 已收成字符串（`uiClassName`）、`style` 已收成对象、袋键 `htmlAttributes` 已压平、`for` 用平台原名、Vue 的 `onUpdate*` 别名不进标准形态。vui **零键名翻译**直传 `h`（标准形态即 `class` / `for`）；rui 做两处映射（`className` / `htmlFor`）。设计与迁移见 [vui_architecture.md](design/vui_architecture.md) §1。
 - **不要** core 写 `Ref` / `VNode`；`loading` / `layoutRev` 用 `UiBoxed`（`boolean | { value: boolean }`）。
-- 厂商类名用短前缀：`PrimeUiBuilder`（不要 `PrimeVueUiBuilder` 与 Vue 层混）。
+- **厂商前缀取短**（`Sf` / `Prime` / `AgNaive`）且后面必须跟运行时前缀：`SfVuiBuilder` / `PrimeVuiBuilder` / `AgNaiveVuiBuilder` / `SfRuiBuilder`。不要 `SyncfusionUiBuilder`（厂商名没缩写又缺运行时前缀）、不要 `PrimeVueUiBuilder`（厂商包名整段写进类名）、更不要 `SfUiBuilder` / `AgNaiveUiBuilder` / `VueUiBuilder` / `ReactUiBuilder`。
+- **例外**：纯厂商 chrome 控件只留厂商前缀、不带运行时前缀 —— `SfGrid` / `SfTree` / `PrimeTree` / `NaiveTree`（[list、table、grid](#listtablegrid) 已明文「皮肤控件名仍是 `SfGrid` / `AgGrid`」）；core 的 `AbstractUiXxx` 是框架无关共享实现，也不进这条链。
+- **chrome 的厂商前缀只有一枚，不带 `Mmda*` / `N*` / 裸名**：Syncfusion 一律 `Sf`（`SfHelpPanel` / `SfHelpPanelItem` / `SfSignaturePad`）；primevue 一律 `Prime`（`PrimeTree` / `PrimeHelpPanel` / `PrimeSigninForm` / `PrimeBpmnModeler` / `PrimeSignaturePad`）；agnaive 允许**两个开头** —— **表格族 `Ag`**（`AgGrid` / `AgGridCell` / `AgRowDetail` / `AgHasOneFilter`）、**其余 `Naive`**（`NaiveTree` / `NaiveAppSideMenu` / `NaiveDropupMenuButton` / `NaiveContextMenu` / `NaiveSignaturePad` / `NaiveSigninForm` / `NaiveBpmnModeler`）。
+- **契约实现的宿主组件仍带运行时前缀**（`AgNaiveVuiOverlayHost` / `SfVuiFieldFactory` / `PrimeVuiOverlayHost`），chrome 控件不带 —— 两者别混。
+- **厂商前缀取自厂商品牌名，不是包名**：`Sf`（Syncfusion）、`Prime`（PrimeVue，简称 `prime`）、`Ag` / `Naive`（agnaive 的表格族 / 其余）、`AgNaive`（该皮肤整体）、`Tempis`（Tempis 时间轴，`createTempisTimelinePlugin`）。
 
 ### 属性 / 插槽 / 视图 props 的分工
 
@@ -184,8 +200,9 @@ Ui 开头（core 契约的 Vue 特化） → VuiXxx
 
 - 只约束 vui 包内**新定义**的 `type` / `interface`；core 的 `Ui*Props` / `UiRenderer` 是导入的 core 名，原样使用，不要重命名。
 - `type` / `interface` 名不再拼 `VueUi*` 这种中间态：Ui 概念归 `Vui*`，Vue 专有概念归 `Vue*`。
-- vui 皮肤（`@mmda/vui-*`）再补厂商前缀；Syncfusion 用 `Sf`：`SfVuiXxx` / `SfVueXxx`。
-- 例：`VuiContextOptions`、`VueSchedulerPlugin`；vui-syncfusion 用 `SfVuiGridProps`、`SfVueOverlay`。
+- vui 皮肤（`@mmda/vui-*`）再补厂商前缀；Syncfusion 用 `Sf`：**只有 `SfVuiXxx` 一种形态**（没有 `SfVueXxx`）。
+- 判定口径：名字对应 core 里**以 `Ui` 开头**的概念（`UiSchedulerPlugin` / `UiChartFactory` / `UiFieldRenderer` / `UiGanttPlugin`）→ `VuiXxx`；core 里不以 `Ui` 开头的框架专有物（`PluginHost`、`ModuleContext`）与 chrome 控件（`AppSideMenu`）→ `VueXxx`。
+- 例：`VuiContextOptions`、`VuiSchedulerPlugin`、`VuiFieldRenderer`（与隔壁 `VuiGroupRenderer` 成对）；vui-syncfusion 用 `SfVuiGridProps`、`SfVuiOverlay`。
 
 ### React 运行时命名（rui / rui-*）
 
@@ -199,7 +216,7 @@ Ui 开头（core 契约的 React 特化） → RuiXxx
 - 只约束 rui 包内**新定义**的 `type` / `interface`；core 的 `Ui*Props` / `UiRenderer` 是导入的 core 名，原样使用，不要重命名。
 - `type` / `interface` 名不再拼 `ReactUi*` 这种中间态：Ui 概念归 `Rui*`，React 专有概念归 `React*`。
 - rui 皮肤（`@mmda/rui-*`）再补厂商前缀；Syncfusion 用 `Sf`：`SfRuiXxx` / `SfReactXxx`。
-- 例：`RuiContextOptions`、`ReactNavigator`；rui-syncfusion 用 `SfReactDialogRequest`、`SfRuiGridProps`。
+- 例：`RuiContextOptions`、`ReactNavigator`；rui-syncfusion 用 `SfRuiDialogRequest`、`SfRuiGridProps`。
 
 ### UI 插件
 
@@ -370,7 +387,7 @@ MaterialLogic                          业务：该实体的交互逻辑
 
 ### 按视图装配
 
-钩子名：`before` + 视图首字母大写。`applyTo(context, view)` 调对应 `beforeXxx`，结果 `bindLogics` 进 `VueUiContext`。
+钩子名：`before` + 视图首字母大写。`applyTo(context, view)` 调对应 `beforeXxx`，结果 `bindLogics` 进 `VuiContext`。
 
 | 视图 | 钩子 | 默认落到 |
 |---|---|---|
@@ -660,7 +677,7 @@ search.filterModel = {
 | 界面    | `UiAction`     | `name`（工厂里 `id` 为 `{name}-button`） | 工具栏 / 行菜单真正点的  |
 
 
-`ModuleAction` → 服务端转成 `EntityAction` → vui `UiContextAction` / `entityActionFactory` 建成 `UiAction`。不要在 `EntityAction` 上加 `canDo`；`canDo` 只属于 `UiAction`，来自 `executableExpression`。
+`ModuleAction` → 服务端转成 `EntityAction` → vui `VuiContextAction` / `entityActionFactory` 建成 `UiAction`。不要在 `EntityAction` 上加 `canDo`；`canDo` 只属于 `UiAction`，来自 `executableExpression`。
 
 `ModuleAction.actionModes` 是另一套位，表示按钮出现在哪类界面，**不是** `UiViewType`：
 
@@ -719,6 +736,10 @@ search.filterModel = {
 | `EntitySearchParam`    | 当次列表查询（+`searchWord` +`queryParams`） | 元数据 / 可保存查询 |
 | `EntityQuery`          | 可保存的查询（无 `searchWord`、无 `queryParams`） | FilterModel JSON |
 | `FilterModel` / `FieldFilter` | 表头/搜索栏结构化条件 | `MetaUiFilter`、厂商列模型 |
+| `UiSearchRow`          | 搜索页**草稿**行（字段名 + 叶子 + 可选 `join`），住 `context.searchRows` | `FilterModel`、`VuiSearchField`（已删） |
+| `buildSearchView`      | 搜索页内容（模糊搜 + 字段列 + 动作行）；页壳 / 抽屉由承载加 | 弹层 `dialog` |
+| `buildSearchField`     | 单个搜索条件行（字段 + 操作符 + 值） | 表单字段行 `editFor` |
+| `getColumnFilterOps`   | 列过滤算子表（表头菜单口径，`metaui_field.ts`） | `getFieldFilterOps`（SQL 片段口径）、厂商列模型 |
 | `MetaUiFilterType`     | `filterTypes` 位 + `filterType` JSON 名 | core `columnFilterKind` / `range` |
 | `filterModel`          | 表头/搜索栏结构化条件              | `MetaUiFilter`   |
 | `MetaUiFilter`         | 快捷过滤声明                   | AG Grid 模型       |
@@ -759,7 +780,12 @@ search.filterModel = {
 | 业务一对一    | `hasOne`（按需取整份实体）                 | 当小表 `loadReferenceOptions`            |
 | 关联对象      | relative：`relObjName`、`addRelativeLogic` | `relation`、CSS `relative`、`relativeTime` |
 | 无 Vue 业务 Logic 基类 | `EntityLogic`（core）                 | `UiLogic`、`EntityManager`、`RepositoryLogic`、`VueEntityLogic`（已删，无定制用 `GenericEntityLogic`） |
-| 拼复杂视图    | `buildIndexView` / `VueUiBuilder` | `AbstractUiBuilder`、`VueUiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
+| 拼复杂视图    | `buildIndexView` / `VuiBuilder` | `VuiBuilderHost`、把 vui 实现 alias 成 `UiBuilder`、皮肤 Builder 里调 API |
+| 皮肤 Builder 名 | `SfVuiBuilder` / `PrimeVuiBuilder` / `AgNaiveVuiBuilder` / `SfRuiBuilder` | `SfUiBuilder`、`AgNaiveUiBuilder`、`SyncfusionUiBuilder`、`PrimeVueUiBuilder`、`VueUiBuilder`、`ReactUiBuilder` |
+| 皮肤 Overlay / Layout / 字段工厂 | `SfVuiOverlay` / `SfVuiLayout` / `SfVuiFieldFactory`（React：`SfRuiOverlay` …） | `SfOverlay`、`PrimeLayout`、`AgNaiveFieldFactory`（缺运行时前缀，分不清谁的） |
+| 契约宿主组件 | `SfVuiOverlayHost` / `SfRuiOverlayHost` / `SfVuiLoadingHost` | `SfOverlayHost`、`SfReactUiOverlayHost`、`SfLoadingHost`（两个运行时同名） |
+| 运行时层的 Ui 概念特化 | `VuiSchedulerPlugin` / `VuiChartFactory` / `VuiFieldRenderer`、`RuiFieldFactory` | `VueSchedulerPlugin`、`VueChartFactory`、`VueFieldRenderer`（它们是 core `Ui*` 概念的 VNode 特化，不是 Vue 专有） |
+| 真·框架专有 / chrome 组件 | `VuePluginHost` / `VueModuleContext` / `VueAppSideMenu`（React：`ReactPluginHost`） | 把 core 带 `Ui` 前缀的概念写成 `VueXxx`；给 chrome 组件硬套 `Vui*` |
 | 控件填色     | `colorRole`                            | `severity`（那是 toast/校验）        |
 | 落到真实节点的属性 | core `uiRenderProps(props).attributes`（袋键已压平；`class` → `className`、`style` → 对象） | 袋键 `htmlAttributes`（那是输入、只吃字符串）；把两者都叫 `attrs` |
 | 取色         | `factory.colorPicker`（hex）           | `colorRole`、厂商 `modeSwitcher`     |

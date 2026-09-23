@@ -58,7 +58,7 @@
 | # | 章节 | 状态 |
 |---|---|---|
 | 1 | 契约与通道（props / slots / 标准形态） | **已定稿**（本文） |
-| 2 | 会话（`UiContext` / `VueUiContext` / mixin） | 待写 |
+| 2 | 会话（`UiContext` / `VuiContext` / mixin） | 待写 |
 | 3 | 拼屏（Builder 模板方法 + 组合） | 待写 |
 | 4 | 四职落地（layout / fieldFactory / factory / builder） | 待写 |
 | 5 | 插件（`UiPlugin` / `VuePluginHost`） | 待写 |
@@ -240,7 +240,7 @@ sui:  { ...std.props, ...std.attributes }                              // Svelte
 
 | 位置 | 现状 | 处置 |
 |---|---|---|
-| [packages/vui/src/ui/factory.ts:199](../../packages/vui/src/ui/factory.ts) | `interface VueUiFactory extends UiFactory<VNode> { [index: string]: any }` | 收成具名（皮肤漏实现 / 写错控件名必须报错）；如将来确有扩展位，让 core 出 `UiFactory<TNode, TExtra>` 泛型 |
+| [packages/vui/src/ui/factory.ts:199](../../packages/vui/src/ui/factory.ts) | `interface VuiFactory extends UiFactory<VNode> { [index: string]: any }` | 收成具名（皮肤漏实现 / 写错控件名必须报错）；如将来确有扩展位，让 core 出 `UiFactory<TNode, TExtra>` 泛型 |
 | [packages/vui/src/app/app.ts:54](../../packages/vui/src/app/app.ts) | `ImportAndExportActionProps { [index: string]: any; … }` | 删；保留已具名的 6 个成员（顺带 `hasTepmlate` → `hasTemplate`） |
 | [packages/vui/src/ui/factory/auth.ts:20](../../packages/vui/src/ui/factory/auth.ts) | `SigninFormSlots { [name: string]: unknown; … }` | 删；槽表具名 |
 | [packages/vui/src/ui/layout.ts:42](../../packages/vui/src/ui/layout.ts) | `UiSlots = { [index: string]: any; … }` | 删；换 core 具名 `UiXxxSlots` + `UiSlot` |
@@ -316,7 +316,7 @@ sui:  { ...std.props, ...std.attributes }                              // Svelte
 | `packages/vui/src/ui/factory.ts:201` 的 `[index: string]: any` | 仍在（§1.8 第 2 条未收），皮肤新增控件靠它兜 |
 | `packages/vui/src/utils/resolve_slots.ts` | 5 个导出函数（`resolveSlot` / `resolveSlotWithProps` / `resolveWrappedSlot` / `resolveWrappedSlotWithProps` / `isSlotEmpty`）**0 个调用点**，只被 barrel 再导出 |
 | 四支数组工具 | `skipUndefined` / `skipNullAndUndefined` 与其等价别名 `nonUndefinedArray` / `nonNullArray` 生产代码 0 调用（只有单测），且成对重复 |
-| ~~`vui-syncfusion` 表格右键菜单两条测试~~ | **已修（本轮）**：`createTableRenderer` 本身就是单参渲染器（`factory/table.ts:74`），夹具仍按旧三参 `(rows, metaUi, props)` 调用 → 第一参 `props` 拿到的是**行数组**，于是既没有 `columns` 也没有 `contextMenuItems`。夹具改为单参 + `propsOf` 等价键（`rows` / `primaryKey` / `objName` / `fields`）后两条转绿。 |
+| ~~`vui-syncfusion` 表格右键菜单两条测试~~ | **已修（本轮）**：`createSfTableRenderer` 本身就是单参渲染器（`factory/table.ts:74`），夹具仍按旧三参 `(rows, metaUi, props)` 调用 → 第一参 `props` 拿到的是**行数组**，于是既没有 `columns` 也没有 `contextMenuItems`。夹具改为单参 + `propsOf` 等价键（`rows` / `primaryKey` / `objName` / `fields`）后两条转绿。 |
 | `UiFactory.timeline` 连带（**并发会话在途**） | core 侧删掉 `UiFactory.timeline` 后：`packages/vui/src/ui/plugins/timeline.ts:70` 2 条 tsc 错 + `timeline.test.ts` 1 条红；皮肤 `factory/timeline.ts` 已删、`field_factory/display.ts` 里残留的 `timeline` 导出（孤儿块）本轮已顺手删除以解开语法错。**剩下的等该会话收口，不在本会话范围。** |
 
 ### 1.11 本轮（vui 收口）已落地的契约（写代码按这个）
@@ -337,7 +337,7 @@ sui:  { ...std.props, ...std.attributes }                              // Svelte
 |---|---|---|
 | ① 测试脚手架/夹具仍是旧契约 | `test_builder.ts` 的 `listedFields()` 未容忍 undefined；list 家族桩还传三参 | 桩一律改成写代码按的形态（见下） |
 | ② **生产真 bug**：改名漏改被 `x?.()` 静默吞掉 | `ui/builder/actions.ts` / `list_view.ts` 里 `index`\|`create`\|`edit`\|`details` → `routeTo*` | 同名化 + 测试断言**副作用**（不是断言"没报错"） |
-| ③ 皮肤侧旧三参 | `vui-syncfusion/src/factory/navigation.ts` 的 `list`、`createTableRenderer` 的调用点 | 单参 `(props)`，行键用 `props.primaryKey`（`propsOf` 只归一 `rows`/`primaryKey`/`objName`/`fields`，**不携带 `metaUi`**） |
+| ③ 皮肤侧旧三参 | `vui-syncfusion/src/factory/navigation.ts` 的 `list`、`createSfTableRenderer` 的调用点 | 单参 `(props)`，行键用 `props.primaryKey`（`propsOf` 只归一 `rows`/`primaryKey`/`objName`/`fields`，**不携带 `metaUi`**） |
 
 **测试里写工厂必须按的形态（旧三参已不可用）**：
 
