@@ -6,7 +6,7 @@ import { dialogAllowDraggingOf, dialogButtonColorRole, dialogButtonLabel, dialog
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
-  type SfOverlay,
+  type SfVuiOverlay,
 } from '../syncfusion_overlay'
 import { dialogHeaderHtml } from '../factory/utils'
 
@@ -30,11 +30,11 @@ function ej2SlotTemplate(
   return render ? { [name]: name } : {}
 }
 
-export const SfOverlayHost = defineComponent({
-  name: 'SfOverlayHost',
+export const SfVuiOverlayHost = defineComponent({
+  name: 'SfVuiOverlayHost',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
-    const overlay = (app?.ui as any)?.overlay as SfOverlay | undefined
+    const overlay = (app?.ui as any)?.overlay as SfVuiOverlay | undefined
     const toastRef = ref<any>()
 
     let translate: ((key: string) => string) | undefined
@@ -44,7 +44,9 @@ export const SfOverlayHost = defineComponent({
       translate = undefined
     }
 
-    const labelOf = (button: UiDialogAction) => {
+    const labelOf = (button: UiDialogAction, props?: { acceptLabel?: string; rejectLabel?: string }) => {
+      if (isDialogPrimaryButton(button) && props?.acceptLabel) return props.acceptLabel
+      if (!isDialogPrimaryButton(button) && props?.rejectLabel) return props.rejectLabel
       const key = `dialog.${button}`
       const translated = translate?.(key)
       if (translated && translated !== key) return translated
@@ -189,7 +191,7 @@ export const SfOverlayHost = defineComponent({
                                     button,
                                   ),
                               },
-                              labelOf(button),
+                              labelOf(button, request.props),
                             )
                           }),
                         ),

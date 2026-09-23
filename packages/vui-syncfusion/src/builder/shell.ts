@@ -4,7 +4,7 @@ import { type AppScaffoldProps, type UiProps } from "@mmda/vui"
 import { SfAppSideMenu } from "../components/SfAppMenu";
 import { createLoading } from "../factory/loading";
 import { invoke, type SfVuiContext } from "./utils";
-import { syncfusionLayout } from "../syncfusion_layout";
+import { sfVuiLayout } from "../syncfusion_layout";
 
 export function applyColorScheme(dark: boolean) {
   if (typeof document === "undefined") return;
@@ -62,7 +62,7 @@ export function renderError(context: SfVuiContext, props?: UiProps) {
 export function renderAppScaffold(props: AppScaffoldProps = {}) {
   const variant =
     props.layout ?? (props.model === "Mobile" ? "topBarFull" : "sidebarLeft");
-  return syncfusionLayout.scaffold({
+  return sfVuiLayout.scaffold({
     variant,
     topBar: invoke(props.topBar) as VNode | undefined,
     nav: invoke(props.sideBar) as VNode | undefined,

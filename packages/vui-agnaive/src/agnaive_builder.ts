@@ -8,9 +8,9 @@ import {
 
 } from 'vue'
 
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from '@mmda/core'
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module, type UiContext } from '@mmda/core'
 
-import { VuiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiFactory, type VueUiFieldFactory, type VuiSearchField, type VuiTileSlots, type VuiContext, ListSearchField } from '@mmda/vui'
+import { VuiBuilder, GroupCard, assembleMenuItems, createIconVNode, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiFactory, type VuiFieldFactory, type VuiTileSlots, ListSearchField } from '@mmda/vui'
 
 import {
 
@@ -26,21 +26,21 @@ import {
 
 } from 'naive-ui'
 
-import { AgNaiveOverlayHost } from './components/AgNaiveOverlayHost'
+import { AgNaiveVuiOverlayHost } from './components/AgNaiveVuiOverlayHost'
 
-import { NAppSideMenu } from './components/NAppSideMenu'
+import { NaiveAppSideMenu } from './components/NaiveAppSideMenu'
 
-import { BpmnModeler } from './components/BpmnModeler'
+import { NaiveBpmnModeler } from './components/NaiveBpmnModeler'
 
-import { SigninForm } from './components/SigninForm'
+import { NaiveSigninForm } from './components/NaiveSigninForm'
 
-import { createAgNaiveOverlay } from './agnaive_overlay'
+import { createAgNaiveVuiOverlay } from './agnaive_overlay'
 
-import { createAgNaiveFieldFactory } from './agnaive_field_factory'
+import { createAgNaiveVuiFieldFactory } from './agnaive_field_factory'
 
-import { createAgNaiveUiFactory } from './agnaive_factory'
+import { createAgNaiveVuiFactory } from './agnaive_factory'
 
-import { agNaiveLayout } from './agnaive_layout'
+import { agNaiveVuiLayout } from './agnaive_layout'
 import { createAgPivotPlugin } from './plugins/pivot_table'
 import { createAgChartFactory } from './plugins/chart'
 
@@ -56,7 +56,6 @@ const invoke = (value: unknown): any =>
 
 
 
-type UiContext = VuiContext<any>
 
 type GroupCardProps = UiProps & {
 
@@ -90,7 +89,7 @@ type BpmnDiagramProps = UiProps & {
 
 
 
-export class AgNaiveUiBuilder extends VuiBuilder {
+export class AgNaiveVuiBuilder extends VuiBuilder {
 
   declare readonly factory: VuiFactory
 
@@ -98,9 +97,9 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
   constructor(
 
-    factory = createAgNaiveUiFactory(),
+    factory = createAgNaiveVuiFactory(),
 
-    fieldFactory: VueUiFieldFactory = createAgNaiveFieldFactory(),
+    fieldFactory: VuiFieldFactory = createAgNaiveVuiFieldFactory(),
 
   ) {
 
@@ -110,9 +109,9 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
       fieldFactory,
 
-      agNaiveLayout,
+      agNaiveVuiLayout,
 
-      createAgNaiveOverlay(),
+      createAgNaiveVuiOverlay(),
 
     )
     this.use(createAgPivotPlugin())
@@ -124,7 +123,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
   get overlayHost() {
 
-    return AgNaiveOverlayHost
+    return AgNaiveVuiOverlayHost
 
   }
 
@@ -298,7 +297,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
   buildAppSideMenu(props: import('@mmda/core').UiAppSideMenuProps<VNode> = {}) {
 
-    return h(NAppSideMenu, props as any)
+    return h(NaiveAppSideMenu, props as any)
 
   }
 
@@ -492,110 +491,6 @@ export class AgNaiveUiBuilder extends VuiBuilder {
     )
   }
 
-  buildSearchField(field: VuiSearchField, _context: UiContext, props: UiProps) {
-
-    const meta = field.field
-
-    const common = {
-
-      value: field.searchVal.value,
-
-      placeholder: meta.displayLabel,
-
-      size: 'small' as const,
-
-      'onUpdate:value': (value: any) => {
-
-        field.searchVal.value = value
-
-      },
-
-      ...props,
-
-    }
-
-    let editor: VNode
-
-    if (meta.reference?.refOptions?.length) {
-
-      editor = h(NSelect, {
-
-        ...common,
-
-        options: meta.reference.refOptions.map((option: any) => ({
-
-          label: meta.reference!.labelOf(option),
-
-          value: meta.reference!.valueOf(option),
-
-        })),
-
-        clearable: true,
-
-      })
-
-    } else if (SqlDataType.isBool(meta.dataType)) {
-
-      editor = h(NSelect, {
-
-        ...common,
-
-        options: [
-
-          { label: 'Yes', value: true },
-
-          { label: 'No', value: false },
-
-        ] as any,
-
-        clearable: true,
-
-      })
-
-    } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === 'WITHIN') {
-
-      editor = h(NSelect, {
-
-        ...common,
-
-        options: DATE_RANGE_FILTER_KINDS.map((kind) => ({
-
-          label: _context.translate(`dateRange.${kind}`),
-
-          value: kind,
-
-        })),
-
-        clearable: true,
-
-      })
-
-    } else if (SqlDataType.isDate(meta.dataType)) {
-
-      editor = h(NDatePicker, { ...common, type: 'date' })
-
-    } else if (SqlDataType.isNum(meta.dataType)) {
-
-      editor = h(NInputNumber, common)
-
-    } else {
-
-      editor = h(NInput, common)
-
-    }
-
-    return h('label', { class: 'mmda-search-field' }, [
-
-      h('span', meta.displayLabel),
-
-      editor,
-
-    ])
-
-  }
-
-
-
   buildModuleSearchbar(context: UiContext, rawProps?: UiProps) {
     // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
     const props = (rawProps ?? {}) as ModuleSearchbarProps;
@@ -748,12 +643,6 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
         ...quickFilters,
 
-        ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
-
-          this.buildSearchField(field, context, {}),
-
-        ),
-
         ...(runtime.customSearchFields ?? []).map((field: any) =>
 
           field.renderer(context, field),
@@ -794,7 +683,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
         }),
 
-        (filters.length > 0 || runtime.searchFields?.length > 0) &&
+        (filters.length > 0 || Boolean(runtime.searchParam?.filterModel)) &&
 
           h(
 
@@ -830,7 +719,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
       props.xml
 
-        ? h(BpmnModeler, {
+        ? h(NaiveBpmnModeler, {
 
             xml: props.xml,
 
@@ -870,7 +759,7 @@ export class AgNaiveUiBuilder extends VuiBuilder {
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
 
-    return h(SigninForm, props, slots)
+    return h(NaiveSigninForm, props, slots)
 
   }
 

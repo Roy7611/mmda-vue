@@ -6,19 +6,19 @@ import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 
-export interface HelpPanelItem {
+export interface PrimeHelpPanelItem {
   key: string
   label: string
   content: () => VNodeChild
 }
 
-export const HelpPanel = defineComponent({
-  name: 'MmdaHelpPanel',
+export const PrimeHelpPanel = defineComponent({
+  name: 'PrimeHelpPanel',
   props: {
     visible: Boolean,
     title: { type: String, default: 'Help' },
     items: {
-      type: Array as PropType<HelpPanelItem[]>,
+      type: Array as PropType<PrimeHelpPanelItem[]>,
       default: () => [],
     },
     active: String,

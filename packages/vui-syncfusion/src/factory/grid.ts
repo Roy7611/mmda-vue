@@ -4,7 +4,7 @@ import { isPersistableListColumn, persistListPack, type VuiContext } from "@mmda
 import { GridComponent } from "@syncfusion/ej2-vue-grids";
 import { SF_GRID_MODULES } from "./grid_inject";
 
-export { SfGridLoadingHost } from "../components/SfLoadingHost";
+export { SfVuiGridLoadingHost } from "../components/SfVuiLoadingHost";
 
 /**
  * EJ2 GridComponent 外壳（provide 注入模块）。

@@ -16,8 +16,8 @@ import { loadingModifierClasses, loadingWidthOf, type UiLoadingProps, type UiLoa
  * EJ2 Spinner 主机。无子节点 = 区域转圈；有 default slot = 盖住子节点。
  * `e-icons e-spin` 不是有效字形，必须用 createSpinner / showSpinner。
  */
-export const SfLoadingHost = defineComponent({
-  name: 'SfLoadingHost',
+export const SfVuiLoadingHost = defineComponent({
+  name: 'SfVuiLoadingHost',
   inheritAttrs: false,
   props: {
     loading: { type: [Boolean, Object], default: true },
@@ -93,13 +93,13 @@ export const SfLoadingHost = defineComponent({
 })
 
 /** 表格盖层：默认不转圈，由 loading 绑定。 */
-export const SfGridLoadingHost = defineComponent({
-  name: 'SfGridLoadingHost',
+export const SfVuiGridLoadingHost = defineComponent({
+  name: 'SfVuiGridLoadingHost',
   props: {
     loading: { type: [Boolean, Object], default: false },
   },
   setup(props, { slots }) {
     return () =>
-      h(SfLoadingHost, { loading: props.loading }, () => slots.default?.())
+      h(SfVuiLoadingHost, { loading: props.loading }, () => slots.default?.())
   },
 })

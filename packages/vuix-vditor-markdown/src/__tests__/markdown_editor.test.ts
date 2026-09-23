@@ -7,7 +7,7 @@ describe('createMarkdownEditorPlugin', () => {
     const vnode = plugin.buildUi({} as any, {
       value: '# hello',
       readonly: true,
-    })
+    } as any)
     expect(vnode.props?.value).toBe('# hello')
     expect(vnode.props?.readonly).toBe(true)
   })

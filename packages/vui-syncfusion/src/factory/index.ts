@@ -1,9 +1,9 @@
 import { h } from "vue";
 import type { UiProps, VuiFactory, VuiTileSlots } from "@mmda/vui"
 import { createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, createErrorRetry, vuiUpdateOf } from "@mmda/vui"
-import { syncfusionLayout } from "../syncfusion_layout";
+import { sfVuiLayout } from "../syncfusion_layout";
 import { patchChoiceFilter } from "./grid_inject";
-import { createTableRenderer } from "./table";
+import { createSfTableRenderer } from "./table";
 import { buttonRenderers, createButton } from "./buttons";
 import { createBadge } from "./badge";
 import { createMessage } from "./message";
@@ -52,7 +52,7 @@ import { createComboBox } from "./combo_box";
 import { createAutoComplete } from "./autocomplete";
 import { createTagAutoComplete } from "./tag_auto_complete";
 import { overlayRenderers } from "./overlays";
-import { createSplitterRenderer } from "./splitter";
+import { createSfSplitterRenderer } from "./splitter";
 import { mediaRenderers } from "./media";
 import { navigationRenderers } from "./navigation";
 import { treeGridRenderers } from "./tree_grid";
@@ -60,12 +60,11 @@ import { miscellaneousRenderers } from "./miscellaneous";
 
 export { autoFitSyncfusionListGrid } from "./grid";
 export { splitterEventIndex } from "./splitter";
-export { resolveFieldUnit } from "./utils";
-export { SfGridHost, SfGridLoadingHost, SfGrid } from "./grid";
+export { SfGridHost, SfVuiGridLoadingHost, SfGrid } from "./grid";
 export { SfSplitter } from "./splitter";
 
 import "./grid_inject";
-export function createSyncfusionUiFactory(): VuiFactory {
+export function createSfVuiFactory(): VuiFactory {
   patchChoiceFilter();
   const button = createButton;
 
@@ -225,14 +224,21 @@ export function createSyncfusionUiFactory(): VuiFactory {
           props.label
             ? h(
                 "label",
-                { class: "mmda-form-field__label" },
-                String(props.label),
+                {
+                  class: "mmda-form-field__label",
+                  ...(props.name ? { for: props.name } : {}),
+                },
+                String(props.label) + (props.required ? " *" : ""),
               )
             : null,
           slots?.default?.() ??
             createTextInput({
               ...props,
-              value: props.modelValue,
+              htmlAttributes: {
+                ...(props.name ? { name: props.name, id: props.name } : {}),
+                ...props.htmlAttributes,
+              },
+              value: props.value ?? props.modelValue,
               onChange: props.onChange ?? vuiUpdateOf(props),
             }),
         ],
@@ -248,9 +254,9 @@ export function createSyncfusionUiFactory(): VuiFactory {
     buttonRenderers(factory, button),
     overlayRenderers(),
   );
-  factory.splitter = createSplitterRenderer();
+  factory.splitter = createSfSplitterRenderer();
   factory.table = ((props: any = {}) =>
-    createTableRenderer({
+    createSfTableRenderer({
       button,
       paginator: factory.paginator,
       resolveIcon: (icon: string) => factory.resolveIcon(icon),

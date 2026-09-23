@@ -5,9 +5,9 @@ import { resolve } from 'node:path'
 import { DateRangeKind, MetaUi, MetaUiGroup, ModuleFactory, ModuleOp, ModuleStatus, ModuleVersion, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
 import { MMDA_COLOR_PALETTE_IDS, UiViewMany, pageLayoutMenuItems } from '@mmda/vui'
 import { PrimeVuiBuilder } from '../prime_builder'
-import { createPrimeVueFieldFactory } from '../prime_field_factory'
+import { createPrimeVuiFieldFactory } from '../prime_field_factory'
 import { createPrimeVuiFactory } from '../prime_factory'
-import { primeLayout } from '../prime_layout'
+import { primeVuiLayout } from '../prime_layout'
 import {
   applyPrimeColumnFilter,
   hydratePrimeColumnFilter,
@@ -107,7 +107,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('maps fieldFactory.avatar URL to Prime Avatar', () => {
-    const fields = createPrimeVueFieldFactory()
+    const fields = createPrimeVuiFieldFactory()
     const field = { fieldName: 'avatar', renderer: 'Avatar' } as any
     const vnode = fields.avatar(field, {
       getFieldValue: () => '/faces/ada.png',
@@ -715,7 +715,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('registers old metadata editor aliases', () => {
-    const fields = createPrimeVueFieldFactory()
+    const fields = createPrimeVuiFieldFactory()
     expect(fields.TextBox).toBe(fields.textInput)
     expect(fields.DropDownList).toBe(fields.dropDownList)
     expect(fields.dropdown).toBeUndefined()
@@ -960,7 +960,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('renders fields.checkbox from displayLabel and getFieldValue', () => {
-    const fields = createPrimeVueFieldFactory()
+    const fields = createPrimeVuiFieldFactory()
     const wrap = fields.checkBox(
       { fieldName: 'active', displayLabel: '启用' } as any,
       {
@@ -1033,7 +1033,7 @@ describe('PrimeVue skin', () => {
   })
 
   it('renders fields.chips from comma-separated tags', () => {
-    const fields = createPrimeVueFieldFactory()
+    const fields = createPrimeVuiFieldFactory()
     const vnode = fields.chips(
       { fieldName: 'tags' } as any,
       { getFieldValue: () => '原料,辅料, 包装' } as any,

@@ -4,10 +4,10 @@ import { resolve } from 'node:path'
 import { createApp, h, nextTick } from 'vue'
 import { MetaUi, MetaUiField, MetaUiGroup, ModuleFactory, SqlDataType, auth, resolveDetailsTopbarActions, resolveIndexTopbarActions } from '@mmda/core'
 import { UiViewMany } from '@mmda/vui'
-import { AgNaiveUiBuilder } from '../agnaive_builder'
-import { createAgNaiveFieldFactory } from '../agnaive_field_factory'
-import { createAgNaiveUiFactory } from '../agnaive_factory'
-import { agNaiveLayout } from '../agnaive_layout'
+import { AgNaiveVuiBuilder } from '../agnaive_builder'
+import { createAgNaiveVuiFieldFactory } from '../agnaive_field_factory'
+import { createAgNaiveVuiFactory } from '../agnaive_factory'
+import { agNaiveVuiLayout } from '../agnaive_layout'
 import { agFilterModelToEntity, entityFilterToAgModel } from '../ag_filter'
 import { buildColumnDefs } from '../ag_columns'
 import { resolveAgGridLocaleText } from '../ag_grid_i18n'
@@ -57,7 +57,7 @@ const productMeta = () =>
 
 describe('vui-agnaive skin', () => {
   it('implements the vui factory and layout contracts', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     expect(factory.table).toBeTypeOf('function')
     expect(factory.grid).toBeTypeOf('function')
     expect(factory.dialog).toBeUndefined()
@@ -78,7 +78,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.badge colorRole and circle shape', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.badge({
       value: 10,
       colorRole: 'primary',
@@ -93,7 +93,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps actionButton colorRole onto NButton type (warning default path)', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.actionButton(
       {
         name: 'deprecate',
@@ -109,7 +109,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.avatar circle large label', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.avatar({
       label: 'GR',
       shape: 'circle',
@@ -124,7 +124,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps fieldFactory.avatar URL to NAvatar', () => {
-    const fields = createAgNaiveFieldFactory()
+    const fields = createAgNaiveVuiFieldFactory()
     const field = { fieldName: 'avatar', renderer: 'Avatar' } as any
     const vnode = fields.avatar(field, {
       getFieldValue: () => '/faces/ada.png',
@@ -144,7 +144,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.card surface, colorRole, image, headerImage, divider', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.card(
       {
         title: 'Summary',
@@ -198,7 +198,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.divider orientation and label', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.divider({
       orientation: 'vertical',
       label: '或',
@@ -215,7 +215,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.colorPicker mode, value, and emits hex', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.colorPicker({
       value: '#035a',
@@ -234,7 +234,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.maskedTextBox to NInput without live mask', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.maskedTextBox({
       mask: '000 0000 0000',
       value: '13800138000',
@@ -248,7 +248,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.oneTimePasswordInput to a row of NInput cells', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.oneTimePasswordInput({
       length: 4,
       type: 'number',
@@ -262,7 +262,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.queryBuilder to QueryBuilderHost', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.queryBuilder({
       columns: [{ fieldName: 'age', label: 'Age', valueType: 'number' }],
     })
@@ -273,7 +273,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.slider Range to NSlider range', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.slider({
       type: 'Range',
       value: [10, 40],
@@ -289,7 +289,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.rating itemsCount to NRate count', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.rating({
       value: 2,
       itemsCount: 5,
@@ -305,7 +305,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.sidebar and drawer to NDrawer', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const sidebar = factory.sidebar({ isOpen: true, type: 'Push', enableDock: true })
     expect(sidebar.props?.show).toBe(true)
     expect(sidebar.props?.placement).toBe('left')
@@ -323,8 +323,8 @@ describe('vui-agnaive skin', () => {
     expect(drawerClass).toContain('mmda-sidebar--over')
   })
 
-  it('uses NDropupMenuButton when popupPlacement opens upward', () => {
-    const factory = createAgNaiveUiFactory()
+  it('uses NaiveDropupMenuButton when popupPlacement opens upward', () => {
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.dropDownButton({
         icon: 'fas fa-palette',
         popupPlacement: 'top-end',
@@ -344,13 +344,13 @@ describe('vui-agnaive skin', () => {
       typeof vnode.type === 'object' && vnode.type && 'name' in vnode.type
         ? String((vnode.type as { name?: string }).name ?? '')
         : String(vnode.type ?? '')
-    expect(typeName).toMatch(/NDropupMenuButton|DropupMenuButton/i)
+    expect(typeName).toMatch(/NaiveDropupMenuButton|DropupMenuButton/i)
     expect(vnode.props?.placement).toBe('top-end')
     expect(vnode.props?.actions).toHaveLength(1)
   })
 
   it('maps factory.tabs value and Naive placement', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.tabs({
       items: [
         { header: 'One', content: 'a' },
@@ -373,7 +373,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.toolbar default slot', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.toolbar(
       { class: 'skin' },
       { default: () => 'S' } as any,
@@ -387,7 +387,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.toolbar start/end onto region divs', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.toolbar(
       { disabled: true },
       { start: () => 'L', end: () => 'R' } as any,
@@ -406,7 +406,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.splitter orientation to NSplit direction', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.splitter(
       { orientation: 'Vertical', enableReversePanes: true },
       {
@@ -429,7 +429,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.numberInput precision and value', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.numberInput({
       value: 12.5,
       decimals: 2,
@@ -446,7 +446,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.textArea value to NInput textarea', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.textArea({
       value: 'hello',
       rows: 5,
@@ -465,7 +465,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.textInput value placeholder and clearable', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onFocus = vi.fn()
     const onBlur = vi.fn()
     const vnode = factory.textInput({
@@ -491,7 +491,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.progressBar percentage and circular type', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.progressBar({
       value: 42,
       kind: 'circular',
@@ -501,7 +501,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.signaturePad host class', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.signaturePad({
       value: '',
     })
@@ -515,7 +515,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.stepper current and vertical', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.stepper({
       value: 1,
       orientation: 'vertical',
@@ -530,7 +530,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.skeleton text to NSkeleton text', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.skeleton({
       shape: 'text',
       width: '100%',
@@ -544,7 +544,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.loading to NSpin', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.loading({ label: '加载中', size: 'small' })
     expect(vnode.props?.size).toBe('small')
     expect(vnode.props?.description).toBe('加载中')
@@ -558,7 +558,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.error to ErrorRetry', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     expect(factory.error).toBeTypeOf('function')
     const vnode = factory.error!({ description: 'down' })
     expect(String((vnode.type as any)?.name ?? (vnode.type as any)?.__name ?? vnode.type)).toMatch(
@@ -567,7 +567,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.tree to NaiveTree with mmda-tree', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.tree({
       data: [{ id: '1', label: '根' }],
       selectionMode: 'checkbox',
@@ -581,7 +581,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.speechToText lang and interim onto the host', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.speechToText({
       value: '你好',
       lang: 'zh-CN',
@@ -594,7 +594,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.radioButtonGroup NRadioGroup value', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.radioButtonGroup({
       value: 'b',
       name: 'kind',
@@ -613,7 +613,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.datePicker format, Monday week, and no typing', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const day = new Date(2026, 8, 7)
     const vnode = factory.datePicker({
@@ -641,7 +641,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.dropDownList options, group, and onChange', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.dropDownList({
       value: 'a',
@@ -667,7 +667,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.multiSelect multiple keys', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.multiValueSelect({
       value: ['a'],
@@ -684,7 +684,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.tagAutoComplete tag select', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onUpdate = vi.fn()
     const vnode = factory.tagAutoComplete({ value: 'a', options: ['a'], onUpdate } as any)
     expect(vnode.props?.tag).toBe(true)
@@ -694,7 +694,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.treeSelect multiple value and hook class', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.treeSelect({
       value: 'a',
@@ -717,7 +717,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.comboBox custom AutoComplete vs closed Select', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const custom = factory.comboBox({ value: 't', options: ['a'] })
     const cls = Array.isArray(custom.props?.class)
       ? custom.props.class.flat(8).filter(Boolean).join(' ')
@@ -737,7 +737,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.barcode format class', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.barcode({ value: '123', format: 'code39' })
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(' ')
@@ -746,7 +746,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('does not draw QR for dataMatrix', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.qrCode({ value: 'SYNC123', format: 'dataMatrix' })
     expect(vnode.type).toBe('span')
     const cls = Array.isArray(vnode.props?.class)
@@ -757,7 +757,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.breadcrumb items', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.breadcrumb({
       items: [
         { label: '组织', to: '/org' },
@@ -776,7 +776,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.calendar to a date panel', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const values = [new Date(2020, 0, 1), new Date(2020, 0, 15)]
     const vnode = factory.calendar({
       value: values,
@@ -795,7 +795,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.carousel to NCarousel', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const items = [
       { src: '/a.jpg', title: 'A' },
       { src: '/b.jpg', title: 'B' },
@@ -825,7 +825,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.checkBox to NCheckbox', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.checkBox({
       checked: true,
       label: '同意条款',
@@ -848,7 +848,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.switch to NSwitch', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onChange = vi.fn()
     const vnode = factory.switch({
       checked: true,
@@ -864,7 +864,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('renders fields.checkbox from displayLabel and getFieldValue', () => {
-    const fields = createAgNaiveFieldFactory()
+    const fields = createAgNaiveVuiFieldFactory()
     const wrap = fields.checkBox(
       { fieldName: 'active', displayLabel: '启用' } as any,
       {
@@ -892,7 +892,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('SearchBox 走相对搜索控件，值用 id、变更回整对象', () => {
-    const fields = createAgNaiveFieldFactory()
+    const fields = createAgNaiveVuiFieldFactory()
     expect(fields.SearchBox).toBe(fields.searchBox)
     expect(fields.searchBox).not.toBe(fields.textInput)
 
@@ -940,7 +940,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.chips to NTag list', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.chips({
       kind: 'filter',
       items: [{ label: '成功', colorRole: 'success' }, '辅料'],
@@ -959,7 +959,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('maps factory.contextMenu to Naive dropdown host', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const vnode = factory.contextMenu({
       target: '#editor',
       items: [
@@ -974,7 +974,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('renders fields.tags from comma-separated text', () => {
-    const fields = createAgNaiveFieldFactory()
+    const fields = createAgNaiveVuiFieldFactory()
     const vnode = fields.tags(
       { fieldName: 'tags' } as any,
       { getFieldValue: () => '原料,辅料, 包装' } as any,
@@ -997,7 +997,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('registers old metadata editor aliases', () => {
-    const fields = createAgNaiveFieldFactory()
+    const fields = createAgNaiveVuiFieldFactory()
     expect(fields.TextBox).toBe(fields.textInput)
     expect(fields.DropDownList).toBe(fields.dropDownList)
     expect(fields.dropdown).toBeUndefined()
@@ -1018,13 +1018,13 @@ describe('vui-agnaive skin', () => {
   })
 
   it('constructs the builder against VuiBuilder', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     expect(builder.layout.fieldVertical).toBe(false)
     expect(builder.buildAppScaffold()).toBeTruthy()
   })
 
   it('wraps actions in NButtonGroup', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const group = factory.buttonGroup(
       {},
       {
@@ -1047,7 +1047,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('wraps table in AgGrid', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const metaUi = productMeta()
     const vnode = factory.table({
       rows: [],
@@ -1060,7 +1060,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('passes rowDetail through factory.table', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const metaUi = productMeta()
     const vnode = factory.table({
       rows: [{ id: '1', code: 'P-001' }],
@@ -1494,7 +1494,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('passes selection and filter callbacks through factory.table to AgGrid', () => {
-    const factory = createAgNaiveUiFactory()
+    const factory = createAgNaiveVuiFactory()
     const onFilterModelChange = vi.fn()
     const onSelectionChange = vi.fn()
     const metaUi = productMeta()
@@ -1561,7 +1561,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('SelectMany in dialog still shows Create when allowed', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     const module = {
       authority: auth(1 | 4),
     }
@@ -1592,7 +1592,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('SelectMany in dialog without create still shows More with tableSettings', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     const module = {
       authority: auth(1),
     }
@@ -1637,7 +1637,7 @@ describe('vui-agnaive skin', () => {
       },
     ])
     const module = factory.findModuleByName('Department')!
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     const context = {
       view: UiViewMany.Index,
       many: true,
@@ -1670,7 +1670,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('orders details actions and groups file actions', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     const module = {
       authority: auth(1 | 2 | 4 | 8 | 16 | 32 | 64),
     }
@@ -1702,7 +1702,7 @@ describe('vui-agnaive skin', () => {
   })
 
   it('defaults group cards to GroupCard', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     const group = new MetaUiGroup({
       groupName: 's1',
       groupLabel: '概要',

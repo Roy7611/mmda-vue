@@ -20,8 +20,8 @@ export type DropupPlacement = 'top' | 'top-end'
  * 侧栏 footer 在 overflow:hidden 容器内，Naive NDropdown 会被夹住/错位，
  * 这里用 Button + Teleport + fixed，与 Syncfusion SfDropupMenuButton 同策略。
  */
-export const NDropupMenuButton = defineComponent({
-  name: 'NDropupMenuButton',
+export const NaiveDropupMenuButton = defineComponent({
+  name: 'NaiveDropupMenuButton',
   props: {
     buttonProps: {
       type: Object as PropType<UiDropDownButtonProps>,

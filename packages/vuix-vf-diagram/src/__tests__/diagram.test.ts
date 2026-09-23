@@ -35,7 +35,7 @@ describe('createVueDiagramPlugin', () => {
       diagramType: 'dataflow',
       readonly: true,
       nodes: [{ id: 'p1', text: 'Process' }],
-    })
+    } as any)
     expect(vnode.props?.diagramType).toBe('dataflow')
     expect(vnode.props?.readonly).toBe(true)
   })

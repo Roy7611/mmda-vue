@@ -134,7 +134,7 @@ export const SfSplitter = defineComponent({
   },
 });
 
-export const createSplitterRenderer = () => (props: any = {}, slots: any = {}) =>
+export const createSfSplitterRenderer = () => (props: any = {}, slots: any = {}) =>
   h(SfSplitter, {
     class: splitterModifierClasses(props).flat(),
     panes: slots.default?.() ?? [],

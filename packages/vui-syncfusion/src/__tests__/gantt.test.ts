@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SfUiBuilder } from '../syncfusion_builder'
+import { SfVuiBuilder } from '../syncfusion_builder'
 import {
   createSfGanttPlugin,
   GANTT_VIEW_MODES,
@@ -32,7 +32,7 @@ describe('createSfGanttPlugin', () => {
   })
 
   it('skin builder installs gantt by default', () => {
-    const builder = new SfUiBuilder()
+    const builder = new SfVuiBuilder()
     expect(builder.hasPlugin('gantt')).toBe(true)
     const vnode = builder.buildGantt({} as any, {
       tasks: [{ id: 1, name: 'Cut' }],

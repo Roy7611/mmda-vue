@@ -1,7 +1,7 @@
 import { defineComponent, h, type PropType, type VNodeChild } from 'vue'
 import { SidebarComponent, TabComponent } from '@syncfusion/ej2-vue-navigations'
 
-export interface HelpPanelItem {
+export interface SfHelpPanelItem {
   key: string
   label: string
   content: () => VNodeChild
@@ -13,7 +13,7 @@ export const SfHelpPanel = defineComponent({
     visible: Boolean,
     title: { type: String, default: 'Help' },
     items: {
-      type: Array as PropType<HelpPanelItem[]>,
+      type: Array as PropType<SfHelpPanelItem[]>,
       default: () => [],
     },
     active: String,

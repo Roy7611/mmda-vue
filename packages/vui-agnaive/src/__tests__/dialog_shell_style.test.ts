@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   cssSizeOf,
   dialogShellStyleOf,
-} from '../components/AgNaiveOverlayHost'
+} from '../components/AgNaiveVuiOverlayHost'
 
 describe('dialogShellStyleOf', () => {
   it('maps maxHeight into NModal style (table settings 80vh)', () => {

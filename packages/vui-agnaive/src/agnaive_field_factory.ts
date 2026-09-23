@@ -11,13 +11,13 @@ import {
   type UiFieldCellProps,
 } from '@mmda/core'
 import {
-  VueUiFieldFactory,
+  VuiFieldFactory,
   type VuiContext,
   type VuiFactory,
   type VuiFieldRenderer,
   type VuiSearchRelativeProps,
 } from '@mmda/vui'
-import { createAgNaiveUiFactory } from './agnaive_factory'
+import { createAgNaiveVuiFactory } from './agnaive_factory'
 import { createSearchRelative as renderSearchRelative } from './factory/search_relative'
 import { NImage, NInput, NTag } from 'naive-ui'
 
@@ -25,11 +25,11 @@ import { NImage, NInput, NTag } from 'naive-ui'
  * AG Grid + Naive UI 字段工厂。
  *
  * `MetaUiField -> UiXxxProps -> factory.xxx` 的通用映射已在 @mmda/vui 的
- * {@link VueUiFieldFactory} 完成；本类只绑定 Naive factory，并保留
+ * {@link VuiFieldFactory} 完成；本类只绑定 Naive factory，并保留
  * Naive 特有的错误提示、NInput / NImage / NTag、SearchBox、头像尺寸和图标。
  */
-export class AgNaiveFieldFactory extends VueUiFieldFactory {
-  constructor(factory: VuiFactory = createAgNaiveUiFactory() as unknown as VuiFactory) {
+export class AgNaiveVuiFieldFactory extends VuiFieldFactory {
+  constructor(factory: VuiFactory = createAgNaiveVuiFactory() as unknown as VuiFactory) {
     super(factory)
   }
 
@@ -201,6 +201,6 @@ export class AgNaiveFieldFactory extends VueUiFieldFactory {
   StatusLight = this.statusLight
 }
 
-export function createAgNaiveFieldFactory(): AgNaiveFieldFactory {
-  return new AgNaiveFieldFactory()
+export function createAgNaiveVuiFieldFactory(): AgNaiveVuiFieldFactory {
+  return new AgNaiveVuiFieldFactory()
 }

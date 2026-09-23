@@ -2,7 +2,7 @@ import { h } from 'vue'
 import { NDropdown } from 'naive-ui'
 import type { UiAction, UiDropDownButtonProps, VuiTileSlots } from '@mmda/vui'
 import { createIconVNode } from '@mmda/vui'
-import { NDropupMenuButton } from '../components/NDropupMenuButton'
+import { NaiveDropupMenuButton } from '../components/NaiveDropupMenuButton'
 import { createButton } from './button'
 
 const dropdownOptions = (actions: UiAction[]): unknown[] =>
@@ -56,7 +56,7 @@ export function createDropDownButton(
 ) {
   // 侧栏 footer 在 overflow:hidden 内：向上开用自研 Dropup（Teleport + fixed）
   if (opensUpward(props.popupPlacement)) {
-    return h(NDropupMenuButton as any, {
+    return h(NaiveDropupMenuButton as any, {
       buttonProps: props,
       actions,
       slots,

@@ -2,17 +2,17 @@
 
 `@mmda/vui` 的 Syncfusion EJ2 Vue 3 控件皮肤。页面结构、查询和 CRUD 仍由 vui 管理。
 
-本包按 **components → factory → builder** 落地：`components/SfGrid.ts` 等是控件；`factory/` 用 `MetaUi` 生产（`factory.table` → `h(SfGrid)`）；`builder/` 只补壳。vui 的 `VueUiBuilder` 拼列表/表单，不 import EJ2。约定见 [vui Builder](../vui/docs/builder.md)。
+本包按 **components → factory → builder** 落地：`components/SfGrid.ts` 等是控件；`factory/` 用 `MetaUi` 生产（`factory.table` → `h(SfGrid)`）；`builder/` 只补壳。vui 的 `VuiBuilder` 拼列表/表单，不 import EJ2。约定见 [vui Builder](../vui/docs/builder.md)。
 
 ## 安装
 
 ```ts
 import { createApp } from 'vue'
 import { MmdaVueApp, setupI18n } from '@mmda/vui'
-import { SyncfusionUiBuilder, mmdaSyncfusion } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder, mmdaSyncfusion } from '@mmda/vui-syncfusion'
 
 const app = createApp(Root)
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 const i18n = setupI18n({}, 'zh')
 
 app
@@ -27,7 +27,7 @@ app
 
 `locale` 会 `L10n.load` + `setCulture`，并跟随 `app.changeLocale()`（需先 `app.use(i18n)`）。`zh` 用简体覆盖表格空数据/分页等常用文案；`zh-Hant` 用 EJ2 自带的繁体包。
 
-`MmdaApplication.install` 会自动把 Overlay Host 挂到 `document.body`，不必再写 `<SfOverlayHost/>`。
+`MmdaApplication.install` 会自动把 Overlay Host 挂到 `document.body`，不必再写 `<SfVuiOverlayHost/>`。
 
 无 license 时控件仍可运行，但会带 Syncfusion 试用水印。也可读环境变量 `VITE_SYNCFUSION_LICENSE`。
 
@@ -45,7 +45,7 @@ app
 
 ## 图表插件
 
-默认不挂，不进 `createSyncfusionUiFactory`。应用按需：
+默认不挂，不进 `createSfVuiFactory`。应用按需：
 
 ```ts
 import { createSfChartFactory } from '@mmda/vui-syncfusion/charts'

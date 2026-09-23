@@ -10,7 +10,7 @@ import type {
 import { shouldCloseDialog } from '@mmda/core'
 import type { VuiOverlay } from '@mmda/vui'
 
-export interface DialogRequest {
+export interface AgNaiveVuiDialogRequest {
   id: number
   content: VNode
   props: UiDialogProps
@@ -18,23 +18,23 @@ export interface DialogRequest {
   resolve: (button: UiDialogAction) => void
 }
 
-export interface AgNaiveOverlayServices {
+export interface AgNaiveVuiOverlayServices {
   toast?: (props: UiToastProps) => void
   confirm?: (props: UiConfirmProps) => Promise<boolean>
 }
 
-export interface AgNaiveOverlay extends VuiOverlay {
-  dialogs: DialogRequest[]
-  services: AgNaiveOverlayServices
+export interface AgNaiveVuiOverlay extends VuiOverlay {
+  dialogs: AgNaiveVuiDialogRequest[]
+  services: AgNaiveVuiOverlayServices
 }
 
 let nextDialogId = 1
 
-export function createAgNaiveOverlay(): AgNaiveOverlay {
-  const dialogs = shallowReactive<DialogRequest[]>([])
-  const services: AgNaiveOverlayServices = {}
+export function createAgNaiveVuiOverlay(): AgNaiveVuiOverlay {
+  const dialogs = shallowReactive<AgNaiveVuiDialogRequest[]>([])
+  const services: AgNaiveVuiOverlayServices = {}
 
-  const overlay: AgNaiveOverlay = {
+  const overlay: AgNaiveVuiOverlay = {
     dialogs,
     services,
     toast(props: UiToastProps) {
@@ -73,8 +73,8 @@ export function createAgNaiveOverlay(): AgNaiveOverlay {
 }
 
 export async function closeOverlayDialog(
-  overlay: AgNaiveOverlay,
-  request: DialogRequest,
+  overlay: AgNaiveVuiOverlay,
+  request: AgNaiveVuiDialogRequest,
   button: UiDialogAction,
 ) {
   if (!(await shouldCloseDialog(request.props, button))) {

@@ -19,7 +19,7 @@ function ej2Of(el: any) {
 }
 
 const SfSignaturePad = defineComponent({
-  name: "MmdaSignaturePad",
+  name: "SfSignaturePad",
   props: {
     value: { type: String, default: undefined },
     modelValue: { type: String, default: undefined },

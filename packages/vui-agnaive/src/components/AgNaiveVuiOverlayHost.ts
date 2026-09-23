@@ -37,8 +37,8 @@ import {
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
-  type AgNaiveOverlay,
-  type DialogRequest,
+  type AgNaiveVuiOverlay,
+  type AgNaiveVuiDialogRequest,
 } from '../agnaive_overlay'
 import {
   naiveLocaleOf,
@@ -92,10 +92,10 @@ function naiveTypeForRole(
  * 这里 false→true 打开，走官方 NModal/DialogOptions.draggable。
  * @see https://www.naiveui.com/zh-CN/os-theme/components/dialog#DialogOptions-Properties
  */
-const AgNaiveDialogModal = defineComponent({
-  name: 'AgNaiveDialogModal',
+const AgNaiveVuiDialogModal = defineComponent({
+  name: 'AgNaiveVuiDialogModal',
   props: {
-    request: { type: Object as PropType<DialogRequest>, required: true },
+    request: { type: Object as PropType<AgNaiveVuiDialogRequest>, required: true },
     width: { type: String, required: true },
     height: { type: String, default: undefined },
     minHeight: { type: String, default: undefined },
@@ -106,7 +106,7 @@ const AgNaiveDialogModal = defineComponent({
     },
     canDrag: { type: Boolean, required: true },
     canResize: { type: Boolean, required: true },
-    overlay: { type: Object as PropType<AgNaiveOverlay>, required: true },
+    overlay: { type: Object as PropType<AgNaiveVuiOverlay>, required: true },
   },
   setup(props, { slots }) {
     const show = ref(false)
@@ -175,7 +175,7 @@ const OverlayInner = defineComponent({
   name: 'AgNaiveOverlayInner',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
-    const overlay = app?.ui.overlay as AgNaiveOverlay | undefined
+    const overlay = app?.ui.overlay as AgNaiveVuiOverlay | undefined
     const message = useMessage()
     const dialog = useDialog()
 
@@ -296,7 +296,7 @@ const OverlayInner = defineComponent({
           const height = cssSizeOf(dlgProps.height)
           const maxHeight = cssSizeOf(dlgProps.maxHeight)
           return h(
-            AgNaiveDialogModal,
+            AgNaiveVuiDialogModal,
             {
               key: request.id,
               request,
@@ -317,8 +317,8 @@ const OverlayInner = defineComponent({
   },
 })
 
-export const AgNaiveOverlayHost = defineComponent({
-  name: 'AgNaiveOverlayHost',
+export const AgNaiveVuiOverlayHost = defineComponent({
+  name: 'AgNaiveVuiOverlayHost',
   setup() {
     return () => {
       const loc = naiveLocaleOf(naiveSkinState.locale)

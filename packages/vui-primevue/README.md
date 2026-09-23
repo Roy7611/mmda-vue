@@ -10,14 +10,14 @@ vui 不 import `primevue/*`。约定见 [vui Builder](../vui/docs/builder.md)。
 import { createApp } from 'vue'
 import { MmdaVueApp, setupI18n } from '@mmda/vui'
 import {
-  PrimeVueUiBuilder,
-  PrimeVueOverlayHost,
+  PrimeVuiBuilder,
+  PrimeVuiOverlayHost,
   mmdaPrimeVue,
 } from '@mmda/vui-primevue'
 import 'primeicons/primeicons.css'
 
 const app = createApp(Root)
-const ui = new PrimeVueUiBuilder()
+const ui = new PrimeVuiBuilder()
 const i18n = setupI18n({}, 'zh')
 
 // mmdaPrimeVue 已自动加载 Aura 主题、MMDA 布局样式与 Font Awesome（moduleIcon / far fa-*）
@@ -40,7 +40,7 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 
 ## 可选能力
 
-- `BpmnModeler`：需要 `bpmn-js`
+- `PrimeBpmnModeler`：需要 `bpmn-js`
 - Office 预览：使用 `@mmda/vuix-office` 的 `createOfficePlugin()`（DOCX/XLSX）
 - `factory.barcode` / `factory.qrCode`：需要 `jsbarcode` / `qrcode`
 - 图表插件：`createPrimeChartFactory` 从 `@mmda/vui-primevue/charts` 引入，需要 `chart.js`。Gauge / 热图 / 桑基 / 史密斯图 / sparkline / stockChart / treeMap / funnel 等 `not supported`。`bubble` / `comboChart` 有 Chart.js 原生。完整图用 `@mmda/vuix-echarts`
@@ -53,7 +53,7 @@ PrimeUI 商业许可证的发行线，未配置许可证时会阻断应用渲染
 
 - 不实现或复制旧 `layoutOne` / `layoutTow`；页面使用 vui 的 `layoutPage`
 - 不自行拼装查询请求；DataTable 仅通过 `filterModel` /
-  `onFilterModelChange` 回写 `VueUiContext.searchParam.filterModel`
+  `onFilterModelChange` 回写 `VuiContext.searchParam.filterModel`
 - `onSort` / `onFilterModelChange` 必须 **return** 查询 Promise（与 Syncfusion / Naive 同一契约，见 vui [列表](../vui/docs/list.md#远程排序--过滤皮肤契约)）
 - `fieldVertical` 默认 `false`（横排）；校验 message 有才进 DOM，皮肤可用自身 Message 组件覆盖 Horz/Vert
 - 不包含旧 Font Awesome 资源、Office Online、vuelidate 或 echarts

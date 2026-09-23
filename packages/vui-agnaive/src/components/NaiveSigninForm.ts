@@ -20,8 +20,8 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export const SigninForm = defineComponent({
-  name: 'AgNaiveSigninForm',
+export const NaiveSigninForm = defineComponent({
+  name: 'NaiveSigninForm',
   props: signinFormProps,
   emits: signinFormEmits,
   setup(props, { emit, slots }) {

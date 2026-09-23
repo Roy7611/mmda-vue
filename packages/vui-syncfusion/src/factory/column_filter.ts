@@ -137,9 +137,9 @@ export function hideEj2MenuChrome(
   ]
     .map(name => `.${name}`)
     .join(', ')
-  for (const el of menu.querySelectorAll(
+  for (const el of Array.from(menu.querySelectorAll(
     '.e-flmenu-valuediv input, .e-flmenu-input, .e-flmenu-valuediv .e-input-group',
-  )) {
+  ))) {
     if (
       el instanceof HTMLElement &&
       !el.classList.contains('flm-input') &&

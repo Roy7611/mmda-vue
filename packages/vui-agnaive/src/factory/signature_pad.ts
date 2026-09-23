@@ -20,8 +20,8 @@ import type { VuiEmitProps } from "@mmda/vui"
 
 type Stroke = ReturnType<SignaturePad["toData"]>[number];
 
-const MmdaSignaturePad = defineComponent({
-  name: "MmdaSignaturePad",
+const NaiveSignaturePad = defineComponent({
+  name: "NaiveSignaturePad",
   props: {
     value: { type: String, default: undefined },
     modelValue: { type: String, default: undefined },
@@ -206,7 +206,7 @@ const MmdaSignaturePad = defineComponent({
 });
 
 export function createSignaturePad(props: VuiEmitProps<UiSignaturePadProps>) {
-  return h(MmdaSignaturePad as any, {
+  return h(NaiveSignaturePad as any, {
     value: props.value,
     modelValue: props.modelValue,
     width: props.width,

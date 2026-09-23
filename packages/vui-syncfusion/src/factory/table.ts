@@ -4,7 +4,7 @@
  * 表头过滤 ↔ FilterModel 在 table_filter.ts；芯片条是 SfGridFilterBar。
  */
 import { h, toRaw, unref, render, getCurrentInstance } from 'vue'
-import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit } from '@mmda/core'
+import { DEFAULT_PAGE_SIZE, MetaModel, MetaUiFilterType, SortOrder, SqlDataType, isDateRangeKind, uiCssClass, FieldFilter, type MetaUiField, fieldCellEditorAllowsColumn, resolveFieldCellCanEdit, resolveFieldUnit } from '@mmda/core'
 import { columnFilterKindOf, hasFilterType, isLazyChoiceFilterField, isRefOptionsComplete, simpleFilterTypeOf } from './filter_kind'
 import { contextMenuItemsOf, findContextMenuItem, gridFreezeOf, invokeContextMenuItem, isPersistableListColumn, joinListColumnLabel, logListPaint, readStoredPageSize, translateMessage, type VuiListPropsType, type UiPaginatorProps, settleRemoteListQuery } from '@mmda/vui'
 import { NumericTextBox, TextBox } from '@syncfusion/ej2-inputs'
@@ -24,7 +24,7 @@ import {
 } from './table_filter'
 import { SplitButtonComponent } from '@syncfusion/ej2-vue-splitbuttons'
 import { getSyncfusionCulture } from '../syncfusion_i18n'
-import { collectGridColumnSettings, SfGrid, SfGridLoadingHost } from './grid'
+import { collectGridColumnSettings, SfGrid, SfVuiGridLoadingHost } from './grid'
 import { createDateSetTree } from './date_set_tree'
 
 MultiSelect.Inject(CheckBoxSelection)
@@ -56,7 +56,6 @@ import {
   isEnumReference,
   referenceEditParams,
   refreshRefEditParams,
-  resolveFieldUnit,
 } from './utils'
 
 export type TableFactoryDeps = {
@@ -65,7 +64,7 @@ export type TableFactoryDeps = {
   resolveIcon: (icon: string) => string
 }
 
-export function createTableRenderer(deps: TableFactoryDeps) {
+export function createSfTableRenderer(deps: TableFactoryDeps) {
   const { button, paginator } = deps
   const factory = {
     paginator,
@@ -1919,7 +1918,7 @@ export function createTableRenderer(deps: TableFactoryDeps) {
 
     const withLoading = (node: VNode) =>
       h(
-        SfGridLoadingHost as any,
+        SfVuiGridLoadingHost as any,
         { loading: props.loading ?? false },
         () => node,
       )

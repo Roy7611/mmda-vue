@@ -150,12 +150,12 @@ function applyDockMetrics(
 /**
  * Syncfusion module menu (systems layout = official Sidebar enableDock).
  *
- * Shell contract (see SfUiBuilder.buildAppScaffold):
+ * Shell contract (see SfVuiBuilder.buildAppScaffold):
  *   .mmda-app-layout
  *     #mmda-app-sidebar | .mmda-app-side-menu--compact
  *     .mmda-app-page.e-main-content   (EJ2 Push 认 e-main-content)
  *
- * AppShell → SfLayout.scaffold：扁平兄弟，无 .mmda-app-nav 包裹。
+ * AppShell → SfVuiLayout.scaffold：扁平兄弟，无 .mmda-app-nav 包裹。
  */
 export const SfAppSideMenu = defineComponent({
   name: 'SfAppSideMenu',

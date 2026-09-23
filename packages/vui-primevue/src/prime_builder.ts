@@ -3,8 +3,8 @@ import {
   reactive,
   type VNode,
 } from "vue";
-import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module } from "@mmda/core";
-import { VuiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VuiFactory, type VueUiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiSearchField, type VuiTileSlots, type VuiContext, ListSearchField } from "@mmda/vui"
+import { DATE_RANGE_FILTER_KINDS, SqlDataType, pluralize, type MetaUiGroup, type Module, type UiContext } from "@mmda/core";
+import { VuiBuilder, assembleMenuItems, pageLayoutMenuItems, paintDetailsTopbar, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type ModuleSearchbarProps, type VuiFactory, type VuiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type UiAction, type VuiTileSlots, ListSearchField } from "@mmda/vui"
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import DatePicker from "primevue/datepicker";
@@ -17,18 +17,16 @@ import SelectButton from "primevue/selectbutton";
 import Toolbar from "primevue/toolbar";
 import { PrimeGroupCard } from "./components/PrimeGroupCard";
 import { PrimeAppSideMenu } from "./components/PrimeAppSideMenu";
-import { PrimeVueOverlayHost } from "./components/PrimeVueOverlayHost";
-import { createPrimeOverlay } from "./prime_overlay";
-import { BpmnModeler } from "./components/BpmnModeler";
-import { SigninForm } from "./components/SigninForm";
-import { createPrimeVueFieldFactory } from "./prime_field_factory";
+import { PrimeVuiOverlayHost } from "./components/PrimeVuiOverlayHost";
+import { createPrimeVuiOverlay } from "./prime_overlay";
+import { PrimeBpmnModeler } from "./components/PrimeBpmnModeler";
+import { PrimeSigninForm } from "./components/PrimeSigninForm";
+import { createPrimeVuiFieldFactory } from "./prime_field_factory";
 import { createPrimeVuiFactory } from "./prime_factory";
-import { primeLayout } from "./prime_layout";
+import { primeVuiLayout } from "./prime_layout";
 
 const invoke = (value: unknown): any =>
   typeof value === "function" ? (value as () => unknown)() : value;
-
-type UiContext = VuiContext<any>;
 
 type GroupCardProps = UiProps & {
   container?: "card" | "fieldset" | "tab" | "none";
@@ -53,18 +51,18 @@ export class PrimeVuiBuilder extends VuiBuilder {
 
   constructor(
     factory = createPrimeVuiFactory(),
-    fieldFactory: VueUiFieldFactory = createPrimeVueFieldFactory(),
+    fieldFactory: VuiFieldFactory = createPrimeVuiFieldFactory(),
   ) {
     super(
       factory,
       fieldFactory,
-      primeLayout,
-      createPrimeOverlay(),
+      primeVuiLayout,
+      createPrimeVuiOverlay(),
     );
   }
 
   get overlayHost() {
-    return PrimeVueOverlayHost;
+    return PrimeVuiOverlayHost;
   }
 
   override setColorScheme(dark: boolean) {
@@ -240,64 +238,6 @@ export class PrimeVuiBuilder extends VuiBuilder {
     );
   }
 
-  buildSearchField(field: VuiSearchField, _context: UiContext, props: UiProps) {
-    const meta = field.field;
-    const common = {
-      modelValue: field.searchVal.value,
-      placeholder: meta.displayLabel,
-      size: "small",
-      "onUpdate:modelValue": (value: any) => {
-        field.searchVal.value = value;
-      },
-      ...props,
-    };
-    let editor: VNode;
-    if (meta.reference?.refOptions?.length) {
-      editor = h(Select, {
-        ...common,
-        options: meta.reference.refOptions,
-        optionLabel: (option: any) => meta.reference!.labelOf(option),
-        showClear: true,
-      });
-    } else if (SqlDataType.isBool(meta.dataType)) {
-      editor = h(Select, {
-        ...common,
-        options: [
-          { label: "Yes", value: true },
-          { label: "No", value: false },
-        ],
-        optionLabel: "label",
-        optionValue: "value",
-        showClear: true,
-      });
-    } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === "WITHIN") {
-      editor = h(Select, {
-        ...common,
-        options: DATE_RANGE_FILTER_KINDS.map((kind) => ({
-          label: _context.translate(`dateRange.${kind}`),
-          value: kind,
-        })),
-        optionLabel: "label",
-        optionValue: "value",
-        showClear: true,
-      });
-    } else if (SqlDataType.isDate(meta.dataType)) {
-      editor = h(DatePicker, {
-        ...common,
-        dateFormat: "yy-mm-dd",
-        showIcon: true,
-      });
-    } else if (SqlDataType.isNum(meta.dataType)) {
-      editor = h(InputNumber, common);
-    } else {
-      editor = h(InputText as any, common);
-    }
-    return h("label", { class: "mmda-search-field" }, [
-      h("span", meta.displayLabel),
-      editor,
-    ]);
-  }
-
   buildModuleSearchbar(context: UiContext, rawProps?: UiProps) {
     // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）
     const props = (rawProps ?? {}) as ModuleSearchbarProps;
@@ -347,9 +287,6 @@ export class PrimeVuiBuilder extends VuiBuilder {
       },
       [
         ...quickFilters,
-        ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
-          this.buildSearchField(field, context, {}),
-        ),
         ...(runtime.customSearchFields ?? []).map((field: any) =>
           field.renderer(context, field),
         ),
@@ -364,7 +301,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
           label: context.translate("action.search"),
           size: "small",
         }),
-        (filters.length > 0 || runtime.searchFields?.length > 0) &&
+        (filters.length > 0 || Boolean(runtime.searchParam?.filterModel)) &&
           h(Button, {
             type: "button",
             icon: "pi pi-filter-slash",
@@ -384,7 +321,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
   ) {
     return h("section", { class: "mmda-flow", ...props }, [
       props.xml
-        ? h(BpmnModeler, {
+        ? h(PrimeBpmnModeler, {
             xml: props.xml,
             readonly: props.readonly ?? true,
             height: props.height,
@@ -408,7 +345,7 @@ export class PrimeVuiBuilder extends VuiBuilder {
   }
 
   buildSigninForm(props: SigninFormProps, slots?: SigninFormSlots) {
-    return h(SigninForm, props, slots);
+    return h(PrimeSigninForm, props, slots);
   }
 
   buildSignupForm(props: SignupFormProps) {

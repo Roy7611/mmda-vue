@@ -3,7 +3,7 @@ import { NImage, NMenu, NPagination } from 'naive-ui'
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, type MetaUi } from '@mmda/core'
 import type { UiProps, UiAction, VuiFactory, VuiListPropsType, UiPaginatorProps, VuiTileSlots } from '@mmda/vui'
 import { assembleTreeGridRows, createIconVNode, MATERIAL_SYMBOL_PREFIX, bindListDisplayRenderers, wrapListFamilyPaginator, renderSearchForRelativeField, createFileUploader, createFilesUploader, createImageUploader, createImagesUploader, renderFileLink, resolveActionButtonIcon, createErrorRetry, vuiUpdateOf } from '@mmda/vui'
-import { agNaiveLayout } from './agnaive_layout'
+import { agNaiveVuiLayout } from './agnaive_layout'
 import { AgGrid } from './components/AgGrid'
 import { createTree } from './factory/tree'
 import { createBadge } from './factory/badge'
@@ -91,7 +91,7 @@ const normalizeAction = (action: UiAction, t?: (key: string) => string) => ({
   command: action.onAction,
 })
 
-export function createAgNaiveUiFactory(): VuiFactory {
+export function createAgNaiveVuiFactory(): VuiFactory {
   const button = (props: any, slots?: any) =>
     createButton(props, slots, (name) => factory.resolveIcon(name))
   const table = <T>(props: VuiListPropsType<T> = {}) =>

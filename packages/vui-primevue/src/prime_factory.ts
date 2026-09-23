@@ -91,7 +91,7 @@ import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import MultiSelect from "primevue/multiselect";
 import Tag from "primevue/tag";
-import { primeLayout } from "./prime_layout";
+import { primeVuiLayout } from "./prime_layout";
 import { createTree } from "./factory/tree";
 import {
   applyPrimeColumnFilter,

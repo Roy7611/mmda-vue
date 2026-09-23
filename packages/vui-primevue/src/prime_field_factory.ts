@@ -12,7 +12,7 @@ import {
   type UiFieldFactory,
 } from '@mmda/core'
 import {
-  VueUiFieldFactory,
+  VuiFieldFactory,
   type VuiContext,
   type VuiFactory,
   type VuiFieldRenderer,
@@ -29,10 +29,10 @@ import Tag from 'primevue/tag'
  * PrimeVue 字段工厂。
  *
  * `MetaUiField -> UiXxxProps -> factory.xxx` 的通用映射已在 @mmda/vui 的
- * {@link VueUiFieldFactory} 完成；本类只绑定 PrimeVue factory，并保留
+ * {@link VuiFieldFactory} 完成；本类只绑定 PrimeVue factory，并保留
  * PrimeVue 特有的错误提示、Password / Image / Tag、SearchBox、头像尺寸和图标。
  */
-export class PrimeVueFieldFactory extends VueUiFieldFactory {
+export class PrimeVuiFieldFactory extends VuiFieldFactory {
   constructor(factory: VuiFactory = createPrimeVuiFactory() as unknown as VuiFactory) {
     super(factory)
   }
@@ -218,8 +218,8 @@ export class PrimeVueFieldFactory extends VueUiFieldFactory {
   StatusLight = this.statusLight
 }
 
-export const primeVueFieldFactory: UiFieldFactory = new PrimeVueFieldFactory()
+export const primeVuiFieldFactory: UiFieldFactory = new PrimeVuiFieldFactory()
 
-export function createPrimeVueFieldFactory(): PrimeVueFieldFactory {
-  return new PrimeVueFieldFactory()
+export function createPrimeVuiFieldFactory(): PrimeVuiFieldFactory {
+  return new PrimeVuiFieldFactory()
 }

@@ -10,7 +10,7 @@ import type {
 import { shouldCloseDialog } from '@mmda/core'
 import type { VuiOverlay } from '@mmda/vui'
 
-export interface DialogRequest {
+export interface PrimeVuiDialogRequest {
   id: number
   content: VNode
   props: UiDialogProps
@@ -18,25 +18,25 @@ export interface DialogRequest {
   resolve: (button: UiDialogAction) => void
 }
 
-export interface PrimeOverlayServices {
+export interface PrimeVuiOverlayServices {
   toast?: { add: (message: Record<string, unknown>) => void }
   confirm?: {
     require: (options: Record<string, unknown>) => void
   }
 }
 
-export interface PrimeOverlay extends VuiOverlay {
-  dialogs: DialogRequest[]
-  services: PrimeOverlayServices
+export interface PrimeVuiOverlay extends VuiOverlay {
+  dialogs: PrimeVuiDialogRequest[]
+  services: PrimeVuiOverlayServices
 }
 
 let nextDialogId = 1
 
-export function createPrimeOverlay(): PrimeOverlay {
-  const dialogs = shallowReactive<DialogRequest[]>([])
-  const services: PrimeOverlayServices = {}
+export function createPrimeVuiOverlay(): PrimeVuiOverlay {
+  const dialogs = shallowReactive<PrimeVuiDialogRequest[]>([])
+  const services: PrimeVuiOverlayServices = {}
 
-  const overlay: PrimeOverlay = {
+  const overlay: PrimeVuiOverlay = {
     dialogs,
     services,
     toast(props: UiToastProps) {
@@ -90,8 +90,8 @@ export function createPrimeOverlay(): PrimeOverlay {
 }
 
 export async function closeOverlayDialog(
-  overlay: PrimeOverlay,
-  request: DialogRequest,
+  overlay: PrimeVuiOverlay,
+  request: PrimeVuiDialogRequest,
   button: UiDialogAction,
 ) {
   if (!(await shouldCloseDialog(request.props, button))) {

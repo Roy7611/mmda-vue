@@ -15,7 +15,7 @@ import type { UiInplaceEditorController, UiInplaceEditorProps, UiInplaceEditorSl
 import { inplaceEditorDisabledOf, inplaceEditorModifierClasses, noopInplaceEditorController } from '@mmda/vui'
 import { uiRenderProps } from '@mmda/core'
 
-const NaiveInplaceEditorHost = defineComponent({
+const AgNaiveVuiInplaceEditorHost = defineComponent({
   name: 'MmdaNaiveInplaceEditor',
   props: {
     disabled: Boolean,
@@ -96,7 +96,7 @@ export function createInplaceEditor(
     })
   }
   return h(
-    NaiveInplaceEditorHost,
+    AgNaiveVuiInplaceEditorHost,
     {
       disabled: inplaceEditorDisabledOf(props),
       active: props.active,

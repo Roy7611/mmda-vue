@@ -14,7 +14,7 @@ import { dialogButtonColorRole, dialogButtonLabel, dialogCloseOnEscapeOf, dialog
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
-  type AgNaiveOverlay,
+  type AgNaiveVuiOverlay,
 } from '../agnaive_overlay'
 import {
   naiveLocaleOf,
@@ -39,7 +39,7 @@ const OverlayInner = defineComponent({
   name: 'AgNaiveOverlayInner',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
-    const overlay = app?.ui.overlay as AgNaiveOverlay | undefined
+    const overlay = app?.ui.overlay as AgNaiveVuiOverlay | undefined
     const message = useMessage()
     const dialog = useDialog()
 
@@ -191,8 +191,8 @@ const OverlayInner = defineComponent({
   },
 })
 
-export const AgNaiveOverlayHost = defineComponent({
-  name: 'AgNaiveOverlayHost',
+export const AgNaiveVuiOverlayHost = defineComponent({
+  name: 'AgNaiveVuiOverlayHost',
   setup() {
     return () => {
       const loc = naiveLocaleOf(naiveSkinState.locale)

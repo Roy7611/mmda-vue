@@ -10,7 +10,7 @@ import { dialogAllowDraggingOf, dialogButtonColorRole, dialogButtonLabel, dialog
 import { UI_APP_KEY, type MmdaVueApp } from '@mmda/vui'
 import {
   closeOverlayDialog,
-  type PrimeOverlay,
+  type PrimeVuiOverlay,
 } from '../prime_overlay'
 
 function primeClassForRole(role?: string, primary = false): string {
@@ -23,11 +23,11 @@ function primeClassForRole(role?: string, primary = false): string {
   return classes.join(' ')
 }
 
-export const PrimeVueOverlayHost = defineComponent({
-  name: 'PrimeVueOverlayHost',
+export const PrimeVuiOverlayHost = defineComponent({
+  name: 'PrimeVuiOverlayHost',
   setup() {
     const app = inject(UI_APP_KEY) as MmdaVueApp | undefined
-    const overlay = app?.ui.overlay as PrimeOverlay | undefined
+    const overlay = app?.ui.overlay as PrimeVuiOverlay | undefined
 
     try {
       if (overlay) overlay.services.toast = useToast()

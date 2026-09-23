@@ -18,8 +18,6 @@ export const DEFAULT_LIST_COLUMN_WIDTH = 120;
 export const invoke = (value: unknown) =>
   typeof value === "function" ? (value as () => unknown)() : value;
 
-export { resolveFieldUnit } from "@mmda/vui";
-
 export const listedFields = (metaUi: MetaUi) => {
   const fields = metaUi.getListedFields();
   return fields.length

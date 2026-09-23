@@ -12,7 +12,7 @@ export * from './syncfusion_field_factory'
 export * from './syncfusion_builder'
 export * from './syncfusion_overlay'
 export * from './syncfusion_i18n'
-export * from './components/SfOverlayHost'
+export * from './components/SfVuiOverlayHost'
 export * from './components/SfBpmnDiagram'
 export * from './components/SfHelpPanel'
 export * from './components/SfSigninForm'
@@ -32,8 +32,8 @@ export {
 export { SfGrid } from './components/SfGrid'
 export { SfGridLayout } from './components/SfGridLayout'
 export { SfGridFilterBar } from './components/SfGridFilterBar'
-export { SfGridHost, SfGridLoadingHost } from './factory/grid'
-export { SfLoadingHost } from './components/SfLoadingHost'
+export { SfGridHost, SfVuiGridLoadingHost } from './factory/grid'
+export { SfVuiLoadingHost } from './components/SfVuiLoadingHost'
 export {
   applyCompareColumnFilters,
   compareColumnVariantOf,
@@ -57,13 +57,13 @@ export {
 } from './sf_grid_column'
 export type { SfTreeGridColumnOptions } from './sf_grid_column'
 
-export interface MmdaSyncfusionOptions {
+export interface SfVuiOptions {
   licenseKey?: string
   /** vui locale (`zh` / `en` / `zh-Hant`) or a raw EJ2 L10n pack */
   locale?: string | Record<string, unknown>
 }
 
-function resolveLicense(options: MmdaSyncfusionOptions) {
+function resolveLicense(options: SfVuiOptions) {
   if (options.licenseKey) return options.licenseKey
   try {
     return (import.meta as any).env?.VITE_SYNCFUSION_LICENSE as string | undefined
@@ -74,7 +74,7 @@ function resolveLicense(options: MmdaSyncfusionOptions) {
 
 /** Installs Syncfusion license, locale, and theme CSS. Overlay Host is mounted by MmdaApplication.install. */
 export const mmdaSyncfusion: Plugin = {
-  install(app: App, options: MmdaSyncfusionOptions = {}) {
+  install(app: App, options: SfVuiOptions = {}) {
     const key = resolveLicense(options)
     if (key) registerLicense(key)
     installSyncfusionLocale(app, options.locale)

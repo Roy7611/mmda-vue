@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AgNaiveUiBuilder } from '../agnaive_builder'
+import { AgNaiveVuiBuilder } from '../agnaive_builder'
 import {
   createAgPivotPlugin,
   toAgPivotColumnDefs,
@@ -37,7 +37,7 @@ describe('createAgPivotPlugin', () => {
   })
 
   it('skin builder installs pivot-table by default', () => {
-    const builder = new AgNaiveUiBuilder()
+    const builder = new AgNaiveVuiBuilder()
     expect(builder.hasPlugin('pivot-table')).toBe(true)
     const vnode = builder.plugin('pivot-table')!.buildUi({} as any, {
       values: [{ name: 'amount', aggregate: 'sum' }],

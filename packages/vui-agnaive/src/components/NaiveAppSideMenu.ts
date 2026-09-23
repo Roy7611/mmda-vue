@@ -42,8 +42,8 @@ const COMPACT_DRAWER_WIDTH = 228
  * @see https://www.naiveui.com/zh-CN/os-theme/components/layout
  * @see https://www.naiveui.com/zh-CN/os-theme/components/menu
  */
-export const NAppSideMenu = defineComponent({
-  name: 'NAppSideMenu',
+export const NaiveAppSideMenu = defineComponent({
+  name: 'NaiveAppSideMenu',
   inheritAttrs: false,
   props: {
     modules: {

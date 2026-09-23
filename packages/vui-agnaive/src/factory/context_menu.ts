@@ -36,8 +36,8 @@ function mapNaiveItem(
   }
 }
 
-const MmdaNaiveContextMenu = defineComponent({
-  name: 'MmdaNaiveContextMenu',
+const NaiveContextMenu = defineComponent({
+  name: 'NaiveContextMenu',
   props: {
     menuProps: {
       type: Object as PropType<UiContextMenuProps>,
@@ -127,5 +127,5 @@ export function createContextMenu(
   props: UiContextMenuProps,
   resolveIcon?: IconResolver,
 ) {
-  return h(MmdaNaiveContextMenu, { menuProps: props, resolveIcon })
+  return h(NaiveContextMenu, { menuProps: props, resolveIcon })
 }

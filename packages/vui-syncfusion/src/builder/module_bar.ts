@@ -1,7 +1,7 @@
 import { h, type VNode } from "vue";
 import { DATE_RANGE_FILTER_KINDS, SqlDataType } from "@mmda/core";
 import type { VuiBuilder } from "@mmda/vui"
-import type { ModuleSearchbarProps, UiProps, VuiSearchField } from "@mmda/vui"
+import type { ModuleSearchbarProps, UiProps } from "@mmda/vui"
 import { DatePickerComponent } from "@syncfusion/ej2-vue-calendars";
 import {
   DropDownListComponent,
@@ -17,72 +17,6 @@ import {
 import { ListSearchField } from "@mmda/vui"
 
 export { SfSearchTextInput, moduleChain } from "./utils";
-
-export function buildSearchField(
-  field: VuiSearchField,
-  _context: SfVuiContext,
-  props: UiProps,
-) {
-  const meta = field.field;
-  const bind = (value: any) => {
-    field.searchVal.value = value;
-  };
-  let editor: VNode;
-  if (meta.reference?.refOptions?.length) {
-    editor = h(DropDownListComponent as any, {
-      value: field.searchVal.value,
-      dataSource: meta.reference.refOptions,
-      change: (args: any) => bind(args.value),
-      ...props,
-    });
-  } else if (SqlDataType.isBool(meta.dataType)) {
-    editor = h(DropDownListComponent as any, {
-      value: field.searchVal.value,
-      dataSource: [
-        { text: "Yes", value: true },
-        { text: "No", value: false },
-      ],
-      fields: { text: "text", value: "value" },
-      change: (args: any) => bind(args.value),
-      ...props,
-    });
-  } else if (SqlDataType.isDate(meta.dataType) && field.currentOp === "WITHIN") {
-    editor = h(DropDownListComponent as any, {
-      value: field.searchVal.value,
-      dataSource: DATE_RANGE_FILTER_KINDS.map((kind) => ({
-        text: _context.translate(`dateRange.${kind}`),
-        value: kind,
-      })),
-      fields: { text: "text", value: "value" },
-      change: (args: any) => bind(args.value),
-      ...props,
-    });
-  } else if (SqlDataType.isDate(meta.dataType)) {
-    editor = h(DatePickerComponent as any, {
-      value: field.searchVal.value,
-      format: "yyyy-MM-dd",
-      change: (args: any) => bind(args.value),
-      ...props,
-    });
-  } else if (SqlDataType.isNum(meta.dataType)) {
-    editor = h(NumericTextBoxComponent as any, {
-      value: field.searchVal.value,
-      change: (args: any) => bind(args.value),
-      ...props,
-    });
-  } else {
-    editor = h(TextBoxComponent as any, {
-      value: field.searchVal.value,
-      placeholder: meta.displayLabel,
-      input: (args: any) => bind(args.value),
-      ...props,
-    });
-  }
-  return h("label", { class: "mmda-search-field" }, [
-    h("span", meta.displayLabel),
-    editor,
-  ]);
-}
 
 export function buildModuleSearchbar(
   this: VuiBuilder,
@@ -182,9 +116,6 @@ export function buildModuleSearchbar(
     },
     [
       ...quickFilters,
-      ...(runtime.searchFields ?? []).map((field: VuiSearchField) =>
-        buildSearchField(field, context, {}),
-      ),
       ...(runtime.customSearchFields ?? []).map((field: any) =>
         field.renderer(context, field),
       ),

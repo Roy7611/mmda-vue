@@ -17,10 +17,10 @@ export * from './prime_layout'
 export * from './prime_factory'
 export * from './prime_field_factory'
 export * from './prime_builder'
-export * from './components/PrimeVueOverlayHost'
-export * from './components/BpmnModeler'
-export * from './components/HelpPanel'
-export * from './components/SigninForm'
+export * from './components/PrimeVuiOverlayHost'
+export * from './components/PrimeBpmnModeler'
+export * from './components/PrimeHelpPanel'
+export * from './components/PrimeSigninForm'
 export * from './components/AppSideMenu'
 
 /** PrimeVue 4 默认 Aura 主题；与 Tailwind 共存时可传入带 cssLayer 的 theme 覆盖 */
@@ -31,7 +31,7 @@ export const primeVueThemeConfig = {
   },
 }
 
-export interface MmdaPrimeVueOptions {
+export interface PrimeVuiOptions {
   locale?: string | Record<string, any>
   theme?: Record<string, any>
   ripple?: boolean
@@ -39,7 +39,7 @@ export interface MmdaPrimeVueOptions {
 
 /** Installs PrimeVue and the overlay services required by PrimeVuiBuilder. */
 export const mmdaPrimeVue: Plugin = {
-  install(app: App, options: MmdaPrimeVueOptions = {}) {
+  install(app: App, options: PrimeVuiOptions = {}) {
     const locale =
       typeof options.locale === 'string'
         ? primeVueI18n[options.locale] ?? primeVueI18n.en

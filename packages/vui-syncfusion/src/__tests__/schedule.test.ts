@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SfUiBuilder } from '../syncfusion_builder'
+import { SfVuiBuilder } from '../syncfusion_builder'
 import {
   createSfSchedulerPlugin,
   EJ2_SCHEDULER_VIEWS,
@@ -54,7 +54,7 @@ describe('createSfSchedulerPlugin', () => {
   })
 
   it('skin builder installs scheduler by default', () => {
-    const builder = new SfUiBuilder()
+    const builder = new SfVuiBuilder()
     expect(builder.hasPlugin('scheduler')).toBe(true)
     const vnode = builder.buildScheduler({} as any, {
       events: [{ id: 1, start: '2026-01-01', title: 'Cut' }],

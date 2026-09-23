@@ -8,8 +8,8 @@ import {
   type PropType,
 } from 'vue'
 
-export const BpmnModeler = defineComponent({
-  name: 'MmdaBpmnModeler',
+export const NaiveBpmnModeler = defineComponent({
+  name: 'NaiveBpmnModeler',
   props: {
     xml: { type: String, default: '' },
     readonly: { type: Boolean, default: false },

@@ -11,7 +11,7 @@ import { VuiLayout } from '@mmda/vui'
  * 主区叠 `e-main-content`（EJ2 Sidebar Push）。不要再包一层 `.mmda-app-nav`，
  * 否则 Dock 挪 DOM / Pad compact 会掉出 grid，侧栏被顶到主区下面。
  */
-export class SfLayout extends VuiLayout {
+export class SfVuiLayout extends VuiLayout {
   override scaffold(slots: UiAppScaffoldSlots<VNode>): VNode {
     const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
     if (variant !== 'sidebarLeft') {
@@ -53,4 +53,4 @@ export class SfLayout extends VuiLayout {
   }
 }
 
-export const syncfusionLayout = new SfLayout()
+export const sfVuiLayout = new SfVuiLayout()

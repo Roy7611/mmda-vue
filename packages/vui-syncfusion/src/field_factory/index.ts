@@ -8,24 +8,24 @@ import {
   type UiProps,
 } from "@mmda/core";
 import {
-  VueUiFieldFactory,
+  VuiFieldFactory,
   type VuiContext,
   type VuiFactory,
   type VuiFieldRenderer,
   type VuiSearchRelativeProps,
 } from "@mmda/vui";
-import { createSyncfusionUiFactory } from "../factory";
+import { createSfVuiFactory } from "../factory";
 import { createSearchRelative as renderSearchRelative } from "../factory/search_relative";
 
 /**
  * Syncfusion EJ2 Vue 字段控件工厂。
  *
  * `MetaUiField → UiXxxProps → factory.xxx` 的通用映射已在 @mmda/vui 的
- * {@link VueUiFieldFactory} 完成；本类只负责绑定 Syncfusion factory 与
+ * {@link VuiFieldFactory} 完成；本类只负责绑定 Syncfusion factory 与
  * Syncfusion 特有的引用选择 / 头像尺寸等 chrome。
  */
-export class SfVueUiFieldFactory extends VueUiFieldFactory {
-  constructor(factory: VuiFactory = createSyncfusionUiFactory()) {
+export class SfVuiFieldFactory extends VuiFieldFactory {
+  constructor(factory: VuiFactory = createSfVuiFactory()) {
     super(factory);
   }
 
@@ -141,10 +141,8 @@ export class SfVueUiFieldFactory extends VueUiFieldFactory {
   StatusLight = this.statusLight;
 }
 
-export const syncfusionFieldFactory: UiFieldFactory = new SfVueUiFieldFactory();
+export const sfVuiFieldFactory: UiFieldFactory = new SfVuiFieldFactory();
 
-export function createSyncfusionFieldFactory(): UiFieldFactory {
-  return new SfVueUiFieldFactory();
+export function createSfVuiFieldFactory(): SfVuiFieldFactory {
+  return new SfVuiFieldFactory();
 }
-
-export { resolveFieldUnit } from "@mmda/vui";

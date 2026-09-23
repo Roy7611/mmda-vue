@@ -33,18 +33,18 @@ import {
   applySyncfusionLocale,
   resolveSyncfusionCulture,
 } from "../syncfusion_i18n";
-import { SfUiBuilder } from "../syncfusion_builder";
-import { createSyncfusionFieldFactory } from "../syncfusion_field_factory";
+import { SfVuiBuilder } from "../syncfusion_builder";
+import { createSfVuiFieldFactory } from "../syncfusion_field_factory";
 import {
-  createSyncfusionUiFactory,
+  createSfVuiFactory,
   autoFitSyncfusionListGrid,
   splitterEventIndex,
 } from "../syncfusion_factory";
-import { syncfusionLayout } from "../syncfusion_layout";
+import { sfVuiLayout } from "../syncfusion_layout";
 import { SfImageGallery } from "../components/SfImageGallery";
-import { SfOverlayHost } from "../components/SfOverlayHost";
-import { createSfOverlay } from "../syncfusion_overlay";
-import { createTableRenderer } from "../factory/table";
+import { SfVuiOverlayHost } from "../components/SfVuiOverlayHost";
+import { createSfVuiOverlay } from "../syncfusion_overlay";
+import { createSfTableRenderer } from "../factory/table";
 import {
   applyChoiceFilterExistingPredicate,
   gridFilterOperator,
@@ -99,7 +99,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("implements the vui factory and layout contracts", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     expect(factory.nativeInplaceEdit).toBe(true);
     expect(factory.paginator).toBeTypeOf("function");
     expect(factory.table).toBeTypeOf("function");
@@ -175,7 +175,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.splitter reverse and resizeStop", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onResizeStop = vi.fn();
     const vnode = factory.splitter(
       {
@@ -201,7 +201,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("factory.list wraps paginator only when pagination is set", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = new MetaUi({
       objName: "Item",
       displayLabel: "项",
@@ -219,7 +219,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.badge colorRole and circle shape to e-badge classes", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.badge({
       value: 10,
       colorRole: "primary",
@@ -236,7 +236,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.message defaults to Filled EJ2 Message", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.message({
       content: "保存失败",
       severity: "error",
@@ -251,7 +251,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.avatar circle large label to e-avatar classes", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.avatar({
       label: "GR",
       shape: "circle",
@@ -267,7 +267,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps fieldFactory.avatar URL to e-avatar", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const field = { fieldName: "avatar", renderer: "Avatar" } as any;
     const vnode = fields.avatar(field, {
       getFieldValue: () => "/faces/ada.png",
@@ -294,7 +294,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.card surface, colorRole, image, headerImage, divider", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.card(
       {
         title: "Summary",
@@ -332,7 +332,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.divider orientation and label", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.divider({
       orientation: "vertical",
       label: "或",
@@ -352,7 +352,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.tooltip TopCenter and Hover opensOn", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.tooltip(
       { content: "说明", position: "top", opensOn: "hover" },
       { default: () => [h("button", "保存")] },
@@ -368,7 +368,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("exposes factory.inplaceEditor and fld InplaceFieldEditor", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     expect(factory.inplaceEditor).toBeTypeOf("function");
     const vnode = factory.inplaceEditor(
       {},
@@ -380,14 +380,14 @@ describe("Syncfusion skin", () => {
     expect(String(vnode.type?.name ?? vnode.type?.__name ?? "")).toMatch(
       /InplaceEditor/,
     );
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     expect(fields.inplaceFieldEditor).toBeTypeOf("function");
     expect(fields.InplaceFieldEditor).toBe(fields.inplaceFieldEditor);
     expect(fields.InplaceEditor).toBeUndefined();
   });
 
   it("maps factory.colorPicker mode, value, and emits hex", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.colorPicker({
       value: "#035a",
@@ -408,7 +408,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.numberInput format, decimals, and value", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.numberInput({
       value: 12.5,
       decimals: 2,
@@ -427,7 +427,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.textArea value rows and resizeMode", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.textArea({
       value: "hello",
@@ -451,7 +451,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.textInput placeholder type and showClearButton", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const onFocus = vi.fn();
     const onBlur = vi.fn();
@@ -481,7 +481,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.progressBar value and Linear type", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.progressBar({
       value: 42,
       size: "small",
@@ -497,7 +497,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.signaturePad strokeColor and isReadOnly", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.signaturePad({
       value: "data:image/png;base64,abc",
       strokeColor: "#111111",
@@ -511,7 +511,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.stepper activeStep and Vertical orientation", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.stepper({
       value: 1,
       orientation: "vertical",
@@ -528,7 +528,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.timeline Vertical and Before align", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.timeline({
       orientation: "vertical",
       align: "before",
@@ -545,7 +545,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.skeleton shape and shimmerEffect", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.skeleton({
       shape: "circle",
       width: 40,
@@ -565,7 +565,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.loading to spinner host not e-spin", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.loading({ label: "加载中", size: "small" });
     const cls = Array.isArray(vnode.props?.class)
       ? vnode.props.class.flat(8).filter(Boolean).join(" ")
@@ -578,7 +578,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.tree to SfTree with mmda-tree", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.tree({
       data: [{ id: "1", label: "根" }],
       selectionMode: "checkbox",
@@ -593,7 +593,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.speechToText transcript lang and interim", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.speechToText({
       value: "你好",
@@ -615,7 +615,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.radioButtonGroup RadioButton name and checked", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.radioButtonGroup({
       value: "b",
       name: "kind",
@@ -643,7 +643,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.maskedTextBox mask and value", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.maskedTextBox({
       mask: "000 0000 0000",
       value: "13800138000",
@@ -657,7 +657,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.oneTimePasswordInput length type and value", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.oneTimePasswordInput({
       length: 6,
@@ -677,7 +677,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.queryBuilder to QueryBuilder", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.queryBuilder({
       columns: [{ fieldName: "age", label: "Age", valueType: "number" }],
     });
@@ -689,7 +689,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.slider type Range and value", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.slider({
       type: "Range",
       min: 0,
@@ -709,7 +709,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.rating itemsCount and readOnly", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.rating({
       value: 2,
@@ -729,7 +729,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.sidebar dock target mediaQuery gestures", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.sidebar({
       isOpen: true,
@@ -754,7 +754,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.tabs value headerPlacement scrollable", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.tabs({
       items: [
@@ -791,7 +791,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("factory.tabs 用 TabItemDirective 插槽挂 VNode 内容", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const body = h("div", { class: "mmda-tab-body" }, "fields");
     const vnode = factory.tabs({
       items: [{ name: "main", header: "Main", content: body }],
@@ -810,7 +810,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("factory.tabs 多页签用 name 作唯一槽名，内容不串页", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const a = h("div", { class: "pane-a" }, "A");
     const b = h("div", { class: "pane-b" }, "B");
     const vnode = factory.tabs({
@@ -834,7 +834,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.toolbar default slot onto EJ2 items", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.toolbar(
       { overflow: "popup", class: "skin" },
       { default: () => "S" },
@@ -854,7 +854,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.toolbar start/end onto EJ2 item align", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.toolbar(
       { overflow: "multirow", disabled: true },
       { start: () => "L", end: () => "R" },
@@ -877,7 +877,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.drawer to Over with backdrop", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.drawer({ visible: true } as any);
     expect(vnode.props?.type).toBe("Over");
     expect(vnode.props?.showBackdrop).toBe(true);
@@ -889,7 +889,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.datePicker format, Monday week, and no typing", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const day = new Date(2026, 8, 7);
     const vnode = factory.datePicker({
@@ -920,7 +920,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.barcode format to EJ2 type", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.barcode({
       value: "123456789",
       format: "ean13",
@@ -939,7 +939,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.qrCode dataMatrix to DataMatrixGenerator", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const qr = factory.qrCode({ value: "https://example.com" });
     const dm = factory.qrCode({ value: "SYNC123", format: "dataMatrix" });
     expect(qr.type?.name ?? qr.type).toBeTruthy();
@@ -995,7 +995,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps fileLink and uploader chrome", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     expect(factory.fileLink).toBeTypeOf("function");
     expect(factory.fileUploader).toBeTypeOf("function");
     expect(factory.filesUploader).toBeTypeOf("function");
@@ -1013,7 +1013,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("forces action buttons to type=button so form pages do not submit", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onAction = vi.fn();
     const vnode = factory.actionButton(
       { name: "add", label: "添加", onAction },
@@ -1036,7 +1036,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("registers old metadata editor aliases", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     expect(fields.TextBox).toBe(fields.textInput);
     expect(fields.DropDownList).toBe(fields.dropDownList);
     expect(fields.dropdown).toBeUndefined();
@@ -1058,7 +1058,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders QuantityUnit as value, space, and suffix unit", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const field = {
       fieldName: "unitWeight",
       suffix: "KG",
@@ -1071,7 +1071,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders Chips from comma-separated tags", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const vnode = fields.Chips(
       { fieldName: "tags", renderer: "Chips" } as any,
       { getFieldValue: () => "原料,辅料, 包装" } as any,
@@ -1094,7 +1094,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses NumericTextBox appendTemplate for unit suffix and native spin", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const context = {
       getFieldValue: () => 2,
       setFieldValue: vi.fn(),
@@ -1116,7 +1116,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("falls back to formatter as unit in appendTemplate suffix", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const context = {
       getFieldValue: () => 12,
       setFieldValue: vi.fn(),
@@ -1134,7 +1134,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("injects unit suffix before spin buttons when appendTemplate slot is inactive", async () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     document.body.innerHTML = `
       <div class="e-input-group">
         <input id="unitWeight" />
@@ -1163,7 +1163,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps reference dropDownList options to value/label chrome options", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const category = {
       categoryID: "C1",
       categoryName: "原料",
@@ -1210,7 +1210,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.dropDownList options, group, icon, and suggest", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const suggest = vi.fn(async () => [{ value: "x", label: "X" }]);
     const vnode = factory.dropDownList({
@@ -1237,7 +1237,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.multiSelect CheckBox keys and bindMode class", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.multiValueSelect({
       value: [1],
@@ -1255,7 +1255,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.bitCheckBoxList or_bits layout", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const vnode = factory.bitCheckBoxList({
       value: 1,
       options: [
@@ -1271,7 +1271,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.tagAutoComplete Box custom values", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onUpdate = vi.fn();
     const vnode = factory.tagAutoComplete({
       value: "a,b",
@@ -1286,7 +1286,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.treeSelect nested data, checkbox array, and hook class", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = factory.treeSelect({
       value: "a",
@@ -1306,7 +1306,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.comboBox allowCustom and custom class", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const custom = factory.comboBox({
       value: "t",
       options: ["a"],
@@ -1328,7 +1328,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("SearchBox uses relative search control instead of plain text input", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     expect(fields.SearchBox).toBe(fields.searchBox);
     expect(fields.searchBox).not.toBe(fields.textInput);
 
@@ -1374,7 +1374,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("puts search and refresh icons on the search TextBox appendTemplate", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const resetFilters = vi.fn();
     const onSearch = vi.fn();
     const onRefresh = vi.fn();
@@ -1418,14 +1418,14 @@ describe("Syncfusion skin", () => {
   });
 
   it("constructs the builder against the new VuiBuilder contract", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     expect(builder.layout.fieldVertical).toBe(false);
     expect(builder.buildAppScaffold()).toBeTruthy();
     expect(builder.overlayHost).toBeTruthy();
   });
 
   it("overlay dialog paints footer via footerTemplate slot name", async () => {
-    const overlay = createSfOverlay();
+    const overlay = createSfVuiOverlay();
     void overlay.dialog(h("div", "body"), {
       title: "保存查询",
       buttons: "okCancel",
@@ -1437,7 +1437,7 @@ describe("Syncfusion skin", () => {
     const Root = defineComponent({
       setup() {
         provide(UI_APP_KEY, { ui: { overlay } });
-        return () => h(SfOverlayHost);
+        return () => h(SfVuiOverlayHost);
       },
     });
     render(h(Root), host);
@@ -1454,7 +1454,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("overlay confirm uses centered mmda-dialog and resolves true on OK", async () => {
-    const overlay = createSfOverlay();
+    const overlay = createSfVuiOverlay();
     const confirmed = overlay.confirm({
       message: "你确定要删除物料[M2025030346544]吗?",
     });
@@ -1463,7 +1463,7 @@ describe("Syncfusion skin", () => {
     const Root = defineComponent({
       setup() {
         provide(UI_APP_KEY, { ui: { overlay } });
-        return () => h(SfOverlayHost);
+        return () => h(SfVuiOverlayHost);
       },
     });
     render(h(Root), host);
@@ -1483,7 +1483,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("wraps toolbar actions in a button group", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const group = builder.factory.buttonGroup(
       { class: "mmda-topbar-actions" },
       {
@@ -1508,7 +1508,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps button colorRole onto EJ2 style classes", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const danger = factory.button({
       label: "Delete",
       colorRole: "danger",
@@ -1521,7 +1521,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders selectButtonGroup as radio or checkbox", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const options = [
       { label: "Left", value: "left" },
       { label: "Center", value: "center" },
@@ -1600,7 +1600,7 @@ describe("Syncfusion skin", () => {
       getFieldLogic: () => ({}),
       routeToDetails: details,
     } as any;
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const link = builder.displayCellFor(
       metaUi.getField("materialCode")!,
       { materialID: "m1", materialCode: "M001" },
@@ -1618,7 +1618,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("builds more actions as DropDownButton, not horizontal Menu", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.factory.moreMenuButton({
       label: "action.more",
       buttonType: "tonal",
@@ -1642,7 +1642,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders more-menu dividers as separators without more-N labels", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.factory.moreMenuButton({
       label: "action.more",
       buttonType: "tonal",
@@ -1679,7 +1679,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders FabComponent for floatingActionButton", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.factory.floatingActionButton({
       icon: "e-icons e-plus",
       label: "新建",
@@ -1699,7 +1699,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses DropupMenuButton when popupPlacement opens upward", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.factory.dropDownButton({
       icon: "fas fa-palette",
       popupPlacement: "top-end",
@@ -1724,7 +1724,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("runs the selected SplitButton action by its normalized id", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const reload = vi.fn();
     const vnode = builder.factory.splitButton({
       label: "恢复默认",
@@ -1745,7 +1745,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps flat secondary SplitButton to wrapper surface classes", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.factory.splitButton({
       label: "恢复默认",
       buttonType: "text",
@@ -1760,7 +1760,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("defaults to e-card, uses fieldset when container is fieldset", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const group = new MetaUiGroup({
       groupName: "base",
       groupLabel: "基本信息",
@@ -1820,7 +1820,7 @@ describe("Syncfusion skin", () => {
         ],
       },
     ]).modules;
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
 
     const automatic = builder.buildAppMenu(modules);
     expect(automatic.type).toMatchObject({
@@ -1851,7 +1851,7 @@ describe("Syncfusion skin", () => {
     expect(String(main?.props?.class ?? "")).toContain("mmda-app-page");
     expect(String(main?.props?.class ?? "")).toContain("e-main-content");
 
-    const fromLayout = syncfusionLayout.scaffold({
+    const fromLayout = sfVuiLayout.scaffold({
       variant: "sidebarLeft",
       nav: h("aside", { class: "mmda-app-side-menu--compact" }),
       page: h("span", "page"),
@@ -1887,7 +1887,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("binds table dataSource as a plain array copy", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const selectedItems: any[] = [];
     const metaUi = {
       getListedFields: () => [{ fieldName: "name", displayLabel: "名称" }],
@@ -1907,7 +1907,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("wires Grid detailTemplate when rowDetail is set", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       getListedFields: () => [{ fieldName: "name", displayLabel: "名称" }],
       groups: [],
@@ -1923,7 +1923,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("enables Grid column grouping by default and can disable it", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Material",
       getListedFields: () => [
@@ -1951,7 +1951,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses row virtualization and an external Pager for list pages", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onPage = vi.fn();
     const metaUi = {
       objName: "Product",
@@ -2056,7 +2056,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("applyRow rebinds a new dataSource array when the page has 100 rows or fewer", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     const metaUi = {
       objName: "Department",
@@ -2103,7 +2103,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("rebind swaps the current page in place without recreating the grid", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     const metaUi = {
       objName: "Department",
@@ -2147,7 +2147,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("rebind paints e-filtered from live filterModelOf, not the table snapshot", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     let liveModel: Record<string, unknown> | undefined;
     const genderIcon = { classList: { toggle: vi.fn() } };
@@ -2216,7 +2216,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("commitFilterModel compares the live filterModelOf", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const liveModel = { gender: FieldFilter.in(["FEMALE"]) };
     const vnode = gridOf(
@@ -2265,7 +2265,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("applyRow rebinds the current virtual window when the page has more than 100 rows", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     const metaUi = {
       objName: "Department",
@@ -2317,7 +2317,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("applyRow does not reset virtualSkip; insertAtZero does", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     const metaUi = {
       objName: "Department",
@@ -2364,7 +2364,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("applyRow still works after destroyed and a new host is ready", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     let listHost: any;
     const metaUi = {
       objName: "Department",
@@ -2426,7 +2426,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("virtual remote filter rebinds a window, not the whole page", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const rows = Array.from({ length: 101 }, (_, index) => ({
       id: String(index),
       category: index % 2 === 0 ? "RAW" : "PART",
@@ -2487,7 +2487,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("marks listed MetaUiField.primaryKey as isPrimaryKey without hidden id", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Product",
       getListedFields: () => [
@@ -2511,7 +2511,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses valueAccessor for non-template columns including reference fields", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const statusField = {
       fieldName: "status",
       displayLabel: "状态",
@@ -2574,7 +2574,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders three flat row actions by default without a dropdown", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Product",
       getListedFields: () => [
@@ -2642,7 +2642,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders details SplitButton dropdown only when showActions is true", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Product",
       getListedFields: () => [
@@ -2698,7 +2698,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("defaults numeric columns to right and enum columns to left", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Product",
       getListedFields: () => [
@@ -2746,7 +2746,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses EJ2 batch cell editing and keeps popup editing on readonly cells", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onCellSave = vi.fn(() => true);
     const onItemDoubleClick = vi.fn();
     const editCell = vi.fn();
@@ -2850,7 +2850,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("excel inplaceEditStart types over the focused cell", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const editCell = vi.fn();
     const host = document.createElement("div");
     const metaUi = {
@@ -2893,7 +2893,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses CheckBox choices for enum columns and Menu for other fields", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const categoryOptions = [
       { value: "RAW", label: "原材料" },
@@ -3087,7 +3087,7 @@ describe("Syncfusion skin", () => {
         ],
       },
     });
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const categoryOptions = [
       { value: "RAW", label: "原材料" },
       { value: "PART", label: "零件" },
@@ -3143,7 +3143,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("does not put FilterModel into filterSettings.columns (that re-filters and loops)", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const statusIcon = { classList: { toggle: vi.fn() } };
     const genderIcon = { classList: { toggle: vi.fn() } };
@@ -3218,7 +3218,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("remote filter rebinds from the updated source list, not the stale snapshot", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const rows = [
       { id: "1", category: "RAW", name: "a" },
       { id: "2", category: "PART", name: "b" },
@@ -3272,7 +3272,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("does not treat a dataSource refresh as clearing the column filter", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const vnode = gridOf(
       factory.table(
@@ -3317,7 +3317,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("defaults real enum/ref MetaUiField to CheckBox, not Menu", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const status = new MetaUiField({
       fieldName: "status",
       displayLabel: "状态",
@@ -3373,7 +3373,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("keeps numeric REF/HAS_ONE department SET|MULTI as CheckBox, not compare Menu", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const parentDept = new MetaUiField({
       fieldName: "parentDeptID",
       displayLabel: "上级部门",
@@ -3427,7 +3427,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("loads homepage 50 when opening an empty REF department CheckBox", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const home = Array.from({ length: 50 }, (_, index) => ({
       deptID: index + 1,
       deptName: `部门${index + 1}`,
@@ -3518,7 +3518,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("loads first 50 into refOptions; incomplete search does not overwrite", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const home = Array.from({ length: 50 }, (_, index) => ({
       matID: `M${index}`,
       matName: `物料${index}`,
@@ -3607,7 +3607,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("complete small table filters locally after first page", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const pack = new MetaUiField({
       fieldName: "packID",
       displayLabel: "包装规格",
@@ -3683,7 +3683,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses pipe enum value;code;label via valueOf/labelOf", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const reference = {
       isEnum: true,
       refFlds: ["code", "label"],
@@ -3726,7 +3726,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses multiSelect dropdown for set values on multi Menu columns", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Material",
       getListedFields: () => [
@@ -3783,7 +3783,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("shows the pivot date tree as soon as the DATE|SET|MULTI menu opens", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const loadPivotDates = vi.fn(async () => [
       "2026",
       "2026-05",
@@ -3842,7 +3842,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("opens the date set tree when filterModel already has tokens", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const loadPivotDates = vi.fn(async () => ["2026-05-01"]);
     const metaUi = {
       objName: "Move",
@@ -3888,7 +3888,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("binds ref/hasOne filter dataSource from refOptions with refFlds", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const partners = [
       { id: "p1", partnerName: "甲公司" },
       { id: "p2", partnerName: "乙公司" },
@@ -3933,7 +3933,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses reference valueOf/labelOf for multi-field labels", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Material",
       getListedFields: () => [
@@ -3976,7 +3976,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses CheckBox 是/否 for boolean and Menu for number/date/text", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const metaUi = {
       objName: "Order",
@@ -4079,7 +4079,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("feeds boolean CheckBox 是/否 and skips getDistinct", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Order",
       getListedFields: () => [
@@ -4150,7 +4150,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("owns number operators and writes BETWEEN from two NumericTextBoxes", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const metaUi = {
       objName: "Order",
@@ -4254,7 +4254,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("swaps date/datetime/time value controls and writes WITHIN or BETWEEN", async () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const onFilterModelChange = vi.fn();
     const metaUi = {
       objName: "Order",
@@ -4357,7 +4357,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses default Menu for plain text and join UI only when JOIN is set", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Order",
       getListedFields: () => [
@@ -4411,7 +4411,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("uses DatePicker for JOIN second condition on date columns", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       objName: "Order",
       getListedFields: () => [
@@ -4493,7 +4493,7 @@ describe("Syncfusion skin", () => {
       },
     ]);
     const dept = factory.findModuleByName("Department")!;
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.buildModuleBreadcrumb({ title: "部门" } as any, {
       module: dept,
     });
@@ -4552,7 +4552,7 @@ describe("Syncfusion skin", () => {
       },
     ]);
     const dept = factory.findModuleByName("Department")!;
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const vnode = builder.buildModuleBreadcrumb({ title: "部门" } as any, {
       module: dept,
       label: "部门【D001】",
@@ -4566,7 +4566,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.breadcrumb items onto EJ2 BreadcrumbComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const defaultSep = uiFactory.breadcrumb({
       items: [{ label: "组织", to: "/org", icon: "home" }, { label: "部门" }],
     });
@@ -4588,7 +4588,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.calendar onto EJ2 CalendarComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const min = new Date(2017, 4, 9);
     const max = new Date(2017, 4, 15);
     const values = [new Date(2020, 0, 1), new Date(2020, 0, 15)];
@@ -4619,7 +4619,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.carousel onto EJ2 CarouselComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const items = [
       { src: "/a.jpg", title: "A" },
       { src: "/b.jpg", title: "B" },
@@ -4644,7 +4644,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.checkBox onto EJ2 CheckBoxComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const vnode = uiFactory.checkBox({
       checked: true,
       label: "同意条款",
@@ -4664,7 +4664,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.switch onto EJ2 SwitchComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const onChange = vi.fn();
     const vnode = uiFactory.switch({
       checked: true,
@@ -4683,7 +4683,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("renders fields.checkbox from displayLabel and getFieldValue", () => {
-    const fields = createSyncfusionFieldFactory();
+    const fields = createSfVuiFieldFactory();
     const field = {
       fieldName: "active",
       displayLabel: "启用",
@@ -4702,7 +4702,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.chips onto EJ2 ChipListComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const action = uiFactory.chips({ items: ["原料", "辅料"] });
     expect((action.props as any)?.selection).toBeUndefined();
     expect((action.props as any)?.chips?.map((c: any) => c.text)).toEqual([
@@ -4789,7 +4789,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps factory.contextMenu onto EJ2 ContextMenuComponent", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const onAction = vi.fn();
     const vnode = uiFactory.contextMenu({
       target: "#editor",
@@ -4820,7 +4820,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("refreshes context menu items in beforeOpen via resolveItems", () => {
-    const uiFactory = createSyncfusionUiFactory();
+    const uiFactory = createSfVuiFactory();
     const onAction = vi.fn();
     const vnode = uiFactory.contextMenu({
       target: "#grid",
@@ -4836,7 +4836,7 @@ describe("Syncfusion skin", () => {
 
   it("opens Grid context menu from rowActions", () => {
     const onAction = vi.fn();
-    const table = createTableRenderer({
+    const table = createSfTableRenderer({
       button: () => h("button"),
       paginator: () => h("div"),
       resolveIcon: (name: string) => name,
@@ -4903,7 +4903,7 @@ describe("Syncfusion skin", () => {
 
   it("keeps context menu rowActions when showActionColumn is false", () => {
     const onAction = vi.fn();
-    const table = createTableRenderer({
+    const table = createSfTableRenderer({
       button: () => h("button"),
       paginator: () => h("div"),
       resolveIcon: (name: string) => name,
@@ -4976,7 +4976,7 @@ describe("Syncfusion skin", () => {
       },
     ]);
     const module = factory.findModuleByName("Department")!;
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const context = {
       view: UiViewMany.Index,
       many: true,
@@ -5018,7 +5018,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("Index more 在 hasJoinList 时含联查模式", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const module = {
       authority: auth(ModuleOp.READ | ModuleOp.CREATE | ModuleOp.EXPORT),
     };
@@ -5056,7 +5056,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("联查表头把 移料清单.规格 收成 .规格", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const metaUi = {
       getListedFields: () => [
         { fieldName: "spec", displayLabel: "移料清单.规格" },
@@ -5189,7 +5189,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("maps auto-fit menu icon to Syncfusion e-icons", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const items = (builder as any).listLayoutMenuItems({
       t: (key: string) => key,
     });
@@ -5197,7 +5197,7 @@ describe("Syncfusion skin", () => {
   });
 
   it("orders details actions, applies entity roles, and groups file actions", () => {
-    const builder = new SfUiBuilder();
+    const builder = new SfVuiBuilder();
     const module = {
       authority: auth(
         ModuleOp.READ |
@@ -5571,7 +5571,7 @@ describe("gridFiltersToModel join/multi", () => {
   });
 
   it("writes CheckBox filterModel from grid filterSettings when where is empty", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const workDept = new MetaUiField({
       fieldName: "workDeptID",
       displayLabel: "工作部门",
@@ -5648,7 +5648,7 @@ describe("gridFiltersToModel join/multi", () => {
   });
 
   it("writes paged CheckBox filterModel from actionComplete", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const status = new MetaUiField({
       fieldName: "status",
       displayLabel: "状态",
@@ -5689,7 +5689,7 @@ describe("gridFiltersToModel join/multi", () => {
   });
 
   it("ignores actionComplete column defs and reads filterSettings predicates", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const status = new MetaUiField({
       fieldName: "status",
       displayLabel: "状态",
@@ -5739,7 +5739,7 @@ describe("gridFiltersToModel join/multi", () => {
   });
 
   it("keeps earlier column filters when actionComplete only has the latest field", () => {
-    const factory = createSyncfusionUiFactory();
+    const factory = createSfVuiFactory();
     const status = new MetaUiField({
       fieldName: "status",
       displayLabel: "状态",

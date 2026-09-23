@@ -7,14 +7,14 @@ import {
   type VNode,
 } from "vue";
 import { uiCssClass, type MetaUiGroup, type Module } from "@mmda/core";
-import { VuiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type VuiFactory, type VuiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type VuiSearchField, type VuiTileSlots, type VuiContext } from "@mmda/vui"
+import { VuiBuilder, GroupCard, canDeleteNamedQuery, deleteNamedQuery, indexTableMetaUi, listFixedFilterFieldNames, promptSaveNamedQuery, writeListFilterModel, pageLayoutMenuItems, paintIndexTopbar, paintDetailsTopbar, chartAsPlugin, type AppScaffoldProps, type AppSideBarProps, type AppTopBarProps, type ImportAndExportActionProps, type MmdaFontScale, type ModuleSearchbarProps, type VuiFactory, type VuiFieldFactory, type UiProps, type SigninFormProps, type SigninFormSlots, type SignupFormProps, type VuiTileSlots, type VuiContext } from "@mmda/vui"
 import { SfGridFilterBar } from "../components/SfGridFilterBar";
-import { SfOverlayHost } from "../components/SfOverlayHost";
-import { createSfOverlay } from "../syncfusion_overlay";
+import { SfVuiOverlayHost } from "../components/SfVuiOverlayHost";
+import { createSfVuiOverlay } from "../syncfusion_overlay";
 import { SfAttachmentPanel } from "../components/SfAttachmentPanel";
-import { createSyncfusionFieldFactory } from "../syncfusion_field_factory";
-import { createSyncfusionUiFactory, autoFitSyncfusionListGrid } from "../syncfusion_factory";
-import { syncfusionLayout } from "../syncfusion_layout";
+import { createSfVuiFieldFactory } from "../syncfusion_field_factory";
+import { createSfVuiFactory, autoFitSyncfusionListGrid } from "../syncfusion_factory";
+import { sfVuiLayout } from "../syncfusion_layout";
 import { createSfGanttPlugin } from "../plugins/gantt";
 import { createSfKanbanPlugin } from "../plugins/kanban";
 import { createSfSchedulerPlugin } from "../plugins/scheduler";
@@ -29,10 +29,7 @@ import {
   type SfVuiContext,
 } from "./utils";
 import { buildImportOrExportAction as renderImportOrExportAction } from "./import_export";
-import {
-  buildModuleSearchbar as renderModuleSearchbar,
-  buildSearchField as renderSearchField,
-} from "./module_bar";
+import { buildModuleSearchbar as renderModuleSearchbar } from "./module_bar";
 import {
   buildBpmnDiagram as renderBpmnDiagram,
   buildSigninForm as renderSigninForm,
@@ -53,18 +50,18 @@ type GroupCardProps = UiProps & {
   headerActions?: VNode | VNode[]
 }
 
-export class SfUiBuilder extends VuiBuilder {
+export class SfVuiBuilder extends VuiBuilder {
   declare readonly factory: VuiFactory;
 
   constructor(
-    factory = createSyncfusionUiFactory(),
-    fieldFactory: VuiFieldFactory = createSyncfusionFieldFactory(),
+    factory = createSfVuiFactory(),
+    fieldFactory: VuiFieldFactory = createSfVuiFieldFactory(),
   ) {
     super(
       factory,
       fieldFactory,
-      syncfusionLayout,
-      createSfOverlay(),
+      sfVuiLayout,
+      createSfVuiOverlay(),
     );
     this.use(createSfGanttPlugin())
       .use(createSfKanbanPlugin())
@@ -77,7 +74,7 @@ export class SfUiBuilder extends VuiBuilder {
         }
 
   get overlayHost() {
-    return SfOverlayHost;
+    return SfVuiOverlayHost;
   }
 
   override setColorScheme(dark: boolean) {
@@ -182,7 +179,7 @@ export class SfUiBuilder extends VuiBuilder {
   }
 
   /**
-   * 兼容旧调用；真源是 SfLayout.scaffold（AppShell 直接调 layout）。
+   * 兼容旧调用；真源是 SfVuiLayout.scaffold（AppShell 直接调 layout）。
    * sidebarLeft：nav 与 .mmda-app-page.e-main-content 为兄弟（EJ2 Push / Pad compact）。
    */
   override buildAppScaffold(props: AppScaffoldProps = {}) {
@@ -273,10 +270,6 @@ export class SfUiBuilder extends VuiBuilder {
             },
       ),
     );
-  }
-
-  buildSearchField(field: VuiSearchField, _context: SfVuiContext, props: UiProps) {
-    return renderSearchField(field, _context, props);
   }
 
   buildModuleSearchbar(context: SfVuiContext, rawProps?: UiProps) {

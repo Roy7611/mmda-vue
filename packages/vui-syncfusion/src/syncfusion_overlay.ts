@@ -10,7 +10,7 @@ import type {
 import { shouldCloseDialog } from '@mmda/core'
 import type { VuiOverlay } from '@mmda/vui'
 
-export interface SfDialogRequest {
+export interface SfVuiDialogRequest {
   id: number
   content: VNode
   props: UiDialogProps
@@ -18,13 +18,13 @@ export interface SfDialogRequest {
   resolve: (button: UiDialogAction) => void
 }
 
-export interface SfOverlayServices {
+export interface SfVuiOverlayServices {
   toast?: { show: (model: Record<string, unknown>) => void }
 }
 
-export interface SfOverlay extends VuiOverlay {
-  dialogs: SfDialogRequest[]
-  services: SfOverlayServices
+export interface SfVuiOverlay extends VuiOverlay {
+  dialogs: SfVuiDialogRequest[]
+  services: SfVuiOverlayServices
 }
 
 let nextDialogId = 1
@@ -39,11 +39,11 @@ const severityClass = (severity?: string) => {
   return map[severity ?? 'info'] ?? 'e-toast-info'
 }
 
-export function createSfOverlay(): SfOverlay {
-  const dialogs = shallowReactive<SfDialogRequest[]>([])
-  const services: SfOverlayServices = {}
+export function createSfVuiOverlay(): SfVuiOverlay {
+  const dialogs = shallowReactive<SfVuiDialogRequest[]>([])
+  const services: SfVuiOverlayServices = {}
 
-  const overlay: SfOverlay = {
+  const overlay: SfVuiOverlay = {
     dialogs,
     services,
     toast(props: UiToastProps) {
@@ -105,8 +105,8 @@ export function createSfOverlay(): SfOverlay {
 }
 
 export async function closeOverlayDialog(
-  overlay: SfOverlay,
-  request: SfDialogRequest,
+  overlay: SfVuiOverlay,
+  request: SfVuiDialogRequest,
   button: UiDialogAction,
 ) {
   if (!(await shouldCloseDialog(request.props, button))) {
