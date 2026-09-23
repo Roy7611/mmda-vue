@@ -49,7 +49,7 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 		this.addRelativeLogic<WorkOrderMember>('members', (master) => new WorkOrderMemberLogic(this, master));
 
 		this.beforeSave = (context: UiContext<WorkOrder>, model: WorkOrder, action: EntityAction) => {
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			//同时有开始时间，结束时间
 			if (model.expectedStart && model.expectedFinish) {
 				if (compareTime(model.expectedStart, model.expectedFinish) == 1) {
@@ -97,7 +97,7 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 					}
 				}),
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
 				})
 			);
 
@@ -152,8 +152,8 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 					const items = selection.filter((item: any) => MetaModel.hasAnyLike(target.members, { workerID: item.workerID }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
-						message: context.globalProps.$t('auth.WorkerError'),
+						title: context.t('dialog.title.error'),
+						message: context.t('auth.WorkerError'),
 						life: 3000
 					})
 					context.addSubGroupItems<WorkOrderMember>({
@@ -185,7 +185,7 @@ export class WorkOrderLogic extends EntityLogic<WorkOrder> {
 		if (fields.length === 0) {
 			fields.push(
 				this.field('expectedDuration').setCustomRenderer((fld, ctx: UiContext<any>, porps) => {
-					return ctx.globalProps.$ui.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.globalProps.$t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
+					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.expectedDuration ? ctx.t('workOrder.durationDays', { n: ctx.model.expectedDuration }) : '' })
 				})
 			)
 		}

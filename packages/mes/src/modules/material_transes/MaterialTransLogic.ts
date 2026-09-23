@@ -53,30 +53,30 @@ const isMaterialReason = { value: false }
 // });
 // // 取消
 // const beforeCancel = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('action.cancel'),
+// 	title: context.t('action.cancel'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'cancel',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.CancelSuccess')
+// 	detail: context.t('auth.CancelSuccess')
 // })
 // // 作废
 // const beforeRepeal = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('action.repeal'),
+// 	title: context.t('action.repeal'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'repeal',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.RepealSuccess')
+// 	detail: context.t('auth.RepealSuccess')
 // })
 // // 准备发料
 // const beforePrepare = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Prepare'),
+// 	title: context.t('auth.Prepare'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'prepare',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.PrepareSuccess')
+// 	detail: context.t('auth.PrepareSuccess')
 // })
 const getValidationErrors = (context: UiContext, errors: any): string => {
 	let errorMessage = '';
@@ -216,30 +216,30 @@ const beforeReceive = async (context: UiContext, model: MaterialTrans, action: E
 }
 // // 放行
 // const beforeRelease = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Release'),
+// 	title: context.t('auth.Release'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'release',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.ReleaseSuccess')
+// 	detail: context.t('auth.ReleaseSuccess')
 // })
 // // 确认装运
 // const beforeShip = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Ship'),
+// 	title: context.t('auth.Ship'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'ship',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.ShipSuccess')
+// 	detail: context.t('auth.ShipSuccess')
 // })
 // // 确认移料
 // const beforeTransport = async (context: UiContext, model: MaterialTrans, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Transport'),
+// 	title: context.t('auth.Transport'),
 // 	data: notice.data,
 // 	id: model.transID ?? '',
 // 	action: 'transport',
 // 	repository: 'MaterialTranses',
-// 	detail: context.globalProps.$t('auth.TransportSuccess')
+// 	detail: context.t('auth.TransportSuccess')
 // })
 export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 	/** 侧边栏移料原因列表（分页加载，首屏 30 条） */
@@ -271,7 +271,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 
 		this.beforeSave = (context: UiContext, model: MaterialTrans, action: EntityAction) => {
 			const { tel, email, telPrefix } = model;
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			// 移料原因 原站点必须填写
 			if (model?.reason?.requiredFromSiteID == true && !model.fromSiteID) {
 				return Promise.reject(Error(t('invalid.fromSite')));
@@ -284,7 +284,8 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 		};
 		this.beforeAction = (context: UiContext, model: MaterialTrans, action: EntityAction) => {
 			try {
-				if (action.name == 'receive') return beforeReceive(context, model, action);
+				// FIXME: beforeReceive 已自行 doAction，返回 true 后框架会再执行一次 receive（疑似重复执行，保持现状待查）
+				if (action.name == 'receive') return beforeReceive(context, model, action).then(() => true);
 				else return Promise.resolve(true);
 			} catch (error: any) {
 				return Promise.resolve(false);
@@ -303,9 +304,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 	async create(param: any = {}, entityUrlParam?: EntityUrlParam): Promise<MaterialTrans> {
 		let createParam = param;
 		if (!param?.refName && !param?.refID) {
-			const reasonID =
-				this.selectedTransReason.value?.reasonID ??
-				(this.router?.currentRoute.value?.query?.transReasonID as string | undefined);
+			const reasonID = this.selectedTransReason.value?.reasonID;
 			if (reasonID) {
 				createParam = Object.assign({}, param, {
 					refName: 'MaterialTransReason',
@@ -327,6 +326,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 		// 同步 searchParam 与 URL，保证 refresh 与深链接一致
 		(ctx.searchParam.queryParams ??= {});
 		const res = await this.getAllOf<Record<string, unknown>>('MaterialTransReasons', {
+			pager: defaultPager(),
 			queryParams: {
 				status: 1,
 				reasonTypes: 1
@@ -365,7 +365,6 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 			.then((res: any) => {
 				this.transReasons.value = res.list;
 				this.transReasonsPager.recordCount = res.pagination?.recordCount ?? res.list?.length ?? 0;
-				this._restoreSelectedTransReason();
 			})
 			.finally(() => {
 				this.transReasonsLoading.value = false;
@@ -413,20 +412,6 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 		}
 	}
 
-	/**
-	 * 从路由 query 恢复侧边栏选中项（深链接或刷新页面后保持筛选状态）。
-	 */
-	private _restoreSelectedTransReason() {
-		const transReasonID = this.router?.currentRoute.value?.query?.transReasonID as string;
-		if (!transReasonID) return;
-		const found = this.transReasons.value.find(
-			(r: MaterialTransReason) => r.reasonID === transReasonID
-		);
-		if (found) {
-			this.selectedTransReason.value = found;
-		}
-	}
-
 	beforeIndex() {
 		const { fields, groups, customActions } = super.beforeIndex();
 		if (fields.length == 0) {
@@ -442,7 +427,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 						projectID: model.projectID ?? '',
 						status: getSqlOperator('NOT_IN')!.toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
 					};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -473,7 +458,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 					const __p = ((ctx, model: any) => {
 					// 搜索项目时：如果已经选择了订单，则利用该订单自带的 projectID 去搜索对应的项目
 					return model.order?.projectID ? { projectID: model.order.projectID } : {};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -485,7 +470,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 						})
 						.join(" AND ");
 				}).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 				this.field('orderID')
@@ -495,7 +480,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 							projectID: model.projectID ?? '',
 							status: getSqlOperator('NOT_IN')!.toSQL([ProductionOrderStatus.CANCELED, ProductionOrderStatus.PAUSED]),
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -516,13 +501,13 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 
 				this.field('transReasonID')
 					.refWhere((model, ctx) => {
-					const __p = ((context, model) => ({
+					const __p = ({
 						status: UsageStatusEnum.valueOf(UsageStatus.USED),
 						reasonTypes: 2, // 移料原因筛选条件 自定义 判断是否是物流单所使用的原因
-					}))(ctx as any, model as any, undefined as any);
+					});
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
+						.filter(([, v]) => String(v) !== "" && v != null)
 						.map(([k, v]) => {
 							const s = String(v);
 							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
@@ -556,7 +541,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 							siteType: model?.reason?.requiredFromSiteTypes ?? '',
 							siteNature: model?.reason?.reasonCode === 'TP_RET' ? 'fromMRet' : model?.reason?.reasonCode === 'TP_IN_REQ' ? 'fromRet' : model?.reason?.reasonCode === 'TP_OUT_REQ' ? 'fromReq' : '',
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -576,7 +561,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 							siteType: model?.reason?.requiredToSiteTypes ?? '',
 							siteNature: model?.reason?.reasonCode === 'TP_RET' ? 'toMRet' : model?.reason?.reasonCode === 'TP_IN_REQ' ? 'toRet' : model?.reason?.reasonCode === 'TP_OUT_REQ' ? 'toReq' : '',
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -866,10 +851,11 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 			})
 			.then(item => {
 				if (item) {
+					const trans = context.model as MaterialTrans;
 					// 总数量计算
-					context.model.totalQuantity = Number(MetaModel.sum(context.model.items, items => items.quantity).toFixed(4));
+					trans.totalQuantity = Number(MetaModel.sum(trans.items, items => items.quantity).toFixed(4));
 					// 总重量计算
-					context.model.totalWeight = Number(MetaModel.sum(context.model.items, items => items.weight * items.quantity).toFixed(4));
+					trans.totalWeight = Number(MetaModel.sum(trans.items, items => items.weight * items.quantity).toFixed(4));
 					context.addSubGroupItem('items', item);
 				}
 			});
@@ -881,7 +867,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 				if (target?.reason?.requiredFromSiteID && isRefNone(target.fromSiteID)) {
 					return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
+						title: context.t('dialog.title.error'),
 						message: context.t('materialTrans.selectFromSite'),
 						life: 3000,
 					});
@@ -892,7 +878,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 				// } else {
 				// 	context.uiBuilder.toast(context, {
 				// 		severity: 'error',
-				// 		title: context.globalProps.$t('dialog.title.error'),
+				// 		title: context.t('dialog.title.error'),
 				// 		message: context.t('materialTrans.selectFromSite'),
 				//,
 				// 		life: 3000
@@ -915,7 +901,7 @@ export class MaterialTransLogic extends EntityLogic<MaterialTrans> {
 		} else {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				title: context.globalProps.$t('dialog.title.error'),
+				title: context.t('dialog.title.error'),
 				message: context.t('materialTrans.selectReason'),
 				life: 3000,
 			});

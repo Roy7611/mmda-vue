@@ -32,7 +32,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 		this.beforeSave = (context: UiContext, model: Worker, action: EntityAction) => {
 			const { mobile } = model;
 			if (mobile) {
-				const { $t: t } = context.globalProps;
+				const t = context.t.bind(context);
 				const regPhone = /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/;
 				if (!regPhone.test(mobile)) return Promise.reject(Error(t('invalid.regPhoneFormat')));
 				return Promise.resolve(true);
@@ -68,7 +68,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 				onAction: async (context: UiContext<Worker>) => {
 					//多选职员变成工人
 					// context.selectMany('importWorkerEmployees', () => this.importWorkerEmployees(context));
-					const { $t} = context.globalProps;
+					const t = context.t.bind(context);
 					const apiClient = this.apiClient;
 					return context
 						.select<Employee>({
@@ -97,13 +97,13 @@ export class WorkerLogic extends EntityLogic<Worker> {
 									},
 									submitBody
 								).then(() => {
-									context.uiBuilder.toast(context, { severity: "success", title: $t('dialog.title.prompt'), message: $t('success.operationSuccessful'), life: 3000 });
+									context.uiBuilder.toast(context, { severity: "success", title: t('dialog.title.prompt'), message: t('success.operationSuccessful'), life: 3000 });
 									context.reload();
 								}).catch((error: any) => {
-									context.uiBuilder.toast(context, { severity: 'error', title: $t('dialog.title.warning'), message: error.message, life: 3000 });
+									context.uiBuilder.toast(context, { severity: 'error', title: t('dialog.title.warning'), message: error.message, life: 3000 });
 								})
 							} else {
-								// context.uiBuilder.toast(context, { severity: 'warning', title: $t('dialog.title.warning'), message: $t('view.selectOne'), life: 3000 });
+								// context.uiBuilder.toast(context, { severity: 'warning', title: t('dialog.title.warning'), message: t('view.selectOne'), life: 3000 });
 								// return false;
 							}
 						});
@@ -125,7 +125,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 		//当前选中项
 		const { selectedItems, translate: t } = context;
 		if (!MetaModel.hasAny(selectedItems)) {
-			context.uiBuilder.toast(this, {
+			context.uiBuilder.toast(context, {
 				severity: 'warning',
 				title: t('dialog.title.warning'),
 				message: t('invalid.requiredSelectAny'),
@@ -212,7 +212,7 @@ export class WorkerLogic extends EntityLogic<Worker> {
 						 status: `IN ${WorkTeamStatus.NEW},${WorkTeamStatus.ACTIVE}`,
 						qualified: true
 					};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -273,8 +273,8 @@ export class WorkerLogic extends EntityLogic<Worker> {
 					const items = selection.filter((item: any) => MetaModel.hasAnyLike(target.skills, { skillID: item.skillID }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
-						message: context.globalProps.$t('invalid.requiredWorkerSkill'),
+						title: context.t('dialog.title.error'),
+						message: context.t('invalid.requiredWorkerSkill'),
 						life: 3000
 					})
 					context.addSubGroupItems({

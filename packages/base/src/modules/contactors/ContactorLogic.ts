@@ -25,7 +25,7 @@ export class ContactorLogic extends EntityLogic<Contactor> {
 		super(defineContactor, init);
 		this.beforeSave = (context: UiContext, model: Contactor, action: EntityAction) => {
 			const { mobile, qq, email, officeTel } = model
-			const { $t: t } = context.globalProps
+			const t = context.t.bind(context);
 			// 手机号验证
 			const regPhone = /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/
 			// 邮箱验证
@@ -61,9 +61,9 @@ export class ContactorLogic extends EntityLogic<Contactor> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('partnerID').refWhere((model, ctx) => {
-					const __p = ((context, model, fld) => ({
+					const __p = ({
 					status: `IN ${UsageStatus.USED}`
-				}))(ctx as any, model as any, undefined as any);
+				});
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

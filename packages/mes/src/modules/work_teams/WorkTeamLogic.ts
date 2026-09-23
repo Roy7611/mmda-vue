@@ -85,15 +85,15 @@ export class WorkTeamLogic extends EntityLogic<WorkTeam> {
 				*/
 				this.field('leaderID')
 					.refWhere((model, ctx) => {
-					const __p = ((ctx, model) => ({
+					const __p = ({
 						status: EmployeeStatus.ON_BOARD
-					}))(ctx as any, model as any, undefined as any);
+					});
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
-						.map(([k, v]) => {
-							const s = String(v);
-							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
+					.filter(([, v]) => String(v) !== "" && v != null)
+					.map(([k, v]) => {
+						const s = String(v);
+						if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
 							if (/^[><=]/.test(s)) return `${k}${s}`;
 							return typeof v === "number" || typeof v === "boolean" ? `${k}=${v}` : `${k}='${s}'`;
 						})

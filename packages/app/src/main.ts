@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
-import { SfUiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
+import { SfVuiBuilder, mmdaSyncfusion } from "@mmda/vui-syncfusion";
 import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
 import { createOfficePlugin } from "@mmda/vuix-office";
 import baseZh from "@mmda/base/src/locales/zh";
@@ -24,7 +24,7 @@ const i18n = setupI18n(
   },
   "zh",
 );
-const builder = new SfUiBuilder();
+const builder = new SfVuiBuilder();
 builder.use(createMarkdownEditorPlugin());
 builder.use(createOfficePlugin());
 // 框架的甘特接口（builder.buildGantt）由这个插件提供；MES 的排产屏走它。
@@ -44,7 +44,7 @@ mmda.state.localAppPrefixes = appPluginRegistry
   .map((plugin) => plugin.routePrefix);
 
 const router = createAppRouter(mmda);
-void registerPluginLogic(mmda, appPluginRegistry, router);
+void registerPluginLogic(mmda, appPluginRegistry);
 
 const vueApp = createApp(AppShell);
 vueApp.use(i18n);

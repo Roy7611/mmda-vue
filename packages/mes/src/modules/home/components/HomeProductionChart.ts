@@ -22,7 +22,7 @@ export const HomeProductionChart = defineComponent({
     const containerRef = ref<HTMLElement | null>(null)
     let chartInstance: any = null
 
-    const $echarts = getCurrentInstance()?.globalProps.$echarts
+    const $echarts = getCurrentInstance()?.appContext.app.config.globalProperties.$echarts
 
     const renderChart = () => {
       if (!chartInstance || !$echarts) return

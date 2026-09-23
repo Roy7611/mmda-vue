@@ -171,7 +171,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 		param.queryParams = Object.assign({}, param.queryParams, {
 			productCategoryID: this.currentCategory?.categoryID ?? '',
 		});
-		return super.getAll(param, context);
+		return super.getAll(param);
 	}
 
 	beforeIndex() {
@@ -183,7 +183,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 				this.field('status'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory?.categoryName ?? '-' });
+					return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as Process).productCategory?.categoryName ?? '-' });
 				})
 			);
 		}
@@ -638,7 +638,7 @@ export class ProcessLogic extends EntityLogic<Process> {
 					return {
 						materialType: getSqlOperator('NOT_IN')!.toSQL([MaterialType.LABOR]),
 					};
-				})(ctx as any, model as any, undefined as any);
+				})();
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -819,24 +819,18 @@ export class ProcessLogic extends EntityLogic<Process> {
 												[
 													ctx.uiBuilder.factory.button({
 														label: ctx.t('view.details'),
-														severity: 'info',
+														colorRole: 'info',
 														size: 'small',
 														icon: 'pi pi-eye',
 														onAction: () => {
 															return ctx.subGroupItem('operations', selection, { groupMode: UiViewOne.Details });
 														},
-														pt: {
-															root: () => ({
-																style: {
-																	padding: '6px 12px',
-																	fontSize: '12px'
-																}
-															})
-														}
+														style: {padding: '6px 12px',
+																	fontSize: '12px'},
 													}),
 													ctx.uiBuilder.factory.button({
 														label: ctx.t('action.back'),
-														severity: 'secondary',
+														colorRole: 'secondary',
 														size: 'small',
 														icon: 'pi pi-arrow-left',
 														onAction: () => {
@@ -844,20 +838,14 @@ export class ProcessLogic extends EntityLogic<Process> {
 															// emit('returnPrev')
 															this.goToPrevProcess(ctx, modeler);
 														},
-														pt: {
-															root: () => ({
-																style: {
-																	padding: '6px 12px',
-																	fontSize: '12px'
-																}
-															})
-														}
+														style: {padding: '6px 12px',
+																	fontSize: '12px'},
 													})
 												] :
 												[
 													uiBuilder.factory.button({
 														label: ctx.t('action.edit'),
-														severity: 'info',
+														colorRole: 'info',
 														size: 'small',
 														icon: 'pi pi-pencil',
 														onAction: () => {
@@ -873,14 +861,8 @@ export class ProcessLogic extends EntityLogic<Process> {
 																	}
 																});
 														},
-														pt: {
-															root: () => ({
-																style: {
-																	padding: '6px 12px',
-																	fontSize: '12px'
-																}
-															})
-														}
+														style: {padding: '6px 12px',
+																	fontSize: '12px'},
 													})
 												]
 									}
@@ -1033,40 +1015,28 @@ export class ProcessLogic extends EntityLogic<Process> {
 										[
 											ctx.uiBuilder.factory.button({
 												label: ctx.t('view.details'),
-												severity: 'info',
+												colorRole: 'info',
 												size: 'small',
 												icon: 'pi pi-eye',
 												onAction: () => {
 													// 打开子制程详情页
 													ctx.subGroupItem(this.groupName, selection, { groupMode: UiViewOne.Details });
 												},
-												pt: {
-													root: () => ({
-														style: {
-															padding: '6px 12px',
-															fontSize: '12px'
-														}
-													})
-												}
+												style: {padding: '6px 12px',
+															fontSize: '12px'},
 											}),
 											this.isSubProcess.value &&
 											ctx.uiBuilder.factory.button({
 												label: ctx.t('action.back'),
-												severity: 'secondary',
+												colorRole: 'secondary',
 												size: 'small',
 												icon: 'pi pi-arrow-left',
 												onAction: () => {
 													// 调用返回主制程函数
 													this.goToPrevProcess(ctx, modeler);
 												},
-												pt: {
-													root: () => ({
-														style: {
-															padding: '6px 12px',
-															fontSize: '12px'
-														}
-													})
-												}
+												style: {padding: '6px 12px',
+															fontSize: '12px'},
 											})
 										]
 								}
@@ -1143,7 +1113,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 			fields.push(
 				this.field('outputRate').onValidate((value, model, ctx: UiContext<any>) => {
 					const outputRate = rootLogic.getOutputRateValue(value);
-					const remainingRate = rootLogic.getRemainOutputRate(ctx.root.model.operations, model.id);
+					const remainingRate = rootLogic.getRemainOutputRate((ctx.root.model as Process).operations, model.id);
 
 					if (outputRate < 0) {
 						return ctx.t('process.outputRateMin');
@@ -1152,7 +1122,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 						return ctx.t('process.outputRateMax');
 					}
 					if (outputRate > remainingRate) {
-						return ctx.globalProps.$t('process.outputRateRemainingMax', { n: (remainingRate * 100).toFixed(2) });
+						return ctx.t('process.outputRateRemainingMax', { n: (remainingRate * 100).toFixed(2) });
 					}
 				}),
 				this.field('setupTime').onChange((ctx: UiContext<any>, model) => {
@@ -1163,12 +1133,12 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 				}),
 				this.field('cycleTime')
 					.onChange((ctx: UiContext<any>, model, newVal) => {
-						rootLogic.updateProcessCycleData(ctx.root, ctx.root.model.operations);
+						rootLogic.updateProcessCycleData(ctx.root, (ctx.root.model as Process).operations);
 					})
 					.onValidate((value, model, ctx) => {
 						const standardCycleTime = this.getTimeValue(model.setupTime) + this.getTimeValue(model.opTime);
 						if (this.getTimeValue(value) < standardCycleTime) {
-							return ctx.globalProps.$t('process.cycleBelowStandard', { n: standardCycleTime });
+							return ctx.t('process.cycleBelowStandard', { n: standardCycleTime });
 						}
 						return '';
 					}),
@@ -1184,7 +1154,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return { status: 'USED', qcPhase: 'IPQC' };
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1199,7 +1169,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 				this.field('subProcessID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED', };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1213,9 +1183,9 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 				}),
 				// todo 参与唯一键组装，不好判断
 				// this.field('opCode').onValidate((value, model, ctx: UiContext<any>) => {
-				// 	if (ctx.root.model.operations?.length) {
-				// 		// const op = ctx.root.model.operations.find((op: ProcessOperation) => op.opCode === value)
-				// 		const ops = ctx.root.model.operations.filter((op: ProcessOperation) => op.opCode === value)
+				// 	if ((ctx.root.model as Process).operations?.length) {
+				// 		// const op = (ctx.root.model as Process).operations.find((op: ProcessOperation) => op.opCode === value)
+				// 		const ops = (ctx.root.model as Process).operations.filter((op: ProcessOperation) => op.opCode === value)
 				// 		// 判断是否是第一条数据
 				// 		if (ops.length) {
 				// 			// 如果存在一条相同编码的数据 判断当前是否是新建 新建则需要提示用户不能重复
@@ -1233,8 +1203,8 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 					if (!value) {
 						return ctx.t('process.operationNameRequired');
 					}
-					if (ctx.root.model.operations?.length) {
-						const op = ctx.root.model.operations.find((op: ProcessOperation) => !MetaModel.deleted(op) && op.opName === value)
+					if ((ctx.root.model as Process).operations?.length) {
+						const op = (ctx.root.model as Process).operations.find((op: ProcessOperation) => !MetaModel.deleted(op) && op.opName === value)
 						if (op && op.id !== model.id) {
 							return ctx.t('process.operationNameExists');
 						}
@@ -1243,7 +1213,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 				this.field('opPhase')
 					.onValidate((value, model, ctx: UiContext<any>) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
-						const endOps = ctx.root.model.operations?.filter((op: ProcessOperation) => !MetaModel.deleted(op) && op.opPhase === OpPhase.END)
+						const endOps = (ctx.root.model as Process).operations?.filter((op: ProcessOperation) => !MetaModel.deleted(op) && op.opPhase === OpPhase.END)
 						let validateStr: string;
 
 						if (value === OpPhase.END) {
@@ -1256,7 +1226,7 @@ export class ProcessOperationLogic extends SubEntityLogic<ProcessOperation, Proc
 								validateStr = ctx.t('process.startToEndPhase');
 							}
 							// 3. 判断当前工序是否可以设置为结束工序：检查 routes 中是否有以此工序为起点的连线
-							const hasNextRoute = ctx.root.model.routes?.some(
+							const hasNextRoute = (ctx.root.model as Process).routes?.some(
 								(route: ProcessRoute) => !MetaModel.deleted(route) && route.prevOpCode === model.opCode
 							);
 							if (hasNextRoute) {
@@ -1474,7 +1444,7 @@ export class ProcessRouteLogic extends SubEntityLogic<ProcessRoute, Process> {
 				this.field('prevOpCode').refWhere((model, ctx) => {
 					const __p = ((ctx: UiContext<any>, model) => {
 					return { processID: ctx.model.processID };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1489,7 +1459,7 @@ export class ProcessRouteLogic extends SubEntityLogic<ProcessRoute, Process> {
 				this.field('nextOpCode').refWhere((model, ctx) => {
 					const __p = ((ctx: UiContext<any>, model) => {
 					return { processID: ctx.model.processID };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1502,13 +1472,13 @@ export class ProcessRouteLogic extends SubEntityLogic<ProcessRoute, Process> {
 						.join(" AND ");
 				}),
 				this.field('toSubOpCode')
-					.hideIf((m, ctx: UiContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
+					.hideIf((m, ctx: UiContext<any>) => !(ctx.root.logic as ProcessLogic)?.nextOp?.subProcessID)
 					.refWhere((model, ctx) => {
 					const __p = ((ctx: UiContext<any>, model) => {
 						const rootLogic = ctx.root.logic as ProcessLogic;
 
 						return { processID: rootLogic?.nextOp?.subProcessID };
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1542,7 +1512,7 @@ export class ProcessRouteLogic extends SubEntityLogic<ProcessRoute, Process> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('toSubOpCode')
-					.hideIf((m, ctx: UiContext<any>) => !ctx.root.logic?.nextOp?.subProcessID)
+					.hideIf((m, ctx: UiContext<any>) => !(ctx.root.logic as ProcessLogic)?.nextOp?.subProcessID)
 			)
 		}
 		if (groups.length == 0) {

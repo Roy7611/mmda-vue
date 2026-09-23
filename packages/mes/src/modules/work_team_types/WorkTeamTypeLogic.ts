@@ -158,7 +158,7 @@ export class WorkTeamTypeCertLogic extends SubEntityLogic<WorkTeamTypeCert, Work
 				this.field('skillID').refWhere((model, ctx) => {
 					const __p = (() => ({
 					status: 'USED',
-				}))(ctx as any, model as any, undefined as any);
+				}))();
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

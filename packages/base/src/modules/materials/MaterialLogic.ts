@@ -183,7 +183,7 @@ export class MaterialLogic extends EntityLogic<Material> {
         //customJson 字段暂显示图号信息
         this.field("customJson")
           .setCustomRenderer((fld, ctx: UiContext<Material>, props) => {
-            const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
+            const drawing = JSON.parse((ctx.model as Material).customJson || "{}").drawing;
             return ctx.uiBuilder.factory.textSpan({ text: drawing ?? "" });
           })
           .lock(),
@@ -330,8 +330,8 @@ export class MaterialLogic extends EntityLogic<Material> {
           if (items.length > 0)
             return context.uiBuilder.toast(context, {
               severity: "error",
-              title: context.globalProps.$t("dialog.title.error"),
-              message: context.globalProps.$t("invalid.requiredPartners"),
+              title: context.t("dialog.title.error"),
+              message: context.t("invalid.requiredPartners"),
               life: 3000,
             });
           context.addSubGroupItems<MaterialPartner>({
@@ -364,12 +364,11 @@ export class MaterialLogic extends EntityLogic<Material> {
             return ctx.uiBuilder.factory.image({ src: fldVal,
               width: "70",
               height: "70",
-              imageStyle: {
+              style: {
                 width: "70px",
                 height: "70px",
                 objectFit: "contain",
               },
-              style: { width: "70px", height: "70px" },
               preview: true,
             });
           },
@@ -378,7 +377,7 @@ export class MaterialLogic extends EntityLogic<Material> {
         //customJson 字段暂显示图号信息
         this.field("customJson").setCustomRenderer(
           (fld, ctx: UiContext<Material>, props) => {
-            const drawing = JSON.parse(ctx.model.customJson || "{}").drawing;
+            const drawing = JSON.parse((ctx.model as Material).customJson || "{}").drawing;
             return ctx.uiBuilder.factory.textSpan({ text: drawing ?? "" });
           },
         ),
@@ -482,12 +481,12 @@ export class MaterialPartnerLogic extends SubEntityLogic<
     if (fields.length === 0) {
       fields.push(
         this.field("packID").refWhere((model, ctx) => {
-					const __p = ((context, model, fld) => ({
+					const __p = ({
           status: UsageStatus.USED,
-        }))(ctx as any, model as any, undefined as any);
+        });
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
+						.filter(([, v]) => String(v) !== "" && v != null)
 						.map(([k, v]) => {
 							const s = String(v);
 							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;

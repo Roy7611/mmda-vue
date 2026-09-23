@@ -114,9 +114,9 @@ export class WbsTaskLogic extends SubEntityLogic<WbsTask, Wbs> {
 	if (fields.length == 0) {
 		fields.push(
 			this.field('ownerID').refWhere((model, ctx) => {
-					const __p = ((context, model) => ({
+					const __p = ({
 					status: `IN ${UserStatus.ACTIVATED}`
-			}))(ctx as any, model as any, undefined as any);
+			});
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

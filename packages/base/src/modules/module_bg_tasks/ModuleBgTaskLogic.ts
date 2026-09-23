@@ -77,33 +77,33 @@ export class ModuleBgTaskLogic extends EntityLogic<ModuleBgTask> {
       fields.push(
         this.field("taskResult").setCustomRenderer(
           (fld, ctx: UiContext<ModuleBgTask>, props) => {
-            const { $t: t } = ctx.globalProps;
-            if ((ctx.model.status as unknown as string) == "SUCCESS") {
+            const t = ctx.t.bind(ctx);
+            if (((ctx.model as ModuleBgTask).status as unknown as string) == "SUCCESS") {
               return ctx.uiBuilder.factory.button({
-                severity: "success",
+                colorRole: "success",
                 style: {
                   width: "4rem",
                 },
                 label: t("action.download"),
                 onAction: async () => {
-                  window.open(`${ctx.model.taskResult}`, "_blank");
+                  window.open(`${(ctx.model as ModuleBgTask).taskResult}`, "_blank");
                 },
               });
               //console.log('成功',ctx);
             } else if (
-              (ctx.model.status as unknown as string) === "RUNNING" ||
-              (ctx.model.status as unknown as string) === "NEW" ||
-              (ctx.model.status as unknown as string) === "SUSPENDED"
+              ((ctx.model as ModuleBgTask).status as unknown as string) === "RUNNING" ||
+              ((ctx.model as ModuleBgTask).status as unknown as string) === "NEW" ||
+              ((ctx.model as ModuleBgTask).status as unknown as string) === "SUSPENDED"
             ) {
               return ctx.uiBuilder.factory.button({
-                severity: 'error',
-                label: ctx.globalProps.$t("action.cancel"),
+                colorRole: 'danger',
+                label: ctx.t("action.cancel"),
                 class: "mr-2",
                 onAction: async () => {
                   try {
                     const res = await this.apiClient.doAction(
                       {
-                        path: `${ctx.model.taskID},${ctx.model.moduleCode}`,
+                        path: `${(ctx.model as ModuleBgTask).taskID},${(ctx.model as ModuleBgTask).moduleCode}`,
                         action: "cancel",
                         repository: "ModuleBgTasks",
                         service: "base",
@@ -124,7 +124,7 @@ export class ModuleBgTaskLogic extends EntityLogic<ModuleBgTask> {
                 },
               });
             } else {
-              return ctx.uiBuilder.factory.textSpan({ text: ctx.model.taskResult ? `${ctx.model.taskResult}` : "" });
+              return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as ModuleBgTask).taskResult ? `${(ctx.model as ModuleBgTask).taskResult}` : "" });
             }
           },
         ),

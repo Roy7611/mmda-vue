@@ -6,7 +6,7 @@ import { MES_KEY } from '@/keys';
 import { ProjectScheduleLogic, ProjectScheduleLogicCtor } from '@/modules/project_schedule/ProjectScheduleLogic';
 import { useRouter, useRoute } from 'vue-router';
 import {type UiContext, UiViewOne} from '@mmda/core'
-import { loading, VuiContext } from '@mmda/vui'
+import { loading, VuiContext, type MmdaVueApp } from '@mmda/vui'
 import { MaterialTracingModeEnum } from '@mmda/base/src/enums/MaterialTracingMode';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { reject } from 'lodash';
@@ -24,7 +24,7 @@ export default defineComponent({
 			appContext.app.config.globalProperties.$api ??
 			appContext.app.config.globalProperties.$app?.api;
 		const mes = inject(MES_KEY);
-		const { meta: metaUiService, di, i18n, ui } = mes;
+		const { meta: metaUiService, di, ui } = mes;
 		const router = useRouter();
 		const route = useRoute();
 		const projectID = ref((route.query.projectID as string) || '');
@@ -437,7 +437,8 @@ export default defineComponent({
 
 		// 确认领料方法
 		const confirmKitting = async () => {
-			const { $ui: ui, $t: t } = ctx.globalProps;
+			const ui = ctx.uiBuilder;
+			const t = ctx.t.bind(ctx);
 
 			console.log(filterData.value, "数据。。。");
 			const params = filterData.value.map((item: any) => ({
@@ -472,13 +473,14 @@ export default defineComponent({
 						editorPlaceholder(ctx, 'view.materialTransEditorHint'),
 						ctx,
 						{
-							name: 'createKittingMaterialTrans',
+							
 							title: t('kitting.createRequisition'),
 							width: '80%',
 							onAccept: async (button) => {
 							  return await materialTransCtx.save().then(() => {
 									const key = materialTransCtx.metaUi.primaryKey ?? 'id';
-									const id = materialTransCtx.model.id ?? materialTransCtx.model[key];
+									const savedModel = materialTransCtx.model as MaterialTrans;
+									const id = savedModel.id ?? (savedModel as Record<string, unknown>)[key];
 									const service = (materialTransCtx.app?.name ?? 'mes').toUpperCase();
 									const href = router.resolve(
 										`/${service}/${materialTransCtx.logic.repository}/${encodeURIComponent(String(id ?? ''))}`
@@ -536,7 +538,7 @@ export default defineComponent({
 					return defineEntity();
 				},
 				logic,
-				app: mes,
+				app: mes as MmdaVueApp | undefined,
 			});
 			await ctx.load();
 			if (projectID.value) {
@@ -579,8 +581,8 @@ export default defineComponent({
 		});
 		//获取项目列表
 		const getProjectData = async (ctx: any, value?: any) => {
-			const { $ui: ui, $t: t } = ctx.globalProps;
-			const { $router } = ctx.globalProps;
+			const ui = ctx.uiBuilder;
+			const t = ctx.t.bind(ctx);
 
 			try {
 				const res = await apiClient.getAll({
@@ -704,7 +706,8 @@ export default defineComponent({
 		//获取齐料数据
 		const getCompleteInspection = async (ctx: any, calculate: boolean = true) => {
 			showLoading.value = true;
-			const { $ui: ui, $t: t } = ctx.globalProps;
+			const ui = ctx.uiBuilder;
+			const t = ctx.t.bind(ctx);
 			try {
 				const res = await apiClient.doAction(
 					{
@@ -752,7 +755,8 @@ export default defineComponent({
 		//获取备料计划
 		const getPreparationPlan = async (ctx: any, calculate: boolean = true) => {
 			showLoading.value = true;
-			const { $ui: ui, $t: t } = ctx.globalProps;
+			const ui = ctx.uiBuilder;
+			const t = ctx.t.bind(ctx);
 
 			try {
 				const res = await apiClient.doAction(
@@ -824,8 +828,6 @@ export default defineComponent({
 												h('div', { class: 'selfdivBox project' }, [
 													ui.factory.searchRelative({
 														role: `defectDesc-search-for-sProject`,
-														name: 'defectDesc-search-for-sProject',
-														id: 'defectDesc-search-for-sProject',
 														modelValue: selectgProject.value,
 														placeholder: $t('ganttLabel.sProject'),
 														options: lineData.value,
@@ -882,8 +884,6 @@ export default defineComponent({
 												h('div', { class: 'selfdivBox project' }, [
 													ui.factory.searchRelative({
 														role: `defectDesc-search-for-sProductionOrder-kitting`,
-														name: 'defectDesc-search-for-sProductionOrder-kitting',
-														id: 'defectDesc-search-for-sProductionOrder-kitting',
 														modelValue: selectgOrder.value,
 														placeholder: $t('ganttLabel.sProductionOrder'),
 														options: orderData.value,
@@ -935,8 +935,6 @@ export default defineComponent({
 											default: () =>
 												hasSelectableGroupOptions.value
 													? ui.factory.multiValueSelect({
-														labelStyle: { textAlign: 'left' },
-														id: 'statusModel',
 														class: 'w-full',
 														value: groupBy.value,
 														options: groupOption.value,
@@ -1027,7 +1025,8 @@ export default defineComponent({
 						]),
 						h('div', { class: 'divBox flex flex-col overflow-hidden', style: { height: 'calc(100vh - 200px)' } }, [
 							data.list.length > 0
-								? ui.factory.treeTableDefault(
+								// FIXME: treeTableDefault 无任何皮肤实现（PrimeVue 遗留），有数据时运行时会炸；待迁移到 factory.treeGrid
+								? (ui.factory as any).treeTableDefault(
 									{
 										value: data.list,
 										showGridlines: true,

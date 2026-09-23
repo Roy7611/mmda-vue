@@ -3,6 +3,7 @@ import type { ApiClient, UiGanttController } from '@mmda/core'
 import { mapSchedulePayload } from '../schedule/scheduleMapper'
 import {
   GanttScheduleSession,
+  type GanttScheduleSessionOptions,
 } from '../schedule/ganttScheduleSession'
 
 interface Calls {
@@ -77,7 +78,7 @@ describe('GanttScheduleSession（排产甘特的业务逻辑，无框架）', ()
     session.attach(controller)
     await vi.waitFor(() => expect(session.loading).toBe(false))
 
-    const ok = await session.changeTask({ task: session.tasks[0] })
+    const ok = await session.changeTask({ action: 'update', task: session.tasks[0] })
 
     expect(ok).toBe(true)
     expect(calls.doAction[0]?.action).toBe('saveAndGetAll')
@@ -92,7 +93,7 @@ describe('GanttScheduleSession（排产甘特的业务逻辑，无框架）', ()
     await vi.waitFor(() => expect(session.loading).toBe(false))
     const before = calls.getAll.length
 
-    const ok = await session.changeTask({ task: session.tasks[0] })
+    const ok = await session.changeTask({ action: 'update', task: session.tasks[0] })
 
     expect(ok).toBe(false)
     expect(calls.doAction).toHaveLength(0)
@@ -107,7 +108,7 @@ describe('GanttScheduleSession（排产甘特的业务逻辑，无框架）', ()
     calls.doAction.length = 0
     apiClient.doAction = () => Promise.reject(new Error('500'))
 
-    const ok = await session.changeTask({ task: session.tasks[0] })
+    const ok = await session.changeTask({ action: 'update', task: session.tasks[0] })
 
     expect(ok).toBe(false)
     expect(calls.errors).toHaveLength(1)

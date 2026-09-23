@@ -117,9 +117,10 @@ const renderAuthorizedActions = (
 const editAuthorizedActions = (
 	_fld: MetaUiField,
 	ctx: UiContext<RoleModuleAuth>,
-	_props?: Record<string, unknown>,
+	_props?: any,
 ) => {
-	const { $ui: ui, $t: t } = ctx.globalProps;
+	const ui = ctx.uiBuilder;
+	const t = ctx.t.bind(ctx);
 	const row = ctx.model as RoleModuleAuth & {
 		moduleActions?: unknown[];
 		actions?: unknown[];
@@ -295,17 +296,18 @@ export class RoleModuleAuthLogic extends SubEntityLogic<RoleModuleAuth, Role> {
 					.setCustomCellRenderer(renderModuleCodeLabel),
 				this.field('authActions')
 					.setCustomEditor((fld, ctx: UiContext<RoleModuleAuth>, props) => {
-						const { $ui: ui, $t: t } = ctx.globalProps
-						if (!ctx.model.authorizedActions) {
-							ctx.model.authorizedActions = []
+						const ui = ctx.uiBuilder;
+						const t = ctx.t.bind(ctx);
+						if (!(ctx.model as RoleModuleAuth).authorizedActions) {
+							(ctx.model as RoleModuleAuth).authorizedActions = []
 						}
 						return ui.factory.multiItemSelect({
 							placeholder: t('action.select'),
 							valueField: 'actionName',
 							labelField: 'displayLabel',
 							class: 'ui-searchOp w-full',
-							options: ctx.model.moduleActions,
-							value: ctx.model.authorizedActions,
+							options: (ctx.model as RoleModuleAuth).moduleActions,
+							value: (ctx.model as RoleModuleAuth).authorizedActions,
 							onChange: () => {
 								const { name } = ctx
 								const str = name.split(',')
@@ -320,11 +322,11 @@ export class RoleModuleAuthLogic extends SubEntityLogic<RoleModuleAuth, Role> {
 										}
 									})
 								})
-								MetaModel.modify(ctx.model);
-							},
-						});
-					})
-					.setCustomCellRenderer(renderAuthorizedActions)
+							MetaModel.modify(ctx.model as RoleModuleAuth);
+						},
+					});
+				})
+				.setCustomCellRenderer(renderAuthorizedActions)
 				// 修改子表显示数据
 			);
 		}

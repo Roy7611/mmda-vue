@@ -5,7 +5,7 @@
  * Please don't modify any code between GENERATED PARTS BEGIN and END
  *
  */
-import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined, DateUtils } from '@mmda/core';
+import { type MetaUiService, type Module, type MetaUiField, type UiContext, isNullOrUndefined, DateUtils, dateOf } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, UiViewOne} from '@mmda/core'
 import { type WorkCalendar, defineWorkCalendar } from '@/models/WorkCalendar';
 import { type WorkCalendarDay, defineWorkCalendarDay } from '@/models/WorkCalendarDay';
@@ -84,19 +84,17 @@ export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
 		// entity.workDay = `2025-02-2${items.length}`
 		return uiBuilder.dialog(
 			uiBuilder.factory.datePicker({
-				name: field.fieldName,
-				id: field.fieldName,
+				htmlAttributes: { name: field.fieldName, id: field.fieldName },
 				// numberOfMonths: 2,
-				manualInput: false,
+				allowInput: false,
 				format: 'yy-mm-dd',
-				modelValue: entity.calendarDay,
+				value: dateOf(entity.calendarDay),
 				onUpdatePicker: (value: Date) => {
 					entity.calendarDay = DateUtils.toFormat(value, 'yyyy-MM-dd')
 				},
 			})
 			,
 			context, {
-			name: field.fieldName,
 			title: field.displayLabel,
 			height: "62vh",
 			width: "80vw",
@@ -150,7 +148,7 @@ export class WorkCalendarLogic extends EntityLogic<WorkCalendar> {
 			.then(item => {
 				if (item) {
 					// 逻辑判断
-					context.addSubGroupItem('days', item);
+					context.addSubGroupItem('days', item as WorkCalendarDay);
 				}
 			});
 	}
@@ -232,12 +230,12 @@ export class WorkCalendarDayLogic extends SubEntityLogic<WorkCalendarDay, WorkCa
 				}),
 				this.field('shiftSystem').lockIf(t => !isNullOrUndefined(t.specificShiftID)),
 				this.field('specificShiftID').refWhere((model, ctx) => {
-					const __p = ((content, model, fld) => ({
+					const __p = ({
 					shiftSystem: model.shiftSystem
-				}))(ctx as any, model as any, undefined as any);
+				});
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
+						.filter(([, v]) => String(v) !== "" && v != null)
 						.map(([k, v]) => {
 							const s = String(v);
 							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;

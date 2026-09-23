@@ -87,8 +87,8 @@ export class MaterialCatLogic extends EntityLogic<MaterialCat> {
           .setCustomRenderer((fld, ctx: UiContext<MaterialCat>, props) => {
             const options = this.materialXOptions(ctx);
             return ctx.uiBuilder.factory.textSpan({
-              text: ctx.model.materialX
-                ? options.find((x) => x.value == ctx.model.materialX)?.text
+              text: (ctx.model as MaterialCat).materialX
+                ? options.find((x) => x.value == (ctx.model as MaterialCat).materialX)?.text
                 : "-",
             });
           })
@@ -98,9 +98,9 @@ export class MaterialCatLogic extends EntityLogic<MaterialCat> {
                 value: x.value,
                 label: x.text,
               })),
-              value: ctx.model.materialX,
+              value: (ctx.model as MaterialCat).materialX,
               onChange: (value) => {
-                ctx.model.materialX = value as any;
+                (ctx.model as MaterialCat).materialX = value as any;
               },
             });
           }),

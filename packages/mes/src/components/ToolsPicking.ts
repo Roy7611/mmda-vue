@@ -5,6 +5,7 @@
  */
 import { computed, defineComponent, h, onMounted, reactive, ref, watch, type PropType } from 'vue';
 import type { VuiContext } from '@mmda/vui';
+import { defaultPager, type UiDialogSeverity } from '@mmda/core';
 import { ToolStatusEnum } from '@/enums/ToolStatus';
 import { type MaterialTrans } from '@/models/MaterialTrans';
 import { plainTableColumn, renderPlainTable } from '@/components/plain_table';
@@ -107,7 +108,7 @@ export const ToolsPicking = defineComponent({
 	},
 	setup: (props) => {
 		const { t } = useI18n();
-		const {$ui: ui} = props.ctx.globalProps;
+		const ui = props.ctx.uiBuilder;
 		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const { uiBuilder } = props.ctx;
 
@@ -190,7 +191,7 @@ export const ToolsPicking = defineComponent({
 		});
 
 		const showToast = (severity: string, detail: string, summary = t('dialog.title.prompt')) => {
-			context.uiBuilder.toast(context, { severity, message: detail, title: summary, life: 3000 });
+			props.ctx.uiBuilder.toast(props.ctx, { severity: severity as UiDialogSeverity, message: detail, title: summary, life: 3000 });
 		};
 
 		const createTransState = (detail: MaterialTrans): TransState => {
@@ -381,9 +382,10 @@ export const ToolsPicking = defineComponent({
 				repository: 'MaterialTranses',
 				service: 'mes',
 				selectionMode: 'multiple',
-				searchParam: {
-					queryParams: { isKitCheckToolLend: true },
-				},
+			searchParam: {
+				pager: defaultPager(),
+				queryParams: { isKitCheckToolLend: true },
+			},
 			});
 			if (!Array.isArray(picked) || !picked.length) return null;
 			pendingTranses.value = picked;
@@ -442,7 +444,7 @@ export const ToolsPicking = defineComponent({
 				}),
 				ui.factory.button({
 					id: 'toolsPickingOpenList', icon: 'pi pi-list', label: t('toolPicking.selectMany'), size: 'small',
-					severity: 'secondary', outlined: true, onAction: openTransSearch,
+					colorRole: 'secondary', buttonType: 'outlined', onAction: openTransSearch,
 				}),
 			]),
 			selectedTranses.value.length

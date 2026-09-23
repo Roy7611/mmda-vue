@@ -134,9 +134,9 @@ export class AlternativeStrategyItemLogic extends SubEntityLogic<AlternativeStra
 			fields.push(
 				this.field('materialID')
 					.refWhere((model, ctx) => {
-						const __p = ((context: UiContext<AlternativeStrategyItem>, model: AlternativeStrategyItem, field: MetaUiField) => ({
-							status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
-						}))(ctx as any, model as any, undefined as any);
+					const __p = ({
+						status: getSqlOperator('IN').toSQL('USED'), // 只能选择启用的物料
+					});
 						if (!__p) return "";
 						return Object.entries(__p)
 							.filter(([, v]) => v !== "" && v != null)

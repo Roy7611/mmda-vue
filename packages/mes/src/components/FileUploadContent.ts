@@ -2,8 +2,15 @@
 import { MetaModel, encodeUriAndFix, formatFileSize, isFunction, isNullOrUndefined, relativeTime, type UiProps } from '@mmda/core'
 import { defineComponent, h, getCurrentInstance, reactive, onMounted, ref } from 'vue'
 import { getFileInfo } from "@mmda/vui";
-export const FileUploadContent = (context: any, props: UiProps) => {
-    const {$ui: ui, $dialog, $t: t, $router} = context.globalProps ?? context
+
+/** 附件内容组件的自有 props（core UiProps 之外的部分）。 */
+export interface FileUploadContentProps extends UiProps {
+    showPreView?: boolean;
+    uploadedFiles?: any[];
+}
+export const FileUploadContent = (context: any, props: FileUploadContentProps) => {
+    const ui = context.uiBuilder
+    const t = context.t.bind(context)
     const apiClient = context.logic?.apiClient ?? context.app?.api ?? context.$app?.api
     const showPreView = props.showPreView ?? true
     // 上传控件的文件列�?
@@ -98,23 +105,11 @@ export const FileUploadContent = (context: any, props: UiProps) => {
                                     const service = apiClient.config.service.toUpperCase()
                                     const extLower = fileExt.toLowerCase()
                                     if (['xlsx', 'xls'].includes(extLower)) {
-                                        const routeUrl = $router.resolve({
-                                            path: `/${service}/ExcelView`,
-                                            query: { fileUrl }
-                                        })
-                                        window.open(routeUrl.href, '_blank')
+                                        window.open(`/${service}/ExcelView?fileUrl=${encodeURIComponent(fileUrl)}`, '_blank')
                                     } else if (['docx', 'doc'].includes(extLower)) {
-                                        const routeUrl = $router.resolve({
-                                            path: `/${service}/DocView`,
-                                            query: { fileUrl }
-                                        })
-                                        window.open(routeUrl.href, '_blank')
+                                        window.open(`/${service}/DocView?fileUrl=${encodeURIComponent(fileUrl)}`, '_blank')
                                     } else if (['pptx', 'ppt'].includes(extLower)) {
-                                        const routeUrl = $router.resolve({
-                                            path: `/${service}/FileView`,
-                                            query: { fileUrl }
-                                        })
-                                        window.open(routeUrl.href, '_blank')
+                                        window.open(`/${service}/FileView?fileUrl=${encodeURIComponent(fileUrl)}`, '_blank')
                                     } else if (extLower === 'pdf') {
                                         window.open(encodeUriAndFix(fileUrl), '_blank')
                                     } else if (['bmp', 'jpg', 'jpeg', 'png', 'gif'].includes(extLower)) {

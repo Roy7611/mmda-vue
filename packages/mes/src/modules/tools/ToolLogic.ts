@@ -8,7 +8,6 @@
 
 import { type MetaUiService, Module, MetaUiField, MetaModel, type UiBuilder, type UiContext, EntityAction, MetaUiBuilder, isRefNone, EntityUrlParam, EntitySearchParam, PagedList, getSqlOperator, ApiClient, isNullOrUndefined, FieldFilter, DateUtils } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult, type UiDialogProps, UiLogicAfterFn, UiViewMany} from '@mmda/core'
-import { type Rx, rx } from '@mmda/vui'
 import { type Tool, defineTool } from '@/models/Tool';
 import { type ToolUse, defineToolUse } from '@/models/ToolUse';
 import { type MaintenancePlan } from '@/models/MaintenancePlan';
@@ -118,7 +117,7 @@ const getCreateData = async (params: any, propData: any, context: UiContext) => 
 }
 // 借出
 const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	try {
 		await context.uiBuilder.dialog(
 			toolsLendNode({
@@ -130,15 +129,10 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 			}),
 			context,
 			{
-				id: 'ToolsLend',
-				name: 'ToolsLend',
 				title: t('auth.Lend'),
-				style: {
-					width: '20%',
-					height: '30vh',
-				},
-				showCancelButton: true,
-				closeOnClickModal: false,
+				width: '20%',
+				height: '30vh',
+				closeOnOverlay: false,
 				onAccept: async (button) => {
 				  console.log('lendData.data.ownerID', lendData.data.ownerID);
 					if (isRefNone(lendData.data.ownerID)) {
@@ -193,7 +187,7 @@ const beforeToolsLend = async (context: UiContext, model: Tool, action: EntityAc
 
 // 移动
 const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	try {
 		await context.uiBuilder.dialog(
 			toolsMoveNode({
@@ -203,16 +197,11 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 			}),
 			context,
 			{
-				id: 'ToolsMove',
-				name: 'ToolsMove',
 				title: t('auth.Move'),
 
-				style: {
-					width: '30%',
-					height: '45vh',
-				},
-				showCancelButton: true,
-				closeOnClickModal: false,
+				width: '30%',
+				height: '45vh',
+				closeOnOverlay: false,
 				onAccept: async (button) => {
 				  if (isRefNone(moveData.data.moveTo)) {
 						context.uiBuilder.toast(context, {
@@ -265,7 +254,7 @@ const beforeToolsMove = async (context: UiContext, model: Tool, action: EntityAc
 
 // 维修
 const beforeToolsRepair = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	try {
 		await context.uiBuilder.dialog(
 			toolsLendNode({
@@ -275,16 +264,11 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 			}),
 			context,
 			{
-				id: 'ToolsLend',
-				name: 'ToolsLend',
 				title: t('auth.Repair'),
 
-				style: {
-					width: '20%',
-					height: '30vh',
-				},
-				showCancelButton: true,
-				closeOnClickModal: false,
+				width: '20%',
+				height: '30vh',
+				closeOnOverlay: false,
 				onAccept: async (button) => {
 				  if (isRefNone(repairData.data.ownerID)) {
 						context.uiBuilder.toast(context, {
@@ -334,7 +318,7 @@ const beforeToolsRepair = async (context: UiContext, model: Tool, action: Entity
 
 // 归还
 const beforeToolsReturn = async (context: UiContext, model: Tool, action: EntityAction) => {
-	const { $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	try {
 		await context.uiBuilder.dialog(
 			toolsMoveNode({
@@ -343,15 +327,10 @@ const beforeToolsReturn = async (context: UiContext, model: Tool, action: Entity
 			}),
 			context,
 			{
-				id: 'ToolsReturn',
-				name: 'ToolsReturn',
 				title: t('auth.Return'),
-				style: {
-					width: '30%',
-					height: '45vh',
-				},
-				showCancelButton: true,
-				closeOnClickModal: false,
+				width: '30%',
+				height: '45vh',
+				closeOnOverlay: false,
 				onAccept: async (button) => {
 				  if (isRefNone(returnData.data.moveTo)) {
 						context.uiBuilder.toast(context, {
@@ -415,7 +394,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 
 			actionName.value = action.name;
 			try {
-				return this.handlerBeforeActionFn(context, action);
+				return this.handlerBeforeActionFn(context as UiContext<Tool>, action);
 			} catch (error: any) {
 				throw new Error(error);
 			}
@@ -499,7 +478,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 
 	handlerBeforeActionFn(context: UiContext<Tool>, action: EntityAction): Promise<boolean> {
 		// 关联操作的逻辑在 beforeRefToolUseAction 中处理
-		if (action.name == 'store' || action.name == 'return' || action.name == 'lend' || action.name == 'move') return this.beforeRefToolUseAction(context, context.model, action);
+		if (action.name == 'store' || action.name == 'return' || action.name == 'lend' || action.name == 'move') return this.beforeRefToolUseAction(context, context.model as Tool, action);
 		if (action.name == 'batchStore') context.selectMany('batchStore', () => this.batchStoreFn(context));
 		if (action.name == 'batchLend') context.selectMany('batchLend', () => this.batchLendFn(context));
 		if (action.name == 'batchMove') context.selectMany('batchMove', () => this.batchMoveFn(context));
@@ -520,11 +499,11 @@ export class ToolLogic extends EntityLogic<Tool> {
 
 	async createToolUseForm(context: UiContext<Tool>, model: Tool,) {
 		const { userId, username } = context.app.user;
-		const toolUse = rx(defineToolUse({
+		const toolUse = defineToolUse({
 			toolID: model.toolID,
 			itemID: (model.uses ? model.uses.length : 0) + 1,
 			transDate: DateUtils.toFormat(new Date(), 'yyyy-MM-dd'),
-		}));
+		});
 		if ((actionName.value === 'store' || actionName.value === 'batchStore') && userId) {
 			toolUse.ownerID = userId;
 			MetaModel.setRefProp(toolUse, 'ownerID', decodeURIComponent(username || ''));
@@ -539,9 +518,9 @@ export class ToolLogic extends EntityLogic<Tool> {
 	beforeRefToolUseAction(context: UiContext<Tool>, model: Tool, action: EntityAction): Promise<boolean> {
 		return this.createToolUseForm(context, model).then((res: any) => {
 			if (!res) return Promise.resolve(false);
-			action.param.value = {
+			action.param = { ...(action.param as object | undefined), value: {
 				payload: res,
-			};
+			} };
 			return Promise.resolve(true);
 		})
 	}
@@ -563,7 +542,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 			categoryID: this.currentCategory?.categoryID ?? '',
 			xMetaObject: this.currentCategory?.materialX ?? '',
 		});
-		return super.getAll(param, context);
+		return super.getAll(param);
 	}
 
 	async create(param: any = {}, entityUrlParam?: EntityUrlParam): Promise<Tool> {
@@ -580,7 +559,7 @@ export class ToolLogic extends EntityLogic<Tool> {
 			fields.push(
 				//当前没有器具类别模块，先以普通文本形式显示
 				this.field('categoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.category ? ctx.model.category.categoryName : '-' });
+					return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as Tool).category ? (ctx.model as Tool).category.categoryName : '-' });
 				}),
 				// 根据工位过滤
 				this.field('siteID'),
@@ -617,14 +596,12 @@ export class ToolLogic extends EntityLogic<Tool> {
 					title: t("invalid.error"),
 					message: t("invalid.requiredSelectAny"),
 					life: 3000,
-				})
-				.then(() => {
-					throw new Error(t('invalid.requiredSelectAny'));
 				});
+			throw new Error(t('invalid.requiredSelectAny'));
 		}
 
 
-		return await this.createToolUseForm(context, context.model).then(async (res: any) => {
+		return await this.createToolUseForm(context as UiContext<Tool>, context.model as Tool).then(async (res: any) => {
 			if (!res) return Promise.reject(false);
 			else {
 				try {
@@ -719,7 +696,7 @@ try {
 			throw new Error(t('invalid.requiredSelectAny'));
 		}
 
-		const res = await this.createToolUseForm(context, context.model);
+		const res = await this.createToolUseForm(context as UiContext<Tool>, context.model as Tool);
 		if (!res) throw new Error(t('failure.canceloperation'));
 
 		return await this.apiClient.doAction({
@@ -764,7 +741,7 @@ try {
 			return;
 		}
 
-		const res = await this.createToolUseForm(context, context.model);
+		const res = await this.createToolUseForm(context as UiContext<Tool>, context.model as Tool);
 		if (!res) throw new Error(t('failure.canceloperation'));
 
 		return await this.apiClient.doAction({
@@ -821,21 +798,15 @@ try {
 				metaUi,
 				{
 					rows: selectedItems,
-					tableId: `batch-return-table`,
-					scrollHeight: '400px',
+					height: '400px',
 				},
 			),
 			context,
 			{
-				id: 'BatchReturnDialog',
-				name: 'BatchReturnDialog',
 				title: t('tool.batchReturnConfirm'),
-				style: {
-					width: '60%',
-					height: '70vh',
-				},
-				showCancelButton: true,
-				closeOnClickModal: false,
+				width: '60%',
+				height: '70vh',
+				closeOnOverlay: false,
 				acceptLabel: t('tool.confirmReturn'),
 				rejectLabel: t('action.cancel'),
 				onAccept: async (button) => {
@@ -917,7 +888,6 @@ try {
 
 	// 批量检修
 	async batchOverhaulFn(context: UiContext) {
-		const { $router: router } = context.globalProps;
 		actionName.value = 'batchOverhaul';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -947,17 +917,12 @@ Overhaulparams.batchOverhaul.refItemKeys = selectedItems.map((v: any) => (Object
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
 				const service = this.apiClient.config.service.toUpperCase();
-				const routerURL = router.resolve({
-					path: `/${service}/Maintenances/Create`,
-					query: { id: data.maintenanceID },
-				})
-				window.open(routerURL.href, '_blank')
+				window.open(`/${service}/Maintenances/Create?id=${data.maintenanceID}`, '_blank')
 };
 	}
 
 	// 批量改制
 	async batchRetrofitFn(context: UiContext) {
-		const { $router: router } = context.globalProps;
 		actionName.value = 'batchRetrofit';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -987,17 +952,12 @@ Retrofitparams.batchRetrofit.refItemKeys = selectedItems.map((v: any) => (Object
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
 				const service = this.apiClient.config.service.toUpperCase();
-				const routerURL = router.resolve({
-					path: `/${service}/Maintenances/Create`,
-					query: { id: data.maintenanceID },
-				})
-				window.open(routerURL.href, '_blank')
+				window.open(`/${service}/Maintenances/Create?id=${data.maintenanceID}`, '_blank')
 };
 	}
 
 	// 批量维修
 	async batchRepairFn(context: UiContext) {
-		const { $router: router } = context.globalProps;
 		actionName.value = 'batchRepair';
 		const { selectedItems } = context; const t = context.t.bind(context);
 
@@ -1027,11 +987,7 @@ Repairparams.batchRepair.refItemKeys = selectedItems.map((v: any) => (Object.ass
 				});
 				if (isNullOrUndefined(data.maintenanceID)) return
 				const service = this.apiClient.config.service.toUpperCase();
-				const routerURL = router.resolve({
-					path: `/${service}/Maintenances/Create`,
-					query: { id: data.maintenanceID },
-				})
-				window.open(routerURL.href, '_blank')
+				window.open(`/${service}/Maintenances/Create?id=${data.maintenanceID}`, '_blank')
 };
 	}
 
@@ -1128,7 +1084,7 @@ try {
 
 	// 领料
 	async beforeToolsPicking(context: UiContext): Promise<boolean> {
-		const { $t: t } = context.globalProps;
+		const t = context.t.bind(context);
 		const submitFn = { value: null as (() => Promise<boolean>) | null };
 
 		try {
@@ -1142,15 +1098,10 @@ try {
 				}),
 				context,
 				{
-					id: 'ToolsPicking',
-					name: 'ToolsPicking',
 					title: context.t('action.assignTools'),
-					style: {
-						width: '80%',
-						height: '80vh',
-					},
-					showCancelButton: true,
-					closeOnClickModal: false,
+					width: '80%',
+					height: '80vh',
+						closeOnOverlay: false,
 					onAccept: async (button) => {
 					  if (submitFn.value) {
 							const ok = await submitFn.value();
@@ -1289,7 +1240,7 @@ try {
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0)
 					.onValidate((value, model, ctx) => {
-						if (value < model.lifecycles) {
+						if ((value as number) < model.lifecycles) {
 							return ctx?.t('tool.maxLifeBelowCurrent');
 						}
 					}),
@@ -1297,7 +1248,7 @@ try {
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 2) == 2) || (model.lifecycleModes as any) == 0)
 					.onValidate((value, model, ctx) => {
-						if (value > model.maxLifeCycles) {
+						if ((value as number) > model.maxLifeCycles) {
 							return ctx?.t('tool.currentLifeAboveMax');
 						}
 					}),
@@ -1363,13 +1314,13 @@ try {
 					.hideIf((model: Tool) => !(((model.lifecycleModes as any) & 1) == 1))
 					.lockIf((model: Tool) => model.status !== ToolStatus.NONE)
 					.onChange((ctx: UiContext, model, newVal, oldVal) =>
-						ctx.setFieldValue('remainingLife', DateUtils.calculateDiff(new Date(), new Date(newVal), 'd'))
+						ctx.setFieldValue('remainingLife', DateUtils.calculateDiff(new Date(), new Date(newVal as string), 'd'))
 					)
 					.onValidate((value, model, ctx) => {
 						if (!value) return;
-						if (+new Date(value) <= +new Date(model.startWorkDate)) {
+						if (+new Date(value as string) <= +new Date(model.startWorkDate as string)) {
 							return ctx?.t('tool.scrapDateBeforeStart');
-						} else if (+new Date(value) <= +new Date()) {
+						} else if (+new Date(value as string) <= +new Date()) {
 							return ctx?.t('tool.scrapDateBeforeNow');
 						}
 					})
@@ -1378,17 +1329,17 @@ try {
 			if (this.currentCategory?.materialX === 'ToolFlask') {
 				fields.push(
 					this.field('length').onValidate((value, model, ctx) => {
-						if (value != null && value <= 0) {
+						if (value != null && (value as number) <= 0) {
 							return ctx?.t('tool.lengthPositive');
 						}
 					}),
 					this.field('width').onValidate((value, model, ctx) => {
-						if (value != null && value <= 0) {
+						if (value != null && (value as number) <= 0) {
 							return ctx?.t('tool.widthPositive');
 						}
 					}),
 					this.field('height').onValidate((value, model, ctx) => {
-						if (value != null && value <= 0) {
+						if (value != null && (value as number) <= 0) {
 							return ctx?.t('tool.heightPositive');
 						}
 					})
@@ -1396,7 +1347,7 @@ try {
 			} else if (this.currentCategory?.materialX === 'ToolMeasure') {
 				fields.push(
 					this.field('scaleInterval').onValidate((value, model, ctx) => {
-						if (value != null && value <= 0) {
+						if (value != null && (value as number) <= 0) {
 							return ctx?.t('tool.scaleIntervalPositive');
 						}
 					})
@@ -1424,22 +1375,22 @@ try {
 						.join(" AND ");
 				}),
 					this.field('length').onValidate((value, model, ctx) => {
-						if (value != null && value < 0) {
+						if (value != null && (value as number) < 0) {
 							return ctx?.t('tool.lengthPositive');
 						}
 					}),
 					this.field('width').onValidate((value, model, ctx) => {
-						if (value != null && value < 0) {
+						if (value != null && (value as number) < 0) {
 							return ctx?.t('tool.widthPositive');
 						}
 					}),
 					this.field('coreBoxNum').onValidate((value, model, ctx) => {
-						if (value != null && value < 0) {
+						if (value != null && (value as number) < 0) {
 							return ctx?.t('tool.coreBoxCountPositive');
 						}
 					}),
 					this.field('movableBlockNum').onValidate((value, model, ctx) => {
-						if (value != null && value < 0) {
+						if (value != null && (value as number) < 0) {
 							return ctx?.t('tool.movableBlockCountPositive');
 						}
 					})
@@ -1461,7 +1412,7 @@ try {
 			fields.push(
 				//当前没有器具类别模块，先以普通文本形式显示
 				this.field('categoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.category ? ctx.model.category.categoryName : '-' });
+					return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as Tool).category ? (ctx.model as Tool).category.categoryName : '-' });
 				}),
 				this.field('lifecycleModes').setCustomRenderer((fld, ctx: UiContext<any>) => {
 					const m = Number(ctx.model.lifecycleModes) || 0;
@@ -1612,7 +1563,6 @@ try {
 		
 		return this.categoryConfirmDialog(ctx, editorPlaceholder(ctx, 'view.toolCategoryEditorHint'), {
 			title: title,
-			name: 'addDirectory',
 			onAccept: async (button) => {
 			  await this.saveFn(ctx, toolCategory);
 				return true
@@ -1655,24 +1605,21 @@ try {
 			ctx.uiBuilder.dialog(ctx.uiBuilder.factory.formField(
 				{
 					label: ctx.t('tool.categoryName'),
-					name: 'categoryName',
 					class: `flex_item_center`, // mr-rem-1
-					isEdit: true,
 					required: true,
-					modelValue: this.categoryName.value,
-					invalidMessage: ctx.t('invalid.required'),
-					onUpdate: (val: string) => this.categoryName.value = val,
+					value: this.categoryName.value,
+					onChange: (val: string) => this.categoryName.value = val,
 				},
 			), ctx, {
 				title: ctx.t('tool.editCategoryName'),
 				width: '30%',
 				height: '30%',
-				name: 'editDirectory',
-				showFooter: true,
+					showFooter: true,
 				onAccept: async (button) => {
 				  MetaModel.modify(node)
 					await this.saveFn(ctx, { ...node, categoryName: this.categoryName.value });
-					return ctx.refresh(false)
+					await ctx.refresh(false)
+					return true
 				}
 			}).finally(() => this.categoryName.value = '')
 
@@ -1894,7 +1841,7 @@ export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 					})
 					.onValidate((val, model, ctx: UiContext<any>) => {  // 👈 改为 onValidate
 						const toolModel = ctx.root.model as Tool;
-						if (((toolModel.lifecycleModes as any) & 2) == 2 && (val + toolModel.usedCycles) > toolModel.maxLifeCycles) {
+						if (((toolModel.lifecycleModes as any) & 2) == 2 && ((val as number) + toolModel.usedCycles) > toolModel.maxLifeCycles) {
 							return ctx.t('tool.overMaxUseCount');  // 阻止提交
 						}
 					}),
@@ -1916,7 +1863,7 @@ export class ToolUseLogic extends SubEntityLogic<ToolUse, Tool> {
 						return {
 							status: getSqlOperator('IN').toSQL('ACTIVATED'), // 只能选择激活的用户
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

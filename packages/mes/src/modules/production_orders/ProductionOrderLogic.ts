@@ -24,7 +24,7 @@ const userPageInfo = {
 };
 //生成订单概要
 const getOrderSummary = (model: any, context: UiContext) => {
-	const { $t: t } = context.globalProps;
+	const t = context.t.bind(context);
 	const rNo = model.refNo; //销售单号
 	const pCode = model.productCode ?? ''; //制品编码
 	const pName = model.productName ?? ''; //制品名称
@@ -166,9 +166,8 @@ const getBom = async (context: UiContext, model: ProductionOrder, value?: any) =
 		return;
 	}
 
-	await context.logic!.getAllOf<Record<string, unknown>>('Boms', {
-		queryParams: {
-			pageSize: bomSearchParam.pager.pageSize,
+	await context.logic!.getAllOf<Record<string, unknown>>('Boms', { pager: { pageSize: bomSearchParam.pager.pageSize,
+			pageNo: bomSearchParam.pager.pageNo }, queryParams: { pageSize: bomSearchParam.pager.pageSize,
 			pageNo: bomSearchParam.pager.pageNo,
 			sort: '',
 			searchWord: value,
@@ -289,7 +288,6 @@ const isClick = { value: false }
  * 恢复生产
  */
 const beforeResume = async (context: UiContext, model: ProductionOrder, action: EntityAction) => {
-	const { $router } = context.globalProps;
 	try {
 		const res = await context.apiClient.getOne(model.orderID, {
 			repository: 'ProductionOrders',
@@ -301,18 +299,7 @@ const beforeResume = async (context: UiContext, model: ProductionOrder, action: 
 				title: context.t('action.confirm'),
 				message: context.t('productionOrder.shortagePrompt'),
 			})) {
-const route = {
-						path: '/MES/ComputeKitting',
-						query: {
-							projectID: '',
-							type: 'CompleteMaterial',
-							moduleCode: "M.03.002",
-							orderNo: model.orderNo
-						},
-					};
-					// 在新标签页打开
-					const routeUrl = $router.resolve(route);
-					window.open(routeUrl.href, '_blank');
+window.open(`/MES/ComputeKitting?projectID=&type=CompleteMaterial&moduleCode=M.03.002&orderNo=${encodeURIComponent(model.orderNo ?? '')}`, '_blank');
 }
 		} else {
 			// 继续执行
@@ -347,7 +334,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 
 		this.beforeSave = async (context: UiContext, model: ProductionOrder, action: EntityAction) => {
 			console.log(model, "生产订单")
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			//同时有开始时间，结束时间
 			if (model.expectedStart && model.expectedFinish) {
 				if (compareTime(model.expectedStart, model.expectedFinish) == 1) {
@@ -358,6 +345,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 			if (!isUpdate.value) {
 				isUpdate.value = true
 				const result = await context.logic!.getAllOf<Record<string, unknown>>('Boms', {
+					pager: { ...userPageInfo },
 					queryParams: { ...userPageInfo, status: `IN ${BomStatus.APPROVED}`, productCode: model.productCode },
 				})
 				if (result.list.length > 1) {
@@ -434,7 +422,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 			fields.push(
 				// 交货日期
 				this.field('deliveryDate').onValidate((value, model, context) => {
-					if (DateUtils.isBefore(new Date(value), new Date())) {
+					if (DateUtils.isBefore(new Date(value as string), new Date())) {
 						return context?.t('productionOrder.deliveryDateFuture');
 					}
 				}),
@@ -443,9 +431,9 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				}),
 				this.field('expectedFinish')
 					.onValidate((value, model, context) => {
-						if (value && DateUtils.isBefore(new Date(value), new Date())) {
+						if (value && DateUtils.isBefore(new Date(value as string), new Date())) {
 							return context?.t('productionOrder.plannedFinishFuture');
-						} else if (value && DateUtils.isAfter(new Date(value), new Date(model.deliveryDate))) {
+						} else if (value && DateUtils.isAfter(new Date(value as string), new Date(model.deliveryDate as string))) {
 							return context?.t('productionOrder.plannedFinishBeforeDelivery');
 						}
 					})
@@ -457,7 +445,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 					return {
 						status: `NOT IN ${ProductionOrderStatusEnum.CANCELED_VALUE},${ProductionOrderStatusEnum.PAUSED_VALUE}`
 					}
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -470,7 +458,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 						.join(" AND ");
 				}),
 				this.field('constraintType').onChange((ctx: UiContext<any>, model, newVal) => {
-					if (shouldHideConstraintDate(newVal)) {
+					if (shouldHideConstraintDate(newVal as TaskConstraintType)) {
 						ctx.setFieldValue('constraintDate', null);
 					}
 				}),
@@ -483,7 +471,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 				// 外协
 				this.field('outsourced').onChange((context: UiContext<any>, model, newVal) => {
 					if (!newVal) {
-						context.clearFieldValue('outsourcingManufacturerID', null)
+						context.clearFieldValue('outsourcingManufacturerID')
 					}
 				}),
 
@@ -494,7 +482,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 						return {
 							status: '>0',
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -557,7 +545,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 							queryInfo.productCode = model.productCode;
 						}
 						return queryInfo;
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -643,7 +631,7 @@ export class ProductionOrderLogic extends EntityLogic<ProductionOrder> {
 								status: `NOT IN ${UsageStatus.DEPRECATED},${UsageStatus.NEW}`,
 							};
 						}
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

@@ -22,7 +22,7 @@ export const MaterialRItem = defineComponent({
             searchParams: {}
         })
         const tableDataKey = ref('id')
-        const { $ui: ui, $router: router, $t: t, $confirm: confirm} = getCurrentInstance()?.app.config?.globalProperties as any;
+        const { $ui: ui, $router: router, $t: t, $confirm: confirm} = getCurrentInstance()?.appContext.app.config?.globalProperties as any;
         onBeforeMount(() => {
             // 实到数量默认值计算
             submitData.data = props.proModel.map((item: any) => (
@@ -70,7 +70,7 @@ export const MaterialRItem = defineComponent({
                         modelValue: data.arrivedQuantity,
                         onUpdate: (value: number) => {
                             if (!isNullOrUndefined(value) && Number(value) <= 0) {
-                                ctx.uiBuilder.toast(ctx, {
+                                props.ctx.uiBuilder.toast(props.ctx, {
                                     severity: 'warning',
                                     title: t('dialog.title.warning'),
                                     message: t('inventory.arrivedQuantityPositive'),

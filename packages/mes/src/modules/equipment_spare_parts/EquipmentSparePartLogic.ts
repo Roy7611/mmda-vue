@@ -73,7 +73,7 @@ const propsData = {
  *  请购（跳转到请购单）
  */
 const beforeRequest = async (context: UiContext, model: EquipmentSparePart, action: EntityAction) => {
-	const { $t: t} = context.globalProps
+	const t = context.t.bind(context);
 	params.detailPurchaseRequests.refItemKeys = [{
 		refID: model.partID
 	}]
@@ -103,9 +103,8 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 		}
 	}
 	async getAllProject(context: UiContext, value?: any) {
-		await this.getAllOf<Record<string, unknown>>('Equipments', {
-			queryParams: {
-				pageSize: searchParamProject.pager.pageSize,
+		await this.getAllOf<Record<string, unknown>>('Equipments', { pager: { pageSize: searchParamProject.pager.pageSize,
+				pageNo: searchParamProject.pager.pageNo }, queryParams: { pageSize: searchParamProject.pager.pageSize,
 				pageNo: searchParamProject.pager.pageNo,
 				sort: '',
 				searchWord: value
@@ -124,7 +123,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 		})
 	}
 	async request(context: UiContext<EquipmentSparePart>) {
-		const { $t: t} = context.globalProps
+		const t = context.t.bind(context);
 		if (!context.selectedItems || !context.selectedItems.length) {
 			context.uiBuilder.toast(context, {
 				severity: 'warning',
@@ -151,7 +150,7 @@ export class EquipmentSparePartLogic extends EntityLogic<EquipmentSparePart> {
 		}
 	}
 	async withdrawMaterials(context: UiContext<EquipmentSparePart>) {
-		const { $t: t} = context.globalProps
+		const t = context.t.bind(context);
 		if (!context.selectedItems || !context.selectedItems.length) {
 			context.uiBuilder.toast(context, {
 				severity: 'warning',

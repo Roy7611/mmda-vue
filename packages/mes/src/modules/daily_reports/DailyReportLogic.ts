@@ -90,7 +90,7 @@ export class DailyReportLogic extends EntityLogic<DailyReport> {
 					// view: UiViewOne.Edit,
 				}),
 				this.group<DailyReportTask>('tasks').defaultAdder(this.addDailyReportTask).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 				this.group<DailyReportPhoto>('photos').defaultAdder(this.addProductionEventPhoto),
@@ -157,7 +157,7 @@ export class DailyReportLogic extends EntityLogic<DailyReport> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<DailyReportTask>('tasks').hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				}),
 			)
@@ -195,7 +195,8 @@ export class DailyReportTaskLogic extends SubEntityLogic<DailyReportTask, DailyR
 
 //选择图片
 const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string) => {
-	const {$ui: ui, $t: t} = ctx.globalProps;
+	const ui = ctx.uiBuilder;
+	const t = ctx.t.bind(ctx);
 	const selectData = { value: [] };
 	console.log('phptos');
 	const photoList = { value: [] };
@@ -230,9 +231,9 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 			height: '80%',
 			onAccept: async (button) => {
 			  if (selectData.value && selectData.value.length <= 0) {
-					context.uiBuilder.toast(context, {
-						severity: 'warning',
-						message: t('invalid.chooseImage'),
+				ctx.uiBuilder.toast(ctx, {
+					severity: 'warning',
+					message: t('invalid.chooseImage'),
 						title: `${t('dialog.title.warning')}`,
 						life: 5000,
 					});
@@ -248,7 +249,7 @@ const chooseImages = async (ctx: UiContext<any>, master: any, selectType: string
 	return result === 'ok';
 };
 const getReportTasks = (ctx: UiContext<any>) =>
-	(ctx.root?.model?.tasks ?? []).filter((item: any) => !MetaModel.deleted(item));
+	((ctx.root?.model as any)?.tasks ?? []).filter((item: any) => !MetaModel.deleted(item));
 
 const getReportTaskLabel = (item: any) => {
 	if (!item) return '';
@@ -281,13 +282,9 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 						default: () => [
 							factory.image({
 								src: ctx.model.refPhotos,
-								isEdit: true,
 								preview: true,
 								style: {
-									width: `${props?.width ?? 60}px`,
-								},
-								onDelete: () => {
-									ctx.model.refPhotos = null;
+									width: `${(props as { width?: number } | undefined)?.width ?? 60}px`,
 								},
 							}),
 							factory.button({
@@ -310,14 +307,13 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 					// });
 				}),
 				this.field('taskID').setCustomEditor((fld, ctx: UiContext<any>, props) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 					const tasks = getReportTasks(ctx);
 					const selectedId = ctx.model.taskID?.taskID ?? ctx.model.taskID;
 					const selectedTask = tasks.find((item: any) => item.taskID === selectedId) ?? ctx.model.taskID;
 					return ui.factory.searchRelative({
 						role: 'taskID-search-for',
-						name: 'taskID-search-for',
-						id: 'taskID-search-for',
 						modelValue: selectedTask,
 						dataKey: 'taskID',
 						optionLabel: getReportTaskLabel,
@@ -356,7 +352,7 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 						}
 					})
 				}).hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				})
 			);
@@ -376,7 +372,7 @@ export class DailyReportEventLogic extends SubEntityLogic<DailyReportEvent, Dail
 		if (!fields.length) {
 			fields.push(
 				this.field('taskID').hideIf((t, context) => {
-					const roleactionProject = context.globalProps.$app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
+					const roleactionProject = context.app.state.modules.filter((item: any) => item.moduleCode === 'M.02')[0].subModules.find((module: any) => module.moduleCode === 'M.02.001')
 					return !roleactionProject.authority.allowRead
 				})
 			)

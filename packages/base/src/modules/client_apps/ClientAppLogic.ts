@@ -46,19 +46,22 @@ export class ClientAppLogic extends EntityLogic<ClientApp> {
       "releases",
       (master) => new ClientAppReleaseLogic(this, master),
     );
-    this.beforeValidate = (
+    this.beforeValidate = async (
       context: UiContext,
       model: ClientApp,
       validation: Validation,
     ) => {
-      if (model.monthlyRent < 0)
-        return context.uiBuilder.toast(context, {
+      if (model.monthlyRent < 0) {
+        // FIXME: 原代码 return toast(...)（void），框架语义下不取消校验；保持现状，疑似应 return false 阻止保存
+        await context.uiBuilder.toast(context, {
           severity: "error",
           title: context.t("dialog.title.error"),
           message: context.t("invalid.monthlyRentNegative"),
           life: 3000,
         });
-      else return Promise.resolve(true);
+        return true;
+      }
+      else return true;
     };
   }
   beforeIndex(): UiLogicFnResult<ClientApp> {

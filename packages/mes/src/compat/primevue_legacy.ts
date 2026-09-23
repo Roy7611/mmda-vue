@@ -1,8 +1,8 @@
 import { isObject, type MetaUiField } from '@mmda/core'
-import { createSyncfusionUiFactory } from '@mmda/vui-syncfusion'
+import { createSfVuiFactory } from '@mmda/vui-syncfusion'
 
 /** 旧仓全局 factory 单例；现指向 Syncfusion 皮肤。新代码请用 context.uiBuilder.factory。 */
-export const primeVueFactory = createSyncfusionUiFactory()
+export const primeVueFactory = createSfVuiFactory()
 
 /** 列合计；无皮肤 helper。 */
 export function defaultSummaryMethod(filed: MetaUiField, data: any[]) {

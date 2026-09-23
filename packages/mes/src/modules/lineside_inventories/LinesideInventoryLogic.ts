@@ -257,7 +257,6 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 		if (ctx.loading.value) return; // 加载中不允许切换 后期进行用户体验优化
 		this.selectedWorksite.value = worksite;
 		const siteID = worksite ? worksite.siteID : '';
-		ctx.searchParam.siteID = siteID;
 		(ctx.searchParam.queryParams ??= {}).siteID = siteID;
 		ctx.refresh();
 	}
@@ -276,17 +275,6 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 			})
 			.then((res: any) => {
 				this.worksites.value = res.list;
-
-				// 从路由参数恢复站点筛选状态
-				const siteID = this.router?.currentRoute.value?.query?.siteID as string;
-				this.router?.currentRoute.value?.query?.siteID as string;
-				console.log('siteID', siteID);
-				if (siteID) {
-					const found = this.worksites.value.find((w: Worksite) => w.siteID === siteID);
-					if (found) {
-						this.selectedWorksite.value = found;
-					}
-				}
 			});
 	}
 
@@ -320,14 +308,11 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 				},
 				params
 			);
-			// 获取跳转链接url
-			const service = apiClient.config.service.toUpperCase();
-			const routerURL = router.resolve({
-				path: `/${service}/MaterialTranses/Create`,
-				query: { id: res.transID },
-			});
-			// 跳转新窗口
-			window.open(routerURL.href, '_blank');
+		// 获取跳转链接url
+		const service = apiClient.config.service.toUpperCase();
+		const routerURL = `/${service}/MaterialTranses/Create?id=${res.transID}`;
+		// 跳转新窗口
+		window.open(routerURL, '_blank');
 		} catch (error: any) {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
@@ -343,9 +328,8 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 	 * @param value
 	 */
 	async getAllProject(context: UiContext, value?: any) {
-		await this.getAllOf<Record<string, unknown>>('Projects', {
-			queryParams: {
-				pageSize: searchParamProject.pager.pageSize,
+		await this.getAllOf<Record<string, unknown>>('Projects', { pager: { pageSize: searchParamProject.pager.pageSize,
+				pageNo: searchParamProject.pager.pageNo }, queryParams: { pageSize: searchParamProject.pager.pageSize,
 				pageNo: searchParamProject.pager.pageNo,
 				sort: '',
 				searchWord: value,
@@ -372,9 +356,8 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 	 * @param value
 	 */
 	async getAllOrders(context: UiContext, value?: any) {
-		await this.getAllOf<Record<string, unknown>>('ProductionOrders', {
-			queryParams: {
-				pageSize: searchParamOrder.pager.pageSize,
+		await this.getAllOf<Record<string, unknown>>('ProductionOrders', { pager: { pageSize: searchParamOrder.pager.pageSize,
+				pageNo: searchParamOrder.pager.pageNo }, queryParams: { pageSize: searchParamOrder.pager.pageSize,
 				pageNo: searchParamOrder.pager.pageNo,
 				sort: '',
 				searchWord: value,
@@ -488,31 +471,31 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 	}
 
 	checkInventory(context: UiContext) {
-		const { uiBuilder, globalProps } = context;
-		const { $t } = globalProps;
+		const { uiBuilder } = context;
+		const t = context.t.bind(context);
 
 		try {
 			context.uiBuilder.dialog(inventoryDialogNode({ context }), context, {
-				title: $t('linesideInventory.queryInventory'),
+				title: t('linesideInventory.queryInventory'),
 				width: '60vw',
 			});
 		} catch (error: any) {
 			uiBuilder.toast(context, {
 				severity: 'error',
 				message: error.message,
-				title: $t('invalid.error'),
+				title: t('invalid.error'),
 				life: 3000,
 			});
 		}
 	}
 
 	completeShipment(context: UiContext) {
-		const { uiBuilder, globalProps } = context;
-		const { $t } = globalProps;
+		const { uiBuilder } = context;
+		const t = context.t.bind(context);
 
 		try {
 			context.uiBuilder.dialog(completeShipmentNode({ context }), context, {
-				title: $t('linesideInventory.completeShipment'),
+				title: t('linesideInventory.completeShipment'),
 				width: '90vw',
 				showFooter: false,
 			});
@@ -520,7 +503,7 @@ export class LinesideInventoryLogic extends EntityLogic<LinesideInventory> {
 			uiBuilder.toast(context, {
 				severity: 'error',
 				message: error.message,
-				title: $t('invalid.error'),
+				title: t('invalid.error'),
 				life: 3000,
 			});
 		}

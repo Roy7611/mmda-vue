@@ -80,10 +80,10 @@ export class ProjectAcceptanceLogic extends EntityLogic<ProjectAcceptance> {
 						role: 'info',
 						visible: m => m.status === ProjectAcceptanceStatus.INITIAL,
 						onAction: async (ctx: UiContext<ProjectAcceptance>) => {
-							if (!ctx.model.projectID || ctx.model.projectID === '0') {
+							if (!(ctx.model as ProjectAcceptance).projectID || (ctx.model as ProjectAcceptance).projectID === '0') {
 								ctx.uiBuilder.toast(ctx, {
 									severity: 'error',
-									title: ctx.globalProps.$t('dialog.title.error'),
+									title: ctx.t('dialog.title.error'),
 									message: ctx.t('projectAcceptance.selectProjectFirst'),
 									life: 3000,
 								});
@@ -98,7 +98,7 @@ export class ProjectAcceptanceLogic extends EntityLogic<ProjectAcceptance> {
 									searchParam: {
 										pager: defaultPager(),
 										queryParams: {
-											projectID: ctx.model.projectID,
+											projectID: (ctx.model as ProjectAcceptance).projectID,
 										},
 									},
 									ctor: (data: any) => defineProjectDeliveryItem(data) as ProjectDeliveryItem,
@@ -116,7 +116,7 @@ export class ProjectAcceptanceLogic extends EntityLogic<ProjectAcceptance> {
 											source,
 											sequenceKey: 'itemID',
 											propsMapper: {
-												acceptanceID: () => ctx.model.id,
+												acceptanceID: () => (ctx.model as ProjectAcceptance).id,
 											},
 										});
 									}
@@ -137,7 +137,7 @@ export class ProjectAcceptanceLogic extends EntityLogic<ProjectAcceptance> {
 									sequenceKey: 'itemID',
 									target: ctx.model,
 									propsMapper: {
-										acceptanceID: () => ctx.model.id,
+										acceptanceID: () => (ctx.model as ProjectAcceptance).id,
 									},
 								})
 								.then((item: any) => {

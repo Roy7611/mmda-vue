@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import { MmdaVueApp, setupI18n } from "@mmda/vui";
-import { AgNaiveUiBuilder, mmdaAgNaive } from "@mmda/vui-agnaive";
+import { AgNaiveVuiBuilder, mmdaAgNaive } from "@mmda/vui-agnaive";
 import { createMarkdownEditorPlugin } from "@mmda/vuix-vditor-markdown";
 import { createVueKanbanPlugin } from "@mmda/vuix-svar-kanban";
 import { createFcSchedulerPlugin } from "@mmda/vuix-fc-scheduler";
@@ -14,7 +14,7 @@ import { createPlaygroundRouter } from "./router";
 import "./style.css";
 
 const i18n = setupI18n({}, "zh");
-const builder = new AgNaiveUiBuilder();
+const builder = new AgNaiveVuiBuilder();
 builder
   .use(createMarkdownEditorPlugin())
   .use(createVueKanbanPlugin())

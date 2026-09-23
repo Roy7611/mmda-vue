@@ -81,15 +81,14 @@ export const getmaterial = async (context: UiContext, value?: any) => {
  * @param value
  */
 export const getProjectTask = async (context: UiContext<Bom>, value?: any) => {
-	await context.logic!.getAllOf<Record<string, unknown>>('ProjectTasks', {
-		queryParams: {
-			pageSize: searchParamTask.pager.pageSize,
+	await context.logic!.getAllOf<Record<string, unknown>>('ProjectTasks', { pager: { pageSize: searchParamTask.pager.pageSize,
+			pageNo: searchParamTask.pager.pageNo }, queryParams: { pageSize: searchParamTask.pager.pageSize,
 			pageNo: searchParamTask.pager.pageNo,
 			sort: '',
 			searchWord: value,
 			taskPhase: 'MAKE',
 			taskLevel: TaskLevel.TASK,
-			projectID: context.model.projectID ?? '',
+			projectID: (context.model as Bom).projectID ?? '',
 		},
 	}, { service: 'mes' })
 		.then((res: any) => {
@@ -162,7 +161,7 @@ const renderBomItemMaterialPicContent = (picUrl: string, ctx: UiContext<BomItem>
 	return factory.image({ src: encodeUriAndFix(picUrl),
 		class: `${BOM_ITEM_PIC_CLASS} ${BOM_ITEM_PIC_CLASS}--img`,
 		preview: true,
-		imageStyle: {
+		style: {
 			...bomItemPicCommonStyle,
 			objectFit: 'contain',
 			objectPosition: 'center center',
@@ -389,9 +388,8 @@ const renderBomItemCommunicatePic = (fld: MetaUiField, ctx: UiContext<BomItem>, 
 	if (urls.length === 1) {
 		return ctx.uiBuilder.factory.image({ src: urls[0],
 			preview: true,
-			isEdit: false,
 			class: 'bom-item-communicate-pic',
-			imageStyle: {
+			style: {
 				width: '100%',
 				height: 'auto',
 				maxWidth: '100%',
@@ -410,8 +408,7 @@ export const renderBomProductPic = (fld: MetaUiField, ctx: UiContext<Bom>) => {
 	const picUrl = typeof raw === 'string' ? raw.trim() : '';
 	return ctx.uiBuilder.factory.image({ src: picUrl,
 		preview: true,
-		imageStyle: { maxWidth: '100%', maxHeight: '120px', objectFit: 'contain' },
-		style: { display: 'inline-flex', justifyContent: 'center', width: '100%' },
+		style: { maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', display: 'inline-flex', justifyContent: 'center', width: '100%' },
 	});
 };
 
@@ -454,7 +451,7 @@ export const isCurrentBomRow = (row: { bomID?: string } | null | undefined, ctx:
  * @returns
  */
 export const beforealter = async (context: UiContext, model: Bom, action: EntityAction) => {
-	context.globalProps.$router.push({ name: 'BomEdit', params: model.bomID });
+	context.routeToEdit(String(model.bomID));
 	return false;
 };
 
@@ -469,7 +466,7 @@ export const checkBomHasTask = async (context: UiContext, model: Bom, action: En
 		} catch (error: any) {
 			context.uiBuilder.toast(context, {
 				severity: 'error',
-				title: context.globalProps.$t('dialog.title.error'),
+				title: context.t('dialog.title.error'),
 				message: error.message,
 				life: 3000,
 			});
@@ -488,7 +485,8 @@ export const checkBomHasTask = async (context: UiContext, model: Bom, action: En
 export const beforeapprove = async (context: UiContext, model: Bom, action: EntityAction) => {
 	//根据bomID 查询是否存在项目任务，如果存在，弹窗展示项目任务 ProjectTask 多选，过滤 taskPhase=MAKE，taskLevel=TASK
 	const metaUiService = context.logic!.metaUiService;
-	const {$ui: ui, $t: t} = context.globalProps;
+	const ui = context.uiBuilder;
+	const t = context.t.bind(context);
 
 	const hasTask = await checkBomHasTask(context, model, action);
 	if (hasTask) {
@@ -497,6 +495,7 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 			service: 'mes',
 			selectionMode: 'single',
 			searchParam: {
+				pager: defaultPager(),
 				queryParams: {
 					taskPhase: 'MAKE',
 					taskLevel: TaskLevel.TASK,
@@ -576,7 +575,8 @@ export const beforeapprove = async (context: UiContext, model: Bom, action: Enti
 export const beforematchStd = async (context: UiContext, model: Bom, action: EntityAction) => {
 	// if (context.actionLoadings[action.name]) return false; // 防止重复点击
 	const metaUiService = context.logic!.metaUiService;
-	const {$ui: ui, $t: t} = context.globalProps;
+	const ui = context.uiBuilder;
+	const t = context.t.bind(context);
 	// 获取物料数据
 	await getmaterial(context, '');
 
@@ -647,8 +647,6 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 
 					return ui.factory.searchRelative({
 						role: `material-search-for-sProject`,
-						name: 'material-search-for-sProject',
-						id: 'material-search-for-sProject',
 						modelValue: rowData.data.material,
 						dataKey: 'materialID',
 						optionLabel: 'materialName',
@@ -662,6 +660,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 								service: 'base',
 								selectionMode: 'single',
 								searchParam: {
+									pager: defaultPager(),
 									filterModel: {
 										status: FieldFilter.in('USED'),
 										materialType: FieldFilter.notIn([MaterialType.LABOR]),
@@ -673,7 +672,7 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 							rowData.data.material = data;
 							return true;
 						},
-						onChange: (value: any) => {
+						onUpdate: (value: any) => {
 							if (!isRefNone(value)) {
 								console.log(value, 'value');
 								rowData.data.material = value;
@@ -699,7 +698,8 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
 		context,
 		{
 			title: t('bom.matchStandardParts'),
-			style: { width: '80vw', maxHeight: '95%' },
+			width: '80vw',
+			maxHeight: '95%',
 			onAccept: async (button) => {
 			  const refItemKeys: { refID: string; refItemID: string; refName: string }[] = [];
 				// 在确认时更新 model.items
@@ -755,7 +755,8 @@ export const beforematchStd = async (context: UiContext, model: Bom, action: Ent
  * 指派设计任务：筛选来源=自制且未绑定子件BOM的项次，弹窗多选后放行给FLOW_TO处理通知
  */
 export const beforeAssignDesignTask = async (context: UiContext, model: Bom, action: EntityAction) => {
-	const {$ui: ui, $t: t} = context.globalProps;
+	const ui = context.uiBuilder;
+	const t = context.t.bind(context);
 
 	// 过滤符合条件的 BomItem：来源=自制 且 未绑定子件BOM
 	const targetItems = (model.items || []).filter((item: BomItem) =>
@@ -793,7 +794,7 @@ export const beforeAssignDesignTask = async (context: UiContext, model: Bom, act
 		context,
 		{
 			title: context.t('bom.selectPartsForDesign'),
-			style: { width: '70vw' },
+			width: '70vw',
 			onAccept: async (button) => {
 			  if (selectedItems.length === 0) {
 					context.uiBuilder.toast(context, {
@@ -842,10 +843,10 @@ export class BomLogic extends EntityLogic<Bom> {
 		const _superDoAction = this.doAction;
 		this.doAction = async (model: Bom, action: EntityAction) => {
 			if (action.name === 'assignDesignTask') {
-				const itemKeys = (action as any).__itemKeys || [];
+			const itemKeys = (action as any).__itemKeys || [];
 				const body = {
 					payload: {
-						...action.param,
+						...(action.param as object | undefined),
 						itemKeys,
 					},
 				};
@@ -945,7 +946,7 @@ export class BomLogic extends EntityLogic<Bom> {
 				productCategoryID: FieldFilter.eq(this.currentCategory.categoryID),
 			};
 		}
-		return super.getAll(param, context);
+		return super.getAll(param);
 	}
 
 	/**
@@ -1219,7 +1220,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 					return {
 						status: getSqlOperator('IN')!.toSQL('USED'), // 只能选择启用的替代料策略
 					};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1234,7 +1235,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 				// 产出比率、损耗率可以为0
 				this.field('outputRate').onValidate((value, model, ctx: UiContext<any>) => {
 					const items = this.master.items.filter((items: BomItem) => items.entityState < 4 && model.itemID !== items.itemID)
-					const outputRateSum = ((MetaModel.sum(items, item => item.outputRate) * 10000) / 10000) + value;
+					const outputRateSum = ((MetaModel.sum(items, item => item.outputRate) * 10000) / 10000) + (value as number);
 					if (outputRateSum > 1) {
 						return ctx.t('bom.totalOutputRateMax');
 					}
@@ -1339,7 +1340,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 							status: 'APPROVED',
 							bomID: getSqlOperator('NOT_IN')!.toSQL(model.bomID),
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1378,7 +1379,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<BomItemOperation>('operations')
-					.hideIf((model, ctx) => (ctx.root ? !ctx.root.model.processID : false))
+					.hideIf((model, ctx) => (ctx.root ? !(ctx.root.model as Bom).processID : false))
 					.addCustomAction({
 						name: 'createBomItemOperation',
 						label: 'action.create',
@@ -1435,7 +1436,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 
 						return ctx.uiBuilder.factory.link({
 							text: fldVal,
-							href: `${baseUrl}BASE/Materials/${ctx.model.materialID}`,
+							href: `/BASE/Materials/${ctx.model.materialID}`,
 							target: '_blank',
 							style: { color: '#409eff' },
 						});
@@ -1467,7 +1468,7 @@ export class BomItemLogic extends SubEntityLogic<BomItem, Bom> {
 
 						return ctx.uiBuilder.factory.link({
 							text: fldVal.strategyCode,
-							href: `${baseUrl}MES/AlternativeStrategies/${ctx.model.altStrategyID}`,
+							href: `/MES/AlternativeStrategies/${ctx.model.altStrategyID}`,
 							target: '_blank',
 							style: { color: '#409eff' },
 						});
@@ -1496,7 +1497,7 @@ export class BomItemOperationLogic extends SubEntityLogic<BomItemOperation, BomI
 					const __p = ((ctx: UiContext<any>, model) => {
 						const rootModel = ctx.root.model as Bom;
 						return { parentProcessID: rootModel.processID ?? '' };
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -1532,10 +1533,10 @@ export class BomItemOperationLogic extends SubEntityLogic<BomItemOperation, BomI
 						}
 					})
 					.onValidate((value, model, ctx: UiContext<any>) => {
-						const itemModel = ctx.prev.prev.model as BomItem;
+						const itemModel = ctx.parent?.parent?.model as BomItem | undefined;
 						if (!value) return ctx.t('bom.operationRequired');
-						const endOprations = itemModel.operations?.filter(op => !MetaModel.deleted(op) && op.id !== model.id);
-						if ((MetaModel.createdForModified(model) || MetaModel.created(model)) && endOprations?.filter(op => op.opCode == value).length > 0) {
+						const endOprations = itemModel?.operations?.filter(op => !MetaModel.deleted(op) && op.id !== model.id);
+						if ((MetaModel.createdForModified(model) || MetaModel.created(model)) && (endOprations?.filter(op => op.opCode == value) ?? []).length > 0) {
 							return ctx.t('bom.duplicateOperation');
 						}
 						// if (ctx.model.id === model.id && itemModel.operations.length <= 1) return; // 判断是否为自己

@@ -92,7 +92,7 @@ const getChildOrders = async (context: UiContext, orders: ProductionOrder[]): Pr
 	const results = await Promise.all(
 		orders.map(async (value: ProductionOrder) => {
 			if (!value?.orderID) return [] as ProductionOrder[];
-			const res = await this.apiClient.getOne(value.orderID, {
+			const res = await context.apiClient.getOne(value.orderID, {
 				action: 'plannableDescendants',
 				repository: 'ProductionOrders',
 				service: 'mes',
@@ -122,7 +122,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 
 		this.addRelativeLogic<ProductionPlanItem>('items', master => new ProductionPlanItemLogic(this, master));
 		this.beforeSave = (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction) => {
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			//同时有开始时间，结束时间
 			if (model.expectedStart && model.expectedFinish) {
 				if (compareTime(model.expectedStart, model.expectedFinish) == 1) {
@@ -135,7 +135,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 		this.afterAction = async (context: UiContext<ProductionPlan>, model: ProductionPlan, action: EntityAction, apiResultOrError?: any) => {
 			const err = apiResultOrError;
 			if (err?.status == 400 && err?.code == 'task.relasedQuantity.exceed') {
-				const {$router, $t: t} = context.globalProps;
+				const t = context.t.bind(context);
 				const apiClient = this.apiClient;
 				context.uiBuilder.toast(context, {
 					severity: 'error',
@@ -162,19 +162,8 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 								const projectList: any = res.list;
 								projectID = projectList[0].projectID;
 							}
-							// 构建路由对象
-							const route = {
-								path: '/MES/ComputeKitting',
-								query: {
-									projectID: projectID,
-									type: 'CompleteMaterial',
-									moduleCode: 'M.03.002',
-									planID: model.planID
-								},
-							};
 							// 在新标签页打开
-							const routeUrl = $router.resolve(route);
-							window.open(routeUrl.href, '_blank');
+							window.open(`/MES/ComputeKitting?projectID=${encodeURIComponent(projectID ?? '')}&type=CompleteMaterial&moduleCode=M.03.002&planID=${model.planID}`, '_blank');
 						}
 						return true;
 					} catch (error: any) {
@@ -301,7 +290,8 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 				searchParam: 'planDate',
 				valueFn: (v: any) => (v.filter((item: any) => item !== null).length > 1 ? `BETWEEN '${DateUtils.toFormat(v[0], 'yyyy-MM-dd')}' AND '${DateUtils.toFormat(v[1], 'yyyy-MM-dd')}'` : ''),
 				renderer: (ctx: UiContext & any, csf) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 
 					// const options = isString(taskLevelOption.value) ? JSON.parse(taskLevelOption.value) : [];
 					if (hrefData.value.expectedStart || hrefData.value.expectedFinish) {
@@ -371,9 +361,9 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 					.lockIf(model => model.status != ProductionPlanStatus.NEW || (!isNullOrUndefined(model.customJson) && (JSON.parse(model.customJson)).source === 'dailyPlanning')),
 
 				this.field('planDate').setCustomEditor((fld, ctx: UiContext<any>, props) => {
-					const { $ui: ui } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
 					return ui.factory.datePicker({
-						modelValue: ctx.model.planDate,
+						value: ctx.model.planDate,
 						minDate: today,
 						onUpdatePicker(value: any) {
 							ctx.model.planDate = DateUtils.toFormat(value, 'yyyy-MM-dd');
@@ -435,7 +425,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 					// 添加所有的子订单，与所选主订单按 orderID 去重
 					const childern = await getChildOrders(context, selection)
 					const existingIds = new Set(
-						(context.model.items ?? [])
+						((context.model as ProductionPlan).items ?? [])
 							.filter((item: ProductionPlanItem) => !MetaModel.deleted(item))
 							.map((item: ProductionPlanItem) => item.orderID)
 							.filter(Boolean)
@@ -471,7 +461,7 @@ export class ProductionPlanLogic extends EntityLogic<ProductionPlan> {
 					});
 
 					// 过滤已删除的数据
-					const usefulData = context.model.items.filter((item: ProductionPlanItem) => !MetaModel.deleted(item));
+					const usefulData = (context.model as ProductionPlan).items.filter((item: ProductionPlanItem) => !MetaModel.deleted(item));
 
 					//计算总量
 					context.setFieldValue(
@@ -555,7 +545,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 						proprams.plantID = ctx.model.bom.plantID;
 					}
 					return proprams;
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -568,23 +558,23 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 						.join(" AND ");
 				}),
 				this.field('taskQuantity').onChange((ctx: UiContext<any>, model, newVal, oldVal) => {
-					const {$router, $t: t} = ctx.globalProps;
+					const t = ctx.t.bind(ctx);
 					//判断newVal是不是小数
-					if (isDecimal(newVal) && newVal > 0) {
-						context.uiBuilder.toast(context, {
-							severity: 'warning',
-							title: t('dialog.title.error'),
-							message: t('invalid.notPorint'),
+					if (isDecimal(newVal as number) && (newVal as number) > 0) {
+					ctx.uiBuilder.toast(ctx, {
+						severity: 'warning',
+						title: t('dialog.title.error'),
+						message: t('invalid.notPorint'),
 							life: 3000,
 						});
 						console.log('model', model);
-						model.taskQuantity = oldVal;
+						model.taskQuantity = oldVal as number;
 					} else {
 						// 更新 expectedOutput 计划产值 = 任务数量 * 单位产值
 						ctx.setFieldValue('expectedOutput', model.taskQuantity * (model?.order?.unitOutput ?? 0));
 
 						// 过滤已删除的数据
-						const usefulData = ctx.root.model.items.filter((item: ProductionPlanItem) => !MetaModel.deleted(item));
+						const usefulData = (ctx.root.model as ProductionPlan).items.filter((item: ProductionPlanItem) => !MetaModel.deleted(item));
 
 						//计算总量
 						ctx.root.setFieldValue(
@@ -601,7 +591,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 				}),
 				this.field('expectedStart')
 					.onValidate((value, model, context) => {
-						const { $t: t } = context.globalProps;
+						const t = context.t.bind(context);
 						if (value && model.expectedFinish && compareTime(value, model.expectedFinish) == 1) {
 							return t('invalid.planTimeToSmall');
 						}
@@ -615,7 +605,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 					}),
 				this.field('expectedFinish')
 					.onValidate((value, model, context) => {
-						const { $t: t } = context.globalProps;
+						const t = context.t.bind(context);
 						if (value && model.expectedStart && compareTime(model.expectedStart, value) == 1) {
 							return t('invalid.planTimeToSmall');
 						}
@@ -629,11 +619,11 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 					}),
 				this.field('taskNo').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					const linkable = (ctx.model as ProductionPlan).status != ProductionPlanStatus.NEW && (ctx.model as ProductionPlan).status != ProductionPlanStatus.PREPARED && (ctx.model as ProductionPlan).status != ProductionPlanStatus.CANCELED
 					if (linkable) {
 						return ctx.uiBuilder.factory.link({
 							text: fldVal,
-							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							href: (ctx.model as ProductionPlan).taskID ? `/MES/ProductionTasks/${(ctx.model as ProductionPlan).taskID}` : undefined,
 							target: '_blank',
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});
@@ -641,7 +631,7 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 					return ctx.uiBuilder.factory.textSpan({ text: fldVal ?? '' });
 				}),
 				this.field('constraintType').onChange((ctx: UiContext<any>, model, newVal) => {
-					if (shouldHideConstraintDate(newVal)) {
+					if (shouldHideConstraintDate(newVal as TaskConstraintType)) {
 						ctx.setFieldValue('constraintDate', null);
 					}
 				}),
@@ -671,11 +661,11 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 			fields.push(
 				this.field('taskNo').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					const linkable = (ctx.model as ProductionPlan).status != ProductionPlanStatus.NEW && (ctx.model as ProductionPlan).status != ProductionPlanStatus.PREPARED && (ctx.model as ProductionPlan).status != ProductionPlanStatus.CANCELED
 					if (linkable) {
 						return ctx.uiBuilder.factory.link({
 							text: fldVal,
-							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							href: (ctx.model as ProductionPlan).taskID ? `/MES/ProductionTasks/${(ctx.model as ProductionPlan).taskID}` : undefined,
 							target: '_blank',
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});
@@ -683,11 +673,11 @@ export class ProductionPlanItemLogic extends SubEntityLogic<ProductionPlanItem, 
 					return ctx.uiBuilder.factory.textSpan({ text: fldVal ?? '' });
 				}).setCustomCellRenderer((fld, ctx, props) => {
 					const fldVal = ctx.getFieldValue(fld);
-					const linkable = ctx.model.status != ProductionPlanStatus.NEW && ctx.model.status != ProductionPlanStatus.PREPARED && ctx.model.status != ProductionPlanStatus.CANCELED
+					const linkable = (ctx.model as ProductionPlan).status != ProductionPlanStatus.NEW && (ctx.model as ProductionPlan).status != ProductionPlanStatus.PREPARED && (ctx.model as ProductionPlan).status != ProductionPlanStatus.CANCELED
 					if (linkable) {
 						return ctx.uiBuilder.factory.link({
 							text: fldVal,
-							href: ctx.model.taskID ? `/MES/ProductionTasks/${ctx.model.taskID}` : undefined,
+							href: (ctx.model as ProductionPlan).taskID ? `/MES/ProductionTasks/${(ctx.model as ProductionPlan).taskID}` : undefined,
 							target: '_blank',
 							style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						});

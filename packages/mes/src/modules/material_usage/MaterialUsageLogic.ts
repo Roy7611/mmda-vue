@@ -1,4 +1,4 @@
-import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey } from '@mmda/core';
+import { MetaUiService, Module, MetaUiField, ApiClient, UiContext, MetaModel, isRefNone, debounce, isNullOrUndefined, isObject, triggerEscKey, type PagedList } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, UiViewOne, type UiLogicFnResult, UiAction} from '@mmda/core'
 import { type MaterialUsage, defineMaterialUsage } from '@/models/MaterialUsage';
 /**
@@ -35,8 +35,7 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
     constructor(init: EntityLogicInit) {
         super(defineMaterialUsage, init);
     }
-    async getAll(param: any, ctx?: any) {
-        !isNullOrUndefined(ctx.globalProps) ? ctx.globalProps : ctx.app.config.globalProperties
+    async getAll(param: any, ctx?: any): Promise<PagedList<MaterialUsage>> {
         const res = await this.apiClient.getAll({
             repository: 'MaterialUsage',
             service: 'mes',
@@ -49,7 +48,7 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
                 pageSize: param.pager.pageSize
             }
         })
-        return res
+        return res as PagedList<MaterialUsage>
     }
     /**
       * 项目
@@ -57,9 +56,8 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
       * @param value 
      */
     async getAllProject(context: UiContext, value?: any) {
-        await this.getAllOf<Record<string, unknown>>('Projects', {
-            queryParams: {
-                pageSize: searchParamProject.pager.pageSize,
+        await this.getAllOf<Record<string, unknown>>('Projects', { pager: { pageSize: searchParamProject.pager.pageSize,
+                pageNo: searchParamProject.pager.pageNo }, queryParams: { pageSize: searchParamProject.pager.pageSize,
                 pageNo: searchParamProject.pager.pageNo,
                 sort: '',
                 searchWord: value
@@ -85,9 +83,8 @@ export class MaterialUsageLogic extends EntityLogic<MaterialUsage> {
      * @param value 
     */
     async getAllTask(context: UiContext, value?: any) {
-        await this.getAllOf<Record<string, unknown>>('ProductionTasks', {
-            queryParams: {
-                pageSize: searchParamTask.pager.pageSize,
+        await this.getAllOf<Record<string, unknown>>('ProductionTasks', { pager: { pageSize: searchParamTask.pager.pageSize,
+                pageNo: searchParamTask.pager.pageNo }, queryParams: { pageSize: searchParamTask.pager.pageSize,
                 pageNo: searchParamTask.pager.pageNo,
                 sort: '',
                 searchWord: value

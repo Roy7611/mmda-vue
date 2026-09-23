@@ -16,7 +16,8 @@ export const ToolsMove = defineComponent(
         },
         emits: ['getMoveData'],
         setup: (props, { emit }) => {
-            const {$ui: ui, $t: t} = props.ctx.globalProps
+            const ui = props.ctx.uiBuilder
+            const t = props.ctx.t.bind(props.ctx)
             const ToolsMoveData = reactive({
                 moveTo: '',
                 remark: ''

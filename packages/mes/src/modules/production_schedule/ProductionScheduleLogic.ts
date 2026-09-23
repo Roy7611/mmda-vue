@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
  *
  */
 
-import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
+import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction, MetaUi } from '@mmda/core';
 import type {EntityLogicInit, UiLogicFnResult} from '@mmda/core'
 import {EntityLogic} from '@mmda/core'
 import { type ProductionSchedule, defineProductionSchedule } from '@/models/ProductionSchedule';
@@ -35,12 +35,12 @@ const notice = {
 //公用action
 // const beforeNotice = async (context: UiContext, model: ProductionSchedule, action: EntityAction, actionName: string, repositoryName: string) =>
 // 	NoticeFn(context, {
-// 		title: context.globalProps.$t('auth.submitInformation'),
+// 		title: context.t('auth.submitInformation'),
 // 		data: notice.data,
 // 		id: model.orderID ?? '',
 // 		action: actionName,
 // 		repository: repositoryName,
-// 		detail: context.globalProps.$t('success.operationSuccessful'),
+// 		detail: context.t('success.operationSuccessful'),
 // 	});
 interface MetaData {
 	repository: string;
@@ -80,11 +80,11 @@ const dailyPlanning: GanttPlanningShell = {
 
 //甘特图日计划调用接口返回
 const submitPlan = async (planItem: any, content: any) => {
-	const {$router, $t: t} = content.globalProps;
+	const t = content.t.bind(content);
 	planItem.action = null;
 	try {
 		let res: any = null;
-		const apiClient = this.apiClient;
+		const apiClient = content.apiClient;
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		res = await apiClient.doAction(
 			{
@@ -111,9 +111,8 @@ const submitPlan = async (planItem: any, content: any) => {
 		if (error.validationErrors && error.validationErrors.length > 0) {
 			errorMessage = error.validationErrors[0].error;
 		}
-		context.uiBuilder.toast(context, {
+		content.uiBuilder.toast(content, {
 			severity: 'error',
-			title: 'dialog.title.error',
 			title: errorMessage ?? '',
 			life: 3000,
 		});
@@ -127,7 +126,6 @@ const submitPlan = async (planItem: any, content: any) => {
 
 //根据ID获取 task
 const getSub = async (appContext: any, task: any) => {
-	const {$router} = appContext.globalProps;
 	const updateObj = {
 		subList: <any>[],
 		subLinkList: <any>[],
@@ -143,7 +141,7 @@ const getSub = async (appContext: any, task: any) => {
 
 	try {
 		let res: any = null;
-		const apiClient = this.apiClient;
+		const apiClient = appContext.apiClient;
 		res = await apiClient.getAll({
 			action: 'getAllSchedule',
 			repository: 'ProductionScheduleTasks',
@@ -178,7 +176,6 @@ const getSub = async (appContext: any, task: any) => {
 	} catch (error: any) {
 		appContext.uiBuilder.toast(appContext, {
 			severity: 'error',
-			title: 'dialog.title.error',
 			title: error.detail ?? '',
 			life: 3000,
 		});
@@ -194,10 +191,10 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 	constructor(init: EntityLogicInit) {
 		super(defineProductionSchedule, init);
 	}
-	async initMetadata(reload: boolean = false) {
+	async initMetadata(reload: boolean = false): Promise<MetaUi> {
 		// 接口调通后删除此方法
 		// super.initMetadata();
-		return Promise.resolve({ metaUi: null });
+		return Promise.resolve({ metaUi: null } as unknown as MetaUi);
 	}
 
 	beforeSearch() {
@@ -318,7 +315,7 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
 				//调用接口
-				const {$t: t} = appContext.globalProps;
+				const t = appContext.t.bind(appContext);
 				//调用接口
 				try {
 					const res: boolean = await this.apiClient.doAction(
@@ -332,9 +329,9 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 					);
 					//关闭窗口
 					if (res) {
-						ctx.uiBuilder.toast(ctx, {
-							severity: 'success',
-							message: `${t('dialog.success')}`,
+					appContext.uiBuilder.toast(appContext, {
+						severity: 'success',
+						message: `${t('dialog.success')}`,
 							title: t('dialog.success'),
 							life: 3000,
 						});
@@ -343,7 +340,7 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 					}
 					return true;
 				} catch (error: any) {
-					ctx.uiBuilder.toast(ctx, {
+					appContext.uiBuilder.toast(appContext, {
 						severity: 'error',
 						message: error.message ?? `${t('invalid.error')}`,
 						title: t('invalid.error'),
@@ -360,7 +357,6 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 	}
 	//甘特图 拖拉拽
 	async changeTasks(tasksItem: any, appContext: any) {
-		const {$router} = appContext.app.config.globalProperties;
 		if (tasksItem.action) {
 			tasksItem.action = null;
 		}
@@ -398,7 +394,6 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -419,7 +414,6 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const {$router} = appContext.app.config.globalProperties;
 		try {
 			let res: any = null;
 			const apiClient = this.apiClient;
@@ -436,7 +430,6 @@ export class ProductionScheduleLogic extends EntityLogic<ProductionSchedule> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});

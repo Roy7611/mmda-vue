@@ -1,4 +1,3 @@
-import { resolve } from 'node:path';
 /**
  * Copyright (c) 2006, 2020, www.syclive.com All rights reserved.
  * Syc PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,7 +6,7 @@ import { resolve } from 'node:path';
  *
  */
 
-import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction } from '@mmda/core';
+import type { MetaUiFieldLogic, MetaUiField, MetaUiService, Module, ApiClient, EntityAction, UiContext, MetaUi } from '@mmda/core';
 import type {EntityLogicInit, UiLogicFnResult} from '@mmda/core'
 import {EntityLogic} from '@mmda/core'
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage';
@@ -46,12 +45,12 @@ const notice = {
 //公用action
 // const beforeNotice = async (context: UiContext, model: ProductionSchedule, action: EntityAction, actionName: string, repositoryName: string) =>
 // 	NoticeFn(context, {
-// 		title: context.globalProps.$t('auth.submitInformation'),
+// 		title: context.t('auth.submitInformation'),
 // 		data: notice.data,
 // 		id: model.orderID ?? '',
 // 		action: actionName,
 // 		repository: repositoryName,
-// 		detail: context.globalProps.$t('success.operationSuccessful'),
+// 		detail: context.t('success.operationSuccessful'),
 // 	});
 interface MetaData {
 	repository: string;
@@ -145,7 +144,8 @@ const searchParam = {
 
 // //获取交付物
 // const getProjectMaterial = async (ctx: any, taskItem?: any, value?: any) => {
-// 	const {$ui: ui, $router, $t: t} = ctx.globalProps;
+// 	const ui = ctx.uiBuilder;
+// 	const t = ctx.t.bind(ctx);
 // 	const apiClient = this.apiClient;
 // 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 // 	if (taskItem.action) {
@@ -177,7 +177,8 @@ const searchParam = {
 
 //获取项目工作包
 const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: string) => {
-	const {$ui: ui, $router, $t: t} = ctx.globalProps;
+	const ui = ctx.uiBuilder;
+	const t = ctx.t.bind(ctx);
 	const apiClient = ctx.logic?.apiClient ?? ctx.app?.api;
 	const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 	if (taskItem.action) {
@@ -210,7 +211,7 @@ const getPdItem = async (ctx: any, taskItem?: any, value?: any, importDev?: stri
 //获取甘特图子任务
 const getSub = async (appContext: any, task: any) => {
 	console.log('task', task);
-	const {$router, $t: t} = appContext.globalProps;
+	const t = appContext.t.bind(appContext);
 	const updateObj = {
 		deleteID: task.id,
 		subList: <any>[],
@@ -220,7 +221,7 @@ const getSub = async (appContext: any, task: any) => {
 	//删除,并更新
 	try {
 		let res: any = null;
-		const apiClient = this.apiClient;
+		const apiClient = appContext.apiClient;
 		res = await apiClient.getAll({
 			action: 'getAllTaskSchedule',
 			repository: 'ProjectSchedule',
@@ -322,7 +323,6 @@ const getSub = async (appContext: any, task: any) => {
 	} catch (error: any) {
 		appContext.uiBuilder.toast(appContext, {
 			severity: 'error',
-			title: t('dialog.title.error'),
 			title: error.detail ?? '',
 			life: 3000,
 		});
@@ -344,10 +344,10 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	constructor(init: EntityLogicInit) {
 		super(defineCustomPage, init);
 	}
-	async initMetadata(reload: boolean = false) {
+	async initMetadata(reload: boolean = false): Promise<MetaUi> {
 		// 接口调通后删除此方法
 		// super.initMetadata();
-		return Promise.resolve({ metaUi: null });
+		return Promise.resolve({ metaUi: null } as unknown as MetaUi);
 	}
 
 	//获得权限
@@ -399,7 +399,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	setResponsible = async (ctx: any, taskItems?: any) => {
 		console.log('ctx', ctx);
 		console.log('taskItems', taskItems);
-		const {$ui: ui, $router, $t: t} = ctx.globalProps;
+		const ui = ctx.uiBuilder;
+	const t = ctx.t.bind(ctx);
 
 		//弹窗选择负责人
 		const apiClient = this.apiClient;
@@ -420,7 +421,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 					onAccept: async (button) => {
 					  console.log('chargePerson', chargePerson);
 						if (!chargePerson.data.userID) {
-							context.uiBuilder.toast(context, {
+							ctx.uiBuilder.toast(ctx, {
 								severity: 'error',
 								title: t('ganttLabel.selectResponsiblePerson'),
 								life: 3000,
@@ -457,7 +458,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 										payLoad
 									);
 									if (res) {
-										context.uiBuilder.toast(context, {
+										ctx.uiBuilder.toast(ctx, {
 											severity: 'success',
 											message: t('success.operationSuccessful'),
 											title: t('dialog.success'),
@@ -476,7 +477,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 									}
 									return true;
 								} catch (error: any) {
-									context.uiBuilder.toast(context, {
+									ctx.uiBuilder.toast(ctx, {
 										severity: 'error',
 										message: error.message,
 										title: t('dialog.title.error'),
@@ -491,9 +492,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 			);
 			return false;
 		} catch (error: any) {
-			context.uiBuilder.toast(context, {
+			ctx.uiBuilder.toast(ctx, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -510,7 +510,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 				searchLabel: 'doc.mine',
 				searchParam: 'my',
 				renderer: (ctx: UiContext & any, csf) => {
-					const { $ui: ui } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
 					console.log('csf', csf);
 					return ui.factory.switch({
 						checked: Boolean(csf.searchVal.value),
@@ -532,9 +532,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 
 	//获取甘特图任务数据
 	async getProSchedule(appContext: any, query: any) {
-		const gp = appContext.app?.config?.globalProperties ?? appContext.globalProps;
-		const {$router, $t: t} = gp;
-		const apiClient = appContext.logic?.apiClient ?? gp.$app.api;
+		const t = appContext.t.bind(appContext);
+		const apiClient = appContext.apiClient;
 		const task = {
 			taskData: {
 				data: <any>[],
@@ -622,7 +621,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -632,7 +630,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 
 	//获取甘特图任务数据
 	async getProScheduleR(appContext: any, query: any) {
-		const {$router, $t: t} = appContext.globalProps;
+		const t = appContext.t.bind(appContext);
 		const task = {
 			taskData: {
 				data: <any>[],
@@ -717,7 +715,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -733,7 +730,7 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		//appContext.uiBuilder.
 		const res = appContext.uiBuilder.buildNotice(appContext, {
 			onSubmit: async (data: any) => {
-				const {$t: t} = appContext.globalProps;
+				const t = appContext.t.bind(appContext);
 				//调用接口
 				try {
 					const res: boolean = await this.apiClient.doAction(
@@ -785,7 +782,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const {$ui: ui, $router, $t: t} = appContext.globalProps;
+		const ui = appContext.uiBuilder;
+		const t = appContext.t.bind(appContext);
 		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
@@ -839,7 +837,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -852,7 +849,8 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 			taskItem.action = null;
 		}
 
-		const {$ui: ui, $router, $t: t} = appContext.globalProps;
+		const ui = appContext.uiBuilder;
+		const t = appContext.t.bind(appContext);
 		const apiClient = this.apiClient;
 		const { model, metaUiService } = appContext;
 
@@ -907,7 +905,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -1048,7 +1045,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		linkItem.toTaskID = linkItem.target;
 		linkItem.relationID = linkItem.id;
 		linkItem.relationType = linkItem.type;
-		const {$router} = appContext.globalProps;
 		try {
 			let res: any = null;
 			const apiClient = this.apiClient;
@@ -1066,7 +1062,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 		} catch (error: any) {
 			appContext.uiBuilder.toast(appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: error.detail ?? '',
 				life: 3000,
 			});
@@ -1099,7 +1094,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 	}
 	//甘特图日计划调用接口返回
 	async submitPlan(planItem: any, content: any) {
-		const {$router} = content.globalProps;
 
 		if (planItem.action) {
 			planItem.action = null;
@@ -1126,7 +1120,6 @@ export class ProjectScheduleLogic extends EntityLogic<CustomPage> {
 			}
 			content.appContext.uiBuilder.toast(content.appContext, {
 				severity: 'error',
-				title: 'dialog.title.error',
 				title: errorMessage ?? '',
 				life: 3000,
 			});

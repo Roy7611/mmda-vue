@@ -48,8 +48,8 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 				if (isSave === 1) {
 					context.uiBuilder.toast(context, {
 						severity: 'success',
-						title: context.globalProps.$t('dialog.success'),
-						message: context.globalProps.$t('success.beforeSave'),
+						title: context.t('dialog.success'),
+						message: context.t('success.beforeSave'),
 						life: 3000,
 					});
 					return true
@@ -93,16 +93,17 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 				this.field('taskPhase').lockIf(model => model.ganttLevel),
 
 				this.field('expectedStart').setCustomEditor((fld, ctx: UiContext<any>, props) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 
 					// console.log("ctx.model.mStart", ctx.model.mStart);
 					// console.log("sTime", sTime.value);
 					// console.log("edTime", edTime.value);
 
 					return ui.factory.datePicker({
-						minDate: new Date(ctx.model.mStart) ?? '',
-						maxDate: new Date(ctx.model.mEnd) ?? '',
-						modelValue: ctx.model.expectedStart ?? '',
+						minDate: new Date(ctx.model.mStart),
+						maxDate: new Date(ctx.model.mEnd),
+						value: ctx.model.expectedStart ? new Date(ctx.model.expectedStart) : null,
 						onUpdatePicker: (value: any) => {
 							if (!isNullOrUndefined(value)) {
 								ctx.model.expectedStart = DateUtils.toFormat(value, 'yyyy-MM-dd');
@@ -123,7 +124,8 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 				}),
 
 				this.field('expectedFinish').setCustomEditor((fld, ctx: UiContext<any>, props) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 
 
 					if (ctx.model.mStart) {
@@ -135,9 +137,9 @@ export class ProjectTaskLogic extends EntityLogic<ProjectTask> {
 
 
 					return ui.factory.datePicker({
-						minDate: new Date(ctx.model.mStart) ?? '',
-						maxDate: new Date(ctx.model.mEnd) ?? '',
-						modelValue: ctx.model.expectedFinish ?? '',
+						minDate: new Date(ctx.model.mStart),
+						maxDate: new Date(ctx.model.mEnd),
+						value: ctx.model.expectedFinish ? new Date(ctx.model.expectedFinish) : null,
 						onUpdatePicker: (value: any) => {
 							if (!isNullOrUndefined(value)) {
 								ctx.model.expectedFinish = DateUtils.toFormat(value, 'yyyy-MM-dd');

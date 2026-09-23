@@ -77,7 +77,7 @@ export class MaintenanceLogic extends EntityLogic<Maintenance> {
 				this.field('expectToFinish').lockIf((model) => model.status === 'DISPATCHED'),
 				this.field('priority').lockIf((model) => model.status === 'DISPATCHED'),
 				this.field('finishedTime').lockIf((model) => model.status === 'DISPATCHED').onValidate((value, model, ctx) => {
-					if (value && DateUtils.isBefore(new Date(value), new Date())) {
+					if (value && DateUtils.isBefore(new Date(value as string), new Date())) {
 						return ctx.t('maintenance.finishAfterNow');
 					}
 				}),
@@ -150,7 +150,7 @@ export class MaintenanceLogic extends EntityLogic<Maintenance> {
 			propsMapper: {}
 		}).then(item => {
 			if (item) {
-				context.addSubGroupItem('items', item)
+				context.addSubGroupItem('items', item as MaintenanceItem)
 			}
 		})
 	}
@@ -282,14 +282,14 @@ export class MaintenanceItemLogic extends SubEntityLogic<MaintenanceItem, Mainte
 		if (fields.length == 0) {
 			fields.push(
 				this.field('equipID')
-					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED'),
+					.lockIf((model, ctx) => (ctx.root.model as Maintenance)?.refName?.includes("Tool") || (ctx.root.model as Maintenance)?.status === 'DISPATCHED'),
 				this.field('transReasonID')
-					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.status === 'DISPATCHED')
+					.lockIf((model, ctx) => (ctx.root.model as Maintenance)?.refName?.includes("Tool") || (ctx.root.model as Maintenance)?.status === 'DISPATCHED')
 					.refWhere((model, ctx) => {
-					const __p = ((context, model, fld) => ({
+					const __p = ({
 						status: `IN ${UsageStatus.USED}`,
 						equipType: model.equip ? model.equip.equipType : ''
-					}))(ctx as any, model as any, undefined as any);
+					});
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -302,9 +302,9 @@ export class MaintenanceItemLogic extends SubEntityLogic<MaintenanceItem, Mainte
 						.join(" AND ");
 				}),
 				this.field('toStatus')
-					.lockIf((model, ctx) => ctx.root.model?.refName?.includes("Tool") || ctx.root.model?.refName?.includes("Equipment|repair") || ctx.root.model?.status === 'DISPATCHED'),
+					.lockIf((model, ctx) => (ctx.root.model as Maintenance)?.refName?.includes("Tool") || (ctx.root.model as Maintenance)?.refName?.includes("Equipment|repair") || (ctx.root.model as Maintenance)?.status === 'DISPATCHED'),
 				this.field('toSiteID')
-					.lockIf((model, ctx) => ctx.root.model?.status === 'DISPATCHED'),
+					.lockIf((model, ctx) => (ctx.root.model as Maintenance)?.status === 'DISPATCHED'),
 				this.field('hours').onChange(() => rollupMaintenanceCost(this.master)),
 				this.field('cost').onChange(() => rollupMaintenanceCost(this.master)),
 			);

@@ -1053,7 +1053,7 @@ export function setupGanttManualResize(
 		const gridScale = container.querySelector('.gantt_grid_scale');
 		if (gridScale) {
 			const headerCells = gridScale.querySelectorAll('.gantt_grid_head_cell');
-			for (const cell of headerCells) {
+			for (const cell of Array.from(headerCells)) {
 				const el = cell as HTMLElement;
 				const columnName = el.dataset.columnName;
 				if (!columnName) {

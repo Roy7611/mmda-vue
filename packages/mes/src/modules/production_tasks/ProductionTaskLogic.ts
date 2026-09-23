@@ -28,9 +28,8 @@ const planNoData = {
  * 获取所有的 生产计划 plan
  */
 const getAllplan = async (context: UiContext, value?: any) => {
-	await context.logic!.getAllOf<Record<string, unknown>>('ProductionPlans', {
-		queryParams: {
-			pageNo: planNoData.planNoPager.pageNo,
+	await context.logic!.getAllOf<Record<string, unknown>>('ProductionPlans', { pager: { pageNo: planNoData.planNoPager.pageNo,
+			pageSize: planNoData.planNoPager.pageSize }, queryParams: { pageNo: planNoData.planNoPager.pageNo,
 			pageSize: planNoData.planNoPager.pageSize,
 			searchWord: value,
 		},
@@ -77,7 +76,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 				this.field('lineID'),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomCellRenderer((fld, ctx) => {
-					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-' });
+					return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as ProductionTask).productCategory ? (ctx.model as ProductionTask).productCategory.categoryName : '-' });
 				})
 			);
 
@@ -116,7 +115,8 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 				searchParam: 'planNo',
 				valueFn: (v: any) => v.planNo,
 				renderer: (ctx: UiContext & any, csf) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 					// if (hrefData.value.projectID) {
 					// 	this.getOneProjects(ctx, hrefData.value.projectID, csf.searchVal.value);
 					// }
@@ -229,7 +229,7 @@ export class ProductionTaskLogic extends EntityLogic<ProductionTask> {
 				this.field('endOpCode').setCustomRenderer((fld, ctx: UiContext<ProductionTask>, props) => ctx.uiBuilder.factory.textSpan({ text: MetaModel.getRefProp(ctx.model, 'endOpCode') })),
 				//当前没有制品类别模块，先以普通文本形式显示
 				this.field('productCategoryID').setCustomRenderer((fld, ctx: UiContext<any>, props) => {
-					return ctx.uiBuilder.factory.textSpan({ text: ctx.model.productCategory ? ctx.model.productCategory.categoryName : '-' });
+					return ctx.uiBuilder.factory.textSpan({ text: (ctx.model as ProductionTask).productCategory ? (ctx.model as ProductionTask).productCategory.categoryName : '-' });
 				})
 			)
 			/**

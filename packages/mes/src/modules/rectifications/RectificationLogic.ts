@@ -67,7 +67,7 @@ export class RectificationLogic extends EntityLogic<Rectification> {
 		super(defineRectification, init);
 		this.addRelativeLogic<RectificationItem>('items', (master) => new RectificationItemLogic(this, master));
 		this.beforeSave = (context: UiContext, model: Rectification, action: EntityAction) => {
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			//同时有开始时间，结束时间
 			if (model.sentDate && model.expectedToComplete) {
 				if (compareTime(model.sentDate, model.expectedToComplete) == 1) {
@@ -113,7 +113,7 @@ export class RectificationLogic extends EntityLogic<Rectification> {
 					return {
 						status: `IN ${UserStatus.ACTIVATED}`
 					}
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -258,7 +258,8 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 		super(defineRectificationItem, parent, master, 'items')
 	}
 	async getData(ctx: any, id: any, value?: any) {
-		const { $ui: ui, $t: t } = ctx.globalProps;
+		const ui = ctx.uiBuilder;
+		const t = ctx.t.bind(ctx);
 		const res = await this.apiClient.getAll({
 			repository: 'ProductionTasks',
 			path: `${id}/getAllAncestorProductionTask`,
@@ -285,7 +286,7 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 		})
 	}
 	async getDefectData(ctx: any, value?: any) {
-		const res = await ctx.logic!.getAllOf<Record<string, unknown>>('QualityDefects', {
+		const res = await ctx.logic!.getAllOf('QualityDefects', {
 			queryParams: {
 				pageSize: defectSearchParam.pager.pageSize,
 				pageNo: defectSearchParam.pager.pageNo,
@@ -309,13 +310,12 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 				this.field('producedQuantity').lockIf(t => !isRefNone(t.refID)),
 				this.field('unit').lockIf(t => !isRefNone(t.refID)),
 				this.field('reworkTaskID').setCustomEditor((fld, ctx: UiContext<any>, props) => {
-					const { $ui: ui, $t: t } = ctx.globalProps;
+					const ui = ctx.uiBuilder;
+					const t = ctx.t.bind(ctx);
 					const { model } = ctx; const metaUiService = ctx.logic!.metaUiService
 					const id = !isRefNone(model.refTaskID) ? model.refTaskID : 0
 					return ui.factory.searchRelative({
 						role: `reworkTaskID-search-for-relative`,
-						name: 'reworkTaskID-search-for-relative',
-						id: 'reworkTaskID-search-for-relative',
 						modelValue: !isNullOrUndefined(model.reworkTask) ? model.reworkTask.productName : model.reworkTaskID,
 						dataKey: 'taskID',
 						optionLabel: (v: any) => v.productName,
@@ -323,8 +323,8 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 						placeholder: t('action.select'),
 						toSearch: async () => {
 							await this.getData(ctx, id, '')
-							const { metaUi } = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
-							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaUi.getListedFields()).build()
+							const metaUi = await ctx.logic!.loadMetadata('ProductionTasks', 'mes', true)
+							const pickMeta = MetaUiBuilder.create('ReworkTask').fields(metaUi?.getListedFields() ?? []).build()
 							let data: any = null
 							const result = await ctx.uiBuilder.dialog(
 								ctx.uiBuilder.table(pickMeta, {
@@ -360,12 +360,11 @@ export class RectificationItemLogic extends SubEntityLogic<RectificationItem, Re
 				}),
 				this.field('defectiveDesc')
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
-						const { $ui: ui, $t: t } = ctx.globalProps;
+						const ui = ctx.uiBuilder;
+						const t = ctx.t.bind(ctx);
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchRelative({
 							role: `defectiveDesc-search-for-relative`,
-							name: 'defectiveDesc-search-for-relative',
-							id: 'defectiveDesc-search-for-relative',
 							modelValue: model.defectiveDesc,
 							dataKey: 'defectID',
 							optionLabel: 'defectDesc',

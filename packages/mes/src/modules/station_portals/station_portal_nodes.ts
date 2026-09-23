@@ -30,16 +30,16 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.quantity,
-						onInput: (e: any) => (context.model.quantity = e.value),
+						value: context.model.quantity,
+						onChange: (val: any) => (context.model.quantity = val),
 					}),
 			},
 		),
 		factory.formField?.({
 			label: context.t('stationlabel.Batchnumber'),
 			placeholder: context.t('action.input'),
-			modelValue: context.model.lotNo,
-			onUpdate: (val: string) => (context.model.lotNo = val),
+			value: context.model.lotNo,
+			onChange: (val: any) => (context.model.lotNo = val),
 		}),
 		factory.formField?.(
 			{
@@ -50,9 +50,9 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.goodQuantity,
+						value: context.model.goodQuantity,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => (context.model.goodQuantity = val),
+						onChange: (val: any) => (context.model.goodQuantity = val),
 					}),
 			},
 		),
@@ -65,9 +65,9 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.aucQuantity,
+						value: context.model.aucQuantity,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => (context.model.aucQuantity = val),
+						onChange: (val: any) => (context.model.aucQuantity = val),
 					}),
 			},
 		),
@@ -80,9 +80,9 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.defectiveQuantity,
+						value: context.model.defectiveQuantity,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => (context.model.defectiveQuantity = val),
+						onChange: (val: any) => (context.model.defectiveQuantity = val),
 					}),
 			},
 		),
@@ -95,9 +95,9 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.ngQuantity,
+						value: context.model.ngQuantity,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => (context.model.ngQuantity = val),
+						onChange: (val: any) => (context.model.ngQuantity = val),
 					}),
 			},
 		),
@@ -110,9 +110,9 @@ export function productionLotReportNode(context: UiContext<any>) {
 					factory.numberInput?.({
 						min: 0,
 						maxFractionDigits: 3,
-						modelValue: context.model.scrapQuantity,
+						value: context.model.scrapQuantity,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => (context.model.scrapQuantity = val),
+						onChange: (val: any) => (context.model.scrapQuantity = val),
 					}),
 			},
 		),
@@ -126,15 +126,14 @@ export function productionPlateReportNode(context: UiContext<any>) {
 			{
 				label: context.t('stationlabel.outputQuantity'),
 				required: true,
-				isEdit: true,
 			},
 			{
 				default: () =>
 					factory.numberInput?.({
-						modelValue: context.model.quantity,
+						value: context.model.quantity,
 						min: 0,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => {
+						onChange: (val: any) => {
 							context.model.quantity = val
 							const perPack = Number(context.model.packQuantity) || 0
 							if (perPack > 0) context.model.packQty = Math.ceil((Number(val) || 0) / perPack)
@@ -149,10 +148,10 @@ export function productionPlateReportNode(context: UiContext<any>) {
 			{
 				default: () =>
 					factory.numberInput?.({
-						modelValue: context.model.packQty,
+						value: context.model.packQty,
 						min: 0,
 						placeholder: context.t('action.input'),
-						onUpdate: (val: number) => {
+						onChange: (val: any) => {
 							context.model.packQty = val
 							const perPack = Number(context.model.packQuantity) || 0
 							context.model.quantity = (Number(val) || 0) * perPack
@@ -163,13 +162,13 @@ export function productionPlateReportNode(context: UiContext<any>) {
 		factory.formField?.({
 			label: context.t('stationlabel.Batchnumber'),
 			placeholder: context.t('action.input'),
-			modelValue: context.model.lotNo,
-			onUpdate: (val: string) => (context.model.lotNo = val),
+			value: context.model.lotNo,
+			onChange: (val: any) => (context.model.lotNo = val),
 		}),
 		factory.formField?.(
 			{
 				label: context.t('stationlabel.Qualityinspectionresults'),
-				modelValue: context.model.qcResult,
+				value: context.model.qcResult,
 			},
 			{
 				default: () =>

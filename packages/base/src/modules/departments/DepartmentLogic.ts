@@ -41,7 +41,7 @@ export class DepartmentLogic extends EntityLogic<Department> {
       action: EntityAction,
     ) => {
       const { tel } = model;
-      const { $t: t } = context.globalProps;
+      const t = context.t.bind(context);
 
       // 检查是否为无效的单一数字（如"0"）
       if (
@@ -82,12 +82,12 @@ export class DepartmentLogic extends EntityLogic<Department> {
     if (fields.length == 0) {
       fields.push(
         this.field("parentDeptID").refWhere((model, ctx) => {
-					const __p = ((context, model) => ({
+					const __p = ({
           status: `IN ${DepartmentStatus.RUNNING}`,
-        }))(ctx as any, model as any, undefined as any);
+        });
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
+						.filter(([, v]) => String(v) !== "" && v != null)
 						.map(([k, v]) => {
 							const s = String(v);
 							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;
@@ -97,12 +97,12 @@ export class DepartmentLogic extends EntityLogic<Department> {
 						.join(" AND ");
 				}),
         this.field("leaderID").refWhere((model, ctx) => {
-					const __p = ((context, model) => ({
+					const __p = ({
           status: `NOT IN ${EmployeeStatus.LEAVE}`,
-        }))(ctx as any, model as any, undefined as any);
+        });
 					if (!__p) return "";
 					return Object.entries(__p)
-						.filter(([, v]) => v !== "" && v != null)
+						.filter(([, v]) => String(v) !== "" && v != null)
 						.map(([k, v]) => {
 							const s = String(v);
 							if (/^(IS |NOT |IN |LIKE )/i.test(s.trim())) return `${k} ${s}`;

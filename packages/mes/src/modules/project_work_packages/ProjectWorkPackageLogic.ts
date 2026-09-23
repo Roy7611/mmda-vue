@@ -51,9 +51,8 @@ const projectsData = {
  * 获取所有的 Projects
  */
 const getAllProjects = async (context: UiContext, value?: any) => {
-	await context.logic!.getAllOf<Record<string, unknown>>('Projects', {
-		queryParams: {
-			pageNo: projectsData.projectsPager.pageNo,
+	await context.logic!.getAllOf<Record<string, unknown>>('Projects', { pager: { pageNo: projectsData.projectsPager.pageNo,
+			pageSize: projectsData.projectsPager.pageSize }, queryParams: { pageNo: projectsData.projectsPager.pageNo,
 			pageSize: projectsData.projectsPager.pageSize,
 			searchWord: value,
 		},
@@ -94,7 +93,7 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal,
-						href: ctx.model.taskID ? `/MES/ProjectWorkPackages/${ctx.model.taskID}` : undefined,
+						href: (ctx.model as ProjectWorkPackage).taskID ? `/MES/ProjectWorkPackages/${(ctx.model as ProjectWorkPackage).taskID}` : undefined,
 						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 					});
 				}),
@@ -146,9 +145,8 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 
 	getOneProjects = async (context: UiContext, value?: any, csf?: any) => {
 		if (hrefData.value.projectID) {
-			await context.logic!.getAllOf<Record<string, unknown>>('Projects', {
-				queryParams: {
-					pageNo: projectsData.projectsPager.pageNo,
+			await context.logic!.getAllOf<Record<string, unknown>>('Projects', { pager: { pageNo: projectsData.projectsPager.pageNo,
+					pageSize: projectsData.projectsPager.pageSize }, queryParams: { pageNo: projectsData.projectsPager.pageNo,
 					pageSize: projectsData.projectsPager.pageSize,
 					projectID: value ?? null,
 				},
@@ -189,7 +187,8 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 					searchParam: 'taskPhase',
 					valueFn: (value: any) => `IN ${value.join(',')}`,
 					renderer: (ctx: UiContext & any, csf) => {
-						const { $ui: ui, $t: t } = ctx.globalProps;
+						const ui = ctx.uiBuilder;
+						const t = ctx.t.bind(ctx);
 						this.getTaskPhase(ctx);
 						const options = isString(taskPhaseOption.value) ? JSON.parse(taskPhaseOption.value) : [];
 						if (hrefData.value.taskPhase) {
@@ -221,7 +220,8 @@ export class ProjectWorkPackageLogic extends EntityLogic<ProjectWorkPackage> {
 					searchParam: 'projectID',
 					valueFn: (v: any) => (!isRefNone(v) ? v.projectID : ''),
 					renderer: (ctx: UiContext & any, csf) => {
-						const { $ui: ui, $t: t } = ctx.globalProps;
+						const ui = ctx.uiBuilder;
+						const t = ctx.t.bind(ctx);
 						// if (hrefData.value.projectID) {
 						// 	this.getOneProjects(ctx, hrefData.value.projectID, csf.searchVal.value);
 						// }
@@ -343,7 +343,7 @@ export class ProjectWorkPackageItemLogic extends SubEntityLogic<ProjectWorkPacka
 					const fldVal = ctx.getFieldValue(fld);
 					return ctx.uiBuilder.factory.link({
 						text: fldVal,
-						href: ctx.model.refID ? `/MES/${ctx.model.refName}s/${ctx.model.refID}` : undefined,
+						href: (ctx.model as ProjectWorkPackage).refID ? `/MES/${(ctx.model as ProjectWorkPackage).refName}s/${(ctx.model as ProjectWorkPackage).refID}` : undefined,
 						target: '_blank',
 						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 					});

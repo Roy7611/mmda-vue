@@ -8,7 +8,7 @@
 import type { MetaUiService, Module, MetaUiField, UiContext, MetaUiGroup, UiProps } from '@mmda/core';
 import { defaultPager, isArray, isRefNone, MetaModel, EntityState, FieldFilter } from '@mmda/core';
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
-import { toolkitToolListNode } from './toolkit_tool_node';
+import { toolkitToolListNode, type ToolkitToolNodeProps } from './toolkit_tool_node';
 import { type Toolkit, defineToolkit } from '@/models/Toolkit';
 import { type Tool, defineTool } from '@/models/Tool';
 import { ToolStatus } from '@/enums/ToolStatus'
@@ -34,7 +34,7 @@ export class ToolkitLogic extends EntityLogic<Toolkit> {
 	}
 
 
-	customToolNode(group: MetaUiGroup, context: UiContext<any>, props: UiProps): any {
+	customToolNode(group: MetaUiGroup, context: UiContext<any>, props: ToolkitToolNodeProps): any {
 		return toolkitToolListNode(group, context, props, this.currentDom.value?.id, this.targetDom.value?.id);
 	}
 
@@ -74,7 +74,6 @@ export class ToolkitLogic extends EntityLogic<Toolkit> {
 					.setCustomEditor((group, ctx: UiContext<any>, props) => {
 						return this.customToolNode(group, ctx, {
 							...props,
-							view: ctx.view,
 							onDragstart: (e: DragEvent, context: UiContext<any>, item: Tool) => {
 								e.dataTransfer.effectAllowed = 'move'; // 拖动样式改为 "move"
 								this.currentDom.value = e.currentTarget;
@@ -144,8 +143,8 @@ export class ToolkitLogic extends EntityLogic<Toolkit> {
 					const sameArr = selections.filter((item) => target.tools.filter((tool) => !MetaModel.deleted(tool)).findIndex((tool) => item.toolID === tool.toolID) != -1);
 					if (sameArr.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
-						message: context.globalProps.$t('invalid.requiredTools'),
+						title: context.t('dialog.title.error'),
+						message: context.t('invalid.requiredTools'),
 						life: 3000
 					})
 
@@ -186,7 +185,7 @@ export class ToolkitLogic extends EntityLogic<Toolkit> {
 		if (groups.length == 0) {
 			groups.push(
 				this.group<Tool>('tools').setCustomRenderer((group, ctx: UiContext<any>, props) => {
-					return this.customToolNode(group, ctx, { view: ctx.view });
+					return this.customToolNode(group, ctx, {});
 				})
 			);
 

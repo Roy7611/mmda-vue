@@ -68,34 +68,36 @@ export class UnitLogic extends EntityLogic<Unit> {
       fields.push(
         this.field("roundMode").setCustomEditor(
           (fld, ctx: UiContext<Unit>, props) => {
-            const { $ui: ui, $t: t } = ctx.globalProps;
+            const ui = ctx.uiBuilder;
+            const t = ctx.t.bind(ctx);
             const fldRef = fld.reference;
             return ui.factory.dropDownList({
-              value: ctx.model.roundMode,
+              value: (ctx.model as Unit).roundMode,
               options: (fldRef.refOptions ?? []).map((option: any) => ({
                 value: fldRef.valueOf(option),
                 label: fldRef.labelOf(option),
               })),
               onChange: (value) => {
-                ctx.model.roundMode = value as any;
-                MetaModel.modify(ctx.model);
+                (ctx.model as Unit).roundMode = value as any;
+                MetaModel.modify(ctx.model as Unit);
               },
             });
           },
         ),
         this.field("unitType").setCustomEditor(
           (fld, ctx: UiContext<Unit>, props) => {
-            const { $ui: ui, $t: t } = ctx.globalProps;
+            const ui = ctx.uiBuilder;
+            const t = ctx.t.bind(ctx);
             const fldRef = fld.reference;
             return ui.factory.dropDownList({
-              value: ctx.model.unitType,
+              value: (ctx.model as Unit).unitType,
               options: (fldRef.refOptions ?? []).map((option: any) => ({
                 value: fldRef.valueOf(option),
                 label: fldRef.labelOf(option),
               })),
               onChange: (value) => {
-                ctx.model.unitType = value as any;
-                MetaModel.modify(ctx.model);
+                (ctx.model as Unit).unitType = value as any;
+                MetaModel.modify(ctx.model as Unit);
               },
             });
           },

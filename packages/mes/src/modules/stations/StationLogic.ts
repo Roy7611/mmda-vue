@@ -33,7 +33,7 @@ export class StationLogic extends EntityLogic<Station> {
 					.refWhere((model, ctx) => {
 					const __p = (() => {
 						return { status: 'USED' };
-					})(ctx as any, model as any, undefined as any);
+					})();
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -70,7 +70,7 @@ export class StationLogic extends EntityLogic<Station> {
 				this.field('lineID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED' };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -117,15 +117,15 @@ export class StationLogic extends EntityLogic<Station> {
 	}
 	// 添加工序
 	Addopcode(context: UiContext<Station>, target: Station) {
-		const { $ui: ui } = context.globalProps;
+		const ui = context.uiBuilder;
 		console.log('Addopcode', context.model, target);
 		// 1. 判断是否已选产线
 		if (isLineIDEmpty(target)) {
 			console.log('请先选择产线', context.model, target);
-			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.selectLineFirst'), type: 'warn', life: 3000 });
+			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.selectLineFirst'), severity: 'warning', life: 3000 });
 		}
 		if (target.multiOp == false) {
-			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.multiOperationRequired'), type: 'warn', life: 3000 });
+			return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.multiOperationRequired'), severity: 'warning', life: 3000 });
 		}
 		// 2. 选择工序时加 lineID 过滤
 		context
@@ -145,10 +145,10 @@ export class StationLogic extends EntityLogic<Station> {
 				if (Array.isArray(selection)) {
 					// 添加相同的工序显示提示信息
 					const selectOpcodes = selection.map(s => s.opCode);
-					const selectedOpcodes = context.model.operations.map((op: any) => op.opCode);
+					const selectedOpcodes = (context.model as Station).operations.map((op: any) => op.opCode);
 					const hasIntersection = selectOpcodes.some(opCode => selectedOpcodes.includes(opCode));
 					if (hasIntersection) {
-						return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.duplicateOperation'), type: 'warn', life: 3000 });
+						return ui.toast(context, { title: context.t('dialog.title.warning'), message: context.t('invalid.duplicateOperation'), severity: 'warning', life: 3000 });
 					}
 					context.addSubGroupItems<StationOperation>({
 						target,

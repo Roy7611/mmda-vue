@@ -243,7 +243,6 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
                 status: FieldFilter.in(UsageStatus.USED),
             },
         }, {
-            repository: 'Sites',
             service: 'mes',
         }).then((res: any) => {
             searchParamSite.pager = res.pagination
@@ -253,9 +252,8 @@ export class QualityKanbanLogic extends EntityLogic<CustomPage> {
 
     /** 获取全部制品类别（searchRelative 弹窗内查询），来源 base 模块 MaterialCats */
     async getAllCategory(context: UiContext, value?: any) {
-        await this.getAllOf<Record<string, unknown>>('MaterialCats', {
-            queryParams: {
-                pageSize: searchParamCategory.pager.pageSize,
+        await this.getAllOf<Record<string, unknown>>('MaterialCats', { pager: { pageSize: searchParamCategory.pager.pageSize,
+                pageNo: searchParamCategory.pager.pageNo }, queryParams: { pageSize: searchParamCategory.pager.pageSize,
                 pageNo: searchParamCategory.pager.pageNo,
                 sort: '',
                 searchWord: value,

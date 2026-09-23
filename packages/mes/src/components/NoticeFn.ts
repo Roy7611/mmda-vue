@@ -42,7 +42,7 @@ export const NoticeFn = async (
 	context: UiContext & Required<Pick<UiContext, 'reload'>>,
 	props?: PropsData,
 ): Promise<boolean> => {
-	const {$t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	props.data = notice.data;
 	try {
 		context.uiBuilder.dialog(

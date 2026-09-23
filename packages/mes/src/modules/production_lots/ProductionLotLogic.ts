@@ -25,7 +25,7 @@ export class ProductionLotLogic extends EntityLogic<ProductionLot> {
 
 		this.beforeSave = (context: UiContext<ProductionLot>, model: ProductionLot, action: EntityAction) => {
 			const { tel, email, telPrefix } = model
-			const { $t: t } = context.globalProps
+			const t = context.t.bind(context);
 			if (!model.plateQty || model.plateQty<=0 ) return Promise.reject(Error(t('auth.plateQtyError')));
 			return Promise.resolve(true);
 		};
@@ -43,13 +43,6 @@ export class ProductionLotLogic extends EntityLogic<ProductionLot> {
 	beforeEdit() {
 		const { fields, groups, customActions } = super.beforeEdit();
 
-		//判断页面是编辑
-		if (this.router.currentRoute.value.params.id) {
-			this.isEdit = true;
-		} else {
-			this.isEdit = false;
-		}
-
 		if (fields.length == 0) {
 			fields.push(
 				//生产任务变动
@@ -62,7 +55,7 @@ export class ProductionLotLogic extends EntityLogic<ProductionLot> {
 							//filter: filters,
 							status: 'WORKING',
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

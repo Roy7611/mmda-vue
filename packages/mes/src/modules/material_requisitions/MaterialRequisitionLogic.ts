@@ -60,7 +60,7 @@ export class MaterialRequisitionLogic extends EntityLogic<MaterialRequisition> {
 				this.field('totalDlvQuantity').hideIf(() => true),
 				// 生产任务筛选（工程项目）
 				this.field('taskID').refWhere((model, ctx) => {
-					const __p = ((context, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					const __p = ({ projectID: model.projectID ?? '' });
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -205,7 +205,7 @@ export class MaterialRequisitionLogic extends EntityLogic<MaterialRequisition> {
 						index === arr.findIndex((t) => t.materialID === item.materialID)
 					);
 					// 状态变为已修改
-					MetaModel.modify(target.items)
+					target.items.forEach((item: any) => MetaModel.modify(item))
 				}
 			})
 			.catch((error: any) => {

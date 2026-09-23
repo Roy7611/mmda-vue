@@ -84,7 +84,7 @@ const beforeshare = async (context: UiContext<Doc>, model: Doc, action: EntityAc
  * @returns
  */
 const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $t} = context.globalProps;
+	const t = context.t.bind(context);
 	return context
 		.select<User>({
 			service: 'base',
@@ -105,7 +105,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
 					ownerDeptID: selection.deptID,
 				};
 				action.param = submitBody;
-				context.uiBuilder.toast(context, { severity: 'success', title: $t('dialog.title.prompt'), message: $t('success.operationSuccessful'), life: 3000 });
+				context.uiBuilder.toast(context, { severity: 'success', title: t('dialog.title.prompt'), message: t('success.operationSuccessful'), life: 3000 });
 				return true;
 			}
 		});
@@ -118,7 +118,7 @@ const beforetransfer = (context: UiContext<Doc>, model: Doc, action: EntityActio
  * @returns
  */
 const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: EntityAction) => {
-	const { $t} = context.globalProps;
+	const t = context.t.bind(context);
 	// 列表页可能未加载 shares，需补拉文档详情
 	let shares = model.shares;
 	if (!shares?.length) {
@@ -133,8 +133,8 @@ const beforereclaim = async (context: UiContext<Doc>, model: Doc, action: Entity
 	if (!shareeIDs.length) {
 		context.uiBuilder.toast(context, {
 			severity: 'info',
-			title: $t('dialog.title.prompt'),
-			message: $t('doc.noShareRecords'),
+			title: t('dialog.title.prompt'),
+			message: t('doc.noShareRecords'),
 			life: 3000,
 		});
 		return false;
@@ -249,7 +249,7 @@ export class DocLogic extends EntityLogic<Doc> {
 						style: { color: '#409eff', width: '100%', overflow: 'hidden' },
 						onClick: async () => {
 							try {
-								await ctx.logic!.loadOf<Doc>('Docs', ctx.model.docID, { service: 'mes' })
+								await ctx.logic!.loadOf<Doc>('Docs', (ctx.model as Doc).docID, { service: 'mes' })
 								if (fileExt == 'xlsx' || fileExt == 'docx' || fileExt == 'pptx') {
 									window.open(`/${this.apiClient.config.service.toUpperCase()}/FileView?fileUrl=${encodeUriAndFix(fldVal)}`, '_blank');
 								} else if (fileExt == 'pdf') {

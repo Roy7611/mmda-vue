@@ -9,7 +9,6 @@ import type {EntityLogicInit} from '@mmda/core'
 import {EntityLogic} from '@mmda/core'
 import { UsageStatus } from '@mmda/base/src/enums/UsageStatus';
 import { type CustomPage, defineCustomPage } from '@/models/CustomPage'
-import type { HomeKpi, Worker, Equipment, Material, ProductionChartData, SafetyAlert, EquipmentAlarm, TodaySummary, QcStats, EquipmentOverview, PendingNotification } from './types'
 
 const tableDataSite = { value: [] }
 const tableDataKeySite = { value: 'id' }
@@ -238,7 +237,6 @@ export class HomeLogic extends EntityLogic<CustomPage> {
         status: FieldFilter.in(UsageStatus.USED),
       },
     }, {
-      repository: 'Sites',
       service: 'mes',
     }).then((res: any) => {
       searchParamSite.pager = res.pagination

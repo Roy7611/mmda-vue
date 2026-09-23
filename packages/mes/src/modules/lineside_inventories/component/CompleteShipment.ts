@@ -7,10 +7,9 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { defineComponent, type SlotsType, inject, ref, type Ref, watch, reactive, h, onBeforeMount, getCurrentInstance, type PropType, VNode, computed, toRaw } from 'vue';
-import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, } from "@mmda/core";
-import { isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, toPrecise, thousandDigitFormat } from '@mmda/core';
-import {type UiSearchField} from '@mmda/core'
-import { VuiContext, type UiCustomSearchField, type CustomColumn } from '@mmda/vui'
+import type { EntitySearchParam, Pager, Pagination, PagedList, MetaUi, UiSearchRow, } from "@mmda/core";
+import { FieldFilter, isRefNone, isFunction, isArray, isObject, debounce, MetaModel, emptyPagedList, toPrecise, thousandDigitFormat, defaultPager } from '@mmda/core';
+import { VuiContext, type VuiCustomSearchField, type CustomColumn } from '@mmda/vui'
 import { defaultSummaryMethod } from '@/compat/primevue_legacy'
 import { useRouter, useRoute } from 'vue-router';
 import { MES_KEY } from '@/keys';
@@ -25,16 +24,13 @@ const CompleteShipment = defineComponent({
         context: { type: Object as PropType<VuiContext<any>>, default: null },
     },
     setup(props, ctx) {
-        const { uiBuilder, globalProps, apiClient } = props.context;
-        const { $t } = globalProps;
+        const { uiBuilder, apiClient } = props.context;
+        const t = props.context.t.bind(props.context);
         const mes = inject(MES_KEY);
-        const { meta: metaUiService, di, i18n, ui } = mes;
+        const { meta: metaUiService, di, ui } = mes;
         const router = useRouter();
         const route = useRoute();
-        const bomLogic = di.inject<BomLogic>('BomLogic', {
-            ctor: () => BomLogicCtor(metaUiService, router),
-            options: { lifetime: 'scoped' }
-        })
+        const bomLogic = BomLogicCtor(metaUiService, router);
         const bomCtx = new VuiContext<any>({
             model: emptyPagedList<Bom>(),
             metaUi: bomLogic.metaUi,
@@ -85,23 +81,18 @@ const CompleteShipment = defineComponent({
         onBeforeMount(async () => {
             panelLoading.value = true;
             await bomCtx.init().then(() => {
-                if (bomCtx.searchFields) {
-                    const revokeSeachFileds = ['status', 'bomUsage',]; // 在原始搜索条件中移除的搜索条件
-                    bomCtx.searchFields = bomCtx.searchFields.filter((sf: UiSearchField) => !revokeSeachFileds.includes(sf.field.fieldName))
-                    bomCtx.searchFields.forEach((sf: UiSearchField) => {
-                        // 默认值取自线边库存的搜索参数
-                        if (sf.field.fieldName === 'projectID') {
-                            const defaultValue = props.context.customSearchFields.filter((sf: UiCustomSearchField) => sf.searchParam === 'projectID').map((sf: UiCustomSearchField) => sf.searchVal.value)[0]
-                            if (isObject(defaultValue)) {
-                                sf.searchVal.value = defaultValue
-                                const fldOptions = bomCtx.getFieldSearchOptions(sf.field)
-                                // fldOptions.cachedSelectOption = defaultValue
-                                fldOptions.selectOptions.push(defaultValue)
-                                sf.searchWord = defaultValue
-                                sf.valueFn = (value) => sf.field.reference.valueOf(value)
-                            }
-                        }
-                    })
+                const revokeSeachFileds = ['status', 'bomUsage',]; // 在原始搜索条件中移除的搜索条件
+                bomCtx.searchRows = bomCtx.searchRows.filter(
+                    (row: UiSearchRow) => !revokeSeachFileds.includes(row.fieldName),
+                )
+                // 默认值取自线边库存的搜索参数
+                const projectRow = bomCtx.searchRows.find((row: UiSearchRow) => row.fieldName === 'projectID')
+                const projectField = bomCtx.metaUi?.getField('projectID')
+                const defaultValue = props.context.customSearchFields.filter((sf: VuiCustomSearchField) => sf.searchParam === 'projectID').map((sf: VuiCustomSearchField) => sf.searchVal.value)[0]
+                if (projectRow && projectField && isObject(defaultValue)) {
+                    projectRow.filter = FieldFilter.leaf(projectField, 'IN', { values: [defaultValue] })
+                    const fldOptions = bomCtx.getFieldSearchOptions(projectField)
+                    fldOptions.selectOptions.push(defaultValue)
                 }
             })
         })
@@ -141,7 +132,7 @@ const CompleteShipment = defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     title: bomCtx.t('dialog.title.error'),
-                    message: $t('linesideInventory.selectKittingData'),
+                    message: t('linesideInventory.selectKittingData'),
                     life: 3000
                 })
             }
@@ -241,7 +232,7 @@ const CompleteShipment = defineComponent({
                                         `(${item.productCode})`
                                     ]),
                                     h('div', { class: 'text-sm text-gray-500 mt-1' }, [
-                                        $t('linesideInventory.projectName', { it: item?.project?.projectName ?? '-' })
+                                        t('linesideInventory.projectName', { it: item?.project?.projectName ?? '-' })
                                     ]),
                                 ]),
 
@@ -251,10 +242,10 @@ const CompleteShipment = defineComponent({
                                         // 数量输入框
                                         uiBuilder.factory.numberInput({
                                             //通过 bomID 找到对应的数据
-                                            modelValue: completeSetOfData.value.find((sd: any) => sd.refID === item.bomID)?.refName || 0,
+                                            value: completeSetOfData.value.find((sd: any) => sd.refID === item.bomID)?.refName as number || 0,
                                             min: 0,
                                             class: 'w-32',
-                                            onUpdate: (val: number) => {
+                                            onChange: (val: any) => {
                                                 const dataIndex = completeSetOfData.value.findIndex((sd: any) => sd.refID === item.bomID);
                                                 if (val == completeSetOfData.value[dataIndex].refName) return;
                                                 if (dataIndex !== -1) {
@@ -275,9 +266,9 @@ const CompleteShipment = defineComponent({
                                                 id: `select-${item.bomID}`,
                                                 name: `select-${item.bomID}`,
                                                 icon: 'pi pi-plus',
-                                                label: $t('action.select'),
-                                                severity: 'secondary',
-                                                outlined: true,
+                                                label: t('action.select'),
+                                                colorRole: 'secondary',
+                                                buttonType: 'outlined',
                                                 class: 'hover:bg-gray-50 transition-colors duration-200 rounded-lg',
                                                 onAction: () => {
                                                     selectedData.value.push(item.bomID);
@@ -302,12 +293,12 @@ const CompleteShipment = defineComponent({
         const kittingResultColumns: CustomColumn[] = [
             {
                 field: 'materialCode',
-                header: $t('view.materialCode'),
+                header: t('view.materialCode'),
                 width: 200,
             },
             {
                 field: 'materialName',
-                header: $t('view.materialName'),
+                header: t('view.materialName'),
                 width: 150,
             },
             // {
@@ -318,7 +309,7 @@ const CompleteShipment = defineComponent({
             // },
             {
                 field: 'unit',
-                header: $t('inventory.unit'),
+                header: t('inventory.unit'),
                 width: 50,
             },
             // {
@@ -329,19 +320,19 @@ const CompleteShipment = defineComponent({
             // },
             {
                 field: 'kitQty',
-                header: $t('linesideInventory.kittingQuantity'),
+                header: t('linesideInventory.kittingQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
             {
                 field: 'lessQty',
-                header: $t('linesideInventory.missingQuantity'),
+                header: t('linesideInventory.missingQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
             {
                 field: 'needQty',
-                header: $t('linesideInventory.requiredQuantity'),
+                header: t('linesideInventory.requiredQuantity'),
                 aggregation: true,
                 frozen: 'right',
             },
@@ -394,7 +385,7 @@ const CompleteShipment = defineComponent({
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     title: bomCtx.t('dialog.title.error'),
-                    message: error.message ?? error ?? $t('auth.operationFailed'),
+                    message: error.message ?? error ?? t('auth.operationFailed'),
                     life: 3000
                 })
             })
@@ -408,7 +399,7 @@ const CompleteShipment = defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     title: bomCtx.t('dialog.title.error'),
-                    message: $t('linesideInventory.shipmentQuantityNonZero'),
+                    message: t('linesideInventory.shipmentQuantityNonZero'),
                     life: 3000
                 });
             }
@@ -416,7 +407,7 @@ const CompleteShipment = defineComponent({
                 return uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     title: bomCtx.t('dialog.title.error'),
-                    message: $t('linesideInventory.insufficientInventory'),
+                    message: t('linesideInventory.insufficientInventory'),
                     life: 3000
                 });
             }
@@ -426,7 +417,7 @@ const CompleteShipment = defineComponent({
                     uiBuilder.toast(bomCtx, {
                         severity: 'success',
                         title: bomCtx.t('dialog.success'),
-                        message: $t('linesideInventory.shipmentSucceeded'),
+                        message: t('linesideInventory.shipmentSucceeded'),
                         life: 3000
                     });
                     kitCompleteness.value = [];
@@ -436,7 +427,7 @@ const CompleteShipment = defineComponent({
                 uiBuilder.toast(bomCtx, {
                     severity: 'error',
                     title: bomCtx.t('dialog.title.error'),
-                    message: error.message ?? error ?? $t('auth.operationFailed'),
+                    message: error.message ?? error ?? t('auth.operationFailed'),
                     life: 3000
                 })
                 return false
@@ -489,10 +480,6 @@ const CompleteShipment = defineComponent({
                                 {
                                     header: col.header,
                                     field: col.field,
-                                    columnKey: col.field,
-                                    key: col.field,
-                                    frozen: col.frozen ? true : false,
-                                    alignFrozen: col.frozen ? col.frozen : null,
                                     style: {
                                         'z-index': 99,
                                         width: `${col.width ?? 100}px`,
@@ -501,38 +488,14 @@ const CompleteShipment = defineComponent({
                                     },
                                 },
                                 {
-                                    footer: col.aggregation
-                                        ? ({ column }: any) => {
-                                            // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                            return uiBuilder.factory.textSpan({
-                                                text: thousandDigitFormat(toPrecise(
-                                                    kitCompleteness.value
-                                                        .reduce((prev: any, curr: any) => {
-                                                            return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                        }, 0)
-                                                )),
-                                                    class: `${column.key === 'lessQty' ? 'text-red-600 font-bold' : column.key === 'kitQty' ? 'text-green-600 font-bold' : 'font-bold'}`,
-                                                    style: {
-                                                        width: '100%',
-                                                        textAlign: 'center',
-                                                        fontWeight: 'bold',
-                                                    },
-                                                }
-                                            );
-                                        }
-                                        : null,
                                 }
                             )
                         ),
                         // 选择至站点
                         plainTableColumn(
                             {
-                                header: $t('linesideInventory.selectDestinationSite'),
+                                header: t('linesideInventory.selectDestinationSite'),
                                 field: 'worksite',
-                                columnKey: 'worksite',
-                                key: 'worksite',
-                                frozen: true,
-                                alignFrozen: 'right',
                                 style: {
                                     'z-index': 99,
                                     width: `200px`,
@@ -564,6 +527,7 @@ const CompleteShipment = defineComponent({
                                                 service: 'mes',
                                                 selectionMode: 'single',
                                                 searchParam: {
+                                                    pager: defaultPager(),
                                                     queryParams: {
                                                         siteType: 8,
                                                         siteID: data?.projectID ?? '',
@@ -619,8 +583,6 @@ const CompleteShipment = defineComponent({
                                     {
                                         header: col.header,
                                         field: col.field,
-                                        columnKey: col.field,
-                                        key: col.field,
                                         style: {
                                             'z-index': 99,
                                             width: `${col.width ?? 100}px`,
@@ -630,26 +592,6 @@ const CompleteShipment = defineComponent({
 
                                     },
                                     {
-                                        footer: col.aggregation && data.childKittings
-                                            ? ({ column }: any) => {
-                                                // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                                return uiBuilder.factory.textSpan({
-                                                    text: thousandDigitFormat(toPrecise(
-                                                        data.childKittings
-                                                            .reduce((prev: any, curr: any) => {
-                                                                return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                            }, 0)
-                                                    )),
-                                                        class: `${column.key === 'lessQty' ? 'text-red-600 font-bold' : column.key === 'kitQty' ? 'text-green-600 font-bold' : 'font-bold'}`,
-                                                        style: {
-                                                            width: '100%',
-                                                            textAlign: 'center',
-                                                            fontWeight: 'bold',
-                                                        },
-                                                    }
-                                                );
-                                            }
-                                            : null,
                                     }
                                 )
                             )
@@ -659,7 +601,7 @@ const CompleteShipment = defineComponent({
                                 {
                                     class: 'flex_content_start flex_item_center',
                                 },
-                                uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
+                                uiBuilder.factory.textSpan({ text: props.context.t('state.noData') })
                             );
                         },
                         empty: () => {
@@ -668,7 +610,7 @@ const CompleteShipment = defineComponent({
                                 {
                                     class: 'flex_content_start flex_item_center',
                                 },
-                                uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
+                                uiBuilder.factory.textSpan({ text: props.context.t('state.noData') })
                             );
                         },
                     }
@@ -679,9 +621,8 @@ const CompleteShipment = defineComponent({
                     id: 'shipment',
                     name: 'shipment',
                     icon: 'pi pi-check',
-                    label: $t('linesideInventory.shipment'),
-                    severity: 'success',
-                    badge: (selectedKittingResult.value.length ?? 0).toString(),
+                    label: `${t('linesideInventory.shipment')} (${selectedKittingResult.value.length ?? 0})`,
+                    colorRole: 'success',
                     // style: { width: '50px' },
                     style: {
                         minWidth: '100px',

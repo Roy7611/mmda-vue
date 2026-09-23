@@ -16,7 +16,8 @@ export const ToolsLend = defineComponent({
 	},
 	emits: ['getUserID'],
 	setup: (props, { emit }) => {
-		const {$ui: ui, $t: t} = props.ctx.globalProps;
+		const ui = props.ctx.uiBuilder;
+		const t = props.ctx.t.bind(props.ctx);
 		const apiClient = props.ctx.logic?.apiClient ?? props.ctx.app?.api;
 		const owner = ref('');
 		//人员下拉选择
@@ -38,9 +39,9 @@ export const ToolsLend = defineComponent({
 				});
 				userOptionsAll.value = res.list && res.list.length > 0 ? res.list : [];
 			} catch (error: any) {
-				ctx.uiBuilder.toast(ctx, {
-					severity: 'error',
-					message: error.detail ?? '',
+			props.ctx.uiBuilder.toast(props.ctx, {
+				severity: 'error',
+				message: error.detail ?? '',
 					title: t('dialog.title.error'),
 					// position: 'bottom-right',
 					life: 3000,

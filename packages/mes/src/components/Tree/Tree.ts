@@ -9,7 +9,8 @@ export const Tree = defineComponent({
 	},
 	emits: ['nodeClick'],
 	setup(props, { emit }) {
-		const { $ui: ui, $t: t } = props.context.globalProps;
+		const ui = props.context.uiBuilder;
+		const t = props.context.t.bind(props.context);
 		const apiClient = props.context.logic?.apiClient ?? props.context.app?.api;
 		const rootParams = reactive({
 			...props.treeProps.rootUrlParams,

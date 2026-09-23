@@ -118,8 +118,8 @@ export class ProjectSettlementItemLogic extends SubEntityLogic<ProjectSettlement
 		const { fields, groups, customActions } = super.beforeEdit();
 		if (fields.length == 0) {
 			fields.push(
-				this.field('deduct').lockIf((model, ctx) => ctx.treeLevel === 0),
-				this.field('settledValue').lockIf((model, ctx) => ctx.treeLevel === 0),
+				this.field('deduct'),
+				this.field('settledValue'),
 			);
 		}
 		return { fields, groups, customActions };

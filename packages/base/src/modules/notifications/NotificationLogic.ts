@@ -10,12 +10,10 @@ import type {
   MetaUiService,
   Module,
   MetaUiField,
-  EntityAction,
   ApiClient,
 } from "@mmda/core";
 import {
   SortOrder,
-  pluralize,
   type UiContext,
 } from "@mmda/core";
 import {type EntityLogicInit, EntityLogic, SubEntityLogic, type UiLogicFnResult} from '@mmda/core'
@@ -24,22 +22,15 @@ import {
   defineNotification,
 } from "../../models/Notification";
 import {
-  UrgencyEnum,
-  Urgency,
-  urgencyLevel,
-  urgencyIcon,
   urgencyList,
 } from "../../enums/Urgency";
 import {
   ImportanceEnum,
-  Importance,
-  importanceLevel,
   importanceList,
 } from "../../enums/Importance";
 import {
   notificationStatusList,
   NotificationStatus,
-  NotificationStatusEnum,
 } from "../../enums/NotificationStatus";
 
 /**
@@ -93,7 +84,7 @@ export class NotificationLogic extends EntityLogic<Notification> {
     return { fields, groups, customActions };
   }
   async readAll(context: UiContext<Notification>) {
-    const { $t: t} = context.globalProps;
+    const t = context.t.bind(context);
     // 过滤掉已读/已办，仅提交未读消息
     const unreadItems = (context.selectedItems ?? []).filter(
       (item: Notification) =>
@@ -126,10 +117,9 @@ export class NotificationLogic extends EntityLogic<Notification> {
         this.field("todo"),
         this.field("noticeContent").setCustomRenderer(
           (fld, ctx: UiContext<Notification>) => {
-            const content = ctx.model.noticeContent ?? "";
+            const content = (ctx.model as Notification).noticeContent ?? "";
             return ctx.uiBuilder.factory.textSpan({ text: content || "-",
               title: content || undefined,
-              tooltipPosition: "top",
               style: {
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -148,8 +138,6 @@ export class NotificationLogic extends EntityLogic<Notification> {
             const { factory } = ctx.uiBuilder;
             // urgencyIcon(model[fld.fieldName])
             return factory.icon({ iconClass: "pi pi-exclamation-circle",
-              severity: urgencyLevel(model[fld.fieldName]),
-              size: "xlarge",
             });
           },
         ),
@@ -206,45 +194,6 @@ export class NotificationLogic extends EntityLogic<Notification> {
     return res;
   }
 
-  async knownFn(notice: any, refresh: boolean = true) {
-    await this.apiClient.http.post(
-      `${this.apiClient.config.service}/Notifications/${notice.id}/read`,
-      {},
-    );
-    (refresh && (await this), this.router.go(0));
-  }
-
-  async toHandleFn(notice: any, system: any, toHandleAction: EntityAction) {
-    // if (NotificationStatusEnum.valueOf(notice.status) < NotificationStatusEnum.valueOf(NotificationStatus.READ)) {
-    // 	await this.knownFn(notice, false)
-    // }
-    // 校验目标数据是否存在
-    const redirectRepository = pluralize(notice.refName);
-    try {
-      await this.apiClient.getOne(notice.refID, {
-        repository: redirectRepository,
-        service: system?.service,
-      });
-    } catch {
-      return false;
-    }
-    console.log("toHandleAction 完整数据:", JSON.stringify(toHandleAction));
-    if (toHandleAction) {
-      const {
-        param: { value },
-      } = toHandleAction;
-      const { deepLink, objName, action } = value.to ?? value;
-
-      this.router.push(deepLink);
-    } else {
-      if (system.service !== this.apiClient.config.service) {
-        window.location.href = `${system.href}/${redirectRepository}/${notice.refID}`;
-      } else {
-        this.router.push(`/${redirectRepository}/${notice.refID}`);
-      }
-    }
-    return true;
-  }
   beforeSearch() {
     const { fields, groups, customActions, customSearchFields } = super.beforeSearch();
     if (customSearchFields.length == 0) {
@@ -254,20 +203,17 @@ export class NotificationLogic extends EntityLogic<Notification> {
           searchParam: "status",
           renderer: (ctx: UiContext<Notification>, csf) => {
             const { factory } = ctx.uiBuilder;
-            return factory.tagSelector(
-              csf.searchVal.value,
-              notificationStatusList,
-              {
-                // selectMode: 'moultiple',
-                onChange: async (val: any) => {
-                  csf.searchVal.value = val;
-                  (ctx.searchParam.queryParams ??= {}).status = val ?? "";
-                  // ctx.addQueryParam('status', defaultSearchOps.EnumFieldSearchOps[0].toSQL(val));
-                  ctx.refresh(false);
-                  // console.log(csf.searchVal.value, ctx.model)
-                },
+            return factory.selectButtonGroup({
+              modelValue: csf.searchVal.value,
+              options: notificationStatusList,
+              onUpdate: async (val: any) => {
+                csf.searchVal.value = val;
+                (ctx.searchParam.queryParams ??= {}).status = val ?? "";
+                // ctx.addQueryParam('status', defaultSearchOps.EnumFieldSearchOps[0].toSQL(val));
+                ctx.refresh(false);
+                // console.log(csf.searchVal.value, ctx.model)
               },
-            );
+            });
           },
         },
         {
@@ -275,8 +221,10 @@ export class NotificationLogic extends EntityLogic<Notification> {
           searchParam: "emergency",
           renderer: (ctx: UiContext<Notification>, csf) => {
             const { factory } = ctx.uiBuilder;
-            return factory.tagSelector(csf.searchVal.value, urgencyList, {
-              onChange: async (val: any) => {
+            return factory.selectButtonGroup({
+              modelValue: csf.searchVal.value,
+              options: urgencyList,
+              onUpdate: async (val: any) => {
                 csf.searchVal.value = val;
                 (ctx.searchParam.queryParams ??= {}).emergency = val ?? "";
                 ctx.refresh(false);
@@ -290,8 +238,10 @@ export class NotificationLogic extends EntityLogic<Notification> {
           searchParam: "importance",
           renderer: (ctx: UiContext<Notification>, csf) => {
             const { factory } = ctx.uiBuilder;
-            return factory.tagSelector(csf.searchVal.value, importanceList, {
-              onChange: async (val: any) => {
+            return factory.selectButtonGroup({
+              modelValue: csf.searchVal.value,
+              options: importanceList,
+              onUpdate: async (val: any) => {
                 csf.searchVal.value = val;
                 (ctx.searchParam.queryParams ??= {}).importance = val ?? "";
                 ctx.refresh(false);

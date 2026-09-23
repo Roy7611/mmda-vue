@@ -15,6 +15,7 @@
       "@mmda/vui": ["../vui/src/index.ts"],
       "@mmda/vui-syncfusion": ["../vui-syncfusion/src/index.ts"],
       "@mmda/vuix-office": ["../vuix-office/src/index.ts"],
+      "@mmda/vuix-vditor-markdown": ["../vuix-vditor-markdown/src/index.ts"],
       "@mmda/vui-syncfusion/gantt": ["../vui-syncfusion/src/plugins/gantt.ts"],
       "@mmda/vui-syncfusion/kanban": ["../vui-syncfusion/src/plugins/kanban.ts"],
       "@mmda/vui-syncfusion/scheduler": ["../vui-syncfusion/src/plugins/scheduler.ts"],

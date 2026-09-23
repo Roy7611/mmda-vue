@@ -88,21 +88,21 @@ export class ShiftLogic extends EntityLogic<Shift> {
 				this.field('restTimeSpan').lockIf(() => true).onChange((context, model, newVal) => {
 					if (model && model.shiftTimeSpan) {
 						// 工作时长
-						model.workTimeSpan =  hourToHm(diffHour(newVal, model.shiftTimeSpan))
+						model.workTimeSpan =  hourToHm(diffHour(newVal as string, model.shiftTimeSpan))
 					} else {
 						model.workTimeSpan = null
 					}
 				}),
 				this.field('restFrom').onChange((context, model, newVal) => {
 					if (newVal && model.restTo) {
-						model.restTimeSpan = hourToHm(diffHour(newVal, model.restTo))
+						model.restTimeSpan = hourToHm(diffHour(newVal as string, model.restTo))
 					} else {
 						model.restTimeSpan = null
 					}
 				}),
 				this.field('restTo').onChange((context, model, newVal) => {
 					if (newVal && model.restFrom) {
-						model.restTimeSpan = hourToHm(diffHour(model.restFrom, newVal))
+						model.restTimeSpan = hourToHm(diffHour(model.restFrom, newVal as string))
 					} else {
 						model.restTimeSpan = null
 					}
@@ -110,7 +110,7 @@ export class ShiftLogic extends EntityLogic<Shift> {
 				this.field('clockOutTime').onChange((context, model, newVal) => {
 					if (newVal && model.clockInTime) {
 						// 班次时长
-						model.shiftTimeSpan = hourToHm(diffHour(model.clockInTime, newVal))
+						model.shiftTimeSpan = hourToHm(diffHour(model.clockInTime, newVal as string))
 					} else {
 						model.shiftTimeSpan = null
 					}
@@ -118,7 +118,7 @@ export class ShiftLogic extends EntityLogic<Shift> {
 				this.field('clockInTime').onChange((context, model, newVal) => {
 					if (newVal && model.clockOutTime) {
 						// 班次时长
-						model.shiftTimeSpan = hourToHm(diffHour(newVal, model.clockOutTime))
+						model.shiftTimeSpan = hourToHm(diffHour(newVal as string, model.clockOutTime))
 					} else {
 						model.shiftTimeSpan = null
 					}
@@ -126,7 +126,7 @@ export class ShiftLogic extends EntityLogic<Shift> {
 				this.field('shiftTimeSpan').onChange((context, model, newVal) => {
 					if (model && model.restTimeSpan) {
 						// 工作时长
-						model.workTimeSpan =  hourToHm(diffHour(model.restTimeSpan, newVal))
+						model.workTimeSpan =  hourToHm(diffHour(model.restTimeSpan, newVal as string))
 					} else {
 						model.workTimeSpan = null
 					}

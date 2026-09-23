@@ -25,7 +25,7 @@ import { type User, defineUser } from '@mmda/base/src/models/User';
 import { chooseWbsNode } from '@/components/ChooseWbs/ChooseWbs';
 import { SourcingMode } from '@mmda/base/src/enums/SourcingMode';
 import { log } from 'console';
-import { confirmCenterNode, createSelectMaterialFooter } from './select_material_footer';
+import { confirmCenterNode } from './select_material_footer';
 import { cpSync } from 'fs';
 import { template } from 'lodash';
 import { ProjectStatus } from '../../enums/ProjectStatus';
@@ -85,7 +85,7 @@ const getMetarlList = async (ctx: any, model?: any, filter?: any, value?: any) =
 
 //请购
 const beforeRequest = async (context: UiContext, model: Project, action: EntityAction) => {
-	const {$ui: ui, $router, $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
@@ -112,7 +112,7 @@ const beforeRequest = async (context: UiContext, model: Project, action: EntityA
 
 //采购
 const beforePurchase = async (context: UiContext, model: Project, action: EntityAction) => {
-	const {$ui: ui, $router, $t: t} = context.globalProps;
+	const t = context.t.bind(context);
 	const apiClient = context.apiClient;
 	const metaUiService = context.logic!.metaUiService;
 	if (model.action) {
@@ -132,7 +132,6 @@ const beforePurchase = async (context: UiContext, model: Project, action: Entity
 		context,
 		{
 			title: t('bom.selectMaterial'),
-			footer: createSelectMaterialFooter({ t, context, selectMetarlList, apiClient }),
 			// onAccept: async () => {
 			// 	console.log('aaaaaa');
 			// 	// if (selectionRows.value.length > 0) {
@@ -201,8 +200,8 @@ const beforeProduction = async (context: UiContext, model: Project, action: Enti
 };
 
 const beforeStage = async (context: UiContext, model: Project, action: EntityAction) => {
-	const { $t} = context.globalProps;
-	const apiClient = this.apiClient;
+	const t = context.t.bind(context);
+	const apiClient = context.apiClient;
 	wbsData.payload.refID = '';
 	try {
 		// 生成弹窗
@@ -217,12 +216,12 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 			{
 				width: '30vw',
 				height: '15vh',
-				title: $t('project.selectWbs'),
+				title: t('project.selectWbs'),
 				onAccept: async (button) => {
 				  if (!wbsData.payload.refID) {
 						context.uiBuilder.toast(context, {
 							severity: 'error',
-							title: $t('invalid.selectWbs'),
+							title: t('invalid.selectWbs'),
 							life: 3000,
 						});
 						return false;
@@ -243,7 +242,7 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 							);
 							if (res) {
 								context.uiBuilder.dialog(
-									confirmCenterNode($t('success.opJumpProject')),
+									confirmCenterNode(t('success.opJumpProject')),
 									context,
 									{
 										width: '30vw',
@@ -269,7 +268,7 @@ const beforeStage = async (context: UiContext, model: Project, action: EntityAct
 							context.uiBuilder.toast(context, {
 								severity: 'error',
 								message: error.message,
-								title: $t('dialog.title.error'),
+								title: t('dialog.title.error'),
 								life: 3000,
 							});
 							return false;
@@ -330,7 +329,7 @@ export class ProjectLogic extends EntityLogic<Project> {
 		};
 
 		this.beforeSave = (context: UiContext, model: Project, action: EntityAction) => {
-			const { $t: t } = context.globalProps;
+			const t = context.t.bind(context);
 			//同时有开始时间，结束时间
 			if (model.expectedStart && model.expectedFinish) {
 				if (compareTime(model.expectedStart, model.expectedFinish) == 1) {
@@ -357,10 +356,10 @@ export class ProjectLogic extends EntityLogic<Project> {
 		if (fields.length == 0) {
 			fields.push(
 				this.field('contractID').refWhere((model, ctx) => {
-					const __p = ((context, model) => ({
+					const __p = ({
 					originalContractID: 'IS NULL',
 					status: 3
-				}))(ctx as any, model as any, undefined as any);
+				});
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -397,7 +396,7 @@ export class ProjectLogic extends EntityLogic<Project> {
 						//filter: filters,
 						status: '>0',
 					};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -478,8 +477,8 @@ export class ProjectLogic extends EntityLogic<Project> {
 	// 				if (!scope.files || scope.files.length == 0) {
 	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'warning',
-	// 						title: $t('dialog.title.warning'),
-	// 						message: $t('action.chooseFile'),
+	// 						title: t('dialog.title.warning'),
+	// 						message: t('action.chooseFile'),
 	// 						life: 3000,
 	// 					});
 	// 				} else {
@@ -488,8 +487,8 @@ export class ProjectLogic extends EntityLogic<Project> {
 	// 					}
 	// 					context.uiBuilder.toast(context, {
 	// 						severity: 'info',
-	// 						title: $t('dialog.title.prompt'),
-	// 						message: $t('success.upLoadSuccess'),
+	// 						title: t('dialog.title.prompt'),
+	// 						message: t('success.upLoadSuccess'),
 	// 						life: 3000,
 	// 					});
 	// 				}
@@ -679,7 +678,7 @@ export class ProjectLogic extends EntityLogic<Project> {
 					if (skipped > 0) {
 						context.uiBuilder.toast(context, {
 							severity: 'warning',
-							title: context.globalProps.$t('dialog.title.prompt'),
+							title: context.t('dialog.title.prompt'),
 							message: context.t('project.allMembersAlreadyAdded'),
 							life: 3000,
 						});
@@ -689,8 +688,8 @@ export class ProjectLogic extends EntityLogic<Project> {
 				if (skipped > 0) {
 					context.uiBuilder.toast(context, {
 						severity: 'warning',
-						title: context.globalProps.$t('dialog.title.prompt'),
-						message: context.globalProps.$t('project.skippedExistingMembers', { count: skipped }),
+						title: context.t('dialog.title.prompt'),
+						message: context.t('project.skippedExistingMembers', { count: skipped }),
 						life: 3000,
 					});
 				}
@@ -799,7 +798,7 @@ export class ProjectLogic extends EntityLogic<Project> {
 	 * 导入
 	 */
 	// async importFiles(context: UiContext) {
-	// 	const { $t} = context.globalProps;
+	// 	const t = context.t.bind(context);
 	// 	context.uiBuilder.buildFileUpload(context, {
 	// 		url: '', //上传地址
 	// 		onUpload: (scope: any) => {
@@ -807,15 +806,15 @@ export class ProjectLogic extends EntityLogic<Project> {
 	// 			if (!scope.files || scope.files.length == 0) {
 	// 				context.uiBuilder.toast(context, {
 	// 					severity: 'warning',
-	// 					title: $t('dialog.title.warning'),
-	// 					message: $t('action.chooseFile'),
+	// 					title: t('dialog.title.warning'),
+	// 					message: t('action.chooseFile'),
 	// 					life: 3000,
 	// 				});
 	// 			} else {
 	// 				context.uiBuilder.toast(context, {
 	// 					severity: 'info',
-	// 					title: $t('dialog.title.prompt'),
-	// 					message: $t('success.upLoadSuccess'),
+	// 					title: t('dialog.title.prompt'),
+	// 					message: t('success.upLoadSuccess'),
 	// 					life: 3000,
 	// 				});
 	// 			}
@@ -869,7 +868,7 @@ export class ProjectMaterialLogic extends SubEntityLogic<ProjectMaterial, Projec
 						//filter: filters,
 						status: '>0',
 					};
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

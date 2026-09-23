@@ -24,7 +24,7 @@ export class RegionLogic extends EntityLogic<Region> {
 		super(defineRegion, init);
 		this.beforeSave = (context: UiContext, model: Region, action: EntityAction) => {
 			const { telPrefix, localeCode, countryCode } = model
-			const { $t: t } = context.globalProps
+			const t = context.t.bind(context);
 			// 国家区号验证
 			const regTelPrefix = /\+\d{1,3}\s?/g
 			// 特殊字符验证

@@ -39,52 +39,52 @@ import { type LinesideInventoryItem, defineLinesideInventoryItem } from '@/model
 
 // // 提交
 // const beforeSubmit = async (context: UiContext, model: MaterialReturn, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Submit'),
+// 	title: context.t('auth.Submit'),
 // 	data: notice.data,
 // 	id: model.returnID ?? '',
 // 	action: 'submit',
 // 	repository: 'MaterialReturns',
-// 	detail: context.globalProps.$t('auth.SubmitSuccess')
+// 	detail: context.t('auth.SubmitSuccess')
 // })
 
 // // 取消
 // const beforeCancel = async (context: UiContext, model: MaterialReturn, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('action.cancel'),
+// 	title: context.t('action.cancel'),
 // 	data: notice.data,
 // 	id: model.returnID ?? '',
 // 	action: 'cancel',
 // 	repository: 'MaterialReturns',
-// 	detail: context.globalProps.$t('auth.CancelSuccess')
+// 	detail: context.t('auth.CancelSuccess')
 // })
 
 // // 确认收料
 // const beforeReceive = async (context: UiContext, model: MaterialReturn, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Receive'),
+// 	title: context.t('auth.Receive'),
 // 	data: notice.data,
 // 	id: model.returnID ?? '',
 // 	action: 'receive',
 // 	repository: 'MaterialReturns',
-// 	detail: context.globalProps.$t('auth.ReceiveSuccess')
+// 	detail: context.t('auth.ReceiveSuccess')
 // })
 
 // // 驳回
 // const beforeDisapprove = async (context: UiContext, model: MaterialReturn, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Disapprove'),
+// 	title: context.t('auth.Disapprove'),
 // 	data: notice.data,
 // 	id: model.returnID ?? '',
 // 	action: 'disapprove',
 // 	repository: 'MaterialReturns',
-// 	detail: context.globalProps.$t('auth.DisapproveSuccess')
+// 	detail: context.t('auth.DisapproveSuccess')
 // })
 
 // //批准
 // const beforeApprove = async (context: UiContext, model: MaterialReturn, action: EntityAction) => NoticeFn(context, {
-// 	title: context.globalProps.$t('auth.Approve'),
+// 	title: context.t('auth.Approve'),
 // 	data: notice.data,
 // 	id: model.returnID ?? '',
 // 	action: 'approve',
 // 	repository: 'MaterialReturns',
-// 	detail: context.globalProps.$t('auth.ApproveSuccess')
+// 	detail: context.t('auth.ApproveSuccess')
 // })
 
 export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
@@ -120,7 +120,7 @@ export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
 			fields.push(
 				// 生产任务筛选（工程项目）
 				this.field('taskID').refWhere((model, ctx) => {
-					const __p = ((ctx, model) => ({ projectID: model.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					const __p = ({ projectID: model.projectID ?? '' });
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -155,7 +155,7 @@ export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
 				}),
 				// 工程项目
 				this.field('projectID').refWhere((model, ctx) => {
-					const __p = ((ctx, model) => ({ projectID: model.prodTask?.projectID ?? '' }))(ctx as any, model as any, undefined as any);
+					const __p = ({ projectID: model.prodTask?.projectID ?? '' });
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -226,8 +226,8 @@ export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
 					const items = selection.filter((item:any) => MetaModel.hasAnyLike(target.items, { partNo: item.partNo }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
-						message: context.globalProps.$t('auth.MaterialReturnItemError'),
+						title: context.t('dialog.title.error'),
+						message: context.t('auth.MaterialReturnItemError'),
 						life: 3000
 					})
 					context.addSubGroupItems<MaterialReturnItem>({
@@ -269,8 +269,8 @@ export class MaterialReturnLogic extends EntityLogic<MaterialReturn> {
 					const items = selection.filter((item:any) => MetaModel.hasAnyLike(target.items, { partNo: item.partNo }));
 					if (items.length > 0) return context.uiBuilder.toast(context, {
 						severity: 'error',
-						title: context.globalProps.$t('dialog.title.error'),
-						message: context.globalProps.$t('auth.MaterialReturnItemError'),
+						title: context.t('dialog.title.error'),
+						message: context.t('auth.MaterialReturnItemError'),
 						life: 3000
 					})
 					context.addSubGroupItems<MaterialReturnItem>({
@@ -323,10 +323,10 @@ export class MaterialReturnItemLogic extends SubEntityLogic<MaterialReturnItem, 
 				this.field('returnQuantity').onChange((context, model, newVal) => {
 					// 计算申请总数量
 					this.master.totalReturnQuantity = Math.round(MetaModel.sum(this.master.items, items => items.returnQuantity))
-					model.returnCost = Number(toPrecise(newVal * model.returnPrice, 2))
+					model.returnCost = Number(toPrecise((newVal as number) * model.returnPrice, 2))
 				}),
 				this.field('returnPrice').onChange((context, model, newVal) => {
-					model.returnCost = Number(toPrecise(model.returnQuantity * newVal, 2))
+					model.returnCost = Number(toPrecise(model.returnQuantity * (newVal as number), 2))
 				}),
 			)
 		}

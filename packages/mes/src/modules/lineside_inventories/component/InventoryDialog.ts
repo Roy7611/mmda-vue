@@ -13,8 +13,8 @@ const InventoryDialog = defineComponent({
         context: { type: Object as PropType<VuiContext<any>>, default: null },
     },
     setup(props, ctx) {
-        const { uiBuilder, globalProps } = props.context;
-        const { $t } = globalProps;
+        const { uiBuilder } = props.context;
+        const t = props.context.t.bind(props.context);
         const lockMsgSearchParams = reactive({
             pager: {
                 pageSize: 10,
@@ -63,26 +63,26 @@ const InventoryDialog = defineComponent({
         const lockMsgColumns: CustomColumn[] = [
             {
                 field: 'materialCode',
-                header: $t('view.materialCode'),
+                header: t('view.materialCode'),
                 width: 150,
             },
             {
                 field: 'materialName',
-                header: $t('view.materialName'),
+                header: t('view.materialName'),
             },
             {
                 field: 'unit',
-                header: $t('inventory.unit'),
+                header: t('inventory.unit'),
                 width: 50,
             },
             {
                 field: 'lockQty',
-                header: $t('inventory.lockedQuantity'),
+                header: t('inventory.lockedQuantity'),
                 aggregation: true,
             },
             {
                 field: 'unLockQty',
-                header: $t('inventory.availableQuantity'),
+                header: t('inventory.availableQuantity'),
                 aggregation: true,
             },
         ];
@@ -97,18 +97,16 @@ const InventoryDialog = defineComponent({
                     [
                         uiBuilder.factory.formField({
                             role: 'dlg-searchWord',
-                            id: 'dlg-searchWord',
-                            label: $t('action.searchFuzzy'),
-                            name: 'searchWord',
-                            placeholder: $t('action.input'),
-                            modelValue: lockMsgSearchParams.searchWord,
+                            label: t('action.searchFuzzy'),
+                            placeholder: t('action.input'),
+                            value: lockMsgSearchParams.searchWord,
                             style: {
                                 width: 'auto',
                                 flex: 'none',
                             },
-                            onUpdate: (val: string) => (lockMsgSearchParams.searchWord = val),
-                            onEnterDown: async (e: KeyboardEvent) => {
-                                await getLockMsg();
+                            onChange: (val: string) => (lockMsgSearchParams.searchWord = val),
+                            onKeydown: async (e: KeyboardEvent) => {
+                                if (e.key === 'Enter') await getLockMsg();
                             },
                         }),
                         uiBuilder.factory.buttonGroup(
@@ -123,7 +121,7 @@ const InventoryDialog = defineComponent({
                                                 await getLockMsg();
                                             },
                                         },
-                                        $t,
+                                        t,
                                         true,
                                         { id: `dlg-search-button` }
                                     ),
@@ -154,56 +152,14 @@ const InventoryDialog = defineComponent({
                                         {
                                             header: col.header,
                                             field: col.field,
-                                            columnKey: col.field,
-                                            key: col.field,
                                             style: {
                                                 'z-index': 99,
                                                 width: `${col.width ?? 100}px`,
                                                 maxWidth: `${col.maxWidth ?? 200}px`,
                                                 'text-align': 'center',
                                             },
-                                            pt: {
-                                                columnHeaderContent: (o: any) => {
-                                                    return {
-                                                        style: {
-                                                            justifyContent: 'center',
-                                                        },
-                                                    };
-                                                },
-                                                bodyCell: (o: any) => {
-                                                    const { attrs, parent, props, context: ctx } = o;
-
-                                                    return {
-                                                        class: `${props.field}`,
-                                                        style: {
-                                                            width: `${col.width ?? 100}px`,
-                                                            maxWidth: `${col.maxWidth ?? 200}px`,
-                                                        },
-                                                    };
-                                                },
-                                            },
                                         },
                                         {
-                                            footer: col.aggregation
-                                                ? ({ column }: any) => {
-                                                    // 判断是否是列表页（判断原因：展示合计的数据结构不同）
-                                                    return uiBuilder.factory.textSpan({
-                                                        text: thousandDigitFormat(toPrecise(
-                                                            lockMsgTree.value
-                                                                .reduce((prev: any, curr: any) => {
-                                                                    return Number(isObject(prev) ? prev[col.field] : prev) + Number(curr[col.field]);
-                                                                }, 0)
-                                                        )),
-                                                            class: `${column.key === 'lockQty' ? 'text-red-600' : column.key === 'unLockQty' ? 'text-green-600' : ''}`,
-                                                            style: {
-                                                                width: '100%',
-                                                                textAlign: 'center',
-                                                                fontWeight: 'bold',
-                                                            },
-                                                        }
-                                                    );
-                                                }
-                                                : null,
                                         }
                                     )
                                 ),
@@ -223,53 +179,17 @@ const InventoryDialog = defineComponent({
                                             {
                                                 header: f.displayLabel,
                                                 field: f.fieldName,
-                                                frozen: !!props.context.getFieldLogic(f)?.frozen,
-                                                alignFrozen: props.context.getFieldLogic(f)?.frozen,
-                                                columnKey: f.fieldName,
-                                                key: f.fieldName,
-                                                sortable: f.sortable ?? true,
                                                 style: {
-                                                    'z-index': props.context.getFieldLogic(f)?.frozen ? 99 : 1,
-                                                    width: `${uiBuilder._tableColumnWidth(f)}px`,
-                                                    maxWidth: `${uiBuilder._tableColumnWidth(f)}px`,
+                                                    'z-index': f.frozen ? 99 : 1,
+                                                    width: `${(f as { width?: number }).width ?? 100}px`,
+                                                    maxWidth: `${(f as { width?: number }).width ?? 100}px`,
                                                     'text-align': (f.align ?? MetaUiFieldAlignment.LEFT).toLowerCase(),
-                                                },
-                                                pt: {
-                                                    columnHeaderContent: (o: any) => {
-                                                        return {
-                                                            style: {
-                                                                justifyContent: (f.align ?? MetaUiFieldAlignment.LEFT).toLowerCase(),
-                                                            },
-                                                        };
-                                                    },
-                                                    bodyCell: (o: any) => {
-                                                        const { attrs, parent, props, context: ctx } = o;
-
-                                                        return {
-                                                            class: `${props.field}`,
-                                                            style: {
-                                                                width: `${uiBuilder._tableColumnWidth(f)}px`,
-                                                                maxWidth: `${uiBuilder._tableColumnWidth(f)}px`,
-                                                            },
-                                                        };
-                                                    },
                                                 },
                                             },
                                             {
                                                 body: props.context.getFieldLogic(f)?.customRenderer
                                                     ? (slotProps: any) => props.context.getFieldLogic(f)?.customRenderer?.(f, props.context.with(slotProps.data, props.context.metaUi.primaryKey))
-                                                    : (slotProps: any) => uiBuilder._tableCell(f, props.context.with(slotProps.data, props.context.metaUi.primaryKey)),
-                                                footer: f.aggregationSet ? ({ column }: any) => {
-
-                                                    return uiBuilder.factory.textSpan({
-                                                        text: (isFunction(props.context.getFieldLogic(f)?.aggregateFn) ? thousandDigitFormat(toPrecise(props.context.getFieldLogic(f)?.aggregateFn(props.context as unknown as UiContext<Entity>, f, data.inventories))) : defaultSummaryMethod(f, data.inventories.filter((item: any) => !MetaModel.deleted(item)))).toString(),
-                                                        style: {
-                                                            width: '100%',
-                                                            textAlign: 'center',
-                                                            fontWeight: 'bold'
-                                                        }
-                                                    })
-                                                } : null
+                                                    : (slotProps: any) => props.context.displayField(f, slotProps.data),
                                             }
                                         )
                                     );
@@ -289,11 +209,16 @@ const InventoryDialog = defineComponent({
                                         {
                                             class: 'flex_content_start flex_item_center',
                                         },
-                                        uiBuilder.factory.textSpan({ text: props.context.globalProps.$t('state.noData') })
+                                        uiBuilder.factory.textSpan({ text: props.context.t('state.noData') })
                                     );
                                 },
                             }
                         )
+                ),
+                h(
+                    'div',
+                    { class: 'mmda-paginator-record-count' },
+                    props.context.t('view.recordCount', { it: recordCount.value })
                 ),
                 uiBuilder.factory.paginator({
                     pagination: {
@@ -304,14 +229,6 @@ const InventoryDialog = defineComponent({
                     onPage(pager: any) {
                         pageFn(pager);
                     },
-                    start: (slotProps: any) =>
-                        h(
-                            'div',
-                            {},
-                            props.context.globalProps.$t('view.recordCount', {
-                                it: recordCount.value,
-                            })
-                        ),
                 }),
             ]);
     },

@@ -67,6 +67,7 @@ function pluginRoutes(): RouteRecordRaw[] {
           { path: '', component: { name: 'EntityRouteStub', render: () => null } },
           { path: 'Create', component: { name: 'EntityRouteStub', render: () => null } },
           { path: 'Edit/:id', component: { name: 'EntityRouteStub', render: () => null } },
+          { path: 'Search', component: { name: 'EntityRouteStub', render: () => null } },
           { path: ':id', component: { name: 'EntityRouteStub', render: () => null } },
         ],
       },

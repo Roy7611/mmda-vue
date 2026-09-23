@@ -24,7 +24,7 @@ export class PartnerLogic extends EntityLogic<Partner> {
 		super(definePartner, init);
 		this.beforeSave = (context: UiContext, model: Partner, action: EntityAction) => {
 			const { tel } = model
-			const { $t: t } = context.globalProps
+			const t = context.t.bind(context);
 			// 手机号验证
 			const regPhone = /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/
 			// 座机验证

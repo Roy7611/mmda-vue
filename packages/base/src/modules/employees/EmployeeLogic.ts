@@ -40,7 +40,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
       action: EntityAction,
     ) => {
       const { mobile, email, qq } = model;
-      const { $t: t } = context.globalProps;
+      const t = context.t.bind(context);
       // ććşĺˇéŞčŻ
       const regPhone =
         /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/;
@@ -66,7 +66,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
     //ĺ˝ĺéä¸­éĄš
     const { selectedItems, translate: t } = context;
     if (!MetaModel.hasAny(selectedItems)) {
-      context.uiBuilder.toast(this, {
+      context.uiBuilder.toast(context, {
         severity: 'warning',
         title: t("dialog.title.warning"),
         message: t("invalid.requiredSelectAny"),
@@ -75,8 +75,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
       throw new Error(t("invalid.requiredSelectAny"));
     }
     const empIds = (selectedItems ?? []).map((it) => it.empID);
-    const { $api } = context.globalProps;
-    const apiClient = $api as ApiClient;
+    const apiClient = context.apiClient;
     try {
       const res = await apiClient.doAction(
         {
@@ -154,7 +153,7 @@ export class EmployeeLogic extends EntityLogic<Employee> {
             });
             if (!Array.isArray(selection) || selection.length === 0) return;
             const submitBody = selection.map(
-              (item: { workerID?: string; id?: string }) =>
+              (item: any) =>
                 item.workerID ?? item.id,
             );
             try {

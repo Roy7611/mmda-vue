@@ -75,17 +75,16 @@ const beforeMaterialTransCreateRedirect = async (
 	action: EntityAction,
 ) => {
 	try {
-		if (action.param?.type !== 'redirect') return true;
-		const to = action.param.value?.to ?? action.param.value;
+		const actionParam = action.param as { type?: string; value?: any } | undefined;
+		if (actionParam?.type !== 'redirect') return true;
+		const to = actionParam.value?.to ?? actionParam.value;
 		if (to?.objName !== 'MaterialTrans' || to?.action !== 'create') return true;
-		const res = await this.apiClient.createOne(action.param.value.ref, {
+		const res = await context.apiClient.createOne(actionParam.value.ref, {
 			repository: 'MaterialTranses',
 			service: 'mes',
 		});
-		context.globalProps.$router.push({
-			name: 'MaterialTransCreate',
-			state: { createParam: { entity: res } },
-		});
+		// 命名路由已死（路由表为 /:repository/Create 动态路由），state 传参机制随之失效
+		context.navigate('/MES/MaterialTranses/Create');
 	} catch (error: any) {
 		context.uiBuilder.toast(context, {
 			severity: 'error',
@@ -136,7 +135,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 			}
 			if (!detail) return Promise.resolve(true);
 			context.uiBuilder.toast(context, {
-				severity: 'error', message,
+				severity: 'error', message: detail,
 				title: context.t('dialog.title.error'),
 				life: 3000,
 			});
@@ -152,9 +151,8 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 	 * @param value
 	 */
 	async getAllProject(context: UiContext, value?: any) {
-		await this.getAllOf<Record<string, unknown>>('Projects', {
-			queryParams: {
-				pageSize: searchParamProject.pager.pageSize,
+		await this.getAllOf<Record<string, unknown>>('Projects', { pager: { pageSize: searchParamProject.pager.pageSize,
+				pageNo: searchParamProject.pager.pageNo }, queryParams: { pageSize: searchParamProject.pager.pageSize,
 				pageNo: searchParamProject.pager.pageNo,
 				sort: '',
 				searchWord: value,
@@ -238,7 +236,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 							sort: `planDate ${SortOrder.DESC}`,
 							status: `IN ${ProductionTaskStatus.WORKING},${ProductionTaskStatus.FINISHED}`,
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -287,7 +285,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 							params.qcPhase = model.qcPhase;
 						}
 						return params;
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -364,7 +362,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 								? ProductionTaskStatus.WORKING
 								: `IN ${ProductionTaskStatus.WORKING},${ProductionTaskStatus.FINISHED}`,
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -376,7 +374,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 						})
 						.join(" AND ");
 				})
-					.onChange((context, model, newVal) => this.syncMaterialsFromTaskSelection(context, model, newVal))
+					.onChange((context, model, newVal) => this.syncMaterialsFromTaskSelection(context, model, newVal as string))
 			);
 			/**
 			fields.push(
@@ -551,7 +549,7 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 			});
 	}
 	batchSetQualified(context: UiContext<QualityInspection>, target: QualityInspection) {
-		const { $ui: ui } = context.globalProps;
+		const ui = context.uiBuilder;
 		const pending = (target.items ?? []).filter(i => !MetaModel.deleted(i) && !i.qualified);
 		if (!pending.length) return;
 		const rows = pending.map(i => ({ ...i, qualifiedText: context.t('qualityInspection.unqualified') }));
@@ -571,7 +569,8 @@ export class QualityInspectionLogic extends EntityLogic<QualityInspection> {
 			context,
 			{
 				title: context.t('qualityInspection.batchQualified'),
-				style: { width: '75vw', maxHeight: '90%' },
+				width: '75vw',
+			maxHeight: '90%',
 				onAccept: async (button) => {
 				  const ids = new Set(selected.map(i => i.itemID));
 					const hasBadItemAfter = pending.some(i => !ids.has(i.itemID));
@@ -710,7 +709,7 @@ export class QualityInspectionItemLogic extends SubEntityLogic<QualityInspection
 								text: ctx.t('auth.unqualified'),
 							},
 						];
-						return ctx.globalProps.$ui.factory.radioButtonGroup({
+						return ctx.uiBuilder.factory.radioButtonGroup({
 							value: ctx.model.qualified,
 							options: checkTyoeList,
 							optionLabel: 'text',
@@ -817,10 +816,10 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 		super(defineQualityInspectionMaterial, parent, master, 'materials');
 	}
 	async getData(ctx: any, value?: any) {
-		const { $ui: ui, $t: t } = ctx.globalProps;
-		const res = await ctx.logic!.getAllOf<Record<string, unknown>>('QualityDefects', {
-			queryParams: {
-				pageSize: searchParam.pager.pageSize,
+		const ui = ctx.uiBuilder;
+		const t = ctx.t.bind(ctx);
+		const res = await ctx.logic!.getAllOf('QualityDefects', { pager: { pageSize: searchParam.pager.pageSize,
+				pageNo: searchParam.pager.pageNo }, queryParams: { pageSize: searchParam.pager.pageSize,
 				pageNo: searchParam.pager.pageNo,
 				sort: '',
 				searchWord: value,
@@ -839,7 +838,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				// 质检结果：按检验项合格情况过滤选项（自定义下拉，避免单元格失焦仍提交非法值）
 				this.field('qcResult')
 					.setCustomEditor((fld, ctx: UiContext<any>) => {
-						const { $ui: ui } = ctx.globalProps;
+						const ui = ctx.uiBuilder;
 						const ref = fld.reference;
 						const refFlds = ref?.refFlds?.length ? ref.refFlds : ['value', 'text'];
 						const optionValue = refFlds.length > 0 ? refFlds[0] : 'value';
@@ -980,12 +979,11 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 					}),
 				this.field('defectDesc')
 					.setCustomEditor((fld, ctx: UiContext<any>, props) => {
-						const { $ui: ui, $t: t } = ctx.globalProps;
+						const ui = ctx.uiBuilder;
+						const t = ctx.t.bind(ctx);
 						const { model } = ctx; const metaUiService = ctx.logic!.metaUiService;
 						return ui.factory.searchRelative({
 							role: `defectDesc-search-for-relative`,
-							name: 'defectDesc-search-for-relative',
-							id: 'defectDesc-search-for-relative',
 							modelValue: model.defectDesc,
 							dataKey: 'defectID',
 							optionLabel: 'defectDesc',
@@ -1029,7 +1027,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				this.field('materialCategoryID')
 					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
-						return ctx.globalProps.$ui.factory.textSpan({ text: text || '' });
+						return ctx.uiBuilder.factory.textSpan({ text: text || '' });
 					})
 					.lockIf(v => !isRefNone(v.refName)),
 				this.field('quantity')
@@ -1047,7 +1045,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				this.field('qcQuantity').onValidate((val, model, ctx) => {
 					if (!this.master || isNullOrUndefined(val)) return
 					const maxQcQty = Math.max((model.quantity ?? 0) - (this.master.totalGood || 0), 0)
-					if (val > maxQcQty) {
+					if ((val as number) > maxQcQty) {
 						return ctx?.t('invalid.inspectionQuantityTooLarge')
 					}
 				}),
@@ -1085,7 +1083,7 @@ export class QualityInspectionMaterialLogic extends SubEntityLogic<QualityInspec
 				this.field('materialCategoryID')
 					.setCustomRenderer((fld, ctx: UiContext<any>) => {
 						const text = ctx.model.productCategory?.categoryName;
-						return ctx.globalProps.$ui.factory.textSpan({ text: text || '' });
+						return ctx.uiBuilder.factory.textSpan({ text: text || '' });
 					}),
 				this.field('qualifiedQuantity').lock().hideIf(v => isNullOrUndefined(v.qualifiedQuantity)),
 				this.field('unqualifiedQuantity').lock().hideIf(v => isNullOrUndefined(v.unqualifiedQuantity))

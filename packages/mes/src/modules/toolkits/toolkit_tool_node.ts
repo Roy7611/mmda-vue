@@ -1,12 +1,19 @@
 import { h } from 'vue'
-import type { MetaUiGroup, UiProps } from '@mmda/core'
+import type { MetaUiGroup, UiProps, UiContext } from '@mmda/core'
 import { MetaModel } from '@mmda/core'
 import {UiViewOne} from '@mmda/core'
-import { type VuiContext } from '@mmda/vui'
 import type { Tool } from '@/models/Tool'
 
+/** 工具卡节点袋：壳样式 + 拖拽回调（callBagHandler 按键名取）。 */
+export interface ToolkitToolNodeProps extends UiProps {
+	onDragstart?: (e: DragEvent, context: UiContext<any>, item: Tool) => void
+	onDragenter?: (e: DragEvent, context: UiContext<any>, item: Tool) => void
+	onDragover?: (e: DragEvent, context: UiContext<any>, item: Tool) => void
+	onDragend?: (e: DragEvent, context: UiContext<any>, item: Tool) => void
+}
+
 function callBagHandler(
-	props: UiProps,
+	props: ToolkitToolNodeProps,
 	key: string,
 	...args: unknown[]
 ): void {
@@ -16,7 +23,7 @@ function callBagHandler(
 	}
 }
 
-export function toolkitEmptyNode(context: VuiContext<any>) {
+export function toolkitEmptyNode(context: UiContext<any>) {
 	return h('div', {
 		class: 'flex-1 overflow-y-auto p-4! col-span-full flex items-center justify-center text-gray-500',
 		id: 'tool-list-empty',
@@ -26,8 +33,8 @@ export function toolkitEmptyNode(context: VuiContext<any>) {
 export function toolkitToolCardNode(
 	item: Tool,
 	group: MetaUiGroup,
-	context: VuiContext<any>,
-	props: UiProps,
+	context: UiContext<any>,
+	props: ToolkitToolNodeProps,
 	dimmed: boolean,
 ) {
 	const { uiBuilder } = context
@@ -52,7 +59,6 @@ export function toolkitToolCardNode(
 					draggable: false,
 					class: 'object-cover rounded-md pt-2',
 					style: { width: '100%', height: '100%' },
-					imageStyle: { width: '100%', height: '100%', objectFit: 'contain' },
 				})
 				: h('i', {
 					class: 'pi pi-box text-2xl text-gray-400',
@@ -69,7 +75,7 @@ export function toolkitToolCardNode(
 				uiBuilder.factory.button({
 					role: `view-${group.groupName}-action`,
 					id: `view-${group.groupName}-button`,
-					outlined: true,
+					buttonType: 'outlined',
 					icon: 'pi pi-eye',
 					colorRole: 'info',
 					label: context.t('action.details'),
@@ -85,7 +91,7 @@ export function toolkitToolCardNode(
 				uiBuilder.factory.button({
 					role: `view-${group.groupName}-action`,
 					id: `view-${group.groupName}-button`,
-					outlined: true,
+					buttonType: 'outlined',
 					icon: 'pi pi-eye',
 					colorRole: 'info',
 					label: context.t('action.details'),
@@ -100,10 +106,9 @@ export function toolkitToolCardNode(
 				uiBuilder.factory.button({
 					role: `delete-${group.groupName}-action`,
 					id: `delete-${group.groupName}-button`,
-					outlined: true,
+					buttonType: 'outlined',
 					icon: 'pi pi-trash',
 					colorRole: 'info',
-					severity: 'error',
 					label: context.t('action.delete'),
 					onAction: () => {
 						context.removeSubGroupItem(group, item)
@@ -115,8 +120,8 @@ export function toolkitToolCardNode(
 
 export function toolkitToolListNode(
 	group: MetaUiGroup,
-	context: VuiContext<any>,
-	props: UiProps,
+	context: UiContext<any>,
+	props: ToolkitToolNodeProps,
 	currentId?: string,
 	targetId?: string,
 ) {

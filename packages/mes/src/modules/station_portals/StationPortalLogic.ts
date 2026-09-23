@@ -122,7 +122,8 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 			if (res === 'ok') {
 				return eventCtx.prepareFn(reportAction).then((res: any) => {
 					return new Promise<boolean>((resolve, reject) => {
-						uiBuilder.buildNotice(eventCtx, {
+						// FIXME: buildNotice 无任何皮肤实现（契约缺），运行时炸；待补 UiBuilder 契约与实现
+						(uiBuilder as any).buildNotice(eventCtx, {
 							action: reportAction,
 							prepareData: res,
 							onSubmit: (data: any) => {
@@ -150,7 +151,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 		// 						label: context.t('stationlabel.eventtitle'),
 		// 						name: 'eventtitle',
 		// 						placeholder: context.t('action.input'),
-		// 						modelValue: context.model.eventtitle,
+		// 						value: context.model.eventtitle,
 		// 						required: true,
 		// 						isEdit: true,
 		// 					},
@@ -176,7 +177,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 		// 					{
 		// 						default: () =>
 		// 							context.uiBuilder.factory.select({
-		// 								modelValue: context.model.eventtype,
+		// 								value: context.model.eventtype,
 		// 								options: eventtypeoption,
 		// 								id: 'eventtype',
 		// 								placeholder: context.t('action.select'),
@@ -269,7 +270,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 								context.model.eventtitle = '';
 								context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.title.success'), message: context.t('success.eventReported'), life: 3000 });
 
-								context.globalProps.$router.go(0);
+								window.location.reload();
 								return true;
 							} else {
 								return true;
@@ -337,7 +338,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 		// 					context.uiBuilder.factory.formField({
 		// 						label: '瑕疵数量',
 		// 						placeholder: '请输入瑕疵数量',
-		// 						modelValue: context.model.ngTimes,
+		// 						value: context.model.ngTimes,
 		// 						onUpdate: (val: string) => (context.model.ngTimes = Number(val)),
 		// 					}),
 		// 				]);
@@ -414,7 +415,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				res
 			);
 			context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.workReported'), life: 3000 });
-			context.globalProps.$router.go(0);
+			window.location.reload();
 			return true;
 		} catch (error: any) {
 			const detail = error.validationErrors?.length
@@ -447,7 +448,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				res
 			);
 			context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.workReported'), life: 3000 });
-			context.globalProps.$router.go(0);
+			window.location.reload();
 			return true;
 		} catch (error: any) {
 			const detail = error.validationErrors?.length
@@ -490,33 +491,33 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
-						modelValue: data.data.materialName,
-						onUpdate: (val: string) => { },
+						value: data.data.materialName,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
-						modelValue: data.data.materialCode,
-						onUpdate: (val: string) => { },
+						value: data.data.materialCode,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
-						modelValue: context.model.createMaterialtrack.list.fedQuantity,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.fedQuantity,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
-						modelValue: context.model.createMaterialtrack.list.traceCodes,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.traceCodes,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
 						},
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
-						modelValue: context.model.createMaterialtrack.list.manufacturer,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.manufacturer,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
@@ -527,7 +528,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.prodDate,
+									value: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
@@ -542,7 +543,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.expiryDate,
+									value: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
@@ -555,9 +556,10 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					onAccept: async (button) => {
-					  return await this.confirmMaterialtrack(context);
-					}
+				onAccept: async (button) => {
+				  await this.confirmMaterialtrack(context);
+					return true;
+				}
 				}
 			);
 		} else if (data.data.tracingMode == 'SN') {
@@ -584,26 +586,26 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
-						modelValue: data.data.materialName,
-						onUpdate: (val: string) => { },
+						value: data.data.materialName,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
-						modelValue: data.data.materialCode,
-						onUpdate: (val: string) => { },
+						value: data.data.materialCode,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
-						modelValue: context.model.createMaterialtrack.list.fedQuantity,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.fedQuantity,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
-						modelValue: context.model.createMaterialtrack.list.traceCodes,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.traceCodes,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
 						},
 						// onInput: (e: any) => {
@@ -616,8 +618,8 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
-						modelValue: context.model.createMaterialtrack.list.manufacturer,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.manufacturer,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
@@ -628,7 +630,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.prodDate,
+									value: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
@@ -643,7 +645,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.expiryDate,
+									value: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
@@ -656,9 +658,10 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '3rem',
-					onAccept: async (button) => {
-					  return await this.confirmMaterialtrack(context);
-					}
+				onAccept: async (button) => {
+				  await this.confirmMaterialtrack(context);
+					return true;
+				}
 				}
 			);
 		} else {
@@ -685,44 +688,39 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialName'),
 						disabled: true,
-						modelValue: data.data.materialName,
-						onUpdate: (val: string) => { },
+						value: data.data.materialName,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('view.materialCode'),
 						disabled: true,
-						modelValue: data.data.materialCode,
-						onUpdate: (val: string) => { },
+						value: data.data.materialCode,
+						onChange: (val: string) => { },
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.feedingQuantity'),
-						modelValue: context.model.createMaterialtrack.list.fedQuantity,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.fedQuantity,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.fedQuantity = val.trim();
 						},
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.traceCode'),
-						id: 'scanInput',
-						modelValue: context.model.createMaterialtrack.list.traceCodes,
-						onUpdate: (val: any) => {
+						htmlAttributes: { id: 'scanInput' },
+						value: context.model.createMaterialtrack.list.traceCodes,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.traceCodes = val;
-						},
-						onInput: (e: any) => {
-							const value = e.target.value;
-							const comma = e.target.value.split(',');
-
-							console.log(value, comma, comma.length);
+							// 扫码枪逗号分隔：数量 = 码个数（原 onInput 逻辑并入）
+							const comma = String(val ?? '').split(',');
 							if (comma && comma.length > 0) {
 								context.model.createMaterialtrack.list.fedQuantity = comma.length;
-								console.log(comma.length, context.model.createMaterialtrack.list.fedQuantity);
-						}
+							}
 						},
 					}),
 					context.uiBuilder.factory.formField({
 						label: context.t('stationlabel.manufacturer'),
-						modelValue: context.model.createMaterialtrack.list.manufacturer,
-						onUpdate: (val: any) => {
+						value: context.model.createMaterialtrack.list.manufacturer,
+						onChange: (val: any) => {
 							context.model.createMaterialtrack.list.manufacturer = val;
 						},
 					}),
@@ -733,7 +731,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.prodDate,
+									value: context.model.createMaterialtrack.list.prodDate,
 									maxDate: maxDateprodDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.prodDate = DateUtils.toSQLDate(e);
@@ -748,7 +746,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 						{
 							default: () =>
 								context.uiBuilder.factory.datePicker({
-									modelValue: context.model.createMaterialtrack.list.expiryDate,
+									value: context.model.createMaterialtrack.list.expiryDate,
 									minDate: minDateexpiryDate.value,
 									onUpdatePicker: (e: any) => {
 										context.model.createMaterialtrack.list.expiryDate = DateUtils.toSQLDate(e);
@@ -761,9 +759,10 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 				{
 					title: context.t('stationlabel.scanFeeding'),
 					height: '10rem',
-					onAccept: async (button) => {
-					  return await this.confirmMaterialtrack(context);
-					}
+				onAccept: async (button) => {
+				  await this.confirmMaterialtrack(context);
+					return true;
+				}
 				}
 			);
 		}
@@ -783,7 +782,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 			.then((res: any) => {
 				if (res) {
 					context.uiBuilder.toast(context, { severity: 'success', title: context.t('dialog.success'), message: context.t('success.operationSuccessful'), life: 3000 });
-					context.globalProps.$router.go(0);
+					window.location.reload();
 					return true;
 				}
 			})
@@ -1062,7 +1061,7 @@ export class StationPortalLogic extends EntityLogic<StationPortal> {
 					.refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 						return { status: 'USED' };
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

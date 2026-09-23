@@ -28,7 +28,6 @@ const maxStationPriority = (stations?: EquipmentStation[]) =>
  * @returns
  */
 const beforehandover = async (context: UiContext<Equipment>, model: Equipment, action: EntityAction) => {
-	context.globalProps;
 	const user = localStorage.getItem('user')
 	return context
 		.select<User>({
@@ -64,7 +63,6 @@ const beforehandover = async (context: UiContext<Equipment>, model: Equipment, a
  * @returns
  */
 const beforeInstall = async (context: UiContext<Equipment>, model: Equipment, action: EntityAction) => {
-	context.globalProps;
 	return context
 		.select<Station>({
 			repository: 'Stations',
@@ -291,7 +289,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 							}
 						}
 
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -315,7 +313,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 						return {
 							status: 'USED'
 						}
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -330,7 +328,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 				this.field('checklistID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'USED' };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -404,7 +402,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 				this.field('deviceID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { runningState: 'WORKING' };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -419,7 +417,7 @@ export class EquipmentLogic extends EntityLogic<Equipment> {
 				this.field('bomID').refWhere((model, ctx) => {
 					const __p = ((ctx, model) => {
 					return { status: 'APPROVED', bomUsage: `IN ${BomUsage.MAINTENANCE}` };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

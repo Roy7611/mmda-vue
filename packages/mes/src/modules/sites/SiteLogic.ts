@@ -75,7 +75,7 @@ export class SiteLogic extends EntityLogic<Site> {
 							siteLevel: isRefNone(model.siteLevel) ? '' : `${WorkCenterLevelEnum.valueOf(model.siteLevel) - 1}`,
 							status: 'USED',
 						};
-					})(ctx as any, model as any, undefined as any);
+					})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

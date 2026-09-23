@@ -40,7 +40,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				}
 			}),
 			this.field('expirationDays').onValidate((value, model, ctx: UiContext<any>) => {
-				if(!isNullOrUndefined(value) && value > 32767) {
+				if(!isNullOrUndefined(value) && (value as number) > 32767) {
 					return ctx.t('bom.expirationDaysMax')
 				}
 			}),
@@ -56,7 +56,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('plantID').refWhere((model, ctx) => {
 					const __p = ((ctx: UiContext<any>, model) => {
 				return { status: 'USED' };
-			})(ctx as any, model as any, undefined as any);
+			})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -79,7 +79,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 					status: getSqlOperator('IN').toSQL('USED'),
 					categoryID: model.productCategoryID ?? '',
 					materialID: forBomMaterialID.value.length ? `NOT IN ${forBomMaterialID.value.join(',')}` : ''
-				}))(ctx as any, model as any, undefined as any);
+				}))(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -136,7 +136,7 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 				.refWhere((model, ctx) => {
 					const __p = ((ctx: UiContext<any>, model) => {
 					return { status: 'USED' };
-				})(ctx as any, model as any, undefined as any);
+				})(ctx as any, model as any);
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -227,9 +227,9 @@ export function beforeEdit(this: BomLogic): UiLogicFnResult<Bom> {
 			this.field('productCategoryID')
 				.lockIf(model => !isNullOrUndefined(model.productID))
 				.refWhere((model, ctx) => {
-					const __p = (() => ({
+					const __p = ({
 					materialType: getSqlOperator('NOT_IN').toSQL([MaterialType.LABOR]),
-				}))(ctx as any, model as any, undefined as any);
+				});
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)

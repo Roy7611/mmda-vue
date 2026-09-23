@@ -65,7 +65,6 @@ const beforeChangePwd = async (
             name: "newPwd",
             label: context.t("auth.newPassword"),
             required: true,
-            isEdit: true,
           },
           {
             default: () =>
@@ -73,6 +72,7 @@ const beforeChangePwd = async (
                 value: pwdData.data.newPwd,
                 type: "Password",
                 autocomplete: "new-password",
+                htmlAttributes: { name: "newPwd", id: "newPwd" },
                 onChange: (value: string) => {
                   pwdData.data.newPwd = value;
                 },
@@ -84,7 +84,6 @@ const beforeChangePwd = async (
             name: "newPwdAgain",
             label: context.t("auth.confirmNewPassword"),
             required: true,
-            isEdit: true,
           },
           {
             default: () =>
@@ -92,6 +91,7 @@ const beforeChangePwd = async (
                 value: pwdData.data.newPwdAgain,
                 type: "Password",
                 autocomplete: "new-password",
+                htmlAttributes: { name: "newPwdAgain", id: "newPwdAgain" },
                 onChange: (value: string) => {
                   pwdData.data.newPwdAgain = value;
                 },
@@ -190,7 +190,8 @@ const beforeDisapprove = async (
   model: User,
   action: EntityAction,
 ) => {
-  const { $ui: ui, $api: apiBox } = context.globalProps;
+  const ui = context.uiBuilder;
+  const apiBox = context.apiClient;
   const params = { disapproveReason: "" };
   await context.uiBuilder.dialog(
     ui.factory.formField(
@@ -198,7 +199,6 @@ const beforeDisapprove = async (
         name: "disapproveReason",
         label: context.t("auth.disapproveReason"),
         required: true,
-        isEdit: true,
       },
       {
         default: () =>
@@ -206,6 +206,7 @@ const beforeDisapprove = async (
             value: params.disapproveReason,
             autoResize: true,
             placeholder: context.t("invalid.requireDisapproveReason"),
+            htmlAttributes: { name: "disapproveReason", id: "disapproveReason" },
             onChange: (value) => {
               params.disapproveReason = value;
             },
@@ -257,7 +258,6 @@ const beforeDisapprove = async (
             severity: "error",
             message: error.message,
             title: context.t("dialog.title.error"),
-            position: "bottom-right",
             life: 3000,
           });
           return false;
@@ -307,7 +307,7 @@ export class UserLogic extends EntityLogic<User> {
       action: EntityAction,
     ) => {
       const { email, telPrefix, mobile } = model;
-      const { $t: t } = context.globalProps;
+      const t = context.t.bind(context);
       // ????
       const regEmail =
         /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
@@ -334,7 +334,7 @@ export class UserLogic extends EntityLogic<User> {
         this.field("staff"),
         this.field("deptID").setCustomCellRenderer(
           (fld, ctx: UiContext<User>, props) => {
-            if (isRefNone(ctx.model.deptID)) return ctx.uiBuilder.factory.textSpan({ text: "" });
+            if (isRefNone((ctx.model as User).deptID)) return ctx.uiBuilder.factory.textSpan({ text: "" });
             const modules = ctx.app?.state.modules ?? [];
             const linkable = props?.linkable ?? true;
             const url = linkable ? ctx.routeToRelative(fld) : "";
@@ -355,14 +355,9 @@ export class UserLogic extends EntityLogic<User> {
                 (subModule: Module) =>
                   subModule.objName === fld.reference?.refObjName,
               );
-            const { $router, $ui: ui } = ctx.globalProps;
-            const namedRoute = {
-              name: "Department",
-              params: { id: ctx.model.deptID },
-            };
-            const r = $router.resolve(namedRoute);
+            const ui = ctx.uiBuilder;
             if (!url || !refModule?.authority?.allowRead)
-              return ui.factory.textSpan({ text: ctx.model.customProperties.$deptID });
+              return ui.factory.textSpan({ text: (ctx.model as User).customProperties.$deptID });
             return ctx.uiBuilder.fieldFactory.hasOneText(fld, ctx);
           },
         ),
@@ -401,10 +396,10 @@ export class UserLogic extends EntityLogic<User> {
               });
             }
           })
-          .refFilter((model, ctx) => {
-					const __p = ((context, model, fld) => ({
+          .refWhere((model, ctx) => {
+					const __p = ({
             status: `IN ${DepartmentStatus.RUNNING}`,
-          }))(ctx as any, model as any, undefined as any);
+          });
 					if (!__p) return "";
 					return Object.entries(__p)
 						.filter(([, v]) => v !== "" && v != null)
@@ -515,8 +510,8 @@ export class UserLogic extends EntityLogic<User> {
           if (items.length > 0)
             return context.uiBuilder.toast(context, {
               severity: "error",
-              title: context.globalProps.$t("dialog.title.error"),
-              message: context.globalProps.$t("invalid.duplicateRole"),
+              title: context.t("dialog.title.error"),
+              message: context.t("invalid.duplicateRole"),
               life: 3000,
             });
           context.addSubGroupItems<UserRole>({

@@ -26,7 +26,7 @@ export class AddressLogic extends EntityLogic<Address> {
 		super(defineAddress, init);
 		this.beforeSave = (context: UiContext, model: Address, action: EntityAction) => {
 			const { tel, email, telPrefix } = model
-			const { $t: t } = context.globalProps
+			const t = context.t.bind(context);
 			// 手机号验证
 			const regPhone = /^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$/
 			// 座机验证

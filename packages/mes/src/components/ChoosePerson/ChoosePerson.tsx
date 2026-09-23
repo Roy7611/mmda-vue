@@ -60,7 +60,7 @@ const ChoosePerson = defineComponent({
 		const { $t, appGlobal, $toast: toast } = getCurrentInstance().appContext.app.config.globalProperties;
 		const { appContext } = getCurrentInstance();
 
-		const { meta: metaUiService, di, i18n, ui } = mes;
+		const { meta: metaUiService, di, ui } = mes;
 
 		const invalidProps = reactive<InvalidProps>({
 			copyToInvalid: false, //是否选择了 通知给谁。
