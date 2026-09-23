@@ -2,12 +2,11 @@ import type { VNode } from "vue";
 import {
   isNullObject,
   type MetaUiField,
-  type MetaUiGroup,
   type UiFieldFactory,
   type UiFieldRenderer,
+  type UiGroupRenderer,
 } from "@mmda/core";
 import type {UiProps} from "@mmda/core";
-import type { VuiContext } from "../contexts/vue_ui_context";
 
 export type { UiFieldRenderer } from "@mmda/core";
 /** 过渡名：皮肤与 vui 内部仍写 `UiFieldFactory`（core 的契约名）。 */
@@ -15,12 +14,8 @@ export type { UiFieldFactory } from "@mmda/core";
 
 type VueFieldRenderer = UiFieldRenderer<VNode>;
 
-export type VuiGroupRenderer = (
-  group: MetaUiGroup,
-  context: VuiContext<any>,
-  children?: VNode[],
-  props?: UiProps,
-) => VNode;
+/** Vue 侧的组渲染器：core `UiGroupRenderer` 把泛型收到 `VNode`（context 用 core 的 `UiContext`）。 */
+export type VuiGroupRenderer = UiGroupRenderer<VNode>
 
 /**
  * Vue 侧的字段工厂：只把泛型收到 `VNode`，成员**全部**来自 core 契约。

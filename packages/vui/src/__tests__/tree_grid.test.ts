@@ -153,6 +153,80 @@ describe("TreeGrid builder", () => {
     expect(host.querySelector(".mmda-custom-group")?.textContent).toBe("bpmn");
   });
 
+  it("组只写 prepend / append 就生效（不必写 customRenderer）", () => {
+    const metaUi = itemsMetaui("LIST", "");
+    const context = new VuiContext({
+      model: { items: [] } as any,
+      metaUi,
+      view: UiViewOne.Details,
+    });
+    const logic = new MetaUiGroupLogic(metaUi.getGroup("items")!);
+    logic.customPrepend = () =>
+      h("div", { class: "mmda-group-prepend" }, "扫码输入");
+    logic.customAppend = () =>
+      h("div", { class: "mmda-group-append" }, "编辑动态");
+    context.setupGroupLogic(logic);
+    const host = document.createElement("div");
+    render(
+      new TestUiBuilder().buildGroup(metaUi.getGroup("items")!, context),
+      host,
+    );
+    // 标准子表照旧在，插片在前 / 后各一段
+    expect(host.querySelector(".mmda-group-prepend")?.textContent).toBe(
+      "扫码输入",
+    );
+    expect(host.querySelector(".mmda-group-append")?.textContent).toBe(
+      "编辑动态",
+    );
+  });
+
+  it("子表增行：先 onChange 再 customAggregator（合计能改主表字段）", () => {
+    const metaUi = itemsMetaui("LIST", "");
+    const context = new VuiContext({
+      model: { orderID: 7, items: [] } as any,
+      metaUi,
+      view: UiViewOne.Edit,
+    });
+    const order: string[] = [];
+    const logic = new MetaUiGroupLogic(metaUi.getGroup("items")!);
+    logic.onChange(() => {
+      order.push("onChange");
+    });
+    logic.aggregateWith((_ctx, model, items) => {
+      order.push("aggregate");
+      (model as any).total = items.length;
+    });
+    context.setupGroupLogic(logic);
+
+    context.addSubGroupItem("items", { id: "1" } as any);
+
+    expect(order).toEqual(["onChange", "aggregate"]);
+    expect((context.model as any).total).toBe(1);
+  });
+
+  it("beforeItemRemove 拦截后不重算合计（子表数据没变）", () => {
+    const metaUi = itemsMetaui("LIST", "");
+    const context = new VuiContext({
+      model: { orderID: 7, items: [] } as any,
+      metaUi,
+      view: UiViewOne.Edit,
+    });
+    let aggregates = 0;
+    const logic = new MetaUiGroupLogic(metaUi.getGroup("items")!);
+    logic.beforeItemRemove(() => false); // 拦截：不许删
+    logic.aggregateWith(() => {
+      aggregates += 1;
+    });
+    context.setupGroupLogic(logic);
+
+    context.addSubGroupItem("items", { id: "1" } as any); // 增行 → 算一次
+    expect(aggregates).toBe(1);
+
+    context.removeSubGroupItem("items", { id: "1" } as any); // 被拦截 → 没删 → 不重算
+    expect(aggregates).toBe(1);
+    expect(((context.model as any).items as unknown[]).length).toBe(1);
+  });
+
   it("viewKind treeGrid 走 buildTreeGridView", () => {
     const metaUi = new MetaUi({
       objName: "MaterialCat",

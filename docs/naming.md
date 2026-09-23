@@ -122,13 +122,22 @@ SyncfusionUiBuilder / PrimeVueUiBuilder / …
 渲染器按“粒度”分三层，不要混用：
 
 ```text
-UiRenderer        core  最底层渲染：render(tag, props, children)，只拼 HTML 壳（div/span/section）
-UiFieldRenderer   core  字段级渲染：一个 MetaUiField 的裸控件渲染函数
-UiGroupRenderer   core  组级渲染：字段组合 / 子表（一个 MetaUiGroup）
+UiRenderer           core  最底层渲染：render(tag, props, children)，只拼 HTML 壳（div/span/section）
+UiFieldRenderer      core  字段级渲染：一个 MetaUiField 的裸控件渲染函数（表单 / 详情；第三参可选）
+UiFieldCellRenderer  core  单元格级渲染（Logic 层）：框架传 context + 当前行，给 setCustomCellXxx
+UiCellRenderer       core  单元格级渲染（表格内部）：表级上下文，只要「字段 + 行」，无 context 参数
+UiGroupRenderer      core  组级渲染：字段组合 / 子表（一个 MetaUiGroup）
 ```
 
-- `UiFieldRenderer<TNode> = (field, context) => TNode`；`UiFieldFactory` 是它的具名表（core `src/ui/field_factory.ts`）。
-- `UiGroupRenderer` 是组/子表渲染器，目标契约在 core（泛型 `TNode`）；当前实现仍在 vui，迁移时用 `UiContext` 替换 `VueUiContext`。
+- `UiFieldRenderer<TNode> = (field, context, props?: UiFieldCellProps) => TNode` —— **字段级**（表单 / 详情 / 皮肤字段控件）；`UiFieldFactory` 是它的具名表（core `src/ui/field_factory.ts`）。第三参可选**是契约的一部分、不是兜底**：表格的 `customCellRenderer` / `customCellEditor` 缺失时会回退到 `customRenderer` / `customEditor`（vui `ui/builder/list_view.ts` 的 `tableCell`），回退时同样传当前行，所以同一个函数会被两参（表单）与三参（表格）两种方式调用。
+- `UiFieldCellRenderer<TNode> = (field, context, props: UiFieldCellProps) => TNode` —— **单元格级（Logic 层）**：`MetaUiFieldLogic.customCellRenderer` / `customCellEditor` 与 `setCustomCellRenderer` / `setCustomCellEditor` 用它。第三参类型上**必需**（用它时不必写 `props?.row`）。**context 不能省**：它挂在 fieldLogic 上、不在任何闭包里，显示值（`displayField(field, row)`）/ 翻译 / 权限都靠它。
+- `UiCellRenderer<T = any, TNode = any> = (field, row) => TNode | TNode[] | undefined` —— **单元格级（表格内部）**：`UiTableProps.fieldCellRenderers` 的键值表（core `src/ui/factory/table.ts`），随拼屏 props 传入。**没有 context 参数**（追求性能：上千行不做每格 `context.with(row)`）；行由参数给，业务写这个表时闭包里已有**表级** context。
+- `UiFieldCellProps`（core `src/ui/field_factory.ts`）是字段级 / Logic 层的第三参：`row`（当前渲染的行实体，**必需**）+ `isSearch` / `linkable` / `title`，另继承 `UiProps`。
+- **「外面的转到里面」不能省 context**：Logic 层（`UiFieldCellRenderer`）挂在 fieldLogic 上，没有闭包可依；只有拼屏注入的 `UiCellRenderer` 才是无 context 形态。编辑视图每行有自己的 context 时，行就是 `context.model`，与 `props.row` 同源。
+- 选中顺序：编辑 `customEditor` ?? `field.editor` ?? `fallbackInput`；只读 `customRenderer` ?? `field.renderer` ?? `fallbackDisplay`；单元格 `customCellEditor` ?? `customEditor` ?? …（回退）。不要另造 `CustomFieldRenderFn` / `VuiFieldCellProps` 这类副本 —— 曾经同时存在三份，vui 与皮肤靠 `as any` 才躲过检查。
+- `UiGroupRenderer<TNode> = (group, context, props?: UiProps) => TNode` —— **组级渲染器**（core `src/ui/group_factory.ts`）：挂 `MetaUiGroupLogic` 的六个位置，vui 消费在 `builder.buildGroup`（`packages/vui/src/ui/builder/form.ts` 的 `wrapGroupSlots`）。vui 的 `VuiGroupRenderer` 是它的 `VNode` 收窄别名。组级没有「第三参给当前行」那一形态 —— 行由子表会话（`context`）给。
+- 六个位置**按位置分工、可同时生效**（不是三个插槽对象）：`customPrepend` / `customAppend` 是标准内容前 / 后的插片（详情态），`customEditPrepend` / `customEditAppend` 是编辑态的插片，`customEditor` / `customRenderer` 换**中间那块**（编辑态取前者、只读态取后者）；前两者 + 中间是正交的，只写插片也能生效（不必写 customRenderer）。
+- `customAggregator` / `aggregateWith(fn)` **不是渲染器** —— 它是**子表合计计算**：`AggregateGroupFn<E, G> = (context, model, items) => void`（core `logic/logic_functions.ts`），在子表行集合变化时于 `onChange` **之后**调用（`AbstractUiContext.notifySubGroupChanged`，`addSubGroupItem` / `addSubGroupItems` / `removeSubGroupItem` / `removeSubGroupItems` 四处都过它）。只算不渲染，程序员在这里改主表合计字段，所以不进 `UiGroupRenderer`。
 - vui 只钉 `VNode`：`VueUiRenderer` / `VueFieldRenderer` / `VueGroupRenderer`。vui 现有那个“值渲染器” `UiRenderer<T>` 改名 `VueUiRenderer`，不要与 core 的 `UiRenderer` 撞名。
 
 ### UI 契约三层

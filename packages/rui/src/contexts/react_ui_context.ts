@@ -11,6 +11,7 @@ import {
   type MetaUiGroupLogic,
   type MetaUiGroup,
   type PagedList,
+  type UiBuilder,
   type UiContext,
   type MetaUiField,
   type FieldSearchOptions,
@@ -26,6 +27,7 @@ import type { EntitySelectParam } from '@mmda/core'
 import type { ReactNavigator } from './mixins/navigate'
 import { proxy } from 'valtio'
 import { createReactRxFactory } from '../reactivity'
+import type { MmdaReactApp } from '../app/app'
 
 export interface RuiContextOptions<M extends Entity = Entity> {
   model: M | M[]
@@ -37,6 +39,11 @@ export interface RuiContextOptions<M extends Entity = Entity> {
   logic: EntityLogic<M> | undefined
   /** react-router 的 navigate 函数，注入后 routeTo* 可用。 */
   navigate?: ReactNavigator
+  /**
+   * 应用壳：`context.app` / `context.uiBuilder` 从它取（对照 vui 的 `VuiContextOptions.app`）。
+   * 宿主 `MmdaReactApp.createContext` 自己注入，业务不要传。
+   */
+  app?: MmdaReactApp
 }
 
 /** ReactUiContext 中可响应式观察的核心状态。 */
@@ -76,6 +83,8 @@ export class ReactUiContext<M extends Entity = Entity> extends AbstractUiContext
   override isInDialog = false
 
   private _navigate?: ReactNavigator
+  /** 应用壳（宿主注入）：`app` / `uiBuilder` 由它派生。 */
+  private _app?: MmdaReactApp
 
   constructor(
     options: RuiContextOptions<M>,
@@ -112,6 +121,7 @@ export class ReactUiContext<M extends Entity = Entity> extends AbstractUiContext
     this.model = this.initModel(options.model, false)
     this.validationState = this.initValidation(child?.validation)
     this._navigate = options.navigate
+    this._app = options.app
     this.router = options.navigate
       ? { push: options.navigate, resolve: (path: string) => path }
       : undefined
@@ -130,9 +140,13 @@ export class ReactUiContext<M extends Entity = Entity> extends AbstractUiContext
   get currentIndex(): number { return this._state.currentIndex }
   set currentIndex(v: number) { this._state.currentIndex = v }
 
-  get app(): any { return undefined }
-  get apiClient(): any { return undefined }
-  get uiBuilder(): any { return undefined }
+  /** 应用壳。缺省 undefined —— 单测可以直接 new 一个不带壳的会话。 */
+  get app(): MmdaReactApp | undefined { return this._app }
+  set app(v: MmdaReactApp | undefined) { this._app = v }
+  /** 数据访问器，来自 Logic。 */
+  get apiClient() { return this.logic?.apiClient }
+  /** 拼屏入口：`context.uiBuilder.buildEditView(context)` 这类调用全靠它。 */
+  get uiBuilder(): UiBuilder | undefined { return this._app?.ui }
 
   override setModel(model: M | M[]): void {
     if (Array.isArray(this.model)) {
@@ -159,6 +173,7 @@ export class ReactUiContext<M extends Entity = Entity> extends AbstractUiContext
       groupLogics: this.root.groupLogics as any,
       logic: (logic ?? this.logic) as any,
       navigate: this._navigate,
+      app: this._app,
     }, { parent: this as any, cache: this.cache as any, cachePath })
   }
 

@@ -39,7 +39,11 @@ export class MmdaReactApp extends MmdaApplication {
 
   /** 会话工厂。业务层用 `app.createContext(opts)` 创建会话。 */
   createContext<M extends import('@mmda/core').Entity>(opts: Omit<RuiContextOptions<M>, 'logic'> & { logic?: any; navigate?: any }): ReactUiContext<M> {
-    return new ReactUiContext({ ...opts, navigate: opts.navigate ?? this._navigate } as any) as ReactUiContext<M>
+    return new ReactUiContext({
+      ...opts,
+      app: this,
+      navigate: opts.navigate ?? this._navigate,
+    } as any) as ReactUiContext<M>
   }
 
   /** 注入 react-router 的 navigate 函数。 */

@@ -10,7 +10,9 @@ import {
   type MetaUiField,
   type Module,
   type UiContext,
+  type UiFieldCellProps,
   type UiFieldFactory,
+  type UiFieldRenderer,
   type UiProps,
 } from '@mmda/core'
 import type { VuiFactory } from './factory'
@@ -30,25 +32,11 @@ import {
 } from './factory/file_upload_field'
 
 /**
- * 表格 cell 渲染时透传的第三参。core `UiProps` 无索引签名，
- * 这里显式声明 row / 行级开关，避免皮肤各自 `as any`。
+ * Vue 侧的字段渲染器：把 core `UiFieldRenderer` 的泛型收到 `VNode`。
+ * 第三参（表格 cell 上下文，含**当前渲染的行** `props.row`）由 core 契约给出，
+ * 这里不再自己抄一份 —— 抄一份就会和 core 的签名漂移。
  */
-export interface VuiFieldCellProps extends UiProps {
-  row?: any
-  isSearch?: boolean
-  linkable?: boolean
-  title?: string
-}
-
-/**
- * 字段渲染器。表格 cell 会额外传第 3 参（含 `row` 等 cell props），
- * 因此这里比 core `UiFieldRenderer` 多一个可选 `props`。
- */
-export type VuiFieldRenderer = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: VuiFieldCellProps,
-) => VNode
+export type VuiFieldRenderer = UiFieldRenderer<VNode>
 
 /**
  * 皮肤 `createSearchRelative` 组件的入参：字段工厂对账后的选择态与回写回调。
@@ -116,8 +104,10 @@ export abstract class VueUiFieldFactory
     const valueKey = reference.refFlds?.[0] ?? 'value'
     const labelKey = reference.refFlds?.[1] ?? valueKey
     const fldOptions = context.getFieldSearchOptions(field)
-    let fieldValue = (context.model as Record<string, unknown>)[field.fieldName]
-      ? context.getFieldValue(field)
+    // 行优先：表格里 context 是整表会话（model 是行数组），只有 props.row 是「这一行」。
+    const rowModel = (props?.row ?? context.model) as Record<string, unknown>
+    let fieldValue = rowModel[field.fieldName]
+      ? context.getFieldValue(field, props?.row)
       : null
 
     if (
@@ -154,7 +144,7 @@ export abstract class VueUiFieldFactory
         fldOptions.currentSelectOption = value || null
         context.setFieldValue(field, value || null)
         if (!value) {
-          const model = context.model as Record<string, any>
+          const model = (props?.row ?? context.model) as Record<string, any>
           MetaModel.setRefProp(model, field.fieldName, null)
           reference.refFlds.forEach((rf, index) => {
             if (index > 0) MetaModel.delCustomProp(model, rf)
@@ -186,7 +176,7 @@ export abstract class VueUiFieldFactory
   protected fieldDisplayText(
     field: MetaUiField,
     context: UiContext,
-    props?: VuiFieldCellProps,
+    props?: UiFieldCellProps,
   ): string {
     const value = context.displayField(field, props?.row)
     return value == null ? '' : String(value)

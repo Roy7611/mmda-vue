@@ -8,7 +8,7 @@ import { SqlDataType } from '../metaui/datatype'
 import type { UiContext } from './context'
 import { uiCssClass } from './css'
 import type { UiFactory } from './factory'
-import type { UiFieldFactory, UiFieldRenderer } from './field_factory'
+import type { UiFieldFactory } from './field_factory'
 import type { UiLayout, UiNodeProps } from './layout'
 import type { UiProps } from './props'
 import type { UiRenderer } from './renderer'
@@ -145,38 +145,38 @@ export abstract class AbstractUiBuilder<TNode = unknown> extends PluginHost<TNod
     )
   }
 
-  /** 裸编辑控件（不含标签布局）。 */
+  /**
+   * 裸编辑控件（不含标签布局）。
+   * 选中顺序 `customEditor` ?? `field.editor` ?? `fallbackInput` —— 三者是同一个类型
+   *（`UiFieldRenderer`），业务自定义控件与皮肤控件走同一条路，不需要断言。
+   */
   protected editorFor(
     field: MetaUiField,
     context: UiContext,
     props: UiProps = {},
   ): TNode {
-    const logic = context.getFieldLogic(field) as
-      | { customEditor?: (f: MetaUiField, c: UiContext, p?: UiProps) => TNode }
-      | undefined
-    const renderer = (logic?.customEditor ??
+    const renderer =
+      context.getFieldLogic(field)?.customEditor ??
       (field.editor ? this.fieldFactory[field.editor] : undefined) ??
-      this.fieldFactory.fallbackInput) as UiFieldRenderer<TNode>
+      this.fieldFactory.fallbackInput
     return renderer(field, context)
   }
 
-  /** 裸展示控件（不含标签布局）。 */
+  /** 裸展示控件（不含标签布局）。选中顺序 `customRenderer` ?? `field.renderer` ?? `fallbackDisplay`。 */
   protected displayRendererFor(
     field: MetaUiField,
     context: UiContext,
     props: UiProps = {},
   ): TNode {
-    const logic = context.getFieldLogic(field) as
-      | { customRenderer?: (f: MetaUiField, c: UiContext, p?: UiProps) => TNode }
-      | undefined
     const name = field.renderer
       ? field.renderer
       : SqlDataType.isBool(field.dataType)
         ? 'checkedIcon'
         : 'textSpan'
-    const renderer = (logic?.customRenderer ??
+    const renderer =
+      context.getFieldLogic(field)?.customRenderer ??
       this.fieldFactory[name] ??
-      this.fieldFactory.fallbackDisplay) as UiFieldRenderer<TNode>
+      this.fieldFactory.fallbackDisplay
     return renderer(field, context)
   }
 

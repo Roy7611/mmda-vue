@@ -195,6 +195,35 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
       return this.buildGroupCard(group, body, props);
     }
     
+    /**
+     * 组内容前后插片：`prepend` + 内容 + `append`（编辑态用 `customEditPrepend` / `customEditAppend`）。
+     * 与 `customEditor` / `customRenderer` **正交**：后两者换中间那块，这两个只在前 / 后各加一段
+     * （例：表格上方加扫码输入、尾部显示编辑动态）。
+     */
+    wrapGroupSlots(
+      group: MetaUiGroup,
+      context: UiContext,
+      props: BuildGroupProps,
+      body: VNode | VNode[],
+    ): VNode[] {
+      const groupLogic = context.getGroupLogic(group);
+      const prependView = context.editing
+        ? groupLogic?.customEditPrepend
+        : groupLogic?.customPrepend;
+      const appendView = context.editing
+        ? groupLogic?.customEditAppend
+        : groupLogic?.customAppend;
+      return [
+        ...(typeof prependView === "function"
+          ? [prependView(group, context, props)]
+          : []),
+        ...(Array.isArray(body) ? body : [body]),
+        ...(typeof appendView === "function"
+          ? [appendView(group, context, props)]
+          : []),
+      ];
+    }
+
     buildGroup(group: MetaUiGroup, context: UiContext, children?: VNode[] | null, props: BuildGroupProps = {}) {
       if (context.isGroupHidden(group)) {
         return this.renderer.render(
@@ -230,7 +259,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           [];
         const groupCtx = (context as VuiContext).subGroupContext(group);
         const readOnlyRows = !context.editing;
-        const groupLogic = context.getGroupLogic(group) as any;
+        const groupLogic = context.getGroupLogic(group);
         const customGroupView = context.editing
           ? (groupLogic?.customEditor ?? groupLogic?.customRenderer)
           : groupLogic?.customRenderer;
@@ -243,7 +272,12 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           }
           return this.wrapGroup(
             group,
-            customGroupView(group, context, props),
+            this.wrapGroupSlots(
+              group,
+              context,
+              props,
+              customGroupView(group, context, props),
+            ),
             wrapProps,
           );
         }
@@ -384,9 +418,14 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           this.layout.fieldGroupLayout = { type: 'grid', gridCols: 1 }
           return this.wrapGroup(
             group,
-            this.layout.layoutFieldGroup({
-              fields: [uploader, gallery].filter(Boolean) as VNode[],
-            }),
+            this.wrapGroupSlots(
+              group,
+              context,
+              props,
+              this.layout.layoutFieldGroup({
+                fields: [uploader, gallery].filter(Boolean) as VNode[],
+              }),
+            ),
             wrapProps,
           );
         }
@@ -414,7 +453,7 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
           }
         > = {};
         for (const field of tableFields) {
-          const fieldLogic = groupCtx.getFieldLogic(field) as any;
+          const fieldLogic = groupCtx.getFieldLogic(field);
           const locked =
             readOnlyRows ||
             !nativeInplaceEdit ||
@@ -542,9 +581,14 @@ export function WithForm<TBase extends AbstractConstructor>(Base: TBase) {
         this.layout.fieldGroupLayout = { type: 'grid', gridCols: 1 }
         return this.wrapGroup(
           group,
-          this.layout.layoutFieldGroup({
-            fields: [table],
-          }),
+          this.wrapGroupSlots(
+            group,
+            context,
+            props,
+            this.layout.layoutFieldGroup({
+              fields: [table],
+            }),
+          ),
           wrapProps,
         );
       }

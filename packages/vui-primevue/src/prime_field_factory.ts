@@ -8,13 +8,13 @@ import {
   type UiAvatarProps,
   type UiAutoCompleteProps,
   type UiContext,
+  type UiFieldCellProps,
   type UiFieldFactory,
 } from '@mmda/core'
 import {
   VueUiFieldFactory,
   type VuiContext,
   type VuiFactory,
-  type VuiFieldCellProps,
   type VuiFieldRenderer,
   type VuiSearchRelativeProps,
 } from '@mmda/vui'
@@ -125,7 +125,7 @@ export class PrimeVueFieldFactory extends VueUiFieldFactory {
   checkedIcon: VuiFieldRenderer = (field, context, props) =>
     this.primeBooleanIcon(context.getFieldValue(field, props?.row), props)
 
-  private primeBooleanIcon(value: unknown, props?: VuiFieldCellProps): VNode {
+  private primeBooleanIcon(value: unknown, props?: UiFieldCellProps): VNode {
     const checked = Boolean(value)
     return h('i', {
       ...props,

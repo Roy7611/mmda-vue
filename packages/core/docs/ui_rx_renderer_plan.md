@@ -17,7 +17,7 @@ UiGroupRenderer   core  组级渲染：字段组合 / 子表（一个 MetaUiGrou
 ```
 
 - vui 现有“值渲染器” `UiRenderer<T>`（`vui/src/ui/factory.ts`）改名 `VueUiRenderer`，不与本文 `UiRenderer` 撞名。
-- `UiFieldRenderer` 已在 core；`UiGroupRenderer` 目标进 core（泛型 `TNode`），迁移时 `VueUiContext` 换 `UiContext`。
+- `UiFieldRenderer` / `UiGroupRenderer` 都已在 core（`ui/field_factory.ts` / `ui/group_factory.ts`），泛型 `TNode`；vui 侧只留 `VNode` 收窄别名（`VueFieldRenderer` / `VuiGroupRenderer`）。
 
 ---
 

@@ -1,6 +1,7 @@
 import { MetaUiField } from '../metaui/metaui_field'
 import type { Entity } from '../models/entity'
 import type { UiContext } from '../ui/context'
+import type { UiFieldCellRenderer, UiFieldRenderer } from '../ui/field_factory'
 import {
   logicOr,
   sqlAnd,
@@ -9,7 +10,6 @@ import {
   type Predicate,
   type RefWhereFn,
   type AggregateFn,
-  type CustomFieldRenderFn,
 } from './logic_functions'
 import {
   customValidator,
@@ -47,7 +47,7 @@ import {
  *   .refWhere((model, ctx) => `salesman = ${ctx.app?.state.user.userId}`)
  * ```
  */
-export class MetaUiFieldLogic<E extends Entity = Entity> {
+export class MetaUiFieldLogic<E extends Entity = Entity, TNode = any> {
   /** 对应的元数据字段（Data SSOT；Logic 不改写 readOnly / hidden / nullable）。 */
   constructor(public readonly field: MetaUiField) {
     this.hasField()
@@ -56,14 +56,17 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
 
   /** 列级是否允许表格原位编辑；与 lockIf 无关。子表组默认开，inplaceEdit(false) 关单列。 */
   inplaceEditable?: boolean
-  /** 表单自定义编辑器；vui 消费，返回值常为 VNode。 */
-  customEditor?: CustomFieldRenderFn
-  /** 表单自定义展示；vui 消费，返回值常为 VNode。 */
-  customRenderer?: CustomFieldRenderFn
-  /** 列表单元格自定义展示。 */
-  customCellRenderer?: CustomFieldRenderFn
-  /** 列表单元格自定义编辑。 */
-  customCellEditor?: CustomFieldRenderFn
+  /**
+   * 表单自定义编辑器：与皮肤控件同签名（第三参只有表格路径才给）。
+   * 选中顺序 `customEditor` ?? `field.editor` ?? `fieldFactory.fallbackInput`。
+   */
+  customEditor?: UiFieldRenderer<TNode>
+  /** 表单自定义展示。选中顺序 `customRenderer` ?? `field.renderer` ?? `fieldFactory.fallbackDisplay`。 */
+  customRenderer?: UiFieldRenderer<TNode>
+  /** 列表单元格自定义展示。第三参 `props.row` 是当前行，必需（{@link UiFieldCellRenderer}）。 */
+  customCellRenderer?: UiFieldCellRenderer<TNode>
+  /** 列表单元格自定义编辑。第三参 `props.row` 是当前行，必需（{@link UiFieldCellRenderer}）。 */
+  customCellEditor?: UiFieldCellRenderer<TNode>
   /** 业务只读条件；多次 lockIf OR 叠加。求值：field.readOnly || readonlyFn。 */
   readonlyFn?: Predicate<E>
   /** 业务隐藏条件；多次 hideIf OR。求值：field.hidden || hiddenFn。 */
@@ -146,22 +149,26 @@ export class MetaUiFieldLogic<E extends Entity = Entity> {
     return this
   }
 
-  setCustomRenderer(renderFn: CustomFieldRenderFn) {
+  /** 自定义只读展示。`renderFn(field, context[, cellProps])`。 */
+  setCustomRenderer(renderFn: UiFieldRenderer<TNode>) {
     this.customRenderer = renderFn
     return this
   }
 
-  setCustomCellRenderer(renderFn: CustomFieldRenderFn) {
+  /** 自定义单元格只读展示。第三参（含 `row`）必需。 */
+  setCustomCellRenderer(renderFn: UiFieldCellRenderer<TNode>) {
     this.customCellRenderer = renderFn
     return this
   }
 
-  setCustomCellEditor(editorFn: CustomFieldRenderFn) {
+  /** 自定义单元格编辑。第三参（含 `row`）必需。 */
+  setCustomCellEditor(editorFn: UiFieldCellRenderer<TNode>) {
     this.customCellEditor = editorFn
     return this
   }
 
-  setCustomEditor(editorFn: CustomFieldRenderFn) {
+  /** 自定义编辑器。`editorFn(field, context[, cellProps])`。 */
+  setCustomEditor(editorFn: UiFieldRenderer<TNode>) {
     this.customEditor = editorFn
     return this
   }

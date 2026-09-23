@@ -40,7 +40,7 @@ export interface UiRowDetail<T = any, TNode = any> {
  * })
  * ```
  */
-export type UiFieldCellRenderer<T = any, TNode = any> = (
+export type UiCellRenderer<T = any, TNode = any> = (
   field: MetaUiField,
   row: T,
 ) => TNode | TNode[] | undefined
@@ -110,7 +110,7 @@ export interface UiTableProps<T = any, TNode = any> extends UiListProps<T> {
   /**
    * 按字段名挂自定义单元格。有 key 就是自定义格，不要再传字段名名单。
    */
-  fieldCellRenderers?: Record<string, UiFieldCellRenderer<T, TNode>>
+  fieldCellRenderers?: Record<string, UiCellRenderer<T, TNode>>
   /** 行展开异构孙子组。 */
   rowDetail?: UiRowDetail<T, TNode>
   /**

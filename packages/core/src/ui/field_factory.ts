@@ -1,14 +1,57 @@
 import type { MetaUiField } from '../metaui/metaui_field'
+import type { Entity } from '../models/entity'
 import type { UiContext } from './context'
 import type { UiLayout } from './layout'
+import type { UiProps } from './props'
 
 /**
- * 单个字段的渲染函数。
+ * 表格单元格渲染的第三参。
+ *
+ * 为什么需要它：表格渲染时 `context` 是**整表（列表）会话**，`context.model` 是行数组，
+ * 光靠 context 分不出"正在画哪一行"；当前行必须由调用方显式给。
+ * 表单路径不传（那条路径下 context 就是该字段所在的会话，行 === `context.model`）。
+ *
+ * `row` 在 vui 里以不可枚举属性挂在 cellProps 上（避免透传进控件 / DOM），
+ * 但**必须存在**：单元格渲染器读 `displayField(field, props.row)` 才能取到本行的值。
+ */
+export interface UiFieldCellProps extends UiProps {
+  /** 当前渲染的行实体。 */
+  row: Entity
+  /** 该单元格是否出现在查询表单里（查询格不要链接、不要行级交互）。 */
+  isSearch?: boolean
+  /** 字段是否可点开跳转（元数据 `field.linkable` 与 isSearch 的对账结果）。 */
+  linkable?: boolean
+  /** 单元格标题（缺省用 `field.displayLabel`）。 */
+  title?: string
+}
+
+/**
+ * 字段级渲染函数（表单 / 详情 / 皮肤字段控件）。
  * 返回裸控件节点；带标签的字段行由 `UiBuilder.editFor` / `displayFor` 套 `UiLayout`。
+ *
+ * 第三参**可选是契约的一部分，不是兜底**：表格的只读格 / 编辑格在 `customCellRenderer` /
+ * `customCellEditor` 缺失时会**回退**到 `customRenderer` / `customEditor`
+ * （`packages/vui/src/ui/builder/list_view.ts` 的 `tableCell`），回退时同样传当前行。
+ * 所以同一个函数既被两参（表单：`packages/core/src/ui/builder_base.ts`）又被三参（表格）调用。
+ * 只跑表格那条路的写法用 {@link UiFieldCellRenderer}：第三参在类型上**必需**，写 `props.row` 时不必再 `props?.row` 兜底。
  */
 export type UiFieldRenderer<TNode = any> = (
   field: MetaUiField,
   context: UiContext,
+  props?: UiFieldCellProps,
+) => TNode
+
+/**
+ * 单元格级渲染函数（表格专用）。
+ * 只在表格里跑：`MetaUiFieldLogic.customCellRenderer` / `customCellEditor`。
+ * 第三参**必需** —— 表格渲染时 `context` 是整表会话，当前行只能从第三参拿。
+ * 与 {@link UiFieldRenderer} 分开写，是因为表格（可能上千行）常要更轻的实现，
+ * 而详情/表单字段可以更丰富。
+ */
+export type UiFieldCellRenderer<TNode = any> = (
+  field: MetaUiField,
+  context: UiContext,
+  props: UiFieldCellProps,
 ) => TNode
 
 /**

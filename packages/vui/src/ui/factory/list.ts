@@ -10,7 +10,7 @@ import type {
   UiPaginatorProps,
   UiRowDetail as CoreUiRowDetail,
   UiIndexTableHost,
-  UiFieldCellRenderer as CoreUiFieldCellRenderer,
+  UiCellRenderer as CoreUiCellRenderer,
   UiTableProps as CoreUiTableProps,
   UiTreeGridProps as CoreUiTreeGridProps,
 } from "@mmda/core";
@@ -24,11 +24,11 @@ export type {
   UiGridScene,
   UiListDisplay,
   UiIndexTableHost,
-  UiFieldCellRenderer,
+  UiCellRenderer,
 } from "@mmda/core";
 
-/** @deprecated 用 UiFieldCellRenderer；两参 (field, row)，不要第三袋。 */
-export type VuiTableCellRenderer<T = any> = CoreUiFieldCellRenderer<T, VNode>;
+/** @deprecated 用 UiCellRenderer；两参 (field, row)，不要第三袋。 */
+export type VuiTableCellRenderer<T = any> = CoreUiCellRenderer<T, VNode>;
 
 
 /** 只读桌面表。 */
@@ -99,7 +99,7 @@ export type VuiTableSettings = {
 
 export type VuiTableSkinExtras<T = any> = {
   /** Builder 合成的默认格调度。Logic 请用 fieldCellRenderers。 */
-  renderCell?: CoreUiFieldCellRenderer<T, VNode>;
+  renderCell?: CoreUiCellRenderer<T, VNode>;
   /** Builder 推算：哪些列需要 Vue 模板。不要手写。 */
   templateCellFields?: string[];
   filterLabels?: Partial<

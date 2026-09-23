@@ -1085,6 +1085,19 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     ) as unknown as UiContext<G>
   }
 
+  /**
+   * 子表行集合变化后的统一出口：先业务回调 `onChange`，再算合计 `customAggregator`。
+   * 合计只算不渲染 —— 它在 `onChange` 之后跑，可以改主表的合计字段。
+   */
+  protected notifySubGroupChanged<G extends Entity>(
+    group: MetaUiGroup,
+    items: G[],
+  ): void {
+    const logic = this.getGroupLogic(group)
+    logic?.onChangeFn?.(this.asUiCtx(), this.model, items)
+    logic?.customAggregator?.(this.asUiCtx(), this.model, items)
+  }
+
   addSubGroupItem<G extends Entity>(
     group: string | MetaUiGroup,
     item: G,
@@ -1094,11 +1107,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     if (items.includes(item)) return
     items.push(item)
     MetaModel.modify(this.model as Entity)
-    this.getGroupLogic(grp)?.onChangeFn?.(
-      this.asUiCtx(),
-      this.model,
-      items,
-    )
+    this.notifySubGroupChanged(grp, items)
   }
 
   addSubGroupItems<G extends Entity>(
@@ -1107,13 +1116,14 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     MetaModel.addSubGroupItems(this.resolveSubGroupTransform(param))
     MetaModel.modify(this.model as Entity)
     const group = this.resolveGroup(param.group)
-    this.getGroupLogic(group)?.onChangeFn?.(
-      this.asUiCtx(),
-      this.model,
-      (this.model as Entity)[group.groupName],
-    )
+    this.notifySubGroupChanged(group, (this.model as Entity)[group.groupName])
   }
 
+  /**
+   * **只造行，不追加**（`MetaModel.createSubGroupItems` 的 `addToTarget` 默认 `false`）：
+   * 不改子表数据，因此不触发 `onChange` / `customAggregator`。
+   * 追加走 `addSubGroupItem` / `addSubGroupItems` —— 那两处会重算合计。
+   */
   createSubGroupItems<G extends Entity>(
     param: SubGroupItemTransformParam<G>,
   ): Promise<G | G[]> {
@@ -1131,7 +1141,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     const items = (this.model as Entity)[grp.groupName] ?? []
     const commit = () => {
       MetaModel.deleteItem(items, item)
-      logic?.onChangeFn?.(this.asUiCtx(), this.model, items)
+      this.notifySubGroupChanged(grp, items)
     }
     const intercept = logic?.beforeItemRemoveFunc
     if (!intercept) {
@@ -1155,11 +1165,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     const grp = this.resolveGroup(group)
     const items = (this.model as Entity)[grp.groupName] ?? []
     MetaModel.clearItems(items)
-    this.getGroupLogic(grp)?.onChangeFn?.(
-      this.asUiCtx(),
-      this.model,
-      items,
-    )
+    this.notifySubGroupChanged(grp, items)
   }
 
   async subGroupItem<G extends Entity>(

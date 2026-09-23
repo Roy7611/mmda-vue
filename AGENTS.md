@@ -22,6 +22,7 @@
 - UI：`context.uiBuilder`（core 统一接口；vui/rui 实现）。
 - 应用壳：`context.app`（core abstract class **`MmdaApplication`**；vui **`MmdaVueApp`**，不是 Vue `App`）。业务读 **`app.state`**。弹层走 `app.ui` / `context.uiBuilder`，不要 `app.confirm`。
 - 选记录：`searchRelative` 无 UI；`select(field)` 写回字段；`select({ repository })` 选仓库实体。本地行用 `MetaUiBuilder` + `factory.table` + `dialog`。
+- **子表数据只走会话 API**：`context.addSubGroupItem` / `addSubGroupItems` / `removeSubGroupItem` / `removeSubGroupItems`（`newSubGroupItem` 内部已含增删）。**不要直接 `model[groupName].push(...)` / `splice(...)`** —— 绕过 API 不会触发组的 `onChange` 与 `aggregateWith` 合计（合计是程序员改主表合计字段的地方）。`createSubGroupItems` 只造实体、**不追加**（`MetaModel` 的 `addToTarget` 默认 `false`），追加仍要调 `addSubGroupItem`。
 - `globalProps` 只是把 Vue `globalProperties` **传递**下来，极少用。不要日常掏 `$ui` / `$api`。
 
 ## 原则

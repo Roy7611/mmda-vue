@@ -4,9 +4,11 @@ import { MetaUiField } from '../metaui/metaui_field'
 import { MetaUiGroup } from '../metaui/metaui_group'
 import { parseEntityBoolExpression } from './entity_bool_expr'
 import { MetaUiFieldLogic } from './field_logic'
+import type { UiGroupRenderer } from '../ui/group_factory'
 import {
   logicAnd,
   logicOr,
+  type AggregateGroupFn,
   type AddGroupItemsFn,
   type BeforeItemRemoveFn,
   type CreateGroupItemsFn,
@@ -66,17 +68,18 @@ export class MetaUiGroupFieldLogic<E extends Entity, G extends Entity> extends M
  *   .field('qty').requiredIf((row) => row.amount > 0)
  * ```
  */
-export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Entity> {
+export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Entity, TNode = any> {
   readonly fields: Array<MetaUiGroupFieldLogic<E, G>>
   inplaceEditable = true
   inplaceEditStart: 'click' | 'dblclick' | 'excel' = 'excel'
-  customRenderer?: Function
-  customPrepend?: Function
-  customAppend?: Function
-  customAggregator?: Function
-  customEditor?: Function
-  customEditPrepend?: Function
-  customEditAppend?: Function
+  customRenderer?: UiGroupRenderer<TNode>
+  customPrepend?: UiGroupRenderer<TNode>
+  customAppend?: UiGroupRenderer<TNode>
+  /** 子表合计：在 `onChange` 之后调用（只算不渲染，可改主表合计字段）。 */
+  customAggregator?: AggregateGroupFn<E, G>
+  customEditor?: UiGroupRenderer<TNode>
+  customEditPrepend?: UiGroupRenderer<TNode>
+  customEditAppend?: UiGroupRenderer<TNode>
   /** 标准操作（add / clear）。many 组默认有；canDo 往对应项叠加条件。 */
   stdActions: EntityAction[]
   /** 额外按钮。vui 渲染成图标或下拉，core 不规定。 */
@@ -178,27 +181,27 @@ export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Enti
     this.rowDetailGroup = name
     return this
   }
-  setCustomRenderer(renderFn: Function) {
+  setCustomRenderer(renderFn: UiGroupRenderer<TNode>) {
     this.customRenderer = renderFn
     return this
   }
-  setCustomPrepend(renderFn: Function) {
+  setCustomPrepend(renderFn: UiGroupRenderer<TNode>) {
     this.customPrepend = renderFn
     return this
   }
-  setCustomAppend(renderFn: Function) {
+  setCustomAppend(renderFn: UiGroupRenderer<TNode>) {
     this.customAppend = renderFn
     return this
   }
-  setCustomEditor(editorFn: Function) {
+  setCustomEditor(editorFn: UiGroupRenderer<TNode>) {
     this.customEditor = editorFn
     return this
   }
-  setCustomEditPrepend(renderFn: Function) {
+  setCustomEditPrepend(renderFn: UiGroupRenderer<TNode>) {
     this.customEditPrepend = renderFn
     return this
   }
-  setCustomEditAppend(renderFn: Function) {
+  setCustomEditAppend(renderFn: UiGroupRenderer<TNode>) {
     this.customEditAppend = renderFn
     return this
   }
@@ -220,7 +223,8 @@ export class MetaUiGroupLogic<E extends Entity = Entity, G extends Entity = Enti
     return this
   }
 
-  aggregateWith(aggregator: Function) {
+  /** 注册子表合计计算（`onChange` 之后调用）。 */
+  aggregateWith(aggregator: AggregateGroupFn<E, G>) {
     this.customAggregator = aggregator
     return this
   }

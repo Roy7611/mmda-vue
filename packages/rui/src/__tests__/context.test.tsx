@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { ReactUiContext, type RuiContextOptions } from '../contexts/react_ui_context'
 import { useReactUiContext } from '../reactivity'
 import { renderHook, act } from '@testing-library/react'
-import type { MetaUi, MetaUiField, Entity } from '@mmda/core'
+import type { MetaUi, MetaUiField, Entity, UiBuilder } from '@mmda/core'
+import type { MmdaReactApp } from '../app/app'
 
 /** 构造一个可用的 MetaUi stub */
 function stubMetaUi(): MetaUi {
@@ -80,5 +81,22 @@ describe('ReactUiContext', () => {
     })
 
     expect(result.current).toBe('New')
+  })
+
+  it('宿主注入 app 后，context.app / uiBuilder 通到会话', () => {
+    const ui = { buildEditView: () => 'x' } as unknown as UiBuilder
+    const app = { ui } as unknown as MmdaReactApp
+    const ctx = new ReactUiContext(stubOptions({ app }))
+
+    expect(ctx.app).toBe(app)
+    expect(ctx.uiBuilder).toBe(ui)
+  })
+
+  it('子 context（with / 子表）继承 app，不丢 uiBuilder', () => {
+    const ui = { buildEditView: () => 'x' } as unknown as UiBuilder
+    const app = { ui } as unknown as MmdaReactApp
+    const ctx = new ReactUiContext(stubOptions({ app, model: { id: '1' } as any }))
+
+    expect(ctx.with({ id: '2' } as any).uiBuilder).toBe(ui)
   })
 })

@@ -107,16 +107,6 @@ export type AggregateFn<T = unknown> = (
   model: T,
 ) => number
 
-/**
- * 表单/单元格自定义渲染或编辑。
- * 返回值由 vui 解释（常为 VNode）；core 不依赖 Vue。
- */
-export type CustomFieldRenderFn = (
-  field: MetaUiField,
-  context: UiContext,
-  props?: Record<string, unknown>,
-) => unknown
-
 /** 批量创建子表行前的钩子：返回 `false` 可取消创建；`items` 是即将追加的行。 */
 export type CreateGroupItemsFn<E extends Entity = Entity, G extends Entity = Entity> = (
   context: UiContext<E>,
@@ -130,6 +120,17 @@ export type OnChangeGroupFn<E extends Entity = Entity, G extends Entity = Entity
   model: E,
   items: G[],
 ) => unknown
+
+/**
+ * 子表**合计**计算：`OnChangeGroupFn` 之后紧接着调用（`MetaUiGroupLogic.aggregateWith`）。
+ * 只算不渲染 —— 程序员在这里改主表的合计字段（`model.amount = items.reduce(...)`），
+ * 所以要拿到主表 `model` 与当前行集合 `items`。
+ */
+export type AggregateGroupFn<E extends Entity = Entity, G extends Entity = Entity> = (
+  context: UiContext<E>,
+  model: E,
+  items: G[],
+) => void
 
 /** 子表行过滤：由 vui 在展示前调用，返回值交给对应 UI 实现解释。 */
 export type GroupFilterFn<E extends Entity = Entity, G extends Entity = Entity> = (

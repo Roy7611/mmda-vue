@@ -31,13 +31,13 @@ import {
   schedulePersistListPack,
 } from "./list_layout";
 import { cleanTableCellProps } from "../factory";
-import type { UiProps } from "@mmda/core";
+import type { UiFieldCellProps, UiProps } from "@mmda/core";
 import type {
   VuiListPropsType,
   VuiListEmits,
   VuiListSlots,
   UiListDisplay,
-  UiFieldCellRenderer,
+  UiCellRenderer,
 } from "../factory/list";
 import type { CustomFilter } from "../factory/filter";
 import { writeListFilterModel, writeListSorts } from "./list_query";
@@ -71,7 +71,7 @@ export interface VuiListViewProps<T = any> extends UiListProps<T> {
   linkable?: boolean;
   display?: UiListDisplay;
   editable?: boolean;
-  fieldCellRenderers?: Record<string, UiFieldCellRenderer>;
+  fieldCellRenderers?: Record<string, UiCellRenderer>;
 }
 
 export interface VuiListViewSlots<T = any> extends VuiListSlots<T> {
@@ -294,36 +294,35 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       inPlaceEdit = false,
       props: TableCellProps = {},
     ): VNode {
-      const cellProps = { ...props } as UiProps;
+      // cellProps 就是 core `UiFieldCellProps`（第三参）：表格渲染时 `ctx` 是整表会话，
+      // 当前行靠挂在这里的不可枚举 `row` 传下去（可枚举会被 `{...props}` 带进控件/DOM）。
+      const cellProps = { ...props } as UiFieldCellProps;
       if (props.row !== undefined) {
         Object.defineProperty(cellProps, "row", {
           value: props.row,
           enumerable: false,
         });
       }
-      if (!field.renderer || this.fieldFactory["textSpan"]) {
-        cellProps.class =
-          `${cellProps.class ? cellProps.class : ""} two-line-ellipsis`.trim();
-      }
 
       const isLock = ctx.isFieldReadonly(field) || ctx.isFieldHidden(field);
-      const fieldLogic = ctx.getFieldLogic(field) as any;
+      const fieldLogic = ctx.getFieldLogic(field);
       const model = (props.row ?? ctx.model) as { editable?: boolean };
+      const useEditor = inPlaceEdit && model?.editable !== false && !isLock;
 
-      if (inPlaceEdit && model?.editable !== false && !isLock) {
+      if (useEditor) {
         const editor =
           fieldLogic?.customCellEditor ??
           fieldLogic?.customEditor ??
           this.fieldFactory[field.editor ?? "textInput"] ??
           this.fieldFactory.fallbackInput;
-        return editor(field, ctx, {
-          showWordLimit: false,
-          width: `${this.tableColumnWidth(field)}px`,
-          // 表格布尔格不要带字段标签（「读取」「创建」）
-          ...(SqlDataType.isBool(field.dataType) ? { label: "" } : {}),
-        });
+        return editor(field, ctx, cellProps);
       }
 
+      // 只读格的紧凑排法（编辑控件不吃这个 class）
+      if (!field.renderer || this.fieldFactory["textSpan"]) {
+        cellProps.class =
+          `${cellProps.class ? cellProps.class : ""} two-line-ellipsis`.trim();
+      }
       const renderer =
         fieldLogic?.customCellRenderer ??
         this.fieldFactory[this.fieldDisplayName(field)] ??
@@ -380,7 +379,7 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       context: UiContext,
       props: TableCellProps = {},
     ): VNode | VNode[] {
-      const fieldLogic = context.getFieldLogic(field) as any;
+      const fieldLogic = context.getFieldLogic(field);
       // Syncfusion：nativeInplaceEdit 默认 true，未 inPlaceEdit(false) 即可编。
       const nativeGrid = this.factory.nativeInplaceEdit === true;
       const cellEditable = nativeGrid
@@ -397,12 +396,15 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
       const customRenderer =
         fieldLogic?.customCellRenderer ?? fieldLogic?.customRenderer;
       if (customRenderer) {
+        // 这条是**旧 customRenderer 兼容路径**：业务函数按「行 context」写
+        // （`ctx.getFieldValue(fld)` 不带 row），所以这里必须给行上下文 ——
+        // 不要按表格默认路径那样省掉它。
         const rowContext = readOnlyRoot
           ? this.readonlyRowContext(context, row)
           : context.model === row
             ? context
             : context.with(row, props?.cacheKey ?? undefined);
-        const rendererProps = { ...props };
+        const rendererProps = { ...props } as UiFieldCellProps;
         Object.defineProperty(rendererProps, "row", {
           value: row,
           enumerable: false,
@@ -459,22 +461,14 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
         return this.tableCell(field, context, false, { ...props, row });
       }
 
+      // 表格默认路径**不建行上下文**：单元格只要「字段 + 行」，行走第三参 `props.row`；
+      // 行级上下文是编辑子表时的事（`beginEditRow`），不该出现在每格热路径上
+      // （1000 行 × N 列就是上千次子 context 分配）。
       if (isRoot) {
-        return this.tableCell(
-          field,
-          context.with(row, props?.cacheKey ?? undefined),
-          useEditor,
-          props,
-        );
+        return this.tableCell(field, context, useEditor, { ...props, row });
       }
 
-      // 行上下文已由上层 rowContext(row) 提供；仅在 model 不是当前行时再 with。
-      const rowCtx =
-        context.model === row
-          ? context
-          : context.with(row, props?.cacheKey ?? undefined);
-
-      return this.tableCellWithError(field, rowCtx, useEditor, props);
+      return this.tableCellWithError(field, context, useEditor, { ...props, row });
     }
 
     displayCellFor(

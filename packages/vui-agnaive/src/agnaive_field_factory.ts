@@ -8,12 +8,12 @@ import {
   type UiAvatarProps,
   type UiAutoCompleteProps,
   type UiContext,
+  type UiFieldCellProps,
 } from '@mmda/core'
 import {
   VueUiFieldFactory,
   type VuiContext,
   type VuiFactory,
-  type VuiFieldCellProps,
   type VuiFieldRenderer,
   type VuiSearchRelativeProps,
 } from '@mmda/vui'
@@ -107,7 +107,7 @@ export class AgNaiveFieldFactory extends VueUiFieldFactory {
   checkedIcon: VuiFieldRenderer = (field, context, props) =>
     this.agNaiveBooleanIcon(context.getFieldValue(field, props?.row), props)
 
-  private agNaiveBooleanIcon(value: unknown, props?: VuiFieldCellProps): VNode {
+  private agNaiveBooleanIcon(value: unknown, props?: UiFieldCellProps): VNode {
     const checked = Boolean(value)
     return h('i', {
       ...props,
