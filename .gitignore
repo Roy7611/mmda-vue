@@ -14,6 +14,9 @@ dist-ssr
 .tmp_*
 *_errors.txt
 
+# 架构图预览生成物（archify 输出），不要提交
+.archify-out/
+
 # tsc -b 声明产物（composite 强制生成，勿提交）
 src/**/*.d.ts
 src/**/*.d.ts.map
