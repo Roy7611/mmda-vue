@@ -20,6 +20,7 @@ import {
   type UiEditTopbarProps,
   type UiEditTopbarSlots,
   type UiHorzAlign,
+  type UiIndexTopbarLayout,
   type UiIndexTopbarProps,
   type UiIndexTopbarSlotName,
   type UiIndexTopbarSlots,
@@ -255,6 +256,19 @@ type TopbarHostProps = {
   kind: TopbarKind
 }
 
+/**
+ * 顶栏档位：`layout` 显式给了就钉死（`medium` / `compact` / `full` 都算显式，宿主说了算）；
+ * 没给才按视口定档，窄视口降为 compact —— 移动端的搜索入口（放大镜 → 搜索页）只在
+ * compact 档存在，默认全档会让它不可达。
+ */
+function resolvedIndexTopbarLayout(
+  props: UiIndexTopbarProps,
+  dense: boolean,
+): UiIndexTopbarLayout {
+  if (props.layout) return indexTopbarLayoutOf(props)
+  return dense ? 'compact' : 'full'
+}
+
 function paintIndexTopbarTree(
   factory: VuiFactory,
   context: { title?: string; t: (message: string) => string },
@@ -263,7 +277,7 @@ function paintIndexTopbarTree(
   parts: TopbarPaintParts,
   dense: boolean,
 ): VNode {
-  const layout = indexTopbarLayoutOf(props)
+  const layout = resolvedIndexTopbarLayout(props, dense)
   const showBreadcrumb = props.showBreadcrumb !== false
   const showActions = props.showActions !== false
   const showSearchBar = props.showSearchBar !== false
@@ -621,8 +635,9 @@ function paintGroups(
           }))
         : [],
     openSearchPage: () => {
+      // 缺省进搜索页路由（`UiViewOne.Search`）：移动端全屏页，桌面端右侧抽屉由承载决定
       if ('onSearchPage' in props && props.onSearchPage) props.onSearchPage()
-      else void builder.buildSearchView(context)
+      else context.routeToSearch()
     },
     },
     kind,

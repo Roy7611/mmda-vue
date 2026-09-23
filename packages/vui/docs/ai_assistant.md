@@ -9,7 +9,7 @@ AI 助手不进 chrome `factory`。vui 只定 [`UiAiAssistantPlugin`](../src/ui/
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/ai_assistant.ts` | props / controller / 未安装 stub |
-| `VueUiBuilder.aiAssistantPlugin` | 默认 `unimplementedAiAssistantPlugin`；`setAiAssistantPlugin`；`buildAiAssistant` 转调插件 |
+| `VuiBuilder.aiAssistantPlugin` | 默认 `unimplementedAiAssistantPlugin`；`setAiAssistantPlugin`；`buildAiAssistant` 转调插件 |
 | `@mmda/vui-syncfusion/ai-assistant` | `createSfAiAssistantPlugin`，EJ2 Inline AI Assist |
 
 不要 `factory.aiAssistant`。Logic 不调厂商 API。core `UiBuilder` 不加 AI 方法。Prime / Naive 本轮不实现。

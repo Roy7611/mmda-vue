@@ -9,7 +9,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/scheduler.ts` | 事件 / 资源 / `UiSchedulerProps` / 控制器；未安装 stub |
-| `VueUiBuilder.schedulerPlugin` | 默认 `unimplementedSchedulerPlugin`；`setSchedulerPlugin`；`buildScheduler` 转调插件 |
+| `VuiBuilder.schedulerPlugin` | 默认 `unimplementedSchedulerPlugin`；`setSchedulerPlugin`；`buildScheduler` 转调插件 |
 | `@mmda/vui-syncfusion/scheduler` | `createSfSchedulerPlugin`，EJ2 Schedule（App 默认）；组件 `SfScheduler` |
 | `@mmda/vuix-fc-scheduler` | `createFcSchedulerPlugin`，FullCalendar；组件 `FcScheduler` |
 

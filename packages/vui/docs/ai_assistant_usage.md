@@ -3,10 +3,10 @@
 从 `@mmda/vui` 导入类型；节点用 `ui.buildAiAssistant`。设计见 [ai_assistant.md](./ai_assistant.md)。
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfAiAssistantPlugin } from '@mmda/vui-syncfusion/ai-assistant'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setAiAssistantPlugin(createSfAiAssistantPlugin())
 
 ui.buildAiAssistant({

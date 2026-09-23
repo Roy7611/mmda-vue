@@ -2,11 +2,11 @@ import type { ActionCallback, EntityAction } from "@mmda/core";
 import { entityActionFactory } from "@mmda/core";
 import {
   normalizeActionColorRole,
-  UiContextAction,
+  VuiContextAction,
   type IconResolver,
 } from "../factory/action";
 import type { VuiBuilder, ImportOrExportParam } from "../builder";
-import { deletableSelectedItems } from "../../contexts/vue_ui_context";
+import { deletableSelectedItems } from "@mmda/core";
 import { getModuleContext } from "../../contexts/vue_module_context";
 import { UiViewOne } from "../../contexts/view";
 import type { UiContext } from "./helpers";
@@ -18,7 +18,7 @@ export class VuiActionFactory {
   ) {}
 
   fromEntity(context: UiContext, action: any) {
-    return UiContextAction(context as any, action, this.resolveIcon);
+    return VuiContextAction(context as any, action, this.resolveIcon);
   }
 
   private createAction(

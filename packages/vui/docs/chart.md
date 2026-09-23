@@ -9,7 +9,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/chart.ts` | `UiChartData` / `UiChartProps` / Gauge、热图、桑基、漏斗、瀑布、箱线、直方图、气泡、子弹图、旭日图、combo 等；未安装 stub |
-| `VueUiBuilder.chartFactory` | 默认 `unimplementedChartFactory`；`setChartFactory` |
+| `VuiBuilder.chartFactory` | 默认 `unimplementedChartFactory`；`setChartFactory` |
 | 皮肤 `./charts` | 可选：Prime Chart.js、SF EJ2、AG Charts。不要从 `createXxxUiFactory` 引用 |
 | 独立引擎包 | 不依赖皮肤；能力见该包 README |
 

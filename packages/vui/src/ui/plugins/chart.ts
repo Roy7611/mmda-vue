@@ -75,7 +75,7 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueChartFactory = UiChartFactory<VNode>
+export type VuiChartFactory = UiChartFactory<VNode>
 
 /** 把现有 UiChartFactory 收成 plugin('chart').buildUi；图种在 props.type / chartKind。 */
 export function chartAsPlugin(factory: UiChartFactory): UiPlugin {

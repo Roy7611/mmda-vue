@@ -4,12 +4,12 @@
 > [ui_four_roles_design.md](../../core/docs/ui/ui_four_roles_design.md) · [ui_four_roles_usage.md](../../core/docs/ui/ui_four_roles_usage.md)  
 > 本文只讲 **vui / 皮肤怎么落地**。
 
-`UiBuilder` 是 core 契约，负责 **组装多块组合 + Overlay**（不是单控件薄包）。vui 里一定是 **`VueUiBuilder`**：抽象类，用模板方法填好共用拼屏；皮肤包再具体扩展和落地。不要再叫 `AbstractUiBuilder`，不要另造 `VueUiBuilderHost`，也不要把实现 alias 成 `UiBuilder`。
+`UiBuilder` 是 core 契约，负责 **组装多块组合 + Overlay**（不是单控件薄包）。vui 里一定是 **`VuiBuilder`**：抽象类，用模板方法填好共用拼屏；皮肤包再具体扩展和落地。vui 这个抽象类不要再叫 `AbstractUiBuilder`（那是 core 共享实现的名字），不要另造 `VuiBuilderHost`，也不要把实现 alias 成 `UiBuilder`。
 
 ```text
 UiLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 四职
     ↑
-VueUiLayout / （Builder 的字段行）/ VueUiFactory / VueUiBuilder
+VuiLayout / （Builder 的字段行）/ VuiFactory / VuiBuilder
     ↑
 Syncfusion* / Prime* / AgNaive*
 ```
@@ -17,8 +17,8 @@ Syncfusion* / Prime* / AgNaive*
 | 名字 | 包 | 干什么 |
 |---|---|---|
 | `UiBuilder<TNode>` | `@mmda/core` | 接口。Logic / `context.uiBuilder` 只认这个 |
-| `VueUiBuilder` | `@mmda/vui` | `implements UiBuilder<VNode>`。`build()` 分发、列表/表单/树共用结构、`UiActionFactory`。注入 `UI_BUILDER_KEY` 的类型 |
-| `SyncfusionUiBuilder` 等 | `@mmda/vui-*` | `extends VueUiBuilder`。壳、overlay、factory 接到厂商控件 |
+| `VuiBuilder` | `@mmda/vui` | `implements UiBuilder<VNode>`。`build()` 分发、列表/表单/树共用结构、`UiActionFactory`。注入 `UI_BUILDER_KEY` 的类型 |
+| `SfVuiBuilder` 等 | `@mmda/vui-*` | `extends VuiBuilder`。壳、overlay、factory 接到厂商控件 |
 
 产品分层真源：[ARCHITECTURE.md](../../../ARCHITECTURE.md)。
 
@@ -26,19 +26,19 @@ Syncfusion* / Prime* / AgNaive*
 
 | 职 | vui 落点 |
 |---|---|
-| **layout** | `VueUiLayout.scaffold`；AppShell **直接**调 layout，不经 `buildAppScaffold` |
+| **layout** | `VuiLayout.scaffold`；AppShell **直接**调 layout，不经 `buildAppScaffold` |
 | **fieldFactory** | 皮肤 field factory；Builder 构造时 字段行 `buildField` / `editFor` / `displayFor` 在 Builder 上 |
 | **factory** | 皮肤 `createXxxUiFactory`；**无** `factory.dialog` / `signinForm` |
-| **builder** | `VueUiBuilder`：模块 *View、Explorer、FieldGroup、Overlay、`buildSigninForm`；插件页可选方法 |
+| **builder** | `VuiBuilder`：模块 *View、Explorer、FieldGroup、Overlay、`buildSigninForm`；插件页可选方法 |
 
 元数据驱动的 UI 构造是三层，不要把皮肤控件写进 vui：
 
 ```text
 MetaUi + Logic
       ↓
-VueUiContext（会话）
+VuiContext（会话）
       ↓
-VueUiBuilder（拼复杂视图；调 factory / fieldFactory）
+VuiBuilder（拼复杂视图；调 factory / fieldFactory）
       ↓
 UiFactory / UiFieldFactory 契约  →  皮肤实现
       ↓
@@ -49,8 +49,8 @@ UiFactory / UiFieldFactory 契约  →  皮肤实现
 |---|---|---|
 | **Component** | 一块控件，吃 props，不拼整页 | 皮肤 `components/`。vui `src/components/` 只有无厂商壳 |
 | **Factory** | 用 `MetaUi` + props **生产**组件 | 皮肤 `factory/`、`field_factory/` |
-| **Builder** | 用 Factory 原子件拼工具栏、分组、分页、确认框 | vui `VueUiBuilder`；皮肤只补壳/覆盖 |
-| **Layout** | 壳 `layout.scaffold`；页内 `VueUiLayout` | vui `ui/layout.ts` |
+| **Builder** | 用 Factory 原子件拼工具栏、分组、分页、确认框 | vui `VuiBuilder`；皮肤只补壳/覆盖 |
+| **Layout** | 壳 `layout.scaffold`；页内 `VuiLayout` | vui `ui/layout.ts` |
 
 Index / Select 数据区：**直接** `factory.table|grid|list|treeGrid` + `factory.paginator`，不要再薄包 `buildTable`。字段行走 `builder.buildField`，不要 `buildField`。
 
@@ -65,18 +65,18 @@ vui **不要**再建 `ui/factories/`：那会让人以为 vui 在生产 `SfGrid`
 ```text
 app/                MmdaVueApp、inject keys、主题
 logic/              EntityLogic
-contexts/           VueUiContext（会话；设计见 docs/vue_ui_context.md）
+contexts/           VuiContext（会话；设计见 docs/vue_ui_context.md）
 components/         无厂商壳
-ui/layout.ts        VueUiLayout
+ui/layout.ts        VuiLayout
 ui/factory.ts       UiFactory
 ui/field_factory.ts UiFieldFactory
 ui/overlay.ts       createHtmlOverlay
-ui/builder.ts       VueUiBuilder
+ui/builder.ts       VuiBuilder
 ui/factory/         一控件一文件的 props；参数约定见 [factory.md](./factory.md)
 ui/builder/         WithForm/WithList/WithTree、actions
 ```
 
-`context.uiBuilder` 的类型是 core `UiBuilder`（值为 `app.ui`）。对外仍从 `@mmda/vui` 导入 `VueUiBuilder`、`UiFactory`、`UiActionFactory`。
+`context.uiBuilder` 的类型是 core `UiBuilder`（值为 `app.ui`）。对外仍从 `@mmda/vui` 导入 `VuiBuilder`、`UiFactory`、`UiActionFactory`。
 
 ## 怎么叠能力
 
@@ -84,8 +84,8 @@ ui/builder/         WithForm/WithList/WithTree、actions
 
 | 层 | 有没有共享 `this` | 怎么组装 |
 |---|---|---|
-| `VueUiContext` | 有 | Handbook class mixin（[vue_ui_context.md](./vue_ui_context.md)） |
-| `VueUiBuilder` | 有 | 同样：`WithTree(WithList(WithForm(VueUiBuilderBase)))`。皮肤 `extends VueUiBuilder` |
+| `VuiContext` | 有 | Handbook class mixin（[vue_ui_context.md](./vue_ui_context.md)） |
+| `VuiBuilder` | 有 | 同样：`WithTree(WithList(WithForm(VuiBuilderBase)))`。皮肤 `extends VuiBuilder` |
 | 皮肤 `UiFactory` | 无（函数表） | 文件导出 partial，`createXxxUiFactory` 里一次 spread / `Object.assign`。不要 `attachButtonRenderers(factory)`，也不要 `WithButton` |
 | `chartFactory` | 无 | 可选插件，不进 `UiFactory`。App `setChartFactory`。见 [图表](./chart.md) |
 | `diagramPlugin` | 无 | 可选插件，不进 `UiFactory`。App `setDiagramPlugin`。见 [图](./diagram.md) |
@@ -100,8 +100,8 @@ ui/builder/         WithForm/WithList/WithTree、actions
 | `timeline` | chrome 默认 `factory.timeline`；`builder.use(timelineAsPlugin)` 覆盖。见 [Timeline](./timeline.md) |
 
 ```ts
-export abstract class VueUiBuilder extends WithTree(
-  WithList(WithForm(VueUiBuilderBase)),
+export abstract class VuiBuilder extends WithTree(
+  WithList(WithForm(VuiBuilderBase)),
 ) {}
 ```
 
@@ -112,9 +112,9 @@ export abstract class VueUiBuilder extends WithTree(
 ## 主要内容
 
 - `UiBuilder`：core 拼屏接口（无 Vue）。从 `@mmda/core` 导入；四职见 [ui_four_roles_design.md](../../core/docs/ui/ui_four_roles_design.md)。
-- `VueUiBuilder`：vui 抽象实现；列表页/详情页默认结构、动作工厂、单元格解析。皮肤 `extends` 它。
+- `VuiBuilder`：vui 抽象实现；列表页/详情页默认结构、动作工厂、单元格解析。皮肤 `extends` 它。
 - `UiFactory` / `UiFieldFactory`：原子 chrome / 字段控件。登录 `buildSigninForm`。弹窗只走 Builder `dialog`，**没有 `factory.dialog`**。字段行用 `builder.buildField`（构造时由 Builder 组装）。
-- `VueUiLayout.scaffold`：应用壳；AppShell 直接调，不经 Builder。
+- `VuiLayout.scaffold`：应用壳；AppShell 直接调，不经 Builder。
 - `chartFactory`：图表插件，不进 chrome factory。见 [图表](./chart.md)。
 - `diagramPlugin`：图插件，不进 chrome factory。见 [图](./diagram.md)。
 - `markdownEditorPlugin`：Markdown 编辑器插件，不进 chrome factory。见 [Markdown 编辑器](./markdown_editor.md)。
@@ -129,7 +129,7 @@ export abstract class VueUiBuilder extends WithTree(
 - `UiAction` / `UiActionFactory`：刷新、创建、保存、导入导出等。
 
 ```ts
-import { VueUiBuilder, type UiFactory } from '@mmda/vui'
+import { VuiBuilder, type UiFactory } from '@mmda/vui'
 ```
 
 ## 依赖方向
@@ -137,7 +137,7 @@ import { VueUiBuilder, type UiFactory } from '@mmda/vui'
 ```text
 页面  →  context.ui.build(ctx) / buildListView / buildView
               ↓
-       VueUiBuilder（结构）
+       VuiBuilder（结构）
               ↓
        UiFactory / UiFieldFactory（控件）+ UiOverlay
        chartFactory / diagramPlugin / markdownEditorPlugin / imageEditorPlugin / kanbanPlugin / ganttPlugin / ribbonPlugin / schedulerPlugin / pivotPlugin / aiAssistantPlugin（可选插件，不进 chrome factory）
@@ -220,6 +220,6 @@ vui **不**提供默认 HTML 皮肤或 `HtmlUiBuilder`。页面和 Logic 只依�
 - 侧栏菜单：Syncfusion 用自己的 Sidebar + Accordion：顶层 `moduleCode` 不含 `.`（如 `B`、`M`）时左侧系统轨切换一级，右侧 Accordion 展二/三级；否则只渲染 Accordion。无控件库皮肤用 `@mmda/vui` 的 `AppSideMenu`。
 - 应用自定义 chrome 走 `UiFactory`，样式使用 `--mmda-*` token。
 - 暗色模式调用 `builder.setColorScheme()`，不要在应用里直接写 `p-dark` / `e-dark`。
-- 皮肤可以读 `context`，不要在 factory 里 `new VueUiContext`。
+- 皮肤可以读 `context`，不要在 factory 里 `new VuiContext`。
 - DataTable 的 `selection` 必须绑定会话的 `selectedItems`，不要在每次 `table()` 里 `ref([])`。
 - `rowStyle` 对可见行返回 `undefined`，不要每次 `return {}`。

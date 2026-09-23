@@ -1,6 +1,6 @@
 # 布局设计
 
-契约在 [`@mmda/core` `src/ui/layout.ts`](../../core/src/ui/layout.ts)。Vue 实现是 [`VueUiLayout`](../src/ui/layout.ts)。程序员用法：[layout_usage.md](./layout_usage.md)。
+契约在 [`@mmda/core` `src/ui/layout.ts`](../../core/src/ui/layout.ts)。Vue 实现是 [`VuiLayout`](../src/ui/layout.ts)。程序员用法：[layout_usage.md](./layout_usage.md)。
 
 **不是** `factory.toolbar`（原生命令条）。页头是 [Topbar](./topbar.md)。`UiLayout` 管字段栅格、分组、详情页区域、列表项，以及应用壳 `scaffold`。
 
@@ -12,8 +12,8 @@
 flowchart TB
   iface["interface UiLayout TNode"]
   abs["abstract AbstractUiLayout implements UiLayout"]
-  vue["class VueUiLayout extends AbstractUiLayout VNode"]
-  skins["sf / naive / prime extends VueUiLayout"]
+  vue["class VuiLayout extends AbstractUiLayout VNode"]
+  skins["sf / naive / prime extends VuiLayout"]
   rui["将来 RuiUiLayout extends AbstractUiLayout"]
   iface --> abs
   abs --> vue
@@ -25,8 +25,8 @@ flowchart TB
 |---|---|
 | core `interface UiLayout<TNode>` | 契约：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`listTile` |
 | core `abstract AbstractUiLayout<TNode>` | 上移的算法骨架，只调 `render`：`cell`/`row`/`column`/`grid`、`layoutField`/`layoutFieldGroup`/`layoutPage`、`layoutBodyCards`（cards 可覆写钩子）、`listTile` |
-| vui `class VueUiLayout` | `h()` 实现 `render`；**覆写 `layoutBodyCards`**（cards → `PageBody` 可折叠双栏） |
-| 皮肤 `extends VueUiLayout` | 可选覆盖 `listTile`；栅格用基类 `mmda-row` 等，不要为换厂商前缀覆写 `cell`/`row`/`column`/`grid` |
+| vui `class VuiLayout` | `h()` 实现 `render`；**覆写 `layoutBodyCards`**（cards → `PageBody` 可折叠双栏） |
+| 皮肤 `extends VuiLayout` | 可选覆盖 `listTile`；栅格用基类 `mmda-row` 等，不要为换厂商前缀覆写 `cell`/`row`/`column`/`grid` |
 
 不要在 vui 再写一份同名 `interface UiLayout`。不要把 Vue 的 `VNodeChild` / `VNodeChildAtom` 写进 core。子节点就是 **`TNode` / `TNode[]`**。文本先 `factory.textSpan` 再进布局。
 
@@ -170,7 +170,7 @@ Index 铺底常驻；Create / Edit / Details 进 `__one` **盖住**（绝对定�
 
 ## Vue
 
-`class VueUiLayout extends AbstractUiLayout<VNode>`。**覆写 `layoutBodyCards`**，页壳由 core `layoutPage` 组装：
+`class VuiLayout extends AbstractUiLayout<VNode>`。**覆写 `layoutBodyCards`**，页壳由 core `layoutPage` 组装：
 
 - `pageLayout: 'cards'`（缺省）：core 出 sticky header + banner + footer；主体 `PageBody`（content 包 main+summary，摘要可折叠）
 - `pageLayout: 'tabs'`：core 出 sticky header + banner + footer；主体纵向 emphasis → primary（`factory.tabs` Fill）

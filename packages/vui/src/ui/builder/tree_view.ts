@@ -1,7 +1,8 @@
-// @ts-nocheck
 import type { VNode } from "vue";
+import type { UiConfirmProps } from "@mmda/core";
 import type { UiAction } from "../factory/action";
 import { UiActionDivider } from "../factory/action";
+import type { VuiFactory } from "../factory";
 import {
   categoryCreateParams,
   categoryTreeAuth,
@@ -24,10 +25,17 @@ import { resolveRepositoryModule } from "../../components/EntityView";
 import { renderTreeView } from "../../components/TreeView";
 import { UiViewOne } from "../../contexts/view";
 import { VuiContext } from "../../contexts/vue_ui_context";
+import type { MmdaVueApp } from "../../app/app";
 import type { UiContext } from "./helpers";
 import type { AbstractConstructor } from "./mixin";
 
-export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
+/** `WithTree` 依赖的宿主成员：`factory` 拼树控件，`confirm` 出删除确认框。 */
+interface TreeBuilderHost {
+  factory: VuiFactory
+  confirm(context: UiContext, props: UiConfirmProps): Promise<boolean>
+}
+
+export function WithTree<TBase extends AbstractConstructor<TreeBuilderHost>>(Base: TBase) {
   abstract class TreeBuilder extends Base {
 
     buildTree<T = any>(props: UiTreeProps<T>): VNode {
@@ -277,7 +285,7 @@ export function WithTree<TBase extends AbstractConstructor>(Base: TBase) {
         metaUi,
         view,
         logic: catLogic,
-        app,
+        app: app as MmdaVueApp,
         locale: context.locale,
       });
       await ctx.init({ path: id, queryParams });

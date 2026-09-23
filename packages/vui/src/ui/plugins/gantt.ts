@@ -30,4 +30,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueGanttPlugin = CorePlugin<VNode>
+export type VuiGanttPlugin = CorePlugin<VNode>

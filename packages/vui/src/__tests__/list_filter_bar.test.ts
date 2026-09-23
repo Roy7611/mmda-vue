@@ -128,23 +128,16 @@ describe("list filter bar actions", () => {
     expect(ctx.search).toHaveBeenCalledOnce();
   });
 
-  it("clears all model filters and matching search fields", async () => {
-    const searchField = {
-      field: { fieldName: "name" },
-      searchWord: "钢",
-      searchVal: { value: "钢" },
-    };
+  it("clears all model filters", async () => {
     const ctx = contextOf(
       {
         name: { filterType: "text", operator: "CONTAINS", value: "钢" },
         status: FieldFilter.in(["OPEN"]),
       },
-      { searchFields: [searchField] },
     );
     ctx.searchParam.searchWord = "keep";
     await clearListFilterBar(ctx);
     expect(ctx.searchParam.filterModel).toBeUndefined();
-    expect(searchField.searchVal.value).toBeNull();
     expect(ctx.searchParam.searchWord).toBe("keep");
     expect(ctx.search).toHaveBeenCalledOnce();
   });

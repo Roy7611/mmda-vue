@@ -11,7 +11,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/kanban.ts` | 卡 / 列 / `UiKanbanProps` / 变更事件；未安装 stub |
-| `VueUiBuilder.kanbanPlugin` | 默认 `unimplementedKanbanPlugin`；`setKanbanPlugin`；`buildKanban` 转调插件 |
+| `VuiBuilder.kanbanPlugin` | 默认 `unimplementedKanbanPlugin`；`setKanbanPlugin`；`buildKanban` 转调插件 |
 | `@mmda/vui-syncfusion/kanban` | `createSfKanbanPlugin`，EJ2 Kanban（App 默认） |
 | `@mmda/vuix-svar-kanban` | `createVueKanbanPlugin`，`@svar-ui/vue-kanban` MIT |
 

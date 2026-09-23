@@ -16,7 +16,7 @@ import {
   type UiLogicFnResultSet,
   type UiViewOptions,
 } from "@mmda/core";
-import { VuiCustomSearchField, VuiSearchField } from "../ui/factory/filter";
+import { VuiCustomSearchField } from "../ui/factory/filter";
 
 export {
   EntityLogic,
@@ -40,7 +40,6 @@ export {
 export interface VuiSearchForm {
   searchParam?: EntitySearchParam;
   queryParams?: Record<string, unknown>;
-  searchFields: Array<VuiSearchField>;
   customSearchFields: Array<VuiCustomSearchField | EntityCustomSearchField>;
 }
 

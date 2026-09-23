@@ -44,4 +44,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueSchedulerPlugin = CorePlugin<VNode>
+export type VuiSchedulerPlugin = CorePlugin<VNode>

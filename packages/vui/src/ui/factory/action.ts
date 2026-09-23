@@ -1,8 +1,8 @@
 import { computed, unref } from "vue";
-import type { UiAction, Predicate } from "@mmda/core";
+import type { UiAction } from "@mmda/core";
 import {
   normalizeActionColorRole,
-  parseEntityBoolExpression,
+  canDoFromExecutableExpression,
   isPromise,
   type EntityAction,
   type TranslateFn,
@@ -12,6 +12,7 @@ import {
 
 export {
   normalizeActionColorRole,
+  canDoFromExecutableExpression,
   isActionVisible,
   isActionEnabled,
   UiActionDivider,
@@ -62,7 +63,7 @@ export interface VuiActionContext extends UiContext {
  * @param action 实体动作行为{@link EntityAction}
  * @returns
  */
-export const UiActionCtor = (
+export const VuiActionCtor = (
   {
     name,
     label,
@@ -88,20 +89,7 @@ export const UiActionCtor = (
   };
 };
 
-/** EntityAction.executableExpression → UiAction.canDo（字符串或函数）。 */
-export function canDoFromExecutableExpression(
-  _context: VuiActionContext,
-  action: EntityAction,
-): Predicate | undefined {
-  const expr = action.executableExpression;
-  if (typeof expr === "function") return expr as Predicate;
-  if (typeof expr === "string" && expr.trim()) {
-    return parseEntityBoolExpression(expr);
-  }
-  return undefined;
-}
-
-export const UiContextAction = (
+export const VuiContextAction = (
   context: VuiActionContext,
   action: EntityAction,
   i: IconResolver,
@@ -176,7 +164,7 @@ export const UiContextAction = (
       }
     },
     disabled,
-    canDo: canDoFromExecutableExpression(context, action),
+    canDo: canDoFromExecutableExpression(action),
     visible: visible
       ? computed(visible.bind(context, context.model))
       : undefined,

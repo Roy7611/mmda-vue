@@ -2,7 +2,6 @@ import type { VNode } from "vue";
 import {
   isNullObject,
   type MetaUiField,
-  type UiFieldFactory,
   type UiFieldRenderer,
   type UiGroupRenderer,
 } from "@mmda/core";
@@ -12,19 +11,11 @@ export type { UiFieldRenderer } from "@mmda/core";
 /** 过渡名：皮肤与 vui 内部仍写 `UiFieldFactory`（core 的契约名）。 */
 export type { UiFieldFactory } from "@mmda/core";
 
-type VueFieldRenderer = UiFieldRenderer<VNode>;
+type VuiFieldRenderer = UiFieldRenderer<VNode>;
 
 /** Vue 侧的组渲染器：core `UiGroupRenderer` 把泛型收到 `VNode`（context 用 core 的 `UiContext`）。 */
 export type VuiGroupRenderer = UiGroupRenderer<VNode>
 
-/**
- * Vue 侧的字段工厂：只把泛型收到 `VNode`，成员**全部**来自 core 契约。
- *
- * 不要在这里重抄 core 的成员 —— 抄一遍就会出现"core 必需 / 这里可选"的冲突，
- * 抄错一个名字（曾经有 `negativenumberInput`）编译器还查不出来。
- * 带标签的字段行在 Builder 上（`editFor` / `displayFor` / `buildField`），本表只放裸控件。
- */
-export type VuiFieldFactory = UiFieldFactory<VNode>;
 
 export const defineFieldProps = (field: MetaUiField): UiProps =>
   ({

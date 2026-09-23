@@ -4,6 +4,7 @@ import {
   AbstractUiFieldFactory,
   relativeTime as formatRelativeTime,
   numberInputPropsFromField,
+  resolveFieldUnit,
   signaturePadPropsFromField,
   stepperPropsFromField,
   timelineSqlOf,
@@ -49,21 +50,6 @@ export interface VuiSearchRelativeProps extends SearchForRelativeProps {
   title?: string
 }
 
-/** 单位：优先 metacol.suffix；否则 formatter 若为纯单位文本（天、KG）也可用作后缀。 */
-export const resolveFieldUnit = (field: MetaUiField): string => {
-  const suffix = field.suffix?.trim()
-  if (suffix) return suffix
-  const formatter = field.formatter?.trim()
-  if (
-    formatter &&
-    formatter.length <= 12 &&
-    !/[#0nNpPcCydDhHmMsSfF*?[\]]/.test(formatter)
-  ) {
-    return formatter
-  }
-  return ''
-}
-
 const cellDomProps = (props?: UiProps): UiProps =>
   cleanProps(TABLE_CELL_PROP_KEYS, props ?? {})
 
@@ -71,7 +57,7 @@ const cellDomProps = (props?: UiProps): UiProps =>
  * Vue 字段工厂。输入控件映射表在 core {@link AbstractUiFieldFactory}；
  * 这里只实现 `control` 的 `h` 版本与框架专属的只读展示 / 上传 / 外部链接。
  */
-export abstract class VueUiFieldFactory
+export abstract class VuiFieldFactory
   extends AbstractUiFieldFactory<VNode, VuiFactory>
   implements UiFieldFactory<VNode>
 {

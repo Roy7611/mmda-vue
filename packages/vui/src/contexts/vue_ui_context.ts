@@ -1,5 +1,6 @@
 import {
   AbstractUiContext,
+  type ApiClient,
   defaultFieldSearchOptions,
   defineValidation,
   isPagedList,
@@ -16,6 +17,8 @@ import {
   type MetaUiFieldLogic,
   type MetaUiGroup,
   type MetaUiGroupLogic,
+  type MetaUiFilter,
+  type MmdaApplication,
   type PagedList,
   type Pager,
   type Pagination,
@@ -28,7 +31,6 @@ import {
 } from '@mmda/core'
 import {
   reactive,
-  ref,
   shallowReactive,
   toRaw,
   type Ref,
@@ -39,13 +41,11 @@ import type { Router } from 'vue-router'
 import { UiViewMany, UiViewOne, type UiViewType } from './view'
 import type { MmdaVueApp } from '../app/app'
 import type { UiAction } from '../ui/factory/action'
-import { WithSubgroup } from './mixins/subgroup'
-import { WithReference } from './mixins/reference'
-import { WithData } from './mixins/data'
-export { deletableSelectedItems } from './mixins/data'
-import { WithNavigate } from './mixins/navigate'
-import { createSession, setSessionFactory } from './mixins/session'
-import type { ChildContextOptions } from './mixins/types'
+import { VuiCustomSearchField, VuiFilter } from '../ui/factory/filter'
+import { getFileInfo } from '../components/FileIcons'
+import { loadLastQuery, saveLastQuery } from '../ui/builder/list_last_query'
+import { logListPaint, resetListPaintCount } from '../ui/builder/list_query'
+import { readStoredPageSize } from '../app/theme'
 import { createVueRxFactory } from '../rx'
 
 // ——— helpers ————————————————————————————
@@ -53,7 +53,7 @@ import { createVueRxFactory } from '../rx'
 const identityTranslate: TranslateFn = (message) =>
   typeof message === 'string' ? message : message.message
 
-// ——— VuiContextBase ————————————————————
+// ——— VuiContext ————————————————————
 
 export interface VuiContextOptions<M extends Entity = Entity> {
   model: M | M[]
@@ -69,7 +69,18 @@ export interface VuiContextOptions<M extends Entity = Entity> {
   router?: Router
 }
 
-class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
+/** 子 context 的构造参数（父 context 直接 `new VuiContext`，不再走 session 工厂）。 */
+interface VuiContextChildOptions {
+  parent: VuiContext<Entity>
+  cache: Map<string, AbstractUiContext<Entity>>
+  cachePath: string
+  validation?: Validation
+}
+
+export class VuiContext<M extends Entity = Entity>
+  extends AbstractUiContext<M>
+  implements UiContext<M>
+{
 
   // —— Vue 专有状态 ————————————————————
 
@@ -86,22 +97,25 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
   customActions: EntityAction[] = []
   executing = false
   isInDialog = false
-  private _app?: MmdaVueApp
+  private _app?: MmdaApplication
 
-  override parent: UiContext<M> | undefined
+  declare parent: UiContext<M> | undefined
   override cache: Map<string, AbstractUiContext<Entity>>
-  override cachePath: string
+  declare cachePath: string
 
   override fieldOptions: Record<string, FieldSearchOptions> = {}
   override validationState: UnwrapNestedRefs<Validation>
   override actionLoadings: Record<string, boolean> = reactive({})
 
-  protected override translateFn: TranslateFn
+  protected declare translateFn: TranslateFn
 
   /** Vue Router 原文引用；currentRoute/back 等框架能力走这里，core 侧只用 UiRouter 适配器。 */
   vueRouter?: Router
 
-  readonly pageNotice: Ref<any>
+  protected override currentRoutePath(): string | undefined {
+    return this.vueRouter?.currentRoute?.value?.path as string | undefined
+  }
+
   private _selected: M[] = []
   private _selectionMode: 'single' | 'multiple' | null = null
   private _currentItem: M | null = null
@@ -113,9 +127,54 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
   protected override _notify(): void { /* Vue auto-tracks */ }
   protected override _rawModel(obj: object): object { return toRaw(obj) }
 
+  // —— 皮肤侧工厂与工具（core 统一搜索流程的 Vue 收窄）——
+
+  protected override createUiFilter(metaUiFilter: MetaUiFilter) {
+    return new VuiFilter(metaUiFilter)
+  }
+
+  protected override createCustomSearchField(
+    field: import('@mmda/core').EntityCustomSearchField,
+  ): import('@mmda/core').UiCustomSearchField {
+    return new VuiCustomSearchField({
+      defaultValue: field.defaultValue,
+      searchLabel: field.searchLabel ?? '',
+      searchParam: field.searchParam,
+      renderer: field.renderer as VuiCustomSearchField['renderer'],
+      valueFn: field.valueFn,
+    }) as unknown as import('@mmda/core').UiCustomSearchField
+  }
+
+  protected override getFileInfo(templateFile: string) {
+    return getFileInfo(templateFile)
+  }
+
+  protected override readStoredPageSize() {
+    return readStoredPageSize()
+  }
+
+  protected override async loadLastQuery() {
+    await loadLastQuery(this as any)
+  }
+
+  protected override async saveLastQuery() {
+    await saveLastQuery(this as any)
+  }
+
+  protected override logListPaint(
+    stage: string,
+    meta: Record<string, unknown>,
+  ) {
+    logListPaint(stage, meta)
+  }
+
+  protected override resetListPaintCount() {
+    resetListPaintCount()
+  }
+
   // —— 构造器 ————————————————————————————
 
-  constructor(options: VuiContextOptions<M>, child?: ChildContextOptions) {
+  constructor(options: VuiContextOptions<M>, child?: VuiContextChildOptions) {
     super()
     this.rxFactory = createVueRxFactory()
 
@@ -172,6 +231,10 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
             void vueRouter.push(path)
           },
           resolve: (path: string) => vueRouter.resolve(path).href,
+          parse: (path: string) => vueRouter.resolve(path),
+          back: () => {
+            void vueRouter.back()
+          },
         }
       : undefined
     this.parent = child?.parent as any
@@ -184,26 +247,31 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
       child?.validation ?? defineValidation(this.metaUi, this.model as Entity),
     )
 
-    this.pageNotice = ref(null)
-
     this.cache.set(this.cachePath, this as any)
+    this.flushPendingPagination(this.searchParam)
   }
 
   override get editing() {
     return this.view === UiViewOne.Edit || this.view === UiViewOne.Create
   }
 
-  get app(): MmdaVueApp | undefined { return this._app }
-  set app(v: MmdaVueApp | undefined) { this._app = v }
-  get apiClient() { return this.logic?.apiClient }
-  get uiBuilder(): UiBuilder | undefined { return (this.app as any)?.ui }
+  get app(): MmdaApplication { return this._app as MmdaApplication }
+  set app(v: MmdaApplication | undefined) { this._app = v }
+  get apiClient() { return this.logic?.apiClient as ApiClient }
+  get uiBuilder(): UiBuilder { return this._app?.ui as UiBuilder }
 
   override get selectedItems(): M[] { return this._selected }
   override set selectedItems(v: M[]) { this._selected = v }
   override get currentItem(): M | null { return this._currentItem }
   override set currentItem(v: M | null) { this._currentItem = v }
-  override get selectionMode(): 'single' | 'multiple' | null { return this._selectionMode }
-  override set selectionMode(v) { this._selectionMode = v }
+  protected override get selectionModeStorage(): 'single' | 'multiple' | null {
+    return this._selectionMode
+  }
+  protected override set selectionModeStorage(
+    v: 'single' | 'multiple' | null,
+  ) {
+    this._selectionMode = v
+  }
 
   flushPendingPagination(searchParam?: { pager?: Pager }) {
     if (!this._pendingPagination) return
@@ -249,8 +317,8 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
     view?: UiViewType,
     fieldLogics?: Record<string, MetaUiFieldLogic<any>>,
     logic?: EntityLogic<G>,
-  ): VuiContextBase<G> {
-    return createSession(
+  ): VuiContext<G> {
+    return new VuiContext<G>(
       {
         model,
         metaUi,
@@ -267,33 +335,6 @@ class VuiContextBase<M extends Entity = Entity> extends AbstractUiContext<M> {
         cache: this.cache as any,
         cachePath,
       },
-    ) as unknown as VuiContextBase<G>
+    )
   }
 }
-
-// ——— mixin chain —————————————————————————————
-
-class VuiContextRuntime extends WithNavigate(
-  WithData(WithReference(WithSubgroup(VuiContextBase))),
-) {
-  constructor(options: VuiContextOptions<any>, child?: ChildContextOptions) {
-    super(options, child)
-    this.flushPendingPagination((this as any).searchParam)
-  }
-}
-
-export type VuiContext<M extends Entity = Entity> = VuiContextRuntime &
-  UiContext<M>
-
-export const VuiContext = VuiContextRuntime as unknown as {
-  new <M extends Entity = Entity>(
-    options: VuiContextOptions<M>,
-    child?: ChildContextOptions,
-  ): VuiContext<M>
-}
-
-setSessionFactory(
-  (options: any, child: any) => new VuiContext(options, child),
-)
-
-export type { ChildContextOptions }

@@ -7,10 +7,10 @@
 EJ2 Kanban 在皮肤子路径，默认不挂：
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfKanbanPlugin } from '@mmda/vui-syncfusion/kanban'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setKanbanPlugin(createSfKanbanPlugin())
 
 ui.buildKanban({

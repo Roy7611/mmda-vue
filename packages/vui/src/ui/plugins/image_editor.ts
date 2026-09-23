@@ -22,4 +22,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueImageEditorPlugin = CorePlugin<VNode>
+export type VuiImageEditorPlugin = CorePlugin<VNode>

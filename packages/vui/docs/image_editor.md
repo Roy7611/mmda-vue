@@ -11,7 +11,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/image_editor.ts` | `UiImageEditorProps`；未安装 stub |
-| `VueUiBuilder.imageEditorPlugin` | 默认 `unimplementedImageEditorPlugin`；`setImageEditorPlugin`；`buildImageEditor` 转调插件 |
+| `VuiBuilder.imageEditorPlugin` | 默认 `unimplementedImageEditorPlugin`；`setImageEditorPlugin`；`buildImageEditor` 转调插件 |
 | `@mmda/vui-syncfusion/image-editor` | `createSfImageEditorPlugin`，EJ2 ImageEditor |
 
 不要 `factory.imageEditor`。Logic 不画编辑器。core `UiBuilder` 不加方法。

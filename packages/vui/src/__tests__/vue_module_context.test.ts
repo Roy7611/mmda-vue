@@ -7,6 +7,7 @@ describe("createModuleContext", () => {
     const applyRow = vi.fn();
     const insertAtZero = vi.fn();
     const applyRemove = vi.fn();
+    const rebind = vi.fn();
     const sync = createModuleContext();
     expect(sync).not.toHaveProperty("revealCurrent");
     const current = { id: "d1", shortName: "旧", rowNum: "7" };
@@ -17,7 +18,7 @@ describe("createModuleContext", () => {
       currentIndex: 6,
       model: [current] as any,
       searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
-      indexTableHost: { applyRow, insertAtZero, applyRemove },
+      indexTableHost: { applyRow, insertAtZero, applyRemove, rebind },
     } as unknown as VuiContext;
     sync.registerIndex(context);
     sync.applyCurrentRow({ id: "d1", shortName: "新简称" });
@@ -31,6 +32,7 @@ describe("createModuleContext", () => {
     const applyRow = vi.fn();
     const insertAtZero = vi.fn();
     const applyRemove = vi.fn();
+    const rebind = vi.fn();
     const sync = createModuleContext();
     const current = { id: "d1", shortName: "旧", rowNum: "7" };
     const context = {
@@ -40,14 +42,14 @@ describe("createModuleContext", () => {
       currentIndex: 0,
       model: [current] as any,
       searchParam: { pager: { pageNo: 1, pageSize: 20, recordCount: 1 } },
-      indexTableHost: { applyRow, insertAtZero, applyRemove },
+      indexTableHost: { applyRow, insertAtZero, applyRemove, rebind },
     } as unknown as VuiContext;
     sync.registerIndex(context);
     context.indexTableHost = undefined;
     sync.applyCurrentRow({ id: "d1", shortName: "离页" });
     expect(current.shortName).toBe("离页");
     expect(applyRow).not.toHaveBeenCalled();
-    context.indexTableHost = { applyRow, insertAtZero, applyRemove };
+    context.indexTableHost = { applyRow, insertAtZero, applyRemove, rebind };
     sync.applyCurrentRow({ id: "d1", shortName: "回来" });
     expect(applyRow).toHaveBeenCalledWith(current);
     expect(current.shortName).toBe("回来");

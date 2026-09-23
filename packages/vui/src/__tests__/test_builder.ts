@@ -15,7 +15,7 @@ import type {
 import type { VuiFactory, UiFieldFactory } from "../ui/factory";
 import { VuiLayout, type VuiTileSlots } from "../ui/layout";
 import type { VuiListPropsType } from "../ui/factory/list";
-import type { VuiSearchField } from "../ui/factory/filter";
+
 import { bindListDisplayRenderers } from "../ui/factory/list";
 import type { UiSplitterPane, UiSplitterProps } from "../ui/factory/splitter";
 import {
@@ -971,9 +971,7 @@ export class TestUiBuilder extends VuiBuilder {
     return stub("buildAppMenu");
   }
 
-  buildSearchField(_field: VuiSearchField) {
-    return stub("buildSearchField");
-  }
+
 
   buildModuleSearchbar(_context: VuiContext, rawProps?: UiProps) {
     // 契约型 `UiProps` → 具体形状在实现内收敛（同 `buildFilterBar` 的写法）

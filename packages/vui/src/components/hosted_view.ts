@@ -63,6 +63,10 @@ function viewDeps(
     router: {
       push: (path) => void router.push(path),
       resolve: (path) => router.resolve(path).href,
+      parse: (path) => router.resolve(path),
+      back: () => {
+        void router.back()
+      },
     },
   }
 }

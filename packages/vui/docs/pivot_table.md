@@ -9,7 +9,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/pivot_table.ts` | AG 轴 props、小写 `aggregate`、stub |
-| `VueUiBuilder.pivotPlugin` | 默认 `unimplementedPivotPlugin`；`setPivotPlugin`；`buildPivotTable` 转调 |
+| `VuiBuilder.pivotPlugin` | 默认 `unimplementedPivotPlugin`；`setPivotPlugin`；`buildPivotTable` 转调 |
 | `@mmda/vui-syncfusion/pivot` | `createSfPivotPlugin`，EJ2 PivotView，**只绑本地 `data`** |
 | `@mmda/vui-agnaive/pivot` | `createAgPivotPlugin`，AG Grid `pivotMode` |
 

@@ -9,7 +9,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/diagram.ts` | `UiDiagramType` / 节点连线 / `UiDiagramProps`；未安装 stub |
-| `VueUiBuilder.diagramPlugin` | 默认 `unimplementedDiagramPlugin`；`setDiagramPlugin`；`buildDiagram` 转调插件 |
+| `VuiBuilder.diagramPlugin` | 默认 `unimplementedDiagramPlugin`；`setDiagramPlugin`；`buildDiagram` 转调插件 |
 | `@mmda/vui-syncfusion/diagrams` | `createSfDiagramPlugin`，EJ2 Diagram（兼容路径） |
 | `@mmda/vui-syncfusion/diagram-editor` | 同上，正式路径 `createSfDiagramEditorPlugin` |
 | `@mmda/vuix-vf-diagram` | Prime 与 Naive 共用：`createVueDiagramPlugin`（Vue Flow） |

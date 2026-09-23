@@ -1,6 +1,6 @@
 # 列表与过滤
 
-列表页的查询状态只有一份：`VueUiContext.searchParam`（core 的 `EntitySearchParam`）。
+列表页的查询状态只有一份：`VuiContext.searchParam`（core 的 `EntitySearchParam`）。
 
 单控件契约在 **core**，按用途分家（不要一份 Props 糊三种）：
 
@@ -40,7 +40,7 @@ searchParam
 └─ filterModel    POST body：表头 / 搜索栏复杂条件
 ```
 
-`VueUiContext.search()` 先同步搜索字段和快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
+`VuiContext.search()` 先同步自定义搜索字段与快捷过滤，再 `ApiClient.searchAll()`：没有 `filterModel` 走 GET `getAll`，有则 POST `.../searchAll`。左树右表例外：点树只 `getAll`（类别外键）；右侧模糊搜索和字段过滤清外键后走同一套 `searchAll`。
 
 打开列表时套用 `{repository}/lastQuery`（`loadLastQuery` / `saveLastQuery`（`src/ui/builder/list_last_query.ts`）：排序留下；**没有 `queryID` 不带回 `filterModel`**，列头随手滤不等于保存查询）。否则 `Module.defaultSort` + `DefaultFieldFilter.applySelfToModel`（`t.status=1` 这类本实体默认；`items.xxx` 先解析、本轮不写）。`Module.defaultFilter` 是 `[alias.]field[=value]`，不是 FilterModel JSON，也不是 `queryID;queryName`。命名查询从 `CustomizedQueries` 按名搜索后 `EntityQuery.apply`。
 
@@ -57,6 +57,26 @@ searchParam
 More 收纳导入、导出、打印和其它低频列表动作。批量模式（`SelectMany` / `EditMany`）只显示取消 / 确认。
 
 关掉工具栏时（`showToolbar: false`）搜索栏仍可单独出现在 header。
+
+## 搜索页（`UiViewOne.Search`）
+
+顶栏放大镜缺省 `context.routeToSearch()` → 路由 `/Search` → `EntityOneView` 覆盖层渲染
+`renderSearchViewPage`（[`src/ui/builder/search_view_page.ts`](../src/ui/builder/search_view_page.ts)）：
+
+- **移动端**（`useCompactViewport`，1024px 断点）全屏页：`layout.layoutPage` + 返回按钮；
+- **桌面**右侧抽屉：`factory.drawer({ position: 'Right' })`。
+
+内容 = `builder.buildSearchView(context)`（core `AbstractUiBuilder` 默认实现，两个运行时共用）：
+模糊搜框 + 字段行（Column，一行 = 字段 + 操作符 + 值）+ 动作行（重置 / 确认）。
+操作符表来自 `getColumnFilterOps(field)`（表头菜单口径），值形态由算子决定
+（无值 / 单值 / `BETWEEN` 双值 / `IN`·`NOT_IN` 多值）。
+
+- **草稿**住 `context.searchRows`（`UiSearchRow[]`）：`bindLogics` 按 `beforeSearch().fields`（含顺序）装配，
+  空则回落 listed fields 里 `sortable === true`；也回填列表当前 `filterModel`（`seedSearchRows`）。
+- **确认** `applySearchDraft(search, list)`：同字段多叶收成 `multi`（原 `join` 保留 OR），
+  连同模糊搜词写回列表会话的 `searchParam` 并置页码 1，调用方随后 `search()`。
+- `context.searchFields` / `VuiSearchField` 已删；表头过滤、过滤芯片、FilterBar 仍只读写 `searchParam.filterModel`。
+- 设计与落地记录见 [`core/docs/ui/search_view_design.md`](../../core/docs/ui/search_view_design.md)。
 
 ## 快捷过滤
 
@@ -98,7 +118,7 @@ Builder 已用 `writeListSorts` / `writeListFilterModel`。Prime / Naive 的表�
 
 ## 实体选择（特殊 Index）
 
-表单弹层：`context.select({ repository, selectionMode, searchParam })` → `VueUiContext` + Logic + `buildListView`。
+表单弹层：`context.select({ repository, selectionMode, searchParam })` → `VuiContext` + Logic + `buildListView`。
 
 **模块与权限（选择窗工具栏 / 嵌套创建·编辑）：**
 

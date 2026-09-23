@@ -3,10 +3,10 @@
 从 `@mmda/vui` 导入类型；节点用 `app.ui.chartFactory`。设计见 [chart.md](./chart.md)。
 
 ```ts
-import { PrimeVueUiBuilder } from '@mmda/vui-primevue'
+import { PrimeVuiBuilder } from '@mmda/vui-primevue'
 import { createPrimeChartFactory } from '@mmda/vui-primevue/charts'
 
-const ui = new PrimeVueUiBuilder()
+const ui = new PrimeVuiBuilder()
 ui.setChartFactory(createPrimeChartFactory())
 
 const data = {

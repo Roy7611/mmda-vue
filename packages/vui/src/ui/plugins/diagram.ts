@@ -57,4 +57,4 @@ export function emitDiagramUpdate(
 }
 
 /** vui 钉成 VNode。 */
-export type VueDiagramPlugin = CorePlugin<VNode>
+export type VuiDiagramPlugin = CorePlugin<VNode>

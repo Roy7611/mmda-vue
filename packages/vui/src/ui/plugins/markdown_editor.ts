@@ -18,4 +18,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueMarkdownEditorPlugin = CorePlugin<VNode>
+export type VuiMarkdownEditorPlugin = CorePlugin<VNode>

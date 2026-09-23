@@ -9,7 +9,7 @@
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/gantt.ts` | 任务 / 连线 / `UiGanttProps` / 控制器；未安装 stub |
-| `VueUiBuilder.ganttPlugin` | 默认 `unimplementedGanttPlugin`；`setGanttPlugin`；`buildGantt` 转调插件 |
+| `VuiBuilder.ganttPlugin` | 默认 `unimplementedGanttPlugin`；`setGanttPlugin`；`buildGantt` 转调插件 |
 | `@mmda/vui-syncfusion/gantt` | `createSfGanttPlugin`，EJ2 Gantt（App 默认） |
 | `@mmda/vuix-hyper-gantt` | `createHyperGanttPlugin`，DlhSoft Hyper Library |
 

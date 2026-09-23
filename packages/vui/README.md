@@ -8,7 +8,7 @@ Vue 3 运行时。把 `@mmda/core` 的元数据、实体和 `UiContext` 接到 V
 import {
   MmdaVueApp,
   EntityLogic,
-  VueUiContext,
+  VuiContext,
   setupI18n,
 } from '@mmda/vui'
 import type { MmdaApplication } from '@mmda/core'
@@ -23,22 +23,22 @@ UI 构造：**皮肤 `components/` 写控件**（`SfGrid`、`AgGrid`）→ **皮
 ```text
 i18n / keys          语言包、provide/inject token
         ↓
-MmdaVueApp           应用壳：DI、鉴权、locale；弹层在 app.ui（VueUiBuilder）
+MmdaVueApp           应用壳：DI、鉴权、locale；弹层在 app.ui（VuiBuilder）
         ↓
 EntityLogic              实体交互逻辑（core）；vui 再导出。无定制页用 GenericEntityLogic（core）
         ↓
-VueUiContext         一实体一份 Vue 会话（实现 core 的 UiContext；含查询与 IO）
+VuiContext         一实体一份 Vue 会话（实现 core 的 UiContext；含查询与 IO）
         ↓
-VueUiBuilder / Factory / Overlay  拼屏实现 + 弹层；PrimeVue / Syncfusion / Naive
+VuiBuilder / Factory / Overlay  拼屏实现 + 弹层；PrimeVue / Syncfusion / Naive
 ```
 
 约定：
 
-- 先有 core 的 `MetaUi`，再用 `EntityLogic` 装配字段逻辑，最后用 `VueUiContext` 跑一屏。
-- `VueUiContext` 实现 `@mmda/core` 的 `UiContext`；搜索缓存仍是 `FieldSearchOptions`，不要写回 `MetaUiField`。
+- 先有 core 的 `MetaUi`，再用 `EntityLogic` 装配字段逻辑，最后用 `VuiContext` 跑一屏。
+- `VuiContext` 实现 `@mmda/core` 的 `UiContext`；搜索缓存仍是 `FieldSearchOptions`，不要写回 `MetaUiField`。
 - vui 可以依赖 Vue / vue-i18n / vue-router；不要依赖 PrimeVue。
 - `select(field)` 写回字段；`select({ repository })` 选仓库。弹层走 `app.ui.dialog`（皮肤 overlayHost）。
-- `Attachment` / `ReportTemplate` 从 `@mmda/core` 导入；上传下载走 `VueUiContext`，不要往 `ApiClient` 加专用方法。
+- `Attachment` / `ReportTemplate` 从 `@mmda/core` 导入；上传下载走 `VuiContext`，不要往 `ApiClient` 加专用方法。
 - 用法对照 core：[UiBuilder](../core/docs/ui/ui_builder_usage.md)、[UiContext](../core/docs/logic/ui_context_usage.md)。
 
 和计划中的 `@mmda/rui`：rui **不要** 从 vui 抄组件。会话语义跟 core，控件层各自实现。
@@ -51,14 +51,14 @@ VueUiBuilder / Factory / Overlay  拼屏实现 + 弹层；PrimeVue / Syncfusion 
 src/
   app/              应用壳：MmdaVueApp、inject keys、主题 / 图标 / Material token、壳 state
   logic/            EntityLogic：对标 core EntityLogic，无 Vue 控件
-  contexts/         一屏会话：VueUiContext（Handbook mixin：data / validate / subgroup / navigate / reference）、view
+  contexts/         一屏会话：VuiContext extends core AbstractUiContext（Vue 收窄）、view
   components/       皮肤无关 Vue 组件（EntityView、TableSettingView、GroupCard、侧栏、预览…）
   ui/
-    layout.ts       VueUiLayout、UiProps、UiSlots
+    layout.ts       VuiLayout、UiProps、UiSlots
     factory.ts      UiFactory
     field_factory.ts UiFieldFactory
     overlay.ts      createHtmlOverlay
-    builder.ts      VueUiBuilder
+    builder.ts      VuiBuilder
     factory/        控件契约（一控件一文件）：list/tree/dialog…
     builder/        form/list/tree mixin、list_query / tree_data 等辅助函数
   i18n/             语言包与 setupI18n
@@ -89,12 +89,12 @@ src/
 
 ```ts
 import { createApp } from 'vue'
-import { MmdaVueApp, setupI18n, VueUiContext } from '@mmda/vui'
+import { MmdaVueApp, setupI18n, VuiContext } from '@mmda/vui'
 import { UiViewMany } from '@mmda/vui'
-import { PrimeVueUiBuilder } from '@mmda/vui-primevue'
+import { PrimeVuiBuilder } from '@mmda/vui-primevue'
 
 const i18n = setupI18n({}, 'zh')
-const builder = new PrimeVueUiBuilder()
+const builder = new PrimeVuiBuilder()
 const app = new MmdaVueApp('/api', 'base', builder, i18n, {
   clientId: 'mmda-base',
   clientSecret: '',
@@ -109,12 +109,12 @@ vueApp.use(i18n)
 vueApp.use(app)
 ```
 
-业务页通常用 DI 取出 Logic，再 `new VueUiContext` 后 `init()`：
+业务页通常用 DI 取出 Logic，再 `new VuiContext` 后 `init()`：
 
 ```ts
 const logic = app.di.get('MaterialsLogic')
 const metaUi = await app.meta.get('Materials')
-const context = new VueUiContext({
+const context = new VuiContext({
   model: { list: [] },
   metaUi,
   view: UiViewMany.Index,
@@ -124,7 +124,7 @@ const context = new VueUiContext({
 await context.init()
 ```
 
-无定制字段逻辑时用 `GenericEntityLogic`（core）。换皮肤只换 Builder（如 `PrimeVueUiBuilder` / `SyncfusionUiBuilder`），vui 其余代码不变。
+无定制字段逻辑时用 `GenericEntityLogic`（core）。换皮肤只换 Builder（如 `PrimeVuiBuilder` / `SfVuiBuilder`），vui 其余代码不变。
 
 ## 文档
 
@@ -132,10 +132,10 @@ await context.init()
 |---|---|
 | [应用壳](./docs/application.md) | `MmdaVueApp`、`app.state`、鉴权、i18n |
 | [实体交互逻辑](./docs/logic.md) | `EntityLogic` / `GenericEntityLogic` / `SubEntityLogic` |
-| [会话上下文](./docs/context.md) | 程序员怎么写 `VueUiContext` / core `UiContext` |
+| [会话上下文](./docs/context.md) | 程序员怎么写 `VuiContext` / core `UiContext` |
 | [会话设计](./docs/vue_ui_context.md) | 为何一个类、Handbook mixin、文件按能力拆 |
 | [Builder 与皮肤](./docs/builder.md) | 组件 → Factory → Builder；目录 `ui/builder/` |
-| [布局设计](./docs/layout.md) | `UiLayout` / `VueUiLayout`；不是 AppLayout 脚手架 |
+| [布局设计](./docs/layout.md) | `UiLayout` / `VuiLayout`；不是 AppLayout 脚手架 |
 | [布局：怎么写](./docs/layout_usage.md) | `layout.layoutField` / `layoutPage` / `listTile` |
 | [Factory 控件契约](./docs/factory.md) | chrome：`shape` / `size` / `colorRole` / `position` / `htmlAttributes` |
 | [Badge 设计](./docs/badge.md) | `factory.badge` |

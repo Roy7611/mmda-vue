@@ -25,4 +25,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueRibbonPlugin = CorePlugin<VNode>
+export type VuiRibbonPlugin = CorePlugin<VNode>

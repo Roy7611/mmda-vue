@@ -3,10 +3,10 @@
 从 `@mmda/vui` 导入类型；节点用 `app.ui.diagramPlugin` 或 `ui.buildDiagram`。设计见 [diagram.md](./diagram.md)。
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfDiagramEditorPlugin } from '@mmda/vui-syncfusion/diagram-editor'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setDiagramPlugin(createSfDiagramEditorPlugin())
 
 ui.buildDiagram(context, {

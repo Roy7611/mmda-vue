@@ -106,9 +106,9 @@ layout.grid(children, [6, 6])   // CSS grid；列 fr，给字段组装箱
 ## 测试 / 无皮肤
 
 ```ts
-import { VueUiLayout } from '@mmda/vui'
+import { VuiLayout } from '@mmda/vui'
 
-const layout = new VueUiLayout()
+const layout = new VuiLayout()
 layout.fieldVertical = false
 layout.layoutField({
   label: h('label', { class: 'mmda-field-label' }, '名称'),
@@ -119,10 +119,10 @@ layout.layoutField({
 ## 皮肤
 
 ```ts
-export class SyncfusionLayout extends VueUiLayout {
+export class SyncfusionLayout extends VuiLayout {
   // 可选 listTile；栅格用基类 mmda-row 等，不要为换厂商前缀覆写 cell/row/column/grid
 }
-export const syncfusionLayout = new SyncfusionLayout()
+export const sfVuiLayout = new SyncfusionLayout()
 ```
 
 改组间距设 `layout.gap`。不要复制 `layoutField` 算法。

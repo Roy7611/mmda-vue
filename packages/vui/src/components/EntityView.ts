@@ -23,12 +23,14 @@ import {
   type VNode,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useCompactViewport } from "../composables/useCompactViewport";
+import { renderSearchViewPage } from "../ui/builder/search_view_page";
 import { translateMessage } from "../i18n/i18n";
 import type { MmdaVueApp } from "../app/app";
 import type { VuiBuilder } from "../ui/builder";
 import { VuiContext } from "../contexts/vue_ui_context";
 import { UI_APP_KEY } from "../app/keys";
-import type { EntityLogic } from "@mmda/core";
+import { seedSearchRows, type EntityLogic } from "@mmda/core";
 import {
   resolveSearchParam,
   resolveViewManyProps,
@@ -96,6 +98,7 @@ export function resolveRepositoryModule(
 function resolveEntityView(path: string, queryView?: unknown): UiViewType {
   if (path.includes("/Create")) return UiViewOne.Create;
   if (path.includes("/Edit/")) return UiViewOne.Edit;
+  if (path.includes("/Search")) return UiViewOne.Search;
   if (queryView === UiViewMany.SelectMany) return UiViewMany.SelectMany;
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 3 && !["Create", "Edit"].includes(parts[1])) {
@@ -361,6 +364,7 @@ export function createEntityView(options: EntityViewOptions) {
       const current = shallowRef<VuiContext>();
       const error = shallowRef<unknown>(null);
       const pageLoading = ref(false);
+      const compact = useCompactViewport();
       let openGeneration = 0;
 
       async function open() {
@@ -372,6 +376,10 @@ export function createEntityView(options: EntityViewOptions) {
           const context = await openEntityContext(options, app, route, router);
           if (generation !== openGeneration) return;
           bindModuleContext(context, sync);
+          if (context.view === UiViewOne.Search) {
+            // 搜索页：把列表会话当前条件摊成行回显（草稿住本会话）
+            seedSearchRows(context, sync?.indexContext()?.searchParam?.filterModel);
+          }
           const pending = sync?.consumePendingPageNotice?.() ?? null;
           if (pending) context.pageNotice.value = pending;
           current.value = context;
@@ -411,6 +419,13 @@ export function createEntityView(options: EntityViewOptions) {
         }
         if (pageLoading.value || !current.value) {
           return loadingNode(app);
+        }
+        if (current.value.view === UiViewOne.Search) {
+          return renderSearchViewPage(app.ui as VuiBuilder, current.value, {
+            compact: compact.value,
+            list: sync?.indexContext() ?? undefined,
+            onClose: () => router.back(),
+          });
         }
         void current.value.pageNotice.value;
         return renderEntityPage(app, current.value, options, route);

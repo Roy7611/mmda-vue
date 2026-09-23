@@ -7,10 +7,10 @@
 **仅本地 `data`。** 不要让 SF 去打 `filterRows` / `pivotRows`。
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfPivotPlugin } from '@mmda/vui-syncfusion/pivot'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setPivotPlugin(createSfPivotPlugin())
 
 ui.buildPivotTable({
@@ -31,10 +31,10 @@ App 已在 `main.ts` 挂 `createSfPivotPlugin()`。
 ## AG Grid（playground / Naive）
 
 ```ts
-import { AgNaiveUiBuilder } from '@mmda/vui-agnaive'
+import { AgNaiveVuiBuilder } from '@mmda/vui-agnaive'
 import { createAgPivotPlugin } from '@mmda/vui-agnaive/pivot'
 
-const ui = new AgNaiveUiBuilder()
+const ui = new AgNaiveVuiBuilder()
 ui.setPivotPlugin(createAgPivotPlugin())
 
 ui.buildPivotTable({

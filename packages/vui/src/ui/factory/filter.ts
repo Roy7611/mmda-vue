@@ -1,27 +1,40 @@
 import {
-  MetaUiField,
-  SqlDataType,
-  getFieldFilterOps,
-  getSqlOperator,
-  isArray,
-  isDateRangeKind,
-  isNullOrUndefined,
-  FieldFilter,
-} from "@mmda/core";
+  UiCustomSearchField,
+  UiFilter,
+  quickFiltersToSQL,
+  type MetaUiFilter,
+  type UiCustomSearchFieldOptions,
+  type UiCustomSearchRenderer,
+} from '@mmda/core'
 import type {
-  MetaUiFilter,
-  MetaUiFilterCondition,
-  TranslateFn,
-  UiContext,
   Pager,
   Pagination,
-  UiSearchRefProps,
   SelectableFn,
-  MetaUiFilterOpCode,
-} from "@mmda/core";
-import { h, ref, unref, type Ref, type VNode } from "vue";
+  UiProps,
+  UiSearchRefProps,
+} from '@mmda/core'
+import { h, ref, type VNode } from 'vue'
 
-import type { UiProps } from "@mmda/core";
+export { quickFiltersToSQL }
+
+/** core UiFilter 的 Vue 侧收窄：`selectedConditions` 用 Vue `ref`。 */
+export class VuiFilter extends UiFilter {
+  constructor(metaUiFilter: MetaUiFilter) {
+    super(metaUiFilter, (value) => ref(value))
+  }
+}
+
+export type VuiCustomSearchRenderer = UiCustomSearchRenderer<VNode>
+
+/** 业务声明自定义搜索字段；运行时包装成 {@link VuiCustomSearchField}。 */
+export type CustomSearchField = UiCustomSearchFieldOptions<VNode>
+
+/** core UiCustomSearchField 的 Vue 侧收窄：`searchVal` / `searchWord` 用 Vue `ref`。 */
+export class VuiCustomSearchField extends UiCustomSearchField<VNode> {
+  constructor(customField: CustomSearchField) {
+    super(customField, (value) => ref(value))
+  }
+}
 
 export interface SearchForRelativeProps extends UiSearchRefProps {
   contentProps?: Record<string, any>;
@@ -32,6 +45,7 @@ export interface SearchForRelativeProps extends UiSearchRefProps {
   onHide?: () => Promise<boolean>;
   reject?: () => Promise<boolean>;
 }
+
 export interface SearchForRelativeContentProps extends UiProps {
   selectableFn?: SelectableFn;
   onSearch?: (params: any) => Promise<{ list: any; pager: Pagination }>;
@@ -42,12 +56,16 @@ export interface SearchForRelativeContentProps extends UiProps {
   /** 已选面板显示格式化函数，传入选中行数据返回显示文本，仅多选模式生效 */
   labelFn?: (item: any) => string;
 }
-// 流程图props
+
+/** 流程图 props。 */
 export interface FlowchartProps extends UiProps {
-  isToolBar?: boolean; //是否显示顶部按钮
+  /** 是否显示顶部按钮。 */
+  isToolBar?: boolean;
   onGetData?: (data: string) => void;
-  onGetNewBpmn?: (data: any) => void; // 获取bpmn初始化实例
+  /** 获取 bpmn 初始化实例。 */
+  onGetNewBpmn?: (data: any) => void;
 }
+
 export interface InputForRelativeProps extends SearchForRelativeProps {
   labelKey: string;
   valueKey: string;
@@ -65,194 +83,16 @@ export interface CustomFilter {
     repository: string;
     queryParams?: Record<string, any>;
     refParamKeys?: string[];
-    selectionMode?: "single" | "multiple";
+    selectionMode?: 'single' | 'multiple';
     ctor: any;
   };
   valueKey?: string;
   selectIndex?: number;
 }
 
-export class VuiFilter {
-  selectedConditions: Ref<Array<MetaUiFilterCondition>>;
-
-  constructor(readonly metaUiFilter: MetaUiFilter) {
-    this.selectedConditions = ref([]);
-  }
-
-  get name() {
-    return this.metaUiFilter.filterName;
-  }
-  get label() {
-    return this.metaUiFilter.filterTitle;
-  }
-
-  get selectOptions() {
-    return this.metaUiFilter.filterConditions;
-  }
-
-  get filtered() {
-    return this.selectedConditions.value.length > 0;
-  }
-  toQuerySQL() {
-    return `(${this.selectedConditions.value
-      .map((c) => c.condition)
-      .join(" OR ")})`;
-  }
-
-  toggle(condition: MetaUiFilterCondition, single = false) {
-    const selected = this.selectedConditions.value;
-    const active = selected.includes(condition);
-    this.selectedConditions.value = active
-      ? selected.filter((item) => item !== condition)
-      : single
-        ? [condition]
-        : [...selected, condition];
-  }
-}
-
-export function quickFiltersToSQL(filters: VuiFilter[]) {
-  const groups = filters
-    .filter((filter) => filter.filtered)
-    .map((filter) => filter.toQuerySQL());
-  return groups.length ? groups.map((group) => `(${group})`).join(" AND ") : "";
-}
-export type VuiCustomSearchRenderer = (
-  context: UiContext,
-  CustomSearchField: VuiCustomSearchField,
-  ...args: any[]
-) => VNode;
-
-export interface CustomSearchField {
-  defaultValue?: any;
-  searchLabel: string;
-  searchParam: string;
-  renderer: VuiCustomSearchRenderer; // 渲染器
-  valueFn?: (v: any | any[]) => any; // 取值函数
-}
-export class VuiCustomSearchField {
-  searchLabel: string;
-  searchParam: string;
-  renderer: VuiCustomSearchRenderer; // 渲染器
-  searchVal: Ref<any>;
-  searchWord?: Ref<string | any>; // 远程搜索框的模糊搜索
-  isComposing?: boolean; // 远程搜索是否开启输入法选词
-  valueFn?: (v: any | any[]) => any;
-
-  constructor(public readonly customField: CustomSearchField) {
-    this.searchLabel = customField.searchLabel;
-    this.searchParam = customField.searchParam;
-    this.renderer = customField.renderer;
-    this.searchVal = ref(customField.defaultValue ?? null);
-    this.searchWord = ref();
-    this.valueFn = customField.valueFn;
-  }
-
-  get hasVal() {
-    const value = this.searchVal.value;
-    if (isArray(value)) return value.length > 0;
-    return !!value;
-  }
-  get searchValue() {
-    if (this.valueFn) return this.valueFn(this.searchVal.value);
-    return this.searchVal.value;
-  }
-}
-
-export class VuiSearchField {
-  readonly availableOps: Array<MetaUiFilterOpCode>;
-  currentOp: MetaUiFilterOpCode;
-  currentOpLabel: Ref<string>;
-  searchVal: Ref<any>;
-  defaultVal: Ref<any>;
-  searchWord?: any;
-  isComposing?: boolean;
-  valueFn?: (v: any | any[]) => any;
-
-  constructor(
-    public readonly field: MetaUiField,
-    t: TranslateFn,
-  ) {
-    this.availableOps = getFieldFilterOps(field);
-    this.currentOp = this.availableOps[0] ?? "EQ";
-    this.currentOpLabel = ref(t(`matcher.${this.currentOp}`));
-    this.searchVal = ref(null);
-    this.defaultVal = ref(null);
-  }
-
-  get hasVal() {
-    const value = this.searchVal.value;
-    if (isArray(value)) return value.length > 0;
-    // return !!value;
-    return !isNullOrUndefined(value);
-  }
-  get searchValue() {
-    if (this.valueFn) return this.valueFn(this.searchVal.value);
-    return this.searchVal.value;
-  }
-
-  changeCurrentOp(op: MetaUiFilterOpCode, t?: TranslateFn) {
-    this.currentOp = op;
-    this.currentOpLabel.value = t ? t(`matcher.${op}`) : op;
-    if (
-      op === "IS_NULL" ||
-      op === "IS_NOT_NULL" ||
-      op === "IS_BLANK" ||
-      op === "IS_NOT_BLANK"
-    ) {
-      this.searchVal.value = op;
-    }
-  }
-
-  toFilterModel(): FieldFilter | undefined {
-    const filterValue = this.hasVal ? this.searchValue : unref(this.defaultVal);
-    const parameters = getSqlOperator(this.currentOp)?.parameters ?? 1;
-    if (isNullOrUndefined(filterValue) && parameters !== 0) return undefined;
-    const operator = this.currentOp;
-    if (SqlDataType.isBool(this.field.dataType)) {
-      if (operator === "IS_ALL") return undefined;
-      return {
-        filterType: "boolean",
-        value:
-          operator === "IS_TRUE"
-            ? true
-            : operator === "IS_FALSE"
-              ? false
-              : null,
-      };
-    }
-    if (operator === "WITHIN") {
-      return isDateRangeKind(filterValue)
-        ? FieldFilter.dateKind(filterValue)
-        : undefined;
-    }
-    if (
-      this.field.reference?.isEnum &&
-      (operator === "IN" || operator === "NOT_IN")
-    ) {
-      return {
-        filterType: "set",
-        operator,
-        values: isArray(filterValue) ? filterValue : [filterValue],
-      };
-    }
-    const values =
-      operator === "BETWEEN" && isArray(filterValue)
-        ? filterValue
-        : [filterValue, undefined];
-    return {
-      filterType: SqlDataType.isDate(this.field.dataType)
-        ? "date"
-        : SqlDataType.isNum(this.field.dataType)
-          ? "number"
-          : "text",
-      operator,
-      value: values[0],
-      valueTo: values[1],
-    };
-  }
-}
-
-export function displaySearchForRelativeLabel(props: SearchForRelativeProps): string {
+export function displaySearchForRelativeLabel(
+  props: SearchForRelativeProps,
+): string {
   const value = props.modelValue
   const optionLabel = (props as { optionLabel?: unknown }).optionLabel
   if (typeof optionLabel === 'function' && value != null) {

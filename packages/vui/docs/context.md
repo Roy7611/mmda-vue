@@ -1,37 +1,35 @@
 # 会话上下文
 
-屏级运行时是 **`VueUiContext`**（对标 Flutter `BuildContext`）。行为由 `view` + 可选 `logic` 决定。
+屏级运行时是 **`VuiContext`**（对标 Flutter `BuildContext`）。行为由 `view` + 可选 `logic` 决定。
 
-业务 Logic 回调使用 core 的 **`UiContext`**（从 `@mmda/core` 导入），不要写成 vui `VueUiContext`。
+业务 Logic 回调使用 core 的 **`UiContext`**（从 `@mmda/core` 导入），不要写成 vui `VuiContext`。
 会话上走 `uiBuilder` / `apiClient` / `app`；`globalProps` 只是把 Vue `globalProperties` 传递下来，极少用。
 
-分层见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。**为何一个类、mixin 怎么叠**见设计 [vue_ui_context.md](./vue_ui_context.md)。
+分层见 [ARCHITECTURE.md](../../../ARCHITECTURE.md)。**为何一个类**见设计 [vue_ui_context.md](./vue_ui_context.md)。
 
 ## 从哪导入
 
 ```ts
 import type { UiContext } from "@mmda/core";
-import { VueUiContext, UiViewMany, UiViewOne } from "@mmda/vui";
+import { VuiContext, UiViewMany, UiViewOne } from "@mmda/vui";
 ```
 
 | 场景 | 写什么 |
 |---|---|
 | Logic 钩子、`onChange`、`customRenderer` 参数 | `UiContext` |
-| `new`、组件 `PropType` | `VueUiContext` |
-| 旧名 `UiViewContext` / `UiBuildContext` | 不要写（同值 deprecated 别名） |
+| `new`、组件 `PropType` | `VuiContext` |
+| 旧名 `UiViewContext` / `UiBuildContext` | 不要写（已删除） |
 
-`new VueUiContext` 只出现在 vui（`EntityView`、选择器、树对话框）和少数 mes **Vue 组件**。不要在 Logic 里构造会话。
+`new VuiContext` 只出现在 vui（`EntityView`、选择器、树对话框）和少数 mes **Vue 组件**。不要在 Logic 里构造会话。
 
-## 源码（按能力，不是按视图）
+## 源码
+
+会话能力不按视图拆。框架无关部分在 core `AbstractUiContext`；vui 只有一个实现类：
 
 | 文件 | 职责 |
 |---|---|
-| [`vue_ui_context.ts`](../src/contexts/vue_ui_context.ts) | 本体：构造、Logic 绑定、选择态、`with` / `release`；叠 mixin 后导出 |
-| `mixins/data.ts` | 查询态、`init` / `search` / `save`、文件 IO、`doAction` / `print` |
-| `mixins/validate.ts` | `validate` / 字段错误态 |
-| `mixins/reference.ts` | `loadReferenceOptions`、`searchRelative`、`select()`（弹层 `createSession`） |
-| `mixins/subgroup.ts` | 子表上下文与增删行 |
-| `mixins/navigate.ts` | `routeTo` / `edit` / `create` / `confirmAction` / `cancel` |
+| core [`context_base.ts`](../../core/src/ui/context_base.ts) | 字段读写 / 校验 / 子表 / 路由 / 列表搜索 / 选择 / 多选动作 |
+| vui [`vue_ui_context.ts`](../src/contexts/vue_ui_context.ts) | `VuiContext extends AbstractUiContext`：Vue 响应式、`vueRouter` 适配、i18n、皮肤工厂收窄 |
 
 无 `logic` 时本地会话仍可用（子表行、单测）；有 `logic` 时 data 的 IO 才走远程。
 
@@ -49,9 +47,9 @@ import { VueUiContext, UiViewMany, UiViewOne } from "@mmda/vui";
 ## 一份会话一棵树
 
 ```text
-编辑页 VueUiContext view=edit
-├─ 子表集合 VueUiContext    subGroupContext(group)
-└─ 编辑中的子表行 VueUiContext
+编辑页 VuiContext view=edit
+├─ 子表集合 VuiContext    subGroupContext(group)
+└─ 编辑中的子表行 VuiContext
 ```
 
 索引页和详情页不建立逐行上下文。校验树和 `FieldSearchOptions` 不跨实例共享；字段/组的 **Logic 定义** 可以共享。
@@ -88,7 +86,7 @@ context.getFieldSelectedOption("categoryID");
 ## 构造与 init
 
 ```ts
-const context = new VueUiContext({
+const context = new VuiContext({
   model: { id },
   metaUi: pack.metaUi,
   view: UiViewOne.Details,
@@ -115,4 +113,4 @@ await context.init();
 - 不要在单元格 render 里调用会改响应式依赖的 `router.resolve` 并写回 props；导航放到 click。
 - 不要为只读展示包装 `reactive(row)`。
 - 不要按 Index/Edit 再拆 Context 子类；`view` 只作运行时门控。
-- 皮肤可以读 `context`，不要在 factory 里 `new VueUiContext`。
+- 皮肤可以读 `context`，不要在 factory 里 `new VuiContext`。

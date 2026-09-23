@@ -21,4 +21,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VueAiAssistantPlugin = CorePlugin<VNode>
+export type VuiAiAssistantPlugin = CorePlugin<VNode>

@@ -9,7 +9,7 @@ chrome 路径导航，走 `factory.breadcrumb`。EJ2 见 [Breadcrumb Vue 3 getti
 | 层 | 做什么 |
 |---|---|
 | core `UiBuilder.buildModuleBreadcrumb` | 契约；props 是 `UiModuleBreadcrumbProps`（`module` / `label`） |
-| vui `VueUiBuilder` | 默认实现：`moduleChain` 拼 `items`，再调 `factory.breadcrumb`。皮肤不要再抄一份 |
+| vui `VuiBuilder` | 默认实现：`moduleChain` 拼 `items`，再调 `factory.breadcrumb`。皮肤不要再抄一份 |
 | vui `ui/factory/breadcrumb.ts` | chrome `UiBreadcrumbProps`：`items` / `separator` |
 | 皮肤 `factory/breadcrumb.ts` | SF `BreadcrumbComponent`；Prime `Breadcrumb`；Naive 手写 nav |
 

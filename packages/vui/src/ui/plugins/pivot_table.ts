@@ -24,4 +24,4 @@ export {
 } from '@mmda/core'
 
 /** vui 钉成 VNode。 */
-export type VuePivotPlugin = CorePlugin<VNode>
+export type VuiPivotPlugin = CorePlugin<VNode>

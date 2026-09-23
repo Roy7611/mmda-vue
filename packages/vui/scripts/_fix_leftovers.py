@@ -38,11 +38,6 @@ comments = [
         "模块 **index** 工作区保活",
     ),
     (
-        "packages/vui/src/contexts/mixins/data.ts",
-        "不改 KeepAlive 列表",
-        "不改保活 Index 列表",
-    ),
-    (
         "packages/vui/src/ui/factory/list.ts",
         "index KeepAlive 宿主",
         "index 工作区保活宿主",

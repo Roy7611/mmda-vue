@@ -3,10 +3,10 @@
 从 `@mmda/vui` 导入类型；节点用 `app.ui.ribbonPlugin` 或 `ui.buildRibbon`。设计见 [ribbon.md](./ribbon.md)。
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfRibbonPlugin } from '@mmda/vui-syncfusion/ribbon'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setRibbonPlugin(createSfRibbonPlugin())
 
 ui.buildRibbon({

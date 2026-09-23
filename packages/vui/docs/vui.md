@@ -6,9 +6,9 @@
 |---|---|
 | [应用壳](./application.md) | `MmdaVueApp`、`app.state`、鉴权、i18n |
 | [实体交互逻辑](./logic.md) | vui 壳：路由；无定制用 core `GenericEntityLogic`；业务见 core EntityLogic 设计与用法 |
-| [会话上下文](./context.md) | 程序员：`VueUiContext` / core `UiContext` |
+| [会话上下文](./context.md) | 程序员：`VuiContext` / core `UiContext` |
 | [会话设计](./vue_ui_context.md) | 一个类 + mixin 叠放；不是本地/远程两层 |
-| [Builder 与皮肤](./builder.md) | `VueUiBuilder` 落地四职；皮肤 factory 对象组合。程序员用法见 [core 四职用法](../../core/docs/ui/ui_four_roles_usage.md) |
+| [Builder 与皮肤](./builder.md) | `VuiBuilder` 落地四职；皮肤 factory 对象组合。程序员用法见 [core 四职用法](../../core/docs/ui/ui_four_roles_usage.md) |
 | [Factory 控件契约](./factory.md) | chrome 参数：`shape` / `size` / `colorRole` / `position` / `htmlAttributes` |
 | [图表插件](./chart.md) | `chartFactory`；不进 chrome `factory` |
 | [图表：怎么写](./chart_usage.md) | `setChartFactory`；皮肤 `./charts` 或独立引擎包 |
@@ -75,7 +75,7 @@
 | [Toolbar 设计](./toolbar.md) | `factory.toolbar` 原生命令条；页头是 [Topbar](./topbar.md) |
 | [Toolbar：怎么写](./toolbar_usage.md) | `start` / `center` / `end`；overflow popup/scroll/multirow/none |
 | [Topbar](./topbar.md) | `buildIndexTopbar` 三槽；Details/Edit 两槽 |
-| [布局设计](./layout.md) | `UiLayout` / `AbstractUiLayout` / `VueUiLayout`；**不是** AppLayout 脚手架 |
+| [布局设计](./layout.md) | `UiLayout` / `AbstractUiLayout` / `VuiLayout`；**不是** AppLayout 脚手架 |
 | [布局：怎么写](./layout_usage.md) | `layout.layoutField` / `layoutPage` / `listTile` |
 | [CheckBoxList 设计](./check_box_list.md) | 横排 `checkBoxList` / `bitCheckBoxList` |
 | [CheckBoxList：怎么写](./check_box_list_usage.md) | value_array 与 or_bits |

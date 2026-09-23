@@ -11,8 +11,3 @@ export class VuePluginHost extends PluginHost<VNode> {
     return this.buildGantt(context, props)
   }
 }
-
-/** 给裸对象挂上同一套 use / plugin / buildGantt。 */
-export function mixPluginHost<T extends object>(target: T): T {
-  return new VuePluginHost().mixInto(target, ['buildGanttChart'])
-}

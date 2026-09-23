@@ -1,5 +1,9 @@
 import { defineComponent, h, ref } from "vue";
 import {
+  applyNamedQuery as applyNamedQueryBase,
+  canDeleteNamedQuery,
+  clearNamedQueryRef as clearNamedQueryRefBase,
+  filterModelSetValues,
   DefaultFieldFilter,
   EntityQuery,
   EntitySearchParam,
@@ -84,38 +88,10 @@ export function setFieldFilterValues(
   return context.search?.();
 }
 
-export function filterModelSetValues(
-  model: FilterModel | undefined,
-  fieldName: string,
-  field?: {
-    reference?: {
-      isEnum?: boolean;
-      refOptions?: unknown[];
-      valueOf?: (option: unknown) => unknown;
-      labelOf?: (option: unknown) => unknown;
-    };
-  },
-): unknown[] {
-  const filter = model?.[fieldName];
-  if (!filter || FieldFilter.isEmpty(filter)) return [];
-  if (field?.reference?.isEnum) {
-    return DefaultFieldFilter.includedValues(field, filter);
-  }
-  if (filter.filterType === "set") return [...(filter.values ?? [])];
-  if (filter.value != null && filter.value !== "") return [filter.value];
-  return [];
-}
-
-export function canDeleteNamedQuery(row: {
-  predifined?: boolean;
-} | null): boolean {
-  return row != null && row.predifined !== true;
-}
+export { canDeleteNamedQuery, filterModelSetValues };
 
 export function clearNamedQueryRef(context: VuiContext<any>) {
-  delete context.searchParam.queryID;
-  delete context.searchParam.queryName;
-  delete context.searchParam.queryPredifined;
+  clearNamedQueryRefBase(context as any);
 }
 
 export function applyNamedQuery(
@@ -127,16 +103,7 @@ export function applyNamedQuery(
     predifined?: boolean;
   },
 ): boolean {
-  const parsed = EntityQuery.parse(row.queryExpression);
-  if (parsed?.kind !== "query") return false;
-  EntityQuery.apply(context.searchParam, parsed.query);
-  context.searchParam.queryID = row.queryID;
-  context.searchParam.queryName = row.queryName;
-  context.searchParam.queryPredifined = row.predifined === true;
-  delete context.searchParam.searchWord;
-  if (context.searchParam.pager) context.searchParam.pager.pageNo = 1;
-  context.rememberLastQuery?.();
-  return true;
+  return applyNamedQueryBase(context as any, row);
 }
 
 export async function searchNamedQueries(

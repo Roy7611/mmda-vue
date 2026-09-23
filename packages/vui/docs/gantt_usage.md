@@ -5,10 +5,10 @@
 Syncfusion（App 默认）：
 
 ```ts
-import { SyncfusionUiBuilder } from '@mmda/vui-syncfusion'
+import { SfVuiBuilder } from '@mmda/vui-syncfusion'
 import { createSfGanttPlugin } from '@mmda/vui-syncfusion/gantt'
 
-const ui = new SyncfusionUiBuilder()
+const ui = new SfVuiBuilder()
 ui.setGanttPlugin(createSfGanttPlugin())
 
 ui.buildGantt(context, {

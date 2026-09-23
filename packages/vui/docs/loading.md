@@ -21,7 +21,7 @@ chrome 忙碌指示走 `factory.loading`。[EJ2 Vue Spinner](https://ej2.syncfus
 | 层 | 做什么 |
 |---|---|
 | vui `ui/factory/loading.ts` | `UiLoadingProps`；size / label / class |
-| 皮肤 `factory/loading.ts` | SF `SfLoadingHost` + Spinner API；Prime `ProgressSpinner`；Naive `NSpin` |
+| 皮肤 `factory/loading.ts` | SF `SfVuiLoadingHost` + Spinner API；Prime `ProgressSpinner`；Naive `NSpin` |
 
 画出来即忙碌。父级决定是否插入节点。
 

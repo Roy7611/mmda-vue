@@ -32,7 +32,7 @@ import type {
   VuiFactory,
   VuiFieldFactory,
 } from "./factory";
-import { mixPluginHost } from "./plugins/host";
+import { VuePluginHost } from "./plugins/host";
 import {
   isViewMany,
   UiViewMany,
@@ -59,10 +59,7 @@ import type {
   SignupFormProps,
   SigninFormSlots,
 } from "./factory/auth";
-import type {
-  SearchForRelativeContentProps,
-  VuiSearchField,
-} from "./factory/filter";
+import type { SearchForRelativeContentProps } from "./factory/filter";
 import type { UiAction } from "./factory/action";
 import { VuiContext } from "../contexts/vue_ui_context";
 import type { VuiOverlay } from "./overlay";
@@ -72,6 +69,7 @@ import type {
   UiEntityDialogOptions,
   UiListViewProps,
   UiMessageProps,
+  UiSearchViewProps,
   UiToastProps,
   UiViewProps,
 } from "@mmda/core";
@@ -112,7 +110,7 @@ const noopOverlay: VuiOverlay = {
 
 /**
  * Vue 拼屏抽象实现：实现 core `UiBuilder`，模板方法填好共用拼屏。
- * 皮肤再 `extends VuiBuilder`（SfUiBuilder / PrimeUiBuilder / …）。
+ * 皮肤再 `extends VuiBuilder`（SfVuiBuilder / PrimeVuiBuilder / …）。
  * form / list / tree 用 Handbook mixin 叠在 `VuiBuilderBase` 上。
  */
 export abstract class VuiBuilderBase extends AbstractUiBuilder<VNode> {
@@ -263,13 +261,6 @@ export abstract class VuiBuilderBase extends AbstractUiBuilder<VNode> {
   ): VNode {
     return paintEditTopbar(this as unknown as VuiBuilder, context, props ?? {}, slots);
   }
-  buildSearchField(
-    field: VuiSearchField,
-    context: CoreUiContext,
-    props: UiProps,
-  ): VNode {
-    return unimplemented("buildSearchField") as VNode;
-  }
   buildModuleSearchbar(
     context: CoreUiContext,
     props?: UiProps,
@@ -283,12 +274,6 @@ export abstract class VuiBuilderBase extends AbstractUiBuilder<VNode> {
       extra: props ?? {},
     });
   }
-  // buildSearchView(context: CoreUiContext, props: ModuleSearchbarProps) {
-  //   const content = this.buildModuleSearchbar(context, props ?? {});
-  //   return this.dialog(content, context, {
-  //     title: context.t("action.search"),
-  //   });
-  // }
   buildSigninForm(
     props?: SigninFormProps,
     slots?: SigninFormSlots,
@@ -663,6 +648,9 @@ export abstract class VuiBuilder
 {
   build(context: CoreUiContext, props: Record<string, unknown> = {}): VNode {
     const view = String((context as any).view ?? "");
+    if (view === UiViewOne.Search) {
+      return this.buildSearchView(context, props as UiSearchViewProps);
+    }
     if (view === UiViewMany.SelectOne || view === UiViewMany.SelectMany) {
       return this.buildSelectView(context, props as UiListViewProps);
     }
@@ -896,7 +884,7 @@ export function createStubUiBuilder(): VuiBuilder {
     buildXlsxFilePreview: emptyNode,
     buildFilePreview: emptyNode,
   };
-    mixPluginHost(stub);
+    new VuePluginHost().mixInto(stub, ['buildGanttChart']);
     // 字段行入口在 WithForm（builder 构造表单时按 MetaUiField 选 factory 函数）
   return stub as VuiBuilder;
 }

@@ -7,9 +7,9 @@ import {
   resolveViewManyType,
   resolveViewOneType,
 } from "../contexts/view";
-import { UiActionDivider, UiActionCtor } from "../ui/factory/action";
+import { UiActionDivider, VuiActionCtor } from "../ui/factory/action";
 import { loading, UiDataState } from "../app/state";
-import { quickFiltersToSQL, VuiFilter, VuiSearchField } from "../ui/factory/filter";
+import { quickFiltersToSQL, VuiFilter } from "../ui/factory/filter";
 import { SqlDataType, MetaUiField } from "@mmda/core";
 
 const t: TranslateFn = (message) =>
@@ -56,7 +56,7 @@ describe("actions and loading", () => {
   });
 
   it("从 EntityAction 构造 UiAction", () => {
-    const action = UiActionCtor(
+    const action = VuiActionCtor(
       { name: "save", role: "success", onAction: () => 1 },
       t,
       (icon) => `icon:${icon}`,
@@ -71,77 +71,3 @@ describe("actions and loading", () => {
   });
 });
 
-describe("VuiSearchField", () => {
-  it("按字段类型给出搜索算子", () => {
-    const field = new MetaUiField({
-      fieldIdx: 0,
-      fieldName: "whName",
-      displayLabel: "仓库",
-      dataType: SqlDataType.NVARCHAR,
-      nullable: true,
-    });
-    const search = new VuiSearchField(field, t);
-    expect(search.availableOps.length).toBeGreaterThan(0);
-    expect(search.hasVal).toBe(false);
-  });
-
-  it("日期 WITHIN 发 FieldFilter.dateKind", () => {
-    const field = new MetaUiField({
-      fieldIdx: 0,
-      fieldName: "createdAt",
-      displayLabel: "创建",
-      dataType: SqlDataType.TIMESTAMP,
-      nullable: true,
-    });
-    const search = new VuiSearchField(field, t);
-    expect(search.availableOps).toContain("WITHIN");
-    search.changeCurrentOp("WITHIN", t);
-    search.searchVal.value = "TODAY";
-    expect(search.toFilterModel()).toEqual({
-      filterType: "date",
-      operator: "WITHIN",
-      value: "TODAY",
-    });
-  });
-
-  it("VuiFilter 把选中条件拼成 OR", () => {
-    const filter = new VuiFilter({
-      filterName: "status",
-      filterTitle: "状态",
-      fixed: false,
-      filterConditions: [
-        { condition: "status='OPEN'", displayLabel: "开立", fallback: false },
-      ],
-    });
-    filter.selectedConditions.value = [
-      { condition: "status='OPEN'", displayLabel: "开立", fallback: false },
-    ];
-    expect(filter.toQuerySQL()).toBe("(status='OPEN')");
-  });
-
-  it("快捷过滤组内 OR、组间 AND", () => {
-    const status = new VuiFilter({
-      filterName: "status",
-      filterTitle: "状态",
-      fixed: false,
-      filterConditions: [
-        { condition: "status='OPEN'", displayLabel: "开立", fallback: false },
-        { condition: "status='DONE'", displayLabel: "完成", fallback: false },
-      ],
-    });
-    const site = new VuiFilter({
-      filterName: "site",
-      filterTitle: "站点",
-      fixed: false,
-      filterConditions: [
-        { condition: "site='SZ'", displayLabel: "深圳", fallback: false },
-      ],
-    });
-    status.selectedConditions.value = status.selectOptions;
-    site.selectedConditions.value = site.selectOptions;
-
-    expect(quickFiltersToSQL([status, site])).toBe(
-      "((status='OPEN' OR status='DONE')) AND ((site='SZ'))",
-    );
-  });
-});

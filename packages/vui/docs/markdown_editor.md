@@ -9,7 +9,7 @@ Markdown 不进 chrome `factory`。vui 只定 [`UiMarkdownEditorPlugin`](../src/
 | 层 | 做什么 |
 |---|---|
 | vui `ui/plugins/markdown_editor.ts` | `UiMarkdownEditorProps`；未安装 stub |
-| `VueUiBuilder.markdownEditorPlugin` | 默认 `unimplementedMarkdownEditorPlugin`；`setMarkdownEditorPlugin`；`buildMarkdownEditor` 转调插件 |
+| `VuiBuilder.markdownEditorPlugin` | 默认 `unimplementedMarkdownEditorPlugin`；`setMarkdownEditorPlugin`；`buildMarkdownEditor` 转调插件 |
 | `@mmda/vuix-vditor-markdown` | `createMarkdownEditorPlugin`，Vditor；三家皮肤共用 |
 
 不要 `factory.markdownEditor`。Logic 不画编辑器。core `UiBuilder` 不加方法。

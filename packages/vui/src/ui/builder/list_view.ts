@@ -506,20 +506,8 @@ export function WithList<TBase extends AbstractConstructor>(Base: TBase) {
                 showBreadcrumb: props.showBreadcrumb ?? true,
                 showActions: props.showActions ?? true,
                 showSearchBar: props.showSearchbar ?? true,
-                layout: props.topbarLayout ?? "full",
-                onSearchPage: () =>
-                  void this.buildSearchView(context, {
-                    onSearch: (text: string) => {
-                      runtime.searchParam.searchWord = text;
-                      runtime.rememberLastQuery?.();
-                      props.onSearch?.(text);
-                      if (!props.onSearch) void runtime.search?.();
-                    },
-                    onRefresh: () => {
-                      if (props.onRefresh) props.onRefresh();
-                      else void runtime.search?.();
-                    },
-                  }),
+                // 不传就是「按视口定档」：窄屏走 compact（放大镜 → 搜索页），见 resolvedIndexTopbarLayout
+                ...(props.topbarLayout ? { layout: props.topbarLayout } : {}),
               },
               {
                 center: () => (searchbar ? [searchbar] : []),
@@ -984,15 +972,6 @@ function hasRightSearch(context: UiContext) {
   if (filters?.some((filter) => (filter.selectedConditions?.value?.length ?? 0) > 0)) {
     return true;
   }
-  const searchFields = (context as any).searchFields as
-    | { searchVal?: { value?: unknown } }[]
-    | undefined;
-  if (searchFields?.some((field) => {
-    const value = field.searchVal?.value;
-    return value != null && value !== "";
-  })) {
-    return true;
-  }
   const customSearchFields = (context as any).customSearchFields as
     | { hasVal?: boolean }[]
     | undefined;
@@ -1191,18 +1170,9 @@ const TreeListView = defineComponent({
                 showBreadcrumb: listOption.showBreadcrumb ?? true,
                 showActions: listOption.showActions ?? true,
                 showSearchBar: listOption.showSearchbar ?? true,
-                layout: listOption.topbarLayout ?? "full",
+                ...(listOption.topbarLayout ? { layout: listOption.topbarLayout } : {}),
                 breadcrumbLeaf:
                   pickedLabel.value || selectedTreeLabel(latestSpec()),
-                onSearchPage: () =>
-                  void self.buildSearchView(context, {
-                    onSearch: (text: string) => {
-                      (context as any).searchParam.searchWord = text;
-                      (context as any).rememberLastQuery?.();
-                      void (context as any).search?.();
-                    },
-                    onRefresh: () => void (context as any).search?.(),
-                  }),
               },
               {
                 center: () => (searchbar ? [searchbar] : []),

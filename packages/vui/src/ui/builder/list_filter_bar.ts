@@ -155,14 +155,6 @@ export function listFilterBarChips(
   );
 }
 
-function clearSearchField(context: VuiContext<any>, fieldName: string) {
-  for (const searchField of context.searchFields ?? []) {
-    if (searchField.field?.fieldName !== fieldName) continue;
-    searchField.searchWord = null;
-    searchField.searchVal.value = null;
-  }
-}
-
 function deleteFilterKey(context: VuiContext<any>, fieldName: string) {
   const model = context.searchParam.filterModel;
   if (!model) return;
@@ -175,7 +167,6 @@ export function removeListFilterBarChip(
   fieldName: string,
 ) {
   deleteFilterKey(context, fieldName);
-  clearSearchField(context, fieldName);
   writeListFilterModel(context.searchParam, context.searchParam.filterModel ?? {});
   return context.search?.();
 }
@@ -185,7 +176,6 @@ export function clearListFilterBar(context: VuiContext<any>) {
   for (const fieldName of Object.keys(model)) {
     if (FieldFilter.isEmpty(model[fieldName])) continue;
     deleteFilterKey(context, fieldName);
-    clearSearchField(context, fieldName);
   }
   writeListFilterModel(context.searchParam, context.searchParam.filterModel ?? {});
   return context.search?.();
