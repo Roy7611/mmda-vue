@@ -2,26 +2,26 @@ import { registerLicense } from "@syncfusion/ej2-base";
 import "./style.css";
 import "./fontawesome.css";
 
-export { SfReactUiBuilder } from "./builder";
-export { SfReactUiFactory } from "./factory";
-export { SfReactUiFieldFactory } from "./field_factory";
-export { SfReactUiLayout } from "./layout";
+export { SfRuiBuilder } from "./builder";
+export { SfRuiFactory } from "./factory";
+export { SfRuiFieldFactory } from "./field_factory";
+export { SfRuiLayout } from "./layout";
 export {
-  SfReactUiOverlay,
-  sfReactUiOverlay,
-  SfReactUiOverlayHost,
+  SfRuiOverlay,
+  sfRuiOverlay,
+  SfRuiOverlayHost,
 } from "./overlay";
 export * from "./syncfusion_i18n";
 import { installSyncfusionLocale } from "./syncfusion_i18n";
 export * from "./components";
 
-export interface MmdaSyncfusionOptions {
+export interface SfRuiOptions {
   licenseKey?: string;
   /** MMDA/React locale (`zh` / `en` / `zh-Hant`) or a raw EJ2 L10n pack. */
   locale?: string | Record<string, unknown>;
 }
 
-function resolveLicense(options: MmdaSyncfusionOptions) {
+function resolveLicense(options: SfRuiOptions) {
   if (options.licenseKey) return options.licenseKey;
   try {
     return (import.meta as any).env?.VITE_SYNCFUSION_LICENSE as
@@ -32,7 +32,7 @@ function resolveLicense(options: MmdaSyncfusionOptions) {
 }
 
 /** Installs Syncfusion license and locale. */
-export function installSyncfusion(options: MmdaSyncfusionOptions = {}): void {
+export function installSyncfusion(options: SfRuiOptions = {}): void {
   const key = resolveLicense(options);
   if (key) registerLicense(key);
   installSyncfusionLocale(options.locale);

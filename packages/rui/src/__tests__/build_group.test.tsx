@@ -7,19 +7,21 @@ import { createElement, type ReactNode } from 'react'
 import { render } from '@testing-library/react'
 import {
   MetaUiGroupLogic,
+  type Entity,
   type MetaUi,
   type MetaUiField,
   type MetaUiGroup,
   type UiCardProps,
   type UiCardSlots,
+  type UiContext,
   type UiDialogAction,
   type UiGridProps,
 } from '@mmda/core'
-import { ReactUiBuilder } from '../ui/builder'
-import { ReactUiFactory } from '../ui/factory'
-import { ReactUiFieldFactory } from '../ui/field_factory'
-import { ReactUiLayout } from '../ui/layout'
-import { ReactUiContext } from '../contexts/react_ui_context'
+import { RuiBuilder } from '../ui/builder'
+import { RuiFactory } from '../ui/factory'
+import { RuiFieldFactory } from '../ui/field_factory'
+import { RuiLayout } from '../ui/layout'
+import { RuiContext } from '../contexts/react_ui_context'
 
 function stubField(name: string): MetaUiField {
   return {
@@ -89,11 +91,11 @@ function subGroupMetaUi(): MetaUi {
   } as unknown as MetaUi
 }
 
-/** 只实现拼屏用得上的那几项，其余走 `ReactUiFactory` 自带的存根。 */
-class TestFactory extends ReactUiFactory {
+/** 只实现拼屏用得上的那几项，其余走 `RuiFactory` 自带的存根。 */
+class TestFactory extends RuiFactory {
   constructor() {
     // core 的 factory 抽象类靠 renderer 造 HTML 壳（textSpan / label / icon…），必须给。
-    super(new ReactUiLayout())
+    super(new RuiLayout())
   }
   actionIcons: Record<string, string> = {}
   viewIcons: Record<string, string> = {}
@@ -102,7 +104,7 @@ class TestFactory extends ReactUiFactory {
     return null
   }
   actionButton() {
-    return null
+    return createElement('button', null, 'action')
   }
   toast() {}
   confirm() {
@@ -134,18 +136,23 @@ class TestFactory extends ReactUiFactory {
 
 function testBuilder() {
   const factory = new TestFactory()
-  return new ReactUiBuilder(factory, new ReactUiFieldFactory(factory))
+  return new RuiBuilder(factory, new RuiFieldFactory(factory))
+}
+
+/** 单测不带壳，把 React 会话按 core 契约接进 builder 拼屏入口。 */
+function asView(context: RuiContext<Entity>): UiContext<Entity> {
+  return context as unknown as UiContext<Entity>
 }
 
 function fieldGroup(metaUi: MetaUi): MetaUiGroup {
   return metaUi.getGroup('base')!
 }
 
-describe('ReactUiBuilder.buildFieldGroup', () => {
+describe('RuiBuilder.buildFieldGroup', () => {
   it('拼出组壳 + 字段行（字段名可见，坐标为 grid 排法）', () => {
     const metaUi = stubMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1', name: 'Alice' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1', name: 'Alice' } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
@@ -154,7 +161,7 @@ describe('ReactUiBuilder.buildFieldGroup', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildFieldGroup(fieldGroup(metaUi), context),
+        testBuilder().buildFieldGroup(fieldGroup(metaUi), asView(context)),
       ),
       { container: host },
     )
@@ -167,8 +174,8 @@ describe('ReactUiBuilder.buildFieldGroup', () => {
 
   it('customPrepend / customAppend 只写插片也生效（组级三位置正交）', () => {
     const metaUi = stubMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1' } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
@@ -184,7 +191,7 @@ describe('ReactUiBuilder.buildFieldGroup', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildFieldGroup(fieldGroup(metaUi), context),
+        testBuilder().buildFieldGroup(fieldGroup(metaUi), asView(context)),
       ),
       { container: host },
     )
@@ -197,8 +204,8 @@ describe('ReactUiBuilder.buildFieldGroup', () => {
 
   it('customRenderer 换掉中间那块，插片仍在外层', () => {
     const metaUi = stubMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1' } as never,
+    const context = new RuiContext({
+      model: { id: '1' } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
@@ -214,7 +221,7 @@ describe('ReactUiBuilder.buildFieldGroup', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildFieldGroup(fieldGroup(metaUi), context),
+        testBuilder().buildFieldGroup(fieldGroup(metaUi), asView(context)),
       ),
       { container: host },
     )
@@ -261,18 +268,18 @@ function twoGroupMetaUi(): MetaUi {
   } as unknown as MetaUi
 }
 
-describe('ReactUiBuilder.buildDetailsView', () => {
+describe('RuiBuilder.buildDetailsView', () => {
   it('按 primary / secondary 分区拼壳，showSecondaryGroup:false 可关掉右栏', () => {
     const metaUi = twoGroupMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1', name: 'Alice', remark: 'x' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1', name: 'Alice', remark: 'x' } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
     const builder = testBuilder()
 
     const host = document.createElement('div')
-    render(createElement('div', null, builder.buildDetailsView(context)), {
+    render(createElement('div', null, builder.buildDetailsView(asView(context))), {
       container: host,
     })
     expect(host.querySelectorAll('.mmda-card-title').length).toBe(2)
@@ -285,7 +292,7 @@ describe('ReactUiBuilder.buildDetailsView', () => {
       createElement(
         'div',
         null,
-        builder.buildDetailsView(context, { showSecondaryGroup: false }),
+        builder.buildDetailsView(asView(context), { showSecondaryGroup: false }),
       ),
       { container: host2 },
     )
@@ -295,13 +302,13 @@ describe('ReactUiBuilder.buildDetailsView', () => {
 
   it('buildEditView 走同一套（编辑态由会话决定，字段行自动换编辑器）', () => {
     const metaUi = twoGroupMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1', name: 'Alice' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1', name: 'Alice' } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
     const host = document.createElement('div')
-    render(createElement('div', null, testBuilder().buildEditView(context)), {
+    render(createElement('div', null, testBuilder().buildEditView(asView(context))), {
       container: host,
     })
     expect(host.textContent).toContain('基本信息')
@@ -312,8 +319,8 @@ describe('ReactUiBuilder.buildDetailsView', () => {
 
 describe('页级插槽（core UiViewSlots，vui / rui 共用）', () => {
   it('content 接管主区，header / toolbar 各就各位，组不再画一遍', () => {
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1', name: 'Alice' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1', name: 'Alice' } as unknown as Entity,
       metaUi: twoGroupMetaUi(),
       logic: undefined,
     })
@@ -322,7 +329,7 @@ describe('页级插槽（core UiViewSlots，vui / rui 共用）', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildDetailsView(context, {
+        testBuilder().buildDetailsView(asView(context), {
           toolbar: () => createElement('span', null, 'TOOLBAR'),
           header: () => createElement('span', null, 'HEADER'),
           content: () => createElement('span', null, 'CUSTOM-CONTENT'),
@@ -338,8 +345,8 @@ describe('页级插槽（core UiViewSlots，vui / rui 共用）', () => {
   })
 
   it('只给 toolbar 时按组拼，插槽只顶掉顶栏', () => {
-    const context = new ReactUiContext({
-      model: { id: '1', code: 'A-1', name: 'Alice' } as never,
+    const context = new RuiContext({
+      model: { id: '1', code: 'A-1', name: 'Alice' } as unknown as Entity,
       metaUi: twoGroupMetaUi(),
       logic: undefined,
     })
@@ -348,7 +355,7 @@ describe('页级插槽（core UiViewSlots，vui / rui 共用）', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildDetailsView(context, {
+        testBuilder().buildDetailsView(asView(context), {
           toolbar: () => createElement('span', null, 'TOOLBAR'),
         }),
       ),
@@ -359,11 +366,11 @@ describe('页级插槽（core UiViewSlots，vui / rui 共用）', () => {
   })
 })
 
-describe('ReactUiBuilder.buildSubGroup', () => {
+describe('RuiBuilder.buildSubGroup', () => {
   it('子表组走 factory.grid，行来自 context.model[groupName]，前后插片照样生效', () => {
     const metaUi = subGroupMetaUi()
-    const context = new ReactUiContext({
-      model: { id: '1', items: [{ qty: 1 }, { qty: 2 }] } as never,
+    const context = new RuiContext({
+      model: { id: '1', items: [{ qty: 1 }, { qty: 2 }] } as unknown as Entity,
       metaUi,
       logic: undefined,
     })
@@ -378,7 +385,7 @@ describe('ReactUiBuilder.buildSubGroup', () => {
       createElement(
         'div',
         null,
-        testBuilder().buildSubGroup(metaUi.getGroup('items')!, context),
+        testBuilder().buildSubGroup(metaUi.getGroup('items')!, asView(context)),
       ),
       { container: host },
     )

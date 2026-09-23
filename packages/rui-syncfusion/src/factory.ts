@@ -1,5 +1,5 @@
 import { createElement, type ReactElement, type ReactNode } from "react";
-import { ReactUiFactory } from "@mmda/rui";
+import { RuiFactory } from "@mmda/rui";
 import type {
   TranslateFn,
   UiButtonProps,
@@ -104,8 +104,8 @@ import { createInplaceEditor } from "./factory/inplace_editor";
 import { createQueryBuilder } from "./factory/query_builder";
 import { createTable, createGrid } from "./factory/table";
 import { createTreeGrid } from "./factory/tree_grid";
-import { SfReactUiLayout } from "./layout";
-import { sfReactUiOverlay } from "./overlay";
+import { SfRuiLayout } from "./layout";
+import { sfRuiOverlay } from "./overlay";
 
 /**
  * Syncfusion EJ2 React 皮肤工厂。
@@ -115,9 +115,9 @@ import { sfReactUiOverlay } from "./overlay";
  * inplaceEditor / speechToText / barcode / qrCode 均已接 Syncfusion EJ2
  * React 控件，不再使用 null 存根。
  */
-export class SfReactUiFactory extends ReactUiFactory {
+export class SfRuiFactory extends RuiFactory {
   constructor(
-    renderer: UiRenderer<ReactNode, UiNodeProps> = new SfReactUiLayout(),
+    renderer: UiRenderer<ReactNode, UiNodeProps> = new SfRuiLayout(),
   ) {
     super(renderer);
   }
@@ -327,12 +327,12 @@ export class SfReactUiFactory extends ReactUiFactory {
     return css ? createElement("i", { className: css }) : null;
   }
 
-  // —— 应用级方法（委托给 sfReactUiOverlay）——
-  toast = (props: UiToastProps): void => sfReactUiOverlay.toast(props);
+  // —— 应用级方法（委托给 sfRuiOverlay）——
+  toast = (props: UiToastProps): void => sfRuiOverlay.toast(props);
 
   confirm = (message: string): Promise<boolean> =>
-    sfReactUiOverlay.confirm({ message });
+    sfRuiOverlay.confirm({ message });
 
   dialog = (props: UiDialogProps, content?: ReactNode) =>
-    sfReactUiOverlay.dialog(content ?? null, props);
+    sfRuiOverlay.dialog(content ?? null, props);
 }

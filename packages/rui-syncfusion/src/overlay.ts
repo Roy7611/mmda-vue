@@ -14,37 +14,37 @@ import {
 } from '@mmda/core'
 
 /**
- * 弹层渲染请求。命令式 {@link SfReactUiOverlay} 与声明式宿主之间的数据契约，
+ * 弹层渲染请求。命令式 {@link SfRuiOverlay} 与声明式宿主之间的数据契约，
  * 宿主负责把它们渲染成 Syncfusion toast / dialog。
  */
-export interface SfReactToastRequest {
+export interface SfRuiToastRequest {
   id: number
   props: UiToastProps
 }
 
-export interface SfReactDialogRequest {
+export interface SfRuiDialogRequest {
   id: number
   content: ReactNode
   props: UiDialogProps<ReactNode>
   resolve: (action: UiDialogAction) => void
 }
 
-type SfReactListener = () => void
+type SfRuiListener = () => void
 
 /**
  * Syncfusion EJ2 React 命令式弹层宿主。实现 core {@link UiOverlay}。
  *
- * toast / dialog 的状态都收在本类内部；`SfReactUiOverlayHost` 挂载后订阅单例渲染，
+ * toast / dialog 的状态都收在本类内部；`SfRuiOverlayHost` 挂载后订阅单例渲染，
  * 不再有散落的模块级函数。
  */
-export class SfReactUiOverlay implements UiOverlay<ReactNode> {
-  private readonly toasts: SfReactToastRequest[] = []
-  private readonly dialogs: SfReactDialogRequest[] = []
-  private readonly listeners = new Set<SfReactListener>()
+export class SfRuiOverlay implements UiOverlay<ReactNode> {
+  private readonly toasts: SfRuiToastRequest[] = []
+  private readonly dialogs: SfRuiDialogRequest[] = []
+  private readonly listeners = new Set<SfRuiListener>()
   private nextId = 1
   private version = 0
 
-  subscribe = (listener: SfReactListener): (() => void) => {
+  subscribe = (listener: SfRuiListener): (() => void) => {
     this.listeners.add(listener)
     return () => {
       this.listeners.delete(listener)
@@ -53,9 +53,9 @@ export class SfReactUiOverlay implements UiOverlay<ReactNode> {
 
   getVersion = (): number => this.version
 
-  getToasts = (): readonly SfReactToastRequest[] => this.toasts
+  getToasts = (): readonly SfRuiToastRequest[] => this.toasts
 
-  getDialogs = (): readonly SfReactDialogRequest[] => this.dialogs
+  getDialogs = (): readonly SfRuiDialogRequest[] => this.dialogs
 
   private notify(): void {
     this.version += 1
@@ -102,7 +102,7 @@ export class SfReactUiOverlay implements UiOverlay<ReactNode> {
     })
   }
 
-  resolveDialog(request: SfReactDialogRequest, action: UiDialogAction): void {
+  resolveDialog(request: SfRuiDialogRequest, action: UiDialogAction): void {
     const index = this.dialogs.indexOf(request)
     if (index < 0) return
     this.dialogs.splice(index, 1)
@@ -116,21 +116,21 @@ export class SfReactUiOverlay implements UiOverlay<ReactNode> {
   }
 }
 
-export const sfReactUiOverlay = new SfReactUiOverlay()
+export const sfRuiOverlay = new SfRuiOverlay()
 
 /**
- * SfReactUiOverlayHost — Syncfusion React overlay 宿主。
- * 挂载在应用根组件内，订阅 {@link sfReactUiOverlay} 渲染 toast / dialog。
+ * SfRuiOverlayHost — Syncfusion React overlay 宿主。
+ * 挂载在应用根组件内，订阅 {@link sfRuiOverlay} 渲染 toast / dialog。
  */
-export function SfReactUiOverlayHost(): ReactElement | null {
-  useSyncExternalStore(sfReactUiOverlay.subscribe, sfReactUiOverlay.getVersion)
+export function SfRuiOverlayHost(): ReactElement | null {
+  useSyncExternalStore(sfRuiOverlay.subscribe, sfRuiOverlay.getVersion)
 
-  const toasts = sfReactUiOverlay.getToasts()
-  const dialogs = sfReactUiOverlay.getDialogs()
+  const toasts = sfRuiOverlay.getToasts()
+  const dialogs = sfRuiOverlay.getDialogs()
   const latestToast = toasts[toasts.length - 1]
 
-  const resolveDialog = (req: SfReactDialogRequest, action: UiDialogAction): void =>
-    sfReactUiOverlay.resolveDialog(req, action)
+  const resolveDialog = (req: SfRuiDialogRequest, action: UiDialogAction): void =>
+    sfRuiOverlay.resolveDialog(req, action)
 
   return createElement(
     'div',
@@ -183,8 +183,8 @@ function severityClass(severity?: string): string {
 
 function buildDialogButtons(
   props: UiDialogProps,
-  req: SfReactDialogRequest,
-  resolve: (req: SfReactDialogRequest, action: UiDialogAction) => void,
+  req: SfRuiDialogRequest,
+  resolve: (req: SfRuiDialogRequest, action: UiDialogAction) => void,
 ): unknown {
   const names = resolveDialogButtons(props.buttons)
   return names.map((name) => ({

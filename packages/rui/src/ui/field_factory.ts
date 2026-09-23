@@ -8,14 +8,17 @@ import {
   imageUploaderPropsFromField,
   imagesUploaderPropsFromField,
   numberInputPropsFromField,
+  relativeTime as formatRelativeTime,
+  resolveFieldUnit,
   signaturePadPropsFromField,
   stepperPropsFromField,
+  timelineSqlOf,
   type MetaUiField,
   type UiContext,
   type UiFieldFactory,
   type UiFieldRenderer,
 } from '@mmda/core'
-import { ReactUiFactory } from './factory'
+import { RuiFactory } from './factory'
 
 const fieldDisplayText = (
   field: MetaUiField,
@@ -29,11 +32,11 @@ const fieldDisplayText = (
  * React 字段工厂。输入控件映射表在 core {@link AbstractUiFieldFactory}；
  * 这里只实现 `control` 的 `createElement` 版本与框架专属的只读展示 / 上传。
  */
-export class ReactUiFieldFactory
-  extends AbstractUiFieldFactory<ReactNode, ReactUiFactory>
+export class RuiFieldFactory
+  extends AbstractUiFieldFactory<ReactNode, RuiFactory>
   implements UiFieldFactory<ReactNode>
 {
-  constructor(factory: ReactUiFactory) {
+  constructor(factory: RuiFactory) {
     super(factory)
   }
 
@@ -71,7 +74,7 @@ export class ReactUiFieldFactory
 
   quantityUnit: UiFieldRenderer<ReactNode> = (field, context) => {
     const value = context.getFieldValue(field)
-    const unit = field.suffix?.trim()
+    const unit = resolveFieldUnit(field)
     const text =
       value == null || value === ''
         ? (field.nullDisplayText ?? '')
@@ -85,7 +88,10 @@ export class ReactUiFieldFactory
     createElement(
       'span',
       null,
-      String(context.getFieldValue(field) ?? ''),
+      formatRelativeTime(
+        timelineSqlOf(context.getFieldValue(field)) ?? '',
+        context.locale,
+      ),
     )
 
   percentage: UiFieldRenderer<ReactNode> = (field, context) =>

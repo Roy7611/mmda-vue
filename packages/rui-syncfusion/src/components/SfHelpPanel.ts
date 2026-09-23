@@ -1,13 +1,13 @@
 import { createElement, type ReactNode } from "react";
 
-export interface HelpPanelItem {
+export interface SfHelpPanelItem {
   icon?: string;
   title: string;
   content: string;
 }
 
 export function SfHelpPanel(props: {
-  items?: HelpPanelItem[];
+  items?: SfHelpPanelItem[];
   children?: ReactNode;
 }): ReactNode {
   const items = props.items ?? [];

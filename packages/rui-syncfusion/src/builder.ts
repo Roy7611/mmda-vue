@@ -1,35 +1,18 @@
 import { createElement, useState, type ReactNode } from "react";
 import {
-  moduleChain,
-  uiCssClass,
-  type MetaUiField,
   type MetaUiGroup,
-  type UiAppSideMenuProps,
   type UiContext,
-  type UiDialogAction,
-  type UiDetailsTopbarProps,
-  type UiDetailsTopbarSlots,
-  type UiEditTopbarProps,
-  type UiEditTopbarSlots,
-  type UiEntityDialogOptions,
-  type UiFilterBarProps,
-  type UiIndexTopbarProps,
-  type UiIndexTopbarSlots,
-  type UiListViewProps,
-  type UiModuleBreadcrumbProps,
   type UiProps,
-  type UiSearchField,
   type UiSigninFormProps,
   type UiSigninFormSlots,
   type UiSignupFormProps,
   type UiSignupFormSlots,
-  type UiViewProps,
 } from "@mmda/core";
-import { ReactUiBuilder } from "@mmda/rui";
-import { SfReactUiFactory } from "./factory";
-import { SfReactUiFieldFactory } from "./field_factory";
-import { SfReactUiLayout } from "./layout";
-import { sfReactUiOverlay } from "./overlay";
+import { RuiBuilder } from "@mmda/rui";
+import { SfRuiFactory } from "./factory";
+import { SfRuiFieldFactory } from "./field_factory";
+import { SfRuiLayout } from "./layout";
+import { sfRuiOverlay } from "./overlay";
 import { createSfGanttPlugin } from "./plugins/gantt";
 import { createSfKanbanPlugin } from "./plugins/kanban";
 import { createSfSchedulerPlugin } from "./plugins/scheduler";
@@ -102,18 +85,17 @@ function SfGroupCard(props: {
   );
 }
 
-export class SfReactUiBuilder extends ReactUiBuilder {
+export class SfRuiBuilder extends RuiBuilder {
   constructor(
-    factory: SfReactUiFactory = new SfReactUiFactory(),
-    fieldFactory: SfReactUiFieldFactory = new SfReactUiFieldFactory(factory),
+    factory: SfRuiFactory = new SfRuiFactory(),
+    fieldFactory: SfRuiFieldFactory = new SfRuiFieldFactory(factory),
   ) {
-    super(factory, fieldFactory, new SfReactUiLayout());
+    super(factory, fieldFactory, new SfRuiLayout());
 
-    this.toast = (_ctx, props) => sfReactUiOverlay.toast(props);
-    this.message = (_ctx, props) => sfReactUiOverlay.message(props);
-    this.confirm = (_ctx, props) => sfReactUiOverlay.confirm(props);
+    this.toast = (_ctx, props) => sfRuiOverlay.toast(props);
+    this.confirm = (_ctx, props) => sfRuiOverlay.confirm(props);
     this.dialog = (content, _ctx, props) =>
-      sfReactUiOverlay.dialog(content, props ?? {});
+      sfRuiOverlay.dialog(content, props ?? {});
 
     this.use(createSfGanttPlugin())
       .use(createSfKanbanPlugin())
@@ -167,27 +149,6 @@ export class SfReactUiBuilder extends ReactUiBuilder {
   }
 
   // —— 应用壳 / 侧栏 ——
-  override buildAppSideMenu(
-    props: UiAppSideMenuProps<ReactNode> = {},
-  ): ReactNode {
-    const modules = props.modules ?? [];
-    return createElement(
-      "nav",
-      { className: uiCssClass("app-side-menu") },
-      modules.map((module) =>
-        createElement(
-          "a",
-          {
-            key: module.moduleCode,
-            className: uiCssClass("app-side-menu", "item"),
-            href: module.moduleUrl ?? (module as any).url,
-          },
-          module.moduleLabel ?? module.moduleName,
-        ),
-      ),
-    );
-  }
-
   buildAppTopBar(props: any = { modules: [], logo: () => null }): ReactNode {
     const items = (props.modules ?? []).map((module: any) => ({
       label: module.moduleName ?? module.moduleLabel,
@@ -228,136 +189,6 @@ export class SfReactUiBuilder extends ReactUiBuilder {
       page: this.invoke(props.body),
       bottomBar: this.invoke(props.bottomBar),
     });
-  }
-
-  // —— 模块面包屑 / 搜索 / 过滤 ——
-  override buildModuleBreadcrumb(
-    context: UiContext,
-    props: UiModuleBreadcrumbProps = {},
-  ): ReactNode {
-    const { module, label } = props;
-    if (!module) {
-      return (this.factory as any).breadcrumb({
-        items: [{ label: label || context.title || "" }],
-        class: "mmda-breadcrumb",
-      });
-    }
-    const chain = moduleChain(module);
-    const items = chain.map((item, index) => {
-      const leaf = index === chain.length - 1 && !label;
-      return {
-        key: item.moduleCode,
-        label: item.moduleLabel ?? item.moduleName,
-        icon: item.moduleIcon || undefined,
-        to: leaf || !item.moduleUrl ? undefined : item.moduleUrl,
-      };
-    });
-    if (label) {
-      items.push({
-        key: `${module.moduleCode}-title`,
-        label,
-        icon: undefined,
-        to: undefined,
-      });
-    }
-    return (this.factory as any).breadcrumb({
-      items,
-      class: "mmda-breadcrumb",
-    });
-  }
-
-  override buildSearchField(
-    field: UiSearchField,
-    context: UiContext,
-    _props?: UiProps,
-  ): ReactNode {
-    return createElement(
-      "div",
-      { className: "mmda-search-field" },
-      this.editFor(field.field, context),
-    );
-  }
-
-  override buildModuleSearchbar(
-    context: UiContext,
-    props: UiProps = {},
-  ): ReactNode {
-    return (this.factory as any).textInput({
-      placeholder: context.t("action.search"),
-      ...props,
-    });
-  }
-
-  override buildFilterBar(
-    context: UiContext,
-    props?: UiFilterBarProps<ReactNode>,
-  ): ReactNode {
-    const chips = props?.chips?.();
-    const nodes = chips == null ? [] : Array.isArray(chips) ? chips : [chips];
-    return createElement(
-      "div",
-      { className: uiCssClass("list-filter-bar") },
-      ...nodes,
-    );
-  }
-
-  // —— 顶栏 ——
-  override buildIndexTopbar(
-    context: UiContext,
-    props: UiIndexTopbarProps = {},
-    slots?: UiIndexTopbarSlots<ReactNode>,
-  ): ReactNode {
-    return createElement(
-      "header",
-      { className: uiCssClass("index-topbar") },
-      createElement(
-        "div",
-        { className: uiCssClass("index-topbar", "start") },
-        slots?.start?.() ??
-          this.buildModuleBreadcrumb(context, {
-            module: (context as any).module,
-          }),
-      ),
-      createElement(
-        "div",
-        { className: uiCssClass("index-topbar", "center") },
-        slots?.center?.(),
-      ),
-      createElement(
-        "div",
-        { className: uiCssClass("index-topbar", "end") },
-        slots?.end?.(),
-      ),
-    );
-  }
-
-  override buildDetailsTopbar(
-    context: UiContext,
-    props: UiDetailsTopbarProps = {},
-    slots?: UiDetailsTopbarSlots<ReactNode>,
-  ): ReactNode {
-    return createElement(
-      "header",
-      { className: uiCssClass("details-topbar") },
-      createElement(
-        "div",
-        { className: uiCssClass("details-topbar", "start") },
-        slots?.start?.(),
-      ),
-      createElement(
-        "div",
-        { className: uiCssClass("details-topbar", "end") },
-        slots?.end?.(),
-      ),
-    );
-  }
-
-  override buildEditTopbar(
-    context: UiContext,
-    props: UiEditTopbarProps = {},
-    slots?: UiEditTopbarSlots<ReactNode>,
-  ): ReactNode {
-    return this.buildDetailsTopbar(context, props, slots);
   }
 
   // —— 登录 / 注册 ——
@@ -455,108 +286,4 @@ export class SfReactUiBuilder extends ReactUiBuilder {
     return this.buildGroupCard(group, grid, props);
   }
 
-  // —— 视图 ——
-  override buildIndexView(
-    context: UiContext,
-    props?: UiListViewProps,
-  ): ReactNode {
-    const rows = Array.isArray(context.model) ? context.model : [];
-    return createElement(
-      "section",
-      { className: uiCssClass("index-view") },
-      this.buildIndexTopbar(context),
-      this.buildFilterBar(context),
-      this.table(context.metaUi, {
-        ...(props as any),
-        rows,
-        selectionMode: (props as any)?.selectionMode ?? context.selectionMode,
-      } as any),
-    );
-  }
-
-  override buildSelectView(
-    context: UiContext,
-    props?: UiListViewProps,
-  ): ReactNode {
-    return this.buildIndexView(context, {
-      ...props,
-      selectionMode: (props as any)?.selectionMode ?? context.selectionMode,
-    });
-  }
-
-  override buildDetailsView(
-    context: UiContext,
-    _props?: UiViewProps,
-  ): ReactNode {
-    return createElement(
-      "div",
-      { className: uiCssClass("details-view") },
-      context.metaUi.groups
-        .filter((group) => !group.many)
-        .map((group) => this.buildFieldGroup(group, context)),
-    );
-  }
-
-  override buildEditView(context: UiContext, _props?: UiViewProps): ReactNode {
-    return createElement(
-      "div",
-      { className: uiCssClass("edit-view") },
-      context.metaUi.groups
-        .filter((group) => !group.many)
-        .map((group) => this.buildFieldGroup(group, context)),
-    );
-  }
-
-  override buildExplorer(context: UiContext, props?: any): ReactNode {
-    const tree = this.invoke(props?.treeOption);
-    return createElement(
-      "div",
-      { className: uiCssClass("explorer") },
-      tree
-        ? createElement(
-            "aside",
-            { className: uiCssClass("explorer", "tree") },
-            tree,
-          )
-        : null,
-      createElement(
-        "div",
-        { className: uiCssClass("explorer", "table") },
-        this.buildIndexView(context, props?.listView),
-      ),
-    );
-  }
-
-  // —— 实体弹窗 ——
-  override async editDialog(
-    context: UiContext,
-    props?: UiEntityDialogOptions<ReactNode, UiViewProps>,
-  ): Promise<UiDialogAction> {
-    const content = this.buildEditView(context, props?.viewProps);
-    return this.dialog(content, context, {
-      buttons: "okCancel",
-      showFooter: true,
-      ...props?.dlgProps,
-    } as any);
-  }
-
-  override async detailsDialog(
-    context: UiContext,
-    props?: UiEntityDialogOptions<ReactNode, UiViewProps>,
-  ): Promise<UiDialogAction> {
-    const content = this.buildDetailsView(context, props?.viewProps);
-    return this.dialog(content, context, props?.dlgProps as any);
-  }
-
-  override async selectDialog(
-    context: UiContext,
-    props?: UiEntityDialogOptions<ReactNode, UiViewProps>,
-  ): Promise<UiDialogAction> {
-    const content = this.buildSelectView(context, props?.viewProps as any);
-    return this.dialog(content, context, {
-      buttons: "okCancel",
-      showFooter: true,
-      ...props?.dlgProps,
-    } as any);
-  }
 }

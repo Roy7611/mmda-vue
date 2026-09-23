@@ -1,12 +1,12 @@
 import { createElement, type ReactNode } from "react";
 
-export interface SfLoadingHostProps {
+export interface SfRuiLoadingHostProps {
   loading?: boolean;
   label?: string;
   children?: ReactNode;
 }
 
-export function SfLoadingHost(props: SfLoadingHostProps): ReactNode {
+export function SfRuiLoadingHost(props: SfRuiLoadingHostProps): ReactNode {
   return createElement(
     "div",
     { className: "mmda-loading-host" },
@@ -21,4 +21,4 @@ export function SfLoadingHost(props: SfLoadingHostProps): ReactNode {
   );
 }
 
-export const SfGridLoadingHost = SfLoadingHost;
+export const SfRuiGridLoadingHost = SfRuiLoadingHost;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ReactPluginHost, mixPluginHost } from '../ui/plugins/host'
+import { ReactPluginHost } from '../ui/plugins/host'
 import type { UiContext, UiPlugin } from '@mmda/core'
 
 function stubPlugin(name: string): UiPlugin {
@@ -45,9 +45,9 @@ describe('ReactPluginHost', () => {
     )
   })
 
-  it('mixPluginHost 给裸对象挂上 use / build', () => {
+  it('mixInto 给裸对象挂上 use / build', () => {
     const obj = {} as Record<string, unknown>
-    mixPluginHost(obj)
+    new ReactPluginHost().mixInto(obj)
     const p = stubPlugin('kanban')
     ;(obj.use as (p: UiPlugin) => void)(p)
     expect((obj.hasPlugin as (n: string) => boolean)('kanban')).toBe(true)

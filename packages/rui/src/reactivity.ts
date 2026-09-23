@@ -1,21 +1,21 @@
 import { proxy, subscribe, useSnapshot, type Snapshot } from 'valtio'
 import { computed as reactiveComputed, effect } from 'valtio-reactive'
 import type { Entity, Ref, RxFactory, RxWatchSource } from '@mmda/core'
-import type { ReactUiContext, RuiState } from './contexts/react_ui_context'
+import type { RuiContext, RuiState } from './contexts/react_ui_context'
 
 /**
- * 订阅一个 ReactUiContext：读取返回快照里的字段会随 ctx 状态变化触发重渲染。
+ * 订阅一个 RuiContext：读取返回快照里的字段会随 ctx 状态变化触发重渲染。
  *
  * 底层是 valtio 的 {@link useSnapshot}。只读快照、只写源 proxy：
  * ```tsx
- * function MyForm({ ctx }: { ctx: ReactUiContext }) {
- *   const snap = useReactUiContext(ctx)
+ * function MyForm({ ctx }: { ctx: RuiContext }) {
+ *   const snap = useRuiContext(ctx)
  *   return <div>{snap.model?.name}</div>
  * }
  * ```
  */
-export function useReactUiContext<M extends Entity>(
-  ctx: ReactUiContext<M>,
+export function useRuiContext<M extends Entity>(
+  ctx: RuiContext<M>,
 ): Snapshot<RuiState<M>> {
   return useSnapshot(ctx._state)
 }
@@ -35,6 +35,9 @@ export function createReactRxFactory(): RxFactory {
       return proxy({ value: val }) as unknown as T extends object
         ? T
         : Ref<T>
+    },
+    ref<T>(value: T): Ref<T> {
+      return proxy({ value }) as Ref<T>
     },
     computed<T>(fn: () => T): Ref<T> {
       return reactiveComputed({ value: fn })

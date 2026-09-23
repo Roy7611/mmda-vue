@@ -14,9 +14,9 @@ import {
   SqlDataType,
   type UiContext,
 } from "@mmda/core";
-import { ReactUiFieldFactory } from "@mmda/rui";
-import { SfReactUiFactory } from "../factory";
-import { SfReactUiFieldFactory } from "../field_factory";
+import { RuiFieldFactory } from "@mmda/rui";
+import { SfRuiFactory } from "../factory";
+import { SfRuiFieldFactory } from "../field_factory";
 import { buildColumns, gridFiltersToModel } from "../factory/table";
 import {
   EJ2_SCHEDULER_VIEWS,
@@ -61,8 +61,8 @@ const makeField = (init: Record<string, unknown>): MetaUiField =>
     ...init,
   } as any);
 
-describe("SfReactUiFactory 冒烟", () => {
-  const factory = new SfReactUiFactory();
+describe("SfRuiFactory 冒烟", () => {
+  const factory = new SfRuiFactory();
 
   it("全部控件成员都是函数，nativeInplaceEdit 开启", () => {
     const members = [
@@ -102,7 +102,7 @@ describe("SfReactUiFactory 冒烟", () => {
 });
 
 describe("输入控件映射", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
 
   it("textInput：值/占位/禁用/只读/cssClass/htmlAttributes/事件", () => {
     const onChange = vi.fn();
@@ -309,7 +309,7 @@ describe("输入控件映射", () => {
 });
 
 describe("选择控件映射", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
   const options = [
     { value: "a", label: "甲", group: "G1" },
     { value: "b", label: "乙", group: "G2" },
@@ -442,7 +442,7 @@ describe("选择控件映射", () => {
 });
 
 describe("日期控件映射", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
 
   it("datePicker：值/范围/禁用/cleared 同时发 onClear 与 onChange(null)", () => {
     const onChange = vi.fn();
@@ -479,7 +479,7 @@ describe("日期控件映射", () => {
 });
 
 describe("按钮映射", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
 
   it("button：content/iconCss/isPrimary/disabled，onClick 阻止默认", () => {
     const onClick = vi.fn();
@@ -537,7 +537,7 @@ describe("按钮映射", () => {
 });
 
 describe("展示与导航映射", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
 
   it("badge / avatar / divider / message 原生元素", () => {
     const badge = factory.badge({ value: 3, shape: "dot" } as any) as ReactElement;
@@ -717,7 +717,7 @@ describe("展示与导航映射", () => {
 });
 
 describe("图标", () => {
-  const factory = new SfReactUiFactory();
+  const factory = new SfRuiFactory();
 
   it("iconCssOf：动作名 / pi 前缀 / 已是 css / 未知回退", () => {
     expect(factory.iconCssOf("edit")).toBe("e-icons e-edit");
@@ -994,7 +994,7 @@ describe("gridFiltersToModel", () => {
   });
 });
 
-describe("SfReactUiFieldFactory", () => {
+describe("SfRuiFieldFactory", () => {
   const makeContext = (values: Record<string, unknown>) =>
     ({
       getFieldValue: (field: MetaUiField) => values[field.fieldName],
@@ -1008,13 +1008,13 @@ describe("SfReactUiFieldFactory", () => {
     }) as unknown as UiContext;
 
   it("绑定 Syncfusion factory，继承 rui 基类", () => {
-    const ff = new SfReactUiFieldFactory();
-    expect(ff).toBeInstanceOf(ReactUiFieldFactory);
-    expect((ff as any).factory).toBeInstanceOf(SfReactUiFactory);
+    const ff = new SfRuiFieldFactory();
+    expect(ff).toBeInstanceOf(RuiFieldFactory);
+    expect((ff as any).factory).toBeInstanceOf(SfRuiFactory);
   });
 
   it("inplaceFieldEditor 命名回归守卫（dispatch 键）", () => {
-    const ff = new SfReactUiFieldFactory() as any;
+    const ff = new SfRuiFieldFactory() as any;
     expect(typeof ff.inplaceFieldEditor).toBe("function");
     const field = makeField({
       fieldName: "x",
@@ -1025,7 +1025,7 @@ describe("SfReactUiFieldFactory", () => {
   });
 
   it("textInput 渲染器：包 control 壳，值进 / onChange 出", () => {
-    const ff = new SfReactUiFieldFactory();
+    const ff = new SfRuiFieldFactory();
     const field = makeField({
       fieldName: "name",
       dataType: SqlDataType.VARCHAR,
@@ -1045,7 +1045,7 @@ describe("SfReactUiFieldFactory", () => {
   });
 
   it("fallbackInput 按 dataType 路由：布尔 → checkBox", () => {
-    const ff = new SfReactUiFieldFactory();
+    const ff = new SfRuiFieldFactory();
     const field = makeField({
       fieldName: "active",
       dataType: SqlDataType.BIT,

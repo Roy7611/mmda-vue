@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { SfReactUiBuilder } from "../builder";
+import { SfRuiBuilder } from "../builder";
 
-describe("SfReactUiBuilder", () => {
+describe("SfRuiBuilder", () => {
   it("installs the skin plugins by default", () => {
-    const builder = new SfReactUiBuilder();
+    const builder = new SfRuiBuilder();
     expect(builder.hasPlugin("gantt")).toBe(true);
     expect(builder.hasPlugin("charts")).toBe(true);
     expect(builder.hasPlugin("scheduler")).toBe(true);
   });
 
   it("builds a group card node", () => {
-    const builder = new SfReactUiBuilder();
+    const builder = new SfRuiBuilder();
     const node = builder.buildGroupCard(
       { groupName: "base", groupLabel: "基础" } as any,
       "body",

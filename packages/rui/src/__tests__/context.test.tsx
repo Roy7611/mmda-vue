@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ReactUiContext, type RuiContextOptions } from '../contexts/react_ui_context'
-import { useReactUiContext } from '../reactivity'
+import { RuiContext, type RuiContextOptions } from '../contexts/react_ui_context'
+import { useRuiContext } from '../reactivity'
 import { renderHook, act } from '@testing-library/react'
 import type { MetaUi, MetaUiField, Entity, UiBuilder } from '@mmda/core'
 import type { MmdaReactApp } from '../app/app'
@@ -29,21 +29,21 @@ function stubOptions(overrides?: Partial<RuiContextOptions>): RuiContextOptions 
   }
 }
 
-describe('ReactUiContext', () => {
+describe('RuiContext', () => {
   it('构造后可以读写字段值', () => {
-    const ctx = new ReactUiContext(stubOptions())
+    const ctx = new RuiContext(stubOptions())
     expect(ctx.getFieldValue('name')).toBe('Alice')
     ctx.setFieldValue('name', 'Bob')
     expect(ctx.getFieldValue('name')).toBe('Bob')
   })
 
   it('getModelTitle 返回 MetaUi.displayLabel + 主键值', () => {
-    const ctx = new ReactUiContext(stubOptions({ model: { id: '42' } as any }))
+    const ctx = new RuiContext(stubOptions({ model: { id: '42' } as any }))
     expect(ctx.getModelTitle()).toBe('Test【42】')
   })
 
   it('with 创建子 context，读写互不影响', () => {
-    const ctx = new ReactUiContext(stubOptions({ model: { id: '1', qty: 10 } as any }))
+    const ctx = new RuiContext(stubOptions({ model: { id: '1', qty: 10 } as any }))
     const child = ctx.with({ id: '2', qty: 99 } as any)
 
     expect(child.getFieldValue('qty')).toBe(99)
@@ -55,7 +55,7 @@ describe('ReactUiContext', () => {
   })
 
   it('load 调用 loader 并 setModel', async () => {
-    const ctx = new ReactUiContext(stubOptions({
+    const ctx = new RuiContext(stubOptions({
       model: [] as any[],
       loader: async () => [{ id: 'x', name: 'X' }] as any,
     }))
@@ -65,11 +65,11 @@ describe('ReactUiContext', () => {
     expect((ctx.model as any[])[0]?.name).toBe('X')
   })
 
-  it('useReactUiContext 在 setFieldValue 后触发重渲染', async () => {
-    const ctx = new ReactUiContext(stubOptions({ model: { id: '1', name: 'Old' } as any }))
+  it('useRuiContext 在 setFieldValue 后触发重渲染', async () => {
+    const ctx = new RuiContext(stubOptions({ model: { id: '1', name: 'Old' } as any }))
 
     const { result } = renderHook(() => {
-      const snap = useReactUiContext(ctx)
+      const snap = useRuiContext(ctx)
       return (snap.model as { name?: string } | undefined)?.name
     })
 
@@ -86,7 +86,7 @@ describe('ReactUiContext', () => {
   it('宿主注入 app 后，context.app / uiBuilder 通到会话', () => {
     const ui = { buildEditView: () => 'x' } as unknown as UiBuilder
     const app = { ui } as unknown as MmdaReactApp
-    const ctx = new ReactUiContext(stubOptions({ app }))
+    const ctx = new RuiContext(stubOptions({ app }))
 
     expect(ctx.app).toBe(app)
     expect(ctx.uiBuilder).toBe(ui)
@@ -95,7 +95,7 @@ describe('ReactUiContext', () => {
   it('子 context（with / 子表）继承 app，不丢 uiBuilder', () => {
     const ui = { buildEditView: () => 'x' } as unknown as UiBuilder
     const app = { ui } as unknown as MmdaReactApp
-    const ctx = new ReactUiContext(stubOptions({ app, model: { id: '1' } as any }))
+    const ctx = new RuiContext(stubOptions({ app, model: { id: '1' } as any }))
 
     expect(ctx.with({ id: '2' } as any).uiBuilder).toBe(ui)
   })

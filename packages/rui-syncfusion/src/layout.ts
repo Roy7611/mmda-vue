@@ -4,15 +4,15 @@ import {
   type UiAppLayoutVariant,
   type UiAppScaffoldSlots,
 } from '@mmda/core'
-import { ReactUiLayout } from '@mmda/rui'
+import { RuiLayout } from '@mmda/rui'
 
 /**
  * Syncfusion EJ2 React 壳布局。
  *
  * sidebarLeft 下 nav 与主区为 `.mmda-app-layout` 的兄弟节点，主区叠
- * `e-main-content`（EJ2 Sidebar Push），对齐 Vue 皮肤的 SfLayout。
+ * `e-main-content`（EJ2 Sidebar Push），对齐 Vue 皮肤的 SfVuiLayout。
  */
-export class SfReactUiLayout extends ReactUiLayout {
+export class SfRuiLayout extends RuiLayout {
   override scaffold(slots: UiAppScaffoldSlots<ReactNode>): ReactNode {
     const variant: UiAppLayoutVariant = slots.variant ?? 'sidebarLeft'
     if (variant !== 'sidebarLeft') {

@@ -1,5 +1,5 @@
 /**
- * ReactUiFactory — React 控件工厂抽象基类，对标 VueUiFactory。
+ * RuiFactory — React 控件工厂抽象基类，对标 VuiFactory。
  *
  * 继承 core 的 {@link AbstractUiFactory}（提供 `textSpan / label / title /
  * subtitle / icon` 5 个纯 HTML 壳方法），本类补齐：
@@ -7,7 +7,7 @@
  * - core {@link UiFactory} 的全部控件存根（返回 null，皮肤逐个覆盖）
  * - React 特有的抽象契约：图标表 / `actionButton` / `toast` / `confirm` / `dialog`
  *
- * 皮肤包（@mmda/rui-syncfusion）`extends ReactUiFactory`，只写厂商真实实现
+ * 皮肤包（@mmda/rui-syncfusion）`extends RuiFactory`，只写厂商真实实现
  * 与图标表，不再直接继承 core。
  */
 import { createElement, type ReactElement, type ReactNode } from 'react'
@@ -107,7 +107,7 @@ import {
 export interface RuiRenderer
   extends UiRenderer<ReactNode, UiNodeProps> {}
 
-export abstract class ReactUiFactory
+export abstract class RuiFactory
   extends AbstractUiFactory<ReactNode>
 {
   // —— React 特有抽象契约：每个皮肤必须实现 ——
@@ -246,6 +246,18 @@ export abstract class ReactUiFactory
     return this.stub(props)
   }
   multiSelect(props: UiMultiSelectProps): ReactNode {
+    return this.stub(props)
+  }
+  multiItemSelect(props: UiMultiSelectProps): ReactNode {
+    return this.stub(props)
+  }
+  multiValueSelect(props: UiMultiSelectProps): ReactNode {
+    return this.stub(props)
+  }
+  multiTextSelect(props: UiMultiSelectProps): ReactNode {
+    return this.stub(props)
+  }
+  multiBitSelect(props: UiMultiSelectProps): ReactNode {
     return this.stub(props)
   }
   radioButtonGroup(props: UiRadioButtonGroupProps): ReactNode {

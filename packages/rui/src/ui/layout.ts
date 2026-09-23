@@ -11,10 +11,10 @@ import { reactRenderProps } from '../render_props'
  * React 布局器：`extends AbstractUiLayout<ReactNode>`。
  * 只实现 `render` 造节点；scaffold 留到 P3 带 React Router 再做。
  */
-export class ReactUiLayout extends AbstractUiLayout<ReactNode> {
+export class RuiLayout extends AbstractUiLayout<ReactNode> {
   scaffold(_slots: UiAppScaffoldSlots<ReactNode>): ReactNode {
     throw new Error(
-      'ReactUiLayout.scaffold requires a skin package (@mmda/rui-*).',
+      'RuiLayout.scaffold requires a skin package (@mmda/rui-*).',
     )
   }
 

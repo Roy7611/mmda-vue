@@ -3,7 +3,7 @@
 > **定位**：`@mmda/rui` 是 MMDA 的 React UI 运行时，对标 `@mmda/vui`（Vue）。
 > **分层真源**仍是 [ARCHITECTURE.md](../../ARCHITECTURE.md)——产品横向分层只在那一处写全。
 > **与 vui 的关系**：共用 `@mmda/core` 的 `UiProps` / `UiRenderProps` / `UiSlot` / `UiBuilder` / `UiContext` / `MmdaApplication` 契约，不共享一行实现代码（「不要从 vui 抄组件」—— [naming.md](../naming.md)）。
-> **面向接口编程**：程序员只认 core 的 `UiContext` 接口，不依赖也不转换 `ReactUiContextBase` / `VueUiContextBase` 等运行时类型。`ctx.with()` 返回的就是 `UiContext`，直接调 `getFieldValue` / `setFieldValue` / `validate` 等——不需要知道下面是 Vue 还是 React。
+> **面向接口编程**：程序员只认 core 的 `UiContext` 接口，不依赖也不转换 `RuiContext` / `VuiContext` 等运行时类型。`ctx.with()` 返回的就是 `UiContext`，直接调 `getFieldValue` / `setFieldValue` / `validate` 等——不需要知道下面是 Vue 还是 React。
 > **状态**：规划期（尚无代码）。本文记录实测数字、决策与分阶段路线。
 > **跨框架判定**见 [`cross-framework-render-compat`](../../../skills/cross-framework-render-compat/SKILL.md)（Vue `h` / React `createElement` 对照探针）。
 
@@ -22,7 +22,7 @@
 | `UiBuilder<TNode>` 契约 38 个成员 | `packages/core/src/ui/builder.ts:76-343` |
 | `MmdaApplication` 是框架无关 abstract class | `packages/core/src/mmda_app.ts:97` |
 | 设计文档已预留 rui 适配层一行：`createElement(Comp, {...std.props, ...std.attributes, className, htmlFor})` | `docs/design/vui_architecture.md` §1.4 |
-| 架构文档已点名：另写 `ReactUiBuilder implements UiBuilder`，**不要从 vui 抄 `VueUiBuilder`** | `ARCHITECTURE.md`「Builder」末段 |
+| 架构文档已点名：另写 `RuiBuilder implements UiBuilder`，**不要从 vui 抄 `VuiBuilder`** | `ARCHITECTURE.md`「Builder」末段 |
 
 ---
 
@@ -58,7 +58,7 @@ Vue 专有 API 用量：`h(` **534**、`render(` 42、`defineComponent(` 39、`n
 | vue-router | 4 文件 | react-router | 低 |
 | `VuePluginHost`（112 行，已纯 TS） | 11 插件 | `RuiPluginHost` | 低，形状可对齐 |
 
-皮肤侧：三家都是 `extends VueUiBuilder`。规模参考：Syncfusion **124 文件/18,422 行**、AgNaive 81/10,899、PrimeVue 76/7,511。一个皮肤就是一轮独立工程。
+皮肤侧：三家都是 `extends VuiBuilder`。规模参考：Syncfusion **124 文件/18,422 行**、AgNaive 81/10,899、PrimeVue 76/7,511。一个皮肤就是一轮独立工程。
 
 ---
 
@@ -70,7 +70,7 @@ Vue 专有 API 用量：`h(` **534**、`render(` 42、`defineComponent(` 39、`n
 |---|---|---|
 | `EntityLogic` / `EntityLogicInit` / `UiLogicFnResult` / `SubEntityLogic` | 101 / 98 / 96 / 90 | **core**：`packages/core/src/logic/entity_logic.ts:132 / :41 / :73 / :784` |
 | `UiViewOne` / `UiViewMany` / `UiAction` / `UiDialogProps` / `UiContext` / `UiSearchField` | 26+2+2+1+1+1 | core |
-| `VueUiContext` / `VueUiBuilder` / `UI_APP_KEY` / `UI_BUILDER_KEY` / `Rx` | 6 / 1 / 3 / 3 / 1 | **vui 专有** |
+| `VuiContext` / `VuiBuilder` / `UI_APP_KEY` / `UI_BUILDER_KEY` / `Rx` | 6 / 1 / 3 / 3 / 1 | **vui 专有** |
 | `label` / `getFileInfo` / `CustomColumn` / `setGroupWatermark` | 各 1–2 | 待查归属 |
 
 `packages/base/src/keys.ts:1-6` 里 `UI_APP_KEY` + `vue` 的 `InjectionKey<MmdaApplication>` —— **Vue 注入键已渗进业务模块骨架**。
@@ -96,7 +96,7 @@ Vue 专有 API 用量：`h(` **534**、`render(` 42、`defineComponent(` 39、`n
 
 ### P1 `@mmda/rui` 契约合规层（薄）
 
-`ReactUiBuilder implements UiBuilder<ReactNode>` + rui 适配（只做 `className` / `htmlFor` 两处键名映射）。把跨框架对照探针固化成回归测试。产出：core 的 100+ `UiXxxProps` 在 React 下逐个渲一遍，DOM 逐字节一致 + 零告警。
+`RuiBuilder implements UiBuilder<ReactNode>` + rui 适配（只做 `className` / `htmlFor` 两处键名映射）。把跨框架对照探针固化成回归测试。产出：core 的 100+ `UiXxxProps` 在 React 下逐个渲一遍，DOM 逐字节一致 + 零告警。
 
 适配层（框架无关层已定，rui 侧只此一处薄映射）：
 
@@ -113,9 +113,9 @@ createElement(Comp, {
 
 ### P2 rui 主体（工作量大头）
 
-- `ReactUiContext`（对标 vui 835 行 + mixins 1,813 行）：响应式状态 + 派生上下文缓存
-- `ReactUiLayout extends AbstractUiLayout<ReactNode>`
-- `ReactUiFactory` + `ReactUiFieldFactory`（形态对齐 vui 的 49 个纯 TS factory 文件 + 16 个带渲染的）
+- `RuiContext`（对标 vui 835 行 + mixins 1,813 行）：响应式状态 + 派生上下文缓存
+- `RuiLayout extends AbstractUiLayout<ReactNode>`
+- `RuiFactory` + `RuiFieldFactory`（形态对齐 vui 的 49 个纯 TS factory 文件 + 16 个带渲染的）
 - `RuiPluginHost`（对标 112 行 host.ts，纯 TS）
 - i18n（react-i18next 薄封装，词条直接搬 vui 的 zh/en/zh-Hant，也可能抽为共用包——待拍 D4）
 

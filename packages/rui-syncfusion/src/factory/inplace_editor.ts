@@ -21,15 +21,15 @@ import {
 } from "@mmda/core";
 import { el, joinClass, sfHtmlAttributes } from "./utils";
 
-interface SfInplaceEditorHostProps {
+interface SfRuiInplaceEditorHostProps {
   props: UiInplaceEditorProps;
   slots?: UiInplaceEditorSlots<ReactNode>;
 }
 
-function SfInplaceEditorHost({
+function SfRuiInplaceEditorHost({
   props,
   slots,
-}: SfInplaceEditorHostProps): ReactElement {
+}: SfRuiInplaceEditorHostProps): ReactElement {
   const [open, setOpen] = useState(props.active === true);
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -111,7 +111,7 @@ export function createInplaceEditor(
       ...sfHtmlAttributes(props),
     });
   }
-  return createElement(SfInplaceEditorHost, {
+  return createElement(SfRuiInplaceEditorHost, {
     props,
     slots,
     ...sfHtmlAttributes(props),

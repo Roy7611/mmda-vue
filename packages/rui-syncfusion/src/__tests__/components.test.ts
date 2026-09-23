@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SfGridFilterBar } from "../components/SfGridFilterBar";
-import { SfLoadingHost } from "../components/SfLoadingHost";
+import { SfRuiLoadingHost } from "../components/SfRuiLoadingHost";
 
 describe("skin components", () => {
   it("renders grid filter chips", () => {
@@ -17,7 +17,7 @@ describe("skin components", () => {
 
   it("renders loading host", () => {
     const html = renderToStaticMarkup(
-      createElement(SfLoadingHost, { loading: true }),
+      createElement(SfRuiLoadingHost, { loading: true }),
     );
     expect(html).toContain("mmda-loading-host");
   });
