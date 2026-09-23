@@ -1,5 +1,7 @@
 # UiRenderer + RxFactory + UiRouter 抽象计划
 
+> 状态：目标已落地。会话 mixin 链已删除，`VuiContext extends AbstractUiContext`；本文保留 P4.1–P4.10 的历史状态与偏差记录，不再作为现行架构说明。
+
 ## 目标
 
 把当前散布在 vui / rui 中的响应式实现和渲染函数统一到 core，让 `WithData` / `WithReference` / `WithSubgroup` / `WithForm` / `WithList` 等 ~2000 行拼屏逻辑只写一份。
@@ -16,8 +18,8 @@ UiFieldRenderer   core  字段级渲染：一个 MetaUiField 的裸控件渲染�
 UiGroupRenderer   core  组级渲染：字段组合 / 子表（一个 MetaUiGroup）
 ```
 
-- vui 现有“值渲染器” `UiRenderer<T>`（`vui/src/ui/factory.ts`）改名 `VueUiRenderer`，不与本文 `UiRenderer` 撞名。
-- `UiFieldRenderer` / `UiGroupRenderer` 都已在 core（`ui/field_factory.ts` / `ui/group_factory.ts`），泛型 `TNode`；vui 侧只留 `VNode` 收窄别名（`VueFieldRenderer` / `VuiGroupRenderer`）。
+- vui 现有“值渲染器” `UiRenderer<T>`（`vui/src/ui/factory.ts`）改名 `VuiRenderer`，不与本文 `UiRenderer` 撞名。
+- `UiFieldRenderer` / `UiGroupRenderer` 都已在 core（`ui/field_factory.ts` / `ui/group_factory.ts`），泛型 `TNode`；vui 侧只留 `VNode` 收窄别名（`VuiFieldRenderer` / `VuiGroupRenderer`）。
 
 ---
 
@@ -174,11 +176,11 @@ RxFactory + Router 只进 Builder → Context，Layout / Factory 不感知。
 
 ## 四、实施步骤
 
-**状态：P4.1–P4.6 已完成**（P4.1：core 三个接口 + `wrap → render` + `AbstractUiContext` 的 `rx/computed/watch/navigate/routeTo*` 上移；vui 经 `vueRouter` 适配 `UiRouter`。P4.2：rui 删手写 signals，`ReactUiContext._state = proxy(...)`，`useReactUiContext` 走 `useSnapshot`，实现 `createReactRxFactory()`。P4.3：vui 实现 `createVueRxFactory()` 并注入 `VueUiContextBase`。P4.4：`loading/error/initializedState` 走 `this.rx()` 收进 `AbstractUiContext`，`load()` 上移；vui/rui 各删重复声明与覆写。P4.5：core 增加 `AbstractUiFactory`（constructor 注入 `UiRenderer`，提供 5 个纯 HTML 壳方法），`UiRenderer.render` 的 children 放宽为 `Array<TNode | string>` 支持文本子节点）。P4.6：将 `save()` / `delete()` / `refresh()` / `searchRelative()` 的通用逻辑壳上移 `AbstractUiContext`；删除 vui `mixins/data.ts` 重复的 `save()` / `refresh()` 与 `mixins/reference.ts` 重复的 `searchRelative()`；`delete()` 保留 Vue 侧副作用的薄覆写；`UiFactory` 补充 `timeline?` 可选成员。P4.7：`loadReferenceOptions` 上移 `AbstractUiContext`。P4.8：9 个子表方法（`getSelectedGroupItems` / `subGroupContext` / `subGroupItemContext` / `addSubGroupItem(s)` / `createSubGroupItems` / `removeSubGroupItem(s)` / `subGroupItem` / `newSubGroupItem`）上移 core；`createChild` 增加可选 `logic` 参数。已建 `AbstractUiBuilder` 前置基类，并收敛新代码 `any`（架构门禁 300/300 全绿）。P4.9（壳迁移完成，`@ts-nocheck` 已摘）：`VueUiBuilderBase` 已改为 `extends AbstractUiBuilder<VNode>`（`renderer` 复用 `layout`）；`form.ts` 的壳方法（`labelFor` / `groupWrapClass` / `wrapGroupContent` / `buildGroupFieldSet`）已删并走 base，`editFor` / `displayFor` / `buildField` / `buildResponsiveField` 改为委托 base，删除 5 个自由函数与 `FieldRowHost`；vui `layoutDomProps` 补压平 `htmlAttributes`；`buildGroup` 隐藏 span / `wrapGroup` 的 `none` div / 页根 `form` 也已改走 `renderer.render`。P4.10（完成）：`AbstractUiBuilder` 已承接 MetaUi 驱动的列表族（`list` / `table` / `grid` / `treeGrid` + `tableColumnWidth`），vui `list_view.ts` 的重复实现已删；`listViewParts` / `buildListView` 列表壳（toolbar/searchbar/分页装配）仍在 vui（强依赖 Vue 组件与 runtime）；`form.ts` / `list_view.ts` 已摘除 `@ts-nocheck` 并补齐类型。
+**状态：P4.1–P4.6 已完成**（P4.1：core 三个接口 + `wrap → render` + `AbstractUiContext` 的 `rx/computed/watch/navigate/routeTo*` 上移；vui 经 `vueRouter` 适配 `UiRouter`。P4.2：rui 删手写 signals，`RuiContext._state = proxy(...)`，`useRuiContext` 走 `useSnapshot`，实现 `createReactRxFactory()`。P4.3：vui 实现 `createVueRxFactory()` 并注入 `VuiContextBase`。P4.4：`loading/error/initializedState` 走 `this.rx()` 收进 `AbstractUiContext`，`load()` 上移；vui/rui 各删重复声明与覆写。P4.5：core 增加 `AbstractUiFactory`（constructor 注入 `UiRenderer`，提供 5 个纯 HTML 壳方法），`UiRenderer.render` 的 children 放宽为 `Array<TNode | string>` 支持文本子节点）。P4.6：将 `save()` / `delete()` / `refresh()` / `searchRelative()` 的通用逻辑壳上移 `AbstractUiContext`；删除 vui `mixins/data.ts` 重复的 `save()` / `refresh()` 与 `mixins/reference.ts` 重复的 `searchRelative()`；`delete()` 保留 Vue 侧副作用的薄覆写；`UiFactory` 补充 `timeline?` 可选成员。P4.7：`loadReferenceOptions` 上移 `AbstractUiContext`。P4.8：9 个子表方法（`getSelectedGroupItems` / `subGroupContext` / `subGroupItemContext` / `addSubGroupItem(s)` / `createSubGroupItems` / `removeSubGroupItem(s)` / `subGroupItem` / `newSubGroupItem`）上移 core；`createChild` 增加可选 `logic` 参数。已建 `AbstractUiBuilder` 前置基类，并收敛新代码 `any`（架构门禁 300/300 全绿）。P4.9（壳迁移完成，`@ts-nocheck` 已摘）：`VuiBuilderBase` 已改为 `extends AbstractUiBuilder<VNode>`（`renderer` 复用 `layout`）；`form.ts` 的壳方法（`labelFor` / `groupWrapClass` / `wrapGroupContent` / `buildGroupFieldSet`）已删并走 base，`editFor` / `displayFor` / `buildField` / `buildResponsiveField` 改为委托 base，删除 5 个自由函数与 `FieldRowHost`；vui `layoutDomProps` 补压平 `htmlAttributes`；`buildGroup` 隐藏 span / `wrapGroup` 的 `none` div / 页根 `form` 也已改走 `renderer.render`。P4.10（完成）：`AbstractUiBuilder` 已承接 MetaUi 驱动的列表族（`list` / `table` / `grid` / `treeGrid` + `tableColumnWidth`），vui `list_view.ts` 的重复实现已删；`listViewParts` / `buildListView` 列表壳（toolbar/searchbar/分页装配）仍在 vui（强依赖 Vue 组件与 runtime）；`form.ts` / `list_view.ts` 已摘除 `@ts-nocheck` 并补齐类型。
 
 > 注：valtio v2 已移除 `derive`，`createReactRxFactory` 的 `computed` / getter 版 `watch` 暂用 `valtio/utils` 的 deprecated `watch` 做依赖追踪，后续引入 `valtio-reactive` 再替换。
 >
-> P4.3 中「`VueUiContextBase` 可消除」依赖 P4.4 的响应式初始化上移，故并入 P4.4 一并处理。P4.4 后 `VueUiContextBase` 已删除 `loading/error/initializedState` 声明、`ref()` 初始化、`load()` / `initialized` 覆写。
+> P4.3 中「`VuiContextBase` 可消除」依赖 P4.4 的响应式初始化上移，故并入 P4.4 一并处理。P4.4 后 `VuiContextBase` 已删除 `loading/error/initializedState` 声明、`ref()` 初始化、`load()` / `initialized` 覆写。
 
 ### P4.1 — core 定义接口
 
@@ -192,14 +194,14 @@ RxFactory + Router 只进 Builder → Context，Layout / Factory 不感知。
 ### P4.2 — rui 换 valtio
 
 - 删手写 signals（`_subscribe` / `_getSnapshot` / `_notify`）
-- `ReactUiContext._state = proxy({ model, loading, error, initializedState })`
-- `useReactUiContext(ctx)` → `useSnapshot(ctx._state)`
+- `RuiContext._state = proxy({ model, loading, error, initializedState })`
+- `useRuiContext(ctx)` → `useSnapshot(ctx._state)`
 - 实现 `createReactRxFactory()`
 
 ### P4.3 — vui 实现 RxFactory
 
 - `createVueRxFactory()`：薄封装 Vue API，`rx()` 内 `typeof` 分发
-- `VueUiContextBase` 可消除（响应式初始化上移后中间层为空）
+- `VuiContextBase` 可消除（响应式初始化上移后中间层为空）
 
 ### P4.4 — AbstractUiContext 接入 RxFactory
 
@@ -219,7 +221,7 @@ core 增加 `AbstractUiFactory`（`factory_base.ts`）：constructor 注入 `UiR
 - `icon(props)` → `renderer.render('i', { class: props.iconClass, attributes }, [])`
 
 为支持文本子节点，`UiRenderer.render` 的 `children` 放宽为 `Array<TNode | string>`。
-皮肤类分层：core `AbstractUiFactory<TNode>` → rui 抽象类 `ReactUiFactory extends AbstractUiFactory<ReactNode>`（承载 React 通用默认实现与控件存根）→ 皮肤 `SfReactUiFactory extends ReactUiFactory`（只写厂商真实控件 / 图标表 / 弹层）。
+皮肤类分层：core `AbstractUiFactory<TNode>` → rui 抽象类 `RuiFactory extends AbstractUiFactory<ReactNode>`（承载 React 通用默认实现与控件存根）→ 皮肤 `SfRuiFactory extends RuiFactory`（只写厂商真实控件 / 图标表 / 弹层）。
 
 ### P4.6 — WithData mixin 上移（~500 行 → core）
 
@@ -254,7 +256,7 @@ core 增加 `AbstractUiFactory`（`factory_base.ts`）：constructor 注入 `UiR
 | 层 | 变化 |
 |---|---|
 | core | **+~2000 行**（接口 + 上移的业务逻辑） |
-| vui | **-~1950 行**（删 mixin + 删 VueUiContextBase） |
+| vui | **-~1950 行**（删 mixin + 删 VuiContextBase） |
 | rui | **-~1950 行**（白得，本来就没实现） |
 
 vui 最终只留：Vue 组件（GroupCard、IndexPage）、router 集成、i18n 封装、皮肤 CSS。rui 同理只留 React 对应物。

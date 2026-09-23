@@ -12,6 +12,11 @@ import type { SubGroupItemTransformParam } from '../models/metamodel'
 import type { Validation } from '../logic/validation'
 import type { ApiClient } from '../net/api_client'
 import type { UiBuilder } from './builder'
+import type { UiSearchRow } from './builder/search_view'
+import type { UiIndexTableHost } from './builder/list_view'
+import type { ModuleContext } from './module_context'
+import type { UiViewType } from './view'
+import type { Ref } from './rx'
 import type { MmdaApplication } from '../mmda_app'
 import type { EntityAction } from '../models/entity_action'
 import type { EntityLogic } from '../logic/entity_logic'
@@ -79,6 +84,8 @@ export interface UiContext<M extends Entity = Entity> {
   readonly model: M | M[]
   /** 当前是否处于编辑态。 */
   readonly editing: boolean
+  /** 加载中标记（`loading.value`）。 */
+  readonly loading: Ref<boolean>
   /** 当前屏标题（列表/详情/编辑屏）。 */
   readonly title?: string
   /** 当前屏或模块名。 */
@@ -92,6 +99,11 @@ export interface UiContext<M extends Entity = Entity> {
   isInDialog: boolean | undefined
   /** 当前列表的查询参数（过滤、排序、分页等）。 */
   searchParam: EntitySearchParam | undefined
+  /**
+   * 搜索页条件行（草稿）：一行 = 字段 + 叶子。
+   * `UiViewOne.Search` 的搜索页与列表页的搜索抽屉共用；未确认前不动 `searchParam.filterModel`。
+   */
+  searchRows: UiSearchRow[]
   /** 当前实体的业务逻辑。 */
   logic: EntityLogic<M> | undefined
   /** 当前实体所属功能模块，等价于 `logic?.module`。 */
@@ -106,6 +118,12 @@ export interface UiContext<M extends Entity = Entity> {
   currentIndex: number | undefined
   /** 列表选择模式：单选、多选或未指定。 */
   selectionMode: 'single' | 'multiple' | null | undefined
+  /** 当前屏是否为列表（many）视图。 */
+  readonly many: boolean
+  /** 列表页保活表格宿主；皮肤在表格挂载后注入，销毁时置空。 */
+  indexTableHost?: UiIndexTableHost
+  /** 模块工作区：Index ↔ One 之间的列表保活同步。 */
+  moduleContext?: ModuleContext
 
   /** 基础翻译函数。 */
   translate(message: string, param?: Record<string, unknown>): string
@@ -121,6 +139,8 @@ export interface UiContext<M extends Entity = Entity> {
   readonly apiClient: ApiClient
   /** UI 构建器，弹层、表格、拼屏都从这里走。 */
   readonly uiBuilder: UiBuilder
+  /** 当前视图（index / details / edit / create / search / select…）。 */
+  readonly view: UiViewType
 
   /** 读取字段值。 */
   getFieldValue(field: MetaUiField | string, model?: M): any
@@ -140,6 +160,10 @@ export interface UiContext<M extends Entity = Entity> {
   isGroupHidden(group: MetaUiGroup | string): boolean
   /** 写回字段值。 */
   setFieldValue(field: MetaUiField | string, value: unknown): void
+  /** 批量写回字段值，例如 `context.batchSetFieldValue({ productCode: null, productName: null })`。 */
+  batchSetFieldValue(values: Record<string, any>): void
+  /** 清空字段值并复位其搜索选项。 */
+  clearFieldValue(field: MetaUiField | string): void
   /** 获取字段级交互缓存，例如 `context.getFieldSearchOptions('customerID')`。 */
   getFieldSearchOptions(field: MetaUiField | string): FieldSearchOptions
   /** 获取字段当前选中的选项。 */
@@ -259,12 +283,14 @@ export interface UiContext<M extends Entity = Entity> {
     field: MetaUiField | string,
     item?: Record<string, any>,
   ): string | null
+  /** 跳转到任意应用内路径（跨实体跳转用；当前实体优先走 `routeTo*` 语义化方法）。 */
+  navigate(path: string): void
   /** 跳转到列表页。 */
   routeToIndex(): void
   /** 跳转到详情页。 */
   routeToDetails(idOrItem?: string | M): void
   /** 跳转到编辑页。 */
-  routeToEdit(id?: string): void
+  routeToEdit(idOrItem?: string | M): void
   /** 跳转到新建页。 */
   routeToCreate(): void
   /** 跳转到查询表单页（`UiViewOne.Search`）。 */

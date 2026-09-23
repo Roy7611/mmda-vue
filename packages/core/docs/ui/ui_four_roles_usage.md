@@ -1,11 +1,11 @@
 # UI 四职：程序员怎么写
 
-设计真源：[ui_four_roles_design.md](./ui_four_roles_design.md)。契约在 `@mmda/core` 的 `src/ui/`。vui 实现是 **`VueUiBuilder`**；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
+设计真源：[ui_four_roles_design.md](./ui_four_roles_design.md)。契约在 `@mmda/core` 的 `src/ui/`。vui 实现是 **`VuiBuilder`**；皮肤再 `extends`。业务 Logic **不要 import 皮肤、不要 `h()`**。
 
 ```text
 UiLayout / UiFieldFactory / UiFactory / UiBuilder   ← core 契约
     ↑
-VueUiLayout / VueUiBuilder / …                       ← vui
+VuiLayout / VuiBuilder / …                       ← vui
     ↑
 Syncfusion* / Prime* / AgNaive*                                  ← 皮肤
 ```

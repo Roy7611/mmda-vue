@@ -13,6 +13,8 @@ export type RxWatchSource = Ref<unknown> | (() => unknown)
 export interface RxFactory {
   /** 基本类型 → Ref；对象/数组 → 响应式 proxy。自动分发，程序员不用选。 */
   rx<T>(val: T): T extends object ? T : Ref<T>
+  /** 永远包成 Ref（含对象/数组）。用于「持有数组」这类需要整体替换引用的状态。 */
+  ref<T>(value: T): Ref<T>
   /** 派生值。 */
   computed<T>(fn: () => T): Ref<T>
   /** 值变化监听，返回 stop 函数。 */

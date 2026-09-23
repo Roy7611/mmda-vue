@@ -5,8 +5,8 @@
 ## 目标
 
 - core **没有 UI 实现**，但必须有 **UI 契约**（`src/ui/`），Logic 才能 `confirm` / `dialog` / `factory.table` 而不碰 Vue。
-- 业务 `*Logic.ts` 只认 core **`UiContext`**，不认 vui `VueUiContext`，不出现 `h` / `VNode`。
-- vui 会话实现只有一个类 **`VueUiContext`**（Handbook mixin 按能力叠加）。旧 `UiViewContext` / `UiBuildContext` 已合并。设计 [vue_ui_context.md](../../vui/docs/vue_ui_context.md)，用法 [context.md](../../vui/docs/context.md)。
+- 业务 `*Logic.ts` 只认 core **`UiContext`**，不认 vui `VuiContext`，不出现 `h` / `VNode`。
+- vui 会话实现只有一个类 **`VuiContext extends AbstractUiContext`**（框架无关能力都在 core；不再叠 mixin）。设计 [vue_ui_context.md](../../vui/docs/vue_ui_context.md)，用法 [context.md](../../vui/docs/context.md)。
 - 应用壳是 abstract class **`MmdaApplication`**；Vue 实现叫 **`MmdaVueApp`**。弹层不在壳上，走 `app.ui` / `context.uiBuilder`。
 - 选记录统一 **`context.select`**，删掉平行的 `pickRelative` / `buildSearchForRelativeContent` / `buildSelector`。
 
@@ -16,9 +16,9 @@
 |---|---|---|
 | `logic/ui_builder.ts`、`logic/ui_context.ts`、`logic/ui_types.ts` | `src/ui/`（无 `ui_` 前缀） | 契约属 UI 层。**转发文件已删**；从 `@mmda/core` / `ui/` 导入 |
 | vui `interface UiBuilder` | 删除 | 只保留 core 接口 |
-| vui `AbstractUiBuilder` | **`VueUiBuilder implements UiBuilder<VNode>`** | Vue 抽象类：模板方法填共用拼屏；皮肤 `extends` |
-| 曾短暂存在的 `VueUiBuilderHost` | **删除** | 注入/类型一律用 `VueUiBuilder` |
-| 皮肤类名 | **不改** | 仍是 `SyncfusionUiBuilder` / `PrimeVueUiBuilder` / `AgNaiveUiBuilder` |
+| vui `AbstractUiBuilder` | **`VuiBuilder implements UiBuilder<VNode>`** | Vue 抽象类：模板方法填共用拼屏；皮肤 `extends` |
+| 曾短暂存在的 `VuiBuilderHost` | **删除** | 注入/类型一律用 `VuiBuilder` |
+| 皮肤类名 | **不改** | 仍是 `SfVuiBuilder` / `PrimeVuiBuilder` / `AgNaiveVuiBuilder` |
 | vui 壳类名 `MmdaApplication` | **`MmdaVueApp`** | core 占用 `MmdaApplication` |
 
 core 现布局：

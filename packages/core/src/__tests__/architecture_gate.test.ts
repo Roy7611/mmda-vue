@@ -50,26 +50,27 @@ describe('architecture gate', () => {
     expect(offenders).toEqual([])
   })
 
-  it('非测试源码 any 数量不超过 272（防止重新泛滥，只算 .ts 不含 .d.ts）', () => {
-      // 272 = 270 + 2：UiListSlots 的 `<T = any, TNode = any>` 默认值
-      //  （把 vui 私扩的列表数据区插槽上移 core 时新增）。
-      // 270 = 267 + 3 处页级插槽 props 的类型参数默认值：
-      //   UiViewSlots / UiViewProps / UiListViewProps 各 `<TNode = any>`
-      //  （把 vui 私扩的 toolbar / header / content / footer 上移 core 时新增）。
-      // 更早的 267 = 263(HEAD) + 4 处渲染器类型参数默认值：
-      //   UiFieldCellRenderer / UiGroupRenderer 各 `<TNode = any>`，
-      //   MetaUiFieldLogic / MetaUiGroupLogic 各加 `<… , TNode = any>`。
-      // 与既有 `UiFactory<TNode = any>` / `UiFieldRenderer<TNode = any>` 同惯例，不是用 any 糊逻辑。
+  it('非测试源码 any 数量不超过 150（只算真实 any，排除 `<T = any>` 泛型默认值）', () => {
+      // 门禁只数「真实 any」，不数 `TNode = any` / `T = any` 这类类型参数默认值——
+      // 它们是渲染器 / 插槽的框架惯例（UiFactory / UiFieldRenderer / UiViewSlots…），
+      // 不应阻止正常新增。真实 any = 全部 `\bany\b` 减去 `=\s*any\b`（泛型默认值）。
+      // 150 = 135（2026-09 P4 收口后真实计数）+ 15 余量防误报。
+      // 135 的收敛点：AbstractUiContext 的 app/apiClient/uiBuilder getter 由 any 改为
+      //   MmdaApplication / ApiClient / UiBuilder；utils/tools.getNodePath 泛型化；
+      //   models/metamodel 与 ui/factory/multi_select 去除冗余 `as any`。
       const files = collectTsFiles(srcDir).filter(
         (file) => !file.replace(/\\/g, '/').includes('/__tests__/'),
       )
       const count = files.reduce(
-        (total, file) =>
-          total +
-          (readFileSync(file, 'utf8').match(/\bany\b/g)?.length ?? 0),
+        (total, file) => {
+          const text = readFileSync(file, 'utf8')
+          const all = text.match(/\bany\b/g)?.length ?? 0
+          const defaults = text.match(/=\s*any\b/g)?.length ?? 0
+          return total + (all - defaults)
+        },
         0,
       )
-      expect(count).toBeLessThanOrEqual(272)
+      expect(count).toBeLessThanOrEqual(150)
     })
 
     it('业务包 *Logic.ts 不得 import UI 框架（vue / vue-router / vue-i18n / react）', () => {
@@ -88,7 +89,7 @@ describe('architecture gate', () => {
       expect(offenders).toEqual([])
     })
 
-    it('业务 Logic 不得新增 import vui/rui（残余 ≤ 6）', () => {
+    it('业务 Logic 不得 import vui/rui（零容忍）', () => {
       const monorepoRoot = join(process.cwd(), '..')
       const runtimeImport = /from\s+['"']@mmda\/(?:vui|rui)['"]/
       const offenders: string[] = []
@@ -101,9 +102,8 @@ describe('architecture gate', () => {
           }
         }
       }
-      // 残余 1 处：`tools/ToolLogic.ts` 的 `rx` —— core 没有框架中立的「值响应式化」入口
-      // （`UiContext` 契约明确不收 rx/computed/watch，见 ui/context_base.ts 的注释），
-      // 待契约拍板后再归零。
-      expect(offenders.length).toBeLessThanOrEqual(1)
+      // Logic 不管响应式：响应式是 UI 框架内部设施（core RxFactory 只服务 context 内部状态），
+      // Logic 越界 import vui/rui 即失败，无残余名额。
+      expect(offenders).toEqual([])
     })
 })

@@ -244,7 +244,7 @@ export function applyMultiSelectSelection(
   const bound = props.value
   const current = Array.isArray(bound) ? bound : []
   if (current.some((item) => MetaModel.isEntity(item))) {
-    MetaModel.syncSelection(current as any[], selectedItems, {
+    MetaModel.syncSelection(current, selectedItems, {
       keyOf: (item) => multiSelectOptionKeyOf(item, props),
       createFrom: cloneSelectedEntity,
     })

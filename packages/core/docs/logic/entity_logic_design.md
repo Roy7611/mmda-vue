@@ -37,12 +37,12 @@ flowchart TB
   MaterialLogic["MaterialLogic 业务"]
   SubEntityLogic["SubEntityLogic 子表"]
   GenericEntityLogic["GenericEntityLogic core 壳"]
-  VueUiContext["VueUiContext router / rx searchParam / t"]
+  VuiContext["VuiContext router / rx searchParam / t"]
   EntityLogic --> MaterialLogic
   EntityLogic --> SubEntityLogic
   EntityLogic --> GenericEntityLogic
-  MaterialLogic --> VueUiContext
-  GenericEntityLogic --> VueUiContext
+  MaterialLogic --> VuiContext
+  GenericEntityLogic --> VuiContext
 ```
 
 rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLogic`。
@@ -53,7 +53,7 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 |---|---|---|---|
 | `EntityLogic` | core | 程序员 `extends` | ApiClient CRUD、`beforeEdit` / `viewLogicLoaders`、`applyTo` |
 | `SubEntityLogic` | core | 子表 Logic `extends` | 主表内存行，不走 HTTP `getAll` |
-| `VueUiContext` | vui | 运行时 | `router`、`searchParam = rx(...)`、`bindLogics`、`t()` |
+| `VuiContext` | vui | 运行时 | `router`、`searchParam = rx(...)`、`bindLogics`、`t()` |
 
 已删除：`UiLogic`、`UiLogicInit`、`GenericUiLogic`、`UiGroupLogic`。
 
@@ -63,8 +63,8 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 
 导航是会话能力，不是实体 CRUD。
 
-- `vue-router` 实例在 `VueUiContext.router`（`EntityView` 构造会话时注入）。
-- `routeTo` / `routeToIndex` / `routeToDetails` / `routeToEdit` / `routeToCreate` / `routeToSearch` 在 vui mixin [`navigate.ts`](../../../vui/src/contexts/mixins/navigate.ts)。
+- `vue-router` 实例在 `VuiContext.router`（`EntityView` 构造会话时注入）。
+- `routeTo` / `routeToIndex` / `routeToDetails` / `routeToEdit` / `routeToCreate` / `routeToSearch` 在 core [`AbstractUiContext`](../../../core/src/ui/context_base.ts)（`UiRouter` + `routePath` 统一实现）。
 - 动作 `redirectTo` 走 `context.router.push`，不读 `logic.router`。
 - `EntityLogicInit` **没有** `router` / `i18n`。
 
@@ -72,7 +72,7 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 
 ## 国际化
 
-面向用户：钩子里 `context.t(...)` / `context.translate(...)`。core `UiContext` 声明；vui `VueUiContext` 实现。
+面向用户：钩子里 `context.t(...)` / `context.translate(...)`。core `UiContext` 声明；vui `VuiContext` 实现。
 
 `this.field()` / `this.group()` 在装配期 **没有** context，throw 是给程序员看的英文配置错误，留在 core `EntityLogic`。不要 vui `translateMessage`。
 
@@ -80,12 +80,12 @@ rui 以后平行 `ReactEntityLogic`（若需要），业务仍 `extends EntityLo
 
 搜索表单状态只属于 UI 上下文，Logic 不留 `searchForm`：
 
-1. **会话**：`VueUiContext` mixin 上 `searchParam = rx(...)`，`searchFields` / `customSearchFields` 也是会话状态。
+1. **会话**：`VuiContext` mixin 上 `searchParam = rx(...)`，`searchFields` / `customSearchFields` 也是会话状态。
 2. **装配**：业务 `beforeSearch()` 返回 `{ fields, groups, customActions, customSearchFields }`。vui 在 `init()` 里 `applyTo` 后把 `customSearchFields` 交给 `configureSearch`，运行时再包成 `UiCustomSearchField`。
 
 ## applyTo
 
-`EntityLogic.applyTo(context, view)` 只认 core `UiContext`：`ensureViewLogic` → `beforeXxx` → `context.bindLogics?`。vui 在 `VueUiContext` 实现 `bindLogics`。
+`EntityLogic.applyTo(context, view)` 只认 core `UiContext`：`ensureViewLogic` → `beforeXxx` → `context.bindLogics?`。vui 在 `VuiContext` 实现 `bindLogics`。
 
 ## 实例化（壳）
 

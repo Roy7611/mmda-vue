@@ -75,6 +75,10 @@ export interface UiDialogProps<TNode = any> {
   footer?: () => TNode | TNode[]
   /** 右侧标准键。缺省 okCancel。不要把 Apply 塞进这里。 */
   buttons?: UiDialogButtonsPreset
+  /** 主按钮（ok / yes / retry）自定义文案（调用方已翻译）。 */
+  acceptLabel?: string
+  /** 次按钮（cancel / no）自定义文案（调用方已翻译）。 */
+  rejectLabel?: string
   /**
    * 左侧自定义动作。点了跑 onAction(context)，默认不关窗、不 resolve。
    * context 是 dialog 第二参（选择器即 selectCtx）。

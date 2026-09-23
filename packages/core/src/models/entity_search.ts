@@ -12,6 +12,11 @@ import type {
   TextFilterOpCode,
   BooleanFilterOpCode,
 } from "../metaui/metaui_filter";
+import { SqlDataType } from "../metaui/datatype";
+import {
+  simpleFilterTypeOf,
+  type ColumnFilterField,
+} from "../metaui/metaui_field";
 import type { ModuleAuth } from "../metaui/module";
 import type { Entity, EntityCtor } from "./entity";
 import { defaultPager, parseSorts, type Pager } from "./pagination";
@@ -74,6 +79,13 @@ export interface JoinFieldFilter extends FieldFilter {
 export interface MultiFieldFilter extends FieldFilter {
   filterType: "multi";
   filterModels: FieldFilter[];
+}
+
+/** 行内草稿：值的三个槽，与算子无关（编辑搜索条件行用）。 */
+export interface FieldFilterDraft {
+  value?: unknown
+  valueTo?: unknown
+  values?: unknown[]
 }
 
 /** 字段过滤文档，键是实体字段名。 */
@@ -189,7 +201,8 @@ export type ParsedQueryExpression =
   | { kind: "query"; query: EntitySearchParam }
   | { kind: "sql"; sql: string };
 
-function isNoValueFilterOperator(
+/** 只带算子、不带值的算子：IS_NULL / IS_NOT_NULL / IS_BLANK / IS_NOT_BLANK。 */
+export function isNoValueFilterOperator(
   operator?: MetaUiFilterOpCode,
 ): boolean {
   return (
@@ -397,6 +410,57 @@ export const FieldFilter = {
       filterType: "multi",
       filterModels: filterModels.map(FieldFilter.clone),
     };
+  },
+
+  /** 取叶子的值三槽（编辑回显）；multi / join 取第一叶。 */
+  draftOf(filter?: FieldFilter | null): FieldFilterDraft {
+    if (!filter) return {}
+    if (filter.filterType === 'set') return { values: [...(filter.values ?? [])] }
+    if (filter.filterType === 'multi') {
+      return FieldFilter.draftOf(filter.filterModels?.[0])
+    }
+    if (filter.filterType === 'join') {
+      return FieldFilter.draftOf(filter.conditions?.[0])
+    }
+    return { value: filter.value, valueTo: filter.valueTo }
+  },
+
+  /**
+   * 按 (字段, 算子, 值) 造叶子：set 类 → set；BETWEEN → value + valueTo；无值算子 → 只带算子；
+   * 其余按字段类型给 filterType。布尔列只认 IS_TRUE / IS_FALSE / IS_NULL / IS_NOT_NULL。
+   * 空值仍返回叶子（判空用 {@link FieldFilter.isEmpty}），编辑时不丢算子。
+   */
+  leaf(
+    field: ColumnFilterField,
+    operator: MetaUiFilterOpCode,
+    draft: FieldFilterDraft = {},
+  ): FieldFilter | undefined {
+    if (operator === 'IS_ALL') return undefined
+    if (SqlDataType.isBool(field.dataType)) {
+      if (operator === 'IS_TRUE') return { filterType: 'boolean', value: true }
+      if (operator === 'IS_FALSE') return { filterType: 'boolean', value: false }
+      if (operator === 'IS_NULL' || operator === 'IS_NOT_NULL') {
+        return { filterType: 'boolean', operator, value: null }
+      }
+      return undefined
+    }
+    if (operator === 'IN' || operator === 'NOT_IN') {
+      const values =
+        draft.values ??
+        (draft.value == null || draft.value === '' ? [] : [draft.value])
+      return { filterType: 'set', operator, values: [...values] }
+    }
+    const filterType = simpleFilterTypeOf(field)
+    if (isNoValueFilterOperator(operator)) return { filterType, operator }
+    if (operator === 'WITHIN') {
+      return isDateRangeKind(draft.value)
+        ? FieldFilter.dateKind(draft.value)
+        : undefined
+    }
+    if (operator === 'BETWEEN') {
+      return { filterType, operator, value: draft.value, valueTo: draft.valueTo }
+    }
+    return { filterType, operator, value: draft.value }
   },
 
   combineCompareAndSet(

@@ -65,6 +65,8 @@ export interface UiLinkProps extends UiProps {
   href?: string
   target?: '_self' | '_blank' | '_parent' | '_top'
   colorRole?: UiColorRole
+  /** 点击回调；与 href 并存时先跑回调（不阻止默认跳转由调用方自控）。 */
+  onClick?: (event?: MouseEvent) => void | Promise<unknown>
 }
 
 export interface UiLinkSlots<TNode = any> {

@@ -199,7 +199,7 @@ export class MetaUiFieldLogic<E extends Entity = Entity, TNode = any> {
       where = sqlAnd(where, fn(model, ctx, fieldOptions))
     }
     if (where && where.indexOf('@') != -1) {
-      where = where.replaceAll(/@(\w+)/gi, (p: string) => (model as any)[p.substring(1)])
+      where = where.replaceAll(/@(\w+)/gi, (p: string) => model[p.substring(1)])
     }
     return where
   }

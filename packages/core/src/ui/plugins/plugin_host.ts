@@ -114,8 +114,3 @@ export class PluginHost<TNode = any> {
     return target
   }
 }
-
-/** 给裸对象挂上同一套 use / plugin / build 方法链。 */
-export function mixPluginHost<T extends object>(target: T): T {
-  return new PluginHost().mixInto(target)
-}

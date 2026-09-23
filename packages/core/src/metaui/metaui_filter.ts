@@ -218,3 +218,52 @@ export const MetaUiFilterOperatorEnum = {
   /** 联合过滤器支持的运算符。 */
   joinFilterOperators: joinFilterOps,
 } as const
+/**
+ * 列过滤算子表（表头菜单口径），按 {@link MetaUiFilterType} 位取。
+ * 与 {@link MetaUiFilterOperatorEnum} 里的几组不同：set 类算子（IN / NOT_IN）只留在 SetFieldOps，
+ * 不从比较家族里出；表头菜单也不给 text 列 BETWEEN。
+ * 取表入口 {@link getColumnFilterOps}（`metaui_field.ts`）。
+ */
+export const defaultColumnFilterOps = {
+  TextFieldOps: [
+    'CONTAINS',
+    'NOT_CONTAINS',
+    'EQ',
+    'NEQ',
+    'STARTS_WITH',
+    'ENDS_WITH',
+    'IS_BLANK',
+    'IS_NOT_BLANK',
+  ] as const satisfies readonly MetaUiFilterOpCode[],
+  NumberFieldOps: [
+    'EQ',
+    'NEQ',
+    'GT',
+    'GE',
+    'LT',
+    'LE',
+    'BETWEEN',
+    'IS_NULL',
+    'IS_NOT_NULL',
+  ] as const satisfies readonly MetaUiFilterOpCode[],
+  DateFieldOps: [
+    'EQ',
+    'NEQ',
+    'GT',
+    'GE',
+    'LT',
+    'LE',
+    'BETWEEN',
+    'WITHIN',
+    'IS_NULL',
+    'IS_NOT_NULL',
+  ] as const satisfies readonly MetaUiFilterOpCode[],
+  BooleanFieldOps: [
+    'IS_TRUE',
+    'IS_FALSE',
+    'IS_NULL',
+    'IS_NOT_NULL',
+  ] as const satisfies readonly MetaUiFilterOpCode[],
+  SetFieldOps: ['IN', 'NOT_IN'] as const satisfies readonly MetaUiFilterOpCode[],
+} as const
+

@@ -32,7 +32,7 @@ export class MaterialLogic extends EntityLogic<Material> {
 }
 ```
 
-- 只认 `UiContext`，不要 `VueUiContext`。
+- 只认 `UiContext`，不要 `VuiContext`。
 - 文案：`ctx.t(...)`。不要 vui `translateMessage`。
 - 跳转：`ctx.routeToIndex()` / `ctx.routeToEdit(row)`。不要 `this.router`。
 - 读写：`this.getAll` / `this.load` / `this.save` / `this.apiClient`。不要再包一层 HTTP。

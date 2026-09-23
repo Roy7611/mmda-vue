@@ -5,6 +5,12 @@ import { isNumber, isString } from '../utils/is'
 import { parseSorts, PagerCtor } from '../models/pagination'
 import type { EntitySearchParam } from '../models/entity_search'
 import type { UiDialogProps } from './builder/dialog'
+import type { UiProps } from './props'
+import type { UiViewSlots } from './slots'
+import type { MmdaApplication } from '../mmda_app'
+import type { UiRenderer } from './renderer'
+import type { UiRouter } from './router'
+import type { UiContext } from './context'
 
 export function resolveViewProp(
   routeParam: string | string[],
@@ -145,8 +151,6 @@ export interface UniListViewProps {
   showSearch?: boolean
 }
 
-import type { UiProps } from './props'
-import type { UiViewSlots } from './slots'
 /**
  * 单对象实体屏（details / edit / create）拼屏 extras。
  * 不要塞 selectionMode / showSearchbar（那是 {@link import('./builder/list_view').UiListViewProps}）。
@@ -168,11 +172,6 @@ export interface UiViewProps<TNode = any> extends UiProps, UiViewSlots<TNode> {
   showAttachments?: boolean
   dialogs?: UiDialogProps[]
 }
-
-import type { MmdaApplication } from '../mmda_app'
-import type { UiRenderer } from './renderer'
-import type { UiRouter } from './router'
-import type { UiContext } from './context'
 
 /**
  * 宿主（视图层）交给业务页面视图的依赖。业务页面因此不 import 任何框架：

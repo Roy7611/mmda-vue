@@ -1,6 +1,6 @@
 # UiContext：程序员怎么写
 
-业务钩子参数类型是 core **`UiContext`**（[`src/ui/context.ts`](../../src/ui/context.ts)）。vui 实现类是 **`VueUiContext`**（一个类，查询与 IO 是能力 mixin），**不要写成 Logic 钩子类型**。
+业务钩子参数类型是 core **`UiContext`**（[`src/ui/context.ts`](../../src/ui/context.ts)）。vui 实现类是 **`VuiContext`**（一个类，查询与 IO 是能力 mixin），**不要写成 Logic 钩子类型**。
 
 职责边界：[ui_context.md](./ui_context.md)。vui 设计：[vue_ui_context.md](../../../vui/docs/vue_ui_context.md)；vui 用法：[context.md](../../../vui/docs/context.md)。本轮 UI 契约改名：[refactor_ui_app.md](../refactor_ui_app.md)。
 
@@ -15,7 +15,7 @@ context.app          // MmdaApplication；业务读 app.state
 
 实体 CRUD 优先走 Logic 方法。不要掏 `globalProps.$ui` / `$api`。弹层不要调 `app.confirm`（已删除）。
 
-从 `@mmda/vui` 注入拼屏实现时用 **`VueUiBuilder`**（抽象类；皮肤再 extends）。不要把 core 的 `UiBuilder` 盖成别名，也不要另造 Host 接口。
+从 `@mmda/vui` 注入拼屏实现时用 **`VuiBuilder`**（抽象类；皮肤再 extends）。不要把 core 的 `UiBuilder` 盖成别名，也不要另造 Host 接口。
 
 ## searchRelative vs select
 

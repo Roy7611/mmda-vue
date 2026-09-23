@@ -1,4 +1,6 @@
 import type { ActionCallback } from '../models/entity_action'
+import type { EntityAction } from '../models/entity_action'
+import { parseEntityBoolExpression } from '../logic/entity_bool_expr'
 import type { UiContext } from './context'
 import type { UiBoxed, UiColorRole } from './props'
 /** 行/实体谓词；与 Logic Predicate 同形，ui 层不依赖 logic/。 */
@@ -98,4 +100,16 @@ export function isActionEnabled(
   if (canDo == null) return true
   if (typeof canDo === 'boolean') return canDo
   return canDo(target, ctx) !== false
+}
+
+/** EntityAction.executableExpression → UiAction.canDo（字符串或函数）。 */
+export function canDoFromExecutableExpression(
+  action: EntityAction,
+): UiPredicate<any> | undefined {
+  const expr = action.executableExpression
+  if (typeof expr === 'function') return expr as UiPredicate<any>
+  if (typeof expr === 'string' && expr.trim()) {
+    return parseEntityBoolExpression(expr)
+  }
+  return undefined
 }

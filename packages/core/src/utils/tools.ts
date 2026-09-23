@@ -132,32 +132,33 @@ export const isSubsetByKey = (
  * const path4 = getNodePath(tree, 'nonexistent');
  * // 输出: []
  */
-export const getNodePath = (
-    tree: any | any[],
-    targetNode: any,
+export const getNodePath = <T>(
+    tree: T | T[],
+    targetNode: unknown,
     matchKey: string = 'id',
     childrenKey: string = 'children'
-): any[] => {
+): T[] => {
     // 确定目标值
     const targetValue = typeof targetNode === 'object' && targetNode !== null 
-        ? targetNode[matchKey] 
+        ? (targetNode as Record<string, unknown>)[matchKey]
         : targetNode;
 
-    const findPath = (node: any, parentPath: any[]): any[] | null => {
+    const findPath = (node: unknown, parentPath: T[]): T[] | null => {
         // 如果节点为空，返回 null
         if (!node || typeof node !== 'object') {
             return null;
         }
+        const record = node as Record<string, unknown>
 
         // 检查当前节点是否是目标节点
-        if (node[matchKey] === targetValue) {
-            return [...parentPath, node];
+        if (record[matchKey] === targetValue) {
+            return [...parentPath, node as T];
         }
 
         // 如果有子节点，递归查找
-        if (node[childrenKey] && Array.isArray(node[childrenKey])) {
-            for (const child of node[childrenKey]) {
-                const result = findPath(child, [...parentPath, node]);
+        if (record[childrenKey] && Array.isArray(record[childrenKey])) {
+            for (const child of record[childrenKey]) {
+                const result = findPath(child, [...parentPath, node as T]);
                 if (result) {
                     return result;
                 }

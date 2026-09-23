@@ -58,6 +58,24 @@ export function numberInputDecimalsOf(
   return Number.isNaN(n) ? undefined : n
 }
 
+/**
+ * 字段展示单位：优先 `field.suffix`；否则 `formatter` 若为纯单位文本（天、KG）
+ * 也可用作后缀。数值输入（numberInput）与数量展示（quantityUnit）共用。
+ */
+export function resolveFieldUnit(field: MetaUiField): string {
+  const suffix = field.suffix?.trim()
+  if (suffix) return suffix
+  const formatter = field.formatter?.trim()
+  if (
+    formatter &&
+    formatter.length <= 12 &&
+    !/[#0nNpPcCydDhHmMsSfF*?[\]]/.test(formatter)
+  ) {
+    return formatter
+  }
+  return ''
+}
+
 function fieldNumberOf(raw: unknown): number | null {
   if (raw == null || raw === '') return null
   const n = Number(raw)

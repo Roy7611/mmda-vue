@@ -266,7 +266,8 @@ export function defineEntityWithId<E>(metaUi: MetaUi, o?: object): E {
   if (metaUi.primaryKey) {
     if (metaUi.primaryKey.indexOf(",") != -1) {
       const keys = metaUi.primaryKey.split(",");
-      const getId = () => keys.map((k) => (o as any)[k]).join(",");
+      const getId = () =>
+        keys.map((k) => (o as Record<string, unknown>)[k]).join(",");
       defineID(e, getId);
     } else {
       const getId = () => (o as any)[metaUi.primaryKey!];
@@ -501,7 +502,7 @@ function savable<E>(metaUi: MetaUi, model: E, options: EntitySimplifyOptions) {
 function assign<E extends Entity>(metaUi: MetaUi, model: E, data: any) {
   metaUi.groups.forEach((g) => {
     if (g.many) {
-      (model as any)[g.groupName].splice(
+      model[g.groupName].splice(
         0,
         Infinity,
         ...(data[g.groupName] ?? [])
@@ -572,7 +573,7 @@ function createSubGroupItems<E, G extends Entity>(
   addToTarget: boolean = false
 ) {
   const { metaUiGroup, source, target, creator, propsMapper = {} } = param;
-  const toModel = target as any;
+  const toModel = target as Entity;
   const toItems = toModel[metaUiGroup.groupName] as G[];
   // rowNum 过滤掉已删除的行，避免行号重复
   let rowNum = maxRowNum(toItems.filter((it) => !deleted(it)));

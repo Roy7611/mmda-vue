@@ -23,9 +23,9 @@ Logic 只认 @mmda/core
 
 ```text
 框架包（vui / 以后 rui）：把 TNode 钉成框架节点
-  VueUiLayout
-  type VueUiFactory = UiFactory<VNode>
-  abstract class VueUiBuilder implements UiBuilder<VNode>
+  VuiLayout
+  type VuiFactory = UiFactory<VNode>
+  abstract class VuiBuilder implements UiBuilder<VNode>
 
 厂商皮肤
   Syncfusion* / Prime* / AgNaive* 实现 factory / fieldFactory / Builder 覆盖
@@ -34,7 +34,7 @@ Logic 只认 @mmda/core
 | 层 | 包 | 命名 |
 |---|---|---|
 | 契约 | `@mmda/core` | `Ui*`（泛型 `TNode`） |
-| 框架 | `@mmda/vui` | `VueUi*`；无扩展则 `type` 别名 |
+| 框架 | `@mmda/vui` | `Vui**`；无扩展则 `type` 别名 |
 | 厂商 | `@mmda/vui-*` | `Syncfusion*` / `Prime*` / `AgNaive*` |
 
 不要在 vui 再声明一份与 core 同名的 `interface UiFactory`。不要把 vui 实现 alias 成 `UiBuilder`。

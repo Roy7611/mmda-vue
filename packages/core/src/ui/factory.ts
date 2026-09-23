@@ -1,4 +1,6 @@
 import type { UiProps } from './props'
+import type { UiAction } from './action'
+import type { TranslateFn } from '../metaui/metaui_field'
 import type { UiTimelineProps } from './plugins/timeline'
 import type { UiAutoCompleteProps } from './factory/autocomplete'
 import type { UiTagAutoCompleteProps } from './factory/tag_auto_complete'
@@ -103,6 +105,20 @@ import type { UiImageProps } from './factory/image'
 export interface UiFormFieldProps extends UiProps {
   /** 字段标签（调用方已翻译）。Syncfusion Vue 皮肤据此画 `<label>`。 */
   label?: string
+  /** 字段名：原生表单提交键。皮肤按 `id = name = fieldName` 惯例落到内部控件（无 slots 的默认输入框由皮肤落；有 slots 时调用方在自己的控件上落）。 */
+  name?: string
+  /** 无 slots 时默认渲染文本输入框：输入框值。 */
+  value?: string
+  /** 默认输入框的占位文本。 */
+  placeholder?: string
+  /** 默认输入框是否禁用。 */
+  disabled?: boolean
+  /** 必填标记：标签画星号。 */
+  required?: boolean
+  /** 默认输入框的值变化回调。 */
+  onChange?: (value: string) => void
+  /** 默认输入框的按键回调（Enter 提交等场景）。 */
+  onKeydown?: (event: KeyboardEvent) => void
 }
 
 export interface UiFactory<TNode = any> {
@@ -141,6 +157,14 @@ export interface UiFactory<TNode = any> {
   floatingActionButton(
     props: UiFloatingActionButtonProps,
     slots?: UiButtonSlots<TNode>,
+  ): TNode
+
+  /** 由 EntityAction/UiAction 直接造按钮（翻译 label、解析 icon）。 */
+  actionButton(
+    action: UiAction,
+    t: TranslateFn,
+    resolve?: boolean,
+    props?: UiButtonProps,
   ): TNode
 
   formField(

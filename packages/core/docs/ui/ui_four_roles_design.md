@@ -132,7 +132,7 @@ vui 构造 Builder 时 `字段行入口在 Builder（`WithForm` mixin）。
 | **`UiLayout`** | 页内：`layoutField` / `layoutFieldGroup` / `layoutPage` / cell·row·column·grid；应用壳 `scaffold` |
 | **`UiAppLayout`** | 应用壳：`scaffold({ variant, topBar, nav, page, bottomBar })`；变体 `sidebarLeft` \| `topBarFull` |
 
-`AbstractUiLayout` 提供页内默认实现；vui `VueUiLayout` 落地（含 scaffold）。
+`AbstractUiLayout` 提供页内默认实现；vui `VuiLayout` 落地（含 scaffold）。
 
 ## factory 增补（本轮）
 
@@ -154,7 +154,7 @@ vui 构造 Builder 时 `字段行入口在 Builder（`WithForm` mixin）。
 | `ui.buildView` | `ui.buildIndexView` / `ui.buildDetailsView` / `ui.buildEditView` |
 | `ui.buildGroup`（主+子） | `buildFieldGroup` / `buildSubGroup` 分开 |
 
-皮肤侧：登录 / 注册在 Builder 实现（`h(SigninForm, …)`），不要挂到 `factory`。
+皮肤侧：登录 / 注册在 Builder 实现（`h(PrimeSigninForm / NaiveSigninForm, …)`），不要挂到 `factory`。
 
 ## 非目标（本轮不做）
 

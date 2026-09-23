@@ -1,7 +1,7 @@
 /**
  * 会话基类：框架无关的字段读写、校验帮助、会话树。
  *
- * Vue（VuiContextBase）和 React（ReactUiContextBase）各自继承本类，
+ * Vue（VuiContext）和 React（RuiContext）各自继承本类，
  * 只覆写构造器里的响应式包裹与几个桥接方法，不重复业务逻辑。
  *
  * 桥接方法（protected abstract）：子类告诉基类怎么"通知 UI 重绘"和"取原始对象"。
@@ -15,14 +15,16 @@ import {
   type Validation,
 } from '../logic/validation'
 import { isPromise } from '../utils/is'
-import { MetaModel, type SubGroupItemTransformParam } from '../models/metamodel'
+import { MetaModel, defineEntity, type SubGroupItemTransformParam } from '../models/metamodel'
 import {
   defaultFieldSearchOptions,
   type FieldSearchOptions,
 } from '../logic/field_search_options'
 import { MetaUiFieldLogic } from '../logic/field_logic'
 import { MetaUiGroupLogic } from '../logic/group_logic'
+import { GenericEntityLogic } from '../logic/entity_logic'
 import type { EntityLogic } from '../logic/entity_logic'
+import type { EntityCustomSearchField } from '../logic/entity_logic'
 import {
   defaultChoicePager,
   isPagedList,
@@ -33,21 +35,36 @@ import {
 } from '../models/pagination'
 import type { Entity } from '../models/entity'
 import type { EntityAction } from '../models/entity_action'
-import type {
+import type { Attachment, ReportTemplate } from '../models/file'
+import type { ApiClient, EntityUrlParam } from '../net/api_client'
+import {
+  DefaultFieldFilter,
+  EntityQuery,
   EntitySearchParam,
-  EntitySelectParam,
 } from '../models/entity_search'
+import type { EntitySelectParam, FieldFilter } from '../models/entity_search'
+import type { SelectableFn } from '../models/entity_search'
 import type {
   MetaUiField,
   Translatable,
   TranslateFn,
 } from '../metaui/metaui_field'
 import type { MetaUi, MetaUiGroup } from '../metaui/metaui_group'
+import type { MetaUiFilter, MetaUiFilterCondition } from '../metaui/metaui_filter'
 import type { Module, ModuleAuth } from '../metaui/module'
+import { canDoFromExecutableExpression, type UiAction } from './action'
+import type { UiColorRole } from './props'
+import { UiCustomSearchField, UiFilter, quickFiltersToSQL, type UiSearchForm } from './filter'
 import type { UiContext, UiSubGroupView } from './context'
+import type { UiMessageProps } from './factory/message'
 import { UiViewMany, UiViewOne, type UiViewType } from './view'
 import type { Ref, RxFactory, RxWatchSource } from './rx'
 import type { UiRouter } from './router'
+import type { UiBuilder } from './builder'
+import type { UiIndexTableHost } from './builder/list_view'
+import type { ModuleContext } from './module_context'
+import { defaultSearchFields, type UiSearchRow } from './builder/search_view'
+import type { MmdaApplication } from '../mmda_app'
 
 // ——— helpers ——————————————————————————————————>
 
@@ -75,6 +92,55 @@ function sessionRow<M>(model: M | M[] | undefined, explicit?: M): M | undefined 
 const identityTranslate: TranslateFn = (message) =>
   typeof message === 'string' ? message : message.message
 
+/** 导入/导出/上传等文件传输参数（框架无关；vui / rui 的皮肤动作共用）。 */
+export interface FileTransferOptions extends EntityUrlParam {
+  file?: File
+  files?: File[]
+  body?: unknown
+  handlerFn?: (context: UiContext, response: unknown) => void
+  importFn?: (context: UiContext, model: unknown) => void
+  exportFn?: (context: UiContext, model: unknown) => void
+}
+
+/** 列表多选里只有 deletable !== false 且有 id 的行可以提交删除。 */
+export function deletableSelectedItems<E extends Entity>(
+  items: readonly E[] | undefined | null,
+): E[] {
+  return (items ?? []).filter((item) => {
+    if (item == null) return false
+    const entity = item as Entity
+    if (entity.deletable === false) return false
+    return entity.id != null && String(entity.id) !== ''
+  })
+}
+
+const SELECT_READONLY_AUTH: ModuleAuth = {
+  allowRead: false,
+  allowCreate: false,
+  allowEdit: false,
+  allowDelete: false,
+  allowPrint: false,
+  allowExport: false,
+  allowImport: false,
+  allowUpload: false,
+  allowDownload: false,
+}
+
+function resolveSelectAuthority(
+  param: EntitySelectParam<Entity>,
+  module: Module | undefined,
+): ModuleAuth {
+  if (param.authority) {
+    return {
+      ...SELECT_READONLY_AUTH,
+      ...(module?.authority ?? {}),
+      ...param.authority,
+    }
+  }
+  if (module?.authority) return { ...module.authority }
+  return { ...SELECT_READONLY_AUTH }
+}
+
 // ——— AbstractUiContext —————————————————————————>
 
 export abstract class AbstractUiContext<M extends Entity = Entity>
@@ -93,6 +159,23 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
   abstract executing: boolean
   abstract isInDialog: boolean
   showDialog = false
+  indexTableHost?: UiIndexTableHost
+  moduleContext?: ModuleContext
+  private _selectableFns = new Map<string, SelectableFn>()
+  private _customManyActionHandles = new Map<string, (...args: unknown[]) => unknown>()
+  private _selectableKey?: string
+  private _groupActions: Record<string, UiAction[]> = {}
+  filters: UiFilter[] = []
+  customSearchFields: UiCustomSearchField[] = []
+  searchMode: 'fuzzy' | 'named' = 'fuzzy'
+  joinListMode = false
+  private _captureLastQuery = false
+  private _baseFilter = ''
+  private _lastQuery?: Ref<EntityQuery | null>
+  private _listLayoutRev?: Ref<number>
+  private _pageLayoutRev?: Ref<number>
+  currentTemplate: ReportTemplate | null = null
+  templates: ReportTemplate[] = []
 
   /** 当前实体所属功能模块，等价于 `logic?.module`。 */
   get module(): Module | undefined {
@@ -112,6 +195,38 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     }
   }
 
+  /** 选择列表的「是否可选」谓词，按 key 注册；未注册默认全部可选。 */
+  setSelectableFn(key: string, selectableFn: SelectableFn): void {
+    this._selectableFns.set(key, selectableFn)
+  }
+
+  selectableFn(key: string): SelectableFn | undefined {
+    return this._selectableFns.get(key)
+  }
+
+  /** 当前多选动作 key（selectMany 进来时记录）。 */
+  setSelectableKey(key: string): void {
+    this._selectableKey = key
+  }
+
+  get selectableKey(): string | undefined {
+    return this._selectableKey
+  }
+
+  /** 多选动作回执，按 key 注册；confirmAction 在 many 视图里调用。 */
+  setCustomManyActionHandleFn(
+    key: string,
+    handleFn: (...args: unknown[]) => unknown,
+  ): void {
+    this._customManyActionHandles.set(key, handleFn)
+  }
+
+  runCustomManyAction(key = this._selectableKey): unknown {
+    const handle = key ? this._customManyActionHandles.get(key) : undefined
+    if (!handle) return undefined
+    return handle(this.selectedItems)
+  }
+
   parent: UiContext<M> | undefined
   abstract cache: Map<string, AbstractUiContext<Entity>>
   cachePath = '@root'
@@ -120,6 +235,8 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
   private _loading?: Ref<boolean>
   private _error?: Ref<unknown>
   private _initializedState?: Ref<boolean>
+  private _uploading?: Ref<boolean>
+  private _pageNotice?: Ref<UiMessageProps | null>
 
   get loading(): Ref<boolean> {
     return (this._loading ??= this.rx(false))
@@ -129,6 +246,14 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
   }
   get initializedState(): Ref<boolean> {
     return (this._initializedState ??= this.rx(!this.loader))
+  }
+  get uploading(): Ref<boolean> {
+    return (this._uploading ??= this.rx(false))
+  }
+  /** 详情/编辑页页内消息条。皮肤 `message()` 写这里，builder 的 banner 从这里读。 */
+  get pageNotice(): Ref<UiMessageProps | null> {
+    return (this._pageNotice ??=
+      this.rx(null) as unknown as Ref<UiMessageProps | null>)
   }
   abstract fieldOptions: Record<string, FieldSearchOptions>
   abstract validationState: Validation
@@ -143,6 +268,28 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
   protected _rawModel(obj: object): object {
     return obj
   }
+
+  /** 文件信息解析钩子。vui 覆写为文件图标解析器；默认用文件名兜底。 */
+  protected getFileInfo(templateFile: string): { fileName: string } {
+    return { fileName: templateFile }
+  }
+
+  /** 存储的页大小钩子。默认 undefined（走逻辑缺省）。 */
+  protected readStoredPageSize(): number | undefined {
+    return undefined
+  }
+
+  /** 装载最近查询。默认 no-op。 */
+  protected async loadLastQuery(): Promise<void> {}
+
+  /** 保存最近查询。默认 no-op。 */
+  protected async saveLastQuery(): Promise<void> {}
+
+  /** 列表绘制度量。默认 no-op。 */
+  protected logListPaint(_stage: string, _meta: Record<string, unknown>): void {}
+
+  /** 重置列表绘制计数。默认 no-op。 */
+  protected resetListPaintCount(): void {}
 
   /** 设置 loading 状态（统一走 `this.loading.value`）。 */
   protected _setLoading(v: boolean): void { this.loading.value = v }
@@ -190,6 +337,31 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     return this.requireRxFactory().computed(fn)
   }
 
+  protected makeRef<T>(value: T): Ref<T> {
+    return this.requireRxFactory().ref(value)
+  }
+
+  /** 创建快捷过滤芯片。vui 覆写为 Vue 收窄子类，rui 用基类 + RxFactory。 */
+  protected createUiFilter(metaUiFilter: MetaUiFilter): UiFilter {
+    return new UiFilter(metaUiFilter, (value) => this.makeRef(value))
+  }
+
+  /** 创建自定义搜索字段。vui 覆写为 Vue 收窄子类。 */
+  protected createCustomSearchField(
+    field: EntityCustomSearchField,
+  ): UiCustomSearchField {
+    return new UiCustomSearchField(
+      {
+        defaultValue: field.defaultValue,
+        searchLabel: field.searchLabel ?? '',
+        searchParam: field.searchParam,
+        renderer: field.renderer as UiCustomSearchField['renderer'],
+        valueFn: field.valueFn,
+      },
+      (value) => this.makeRef(value),
+    )
+  }
+
   watch(source: RxWatchSource, cb: (val: unknown) => void) {
     return this.requireRxFactory().watch(source, cb)
   }
@@ -222,6 +394,19 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     return false // 子类覆写
   }
 
+  /** 当前视图（单/多对象）。vui / rui 构造时注入，基类据此派生 `many`。 */
+  abstract get view(): UiViewType
+
+  /** 当前屏是否为列表（many）视图。 */
+  get many(): boolean {
+    return (
+      this.view === UiViewMany.Index ||
+      this.view === UiViewMany.SelectOne ||
+      this.view === UiViewMany.SelectMany ||
+      this.view === UiViewMany.EditMany
+    )
+  }
+
   get $v(): Validation {
     return this.validationState
   }
@@ -234,18 +419,222 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     return !this.parent
   }
 
-  get app(): any { throw new Error('Not implemented: app') }
-  get apiClient(): any { throw new Error('Not implemented: apiClient') }
-  get uiBuilder(): any { throw new Error('Not implemented: uiBuilder') }
+  get app(): MmdaApplication { throw new Error('Not implemented: app') }
+  get apiClient(): ApiClient { throw new Error('Not implemented: apiClient') }
+  get uiBuilder(): UiBuilder { throw new Error('Not implemented: uiBuilder') }
 
   abstract selectedItems: M[]
-  abstract selectionMode: 'single' | 'multiple' | null
   abstract currentItem: M | null
   abstract currentIndex: number
-  searchParam: EntitySearchParam | undefined
+
+  /** 列表选择模式的持久存储（vui / rui 各自落响应式状态）。 */
+  protected abstract get selectionModeStorage(): 'single' | 'multiple' | null
+  protected abstract set selectionModeStorage(
+    mode: 'single' | 'multiple' | null,
+  )
+
+  private _selectionModeOverride?: 'single' | 'multiple' | null
+
+  get selectionMode(): 'single' | 'multiple' | null {
+    if (this.view === UiViewMany.SelectOne) return 'single'
+    if (
+      this.view === UiViewMany.SelectMany ||
+      this.view === UiViewMany.EditMany
+    ) {
+      return 'multiple'
+    }
+    if (this._selectionModeOverride !== undefined) {
+      return this._selectionModeOverride
+    }
+    return this.selectionModeStorage
+  }
+
+  set selectionMode(mode: 'single' | 'multiple' | null) {
+    this._selectionModeOverride = mode
+    this.selectionModeStorage = mode
+  }
+
+  get lastQuery(): Ref<EntityQuery | null> {
+    return (this._lastQuery ??= this.makeRef<EntityQuery | null>(null))
+  }
+  set lastQuery(v: Ref<EntityQuery | null>) {
+    this._lastQuery = v
+  }
+
+  get listLayoutRev(): Ref<number> {
+    return (this._listLayoutRev ??= this.makeRef(0))
+  }
+  set listLayoutRev(v: Ref<number>) {
+    this._listLayoutRev = v
+  }
+
+  get pageLayoutRev(): Ref<number> {
+    return (this._pageLayoutRev ??= this.makeRef(0))
+  }
+  set pageLayoutRev(v: Ref<number>) {
+    this._pageLayoutRev = v
+  }
+
+  // —— 列表查询状态（框架无关；vui / rui 共用）——————————
+
+  /** 列表查询参数。惰性经 RxFactory 创建，vui 为 reactive、rui 为 valtio proxy。 */
+  private _searchParam?: EntitySearchParam
+
+  get searchParam(): EntitySearchParam {
+    return (this._searchParam ??= this.rx(EntitySearchParam.create()))
+  }
+  set searchParam(v: EntitySearchParam | undefined) {
+    this._searchParam = v
+  }
+
+  /** 搜索页条件行（草稿）。惰性经 RxFactory 创建；赋值走原地 splice，保住响应式引用。 */
+  private _searchRows?: UiSearchRow[]
+
+  get searchRows(): UiSearchRow[] {
+    return (this._searchRows ??= this.rx([] as UiSearchRow[]))
+  }
+
+  set searchRows(rows: UiSearchRow[]) {
+    const current = this.searchRows
+    current.splice(0, current.length, ...rows)
+  }
+
+  /** 列表查询 URL 参数袋。 */
+  getQueryParam(): Record<string, unknown> {
+    return (this.searchParam.queryParams ??= {})
+  }
+
+  /** 追加/覆盖一个列表查询参数。 */
+  addQueryParam(name: string, value: unknown): void {
+    this.getQueryParam()[name] = value
+    if (name === 'filter') this._baseFilter = String(value ?? '')
+  }
+
+  /** 按字段写 `filterModel`；`filter` 为空时删掉该字段条件。 */
+  setFieldFilter(field: MetaUiField | string, filter?: FieldFilter): void {
+    const name =
+      typeof field === 'string' ? this.resolveField(field).fieldName : field.fieldName
+    const model = (this.searchParam.filterModel ??= {})
+    if (filter) model[name] = filter
+    else delete model[name]
+    if (Object.keys(model).length === 0) this.searchParam.filterModel = undefined
+  }
+
+  /** 应用一份外部搜索参数（URL / 选择弹层等）。 */
+  applySearchParam(param: EntitySearchParam): EntitySearchParam {
+    EntitySearchParam.assign(this.searchParam, param)
+    this._baseFilter = String(this.searchParam.queryParams?.filter ?? '')
+    for (const filter of this.filters) filter.selectedConditions.value = []
+    this.syncSearchState()
+    return this.searchParam
+  }
+
+  /** 标记本次列表查询结束后要保存为「上次查询」。 */
+  rememberLastQuery(): void {
+    this._captureLastQuery = true
+  }
+
+  /** 列表搜索装配：快捷过滤、缺省搜索参数、自定义搜索字段与「上次查询」。 */
+  configureSearch(filters: MetaUiFilter[] = [], form?: UiSearchForm): void {
+    this.filters = filters.map((filter) => {
+      const uiFilter = this.createUiFilter(filter)
+      uiFilter.selectedConditions.value = filter.filterConditions.filter(
+        (condition) => condition.fallback,
+      )
+      return uiFilter
+    })
+    this.configureListSearch({
+      searchParam: form?.searchParam,
+      defaultSort: this.logic?.module?.defaultSort,
+      defaultFilter: this.logic?.module?.defaultFilter,
+      pageSize: this.readStoredPageSize(),
+      queryParams: form?.queryParams,
+    })
+    void this.loadLastQuery()
+    if (form?.queryParams?.filter) {
+      this._baseFilter = String(form.queryParams.filter)
+    }
+    // Logic 只声明 plain 自定义搜索字段；运行时包装成带搜索状态的字段。
+    if (form?.customSearchFields) {
+      this.customSearchFields = form.customSearchFields.map((field) =>
+        field instanceof UiCustomSearchField
+          ? (field as UiCustomSearchField)
+          : this.createCustomSearchField(field as EntityCustomSearchField),
+      )
+    }
+    if (!this._baseFilter && this.searchParam.queryParams?.filter) {
+      this._baseFilter = String(this.searchParam.queryParams.filter)
+    }
+    this.syncSearchState()
+  }
+
+  toggleQuickFilter(
+    filter: UiFilter,
+    condition: MetaUiFilterCondition,
+    single = false,
+  ): void {
+    filter.toggle(condition, single)
+    this.syncQuickFilters()
+    this.rememberLastQuery()
+  }
+
+  /** 快捷过滤 → 查询参数 `filter`：每组先 OR，组间 AND，再与基础过滤合并。 */
+  syncQuickFilters(): void {
+    const quick = quickFiltersToSQL(this.filters)
+    const query = this.getQueryParam()
+    const combined =
+      this._baseFilter && quick
+        ? `(${this._baseFilter}) AND (${quick})`
+        : this._baseFilter || quick
+    if (combined) query.filter = combined
+    else delete query.filter
+  }
+
+  /** 把自定义搜索字段的当前值同步回查询参数，再重算快捷过滤。 */
+  syncSearchState(): void {
+    for (const field of this.customSearchFields) {
+      if (field.hasVal) {
+        this.getQueryParam()[field.searchParam] = field.searchValue
+      } else {
+        delete this.getQueryParam()[field.searchParam]
+      }
+    }
+    this.syncQuickFilters()
+  }
+
+  /** 清空列表过滤（入口）。 */
+  clearFilters(): void {
+    this.clearListFilters()
+  }
+
+  /** 清空列表过滤：快捷过滤、自定义搜索字段与纯 `searchParam` 部分。 */
+  protected clearListFilters(): void {
+    this.searchParam.searchWord = ''
+    this.searchParam.filterModel = undefined
+    for (const filter of this.filters) filter.selectedConditions.value = []
+    for (const customField of this.customSearchFields) {
+      if (customField.searchWord) customField.searchWord.value = null
+      customField.searchVal.value = null
+      delete this.getQueryParam()[customField.searchParam]
+    }
+    this.syncQuickFilters()
+  }
+
+  /** 单删后收尾：清模块缓存并回列表。 */
+  protected afterDeleteCleanup(id: unknown, result: unknown): void {
+    if (result !== false && !this.many && id != null && String(id) !== '') {
+      this.moduleContext?.removeById(String(id))
+      this.routeToIndex()
+    }
+  }
 
   protected asUiCtx(): UiContext<M> {
     return this as unknown as UiContext<M>
+  }
+
+  /** Logic 钩子统一收 UiContext（默认 Entity）：UiContext<M> 因 M 不变型不能直接协变，在此收敛一次。 */
+  protected asEntityUiCtx(): UiContext {
+    return this.asUiCtx() as unknown as UiContext
   }
 
   // —— i18n ——————————————————————————————————>
@@ -327,6 +716,20 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     for (const f of fields) this.setupFieldLogic(f)
     for (const g of groups) this.setupGroupLogic(g)
     this.customActions = customActions
+    if (this.view === UiViewOne.Search) this.initSearchRows(fields)
+  }
+
+  /**
+   * 搜索视图的行装配：`beforeSearch().fields` 有声明就用它（含顺序），
+   * 否则回落 {@link defaultSearchFields}（listed fields 里 `sortable === true`）。
+   * 只在搜索视图落地 —— 其它视图的 `fields` 是字段逻辑，不是搜索行。
+   */
+  private initSearchRows(fields: MetaUiFieldLogic<M>[]): void {
+    const declared = fields.map((item) => item.field.fieldName)
+    const names = declared.length
+      ? declared
+      : defaultSearchFields(this.metaUi).map((field) => field.fieldName)
+    this.searchRows = [...new Set(names)].map((fieldName) => ({ fieldName }))
   }
 
   setupFieldLogic(logic: MetaUiFieldLogic<any>): void {
@@ -334,7 +737,121 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
   }
 
   setupGroupLogic(logic: MetaUiGroupLogic<any, any>): void {
+    delete this._groupActions[logic.group.groupName]
     this.groupLogics[logic.group.groupName] = logic
+  }
+
+  /** 组动作缓存；重注册组逻辑时失效。 */
+  getGroupActions(grp: MetaUiGroup): UiAction[] {
+    this.setupGroupActions(grp)
+    return (this._groupActions[grp.groupName] ?? []).filter((action) => {
+      if (
+        action.view &&
+        action.view !== UiViewOne.Create &&
+        action.view !== UiViewOne.Edit
+      ) {
+        return false
+      }
+      const visible = action.visible
+      if (visible == null) return true
+      if (typeof visible === 'function') return true
+      if (typeof visible === 'object' && visible !== null && 'value' in visible) {
+        return Boolean((visible as { value: boolean }).value)
+      }
+      return Boolean(visible)
+    })
+  }
+
+  setupGroupActions(grp: MetaUiGroup) {
+    const name = grp.groupName
+    const actionsMap = this._groupActions
+    if (actionsMap[name]) return
+
+    const actions: UiAction[] = []
+    actionsMap[name] = actions
+    if (!this.editing) return
+
+    const grpLogic = this.getGroupLogic(grp)
+    if (!grpLogic) return
+
+    const visibles = this.logic?.groupActionVisibles?.[name]
+    const context = this
+
+    const liveCanDo = (action: any) => {
+      return (model: unknown, ctx?: unknown) => {
+        if (this.isGroupReadonly(grp)) return false
+        const pred = canDoFromExecutableExpression(action)
+        return pred ? pred(model as Entity, ctx as unknown as UiContext) !== false : true
+      }
+    }
+
+    const visibleOf = (actionName: string) =>
+      visibles?.[actionName]
+        ? this.computed(() => !!visibles[actionName]!(this.model as M, this))
+        : undefined
+
+    for (const std of grpLogic.stdActions ?? []) {
+      if (std.name === 'clear') {
+        actions.push({
+          name: 'clear',
+          icon: std.icon ?? 'clear',
+          label: std.label ?? this.t('action.clear'),
+          colorRole: 'danger',
+          onAction: () => this.removeSubGroupItems(grp),
+          view: UiViewOne.Edit,
+          canDo: liveCanDo(std),
+          visible: visibleOf('clear'),
+        })
+      } else if (std.name === 'add') {
+        actions.push({
+          name: 'add',
+          role: 'secondary',
+          icon: std.icon ?? 'plus',
+          label: std.label ?? this.t('action.add'),
+          colorRole: 'primary',
+          onAction: () => this.runGroupAdd(grp, grpLogic),
+          view: UiViewOne.Edit,
+          canDo: liveCanDo(std),
+          visible: visibleOf('add'),
+        })
+      }
+    }
+
+    if (grpLogic.customActions?.length) {
+      for (const a of grpLogic.customActions) {
+        const uiAction: UiAction = {
+          name: a.name,
+          icon: a.icon,
+          label: a.label,
+          colorRole: a.role as UiColorRole,
+          onAction: () => a.onAction!.apply(this.logic, [context, context.model]),
+          tooltip: a.description,
+          view: a.view ?? context.view,
+          canDo: liveCanDo(a),
+        }
+        if (a.visible) {
+          uiAction.visible = this.computed(() => !!a.visible!(context.model))
+        }
+        actions.push(uiAction)
+      }
+    }
+  }
+
+  async runGroupAdd(grp: MetaUiGroup, grpLogic: MetaUiGroupLogic<any, any>) {
+    if (typeof grpLogic.defaultAddFn === 'function') {
+      return grpLogic.defaultAddFn.apply(this.logic, [this, this.model])
+    }
+    const items = (this.model as Record<string, any>)[grp.groupName] ?? []
+    if (typeof grpLogic.beforeAddFn === 'function') {
+      const ok = await grpLogic.beforeAddFn(this.asEntityUiCtx(), this.model, items)
+      if (ok === false) return
+    }
+    const created = await this.createSubGroupItems({
+      group: grp,
+      target: this.model as Entity,
+    })
+    const list = Array.isArray(created) ? created : [created]
+    for (const item of list) this.addSubGroupItem(grp, item)
   }
 
   // —— 字段读写 ————————————————————————————>
@@ -378,7 +895,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       }
     }
     this.getFieldLogic(fld)?.onChangeFn?.(
-      this.asUiCtx(),
+      this.asEntityUiCtx(),
       this.model,
       value,
       oldValue,
@@ -437,7 +954,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       !!fld.readOnly ||
       !!this.getFieldLogic(fld)?.readonlyFn?.(
         this.model,
-        this.asUiCtx(),
+        this.asEntityUiCtx(),
       )
     )
   }
@@ -448,7 +965,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       !!fld.hidden ||
       !!this.getFieldLogic(fld)?.hiddenFn?.(
         this.model,
-        this.asUiCtx(),
+        this.asEntityUiCtx(),
       )
     )
   }
@@ -459,7 +976,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       !fld.nullable ||
       !!this.getFieldLogic(fld)?.requiredFn?.(
         this.model,
-        this.asUiCtx(),
+        this.asEntityUiCtx(),
       )
     )
   }
@@ -470,7 +987,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       !!grp.readOnly ||
       !!this.getGroupLogic(grp)?.readonlyFn?.(
         this.model,
-        this.asUiCtx(),
+        this.asEntityUiCtx(),
       )
     )
   }
@@ -480,7 +997,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     if (
       this.getGroupLogic(grp)?.hiddenFn?.(
         this.model,
-        this.asUiCtx(),
+        this.asEntityUiCtx(),
       )
     )
       return true
@@ -504,7 +1021,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     const master = (
       (this.root ?? this).model ?? {}
     ) as Record<string, any>
-    return fn(item, master, this.asUiCtx()) !== false
+    return fn(item, master, this.asEntityUiCtx()) !== false
   }
 
   validateSingleField(
@@ -518,7 +1035,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       field,
       value,
       model,
-      this.asUiCtx(),
+      this.asEntityUiCtx(),
     )
     const state = (validation[field.fieldName] ??= {
       touched: false,
@@ -586,7 +1103,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     const cached = this.cache.get(path)
     if (cached) {
       if (
-        this._rawModel((cached as any).model as object) !==
+        this._rawModel(cached.model as object) !==
         this._rawModel(model as object)
       ) {
         this.cache.delete(path)
@@ -686,64 +1203,460 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       this.loading.value = false
     }
   }
+
+  /** 首次初始化当前会话：装载元数据、应用视图逻辑，再按视图走 search / create / refresh。 */
+  async init(params?: EntityUrlParam): Promise<unknown> {
+    if (!this.logic) return undefined
+    await this.logic.initMetadata(false, params)
+    const logicResult = await this.logic.applyTo(this, this.view)
+    if (this.many) {
+      this.configureSearch(undefined, {
+        customSearchFields: logicResult?.customSearchFields ?? [],
+      })
+    }
+    if (this.many) return this.search()
+    if (this.view === UiViewOne.Create) {
+      const created = await this.logic.create(params?.queryParams ?? {})
+      if (created) this.setModel(created)
+      return created
+    }
+    return this.refresh(false)
+  }
+
+  /** 重新装载元数据；列表视图同步重配搜索装配。 */
+  async initMetadata(reload = false, params?: EntityUrlParam): Promise<unknown> {
+    if (!this.logic) return undefined
+    const metaUi = await this.logic.initMetadata(reload, params)
+    if (this.logic.metaUi) {
+      this.metaUi = this.logic.metaUi
+    }
+    if (this.many) {
+      this.configureSearch(undefined)
+    }
+    return metaUi
+  }
+
   abstract setModel(model: M | M[]): void
 
-  // —— mixin 能力（stub，由 mixin 或子类覆写）————————>
+  // —— 列表查询（框架无关；vui / rui 共用模板）————————>
 
-  search(): Promise<unknown> {
-    throw new Error('Not implemented: search')
+  /** 列表查询前：同步自定义搜索字段，重置并记录列表绘制度量。 */
+  protected beforeListSearch(): void {
+    this.syncSearchState()
+    this.resetListPaintCount()
+    this.logListPaint('search-start', {
+      searchWord: this.searchParam.searchWord,
+      pageNo: this.searchParam.pager?.pageNo,
+      listLen: Array.isArray(this.model) ? this.model.length : 0,
+      loading: this.loading.value,
+    })
   }
+
+  /** 取一页列表数据。默认 `logic.getAll(searchParam)`；vui 可按 viewUi 切 joinList。 */
+  protected fetchListPage(): Promise<unknown> {
+    const useJoinList = this.joinListMode && !!this.logic!.viewUi
+    return useJoinList
+      ? this.logic!.getJoinList(this.searchParam)
+      : this.logic!.getAll(this.searchParam)
+  }
+
+  /** 查询成功后回写数据。 */
+  protected afterListSearch(page: unknown): void {
+    const list = (page as { list?: unknown[] })?.list
+    this.logListPaint('search-setModel', {
+      pageNo:
+        (page as { pagination?: { pageNo?: number } })?.pagination?.pageNo ??
+        this.searchParam.pager?.pageNo,
+      listLen: Array.isArray(list) ? list.length : undefined,
+    })
+    if (page) this.setModel(page as M | M[])
+    if (this._captureLastQuery) {
+      this._captureLastQuery = false
+      void this.saveLastQuery()
+    }
+  }
+
+  /** 查询 finally 收尾。 */
+  protected afterListSearchFinally(): void {
+    this.logListPaint('search-end', { loading: this.loading.value })
+  }
+
+  /** 列表查询缺省装配（框架无关）：外部搜索参数、默认排序/过滤、页大小、URL 参数袋。 */
+  protected configureListSearch(options: {
+    searchParam?: EntitySearchParam
+    defaultSort?: string
+    defaultFilter?: string
+    pageSize?: number
+    queryParams?: Record<string, unknown>
+  } = {}): void {
+    if (options.searchParam) {
+      EntitySearchParam.assign(this.searchParam, options.searchParam)
+    }
+    if (options.defaultSort && !this.searchParam.pager.sorts?.length) {
+      this.searchParam.pager.sorts = EntityQuery.parseDefaultSort(options.defaultSort)
+    }
+    const defaults = DefaultFieldFilter.parse(options.defaultFilter)
+    if (defaults.length) {
+      this.searchParam.filterModel = DefaultFieldFilter.applySelfToModel(
+        this.searchParam.filterModel,
+        defaults,
+        (name) => this.metaUi.getField(name),
+      )
+    }
+    if (options.pageSize != null) {
+      this.searchParam.pager.pageSize = options.pageSize
+    }
+    if (options.queryParams) {
+      Object.assign(this.getQueryParam(), options.queryParams)
+    }
+  }
+
+  async search(param?: EntitySearchParam): Promise<unknown> {
+    if (!this.logic) return
+    if (param) this.applySearchParam(param)
+    this.beforeListSearch()
+    this.error.value = null
+    this._setLoading(true)
+    try {
+      const page = await this.fetchListPage()
+      this.afterListSearch(page)
+      return page
+    } catch (e) {
+      this.error.value = e
+      throw e
+    } finally {
+      this._setLoading(false)
+      this.afterListSearchFinally()
+    }
+  }
+
+  async resetFilters(): Promise<boolean> {
+    const selected = this.selectedItems
+    if (this.logic) {
+      const ok = await this.logic.beforeResetFilters?.(this.asEntityUiCtx(), selected)
+      if (ok === false) return false
+    }
+    this.clearListFilters()
+    if (this.logic) {
+      await this.logic.afterResetFilters?.(this.asEntityUiCtx(), selected)
+      await this.search()
+    }
+    return true
+  }
+
   reload(): Promise<unknown> | unknown {
-    throw new Error('Not implemented: reload')
+    if (!this.logic) return
+    return this.many ? this.search() : this.refresh()
   }
   async save(): Promise<unknown> {
     if (!this.logic) return
     if (this.logic.beforeSave) {
-      const ok = await this.logic.beforeSave(this.asUiCtx() as any, this.model as any)
+      const ok = await this.logic.beforeSave(this.asEntityUiCtx(), this.model as M)
       if (ok === false) return false
     }
     if (this.logic.beforeValidate) {
-      const ok = await this.logic.beforeValidate(this.asUiCtx() as any, this.model as any)
+      const ok = await this.logic.beforeValidate(this.asEntityUiCtx(), this.model as M)
       if (ok === false) return false
     }
     const valid = await this.validate()
     if (!valid) {
       const messages = this.collectInvalidMessages?.() ?? []
-      await this.uiBuilder?.message?.(this.asUiCtx() as any, {
+      await this.uiBuilder?.message?.(this.asEntityUiCtx(), {
         severity: 'error',
         content: messages.length > 0 ? messages.join('；') : this.translate('invalid.model'),
-      } as any)
+      })
       return false
     }
-    const remoteErrors = await this.logic.afterValidate?.(this.asUiCtx() as any, this.model as any, this.$v)
+    const remoteErrors = await this.logic.afterValidate?.(this.asEntityUiCtx(), this.model as M, this.$v)
     if (remoteErrors && remoteErrors > 0) {
       const messages = this.collectInvalidMessages?.() ?? []
-      await this.uiBuilder?.message?.(this.asUiCtx() as any, {
+      await this.uiBuilder?.message?.(this.asEntityUiCtx(), {
         severity: 'error',
         content: messages.length > 0 ? messages.join('；') : this.translate('failure.beforeSave'),
-      } as any)
+      })
       return false
     }
-    const result = await this.logic.save(this.model as any)
+    const result = await this.logic.save(this.model as M)
     if (result && typeof result === 'object') this.setModel(result)
-    await this.logic.afterSave?.(this.asUiCtx() as any, this.model as any, undefined, result)
-    await this.uiBuilder?.message?.(this.asUiCtx() as any, {
+    await this.logic.afterSave?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    await this.uiBuilder?.message?.(this.asEntityUiCtx(), {
       severity: 'success',
       content: this.translate('success.saved'),
-    } as any)
+    })
     return result
   }
 
   async delete(): Promise<unknown> {
     if (!this.logic) return
     if (this.logic.beforeDelete) {
-      const ok = await this.logic.beforeDelete(this.asUiCtx() as any, this.model as any)
+      const ok = await this.logic.beforeDelete(this.asEntityUiCtx(), this.model as M)
       if (ok === false) return false
     }
     const id = (this.model as Entity).id
     const result = await this.logic.delete(id)
-    await this.logic.afterDelete?.(this.asUiCtx() as any, this.model as any, undefined, result)
+    await this.logic.afterDelete?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    this.afterDeleteCleanup(id, result)
     return result
+  }
+
+  /** 批量删除：`ids` 与 selectedItems 取交集，只删 `deletable !== false` 且有 id 的行。 */
+  async deleteAll(ids: string[]): Promise<unknown> {
+    if (!this.logic) return
+    const idSet = new Set((ids ?? []).map((id) => String(id)))
+    const selected = deletableSelectedItems(
+      this.selectedItems.length
+        ? (this.selectedItems as Entity[])
+        : (ids ?? []).map((id) => ({ id }) as unknown as Entity),
+    ).filter((item) => idSet.has(String(item.id)))
+    const deletableIds = selected.map((item) => String(item.id))
+    if (!deletableIds.length) return false
+
+    if (deletableIds.length === 1) {
+      const item = selected[0]! as M
+      if (this.logic.beforeDelete) {
+        const ok = await this.logic.beforeDelete(this.asEntityUiCtx(), item)
+        if (ok === false) return false
+      }
+      const result = await this.logic.delete(deletableIds[0])
+      await this.logic.afterDelete?.(this.asEntityUiCtx(), item, undefined, result)
+      this.selectedItems = []
+      await this.reload()
+      return result
+    }
+
+    const models = selected as M[]
+    if (this.logic.beforeDeleteAll) {
+      const ok = await this.logic.beforeDeleteAll(this.asEntityUiCtx(), models)
+      if (ok === false) return false
+    }
+    const result = await this.logic.deleteAll(deletableIds)
+    await this.logic.afterDeleteAll?.(this.asEntityUiCtx(), models)
+    this.selectedItems = []
+    await this.reload()
+    return result
+  }
+
+  /** 执行实体自定义动作（工具栏业务动作）。 */
+  async doAction(action: EntityAction): Promise<unknown> {
+    if (!this.logic) return
+    if (this.executing) return
+    this.executing = true
+    this.actionLoadings[action.name] = true
+    try {
+      if (this.logic.beforeAction) {
+        const ok = await this.logic.beforeAction(this.asEntityUiCtx(), this.model as M, action)
+        if (ok === false) return false
+      }
+      const result = await this.logic.doAction(this.model as M, action)
+      await this.logic.afterAction?.(this.asEntityUiCtx(), this.model as M, action, result)
+      if (action.redirectTo) {
+        await this.doRedirectAction(action)
+      } else if (result !== false && !this.many) {
+        await this.reload()
+      }
+      return result
+    } finally {
+      this.executing = false
+      this.actionLoadings[action.name] = false
+    }
+  }
+
+  async doRedirectAction(action: EntityAction): Promise<unknown> {
+    if (!action.redirectTo || !this.router) return
+    return this.router.push(action.redirectTo)
+  }
+
+  async print(): Promise<unknown> {
+    if (!this.logic) return
+    const ok = await this.logic.beforePrint?.(this.asEntityUiCtx(), this.model as M)
+    if (ok === false) return false
+    this.triggerPrint()
+    await this.logic.afterPrint?.(this.asEntityUiCtx(), this.model as M)
+    return true
+  }
+
+  /** 打印动作：默认走浏览器 `window.print`。 */
+  protected triggerPrint(): void {
+    if (typeof window !== 'undefined') window.print()
+  }
+
+  assignPaged(page: PagedList<M>): void {
+    this.setModel(page as unknown as M | M[])
+  }
+
+  savable(): boolean {
+    if (!this.logic) return false
+    return MetaModel.savable(
+      this.metaUi,
+      this.model,
+      this.logic.getSimplifyOptions(),
+    )
+  }
+
+  // —— 文件传输（框架无关；皮肤动作直接走 context）——————>
+
+  async uploadFile(file: File, options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    const ok = await this.logic.beforeUpload?.(this.asEntityUiCtx(), this.model as M, file)
+    if (ok === false) return false
+    const result = await this.logic.uploadFile(file, options)
+    await this.logic.afterUpload?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    return result
+  }
+
+  async uploadFiles(files: File[], options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    const ok = await this.logic.beforeUpload?.(this.asEntityUiCtx(), this.model as M, files)
+    if (ok === false) return false
+    const result = await this.logic.uploadFiles(files, options)
+    await this.logic.afterUpload?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    return result
+  }
+
+  async importFile(options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    if (!options.file) throw new Error('importFile requires options.file.')
+    const ok = await this.logic.beforeImport?.(this.asEntityUiCtx(), this.model as M, options.file)
+    if (ok === false) return false
+    const result = await this.logic.importFile(options.file, options)
+    options.importFn?.(this.asEntityUiCtx(), result)
+    options.handlerFn?.(this.asEntityUiCtx(), result)
+    await this.logic.afterImport?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    await this.reload()
+    return result
+  }
+
+  async importFiles(options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    if (!options.files) throw new Error('importFiles requires options.files.')
+    const ok = await this.logic.beforeImport?.(this.asEntityUiCtx(), this.model as M, options.files)
+    if (ok === false) return false
+    const result = await this.logic.importFiles(options.files, options)
+    options.importFn?.(this.asEntityUiCtx(), result)
+    options.handlerFn?.(this.asEntityUiCtx(), result)
+    await this.logic.afterImport?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+    await this.reload()
+    return result
+  }
+
+  async exportFile(options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    const result = await this.logic.exportFile(
+      (this.model as Entity).id,
+      options,
+      options.body,
+    )
+    options.exportFn?.(this.asEntityUiCtx(), result)
+    options.handlerFn?.(this.asEntityUiCtx(), result)
+    return result
+  }
+
+  async exportFiles(options: FileTransferOptions = {}): Promise<unknown> {
+    if (!this.logic) return
+    const result = this.useJoinListExport()
+      ? await this.logic.exportJoinList(options, options.body ?? this.searchParam)
+      : await this.logic.exportFiles(options, options.body)
+    options.exportFn?.(this.asEntityUiCtx(), result)
+    options.handlerFn?.(this.asEntityUiCtx(), result)
+    return result
+  }
+
+  /** 列表导出是否走 joinList 通道。 */
+  protected useJoinListExport(): boolean {
+    return this.joinListMode
+  }
+
+  async getTemplates(repository = this.logic?.repository): Promise<ReportTemplate[]> {
+    if (!this.logic) return this.templates
+    if (this.templates.length) return this.templates
+    const list = await this.logic.getReportTemplates?.(repository)
+    this.templates = (list ?? []) as ReportTemplate[]
+    return this.templates
+  }
+
+  async uploadAttachment(attachment: Attachment, options: EntityUrlParam = {}): Promise<unknown> {
+    return this.postFilesAction(
+      options.action ?? 'uploadAttachment',
+      attachment,
+      { ...options, path: options.path ?? (this.model as Entity).id },
+    )
+  }
+
+  async uploadAttachments(attachments: Attachment[], options: EntityUrlParam = {}): Promise<unknown> {
+    return this.postFilesAction(
+      options.action ?? 'uploadAttachments',
+      attachments,
+      { ...options, path: options.path ?? (this.model as Entity).id },
+    )
+  }
+
+  async uploadTemplate(template: ReportTemplate, options: EntityUrlParam = {}): Promise<unknown> {
+    this.currentTemplate = template
+    return this.postFilesAction(options.action ?? 'uploadTemplate', template, options)
+  }
+
+  async uploadTemplates(templates: ReportTemplate[], options: EntityUrlParam = {}): Promise<unknown> {
+    return this.postFilesAction(options.action ?? 'uploadTemplates', templates, options)
+  }
+
+  async downloadTemplate(template: ReportTemplate, options: EntityUrlParam = {}): Promise<unknown> {
+    if (!this.logic) return
+    const blob = await this.logic.postBlob({
+      action: options.action ?? 'downloadTemplate',
+      repository: options.repository ?? this.logic.repository,
+      service: options.service,
+      queryParams: {
+        templateID: template.templateID,
+        ...(options.queryParams ?? {}),
+      },
+    })
+    this.triggerDownload(blob, this.resolveDownloadFileName(template.templateFile))
+    return blob
+  }
+
+  /** 下载文件名推导：默认直接使用模板文件路径；皮肤可按文件类型表补中文名。 */
+  protected resolveDownloadFileName(templateFile: string): string {
+    return this.getFileInfo(templateFile).fileName
+  }
+
+  protected async postFilesAction(
+    action: string,
+    body: unknown,
+    options: EntityUrlParam,
+  ): Promise<unknown> {
+    if (!this.logic) return
+    const ok = await this.logic.beforeUpload?.(this.asEntityUiCtx(), this.model as M, body)
+    if (ok === false) return false
+    this.uploading.value = true
+    try {
+      const result = await this.logic.invokeAction(
+        {
+          action,
+          path: options.path,
+          queryParams: options.queryParams,
+          repository: options.repository ?? this.logic.repository,
+          service: options.service ?? 'files',
+        },
+        body,
+      )
+      await this.logic.afterUpload?.(this.asEntityUiCtx(), this.model as M, undefined, result)
+      return result
+    } finally {
+      this.uploading.value = false
+    }
+  }
+
+  protected triggerDownload(blob: Blob, fileName: string): void {
+    if (typeof document === 'undefined') return
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = fileName
+    link.style.display = 'none'
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(blobUrl)
   }
 
   async refresh(reloadMetadata = false, setLoading = true): Promise<void> {
@@ -751,13 +1664,13 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     if (setLoading) this._setLoading(true)
     try {
       if (reloadMetadata) await this.logic.initMetadata(true)
-      if (this.logic.beforeLoad) await this.logic.beforeLoad(this.asUiCtx() as any, this.model as any)
+      if (this.logic.beforeLoad) await this.logic.beforeLoad(this.asEntityUiCtx(), this.model as M)
       const id = (this.model as Entity).id
       if (id) {
         const loaded = await this.logic.load(id)
         if (loaded) this.setModel(loaded)
       }
-      await this.logic.afterLoad?.(this.asUiCtx() as any, this.model as any)
+      await this.logic.afterLoad?.(this.asEntityUiCtx(), this.model as M)
     } finally {
       this._setLoading(false)
     }
@@ -796,7 +1709,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     rows.forEach((row, index) => {
       const rowKey = String(row.rowNum ?? row.id ?? index)
       const rowState = (groupState[rowKey] ??= { rowNum: rowKey, summary: { errorNum: 0 } }) as Validation
-      const rowContext = this.subGroupItemContext(grp, row as any)
+      const rowContext = this.subGroupItemContext(grp, row as unknown as Entity)
       let rowErrors = 0
       for (const field of grp.groupUi?.groups.flatMap((g: MetaUiGroup) => g.fields ?? []) ?? []) {
         rowErrors += (rowContext as AbstractUiContext).validateSingleField?.(field, rowContext.getFieldValue(field), row, rowState) ?? 0
@@ -885,19 +1798,137 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
 
   select(field: MetaUiField | string): Promise<Entity | false>
   select<T extends Entity>(param: EntitySelectParam<T>): Promise<boolean | T[]>
-  select<T extends Entity = Entity>(
+  async select<T extends Entity = Entity>(
     fieldOrParam: MetaUiField | string | EntitySelectParam<T>,
   ): Promise<Entity | false | boolean | T[]> {
     if (this.isFieldSelect(fieldOrParam)) {
       return this.selectByField(fieldOrParam)
     }
-    throw new Error('Not implemented: select')
+    const param = fieldOrParam as EntitySelectParam<T>
+    if (!this.app || !this.uiBuilder) return false
+
+    const service = param.service ?? this.app.name ?? 'base'
+    const metaUi = await this.app.meta.get(param.repository, param.service)
+    const objName = metaUi.objName
+    const foundModule =
+      this.app.findModule?.(objName) ??
+      this.app.meta.findModule?.(objName) ??
+      undefined
+    const authority = resolveSelectAuthority(param, foundModule)
+    const module: Module = foundModule
+      ? { ...foundModule, authority: { ...foundModule.authority, ...authority } }
+      : ({
+          moduleCode: objName,
+          moduleLabel: metaUi.displayLabel ?? param.repository,
+          moduleType: 'FEATURE',
+          moduleVersion: 0,
+          objName,
+          authority,
+        } as Module)
+
+    const logicToken = `${service}:${param.repository}Logic`
+    let logic: EntityLogic<any> | undefined
+    try {
+      logic = await this.app.di?.injectAsync?.(logicToken)
+    } catch {
+      // 未注册业务 Logic 时走通用实体 Logic
+    }
+    if (!logic) {
+      logic = await GenericEntityLogic.resolve(
+        this.app.di,
+        logicToken,
+        param.ctor ?? defineEntity,
+        {
+          metaUiService: this.app.meta,
+          repository: param.repository,
+          metaUi,
+          module,
+          apiService: param.service,
+        },
+      )
+    } else {
+      logic.metaUi = metaUi
+      logic.module = module
+    }
+
+    const selectionMode = param.selectionMode ?? 'multiple'
+    const selectCtx = this.createChild(
+      [] as T[],
+      metaUi,
+      `${this.cachePath}/@select/${param.repository}`,
+      selectionMode === 'single'
+        ? UiViewMany.SelectOne
+        : UiViewMany.SelectMany,
+      {},
+      logic,
+    ) as unknown as AbstractUiContext<T>
+    if (param.searchParam) {
+      EntitySearchParam.assign(selectCtx.searchParam, param.searchParam)
+    }
+    if (param.selectableFn) {
+      selectCtx.setSelectableFn('select', param.selectableFn)
+    }
+    selectCtx.selectedItems = []
+    await selectCtx.init()
+
+    const showActions =
+      authority.allowCreate || authority.allowEdit || authority.allowDelete
+    const showActionColumn =
+      authority.allowRead || authority.allowEdit || authority.allowDelete
+    let picked: T[] = []
+    const listProps = {
+      selectionMode,
+      showToolbar: true,
+      showSearchbar: true,
+      showBreadcrumb: false,
+      showActions,
+      showActionColumn,
+      loading: selectCtx.loading,
+      onSelect: (selection: T[]) => {
+        selectCtx.selectedItems = selection ?? []
+        if (selection?.length) picked = selection
+      },
+      onItemDoubleClick:
+        selectionMode === 'single'
+          ? (item: T) => {
+              picked = item != null ? [item] : []
+              selectCtx.selectedItems = picked
+              void this.uiBuilder?.overlay?.closeTopDialog?.('ok')
+            }
+          : undefined,
+    }
+
+    this.root.showDialog = true
+    try {
+      const entityLabel = metaUi.displayLabel ?? param.repository
+      const title = selectCtx.t(
+        selectionMode === 'single'
+          ? 'view.selectOneEntity'
+          : 'view.selectManyEntity',
+        { entity: entityLabel },
+      )
+      const result = await this.uiBuilder.selectDialog(selectCtx.asEntityUiCtx(), {
+        dlgProps: {
+          title,
+          width: '80vw',
+          height: '80vh',
+          maxHeight: '90vh',
+        },
+        viewProps: listProps,
+      })
+      if (result !== 'ok') return false
+      if (!picked.length && selectCtx.selectedItems?.length) {
+        picked = selectCtx.selectedItems as T[]
+      }
+      return picked
+    } finally {
+      this.root.showDialog = false
+    }
   }
 
   /**
    * 字段选择半边（框架无关）：选一个关联实体并写回字段。
-   * vui / rui 的 `select` 识别到字段参数后委托到这里；
-   * 仓库选择半边仍由各框架自己实现。
+   * `select` 识别到字段参数后委托到这里；仓库选择见同类的 `select(param)` 实现。
    */
   protected async selectByField(
     field: MetaUiField | string,
@@ -905,7 +1936,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     const fld = this.resolveField(field)
     const ref = fld.reference
     if (!ref?.refRepository || !this.app) {
-      void this.uiBuilder?.toast?.(this, {
+      void this.uiBuilder?.toast?.(this.asEntityUiCtx(), {
         severity: 'error',
         title: this.t('dialog.title.error'),
         message: this.t('invalid.fieldNoRef', { field: fld.fieldName }),
@@ -934,7 +1965,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       return picked[0]
     } catch (error) {
       console.error(error)
-      void this.uiBuilder?.toast?.(this, {
+      void this.uiBuilder?.toast?.(this.asEntityUiCtx(), {
         severity: 'error',
         title: this.t('dialog.title.error'),
         message: error instanceof Error ? error.message : String(error),
@@ -960,7 +1991,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       }
       const ref = field.reference
       if (!ref || !this.logic || !ref.refRepository) return options
-      const where = (this.getFieldLogic(field) ?? new MetaUiFieldLogic(field))?.buildRefWhere?.(row as Entity, this.asUiCtx())
+      const where = (this.getFieldLogic(field) ?? new MetaUiFieldLogic(field))?.buildRefWhere?.(row as Entity, this.asEntityUiCtx())
       const queryParams = { ...(options.searchParam.queryParams ?? {}) }
       if (where) queryParams.filter = where as string
       else delete queryParams.filter
@@ -1094,8 +2125,8 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     items: G[],
   ): void {
     const logic = this.getGroupLogic(group)
-    logic?.onChangeFn?.(this.asUiCtx(), this.model, items)
-    logic?.customAggregator?.(this.asUiCtx(), this.model, items)
+    logic?.onChangeFn?.(this.asEntityUiCtx(), this.model, items)
+    logic?.customAggregator?.(this.asEntityUiCtx(), this.model, items)
   }
 
   addSubGroupItem<G extends Entity>(
@@ -1149,7 +2180,7 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
       return
     }
     const master = ((this.root ?? this).model ?? {}) as Entity
-    const result = intercept(item, master, this.asUiCtx())
+    const result = intercept(item, master, this.asEntityUiCtx())
     if (isPromise(result)) {
       result.then((ok) => {
         if (ok !== false) commit()
@@ -1179,9 +2210,12 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     this.root.showDialog = true
     try {
       // Sub-table row: in-memory only, no onAccept (no save).
-      const result = await this.uiBuilder.editDialog(ctx, {
-        dlgProps: { name: grp.groupName },
-      })
+      const result = await this.uiBuilder.editDialog(
+        ctx as unknown as UiContext,
+        {
+          dlgProps: {},
+        },
+      )
       return result === 'ok' ? (ctx.model as G) : false
     } finally {
       this.root.showDialog = false
@@ -1252,33 +2286,173 @@ export abstract class AbstractUiContext<M extends Entity = Entity>
     return `${root}/${id}`
   }
 
+  /** 当前路由路径。vui / rui 实现侧覆写；core 的 `routeToIndex` 用它剥末段。 */
+  protected currentRoutePath(): string | undefined {
+    return undefined
+  }
+
+  private indexOfListRow(row: Entity): number {
+    const list = (this.model as { list?: Entity[] } | undefined)?.list
+    if (!Array.isArray(list)) return -1
+    const idx = list.indexOf(row)
+    if (idx >= 0) return idx
+    const key = this.metaUi?.primaryKey ?? 'id'
+    const id = String((row as Record<string, unknown>)[key] ?? row.id ?? '')
+    if (!id) return -1
+    return list.findIndex(
+      (item) =>
+        String((item as Record<string, unknown>)[key] ?? item.id) === id,
+    )
+  }
+
   routeToIndex(): void {
+    const path = this.currentRoutePath()
+    if (path) {
+      const parts = path.split('/').filter(Boolean)
+      // /MES/Materials/xxx 或 /MES/Materials/Edit/xxx → /MES/Materials
+      if (parts.length >= 3) {
+        const listPath = `/${parts[0]}/${parts[1]}`
+        if (listPath !== path) {
+          this.navigate(listPath)
+          return
+        }
+      }
+    }
     this.navigate(this.routePath(UiViewMany.Index))
   }
 
   routeToDetails(idOrItem?: string | M): void {
-    const id =
-      idOrItem != null && typeof idOrItem === 'object'
-        ? (idOrItem as Entity).id
-        : (idOrItem ?? (this.model as Entity).id)
+    if (this.isInDialog) {
+      const item =
+        idOrItem != null && typeof idOrItem === 'object'
+          ? (idOrItem as Entity)
+          : undefined
+      void this.uiBuilder?.openNestEntityDialog(
+        this.asEntityUiCtx(),
+        'details',
+        item,
+      )
+      return
+    }
+    if (idOrItem != null && typeof idOrItem === 'object') {
+      const entity = idOrItem as Entity
+      const key = this.metaUi.primaryKey ?? 'id'
+      const id = entity.id ?? (entity as Record<string, unknown>)[key]
+      if (this.many) {
+        this.currentItem = entity as M
+        this.currentIndex = this.indexOfListRow(entity)
+        this.moduleContext?.setCurrent(entity, this.currentIndex)
+      }
+      this.navigate(this.routePath(UiViewOne.Details, String(id ?? '')))
+      return
+    }
+    const id = idOrItem ?? (this.model as Entity).id
     this.navigate(this.routePath(UiViewOne.Details, id))
   }
 
-  routeToEdit(id?: string): void {
-    this.navigate(this.routePath(UiViewOne.Edit, id))
+  routeToEdit(idOrItem?: string | M): void {
+    if (this.isInDialog) {
+      const item =
+        idOrItem != null && typeof idOrItem === 'object'
+          ? (idOrItem as Entity)
+          : undefined
+      void this.uiBuilder?.openNestEntityDialog(
+        this.asEntityUiCtx(),
+        'edit',
+        item,
+      )
+      return
+    }
+    if (idOrItem != null && typeof idOrItem === 'object') {
+      const entity = idOrItem as Entity
+      const key = this.metaUi.primaryKey ?? 'id'
+      const id = entity.id ?? (entity as Record<string, unknown>)[key]
+      if (this.many) {
+        this.currentItem = entity as M
+        this.currentIndex = this.indexOfListRow(entity)
+        this.moduleContext?.setCurrent(entity, this.currentIndex)
+      }
+      this.navigate(this.routePath(UiViewOne.Edit, String(id ?? '')))
+      return
+    }
+    this.navigate(
+      this.routePath(
+        UiViewOne.Edit,
+        idOrItem ?? (this.model as Entity).id,
+      ),
+    )
   }
 
   routeToCreate(): void {
+    if (this.isInDialog) {
+      void this.uiBuilder?.openNestEntityDialog(this.asEntityUiCtx(), 'create')
+      return
+    }
+    if (this.many) {
+      this.currentItem = null
+      this.currentIndex = -1
+      this.moduleContext?.beginCreate()
+    }
     this.navigate(this.routePath(UiViewOne.Create))
   }
 
   routeToSearch(): void {
     this.navigate(this.routePath(UiViewOne.Search))
   }
+
   selectMany(
-    _selectableKey: string,
-    _handleFn: (...args: unknown[]) => unknown,
+    selectableKey: string,
+    handleFn: (...args: unknown[]) => unknown,
   ): void {
-    throw new Error('Not implemented')
+    this.setSelectableKey(selectableKey)
+    this.setCustomManyActionHandleFn(selectableKey, handleFn)
+    this.navigate(this.routePath(UiViewMany.SelectMany))
+  }
+
+  async confirmAction(): Promise<unknown> {
+    if (
+      this.view === UiViewMany.SelectMany ||
+      this.view === UiViewMany.EditMany ||
+      this.selectionMode === 'multiple'
+    ) {
+      if (!this.selectedItems.length) {
+        await this.uiBuilder?.toast?.(this.asEntityUiCtx(), {
+          severity: 'error',
+          message: this.t('invalid.requiredSelectAny'),
+        })
+        return false
+      }
+      const result = await this.runCustomManyAction()
+      if (result === false) return false
+      this.cancel()
+      await this.search()
+      return result
+    }
+    const result = await this.save()
+    if (result !== false) this.cancel()
+    return result
+  }
+
+  cancel(): void {
+    if (
+      this.view === UiViewMany.SelectMany ||
+      this.view === UiViewMany.EditMany
+    ) {
+      this.selectedItems = []
+      this.selectionMode = null
+      this.routeToIndex()
+      return
+    }
+    if (this.view === UiViewOne.Details) {
+      try {
+        const model = this.model as Record<string, unknown> | undefined
+        if (model) this.moduleContext?.applyCurrentRow(model)
+      } catch {
+        // 写回失败仍回列表，避免「返回」无响应
+      }
+      this.routeToIndex()
+      return
+    }
+    this.routeToIndex()
   }
 }

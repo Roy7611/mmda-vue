@@ -12,6 +12,7 @@ import type { UiMessageProps } from './factory/message'
 import type { UiFactory } from './factory'
 import type { UiFieldFactory } from './field_factory'
 import type { UiProps } from './props'
+import type { UiOverlay } from './overlay'
 import type { UiAppSideMenuProps } from './app_side_menu'
 import type { UiViewProps } from './view'
 import type {
@@ -21,6 +22,11 @@ import type {
   UiSignupFormSlots,
 } from './factory/signin'
 import type { UiFilterBarProps } from './builder/filter_bar'
+import type {
+  UiSearchFieldProps,
+  UiSearchViewProps,
+  UiSearchViewSlots,
+} from './builder/search_view'
 import type { UiListViewProps } from './builder/list_view'
 import type { UiModuleBreadcrumbProps } from './builder/topbar'
 import type { UiListProps } from './factory/list'
@@ -41,11 +47,6 @@ import type { UiTempisTimelineProps } from './plugins/tempis_timeline'
 import type { UiSchedulerProps } from './plugins/scheduler'
 import type { UiKanbanProps } from './plugins/kanban'
 import type { UiDiagramProps } from './plugins/diagram'
-
-/** 单个搜索条件的最小契约。实现由 UI 壳提供（vui 为 `UiSearchField`）。 */
-export interface UiSearchField {
-  readonly field: MetaUiField
-}
 
 /**
  * 界面构建器，负责拼屏与会话级弹层的契约（无实现、无 Vue）。
@@ -99,6 +100,12 @@ export interface UiBuilder<TNode = any> {
   displayFor(field: MetaUiField, context: UiContext): TNode
 
   // —— Overlay（会话入口，不是控件）——
+
+  /**
+   * 弹层宿主。Builder 的 toast / message / confirm / dialog 委托给皮肤 Overlay，
+   * 业务弹层不要走 `factory.dialog`，直接 `context.uiBuilder.overlay.*`。
+   */
+  readonly overlay: UiOverlay<TNode>
 
   /**
    * 轻提示（右侧 Overlay Toast）。
@@ -230,17 +237,22 @@ export interface UiBuilder<TNode = any> {
   ): TNode
 
   
-  // TODO: 移动端 / compact 放大镜的独立搜索屏契约暂缓，后续再收敛。
-  // buildSearchView<TProps extends UiProps = UiProps>(
-  //   context: UiContext,
-  //   props?: TProps,
-  // ): TNode
-
-  /** 单个搜索条件控件，包括操作符、值域，用于搜索屏。 */
-  buildSearchField(
-    field: UiSearchField,
+  /**
+   * 搜索页（`UiViewOne.Search`）：字段行（Column）+ 动作行。
+   * 行来自 `context.searchRows` 草稿，确认走 `props.onConfirm`（通常 `applySearchDraft`）；
+   * 承载（路由页 / 桌面右侧抽屉）由调用方加。行字段装配见 `builder/search_view.ts`。
+   */
+  buildSearchView(
     context: UiContext,
-    props?: UiProps,
+    props?: UiSearchViewProps,
+    slots?: UiSearchViewSlots<TNode>,
+  ): TNode
+
+  /** 单个搜索条件行：字段 + 操作符 + 值。行状态就是 `FieldFilter`。 */
+  buildSearchField(
+    field: MetaUiField,
+    context: UiContext,
+    props?: UiSearchFieldProps,
   ): TNode
 
 

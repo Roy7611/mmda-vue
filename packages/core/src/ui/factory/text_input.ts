@@ -24,6 +24,8 @@ export interface UiTextInputProps extends UiProps {
   onChange?: (value: string) => void
   onFocus?: () => void
   onBlur?: () => void
+  /** 按键（Enter 提交等场景）。 */
+  onKeydown?: (event: KeyboardEvent) => void
 }
 
 function textInputTypeStem(props: UiTextInputProps): UiTextInputType {

@@ -1,4 +1,5 @@
 import type { UiFactory, UiFormFieldProps } from './factory'
+import type { UiAction } from './action'
 import type { UiProps } from './props'
 import type { UiNodeProps } from './layout'
 import type { UiRenderer } from './renderer'
@@ -87,6 +88,7 @@ import type { UiTextInputProps } from './factory/text_input'
 import type { UiTextProps } from './factory/text'
 import type { UiIconProps } from './factory/icon'
 import type { UiImageProps } from './factory/image'
+import type { TranslateFn } from '../metaui/metaui_field'
 
 /**
  * 皮肤工厂抽象基类：实现 core {@link UiFactory} 全量契约。
@@ -147,6 +149,12 @@ export abstract class AbstractUiFactory<TNode = unknown>
   abstract floatingActionButton(
     props: UiFloatingActionButtonProps,
     slots?: UiButtonSlots<TNode>,
+  ): TNode
+  abstract actionButton(
+    action: UiAction,
+    t: TranslateFn,
+    resolve?: boolean,
+    props?: UiButtonProps,
   ): TNode
   abstract formField(
     props: UiFormFieldProps,

@@ -25,7 +25,7 @@
 - 字段测控 class：**只**用 `uiCssClass` / `uiCssClasses` 拼（见 [`css.ts`](../../src/ui/css.ts)）；禁止写死 `mmda-` 字符串
 - 栅格间距：`gap`（默认 `0.75rem`），供 `row` / `column` / `grid` / `listTile` 使用
 
-`AbstractUiLayout` 提供页内默认实现（`layoutPage` 缺省铺平）；vui `VueUiLayout` 覆写 `layoutPage` 落地 cards/tabs 壳。core **没有** `pageBody` 钩子。
+`AbstractUiLayout` 提供页内默认实现（`layoutPage` 缺省铺平）；vui `VuiLayout` 覆写 `layoutPage` 落地 cards/tabs 壳。core **没有** `pageBody` 钩子。
 
 `UiLayout.pageLayout`（`cards` | `tabs`）可由 Vue 皮肤从本地偏好 `mmda/pageLayout` 初始化并写回；详情「更多」菜单可切换。
 
@@ -50,7 +50,7 @@ layout.scaffold({
 })
 ```
 
-- vui：`VueUiLayout.scaffold`；AppShell 调 `builder.layout.scaffold`
+- vui：`VuiLayout.scaffold`；AppShell 调 `builder.layout.scaffold`
 - 旧 `AppLayout` / `UiAppLayout` 已并入本接口
 
 页面壳 class（`mmda-view` / `mmda-page` / `mmda-section`）写在 vui [layout.md 页面 CSS](../../../vui/docs/layout.md#页面-cssbem)。

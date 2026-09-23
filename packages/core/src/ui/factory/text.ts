@@ -7,4 +7,6 @@ import type { UiProps } from '../props'
  */
 export interface UiTextProps extends UiProps {
   text?: string
+  /** 原生 `title` 属性（悬停提示）；皮肤透传到文本元素上。 */
+  title?: string
 }

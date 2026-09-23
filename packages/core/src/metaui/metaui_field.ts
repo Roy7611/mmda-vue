@@ -1,7 +1,12 @@
 import { SqlDataType } from './datatype'
-import { MetaUiFilterType } from './metaui_filter'
+import {
+  defaultColumnFilterOps,
+  MetaUiFilterType,
+  type MetaUiFilterOpCode,
+} from './metaui_filter'
 import { pluralize } from '../utils/pluralize'
 import { isNullObject, isNullOrUndefined } from '../utils/is'
+import { hasBit } from '../utils/number'
 import {
   parseValidatorDescriptors,
   type ValidatorDescriptor,
@@ -243,6 +248,91 @@ export class MetaUiField {
   inferColumnFilterType(): MetaUiFilterType {
     return MetaUiField.inferColumnFilterType(this)
   }
+}
+
+/** 列过滤能力的最小字段形状：位掩码 + 类型 + 引用。 */
+export interface ColumnFilterField {
+  filterTypes?: number
+  dataType: SqlDataType
+  reference?: { isEnum?: boolean; isRef?: boolean; hasOne?: boolean }
+}
+
+/**
+ * 列过滤位掩码：服务端 `filterTypes` 优先；本地未写时按 dataType + reference 推断
+ * （{@link MetaUiField.inferColumnFilterType}）。
+ */
+export function resolveColumnFilterTypes(field: ColumnFilterField): number {
+  return Number(field.filterTypes) || MetaUiField.inferColumnFilterType(field)
+}
+
+/** 位测试：可传字段或现成掩码。 */
+export function hasFilterType(
+  fieldOrMask: ColumnFilterField | number,
+  bit: MetaUiFilterType,
+): boolean {
+  const mask =
+    typeof fieldOrMask === 'number'
+      ? fieldOrMask
+      : resolveColumnFilterTypes(fieldOrMask)
+  return hasBit(mask, bit)
+}
+
+/** 简单比较类型：date / number / text。布尔 / 集合不算简单比较。 */
+export function simpleFilterTypeOf(
+  field: ColumnFilterField,
+): 'text' | 'number' | 'date' {
+  const mask = resolveColumnFilterTypes(field)
+  if (hasBit(mask, MetaUiFilterType.DATE)) return 'date'
+  if (hasBit(mask, MetaUiFilterType.NUMBER)) return 'number'
+  if (hasBit(mask, MetaUiFilterType.TEXT)) return 'text'
+  const inferred = MetaUiField.inferColumnFilterType(field)
+  if (inferred === MetaUiFilterType.DATE) return 'date'
+  if (inferred === MetaUiFilterType.NUMBER) return 'number'
+  return 'text'
+}
+
+/**
+ * 列过滤算子表（表头菜单口径），按 {@link MetaUiFilterType} 位给出。
+ * set 位（enum / ref / hasOne、纯集合列）只出 IN / NOT_IN；比较位出各家族算子；
+ * 两族都在（`multi` 列）时合并 —— 搜索页用「同字段多行」分别表达两种叶子。
+ * 不要用 {@link getFieldFilterOps}（SQL 片段口径）代替。
+ */
+export function getColumnFilterOps(
+  field: ColumnFilterField,
+): MetaUiFilterOpCode[] {
+  const mask = resolveColumnFilterTypes(field)
+  if (hasBit(mask, MetaUiFilterType.BOOLEAN)) {
+    return [...defaultColumnFilterOps.BooleanFieldOps]
+  }
+  const set =
+    hasBit(mask, MetaUiFilterType.SET) || hasBit(mask, MetaUiFilterType.MULTI)
+  const compare =
+    hasBit(mask, MetaUiFilterType.TEXT) ||
+    hasBit(mask, MetaUiFilterType.NUMBER) ||
+    hasBit(mask, MetaUiFilterType.DATE)
+  if (set && !compare) return [...defaultColumnFilterOps.SetFieldOps]
+  const compareOps = hasBit(mask, MetaUiFilterType.DATE)
+    ? [...defaultColumnFilterOps.DateFieldOps]
+    : hasBit(mask, MetaUiFilterType.NUMBER)
+      ? [...defaultColumnFilterOps.NumberFieldOps]
+      : hasBit(mask, MetaUiFilterType.TEXT)
+        ? [...defaultColumnFilterOps.TextFieldOps]
+        : [...columnFilterOpsOfInferred(MetaUiField.inferColumnFilterType(field))]
+  return set
+    ? [...compareOps, ...defaultColumnFilterOps.SetFieldOps]
+    : compareOps
+}
+
+function columnFilterOpsOfInferred(
+  type: MetaUiFilterType,
+): readonly MetaUiFilterOpCode[] {
+  if (type === MetaUiFilterType.DATE) return defaultColumnFilterOps.DateFieldOps
+  if (type === MetaUiFilterType.NUMBER)
+    return defaultColumnFilterOps.NumberFieldOps
+  if (type === MetaUiFilterType.BOOLEAN)
+    return defaultColumnFilterOps.BooleanFieldOps
+  if (type === MetaUiFilterType.SET) return defaultColumnFilterOps.SetFieldOps
+  return defaultColumnFilterOps.TextFieldOps
 }
 
 /**

@@ -21,7 +21,6 @@ export function checkBoxModifierClasses(props: UiCheckBoxProps): unknown[] {
 export function checkBoxCheckedOf(props: UiCheckBoxProps): boolean {
   if (props.checked !== undefined) return Boolean(props.checked)
   return false
-  return false
 }
 
 export function checkBoxPropsFromField(
