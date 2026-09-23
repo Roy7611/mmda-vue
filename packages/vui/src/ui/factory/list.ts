@@ -7,6 +7,7 @@ import type {
   UiGridProps as CoreUiGridProps,
   UiListDisplay,
   UiListProps as CoreUiListProps,
+  UiListSlots,
   UiPaginatorProps,
   UiRowDetail as CoreUiRowDetail,
   UiIndexTableHost,
@@ -64,28 +65,15 @@ export interface VuiListEmits<T = any> {
   onRefresh?: () => void;
 }
 
-export interface VuiListSlots<T = any> {
-  header?: ChildSlot;
-  footer?: ChildSlot;
-  item?: (item: T, index: number) => VNodeChild;
-  loadingSlot?: ChildSlot;
-  empty?: ChildSlot;
-  groupHeader?: (scope: { data: any }) => VNodeChild;
-  groupFooter?: (scope: { data: any }) => VNodeChild;
-  aside?: ChildSlot;
-  list?: ChildSlot;
-  grid?: ChildSlot;
-}
-
 export type VuiTablePropsType<T = any> = VuiTableProps<T> &
   VuiListEmits<T> &
-  VuiListSlots<T> & {
+  UiListSlots<T, VNode> & {
     display?: UiListDisplay;
   };
 
 export type VuiGridPropsType<T = any> = VuiGridProps<T> &
   VuiListEmits<T> &
-  VuiListSlots<T> & {
+  UiListSlots<T, VNode> & {
     display?: UiListDisplay;
   };
 

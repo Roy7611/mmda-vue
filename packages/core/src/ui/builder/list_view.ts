@@ -1,13 +1,21 @@
 import type { UiSelectionMode } from '../context'
 import type { UiBoxed, UiProps } from '../props'
+import type { UiViewSlots } from '../slots'
+import type { UiIndexTopbarLayout } from './topbar'
 /**
  * 模块列表页（Index / Select）拼屏 extras。
  * 工具栏已由 {@link import('../builder').UiBuilder.buildIndexTopbar} 吃掉；
  * 数据区直接 `factory.table|grid|list|treeGrid`，不要再套 `buildListView`。
  */
-export interface UiListViewProps extends UiProps {
+export interface UiListViewProps<TNode = any> extends UiProps, UiViewSlots<TNode> {
   /** 是否显示模块工具栏。缺省 true。 */
   showToolbar?: boolean
+  /** 顶栏布局档（转发给 `buildIndexTopbar` 的 `layout`，视图层别与它同名）。 */
+  topbarLayout?: UiIndexTopbarLayout
+  /** 该列表页是否可原位编辑（只读 → table；可编 → grid）。缺省由 `viewKind` 决定。 */
+  editable?: boolean
+  /** 是否出业务动作（工具栏 / 行上）。 */
+  showActions?: boolean
   /** 是否显示搜索条（可嵌在工具栏中）。缺省 true。 */
   showSearchbar?: boolean
   /** 是否显示面包屑。缺省 true。 */

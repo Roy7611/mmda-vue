@@ -2,6 +2,7 @@ import type { Pagination } from '../../models/pagination'
 import type { UiSelectionMode } from '../context'
 import type { UiAction } from '../action'
 import type { UiBoxed, UiProps } from '../props'
+import type { UiSlot } from '../slots'
 /**
  * factory 捷径内部标签。公开契约已拆成 UiListProps / UiTableProps / UiGridProps，
  * 不要再靠一份 Props + `display` 糊三种能力。程序员请用对应 `build*` / `factory.*`。
@@ -84,4 +85,32 @@ export interface UiPaginatorProps extends UiProps {
     pageSize?: number
     pageNo?: number
   }) => void | Promise<unknown>
+}
+
+/**
+ * 列表 / 表格数据区的**区域插槽**，与 {@link UiListProps}（属性）分开 —— 仓库惯例是
+ * `UiXxxProps` + `UiXxxSlots` 两个接口，消费点再组合（vui 的 `VuiListViewPropsType = Props & Emits & Slots`）。
+ * `item` / `groupHeader` / `groupFooter` 带参；其余是惰性无参插槽（`UiSlot`）。
+ */
+export interface UiListSlots<T = any, TNode = any> {
+  /** 列表头（表头之上）。 */
+  header?: UiSlot<TNode>
+  /** 列表尾。 */
+  footer?: UiSlot<TNode>
+  /** 移动端卡片 / 列表形态的一行。 */
+  item?: (item: T, index: number) => TNode
+  /** 加载中占位（只换数据区，不整页重渲）。 */
+  loadingSlot?: UiSlot<TNode>
+  /** 空数据占位。 */
+  empty?: UiSlot<TNode>
+  /** 分组头（`groupBy` 生效时）。 */
+  groupHeader?: (scope: { data: unknown }) => TNode
+  /** 分组尾。 */
+  groupFooter?: (scope: { data: unknown }) => TNode
+  /** 侧栏（左树右表之类）。 */
+  aside?: UiSlot<TNode>
+  /** 列表整体替换。 */
+  list?: UiSlot<TNode>
+  /** 网格整体替换。 */
+  grid?: UiSlot<TNode>
 }

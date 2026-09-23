@@ -14,6 +14,22 @@
 export type UiSlot<TNode = any> = () => TNode | TNode[]
 
 /**
+ * 页级插槽：详情 / 编辑页与列表页**共用**的四个位置（惰性，框架无关）。
+ * 实体页见 `UiViewProps`，列表页见 `UiListViewProps`；vui 侧不再各扩一份。
+ * 各页专有的插槽（如 vui 的 `qrCode`、列表的 `subMainFooter`）留在自己的运行时包里。
+ */
+export interface UiViewSlots<TNode = any> {
+  /** 页顶工具栏插槽（给了就顶掉默认顶栏）。 */
+  toolbar?: UiSlot<TNode>
+  /** 主内容之前的页头。 */
+  header?: UiSlot<TNode>
+  /** 整块接管主内容（给了就不再按组拼）。 */
+  content?: UiSlot<TNode>
+  /** 页脚。 */
+  footer?: UiSlot<TNode>
+}
+
+/**
  * 区域表（备用）：没有具名接口时的通用形状。
  * 每控件仍优先写具名 `UiXxxSlots`（键名有类型、拼错报错）；这个是兜底与工具函数的参数类型。
  */

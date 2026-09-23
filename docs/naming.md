@@ -154,6 +154,25 @@ UiGroupRenderer      core  组级渲染：字段组合 / 子表（一个 MetaUiG
 - **不要** core 写 `Ref` / `VNode`；`loading` / `layoutRev` 用 `UiBoxed`（`boolean | { value: boolean }`）。
 - 厂商类名用短前缀：`PrimeUiBuilder`（不要 `PrimeVueUiBuilder` 与 Vue 层混）。
 
+### 属性 / 插槽 / 视图 props 的分工
+
+同一个控件 / 视图的**属性与区域插槽是两个接口**，消费点再组合（vui 侧还多一份 emits）：
+
+```text
+UiListProps       数据区控件属性（rows / primaryKey / rowActions / pagination / fieldCellRenderers …）
+UiListSlots       数据区控件的区域插槽（item / loadingSlot / empty / header / footer / aside …）
+UiListViewProps   列表**整页**视图属性（showToolbar / showSearchbar / editable / topbarLayout …）+ UiViewSlots
+UiViewProps       实体屏（详情 / 编辑）**整页**视图属性 + UiViewSlots
+UiViewSlots       页级插槽（toolbar / header / content / footer），两个视图 props 共用
+UiPageSlots       页壳槽位（`layoutPage` 的 toolbar / banner / primary / summary / tails / footer）
+```
+
+- **整页视图 props 不继承控件 props**：`UiListViewProps` / `UiViewProps` 只放页级开关与页级插槽；数据区怎么画由 Builder 构造 `UiListProps` / `UiTableProps` 传给 `factory.table|list|grid`。让两层粘在一起就会长出 `VuiListViewProps extends UiListProps` 那种影子副本（已清）。
+- **插槽一律惰性**：`UiSlot<TNode> = () => TNode | TNode[]`；带参的（`item(item, index)`、`groupHeader({ data })`）就地写函数签名，不要包装成 `{ sort, node }` 之类对象。
+- **组合在消费点**：vui 用 `VuiListViewPropsType = VuiListViewProps & VuiListViewEmits & VuiListViewSlots`（属性 / 事件 / 插槽三份各自独立）；rui 无 emits，直接读 props。
+- **一个概念一个主人**：`fieldCellRenderers` 住 `UiTableProps`（`core/src/ui/factory/table.ts`）；`topbarLayout` 是视图层给顶栏 `layout` 的转发字段（`core/src/ui/builder/topbar.ts`），视图层不要再声明同名副本。
+- 页级插槽（`UiViewSlots`）**所有运行时共用**；各页专有的插槽（列表的 `subMainFooter` / `defaultFilter` / `customFilters`）留在自己的运行时包里。
+
 ### Vue 运行时命名（vui / vui-*）
 
 `@mmda/vui` 自己定义的 `type` / `interface` 按名字是否以 `Ui` 开头分两套：

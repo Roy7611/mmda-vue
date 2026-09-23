@@ -13,6 +13,11 @@
 | **表格单元格** | 同上（第三参带当前行） | `UiCellRenderer<TNode>`（第三参**必需**） | `this.field('x').setCustomCellEditor(fn)` / `setCustomCellRenderer(fn)` |
 | **组 / 子表**（一整块区域） | 一个渲染函数 | `MetaUiGroupLogic.customRenderer / customEditor` | `this.group('items').setCustomRenderer(fn)` / `setCustomEditor(fn)` |
 | **整屏**（列表 / 详情 / 编辑整页） | 一个视图函数 | `UiEntityViewFn = (context, deps) => TNode` | 宿主注册表，如 `mesPlugin.resolveEntityView(repository)` |
+| **页级插槽**（页顶栏 / 页头 / 主内容 / 页脚） | 四个惰性插槽函数 | `UiViewSlots<TNode>`（`UiViewProps` 与 `UiListViewProps` 都 extends 它，Vue / React **同一份**） | 拼屏 props：`buildDetailsView(ctx, { toolbar: () => node, content: () => node })` |
+
+页级插槽（`toolbar` / `header` / `content` / `footer`）住在 core 的 `ui/slots.ts`，**不是**每个运行时各扩一份：
+`content` 给了就整块接管主区（不再按组拼），`toolbar` 给了就顶掉默认顶栏。各页专有的插槽留在自己的运行时包里
+（vui 的 `qrCode`、列表的 `subMainFooter` / `defaultFilter` / `customFilters`）。
 
 三层是**同一个形状**：`(…, context, …) => TNode`。`context` 就是运行时入口——`context.uiBuilder`（拼屏 / 弹层）、`context.uiBuilder.factory`（原子控件）、`context.getFieldValue` / `setFieldValue`、`context.t` 都在它身上。**不需要 hook、不需要全局单例、不需要往下转型**。
 
@@ -178,7 +183,9 @@ export function productionScheduleView<TNode>(
 | --- | --- | --- |
 | 字段级（表单） | ✅ 已通 | 部分：`ReactUiBuilder.editFor` / `displayFor` 已实装，整屏拼屏（`buildIndexView` / `buildEditView`）未实装 |
 | 字段级（表格单元格） | ✅ 已通 | ✗ 待实装（`buildIndexView`） |
-| 组级 | ✅ 已通 | ✗ 待实装 |
-| 屏级 | ✅ 已通（`hostedView` / `hostedEntityView`） | ✗ 待实装 |
+| 组级 | ✅ 已通 | ✅ 已通（`buildFieldGroup` / `buildSubGroup`，含插片与 `customRenderer` 换中间） |
+| 屏级（详情 / 编辑） | ✅ 已通（`hostedView` / `hostedEntityView`） | ✅ 已通（`buildDetailsView` / `buildEditView`：primary / secondary / tails 分区） |
+| 屏级（列表） | ✅ 已通 | ✗ 待实装（`buildIndexView`） |
+| 页级插槽 | ✅ 已通 | ✅ 已通（`toolbar` / `header` / `content`，契约在 core） |
 
 React 侧的补齐清单见 `packages/rui/docs/rui_plan.md` 与仓库待办；本文件描述的是 **core 契约**，两边实现齐了写法一致。

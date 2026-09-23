@@ -19,7 +19,10 @@ import {
   type MetaUiField,
   type MetaUiGroup,
   type UiListProps,
+  type UiListSlots,
+  type UiListViewProps,
   type UiPaginatorProps,
+  type UiViewSlots,
 } from "@mmda/core";
 import {
   readStoredPageSize,
@@ -35,7 +38,6 @@ import type { UiFieldCellProps, UiProps } from "@mmda/core";
 import type {
   VuiListPropsType,
   VuiListEmits,
-  VuiListSlots,
   UiListDisplay,
   UiCellRenderer,
 } from "../factory/list";
@@ -61,24 +63,21 @@ function listRows(model: unknown): unknown[] {
   return Array.isArray(model) ? model : [];
 }
 
-export interface VuiListViewProps<T = any> extends UiListProps<T> {
-  showToolbar?: boolean;
-  showBreadcrumb?: boolean;
-  showSearchbar?: boolean;
-  topbarLayout?: UiIndexTopbarLayout;
-  showMainHead?: boolean;
-  linkField?: string;
-  linkable?: boolean;
-  display?: UiListDisplay;
-  editable?: boolean;
-  fieldCellRenderers?: Record<string, UiCellRenderer>;
-}
+/**
+ * 列表**整页**视图 props：只吃 core 的 `UiListViewProps`（页级开关 + 页级插槽
+ * toolbar / header / content / footer）。
+ *
+ * 数据区控件的属性（rows / primaryKey / rowActions / fieldCellRenderers …）属于
+ * `UiListProps` / `UiTableProps`，拼屏时由 Builder 构造控件 props 传下去 ——
+ * **不要在这里再声明一遍**（那会让「整页」与「控件」两层粘在一起）。
+ */
+export type VuiListViewProps<T = any> = UiListViewProps<VNode>
 
-export interface VuiListViewSlots<T = any> extends VuiListSlots<T> {
-  toolbar?: () => VNode | VNodeArrayChildren;
-  header?: () => VNode | VNodeArrayChildren;
-  content?: () => VNode | VNodeArrayChildren;
-  footer?: () => VNode | VNodeArrayChildren;
+/**
+ * 列表页只留自己有语义的三个；页级四件套（toolbar / header / content / footer）
+ * 已上移 core `UiViewSlots`，由 `UiListViewProps` 带进来。
+ */
+export interface VuiListViewSlots<T = any> extends UiListSlots<T, VNode> {
   subMainFooter?: () => VNode | VNodeArrayChildren;
   defaultFilter?: () => VNode;
   customFilters?: CustomFilter[];

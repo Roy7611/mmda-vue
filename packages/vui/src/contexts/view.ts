@@ -96,16 +96,11 @@ export function createDefaultSearchParam(searchWord = ''): EntitySearchParam {
   return param
 }
 
-export interface VuiViewSlot {
-  sort?: number
-  node: VNode
-}
-export interface VuiViewSlots {
-  toolbar?: () => VNodeChild
-  header?: () => VNodeChild
-  content?: () => VNodeChild
-  footer?: () => VNodeChild
-  qrCode?: () => VNode
-  slots?: Array<VuiViewSlot>
-}
-export type VuiViewProps = UiViewProps & VuiViewSlots & UiProps
+/**
+ * 实体屏（详情 / 编辑）整页 props：只吃 core 的 `UiViewProps`
+ * （页级开关 + 页级插槽 toolbar / header / content / footer）。
+ *
+ * 原 `VuiViewSlots` 的 `qrCode` / `slots: {sort,node}[]` 全仓零消费（只有声明、没人设也没人读），
+ * 且后者是「预建节点 + 排序」形态、与 core 的惰性 `UiSlot` 不一致 —— 已删；真需要时按 `UiViewSlots` 加。
+ */
+export type VuiViewProps = UiViewProps<VNode>

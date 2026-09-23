@@ -41,8 +41,28 @@ import type {
 } from '@mmda/core'
 import { ReactUiLayout } from './layout'
 import { reactRenderProps } from '../render_props'
-import { uiRenderProps, type UiRenderProps } from '@mmda/core'
+import { placeFields, uiRenderProps, type UiRenderProps } from '@mmda/core'
 import { ReactUiContext } from '../contexts/react_ui_context'
+
+/** 组壳入参：`UiProps` + 容器与排法。与 vui 的 `GroupShellProps` 同形。 */
+interface GroupShellProps extends UiProps {
+  container?: 'card' | 'fieldset' | 'tab' | 'none'
+  region?: string
+  many?: boolean
+  orientation?: 'vertical' | 'horizontal'
+  cols?: number
+}
+
+/** 组入参（`buildFieldGroup` / `buildSubGroup` 第三参）。与 vui 的 `BuildGroupProps` 同形。 */
+interface BuildGroupProps extends UiProps {
+  orientation?: 'vertical' | 'horizontal' | 'row' | 'column'
+  direction?: 'vertical' | 'horizontal' | 'row' | 'column'
+  cols?: number
+  container?: 'card' | 'fieldset' | 'tab' | 'none'
+  showGroupActions?: boolean
+  skipRowDetail?: boolean
+  fieldVertical?: boolean
+}
 
 /** 裸 builder toast（无皮肤覆盖时抛错）。 */
 function noToast(_ctx: UiContext, _p: UiToastProps): void {
@@ -148,17 +168,90 @@ export class ReactUiBuilder extends AbstractUiBuilder<ReactNode> implements UiBu
   ): ReturnType<UiBuilder<ReactNode>['buildSelectView']> {
     throw new Error('UiBuilder.buildSelectView requires a skin package (@mmda/rui-*).')
   }
+  /** 详情页（只读表单）。 */
   buildDetailsView(
     context: UiContext,
     props?: Parameters<UiBuilder<ReactNode>['buildDetailsView']>[1],
   ): ReturnType<UiBuilder<ReactNode>['buildDetailsView']> {
-    throw new Error('UiBuilder.buildDetailsView requires a skin package (@mmda/rui-*).')
+    return this.buildView(context, props ?? {})
   }
+  /** 编辑页（create 走同一方法，由 `context.view` 区分）。 */
   buildEditView(
     context: UiContext,
     props?: Parameters<UiBuilder<ReactNode>['buildEditView']>[1],
   ): ReturnType<UiBuilder<ReactNode>['buildEditView']> {
-    throw new Error('UiBuilder.buildEditView requires a skin package (@mmda/rui-*).')
+    return this.buildView(context, props ?? {})
+  }
+
+  /**
+   * 详情 / 编辑页主体：按 `MetaUiGroup` 分区（primary / secondary / tails）逐个 {@link buildGroup}，
+   * 交给 core 的 `layoutPage` 排壳。与 vui `buildView` 的 cards 路径同构。
+   *
+   * 待接（vui 有、这边先不做）：顶栏 `buildDetailsTopbar` / `buildEditTopbar`（批 5）、
+   * `pageLayout: 'tabs'` + emphasized 字段条、附件面板、页面提示 banner、页脚动作条。
+   */
+  protected buildView(context: UiContext, props: UiViewProps): ReactNode {
+    const groups = context.metaUi.groups.filter(
+      (group) => !context.isGroupHidden(group),
+    )
+    // 行展开（rowDetail）里嵌的组由子表自己画，主视图不要再画一遍。
+    const nested = new Set(
+      groups
+        .map((group) => context.getGroupLogic(group)?.rowDetailGroup)
+        .filter((name): name is string => Boolean(name)),
+    )
+    const viewGroups = groups.filter((group) => !nested.has(group.groupName))
+    const primaryCols = props.primaryCols ?? 2
+
+    // 页级插槽（core `UiViewSlots`）：`content` 给了就整块接管主区，不再按组拼。
+    const pagePrimary: ReactNode[] = [
+      ...(props.header ? [props.header()] : []),
+    ]
+    const summary: ReactNode[] = []
+    let tails: ReactNode[] = []
+    if (props.content) {
+      pagePrimary.push(props.content())
+    } else {
+      pagePrimary.push(
+        ...AbstractUiBuilder.sortViewGroups(
+          viewGroups.filter((group) => group.isPrimary()),
+        ).map((group) =>
+          this.buildGroup(group, context, undefined, {
+            orientation: 'row',
+            cols: primaryCols,
+          }),
+        ),
+      )
+      if (props.showSecondaryGroup !== false) {
+        summary.push(
+          ...AbstractUiBuilder.sortViewGroups(
+            viewGroups.filter((group) => group.isSecondary()),
+          ).map((group) =>
+            this.buildGroup(group, context, undefined, {
+              orientation: 'column',
+              cols: 1,
+            }),
+          ),
+        )
+      }
+      tails = AbstractUiBuilder.sortViewGroups(
+        viewGroups.filter((group) => group.isTails()),
+      ).map((group) =>
+        this.buildGroup(group, context, undefined, {
+          orientation: 'row',
+          cols: primaryCols,
+        }),
+      )
+    }
+
+    // 默认顶栏（buildDetailsTopbar / buildEditTopbar）待批 5 —— core 现在只给了 `toolbar` 插槽。
+    return this.layout.layoutPage({
+      pageLayout: props.pageLayout === 'tabs' ? 'tabs' : 'cards',
+      toolbar: props.toolbar?.(),
+      primary: pagePrimary,
+      summary,
+      tails,
+    })
   }
   buildSearchField(
     field: Parameters<UiBuilder<ReactNode>['buildSearchField']>[0],
@@ -206,19 +299,165 @@ export class ReactUiBuilder extends AbstractUiBuilder<ReactNode> implements UiBu
   ): ReturnType<UiBuilder<ReactNode>['buildFilterBar']> {
     throw new Error('UiBuilder.buildFilterBar requires a skin package (@mmda/rui-*).')
   }
+  /** 主表字段组（`group.many === false`）。与 vui `buildFieldGroup` 同形。 */
   buildFieldGroup(
     group: Parameters<UiBuilder<ReactNode>['buildFieldGroup']>[0],
     context: UiContext,
     props?: Parameters<UiBuilder<ReactNode>['buildFieldGroup']>[2],
   ): ReturnType<UiBuilder<ReactNode>['buildFieldGroup']> {
-    throw new Error('UiBuilder.buildFieldGroup requires a skin package (@mmda/rui-*).')
+    return this.buildGroup(group, context, undefined, props ?? {})
   }
+
+  /** 子表组（`group.many === true`）。 */
   buildSubGroup(
     group: Parameters<UiBuilder<ReactNode>['buildSubGroup']>[0],
     context: UiContext,
     props?: Parameters<UiBuilder<ReactNode>['buildSubGroup']>[2],
   ): ReturnType<UiBuilder<ReactNode>['buildSubGroup']> {
-    throw new Error('UiBuilder.buildSubGroup requires a skin package (@mmda/rui-*).')
+    return this.buildGroup(group, context, undefined, props ?? {})
+  }
+
+  /**
+   * 组拼屏：字段组拼字段行（`placeFields` 装箱 + `renderFieldRow`，编辑态自动选编辑/显示），
+   * 子表走 `factory.grid`；两者都过 {@link wrapGroupSlots}（前后插片）与 {@link wrapGroup}（壳）。
+   */
+  protected buildGroup(
+    group: MetaUiGroup,
+    context: UiContext,
+    children: ReactNode[] | null | undefined,
+    props: BuildGroupProps,
+  ): ReactNode {
+    if (context.isGroupHidden(group)) {
+      return this.renderer.render(
+        'span',
+        { attributes: { htmlAttributes: { hidden: true } } },
+        [],
+      )
+    }
+    // 三个位置正交：customEditor / customRenderer 换中间那块，插片由 wrapGroupSlots 包在外层。
+    const groupLogic = context.getGroupLogic(group)
+    const replaceView = context.editing
+      ? (groupLogic?.customEditor ?? groupLogic?.customRenderer)
+      : groupLogic?.customRenderer
+    const body =
+      typeof replaceView === 'function'
+        ? replaceView(group, context, props)
+        : group.many && group.groupUi
+          ? this.buildSubGroupBody(group, context, props)
+          : this.buildFieldGroupBody(group, context, children, props)
+    return this.wrapGroup(
+      group,
+      this.wrapGroupSlots(group, context, props, body),
+      {
+        container: props.container ?? 'card',
+        class: props.class,
+        many: group.many,
+        region: AbstractUiBuilder.groupZone(group),
+      },
+    )
+  }
+
+  /** 字段组内容：可见字段装箱后逐个成行；坐标写进字段行（与 vui 同一套 `placeFields`）。 */
+  protected buildFieldGroupBody(
+    group: MetaUiGroup,
+    context: UiContext,
+    children: ReactNode[] | null | undefined,
+    props: BuildGroupProps,
+  ): ReactNode {
+    const gridCols = (props.cols as 1 | 2 | 3) ?? 2
+    const visible = (group.fields ?? []).filter(
+      (field) => !context.isFieldHidden(field),
+    )
+    const packed = placeFields(
+      gridCols,
+      visible.map((field) => ({
+        colSpan: field.colSpan,
+        rowSpan: field.rowSpan,
+      })),
+    )
+    const fields =
+      children ??
+      visible.map((field, index) => {
+        const cell = packed[index]!
+        return this.renderFieldRow(field, context, {
+          ...(props.fieldVertical ? { fieldVertical: true } : {}),
+          gridColumn: `${cell.column + 1} / span ${cell.colSpan}`,
+          gridRow: `${cell.row + 1} / span ${cell.rowSpan}`,
+        })
+      })
+    const column = (props.orientation ?? props.direction) === 'column'
+    this.layout.fieldGroupLayout = {
+      type: column ? 'column' : 'grid',
+      gridCols,
+    }
+    return this.layout.layoutFieldGroup({ fields })
+  }
+
+  /**
+   * 子表内容：可编表格（core `grid(metaUi, { rows })` 注入 fields / 主键 / objName）。
+   * 行展开、图片墙、树形子表、外键列等分支待接 —— 先给「能增删改的最小可用」。
+   */
+  protected buildSubGroupBody(
+    group: MetaUiGroup,
+    context: UiContext,
+    _props: BuildGroupProps,
+  ): ReactNode {
+    const metaUi = group.groupUi
+    if (!metaUi) return this.renderer.render('div', {}, [])
+    const rows =
+      ((context.model as Record<string, unknown>)[group.groupName] as
+        | Entity[]
+        | undefined) ?? []
+    return this.grid(metaUi, { rows })
+  }
+
+  /**
+   * 组内容前后插片：`prepend` + 内容 + `append`（编辑态用 `customEditPrepend` / `customEditAppend`）。
+   * 与 `customEditor` / `customRenderer` **正交**，与 vui `wrapGroupSlots` 同形。
+   */
+  protected wrapGroupSlots(
+    group: MetaUiGroup,
+    context: UiContext,
+    props: UiProps,
+    body: ReactNode | ReactNode[],
+  ): ReactNode[] {
+    const groupLogic = context.getGroupLogic(group)
+    const prependView = context.editing
+      ? groupLogic?.customEditPrepend
+      : groupLogic?.customPrepend
+    const appendView = context.editing
+      ? groupLogic?.customEditAppend
+      : groupLogic?.customAppend
+    return [
+      ...(typeof prependView === 'function'
+        ? [prependView(group, context, props)]
+        : []),
+      ...(Array.isArray(body) ? body : [body]),
+      ...(typeof appendView === 'function'
+        ? [appendView(group, context, props)]
+        : []),
+    ]
+  }
+
+  /** 组壳：`none` 直出、`fieldset` 走 core 的老式 legend、其余用 `factory.card`（`tab` 暂同 card）。 */
+  protected wrapGroup(
+    group: MetaUiGroup,
+    body: ReactNode | ReactNode[],
+    props: GroupShellProps,
+  ): ReactNode {
+    const shell = props.container ?? 'card'
+    if (shell === 'none') {
+      return Array.isArray(body)
+        ? this.renderer.render('div', {}, body)
+        : body
+    }
+    if (shell === 'fieldset') {
+      return this.buildGroupFieldSet(group, body, props)
+    }
+    return this.factory.card(
+      { title: group.groupLabel, class: this.groupWrapClass(group, props) },
+      { default: () => [this.wrapGroupContent(body)] },
+    )
   }
 
   // —— 插件视图 ——————————————

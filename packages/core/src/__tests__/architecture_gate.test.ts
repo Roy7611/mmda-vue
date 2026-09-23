@@ -50,8 +50,13 @@ describe('architecture gate', () => {
     expect(offenders).toEqual([])
   })
 
-  it('非测试源码 any 数量不超过 267（防止重新泛滥，只算 .ts 不含 .d.ts）', () => {
-      // 267 = 263(HEAD) + 4 处渲染器类型参数默认值：
+  it('非测试源码 any 数量不超过 272（防止重新泛滥，只算 .ts 不含 .d.ts）', () => {
+      // 272 = 270 + 2：UiListSlots 的 `<T = any, TNode = any>` 默认值
+      //  （把 vui 私扩的列表数据区插槽上移 core 时新增）。
+      // 270 = 267 + 3 处页级插槽 props 的类型参数默认值：
+      //   UiViewSlots / UiViewProps / UiListViewProps 各 `<TNode = any>`
+      //  （把 vui 私扩的 toolbar / header / content / footer 上移 core 时新增）。
+      // 更早的 267 = 263(HEAD) + 4 处渲染器类型参数默认值：
       //   UiFieldCellRenderer / UiGroupRenderer 各 `<TNode = any>`，
       //   MetaUiFieldLogic / MetaUiGroupLogic 各加 `<… , TNode = any>`。
       // 与既有 `UiFactory<TNode = any>` / `UiFieldRenderer<TNode = any>` 同惯例，不是用 any 糊逻辑。
@@ -64,7 +69,7 @@ describe('architecture gate', () => {
           (readFileSync(file, 'utf8').match(/\bany\b/g)?.length ?? 0),
         0,
       )
-      expect(count).toBeLessThanOrEqual(267)
+      expect(count).toBeLessThanOrEqual(272)
     })
 
     it('业务包 *Logic.ts 不得 import UI 框架（vue / vue-router / vue-i18n / react）', () => {
